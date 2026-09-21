@@ -38,6 +38,14 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   bool saving = false;
   String? country;
   String? gender;
+  String? nativeLanguage;
+  String? learningLanguage;
+  String languageLevel = 'beginner';
+  final city = TextEditingController();
+  final profession = TextEditingController();
+  final travel = TextEditingController();
+  final goals = TextEditingController();
+  final interests = TextEditingController();
   DateTime? birthDate;
   XFile? profileImage;
   XFile? coverImage;
@@ -382,7 +390,7 @@ class _PremiumTile extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 11),
         child: ListTile(
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
-          leading: CircleAvatar(child: Icon(icon)),
+          leading: CircleAvatar(radius: 18, child: Icon(icon, size: 19)),
           title: Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
           subtitle: Text(subtitle),
           trailing: const Icon(Icons.chevron_right_rounded),
