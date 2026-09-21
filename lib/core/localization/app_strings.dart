@@ -3,29 +3,39 @@ class AppStrings {
   final String code;
 
   static const _values = <String, List<String>>{
-    'ar': ['اختر لغة التطبيق','يمكنك تغيير اللغة في أي وقت من إعدادات WorldVoice.','ابحث عن لغة'],
-    'en': ['Choose your language','You can change this anytime in WorldVoice settings.','Search languages'],
-    'es': ['Elige tu idioma','Puedes cambiarlo en cualquier momento en los ajustes de WorldVoice.','Buscar idiomas'],
-    'fr': ['Choisissez votre langue','Vous pouvez la modifier à tout moment dans les paramètres de WorldVoice.','Rechercher une langue'],
-    'zh': ['选择你的语言','你可以随时在 WorldVoice 设置中更改语言。','搜索语言'],
-    'ko': ['언어를 선택하세요','WorldVoice 설정에서 언제든지 변경할 수 있습니다.','언어 검색'],
-    'ja': ['言語を選択','WorldVoiceの設定からいつでも変更できます。','言語を検索'],
-    'ru': ['Выберите язык','Язык можно изменить в любое время в настройках WorldVoice.','Поиск языка'],
-    'tr': ['Dilini seç','WorldVoice ayarlarından istediğin zaman değiştirebilirsin.','Dil ara'],
-    'ur': ['اپنی زبان منتخب کریں','آپ WorldVoice کی ترتیبات میں کسی بھی وقت زبان بدل سکتے ہیں۔','زبان تلاش کریں'],
-    'de': ['Wähle deine Sprache','Du kannst sie jederzeit in den WorldVoice-Einstellungen ändern.','Sprachen suchen'],
-    'pt': ['Escolha seu idioma','Você pode alterá-lo a qualquer momento nas configurações do WorldVoice.','Buscar idiomas'],
-    'fa': ['زبان خود را انتخاب کنید','می‌توانید هر زمان در تنظیمات WorldVoice زبان را تغییر دهید.','جستجوی زبان'],
-    'id': ['Pilih bahasa Anda','Anda dapat mengubahnya kapan saja di pengaturan WorldVoice.','Cari bahasa'],
-    'th': ['เลือกภาษาของคุณ','คุณสามารถเปลี่ยนได้ทุกเมื่อในการตั้งค่า WorldVoice','ค้นหาภาษา'],
-    'hi': ['अपनी भाषा चुनें','आप WorldVoice सेटिंग में इसे कभी भी बदल सकते हैं।','भाषा खोजें'],
-    'it': ['Scegli la tua lingua','Puoi cambiarla in qualsiasi momento nelle impostazioni di WorldVoice.','Cerca lingue'],
+    'ar': ['اختر لغة التطبيق','يمكنك تغيير اللغة في أي وقت من إعدادات WorldVoice.','ابحث عن لغة','تحدث. تواصل. تعلّم.','تواصل مع العالم وتعلّم اللغات بصوتك.','ابدأ الآن','اللغة','تسجيل الدخول','اختر طريقة المتابعة إلى WorldVoice.','المتابعة باستخدام Google','المتابعة باستخدام Apple','المتابعة باستخدام البريد الإلكتروني','بالمتابعة، أنت توافق على شروط الاستخدام وسياسة الخصوصية.'],
+    'en': ['Choose your language','You can change this anytime in WorldVoice settings.','Search languages','Speak. Connect. Learn.','Connect with the world and learn languages through real conversations.','Get started','Language','Sign in','Choose how you want to continue to WorldVoice.','Continue with Google','Continue with Apple','Continue with Email','By continuing, you agree to the Terms of Use and Privacy Policy.'],
+    'es': ['Elige tu idioma','Puedes cambiarlo en cualquier momento en los ajustes de WorldVoice.','Buscar idiomas','Habla. Conecta. Aprende.','Conecta con el mundo y aprende idiomas con conversaciones reales.','Empezar','Idioma','Iniciar sesión','Elige cómo quieres continuar a WorldVoice.','Continuar con Google','Continuar con Apple','Continuar con correo electrónico','Al continuar, aceptas los Términos de uso y la Política de privacidad.'],
+    'fr': ['Choisissez votre langue','Vous pouvez la modifier à tout moment dans les paramètres de WorldVoice.','Rechercher une langue','Parlez. Échangez. Apprenez.','Connectez-vous au monde et apprenez grâce à de vraies conversations.','Commencer','Langue','Se connecter','Choisissez comment continuer vers WorldVoice.','Continuer avec Google','Continuer avec Apple','Continuer avec e-mail','En continuant, vous acceptez les Conditions d’utilisation et la Politique de confidentialité.'],
+    'zh': ['选择你的语言','你可以随时在 WorldVoice 设置中更改语言。','搜索语言','开口说。去连接。去学习。','连接世界，在真实对话中学习语言。','开始','语言','登录','选择登录 WorldVoice 的方式。','使用 Google 继续','使用 Apple 继续','使用电子邮件继续','继续即表示你同意使用条款和隐私政策。'],
+    'ko': ['언어를 선택하세요','WorldVoice 설정에서 언제든지 변경할 수 있습니다.','언어 검색','말하고, 연결하고, 배우세요.','세계와 연결하고 실제 대화로 언어를 배우세요.','시작하기','언어','로그인','WorldVoice에 계속할 방법을 선택하세요.','Google로 계속','Apple로 계속','이메일로 계속','계속하면 이용약관 및 개인정보 처리방침에 동의하게 됩니다.'],
+    'ja': ['言語を選択','WorldVoiceの設定からいつでも変更できます。','言語を検索','話す。つながる。学ぶ。','世界とつながり、リアルな会話で言語を学びましょう。','始める','言語','ログイン','WorldVoiceへのログイン方法を選択してください。','Googleで続ける','Appleで続ける','メールで続ける','続行すると、利用規約とプライバシーポリシーに同意したものとみなされます。'],
+    'ru': ['Выберите язык','Язык можно изменить в любое время в настройках WorldVoice.','Поиск языка','Говори. Общайся. Учись.','Общайтесь с миром и изучайте языки в живых разговорах.','Начать','Язык','Войти','Выберите способ входа в WorldVoice.','Продолжить с Google','Продолжить с Apple','Продолжить с Email','Продолжая, вы соглашаетесь с Условиями использования и Политикой конфиденциальности.'],
+    'tr': ['Dilini seç','WorldVoice ayarlarından istediğin zaman değiştirebilirsin.','Dil ara','Konuş. Bağlan. Öğren.','Dünyayla bağlantı kur ve gerçek sohbetlerle dil öğren.','Başla','Dil','Giriş yap','WorldVoice’a nasıl devam etmek istediğini seç.','Google ile devam et','Apple ile devam et','E-posta ile devam et','Devam ederek Kullanım Koşulları ve Gizlilik Politikası’nı kabul edersin.'],
+    'ur': ['اپنی زبان منتخب کریں','آپ WorldVoice کی ترتیبات میں کسی بھی وقت زبان بدل سکتے ہیں۔','زبان تلاش کریں','بولیں۔ جڑیں۔ سیکھیں۔','دنیا سے جڑیں اور حقیقی گفتگو کے ذریعے زبانیں سیکھیں۔','شروع کریں','زبان','سائن اِن','WorldVoice میں جاری رکھنے کا طریقہ منتخب کریں۔','Google کے ساتھ جاری رکھیں','Apple کے ساتھ جاری رکھیں','ای میل کے ساتھ جاری رکھیں','جاری رکھ کر آپ استعمال کی شرائط اور رازداری کی پالیسی سے اتفاق کرتے ہیں۔'],
+    'de': ['Wähle deine Sprache','Du kannst sie jederzeit in den WorldVoice-Einstellungen ändern.','Sprachen suchen','Sprechen. Verbinden. Lernen.','Verbinde dich mit der Welt und lerne Sprachen durch echte Gespräche.','Loslegen','Sprache','Anmelden','Wähle, wie du mit WorldVoice fortfahren möchtest.','Mit Google fortfahren','Mit Apple fortfahren','Mit E-Mail fortfahren','Wenn du fortfährst, stimmst du den Nutzungsbedingungen und der Datenschutzrichtlinie zu.'],
+    'pt': ['Escolha seu idioma','Você pode alterá-lo a qualquer momento nas configurações do WorldVoice.','Buscar idiomas','Fale. Conecte-se. Aprenda.','Conecte-se com o mundo e aprenda idiomas em conversas reais.','Começar','Idioma','Entrar','Escolha como deseja continuar no WorldVoice.','Continuar com Google','Continuar com Apple','Continuar com e-mail','Ao continuar, você concorda com os Termos de Uso e a Política de Privacidade.'],
+    'fa': ['زبان خود را انتخاب کنید','می‌توانید هر زمان در تنظیمات WorldVoice زبان را تغییر دهید.','جستجوی زبان','صحبت کن. ارتباط بگیر. یاد بگیر.','با دنیا ارتباط بگیر و با گفت‌وگوهای واقعی زبان یاد بگیر.','شروع کنید','زبان','ورود','روش ورود به WorldVoice را انتخاب کنید.','ادامه با Google','ادامه با Apple','ادامه با ایمیل','با ادامه دادن، با شرایط استفاده و سیاست حفظ حریم خصوصی موافقت می‌کنید.'],
+    'id': ['Pilih bahasa Anda','Anda dapat mengubahnya kapan saja di pengaturan WorldVoice.','Cari bahasa','Bicara. Terhubung. Belajar.','Terhubung dengan dunia dan pelajari bahasa lewat percakapan nyata.','Mulai','Bahasa','Masuk','Pilih cara untuk melanjutkan ke WorldVoice.','Lanjutkan dengan Google','Lanjutkan dengan Apple','Lanjutkan dengan Email','Dengan melanjutkan, Anda menyetujui Ketentuan Penggunaan dan Kebijakan Privasi.'],
+    'th': ['เลือกภาษาของคุณ','คุณสามารถเปลี่ยนได้ทุกเมื่อในการตั้งค่า WorldVoice','ค้นหาภาษา','พูด เชื่อมต่อ เรียนรู้','เชื่อมต่อกับโลกและเรียนรู้ภาษาผ่านบทสนทนาจริง','เริ่มต้น','ภาษา','เข้าสู่ระบบ','เลือกวิธีเข้าสู่ WorldVoice','ดำเนินการต่อด้วย Google','ดำเนินการต่อด้วย Apple','ดำเนินการต่อด้วยอีเมล','เมื่อดำเนินการต่อ คุณยอมรับข้อกำหนดการใช้งานและนโยบายความเป็นส่วนตัว'],
+    'hi': ['अपनी भाषा चुनें','आप WorldVoice सेटिंग में इसे कभी भी बदल सकते हैं।','भाषा खोजें','बोलें। जुड़ें। सीखें।','दुनिया से जुड़ें और वास्तविक बातचीत से भाषाएँ सीखें।','शुरू करें','भाषा','साइन इन करें','WorldVoice में आगे बढ़ने का तरीका चुनें।','Google से जारी रखें','Apple से जारी रखें','ईमेल से जारी रखें','जारी रखकर आप उपयोग की शर्तों और गोपनीयता नीति से सहमत होते हैं।'],
+    'it': ['Scegli la tua lingua','Puoi cambiarla in qualsiasi momento nelle impostazioni di WorldVoice.','Cerca lingue','Parla. Connettiti. Impara.','Connettiti con il mondo e impara le lingue con conversazioni reali.','Inizia','Lingua','Accedi','Scegli come continuare su WorldVoice.','Continua con Google','Continua con Apple','Continua con e-mail','Continuando, accetti i Termini di utilizzo e l’Informativa sulla privacy.'],
   };
 
   List<String> get _text => _values[code] ?? _values['en']!;
   String get chooseLanguage => _text[0];
   String get changeAnytime => _text[1];
   String get searchLanguages => _text[2];
+  String get tagline => _text[3];
+  String get welcomeBody => _text[4];
+  String get getStarted => _text[5];
+  String get language => _text[6];
+  String get signIn => _text[7];
+  String get signInBody => _text[8];
+  String get google => _text[9];
+  String get apple => _text[10];
+  String get email => _text[11];
+  String get legal => _text[12];
 
   static AppStrings of(String? code) => AppStrings._(code ?? 'en');
 }
