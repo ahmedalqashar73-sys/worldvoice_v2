@@ -65,7 +65,13 @@ class _AuthOptionsScreenState extends State<AuthOptionsScreen> {
       await AuthService.signInWithGoogle();
       _message(_rtl ? 'تم تسجيل الدخول بنجاح ✓' : 'Signed in successfully ✓', success: true);
     } catch (e) {
-      _message(_rtl ? 'تعذر تسجيل الدخول عبر Google: $e' : 'Google sign-in failed: $e');
+      final canceled = e.toString().contains('canceled') ||
+          e.toString().contains('Cancelled by user');
+      if (!canceled) {
+        _message(
+          _rtl ? 'تعذر تسجيل الدخول عبر Google. حاول مرة أخرى.' : 'Google sign-in failed. Please try again.',
+        );
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
