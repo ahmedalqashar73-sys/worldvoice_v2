@@ -14,7 +14,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   final name=TextEditingController(), username=TextEditingController(), bio=TextEditingController(),
       city=TextEditingController(), profession=TextEditingController(), travel=TextEditingController(),
       goals=TextEditingController(), interests=TextEditingController();
-  bool? usernameAvailable; bool saving=false; bool cityVisible=true;
+  bool? usernameAvailable; bool saving=false;
   String? country, gender, nativeLanguage, learningLanguage;
   String languageLevel='beginner'; DateTime? birthDate;
 
@@ -51,7 +51,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       tx.set(handle,{'uid':user.uid,'createdAt':FieldValue.serverTimestamp()});
       tx.set(db.collection('users').doc(user.uid),{
         'uid':user.uid,'email':user.email,'displayName':name.text.trim(),'username':normalizedUsername,
-        'bio':bio.text.trim(),'country':country,'city':city.text.trim(),'cityVisible':cityVisible,'gender':gender,
+        'bio':bio.text.trim(),'country':country,'city':city.text.trim(),'gender':gender,
         'birthDate':birthDate==null?null:Timestamp.fromDate(birthDate!),'nativeLanguage':nativeLanguage,
         'learningLanguages':learningLanguage==null?<String>[]:[learningLanguage],'languageLevel':languageLevel,
         'profession':profession.text.trim(),'travel':travel.text.trim(),'learningGoals':goals.text.trim(),
@@ -68,7 +68,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   @override Widget build(BuildContext context){
     final rtl=const {'ar','ur','fa'}.contains(widget.localeController.locale?.languageCode); final cs=Theme.of(context).colorScheme;
-    String genderLabel=gender=='male'?(rtl?'ذكر':'Male'):gender=='female'?(rtl?'أنثى':'Female'):gender=='prefer_not_to_say'?(rtl?'أفضل عدم الإجابة':'Prefer not to say'):(rtl?'اختر الجنس':'Choose gender');
     return Directionality(textDirection:rtl?TextDirection.rtl:TextDirection.ltr,child:Scaffold(body:SafeArea(child:ListView(
       padding:const EdgeInsets.fromLTRB(18,16,18,36),children:[
       Text(rtl?'أنشئ هويتك في WorldVoice':'Create your WorldVoice identity',style:Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight:FontWeight.w900)),
@@ -83,9 +82,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       Stack(alignment:rtl?Alignment.bottomLeft:Alignment.bottomRight,children:[_Field(bio,rtl?'ماذا عنك؟':'About you',Icons.auto_awesome_rounded,lines:4),Padding(padding:const EdgeInsets.all(6),child:IconButton.filledTonal(onPressed:(){},icon:const Icon(Icons.mic_rounded,size:18)))]),
       const SizedBox(height:12),
       _Tile(Icons.public_rounded,rtl?'الدولة':'Country',country??(rtl?'اختر دولتك':'Choose country'),()async{final v=await choose(rtl?'الدولة':'Country',countries);if(v!=null)setState(()=>country=v);}),
-      _Field(city,rtl?'المدينة':'City',Icons.location_city_outlined),SwitchListTile(value:cityVisible,onChanged:(v)=>setState(()=>cityVisible=v),title:Text(rtl?'إظهار المدينة في البروفايل':'Show city on profile'),secondary:const Icon(Icons.visibility_outlined,size:20)),
+      _Field(city,rtl?'المدينة':'City',Icons.location_city_outlined),const SizedBox(height:10),
       _Tile(Icons.cake_outlined,rtl?'تاريخ الميلاد':'Date of birth',birthDate==null?(rtl?'اليوم / الشهر / السنة':'Day / month / year'):'${birthDate!.day} / ${birthDate!.month} / ${birthDate!.year}',pickBirthDate),
-      _Tile(Icons.person_outline,rtl?'الجنس':'Gender',genderLabel,()async{final v=await choose(rtl?'الجنس':'Gender',[rtl?'ذكر':'Male',rtl?'أنثى':'Female',rtl?'أفضل عدم الإجابة':'Prefer not to say']);if(v!=null)setState(()=>gender=v==(rtl?'ذكر':'Male')?'male':v==(rtl?'أنثى':'Female')?'female':'prefer_not_to_say');}),
+      _GenderPicker(value:gender,rtl:rtl,onChanged:(v)=>setState(()=>gender=v)),
       _Tile(Icons.translate_rounded,rtl?'اللغة الأم':'Native language',nativeLanguage??(rtl?'اختر اللغة':'Choose language'),()async{final v=await choose(rtl?'اللغة الأم':'Native language',languages);if(v!=null)setState(()=>nativeLanguage=v);}),
       _Tile(Icons.language_rounded,rtl?'اللغة التي تتعلمها':'Learning language',learningLanguage??(rtl?'اختر اللغة':'Choose language'),()async{final v=await choose(rtl?'لغة التعلم':'Learning language',languages);if(v!=null)setState(()=>learningLanguage=v);}),
       _Tile(Icons.trending_up_rounded,rtl?'المستوى':'Level',languageLevel,()async{final v=await choose(rtl?'المستوى':'Level',['beginner','intermediate','advanced']);if(v!=null)setState(()=>languageLevel=v);}),
@@ -105,4 +104,39 @@ class _Field extends StatelessWidget{
 class _Tile extends StatelessWidget{
   const _Tile(this.icon,this.title,this.subtitle,this.tap);final IconData icon;final String title,subtitle;final VoidCallback tap;
   @override Widget build(BuildContext context)=>Card(margin:const EdgeInsets.only(bottom:10),child:ListTile(dense:true,contentPadding:const EdgeInsets.symmetric(horizontal:14,vertical:5),leading:CircleAvatar(radius:17,child:Icon(icon,size:18)),title:Text(title,style:const TextStyle(fontWeight:FontWeight.w800)),subtitle:Text(subtitle),trailing:const Icon(Icons.chevron_right_rounded,size:20),onTap:tap));
+}
+
+class _BirthFields extends StatefulWidget {
+  const _BirthFields({required this.value,required this.rtl,required this.onChanged});
+  final DateTime? value; final bool rtl; final ValueChanged<DateTime?> onChanged;
+  @override State<_BirthFields> createState()=>_BirthFieldsState();
+}
+class _BirthFieldsState extends State<_BirthFields>{
+  late final day=TextEditingController(text:widget.value?.day.toString()??'');
+  late final month=TextEditingController(text:widget.value?.month.toString()??'');
+  late final year=TextEditingController(text:widget.value?.year.toString()??'');
+  void update(){final d=int.tryParse(day.text),m=int.tryParse(month.text),y=int.tryParse(year.text);if(d!=null&&m!=null&&y!=null){try{final v=DateTime(y,m,d);if(v.year==y&&v.month==m&&v.day==d&&v.isBefore(DateTime.now()))widget.onChanged(v);else widget.onChanged(null);}catch(_){widget.onChanged(null);}}}
+  @override void dispose(){day.dispose();month.dispose();year.dispose();super.dispose();}
+  @override Widget build(BuildContext context)=>Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+    Text(widget.rtl?'تاريخ الميلاد':'Date of birth',style:const TextStyle(fontWeight:FontWeight.w800)),
+    const SizedBox(height:8),
+    Row(children:[
+      Expanded(child:TextField(controller:day,onChanged:(_)=>update(),keyboardType:TextInputType.number,maxLength:2,decoration:InputDecoration(counterText:'',labelText:widget.rtl?'اليوم':'Day'))),
+      const SizedBox(width:8),
+      Expanded(child:TextField(controller:month,onChanged:(_)=>update(),keyboardType:TextInputType.number,maxLength:2,decoration:InputDecoration(counterText:'',labelText:widget.rtl?'الشهر':'Month'))),
+      const SizedBox(width:8),
+      Expanded(child:TextField(controller:year,onChanged:(_)=>update(),keyboardType:TextInputType.number,maxLength:4,decoration:InputDecoration(counterText:'',labelText:widget.rtl?'السنة':'Year'))),
+    ]),const SizedBox(height:10)]);
+}
+class _GenderPicker extends StatelessWidget{
+  const _GenderPicker({required this.value,required this.rtl,required this.onChanged});
+  final String? value;final bool rtl;final ValueChanged<String> onChanged;
+  @override Widget build(BuildContext context)=>Card(margin:const EdgeInsets.only(bottom:10),child:Padding(padding:const EdgeInsets.all(12),child:Row(children:[
+    Text(rtl?'الجنس':'Gender',style:const TextStyle(fontWeight:FontWeight.w800)),const Spacer(),
+    IconButton.filledTonal(onPressed:()=>onChanged('male'),tooltip:rtl?'ذكر':'Male',icon:Icon(Icons.male_rounded,color:Colors.blue,size:25),style:IconButton.styleFrom(side:value=='male'?const BorderSide(width:2):null)),
+    const SizedBox(width:8),
+    IconButton.filledTonal(onPressed:()=>onChanged('female'),tooltip:rtl?'أنثى':'Female',icon:Icon(Icons.female_rounded,color:Colors.pink,size:25),style:IconButton.styleFrom(side:value=='female'?const BorderSide(width:2):null)),
+    const SizedBox(width:8),
+    IconButton.outlined(onPressed:()=>onChanged('prefer_not_to_say'),tooltip:rtl?'أفضل عدم الإجابة':'Prefer not to say',icon:const Icon(Icons.remove_rounded,size:22)),
+  ])));
 }
