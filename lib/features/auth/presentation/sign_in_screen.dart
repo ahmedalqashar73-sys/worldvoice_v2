@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/localization/app_strings.dart';
 import '../../../core/localization/locale_controller.dart';
 
 class SignInScreen extends StatelessWidget {
@@ -8,6 +9,7 @@ class SignInScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppStrings.of(localeController.locale?.languageCode);
     final rtl = const {'ar','ur','fa'}.contains(localeController.locale?.languageCode);
     return Directionality(
       textDirection: rtl ? TextDirection.rtl : TextDirection.ltr,
@@ -19,11 +21,11 @@ class SignInScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(rtl ? 'تسجيل الدخول' : 'Sign in',
+                Text(strings.signIn,
                     style: Theme.of(context).textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.w900)),
                 const SizedBox(height: 10),
                 Text(
-                  rtl ? 'اختر الطريقة التي تريد استخدامها للمتابعة إلى WorldVoice.' : 'Choose how you want to continue to WorldVoice.',
+                  strings.signInBody,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: Theme.of(context).colorScheme.onSurface.withValues(alpha: .65),
                   ),
@@ -31,24 +33,24 @@ class SignInScreen extends StatelessWidget {
                 const SizedBox(height: 36),
                 _AuthButton(
                   icon: Icons.g_mobiledata_rounded,
-                  label: rtl ? 'المتابعة باستخدام Google' : 'Continue with Google',
+                  label: strings.google,
                   onPressed: () => _notConnected(context, rtl),
                 ),
                 const SizedBox(height: 12),
                 _AuthButton(
                   icon: Icons.apple_rounded,
-                  label: rtl ? 'المتابعة باستخدام Apple' : 'Continue with Apple',
+                  label: strings.apple,
                   onPressed: () => _notConnected(context, rtl),
                 ),
                 const SizedBox(height: 12),
                 _AuthButton(
                   icon: Icons.mail_outline_rounded,
-                  label: rtl ? 'المتابعة باستخدام البريد الإلكتروني' : 'Continue with Email',
+                  label: strings.email,
                   onPressed: () => _notConnected(context, rtl),
                 ),
                 const Spacer(),
                 Text(
-                  rtl ? 'بالمتابعة، أنت توافق على شروط الاستخدام وسياسة الخصوصية.' : 'By continuing, you agree to the Terms of Use and Privacy Policy.',
+                  strings.legal,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
