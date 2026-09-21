@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/localization/app_strings.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../../../core/localization/supported_language.dart';
 import '../../auth/presentation/sign_in_screen.dart';
@@ -44,6 +45,7 @@ class WelcomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppStrings.of(localeController.locale?.languageCode);
     final rtl = const {'ar','ur','fa'}.contains(localeController.locale?.languageCode);
     return Directionality(
       textDirection: rtl ? TextDirection.rtl : TextDirection.ltr,
@@ -58,7 +60,7 @@ class WelcomeScreen extends StatelessWidget {
                   child: IconButton.filledTonal(
                     onPressed: () => _languages(context),
                     icon: const Icon(Icons.language_rounded),
-                    tooltip: 'Language',
+                    tooltip: strings.language,
                   ),
                 ),
                 const Spacer(),
@@ -75,7 +77,7 @@ class WelcomeScreen extends StatelessWidget {
                 Text('WorldVoice', style: Theme.of(context).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.w900)),
                 const SizedBox(height: 12),
                 Text(
-                  rtl ? 'تحدث. تواصل. تعلّم.' : 'Speak. Connect. Learn.',
+                  strings.tagline,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     color: Theme.of(context).colorScheme.onSurface.withValues(alpha: .68),
@@ -83,7 +85,7 @@ class WelcomeScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 14),
                 Text(
-                  rtl ? 'تواصل مع العالم وتعلّم اللغات بصوتك.' : 'Connect with the world and learn languages through real conversations.',
+                  strings.welcomeBody,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
@@ -96,7 +98,7 @@ class WelcomeScreen extends StatelessWidget {
                       context,
                       MaterialPageRoute(builder: (_) => SignInScreen(localeController: localeController)),
                     ),
-                    child: Text(rtl ? 'ابدأ الآن' : 'Get started', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+                    child: Text(strings.getStarted, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
                   ),
                 ),
               ],
