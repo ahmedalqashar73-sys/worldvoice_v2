@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../core/localization/locale_controller.dart';
 
@@ -38,6 +39,16 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   String? country;
   String? gender;
   DateTime? birthDate;
+  XFile? profileImage;
+  XFile? coverImage;
+  final city = TextEditingController();
+  final job = TextEditingController();
+  final travel = TextEditingController();
+  final goals = TextEditingController();
+  final hobbies = TextEditingController();
+  String nativeLanguage = '';
+  String learningLanguage = '';
+  String languageLevel = 'beginner';
   String? nativeLanguage;
   String? learningLanguage;
   String languageLevel = 'beginner';
@@ -52,6 +63,31 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   static const countries = <String>[
     'Afghanistan','Albania','Algeria','Andorra','Angola','Antigua and Barbuda','Argentina','Armenia','Australia','Austria','Azerbaijan','Bahamas','Bahrain','Bangladesh','Barbados','Belarus','Belgium','Belize','Benin','Bhutan','Bolivia','Bosnia and Herzegovina','Botswana','Brazil','Brunei','Bulgaria','Burkina Faso','Burundi','Cabo Verde','Cambodia','Cameroon','Canada','Central African Republic','Chad','Chile','China','Colombia','Comoros','Congo','Costa Rica','Croatia','Cuba','Cyprus','Czechia','Denmark','Djibouti','Dominica','Dominican Republic','Ecuador','Egypt','El Salvador','Equatorial Guinea','Eritrea','Estonia','Eswatini','Ethiopia','Fiji','Finland','France','Gabon','Gambia','Georgia','Germany','Ghana','Greece','Grenada','Guatemala','Guinea','Guinea-Bissau','Guyana','Haiti','Honduras','Hungary','Iceland','India','Indonesia','Iran','Iraq','Ireland','Israel','Italy','Ivory Coast','Jamaica','Japan','Jordan','Kazakhstan','Kenya','Kiribati','Kuwait','Kyrgyzstan','Laos','Latvia','Lebanon','Lesotho','Liberia','Libya','Liechtenstein','Lithuania','Luxembourg','Madagascar','Malawi','Malaysia','Maldives','Mali','Malta','Marshall Islands','Mauritania','Mauritius','Mexico','Micronesia','Moldova','Monaco','Mongolia','Montenegro','Morocco','Mozambique','Myanmar','Namibia','Nauru','Nepal','Netherlands','New Zealand','Nicaragua','Niger','Nigeria','North Korea','North Macedonia','Norway','Oman','Pakistan','Palau','Palestine','Panama','Papua New Guinea','Paraguay','Peru','Philippines','Poland','Portugal','Qatar','Romania','Russia','Rwanda','Saint Kitts and Nevis','Saint Lucia','Saint Vincent and the Grenadines','Samoa','San Marino','Sao Tome and Principe','Saudi Arabia','Senegal','Serbia','Seychelles','Sierra Leone','Singapore','Slovakia','Slovenia','Solomon Islands','Somalia','South Africa','South Korea','South Sudan','Spain','Sri Lanka','Sudan','Suriname','Sweden','Switzerland','Syria','Tajikistan','Tanzania','Thailand','Timor-Leste','Togo','Tonga','Trinidad and Tobago','Tunisia','Turkey','Turkmenistan','Tuvalu','Uganda','Ukraine','United Arab Emirates','United Kingdom','United States','Uruguay','Uzbekistan','Vanuatu','Vatican City','Venezuela','Vietnam','Yemen','Zambia','Zimbabwe'
   ];
+
+  Future<void> pickImage(bool cover) async {
+    final image = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 88);
+    if (image != null && mounted) setState(() => cover ? coverImage = image : profileImage = image);
+  }
+
+  Future<void> editText(String title, TextEditingController controller, {int lines = 1}) async {
+    await showModalBottomSheet<void>(context: context, isScrollControlled: true, builder: (ctx) => Padding(
+      padding: EdgeInsets.fromLTRB(20, 16, 20, MediaQuery.viewInsetsOf(ctx).bottom + 20),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Text(title, style: Theme.of(ctx).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
+        const SizedBox(height: 14),
+        TextField(controller: controller, maxLines: lines, autofocus: true),
+        const SizedBox(height: 14),
+        SizedBox(width: double.infinity, child: FilledButton(onPressed: () => Navigator.pop(ctx), child: const Text('حفظ'))),
+      ]),
+    ));
+    if (mounted) setState(() {});
+  }
+
+  Future<void> pickLanguage() async {
+    const languages = ['Arabic','Chinese','English','French','German','Hindi','Indonesian','Italian','Japanese','Korean','Persian','Portuguese','Russian','Spanish','Thai','Turkish','Urdu'];
+    final v = await showModalBottomSheet<String>(context: context, builder: (ctx) => SafeArea(child: ListView(children: languages.map((e)=>ListTile(title:Text(e), onTap:()=>Navigator.pop(ctx,e))).toList())));
+    if(v != null && mounted) setState(()=>learningLanguage=v);
+  }
 
   Future<void> pickBirthDate() async {
     final value = await showDatePicker(context: context, initialDate: DateTime(2000,1,1), firstDate: DateTime(1900), lastDate: DateTime.now());
@@ -137,6 +173,11 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           'learningGoals': learningGoals.text.trim(),
           'interests': interests.text.trim(),
           'birthDate': birthDate == null ? null : Timestamp.fromDate(birthDate!),
+          'city': city.text.trim(), 'job': job.text.trim(), 'travel': travel.text.trim(),
+          'learningGoals': goals.text.trim(), 'hobbies': hobbies.text.trim(),
+          'nativeLanguage': nativeLanguage, 'learningLanguages': learningLanguage.isEmpty ? <String>[] : [learningLanguage],
+          'languageLevel': languageLevel,
+          'profileImageLocalName': profileImage?.name, 'coverImageLocalName': coverImage?.name,
           'profileCompleted': true,
           'followersCount': 0,
           'followingCount': 0,
@@ -212,6 +253,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     name.dispose();
     username.dispose();
     bio.dispose();
+    city.dispose(); job.dispose(); travel.dispose(); goals.dispose(); hobbies.dispose();
     city.dispose();
     profession.dispose();
     travel.dispose();
@@ -244,12 +286,14 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               const SizedBox(height: 24),
               Container(height: 145, decoration: BoxDecoration(borderRadius: BorderRadius.circular(24), gradient: LinearGradient(colors: [scheme.primary.withValues(alpha: .7), scheme.tertiary.withValues(alpha: .45)])), child: Stack(children: [Positioned(top: 10, left: 10, child: IconButton.filledTonal(onPressed: () {}, icon: const Icon(Icons.wallpaper_rounded, size: 20))), const Center(child: Icon(Icons.landscape_rounded, size: 48))])),
               const SizedBox(height: 16),
-              Center(child: Container(
+              GestureDetector(onTap: () => pickImage(true), child: Container(height: 110, decoration: BoxDecoration(borderRadius: BorderRadius.circular(22), color: scheme.surfaceContainerHighest), child: Center(child: Text(coverImage == null ? (rtl ? 'إضافة خلفية البروفايل' : 'Add profile cover') : (rtl ? 'تم اختيار الخلفية ✓' : 'Cover selected ✓'))))),
+              const SizedBox(height: 14),
+              Center(child: GestureDetector(onTap: () => pickImage(false), child: Container(
                 width: 124, height: 124,
                 decoration: BoxDecoration(shape: BoxShape.circle, gradient: LinearGradient(colors: [scheme.primary, scheme.tertiary])),
                 padding: const EdgeInsets.all(4),
-                child: CircleAvatar(backgroundColor: scheme.surfaceContainerHighest, child: const Icon(Icons.person_rounded, size: 62)),
-              )),
+                child: CircleAvatar(backgroundColor: scheme.surfaceContainerHighest, child: Icon(profileImage == null ? Icons.person_rounded : Icons.check_rounded, size: 62)),
+              ))),
               const SizedBox(height: 28),
               _Field(controller: name, label: rtl ? 'الاسم' : 'Name', icon: Icons.badge_outlined),
               const SizedBox(height: 14),
