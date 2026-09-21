@@ -28,7 +28,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   Future<String?> choose(String title,List<String> values) => showModalBottomSheet<String>(
     context:context,isScrollControlled:true,builder:(ctx)=>SafeArea(child:SizedBox(height:MediaQuery.sizeOf(ctx).height*.72,
     child:Column(children:[Padding(padding:const EdgeInsets.all(16),child:Text(title,style:const TextStyle(fontSize:20,fontWeight:FontWeight.w800))),
-    Expanded(child:ListView.builder(itemCount:values.length,itemBuilder:(_,i)=>ListTile(title:Text(values[i]),onTap:()=>Navigator.pop(ctx,values[i]))))]))));
+    Expanded(child:ListView.builder(itemCount:values.length,itemBuilder:(_,i)=>ListTile(leading: title == 'الدولة' || title == 'Country' ? Text(_flagForCountry(values[i]),style:const TextStyle(fontSize:25)) : null,title:Text(values[i]),onTap:()=>Navigator.pop(ctx,values[i]))))]))));
 
   Future<void> checkUsername() async {
     if(!RegExp(r'^[a-z0-9_]{3,20}$').hasMatch(normalizedUsername)){setState(()=>usernameAvailable=false);return;}
@@ -81,7 +81,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       const SizedBox(height:12),
       Stack(alignment:rtl?Alignment.bottomLeft:Alignment.bottomRight,children:[_Field(bio,rtl?'ماذا عنك؟':'About you',Icons.auto_awesome_rounded,lines:4),Padding(padding:const EdgeInsets.all(6),child:IconButton.filledTonal(onPressed:(){},icon:const Icon(Icons.mic_rounded,size:18)))]),
       const SizedBox(height:12),
-      _Tile(Icons.public_rounded,rtl?'الدولة':'Country',country??(rtl?'اختر دولتك':'Choose country'),()async{final v=await choose(rtl?'الدولة':'Country',countries);if(v!=null)setState(()=>country=v);}),
+      _Tile(Icons.public_rounded,rtl?'الدولة':'Country',country==null?(rtl?'اختر دولتك':'Choose country'):'${_flagForCountry(country!)}  $country',()async{final v=await choose(rtl?'الدولة':'Country',countries);if(v!=null)setState(()=>country=v);}),
       _Field(city,rtl?'المدينة':'City',Icons.location_city_outlined),const SizedBox(height:10),
       _Tile(Icons.cake_outlined,rtl?'تاريخ الميلاد':'Date of birth',birthDate==null?(rtl?'اليوم / الشهر / السنة':'Day / month / year'):'${birthDate!.day} / ${birthDate!.month} / ${birthDate!.year}',pickBirthDate),
       _GenderPicker(value:gender,rtl:rtl,onChanged:(v)=>setState(()=>gender=v)),
@@ -106,6 +106,16 @@ class _Tile extends StatelessWidget{
   @override Widget build(BuildContext context)=>Card(margin:const EdgeInsets.only(bottom:10),child:ListTile(dense:true,contentPadding:const EdgeInsets.symmetric(horizontal:14,vertical:5),leading:CircleAvatar(radius:17,child:Icon(icon,size:18)),title:Text(title,style:const TextStyle(fontWeight:FontWeight.w800)),subtitle:Text(subtitle),trailing:const Icon(Icons.chevron_right_rounded,size:20),onTap:tap));
 }
 
+String _flagForCountry(String country) {
+  const special = <String,String>{
+    'Yemen':'🇾🇪','Saudi Arabia':'🇸🇦','United Arab Emirates':'🇦🇪','Oman':'🇴🇲','Qatar':'🇶🇦','Kuwait':'🇰🇼','Bahrain':'🇧🇭',
+    'Palestine':'🇵🇸','Israel':'🇮🇱','Egypt':'🇪🇬','Jordan':'🇯🇴','Iraq':'🇮🇶','Syria':'🇸🇾','Lebanon':'🇱🇧','United States':'🇺🇸',
+    'United Kingdom':'🇬🇧','France':'🇫🇷','Germany':'🇩🇪','Spain':'🇪🇸','Italy':'🇮🇹','Turkey':'🇹🇷','India':'🇮🇳','Pakistan':'🇵🇰',
+    'China':'🇨🇳','Japan':'🇯🇵','South Korea':'🇰🇷','Russia':'🇷🇺','Canada':'🇨🇦','Australia':'🇦🇺','Brazil':'🇧🇷','Mexico':'🇲🇽'
+  };
+  return special[country] ?? '🌐';
+}
+
 class _BirthFields extends StatefulWidget {
   const _BirthFields({required this.value,required this.rtl,required this.onChanged});
   final DateTime? value; final bool rtl; final ValueChanged<DateTime?> onChanged;
@@ -121,11 +131,11 @@ class _BirthFieldsState extends State<_BirthFields>{
     Text(widget.rtl?'تاريخ الميلاد':'Date of birth',style:const TextStyle(fontWeight:FontWeight.w800)),
     const SizedBox(height:8),
     Row(children:[
-      Expanded(child:TextField(controller:day,onChanged:(_)=>update(),keyboardType:TextInputType.number,maxLength:2,decoration:InputDecoration(counterText:'',labelText:widget.rtl?'اليوم':'Day'))),
+      Expanded(child:DropdownButtonFormField<int>(initialValue:int.tryParse(day.text),decoration:InputDecoration(labelText:widget.rtl?'اليوم':'Day'),items:List.generate(31,(i)=>DropdownMenuItem(value:i+1,child:Text('${i+1}'))),onChanged:(v){day.text=v?.toString()??'';update();})),
       const SizedBox(width:8),
-      Expanded(child:TextField(controller:month,onChanged:(_)=>update(),keyboardType:TextInputType.number,maxLength:2,decoration:InputDecoration(counterText:'',labelText:widget.rtl?'الشهر':'Month'))),
+      Expanded(child:DropdownButtonFormField<int>(initialValue:int.tryParse(month.text),decoration:InputDecoration(labelText:widget.rtl?'الشهر':'Month'),items:List.generate(12,(i)=>DropdownMenuItem(value:i+1,child:Text('${i+1}'))),onChanged:(v){month.text=v?.toString()??'';update();})),
       const SizedBox(width:8),
-      Expanded(child:TextField(controller:year,onChanged:(_)=>update(),keyboardType:TextInputType.number,maxLength:4,decoration:InputDecoration(counterText:'',labelText:widget.rtl?'السنة':'Year'))),
+      Expanded(child:DropdownButtonFormField<int>(initialValue:int.tryParse(year.text),decoration:InputDecoration(labelText:widget.rtl?'السنة':'Year'),items:List.generate(DateTime.now().year-1900,(i){final y=DateTime.now().year-i;return DropdownMenuItem(value:y,child:Text('$y'));}),onChanged:(v){year.text=v?.toString()??'';update();})),
     ]),const SizedBox(height:10)]);
 }
 class _GenderPicker extends StatelessWidget{
