@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/localization/app_strings.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../../../core/localization/supported_language.dart';
-import '../../auth/presentation/sign_in_screen.dart';
+import '../../auth/presentation/auth_options_screen.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({required this.localeController, super.key});
@@ -96,9 +96,31 @@ class WelcomeScreen extends StatelessWidget {
                   child: FilledButton(
                     onPressed: () => Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => SignInScreen(localeController: localeController)),
+                      MaterialPageRoute(
+                        builder: (_) => AuthOptionsScreen(
+                          localeController: localeController,
+                          mode: AuthFlowMode.createAccount,
+                        ),
+                      ),
                     ),
-                    child: Text(strings.getStarted, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+                    child: Text(strings.createAccount, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  height: 58,
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => AuthOptionsScreen(
+                          localeController: localeController,
+                          mode: AuthFlowMode.signIn,
+                        ),
+                      ),
+                    ),
+                    child: Text(strings.signIn, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
                   ),
                 ),
               ],
