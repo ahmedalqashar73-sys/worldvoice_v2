@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/localization/app_strings.dart';
 import '../../../../core/localization/locale_controller.dart';
 import '../../../../core/localization/supported_language.dart';
 
@@ -28,6 +29,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
   @override
   Widget build(BuildContext context) {
     final selected = widget.controller.locale?.languageCode ?? 'en';
+    final strings = AppStrings.of(selected);
     final query = _query.trim().toLowerCase();
     final languages = SupportedLanguages.all.where((language) {
       if (query.isEmpty) return true;
@@ -60,7 +62,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                   ),
                   const SizedBox(height: 22),
                   Text(
-                    'Choose your language',
+                    strings.chooseLanguage,
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.w800,
                           letterSpacing: -.5,
@@ -68,7 +70,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                   ),
                   const SizedBox(height: 7),
                   Text(
-                    'You can change this anytime in WorldVoice settings.',
+                    strings.changeAnytime,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           color: Theme.of(context).colorScheme.onSurface.withValues(alpha: .65),
                         ),
@@ -77,9 +79,9 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                   TextField(
                     controller: _searchController,
                     onChanged: (value) => setState(() => _query = value),
-                    decoration: const InputDecoration(
-                      hintText: 'Search languages',
-                      prefixIcon: Icon(Icons.search_rounded),
+                    decoration: InputDecoration(
+                      hintText: strings.searchLanguages,
+                      prefixIcon: const Icon(Icons.search_rounded),
                     ),
                   ),
                 ],
