@@ -14,7 +14,7 @@ class AuthService {
     // google_sign_in 7.x is used with authenticate().
     await GoogleSignIn.instance.initialize(
       serverClientId:
-          '149108991969-d8bcc89217b3be0d66d4a0.apps.googleusercontent.com',
+          '149108991969-iqb745f7jtpr690m6mhq5kf0du6md3mf.apps.googleusercontent.com',
     );
     _googleInitialized = true;
   }
