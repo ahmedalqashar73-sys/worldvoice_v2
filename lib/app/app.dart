@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import '../core/localization/locale_controller.dart';
 import '../core/localization/supported_language.dart';
@@ -49,6 +50,11 @@ class _WorldVoiceAppState extends State<WorldVoiceApp> {
       themeMode: ThemeMode.system,
       locale: _localeController.locale,
       supportedLocales: SupportedLanguages.locales,
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       home: !_ready
           ? const Scaffold(body: Center(child: CircularProgressIndicator()))
           : LanguageSelectionScreen(controller: _localeController),
