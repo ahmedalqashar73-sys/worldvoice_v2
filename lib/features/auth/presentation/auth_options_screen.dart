@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/localization/app_strings.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../services/auth_service.dart';
+import '../../profile/presentation/profile_setup_screen.dart';
 
 enum AuthFlowMode { signIn, createAccount }
 
@@ -58,12 +59,22 @@ class _AuthOptionsScreenState extends State<AuthOptionsScreen> {
       );
   }
 
+  void _openProfile() {
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => ProfileSetupScreen(localeController: widget.localeController)),
+      (route) => false,
+    );
+  }
+
   Future<void> _google() async {
     if (_busy) return;
     setState(() => _busy = true);
     try {
       await AuthService.signInWithGoogle();
       _message(_rtl ? 'تم تسجيل الدخول بنجاح ✓' : 'Signed in successfully ✓', success: true);
+      await Future<void>.delayed(const Duration(milliseconds: 450));
+      _openProfile();
     } catch (e) {
       final canceled = e.toString().contains('canceled') ||
           e.toString().contains('Cancelled by user');
@@ -93,6 +104,8 @@ class _AuthOptionsScreenState extends State<AuthOptionsScreen> {
         await AuthService.signInWithEmail(email: email, password: password);
       }
       _message(_rtl ? 'تم تسجيل الدخول بنجاح ✓' : 'Signed in successfully ✓', success: true);
+      await Future<void>.delayed(const Duration(milliseconds: 450));
+      _openProfile();
     } catch (e) {
       _message(_rtl ? 'تعذرت المصادقة: $e' : 'Authentication failed: $e');
     } finally {
@@ -112,7 +125,7 @@ class _AuthOptionsScreenState extends State<AuthOptionsScreen> {
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             TextField(controller: _email, keyboardType: TextInputType.emailAddress, decoration: InputDecoration(labelText: _rtl ? 'البريد الإلكتروني' : 'Email')),
             const SizedBox(height: 12),
-            TextField(controller: _password, obscureText: _hidePassword, decoration: InputDecoration(labelText: _rtl ? 'كلمة المرور' : 'Password')),
+            TextField(controller: _password, obscureText: _hidePassword, decoration: InputDecoration(labelText: _rtl ? 'كلمة المرور' : 'Password', suffixIcon: IconButton(onPressed: () => setState(() => _hidePassword = !_hidePassword), icon: Icon(_hidePassword ? Icons.visibility_off_rounded : Icons.visibility_rounded)))),
             const SizedBox(height: 18),
             SizedBox(width: double.infinity, height: 54, child: FilledButton(
               onPressed: () async {
