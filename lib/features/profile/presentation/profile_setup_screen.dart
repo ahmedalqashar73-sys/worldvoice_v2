@@ -16,6 +16,14 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   final name = TextEditingController();
   final username = TextEditingController();
   final bio = TextEditingController();
+  final city = TextEditingController();
+  final profession = TextEditingController();
+  final travel = TextEditingController();
+  final learningGoals = TextEditingController();
+  final interests = TextEditingController();
+  final nativeLanguage = TextEditingController();
+  final learningLanguage = TextEditingController();
+  String languageLevel = 'beginner';
   bool? usernameAvailable;
   bool saving = false;
   String? country;
@@ -77,6 +85,14 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           'displayName': name.text.trim(),
           'username': normalizedUsername,
           'bio': bio.text.trim(),
+          'city': city.text.trim(),
+          'profession': profession.text.trim(),
+          'travel': travel.text.trim(),
+          'learningGoals': learningGoals.text.trim(),
+          'interests': interests.text.trim(),
+          'nativeLanguage': nativeLanguage.text.trim(),
+          'learningLanguage': learningLanguage.text.trim(),
+          'languageLevel': languageLevel,
           'country': country,
           'gender': gender,
           'birthDate': birthDate == null ? null : Timestamp.fromDate(birthDate!),
@@ -102,11 +118,62 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     }
   }
 
+  Future<void> _editText(TextEditingController controller, String title, {int maxLines = 1}) async {
+    await showModalBottomSheet<void>(context: context, isScrollControlled: true, builder: (ctx) => Padding(
+      padding: EdgeInsets.fromLTRB(20,20,20,MediaQuery.viewInsetsOf(ctx).bottom+20),
+      child: Column(mainAxisSize: MainAxisSize.min, children:[
+        Text(title, style: const TextStyle(fontSize:20,fontWeight:FontWeight.bold)),
+        const SizedBox(height:14),
+        TextField(controller: controller, maxLines:maxLines, autofocus:true),
+        const SizedBox(height:14),
+        SizedBox(width:double.infinity, child:FilledButton(onPressed:(){Navigator.pop(ctx); setState((){});}, child:const Text('حفظ'))),
+      ]),
+    ));
+  }
+
+  Future<void> _editLanguages(bool rtl) async {
+    await showModalBottomSheet<void>(context: context, isScrollControlled:true, builder:(ctx)=>Padding(
+      padding:EdgeInsets.fromLTRB(20,20,20,MediaQuery.viewInsetsOf(ctx).bottom+20),
+      child:Column(mainAxisSize:MainAxisSize.min,children:[
+        Text(rtl?'اللغات والمستوى':'Languages & level',style:const TextStyle(fontSize:20,fontWeight:FontWeight.bold)),
+        TextField(controller:nativeLanguage,decoration:InputDecoration(labelText:rtl?'اللغة الأم':'Native language')),
+        TextField(controller:learningLanguage,decoration:InputDecoration(labelText:rtl?'اللغة التي تتعلمها':'Learning language')),
+        DropdownButtonFormField<String>(initialValue:languageLevel,items:[
+          DropdownMenuItem(value:'beginner',child:Text(rtl?'مبتدئ':'Beginner')),
+          DropdownMenuItem(value:'intermediate',child:Text(rtl?'متوسط':'Intermediate')),
+          DropdownMenuItem(value:'advanced',child:Text(rtl?'متقدم':'Advanced')),
+        ],onChanged:(v)=>languageLevel=v??languageLevel),
+        const SizedBox(height:14),
+        SizedBox(width:double.infinity,child:FilledButton(onPressed:(){Navigator.pop(ctx);setState((){});},child:Text(rtl?'حفظ':'Save'))),
+      ]),
+    ));
+  }
+
+  Future<void> _editWorkTravel(bool rtl) async {
+    await showModalBottomSheet<void>(context:context,isScrollControlled:true,builder:(ctx)=>Padding(
+      padding:EdgeInsets.fromLTRB(20,20,20,MediaQuery.viewInsetsOf(ctx).bottom+20),
+      child:Column(mainAxisSize:MainAxisSize.min,children:[
+        TextField(controller:profession,decoration:InputDecoration(labelText:rtl?'المهنة / الدراسة':'Profession / study')),
+        const SizedBox(height:10),
+        TextField(controller:travel,maxLines:2,decoration:InputDecoration(labelText:rtl?'السفر':'Travel')),
+        const SizedBox(height:14),
+        SizedBox(width:double.infinity,child:FilledButton(onPressed:(){Navigator.pop(ctx);setState((){});},child:Text(rtl?'حفظ':'Save'))),
+      ]),
+    ));
+  }
+
   @override
   void dispose() {
     name.dispose();
     username.dispose();
     bio.dispose();
+    city.dispose();
+    profession.dispose();
+    travel.dispose();
+    learningGoals.dispose();
+    interests.dispose();
+    nativeLanguage.dispose();
+    learningLanguage.dispose();
     super.dispose();
   }
 
@@ -155,16 +222,23 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               const SizedBox(height: 7),
               Text(rtl ? '3–20 حرفًا: إنجليزي، أرقام و _. لا يمكن تكراره.' : '3–20 characters: letters, numbers and _. Must be unique.'),
               const SizedBox(height: 18),
-              _Field(controller: bio, label: rtl ? 'نبذة عنك' : 'About you', icon: Icons.auto_awesome_rounded, maxLines: 3),
-              const SizedBox(height: 22),
-              _PremiumTile(icon: Icons.mic_rounded, title: rtl ? 'التعريف الصوتي' : 'Voice introduction', subtitle: rtl ? 'عرّف عن نفسك بصوتك' : 'Introduce yourself with your voice'),
-              _PremiumTile(icon: Icons.language_rounded, title: rtl ? 'اللغات والمستوى' : 'Languages & level', subtitle: rtl ? 'لغتك الأم واللغات التي تتعلمها' : 'Native and learning languages'),
-              _PremiumTile(icon: Icons.public_rounded, title: rtl ? 'الدولة' : 'Country', subtitle: country ?? (rtl ? 'اختر دولتك' : 'Choose your country'), onTap: pickCountry),
+              _Field(controller: bio, label: rtl ? 'ماذا عنك؟' : 'About you', icon: Icons.auto_awesome_rounded, maxLines: 3),
+              Align(
+                alignment: rtl ? Alignment.centerRight : Alignment.centerLeft,
+                child: TextButton.icon(
+                  onPressed: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(rtl ? 'تسجيل الصوت سيكون الخطوة التالية.' : 'Voice recording is the next step.'))),
+                  icon: const Icon(Icons.mic_rounded, size: 18),
+                  label: Text(rtl ? 'تسجيل صوت' : 'Record voice'),
+                ),
+              ),
+              const SizedBox(height: 12),
+              _PremiumTile(icon: Icons.language_rounded, title: rtl ? 'اللغات والمستوى' : 'Languages & level', subtitle: rtl ? 'أضف لغتك الأم واللغة التي تتعلمها' : 'Add your native and learning languages', onTap: () => _editLanguages(rtl)),
+              _PremiumTile(icon: Icons.public_rounded, title: rtl ? 'الدولة والمدينة' : 'Country & city', subtitle: [country, city.text.trim()].whereType<String>().where((e)=>e.isNotEmpty).join(' • ').isEmpty ? (rtl ? 'اختر الدولة والمدينة' : 'Choose country & city') : [country, city.text.trim()].whereType<String>().where((e)=>e.isNotEmpty).join(' • '), onTap: () async { await pickCountry(); if (mounted) await _editText(city, rtl ? 'المدينة' : 'City'); }),
               _PremiumTile(icon: Icons.cake_outlined, title: rtl ? 'تاريخ الميلاد' : 'Date of birth', subtitle: birthDate == null ? (rtl ? 'اليوم / الشهر / السنة' : 'Day / month / year') : '${birthDate!.day} / ${birthDate!.month} / ${birthDate!.year}', onTap: pickBirthDate),
               _PremiumTile(icon: Icons.person_outline_rounded, title: rtl ? 'الجنس' : 'Gender', subtitle: gender ?? (rtl ? 'ذكر • أنثى • أفضل عدم الإجابة' : 'Male • Female • Prefer not to say'), onTap: () async { final v = await showModalBottomSheet<String>(context: context, builder: (ctx) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [ListTile(title: Text(rtl ? 'ذكر' : 'Male'), onTap:()=>Navigator.pop(ctx,'male')), ListTile(title: Text(rtl ? 'أنثى' : 'Female'), onTap:()=>Navigator.pop(ctx,'female')), ListTile(title: Text(rtl ? 'أفضل عدم الإجابة' : 'Prefer not to say'), onTap:()=>Navigator.pop(ctx,'prefer_not_to_say'))]))); if(v != null && mounted) setState(()=>gender=v); }),
-              _PremiumTile(icon: Icons.favorite_outline_rounded, title: rtl ? 'الهوايات والاهتمامات' : 'Interests & hobbies', subtitle: rtl ? 'للمطابقة اللغوية الذكية' : 'For smarter matching'),
-              _PremiumTile(icon: Icons.track_changes_rounded, title: rtl ? 'أهداف التعلم' : 'Learning goals', subtitle: rtl ? 'حدد ما تريد تحقيقه' : 'Define what you want to achieve'),
-              _PremiumTile(icon: Icons.work_outline_rounded, title: rtl ? 'المهنة والسفر' : 'Work & travel', subtitle: rtl ? 'شارك المزيد عن عالمك' : 'Share more about your world'),
+              _PremiumTile(icon: Icons.favorite_outline_rounded, title: rtl ? 'الهوايات والاهتمامات' : 'Interests & hobbies', subtitle: interests.text.isEmpty ? (rtl ? 'للمطابقة اللغوية الذكية' : 'For smarter matching') : interests.text, onTap: ()=>_editText(interests, rtl ? 'الهوايات والاهتمامات' : 'Interests & hobbies', maxLines: 3)),
+              _PremiumTile(icon: Icons.track_changes_rounded, title: rtl ? 'أهداف التعلم' : 'Learning goals', subtitle: learningGoals.text.isEmpty ? (rtl ? 'حدد ما تريد تحقيقه' : 'Define what you want to achieve') : learningGoals.text, onTap: ()=>_editText(learningGoals, rtl ? 'أهداف التعلم' : 'Learning goals', maxLines: 3)),
+              _PremiumTile(icon: Icons.work_outline_rounded, title: rtl ? 'المهنة والسفر' : 'Work & travel', subtitle: rtl ? 'أضف مهنتك وتجارب السفر' : 'Add your work and travel', onTap: ()=>_editWorkTravel(rtl)),
               const SizedBox(height: 24),
               SizedBox(
                 height: 58,
