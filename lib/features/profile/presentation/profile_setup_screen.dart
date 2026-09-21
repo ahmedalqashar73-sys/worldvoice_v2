@@ -18,6 +18,23 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   final bio = TextEditingController();
   bool? usernameAvailable;
   bool saving = false;
+  String? country;
+  String? gender;
+  DateTime? birthDate;
+
+  static const countries = <String>[
+    'Afghanistan','Albania','Algeria','Andorra','Angola','Antigua and Barbuda','Argentina','Armenia','Australia','Austria','Azerbaijan','Bahamas','Bahrain','Bangladesh','Barbados','Belarus','Belgium','Belize','Benin','Bhutan','Bolivia','Bosnia and Herzegovina','Botswana','Brazil','Brunei','Bulgaria','Burkina Faso','Burundi','Cabo Verde','Cambodia','Cameroon','Canada','Central African Republic','Chad','Chile','China','Colombia','Comoros','Congo','Costa Rica','Croatia','Cuba','Cyprus','Czechia','Denmark','Djibouti','Dominica','Dominican Republic','Ecuador','Egypt','El Salvador','Equatorial Guinea','Eritrea','Estonia','Eswatini','Ethiopia','Fiji','Finland','France','Gabon','Gambia','Georgia','Germany','Ghana','Greece','Grenada','Guatemala','Guinea','Guinea-Bissau','Guyana','Haiti','Honduras','Hungary','Iceland','India','Indonesia','Iran','Iraq','Ireland','Israel','Italy','Ivory Coast','Jamaica','Japan','Jordan','Kazakhstan','Kenya','Kiribati','Kuwait','Kyrgyzstan','Laos','Latvia','Lebanon','Lesotho','Liberia','Libya','Liechtenstein','Lithuania','Luxembourg','Madagascar','Malawi','Malaysia','Maldives','Mali','Malta','Marshall Islands','Mauritania','Mauritius','Mexico','Micronesia','Moldova','Monaco','Mongolia','Montenegro','Morocco','Mozambique','Myanmar','Namibia','Nauru','Nepal','Netherlands','New Zealand','Nicaragua','Niger','Nigeria','North Korea','North Macedonia','Norway','Oman','Pakistan','Palau','Palestine','Panama','Papua New Guinea','Paraguay','Peru','Philippines','Poland','Portugal','Qatar','Romania','Russia','Rwanda','Saint Kitts and Nevis','Saint Lucia','Saint Vincent and the Grenadines','Samoa','San Marino','Sao Tome and Principe','Saudi Arabia','Senegal','Serbia','Seychelles','Sierra Leone','Singapore','Slovakia','Slovenia','Solomon Islands','Somalia','South Africa','South Korea','South Sudan','Spain','Sri Lanka','Sudan','Suriname','Sweden','Switzerland','Syria','Tajikistan','Tanzania','Thailand','Timor-Leste','Togo','Tonga','Trinidad and Tobago','Tunisia','Turkey','Turkmenistan','Tuvalu','Uganda','Ukraine','United Arab Emirates','United Kingdom','United States','Uruguay','Uzbekistan','Vanuatu','Vatican City','Venezuela','Vietnam','Yemen','Zambia','Zimbabwe'
+  ];
+
+  Future<void> pickBirthDate() async {
+    final value = await showDatePicker(context: context, initialDate: DateTime(2000,1,1), firstDate: DateTime(1900), lastDate: DateTime.now());
+    if (value != null && mounted) setState(() => birthDate = value);
+  }
+
+  Future<void> pickCountry() async {
+    final value = await showModalBottomSheet<String>(context: context, isScrollControlled: true, builder: (ctx) => SafeArea(child: SizedBox(height: MediaQuery.sizeOf(ctx).height * .78, child: ListView.builder(itemCount: countries.length, itemBuilder: (_, i) => ListTile(title: Text(countries[i]), onTap: () => Navigator.pop(ctx, countries[i]))))));
+    if (value != null && mounted) setState(() => country = value);
+  }
 
   String get normalizedUsername =>
       username.text.trim().toLowerCase().replaceFirst('@', '');
@@ -60,6 +77,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           'displayName': name.text.trim(),
           'username': normalizedUsername,
           'bio': bio.text.trim(),
+          'country': country,
+          'gender': gender,
+          'birthDate': birthDate == null ? null : Timestamp.fromDate(birthDate!),
           'profileCompleted': true,
           'followersCount': 0,
           'followingCount': 0,
@@ -139,7 +159,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               const SizedBox(height: 22),
               _PremiumTile(icon: Icons.mic_rounded, title: rtl ? 'التعريف الصوتي' : 'Voice introduction', subtitle: rtl ? 'عرّف عن نفسك بصوتك' : 'Introduce yourself with your voice'),
               _PremiumTile(icon: Icons.language_rounded, title: rtl ? 'اللغات والمستوى' : 'Languages & level', subtitle: rtl ? 'لغتك الأم واللغات التي تتعلمها' : 'Native and learning languages'),
-              _PremiumTile(icon: Icons.public_rounded, title: rtl ? 'الدولة والمدينة' : 'Country & city', subtitle: rtl ? 'مع تحكم كامل بالخصوصية' : 'With full privacy control'),
+              _PremiumTile(icon: Icons.public_rounded, title: rtl ? 'الدولة' : 'Country', subtitle: country ?? (rtl ? 'اختر دولتك' : 'Choose your country'), onTap: pickCountry),
+              _PremiumTile(icon: Icons.cake_outlined, title: rtl ? 'تاريخ الميلاد' : 'Date of birth', subtitle: birthDate == null ? (rtl ? 'اليوم / الشهر / السنة' : 'Day / month / year') : '${birthDate!.day} / ${birthDate!.month} / ${birthDate!.year}', onTap: pickBirthDate),
+              _PremiumTile(icon: Icons.person_outline_rounded, title: rtl ? 'الجنس' : 'Gender', subtitle: gender ?? (rtl ? 'ذكر • أنثى • أفضل عدم الإجابة' : 'Male • Female • Prefer not to say'), onTap: () async { final v = await showModalBottomSheet<String>(context: context, builder: (ctx) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [ListTile(title: Text(rtl ? 'ذكر' : 'Male'), onTap:()=>Navigator.pop(ctx,'male')), ListTile(title: Text(rtl ? 'أنثى' : 'Female'), onTap:()=>Navigator.pop(ctx,'female')), ListTile(title: Text(rtl ? 'أفضل عدم الإجابة' : 'Prefer not to say'), onTap:()=>Navigator.pop(ctx,'prefer_not_to_say'))]))); if(v != null && mounted) setState(()=>gender=v); }),
               _PremiumTile(icon: Icons.favorite_outline_rounded, title: rtl ? 'الهوايات والاهتمامات' : 'Interests & hobbies', subtitle: rtl ? 'للمطابقة اللغوية الذكية' : 'For smarter matching'),
               _PremiumTile(icon: Icons.track_changes_rounded, title: rtl ? 'أهداف التعلم' : 'Learning goals', subtitle: rtl ? 'حدد ما تريد تحقيقه' : 'Define what you want to achieve'),
               _PremiumTile(icon: Icons.work_outline_rounded, title: rtl ? 'المهنة والسفر' : 'Work & travel', subtitle: rtl ? 'شارك المزيد عن عالمك' : 'Share more about your world'),
@@ -179,10 +201,11 @@ class _Field extends StatelessWidget {
 }
 
 class _PremiumTile extends StatelessWidget {
-  const _PremiumTile({required this.icon, required this.title, required this.subtitle});
+  const _PremiumTile({required this.icon, required this.title, required this.subtitle, this.onTap});
   final IconData icon;
   final String title;
   final String subtitle;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) => Card(
@@ -193,6 +216,7 @@ class _PremiumTile extends StatelessWidget {
           title: Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
           subtitle: Text(subtitle),
           trailing: const Icon(Icons.chevron_right_rounded),
+          onTap: onTap,
         ),
       );
 }
