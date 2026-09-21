@@ -30,9 +30,32 @@ class _AuthOptionsScreenState extends State<AuthOptionsScreen> {
     super.dispose();
   }
 
-  void _message(String text) {
+  void _message(String text, {bool success = false}) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: success ? const Color(0xFF159B62) : null,
+          content: Row(
+            children: [
+              if (success) ...[
+                const Icon(Icons.check_circle_rounded, color: Colors.white),
+                const SizedBox(width: 10),
+              ],
+              Expanded(
+                child: Text(
+                  text,
+                  style: success
+                      ? const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)
+                      : null,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
   }
 
   Future<void> _google() async {
@@ -40,7 +63,7 @@ class _AuthOptionsScreenState extends State<AuthOptionsScreen> {
     setState(() => _busy = true);
     try {
       await AuthService.signInWithGoogle();
-      _message(_rtl ? 'تم تسجيل الدخول بنجاح.' : 'Signed in successfully.');
+      _message(_rtl ? 'تم تسجيل الدخول بنجاح ✓' : 'Signed in successfully ✓', success: true);
     } catch (e) {
       _message(_rtl ? 'تعذر تسجيل الدخول عبر Google: $e' : 'Google sign-in failed: $e');
     } finally {
@@ -63,7 +86,7 @@ class _AuthOptionsScreenState extends State<AuthOptionsScreen> {
       } else {
         await AuthService.signInWithEmail(email: email, password: password);
       }
-      _message(_rtl ? 'تمت المصادقة بنجاح.' : 'Authentication successful.');
+      _message(_rtl ? 'تم تسجيل الدخول بنجاح ✓' : 'Signed in successfully ✓', success: true);
     } catch (e) {
       _message(_rtl ? 'تعذرت المصادقة: $e' : 'Authentication failed: $e');
     } finally {
