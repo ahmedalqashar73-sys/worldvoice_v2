@@ -87,7 +87,14 @@ class _AuthOptionsScreenState extends State<AuthOptionsScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
+                Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: TextButton(
+                    onPressed: () => _showForgotPassword(context, rtl),
+                    child: Text(rtl ? 'نسيت كلمة المرور؟' : 'Forgot password?'),
+                  ),
+                ),
+                const SizedBox(height: 8),
                 SizedBox(
                   height: 58,
                   child: FilledButton(
@@ -103,6 +110,61 @@ class _AuthOptionsScreenState extends State<AuthOptionsScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _showForgotPassword(BuildContext context, bool rtl) async {
+    final resetEmail = TextEditingController(text: _email.text.trim());
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (sheetContext) => Directionality(
+        textDirection: rtl ? TextDirection.rtl : TextDirection.ltr,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            24, 4, 24, MediaQuery.viewInsetsOf(sheetContext).bottom + 24,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                rtl ? 'إعادة تعيين كلمة المرور' : 'Reset password',
+                style: Theme.of(sheetContext).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                rtl
+                    ? 'أدخل بريدك الإلكتروني وسنرسل لك رابط إعادة تعيين كلمة المرور.'
+                    : 'Enter your email and we will send you a password reset link.',
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                controller: resetEmail,
+                keyboardType: TextInputType.emailAddress,
+                autofocus: true,
+                decoration: InputDecoration(
+                  labelText: rtl ? 'البريد الإلكتروني' : 'Email',
+                  prefixIcon: const Icon(Icons.mail_outline_rounded),
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                height: 54,
+                child: FilledButton(
+                  onPressed: () {
+                    Navigator.pop(sheetContext);
+                    _pending(context, rtl);
+                  },
+                  child: Text(rtl ? 'إرسال رابط الاستعادة' : 'Send reset link'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    resetEmail.dispose();
   }
 
   void _pending(BuildContext context, bool rtl) {
