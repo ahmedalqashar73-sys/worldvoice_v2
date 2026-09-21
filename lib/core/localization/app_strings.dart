@@ -36,6 +36,15 @@ class AppStrings {
   String get apple => _text[10];
   String get email => _text[11];
   String get legal => _text[12];
+  String get createAccount => _createAccount[code] ?? _createAccount['en']!;
+  String get createAccountBody => _createAccountBody[code] ?? _createAccountBody['en']!;
+
+  static const _createAccount = <String, String>{
+    'ar':'إنشاء حساب جديد','en':'Create New Account','es':'Crear una cuenta nueva','fr':'Créer un nouveau compte','zh':'创建新账户','ko':'새 계정 만들기','ja':'新しいアカウントを作成','ru':'Создать новый аккаунт','tr':'Yeni Hesap Oluştur','ur':'نیا اکاؤنٹ بنائیں','de':'Neues Konto erstellen','pt':'Criar nova conta','fa':'ایجاد حساب جدید','id':'Buat Akun Baru','th':'สร้างบัญชีใหม่','hi':'नया खाता बनाएँ','it':'Crea un nuovo account',
+  };
+  static const _createAccountBody = <String, String>{
+    'ar':'اختر الطريقة التي تريد استخدامها لإنشاء حساب WorldVoice.','en':'Choose how you want to create your WorldVoice account.','es':'Elige cómo quieres crear tu cuenta de WorldVoice.','fr':'Choisissez comment créer votre compte WorldVoice.','zh':'选择创建 WorldVoice 账户的方式。','ko':'WorldVoice 계정을 만드는 방법을 선택하세요.','ja':'WorldVoiceアカウントの作成方法を選択してください。','ru':'Выберите способ создания аккаунта WorldVoice.','tr':'WorldVoice hesabını nasıl oluşturmak istediğini seç.','ur':'اپنا WorldVoice اکاؤنٹ بنانے کا طریقہ منتخب کریں۔','de':'Wähle, wie du dein WorldVoice-Konto erstellen möchtest.','pt':'Escolha como deseja criar sua conta WorldVoice.','fa':'روش ایجاد حساب WorldVoice را انتخاب کنید.','id':'Pilih cara membuat akun WorldVoice Anda.','th':'เลือกวิธีสร้างบัญชี WorldVoice','hi':'अपना WorldVoice खाता बनाने का तरीका चुनें।','it':'Scegli come creare il tuo account WorldVoice.',
+  };
 
   static AppStrings of(String? code) => AppStrings._(code ?? 'en');
 }
