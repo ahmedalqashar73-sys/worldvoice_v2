@@ -19,6 +19,15 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   final city = TextEditingController();
   final profession = TextEditingController();
   final travel = TextEditingController();
+  final learningGoal = TextEditingController();
+  final hobbies = TextEditingController();
+  String? nativeLanguage;
+  String? learningLanguage;
+  String languageLevel = 'beginner';
+  bool cityVisible = true;
+  final city = TextEditingController();
+  final profession = TextEditingController();
+  final travel = TextEditingController();
   final learningGoals = TextEditingController();
   final interests = TextEditingController();
   final nativeLanguage = TextEditingController();
@@ -85,6 +94,18 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           'displayName': name.text.trim(),
           'username': normalizedUsername,
           'bio': bio.text.trim(),
+          'city': city.text.trim(),
+          'cityVisible': cityVisible,
+          'profession': profession.text.trim(),
+          'travel': travel.text.trim(),
+          'learningGoal': learningGoal.text.trim(),
+          'hobbies': hobbies.text.trim(),
+          'nativeLanguage': nativeLanguage,
+          'learningLanguages': learningLanguage == null ? <String>[] : [learningLanguage],
+          'languageLevel': languageLevel,
+          'photoUrl': user.photoURL,
+          'coverUrl': null,
+          'voiceBioUrl': null,
           'city': city.text.trim(),
           'profession': profession.text.trim(),
           'travel': travel.text.trim(),
@@ -162,11 +183,20 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     ));
   }
 
+  Future<void> _editText(String title, TextEditingController controller) async {
+    await showModalBottomSheet<void>(context: context, isScrollControlled: true, builder: (ctx) => Padding(padding: EdgeInsets.fromLTRB(20,20,20,MediaQuery.viewInsetsOf(ctx).bottom+20), child: Column(mainAxisSize: MainAxisSize.min, children: [Text(title, style: const TextStyle(fontSize:20,fontWeight:FontWeight.w800)), const SizedBox(height:14), TextField(controller: controller, maxLines: 3, autofocus: true), const SizedBox(height:14), SizedBox(width: double.infinity, child: FilledButton(onPressed: () { Navigator.pop(ctx); setState(() {}); }, child: const Text('حفظ')))])));
+  }
+
   @override
   void dispose() {
     name.dispose();
     username.dispose();
     bio.dispose();
+    city.dispose();
+    profession.dispose();
+    travel.dispose();
+    learningGoal.dispose();
+    hobbies.dispose();
     city.dispose();
     profession.dispose();
     travel.dispose();
@@ -192,6 +222,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               Text(rtl ? 'أنشئ هويتك في WorldVoice' : 'Create your WorldVoice identity',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900)),
               const SizedBox(height: 24),
+              Container(height: 145, decoration: BoxDecoration(borderRadius: BorderRadius.circular(24), gradient: LinearGradient(colors: [scheme.primary.withValues(alpha: .7), scheme.tertiary.withValues(alpha: .45)])), child: Stack(children: [Positioned(top: 10, left: 10, child: IconButton.filledTonal(onPressed: () {}, icon: const Icon(Icons.wallpaper_rounded, size: 20))), const Center(child: Icon(Icons.landscape_rounded, size: 48))])),
+              const SizedBox(height: 16),
               Center(child: Container(
                 width: 124, height: 124,
                 decoration: BoxDecoration(shape: BoxShape.circle, gradient: LinearGradient(colors: [scheme.primary, scheme.tertiary])),
