@@ -1,0 +1,90 @@
+{
+  "project_info": {
+    "project_number": "149108991969",
+    "project_id": "worldvoice-37896",
+    "storage_bucket": "worldvoice-37896.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:149108991969:android:b09d15308f8f5d9266d4a0",
+        "android_client_info": {
+          "package_name": "com.worldvoice.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "149108991969-9maiuamd49io8o7dfsleo5cbqjsnaovs.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.worldvoice.app",
+            "certificate_hash": "590540724dc1ad37f217e46f02eca576251618e2"
+          }
+        },
+        {
+          "client_id": "149108991969-iqb745f7jtpr690m6mhq5kf0du6md3mf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDOpnQL6_Hcpe7nrmHlrmxmRkHqO4_Udn8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "149108991969-iqb745f7jtpr690m6mhq5kf0du6md3mf.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "149108991969-acjjav1oedc0oo1t240sfes9fanoj7ai.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.worldvoice.worldvoice"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:149108991969:android:f9000a8165a8a38166d4a0",
+        "android_client_info": {
+          "package_name": "com.worldvoice.worldvoice"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "149108991969-iqb745f7jtpr690m6mhq5kf0du6md3mf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDOpnQL6_Hcpe7nrmHlrmxmRkHqO4_Udn8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "149108991969-iqb745f7jtpr690m6mhq5kf0du6md3mf.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "149108991969-acjjav1oedc0oo1t240sfes9fanoj7ai.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.worldvoice.worldvoice"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
