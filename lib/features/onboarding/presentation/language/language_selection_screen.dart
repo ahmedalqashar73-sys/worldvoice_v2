@@ -7,10 +7,12 @@ import '../../../../core/localization/supported_language.dart';
 class LanguageSelectionScreen extends StatefulWidget {
   const LanguageSelectionScreen({
     required this.controller,
+    this.showBackButton = false,
     super.key,
   });
 
   final LocaleController controller;
+  final bool showBackButton;
 
   @override
   State<LanguageSelectionScreen> createState() => _LanguageSelectionScreenState();
@@ -47,6 +49,16 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (widget.showBackButton) ...[
+                    Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: IconButton(
+                        onPressed: () => Navigator.of(context).maybePop(),
+                        icon: const Icon(Icons.arrow_back_rounded),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
                   Container(
                     width: 54,
                     height: 54,
