@@ -119,39 +119,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   }
 
   Future<void> checkUsername() async {
-    if(!RegExp(r'^[a-z0-9_]{3,20}$').hasMatch(normalizedUsername)){setState(()=>usernameAvailable=false);return;}
-    final d=await FirebaseFirestore.instance.collection('usernames').doc(normalizedUsername).get();
-    if(mounted)setState(()=>usernameAvailable=!d.exists||d.data()?['uid']==FirebaseAuth.instance.currentUser?.uid);
-  }
-
-  Future<void> pickBirthDate() async {
-    final d=await showDatePicker(context:context,initialDate:DateTime(2000),firstDate:DateTime(1900),lastDate:DateTime.now());
-    if(d!=null&&mounted)setState(()=>birthDate=d);
-  }
-
-  Future<void> pickProfileImage() async {
-    final picked=await _imagePicker.pickImage(source:ImageSource.gallery,imageQuality:88,maxWidth:1400);
-    if(picked!=null&&mounted)setState(()=>profileImage=File(picked.path));
-  }
-
-  Future<void> pickCoverImage() async {
-    final picked=await _imagePicker.pickImage(source:ImageSource.gallery,imageQuality:88,maxWidth:2200);
-    if(picked!=null&&mounted)setState(()=>coverImage=File(picked.path));
-  }
-
-  Future<void> saveProfile() async {
-    final user=FirebaseAuth.instance.currentUser;
-    final code=widget.localeController.locale?.languageCode??'en';
-    if(user==null)return;
-
-    if(name.text.trim().isEmpty){
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content:Text(_extraText(code,'nameRequired'))),
-      );
-      return;
-    }
-
-    if(!RegExp(r'^[a-z0-9_]{3,20}
+    if(!RegExp(r'^[a-z0-9_]{3,20}$').hasMatch(normalizedUsername)){
       setState(()=>usernameAvailable=false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content:Text(_extraText(code,'usernameRequired'))),
