@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../../core/localization/app_strings.dart';
+
 import '../../../core/localization/locale_controller.dart';
 import '../services/profile_social_service.dart';
 import 'public_profile_screen.dart';
@@ -29,14 +31,14 @@ class ProfileVisitorsScreen extends StatelessWidget {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(_t(code, 'Visitors', 'الزيارات', 'Visitas')),
+          title: Text(AppStrings.of(code).profile('visitors')),
           bottom: TabBar(
             tabs: [
               Tab(
-                text: _t(code, 'I visited', 'من زرتهم', 'Yo visité'),
+                text: AppStrings.of(code).profile('iVisited'),
               ),
               Tab(
-                text: _t(code, 'Visited me', 'من زارني', 'Me visitaron'),
+                text: AppStrings.of(code).profile('visitedMe'),
               ),
             ],
           ),
@@ -121,7 +123,7 @@ class _LockedVisitors extends StatelessWidget {
                           TextButton(
                             onPressed: () => Navigator.pop(context),
                             child: Text(
-                              _t(code, 'OK', 'حسنًا', 'Aceptar'),
+                              AppStrings.of(code).profile('ok'),
                             ),
                           ),
                         ],
@@ -270,8 +272,3 @@ class _VisitTile extends StatelessWidget {
   }
 }
 
-String _t(String code, String en, String ar, String es) {
-  if (code == 'ar') return ar;
-  if (code == 'es') return es;
-  return en;
-}
