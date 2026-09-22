@@ -120,7 +120,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       _Tile(Icons.translate_rounded,t('native'),nativeLanguage==null?t('chooseLanguage'):_languageText(code,nativeLanguage!),()async{final v=await choose(t('native'),languages,label:(v)=>_languageText(code,v));if(v!=null)setState(()=>nativeLanguage=v);}),
       _Tile(Icons.language_rounded,t('learning'),learningLanguage==null?t('chooseLanguage'):_languageText(code,learningLanguage!),()async{final v=await choose(t('learning'),languages,label:(v)=>_languageText(code,v));if(v!=null)setState(()=>learningLanguage=v);}),
       _Tile(Icons.trending_up_rounded,t('level'),_profileText(code,languageLevel),()async{final v=await choose(t('level'),['beginner','intermediate','advanced'],label:(v)=>_profileText(code,v));if(v!=null)setState(()=>languageLevel=v);}),
-      _Tile(Icons.favorite_outline_rounded,t('hobbies'),selectedHobbies.isEmpty?t('chooseHobbies'):selectedHobbies.map((e)=>_profileText(code,e)).join(' • '),()async{await _pickHobbies(context,code,selectedHobbies);if(mounted)setState(()=>interests.text=selectedHobbies.join(','));}),
+      _Tile(Icons.favorite_outline_rounded,t('hobbies'),selectedHobbies.isEmpty?t('chooseHobbies'):selectedHobbies.map((e)=>'${_hobbyEmoji(e)} ${_profileText(code,e)}').join(' • '),()async{await _pickHobbies(context,code,selectedHobbies);if(mounted)setState(()=>interests.text=selectedHobbies.join(','));}),
       _Field(goals,t('goals'),Icons.track_changes_rounded,lines:2),const SizedBox(height:10),
       _Field(profession,t('profession'),Icons.work_outline_rounded),const SizedBox(height:10),
       _Field(travel,t('travel'),Icons.flight_takeoff_rounded,lines:2),const SizedBox(height:22),
@@ -151,18 +151,125 @@ const _pt=<String,List<String>>{
 };
 const _pk=['title','name','username','about','country','chooseCountry','city','native','learning','chooseLanguage','level','hobbies','chooseHobbies','goals','profession','travel','launch','beginner','intermediate','advanced','music','movies','sports','travel_hobby','gaming','reading','photography','drawing','cooking','technology'];
 
-const _sportLabels=<String,Map<String,String>>{
-'ar':{'football':'كرة القدم','basketball':'كرة السلة','volleyball':'الكرة الطائرة','tennis':'التنس','swimming':'السباحة','running':'الجري','gym':'اللياقة والجيم','martialArts':'الفنون القتالية','cycling':'ركوب الدراجات'},
-'en':{'football':'Football','basketball':'Basketball','volleyball':'Volleyball','tennis':'Tennis','swimming':'Swimming','running':'Running','gym':'Fitness & gym','martialArts':'Martial arts','cycling':'Cycling'},
+const _hobbyLabels=<String,Map<String,String>>{
+'ar':{
+'football':'كرة القدم','basketball':'كرة السلة','volleyball':'الكرة الطائرة','tennis':'التنس','swimming':'السباحة','running':'الجري','gym':'اللياقة والجيم','martialArts':'الفنون القتالية','cycling':'ركوب الدراجات','padel':'البادل','boxing':'الملاكمة','yoga':'اليوغا','hiking':'المشي الجبلي','dancing':'الرقص','singing':'الغناء','writing':'الكتابة','fashion':'الموضة','gardening':'البستنة','cars':'السيارات','nature':'الطبيعة','chess':'الشطرنج','pets':'الحيوانات الأليفة'},
+'en':{
+'football':'Football','basketball':'Basketball','volleyball':'Volleyball','tennis':'Tennis','swimming':'Swimming','running':'Running','gym':'Fitness & gym','martialArts':'Martial arts','cycling':'Cycling','padel':'Padel','boxing':'Boxing','yoga':'Yoga','hiking':'Hiking','dancing':'Dancing','singing':'Singing','writing':'Writing','fashion':'Fashion','gardening':'Gardening','cars':'Cars','nature':'Nature','chess':'Chess','pets':'Pets'},
+'es':{
+'football':'Fútbol','basketball':'Baloncesto','volleyball':'Voleibol','tennis':'Tenis','swimming':'Natación','running':'Correr','gym':'Fitness y gimnasio','martialArts':'Artes marciales','cycling':'Ciclismo','padel':'Pádel','boxing':'Boxeo','yoga':'Yoga','hiking':'Senderismo','dancing':'Baile','singing':'Canto','writing':'Escritura','fashion':'Moda','gardening':'Jardinería','cars':'Autos','nature':'Naturaleza','chess':'Ajedrez','pets':'Mascotas'},
+'fr':{
+'football':'Football','basketball':'Basket-ball','volleyball':'Volley-ball','tennis':'Tennis','swimming':'Natation','running':'Course à pied','gym':'Fitness et salle de sport','martialArts':'Arts martiaux','cycling':'Cyclisme','padel':'Padel','boxing':'Boxe','yoga':'Yoga','hiking':'Randonnée','dancing':'Danse','singing':'Chant','writing':'Écriture','fashion':'Mode','gardening':'Jardinage','cars':'Voitures','nature':'Nature','chess':'Échecs','pets':'Animaux'},
+'de':{
+'football':'Fußball','basketball':'Basketball','volleyball':'Volleyball','tennis':'Tennis','swimming':'Schwimmen','running':'Laufen','gym':'Fitness & Gym','martialArts':'Kampfsport','cycling':'Radfahren','padel':'Padel','boxing':'Boxen','yoga':'Yoga','hiking':'Wandern','dancing':'Tanzen','singing':'Singen','writing':'Schreiben','fashion':'Mode','gardening':'Gärtnern','cars':'Autos','nature':'Natur','chess':'Schach','pets':'Haustiere'},
+'it':{
+'football':'Calcio','basketball':'Pallacanestro','volleyball':'Pallavolo','tennis':'Tennis','swimming':'Nuoto','running':'Corsa','gym':'Fitness e palestra','martialArts':'Arti marziali','cycling':'Ciclismo','padel':'Padel','boxing':'Boxe','yoga':'Yoga','hiking':'Escursionismo','dancing':'Danza','singing':'Canto','writing':'Scrittura','fashion':'Moda','gardening':'Giardinaggio','cars':'Auto','nature':'Natura','chess':'Scacchi','pets':'Animali domestici'},
+'pt':{
+'football':'Futebol','basketball':'Basquete','volleyball':'Vôlei','tennis':'Tênis','swimming':'Natação','running':'Corrida','gym':'Fitness e academia','martialArts':'Artes marciais','cycling':'Ciclismo','padel':'Padel','boxing':'Boxe','yoga':'Yoga','hiking':'Caminhada','dancing':'Dança','singing':'Canto','writing':'Escrita','fashion':'Moda','gardening':'Jardinagem','cars':'Carros','nature':'Natureza','chess':'Xadrez','pets':'Animais de estimação'},
+'tr':{
+'football':'Futbol','basketball':'Basketbol','volleyball':'Voleybol','tennis':'Tenis','swimming':'Yüzme','running':'Koşu','gym':'Fitness ve spor salonu','martialArts':'Dövüş sanatları','cycling':'Bisiklet','padel':'Padel','boxing':'Boks','yoga':'Yoga','hiking':'Doğa yürüyüşü','dancing':'Dans','singing':'Şarkı söyleme','writing':'Yazma','fashion':'Moda','gardening':'Bahçecilik','cars':'Arabalar','nature':'Doğa','chess':'Satranç','pets':'Evcil hayvanlar'},
+'ru':{
+'football':'Футбол','basketball':'Баскетбол','volleyball':'Волейбол','tennis':'Теннис','swimming':'Плавание','running':'Бег','gym':'Фитнес и тренажёрный зал','martialArts':'Боевые искусства','cycling':'Велоспорт','padel':'Падел','boxing':'Бокс','yoga':'Йога','hiking':'Пешие походы','dancing':'Танцы','singing':'Пение','writing':'Письмо','fashion':'Мода','gardening':'Садоводство','cars':'Автомобили','nature':'Природа','chess':'Шахматы','pets':'Домашние животные'},
+'zh':{
+'football':'足球','basketball':'篮球','volleyball':'排球','tennis':'网球','swimming':'游泳','running':'跑步','gym':'健身房','martialArts':'武术','cycling':'骑行','padel':'板式网球','boxing':'拳击','yoga':'瑜伽','hiking':'徒步','dancing':'舞蹈','singing':'唱歌','writing':'写作','fashion':'时尚','gardening':'园艺','cars':'汽车','nature':'自然','chess':'国际象棋','pets':'宠物'},
+'ja':{
+'football':'サッカー','basketball':'バスケットボール','volleyball':'バレーボール','tennis':'テニス','swimming':'水泳','running':'ランニング','gym':'フィットネス・ジム','martialArts':'武道','cycling':'サイクリング','padel':'パデル','boxing':'ボクシング','yoga':'ヨガ','hiking':'ハイキング','dancing':'ダンス','singing':'歌','writing':'執筆','fashion':'ファッション','gardening':'ガーデニング','cars':'車','nature':'自然','chess':'チェス','pets':'ペット'},
+'ko':{
+'football':'축구','basketball':'농구','volleyball':'배구','tennis':'테니스','swimming':'수영','running':'달리기','gym':'피트니스·헬스장','martialArts':'무술','cycling':'사이클링','padel':'파델','boxing':'복싱','yoga':'요가','hiking':'하이킹','dancing':'춤','singing':'노래','writing':'글쓰기','fashion':'패션','gardening':'정원 가꾸기','cars':'자동차','nature':'자연','chess':'체스','pets':'반려동물'},
+'ur':{
+'football':'فٹ بال','basketball':'باسکٹ بال','volleyball':'والی بال','tennis':'ٹینس','swimming':'تیراکی','running':'دوڑ','gym':'فٹنس اور جم','martialArts':'مارشل آرٹس','cycling':'سائیکلنگ','padel':'پیڈل','boxing':'باکسنگ','yoga':'یوگا','hiking':'ہائیکنگ','dancing':'رقص','singing':'گانا','writing':'لکھائی','fashion':'فیشن','gardening':'باغبانی','cars':'گاڑیاں','nature':'فطرت','chess':'شطرنج','pets':'پالتو جانور'},
+'fa':{
+'football':'فوتبال','basketball':'بسکتبال','volleyball':'والیبال','tennis':'تنیس','swimming':'شنا','running':'دویدن','gym':'تناسب اندام و باشگاه','martialArts':'هنرهای رزمی','cycling':'دوچرخه‌سواری','padel':'پدل','boxing':'بوکس','yoga':'یوگا','hiking':'پیاده‌روی','dancing':'رقص','singing':'آوازخوانی','writing':'نویسندگی','fashion':'مد','gardening':'باغبانی','cars':'خودرو','nature':'طبیعت','chess':'شطرنج','pets':'حیوانات خانگی'},
+'id':{
+'football':'Sepak bola','basketball':'Bola basket','volleyball':'Bola voli','tennis':'Tenis','swimming':'Renang','running':'Lari','gym':'Kebugaran & gym','martialArts':'Seni bela diri','cycling':'Bersepeda','padel':'Padel','boxing':'Tinju','yoga':'Yoga','hiking':'Mendaki','dancing':'Menari','singing':'Bernyanyi','writing':'Menulis','fashion':'Mode','gardening':'Berkebun','cars':'Mobil','nature':'Alam','chess':'Catur','pets':'Hewan peliharaan'},
+'th':{
+'football':'ฟุตบอล','basketball':'บาสเกตบอล','volleyball':'วอลเลย์บอล','tennis':'เทนนิส','swimming':'ว่ายน้ำ','running':'วิ่ง','gym':'ฟิตเนสและยิม','martialArts':'ศิลปะการต่อสู้','cycling':'ปั่นจักรยาน','padel':'พาเดล','boxing':'มวย','yoga':'โยคะ','hiking':'เดินป่า','dancing':'เต้นรำ','singing':'ร้องเพลง','writing':'เขียน','fashion':'แฟชั่น','gardening':'ทำสวน','cars':'รถยนต์','nature':'ธรรมชาติ','chess':'หมากรุก','pets':'สัตว์เลี้ยง'},
+'hi':{
+'football':'फ़ुटबॉल','basketball':'बास्केटबॉल','volleyball':'वॉलीबॉल','tennis':'टेनिस','swimming':'तैराकी','running':'दौड़ना','gym':'फिटनेस और जिम','martialArts':'मार्शल आर्ट्स','cycling':'साइकिलिंग','padel':'पैडल','boxing':'बॉक्सिंग','yoga':'योग','hiking':'हाइकिंग','dancing':'नृत्य','singing':'गायन','writing':'लेखन','fashion':'फैशन','gardening':'बागवानी','cars':'कारें','nature':'प्रकृति','chess':'शतरंज','pets':'पालतू जानवर'},
 };
-String _profileText(String code,String key){final i=_pk.indexOf(key);final a=_pt[code]??_pt['en']!;return i<0?key:a[i];}
+
+String _profileText(String code,String key){
+  final hobby=_hobbyLabels[code]?[key]??_hobbyLabels['en']?[key];
+  if(hobby!=null)return hobby;
+  final i=_pk.indexOf(key);
+  final a=_pt[code]??_pt['en']!;
+  return i<0?key:a[i];
+}
+
+String _hobbyEmoji(String key){
+  const icons=<String,String>{
+    'music':'🎵','movies':'🎬','football':'⚽','basketball':'🏀','volleyball':'🏐','tennis':'🎾',
+    'swimming':'🏊','running':'🏃','gym':'🏋️','martialArts':'🥋','cycling':'🚴','padel':'🏓',
+    'boxing':'🥊','yoga':'🧘','hiking':'🥾','travel_hobby':'✈️','gaming':'🎮','reading':'📚',
+    'photography':'📷','drawing':'🎨','cooking':'🍳','technology':'💻','dancing':'💃',
+    'singing':'🎤','writing':'✍️','fashion':'👗','gardening':'🌱','cars':'🏎️','nature':'🌿',
+    'chess':'♟️','pets':'🐾',
+  };
+  return icons[key]??'✨';
+}
+
 Future<void> _pickHobbies(BuildContext context,String code,Set<String> selected) async{
-  const keys=['music','movies','football','basketball','volleyball','tennis','swimming','running','gym','martialArts','cycling','travel_hobby','gaming','reading','photography','drawing','cooking','technology'];
-  await showModalBottomSheet(context:context,isScrollControlled:true,builder:(ctx)=>StatefulBuilder(builder:(ctx,setSheet)=>SafeArea(child:Padding(padding:const EdgeInsets.all(16),child:Column(mainAxisSize:MainAxisSize.min,children:[
-    Text(_profileText(code,'hobbies'),style:const TextStyle(fontSize:20,fontWeight:FontWeight.w800)),
-    const SizedBox(height:10),...keys.map((k)=>CheckboxListTile(value:selected.contains(k),title:Text(_profileText(code,k)),onChanged:(v){setSheet((){v==true?selected.add(k):selected.remove(k);});})),
-    FilledButton(onPressed:()=>Navigator.pop(ctx),child:const Icon(Icons.check_rounded))
-  ])))));
+  const keys=[
+    'music','movies','football','basketball','volleyball','tennis','swimming','running','gym',
+    'martialArts','cycling','padel','boxing','yoga','hiking','travel_hobby','gaming','reading',
+    'photography','drawing','cooking','technology','dancing','singing','writing','fashion',
+    'gardening','cars','nature','chess','pets'
+  ];
+  await showModalBottomSheet(
+    context:context,
+    isScrollControlled:true,
+    useSafeArea:true,
+    showDragHandle:true,
+    builder:(ctx)=>StatefulBuilder(builder:(ctx,setSheet){
+      final cs=Theme.of(ctx).colorScheme;
+      return FractionallySizedBox(
+        heightFactor:.90,
+        child:Column(children:[
+          Padding(
+            padding:const EdgeInsets.fromLTRB(18,2,18,12),
+            child:Row(children:[
+              Expanded(child:Text(_profileText(code,'hobbies'),style:const TextStyle(fontSize:21,fontWeight:FontWeight.w900))),
+              FilledButton.tonalIcon(
+                onPressed:()=>Navigator.pop(ctx),
+                icon:const Icon(Icons.check_rounded,size:20),
+                label:Text('${selected.length}'),
+              ),
+            ]),
+          ),
+          Expanded(
+            child:ListView.separated(
+              padding:const EdgeInsets.fromLTRB(12,0,12,24),
+              itemCount:keys.length,
+              separatorBuilder:(_,__)=>const SizedBox(height:4),
+              itemBuilder:(_,i){
+                final k=keys[i];
+                final checked=selected.contains(k);
+                return Material(
+                  color:checked?cs.primaryContainer.withValues(alpha:.35):Colors.transparent,
+                  borderRadius:BorderRadius.circular(16),
+                  child:ListTile(
+                    shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(16)),
+                    leading:CircleAvatar(
+                      backgroundColor:checked?cs.primaryContainer:cs.surfaceContainerHighest,
+                      child:Text(_hobbyEmoji(k),style:const TextStyle(fontSize:21)),
+                    ),
+                    title:Text(_profileText(code,k),style:TextStyle(fontWeight:checked?FontWeight.w800:FontWeight.w600)),
+                    trailing:Icon(
+                      checked?Icons.check_circle_rounded:Icons.circle_outlined,
+                      color:checked?cs.primary:cs.outline,
+                    ),
+                    onTap:()=>setSheet((){
+                      checked?selected.remove(k):selected.add(k);
+                    }),
+                  ),
+                );
+              },
+            ),
+          ),
+        ]),
+      );
+    }),
+  );
 }
 
 class _Field extends StatelessWidget{
