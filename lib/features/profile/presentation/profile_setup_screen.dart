@@ -14,6 +14,7 @@ import '../data/profile_identity_utils.dart';
 import 'voice_bio_card.dart';
 import 'profile_form_validation.dart';
 import 'profile_form_widgets.dart';
+import 'profile_hobbies_picker.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
   const ProfileSetupScreen({
@@ -243,7 +244,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     final code=widget.localeController.locale?.languageCode??'en';
     if(user==null)return;
 
-    if(name.text.trim().isEmpty){
+    if(!ProfileFormValidation.hasName(name.text)){
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content:Text(_profileFlowText(code,'nameRequired'))),
       );
@@ -473,7 +474,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       ProfileTextField(city,t('city'),Icons.location_city_outlined),const SizedBox(height:10),
       ProfilePickerTile(Icons.language_rounded,t('learning'),learningLanguage==null?t('chooseLanguage'):ProfileLanguageCatalog.label(learningLanguage),()async{final v=await chooseProfileLanguage(t('learning'));if(v!=null)setState(()=>learningLanguage=v);}),
       ProfilePickerTile(Icons.trending_up_rounded,t('level'),_profileText(code,languageLevel),()async{final v=await choose(t('level'),['beginner','intermediate','advanced'],label:(v)=>_profileText(code,v));if(v!=null)setState(()=>languageLevel=v);}),
-      ProfilePickerTile(Icons.favorite_outline_rounded,t('hobbies'),selectedHobbies.isEmpty?t('chooseHobbies'):selectedHobbies.map((e)=>'${_hobbyEmoji(e)} ${_profileText(code,e)}').join(' • '),()async{await _pickHobbies(context,code,selectedHobbies);if(mounted)setState(()=>interests.text=selectedHobbies.join(','));}),
+      ProfilePickerTile(Icons.favorite_outline_rounded,t('hobbies'),selectedHobbies.isEmpty?t('chooseHobbies'):selectedHobbies.map((e)=>'${profileHobbyEmoji(e)} ${_profileText(code,e)}').join(' • '),()async{await pickProfileHobbies(context,selectedHobbies,labelFor:(key)=>_profileText(code,key));if(mounted)setState(()=>interests.text=selectedHobbies.join(','));}),
       ProfileTextField(goals,t('goals'),Icons.track_changes_rounded,lines:2),const SizedBox(height:10),
       ProfilePickerTile(
         Icons.work_outline_rounded,
@@ -568,82 +569,6 @@ String _profileText(String code,String key){
   final i=_pk.indexOf(key);
   final a=_pt[code]??_pt['en']!;
   return i<0?key:a[i];
-}
-
-String _hobbyEmoji(String key){
-  const icons=<String,String>{
-    'music':'🎵','movies':'🎬','football':'⚽','basketball':'🏀','volleyball':'🏐','tennis':'🎾',
-    'swimming':'🏊','running':'🏃','gym':'🏋️','martialArts':'🥋','cycling':'🚴','padel':'🏓',
-    'boxing':'🥊','yoga':'🧘','hiking':'🥾','travel_hobby':'✈️','gaming':'🎮','reading':'📚',
-    'photography':'📷','drawing':'🎨','cooking':'🍳','technology':'💻','dancing':'💃',
-    'singing':'🎤','writing':'✍️','fashion':'👗','gardening':'🌱','cars':'🏎️','nature':'🌿',
-    'chess':'♟️','pets':'🐾',
-  };
-  return icons[key]??'✨';
-}
-
-Future<void> _pickHobbies(BuildContext context,String code,Set<String> selected) async{
-  const keys=[
-    'music','movies','football','basketball','volleyball','tennis','swimming','running','gym',
-    'martialArts','cycling','padel','boxing','yoga','hiking','travel_hobby','gaming','reading',
-    'photography','drawing','cooking','technology','dancing','singing','writing','fashion',
-    'gardening','cars','nature','chess','pets'
-  ];
-  await showModalBottomSheet(
-    context:context,
-    isScrollControlled:true,
-    useSafeArea:true,
-    showDragHandle:true,
-    builder:(ctx)=>StatefulBuilder(builder:(ctx,setSheet){
-      final cs=Theme.of(ctx).colorScheme;
-      return FractionallySizedBox(
-        heightFactor:.90,
-        child:Column(children:[
-          Padding(
-            padding:const EdgeInsets.fromLTRB(18,2,18,12),
-            child:Row(children:[
-              Expanded(child:Text(_profileText(code,'hobbies'),style:const TextStyle(fontSize:21,fontWeight:FontWeight.w900))),
-              FilledButton.tonalIcon(
-                onPressed:()=>Navigator.pop(ctx),
-                icon:const Icon(Icons.check_rounded,size:20),
-                label:Text('${selected.length}'),
-              ),
-            ]),
-          ),
-          Expanded(
-            child:ListView.separated(
-              padding:const EdgeInsets.fromLTRB(12,0,12,24),
-              itemCount:keys.length,
-              separatorBuilder:(_,__)=>const SizedBox(height:4),
-              itemBuilder:(_,i){
-                final k=keys[i];
-                final checked=selected.contains(k);
-                return Material(
-                  color:checked?cs.primaryContainer.withValues(alpha:.35):Colors.transparent,
-                  borderRadius:BorderRadius.circular(16),
-                  child:ListTile(
-                    shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(16)),
-                    leading:CircleAvatar(
-                      backgroundColor:checked?cs.primaryContainer:cs.surfaceContainerHighest,
-                      child:Text(_hobbyEmoji(k),style:const TextStyle(fontSize:21)),
-                    ),
-                    title:Text(_profileText(code,k),style:TextStyle(fontWeight:checked?FontWeight.w800:FontWeight.w600)),
-                    trailing:Icon(
-                      checked?Icons.check_circle_rounded:Icons.circle_outlined,
-                      color:checked?cs.primary:cs.outline,
-                    ),
-                    onTap:()=>setSheet((){
-                      checked?selected.remove(k):selected.add(k);
-                    }),
-                  ),
-                );
-              },
-            ),
-          ),
-        ]),
-      );
-    }),
-  );
 }
 
 const _extra=<String,List<String>>{
