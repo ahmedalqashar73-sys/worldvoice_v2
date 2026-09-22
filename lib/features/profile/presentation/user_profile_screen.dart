@@ -69,7 +69,6 @@ class UserProfileScreen extends StatelessWidget {
             final bio = (data['bio'] as String?)?.trim();
             final photo = data['photoUrl'] as String?;
             final cover = data['coverUrl'] as String?;
-            final native = data['nativeLanguage'] as String?;
             final isVip = data['isVip'] == true;
             final voiceBioUrl = data['voiceBioUrl'] as String?;
             final learning = (data['learningLanguages'] as List?)
@@ -247,16 +246,11 @@ class UserProfileScreen extends StatelessWidget {
                         icon: Icons.translate_rounded,
                         title:
                             _t(code, 'Languages', 'اللغات', 'Idiomas'),
-                        value: [
-                          if (native?.isNotEmpty == true)
-                            _t(code, 'Native', 'الأم', 'Nativo') +
-                                ': ' +
-                                native!,
-                          if (learning.isNotEmpty)
-                            _t(code, 'Learning', 'أتعلم', 'Aprende') +
+                        value: learning.isEmpty
+                            ? '—'
+                            : _t(code, 'Learning', 'أتعلم', 'Aprende') +
                                 ': ' +
                                 learning.join(', '),
-                        ].join('  •  '),
                       ),
                       _InfoCard(
                         icon: Icons.favorite_outline_rounded,
