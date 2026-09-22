@@ -208,7 +208,17 @@ class ProfileLanguageCatalog {
     return null;
   }
 
-  static String label(String? code) => byCode(code)?.displayName ?? code ?? '';
+  static const customPrefix = 'custom:';
 
-  static String englishName(String? code) => byCode(code)?.englishName ?? code ?? '';
+  static String label(String? code) {
+    if (code == null) return '';
+    if (code.startsWith(customPrefix)) return code.substring(customPrefix.length);
+    return byCode(code)?.displayName ?? code;
+  }
+
+  static String englishName(String? code) {
+    if (code == null) return '';
+    if (code.startsWith(customPrefix)) return code.substring(customPrefix.length);
+    return byCode(code)?.englishName ?? code;
+  }
 }
