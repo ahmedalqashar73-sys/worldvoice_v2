@@ -199,6 +199,7 @@ class _LanguageSettingsScreen extends StatelessWidget {
                 : null,
             onTap: () async {
               await localeController.select(language.code);
+              if (context.mounted) Navigator.of(context).pop();
             },
           );
         },
