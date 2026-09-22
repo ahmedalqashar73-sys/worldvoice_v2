@@ -63,11 +63,13 @@ class ProfileSocialService {
   }
 
   static Future<void> _refreshCounts(String uid) async {
-    final followersCount = await _sub(uid, 'followers').count().get();
-    final followingCount = await _sub(uid, 'following').count().get();
+    final results = await Future.wait([
+      _sub(uid, 'followers').get(),
+      _sub(uid, 'following').get(),
+    ]);
     await _db.collection('users').doc(uid).set({
-      'followersCount': followersCount.count ?? 0,
-      'followingCount': followingCount.count ?? 0,
+      'followersCount': results[0].docs.length,
+      'followingCount': results[1].docs.length,
     }, SetOptions(merge: true));
   }
 
