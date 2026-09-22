@@ -12,8 +12,13 @@ import '../data/profile_language_catalog.dart';
 import '../data/profession_catalog.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
-  const ProfileSetupScreen({required this.localeController, super.key});
+  const ProfileSetupScreen({
+    required this.localeController,
+    this.editMode = false,
+    super.key,
+  });
   final LocaleController localeController;
+  final bool editMode;
   @override State<ProfileSetupScreen> createState()=>_ProfileSetupScreenState();
 }
 
@@ -28,6 +33,63 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   String? country, gender, nativeLanguage, learningLanguage, professionKey;
   String languageLevel='beginner'; DateTime? birthDate;
   final Set<String> selectedHobbies={};
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.editMode) {
+      _loadExistingProfile();
+    }
+  }
+
+  Future<void> _loadExistingProfile() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    final snap =
+        await FirebaseFirestore.instance.collection('users').doc(uid).get();
+    final data = snap.data();
+    if (data == null || !mounted) return;
+
+    final learningCodes = (data['learningLanguageCodes'] as List?)
+            ?.map((e) => e.toString())
+            .toList() ??
+        const <String>[];
+    final hobbies = (data['interests'] as List?)
+            ?.map((e) => e.toString())
+            .toList() ??
+        const <String>[];
+    final birth = data['birthDate'];
+
+    setState(() {
+      name.text = (data['displayName'] ?? '').toString();
+      username.text = (data['username'] ?? '').toString();
+      bio.text = (data['bio'] ?? '').toString();
+      city.text = (data['city'] ?? '').toString();
+      profession.text = (data['profession'] ?? '').toString();
+      travel.text = (data['travel'] ?? '').toString();
+      goals.text = (data['learningGoals'] ?? '').toString();
+      country = data['country'] as String?;
+      gender = data['gender'] as String?;
+      nativeLanguage = data['nativeLanguageCode'] as String?;
+      learningLanguage =
+          learningCodes.isEmpty ? null : learningCodes.first;
+      professionKey = data['professionKey'] as String?;
+      languageLevel =
+          (data['languageLevel'] as String?)?.isNotEmpty == true
+              ? data['languageLevel'] as String
+              : 'beginner';
+      birthDate = birth is Timestamp ? birth.toDate() : null;
+      photoUrl = data['photoUrl'] as String?;
+      photoPublicId = data['photoPublicId'] as String?;
+      coverUrl = data['coverUrl'] as String?;
+      coverPublicId = data['coverPublicId'] as String?;
+      selectedHobbies
+        ..clear()
+        ..addAll(hobbies);
+      usernameAvailable = true;
+    });
+  }
 
   static const countries = <String>[
     'Afghanistan','Albania','Algeria','Andorra','Angola','Antigua and Barbuda','Argentina','Armenia','Australia','Austria','Azerbaijan','Bahamas','Bahrain','Bangladesh','Barbados','Belarus','Belgium','Belize','Benin','Bhutan','Bolivia','Bosnia and Herzegovina','Botswana','Brazil','Brunei','Bulgaria','Burkina Faso','Burundi','Cabo Verde','Cambodia','Cameroon','Canada','Central African Republic','Chad','Chile','China','Colombia','Comoros','Congo','Costa Rica','Croatia','Cuba','Cyprus','Czechia','Denmark','Djibouti','Dominica','Dominican Republic','Ecuador','Egypt','El Salvador','Equatorial Guinea','Eritrea','Estonia','Eswatini','Ethiopia','Fiji','Finland','France','Gabon','Gambia','Georgia','Germany','Ghana','Greece','Grenada','Guatemala','Guinea','Guinea-Bissau','Guyana','Haiti','Honduras','Hungary','Iceland','India','Indonesia','Iran','Iraq','Ireland','Italy','Ivory Coast','Jamaica','Japan','Jordan','Kazakhstan','Kenya','Kiribati','Kuwait','Kyrgyzstan','Laos','Latvia','Lebanon','Lesotho','Liberia','Libya','Liechtenstein','Lithuania','Luxembourg','Madagascar','Malawi','Malaysia','Maldives','Mali','Malta','Marshall Islands','Mauritania','Mauritius','Mexico','Micronesia','Moldova','Monaco','Mongolia','Montenegro','Morocco','Mozambique','Myanmar','Namibia','Nauru','Nepal','Netherlands','New Zealand','Nicaragua','Niger','Nigeria','North Korea','North Macedonia','Norway','Oman','Pakistan','Palau','Palestine','Panama','Papua New Guinea','Paraguay','Peru','Philippines','Poland','Portugal','Qatar','Romania','Russia','Rwanda','Saint Kitts and Nevis','Saint Lucia','Saint Vincent and the Grenadines','Samoa','San Marino','Sao Tome and Principe','Saudi Arabia','Senegal','Serbia','Seychelles','Sierra Leone','Singapore','Slovakia','Slovenia','Solomon Islands','Somalia','South Africa','South Korea','South Sudan','Spain','Sri Lanka','Sudan','Suriname','Sweden','Switzerland','Syria','Tajikistan','Tanzania','Thailand','Timor-Leste','Togo','Tonga','Trinidad and Tobago','Tunisia','Turkey','Turkmenistan','Tuvalu','Uganda','Ukraine','United Arab Emirates','United Kingdom','United States','Uruguay','Uzbekistan','Vanuatu','Vatican City','Venezuela','Vietnam','Yemen','Zambia','Zimbabwe'
@@ -272,13 +334,13 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             'learningGoals':goals.text.trim(),
             'interests':selectedHobbies.toList(),
             'profileCompleted':true,
-            'followersCount':0,
-            'followingCount':0,
-            'isVip':false,
-            'isPartner':false,
-            'isVerified':false,
+            if(!widget.editMode) 'followersCount':0,
+            if(!widget.editMode) 'followingCount':0,
+            if(!widget.editMode) 'isVip':false,
+            if(!widget.editMode) 'isPartner':false,
+            if(!widget.editMode) 'isVerified':false,
             'updatedAt':FieldValue.serverTimestamp(),
-            'createdAt':FieldValue.serverTimestamp(),
+            if(!widget.editMode) 'createdAt':FieldValue.serverTimestamp(),
           },
           SetOptions(merge:true),
         );
@@ -298,12 +360,16 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       await Future<void>.delayed(const Duration(milliseconds:250));
       if(!mounted)return;
 
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder:(_)=>HomeScreen(localeController:widget.localeController),
-        ),
-        (route)=>false,
-      );
+      if(widget.editMode){
+        Navigator.of(context).pop();
+      }else{
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder:(_)=>HomeScreen(localeController:widget.localeController),
+          ),
+          (route)=>false,
+        );
+      }
     }catch(e){
       if(mounted){
         final message=e.toString().contains('username-taken')
@@ -326,12 +392,13 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     String t(String key)=>_profileText(code,key);
     return Directionality(textDirection:rtl?TextDirection.rtl:TextDirection.ltr,child:Scaffold(body:SafeArea(child:ListView(
       padding:const EdgeInsets.fromLTRB(18,16,18,36),children:[
-      Text(t('title'),style:Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight:FontWeight.w900)),
+      if(widget.editMode) Align(alignment:AlignmentDirectional.centerStart,child:IconButton(onPressed:()=>Navigator.of(context).pop(),icon:const Icon(Icons.arrow_back_rounded))),
+      Text(widget.editMode ? (code=='ar'?'تعديل البروفايل':code=='es'?'Editar perfil':'Edit profile') : t('title'),style:Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight:FontWeight.w900)),
       const SizedBox(height:18),
-      Container(height:150,decoration:BoxDecoration(borderRadius:BorderRadius.circular(24),gradient:LinearGradient(colors:[cs.primary.withValues(alpha:.75),cs.tertiary.withValues(alpha:.45)]),image:coverImage==null?null:DecorationImage(image:FileImage(coverImage!),fit:BoxFit.cover)),
-        child:Stack(children:[if(coverImage==null)const Center(child:Icon(Icons.landscape_rounded,size:42)),Positioned(top:8,left:8,child:IconButton.filledTonal(onPressed:pickCoverImage,icon:const Icon(Icons.wallpaper_rounded,size:18)))])),
+      Container(height:150,decoration:BoxDecoration(borderRadius:BorderRadius.circular(24),gradient:LinearGradient(colors:[cs.primary.withValues(alpha:.75),cs.tertiary.withValues(alpha:.45)]),image:coverImage!=null?DecorationImage(image:FileImage(coverImage!),fit:BoxFit.cover):(coverUrl!=null&&coverUrl!.isNotEmpty?DecorationImage(image:NetworkImage(coverUrl!),fit:BoxFit.cover):null)),
+        child:Stack(children:[if(coverImage==null&&(coverUrl==null||coverUrl!.isEmpty))const Center(child:Icon(Icons.landscape_rounded,size:42)),Positioned(top:8,left:8,child:IconButton.filledTonal(onPressed:pickCoverImage,icon:const Icon(Icons.wallpaper_rounded,size:18)))])),
       Transform.translate(offset:const Offset(0,-28),child:Center(child:Container(width:104,height:104,padding:const EdgeInsets.all(3),decoration:BoxDecoration(shape:BoxShape.circle,color:cs.surface),
-        child:CircleAvatar(backgroundColor:cs.surfaceContainerHighest,backgroundImage:profileImage==null?null:FileImage(profileImage!),child:profileImage==null?IconButton(onPressed:pickProfileImage,icon:const Icon(Icons.add_a_photo_rounded,size:26)):Align(alignment:Alignment.bottomRight,child:IconButton.filledTonal(onPressed:pickProfileImage,icon:const Icon(Icons.edit_rounded,size:16))))))),
+        child:CircleAvatar(backgroundColor:cs.surfaceContainerHighest,backgroundImage:profileImage!=null?FileImage(profileImage!):(photoUrl!=null&&photoUrl!.isNotEmpty?NetworkImage(photoUrl!):null),child:profileImage==null&&(photoUrl==null||photoUrl!.isEmpty)?IconButton(onPressed:pickProfileImage,icon:const Icon(Icons.add_a_photo_rounded,size:26)):Align(alignment:Alignment.bottomRight,child:IconButton.filledTonal(onPressed:pickProfileImage,icon:const Icon(Icons.edit_rounded,size:16))))))),
       _Field(name,t('name'),Icons.badge_outlined),const SizedBox(height:10),
       TextField(controller:username,textDirection:TextDirection.ltr,onChanged:(_)=>setState(()=>usernameAvailable=null),decoration:InputDecoration(labelText:t('username'),hintText:'@username',prefixIcon:const Icon(Icons.alternate_email_rounded,size:20),suffixIcon:IconButton(onPressed:checkUsername,icon:Icon(usernameAvailable==true?Icons.check_circle:usernameAvailable==false?Icons.cancel:Icons.search,size:20,color:usernameAvailable==true?Colors.green:null)))),
       const SizedBox(height:12),
