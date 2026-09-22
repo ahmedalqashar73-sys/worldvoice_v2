@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../../chat/presentation/chat_screen.dart';
 import '../../discover/presentation/discover_screen.dart';
-import '../../learn/presentation/learn_screen.dart';
-import '../../live/presentation/live_screen.dart';
 import '../../profile/presentation/user_profile_screen.dart';
+import '../../rooms/presentation/rooms_hub_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({required this.localeController, super.key});
+
   final LocaleController localeController;
 
   @override
@@ -16,48 +16,39 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int index = 0;
-
-  void _openProfile() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => UserProfileScreen(
-          localeController: widget.localeController,
-        ),
-      ),
-    );
-  }
+  int _index = 0;
 
   @override
   Widget build(BuildContext context) {
     final code = widget.localeController.locale?.languageCode ?? 'en';
-    final rtl = const {'ar','ur','fa'}.contains(code);
-    final labels = _labels(code);
+    final rtl = const {'ar', 'ur', 'fa'}.contains(code);
+    final labels = _MainNavLabels(code);
 
     final pages = <Widget>[
       _HomeLanding(
         localeController: widget.localeController,
-        onProfile: _openProfile,
-        onLive: () => setState(() => index = 1),
-        onLearn: () => setState(() => index = 2),
-        onChat: () => setState(() => index = 3),
+        onOpenRooms: () => setState(() => _index = 2),
+        onOpenDiscover: () => setState(() => _index = 1),
+        onOpenChat: () => setState(() => _index = 3),
       ),
-      LiveScreen(
-        localeController: widget.localeController,
-        onOpenLearn: () => setState(() => index = 2),
-      ),
-      LearnScreen(localeController: widget.localeController),
-      ChatScreen(localeController: widget.localeController),
       DiscoverScreen(localeController: widget.localeController),
+      RoomsHubScreen(localeController: widget.localeController),
+      ChatScreen(localeController: widget.localeController),
+      UserProfileScreen(localeController: widget.localeController),
     ];
 
     return Directionality(
       textDirection: rtl ? TextDirection.rtl : TextDirection.ltr,
       child: Scaffold(
-        body: IndexedStack(index: index, children: pages),
+        body: IndexedStack(
+          index: _index,
+          children: pages,
+        ),
         bottomNavigationBar: NavigationBar(
-          selectedIndex: index,
-          onDestinationSelected: (value) => setState(() => index = value),
+          selectedIndex: _index,
+          onDestinationSelected: (value) {
+            setState(() => _index = value);
+          },
           destinations: [
             NavigationDestination(
               icon: const Icon(Icons.home_outlined),
@@ -65,14 +56,14 @@ class _HomeScreenState extends State<HomeScreen> {
               label: labels.home,
             ),
             NavigationDestination(
-              icon: const Icon(Icons.graphic_eq_outlined),
-              selectedIcon: const Icon(Icons.graphic_eq_rounded),
-              label: labels.live,
+              icon: const Icon(Icons.explore_outlined),
+              selectedIcon: const Icon(Icons.explore_rounded),
+              label: labels.discover,
             ),
             NavigationDestination(
-              icon: const Icon(Icons.school_outlined),
-              selectedIcon: const Icon(Icons.school_rounded),
-              label: labels.learn,
+              icon: const Icon(Icons.mic_none_rounded),
+              selectedIcon: const Icon(Icons.mic_rounded),
+              label: labels.rooms,
             ),
             NavigationDestination(
               icon: const Icon(Icons.chat_bubble_outline_rounded),
@@ -80,9 +71,9 @@ class _HomeScreenState extends State<HomeScreen> {
               label: labels.chat,
             ),
             NavigationDestination(
-              icon: const Icon(Icons.explore_outlined),
-              selectedIcon: const Icon(Icons.explore_rounded),
-              label: labels.discover,
+              icon: const Icon(Icons.person_outline_rounded),
+              selectedIcon: const Icon(Icons.person_rounded),
+              label: labels.profile,
             ),
           ],
         ),
@@ -94,27 +85,24 @@ class _HomeScreenState extends State<HomeScreen> {
 class _HomeLanding extends StatelessWidget {
   const _HomeLanding({
     required this.localeController,
-    required this.onProfile,
-    required this.onLive,
-    required this.onLearn,
-    required this.onChat,
+    required this.onOpenRooms,
+    required this.onOpenDiscover,
+    required this.onOpenChat,
   });
 
   final LocaleController localeController;
-  final VoidCallback onProfile;
-  final VoidCallback onLive;
-  final VoidCallback onLearn;
-  final VoidCallback onChat;
+  final VoidCallback onOpenRooms;
+  final VoidCallback onOpenDiscover;
+  final VoidCallback onOpenChat;
 
   @override
   Widget build(BuildContext context) {
     final code = localeController.locale?.languageCode ?? 'en';
     final t = _HomeLabels(code);
-    final cs = Theme.of(context).colorScheme;
 
     return SafeArea(
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(18, 12, 18, 26),
+        padding: const EdgeInsets.fromLTRB(18, 14, 18, 28),
         children: [
           Row(
             children: [
@@ -128,23 +116,18 @@ class _HomeLanding extends StatelessWidget {
               ),
               IconButton.filledTonal(
                 onPressed: () {},
+                tooltip: t.notifications,
                 icon: const Icon(Icons.notifications_none_rounded),
-              ),
-              const SizedBox(width: 8),
-              IconButton.filled(
-                onPressed: onProfile,
-                tooltip: t.profile,
-                icon: const Icon(Icons.person_rounded),
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
           Container(
             padding: const EdgeInsets.all(22),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(28),
+              borderRadius: BorderRadius.circular(30),
               gradient: const LinearGradient(
-                colors: [Color(0xFF086A4B), Color(0xFF6045C9)],
+                colors: [Color(0xFF0B7656), Color(0xFF5F46CA)],
               ),
             ),
             child: Row(
@@ -158,6 +141,7 @@ class _HomeLanding extends StatelessWidget {
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 25,
+                          height: 1.15,
                           fontWeight: FontWeight.w900,
                         ),
                       ),
@@ -172,9 +156,10 @@ class _HomeLanding extends StatelessWidget {
                     ],
                   ),
                 ),
+                const SizedBox(width: 12),
                 const Icon(
                   Icons.public_rounded,
-                  size: 66,
+                  size: 64,
                   color: Colors.white,
                 ),
               ],
@@ -182,63 +167,29 @@ class _HomeLanding extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           Text(
-            t.quick,
+            t.startHere,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w900,
                 ),
           ),
           const SizedBox(height: 12),
-          GridView.count(
-            physics: const NeverScrollableScrollPhysics(),
-            shrinkWrap: true,
-            crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 1.2,
-            children: [
-              _HomeAction(
-                icon: Icons.mic_rounded,
-                title: t.voiceRooms,
-                subtitle: t.voiceRoomsBody,
-                onTap: onLive,
-              ),
-              _HomeAction(
-                icon: Icons.live_tv_rounded,
-                title: t.live,
-                subtitle: t.liveBody,
-                onTap: onLive,
-              ),
-              _HomeAction(
-                icon: Icons.smart_toy_rounded,
-                title: t.ai,
-                subtitle: t.aiBody,
-                onTap: onLive,
-              ),
-              _HomeAction(
-                icon: Icons.school_rounded,
-                title: t.learn,
-                subtitle: t.learnBody,
-                onTap: onLearn,
-              ),
-            ],
+          _HomeShortcut(
+            icon: Icons.mic_rounded,
+            title: t.rooms,
+            subtitle: t.roomsBody,
+            onTap: onOpenRooms,
           ),
-          const SizedBox(height: 20),
-          Card(
-            child: ListTile(
-              contentPadding: const EdgeInsets.all(16),
-              leading: CircleAvatar(
-                radius: 28,
-                backgroundColor: cs.primaryContainer,
-                child: Icon(Icons.chat_bubble_rounded, color: cs.primary),
-              ),
-              title: Text(
-                t.messages,
-                style: const TextStyle(fontWeight: FontWeight.w900),
-              ),
-              subtitle: Text(t.messagesBody),
-              trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 17),
-              onTap: onChat,
-            ),
+          _HomeShortcut(
+            icon: Icons.explore_rounded,
+            title: t.discover,
+            subtitle: t.discoverBody,
+            onTap: onOpenDiscover,
+          ),
+          _HomeShortcut(
+            icon: Icons.chat_bubble_rounded,
+            title: t.chat,
+            subtitle: t.chatBody,
+            onTap: onOpenChat,
           ),
         ],
       ),
@@ -246,8 +197,8 @@ class _HomeLanding extends StatelessWidget {
   }
 }
 
-class _HomeAction extends StatelessWidget {
-  const _HomeAction({
+class _HomeShortcut extends StatelessWidget {
+  const _HomeShortcut({
     required this.icon,
     required this.title,
     required this.subtitle,
@@ -261,105 +212,125 @@ class _HomeAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return InkWell(
-      borderRadius: BorderRadius.circular(24),
-      onTap: onTap,
-      child: Ink(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: cs.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(24),
+    final colors = Theme.of(context).colorScheme;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(16),
+        leading: CircleAvatar(
+          radius: 27,
+          backgroundColor: colors.primaryContainer,
+          child: Icon(icon, color: colors.primary),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CircleAvatar(
-              backgroundColor: cs.primaryContainer,
-              child: Icon(icon, color: cs.primary),
-            ),
-            const Spacer(),
-            Text(
-              title,
-              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
-            ),
-            const SizedBox(height: 3),
-            Text(
-              subtitle,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ],
+        title: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.w900),
         ),
+        subtitle: Text(subtitle),
+        trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
+        onTap: onTap,
       ),
     );
   }
 }
 
-({
-  String home,
-  String live,
-  String learn,
-  String chat,
-  String discover,
-}) _labels(String code) {
-  if (code == 'ar') {
-    return (
-      home: 'الرئيسية',
-      live: 'اللايف',
-      learn: 'تعلّم',
-      chat: 'الدردشة',
-      discover: 'اكتشف',
-    );
-  }
-  if (code == 'es') {
-    return (
-      home: 'Inicio',
-      live: 'En vivo',
-      learn: 'Aprender',
-      chat: 'Chat',
-      discover: 'Descubrir',
-    );
-  }
-  return (
-    home: 'Home',
-    live: 'Live',
-    learn: 'Learn',
-    chat: 'Chat',
-    discover: 'Discover',
-  );
+class _MainNavLabels {
+  _MainNavLabels(String code)
+      : home = code == 'ar'
+            ? 'الرئيسية'
+            : code == 'es'
+                ? 'Inicio'
+                : 'Home',
+        discover = code == 'ar'
+            ? 'اكتشف'
+            : code == 'es'
+                ? 'Descubrir'
+                : 'Discover',
+        rooms = code == 'ar'
+            ? 'Rooms'
+            : code == 'es'
+                ? 'Rooms'
+                : 'Rooms',
+        chat = code == 'ar'
+            ? 'الدردشة'
+            : code == 'es'
+                ? 'Chat'
+                : 'Chat',
+        profile = code == 'ar'
+            ? 'البروفايل'
+            : code == 'es'
+                ? 'Perfil'
+                : 'Profile';
+
+  final String home;
+  final String discover;
+  final String rooms;
+  final String chat;
+  final String profile;
 }
 
 class _HomeLabels {
   _HomeLabels(String code)
-      : profile = code == 'ar' ? 'البروفايل' : code == 'es' ? 'Perfil' : 'Profile',
-        welcome = code == 'ar' ? 'تعلّم. تكلّم. تواصل.' : code == 'es' ? 'Aprende. Habla. Conecta.' : 'Learn. Speak. Connect.',
-        subtitle = code == 'ar' ? 'كل عالم WorldVoice من مكان واحد.' : code == 'es' ? 'Todo WorldVoice en un solo lugar.' : 'Your WorldVoice world in one place.',
-        quick = code == 'ar' ? 'ابدأ الآن' : code == 'es' ? 'Empieza ahora' : 'Start now',
-        voiceRooms = code == 'ar' ? 'الغرف الصوتية' : code == 'es' ? 'Salas de voz' : 'Voice rooms',
-        voiceRoomsBody = code == 'ar' ? 'ادخل وتحدث مباشرة' : code == 'es' ? 'Entra y habla en directo' : 'Join and speak live',
-        live = code == 'ar' ? 'بث مباشر' : code == 'es' ? 'Directo' : 'Live',
-        liveBody = code == 'ar' ? 'اكتشف بثوث العالم' : code == 'es' ? 'Descubre directos' : 'Discover global live',
-        ai = code == 'ar' ? 'المعلم AI' : code == 'es' ? 'Profesor AI' : 'AI Teacher',
-        aiBody = code == 'ar' ? 'محادثة وترجمة وكويز' : code == 'es' ? 'Habla, traduce y practica' : 'Speak, translate & quiz',
-        learn = code == 'ar' ? 'تعلّم' : code == 'es' ? 'Aprender' : 'Learn',
-        learnBody = code == 'ar' ? 'شركاء ودورات وممارسة' : code == 'es' ? 'Compañeros y cursos' : 'Partners and courses',
-        messages = code == 'ar' ? 'الرسائل' : code == 'es' ? 'Mensajes' : 'Messages',
-        messagesBody = code == 'ar' ? 'الشات منفصل ومنظم.' : code == 'es' ? 'Chat separado y organizado.' : 'A separate, organized chat area.';
+      : notifications = code == 'ar'
+            ? 'الإشعارات'
+            : code == 'es'
+                ? 'Notificaciones'
+                : 'Notifications',
+        welcome = code == 'ar'
+            ? 'تعلّم. تكلّم. تواصل.'
+            : code == 'es'
+                ? 'Aprende. Habla. Conecta.'
+                : 'Learn. Speak. Connect.',
+        subtitle = code == 'ar'
+            ? 'كل ما تحتاجه في WorldVoice من واجهة بسيطة ونظيفة.'
+            : code == 'es'
+                ? 'Todo WorldVoice desde una interfaz simple y limpia.'
+                : 'Everything in WorldVoice from one clean home.',
+        startHere = code == 'ar'
+            ? 'ابدأ من هنا'
+            : code == 'es'
+                ? 'Empieza aquí'
+                : 'Start here',
+        rooms = code == 'ar'
+            ? 'Rooms'
+            : code == 'es'
+                ? 'Rooms'
+                : 'Rooms',
+        roomsBody = code == 'ar'
+            ? 'ChatGPT AI، Live، Learn، والغرف الصوتية.'
+            : code == 'es'
+                ? 'ChatGPT AI, Live, Learn y salas de voz.'
+                : 'ChatGPT AI, Live, Learn, and Voice Rooms.',
+        discover = code == 'ar'
+            ? 'اكتشف'
+            : code == 'es'
+                ? 'Descubrir'
+                : 'Discover',
+        discoverBody = code == 'ar'
+            ? 'اكتشف أشخاصًا وقصصًا ومحتوى جديدًا.'
+            : code == 'es'
+                ? 'Descubre personas, historias y contenido.'
+                : 'Discover people, stories, and new content.',
+        chat = code == 'ar'
+            ? 'الدردشة'
+            : code == 'es'
+                ? 'Chat'
+                : 'Chat',
+        chatBody = code == 'ar'
+            ? 'كل رسائلك ومحادثاتك في مكان واحد.'
+            : code == 'es'
+                ? 'Todos tus mensajes en un solo lugar.'
+                : 'All your messages in one place.';
 
-  final String profile;
+  final String notifications;
   final String welcome;
   final String subtitle;
-  final String quick;
-  final String voiceRooms;
-  final String voiceRoomsBody;
-  final String live;
-  final String liveBody;
-  final String ai;
-  final String aiBody;
-  final String learn;
-  final String learnBody;
-  final String messages;
-  final String messagesBody;
+  final String startHere;
+  final String rooms;
+  final String roomsBody;
+  final String discover;
+  final String discoverBody;
+  final String chat;
+  final String chatBody;
 }
