@@ -249,8 +249,29 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       return;
     }
 
+    final db=FirebaseFirestore.instance;
+
     if(!widget.editMode){
-      if(!RegExp(r'^[a-z0-9_]{1,20}
+      if(!RegExp(r'^[a-z0-9_]{1,20}$').hasMatch(normalizedUsername)){
+        if(mounted)setState(()=>usernameAvailable=false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content:Text(_profileFlowText(code,'usernameRequired'))),
+        );
+        return;
+      }
+
+      final usernameDoc=
+          await db.collection('usernames').doc(normalizedUsername).get();
+      if(usernameDoc.exists&&usernameDoc.data()?['uid']!=user.uid){
+        if(mounted)setState(()=>usernameAvailable=false);
+        if(mounted){
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content:Text(_profileFlowText(code,'usernameTaken'))),
+          );
+        }
+        return;
+      }
+    }
 
     if(!mounted)return;
     setState((){
@@ -262,7 +283,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       if(profileImage!=null){
         final uploaded=await CloudinaryImageService.uploadImage(
           profileImage!,
-          folder:'worldvoice/users/${user.uid}/profile',
+          folder:'worldvoice/users/'+user.uid+'/profile',
         );
         photoUrl=uploaded.url;
         photoPublicId=uploaded.publicId;
@@ -271,7 +292,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       if(coverImage!=null){
         final uploaded=await CloudinaryImageService.uploadImage(
           coverImage!,
-          folder:'worldvoice/users/${user.uid}/cover',
+          folder:'worldvoice/users/'+user.uid+'/cover',
         );
         coverUrl=uploaded.url;
         coverPublicId=uploaded.publicId;
@@ -301,88 +322,63 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           'updatedAt':FieldValue.serverTimestamp(),
         },SetOptions(merge:true));
       }else{
-              await db.runTransaction((tx)async{
-                final handle=db.collection('usernames').doc(normalizedUsername);
-                final existingNewHandle=await tx.get(handle);
-        
-                final previousUsername=(originalUsername??'')
-                    .trim()
-                    .toLowerCase()
-                    .replaceFirst('@','');
-        
-                DocumentReference<Map<String,dynamic>>? previousHandle;
-                DocumentSnapshot<Map<String,dynamic>>? previousHandleSnapshot;
-        
-                if(previousUsername.isNotEmpty &&
-                    previousUsername!=normalizedUsername){
-                  previousHandle=db.collection('usernames').doc(previousUsername);
-                  previousHandleSnapshot=await tx.get(previousHandle);
-                }
-        
-                if(existingNewHandle.exists &&
-                    existingNewHandle.data()?['uid']!=user.uid){
-                  throw StateError('username-taken');
-                }
-        
-                final existingHandleData=existingNewHandle.data();
-                final existingCreatedAt=existingHandleData?['createdAt'];
-        
-                if(previousHandle!=null &&
-                    previousHandleSnapshot!=null &&
-                    previousHandleSnapshot.exists &&
-                    previousHandleSnapshot.data()?['uid']==user.uid){
-                  tx.delete(previousHandle);
-                }
-        
-                tx.set(handle,{
-                  'uid':user.uid,
-                  'createdAt':existingCreatedAt ?? FieldValue.serverTimestamp(),
-                  'updatedAt':FieldValue.serverTimestamp(),
-                },SetOptions(merge:true));
-        
-                tx.set(
-                  db.collection('users').doc(user.uid),
-                  {
-                    'uid':user.uid,
-                    'email':user.email,
-                    'displayName':name.text.trim(),
-                    'username':normalizedUsername,
-                    'bio':bio.text.trim(),
-                    'country':country,
-                    'city':city.text.trim(),
-                    'gender':gender,
-                    'photoUrl':photoUrl,
-                    'photoPublicId':photoPublicId,
-                    'coverUrl':coverUrl,
-                    'coverPublicId':coverPublicId,
-                    'birthDate':birthDate==null?null:Timestamp.fromDate(birthDate!),
-                    'nativeLanguageCode':nativeLanguage,
-                    'nativeLanguage':ProfileLanguageCatalog.englishName(nativeLanguage),
-                    'learningLanguageCodes':learningLanguage==null
-                        ?<String>[]
-                        :[learningLanguage!],
-                    'learningLanguages':learningLanguage==null
-                        ?<String>[]
-                        :[ProfileLanguageCatalog.englishName(learningLanguage)],
-                    'languageLevel':languageLevel,
-                    'professionKey':professionKey,
-                    'profession':profession.text.trim(),
-                    'travel':travel.text.trim(),
-                    'learningGoals':goals.text.trim(),
-                    'interests':selectedHobbies.toList(),
-                    'profileCompleted':true,
-                    if(!widget.editMode) 'followersCount':0,
-                    if(!widget.editMode) 'followingCount':0,
-                    if(!widget.editMode) 'isVip':false,
-                    if(!widget.editMode) 'isPartner':false,
-                    if(!widget.editMode) 'isVerified':false,
-                    'updatedAt':FieldValue.serverTimestamp(),
-                    if(!widget.editMode) 'createdAt':FieldValue.serverTimestamp(),
-                  },
-                  SetOptions(merge:true),
-                );
-              }
-      });
+        await db.runTransaction((tx)async{
+          final handle=db.collection('usernames').doc(normalizedUsername);
+          final existing=await tx.get(handle);
+
+          if(existing.exists&&existing.data()?['uid']!=user.uid){
+            throw StateError('username-taken');
+          }
+
+          tx.set(handle,{
+            'uid':user.uid,
+            'createdAt':FieldValue.serverTimestamp(),
+            'updatedAt':FieldValue.serverTimestamp(),
+          },SetOptions(merge:true));
+
+          tx.set(
+            db.collection('users').doc(user.uid),
+            {
+              'uid':user.uid,
+              'email':user.email,
+              'displayName':name.text.trim(),
+              'username':normalizedUsername,
+              'bio':bio.text.trim(),
+              'country':country,
+              'city':city.text.trim(),
+              'gender':gender,
+              'photoUrl':photoUrl,
+              'photoPublicId':photoPublicId,
+              'coverUrl':coverUrl,
+              'coverPublicId':coverPublicId,
+              'birthDate':birthDate==null?null:Timestamp.fromDate(birthDate!),
+              'nativeLanguageCode':nativeLanguage,
+              'nativeLanguage':ProfileLanguageCatalog.englishName(nativeLanguage),
+              'learningLanguageCodes':learningLanguage==null
+                  ?<String>[]
+                  :[learningLanguage!],
+              'learningLanguages':learningLanguage==null
+                  ?<String>[]
+                  :[ProfileLanguageCatalog.englishName(learningLanguage)],
+              'languageLevel':languageLevel,
+              'professionKey':professionKey,
+              'profession':profession.text.trim(),
+              'travel':travel.text.trim(),
+              'learningGoals':goals.text.trim(),
+              'interests':selectedHobbies.toList(),
+              'profileCompleted':true,
+              'followersCount':0,
+              'followingCount':0,
+              'isVip':false,
+              'isPartner':false,
+              'isVerified':false,
+              'updatedAt':FieldValue.serverTimestamp(),
+              'createdAt':FieldValue.serverTimestamp(),
+            },
+            SetOptions(merge:true),
+          );
+        });
+      }
 
       if(!mounted)return;
       ScaffoldMessenger.of(context).showSnackBar(
