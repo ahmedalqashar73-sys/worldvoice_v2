@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../services/profile_social_service.dart';
 import 'profile_connections_screen.dart';
+import 'profile_identity_strip.dart';
 import 'profile_setup_screen.dart';
 import 'profile_visitors_screen.dart';
 import 'settings_screen.dart';
@@ -69,6 +70,11 @@ class UserProfileScreen extends StatelessWidget {
             final bio = (data['bio'] as String?)?.trim();
             final photo = data['photoUrl'] as String?;
             final cover = data['coverUrl'] as String?;
+            final country = data['country'] as String?;
+            final gender = data['gender'] as String?;
+            final nativeLanguage = data['nativeLanguage'] as String?;
+            final birthRaw = data['birthDate'];
+            final birthDate = birthRaw is Timestamp ? birthRaw.toDate() : null;
             final isVip = data['isVip'] == true;
             final voiceBioUrl = data['voiceBioUrl'] as String?;
             final learning = (data['learningLanguages'] as List?)
@@ -138,6 +144,13 @@ class UserProfileScreen extends StatelessWidget {
                       Text(
                         '@' +
                             (username?.isNotEmpty == true ? username! : 'user'),
+                      ),
+                      ProfileIdentityStrip(
+                        code: code,
+                        country: country,
+                        gender: gender,
+                        birthDate: birthDate,
+                        nativeLanguage: nativeLanguage,
                       ),
                       if (bio?.isNotEmpty == true) ...[
                         const SizedBox(height: 14),
