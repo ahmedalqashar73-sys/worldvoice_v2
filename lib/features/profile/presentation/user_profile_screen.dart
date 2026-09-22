@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../services/profile_social_service.dart';
 import 'profile_connections_screen.dart';
+import 'profile_identity_badges.dart';
 import 'profile_identity_strip.dart';
 import 'profile_setup_screen.dart';
 import 'profile_visitors_screen.dart';
