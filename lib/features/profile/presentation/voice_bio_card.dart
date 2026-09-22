@@ -47,7 +47,6 @@ class _VoiceBioCardState extends State<VoiceBioCard> {
     final allowed = await _recorder.hasPermission();
     if (!allowed) {
       if (!mounted) return;
-      setState(() => _voiceUrl = upload.url);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -104,6 +103,7 @@ class _VoiceBioCardState extends State<VoiceBioCard> {
       }, SetOptions(merge: true));
 
       if (!mounted) return;
+      setState(() => _voiceUrl = upload.url);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
