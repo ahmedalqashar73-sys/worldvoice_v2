@@ -61,4 +61,14 @@ class AuthService {
   static Future<void> sendPasswordReset(String email) {
     return _auth.sendPasswordResetEmail(email: email.trim());
   }
+
+  static Future<void> signOut() async {
+    try {
+      await _initializeGoogle();
+      await GoogleSignIn.instance.signOut();
+    } catch (_) {
+      // Email/Apple sessions do not require Google sign-out.
+    }
+    await _auth.signOut();
+  }
 }
