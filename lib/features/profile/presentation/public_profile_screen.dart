@@ -71,7 +71,6 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
             final name = (data['displayName'] as String?)?.trim();
             final username = (data['username'] as String?)?.trim();
             final bio = (data['bio'] as String?)?.trim();
-            final native = data['nativeLanguage'] as String?;
             final learning = (data['learningLanguages'] as List?)
                     ?.map((e) => e.toString())
                     .toList() ??
@@ -160,14 +159,11 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                       _Info(
                         icon: Icons.translate_rounded,
                         title: _t(code, 'Languages', 'اللغات', 'Idiomas'),
-                        value: [
-                          if (native?.isNotEmpty == true)
-                            _t(code, 'Native', 'الأم', 'Nativo') + ': ' + native!,
-                          if (learning.isNotEmpty)
-                            _t(code, 'Learning', 'أتعلم', 'Aprende') +
+                        value: learning.isEmpty
+                            ? '—'
+                            : _t(code, 'Learning', 'أتعلم', 'Aprende') +
                                 ': ' +
                                 learning.join(', '),
-                        ].join(' • '),
                       ),
                       _Info(
                         icon: Icons.favorite_outline_rounded,
