@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../services/profile_social_service.dart';
 import 'profile_connections_screen.dart';
+import 'profile_setup_screen.dart';
 import 'profile_visitors_screen.dart';
 import 'settings_screen.dart';
 import 'voice_bio_card.dart';
@@ -180,6 +181,26 @@ class UserProfileScreen extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 18),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => ProfileSetupScreen(
+                                  localeController: localeController,
+                                  editMode: true,
+                                ),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.edit_outlined),
+                          label: Text(
+                            _t(code, 'Edit profile', 'تعديل البروفايل', 'Editar perfil'),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
                       Row(
                         children: [
                           Expanded(
