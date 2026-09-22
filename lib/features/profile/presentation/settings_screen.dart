@@ -63,27 +63,12 @@ class SettingsScreen extends StatelessWidget {
                   child: SwitchListTile(
                     secondary: const Icon(Icons.visibility_off_outlined),
                     title: Text(
-                      _t(
-                        code,
-                        'Hide my profile visits',
-                        'إخفاء زياراتي للبروفايلات',
-                        'Ocultar mis visitas de perfil',
-                      ),
+                      AppStrings.of(code).profile('hideProfileVisits'),
                     ),
                     subtitle: Text(
                       isVip
-                          ? _t(
-                              code,
-                              'When enabled, other people will not see that you visited them.',
-                              'عند التفعيل لن يعرف الآخرون أنك زرت بروفايلهم.',
-                              'Al activarlo, otros no verán que visitaste su perfil.',
-                            )
-                          : _t(
-                              code,
-                              'VIP feature',
-                              'ميزة VIP',
-                              'Función VIP',
-                            ),
+                          ? AppStrings.of(code).profile('hideProfileVisitsDescription')
+                          : AppStrings.of(code).profile('vipFeature'),
                     ),
                     value: isVip && hideVisits,
                     onChanged: isVip
@@ -123,12 +108,7 @@ class SettingsScreen extends StatelessWidget {
           AppStrings.of(code).profile('logOutQuestion'),
         ),
         content: Text(
-          _t(
-            code,
-            'You can sign in again at any time.',
-            'يمكنك تسجيل الدخول مرة أخرى في أي وقت.',
-            'Puedes volver a iniciar sesión en cualquier momento.',
-          ),
+          AppStrings.of(code).profile('logOutDescription'),
         ),
         actions: [
           TextButton(
