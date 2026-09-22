@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+
+import '../../../core/localization/app_strings.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 
@@ -220,21 +222,21 @@ class _VoiceBioCardState extends State<VoiceBioCard> {
             else if (_recording)
               IconButton.filled(
                 onPressed: _stopAndSave,
-                tooltip: _t(widget.code, 'Stop & save', 'إيقاف وحفظ', 'Parar y guardar'),
+                tooltip: AppStrings.of(widget.code).profile('stopAndSave'),
                 icon: const Icon(Icons.stop_rounded),
               )
             else ...[
               IconButton.filledTonal(
                 onPressed: _start,
                 tooltip: hasVoice
-                    ? _t(widget.code, 'Record again', 'تسجيل جديد', 'Grabar otra vez')
-                    : _t(widget.code, 'Record', 'تسجيل', 'Grabar'),
+                    ? AppStrings.of(widget.code).profile('recordAgain')
+                    : AppStrings.of(widget.code).profile('record'),
                 icon: const Icon(Icons.mic_rounded),
               ),
               if (hasVoice)
                 IconButton(
                   onPressed: _delete,
-                  tooltip: _t(widget.code, 'Delete', 'حذف', 'Eliminar'),
+                  tooltip: AppStrings.of(widget.code).profile('delete'),
                   icon: const Icon(Icons.delete_outline_rounded),
                 ),
             ],
@@ -245,8 +247,3 @@ class _VoiceBioCardState extends State<VoiceBioCard> {
   }
 }
 
-String _t(String code, String en, String ar, String es) {
-  if (code == 'ar') return ar;
-  if (code == 'es') return es;
-  return en;
-}
