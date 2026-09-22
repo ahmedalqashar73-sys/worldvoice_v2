@@ -23,7 +23,7 @@ class ChatScreen extends StatelessWidget {
               children: [
                 Text(title, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900)),
                 const Spacer(),
-                IconButton.filledTonal(onPressed: () {}, icon: const Icon(Icons.edit_square)),
+                IconButton.filledTonal(onPressed: () {}, icon: const Icon(Icons.edit_rounded)),
               ],
             ),
             const SizedBox(height: 14),
