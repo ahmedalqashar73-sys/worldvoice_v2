@@ -83,12 +83,7 @@ class _LockedVisitors extends StatelessWidget {
                 const Icon(Icons.visibility_off_rounded, size: 52),
                 const SizedBox(height: 14),
                 Text(
-                  _t(
-                    code,
-                    'See who visited your profile',
-                    'شاهد من زار بروفايلك',
-                    'Mira quién visitó tu perfil',
-                  ),
+                  AppStrings.of(code).profile('seeWhoVisited'),
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.w900,
                       ),
@@ -96,12 +91,7 @@ class _LockedVisitors extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  _t(
-                    code,
-                    'This list is available with My VIP, or after watching an ad once ads are connected.',
-                    'هذه القائمة متاحة مع My VIP، أو بعد مشاهدة إعلان عندما نربط الإعلانات.',
-                    'Esta lista está disponible con My VIP o después de ver un anuncio cuando conectemos los anuncios.',
-                  ),
+                  AppStrings.of(code).profile('visitorsVipOrAd'),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 18),
@@ -112,12 +102,7 @@ class _LockedVisitors extends StatelessWidget {
                       builder: (context) => AlertDialog(
                         title: const Text('My VIP'),
                         content: Text(
-                          _t(
-                            code,
-                            'VIP unlocks profile visitors without ads.',
-                            'VIP يفتح قائمة زوار البروفايل بدون إعلانات.',
-                            'VIP desbloquea las visitas del perfil sin anuncios.',
-                          ),
+                          AppStrings.of(code).profile('vipUnlockVisitors'),
                         ),
                         actions: [
                           TextButton(
@@ -138,12 +123,7 @@ class _LockedVisitors extends StatelessWidget {
                   onPressed: null,
                   icon: const Icon(Icons.ondemand_video_rounded),
                   label: Text(
-                    _t(
-                      code,
-                      'Watch ad — coming soon',
-                      'شاهد إعلان — قريبًا',
-                      'Ver anuncio — próximamente',
-                    ),
+                    AppStrings.of(code).profile('watchAdComingSoon'),
                   ),
                 ),
               ],
@@ -174,12 +154,7 @@ class _VisitList extends StatelessWidget {
         if (snapshot.hasError) {
           return Center(
             child: Text(
-              _t(
-                code,
-                'Could not load visits yet.',
-                'تعذر تحميل الزيارات الآن.',
-                'No se pudieron cargar las visitas.',
-              ),
+              AppStrings.of(code).profile('visitsLoadFailed'),
             ),
           );
         }
@@ -191,12 +166,7 @@ class _VisitList extends StatelessWidget {
         if (docs.isEmpty) {
           return Center(
             child: Text(
-              _t(
-                code,
-                'No visits yet.',
-                'لا توجد زيارات حتى الآن.',
-                'Todavía no hay visitas.',
-              ),
+              AppStrings.of(code).profile('noVisits'),
             ),
           );
         }
