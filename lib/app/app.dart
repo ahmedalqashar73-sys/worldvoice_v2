@@ -1,10 +1,14 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import '../core/localization/locale_controller.dart';
 import '../core/localization/supported_language.dart';
 import '../core/theme/app_theme.dart';
+import '../features/home/presentation/home_screen.dart';
 import '../features/onboarding/presentation/welcome_screen.dart';
+import '../features/profile/presentation/profile_setup_screen.dart';
 
 class WorldVoiceApp extends StatefulWidget {
   const WorldVoiceApp({super.key});
@@ -56,8 +60,62 @@ class _WorldVoiceAppState extends State<WorldVoiceApp> {
         GlobalCupertinoLocalizations.delegate,
       ],
       home: !_ready
-          ? const Scaffold(body: Center(child: CircularProgressIndicator()))
-          : WelcomeScreen(localeController: _localeController),
+          ? const _StartupLoading()
+          : _StartupGate(localeController: _localeController),
+    );
+  }
+}
+
+class _StartupGate extends StatelessWidget {
+  const _StartupGate({required this.localeController});
+
+  final LocaleController localeController;
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      initialData: FirebaseAuth.instance.currentUser,
+      builder: (context, authSnapshot) {
+        if (authSnapshot.connectionState == ConnectionState.waiting &&
+            authSnapshot.data == null) {
+          return const _StartupLoading();
+        }
+
+        final user = authSnapshot.data;
+        if (user == null) {
+          return WelcomeScreen(localeController: localeController);
+        }
+
+        return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+          stream: FirebaseFirestore.instance.collection('users').doc(user.uid).snapshots(),
+          builder: (context, profileSnapshot) {
+            if (!profileSnapshot.hasData) {
+              return const _StartupLoading();
+            }
+
+            final data = profileSnapshot.data!.data();
+            final completed = data?['profileCompleted'] == true;
+
+            if (completed) {
+              return HomeScreen(localeController: localeController);
+            }
+
+            return ProfileSetupScreen(localeController: localeController);
+          },
+        );
+      },
+    );
+  }
+}
+
+class _StartupLoading extends StatelessWidget {
+  const _StartupLoading();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(child: CircularProgressIndicator()),
     );
   }
 }
