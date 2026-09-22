@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../../core/localization/app_strings.dart';
+
 import '../../../core/localization/locale_controller.dart';
 import '../services/profile_social_service.dart';
 import 'profile_connections_screen.dart';
@@ -42,7 +44,7 @@ class UserProfileScreen extends StatelessWidget {
           ),
           actions: [
             IconButton(
-              tooltip: _t(code, 'Settings', 'الإعدادات', 'Ajustes'),
+              tooltip: AppStrings.of(code).profile('settings'),
               onPressed: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
@@ -188,7 +190,7 @@ class UserProfileScreen extends StatelessWidget {
                           ),
                           _StaticStat(
                             value: isVip ? 'VIP' : 'Free',
-                            label: _t(code, 'Plan', 'الخطة', 'Plan'),
+                            label: AppStrings.of(code).profile('plan'),
                           ),
                         ],
                       ),
@@ -208,7 +210,7 @@ class UserProfileScreen extends StatelessWidget {
                           },
                           icon: const Icon(Icons.edit_outlined),
                           label: Text(
-                            _t(code, 'Edit profile', 'تعديل البروفايل', 'Editar perfil'),
+                            AppStrings.of(code).profile('editProfile'),
                           ),
                         ),
                       ),
@@ -258,23 +260,23 @@ class UserProfileScreen extends StatelessWidget {
                       _InfoCard(
                         icon: Icons.translate_rounded,
                         title:
-                            _t(code, 'Languages', 'اللغات', 'Idiomas'),
+                            AppStrings.of(code).profile('languages'),
                         value: learning.isEmpty
                             ? '—'
-                            : _t(code, 'Learning', 'أتعلم', 'Aprende') +
+                            : AppStrings.of(code).profile('learning') +
                                 ': ' +
                                 learning.join(', '),
                       ),
                       _InfoCard(
                         icon: Icons.favorite_outline_rounded,
                         title:
-                            _t(code, 'Interests', 'الهوايات', 'Intereses'),
+                            AppStrings.of(code).profile('interests'),
                         value: hobbies.isEmpty ? '—' : hobbies.join(' • '),
                       ),
                       _InfoCard(
                         icon: Icons.work_outline_rounded,
                         title:
-                            _t(code, 'Profession', 'المهنة', 'Profesión'),
+                            AppStrings.of(code).profile('profession'),
                         value: (data['profession'] ?? '—').toString(),
                       ),
                       const SizedBox(height: 8),
@@ -285,7 +287,7 @@ class UserProfileScreen extends StatelessWidget {
                               icon: Icons.diamond_outlined,
                               value: (data['diamonds'] ?? 0).toString(),
                               label:
-                                  _t(code, 'Diamonds', 'ألماس', 'Diamantes'),
+                                  AppStrings.of(code).profile('diamonds'),
                             ),
                           ),
                           const SizedBox(width: 10),
@@ -293,7 +295,7 @@ class UserProfileScreen extends StatelessWidget {
                             child: _Wallet(
                               icon: Icons.monetization_on_outlined,
                               value: (data['coins'] ?? 0).toString(),
-                              label: _t(code, 'Coins', 'عملات', 'Monedas'),
+                              label: AppStrings.of(code).profile('coins'),
                             ),
                           ),
                         ],
@@ -474,8 +476,3 @@ class _Wallet extends StatelessWidget {
       );
 }
 
-String _t(String code, String en, String ar, String es) {
-  if (code == 'ar') return ar;
-  if (code == 'es') return es;
-  return en;
-}
