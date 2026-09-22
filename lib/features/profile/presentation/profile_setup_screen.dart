@@ -302,28 +302,34 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             .trim()
             .toLowerCase()
             .replaceFirst('@','');
-        final oldHandle=previousUsername.isNotEmpty &&
-                previousUsername!=normalizedUsername
-            ?db.collection('usernames').doc(previousUsername)
-            :null;
-        final oldHandleSnapshot=oldHandle==null?null:await tx.get(oldHandle);
+
+        DocumentReference<Map<String,dynamic>>? previousHandle;
+        DocumentSnapshot<Map<String,dynamic>>? previousHandleSnapshot;
+
+        if(previousUsername.isNotEmpty &&
+            previousUsername!=normalizedUsername){
+          previousHandle=db.collection('usernames').doc(previousUsername);
+          previousHandleSnapshot=await tx.get(previousHandle);
+        }
 
         if(existingNewHandle.exists &&
             existingNewHandle.data()?['uid']!=user.uid){
           throw StateError('username-taken');
         }
 
-        if(oldHandle!=null &&
-            oldHandleSnapshot?.exists==true &&
-            oldHandleSnapshot?.data()?['uid']==user.uid){
-          tx.delete(oldHandle);
+        final existingHandleData=existingNewHandle.data();
+        final existingCreatedAt=existingHandleData?['createdAt'];
+
+        if(previousHandle!=null &&
+            previousHandleSnapshot!=null &&
+            previousHandleSnapshot.exists &&
+            previousHandleSnapshot.data()?['uid']==user.uid){
+          tx.delete(previousHandle);
         }
 
         tx.set(handle,{
           'uid':user.uid,
-          'createdAt':existingNewHandle.exists
-              ?existingNewHandle.data()?['createdAt']
-              :FieldValue.serverTimestamp(),
+          'createdAt':existingCreatedAt ?? FieldValue.serverTimestamp(),
           'updatedAt':FieldValue.serverTimestamp(),
         },SetOptions(merge:true));
 
