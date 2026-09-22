@@ -8,10 +8,9 @@ class CloudinaryImageService {
 
   static const _cloudName = 'ypmmcyxm';
   static const _uploadPreset = 'worldvoice';
-  static final _imageUploadUri =
-      Uri.parse('https://api.cloudinary.com/v1_1/$_cloudName/image/upload');
-  static final _audioUploadUri =
-      Uri.parse('https://api.cloudinary.com/v1_1/$_cloudName/video/upload');
+
+  static Uri _uploadUri(String resourceType) =>
+      Uri.parse('https://api.cloudinary.com/v1_1/$_cloudName/$resourceType/upload');
 
   static Future<CloudinaryUpload> uploadImage(
     File file, {
@@ -20,10 +19,11 @@ class CloudinaryImageService {
     return _upload(
       file,
       folder: folder,
-      uri: _imageUploadUri,
+      resourceType: 'image',
     );
   }
 
+  /// Cloudinary treats audio files as the video resource type.
   static Future<CloudinaryUpload> uploadAudio(
     File file, {
     required String folder,
@@ -31,16 +31,16 @@ class CloudinaryImageService {
     return _upload(
       file,
       folder: folder,
-      uri: _audioUploadUri,
+      resourceType: 'video',
     );
   }
 
   static Future<CloudinaryUpload> _upload(
     File file, {
     required String folder,
-    required Uri uri,
+    required String resourceType,
   }) async {
-    final request = http.MultipartRequest('POST', uri)
+    final request = http.MultipartRequest('POST', _uploadUri(resourceType))
       ..fields['upload_preset'] = _uploadPreset
       ..fields['folder'] = folder
       ..files.add(await http.MultipartFile.fromPath('file', file.path));
@@ -57,14 +57,12 @@ class CloudinaryImageService {
     if (url == null || publicId == null) {
       throw StateError('Cloudinary returned an invalid upload response');
     }
-
     return CloudinaryUpload(url: url, publicId: publicId);
   }
 }
 
 class CloudinaryUpload {
   const CloudinaryUpload({required this.url, required this.publicId});
-
   final String url;
   final String publicId;
 }
