@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/localization/locale_controller.dart';
 import '../services/profile_social_service.dart';
+import 'profile_identity_strip.dart';
 
 class PublicProfileScreen extends StatefulWidget {
   const PublicProfileScreen({
@@ -71,6 +72,11 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
             final name = (data['displayName'] as String?)?.trim();
             final username = (data['username'] as String?)?.trim();
             final bio = (data['bio'] as String?)?.trim();
+            final country = data['country'] as String?;
+            final gender = data['gender'] as String?;
+            final nativeLanguage = data['nativeLanguage'] as String?;
+            final birthRaw = data['birthDate'];
+            final birthDate = birthRaw is Timestamp ? birthRaw.toDate() : null;
             final learning = (data['learningLanguages'] as List?)
                     ?.map((e) => e.toString())
                     .toList() ??
@@ -136,6 +142,13 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text('@' + (username?.isNotEmpty == true ? username! : 'user')),
+                      ProfileIdentityStrip(
+                        code: code,
+                        country: country,
+                        gender: gender,
+                        birthDate: birthDate,
+                        nativeLanguage: nativeLanguage,
+                      ),
                       if (bio?.isNotEmpty == true) ...[
                         const SizedBox(height: 12),
                         Text(bio!),
