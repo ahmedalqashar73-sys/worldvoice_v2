@@ -164,12 +164,7 @@ class UserProfileScreen extends StatelessWidget {
                         children: [
                           _LiveCountStat(
                             stream: ProfileSocialService.followers(uid),
-                            label: _t(
-                              code,
-                              'Followers',
-                              'المتابعون',
-                              'Seguidores',
-                            ),
+                            label: AppStrings.of(code).profile('followers'),
                             onTap: () => _openConnections(
                               context,
                               ProfileConnectionType.followers,
@@ -177,12 +172,7 @@ class UserProfileScreen extends StatelessWidget {
                           ),
                           _LiveCountStat(
                             stream: ProfileSocialService.following(uid),
-                            label: _t(
-                              code,
-                              'Following',
-                              'يتابع',
-                              'Siguiendo',
-                            ),
+                            label: AppStrings.of(code).profile('following'),
                             onTap: () => _openConnections(
                               context,
                               ProfileConnectionType.following,
@@ -231,12 +221,7 @@ class UserProfileScreen extends StatelessWidget {
                           Expanded(
                             child: _ProfileAction(
                               icon: Icons.visibility_outlined,
-                              title: _t(
-                                code,
-                                'Visitors',
-                                'Visitors',
-                                'Visitas',
-                              ),
+                              title: AppStrings.of(code).profile('visitors'),
                               onTap: () {
                                 Navigator.of(context).push(
                                   MaterialPageRoute(
