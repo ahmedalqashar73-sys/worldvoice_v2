@@ -439,20 +439,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       Transform.translate(offset:const Offset(0,-28),child:Center(child:Container(width:104,height:104,padding:const EdgeInsets.all(3),decoration:BoxDecoration(shape:BoxShape.circle,color:cs.surface),
         child:CircleAvatar(backgroundColor:cs.surfaceContainerHighest,backgroundImage:profileImage!=null?FileImage(profileImage!):(photoUrl!=null&&photoUrl!.isNotEmpty?NetworkImage(photoUrl!):null),child:profileImage==null&&(photoUrl==null||photoUrl!.isEmpty)?IconButton(onPressed:pickProfileImage,icon:const Icon(Icons.add_a_photo_rounded,size:26)):Align(alignment:Alignment.bottomRight,child:IconButton.filledTonal(onPressed:pickProfileImage,icon:const Icon(Icons.edit_rounded,size:16))))))),
       _Field(name,t('name'),Icons.badge_outlined),const SizedBox(height:10),
-      if(widget.editMode)
-        TextField(
-          controller:username,
-          readOnly:true,
-          textDirection:TextDirection.ltr,
-          decoration:InputDecoration(
-            labelText:t('username'),
-            prefixIcon:const Icon(Icons.alternate_email_rounded,size:20),
-            suffixIcon:const Icon(Icons.lock_outline_rounded,size:20),
-          ),
-        )
-      else
+      if(!widget.editMode)...[
         TextField(controller:username,textDirection:TextDirection.ltr,onChanged:(_)=>setState(()=>usernameAvailable=null),decoration:InputDecoration(labelText:t('username'),hintText:'@username',prefixIcon:const Icon(Icons.alternate_email_rounded,size:20),suffixIcon:IconButton(onPressed:checkUsername,icon:Icon(usernameAvailable==true?Icons.check_circle:usernameAvailable==false?Icons.cancel:Icons.search,size:20,color:usernameAvailable==true?Colors.green:null)))),
-      const SizedBox(height:12),
+        const SizedBox(height:12),
+      ],
       _Field(bio,t('about'),Icons.auto_awesome_rounded,lines:4),
       const SizedBox(height:10),
       if(uid!=null) VoiceBioCard(userId:uid,code:code,existingUrl:voiceBioUrl),
