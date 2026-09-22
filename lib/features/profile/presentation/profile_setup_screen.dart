@@ -32,6 +32,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   File? profileImage, coverImage;
   String? photoUrl, photoPublicId, coverUrl, coverPublicId, voiceBioUrl;
   String? country, gender, nativeLanguage, learningLanguage, professionKey;
+  String? originalUsername;
   String languageLevel='beginner'; DateTime? birthDate;
   final Set<String> selectedHobbies={};
 
@@ -65,6 +66,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     setState(() {
       name.text = (data['displayName'] ?? '').toString();
       username.text = (data['username'] ?? '').toString();
+      originalUsername = username.text.trim().toLowerCase().replaceFirst('@','');
       bio.text = (data['bio'] ?? '').toString();
       city.text = (data['city'] ?? '').toString();
       profession.text = (data['profession'] ?? '').toString();
@@ -294,16 +296,36 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
       await db.runTransaction((tx)async{
         final handle=db.collection('usernames').doc(normalizedUsername);
-        final old=await tx.get(handle);
+        final existingNewHandle=await tx.get(handle);
 
-        if(old.exists&&old.data()?['uid']!=user.uid){
+        final previousUsername=(originalUsername??'')
+            .trim()
+            .toLowerCase()
+            .replaceFirst('@','');
+        final oldHandle=previousUsername.isNotEmpty &&
+                previousUsername!=normalizedUsername
+            ?db.collection('usernames').doc(previousUsername)
+            :null;
+        final oldHandleSnapshot=oldHandle==null?null:await tx.get(oldHandle);
+
+        if(existingNewHandle.exists &&
+            existingNewHandle.data()?['uid']!=user.uid){
           throw StateError('username-taken');
+        }
+
+        if(oldHandle!=null &&
+            oldHandleSnapshot?.exists==true &&
+            oldHandleSnapshot?.data()?['uid']==user.uid){
+          tx.delete(oldHandle);
         }
 
         tx.set(handle,{
           'uid':user.uid,
-          'createdAt':FieldValue.serverTimestamp(),
-        });
+          'createdAt':existingNewHandle.exists
+              ?existingNewHandle.data()?['createdAt']
+              :FieldValue.serverTimestamp(),
+          'updatedAt':FieldValue.serverTimestamp(),
+        },SetOptions(merge:true));
 
         tx.set(
           db.collection('users').doc(user.uid),
@@ -441,7 +463,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         const SizedBox(height:10),
       ],
       _Field(travel,t('travel'),Icons.flight_takeoff_rounded,lines:2),const SizedBox(height:22),
-      SizedBox(height:58,child:FilledButton.icon(onPressed:saving?null:saveProfile,icon:saving?const SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2)):const Icon(Icons.rocket_launch_rounded,size:20),label:Text(t('launch'),style:const TextStyle(fontWeight:FontWeight.w900,fontSize:17))))
+      SizedBox(height:58,child:FilledButton.icon(onPressed:saving?null:saveProfile,icon:saving?const SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2)):const Icon(Icons.rocket_launch_rounded,size:20),label:Text(widget.editMode?(code=='ar'?'حفظ التعديلات':code=='es'?'Guardar cambios':'Save changes'):t('launch'),style:const TextStyle(fontWeight:FontWeight.w900,fontSize:17))))
     ]))));
   }
 }
@@ -614,6 +636,16 @@ class _BirthFieldsState extends State<_BirthFields>{
   late final day=TextEditingController(text:widget.value?.day.toString()??'');
   late final month=TextEditingController(text:widget.value?.month.toString()??'');
   late final year=TextEditingController(text:widget.value?.year.toString()??'');
+
+  @override
+  void didUpdateWidget(covariant _BirthFields oldWidget){
+    super.didUpdateWidget(oldWidget);
+    if(oldWidget.value!=widget.value){
+      day.text=widget.value?.day.toString()??'';
+      month.text=widget.value?.month.toString()??'';
+      year.text=widget.value?.year.toString()??'';
+    }
+  }
   void update(){final d=int.tryParse(day.text),m=int.tryParse(month.text),y=int.tryParse(year.text);if(d!=null&&m!=null&&y!=null){try{final v=DateTime(y,m,d);if(v.year==y&&v.month==m&&v.day==d&&v.isBefore(DateTime.now()))widget.onChanged(v);else widget.onChanged(null);}catch(_){widget.onChanged(null);}}}
   @override void dispose(){day.dispose();month.dispose();year.dispose();super.dispose();}
   @override Widget build(BuildContext context)=>Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
