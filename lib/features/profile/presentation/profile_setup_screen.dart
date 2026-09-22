@@ -140,9 +140,20 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   }
 
   Future<void> checkUsername() async {
-    if(!RegExp(r'^[a-z0-9_]{1,20}
-    final d=await FirebaseFirestore.instance.collection('usernames').doc(normalizedUsername).get();
-    if(mounted)setState(()=>usernameAvailable=!d.exists||d.data()?['uid']==FirebaseAuth.instance.currentUser?.uid);
+    if(!RegExp(r'^[a-z0-9_]{1,20}$').hasMatch(normalizedUsername)){
+      if(mounted)setState(()=>usernameAvailable=false);
+      return;
+    }
+    final d=await FirebaseFirestore.instance
+        .collection('usernames')
+        .doc(normalizedUsername)
+        .get();
+    if(mounted){
+      setState(
+        ()=>usernameAvailable=!d.exists||
+            d.data()?['uid']==FirebaseAuth.instance.currentUser?.uid,
+      );
+    }
   }
 
   Future<void> pickBirthDate() async {
@@ -172,8 +183,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       return;
     }
 
-    if(!RegExp(r'^[a-z0-9_]{1,20}
-      setState(()=>usernameAvailable=false);
+    if(!RegExp(r'^[a-z0-9_]{1,20}$').hasMatch(normalizedUsername)){
+      if(mounted)setState(()=>usernameAvailable=false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content:Text(_profileFlowText(code,'usernameRequired'))),
       );
@@ -220,6 +231,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       await db.runTransaction((tx)async{
         final handle=db.collection('usernames').doc(normalizedUsername);
         final old=await tx.get(handle);
+
         if(old.exists&&old.data()?['uid']!=user.uid){
           throw StateError('username-taken');
         }
@@ -229,43 +241,47 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           'createdAt':FieldValue.serverTimestamp(),
         });
 
-        tx.set(db.collection('users').doc(user.uid),{
-          'uid':user.uid,
-          'email':user.email,
-          'displayName':name.text.trim(),
-          'username':normalizedUsername,
-          'bio':bio.text.trim(),
-          'country':country,
-          'city':city.text.trim(),
-          'gender':gender,
-          'photoUrl':photoUrl,
-          'photoPublicId':photoPublicId,
-          'coverUrl':coverUrl,
-          'coverPublicId':coverPublicId,
-          'birthDate':birthDate==null?null:Timestamp.fromDate(birthDate!),
-          'nativeLanguageCode':nativeLanguage,
-          'nativeLanguage':ProfileLanguageCatalog.englishName(nativeLanguage),
-          'learningLanguageCodes':learningLanguage==null
-              ?<String>[]
-              :[learningLanguage!],
-          'learningLanguages':learningLanguage==null
-              ?<String>[]
-              :[ProfileLanguageCatalog.englishName(learningLanguage)],
-          'languageLevel':languageLevel,
-          'professionKey':professionKey,
-          'profession':profession.text.trim(),
-          'travel':travel.text.trim(),
-          'learningGoals':goals.text.trim(),
-          'interests':selectedHobbies.toList(),
-          'profileCompleted':true,
-          'followersCount':0,
-          'followingCount':0,
-          'isVip':false,
-          'isPartner':false,
-          'isVerified':false,
-          'updatedAt':FieldValue.serverTimestamp(),
-          'createdAt':FieldValue.serverTimestamp(),
-        },SetOptions(merge:true));
+        tx.set(
+          db.collection('users').doc(user.uid),
+          {
+            'uid':user.uid,
+            'email':user.email,
+            'displayName':name.text.trim(),
+            'username':normalizedUsername,
+            'bio':bio.text.trim(),
+            'country':country,
+            'city':city.text.trim(),
+            'gender':gender,
+            'photoUrl':photoUrl,
+            'photoPublicId':photoPublicId,
+            'coverUrl':coverUrl,
+            'coverPublicId':coverPublicId,
+            'birthDate':birthDate==null?null:Timestamp.fromDate(birthDate!),
+            'nativeLanguageCode':nativeLanguage,
+            'nativeLanguage':ProfileLanguageCatalog.englishName(nativeLanguage),
+            'learningLanguageCodes':learningLanguage==null
+                ?<String>[]
+                :[learningLanguage!],
+            'learningLanguages':learningLanguage==null
+                ?<String>[]
+                :[ProfileLanguageCatalog.englishName(learningLanguage)],
+            'languageLevel':languageLevel,
+            'professionKey':professionKey,
+            'profession':profession.text.trim(),
+            'travel':travel.text.trim(),
+            'learningGoals':goals.text.trim(),
+            'interests':selectedHobbies.toList(),
+            'profileCompleted':true,
+            'followersCount':0,
+            'followingCount':0,
+            'isVip':false,
+            'isPartner':false,
+            'isVerified':false,
+            'updatedAt':FieldValue.serverTimestamp(),
+            'createdAt':FieldValue.serverTimestamp(),
+          },
+          SetOptions(merge:true),
+        );
       });
 
       if(!mounted)return;
@@ -281,6 +297,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
       await Future<void>.delayed(const Duration(milliseconds:250));
       if(!mounted)return;
+
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
           builder:(_)=>HomeScreen(localeController:widget.localeController),
@@ -289,8 +306,11 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       );
     }catch(e){
       if(mounted){
+        final message=e.toString().contains('username-taken')
+            ?_profileFlowText(code,'usernameTaken')
+            :e.toString();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content:Text(e.toString())),
+          SnackBar(content:Text(message)),
         );
       }
     }finally{
