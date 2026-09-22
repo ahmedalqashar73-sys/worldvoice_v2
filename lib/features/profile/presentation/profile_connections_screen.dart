@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../../core/localization/app_strings.dart';
+
 import '../../../core/localization/locale_controller.dart';
 import '../services/profile_social_service.dart';
 import 'public_profile_screen.dart';
@@ -29,11 +31,11 @@ class ProfileConnectionsScreen extends StatelessWidget {
 
     final title = switch (type) {
       ProfileConnectionType.followers =>
-        _t(code, 'Followers', 'المتابعون', 'Seguidores'),
+        AppStrings.of(code).profile('followers'),
       ProfileConnectionType.following =>
-        _t(code, 'Following', 'يتابع', 'Siguiendo'),
+        AppStrings.of(code).profile('following'),
       ProfileConnectionType.partners =>
-        _t(code, 'Partners', 'Partner', 'Partners'),
+        AppStrings.of(code).profile('partners'),
     };
 
     return Scaffold(
@@ -226,8 +228,3 @@ class _EmptyConnections extends StatelessWidget {
   }
 }
 
-String _t(String code, String en, String ar, String es) {
-  if (code == 'ar') return ar;
-  if (code == 'es') return es;
-  return en;
-}
