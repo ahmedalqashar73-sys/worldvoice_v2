@@ -7,6 +7,7 @@ import '../../../core/localization/app_strings.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../../../core/localization/supported_language.dart';
 import '../../auth/services/auth_service.dart';
+import '../../onboarding/presentation/language/language_selection_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({
@@ -39,8 +40,10 @@ class SettingsScreen extends StatelessWidget {
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (_) => _LanguageSettingsScreen(
-                      localeController: localeController,
+                    builder: (_) => LanguageSelectionScreen(
+                      controller: localeController,
+                      showBackButton: true,
+                      closeOnSelect: true,
                     ),
                   ),
                 );
@@ -127,66 +130,6 @@ class SettingsScreen extends StatelessWidget {
     await AuthService.signOut();
     if (!context.mounted) return;
     Navigator.of(context).popUntil((route) => route.isFirst);
-  }
-}
-
-class _LanguageSettingsScreen extends StatelessWidget {
-  const _LanguageSettingsScreen({
-    required this.localeController,
-  });
-
-  final LocaleController localeController;
-
-  @override
-  Widget build(BuildContext context) {
-    final code = localeController.locale?.languageCode ?? 'en';
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          AppStrings.of(code).profile('appLanguage'),
-        ),
-      ),
-      body: ListView.separated(
-        padding: const EdgeInsets.all(14),
-        itemCount: SupportedLanguages.all.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 6),
-        itemBuilder: (context, index) {
-          final language = SupportedLanguages.all[index];
-          final selected =
-              language.code == localeController.locale?.languageCode;
-
-          return ListTile(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            tileColor: selected
-                ? Theme.of(context)
-                    .colorScheme
-                    .primaryContainer
-                    .withValues(alpha: .55)
-                : null,
-            title: Text(
-              language.nativeName,
-              style: const TextStyle(fontWeight: FontWeight.w800),
-            ),
-            subtitle: language.nativeName == language.englishName
-                ? null
-                : Text(language.englishName),
-            trailing: selected
-                ? Icon(
-                    Icons.check_circle_rounded,
-                    color: Theme.of(context).colorScheme.primary,
-                  )
-                : null,
-            onTap: () async {
-              await localeController.select(language.code);
-              if (context.mounted) Navigator.of(context).pop();
-            },
-          );
-        },
-      ),
-    );
   }
 }
 
