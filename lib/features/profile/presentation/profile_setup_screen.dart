@@ -130,50 +130,137 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     final user=FirebaseAuth.instance.currentUser;
     final code=widget.localeController.locale?.languageCode??'en';
     if(user==null)return;
+
     if(name.text.trim().isEmpty){
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(_extraText(code,'nameRequired'))));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content:Text(_extraText(code,'nameRequired'))),
+      );
       return;
     }
-    if(!RegExp(r'^[a-z0-9_]{3,20}
-      if(profileImage!=null){
-        final uploaded=await CloudinaryImageService.uploadImage(profileImage!,folder:'worldvoice/users/${user.uid}/profile');
-        photoUrl=uploaded.url; photoPublicId=uploaded.publicId;
-      }
-      if(coverImage!=null){
-        final uploaded=await CloudinaryImageService.uploadImage(coverImage!,folder:'worldvoice/users/${user.uid}/cover');
-        coverUrl=uploaded.url; coverPublicId=uploaded.publicId;
-      }
-      await db.runTransaction((tx)async{
-      final handle=db.collection('usernames').doc(normalizedUsername); final old=await tx.get(handle);
-      if(old.exists&&old.data()?['uid']!=user.uid)throw StateError('username-taken');
-      tx.set(handle,{'uid':user.uid,'createdAt':FieldValue.serverTimestamp()});
-      tx.set(db.collection('users').doc(user.uid),{
-        'uid':user.uid,'email':user.email,'displayName':name.text.trim(),'username':normalizedUsername,
-        'bio':bio.text.trim(),'country':country,'city':city.text.trim(),'gender':gender,
-        'photoUrl':photoUrl,'photoPublicId':photoPublicId,'coverUrl':coverUrl,'coverPublicId':coverPublicId,
-        'birthDate':birthDate==null?null:Timestamp.fromDate(birthDate!),
-        'nativeLanguageCode':nativeLanguage,'nativeLanguage':ProfileLanguageCatalog.englishName(nativeLanguage),
-        'learningLanguageCodes':learningLanguage==null?<String>[]:[learningLanguage!],
-        'learningLanguages':learningLanguage==null?<String>[]:[ProfileLanguageCatalog.englishName(learningLanguage)],'languageLevel':languageLevel,
-        'professionKey':professionKey,'profession':profession.text.trim(),'travel':travel.text.trim(),'learningGoals':goals.text.trim(),
-        'interests':selectedHobbies.toList(),'profileCompleted':true,'followersCount':0,'followingCount':0,
-        'isVip':false,'isPartner':false,'isVerified':false,'updatedAt':FieldValue.serverTimestamp(),
-        'createdAt':FieldValue.serverTimestamp(),
-      },SetOptions(merge:true));
-    });
-    if(mounted){
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(backgroundColor:const Color(0xFF159B62),content:Text(_extraText(code,'saved'),style:const TextStyle(color:Colors.white))));
-      await Future<void>.delayed(const Duration(milliseconds:250));
+
+    if(!RegExp(r'^[a-z0-9_]{3,20}\$').hasMatch(normalizedUsername)){
+      setState(()=>usernameAvailable=false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content:Text(_extraText(code,'usernameRequired'))),
+      );
+      return;
+    }
+
+    final db=FirebaseFirestore.instance;
+    final usernameDoc=await db.collection('usernames').doc(normalizedUsername).get();
+    if(usernameDoc.exists&&usernameDoc.data()?['uid']!=user.uid){
+      if(mounted)setState(()=>usernameAvailable=false);
       if(mounted){
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder:(_)=>HomeScreen(localeController:widget.localeController)),
-          (route)=>false,
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content:Text(_extraText(code,'usernameTaken'))),
         );
       }
+      return;
     }
+
+    if(!mounted)return;
+    setState((){
+      usernameAvailable=true;
+      saving=true;
+    });
+
+    try{
+      if(profileImage!=null){
+        final uploaded=await CloudinaryImageService.uploadImage(
+          profileImage!,
+          folder:'worldvoice/users/${user.uid}/profile',
+        );
+        photoUrl=uploaded.url;
+        photoPublicId=uploaded.publicId;
+      }
+
+      if(coverImage!=null){
+        final uploaded=await CloudinaryImageService.uploadImage(
+          coverImage!,
+          folder:'worldvoice/users/${user.uid}/cover',
+        );
+        coverUrl=uploaded.url;
+        coverPublicId=uploaded.publicId;
+      }
+
+      await db.runTransaction((tx)async{
+        final handle=db.collection('usernames').doc(normalizedUsername);
+        final old=await tx.get(handle);
+        if(old.exists&&old.data()?['uid']!=user.uid){
+          throw StateError('username-taken');
+        }
+
+        tx.set(handle,{
+          'uid':user.uid,
+          'createdAt':FieldValue.serverTimestamp(),
+        });
+
+        tx.set(db.collection('users').doc(user.uid),{
+          'uid':user.uid,
+          'email':user.email,
+          'displayName':name.text.trim(),
+          'username':normalizedUsername,
+          'bio':bio.text.trim(),
+          'country':country,
+          'city':city.text.trim(),
+          'gender':gender,
+          'photoUrl':photoUrl,
+          'photoPublicId':photoPublicId,
+          'coverUrl':coverUrl,
+          'coverPublicId':coverPublicId,
+          'birthDate':birthDate==null?null:Timestamp.fromDate(birthDate!),
+          'nativeLanguageCode':nativeLanguage,
+          'nativeLanguage':ProfileLanguageCatalog.englishName(nativeLanguage),
+          'learningLanguageCodes':learningLanguage==null?<String>[]:[learningLanguage!],
+          'learningLanguages':learningLanguage==null
+              ?<String>[]
+              :[ProfileLanguageCatalog.englishName(learningLanguage)],
+          'languageLevel':languageLevel,
+          'professionKey':professionKey,
+          'profession':profession.text.trim(),
+          'travel':travel.text.trim(),
+          'learningGoals':goals.text.trim(),
+          'interests':selectedHobbies.toList(),
+          'profileCompleted':true,
+          'followersCount':0,
+          'followingCount':0,
+          'isVip':false,
+          'isPartner':false,
+          'isVerified':false,
+          'updatedAt':FieldValue.serverTimestamp(),
+          'createdAt':FieldValue.serverTimestamp(),
+        },SetOptions(merge:true));
+      });
+
+      if(!mounted)return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor:const Color(0xFF159B62),
+          content:Text(
+            _extraText(code,'saved'),
+            style:const TextStyle(color:Colors.white),
+          ),
+        ),
+      );
+
+      await Future<void>.delayed(const Duration(milliseconds:250));
+      if(!mounted)return;
+
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder:(_)=>HomeScreen(localeController:widget.localeController),
+        ),
+        (route)=>false,
+      );
     }catch(e){
-      if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(e.toString())));
-    }finally{if(mounted)setState(()=>saving=false);}
+      if(mounted){
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content:Text(e.toString())),
+        );
+      }
+    }finally{
+      if(mounted)setState(()=>saving=false);
+    }
   }
 
   @override void dispose(){for(final c in [name,username,bio,city,profession,travel,goals,interests]){c.dispose();}super.dispose();}
@@ -204,7 +291,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       _Tile(Icons.trending_up_rounded,t('level'),_profileText(code,languageLevel),()async{final v=await choose(t('level'),['beginner','intermediate','advanced'],label:(v)=>_profileText(code,v));if(v!=null)setState(()=>languageLevel=v);}),
       _Tile(Icons.favorite_outline_rounded,t('hobbies'),selectedHobbies.isEmpty?t('chooseHobbies'):selectedHobbies.map((e)=>'${_hobbyEmoji(e)} ${_profileText(code,e)}').join(' • '),()async{await _pickHobbies(context,code,selectedHobbies);if(mounted)setState(()=>interests.text=selectedHobbies.join(','));}),
       _Field(goals,t('goals'),Icons.track_changes_rounded,lines:2),const SizedBox(height:10),
-      _Tile(Icons.work_outline_rounded,t('profession'),profession.text.trim().isEmpty?_extraText(code,'chooseProfession'):profession.text.trim(),()async{final v=await chooseProfession(code);if(v!=null){setState(()=>professionKey=v);if(v!='other')profession.text=ProfessionCatalog.byKey(v)?.label(code)??v;}}),
+      _Tile(Icons.work_outline_rounded,t('profession'),profession.text.trim().isEmpty?_extraText(code,'chooseProfession'):profession.text.trim(),()async{final v=await chooseProfession(code);if(v!=null){setState(()=>professionKey=v);if(v=='other'){profession.clear();}else{profession.text=ProfessionCatalog.byKey(v)?.label(code)??v;}}}),
       if(professionKey=='other')...[_Field(profession,_extraText(code,'writeProfession'),Icons.edit_outlined),const SizedBox(height:10)],
       _Field(travel,t('travel'),Icons.flight_takeoff_rounded,lines:2),const SizedBox(height:22),
       SizedBox(height:58,child:FilledButton.icon(onPressed:saving?null:saveProfile,icon:saving?const SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2)):const Icon(Icons.rocket_launch_rounded,size:20),label:Text(t('launch'),style:const TextStyle(fontWeight:FontWeight.w900,fontSize:17))))
