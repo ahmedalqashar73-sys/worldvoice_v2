@@ -52,12 +52,7 @@ class _VoiceBioCardState extends State<VoiceBioCard> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            _t(
-              widget.code,
-              'Microphone permission is required.',
-              'يلزم السماح باستخدام الميكروفون.',
-              'Se necesita permiso para usar el micrófono.',
-            ),
+            AppStrings.of(widget.code).profile('microphonePermission'),
           ),
         ),
       );
@@ -109,12 +104,7 @@ class _VoiceBioCardState extends State<VoiceBioCard> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            _t(
-              widget.code,
-              'Voice About Me saved.',
-              'تم حفظ About Me الصوتي.',
-              'Se guardó tu presentación de voz.',
-            ),
+            AppStrings.of(widget.code).profile('voiceSaved'),
           ),
         ),
       );
@@ -123,12 +113,7 @@ class _VoiceBioCardState extends State<VoiceBioCard> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            _t(
-              widget.code,
-              'Could not save the recording.',
-              'تعذر حفظ التسجيل.',
-              'No se pudo guardar la grabación.',
-            ),
+            AppStrings.of(widget.code).profile('voiceSaveFailed'),
           ),
         ),
       );
@@ -176,36 +161,16 @@ class _VoiceBioCardState extends State<VoiceBioCard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _t(
-                      widget.code,
-                      'About Me • Voice',
-                      'About Me • صوتي',
-                      'Sobre mí • Voz',
-                    ),
+                    AppStrings.of(widget.code).profile('voiceAboutMe'),
                     style: const TextStyle(fontWeight: FontWeight.w900),
                   ),
                   const SizedBox(height: 3),
                   Text(
                     _recording
-                        ? _t(
-                            widget.code,
-                            'Recording now…',
-                            'جاري التسجيل الآن…',
-                            'Grabando ahora…',
-                          )
+                        ? AppStrings.of(widget.code).profile('recordingNow')
                         : hasVoice
-                            ? _t(
-                                widget.code,
-                                'Voice introduction saved',
-                                'تم حفظ التعريف الصوتي',
-                                'Presentación de voz guardada',
-                              )
-                            : _t(
-                                widget.code,
-                                'Record a short voice introduction',
-                                'سجّل تعريفًا صوتيًا قصيرًا عن نفسك',
-                                'Graba una breve presentación de voz',
-                              ),
+                            ? AppStrings.of(widget.code).profile('voiceIntroSaved')
+                            : AppStrings.of(widget.code).profile('recordVoiceIntro'),
                   ),
                 ],
               ),
