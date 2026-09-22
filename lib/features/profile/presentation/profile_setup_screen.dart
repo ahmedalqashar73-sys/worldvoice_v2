@@ -323,61 +323,65 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         },SetOptions(merge:true));
       }else{
         await db.runTransaction((tx)async{
+        if(!widget.editMode){
           final handle=db.collection('usernames').doc(normalizedUsername);
-          final handleSnapshot=await tx.get(handle);
-
-          if(handleSnapshot.exists&&handleSnapshot.data()?['uid']!=user.uid){
+          final existingNewHandle=await tx.get(handle);
+          if(existingNewHandle.exists &&
+              existingNewHandle.data()?['uid']!=user.uid){
             throw StateError('username-taken');
           }
-
           tx.set(handle,{
             'uid':user.uid,
-            'createdAt':FieldValue.serverTimestamp(),
+            'createdAt':existingNewHandle.data()?['createdAt'] ??
+                FieldValue.serverTimestamp(),
             'updatedAt':FieldValue.serverTimestamp(),
           },SetOptions(merge:true));
+        }
 
-          tx.set(
-            db.collection('users').doc(user.uid),
-            {
-              'uid':user.uid,
-              'email':user.email,
-              'displayName':name.text.trim(),
-              'username':normalizedUsername,
-              'bio':bio.text.trim(),
-              'country':country,
-              'city':city.text.trim(),
-              'gender':gender,
-              'photoUrl':photoUrl,
-              'photoPublicId':photoPublicId,
-              'coverUrl':coverUrl,
-              'coverPublicId':coverPublicId,
+        tx.set(
+          db.collection('users').doc(user.uid),
+          {
+            'uid':user.uid,
+            'email':user.email,
+            'displayName':name.text.trim(),
+            if(!widget.editMode) 'username':normalizedUsername,
+            'bio':bio.text.trim(),
+            if(!widget.editMode) 'country':country,
+            'city':city.text.trim(),
+            if(!widget.editMode) 'gender':gender,
+            'photoUrl':photoUrl,
+            'photoPublicId':photoPublicId,
+            'coverUrl':coverUrl,
+            'coverPublicId':coverPublicId,
+            if(!widget.editMode)
               'birthDate':birthDate==null?null:Timestamp.fromDate(birthDate!),
-              'nativeLanguageCode':nativeLanguage,
+            if(!widget.editMode) 'nativeLanguageCode':nativeLanguage,
+            if(!widget.editMode)
               'nativeLanguage':ProfileLanguageCatalog.englishName(nativeLanguage),
-              'learningLanguageCodes':learningLanguage==null
-                  ?<String>[]
-                  :[learningLanguage!],
-              'learningLanguages':learningLanguage==null
-                  ?<String>[]
-                  :[ProfileLanguageCatalog.englishName(learningLanguage)],
-              'languageLevel':languageLevel,
-              'professionKey':professionKey,
-              'profession':profession.text.trim(),
-              'travel':travel.text.trim(),
-              'learningGoals':goals.text.trim(),
-              'interests':selectedHobbies.toList(),
-              'profileCompleted':true,
-              'followersCount':0,
-              'followingCount':0,
-              'isVip':false,
-              'isPartner':false,
-              'isVerified':false,
-              'updatedAt':FieldValue.serverTimestamp(),
-              'createdAt':FieldValue.serverTimestamp(),
-            },
-            SetOptions(merge:true),
-          );
-        });
+            'learningLanguageCodes':learningLanguage==null
+                ?<String>[]
+                :[learningLanguage!],
+            'learningLanguages':learningLanguage==null
+                ?<String>[]
+                :[ProfileLanguageCatalog.englishName(learningLanguage)],
+            'languageLevel':languageLevel,
+            'professionKey':professionKey,
+            'profession':profession.text.trim(),
+            'travel':travel.text.trim(),
+            'learningGoals':goals.text.trim(),
+            'interests':selectedHobbies.toList(),
+            'profileCompleted':true,
+            if(!widget.editMode) 'followersCount':0,
+            if(!widget.editMode) 'followingCount':0,
+            if(!widget.editMode) 'isVip':false,
+            if(!widget.editMode) 'isPartner':false,
+            if(!widget.editMode) 'isVerified':false,
+            'updatedAt':FieldValue.serverTimestamp(),
+            if(!widget.editMode) 'createdAt':FieldValue.serverTimestamp(),
+          },
+          SetOptions(merge:true),
+        );
+      });
       }
 
       if(!mounted)return;
