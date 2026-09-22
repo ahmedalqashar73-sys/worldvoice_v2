@@ -10,6 +10,7 @@ import '../../../core/media/cloudinary_image_service.dart';
 import '../../home/presentation/home_screen.dart';
 import '../data/profile_language_catalog.dart';
 import '../data/profession_catalog.dart';
+import 'voice_bio_card.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
   const ProfileSetupScreen({
@@ -29,7 +30,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   bool? usernameAvailable; bool saving=false;
   final ImagePicker _imagePicker=ImagePicker();
   File? profileImage, coverImage;
-  String? photoUrl, photoPublicId, coverUrl, coverPublicId;
+  String? photoUrl, photoPublicId, coverUrl, coverPublicId, voiceBioUrl;
   String? country, gender, nativeLanguage, learningLanguage, professionKey;
   String languageLevel='beginner'; DateTime? birthDate;
   final Set<String> selectedHobbies={};
@@ -84,6 +85,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       photoPublicId = data['photoPublicId'] as String?;
       coverUrl = data['coverUrl'] as String?;
       coverPublicId = data['coverPublicId'] as String?;
+      voiceBioUrl = data['voiceBioUrl'] as String?;
       selectedHobbies
         ..clear()
         ..addAll(hobbies);
@@ -389,6 +391,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   @override Widget build(BuildContext context){
     final code=widget.localeController.locale?.languageCode??'en';
     final rtl=const {'ar','ur','fa'}.contains(code); final cs=Theme.of(context).colorScheme;
+    final uid=FirebaseAuth.instance.currentUser?.uid;
     String t(String key)=>_profileText(code,key);
     return Directionality(textDirection:rtl?TextDirection.rtl:TextDirection.ltr,child:Scaffold(body:SafeArea(child:ListView(
       padding:const EdgeInsets.fromLTRB(18,16,18,36),children:[
@@ -402,7 +405,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       _Field(name,t('name'),Icons.badge_outlined),const SizedBox(height:10),
       TextField(controller:username,textDirection:TextDirection.ltr,onChanged:(_)=>setState(()=>usernameAvailable=null),decoration:InputDecoration(labelText:t('username'),hintText:'@username',prefixIcon:const Icon(Icons.alternate_email_rounded,size:20),suffixIcon:IconButton(onPressed:checkUsername,icon:Icon(usernameAvailable==true?Icons.check_circle:usernameAvailable==false?Icons.cancel:Icons.search,size:20,color:usernameAvailable==true?Colors.green:null)))),
       const SizedBox(height:12),
-      Stack(alignment:rtl?Alignment.bottomLeft:Alignment.bottomRight,children:[_Field(bio,t('about'),Icons.auto_awesome_rounded,lines:4),Padding(padding:const EdgeInsets.all(6),child:IconButton.filledTonal(onPressed:(){},icon:const Icon(Icons.mic_rounded,size:18)))]),
+      _Field(bio,t('about'),Icons.auto_awesome_rounded,lines:4),
+      const SizedBox(height:10),
+      if(uid!=null) VoiceBioCard(userId:uid,code:code,existingUrl:voiceBioUrl),
       const SizedBox(height:12),
       _Tile(Icons.public_rounded,t('country'),country==null?t('chooseCountry'):'${_flagForCountry(country!)}  ${_countryText(code,country!)}',()async{final v=await choose(t('country'),countries,label:(v)=>_countryText(code,v),showFlags:true);if(v!=null)setState(()=>country=v);}),
       _Field(city,t('city'),Icons.location_city_outlined),const SizedBox(height:10),
