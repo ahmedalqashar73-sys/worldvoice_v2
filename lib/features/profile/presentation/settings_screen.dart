@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../../core/localization/app_strings.dart';
+
 import '../../../core/localization/locale_controller.dart';
 import '../../../core/localization/supported_language.dart';
 import '../../auth/services/auth_service.dart';
@@ -21,7 +23,7 @@ class SettingsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_t(code, 'Settings', 'الإعدادات', 'Ajustes')),
+        title: Text(AppStrings.of(code).profile('settings')),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
@@ -30,7 +32,7 @@ class SettingsScreen extends StatelessWidget {
             child: ListTile(
               leading: const Icon(Icons.language_rounded),
               title: Text(
-                _t(code, 'App language', 'لغة التطبيق', 'Idioma de la app'),
+                AppStrings.of(code).profile('appLanguage'),
               ),
               subtitle: Text(_currentLanguageName(localeController)),
               trailing: const Icon(Icons.chevron_right_rounded),
@@ -103,7 +105,7 @@ class SettingsScreen extends StatelessWidget {
             child: ListTile(
               leading: const Icon(Icons.logout_rounded),
               title: Text(
-                _t(code, 'Log out', 'تسجيل الخروج', 'Cerrar sesión'),
+                AppStrings.of(code).profile('logOut'),
               ),
               onTap: () => _confirmLogout(context, code),
             ),
@@ -118,7 +120,7 @@ class SettingsScreen extends StatelessWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(
-          _t(code, 'Log out?', 'تسجيل الخروج؟', '¿Cerrar sesión?'),
+          AppStrings.of(code).profile('logOutQuestion'),
         ),
         content: Text(
           _t(
@@ -131,11 +133,11 @@ class SettingsScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text(_t(code, 'Cancel', 'إلغاء', 'Cancelar')),
+            child: Text(AppStrings.of(code).profile('cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text(_t(code, 'Log out', 'خروج', 'Salir')),
+            child: Text(AppStrings.of(code).profile('logOut')),
           ),
         ],
       ),
@@ -162,7 +164,7 @@ class _LanguageSettingsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          _t(code, 'App language', 'لغة التطبيق', 'Idioma de la app'),
+          AppStrings.of(code).profile('appLanguage'),
         ),
       ),
       body: ListView.separated(
@@ -216,8 +218,3 @@ String _currentLanguageName(LocaleController controller) {
   return 'English';
 }
 
-String _t(String code, String en, String ar, String es) {
-  if (code == 'ar') return ar;
-  if (code == 'es') return es;
-  return en;
-}
