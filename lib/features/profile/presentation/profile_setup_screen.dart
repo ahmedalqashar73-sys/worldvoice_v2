@@ -77,8 +77,21 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               Expanded(
                 child:ListView.builder(
                   keyboardDismissBehavior:ScrollViewKeyboardDismissBehavior.onDrag,
-                  itemCount:filtered.length,
+                  itemCount:filtered.length+(query.trim().isEmpty?0:1),
                   itemBuilder:(_,i){
+                    if(i==filtered.length){
+                      final custom=query.trim();
+                      final isArabic=(widget.localeController.locale?.languageCode??'en')=='ar';
+                      return ListTile(
+                        leading:const CircleAvatar(child:Icon(Icons.add_rounded)),
+                        title:Text(
+                          isArabic?'استخدام "$custom" كلغة':'Use "$custom" as a language',
+                          style:const TextStyle(fontWeight:FontWeight.w800),
+                        ),
+                        subtitle:Text(isArabic?'إذا لم تجد اللغة في القائمة':'If the language is not listed'),
+                        onTap:()=>Navigator.pop(ctx,'${ProfileLanguageCatalog.customPrefix}$custom'),
+                      );
+                    }
                     final item=filtered[i];
                     return ListTile(
                       leading:CircleAvatar(child:Text(item.code.toUpperCase(),style:const TextStyle(fontSize:11,fontWeight:FontWeight.w900))),
