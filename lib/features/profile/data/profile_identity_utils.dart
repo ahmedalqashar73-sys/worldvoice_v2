@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../../core/localization/app_strings.dart';
+
 int? profileAge(dynamic birthDate) {
   DateTime? birth;
   if (birthDate is Timestamp) {
@@ -71,16 +73,8 @@ String profileCountryFlag(String? country) {
   );
 }
 
-String? profileGenderLabel(String? gender, String code) {
-  if (gender == 'male') {
-    if (code == 'ar') return 'ذكر';
-    if (code == 'es') return 'Hombre';
-    return 'Male';
-  }
-  if (gender == 'female') {
-    if (code == 'ar') return 'أنثى';
-    if (code == 'es') return 'Mujer';
-    return 'Female';
-  }
+String? profileGenderLabel(String? gender, AppStrings strings) {
+  if (gender == 'male') return strings.profile('genderMale');
+  if (gender == 'female') return strings.profile('genderFemale');
   return null;
 }
