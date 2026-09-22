@@ -209,18 +209,8 @@ class _EmptyConnections extends StatelessWidget {
         padding: const EdgeInsets.all(28),
         child: Text(
           partners
-              ? _t(
-                  code,
-                  'Partners appear when you follow each other.',
-                  'يظهر الـPartner عندما تتابعان بعضكما.',
-                  'Los Partners aparecen cuando se siguen mutuamente.',
-                )
-              : _t(
-                  code,
-                  'No people here yet.',
-                  'لا يوجد أشخاص هنا حتى الآن.',
-                  'Todavía no hay personas aquí.',
-                ),
+              ? AppStrings.of(code).profile('partnersMutualHint')
+              : AppStrings.of(code).profile('noPeople'),
           textAlign: TextAlign.center,
         ),
       ),
