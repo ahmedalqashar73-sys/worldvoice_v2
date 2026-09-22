@@ -2,46 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../../../core/localization/app_strings.dart';
 import '../../../core/localization/locale_controller.dart';
-import '../../../core/localization/supported_language.dart';
 import '../../auth/presentation/auth_options_screen.dart';
+import 'language/language_selection_screen.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({required this.localeController, super.key});
   final LocaleController localeController;
-
-  Future<void> _languages(BuildContext context) async {
-    await showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      isScrollControlled: true,
-      builder: (context) => SafeArea(
-        child: SizedBox(
-          height: MediaQuery.sizeOf(context).height * .72,
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-            children: [
-              const Padding(
-                padding: EdgeInsets.all(12),
-                child: Text('Language', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
-              ),
-              ...SupportedLanguages.all.map((language) => ListTile(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    title: Text(language.nativeName, style: const TextStyle(fontWeight: FontWeight.w700)),
-                    subtitle: language.nativeName == language.englishName ? null : Text(language.englishName),
-                    trailing: localeController.locale?.languageCode == language.code
-                        ? Icon(Icons.check_circle_rounded, color: Theme.of(context).colorScheme.primary)
-                        : null,
-                    onTap: () async {
-                      await localeController.select(language.code);
-                      if (context.mounted) Navigator.pop(context);
-                    },
-                  )),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +24,17 @@ class WelcomeScreen extends StatelessWidget {
                 Align(
                   alignment: AlignmentDirectional.centerEnd,
                   child: IconButton.filledTonal(
-                    onPressed: () => _languages(context),
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => LanguageSelectionScreen(
+                            controller: localeController,
+                            showBackButton: true,
+                            closeOnSelect: true,
+                          ),
+                        ),
+                      );
+                    },
                     icon: const Icon(Icons.language_rounded),
                     tooltip: strings.language,
                   ),
