@@ -27,11 +27,27 @@ class _VoiceBioCardState extends State<VoiceBioCard> {
   final AudioRecorder _recorder = AudioRecorder();
   bool _recording = false;
   bool _saving = false;
+  String? _voiceUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _voiceUrl = widget.existingUrl;
+  }
+
+  @override
+  void didUpdateWidget(covariant VoiceBioCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.existingUrl != widget.existingUrl && !_recording && !_saving) {
+      _voiceUrl = widget.existingUrl;
+    }
+  }
 
   Future<void> _start() async {
     final allowed = await _recorder.hasPermission();
     if (!allowed) {
       if (!mounted) return;
+      setState(() => _voiceUrl = upload.url);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -128,6 +144,7 @@ class _VoiceBioCardState extends State<VoiceBioCard> {
       'voiceBioPublicId': FieldValue.delete(),
       'voiceBioUpdatedAt': FieldValue.delete(),
     }, SetOptions(merge: true));
+    if (mounted) setState(() => _voiceUrl = null);
   }
 
   @override
@@ -138,7 +155,7 @@ class _VoiceBioCardState extends State<VoiceBioCard> {
 
   @override
   Widget build(BuildContext context) {
-    final hasVoice = widget.existingUrl?.isNotEmpty == true;
+    final hasVoice = _voiceUrl?.isNotEmpty == true;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
