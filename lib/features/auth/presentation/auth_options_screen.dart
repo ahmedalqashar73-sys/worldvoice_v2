@@ -1,8 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/localization/app_strings.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../services/auth_service.dart';
+import '../../home/presentation/home_screen.dart';
 import '../../profile/presentation/profile_setup_screen.dart';
 
 enum AuthFlowMode { signIn, createAccount }
@@ -59,10 +62,22 @@ class _AuthOptionsScreenState extends State<AuthOptionsScreen> {
       );
   }
 
-  void _openProfile() {
+  Future<void> _openAfterAuth() async {
+    if (!mounted) return;
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final profile = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+    final completed = profile.data()?['profileCompleted'] == true;
+
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => ProfileSetupScreen(localeController: widget.localeController)),
+      MaterialPageRoute(
+        builder: (_) => completed
+            ? HomeScreen(localeController: widget.localeController)
+            : ProfileSetupScreen(localeController: widget.localeController),
+      ),
       (route) => false,
     );
   }
@@ -74,7 +89,7 @@ class _AuthOptionsScreenState extends State<AuthOptionsScreen> {
       await AuthService.signInWithGoogle();
       _message(_rtl ? 'تم تسجيل الدخول بنجاح ✓' : 'Signed in successfully ✓', success: true);
       await Future<void>.delayed(const Duration(milliseconds: 450));
-      _openProfile();
+      await _openAfterAuth();
     } catch (e) {
       final canceled = e.toString().contains('canceled') ||
           e.toString().contains('Cancelled by user');
@@ -105,7 +120,7 @@ class _AuthOptionsScreenState extends State<AuthOptionsScreen> {
       }
       _message(_rtl ? 'تم تسجيل الدخول بنجاح ✓' : 'Signed in successfully ✓', success: true);
       await Future<void>.delayed(const Duration(milliseconds: 450));
-      _openProfile();
+      await _openAfterAuth();
     } catch (e) {
       _message(_rtl ? 'تعذرت المصادقة: $e' : 'Authentication failed: $e');
     } finally {
