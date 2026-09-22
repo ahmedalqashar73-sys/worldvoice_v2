@@ -17,6 +17,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   bool? usernameAvailable; bool saving=false;
   String? country, gender, nativeLanguage, learningLanguage;
   String languageLevel='beginner'; DateTime? birthDate;
+  final Set<String> selectedHobbies={};
 
   static const languages=<String>['Arabic','Chinese','English','French','German','Hindi','Indonesian','Italian','Japanese','Korean','Persian','Portuguese','Russian','Spanish','Thai','Turkish','Urdu'];
   static const countries = <String>[
@@ -67,34 +68,67 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   @override void dispose(){for(final c in [name,username,bio,city,profession,travel,goals,interests]){c.dispose();}super.dispose();}
 
   @override Widget build(BuildContext context){
-    final rtl=const {'ar','ur','fa'}.contains(widget.localeController.locale?.languageCode); final cs=Theme.of(context).colorScheme;
+    final code=widget.localeController.locale?.languageCode??'en';
+    final rtl=const {'ar','ur','fa'}.contains(code); final cs=Theme.of(context).colorScheme;
+    String t(String key)=>_profileText(code,key);
     return Directionality(textDirection:rtl?TextDirection.rtl:TextDirection.ltr,child:Scaffold(body:SafeArea(child:ListView(
       padding:const EdgeInsets.fromLTRB(18,16,18,36),children:[
-      Text(rtl?'أنشئ هويتك في WorldVoice':'Create your WorldVoice identity',style:Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight:FontWeight.w900)),
+      Text(t('title'),style:Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight:FontWeight.w900)),
       const SizedBox(height:18),
       Container(height:150,decoration:BoxDecoration(borderRadius:BorderRadius.circular(24),gradient:LinearGradient(colors:[cs.primary.withValues(alpha:.75),cs.tertiary.withValues(alpha:.45)])),
         child:Stack(children:[const Center(child:Icon(Icons.landscape_rounded,size:42)),Positioned(top:8,left:8,child:IconButton.filledTonal(onPressed:(){},icon:const Icon(Icons.wallpaper_rounded,size:18)))])),
       Transform.translate(offset:const Offset(0,-28),child:Center(child:Container(width:104,height:104,padding:const EdgeInsets.all(3),decoration:BoxDecoration(shape:BoxShape.circle,color:cs.surface),
         child:CircleAvatar(backgroundColor:cs.surfaceContainerHighest,child:IconButton(onPressed:(){},icon:const Icon(Icons.add_a_photo_rounded,size:26)))))),
-      _Field(name,rtl?'الاسم':'Name',Icons.badge_outlined),const SizedBox(height:10),
-      TextField(controller:username,textDirection:TextDirection.ltr,onChanged:(_)=>setState(()=>usernameAvailable=null),decoration:InputDecoration(labelText:rtl?'اسم المستخدم الفريد':'Unique username',hintText:'@username',prefixIcon:const Icon(Icons.alternate_email_rounded,size:20),suffixIcon:IconButton(onPressed:checkUsername,icon:Icon(usernameAvailable==true?Icons.check_circle:usernameAvailable==false?Icons.cancel:Icons.search,size:20,color:usernameAvailable==true?Colors.green:null)))),
+      _Field(name,t('name'),Icons.badge_outlined),const SizedBox(height:10),
+      TextField(controller:username,textDirection:TextDirection.ltr,onChanged:(_)=>setState(()=>usernameAvailable=null),decoration:InputDecoration(labelText:t('username'),hintText:'@username',prefixIcon:const Icon(Icons.alternate_email_rounded,size:20),suffixIcon:IconButton(onPressed:checkUsername,icon:Icon(usernameAvailable==true?Icons.check_circle:usernameAvailable==false?Icons.cancel:Icons.search,size:20,color:usernameAvailable==true?Colors.green:null)))),
       const SizedBox(height:12),
-      Stack(alignment:rtl?Alignment.bottomLeft:Alignment.bottomRight,children:[_Field(bio,rtl?'ماذا عنك؟':'About you',Icons.auto_awesome_rounded,lines:4),Padding(padding:const EdgeInsets.all(6),child:IconButton.filledTonal(onPressed:(){},icon:const Icon(Icons.mic_rounded,size:18)))]),
+      Stack(alignment:rtl?Alignment.bottomLeft:Alignment.bottomRight,children:[_Field(bio,t('about'),Icons.auto_awesome_rounded,lines:4),Padding(padding:const EdgeInsets.all(6),child:IconButton.filledTonal(onPressed:(){},icon:const Icon(Icons.mic_rounded,size:18)))]),
       const SizedBox(height:12),
-      _Tile(Icons.public_rounded,rtl?'الدولة':'Country',country==null?(rtl?'اختر دولتك':'Choose country'):'${_flagForCountry(country!)}  $country',()async{final v=await choose(rtl?'الدولة':'Country',countries);if(v!=null)setState(()=>country=v);}),
-      _Field(city,rtl?'المدينة':'City',Icons.location_city_outlined),const SizedBox(height:10),
+      _Tile(Icons.public_rounded,t('country'),country==null?t('chooseCountry'):'${_flagForCountry(country!)}  $country',()async{final v=await choose(t('country'),countries);if(v!=null)setState(()=>country=v);}),
+      _Field(city,t('city'),Icons.location_city_outlined),const SizedBox(height:10),
       _BirthFields(value:birthDate,rtl:rtl,onChanged:(d)=>setState(()=>birthDate=d)),
       _GenderPicker(value:gender,rtl:rtl,onChanged:(v)=>setState(()=>gender=v)),
-      _Tile(Icons.translate_rounded,rtl?'اللغة الأم':'Native language',nativeLanguage??(rtl?'اختر اللغة':'Choose language'),()async{final v=await choose(rtl?'اللغة الأم':'Native language',languages);if(v!=null)setState(()=>nativeLanguage=v);}),
-      _Tile(Icons.language_rounded,rtl?'اللغة التي تتعلمها':'Learning language',learningLanguage??(rtl?'اختر اللغة':'Choose language'),()async{final v=await choose(rtl?'لغة التعلم':'Learning language',languages);if(v!=null)setState(()=>learningLanguage=v);}),
-      _Tile(Icons.trending_up_rounded,rtl?'المستوى':'Level',languageLevel,()async{final v=await choose(rtl?'المستوى':'Level',['beginner','intermediate','advanced']);if(v!=null)setState(()=>languageLevel=v);}),
-      _Field(interests,rtl?'الهوايات والاهتمامات':'Interests & hobbies',Icons.favorite_outline_rounded,lines:2),const SizedBox(height:10),
-      _Field(goals,rtl?'أهداف التعلم':'Learning goals',Icons.track_changes_rounded,lines:2),const SizedBox(height:10),
-      _Field(profession,rtl?'المهنة / الدراسة':'Profession / study',Icons.work_outline_rounded),const SizedBox(height:10),
-      _Field(travel,rtl?'السفر':'Travel',Icons.flight_takeoff_rounded,lines:2),const SizedBox(height:22),
-      SizedBox(height:58,child:FilledButton.icon(onPressed:saving?null:saveProfile,icon:saving?const SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2)):const Icon(Icons.rocket_launch_rounded,size:20),label:Text(rtl?'إطلاق بروفايلي':'Launch my profile',style:const TextStyle(fontWeight:FontWeight.w900,fontSize:17))))
+      _Tile(Icons.translate_rounded,t('native'),nativeLanguage??t('chooseLanguage'),()async{final v=await choose(t('native'),languages);if(v!=null)setState(()=>nativeLanguage=v);}),
+      _Tile(Icons.language_rounded,t('learning'),learningLanguage??t('chooseLanguage'),()async{final v=await choose(t('learning'),languages);if(v!=null)setState(()=>learningLanguage=v);}),
+      _Tile(Icons.trending_up_rounded,t('level'),_profileText(code,languageLevel),()async{final v=await choose(t('level'),['beginner','intermediate','advanced']);if(v!=null)setState(()=>languageLevel=v);}),
+      _Tile(Icons.favorite_outline_rounded,t('hobbies'),selectedHobbies.isEmpty?t('chooseHobbies'):selectedHobbies.map((e)=>_profileText(code,e)).join(' • '),()async{await _pickHobbies(context,code,selectedHobbies);if(mounted)setState(()=>interests.text=selectedHobbies.join(','));}),
+      _Field(goals,t('goals'),Icons.track_changes_rounded,lines:2),const SizedBox(height:10),
+      _Field(profession,t('profession'),Icons.work_outline_rounded),const SizedBox(height:10),
+      _Field(travel,t('travel'),Icons.flight_takeoff_rounded,lines:2),const SizedBox(height:22),
+      SizedBox(height:58,child:FilledButton.icon(onPressed:saving?null:saveProfile,icon:saving?const SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2)):const Icon(Icons.rocket_launch_rounded,size:20),label:Text(t('launch'),style:const TextStyle(fontWeight:FontWeight.w900,fontSize:17))))
     ]))));
   }
+}
+
+
+const _pt=<String,List<String>>{
+'ar':['أنشئ هويتك في WorldVoice','الاسم','اسم المستخدم الفريد','ماذا عنك؟','الدولة','اختر دولتك','المدينة','اللغة الأم','اللغة التي تتعلمها','اختر اللغة','المستوى','الهوايات والاهتمامات','اختر هواياتك','أهداف التعلم','المهنة / الدراسة','السفر','إطلاق بروفايلي','مبتدئ','متوسط','متقدم','موسيقى','أفلام','رياضة','سفر','ألعاب','قراءة','تصوير','رسم','طبخ','تقنية'],
+'en':['Create your WorldVoice identity','Name','Unique username','About you','Country','Choose country','City','Native language','Learning language','Choose language','Level','Interests & hobbies','Choose your hobbies','Learning goals','Profession / study','Travel','Launch my profile','Beginner','Intermediate','Advanced','Music','Movies','Sports','Travel','Gaming','Reading','Photography','Drawing','Cooking','Technology'],
+'es':['Crea tu identidad en WorldVoice','Nombre','Nombre de usuario único','Sobre ti','País','Elige país','Ciudad','Idioma nativo','Idioma que aprendes','Elige idioma','Nivel','Intereses y aficiones','Elige tus aficiones','Objetivos de aprendizaje','Profesión / estudios','Viajes','Crear mi perfil','Principiante','Intermedio','Avanzado','Música','Películas','Deportes','Viajes','Videojuegos','Lectura','Fotografía','Dibujo','Cocina','Tecnología'],
+'fr':['Créez votre identité WorldVoice','Nom','Nom d’utilisateur unique','À propos de vous','Pays','Choisir un pays','Ville','Langue maternelle','Langue apprise','Choisir une langue','Niveau','Centres d’intérêt et loisirs','Choisissez vos loisirs','Objectifs d’apprentissage','Profession / études','Voyages','Créer mon profil','Débutant','Intermédiaire','Avancé','Musique','Films','Sport','Voyages','Jeux vidéo','Lecture','Photographie','Dessin','Cuisine','Technologie'],
+'de':['Erstelle deine WorldVoice-Identität','Name','Eindeutiger Benutzername','Über dich','Land','Land wählen','Stadt','Muttersprache','Lernsprache','Sprache wählen','Niveau','Interessen & Hobbys','Hobbys wählen','Lernziele','Beruf / Studium','Reisen','Profil erstellen','Anfänger','Mittelstufe','Fortgeschritten','Musik','Filme','Sport','Reisen','Gaming','Lesen','Fotografie','Zeichnen','Kochen','Technologie'],
+'it':['Crea la tua identità WorldVoice','Nome','Nome utente univoco','Su di te','Paese','Scegli paese','Città','Lingua madre','Lingua studiata','Scegli lingua','Livello','Interessi e hobby','Scegli i tuoi hobby','Obiettivi di apprendimento','Professione / studi','Viaggi','Crea il mio profilo','Principiante','Intermedio','Avanzato','Musica','Film','Sport','Viaggi','Videogiochi','Lettura','Fotografia','Disegno','Cucina','Tecnologia'],
+'pt':['Crie sua identidade WorldVoice','Nome','Nome de usuário exclusivo','Sobre você','País','Escolha o país','Cidade','Idioma nativo','Idioma que aprende','Escolha o idioma','Nível','Interesses e hobbies','Escolha seus hobbies','Objetivos de aprendizagem','Profissão / estudos','Viagens','Criar meu perfil','Iniciante','Intermediário','Avançado','Música','Filmes','Esportes','Viagens','Jogos','Leitura','Fotografia','Desenho','Culinária','Tecnologia'],
+'tr':['WorldVoice kimliğini oluştur','Ad','Benzersiz kullanıcı adı','Hakkında','Ülke','Ülke seç','Şehir','Ana dil','Öğrenilen dil','Dil seç','Seviye','İlgi alanları ve hobiler','Hobilerini seç','Öğrenme hedefleri','Meslek / eğitim','Seyahat','Profilimi oluştur','Başlangıç','Orta','İleri','Müzik','Filmler','Spor','Seyahat','Oyun','Okuma','Fotoğrafçılık','Çizim','Yemek','Teknoloji'],
+'ru':['Создайте профиль WorldVoice','Имя','Уникальное имя пользователя','О себе','Страна','Выберите страну','Город','Родной язык','Изучаемый язык','Выберите язык','Уровень','Интересы и хобби','Выберите хобби','Цели обучения','Работа / учёба','Путешествия','Создать профиль','Начальный','Средний','Продвинутый','Музыка','Фильмы','Спорт','Путешествия','Игры','Чтение','Фотография','Рисование','Кулинария','Технологии'],
+'zh':['创建你的 WorldVoice 身份','姓名','唯一用户名','关于你','国家','选择国家','城市','母语','学习语言','选择语言','水平','兴趣爱好','选择爱好','学习目标','职业 / 学业','旅行','创建我的个人资料','初级','中级','高级','音乐','电影','运动','旅行','游戏','阅读','摄影','绘画','烹饪','科技'],
+'ja':['WorldVoiceプロフィールを作成','名前','固有のユーザー名','自己紹介','国','国を選択','都市','母語','学習言語','言語を選択','レベル','興味・趣味','趣味を選択','学習目標','職業 / 学業','旅行','プロフィールを作成','初級','中級','上級','音楽','映画','スポーツ','旅行','ゲーム','読書','写真','絵','料理','テクノロジー'],
+'ko':['WorldVoice 프로필 만들기','이름','고유 사용자 이름','자기소개','국가','국가 선택','도시','모국어','학습 언어','언어 선택','레벨','관심사 및 취미','취미 선택','학습 목표','직업 / 학업','여행','프로필 만들기','초급','중급','고급','음악','영화','스포츠','여행','게임','독서','사진','그림','요리','기술'],
+'ur':['اپنی WorldVoice شناخت بنائیں','نام','منفرد صارف نام','اپنے بارے میں','ملک','ملک منتخب کریں','شہر','مادری زبان','سیکھنے کی زبان','زبان منتخب کریں','سطح','دلچسپیاں اور مشاغل','اپنے مشاغل منتخب کریں','سیکھنے کے اہداف','پیشہ / تعلیم','سفر','میرا پروفائل بنائیں','ابتدائی','درمیانی','اعلیٰ','موسیقی','فلمیں','کھیل','سفر','گیمنگ','مطالعہ','فوٹوگرافی','ڈرائنگ','کھانا پکانا','ٹیکنالوجی'],
+'fa':['هویت WorldVoice خود را بسازید','نام','نام کاربری منحصربه‌فرد','درباره شما','کشور','کشور را انتخاب کنید','شهر','زبان مادری','زبان در حال یادگیری','زبان را انتخاب کنید','سطح','علایق و سرگرمی‌ها','سرگرمی‌ها را انتخاب کنید','اهداف یادگیری','شغل / تحصیل','سفر','ساخت پروفایل','مبتدی','متوسط','پیشرفته','موسیقی','فیلم','ورزش','سفر','بازی','مطالعه','عکاسی','نقاشی','آشپزی','فناوری'],
+'id':['Buat identitas WorldVoice Anda','Nama','Nama pengguna unik','Tentang Anda','Negara','Pilih negara','Kota','Bahasa ibu','Bahasa yang dipelajari','Pilih bahasa','Tingkat','Minat & hobi','Pilih hobi Anda','Tujuan belajar','Profesi / studi','Perjalanan','Buat profil saya','Pemula','Menengah','Mahir','Musik','Film','Olahraga','Perjalanan','Game','Membaca','Fotografi','Menggambar','Memasak','Teknologi'],
+'th':['สร้างโปรไฟล์ WorldVoice','ชื่อ','ชื่อผู้ใช้ไม่ซ้ำ','เกี่ยวกับคุณ','ประเทศ','เลือกประเทศ','เมือง','ภาษาแม่','ภาษาที่เรียน','เลือกภาษา','ระดับ','ความสนใจและงานอดิเรก','เลือกงานอดิเรก','เป้าหมายการเรียน','อาชีพ / การศึกษา','การเดินทาง','สร้างโปรไฟล์','เริ่มต้น','ปานกลาง','ขั้นสูง','ดนตรี','ภาพยนตร์','กีฬา','ท่องเที่ยว','เกม','อ่านหนังสือ','ถ่ายภาพ','วาดภาพ','ทำอาหาร','เทคโนโลยี'],
+'hi':['अपनी WorldVoice पहचान बनाएँ','नाम','विशिष्ट यूज़रनेम','अपने बारे में','देश','देश चुनें','शहर','मातृभाषा','सीखी जा रही भाषा','भाषा चुनें','स्तर','रुचियाँ और शौक','अपने शौक चुनें','सीखने के लक्ष्य','पेशा / पढ़ाई','यात्रा','मेरा प्रोफ़ाइल बनाएँ','शुरुआती','मध्यम','उन्नत','संगीत','फ़िल्में','खेल','यात्रा','गेमिंग','पढ़ना','फ़ोटोग्राफ़ी','चित्रकारी','खाना बनाना','तकनीक']
+};
+const _pk=['title','name','username','about','country','chooseCountry','city','native','learning','chooseLanguage','level','hobbies','chooseHobbies','goals','profession','travel','launch','beginner','intermediate','advanced','music','movies','sports','travel_hobby','gaming','reading','photography','drawing','cooking','technology'];
+String _profileText(String code,String key){final i=_pk.indexOf(key);final a=_pt[code]??_pt['en']!;return i<0?key:a[i];}
+Future<void> _pickHobbies(BuildContext context,String code,Set<String> selected) async{
+  const keys=['music','movies','sports','travel_hobby','gaming','reading','photography','drawing','cooking','technology'];
+  await showModalBottomSheet(context:context,isScrollControlled:true,builder:(ctx)=>StatefulBuilder(builder:(ctx,setSheet)=>SafeArea(child:Padding(padding:const EdgeInsets.all(16),child:Column(mainAxisSize:MainAxisSize.min,children:[
+    Text(_profileText(code,'hobbies'),style:const TextStyle(fontSize:20,fontWeight:FontWeight.w800)),
+    const SizedBox(height:10),...keys.map((k)=>CheckboxListTile(value:selected.contains(k),title:Text(_profileText(code,k)),onChanged:(v){setSheet((){v==true?selected.add(k):selected.remove(k);});})),
+    FilledButton(onPressed:()=>Navigator.pop(ctx),child:const Icon(Icons.check_rounded))
+  ])))));
 }
 
 class _Field extends StatelessWidget{
