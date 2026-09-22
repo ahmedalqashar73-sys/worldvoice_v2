@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 
 import '../../../core/localization/locale_controller.dart';
 import '../services/profile_social_service.dart';
-import 'profile_identity_badges.dart';
 import 'profile_identity_strip.dart';
 
 class PublicProfileScreen extends StatefulWidget {
