@@ -10,7 +10,10 @@ import '../../../core/media/cloudinary_image_service.dart';
 import '../../home/presentation/home_screen.dart';
 import '../data/profile_language_catalog.dart';
 import '../data/profession_catalog.dart';
+import '../data/profile_identity_utils.dart';
 import 'voice_bio_card.dart';
+import 'profile_form_validation.dart';
+import 'profile_form_widgets.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
   const ProfileSetupScreen({
@@ -97,7 +100,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     'Afghanistan','Albania','Algeria','Andorra','Angola','Antigua and Barbuda','Argentina','Armenia','Australia','Austria','Azerbaijan','Bahamas','Bahrain','Bangladesh','Barbados','Belarus','Belgium','Belize','Benin','Bhutan','Bolivia','Bosnia and Herzegovina','Botswana','Brazil','Brunei','Bulgaria','Burkina Faso','Burundi','Cabo Verde','Cambodia','Cameroon','Canada','Central African Republic','Chad','Chile','China','Colombia','Comoros','Congo','Costa Rica','Croatia','Cuba','Cyprus','Czechia','Denmark','Djibouti','Dominica','Dominican Republic','Ecuador','Egypt','El Salvador','Equatorial Guinea','Eritrea','Estonia','Eswatini','Ethiopia','Fiji','Finland','France','Gabon','Gambia','Georgia','Germany','Ghana','Greece','Grenada','Guatemala','Guinea','Guinea-Bissau','Guyana','Haiti','Honduras','Hungary','Iceland','India','Indonesia','Iran','Iraq','Ireland','Italy','Ivory Coast','Jamaica','Japan','Jordan','Kazakhstan','Kenya','Kiribati','Kuwait','Kyrgyzstan','Laos','Latvia','Lebanon','Lesotho','Liberia','Libya','Liechtenstein','Lithuania','Luxembourg','Madagascar','Malawi','Malaysia','Maldives','Mali','Malta','Marshall Islands','Mauritania','Mauritius','Mexico','Micronesia','Moldova','Monaco','Mongolia','Montenegro','Morocco','Mozambique','Myanmar','Namibia','Nauru','Nepal','Netherlands','New Zealand','Nicaragua','Niger','Nigeria','North Korea','North Macedonia','Norway','Oman','Pakistan','Palau','Palestine','Panama','Papua New Guinea','Paraguay','Peru','Philippines','Poland','Portugal','Qatar','Romania','Russia','Rwanda','Saint Kitts and Nevis','Saint Lucia','Saint Vincent and the Grenadines','Samoa','San Marino','Sao Tome and Principe','Saudi Arabia','Senegal','Serbia','Seychelles','Sierra Leone','Singapore','Slovakia','Slovenia','Solomon Islands','Somalia','South Africa','South Korea','South Sudan','Spain','Sri Lanka','Sudan','Suriname','Sweden','Switzerland','Syria','Tajikistan','Tanzania','Thailand','Timor-Leste','Togo','Tonga','Trinidad and Tobago','Tunisia','Turkey','Turkmenistan','Tuvalu','Uganda','Ukraine','United Arab Emirates','United Kingdom','United States','Uruguay','Uzbekistan','Vanuatu','Vatican City','Venezuela','Vietnam','Yemen','Zambia','Zimbabwe'
   ];
 
-  String get normalizedUsername=>username.text.trim().toLowerCase().replaceFirst('@','');
+  String get normalizedUsername=>ProfileFormValidation.normalizeUsername(username.text);
 
   Future<String?> choose(String title,List<String> values,{String Function(String)? label,bool showFlags=false}) => showModalBottomSheet<String>(
     context:context,isScrollControlled:true,builder:(ctx)=>SafeArea(child:SizedBox(height:MediaQuery.sizeOf(ctx).height*.72,
@@ -204,7 +207,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   }
 
   Future<void> checkUsername() async {
-    if(!RegExp(r'^[a-z0-9_]{1,20}$').hasMatch(normalizedUsername)){
+    if(!ProfileFormValidation.isValidUsername(normalizedUsername)){
       if(mounted)setState(()=>usernameAvailable=false);
       return;
     }
@@ -250,7 +253,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     final db=FirebaseFirestore.instance;
 
     if(!widget.editMode){
-      if(!RegExp(r'^[a-z0-9_]{1,20}$').hasMatch(normalizedUsername)){
+      if(!ProfileFormValidation.isValidUsername(normalizedUsername)){
         if(mounted)setState(()=>usernameAvailable=false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content:Text(_profileFlowText(code,'usernameRequired'))),
@@ -438,27 +441,41 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         child:Stack(children:[if(coverImage==null&&(coverUrl==null||coverUrl!.isEmpty))const Center(child:Icon(Icons.landscape_rounded,size:42)),Positioned(top:8,left:8,child:IconButton.filledTonal(onPressed:pickCoverImage,icon:const Icon(Icons.wallpaper_rounded,size:18)))])),
       Transform.translate(offset:const Offset(0,-28),child:Center(child:Container(width:104,height:104,padding:const EdgeInsets.all(3),decoration:BoxDecoration(shape:BoxShape.circle,color:cs.surface),
         child:CircleAvatar(backgroundColor:cs.surfaceContainerHighest,backgroundImage:profileImage!=null?FileImage(profileImage!):(photoUrl!=null&&photoUrl!.isNotEmpty?NetworkImage(photoUrl!):null),child:profileImage==null&&(photoUrl==null||photoUrl!.isEmpty)?IconButton(onPressed:pickProfileImage,icon:const Icon(Icons.add_a_photo_rounded,size:26)):Align(alignment:Alignment.bottomRight,child:IconButton.filledTonal(onPressed:pickProfileImage,icon:const Icon(Icons.edit_rounded,size:16))))))),
-      _Field(name,t('name'),Icons.badge_outlined),const SizedBox(height:10),
+      ProfileTextField(name,t('name'),Icons.badge_outlined),const SizedBox(height:10),
       if(!widget.editMode)...[
         TextField(controller:username,textDirection:TextDirection.ltr,onChanged:(_)=>setState(()=>usernameAvailable=null),decoration:InputDecoration(labelText:t('username'),hintText:'@username',prefixIcon:const Icon(Icons.alternate_email_rounded,size:20),suffixIcon:IconButton(onPressed:checkUsername,icon:Icon(usernameAvailable==true?Icons.check_circle:usernameAvailable==false?Icons.cancel:Icons.search,size:20,color:usernameAvailable==true?Colors.green:null)))),
         const SizedBox(height:12),
       ],
-      _Field(bio,t('about'),Icons.auto_awesome_rounded,lines:4),
+      ProfileTextField(bio,t('about'),Icons.auto_awesome_rounded,lines:4),
       const SizedBox(height:10),
       if(uid!=null) VoiceBioCard(userId:uid,code:code,existingUrl:voiceBioUrl),
       const SizedBox(height:12),
       if(!widget.editMode)...[
-        _Tile(Icons.public_rounded,t('country'),country==null?t('chooseCountry'):'${_flagForCountry(country!)}  ${_countryText(code,country!)}',()async{final v=await choose(t('country'),countries,label:(v)=>_countryText(code,v),showFlags:true);if(v!=null)setState(()=>country=v);}),
-        _BirthFields(value:birthDate,code:code,onChanged:(d)=>setState(()=>birthDate=d)),
-        _GenderPicker(value:gender,code:code,onChanged:(v)=>setState(()=>gender=v)),
-        _Tile(Icons.translate_rounded,t('native'),nativeLanguage==null?t('chooseLanguage'):ProfileLanguageCatalog.label(nativeLanguage),()async{final v=await chooseProfileLanguage(t('native'));if(v!=null)setState(()=>nativeLanguage=v);}),
+        ProfilePickerTile(Icons.public_rounded,t('country'),country==null?t('chooseCountry'):'${profileCountryFlag(country)}  ${_countryText(code,country!)}',()async{final v=await choose(t('country'),countries,label:(v)=>_countryText(code,v),showFlags:true);if(v!=null)setState(()=>country=v);}),
+        ProfileBirthFields(
+          value:birthDate,
+          title:_extraText(code,'birthDate'),
+          dayLabel:_extraText(code,'day'),
+          monthLabel:_extraText(code,'month'),
+          yearLabel:_extraText(code,'year'),
+          onChanged:(d)=>setState(()=>birthDate=d),
+        ),
+        ProfileGenderPicker(
+          value:gender,
+          title:_extraText(code,'gender'),
+          maleLabel:_extraText(code,'male'),
+          femaleLabel:_extraText(code,'female'),
+          preferNotToSayLabel:_extraText(code,'prefer'),
+          onChanged:(v)=>setState(()=>gender=v),
+        ),
+        ProfilePickerTile(Icons.translate_rounded,t('native'),nativeLanguage==null?t('chooseLanguage'):ProfileLanguageCatalog.label(nativeLanguage),()async{final v=await chooseProfileLanguage(t('native'));if(v!=null)setState(()=>nativeLanguage=v);}),
       ],
-      _Field(city,t('city'),Icons.location_city_outlined),const SizedBox(height:10),
-      _Tile(Icons.language_rounded,t('learning'),learningLanguage==null?t('chooseLanguage'):ProfileLanguageCatalog.label(learningLanguage),()async{final v=await chooseProfileLanguage(t('learning'));if(v!=null)setState(()=>learningLanguage=v);}),
-      _Tile(Icons.trending_up_rounded,t('level'),_profileText(code,languageLevel),()async{final v=await choose(t('level'),['beginner','intermediate','advanced'],label:(v)=>_profileText(code,v));if(v!=null)setState(()=>languageLevel=v);}),
-      _Tile(Icons.favorite_outline_rounded,t('hobbies'),selectedHobbies.isEmpty?t('chooseHobbies'):selectedHobbies.map((e)=>'${_hobbyEmoji(e)} ${_profileText(code,e)}').join(' • '),()async{await _pickHobbies(context,code,selectedHobbies);if(mounted)setState(()=>interests.text=selectedHobbies.join(','));}),
-      _Field(goals,t('goals'),Icons.track_changes_rounded,lines:2),const SizedBox(height:10),
-      _Tile(
+      ProfileTextField(city,t('city'),Icons.location_city_outlined),const SizedBox(height:10),
+      ProfilePickerTile(Icons.language_rounded,t('learning'),learningLanguage==null?t('chooseLanguage'):ProfileLanguageCatalog.label(learningLanguage),()async{final v=await chooseProfileLanguage(t('learning'));if(v!=null)setState(()=>learningLanguage=v);}),
+      ProfilePickerTile(Icons.trending_up_rounded,t('level'),_profileText(code,languageLevel),()async{final v=await choose(t('level'),['beginner','intermediate','advanced'],label:(v)=>_profileText(code,v));if(v!=null)setState(()=>languageLevel=v);}),
+      ProfilePickerTile(Icons.favorite_outline_rounded,t('hobbies'),selectedHobbies.isEmpty?t('chooseHobbies'):selectedHobbies.map((e)=>'${_hobbyEmoji(e)} ${_profileText(code,e)}').join(' • '),()async{await _pickHobbies(context,code,selectedHobbies);if(mounted)setState(()=>interests.text=selectedHobbies.join(','));}),
+      ProfileTextField(goals,t('goals'),Icons.track_changes_rounded,lines:2),const SizedBox(height:10),
+      ProfilePickerTile(
         Icons.work_outline_rounded,
         t('profession'),
         profession.text.trim().isEmpty
@@ -477,10 +494,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         },
       ),
       if(professionKey=='other')...[
-        _Field(profession,_profileFlowText(code,'writeProfession'),Icons.edit_outlined),
+        ProfileTextField(profession,_profileFlowText(code,'writeProfession'),Icons.edit_outlined),
         const SizedBox(height:10),
       ],
-      _Field(travel,t('travel'),Icons.flight_takeoff_rounded,lines:2),const SizedBox(height:22),
+      ProfileTextField(travel,t('travel'),Icons.flight_takeoff_rounded,lines:2),const SizedBox(height:22),
       SizedBox(height:58,child:FilledButton.icon(onPressed:saving?null:saveProfile,icon:saving?const SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2)):const Icon(Icons.rocket_launch_rounded,size:20),label:Text(widget.editMode?(code=='ar'?'حفظ التعديلات':code=='es'?'Guardar cambios':'Save changes'):t('launch'),style:const TextStyle(fontWeight:FontWeight.w900,fontSize:17))))
     ]))));
   }
@@ -627,67 +644,6 @@ Future<void> _pickHobbies(BuildContext context,String code,Set<String> selected)
       );
     }),
   );
-}
-
-class _Field extends StatelessWidget{
-  const _Field(this.controller,this.label,this.icon,{this.lines=1}); final TextEditingController controller;final String label;final IconData icon;final int lines;
-  @override Widget build(BuildContext context)=>TextField(controller:controller,maxLines:lines,decoration:InputDecoration(labelText:label,prefixIcon:Icon(icon,size:19)));
-}
-class _Tile extends StatelessWidget{
-  const _Tile(this.icon,this.title,this.subtitle,this.tap);final IconData icon;final String title,subtitle;final VoidCallback tap;
-  @override Widget build(BuildContext context)=>Card(margin:const EdgeInsets.only(bottom:10),child:ListTile(dense:true,contentPadding:const EdgeInsets.symmetric(horizontal:14,vertical:5),leading:CircleAvatar(radius:17,child:Icon(icon,size:18)),title:Text(title,style:const TextStyle(fontWeight:FontWeight.w800)),subtitle:Text(subtitle),trailing:const Icon(Icons.chevron_right_rounded,size:20),onTap:tap));
-}
-
-String _flagForCountry(String country) {
-  const codes=<String,String>{
-'Afghanistan':'AF','Albania':'AL','Algeria':'DZ','Andorra':'AD','Angola':'AO','Antigua and Barbuda':'AG','Argentina':'AR','Armenia':'AM','Australia':'AU','Austria':'AT','Azerbaijan':'AZ','Bahamas':'BS','Bahrain':'BH','Bangladesh':'BD','Barbados':'BB','Belarus':'BY','Belgium':'BE','Belize':'BZ','Benin':'BJ','Bhutan':'BT','Bolivia':'BO','Bosnia and Herzegovina':'BA','Botswana':'BW','Brazil':'BR','Brunei':'BN','Bulgaria':'BG','Burkina Faso':'BF','Burundi':'BI','Cabo Verde':'CV','Cambodia':'KH','Cameroon':'CM','Canada':'CA','Central African Republic':'CF','Chad':'TD','Chile':'CL','China':'CN','Colombia':'CO','Comoros':'KM','Congo':'CG','Costa Rica':'CR','Croatia':'HR','Cuba':'CU','Cyprus':'CY','Czechia':'CZ','Denmark':'DK','Djibouti':'DJ','Dominica':'DM','Dominican Republic':'DO','Ecuador':'EC','Egypt':'EG','El Salvador':'SV','Equatorial Guinea':'GQ','Eritrea':'ER','Estonia':'EE','Eswatini':'SZ','Ethiopia':'ET','Fiji':'FJ','Finland':'FI','France':'FR','Gabon':'GA','Gambia':'GM','Georgia':'GE','Germany':'DE','Ghana':'GH','Greece':'GR','Grenada':'GD','Guatemala':'GT','Guinea':'GN','Guinea-Bissau':'GW','Guyana':'GY','Haiti':'HT','Honduras':'HN','Hungary':'HU','Iceland':'IS','India':'IN','Indonesia':'ID','Iran':'IR','Iraq':'IQ','Ireland':'IE','Italy':'IT','Ivory Coast':'CI','Jamaica':'JM','Japan':'JP','Jordan':'JO','Kazakhstan':'KZ','Kenya':'KE','Kiribati':'KI','Kuwait':'KW','Kyrgyzstan':'KG','Laos':'LA','Latvia':'LV','Lebanon':'LB','Lesotho':'LS','Liberia':'LR','Libya':'LY','Liechtenstein':'LI','Lithuania':'LT','Luxembourg':'LU','Madagascar':'MG','Malawi':'MW','Malaysia':'MY','Maldives':'MV','Mali':'ML','Malta':'MT','Marshall Islands':'MH','Mauritania':'MR','Mauritius':'MU','Mexico':'MX','Micronesia':'FM','Moldova':'MD','Monaco':'MC','Mongolia':'MN','Montenegro':'ME','Morocco':'MA','Mozambique':'MZ','Myanmar':'MM','Namibia':'NA','Nauru':'NR','Nepal':'NP','Netherlands':'NL','New Zealand':'NZ','Nicaragua':'NI','Niger':'NE','Nigeria':'NG','North Korea':'KP','North Macedonia':'MK','Norway':'NO','Oman':'OM','Pakistan':'PK','Palau':'PW','Palestine':'PS','Panama':'PA','Papua New Guinea':'PG','Paraguay':'PY','Peru':'PE','Philippines':'PH','Poland':'PL','Portugal':'PT','Qatar':'QA','Romania':'RO','Russia':'RU','Rwanda':'RW','Saint Kitts and Nevis':'KN','Saint Lucia':'LC','Saint Vincent and the Grenadines':'VC','Samoa':'WS','San Marino':'SM','Sao Tome and Principe':'ST','Saudi Arabia':'SA','Senegal':'SN','Serbia':'RS','Seychelles':'SC','Sierra Leone':'SL','Singapore':'SG','Slovakia':'SK','Slovenia':'SI','Solomon Islands':'SB','Somalia':'SO','South Africa':'ZA','South Korea':'KR','South Sudan':'SS','Spain':'ES','Sri Lanka':'LK','Sudan':'SD','Suriname':'SR','Sweden':'SE','Switzerland':'CH','Syria':'SY','Tajikistan':'TJ','Tanzania':'TZ','Thailand':'TH','Timor-Leste':'TL','Togo':'TG','Tonga':'TO','Trinidad and Tobago':'TT','Tunisia':'TN','Turkey':'TR','Turkmenistan':'TM','Tuvalu':'TV','Uganda':'UG','Ukraine':'UA','United Arab Emirates':'AE','United Kingdom':'GB','United States':'US','Uruguay':'UY','Uzbekistan':'UZ','Vanuatu':'VU','Vatican City':'VA','Venezuela':'VE','Vietnam':'VN','Yemen':'YE','Zambia':'ZM','Zimbabwe':'ZW'};
-  final code=codes[country]; if(code==null)return '🌐';
-  return String.fromCharCodes(code.codeUnits.map((c)=>0x1F1E6+c-65));
-}
-
-class _BirthFields extends StatefulWidget {
-  const _BirthFields({required this.value,required this.code,required this.onChanged});
-  final DateTime? value; final String code; final ValueChanged<DateTime?> onChanged;
-  @override State<_BirthFields> createState()=>_BirthFieldsState();
-}
-class _BirthFieldsState extends State<_BirthFields>{
-  late final day=TextEditingController(text:widget.value?.day.toString()??'');
-  late final month=TextEditingController(text:widget.value?.month.toString()??'');
-  late final year=TextEditingController(text:widget.value?.year.toString()??'');
-
-  @override
-  void didUpdateWidget(covariant _BirthFields oldWidget){
-    super.didUpdateWidget(oldWidget);
-    if(oldWidget.value!=widget.value){
-      day.text=widget.value?.day.toString()??'';
-      month.text=widget.value?.month.toString()??'';
-      year.text=widget.value?.year.toString()??'';
-    }
-  }
-  void update(){final d=int.tryParse(day.text),m=int.tryParse(month.text),y=int.tryParse(year.text);if(d!=null&&m!=null&&y!=null){try{final v=DateTime(y,m,d);if(v.year==y&&v.month==m&&v.day==d&&v.isBefore(DateTime.now()))widget.onChanged(v);else widget.onChanged(null);}catch(_){widget.onChanged(null);}}}
-  @override void dispose(){day.dispose();month.dispose();year.dispose();super.dispose();}
-  @override Widget build(BuildContext context)=>Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-    Text(_extraText(widget.code,'birthDate'),style:const TextStyle(fontWeight:FontWeight.w800)),
-    const SizedBox(height:8),
-    Row(children:[
-      Expanded(child:DropdownButtonFormField<int>(initialValue:int.tryParse(day.text),decoration:InputDecoration(labelText:_extraText(widget.code,'day')),items:List.generate(31,(i)=>DropdownMenuItem(value:i+1,child:Text('${i+1}'))),onChanged:(v){day.text=v?.toString()??'';update();})),
-      const SizedBox(width:8),
-      Expanded(child:DropdownButtonFormField<int>(initialValue:int.tryParse(month.text),decoration:InputDecoration(labelText:_extraText(widget.code,'month')),items:List.generate(12,(i)=>DropdownMenuItem(value:i+1,child:Text('${i+1}'))),onChanged:(v){month.text=v?.toString()??'';update();})),
-      const SizedBox(width:8),
-      Expanded(child:DropdownButtonFormField<int>(initialValue:int.tryParse(year.text),decoration:InputDecoration(labelText:_extraText(widget.code,'year')),items:List.generate(DateTime.now().year-1900,(i){final y=DateTime.now().year-i;return DropdownMenuItem(value:y,child:Text('$y'));}),onChanged:(v){year.text=v?.toString()??'';update();})),
-    ]),const SizedBox(height:10)]);
-}
-class _GenderPicker extends StatelessWidget{
-  const _GenderPicker({required this.value,required this.code,required this.onChanged});
-  final String? value;final String code;final ValueChanged<String> onChanged;
-  @override Widget build(BuildContext context)=>Card(margin:const EdgeInsets.only(bottom:10),child:Padding(padding:const EdgeInsets.all(12),child:Row(children:[
-    Text(_extraText(code,'gender'),style:const TextStyle(fontWeight:FontWeight.w800)),const Spacer(),
-    IconButton.filledTonal(onPressed:()=>onChanged('male'),tooltip:_extraText(code,'male'),icon:Icon(Icons.male_rounded,color:Colors.blue,size:25),style:IconButton.styleFrom(side:value=='male'?const BorderSide(width:2):null)),
-    const SizedBox(width:8),
-    IconButton.filledTonal(onPressed:()=>onChanged('female'),tooltip:_extraText(code,'female'),icon:Icon(Icons.female_rounded,color:Colors.pink,size:25),style:IconButton.styleFrom(side:value=='female'?const BorderSide(width:2):null)),
-    const SizedBox(width:8),
-    IconButton.outlined(onPressed:()=>onChanged('prefer_not_to_say'),tooltip:_extraText(code,'prefer'),icon:const Icon(Icons.remove_rounded,size:22)),
-  ])));
 }
 
 const _extra=<String,List<String>>{
