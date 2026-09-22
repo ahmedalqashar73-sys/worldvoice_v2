@@ -26,10 +26,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   String get normalizedUsername=>username.text.trim().toLowerCase().replaceFirst('@','');
 
-  Future<String?> choose(String title,List<String> values) => showModalBottomSheet<String>(
+  Future<String?> choose(String title,List<String> values,{String Function(String)? label}) => showModalBottomSheet<String>(
     context:context,isScrollControlled:true,builder:(ctx)=>SafeArea(child:SizedBox(height:MediaQuery.sizeOf(ctx).height*.72,
     child:Column(children:[Padding(padding:const EdgeInsets.all(16),child:Text(title,style:const TextStyle(fontSize:20,fontWeight:FontWeight.w800))),
-    Expanded(child:ListView.builder(itemCount:values.length,itemBuilder:(_,i)=>ListTile(leading: title == 'الدولة' || title == 'Country' ? Text(_flagForCountry(values[i]),style:const TextStyle(fontSize:25)) : null,title:Text(values[i]),onTap:()=>Navigator.pop(ctx,values[i]))))]))));
+    Expanded(child:ListView.builder(itemCount:values.length,itemBuilder:(_,i)=>ListTile(leading: title == 'الدولة' || title == 'Country' ? Text(_flagForCountry(values[i]),style:const TextStyle(fontSize:25)) : null,title:Text(label?.call(values[i])??values[i]),onTap:()=>Navigator.pop(ctx,values[i]))))]))));
 
   Future<void> checkUsername() async {
     if(!RegExp(r'^[a-z0-9_]{3,20}$').hasMatch(normalizedUsername)){setState(()=>usernameAvailable=false);return;}
@@ -84,13 +84,13 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       const SizedBox(height:12),
       Stack(alignment:rtl?Alignment.bottomLeft:Alignment.bottomRight,children:[_Field(bio,t('about'),Icons.auto_awesome_rounded,lines:4),Padding(padding:const EdgeInsets.all(6),child:IconButton.filledTonal(onPressed:(){},icon:const Icon(Icons.mic_rounded,size:18)))]),
       const SizedBox(height:12),
-      _Tile(Icons.public_rounded,t('country'),country==null?t('chooseCountry'):'${_flagForCountry(country!)}  $country',()async{final v=await choose(t('country'),countries);if(v!=null)setState(()=>country=v);}),
+      _Tile(Icons.public_rounded,t('country'),country==null?t('chooseCountry'):'${_flagForCountry(country!)}  ${_countryText(code,country!)}',()async{final v=await choose(t('country'),countries,label:(v)=>_countryText(code,v));if(v!=null)setState(()=>country=v);}),
       _Field(city,t('city'),Icons.location_city_outlined),const SizedBox(height:10),
       _BirthFields(value:birthDate,code:code,onChanged:(d)=>setState(()=>birthDate=d)),
       _GenderPicker(value:gender,code:code,onChanged:(v)=>setState(()=>gender=v)),
       _Tile(Icons.translate_rounded,t('native'),nativeLanguage??t('chooseLanguage'),()async{final v=await choose(t('native'),languages);if(v!=null)setState(()=>nativeLanguage=v);}),
       _Tile(Icons.language_rounded,t('learning'),learningLanguage??t('chooseLanguage'),()async{final v=await choose(t('learning'),languages);if(v!=null)setState(()=>learningLanguage=v);}),
-      _Tile(Icons.trending_up_rounded,t('level'),_profileText(code,languageLevel),()async{final v=await choose(t('level'),['beginner','intermediate','advanced']);if(v!=null)setState(()=>languageLevel=v);}),
+      _Tile(Icons.trending_up_rounded,t('level'),_profileText(code,languageLevel),()async{final v=await choose(t('level'),['beginner','intermediate','advanced'],label:(v)=>_profileText(code,v));if(v!=null)setState(()=>languageLevel=v);}),
       _Tile(Icons.favorite_outline_rounded,t('hobbies'),selectedHobbies.isEmpty?t('chooseHobbies'):selectedHobbies.map((e)=>_profileText(code,e)).join(' • '),()async{await _pickHobbies(context,code,selectedHobbies);if(mounted)setState(()=>interests.text=selectedHobbies.join(','));}),
       _Field(goals,t('goals'),Icons.track_changes_rounded,lines:2),const SizedBox(height:10),
       _Field(profession,t('profession'),Icons.work_outline_rounded),const SizedBox(height:10),
@@ -203,3 +203,23 @@ const _extra=<String,List<String>>{
 };
 const _extraKeys=['birthDate','day','month','year','gender','male','female','prefer','saved'];
 String _extraText(String code,String key){final i=_extraKeys.indexOf(key);final a=_extra[code]??_extra['en']!;return i<0?key:a[i];}
+
+String _countryText(String code,String country){if(code=='en')return country;return _countryNames[code]?[country]??country;}
+const Map<String,Map<String,String>> _countryNames={
+'ar':{"Yemen":"اليمن","Saudi Arabia":"السعودية","United Arab Emirates":"الإمارات العربية المتحدة","Egypt":"مصر","Jordan":"الأردن","Palestine":"فلسطين","Iraq":"العراق","Syria":"سوريا","Lebanon":"لبنان","Qatar":"قطر","Kuwait":"الكويت","Oman":"عُمان","Bahrain":"البحرين","Morocco":"المغرب","Algeria":"الجزائر","Tunisia":"تونس","Libya":"ليبيا","Sudan":"السودان","Somalia":"الصومال","Turkey":"تركيا","France":"فرنسا","Germany":"ألمانيا","Spain":"إسبانيا","Italy":"إيطاليا","Portugal":"البرتغال","China":"الصين","Japan":"اليابان","South Korea":"كوريا الجنوبية","India":"الهند","Indonesia":"إندونيسيا","Thailand":"تايلاند","Russia":"روسيا","United States":"الولايات المتحدة","United Kingdom":"المملكة المتحدة","Canada":"كندا","Australia":"أستراليا"},
+'fr':{"Yemen":"Yémen","Saudi Arabia":"Arabie saoudite","United Arab Emirates":"Émirats arabes unis","Egypt":"Égypte","Germany":"Allemagne","Spain":"Espagne","Italy":"Italie","China":"Chine","Japan":"Japon","South Korea":"Corée du Sud","United States":"États-Unis","United Kingdom":"Royaume-Uni"},
+'es':{"Yemen":"Yemen","Saudi Arabia":"Arabia Saudita","United Arab Emirates":"Emiratos Árabes Unidos","Egypt":"Egipto","Germany":"Alemania","France":"Francia","United States":"Estados Unidos","United Kingdom":"Reino Unido"},
+'de':{"Yemen":"Jemen","Saudi Arabia":"Saudi-Arabien","United Arab Emirates":"Vereinigte Arabische Emirate","Egypt":"Ägypten","France":"Frankreich","United States":"Vereinigte Staaten","United Kingdom":"Vereinigtes Königreich"},
+'it':{"Yemen":"Yemen","Saudi Arabia":"Arabia Saudita","United Arab Emirates":"Emirati Arabi Uniti","Egypt":"Egitto","Germany":"Germania","United States":"Stati Uniti","United Kingdom":"Regno Unito"},
+'pt':{"Yemen":"Iêmen","Saudi Arabia":"Arábia Saudita","United Arab Emirates":"Emirados Árabes Unidos","Egypt":"Egito","Germany":"Alemanha","United States":"Estados Unidos","United Kingdom":"Reino Unido"},
+'tr':{"Yemen":"Yemen","Saudi Arabia":"Suudi Arabistan","United Arab Emirates":"Birleşik Arap Emirlikleri","Egypt":"Mısır","Germany":"Almanya","United States":"Amerika Birleşik Devletleri","United Kingdom":"Birleşik Krallık"},
+'ru':{"Yemen":"Йемен","Saudi Arabia":"Саудовская Аравия","United Arab Emirates":"ОАЭ","Egypt":"Египет","Germany":"Германия","United States":"США","United Kingdom":"Великобритания"},
+'zh':{"Yemen":"也门","Saudi Arabia":"沙特阿拉伯","United Arab Emirates":"阿拉伯联合酋长国","Egypt":"埃及","Germany":"德国","France":"法国","United States":"美国","United Kingdom":"英国"},
+'ja':{"Yemen":"イエメン","Saudi Arabia":"サウジアラビア","United Arab Emirates":"アラブ首長国連邦","Egypt":"エジプト","Germany":"ドイツ","United States":"アメリカ合衆国","United Kingdom":"イギリス"},
+'ko':{"Yemen":"예멘","Saudi Arabia":"사우디아라비아","United Arab Emirates":"아랍에미리트","Egypt":"이집트","Germany":"독일","United States":"미국","United Kingdom":"영국"},
+'ur':{"Yemen":"یمن","Saudi Arabia":"سعودی عرب","United Arab Emirates":"متحدہ عرب امارات","Egypt":"مصر","Germany":"جرمنی","United States":"امریکہ","United Kingdom":"برطانیہ"},
+'fa':{"Yemen":"یمن","Saudi Arabia":"عربستان سعودی","United Arab Emirates":"امارات متحده عربی","Egypt":"مصر","Germany":"آلمان","United States":"ایالات متحده","United Kingdom":"بریتانیا"},
+'id':{"Yemen":"Yaman","Saudi Arabia":"Arab Saudi","United Arab Emirates":"Uni Emirat Arab","Egypt":"Mesir","Germany":"Jerman","United States":"Amerika Serikat","United Kingdom":"Britania Raya"},
+'th':{"Yemen":"เยเมน","Saudi Arabia":"ซาอุดีอาระเบีย","United Arab Emirates":"สหรัฐอาหรับเอมิเรตส์","Egypt":"อียิปต์","Germany":"เยอรมนี","United States":"สหรัฐอเมริกา","United Kingdom":"สหราชอาณาจักร"},
+'hi':{"Yemen":"यमन","Saudi Arabia":"सऊदी अरब","United Arab Emirates":"संयुक्त अरब अमीरात","Egypt":"मिस्र","Germany":"जर्मनी","United States":"संयुक्त राज्य अमेरिका","United Kingdom":"यूनाइटेड किंगडम"},
+};
