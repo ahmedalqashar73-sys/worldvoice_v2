@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../../core/localization/app_strings.dart';
+
 import '../../../core/localization/locale_controller.dart';
 import '../services/profile_social_service.dart';
 import 'profile_identity_strip.dart';
@@ -164,28 +166,28 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                           ),
                           label: Text(
                             _following
-                                ? _t(code, 'Following', 'متابَع', 'Siguiendo')
-                                : _t(code, 'Follow', 'متابعة', 'Seguir'),
+                                ? AppStrings.of(code).profile('following')
+                                : AppStrings.of(code).profile('follow'),
                           ),
                         ),
                       const SizedBox(height: 18),
                       _Info(
                         icon: Icons.translate_rounded,
-                        title: _t(code, 'Languages', 'اللغات', 'Idiomas'),
+                        title: AppStrings.of(code).profile('languages'),
                         value: learning.isEmpty
                             ? '—'
-                            : _t(code, 'Learning', 'أتعلم', 'Aprende') +
+                            : AppStrings.of(code).profile('learning') +
                                 ': ' +
                                 learning.join(', '),
                       ),
                       _Info(
                         icon: Icons.favorite_outline_rounded,
-                        title: _t(code, 'Interests', 'الهوايات', 'Intereses'),
+                        title: AppStrings.of(code).profile('interests'),
                         value: interests.isEmpty ? '—' : interests.join(' • '),
                       ),
                       _Info(
                         icon: Icons.work_outline_rounded,
-                        title: _t(code, 'Profession', 'المهنة', 'Profesión'),
+                        title: AppStrings.of(code).profile('profession'),
                         value: (data['profession'] ?? '—').toString(),
                       ),
                     ],
@@ -223,8 +225,3 @@ class _Info extends StatelessWidget {
       );
 }
 
-String _t(String code, String en, String ar, String es) {
-  if (code == 'ar') return ar;
-  if (code == 'es') return es;
-  return en;
-}
