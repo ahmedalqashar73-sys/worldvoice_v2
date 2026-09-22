@@ -33,10 +33,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   String get normalizedUsername=>username.text.trim().toLowerCase().replaceFirst('@','');
 
-  Future<String?> choose(String title,List<String> values,{String Function(String)? label}) => showModalBottomSheet<String>(
+  Future<String?> choose(String title,List<String> values,{String Function(String)? label,bool showFlags=false}) => showModalBottomSheet<String>(
     context:context,isScrollControlled:true,builder:(ctx)=>SafeArea(child:SizedBox(height:MediaQuery.sizeOf(ctx).height*.72,
     child:Column(children:[Padding(padding:const EdgeInsets.all(16),child:Text(title,style:const TextStyle(fontSize:20,fontWeight:FontWeight.w800))),
-    Expanded(child:ListView.builder(itemCount:values.length,itemBuilder:(_,i)=>ListTile(leading: title == 'الدولة' || title == 'Country' ? Text(_flagForCountry(values[i]),style:const TextStyle(fontSize:25)) : null,title:Text(label?.call(values[i])??values[i]),onTap:()=>Navigator.pop(ctx,values[i]))))]))));
+    Expanded(child:ListView.builder(itemCount:values.length,itemBuilder:(_,i)=>ListTile(leading:showFlags?Text(_flagForCountry(values[i]),style:const TextStyle(fontSize:25)):null,title:Text(label?.call(values[i])??values[i]),onTap:()=>Navigator.pop(ctx,values[i]))))]))));
 
   Future<void> checkUsername() async {
     if(!RegExp(r'^[a-z0-9_]{3,20}$').hasMatch(normalizedUsername)){setState(()=>usernameAvailable=false);return;}
@@ -113,7 +113,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       const SizedBox(height:12),
       Stack(alignment:rtl?Alignment.bottomLeft:Alignment.bottomRight,children:[_Field(bio,t('about'),Icons.auto_awesome_rounded,lines:4),Padding(padding:const EdgeInsets.all(6),child:IconButton.filledTonal(onPressed:(){},icon:const Icon(Icons.mic_rounded,size:18)))]),
       const SizedBox(height:12),
-      _Tile(Icons.public_rounded,t('country'),country==null?t('chooseCountry'):'${_flagForCountry(country!)}  ${_countryText(code,country!)}',()async{final v=await choose(t('country'),countries,label:(v)=>_countryText(code,v));if(v!=null)setState(()=>country=v);}),
+      _Tile(Icons.public_rounded,t('country'),country==null?t('chooseCountry'):'${_flagForCountry(country!)}  ${_countryText(code,country!)}',()async{final v=await choose(t('country'),countries,label:(v)=>_countryText(code,v),showFlags:true);if(v!=null)setState(()=>country=v);}),
       _Field(city,t('city'),Icons.location_city_outlined),const SizedBox(height:10),
       _BirthFields(value:birthDate,code:code,onChanged:(d)=>setState(()=>birthDate=d)),
       _GenderPicker(value:gender,code:code,onChanged:(v)=>setState(()=>gender=v)),
@@ -150,9 +150,14 @@ const _pt=<String,List<String>>{
 'hi':['अपनी WorldVoice पहचान बनाएँ','नाम','विशिष्ट यूज़रनेम','अपने बारे में','देश','देश चुनें','शहर','मातृभाषा','सीखी जा रही भाषा','भाषा चुनें','स्तर','रुचियाँ और शौक','अपने शौक चुनें','सीखने के लक्ष्य','पेशा / पढ़ाई','यात्रा','मेरा प्रोफ़ाइल बनाएँ','शुरुआती','मध्यम','उन्नत','संगीत','फ़िल्में','खेल','यात्रा','गेमिंग','पढ़ना','फ़ोटोग्राफ़ी','चित्रकारी','खाना बनाना','तकनीक']
 };
 const _pk=['title','name','username','about','country','chooseCountry','city','native','learning','chooseLanguage','level','hobbies','chooseHobbies','goals','profession','travel','launch','beginner','intermediate','advanced','music','movies','sports','travel_hobby','gaming','reading','photography','drawing','cooking','technology'];
+
+const _sportLabels=<String,Map<String,String>>{
+'ar':{'football':'كرة القدم','basketball':'كرة السلة','volleyball':'الكرة الطائرة','tennis':'التنس','swimming':'السباحة','running':'الجري','gym':'اللياقة والجيم','martialArts':'الفنون القتالية','cycling':'ركوب الدراجات'},
+'en':{'football':'Football','basketball':'Basketball','volleyball':'Volleyball','tennis':'Tennis','swimming':'Swimming','running':'Running','gym':'Fitness & gym','martialArts':'Martial arts','cycling':'Cycling'},
+};
 String _profileText(String code,String key){final i=_pk.indexOf(key);final a=_pt[code]??_pt['en']!;return i<0?key:a[i];}
 Future<void> _pickHobbies(BuildContext context,String code,Set<String> selected) async{
-  const keys=['music','movies','sports','travel_hobby','gaming','reading','photography','drawing','cooking','technology'];
+  const keys=['music','movies','football','basketball','volleyball','tennis','swimming','running','gym','martialArts','cycling','travel_hobby','gaming','reading','photography','drawing','cooking','technology'];
   await showModalBottomSheet(context:context,isScrollControlled:true,builder:(ctx)=>StatefulBuilder(builder:(ctx,setSheet)=>SafeArea(child:Padding(padding:const EdgeInsets.all(16),child:Column(mainAxisSize:MainAxisSize.min,children:[
     Text(_profileText(code,'hobbies'),style:const TextStyle(fontSize:20,fontWeight:FontWeight.w800)),
     const SizedBox(height:10),...keys.map((k)=>CheckboxListTile(value:selected.contains(k),title:Text(_profileText(code,k)),onChanged:(v){setSheet((){v==true?selected.add(k):selected.remove(k);});})),
