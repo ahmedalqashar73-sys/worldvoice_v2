@@ -56,12 +56,12 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         'birthDate':birthDate==null?null:Timestamp.fromDate(birthDate!),'nativeLanguage':nativeLanguage,
         'learningLanguages':learningLanguage==null?<String>[]:[learningLanguage],'languageLevel':languageLevel,
         'profession':profession.text.trim(),'travel':travel.text.trim(),'learningGoals':goals.text.trim(),
-        'interests':interests.text.trim(),'profileCompleted':true,'followersCount':0,'followingCount':0,
+        'interests':selectedHobbies.toList(),'profileCompleted':true,'followersCount':0,'followingCount':0,
         'isVip':false,'isPartner':false,'isVerified':false,'updatedAt':FieldValue.serverTimestamp(),
         'createdAt':FieldValue.serverTimestamp(),
       },SetOptions(merge:true));
     });
-    if(mounted)ScaffoldMessenger.of(context).showSnackBar(const SnackBar(backgroundColor:Color(0xFF159B62),content:Text('تم حفظ البروفايل بنجاح ✓',style:TextStyle(color:Colors.white))));
+    if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(backgroundColor:const Color(0xFF159B62),content:Text(_extraText(widget.localeController.locale?.languageCode??'en','saved'),style:const TextStyle(color:Colors.white))));
     }finally{if(mounted)setState(()=>saving=false);}
   }
 
@@ -86,8 +86,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       const SizedBox(height:12),
       _Tile(Icons.public_rounded,t('country'),country==null?t('chooseCountry'):'${_flagForCountry(country!)}  $country',()async{final v=await choose(t('country'),countries);if(v!=null)setState(()=>country=v);}),
       _Field(city,t('city'),Icons.location_city_outlined),const SizedBox(height:10),
-      _BirthFields(value:birthDate,rtl:rtl,onChanged:(d)=>setState(()=>birthDate=d)),
-      _GenderPicker(value:gender,rtl:rtl,onChanged:(v)=>setState(()=>gender=v)),
+      _BirthFields(value:birthDate,code:code,onChanged:(d)=>setState(()=>birthDate=d)),
+      _GenderPicker(value:gender,code:code,onChanged:(v)=>setState(()=>gender=v)),
       _Tile(Icons.translate_rounded,t('native'),nativeLanguage??t('chooseLanguage'),()async{final v=await choose(t('native'),languages);if(v!=null)setState(()=>nativeLanguage=v);}),
       _Tile(Icons.language_rounded,t('learning'),learningLanguage??t('chooseLanguage'),()async{final v=await choose(t('learning'),languages);if(v!=null)setState(()=>learningLanguage=v);}),
       _Tile(Icons.trending_up_rounded,t('level'),_profileText(code,languageLevel),()async{final v=await choose(t('level'),['beginner','intermediate','advanced']);if(v!=null)setState(()=>languageLevel=v);}),
@@ -148,8 +148,8 @@ String _flagForCountry(String country) {
 }
 
 class _BirthFields extends StatefulWidget {
-  const _BirthFields({required this.value,required this.rtl,required this.onChanged});
-  final DateTime? value; final bool rtl; final ValueChanged<DateTime?> onChanged;
+  const _BirthFields({required this.value,required this.code,required this.onChanged});
+  final DateTime? value; final String code; final ValueChanged<DateTime?> onChanged;
   @override State<_BirthFields> createState()=>_BirthFieldsState();
 }
 class _BirthFieldsState extends State<_BirthFields>{
@@ -159,25 +159,47 @@ class _BirthFieldsState extends State<_BirthFields>{
   void update(){final d=int.tryParse(day.text),m=int.tryParse(month.text),y=int.tryParse(year.text);if(d!=null&&m!=null&&y!=null){try{final v=DateTime(y,m,d);if(v.year==y&&v.month==m&&v.day==d&&v.isBefore(DateTime.now()))widget.onChanged(v);else widget.onChanged(null);}catch(_){widget.onChanged(null);}}}
   @override void dispose(){day.dispose();month.dispose();year.dispose();super.dispose();}
   @override Widget build(BuildContext context)=>Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-    Text(widget.rtl?'تاريخ الميلاد':'Date of birth',style:const TextStyle(fontWeight:FontWeight.w800)),
+    Text(_extraText(widget.code,'birthDate'),style:const TextStyle(fontWeight:FontWeight.w800)),
     const SizedBox(height:8),
     Row(children:[
-      Expanded(child:DropdownButtonFormField<int>(initialValue:int.tryParse(day.text),decoration:InputDecoration(labelText:widget.rtl?'اليوم':'Day'),items:List.generate(31,(i)=>DropdownMenuItem(value:i+1,child:Text('${i+1}'))),onChanged:(v){day.text=v?.toString()??'';update();})),
+      Expanded(child:DropdownButtonFormField<int>(initialValue:int.tryParse(day.text),decoration:InputDecoration(labelText:_extraText(widget.code,'day')),items:List.generate(31,(i)=>DropdownMenuItem(value:i+1,child:Text('${i+1}'))),onChanged:(v){day.text=v?.toString()??'';update();})),
       const SizedBox(width:8),
-      Expanded(child:DropdownButtonFormField<int>(initialValue:int.tryParse(month.text),decoration:InputDecoration(labelText:widget.rtl?'الشهر':'Month'),items:List.generate(12,(i)=>DropdownMenuItem(value:i+1,child:Text('${i+1}'))),onChanged:(v){month.text=v?.toString()??'';update();})),
+      Expanded(child:DropdownButtonFormField<int>(initialValue:int.tryParse(month.text),decoration:InputDecoration(labelText:_extraText(widget.code,'month')),items:List.generate(12,(i)=>DropdownMenuItem(value:i+1,child:Text('${i+1}'))),onChanged:(v){month.text=v?.toString()??'';update();})),
       const SizedBox(width:8),
-      Expanded(child:DropdownButtonFormField<int>(initialValue:int.tryParse(year.text),decoration:InputDecoration(labelText:widget.rtl?'السنة':'Year'),items:List.generate(DateTime.now().year-1900,(i){final y=DateTime.now().year-i;return DropdownMenuItem(value:y,child:Text('$y'));}),onChanged:(v){year.text=v?.toString()??'';update();})),
+      Expanded(child:DropdownButtonFormField<int>(initialValue:int.tryParse(year.text),decoration:InputDecoration(labelText:_extraText(widget.code,'year')),items:List.generate(DateTime.now().year-1900,(i){final y=DateTime.now().year-i;return DropdownMenuItem(value:y,child:Text('$y'));}),onChanged:(v){year.text=v?.toString()??'';update();})),
     ]),const SizedBox(height:10)]);
 }
 class _GenderPicker extends StatelessWidget{
-  const _GenderPicker({required this.value,required this.rtl,required this.onChanged});
-  final String? value;final bool rtl;final ValueChanged<String> onChanged;
+  const _GenderPicker({required this.value,required this.code,required this.onChanged});
+  final String? value;final String code;final ValueChanged<String> onChanged;
   @override Widget build(BuildContext context)=>Card(margin:const EdgeInsets.only(bottom:10),child:Padding(padding:const EdgeInsets.all(12),child:Row(children:[
-    Text(rtl?'الجنس':'Gender',style:const TextStyle(fontWeight:FontWeight.w800)),const Spacer(),
-    IconButton.filledTonal(onPressed:()=>onChanged('male'),tooltip:rtl?'ذكر':'Male',icon:Icon(Icons.male_rounded,color:Colors.blue,size:25),style:IconButton.styleFrom(side:value=='male'?const BorderSide(width:2):null)),
+    Text(_extraText(code,'gender'),style:const TextStyle(fontWeight:FontWeight.w800)),const Spacer(),
+    IconButton.filledTonal(onPressed:()=>onChanged('male'),tooltip:_extraText(code,'male'),icon:Icon(Icons.male_rounded,color:Colors.blue,size:25),style:IconButton.styleFrom(side:value=='male'?const BorderSide(width:2):null)),
     const SizedBox(width:8),
-    IconButton.filledTonal(onPressed:()=>onChanged('female'),tooltip:rtl?'أنثى':'Female',icon:Icon(Icons.female_rounded,color:Colors.pink,size:25),style:IconButton.styleFrom(side:value=='female'?const BorderSide(width:2):null)),
+    IconButton.filledTonal(onPressed:()=>onChanged('female'),tooltip:_extraText(code,'female'),icon:Icon(Icons.female_rounded,color:Colors.pink,size:25),style:IconButton.styleFrom(side:value=='female'?const BorderSide(width:2):null)),
     const SizedBox(width:8),
-    IconButton.outlined(onPressed:()=>onChanged('prefer_not_to_say'),tooltip:rtl?'أفضل عدم الإجابة':'Prefer not to say',icon:const Icon(Icons.remove_rounded,size:22)),
+    IconButton.outlined(onPressed:()=>onChanged('prefer_not_to_say'),tooltip:_extraText(code,'prefer'),icon:const Icon(Icons.remove_rounded,size:22)),
   ])));
 }
+
+const _extra=<String,List<String>>{
+'ar':['تاريخ الميلاد','اليوم','الشهر','السنة','الجنس','ذكر','أنثى','أفضل عدم الإجابة','تم حفظ البروفايل بنجاح ✓'],
+'en':['Date of birth','Day','Month','Year','Gender','Male','Female','Prefer not to say','Profile saved successfully ✓'],
+'es':['Fecha de nacimiento','Día','Mes','Año','Género','Hombre','Mujer','Prefiero no responder','Perfil guardado correctamente ✓'],
+'fr':['Date de naissance','Jour','Mois','Année','Genre','Homme','Femme','Je préfère ne pas répondre','Profil enregistré ✓'],
+'de':['Geburtsdatum','Tag','Monat','Jahr','Geschlecht','Männlich','Weiblich','Keine Angabe','Profil erfolgreich gespeichert ✓'],
+'it':['Data di nascita','Giorno','Mese','Anno','Genere','Maschio','Femmina','Preferisco non rispondere','Profilo salvato ✓'],
+'pt':['Data de nascimento','Dia','Mês','Ano','Gênero','Masculino','Feminino','Prefiro não responder','Perfil salvo ✓'],
+'tr':['Doğum tarihi','Gün','Ay','Yıl','Cinsiyet','Erkek','Kadın','Yanıtlamak istemiyorum','Profil kaydedildi ✓'],
+'ru':['Дата рождения','День','Месяц','Год','Пол','Мужской','Женский','Предпочитаю не отвечать','Профиль сохранён ✓'],
+'zh':['出生日期','日','月','年','性别','男','女','不愿回答','个人资料已保存 ✓'],
+'ja':['生年月日','日','月','年','性別','男性','女性','回答しない','プロフィールを保存しました ✓'],
+'ko':['생년월일','일','월','년','성별','남성','여성','응답하지 않음','프로필이 저장되었습니다 ✓'],
+'ur':['تاریخ پیدائش','دن','مہینہ','سال','جنس','مرد','عورت','جواب نہیں دینا چاہتا','پروفائل محفوظ ہوگیا ✓'],
+'fa':['تاریخ تولد','روز','ماه','سال','جنسیت','مرد','زن','ترجیح می‌دهم پاسخ ندهم','پروفایل ذخیره شد ✓'],
+'id':['Tanggal lahir','Hari','Bulan','Tahun','Jenis kelamin','Pria','Wanita','Memilih tidak menjawab','Profil berhasil disimpan ✓'],
+'th':['วันเกิด','วัน','เดือน','ปี','เพศ','ชาย','หญิง','ไม่ประสงค์ตอบ','บันทึกโปรไฟล์แล้ว ✓'],
+'hi':['जन्म तिथि','दिन','महीना','वर्ष','लिंग','पुरुष','महिला','उत्तर नहीं देना चाहता','प्रोफ़ाइल सहेजी गई ✓']
+};
+const _extraKeys=['birthDate','day','month','year','gender','male','female','prefer','saved'];
+String _extraText(String code,String key){final i=_extraKeys.indexOf(key);final a=_extra[code]??_extra['en']!;return i<0?key:a[i];}
