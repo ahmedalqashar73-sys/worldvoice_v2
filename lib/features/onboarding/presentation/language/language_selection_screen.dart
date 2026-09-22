@@ -8,11 +8,13 @@ class LanguageSelectionScreen extends StatefulWidget {
   const LanguageSelectionScreen({
     required this.controller,
     this.showBackButton = false,
+    this.closeOnSelect = false,
     super.key,
   });
 
   final LocaleController controller;
   final bool showBackButton;
+  final bool closeOnSelect;
 
   @override
   State<LanguageSelectionScreen> createState() => _LanguageSelectionScreenState();
@@ -114,7 +116,12 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                     borderRadius: BorderRadius.circular(18),
                     child: InkWell(
                       borderRadius: BorderRadius.circular(18),
-                      onTap: () => widget.controller.select(language.code),
+                      onTap: () async {
+                        await widget.controller.select(language.code);
+                        if (widget.closeOnSelect && context.mounted) {
+                          Navigator.of(context).pop();
+                        }
+                      },
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 14),
                         child: Row(
