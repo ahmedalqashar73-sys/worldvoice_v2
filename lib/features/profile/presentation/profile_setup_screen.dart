@@ -1,8 +1,12 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../core/localization/locale_controller.dart';
+import '../../../core/media/cloudinary_image_service.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
   const ProfileSetupScreen({required this.localeController, super.key});
@@ -15,6 +19,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       city=TextEditingController(), profession=TextEditingController(), travel=TextEditingController(),
       goals=TextEditingController(), interests=TextEditingController();
   bool? usernameAvailable; bool saving=false;
+  final ImagePicker _imagePicker=ImagePicker();
+  File? profileImage, coverImage;
+  String? photoUrl, photoPublicId, coverUrl, coverPublicId;
   String? country, gender, nativeLanguage, learningLanguage;
   String languageLevel='beginner'; DateTime? birthDate;
   final Set<String> selectedHobbies={};
@@ -42,17 +49,37 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     if(d!=null&&mounted)setState(()=>birthDate=d);
   }
 
+  Future<void> pickProfileImage() async {
+    final picked=await _imagePicker.pickImage(source:ImageSource.gallery,imageQuality:88,maxWidth:1400);
+    if(picked!=null&&mounted)setState(()=>profileImage=File(picked.path));
+  }
+
+  Future<void> pickCoverImage() async {
+    final picked=await _imagePicker.pickImage(source:ImageSource.gallery,imageQuality:88,maxWidth:2200);
+    if(picked!=null&&mounted)setState(()=>coverImage=File(picked.path));
+  }
+
   Future<void> saveProfile() async {
     final user=FirebaseAuth.instance.currentUser;
     if(user==null||name.text.trim().isEmpty||usernameAvailable!=true)return;
     setState(()=>saving=true); final db=FirebaseFirestore.instance;
-    try{await db.runTransaction((tx)async{
+    try{
+      if(profileImage!=null){
+        final uploaded=await CloudinaryImageService.uploadImage(profileImage!,folder:'worldvoice/users/${user.uid}/profile');
+        photoUrl=uploaded.url; photoPublicId=uploaded.publicId;
+      }
+      if(coverImage!=null){
+        final uploaded=await CloudinaryImageService.uploadImage(coverImage!,folder:'worldvoice/users/${user.uid}/cover');
+        coverUrl=uploaded.url; coverPublicId=uploaded.publicId;
+      }
+      await db.runTransaction((tx)async{
       final handle=db.collection('usernames').doc(normalizedUsername); final old=await tx.get(handle);
       if(old.exists&&old.data()?['uid']!=user.uid)throw StateError('username-taken');
       tx.set(handle,{'uid':user.uid,'createdAt':FieldValue.serverTimestamp()});
       tx.set(db.collection('users').doc(user.uid),{
         'uid':user.uid,'email':user.email,'displayName':name.text.trim(),'username':normalizedUsername,
         'bio':bio.text.trim(),'country':country,'city':city.text.trim(),'gender':gender,
+        'photoUrl':photoUrl,'photoPublicId':photoPublicId,'coverUrl':coverUrl,'coverPublicId':coverPublicId,
         'birthDate':birthDate==null?null:Timestamp.fromDate(birthDate!),'nativeLanguage':nativeLanguage,
         'learningLanguages':learningLanguage==null?<String>[]:[learningLanguage],'languageLevel':languageLevel,
         'profession':profession.text.trim(),'travel':travel.text.trim(),'learningGoals':goals.text.trim(),
@@ -62,6 +89,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       },SetOptions(merge:true));
     });
     if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(backgroundColor:const Color(0xFF159B62),content:Text(_extraText(widget.localeController.locale?.languageCode??'en','saved'),style:const TextStyle(color:Colors.white))));
+    }catch(e){
+      if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(e.toString())));
     }finally{if(mounted)setState(()=>saving=false);}
   }
 
@@ -75,10 +104,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       padding:const EdgeInsets.fromLTRB(18,16,18,36),children:[
       Text(t('title'),style:Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight:FontWeight.w900)),
       const SizedBox(height:18),
-      Container(height:150,decoration:BoxDecoration(borderRadius:BorderRadius.circular(24),gradient:LinearGradient(colors:[cs.primary.withValues(alpha:.75),cs.tertiary.withValues(alpha:.45)])),
-        child:Stack(children:[const Center(child:Icon(Icons.landscape_rounded,size:42)),Positioned(top:8,left:8,child:IconButton.filledTonal(onPressed:(){},icon:const Icon(Icons.wallpaper_rounded,size:18)))])),
+      Container(height:150,decoration:BoxDecoration(borderRadius:BorderRadius.circular(24),gradient:LinearGradient(colors:[cs.primary.withValues(alpha:.75),cs.tertiary.withValues(alpha:.45)]),image:coverImage==null?null:DecorationImage(image:FileImage(coverImage!),fit:BoxFit.cover)),
+        child:Stack(children:[if(coverImage==null)const Center(child:Icon(Icons.landscape_rounded,size:42)),Positioned(top:8,left:8,child:IconButton.filledTonal(onPressed:pickCoverImage,icon:const Icon(Icons.wallpaper_rounded,size:18)))])),
       Transform.translate(offset:const Offset(0,-28),child:Center(child:Container(width:104,height:104,padding:const EdgeInsets.all(3),decoration:BoxDecoration(shape:BoxShape.circle,color:cs.surface),
-        child:CircleAvatar(backgroundColor:cs.surfaceContainerHighest,child:IconButton(onPressed:(){},icon:const Icon(Icons.add_a_photo_rounded,size:26)))))),
+        child:CircleAvatar(backgroundColor:cs.surfaceContainerHighest,backgroundImage:profileImage==null?null:FileImage(profileImage!),child:profileImage==null?IconButton(onPressed:pickProfileImage,icon:const Icon(Icons.add_a_photo_rounded,size:26)):Align(alignment:Alignment.bottomRight,child:IconButton.filledTonal(onPressed:pickProfileImage,icon:const Icon(Icons.edit_rounded,size:16))))))),
       _Field(name,t('name'),Icons.badge_outlined),const SizedBox(height:10),
       TextField(controller:username,textDirection:TextDirection.ltr,onChanged:(_)=>setState(()=>usernameAvailable=null),decoration:InputDecoration(labelText:t('username'),hintText:'@username',prefixIcon:const Icon(Icons.alternate_email_rounded,size:20),suffixIcon:IconButton(onPressed:checkUsername,icon:Icon(usernameAvailable==true?Icons.check_circle:usernameAvailable==false?Icons.cancel:Icons.search,size:20,color:usernameAvailable==true?Colors.green:null)))),
       const SizedBox(height:12),
