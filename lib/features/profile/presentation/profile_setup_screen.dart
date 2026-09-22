@@ -106,7 +106,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   Future<String?> choose(String title,List<String> values,{String Function(String)? label,bool showFlags=false}) => showModalBottomSheet<String>(
     context:context,isScrollControlled:true,builder:(ctx)=>SafeArea(child:SizedBox(height:MediaQuery.sizeOf(ctx).height*.72,
     child:Column(children:[Padding(padding:const EdgeInsets.all(16),child:Text(title,style:const TextStyle(fontSize:20,fontWeight:FontWeight.w800))),
-    Expanded(child:ListView.builder(itemCount:values.length,itemBuilder:(_,i)=>ListTile(leading:showFlags?Text(_flagForCountry(values[i]),style:const TextStyle(fontSize:25)):null,title:Text(label?.call(values[i])??values[i]),onTap:()=>Navigator.pop(ctx,values[i]))))]))));
+    Expanded(child:ListView.builder(itemCount:values.length,itemBuilder:(_,i)=>ListTile(leading:showFlags?Text(profileCountryFlag(values[i]),style:const TextStyle(fontSize:25)):null,title:Text(label?.call(values[i])??values[i]),onTap:()=>Navigator.pop(ctx,values[i]))))]))));
 
   Future<String?> chooseProfileLanguage(String title) async {
     var query='';
