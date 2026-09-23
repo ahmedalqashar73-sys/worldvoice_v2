@@ -28,10 +28,7 @@ class _RoomsHubScreenState extends State<RoomsHubScreen> {
       _AiTeacherPage(labels: labels),
       LiveScreen(localeController: widget.localeController),
       LearnScreen(localeController: widget.localeController),
-      _VoiceRoomsPage(
-        labels: labels,
-        localeController: widget.localeController,
-      ),
+      _VoiceRoomsPage(labels: labels),
     ];
 
     return Directionality(
@@ -194,13 +191,9 @@ class _AiTeacherPage extends StatelessWidget {
 }
 
 class _VoiceRoomsPage extends StatelessWidget {
-  const _VoiceRoomsPage({
-    required this.labels,
-    required this.localeController,
-  });
+  const _VoiceRoomsPage({required this.labels});
 
   final _RoomsHubLabels labels;
-  final LocaleController localeController;
 
   void _openRoom(
     BuildContext context, {
