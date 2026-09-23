@@ -4,14 +4,22 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 
+import '../data/room_backend_config.dart';
 import '../data/room_shop_models.dart';
 
 class RoomShopService {
   FirebaseFirestore get _db => FirebaseFirestore.instance;
   User? get _user => FirebaseAuth.instance.currentUser;
 
-  static const String endpoint =
+  static const String _explicitEndpoint =
       String.fromEnvironment('WORLDVOICE_STORE_ENDPOINT');
+
+  String get endpoint {
+    final explicit = _explicitEndpoint.trim();
+    return explicit.isNotEmpty
+        ? explicit
+        : RoomBackendConfig.endpoint('/store');
+  }
 
   bool get isConfigured => endpoint.trim().isNotEmpty;
 
