@@ -105,21 +105,21 @@ class _RoomsHubLabels {
         sections = code == 'ar'
             ? const [
                 'الغرف الصوتية',
-                'Live',
-                'ChatGPT AI',
-                'تعلّم',
+                'البث المباشر',
+                'أستاذ AI',
+                'أتعلم',
               ]
             : code == 'es'
                 ? const [
                     'Salas de voz',
                     'Live',
-                    'ChatGPT AI',
+                    'Teacher AI',
                     'Aprender',
                   ]
                 : const [
                     'Voice Rooms',
                     'Live',
-                    'ChatGPT AI',
+                    'Teacher AI',
                     'Learn',
                   ];
 
