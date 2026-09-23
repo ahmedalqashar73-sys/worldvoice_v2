@@ -30,6 +30,7 @@ class RoomSeatState {
   const RoomSeatState({
     required this.index,
     required this.role,
+    this.userId,
     this.displayName,
     this.avatarUrl,
     this.agoraUid,
@@ -42,6 +43,7 @@ class RoomSeatState {
 
   final int index;
   final RoomMemberRole role;
+  final String? userId;
   final String? displayName;
   final String? avatarUrl;
   final int? agoraUid;
@@ -56,6 +58,7 @@ class RoomSeatState {
 
   RoomSeatState copyWith({
     RoomMemberRole? role,
+    String? userId,
     String? displayName,
     String? avatarUrl,
     int? agoraUid,
@@ -68,6 +71,7 @@ class RoomSeatState {
     return RoomSeatState(
       index: index,
       role: role ?? this.role,
+      userId: userId ?? this.userId,
       displayName: displayName ?? this.displayName,
       avatarUrl: avatarUrl ?? this.avatarUrl,
       agoraUid: agoraUid ?? this.agoraUid,
