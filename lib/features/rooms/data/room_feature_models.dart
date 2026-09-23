@@ -115,3 +115,39 @@ class RoomGiftEvent {
     );
   }
 }
+
+
+class RoomGiftCatalogItem {
+  const RoomGiftCatalogItem({
+    required this.id,
+    required this.name,
+    required this.priceCoins,
+    required this.active,
+    this.category,
+    this.emoji,
+    this.animationUrl,
+  });
+
+  final String id;
+  final String name;
+  final int priceCoins;
+  final bool active;
+  final String? category;
+  final String? emoji;
+  final String? animationUrl;
+
+  factory RoomGiftCatalogItem.fromDoc(
+    QueryDocumentSnapshot<Map<String, dynamic>> doc,
+  ) {
+    final data = doc.data();
+    return RoomGiftCatalogItem(
+      id: doc.id,
+      name: (data['name'] ?? doc.id).toString(),
+      priceCoins: (data['priceCoins'] as num?)?.toInt() ?? 0,
+      active: data['active'] == true,
+      category: data['category']?.toString(),
+      emoji: data['emoji']?.toString(),
+      animationUrl: data['animationUrl']?.toString(),
+    );
+  }
+}
