@@ -13,12 +13,14 @@ class AgoraVoiceRoomScreen extends StatefulWidget {
     required this.channelId,
     required this.roomName,
     required this.initialRole,
+    this.roomLanguageCode,
     super.key,
   });
 
   final String channelId;
   final String roomName;
   final AgoraRoomRole initialRole;
+  final String? roomLanguageCode;
 
   @override
   State<AgoraVoiceRoomScreen> createState() => _AgoraVoiceRoomScreenState();
@@ -45,6 +47,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     _moderation = RoomModerationService(
       channelId: widget.channelId,
       roomName: widget.roomName,
+      roomLanguageCode: widget.roomLanguageCode,
     );
     unawaited(_startRoomSession());
   }
@@ -78,6 +81,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(error.toString())),
       );
+      await _moderation.leave();
       await _controller.leave();
       if (mounted) Navigator.of(context).pop();
     }
