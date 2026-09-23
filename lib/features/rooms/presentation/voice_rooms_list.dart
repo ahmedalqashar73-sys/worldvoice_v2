@@ -8,6 +8,7 @@ import '../../../core/localization/locale_controller.dart';
 import '../../profile/data/profile_identity_utils.dart';
 import '../data/agora_config.dart';
 import '../services/agora_voice_room_controller.dart';
+import '../services/gift_level_service.dart';
 import '../services/room_history_service.dart';
 import 'agora_voice_room_screen.dart';
 
@@ -66,10 +67,12 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
             .toList() ??
         const <String>[];
 
+    final giftLevel = await const GiftLevelService().resolveFromProfile(data);
+
     return _RoomLanguagePrefs(
       nativeLanguage: native.isEmpty ? 'en' : native,
       learningLanguages: learning,
-      giftLevel: (data['giftLevel'] as num?)?.toInt() ?? 0,
+      giftLevel: giftLevel,
     );
   }
 
