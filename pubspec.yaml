@@ -47,6 +47,10 @@ dependencies:
   path_provider: ^2.1.5
   just_audio: ^0.10.6
   agora_rtc_engine: ^6.6.4
+  file_picker: ^13.1.0
+  url_launcher: ^6.3.2
+  share_plus: ^13.3.0
+  pdfrx: ^2.5.0
 
 dev_dependencies:
   flutter_test:
