@@ -22,6 +22,7 @@ import '../services/room_quota_service.dart';
 import '../services/room_rewarded_ad_service.dart';
 import '../services/room_translation_service.dart';
 import '../services/room_teacher_ai_service.dart';
+import 'room_background_shop_sheet.dart';
 import 'room_board_screen.dart';
 import 'room_chat_sheet.dart';
 import 'room_captions_sheet.dart';
@@ -1048,6 +1049,18 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     );
   }
 
+  Future<void> _showBackgroundStore() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => RoomBackgroundShopSheet(
+        roomFeatures: _features,
+        isHost: _isHost,
+      ),
+    );
+  }
+
   Future<void> _showRoomChat() async {
     await showModalBottomSheet<void>(
       context: context,
@@ -1247,6 +1260,14 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                 onTap: () {
                   Navigator.pop(sheetContext);
                   _showCaptionSettings();
+                },
+              ),
+              _RoomToolTile(
+                icon: Icons.storefront_rounded,
+                label: isArabic ? 'متجر الخلفيات' : 'Background store',
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _showBackgroundStore();
                 },
               ),
               _RoomToolTile(
