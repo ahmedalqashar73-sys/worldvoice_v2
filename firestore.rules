@@ -18,6 +18,40 @@ service cloud.firestore {
       return /databases/$(database)/documents/users/$(userId);
     }
 
+    function backgroundEntitlementPath(userId, themeId) {
+      return /databases/$(database)/documents/users/$(userId)/room_backgrounds/$(themeId);
+    }
+
+    function validRoomThemeChange() {
+      let oldTheme = resource.data.get('themeId', 'royalPurple');
+      let newTheme = request.resource.data.get('themeId', 'royalPurple');
+      let oldUrl = resource.data.get('backgroundUrl', '');
+      let newUrl = request.resource.data.get('backgroundUrl', '');
+
+      return (
+        oldTheme == newTheme && oldUrl == newUrl
+      ) || (
+        newTheme in ['royalPurple', 'emerald', 'midnight']
+        && newUrl == ''
+      ) || (
+        exists(backgroundEntitlementPath(request.auth.uid, newTheme))
+        && get(
+          backgroundEntitlementPath(request.auth.uid, newTheme)
+        ).data.themeId == newTheme
+        && newUrl == get(
+          backgroundEntitlementPath(request.auth.uid, newTheme)
+        ).data.get('backgroundUrl', '')
+        && (
+          !('expiresAt' in get(
+            backgroundEntitlementPath(request.auth.uid, newTheme)
+          ).data)
+          || get(
+            backgroundEntitlementPath(request.auth.uid, newTheme)
+          ).data.expiresAt > request.time
+        )
+      );
+    }
+
     function giftEventPath(roomId, giftId) {
       return /databases/$(database)/documents/rooms/$(roomId)/gifts/$(giftId);
     }
@@ -445,8 +479,12 @@ service cloud.firestore {
               )
             ).data.type == request.resource.data.type;
 
-        allow update, delete: if signedIn()
-            && request.auth.uid == userId;
+        allow update, delete: if false;
+      }
+
+      match /room_backgrounds/{themeId} {
+        allow read: if signedIn() && request.auth.uid == userId;
+        allow create, update, delete: if false;
       }
     }
 
@@ -465,6 +503,14 @@ service cloud.firestore {
 
       allow delete: if signedIn()
           && resource.data.uid == request.auth.uid;
+    }
+
+    // -------------------------
+    // ROOM SHOP CATALOG
+    // -------------------------
+    match /room_shop_items/{itemId} {
+      allow read: if signedIn();
+      allow write: if false;
     }
 
     // -------------------------
@@ -505,6 +551,7 @@ service cloud.firestore {
       // recover that stale room document without changing the channel id.
       allow update: if signedIn()
           && request.resource.data.channelId == resource.data.channelId
+          && validRoomThemeChange()
           && (
             (
               request.auth.uid == resource.data.hostId
