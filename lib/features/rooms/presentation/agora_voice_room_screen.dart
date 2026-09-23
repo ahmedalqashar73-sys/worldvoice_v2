@@ -348,6 +348,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         isMuted: participant.userId == _moderation.currentUserId
             ? _controller.muted
             : participant.forcedMuted,
+        isActiveSpeaker: participant.agoraUid != null &&
+            participant.agoraUid == _controller.activeSpeakerUid,
         isLocalUser: participant.userId == _moderation.currentUserId,
       );
     }
