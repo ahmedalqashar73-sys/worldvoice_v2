@@ -42,7 +42,7 @@ class RoomRewardedAdService {
 
     final completer = Completer<bool>();
 
-    await RewardedAd.load(
+    RewardedAd.load(
       adUnitId: adUnitId,
       request: const AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
