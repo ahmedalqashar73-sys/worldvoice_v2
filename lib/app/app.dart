@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +11,7 @@ import '../core/theme/app_theme.dart';
 import '../features/home/presentation/home_screen.dart';
 import '../features/onboarding/presentation/welcome_screen.dart';
 import '../features/profile/presentation/profile_setup_screen.dart';
+import '../features/profile/services/user_presence_service.dart';
 
 class WorldVoiceApp extends StatefulWidget {
   const WorldVoiceApp({super.key});
@@ -17,14 +20,24 @@ class WorldVoiceApp extends StatefulWidget {
   State<WorldVoiceApp> createState() => _WorldVoiceAppState();
 }
 
-class _WorldVoiceAppState extends State<WorldVoiceApp> {
+class _WorldVoiceAppState extends State<WorldVoiceApp> with WidgetsBindingObserver {
   final LocaleController _localeController = LocaleController();
+  final PresenceSession _presenceSession = PresenceSession();
+  StreamSubscription<User?>? _authSubscription;
   bool _ready = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _localeController.addListener(_refresh);
+    _authSubscription = FirebaseAuth.instance.authStateChanges().listen((user) {
+      if (user != null) {
+        _presenceSession.start();
+      } else {
+        _presenceSession.stop();
+      }
+    });
     _load();
   }
 
@@ -38,7 +51,23 @@ class _WorldVoiceAppState extends State<WorldVoiceApp> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        _presenceSession.start();
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+      case AppLifecycleState.hidden:
+        _presenceSession.stop();
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _authSubscription?.cancel();
+    _presenceSession.dispose();
     _localeController.removeListener(_refresh);
     _localeController.dispose();
     super.dispose();
