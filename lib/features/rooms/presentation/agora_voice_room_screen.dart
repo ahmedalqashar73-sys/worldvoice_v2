@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import '../data/room_moderation_models.dart';
 import '../data/room_stage_models.dart';
 import '../services/agora_voice_room_controller.dart';
+import '../services/room_history_service.dart';
 import '../services/room_moderation_service.dart';
+import '../services/room_quota_service.dart';
 import 'room_chat_sheet.dart';
 import 'room_members_sheet.dart';
 import 'room_mod_log_sheet.dart';
@@ -34,6 +36,8 @@ class AgoraVoiceRoomScreen extends StatefulWidget {
 class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   late final AgoraVoiceRoomController _controller;
   late final RoomModerationService _moderation;
+  late final RoomHistoryService _history;
+  late final RoomQuotaService _quota;
 
   StreamSubscription<List<RoomParticipant>>? _participantsSub;
   StreamSubscription<RoomParticipant?>? _meSub;
@@ -46,12 +50,15 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   late bool _showTeacherAiSeat;
   bool _leaving = false;
   bool _participantWasReady = false;
+  bool _trackingEnded = false;
 
   @override
   void initState() {
     super.initState();
     _showTeacherAiSeat = widget.initialShowTeacherAiSeat;
     _controller = AgoraVoiceRoomController()..addListener(_refresh);
+    _history = RoomHistoryService();
+    _quota = RoomQuotaService();
     _moderation = RoomModerationService(
       channelId: widget.channelId,
       roomName: widget.roomName,
@@ -63,8 +70,39 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
   Future<void> _startRoomSession() async {
     try {
+      final asHost = widget.initialRole == AgoraRoomRole.speaker;
+      final level = await _moderation.roomLevel();
+      final quotaStatus = await _quota.startSession(
+        asHost: asHost,
+        roomLevel: level,
+      );
+
+      if (!quotaStatus.allowed) {
+        if (!mounted) return;
+        _leaving = true;
+        final isArabic =
+            Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isArabic
+                  ? 'انتهى وقت الغرف المتاح لك اليوم.'
+                  : 'Your room time for today has been used.',
+            ),
+          ),
+        );
+        Navigator.of(context).pop();
+        return;
+      }
+
       await _moderation.enter(
-        asHost: widget.initialRole == AgoraRoomRole.speaker,
+        asHost: asHost,
+      );
+
+      await _history.recordEnter(
+        roomId: widget.channelId,
+        roomName: widget.roomName,
+        languageCode: widget.roomLanguageCode,
       );
 
       _roomOpenSub = _moderation.watchRoomOpen().listen((isOpen) {
@@ -102,10 +140,18 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     }
   }
 
+  Future<void> _finishSessionTracking() async {
+    if (_trackingEnded) return;
+    _trackingEnded = true;
+    await _quota.endSession();
+    await _history.recordLeave(widget.channelId);
+  }
+
   Future<void> _exitClosedRoom() async {
     if (_leaving) return;
     _leaving = true;
 
+    await _finishSessionTracking();
     await _controller.leave();
     await _moderation.leave();
 
@@ -149,6 +195,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   Future<void> _exitRemovedFromRoom() async {
     if (_leaving) return;
     _leaving = true;
+    await _finishSessionTracking();
     await _controller.leave();
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -265,6 +312,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     _leaving = true;
 
     try {
+      await _finishSessionTracking();
       await _moderation.leave();
       await _controller.leave();
     } finally {
@@ -711,6 +759,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     _roomOpenSub?.cancel();
     _teacherAiSeatSub?.cancel();
     _controller.removeListener(_refresh);
+    unawaited(_finishSessionTracking());
     unawaited(_moderation.leave());
     unawaited(_controller.leave());
     _controller.dispose();
