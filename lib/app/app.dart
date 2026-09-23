@@ -12,6 +12,7 @@ import '../features/home/presentation/home_screen.dart';
 import '../features/onboarding/presentation/welcome_screen.dart';
 import '../features/profile/presentation/profile_setup_screen.dart';
 import '../features/profile/services/user_presence_service.dart';
+import '../features/rooms/services/room_coin_purchase_service.dart';
 
 class WorldVoiceApp extends StatefulWidget {
   const WorldVoiceApp({super.key});
@@ -34,6 +35,7 @@ class _WorldVoiceAppState extends State<WorldVoiceApp> with WidgetsBindingObserv
     _authSubscription = FirebaseAuth.instance.authStateChanges().listen((user) {
       if (user != null) {
         _presenceSession.start();
+        unawaited(RoomCoinPurchaseService.instance.initialize());
       } else {
         _presenceSession.stop();
       }
