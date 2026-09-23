@@ -172,6 +172,82 @@ service cloud.firestore {
       return /databases/$(database)/documents/private_room_codes/$(code);
     }
 
+    function taskCompletionPath(roomId, taskId) {
+      return /databases/$(database)/documents/rooms/$(roomId)/task_completions/$(taskId);
+    }
+
+    function roomRewardPath(roomId, rewardId) {
+      return /databases/$(database)/documents/rooms/$(roomId)/rewards/$(rewardId);
+    }
+
+    function validRoomTask(data) {
+      return (
+        data.taskKey == 'daily_join' && data.points == 10
+      ) || (
+        data.taskKey == 'daily_speaking' && data.points == 20
+      ) || (
+        data.taskKey == 'weekly_participation' && data.points == 50
+      );
+    }
+
+    function validTaskRoomProgress(roomId) {
+      return request.resource.data.lastTaskCompletionId is string
+          && existsAfter(
+            taskCompletionPath(
+              roomId,
+              request.resource.data.lastTaskCompletionId
+            )
+          )
+          && getAfter(
+            taskCompletionPath(
+              roomId,
+              request.resource.data.lastTaskCompletionId
+            )
+          ).data.userId == request.auth.uid
+          && validRoomTask(
+            getAfter(
+              taskCompletionPath(
+                roomId,
+                request.resource.data.lastTaskCompletionId
+              )
+            ).data
+          )
+          && request.resource.data
+              .diff(resource.data)
+              .affectedKeys()
+              .hasOnly([
+                'roomXp',
+                'roomLevel',
+                'lastTaskCompletionId',
+                'updatedAt'
+              ])
+          && request.resource.data.roomXp
+              == resource.data.get('roomXp', 0)
+                  + getAfter(
+                      taskCompletionPath(
+                        roomId,
+                        request.resource.data.lastTaskCompletionId
+                      )
+                    ).data.points
+          && (
+            (
+              request.resource.data.roomLevel
+                  == resource.data.get('roomLevel', 1)
+              && request.resource.data.roomXp
+                  < resource.data.get('roomLevel', 1) * 100
+            )
+            ||
+            (
+              request.resource.data.roomLevel
+                  == resource.data.get('roomLevel', 1) + 1
+              && request.resource.data.roomXp
+                  >= resource.data.get('roomLevel', 1) * 100
+              && request.resource.data.roomXp
+                  < (resource.data.get('roomLevel', 1) + 1) * 100
+            )
+          );
+    }
+
     function isHost(roomId) {
       return signedIn()
           && exists(roomPath(roomId))
@@ -277,6 +353,28 @@ service cloud.firestore {
             && request.auth.uid == userId;
         allow delete: if false;
       }
+
+      match /room_rewards/{rewardId} {
+        allow read: if signedIn() && request.auth.uid == userId;
+
+        allow create: if signedIn()
+            && request.resource.data.userId == userId
+            && request.resource.data.roomId is string
+            && request.resource.data.level is int
+            && request.resource.data.type is string
+            && exists(
+              /databases/$(database)/documents/rooms/$(request.resource.data.roomId)/participants/$(userId)
+            )
+            && exists(
+              /databases/$(database)/documents/rooms/$(request.resource.data.roomId)/rewards/level_$(request.resource.data.level)
+            )
+            && get(
+              /databases/$(database)/documents/rooms/$(request.resource.data.roomId)/rewards/level_$(request.resource.data.level)
+            ).data.type == request.resource.data.type;
+
+        allow update, delete: if signedIn()
+            && request.auth.uid == userId;
+      }
     }
 
     // -------------------------
@@ -361,6 +459,12 @@ service cloud.firestore {
             (
               !oldHostStillPresent(roomId)
               && request.resource.data.hostId == request.auth.uid
+            )
+            ||
+            (
+              isRoomMember(roomId)
+              && request.resource.data.hostId == resource.data.hostId
+              && validTaskRoomProgress(roomId)
             )
           );
 
@@ -456,16 +560,43 @@ service cloud.firestore {
 
       match /task_completions/{taskId} {
         allow read: if isRoomMember(roomId);
+
         allow create: if isRoomMember(roomId)
             && request.resource.data.userId == request.auth.uid
-            && request.resource.data.points is int
-            && request.resource.data.points > 0;
+            && request.resource.data.periodKey is string
+            && validRoomTask(request.resource.data)
+            && request.resource.data.completedAt == request.time
+            && getAfter(roomPath(roomId)).data.lastTaskCompletionId
+                == taskId;
+
         allow update, delete: if false;
       }
 
       match /rewards/{rewardId} {
         allow read: if isRoomMember(roomId);
-        allow create, update: if isHost(roomId);
+
+        allow create: if isHost(roomId)
+            || (
+              isRoomMember(roomId)
+              && request.resource.data.level
+                  == getAfter(roomPath(roomId)).data.roomLevel
+              && request.resource.data.unlockedBy == request.auth.uid
+              && request.resource.data.sourceTaskId
+                  == getAfter(roomPath(roomId)).data.lastTaskCompletionId
+              && (
+                (
+                  request.resource.data.level == 5
+                  && request.resource.data.type == 'background_month'
+                )
+                ||
+                (
+                  request.resource.data.level != 5
+                  && request.resource.data.type == 'gift_pack'
+                )
+              )
+            );
+
+        allow update: if isHost(roomId);
         allow delete: if false;
       }
 
