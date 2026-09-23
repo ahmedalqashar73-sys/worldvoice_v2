@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../data/room_moderation_models.dart';
 import '../data/room_stage_models.dart';
@@ -8,7 +9,10 @@ import '../services/agora_voice_room_controller.dart';
 import '../services/room_history_service.dart';
 import '../services/room_moderation_service.dart';
 import '../services/room_quota_service.dart';
+import 'room_board_screen.dart';
 import 'room_chat_sheet.dart';
+import 'room_music_sheet.dart';
+import 'room_quiz_sheet.dart';
 import 'room_members_sheet.dart';
 import 'room_mod_log_sheet.dart';
 import 'room_stage_grid.dart';
@@ -486,6 +490,53 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     );
   }
 
+  Future<void> _showBoard() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => RoomBoardScreen(
+          roomId: widget.channelId,
+          canWrite: true,
+          isHost: _isHost,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showMusic() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => RoomMusicSheet(
+        roomId: widget.channelId,
+        isHost: _isHost,
+      ),
+    );
+  }
+
+  Future<void> _showQuiz() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => RoomQuizSheet(
+        roomId: widget.channelId,
+        isHost: _isHost,
+      ),
+    );
+  }
+
+  Future<void> _shareRoom() async {
+    final language = widget.roomLanguageCode?.toUpperCase() ?? '';
+    await SharePlus.instance.share(
+      ShareParams(
+        text: 'WorldVoice • ${widget.roomName}'
+            '${language.isEmpty ? '' : ' • $language'}'
+            '\nRoom ID: ${widget.channelId}',
+      ),
+    );
+  }
+
   Future<void> _showMembers() async {
     await showModalBottomSheet<void>(
       context: context,
@@ -574,16 +625,44 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   },
                 ),
               _RoomToolTile(
-                icon: Icons.wallpaper_rounded,
-                label: isArabic ? 'الخلفية' : 'Background',
+                icon: Icons.chat_bubble_rounded,
+                label: isArabic ? 'دردشة الغرفة' : 'Room chat',
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _showRoomChat();
+                },
               ),
               _RoomToolTile(
                 icon: Icons.draw_rounded,
                 label: isArabic ? 'السبورة' : 'Board',
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _showBoard();
+                },
+              ),
+              _RoomToolTile(
+                icon: Icons.quiz_rounded,
+                label: isArabic ? 'الكويز' : 'Quiz',
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _showQuiz();
+                },
               ),
               _RoomToolTile(
                 icon: Icons.music_note_rounded,
                 label: isArabic ? 'الموسيقى' : 'Music',
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _showMusic();
+                },
+              ),
+              _RoomToolTile(
+                icon: Icons.share_rounded,
+                label: isArabic ? 'مشاركة الغرفة' : 'Share room',
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _shareRoom();
+                },
               ),
             ],
           ),
