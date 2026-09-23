@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:just_audio/just_audio.dart';
 
 import '../data/room_feature_models.dart';
 import '../data/room_moderation_models.dart';
@@ -52,6 +53,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   late final RoomHistoryService _history;
   late final RoomQuotaService _quota;
   late final RoomFeatureService _features;
+  late final AudioPlayer _musicPlayer;
+  String? _loadedMusicUrl;
 
   StreamSubscription<List<RoomParticipant>>? _participantsSub;
   StreamSubscription<RoomParticipant?>? _meSub;
@@ -84,6 +87,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     _history = RoomHistoryService();
     _quota = RoomQuotaService();
     _features = RoomFeatureService(roomId: widget.channelId);
+    _musicPlayer = AudioPlayer();
     _moderation = RoomModerationService(
       channelId: widget.channelId,
       roomName: widget.roomName,
@@ -148,6 +152,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       _featuresSub = _features.watchState().listen((state) {
         if (!mounted) return;
         setState(() => _featureState = state);
+        unawaited(_syncRoomMusic(state));
       });
 
       _participantsSub =
@@ -170,6 +175,29 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       await _moderation.leave();
       await _controller.leave();
       if (mounted) Navigator.of(context).pop();
+    }
+  }
+
+  Future<void> _syncRoomMusic(RoomFeatureState state) async {
+    final url = state.musicUrl?.trim();
+    if (url == null || url.isEmpty) {
+      if (_musicPlayer.playing) await _musicPlayer.pause();
+      _loadedMusicUrl = null;
+      return;
+    }
+
+    try {
+      if (_loadedMusicUrl != url) {
+        await _musicPlayer.setUrl(url);
+        _loadedMusicUrl = url;
+      }
+      if (state.musicPlaying) {
+        if (!_musicPlayer.playing) await _musicPlayer.play();
+      } else if (_musicPlayer.playing) {
+        await _musicPlayer.pause();
+      }
+    } catch (_) {
+      // Keep Agora room audio alive even if a shared music URL fails.
     }
   }
 
@@ -908,6 +936,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     _teacherAiSeatSub?.cancel();
     _featuresSub?.cancel();
     _controller.removeListener(_refresh);
+    unawaited(_musicPlayer.dispose());
     unawaited(_finishSessionTracking());
     unawaited(_moderation.leave());
     unawaited(_controller.leave());
