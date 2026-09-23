@@ -7,61 +7,34 @@ import '../data/room_stage_models.dart';
 class RoomStageGrid extends StatelessWidget {
   const RoomStageGrid({
     required this.seats,
-    required this.showTeacherAiSeat,
     required this.onSeatTap,
     super.key,
   });
 
   final List<RoomSeatState> seats;
-  final bool showTeacherAiSeat;
   final ValueChanged<RoomSeatState> onSeatTap;
 
   @override
   Widget build(BuildContext context) {
     final stageSeats = seats.take(8).toList(growable: false);
 
-    return Column(
-      children: [
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: stageSeats.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 4,
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 8,
-            childAspectRatio: .76,
-          ),
-          itemBuilder: (context, index) {
-            final seat = stageSeats[index];
-            return _CompactRoomSeat(
-              seat: seat,
-              onTap: () => onSeatTap(seat),
-            );
-          },
-        ),
-        if (showTeacherAiSeat) ...[
-          const SizedBox(height: 10),
-          SizedBox(
-            width: 92,
-            height: 112,
-            child: _CompactRoomSeat(
-              seat: const RoomSeatState(
-                index: 9,
-                role: RoomMemberRole.teacherAi,
-                displayName: 'Teacher AI',
-              ),
-              onTap: () => onSeatTap(
-                const RoomSeatState(
-                  index: 9,
-                  role: RoomMemberRole.teacherAi,
-                  displayName: 'Teacher AI',
-                ),
-              ),
-            ),
-          ),
-        ],
-      ],
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: stageSeats.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 4,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 8,
+        childAspectRatio: .76,
+      ),
+      itemBuilder: (context, index) {
+        final seat = stageSeats[index];
+        return _CompactRoomSeat(
+          seat: seat,
+          onTap: () => onSeatTap(seat),
+        );
+      },
     );
   }
 }
