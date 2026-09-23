@@ -76,6 +76,8 @@ service cloud.firestore {
             'giftReceivedPoints',
             'giftLevelPoints',
             'giftLevel',
+            'purchasedCoins',
+            'quizCoinsEarned',
             'lastGiftRoomId',
             'lastGiftEventId'
           ]);
@@ -503,6 +505,14 @@ service cloud.firestore {
 
       allow delete: if signedIn()
           && resource.data.uid == request.auth.uid;
+    }
+
+    // -------------------------
+    // COIN PRODUCTS
+    // -------------------------
+    match /coin_products/{productId} {
+      allow read: if signedIn();
+      allow write: if false;
     }
 
     // -------------------------
