@@ -14,7 +14,6 @@ class RoomParticipant {
     this.warningCount = 0,
     this.forcedMuted = false,
     this.kicked = false,
-    this.speakingSeconds = 0,
   });
 
   final String userId;
@@ -29,7 +28,6 @@ class RoomParticipant {
   final int warningCount;
   final bool forcedMuted;
   final bool kicked;
-  final int speakingSeconds;
 
   bool get canModerate =>
       role == RoomMemberRole.host || isModerator;
