@@ -470,9 +470,25 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-            Text(
-              widget.channelId,
-              style: Theme.of(context).textTheme.labelSmall,
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 7,
+                  height: 7,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _controller.joined
+                        ? Colors.green
+                        : colors.outline,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  '${_participants.length} members • LIVE',
+                  style: Theme.of(context).textTheme.labelSmall,
+                ),
+              ],
             ),
           ],
         ),
@@ -480,10 +496,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(18, 10, 18, 8),
-              child: _ConnectionBanner(controller: _controller),
-            ),
+            if (_controller.connecting)
+              const LinearProgressIndicator(minHeight: 2),
             if (_controller.error != null)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 18),
@@ -740,54 +754,3 @@ class _RoleOption extends StatelessWidget {
   }
 }
 
-class _ConnectionBanner extends StatelessWidget {
-  const _ConnectionBanner({required this.controller});
-
-  final AgoraVoiceRoomController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-
-    final String text;
-    final IconData icon;
-    if (controller.joined) {
-      text = 'Connected to Agora';
-      icon = Icons.cloud_done_rounded;
-    } else if (controller.connecting) {
-      text = 'Connecting to Agora…';
-      icon = Icons.sync_rounded;
-    } else {
-      text = 'Not connected';
-      icon = Icons.cloud_off_rounded;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: controller.joined
-            ? colors.primaryContainer.withValues(alpha: .55)
-            : colors.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 19),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(fontWeight: FontWeight.w800),
-            ),
-          ),
-          if (controller.connecting)
-            const SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-        ],
-      ),
-    );
-  }
-}
