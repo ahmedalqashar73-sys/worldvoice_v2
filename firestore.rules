@@ -101,6 +101,17 @@ service cloud.firestore {
         allow read, create, update, delete: if signedIn()
             && request.auth.uid == userId;
       }
+
+      match /room_history/{roomId} {
+        allow read, create, update, delete: if signedIn()
+            && request.auth.uid == userId;
+      }
+
+      match /room_usage/{dayKey} {
+        allow read, create, update: if signedIn()
+            && request.auth.uid == userId;
+        allow delete: if false;
+      }
     }
 
     // -------------------------
