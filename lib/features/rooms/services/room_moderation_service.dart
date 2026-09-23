@@ -40,6 +40,21 @@ class RoomModerationService {
             .toString()
             .trim();
     final photoUrl = (data['photoUrl'] as String?)?.trim();
+    final languageCode =
+        (data['nativeLanguageCode'] ?? 'en').toString().trim();
+    final country = (data['country'] ?? '').toString().trim();
+
+    final existingRoom = await _roomRef.get();
+    final existingData = existingRoom.data();
+    if (!asHost) {
+      if (!existingRoom.exists || existingData?['isOpen'] != true) {
+        throw StateError('This room is no longer open.');
+      }
+    } else if (existingRoom.exists &&
+        existingData?['isOpen'] == true &&
+        existingData?['hostId'] != user.uid) {
+      throw StateError('This room already has an active host.');
+    }
 
     final batch = _db.batch();
 
@@ -50,6 +65,12 @@ class RoomModerationService {
           'channelId': channelId,
           'name': roomName,
           'hostId': user.uid,
+          'hostName': displayName.isEmpty ? 'WorldVoice user' : displayName,
+          'hostPhotoUrl': photoUrl,
+          'hostCountry': country,
+          'languageCode': languageCode.isEmpty ? 'en' : languageCode,
+          'isOpen': true,
+          'createdAt': FieldValue.serverTimestamp(),
           'updatedAt': FieldValue.serverTimestamp(),
         },
         SetOptions(merge: true),
@@ -73,6 +94,12 @@ class RoomModerationService {
     );
 
     await batch.commit();
+  }
+
+  Stream<bool> watchRoomOpen() {
+    return _roomRef.snapshots().map(
+      (snapshot) => snapshot.exists && snapshot.data()?['isOpen'] == true,
+    );
   }
 
   Stream<List<RoomParticipant>> watchParticipants() {
@@ -219,6 +246,25 @@ class RoomModerationService {
     final uid = currentUserId;
     if (uid == null) return;
 
-    await _participantsRef.doc(uid).delete();
+    final room = await _roomRef.get();
+    final isCurrentHost =
+        room.exists && room.data()?['hostId']?.toString() == uid;
+
+    final batch = _db.batch();
+    batch.delete(_participantsRef.doc(uid));
+
+    if (isCurrentHost) {
+      batch.set(
+        _roomRef,
+        {
+          'isOpen': false,
+          'endedAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
+      );
+    }
+
+    await batch.commit();
   }
 }
