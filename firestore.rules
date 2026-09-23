@@ -513,6 +513,11 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    match /room_gift_catalog/{giftId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
     // -------------------------
     // ROOM PROMOTIONS
     // -------------------------
@@ -689,6 +694,19 @@ service cloud.firestore {
             && request.resource.data.senderId == request.auth.uid
             && request.resource.data.recipientId != request.auth.uid
             && validGiftPrice(request.resource.data)
+            && (
+              !('animationUrl' in request.resource.data)
+              ||
+              (
+                exists(
+                  /databases/$(database)/documents/room_gift_catalog/$(request.resource.data.giftId)
+                )
+                && request.resource.data.animationUrl
+                    == get(
+                      /databases/$(database)/documents/room_gift_catalog/$(request.resource.data.giftId)
+                    ).data.animationUrl
+              )
+            )
             && (
               request.resource.data.recipientId == 'teacher_ai'
               ||
