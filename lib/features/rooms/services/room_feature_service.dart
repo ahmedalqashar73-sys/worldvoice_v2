@@ -165,20 +165,63 @@ class RoomFeatureService {
   }) async {
     final user = _user;
     if (user == null || points <= 0) return;
-    final profile = await _db.collection('users').doc(user.uid).get();
-    final data = profile.data() ?? const <String, dynamic>{};
-    final senderName =
-        (data['displayName'] ?? user.displayName ?? 'WorldVoice user')
-            .toString();
 
-    await _room.collection('gifts').add({
-      'senderId': user.uid,
-      'senderName': senderName,
-      'recipientId': recipientId,
-      'recipientName': recipientName,
-      'giftId': giftId,
-      'points': points,
-      'createdAt': FieldValue.serverTimestamp(),
+    final senderRef = _db.collection('users').doc(user.uid);
+    final recipientRef = recipientId == 'teacher_ai'
+        ? null
+        : _db.collection('users').doc(recipientId);
+    final giftRef = _room.collection('gifts').doc();
+
+    await _db.runTransaction((tx) async {
+      final sender = await tx.get(senderRef);
+      final senderData = sender.data() ?? const <String, dynamic>{};
+      final balance = (senderData['coins'] as num?)?.toInt() ?? 0;
+
+      if (balance < points) {
+        throw StateError('NOT_ENOUGH_COINS');
+      }
+
+      final senderName =
+          (senderData['displayName'] ?? user.displayName ?? 'WorldVoice user')
+              .toString();
+
+      tx.set(
+        senderRef,
+        {
+          'coins': balance - points,
+          'giftSentPoints': FieldValue.increment(points),
+          'updatedAt': FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
+      );
+
+      if (recipientRef != null && recipientId != user.uid) {
+        tx.set(
+          recipientRef,
+          {
+            'giftReceivedPoints': FieldValue.increment(points),
+          },
+          SetOptions(merge: true),
+        );
+      } else if (recipientRef != null) {
+        tx.set(
+          recipientRef,
+          {
+            'giftReceivedPoints': FieldValue.increment(points),
+          },
+          SetOptions(merge: true),
+        );
+      }
+
+      tx.set(giftRef, {
+        'senderId': user.uid,
+        'senderName': senderName,
+        'recipientId': recipientId,
+        'recipientName': recipientName,
+        'giftId': giftId,
+        'points': points,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
     });
   }
 
