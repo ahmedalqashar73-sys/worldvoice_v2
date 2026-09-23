@@ -114,7 +114,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       privateAccessCode: widget.privateAccessCode,
     );
     _speakingTimer = Timer.periodic(
-      const Duration(seconds: 10),
+      const Duration(seconds: 30),
       (_) {
         final me = _me;
         if (!_controller.joined ||
@@ -126,7 +126,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         }
 
         if (_controller.activeSpeakerUid == _controller.localUid) {
-          unawaited(_features.recordSpeakerActivity(seconds: 10));
+          unawaited(_features.recordSpeakerActivity(seconds: 30));
           _speakerStatBufferSeconds += 10;
           if (_speakerStatBufferSeconds >= 30) {
             _speakerStatBufferSeconds = 0;
