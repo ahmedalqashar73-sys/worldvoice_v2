@@ -58,6 +58,12 @@ class AppStrings {
       'languages':'Languages',
       'native':'Native',
       'learning':'Learning',
+      'aboutMe':'About Me',
+      'city':'City',
+      'hideCity':'Hide my city',
+      'hideCityDescription':'When enabled, your city will not appear on your public profile.',
+      'online':'Online',
+      'lastSeen':'Last seen',
       'interests':'Interests',
       'profession':'Profession',
       'diamonds':'Diamonds',
@@ -107,6 +113,12 @@ class AppStrings {
       'languages':'اللغات',
       'native':'اللغة الأم',
       'learning':'أتعلم',
+      'aboutMe':'عني',
+      'city':'المدينة',
+      'hideCity':'إخفاء مدينتي',
+      'hideCityDescription':'عند التفعيل لن تظهر مدينتك في البروفايل العام.',
+      'online':'متصل الآن',
+      'lastSeen':'آخر ظهور',
       'interests':'الهوايات',
       'profession':'المهنة',
       'diamonds':'ألماس',
@@ -156,6 +168,12 @@ class AppStrings {
       'languages':'Idiomas',
       'native':'Nativo',
       'learning':'Aprende',
+      'aboutMe':'Sobre mí',
+      'city':'Ciudad',
+      'hideCity':'Ocultar mi ciudad',
+      'hideCityDescription':'Al activarlo, tu ciudad no aparecerá en tu perfil público.',
+      'online':'En línea',
+      'lastSeen':'Última vez',
       'interests':'Intereses',
       'profession':'Profesión',
       'diamonds':'Diamantes',
@@ -205,6 +223,33 @@ class AppStrings {
   String profileAge(int age) {
     if (code == 'ar') return '$age سنة';
     return '$age';
+  }
+
+  String profileLastSeenAgo(Duration elapsed) {
+    if (elapsed.inMinutes < 1) {
+      if (code == 'ar') return 'الآن';
+      if (code == 'es') return 'ahora';
+      return 'just now';
+    }
+
+    if (elapsed.inHours < 1) {
+      final minutes = elapsed.inMinutes;
+      if (code == 'ar') return 'منذ $minutes دقيقة';
+      if (code == 'es') return 'hace $minutes min';
+      return '$minutes min ago';
+    }
+
+    if (elapsed.inDays < 1) {
+      final hours = elapsed.inHours;
+      if (code == 'ar') return 'منذ $hours ساعة';
+      if (code == 'es') return 'hace $hours h';
+      return '$hours h ago';
+    }
+
+    final days = elapsed.inDays;
+    if (code == 'ar') return 'منذ $days يوم';
+    if (code == 'es') return 'hace $days d';
+    return '$days d ago';
   }
 
   static AppStrings of(String? code) => AppStrings._(code ?? 'en');
