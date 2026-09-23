@@ -83,6 +83,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     isPrivate: false,
     vipOnly: false,
     musicPlaying: false,
+    screenShareActive: false,
   );
 
   @override
@@ -573,6 +574,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
           roomId: widget.channelId,
           canWrite: _isHost || _featureState.boardWriteEnabled,
           isHost: _isHost,
+          agoraController: _controller,
         ),
       ),
     );
