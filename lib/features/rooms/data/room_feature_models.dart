@@ -76,6 +76,7 @@ class RoomGiftEvent {
     required this.recipientName,
     required this.giftId,
     required this.points,
+    this.animationUrl,
     this.createdAt,
   });
 
@@ -86,6 +87,7 @@ class RoomGiftEvent {
   final String recipientName;
   final String giftId;
   final int points;
+  final String? animationUrl;
   final DateTime? createdAt;
 
   factory RoomGiftEvent.fromDoc(
@@ -101,6 +103,7 @@ class RoomGiftEvent {
       recipientName: (data['recipientName'] ?? '').toString(),
       giftId: (data['giftId'] ?? 'gift').toString(),
       points: (data['points'] as num?)?.toInt() ?? 0,
+      animationUrl: data['animationUrl']?.toString(),
       createdAt: raw is Timestamp ? raw.toDate() : null,
     );
   }
