@@ -161,7 +161,6 @@ class RoomModerationService {
         'warningCount': 0,
         'forcedMuted': false,
         'kicked': false,
-        'speakingSeconds': 0,
         'joinedAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       },
@@ -221,8 +220,6 @@ class RoomModerationService {
             warningCount: (data['warningCount'] as num?)?.toInt() ?? 0,
             forcedMuted: data['forcedMuted'] == true,
             kicked: data['kicked'] == true,
-            speakingSeconds:
-                (data['speakingSeconds'] as num?)?.toInt() ?? 0,
           ),
         );
       }
@@ -259,8 +256,6 @@ class RoomModerationService {
         warningCount: (data['warningCount'] as num?)?.toInt() ?? 0,
         forcedMuted: data['forcedMuted'] == true,
         kicked: data['kicked'] == true,
-        speakingSeconds:
-            (data['speakingSeconds'] as num?)?.toInt() ?? 0,
       );
     });
   }
@@ -272,19 +267,6 @@ class RoomModerationService {
     await _participantsRef.doc(userId).set(
       {
         'agoraUid': uid,
-        'updatedAt': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
-  }
-
-  Future<void> addSpeakingSeconds(int seconds) async {
-    final uid = currentUserId;
-    if (uid == null || seconds <= 0) return;
-
-    await _participantsRef.doc(uid).set(
-      {
-        'speakingSeconds': FieldValue.increment(seconds),
         'updatedAt': FieldValue.serverTimestamp(),
       },
       SetOptions(merge: true),
