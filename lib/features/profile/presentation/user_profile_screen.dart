@@ -144,7 +144,7 @@ class UserProfileScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '@\${username?.isNotEmpty == true ? username! : 'user'}',
+                        '@${username?.isNotEmpty == true ? username! : 'user'}',
                       ),
                       ProfileIdentityStrip(
                         code: code,
@@ -247,7 +247,7 @@ class UserProfileScreen extends StatelessWidget {
                             AppStrings.of(code).profile('languages'),
                         value: learning.isEmpty
                             ? '—'
-                            : '\${AppStrings.of(code).profile('learning')}: \${learning.join(', ')}',
+                            : '${AppStrings.of(code).profile('learning')}: ${learning.join(', ')}',
                       ),
                       _InfoCard(
                         icon: Icons.favorite_outline_rounded,
