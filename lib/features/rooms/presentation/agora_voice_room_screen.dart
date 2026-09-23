@@ -14,6 +14,7 @@ class AgoraVoiceRoomScreen extends StatefulWidget {
     required this.roomName,
     required this.initialRole,
     this.roomLanguageCode,
+    this.initialShowTeacherAiSeat = false,
     super.key,
   });
 
@@ -21,6 +22,7 @@ class AgoraVoiceRoomScreen extends StatefulWidget {
   final String roomName;
   final AgoraRoomRole initialRole;
   final String? roomLanguageCode;
+  final bool initialShowTeacherAiSeat;
 
   @override
   State<AgoraVoiceRoomScreen> createState() => _AgoraVoiceRoomScreenState();
@@ -33,21 +35,24 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   StreamSubscription<List<RoomParticipant>>? _participantsSub;
   StreamSubscription<RoomParticipant?>? _meSub;
   StreamSubscription<bool>? _roomOpenSub;
+  StreamSubscription<bool>? _teacherAiSeatSub;
 
   List<RoomParticipant> _participants = const <RoomParticipant>[];
   RoomParticipant? _me;
   int? _lastSyncedAgoraUid;
-  bool _showTeacherAiSeat = true;
+  late bool _showTeacherAiSeat;
   bool _leaving = false;
 
   @override
   void initState() {
     super.initState();
+    _showTeacherAiSeat = widget.initialShowTeacherAiSeat;
     _controller = AgoraVoiceRoomController()..addListener(_refresh);
     _moderation = RoomModerationService(
       channelId: widget.channelId,
       roomName: widget.roomName,
       roomLanguageCode: widget.roomLanguageCode,
+      initialShowTeacherAiSeat: widget.initialShowTeacherAiSeat,
     );
     unawaited(_startRoomSession());
   }
@@ -62,6 +67,12 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         if (!isOpen && !_leaving) {
           unawaited(_exitClosedRoom());
         }
+      });
+
+      _teacherAiSeatSub =
+          _moderation.watchTeacherAiSeatVisible().listen((isVisible) {
+        if (!mounted) return;
+        setState(() => _showTeacherAiSeat = isVisible);
       });
 
       _participantsSub =
@@ -245,7 +256,12 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   }
 
   void _handleSeatTap(RoomSeatState seat) {
-    if (!_isHost || seat.role == RoomMemberRole.teacherAi) return;
+    if (!_isHost) {
+      if (_me?.role == RoomMemberRole.listener && seat.isEmpty) {
+        unawaited(_requestSeat());
+      }
+      return;
+    }
 
     if (seat.isEmpty) {
       _showInviteListenerSheet(seat.index);
@@ -264,6 +280,89 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     if (participant == null) return;
 
     _showStageMemberActions(participant);
+  }
+
+  Future<void> _requestSeat() async {
+    if (_handRaised) return;
+    await _moderation.setHandRaised(true);
+    if (!mounted) return;
+
+    final isArabic =
+        Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          isArabic
+              ? 'تم إرسال طلب الصعود للهوست.'
+              : 'Your seat request was sent to the host.',
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showRoomControls() async {
+    final isArabic =
+        Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
+
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(
+                  widget.roomName,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                subtitle: Text(
+                  isArabic ? 'أدوات الغرفة' : 'Room tools',
+                ),
+              ),
+              if (_isHost)
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  secondary: const Icon(Icons.smart_toy_rounded),
+                  title: const Text('Teacher AI'),
+                  subtitle: Text(
+                    isArabic
+                        ? 'إظهار أو إخفاء مقعد Teacher AI خارج المقاعد الثمانية.'
+                        : 'Show or hide the Teacher AI seat outside the 8 seats.',
+                  ),
+                  value: _showTeacherAiSeat,
+                  onChanged: (value) async {
+                    await _moderation.setTeacherAiSeatVisible(value);
+                    if (sheetContext.mounted) {
+                      Navigator.pop(sheetContext);
+                    }
+                  },
+                ),
+              const Divider(),
+              _RoomToolTile(
+                icon: Icons.wallpaper_rounded,
+                label: isArabic ? 'الخلفية' : 'Background',
+              ),
+              _RoomToolTile(
+                icon: Icons.draw_rounded,
+                label: isArabic ? 'السبورة' : 'Board',
+              ),
+              _RoomToolTile(
+                icon: Icons.music_note_rounded,
+                label: isArabic ? 'الموسيقى' : 'Music',
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _showInviteListenerSheet(int seatIndex) async {
@@ -440,6 +539,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     _participantsSub?.cancel();
     _meSub?.cancel();
     _roomOpenSub?.cancel();
+    _teacherAiSeatSub?.cancel();
     _controller.removeListener(_refresh);
     unawaited(_moderation.leave());
     unawaited(_controller.leave());
@@ -462,35 +562,51 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
           onPressed: _leave,
           icon: const Icon(Icons.close_rounded),
         ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              widget.roomName,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
+        title: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: _showRoomControls,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 7,
-                  height: 7,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: _controller.joined
-                        ? Colors.green
-                        : colors.outline,
-                  ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        widget.roomName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.expand_more_rounded, size: 20),
+                  ],
                 ),
-                const SizedBox(width: 6),
-                Text(
-                  '${_participants.length} members • LIVE',
-                  style: Theme.of(context).textTheme.labelSmall,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 7,
+                      height: 7,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: _controller.joined
+                            ? Colors.green
+                            : colors.outline,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${_participants.length} members • LIVE',
+                      style: Theme.of(context).textTheme.labelSmall,
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
+          ),
         ),
       ),
       body: SafeArea(
@@ -549,33 +665,19 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   const SizedBox(height: 12),
                   RoomStageGrid(
                     seats: _buildSeats(),
-                    showTeacherAiSeat: _showTeacherAiSeat,
                     onSeatTap: _handleSeatTap,
                   ),
-                  const SizedBox(height: 18),
+                  if (_showTeacherAiSeat) ...[
+                    const SizedBox(height: 12),
+                    const _TeacherAiSeatCompact(),
+                  ],
+                  const SizedBox(height: 14),
                   if (_isHost && _raisedHands.isNotEmpty)
                     _RaisedHandsCard(
                       requests: _raisedHands,
                       onAccept: _acceptHand,
                       onReject: (participant) =>
                           _moderation.rejectHand(participant.userId),
-                    ),
-                  if (_isHost)
-                    Card(
-                      child: SwitchListTile(
-                        secondary: const Icon(Icons.smart_toy_rounded),
-                        title: const Text(
-                          'Teacher AI seat',
-                          style: TextStyle(fontWeight: FontWeight.w900),
-                        ),
-                        subtitle: const Text(
-                          'Show or hide seat 9. AI connection comes later.',
-                        ),
-                        value: _showTeacherAiSeat,
-                        onChanged: (value) {
-                          setState(() => _showTeacherAiSeat = value);
-                        },
-                      ),
                     ),
                   Card(
                     child: ListTile(
@@ -630,7 +732,9 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                     Expanded(
                       child: FilledButton.tonalIcon(
                         onPressed: _controller.joined
-                            ? () => _moderation.setHandRaised(!_handRaised)
+                            ? () => _handRaised
+                                ? _moderation.setHandRaised(false)
+                                : _requestSeat()
                             : null,
                         icon: Icon(
                           _handRaised
