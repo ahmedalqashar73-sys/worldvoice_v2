@@ -366,6 +366,12 @@ class RoomModerationService {
     if (!room.exists) return;
 
     final roomData = room.data() ?? const <String, dynamic>{};
+
+    if (roomData['isOpen'] != true) {
+      await _participantsRef.doc(uid).delete();
+      return;
+    }
+
     final isCurrentHost = roomData['hostId']?.toString() == uid;
 
     if (!isCurrentHost) {
