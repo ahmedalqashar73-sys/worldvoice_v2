@@ -68,10 +68,7 @@ class _RoomsHubScreenState extends State<RoomsHubScreen> {
                   return ChoiceChip(
                     selected: selected,
                     onSelected: (_) => setState(() => _section = index),
-                    avatar: Icon(
-                      _sectionIcon(index),
-                      size: 18,
-                    ),
+                    avatar: Icon(_sectionIcon(index), size: 18),
                     label: Text(labels.sections[index]),
                   );
                 },
@@ -222,9 +219,7 @@ class _VoiceRoomsPage extends StatelessWidget {
           controller: controller,
           autofocus: true,
           maxLength: 40,
-          decoration: InputDecoration(
-            hintText: labels.roomNameHint,
-          ),
+          decoration: InputDecoration(hintText: labels.roomNameHint),
         ),
         actions: [
           TextButton(
@@ -250,212 +245,8 @@ class _VoiceRoomsPage extends StatelessWidget {
     final slug = roomName
         .toLowerCase()
         .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
-        .replaceAll(RegExp(r'^_+|_+
-class _FeatureTile extends StatelessWidget {
-  const _FeatureTile({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-  });
+        .replaceAll(RegExp(r'^_+|_+$'), '');
 
-  final IconData icon;
-  final String title;
-  final String subtitle;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 10),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(16),
-        leading: CircleAvatar(
-          child: Icon(icon),
-        ),
-        title: Text(
-          title,
-          style: const TextStyle(fontWeight: FontWeight.w900),
-        ),
-        subtitle: Text(subtitle),
-        trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
-        onTap: () {},
-      ),
-    );
-  }
-}
-
-class _VoiceRoomCard extends StatelessWidget {
-  const _VoiceRoomCard({
-    required this.name,
-    required this.flag,
-    required this.subtitle,
-    required this.listeners,
-    required this.onTap,
-  });
-
-  final String name;
-  final String flag;
-  final String subtitle;
-  final int listeners;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(16),
-        leading: CircleAvatar(
-          radius: 28,
-          child: Text(flag, style: const TextStyle(fontSize: 24)),
-        ),
-        title: Text(
-          name,
-          style: const TextStyle(fontWeight: FontWeight.w900),
-        ),
-        subtitle: Text(subtitle),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.headphones_rounded, size: 17),
-            const SizedBox(width: 4),
-            Text('$listeners'),
-          ],
-        ),
-        onTap: onTap,
-      ),
-    );
-  }
-}
-
-class _RoomsHubLabels {
-  _RoomsHubLabels(String code)
-      : hubTitle = code == 'ar'
-            ? 'Rooms'
-            : code == 'es'
-                ? 'Rooms'
-                : 'Rooms',
-        search = code == 'ar'
-            ? 'بحث'
-            : code == 'es'
-                ? 'Buscar'
-                : 'Search',
-        sections = code == 'ar'
-            ? const ['ChatGPT AI', 'Live', 'تعلّم', 'الغرف الصوتية']
-            : code == 'es'
-                ? const ['ChatGPT AI', 'Live', 'Aprender', 'Salas']
-                : const ['ChatGPT AI', 'Live', 'Learn', 'Voice Rooms'],
-        aiTitle = code == 'ar'
-            ? 'ChatGPT AI'
-            : code == 'es'
-                ? 'ChatGPT AI'
-                : 'ChatGPT AI',
-        aiSubtitle = code == 'ar'
-            ? 'معلمك الذكي للمحادثة والتعلّم.'
-            : code == 'es'
-                ? 'Tu profesor inteligente para hablar y aprender.'
-                : 'Your AI teacher for speaking and learning.',
-        aiConversation = code == 'ar'
-            ? 'محادثة مع AI'
-            : code == 'es'
-                ? 'Conversación con AI'
-                : 'AI conversation',
-        aiConversationBody = code == 'ar'
-            ? 'تدرّب على الكلام والنطق بشكل مباشر.'
-            : code == 'es'
-                ? 'Practica conversación y pronunciación.'
-                : 'Practice speaking and pronunciation.',
-        aiTranslate = code == 'ar'
-            ? 'ترجمة وشرح'
-            : code == 'es'
-                ? 'Traducción y explicación'
-                : 'Translate & explain',
-        aiTranslateBody = code == 'ar'
-            ? 'ترجمة الكلمات والجمل مع شرح مبسط.'
-            : code == 'es'
-                ? 'Traduce palabras y frases con explicaciones.'
-                : 'Translate words and sentences with explanations.',
-        aiQuiz = code == 'ar'
-            ? 'اختبارات قصيرة'
-            : code == 'es'
-                ? 'Pruebas rápidas'
-                : 'Quick quizzes',
-        aiQuizBody = code == 'ar'
-            ? 'اختبر مستواك وتابع تقدمك.'
-            : code == 'es'
-                ? 'Comprueba tu nivel y progreso.'
-                : 'Check your level and progress.',
-        startAi = code == 'ar'
-            ? 'ابدأ مع ChatGPT AI'
-            : code == 'es'
-                ? 'Empezar con ChatGPT AI'
-                : 'Start with ChatGPT AI',
-        voiceRoomsTitle = code == 'ar'
-            ? 'الغرف الصوتية'
-            : code == 'es'
-                ? 'Salas de voz'
-                : 'Voice Rooms',
-        createRoom = code == 'ar'
-            ? 'إنشاء'
-            : code == 'es'
-                ? 'Crear'
-                : 'Create',
-        roomNameHint = code == 'ar'
-            ? 'اسم الغرفة'
-            : code == 'es'
-                ? 'Nombre de la sala'
-                : 'Room name',
-        cancel = code == 'ar'
-            ? 'إلغاء'
-            : code == 'es'
-                ? 'Cancelar'
-                : 'Cancel',
-        englishRoom = code == 'ar'
-            ? 'English Lounge'
-            : 'English Lounge',
-        arabicRoom = code == 'ar'
-            ? 'أصدقاء العربية'
-            : code == 'es'
-                ? 'Amigos de árabe'
-                : 'Arabic Friends',
-        worldRoom = code == 'ar'
-            ? 'حديث العالم'
-            : code == 'es'
-                ? 'Charla mundial'
-                : 'World Talk',
-        publicRoom = code == 'ar'
-            ? 'غرفة عامة • تحدث مباشرة'
-            : code == 'es'
-                ? 'Sala pública • Habla en directo'
-                : 'Public room • Speak live',
-        languageExchange = code == 'ar'
-            ? 'تبادل لغات من جميع أنحاء العالم'
-            : code == 'es'
-                ? 'Intercambio de idiomas global'
-                : 'Global language exchange';
-
-  final String hubTitle;
-  final String search;
-  final List<String> sections;
-  final String aiTitle;
-  final String aiSubtitle;
-  final String aiConversation;
-  final String aiConversationBody;
-  final String aiTranslate;
-  final String aiTranslateBody;
-  final String aiQuiz;
-  final String aiQuizBody;
-  final String startAi;
-  final String voiceRoomsTitle;
-  final String createRoom;
-  final String roomNameHint;
-  final String cancel;
-  final String englishRoom;
-  final String arabicRoom;
-  final String worldRoom;
-  final String publicRoom;
-  final String languageExchange;
-}
-), '');
     final channelId = slug.isEmpty
         ? 'worldvoice_${DateTime.now().millisecondsSinceEpoch}'
         : 'wv_${slug}_${DateTime.now().millisecondsSinceEpoch}';
@@ -549,9 +340,7 @@ class _FeatureTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       child: ListTile(
         contentPadding: const EdgeInsets.all(16),
-        leading: CircleAvatar(
-          child: Icon(icon),
-        ),
+        leading: CircleAvatar(child: Icon(icon)),
         title: Text(
           title,
           style: const TextStyle(fontWeight: FontWeight.w900),
@@ -570,12 +359,14 @@ class _VoiceRoomCard extends StatelessWidget {
     required this.flag,
     required this.subtitle,
     required this.listeners,
+    required this.onTap,
   });
 
   final String name;
   final String flag;
   final String subtitle;
   final int listeners;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -600,7 +391,7 @@ class _VoiceRoomCard extends StatelessWidget {
             Text('$listeners'),
           ],
         ),
-        onTap: () {},
+        onTap: onTap,
       ),
     );
   }
@@ -608,11 +399,7 @@ class _VoiceRoomCard extends StatelessWidget {
 
 class _RoomsHubLabels {
   _RoomsHubLabels(String code)
-      : hubTitle = code == 'ar'
-            ? 'Rooms'
-            : code == 'es'
-                ? 'Rooms'
-                : 'Rooms',
+      : hubTitle = 'Rooms',
         search = code == 'ar'
             ? 'بحث'
             : code == 'es'
@@ -623,11 +410,7 @@ class _RoomsHubLabels {
             : code == 'es'
                 ? const ['ChatGPT AI', 'Live', 'Aprender', 'Salas']
                 : const ['ChatGPT AI', 'Live', 'Learn', 'Voice Rooms'],
-        aiTitle = code == 'ar'
-            ? 'ChatGPT AI'
-            : code == 'es'
-                ? 'ChatGPT AI'
-                : 'ChatGPT AI',
+        aiTitle = 'ChatGPT AI',
         aiSubtitle = code == 'ar'
             ? 'معلمك الذكي للمحادثة والتعلّم.'
             : code == 'es'
@@ -678,9 +461,17 @@ class _RoomsHubLabels {
             : code == 'es'
                 ? 'Crear'
                 : 'Create',
-        englishRoom = code == 'ar'
-            ? 'English Lounge'
-            : 'English Lounge',
+        roomNameHint = code == 'ar'
+            ? 'اسم الغرفة'
+            : code == 'es'
+                ? 'Nombre de la sala'
+                : 'Room name',
+        cancel = code == 'ar'
+            ? 'إلغاء'
+            : code == 'es'
+                ? 'Cancelar'
+                : 'Cancel',
+        englishRoom = 'English Lounge',
         arabicRoom = code == 'ar'
             ? 'أصدقاء العربية'
             : code == 'es'
@@ -716,6 +507,8 @@ class _RoomsHubLabels {
   final String startAi;
   final String voiceRoomsTitle;
   final String createRoom;
+  final String roomNameHint;
+  final String cancel;
   final String englishRoom;
   final String arabicRoom;
   final String worldRoom;
