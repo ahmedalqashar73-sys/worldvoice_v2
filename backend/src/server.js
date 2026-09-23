@@ -490,6 +490,104 @@ app.post("/store/claim-reward", async (req, res, next) => {
   }
 });
 
+app.post("/quiz/finish", async (req, res, next) => {
+  try {
+    const user = await authenticatedUser(req);
+    const roomId = String(req.body?.roomId || "").trim();
+
+    if (!roomId) {
+      return res.status(400).json({ error: "roomId is required." });
+    }
+
+    const roomRef = db.collection("rooms").doc(roomId);
+    const roomSnap = await roomRef.get();
+
+    if (!roomSnap.exists || roomSnap.data()?.isOpen !== true) {
+      return res.status(404).json({ error: "Room is not open." });
+    }
+
+    if (roomSnap.data()?.hostId !== user.uid) {
+      return res.status(403).json({ error: "Only the host can finish the quiz." });
+    }
+
+    const answersSnap = await roomRef.collection("quiz_answers").get();
+    const roomData = roomSnap.data() || {};
+    const quiz = roomData.quiz || {};
+    const correctIndex = Number(quiz.correctIndex);
+
+    if (!Number.isInteger(correctIndex)) {
+      return res.status(409).json({ error: "No active quiz." });
+    }
+
+    const correctAnswers = answersSnap.docs
+      .map((doc) => ({ id: doc.id, ...doc.data() }))
+      .filter((answer) => Number(answer.optionIndex) === correctIndex)
+      .sort((a, b) => {
+        const aTime = a.answeredAt?.toMillis?.() || Number.MAX_SAFE_INTEGER;
+        const bTime = b.answeredAt?.toMillis?.() || Number.MAX_SAFE_INTEGER;
+        return aTime - bTime;
+      })
+      .slice(0, 3);
+
+    const winners = correctAnswers.map((answer, index) => ({
+      place: index + 1,
+      userId: String(answer.userId || answer.id),
+      displayName: String(answer.displayName || "WorldVoice user"),
+      prizeCoins: index === 0 ? 5 : 0,
+    }));
+
+    const transactionResult = await db.runTransaction(async (tx) => {
+      const latestRoom = await tx.get(roomRef);
+      const latestQuiz = latestRoom.data()?.quiz || {};
+
+      if (latestQuiz.rewardedAt != null) {
+        return {
+          alreadyFinished: true,
+          winners: Array.isArray(latestQuiz.winners)
+            ? latestQuiz.winners
+            : [],
+        };
+      }
+
+      if (winners.length > 0) {
+        const winnerRef = db.collection("users").doc(winners[0].userId);
+        const winnerSnap = await tx.get(winnerRef);
+        const balance = Number(winnerSnap.data()?.coins || 0);
+        tx.set(
+          winnerRef,
+          {
+            coins: balance + 5,
+            quizCoinsEarned: FieldValue.increment(5),
+            updatedAt: FieldValue.serverTimestamp(),
+          },
+          { merge: true },
+        );
+      }
+
+      tx.set(
+        roomRef,
+        {
+          "quiz.revealed": true,
+          "quiz.winners": winners,
+          "quiz.firstPrizeCoins": 5,
+          "quiz.rewardedAt": FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      );
+
+      return {
+        alreadyFinished: false,
+        winners,
+      };
+    });
+
+    return res.json({ ok: true, ...transactionResult });
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.use((error, _req, res, _next) => {
   const status =
     Number.isInteger(error?.status) && error.status >= 400
