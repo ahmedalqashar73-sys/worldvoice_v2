@@ -1,10 +1,15 @@
 import { createHash } from "node:crypto";
 
 import agoraToken from "agora-token";
+import {
+  AppStoreServerAPIClient,
+  Environment as AppleEnvironment,
+} from "@apple/app-store-server-library";
 import express from "express";
 import { applicationDefault, getApps, initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { FieldValue, Timestamp, getFirestore } from "firebase-admin/firestore";
+import { google } from "googleapis";
 import OpenAI from "openai";
 
 const { RtcRole, RtcTokenBuilder } = agoraToken;
@@ -28,7 +33,22 @@ const agoraCertificate = (process.env.AGORA_APP_CERTIFICATE || "").trim();
 const openAiKey = (process.env.OPENAI_API_KEY || "").trim();
 const teacherModel = (process.env.OPENAI_TEACHER_MODEL || "").trim();
 
+const androidPackageName =
+  (process.env.ANDROID_PACKAGE_NAME || "com.worldvoice.worldvoice").trim();
+const iosBundleId =
+  (process.env.IOS_BUNDLE_ID || "com.worldvoice.worldvoice").trim();
+
+const appleIapKeyId = (process.env.APPLE_IAP_KEY_ID || "").trim();
+const appleIapIssuerId = (process.env.APPLE_IAP_ISSUER_ID || "").trim();
+const appleIapPrivateKey = (process.env.APPLE_IAP_PRIVATE_KEY || "")
+  .replace(/\\n/g, "\n")
+  .trim();
+
 const openai = openAiKey ? new OpenAI({ apiKey: openAiKey }) : null;
+
+const googlePlayAuth = new google.auth.GoogleAuth({
+  scopes: ["https://www.googleapis.com/auth/androidpublisher"],
+});
 
 function requireEnv(value, name) {
   if (!value) {
@@ -79,6 +99,176 @@ function validChannelName(value) {
 
 function isStageRole(role) {
   return ["host", "coHost", "speaker", "vipSeat"].includes(role);
+}
+
+function decodeJwsPayload(value) {
+  if (typeof value !== "string") return null;
+  const parts = value.split(".");
+  if (parts.length !== 3) return null;
+  try {
+    return JSON.parse(Buffer.from(parts[1], "base64url").toString("utf8"));
+  } catch {
+    return null;
+  }
+}
+
+async function coinProductFor(platform, productId) {
+  const field = platform === "android" ? "androidProductId" : "iosProductId";
+  const snapshot = await db
+    .collection("coin_products")
+    .where(field, "==", productId)
+    .limit(1)
+    .get();
+
+  if (snapshot.empty) {
+    const error = new Error("Coin product is not configured.");
+    error.status = 404;
+    throw error;
+  }
+
+  const product = snapshot.docs[0].data() || {};
+  const coins = Number(product.coins);
+  if (product.active !== true || !Number.isInteger(coins) || coins <= 0) {
+    const error = new Error("Coin product is not active.");
+    error.status = 409;
+    throw error;
+  }
+
+  return {
+    catalogId: snapshot.docs[0].id,
+    coins,
+  };
+}
+
+async function verifyGooglePlayPurchase(productId, purchaseToken) {
+  if (!purchaseToken) {
+    const error = new Error("Missing Google Play purchase token.");
+    error.status = 400;
+    throw error;
+  }
+
+  const androidPublisher = google.androidpublisher({
+    version: "v3",
+    auth: googlePlayAuth,
+  });
+
+  const response = await androidPublisher.purchases.products.get({
+    packageName: androidPackageName,
+    productId,
+    token: purchaseToken,
+  });
+
+  const purchase = response.data || {};
+  if (Number(purchase.purchaseState) !== 0) {
+    const error = new Error("Google Play purchase is not completed.");
+    error.status = 409;
+    throw error;
+  }
+
+  return {
+    receiptId: String(purchase.orderId || purchaseToken),
+    purchasedAt: Number(purchase.purchaseTimeMillis || 0),
+  };
+}
+
+function appleApiClient(environment) {
+  requireEnv(appleIapPrivateKey, "APPLE_IAP_PRIVATE_KEY");
+  requireEnv(appleIapKeyId, "APPLE_IAP_KEY_ID");
+  requireEnv(appleIapIssuerId, "APPLE_IAP_ISSUER_ID");
+
+  return new AppStoreServerAPIClient(
+    appleIapPrivateKey,
+    appleIapKeyId,
+    appleIapIssuerId,
+    iosBundleId,
+    environment,
+  );
+}
+
+async function fetchAppleTransaction(transactionId, environmentHint) {
+  const environments =
+    String(environmentHint || "").toLowerCase() === "sandbox"
+      ? [AppleEnvironment.SANDBOX, AppleEnvironment.PRODUCTION]
+      : [AppleEnvironment.PRODUCTION, AppleEnvironment.SANDBOX];
+
+  let lastError;
+  for (const environment of environments) {
+    try {
+      const response = await appleApiClient(environment).getTransactionInfo(
+        transactionId,
+      );
+      const signed = response.signedTransactionInfo;
+      const payload = decodeJwsPayload(signed);
+      if (!payload) {
+        const error = new Error("Apple returned invalid transaction data.");
+        error.status = 502;
+        throw error;
+      }
+      return payload;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError ?? new Error("Apple transaction could not be verified.");
+}
+
+async function creditVerifiedCoins({
+  userId,
+  platform,
+  receiptId,
+  productId,
+  catalogId,
+  coins,
+  purchasedAt,
+}) {
+  const receiptKey = createHash("sha256")
+    .update(`${platform}:${receiptId}`)
+    .digest("hex");
+  const receiptRef = db.collection("iap_receipts").doc(receiptKey);
+  const userRef = db.collection("users").doc(userId);
+
+  return db.runTransaction(async (tx) => {
+    const receiptSnap = await tx.get(receiptRef);
+    if (receiptSnap.exists) {
+      const existing = receiptSnap.data() || {};
+      if (existing.userId !== userId) {
+        const error = new Error("This store receipt was already used.");
+        error.status = 409;
+        throw error;
+      }
+      return {
+        alreadyCredited: true,
+        coins: Number(existing.coins || coins),
+      };
+    }
+
+    tx.set(
+      userRef,
+      {
+        coins: FieldValue.increment(coins),
+        purchasedCoins: FieldValue.increment(coins),
+        updatedAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true },
+    );
+
+    tx.set(receiptRef, {
+      userId,
+      platform,
+      receiptId,
+      productId,
+      catalogId,
+      coins,
+      purchasedAt: purchasedAt || null,
+      creditedAt: FieldValue.serverTimestamp(),
+    });
+
+    return {
+      alreadyCredited: false,
+      coins,
+    };
+  });
 }
 
 app.get("/health", (_req, res) => {
@@ -485,6 +675,84 @@ app.post("/store/claim-reward", async (req, res, next) => {
     });
 
     return res.json({ ok: true, ...result });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/iap/verify", async (req, res, next) => {
+  try {
+    const user = await authenticatedUser(req);
+    const platform = String(req.body?.platform || "").trim().toLowerCase();
+    const productId = String(req.body?.productId || "").trim();
+    const purchaseId = String(req.body?.purchaseId || "").trim();
+    const verificationData = String(req.body?.verificationData || "").trim();
+
+    if (!["android", "ios"].includes(platform)) {
+      return res.status(400).json({ error: "Unsupported purchase platform." });
+    }
+
+    if (!productId || !verificationData) {
+      return res.status(400).json({
+        error: "productId and verificationData are required.",
+      });
+    }
+
+    const catalog = await coinProductFor(platform, productId);
+    let verified;
+
+    if (platform === "android") {
+      verified = await verifyGooglePlayPurchase(
+        productId,
+        verificationData,
+      );
+    } else {
+      const clientPayload = decodeJwsPayload(verificationData);
+      const transactionId =
+        purchaseId || String(clientPayload?.transactionId || "").trim();
+
+      if (!transactionId) {
+        return res.status(400).json({
+          error: "Apple transaction ID is missing.",
+        });
+      }
+
+      const transaction = await fetchAppleTransaction(
+        transactionId,
+        clientPayload?.environment,
+      );
+
+      if (
+        String(transaction.productId || "") !== productId ||
+        String(transaction.bundleId || "") !== iosBundleId ||
+        transaction.revocationDate != null
+      ) {
+        return res.status(409).json({
+          error: "Apple transaction does not match this coin product.",
+        });
+      }
+
+      verified = {
+        receiptId: String(transaction.transactionId || transactionId),
+        purchasedAt: Number(transaction.purchaseDate || 0),
+      };
+    }
+
+    const credit = await creditVerifiedCoins({
+      userId: user.uid,
+      platform,
+      receiptId: verified.receiptId,
+      productId,
+      catalogId: catalog.catalogId,
+      coins: catalog.coins,
+      purchasedAt: verified.purchasedAt,
+    });
+
+    return res.json({
+      ok: true,
+      coinsAdded: credit.coins,
+      alreadyCredited: credit.alreadyCredited,
+    });
   } catch (error) {
     next(error);
   }
