@@ -43,6 +43,8 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
       return const _RoomLanguagePrefs(
         nativeLanguage: 'en',
         learningLanguages: <String>[],
+        giftLevel: 0,
+        isVip: false,
       );
     }
 
@@ -62,6 +64,8 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
     return _RoomLanguagePrefs(
       nativeLanguage: native.isEmpty ? 'en' : native,
       learningLanguages: learning,
+      giftLevel: (data['giftLevel'] as num?)?.toInt() ?? 0,
+      isVip: data['isVip'] == true,
     );
   }
 
@@ -113,10 +117,13 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
         isArabic: _isArabic,
         languageOptions: prefs.roomLanguages,
         initialLanguage: initialLanguage,
+        giftLevel: prefs.giftLevel,
       ),
     );
 
     if (result == null || !context.mounted) return;
+
+    final privateCode = result.isPrivate ? _makePrivateCode() : null;
 
     final safeUid =
         user.uid.length >= 8 ? user.uid.substring(0, 8) : user.uid;
@@ -131,6 +138,9 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
           roomName: result.name,
           roomLanguageCode: result.languageCode,
           initialShowTeacherAiSeat: result.showTeacherAiSeat,
+          initialIsPrivate: result.isPrivate,
+          initialVipOnly: result.vipOnly,
+          privateAccessCode: privateCode,
           initialRole: AgoraRoomRole.speaker,
         ),
       ),
@@ -143,6 +153,9 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
     required String roomName,
     required String roomLanguageCode,
     required bool showTeacherAiSeat,
+    bool isPrivate = false,
+    bool vipOnly = false,
+    String? privateAccessCode,
   }) {
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -151,10 +164,95 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
           roomName: roomName,
           roomLanguageCode: roomLanguageCode,
           initialShowTeacherAiSeat: showTeacherAiSeat,
+          initialIsPrivate: isPrivate,
+          initialVipOnly: vipOnly,
+          privateAccessCode: privateAccessCode,
           initialRole: AgoraRoomRole.listener,
         ),
       ),
     );
+  }
+
+  String _makePrivateCode() {
+    final raw = DateTime.now().microsecondsSinceEpoch
+        .toRadixString(36)
+        .toUpperCase();
+    return raw.length <= 6 ? raw : raw.substring(raw.length - 6);
+  }
+
+  Future<void> _joinPrivateRoom(BuildContext context) async {
+    final controller = TextEditingController();
+    final code = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(_isArabic ? 'دخول غرفة خاصة' : 'Join private room'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          textCapitalization: TextCapitalization.characters,
+          decoration: InputDecoration(
+            labelText: _isArabic ? 'كود الغرفة' : 'Room code',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(_isArabic ? 'إلغاء' : 'Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final value = controller.text.trim().toUpperCase();
+              if (value.isNotEmpty) Navigator.pop(dialogContext, value);
+            },
+            child: Text(_isArabic ? 'دخول' : 'Join'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+
+    if (code == null || !context.mounted) return;
+
+    try {
+      final codeDoc = await FirebaseFirestore.instance
+          .collection('private_room_codes')
+          .doc(code)
+          .get();
+      final roomId = codeDoc.data()?['roomId']?.toString();
+      if (!codeDoc.exists || roomId == null || roomId.isEmpty) {
+        throw StateError(
+          _isArabic ? 'كود الغرفة غير صحيح.' : 'Invalid room code.',
+        );
+      }
+
+      final roomDoc = await FirebaseFirestore.instance
+          .collection('rooms')
+          .doc(roomId)
+          .get();
+      final data = roomDoc.data();
+      if (!roomDoc.exists || data?['isOpen'] != true) {
+        throw StateError(
+          _isArabic ? 'الغرفة غير متاحة الآن.' : 'The room is not open.',
+        );
+      }
+
+      if (!context.mounted) return;
+      _joinRoom(
+        context,
+        channelId: roomId,
+        roomName: (data?['name'] ?? 'WorldVoice Room').toString(),
+        roomLanguageCode: (data?['languageCode'] ?? 'en').toString(),
+        showTeacherAiSeat: data?['showTeacherAiSeat'] == true,
+        isPrivate: true,
+        vipOnly: data?['vipOnly'] == true,
+        privateAccessCode: code,
+      );
+    } catch (error) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
+    }
   }
 
   @override
@@ -172,6 +270,21 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
 
         return Column(
           children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 2, 18, 2),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton.icon(
+                    onPressed: () => _joinPrivateRoom(context),
+                    icon: const Icon(Icons.lock_outline_rounded),
+                    label: Text(
+                      _isArabic ? 'دخول بكود' : 'Join by code',
+                    ),
+                  ),
+                ],
+              ),
+            ),
             SizedBox(
               height: 48,
               child: ListView.separated(
@@ -203,9 +316,12 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
                 builder: (context, snapshot) {
                   final allDocs = snapshot.data?.docs ??
                       const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
+                  final publicDocs = allDocs
+                      .where((doc) => doc.data()['isPrivate'] != true)
+                      .toList(growable: false);
                   final docs = selected == 'all'
-                      ? allDocs
-                      : allDocs
+                      ? publicDocs
+                      : publicDocs
                           .where(
                             (doc) =>
                                 (doc.data()['languageCode'] ?? 'en')
@@ -253,6 +369,7 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
                                 (data['hostCountry'] ?? '').toString();
                             final showTeacherAiSeat =
                                 data['showTeacherAiSeat'] == true;
+                            final vipOnly = data['vipOnly'] == true;
 
                             return _RoomCard(
                               channelId: doc.id,
@@ -261,12 +378,14 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
                               hostPhotoUrl: hostPhotoUrl,
                               hostCountry: hostCountry,
                               languageCode: roomLanguage,
+                              vipOnly: vipOnly,
                               onTap: () => _joinRoom(
                                 context,
                                 channelId: doc.id,
                                 roomName: name,
                                 roomLanguageCode: roomLanguage,
                                 showTeacherAiSeat: showTeacherAiSeat,
+                                vipOnly: vipOnly,
                               ),
                             );
                           },
@@ -300,11 +419,13 @@ class _CreateRoomDialog extends StatefulWidget {
     required this.isArabic,
     required this.languageOptions,
     required this.initialLanguage,
+    required this.giftLevel,
   });
 
   final bool isArabic;
   final List<String> languageOptions;
   final String initialLanguage;
+  final int giftLevel;
 
   @override
   State<_CreateRoomDialog> createState() => _CreateRoomDialogState();
@@ -314,6 +435,8 @@ class _CreateRoomDialogState extends State<_CreateRoomDialog> {
   final TextEditingController _nameController = TextEditingController();
   late String _language;
   bool _showTeacherAiSeat = false;
+  bool _isPrivate = false;
+  bool _vipOnly = false;
 
   @override
   void initState() {
@@ -378,6 +501,35 @@ class _CreateRoomDialogState extends State<_CreateRoomDialog> {
               setState(() => _showTeacherAiSeat = value);
             },
           ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            secondary: const Icon(Icons.lock_rounded),
+            title: Text(
+              widget.isArabic ? 'غرفة خاصة' : 'Private room',
+            ),
+            subtitle: Text(
+              widget.giftLevel >= 14
+                  ? (widget.isArabic
+                      ? 'الدخول يكون بكود خاص.'
+                      : 'Members join using a private code.')
+                  : (widget.isArabic
+                      ? 'تتطلب Gift Level 14.'
+                      : 'Requires Gift Level 14.'),
+            ),
+            value: _isPrivate,
+            onChanged: widget.giftLevel >= 14
+                ? (value) => setState(() => _isPrivate = value)
+                : null,
+          ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            secondary: const Icon(Icons.workspace_premium_rounded),
+            title: Text(
+              widget.isArabic ? 'VIP فقط' : 'VIP only',
+            ),
+            value: _vipOnly,
+            onChanged: (value) => setState(() => _vipOnly = value),
+          ),
         ],
       ),
       actions: [
@@ -395,6 +547,8 @@ class _CreateRoomDialogState extends State<_CreateRoomDialog> {
                 name: name,
                 languageCode: _language,
                 showTeacherAiSeat: _showTeacherAiSeat,
+                isPrivate: _isPrivate,
+                vipOnly: _vipOnly,
               ),
             );
           },
@@ -413,6 +567,7 @@ class _RoomCard extends StatelessWidget {
     required this.hostPhotoUrl,
     required this.hostCountry,
     required this.languageCode,
+    required this.vipOnly,
     required this.onTap,
   });
 
@@ -422,6 +577,7 @@ class _RoomCard extends StatelessWidget {
   final String? hostPhotoUrl;
   final String hostCountry;
   final String languageCode;
+  final bool vipOnly;
   final VoidCallback onTap;
 
   @override
@@ -481,6 +637,12 @@ class _RoomCard extends StatelessWidget {
                               background: colors.secondaryContainer,
                               foreground: colors.onSecondaryContainer,
                             ),
+                            if (vipOnly)
+                              _SmallBadge(
+                                text: 'VIP',
+                                background: const Color(0xFFFFD978),
+                                foreground: const Color(0xFF5E4300),
+                              ),
                           ],
                         ),
                         const SizedBox(height: 9),
@@ -720,10 +882,14 @@ class _RoomLanguagePrefs {
   const _RoomLanguagePrefs({
     required this.nativeLanguage,
     required this.learningLanguages,
+    required this.giftLevel,
+    required this.isVip,
   });
 
   final String nativeLanguage;
   final List<String> learningLanguages;
+  final int giftLevel;
+  final bool isVip;
 
   List<String> get roomLanguages {
     final result = <String>[];
@@ -746,11 +912,15 @@ class _CreateRoomResult {
     required this.name,
     required this.languageCode,
     required this.showTeacherAiSeat,
+    required this.isPrivate,
+    required this.vipOnly,
   });
 
   final String name;
   final String languageCode;
   final bool showTeacherAiSeat;
+  final bool isPrivate;
+  final bool vipOnly;
 }
 
 String _languageLabel(String code) {
