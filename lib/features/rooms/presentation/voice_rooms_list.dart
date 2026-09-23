@@ -44,7 +44,6 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
         nativeLanguage: 'en',
         learningLanguages: <String>[],
         giftLevel: 0,
-        isVip: false,
       );
     }
 
@@ -65,7 +64,6 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
       nativeLanguage: native.isEmpty ? 'en' : native,
       learningLanguages: learning,
       giftLevel: (data['giftLevel'] as num?)?.toInt() ?? 0,
-      isVip: data['isVip'] == true,
     );
   }
 
@@ -883,13 +881,11 @@ class _RoomLanguagePrefs {
     required this.nativeLanguage,
     required this.learningLanguages,
     required this.giftLevel,
-    required this.isVip,
   });
 
   final String nativeLanguage;
   final List<String> learningLanguages;
   final int giftLevel;
-  final bool isVip;
 
   List<String> get roomLanguages {
     final result = <String>[];
