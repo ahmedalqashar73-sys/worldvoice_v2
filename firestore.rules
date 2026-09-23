@@ -362,14 +362,27 @@ service cloud.firestore {
             && request.resource.data.roomId is string
             && request.resource.data.level is int
             && request.resource.data.type is string
+            && request.resource.data.sourceRewardId is string
             && exists(
               /databases/$(database)/documents/rooms/$(request.resource.data.roomId)/participants/$(userId)
             )
             && exists(
-              /databases/$(database)/documents/rooms/$(request.resource.data.roomId)/rewards/level_$(request.resource.data.level)
+              roomRewardPath(
+                request.resource.data.roomId,
+                request.resource.data.sourceRewardId
+              )
             )
             && get(
-              /databases/$(database)/documents/rooms/$(request.resource.data.roomId)/rewards/level_$(request.resource.data.level)
+              roomRewardPath(
+                request.resource.data.roomId,
+                request.resource.data.sourceRewardId
+              )
+            ).data.level == request.resource.data.level
+            && get(
+              roomRewardPath(
+                request.resource.data.roomId,
+                request.resource.data.sourceRewardId
+              )
             ).data.type == request.resource.data.type;
 
         allow update, delete: if signedIn()
