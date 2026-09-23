@@ -7,40 +7,67 @@ import '../data/room_stage_models.dart';
 class RoomStageGrid extends StatelessWidget {
   const RoomStageGrid({
     required this.seats,
+    required this.showTeacherAiSeat,
     required this.onSeatTap,
     super.key,
   });
 
   final List<RoomSeatState> seats;
+  final bool showTeacherAiSeat;
   final ValueChanged<RoomSeatState> onSeatTap;
 
   @override
   Widget build(BuildContext context) {
-    final visibleSeats = seats.take(8).toList(growable: false);
+    final stageSeats = seats.take(8).toList(growable: false);
 
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: visibleSeats.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
-        mainAxisSpacing: 14,
-        crossAxisSpacing: 8,
-        childAspectRatio: .70,
-      ),
-      itemBuilder: (context, index) {
-        final seat = visibleSeats[index];
-        return _RoomSeat(
-          seat: seat,
-          onTap: () => onSeatTap(seat),
-        );
-      },
+    return Column(
+      children: [
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: stageSeats.length,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 4,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 8,
+            childAspectRatio: .76,
+          ),
+          itemBuilder: (context, index) {
+            final seat = stageSeats[index];
+            return _CompactRoomSeat(
+              seat: seat,
+              onTap: () => onSeatTap(seat),
+            );
+          },
+        ),
+        if (showTeacherAiSeat) ...[
+          const SizedBox(height: 10),
+          SizedBox(
+            width: 92,
+            height: 112,
+            child: _CompactRoomSeat(
+              seat: const RoomSeatState(
+                index: 9,
+                role: RoomMemberRole.teacherAi,
+                displayName: 'Teacher AI',
+              ),
+              onTap: () => onSeatTap(
+                const RoomSeatState(
+                  index: 9,
+                  role: RoomMemberRole.teacherAi,
+                  displayName: 'Teacher AI',
+                ),
+              ),
+            ),
+          ),
+        ],
+      ],
     );
   }
 }
 
-class _RoomSeat extends StatefulWidget {
-  const _RoomSeat({
+class _CompactRoomSeat extends StatefulWidget {
+  const _CompactRoomSeat({
     required this.seat,
     required this.onTap,
   });
@@ -49,10 +76,10 @@ class _RoomSeat extends StatefulWidget {
   final VoidCallback onTap;
 
   @override
-  State<_RoomSeat> createState() => _RoomSeatState();
+  State<_CompactRoomSeat> createState() => _CompactRoomSeatState();
 }
 
-class _RoomSeatState extends State<_RoomSeat>
+class _CompactRoomSeatState extends State<_CompactRoomSeat>
     with SingleTickerProviderStateMixin {
   late final AnimationController _pulse;
 
@@ -61,7 +88,7 @@ class _RoomSeatState extends State<_RoomSeat>
     super.initState();
     _pulse = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1050),
+      duration: const Duration(milliseconds: 950),
       lowerBound: 0,
       upperBound: 1,
     );
@@ -71,7 +98,7 @@ class _RoomSeatState extends State<_RoomSeat>
   }
 
   @override
-  void didUpdateWidget(covariant _RoomSeat oldWidget) {
+  void didUpdateWidget(covariant _CompactRoomSeat oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.seat.isActiveSpeaker && !_pulse.isAnimating) {
       _pulse.repeat(reverse: true);
@@ -90,7 +117,7 @@ class _RoomSeatState extends State<_RoomSeat>
   @override
   Widget build(BuildContext context) {
     final seat = widget.seat;
-    final colors = Theme.of(context).colorScheme;
+    final isAi = seat.role == RoomMemberRole.teacherAi;
 
     return InkWell(
       borderRadius: BorderRadius.circular(18),
@@ -102,112 +129,110 @@ class _RoomSeatState extends State<_RoomSeat>
             animation: _pulse,
             builder: (context, child) {
               final glow = seat.isActiveSpeaker
-                  ? 7 + (7 * math.sin(_pulse.value * math.pi))
+                  ? 5 + (7 * math.sin(_pulse.value * math.pi))
                   : 0.0;
 
               return Container(
-                width: 62,
-                height: 62,
+                width: 58,
+                height: 58,
+                padding: const EdgeInsets.all(2.5),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: _seatFrameGradient(seat, colors),
+                  gradient: _frameGradient(seat),
                   boxShadow: [
                     if (seat.isActiveSpeaker)
                       BoxShadow(
                         blurRadius: glow,
                         spreadRadius: 2,
-                        color: colors.primary.withValues(alpha: .50),
+                        color: const Color(0xFF60FFB5).withValues(alpha: .75),
                       ),
                   ],
                 ),
-                padding: const EdgeInsets.all(3),
                 child: Container(
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: seat.isEmpty
-                        ? colors.surfaceContainerHighest
-                        : colors.surface,
+                        ? Colors.white.withValues(alpha: .16)
+                        : const Color(0xFF19152F),
                   ),
-                  child: ClipOval(
-                    child: _SeatAvatar(seat: seat),
-                  ),
+                  child: ClipOval(child: _SeatAvatar(seat: seat)),
                 ),
               );
             },
           ),
-          const SizedBox(height: 7),
+          const SizedBox(height: 5),
           Text(
-            seat.isEmpty ? '${seat.index}' : seat.displayName ?? 'Speaker',
+            seat.isEmpty
+                ? '${seat.index}'
+                : (seat.displayName ?? seat.role.label),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 12,
-              fontWeight: seat.role == RoomMemberRole.host ||
-                      seat.role == RoomMemberRole.coHost
-                  ? FontWeight.w900
-                  : FontWeight.w700,
+              color: Colors.white,
+              fontSize: seat.isEmpty ? 11 : 12,
+              fontWeight: seat.isEmpty ? FontWeight.w500 : FontWeight.w700,
             ),
           ),
-          const SizedBox(height: 3),
-          if (!seat.isEmpty)
+          if (!seat.isEmpty) ...[
+            const SizedBox(height: 3),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _RoleBadge(role: seat.role),
-                const SizedBox(width: 3),
-                Icon(
-                  seat.isMuted ? Icons.mic_off_rounded : Icons.mic_rounded,
-                  size: 12,
-                  color: seat.isMuted ? colors.error : colors.primary,
-                ),
+                if (!isAi)
+                  Icon(
+                    seat.isMuted ? Icons.mic_off_rounded : Icons.mic_rounded,
+                    size: 11,
+                    color: seat.isMuted
+                        ? const Color(0xFFFF8C91)
+                        : const Color(0xFF7FFFC3),
+                  ),
+                if (!isAi) const SizedBox(width: 3),
+                _TinyRoleBadge(role: seat.role),
               ],
-            )
-          else
-            Icon(
-              Icons.pan_tool_alt_rounded,
-              size: 12,
-              color: colors.onSurfaceVariant.withValues(alpha: .70),
             ),
+          ],
         ],
       ),
     );
   }
 
-  LinearGradient _seatFrameGradient(
-    RoomSeatState seat,
-    ColorScheme colors,
-  ) {
-    if (seat.role == RoomMemberRole.vipSeat) {
+  LinearGradient _frameGradient(RoomSeatState seat) {
+    if (seat.role == RoomMemberRole.teacherAi) {
       return const LinearGradient(
-        colors: [Color(0xFFFFD54F), Color(0xFFFFA000)],
+        colors: [Color(0xFF745CFF), Color(0xFF00E2A7)],
       );
     }
     if (seat.role == RoomMemberRole.host) {
       return const LinearGradient(
-        colors: [Color(0xFFFFD700), Color(0xFF62D64F)],
+        colors: [Color(0xFFFFD900), Color(0xFF65E56C)],
       );
     }
-    if (seat.role == RoomMemberRole.coHost) {
+    if (seat.role == RoomMemberRole.vipSeat) {
       return const LinearGradient(
-        colors: [Color(0xFF7C5CFF), Color(0xFF27C7B8)],
+        colors: [Color(0xFFFFD76A), Color(0xFFFF8A45)],
       );
     }
     if (seat.giftFrameLevel > 0) {
       return const LinearGradient(
-        colors: [Color(0xFFAA63FF), Color(0xFFFF5CA8)],
+        colors: [Color(0xFFBA67FF), Color(0xFFFF62B6)],
       );
     }
     if (seat.frameLevel > 0) {
       return const LinearGradient(
-        colors: [Color(0xFF37B9FF), Color(0xFF5E73FF)],
+        colors: [Color(0xFF47CCFF), Color(0xFF6A79FF)],
       );
     }
-    return LinearGradient(
-      colors: [
-        colors.outlineVariant,
-        colors.outline.withValues(alpha: .75),
-      ],
+    if (seat.isEmpty) {
+      return LinearGradient(
+        colors: [
+          Colors.white.withValues(alpha: .25),
+          Colors.white.withValues(alpha: .08),
+        ],
+      );
+    }
+    return const LinearGradient(
+      colors: [Color(0xFF7E72A9), Color(0xFF514A75)],
     );
   }
 }
@@ -219,74 +244,107 @@ class _SeatAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (seat.role == RoomMemberRole.teacherAi) {
+      return const ColoredBox(
+        color: Color(0xFF282142),
+        child: Icon(
+          Icons.smart_toy_rounded,
+          size: 27,
+          color: Colors.white,
+        ),
+      );
+    }
+
     if (seat.avatarUrl?.isNotEmpty == true) {
       return Image.network(
         seat.avatarUrl!,
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) => const Icon(
           Icons.person_rounded,
-          size: 30,
+          size: 27,
+          color: Colors.white,
         ),
       );
     }
 
-    return Icon(
-      seat.isEmpty ? Icons.chair_alt_rounded : Icons.person_rounded,
-      size: seat.isEmpty ? 27 : 31,
+    if (seat.isEmpty) {
+      return Icon(
+        Icons.chair_alt_rounded,
+        size: 23,
+        color: Colors.white.withValues(alpha: .78),
+      );
+    }
+
+    return const Icon(
+      Icons.person_rounded,
+      size: 27,
+      color: Colors.white,
     );
   }
 }
 
-class _RoleBadge extends StatelessWidget {
-  const _RoleBadge({required this.role});
+class _TinyRoleBadge extends StatelessWidget {
+  const _TinyRoleBadge({required this.role});
 
   final RoomMemberRole role;
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
+    if (role == RoomMemberRole.speaker) {
+      return const SizedBox.shrink();
+    }
 
-    Color background;
-    Color foreground;
+    final String label;
+    final Color background;
+    final Color foreground;
+
     switch (role) {
       case RoomMemberRole.host:
+        label = 'Host';
         background = const Color(0xFFFFE082);
         foreground = const Color(0xFF5C4300);
         break;
       case RoomMemberRole.coHost:
-        background = colors.secondaryContainer;
-        foreground = colors.onSecondaryContainer;
+        label = 'Co';
+        background = const Color(0xFFB8B1FF);
+        foreground = const Color(0xFF211B52);
         break;
       case RoomMemberRole.vipSeat:
-        background = const Color(0xFFFFE0B2);
-        foreground = const Color(0xFF7A4100);
+        label = 'VIP';
+        background = const Color(0xFFFFD28A);
+        foreground = const Color(0xFF673E00);
         break;
-      case RoomMemberRole.speaker:
-        background = colors.surfaceContainerHighest;
-        foreground = colors.onSurfaceVariant;
+      case RoomMemberRole.teacherAi:
+        label = 'AI';
+        background = const Color(0xFF62E7C0);
+        foreground = const Color(0xFF073F31);
         break;
       case RoomMemberRole.listener:
-      case RoomMemberRole.teacherAi:
-        background = colors.surfaceContainerHighest;
-        foreground = colors.onSurfaceVariant;
+        label = '';
+        background = Colors.transparent;
+        foreground = Colors.transparent;
+        break;
+      case RoomMemberRole.speaker:
+        label = '';
+        background = Colors.transparent;
+        foreground = Colors.transparent;
         break;
     }
 
+    if (label.isEmpty) return const SizedBox.shrink();
+
     return Container(
-      constraints: const BoxConstraints(maxWidth: 54),
-      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
       decoration: BoxDecoration(
         color: background,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
-        role.label,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
+        label,
         style: TextStyle(
           color: foreground,
           fontSize: 8,
-          fontWeight: FontWeight.w800,
+          fontWeight: FontWeight.w900,
         ),
       ),
     );
