@@ -701,11 +701,16 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
   Future<void> _shareRoom() async {
     final language = widget.roomLanguageCode?.toUpperCase() ?? '';
+    final privateCode = widget.privateAccessCode?.trim() ?? '';
+    final accessLine = widget.initialIsPrivate && privateCode.isNotEmpty
+        ? '\nPrivate code: $privateCode'
+        : '';
+
     await SharePlus.instance.share(
       ShareParams(
         text: 'WorldVoice • ${widget.roomName}'
             '${language.isEmpty ? '' : ' • $language'}'
-            '\nRoom ID: ${widget.channelId}',
+            '$accessLine',
       ),
     );
   }
