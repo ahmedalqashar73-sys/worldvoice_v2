@@ -61,8 +61,31 @@ class SettingsScreen extends StatelessWidget {
                     snapshot.data?.data() ?? const <String, dynamic>{};
                 final isVip = data['isVip'] == true;
                 final hideVisits = data['hideVisitLog'] == true;
+                final hideCity = data['hideCity'] == true;
 
-                return Card(
+                return Column(
+                  children: [
+                    Card(
+                      child: SwitchListTile(
+                        secondary: const Icon(Icons.location_off_outlined),
+                        title: Text(
+                          AppStrings.of(code).profile('hideCity'),
+                        ),
+                        subtitle: Text(
+                          AppStrings.of(code).profile('hideCityDescription'),
+                        ),
+                        value: hideCity,
+                        onChanged: (value) {
+                          FirebaseFirestore.instance
+                              .collection('users')
+                              .doc(uid)
+                              .set({
+                            'hideCity': value,
+                          }, SetOptions(merge: true));
+                        },
+                      ),
+                    ),
+                    Card(
                   child: SwitchListTile(
                     secondary: const Icon(Icons.visibility_off_outlined),
                     title: Text(
@@ -85,6 +108,8 @@ class SettingsScreen extends StatelessWidget {
                           }
                         : null,
                   ),
+                    ),
+                  ],
                 );
               },
             ),
