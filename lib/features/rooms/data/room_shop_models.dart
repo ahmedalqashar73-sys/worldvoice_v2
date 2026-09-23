@@ -39,11 +39,13 @@ class RoomBackgroundEntitlement {
   const RoomBackgroundEntitlement({
     required this.themeId,
     required this.name,
+    this.backgroundUrl,
     this.expiresAt,
   });
 
   final String themeId;
   final String name;
+  final String? backgroundUrl;
   final DateTime? expiresAt;
 
   bool get isActive =>
@@ -57,6 +59,7 @@ class RoomBackgroundEntitlement {
     return RoomBackgroundEntitlement(
       themeId: (data['themeId'] ?? doc.id).toString(),
       name: (data['name'] ?? 'WorldVoice Background').toString(),
+      backgroundUrl: data['backgroundUrl']?.toString(),
       expiresAt: rawExpires is Timestamp ? rawExpires.toDate() : null,
     );
   }
