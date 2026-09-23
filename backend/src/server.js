@@ -291,6 +291,7 @@ app.post("/store/purchase", async (req, res, next) => {
 
       const themeId = String(item.themeId || itemId).trim();
       const name = String(item.name || "WorldVoice Background").trim();
+      const backgroundUrl = String(item.previewUrl || "").trim();
       const priceCoins = Number(item.priceCoins);
       const durationDays =
         item.durationDays == null ? null : Number(item.durationDays);
@@ -360,6 +361,7 @@ app.post("/store/purchase", async (req, res, next) => {
           itemId,
           themeId,
           name,
+          backgroundUrl,
           source: "purchase",
           priceCoins,
           purchasedAt: FieldValue.serverTimestamp(),
@@ -460,6 +462,7 @@ app.post("/store/claim-reward", async (req, res, next) => {
           itemId,
           themeId,
           name,
+          backgroundUrl: String(item.previewUrl || "").trim(),
           source: "room_level_reward",
           sourceRewardId: rewardId,
           purchasedAt: FieldValue.serverTimestamp(),
