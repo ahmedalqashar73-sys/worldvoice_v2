@@ -172,7 +172,25 @@ service cloud.firestore {
           && (
             (
               request.auth.uid == resource.data.hostId
-              && request.resource.data.hostId == resource.data.hostId
+              && (
+                request.resource.data.hostId == resource.data.hostId
+                ||
+                (
+                  request.resource.data.hostId is string
+                  && exists(
+                    participantPath(
+                      roomId,
+                      request.resource.data.hostId
+                    )
+                  )
+                  && get(
+                    participantPath(
+                      roomId,
+                      request.resource.data.hostId
+                    )
+                  ).data.isModerator == true
+                )
+              )
             )
             ||
             (
@@ -409,6 +427,13 @@ service cloud.firestore {
                     && request.resource.data.seatIndex is int
                     && request.resource.data.seatIndex >= 2
                     && request.resource.data.seatIndex <= 8
+                  )
+                  ||
+                  (
+                    request.resource.data.role == 'host'
+                    && request.resource.data.seatIndex == 1
+                    && request.resource.data.isModerator == false
+                    && getAfter(roomPath(roomId)).data.hostId == userId
                   )
                 )
               )
