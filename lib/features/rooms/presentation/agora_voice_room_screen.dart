@@ -219,9 +219,13 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
     if (seat.role == RoomMemberRole.host) return;
 
-    final participant = _participants
-        .where((item) => item.userId == seat.userId)
-        .firstOrNull;
+    RoomParticipant? participant;
+    for (final item in _participants) {
+      if (item.userId == seat.userId) {
+        participant = item;
+        break;
+      }
+    }
     if (participant == null) return;
 
     _showStageMemberActions(participant);
