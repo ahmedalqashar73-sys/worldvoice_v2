@@ -32,6 +32,7 @@ class RoomFeatureService {
         'isPrivate': false,
         'vipOnly': false,
         'musicPlaying': false,
+        'screenShareActive': false,
       },
       SetOptions(merge: true),
     );
@@ -61,6 +62,20 @@ class RoomFeatureService {
         {
           'isPrivate': isPrivate,
           'vipOnly': vipOnly,
+          'updatedAt': FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
+      );
+
+  Future<void> setScreenSharing({
+    required bool active,
+    int? sharerUid,
+  }) =>
+      _room.set(
+        {
+          'screenShareActive': active,
+          'screenSharerUid':
+              active && sharerUid != null ? sharerUid : FieldValue.delete(),
           'updatedAt': FieldValue.serverTimestamp(),
         },
         SetOptions(merge: true),
