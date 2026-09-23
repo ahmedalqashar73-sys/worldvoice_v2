@@ -1,6 +1,10 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http/http.dart' as http;
 
+import '../data/room_backend_config.dart';
 import '../data/room_feature_models.dart';
 
 class RoomFeatureService {
@@ -169,6 +173,46 @@ class RoomFeatureService {
         },
         SetOptions(merge: true),
       );
+
+  Future<void> finishQuiz() async {
+    final user = _user;
+    if (user == null) {
+      throw StateError('Sign in is required.');
+    }
+
+    final endpoint = RoomBackendConfig.endpoint('/quiz/finish');
+    if (endpoint.isEmpty) {
+      await revealQuiz();
+      return;
+    }
+
+    final idToken = await user.getIdToken();
+    if (idToken == null || idToken.isEmpty) {
+      throw StateError('Could not authorize quiz finalization.');
+    }
+
+    final response = await http.post(
+      Uri.parse(endpoint),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $idToken',
+      },
+      body: jsonEncode({'roomId': roomId}),
+    );
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      String message = 'Could not finish quiz.';
+      try {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic>) {
+          message = decoded['error']?.toString() ?? message;
+        }
+      } catch (_) {
+        // Keep the generic message.
+      }
+      throw StateError(message);
+    }
+  }
 
   Stream<QuerySnapshot<Map<String, dynamic>>> watchQuizAnswers() =>
       _room.collection('quiz_answers').snapshots();
