@@ -336,7 +336,6 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     if (!mounted) return;
 
     _giftOverlayTimer?.cancel();
-    _quotaTimer?.cancel();
     _giftOverlay?.remove();
 
     final overlay = Overlay.of(context);
@@ -1184,6 +1183,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     _featuresSub?.cancel();
     _giftSub?.cancel();
     _giftOverlayTimer?.cancel();
+    _speakingTimer?.cancel();
+    _quotaTimer?.cancel();
     _giftOverlay?.remove();
     _giftOverlay = null;
     _controller.removeListener(_refresh);
