@@ -300,6 +300,26 @@ service cloud.firestore {
         allow delete: if false;
       }
 
+      match /speaker_stats/{userId} {
+        allow read: if isRoomMember(roomId);
+
+        allow create: if isRoomMember(roomId)
+            && userId == request.auth.uid
+            && request.resource.data.userId == request.auth.uid
+            && request.resource.data.seconds == 30;
+
+        allow update: if isRoomMember(roomId)
+            && userId == request.auth.uid
+            && request.resource.data.userId == resource.data.userId
+            && request.resource.data
+                .diff(resource.data)
+                .affectedKeys()
+                .hasOnly(['displayName', 'seconds', 'updatedAt'])
+            && request.resource.data.seconds == resource.data.seconds + 30;
+
+        allow delete: if false;
+      }
+
       match /ratings/{ratingId} {
         allow read: if isRoomMember(roomId);
         allow create, update: if isRoomMember(roomId)
