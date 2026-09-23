@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../../../core/localization/locale_controller.dart';
 
 import '../../profile/data/profile_identity_utils.dart';
 import '../data/agora_config.dart';
@@ -11,13 +10,11 @@ import 'agora_voice_room_screen.dart';
 
 class VoiceRoomsList extends StatefulWidget {
   const VoiceRoomsList({
-    required this.localeController,
+    required this.languageCode,
     super.key,
   });
 
-  final LocaleController localeController;
-
-  String get languageCode => localeController.locale?.languageCode ?? 'en';
+  final String languageCode;
 
   @override
   State<VoiceRoomsList> createState() => _VoiceRoomsListState();
@@ -136,7 +133,6 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => AgoraVoiceRoomScreen(
-          localeController: widget.localeController,
           channelId: channelId,
           roomName: result.name,
           roomLanguageCode: result.languageCode,
@@ -163,7 +159,6 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => AgoraVoiceRoomScreen(
-          localeController: widget.localeController,
           channelId: channelId,
           roomName: roomName,
           roomLanguageCode: roomLanguageCode,
