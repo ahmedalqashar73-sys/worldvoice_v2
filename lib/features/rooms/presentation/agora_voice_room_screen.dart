@@ -22,6 +22,7 @@ class AgoraVoiceRoomScreen extends StatefulWidget {
 
 class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   late final AgoraVoiceRoomController _controller;
+  bool _leaving = false;
 
   @override
   void initState() {
@@ -40,8 +41,16 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   }
 
   Future<void> _leave() async {
-    await _controller.leave();
-    if (mounted) Navigator.of(context).pop();
+    if (_leaving) return;
+    _leaving = true;
+
+    try {
+      await _controller.leave();
+    } finally {
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+    }
   }
 
   @override
@@ -57,12 +66,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     final colors = Theme.of(context).colorScheme;
     final isSpeaker = _controller.role == AgoraRoomRole.speaker;
 
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        if (!didPop) unawaited(_leave());
-      },
-      child: Scaffold(
+    return Scaffold(
         appBar: AppBar(
           leading: IconButton(
             onPressed: _leave,
@@ -236,8 +240,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 }
 
