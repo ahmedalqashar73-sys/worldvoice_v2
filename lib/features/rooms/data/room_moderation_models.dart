@@ -10,6 +10,10 @@ class RoomParticipant {
     this.agoraUid,
     this.seatIndex,
     this.requestedSeatIndex,
+    this.isModerator = false,
+    this.warningCount = 0,
+    this.forcedMuted = false,
+    this.kicked = false,
   });
 
   final String userId;
@@ -20,6 +24,13 @@ class RoomParticipant {
   final int? agoraUid;
   final int? seatIndex;
   final int? requestedSeatIndex;
+  final bool isModerator;
+  final int warningCount;
+  final bool forcedMuted;
+  final bool kicked;
+
+  bool get canModerate =>
+      role == RoomMemberRole.host || isModerator;
 
   bool get isOnStage =>
       role == RoomMemberRole.host ||
