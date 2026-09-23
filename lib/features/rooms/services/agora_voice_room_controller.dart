@@ -21,6 +21,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
   bool _released = false;
   String? _error;
   int? _localUid;
+  int? _activeSpeakerUid;
   AgoraRoomRole _role = AgoraRoomRole.listener;
   final Set<int> _remoteSpeakers = <int>{};
 
@@ -29,6 +30,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
   bool get muted => _muted;
   String? get error => _error;
   int? get localUid => _localUid;
+  int? get activeSpeakerUid => _activeSpeakerUid;
   AgoraRoomRole get role => _role;
   List<int> get remoteSpeakers => _remoteSpeakers.toList(growable: false);
 
@@ -89,6 +91,25 @@ class AgoraVoiceRoomController extends ChangeNotifier {
         onUserMuteAudio: (connection, remoteUid, muted) {
           notifyListeners();
         },
+        onAudioVolumeIndication:
+            (connection, speakers, speakerNumber, totalVolume) {
+          int? loudestUid;
+          var loudestVolume = 0;
+
+          for (final speaker in speakers) {
+            final volume = speaker.volume ?? 0;
+            if (volume <= loudestVolume) continue;
+            loudestVolume = volume;
+            final rawUid = speaker.uid ?? 0;
+            loudestUid = rawUid == 0 ? _localUid : rawUid;
+          }
+
+          final next = loudestVolume >= 18 ? loudestUid : null;
+          if (next != _activeSpeakerUid) {
+            _activeSpeakerUid = next;
+            notifyListeners();
+          }
+        },
         onConnectionStateChanged: (connection, state, reason) {
           if (state == ConnectionStateType.connectionStateFailed) {
             _error = 'Agora connection failed: $reason';
@@ -105,6 +126,11 @@ class AgoraVoiceRoomController extends ChangeNotifier {
 
       engine.registerEventHandler(_handler!);
       await engine.enableAudio();
+      await engine.enableAudioVolumeIndication(
+        interval: 200,
+        smooth: 3,
+        reportVad: true,
+      );
       await engine.setAudioProfile(
         profile: AudioProfileType.audioProfileSpeechStandard,
       );
@@ -244,6 +270,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       _connecting = false;
       _muted = false;
       _localUid = null;
+      _activeSpeakerUid = null;
       _remoteSpeakers.clear();
     }
   }
