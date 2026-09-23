@@ -126,7 +126,10 @@ service cloud.firestore {
       allow update: if signedIn()
           && request.resource.data.channelId == resource.data.channelId
           && (
-            request.auth.uid == resource.data.hostId
+            (
+              request.auth.uid == resource.data.hostId
+              && request.resource.data.hostId == resource.data.hostId
+            )
             ||
             (
               !oldHostStillPresent(roomId)
