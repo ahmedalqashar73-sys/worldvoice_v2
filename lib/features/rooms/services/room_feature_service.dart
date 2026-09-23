@@ -329,6 +329,7 @@ class RoomFeatureService {
           'roomId': roomId,
           'level': level,
           'type': rewardType,
+          'sourceRewardId': 'level_$level',
           if (expiresAt != null) 'expiresAt': expiresAt,
           'grantedAt': FieldValue.serverTimestamp(),
         },
