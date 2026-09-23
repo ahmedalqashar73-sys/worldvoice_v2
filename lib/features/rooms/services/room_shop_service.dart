@@ -18,7 +18,6 @@ class RoomShopService {
   Stream<List<RoomShopBackground>> watchBackgrounds() {
     return _db
         .collection('room_shop_items')
-        .where('active', isEqualTo: true)
         .where('type', isEqualTo: 'background')
         .snapshots()
         .map(
