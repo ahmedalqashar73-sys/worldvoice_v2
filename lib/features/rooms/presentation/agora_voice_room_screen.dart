@@ -26,6 +26,7 @@ import 'room_background_shop_sheet.dart';
 import 'room_board_screen.dart';
 import 'room_chat_sheet.dart';
 import 'room_captions_sheet.dart';
+import 'room_coin_store_sheet.dart';
 import 'room_music_sheet.dart';
 import 'room_quiz_sheet.dart';
 import 'room_rating_sheet.dart';
@@ -1049,6 +1050,15 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     );
   }
 
+  Future<void> _showCoinStore() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => const RoomCoinStoreSheet(),
+    );
+  }
+
   Future<void> _showBackgroundStore() async {
     await showModalBottomSheet<void>(
       context: context,
@@ -1136,6 +1146,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         participants: _participants,
         isHost: _isHost,
         showTeacherAiSeat: _showTeacherAiSeat,
+        onOpenCoinStore: _showCoinStore,
       ),
     );
   }
@@ -1260,6 +1271,14 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                 onTap: () {
                   Navigator.pop(sheetContext);
                   _showCaptionSettings();
+                },
+              ),
+              _RoomToolTile(
+                icon: Icons.monetization_on_rounded,
+                label: isArabic ? 'شراء Coins' : 'Buy coins',
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _showCoinStore();
                 },
               ),
               _RoomToolTile(
