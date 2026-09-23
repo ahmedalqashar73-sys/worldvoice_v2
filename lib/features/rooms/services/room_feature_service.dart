@@ -292,6 +292,20 @@ class RoomFeatureService {
     });
   }
 
+  Stream<List<RoomGiftCatalogItem>> watchGiftCatalog() {
+    return _db
+        .collection('room_gift_catalog')
+        .snapshots()
+        .map((snapshot) {
+      final items = snapshot.docs
+          .map(RoomGiftCatalogItem.fromDoc)
+          .where((item) => item.active && item.priceCoins > 0)
+          .toList(growable: false)
+        ..sort((a, b) => a.priceCoins.compareTo(b.priceCoins));
+      return items;
+    });
+  }
+
   Stream<List<RoomGiftEvent>> watchGifts() {
     return _room
         .collection('gifts')
