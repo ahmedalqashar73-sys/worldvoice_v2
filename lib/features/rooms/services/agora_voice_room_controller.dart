@@ -19,6 +19,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
   bool _joined = false;
   bool _muted = false;
   bool _released = false;
+  bool _screenSharing = false;
   String? _error;
   int? _localUid;
   int? _activeSpeakerUid;
@@ -29,6 +30,8 @@ class AgoraVoiceRoomController extends ChangeNotifier {
   bool get joined => _joined;
   bool get muted => _muted;
   String? get error => _error;
+  bool get screenSharing => _screenSharing;
+  RtcEngine? get engine => _engine;
   int? get localUid => _localUid;
   int? get activeSpeakerUid => _activeSpeakerUid;
   AgoraRoomRole get role => _role;
@@ -126,6 +129,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
 
       engine.registerEventHandler(_handler!);
       await engine.enableAudio();
+      await engine.enableVideo();
       await engine.enableAudioVolumeIndication(
         interval: 200,
         smooth: 3,
@@ -151,7 +155,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
               ? ClientRoleType.clientRoleBroadcaster
               : ClientRoleType.clientRoleAudience,
           autoSubscribeAudio: true,
-          autoSubscribeVideo: false,
+          autoSubscribeVideo: true,
           publishCameraTrack: false,
           publishMicrophoneTrack: role == AgoraRoomRole.speaker,
           enableAudioRecordingOrPlayout: true,
@@ -202,6 +206,61 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     return token;
   }
 
+  Future<void> startScreenShare() async {
+    final engine = _engine;
+    if (engine == null || !_joined || _role != AgoraRoomRole.speaker) {
+      return;
+    }
+    if (_screenSharing) return;
+
+    await engine.startScreenCapture(
+      const ScreenCaptureParameters2(
+        captureAudio: true,
+        captureVideo: true,
+      ),
+    );
+
+    await engine.updateChannelMediaOptions(
+      ChannelMediaOptions(
+        clientRoleType: ClientRoleType.clientRoleBroadcaster,
+        publishMicrophoneTrack: true,
+        publishCameraTrack: false,
+        publishScreenCaptureVideo: true,
+        publishScreenCaptureAudio: true,
+        autoSubscribeAudio: true,
+        autoSubscribeVideo: true,
+        enableAudioRecordingOrPlayout: true,
+      ),
+    );
+
+    _screenSharing = true;
+    notifyListeners();
+  }
+
+  Future<void> stopScreenShare() async {
+    final engine = _engine;
+    if (engine == null || !_joined || !_screenSharing) return;
+
+    await engine.stopScreenCapture();
+    await engine.updateChannelMediaOptions(
+      ChannelMediaOptions(
+        clientRoleType: _role == AgoraRoomRole.speaker
+            ? ClientRoleType.clientRoleBroadcaster
+            : ClientRoleType.clientRoleAudience,
+        publishMicrophoneTrack: _role == AgoraRoomRole.speaker,
+        publishCameraTrack: false,
+        publishScreenCaptureVideo: false,
+        publishScreenCaptureAudio: false,
+        autoSubscribeAudio: true,
+        autoSubscribeVideo: true,
+        enableAudioRecordingOrPlayout: true,
+      ),
+    );
+
+    _screenSharing = false;
+    notifyListeners();
+  }
+
   Future<void> setMuted(bool value) async {
     final engine = _engine;
     if (engine == null || !_joined || _role != AgoraRoomRole.speaker) {
@@ -242,7 +301,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
         publishMicrophoneTrack: role == AgoraRoomRole.speaker,
         publishCameraTrack: false,
         autoSubscribeAudio: true,
-        autoSubscribeVideo: false,
+        autoSubscribeVideo: true,
         enableAudioRecordingOrPlayout: true,
       ),
     );
@@ -269,6 +328,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       _joined = false;
       _connecting = false;
       _muted = false;
+      _screenSharing = false;
       _localUid = null;
       _activeSpeakerUid = null;
       _remoteSpeakers.clear();
