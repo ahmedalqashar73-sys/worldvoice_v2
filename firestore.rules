@@ -560,6 +560,35 @@ service cloud.firestore {
             && (request.auth.uid == userId || isHost(roomId));
       }
 
+      match /captions/{captionId} {
+        allow read: if isRoomMember(roomId);
+
+        allow create: if isRoomMember(roomId)
+            && request.resource.data.userId == request.auth.uid
+            && request.resource.data.text is string
+            && request.resource.data.text.size() > 0
+            && request.resource.data.text.size() <= 400
+            && request.resource.data.displayName is string
+            && request.resource.data.languageCode is string
+            && request.resource.data.createdAt == request.time
+            && get(participantPath(roomId, request.auth.uid)).data.role in [
+              'host',
+              'coHost',
+              'speaker',
+              'vipSeat'
+            ];
+
+        allow update, delete: if false;
+      }
+
+      match /teacher_ai_notes/{noteId} {
+        allow read: if isRoomMember(roomId);
+
+        // Teacher AI notes are written by the trusted backend through
+        // Firebase Admin SDK, which bypasses client security rules.
+        allow create, update, delete: if false;
+      }
+
       match /messages/{messageId} {
         allow read: if signedIn()
             && exists(participantPath(roomId, request.auth.uid));
