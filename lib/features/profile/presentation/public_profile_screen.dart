@@ -7,6 +7,7 @@ import '../../../core/localization/app_strings.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../services/profile_social_service.dart';
 import 'profile_identity_strip.dart';
+import 'voice_bio_player.dart';
 
 class PublicProfileScreen extends StatefulWidget {
   const PublicProfileScreen({
@@ -54,6 +55,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
             final name = (data['displayName'] as String?)?.trim();
             final username = (data['username'] as String?)?.trim();
             final bio = (data['bio'] as String?)?.trim();
+            final voiceBioUrl = (data['voiceBioUrl'] as String?)?.trim();
             final country = data['country'] as String?;
             final city = (data['city'] as String?)?.trim();
             final hideCity = data['hideCity'] == true;
@@ -144,16 +146,26 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                     ),
                   ),
                 ],
-                if (bio?.isNotEmpty == true) ...[
+                if (bio?.isNotEmpty == true ||
+                    voiceBioUrl?.isNotEmpty == true) ...[
                   const SizedBox(height: 24),
                   _SectionCard(
                     icon: Icons.auto_awesome_outlined,
                     title: strings.profile('aboutMe'),
                     children: [
-                      Text(
-                        bio!,
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
+                      if (bio?.isNotEmpty == true)
+                        Text(
+                          bio!,
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
+                      if (bio?.isNotEmpty == true &&
+                          voiceBioUrl?.isNotEmpty == true)
+                        const SizedBox(height: 14),
+                      if (voiceBioUrl?.isNotEmpty == true)
+                        VoiceBioPlayer(
+                          url: voiceBioUrl!,
+                          code: code,
+                        ),
                     ],
                   ),
                 ],
