@@ -34,6 +34,7 @@ import 'room_extras_sheet.dart';
 import 'room_members_sheet.dart';
 import 'room_mod_log_sheet.dart';
 import 'room_stage_grid.dart';
+import 'room_teacher_ai_sheet.dart';
 
 class AgoraVoiceRoomScreen extends StatefulWidget {
   const AgoraVoiceRoomScreen({
@@ -366,6 +367,34 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       });
     }
     await _syncCaptionPublishing();
+  }
+
+  Future<void> _showTeacherAiChat() async {
+    if (!_teacherAi.isAskConfigured) {
+      if (!mounted) return;
+      final isArabic =
+          Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isArabic
+                ? 'يجب ربط Backend الخاص بـ Teacher AI أولاً.'
+                : 'Teacher AI backend must be connected first.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => RoomTeacherAiSheet(
+        service: _teacherAi,
+        roomLanguageCode: widget.roomLanguageCode ?? 'en',
+      ),
+    );
   }
 
   Future<void> _showCaptionSettings() async {
@@ -1907,7 +1936,9 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                       const SizedBox(height: 8),
                       _TeacherAiCompactSeat(
                         note: _latestTeacherAiNote,
-                        configured: _teacherAi.isConfigured,
+                        configured:
+                            _teacherAi.isConfigured || _teacherAi.isAskConfigured,
+                        onTap: _showTeacherAiChat,
                       ),
                     ],
                     const SizedBox(height: 12),
@@ -2513,86 +2544,100 @@ class _TeacherAiCompactSeat extends StatelessWidget {
   const _TeacherAiCompactSeat({
     required this.configured,
     this.note,
+    this.onTap,
   });
 
   final bool configured;
   final RoomTeacherAiNote? note;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final correction = note?.correction.trim() ?? '';
     final pronunciation = note?.pronunciationTip?.trim() ?? '';
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(10, 8, 12, 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: .08),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: const Color(0xFF6DE7C0).withValues(alpha: .50),
-        ),
-      ),
-      child: Row(
-        children: [
-          const CircleAvatar(
-            radius: 23,
-            backgroundColor: Color(0xFF3A2D71),
-            child: Icon(
-              Icons.smart_toy_rounded,
-              color: Colors.white,
-              size: 25,
+        onTap: onTap,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.fromLTRB(10, 8, 12, 8),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: .08),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: const Color(0xFF6DE7C0).withValues(alpha: .50),
             ),
           ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Teacher AI',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w900,
-                  ),
+          child: Row(
+            children: [
+              const CircleAvatar(
+                radius: 23,
+                backgroundColor: Color(0xFF3A2D71),
+                child: Icon(
+                  Icons.smart_toy_rounded,
+                  color: Colors.white,
+                  size: 25,
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  correction.isNotEmpty
-                      ? correction
-                      : configured
-                          ? 'Listening for language corrections…'
-                          : 'AI backend connection required',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: correction.isNotEmpty
-                        ? const Color(0xFF8EEAD0)
-                        : Colors.white60,
-                    fontSize: 10,
-                    height: 1.2,
-                  ),
-                ),
-                if (pronunciation.isNotEmpty) ...[
-                  const SizedBox(height: 3),
-                  Text(
-                    pronunciation,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Color(0xFFFFD66B),
-                      fontSize: 9,
-                      fontWeight: FontWeight.w700,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Teacher AI',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
-                  ),
-                ],
-              ],
-            ),
+                    const SizedBox(height: 2),
+                    Text(
+                      correction.isNotEmpty
+                          ? correction
+                          : configured
+                              ? 'Tap to ask • listening for corrections…'
+                              : 'AI backend connection required',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: correction.isNotEmpty
+                            ? const Color(0xFF8EEAD0)
+                            : Colors.white60,
+                        fontSize: 10,
+                        height: 1.2,
+                      ),
+                    ),
+                    if (pronunciation.isNotEmpty) ...[
+                      const SizedBox(height: 3),
+                      Text(
+                        pronunciation,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Color(0xFFFFD66B),
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              if (onTap != null)
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  color: Colors.white54,
+                ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
