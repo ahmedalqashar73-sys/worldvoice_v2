@@ -358,6 +358,51 @@ class RoomModerationService {
     );
   }
 
+  Future<void> closeRoom() async {
+    final uid = currentUserId;
+    if (uid == null) {
+      throw StateError('Sign in is required to close the room.');
+    }
+
+    final room = await _roomRef.get();
+    if (!room.exists) {
+      throw StateError('Room not found.');
+    }
+
+    final data = room.data() ?? const <String, dynamic>{};
+    if (data['hostId']?.toString() != uid) {
+      throw StateError('Only the host can close the room.');
+    }
+
+    final batch = _db.batch();
+    batch.set(
+      _roomRef,
+      {
+        'isOpen': false,
+        'endedAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+
+    if (data['isPrivate'] == true) {
+      final code = privateAccessCode?.trim() ?? '';
+      if (code.isNotEmpty) {
+        batch.set(
+          _db.collection('private_room_codes').doc(code),
+          {
+            'isOpen': false,
+            'endedAt': FieldValue.serverTimestamp(),
+            'updatedAt': FieldValue.serverTimestamp(),
+          },
+          SetOptions(merge: true),
+        );
+      }
+    }
+
+    await batch.commit();
+  }
+
   Future<void> leave() async {
     final uid = currentUserId;
     if (uid == null) return;
