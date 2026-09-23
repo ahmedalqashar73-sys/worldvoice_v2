@@ -12,12 +12,14 @@ import 'voice_bio_player.dart';
 class PublicProfileScreen extends StatefulWidget {
   const PublicProfileScreen({
     required this.userId,
-    required this.localeController,
+    this.localeController,
+    this.languageCode,
     super.key,
   });
 
   final String userId;
-  final LocaleController localeController;
+  final LocaleController? localeController;
+  final String? languageCode;
 
   @override
   State<PublicProfileScreen> createState() => _PublicProfileScreenState();
@@ -32,7 +34,9 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final code = widget.localeController.locale?.languageCode ?? 'en';
+    final code = widget.localeController?.locale?.languageCode ??
+        widget.languageCode ??
+        Localizations.localeOf(context).languageCode;
     final rtl = const {'ar', 'ur', 'fa'}.contains(code);
     final strings = AppStrings.of(code);
 
