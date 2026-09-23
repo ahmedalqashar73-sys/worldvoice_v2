@@ -16,6 +16,9 @@ class RoomTeacherAiService {
   static const String _explicitEndpoint =
       String.fromEnvironment('WORLDVOICE_TEACHER_AI_ENDPOINT');
 
+  static const String _explicitAskEndpoint =
+      String.fromEnvironment('WORLDVOICE_TEACHER_AI_ASK_ENDPOINT');
+
   String get endpoint {
     final explicit = _explicitEndpoint.trim();
     return explicit.isNotEmpty
@@ -23,7 +26,15 @@ class RoomTeacherAiService {
         : RoomBackendConfig.endpoint('/teacher-ai');
   }
 
+  String get askEndpoint {
+    final explicit = _explicitAskEndpoint.trim();
+    return explicit.isNotEmpty
+        ? explicit
+        : RoomBackendConfig.endpoint('/teacher-ai/ask');
+  }
+
   bool get isConfigured => endpoint.trim().isNotEmpty;
+  bool get isAskConfigured => askEndpoint.trim().isNotEmpty;
 
   FirebaseFirestore get _db => FirebaseFirestore.instance;
 
@@ -40,6 +51,73 @@ class RoomTeacherAiService {
               .map(RoomTeacherAiNote.fromDoc)
               .toList(growable: false),
         );
+  }
+
+  Future<String> ask({
+    required String prompt,
+    required String roomLanguageCode,
+  }) async {
+    final normalized = prompt.trim();
+    if (normalized.isEmpty) {
+      throw StateError('Ask Teacher AI a question first.');
+    }
+    if (normalized.length > 1200) {
+      throw StateError('Teacher AI questions are limited to 1200 characters.');
+    }
+    if (!isAskConfigured) {
+      throw StateError('Teacher AI backend is not configured.');
+    }
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      throw StateError('Sign in is required to use Teacher AI.');
+    }
+
+    final idToken = await user.getIdToken();
+    if (idToken == null || idToken.isEmpty) {
+      throw StateError('Could not authorize Teacher AI.');
+    }
+
+    final response = await http
+        .post(
+          Uri.parse(askEndpoint),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $idToken',
+          },
+          body: jsonEncode({
+            'roomId': roomId,
+            'prompt': normalized,
+            'roomLanguageCode': roomLanguageCode.trim().isEmpty
+                ? 'en'
+                : roomLanguageCode.trim(),
+          }),
+        )
+        .timeout(const Duration(seconds: 30));
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      var message = 'Teacher AI request failed.';
+      try {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic>) {
+          message = decoded['error']?.toString() ?? message;
+        }
+      } catch (_) {
+        // Keep the generic message.
+      }
+      throw StateError(message);
+    }
+
+    final decoded = jsonDecode(response.body);
+    if (decoded is! Map<String, dynamic>) {
+      throw StateError('Teacher AI returned an invalid response.');
+    }
+
+    final answer = decoded['answer']?.toString().trim() ?? '';
+    if (answer.isEmpty) {
+      throw StateError('Teacher AI returned an empty response.');
+    }
+    return answer;
   }
 
   Future<bool> submitCaption({
