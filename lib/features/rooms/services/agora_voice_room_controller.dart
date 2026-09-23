@@ -108,7 +108,6 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       await engine.setAudioProfile(
         profile: AudioProfileType.audioProfileSpeechStandard,
       );
-      await engine.setEnableSpeakerphone(true);
 
       final token = await _resolveToken(
         channelId: channelId,
