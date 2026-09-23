@@ -61,7 +61,7 @@ class _VoiceBioCardState extends State<VoiceBioCard> {
 
     final directory = await getTemporaryDirectory();
     final path =
-        directory.path + '/worldvoice_voice_bio_' + widget.userId + '.m4a';
+        '\${directory.path}/worldvoice_voice_bio_\${widget.userId}.m4a';
 
     await _recorder.start(
       const RecordConfig(encoder: AudioEncoder.aacLc),
@@ -87,7 +87,7 @@ class _VoiceBioCardState extends State<VoiceBioCard> {
 
       final upload = await CloudinaryImageService.uploadAudio(
         File(path),
-        folder: 'worldvoice/voice_bios/' + widget.userId,
+        folder: 'worldvoice/voice_bios/\${widget.userId}',
       );
 
       await FirebaseFirestore.instance
