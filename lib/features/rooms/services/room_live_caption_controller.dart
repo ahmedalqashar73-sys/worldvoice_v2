@@ -14,8 +14,15 @@ class RoomLiveCaptionController {
   RoomLiveCaptionController({
     required RoomCaptionService service,
     required RoomCaptionStateCallback onState,
-  })  : _service = service,
-        _onState = onState;
+  }) : this._(
+          service,
+          onState,
+        );
+
+  RoomLiveCaptionController._(
+    this._service,
+    this._onState,
+  );
 
   final RoomCaptionService _service;
   final RoomCaptionStateCallback _onState;
