@@ -5,6 +5,7 @@ class RoomFeatureState {
     required this.roomLevel,
     required this.roomXp,
     required this.themeId,
+    this.backgroundUrl,
     required this.boardWriteEnabled,
     required this.isPrivate,
     required this.vipOnly,
@@ -22,6 +23,7 @@ class RoomFeatureState {
   final int roomLevel;
   final int roomXp;
   final String themeId;
+  final String? backgroundUrl;
   final bool boardWriteEnabled;
   final bool isPrivate;
   final bool vipOnly;
@@ -45,6 +47,7 @@ class RoomFeatureState {
       roomLevel: (data['roomLevel'] as num?)?.toInt() ?? 1,
       roomXp: (data['roomXp'] as num?)?.toInt() ?? 0,
       themeId: (data['themeId'] ?? 'royalPurple').toString(),
+      backgroundUrl: data['backgroundUrl']?.toString(),
       boardWriteEnabled: data['boardWriteEnabled'] != false,
       isPrivate: data['isPrivate'] == true,
       vipOnly: data['vipOnly'] == true,
