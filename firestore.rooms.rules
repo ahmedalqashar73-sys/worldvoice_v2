@@ -18,7 +18,6 @@ service cloud.firestore {
 
     function isHostAfter(roomId) {
       return signedIn()
-          && existsAfter(roomPath(roomId))
           && getAfter(roomPath(roomId)).data.hostId == request.auth.uid;
     }
 
@@ -51,6 +50,32 @@ service cloud.firestore {
             'updatedAt'
           ])
           && validManagedParticipant(request.resource.data);
+    }
+
+    function validSelfListenerReset(userId) {
+      return userId == request.auth.uid
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.role == 'listener'
+          && !('seatIndex' in request.resource.data)
+          && request.resource.data.handRaised == false
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'displayName',
+            'photoUrl',
+            'role',
+            'handRaised',
+            'seatIndex',
+            'agoraUid',
+            'joinedAt',
+            'updatedAt'
+          ]);
+    }
+
+    function validHostSelfState(roomId, userId) {
+      return isHost(roomId)
+          && userId == request.auth.uid
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.role == 'host'
+          && request.resource.data.seatIndex == 1;
     }
 
     match /rooms/{roomId} {
@@ -100,6 +125,10 @@ service cloud.firestore {
                 && request.resource.data.uid == resource.data.uid
                 && selfParticipantFieldsOnly()
               )
+              ||
+              validSelfListenerReset(userId)
+              ||
+              validHostSelfState(roomId, userId)
               ||
               (
                 isHost(roomId)
