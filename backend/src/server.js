@@ -4,7 +4,7 @@ import agoraToken from "agora-token";
 import express from "express";
 import { applicationDefault, getApps, initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
-import { FieldValue, getFirestore } from "firebase-admin/firestore";
+import { FieldValue, Timestamp, getFirestore } from "firebase-admin/firestore";
 import OpenAI from "openai";
 
 const { RtcRole, RtcTokenBuilder } = agoraToken;
@@ -257,6 +257,231 @@ app.post("/teacher-ai", async (req, res, next) => {
       correction,
       pronunciationTip,
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/store/purchase", async (req, res, next) => {
+  try {
+    const user = await authenticatedUser(req);
+    const itemId = String(req.body?.itemId || "").trim();
+
+    if (!itemId) {
+      return res.status(400).json({ error: "itemId is required." });
+    }
+
+    const itemRef = db.collection("room_shop_items").doc(itemId);
+    const userRef = db.collection("users").doc(user.uid);
+
+    const result = await db.runTransaction(async (tx) => {
+      const itemSnap = await tx.get(itemRef);
+      if (!itemSnap.exists) {
+        const error = new Error("Store item not found.");
+        error.status = 404;
+        throw error;
+      }
+
+      const item = itemSnap.data() || {};
+      if (item.active !== true || item.type !== "background") {
+        const error = new Error("This background is not available.");
+        error.status = 409;
+        throw error;
+      }
+
+      const themeId = String(item.themeId || itemId).trim();
+      const name = String(item.name || "WorldVoice Background").trim();
+      const priceCoins = Number(item.priceCoins);
+      const durationDays =
+        item.durationDays == null ? null : Number(item.durationDays);
+
+      if (
+        !themeId ||
+        !Number.isInteger(priceCoins) ||
+        priceCoins < 0 ||
+        (durationDays != null &&
+          (!Number.isInteger(durationDays) || durationDays <= 0))
+      ) {
+        const error = new Error("Store item configuration is invalid.");
+        error.status = 500;
+        throw error;
+      }
+
+      const entitlementRef = userRef
+        .collection("room_backgrounds")
+        .doc(themeId);
+
+      const [userSnap, entitlementSnap] = await Promise.all([
+        tx.get(userRef),
+        tx.get(entitlementRef),
+      ]);
+
+      const existing = entitlementSnap.data() || {};
+      const existingExpiry = existing.expiresAt?.toDate?.() || null;
+      const alreadyActive =
+        entitlementSnap.exists &&
+        (existingExpiry == null || existingExpiry.getTime() > Date.now());
+
+      if (alreadyActive) {
+        return {
+          themeId,
+          alreadyOwned: true,
+          balance: Number(userSnap.data()?.coins || 0),
+        };
+      }
+
+      const userData = userSnap.data() || {};
+      const balance = Number(userData.coins || 0);
+      if (!Number.isInteger(balance) || balance < priceCoins) {
+        const error = new Error("NOT_ENOUGH_COINS");
+        error.status = 409;
+        throw error;
+      }
+
+      const expiresAt =
+        durationDays == null
+          ? null
+          : Timestamp.fromMillis(
+              Date.now() + durationDays * 24 * 60 * 60 * 1000,
+            );
+
+      tx.set(
+        userRef,
+        {
+          coins: balance - priceCoins,
+          updatedAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      );
+
+      tx.set(
+        entitlementRef,
+        {
+          itemId,
+          themeId,
+          name,
+          source: "purchase",
+          priceCoins,
+          purchasedAt: FieldValue.serverTimestamp(),
+          ...(expiresAt ? { expiresAt } : {}),
+        },
+        { merge: true },
+      );
+
+      return {
+        themeId,
+        alreadyOwned: false,
+        balance: balance - priceCoins,
+      };
+    });
+
+    return res.json({ ok: true, ...result });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/store/claim-reward", async (req, res, next) => {
+  try {
+    const user = await authenticatedUser(req);
+    const itemId = String(req.body?.itemId || "").trim();
+    const rewardId = String(req.body?.rewardId || "").trim();
+
+    if (!itemId || !rewardId) {
+      return res.status(400).json({
+        error: "itemId and rewardId are required.",
+      });
+    }
+
+    const userRef = db.collection("users").doc(user.uid);
+    const itemRef = db.collection("room_shop_items").doc(itemId);
+    const rewardRef = userRef.collection("room_rewards").doc(rewardId);
+
+    const result = await db.runTransaction(async (tx) => {
+      const [itemSnap, rewardSnap] = await Promise.all([
+        tx.get(itemRef),
+        tx.get(rewardRef),
+      ]);
+
+      if (!itemSnap.exists) {
+        const error = new Error("Store item not found.");
+        error.status = 404;
+        throw error;
+      }
+
+      if (!rewardSnap.exists) {
+        const error = new Error("Background reward not found.");
+        error.status = 404;
+        throw error;
+      }
+
+      const item = itemSnap.data() || {};
+      const reward = rewardSnap.data() || {};
+
+      if (item.active !== true || item.type !== "background") {
+        const error = new Error("This background is not available.");
+        error.status = 409;
+        throw error;
+      }
+
+      if (reward.type !== "background_month" || reward.claimedAt != null) {
+        const error = new Error("This reward is not available.");
+        error.status = 409;
+        throw error;
+      }
+
+      const rewardExpiry = reward.expiresAt?.toDate?.() || null;
+      if (rewardExpiry && rewardExpiry.getTime() <= Date.now()) {
+        const error = new Error("This background reward has expired.");
+        error.status = 409;
+        throw error;
+      }
+
+      const themeId = String(item.themeId || itemId).trim();
+      const name = String(item.name || "WorldVoice Background").trim();
+      if (!themeId) {
+        const error = new Error("Store item configuration is invalid.");
+        error.status = 500;
+        throw error;
+      }
+
+      const entitlementRef = userRef
+        .collection("room_backgrounds")
+        .doc(themeId);
+      const oneMonthFromNow = Date.now() + 30 * 24 * 60 * 60 * 1000;
+      const finalExpiryMillis = rewardExpiry
+        ? Math.min(rewardExpiry.getTime(), oneMonthFromNow)
+        : oneMonthFromNow;
+      const expiresAt = Timestamp.fromMillis(finalExpiryMillis);
+
+      tx.set(
+        entitlementRef,
+        {
+          itemId,
+          themeId,
+          name,
+          source: "room_level_reward",
+          sourceRewardId: rewardId,
+          purchasedAt: FieldValue.serverTimestamp(),
+          expiresAt,
+        },
+        { merge: true },
+      );
+
+      tx.set(
+        rewardRef,
+        {
+          claimedAt: FieldValue.serverTimestamp(),
+          claimedItemId: itemId,
+          claimedThemeId: themeId,
+        },
+        { merge: true },
+      );
+
+      return { themeId, expiresAt: expiresAt.toMillis() };
+    });
+
+    return res.json({ ok: true, ...result });
   } catch (error) {
     next(error);
   }
