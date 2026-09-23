@@ -60,7 +60,7 @@ class _RoomsHubScreenState extends State<RoomsHubScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 18),
                 scrollDirection: Axis.horizontal,
                 itemCount: labels.sections.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
                 itemBuilder: (context, index) {
                   final selected = _section == index;
                   return ChoiceChip(
