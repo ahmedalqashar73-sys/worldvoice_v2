@@ -150,7 +150,10 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                                         )
                                     : null,
                                 onApply: isOwned && isHost
-                                    ? () => roomFeatures.setTheme(item.themeId)
+                                    ? () => roomFeatures.setPurchasedBackground(
+                                          themeId: item.themeId,
+                                          backgroundUrl: item.previewUrl,
+                                        )
                                     : null,
                               );
                             },
