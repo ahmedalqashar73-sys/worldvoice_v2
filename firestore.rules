@@ -2,24 +2,227 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
     function signedIn() {
       return request.auth != null;
+    }
+
+    function isSelf(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function userPath(userId) {
+      return /databases/$(database)/documents/users/$(userId);
     }
 
     function roomPath(roomId) {
       return /databases/$(database)/documents/rooms/$(roomId);
     }
 
-    function isHost(roomId) {
+    function isRoomHost(roomId) {
       return signedIn()
           && exists(roomPath(roomId))
           && get(roomPath(roomId)).data.hostId == request.auth.uid;
     }
 
-    function isHostAfter(roomId) {
+    function isRoomHostAfter(roomId) {
       return signedIn()
           && getAfter(roomPath(roomId)).data.hostId == request.auth.uid;
+    }
+
+    function presenceOnlyCreate(userId) {
+      return isSelf(userId)
+          && request.resource.data.keys().hasOnly([
+            'isOnline',
+            'lastActiveAt',
+            'lastSeenAt'
+          ]);
+    }
+
+    function fullProfileCreate(userId) {
+      return isSelf(userId)
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.profileCompleted == true
+          && request.resource.data.isVip == false
+          && request.resource.data.isPartner == false
+          && request.resource.data.isVerified == false
+          && request.resource.data.followersCount == 0
+          && request.resource.data.followingCount == 0
+          && !('coins' in request.resource.data)
+          && !('diamonds' in request.resource.data)
+          && !('isAdmin' in request.resource.data)
+          && !('adminRole' in request.resource.data)
+          && !('giftLevel' in request.resource.data);
+    }
+
+    function initialProfileCompletion(userId) {
+      return isSelf(userId)
+          && resource.data.get('profileCompleted', false) == false
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.profileCompleted == true
+          && request.resource.data.isVip == false
+          && request.resource.data.isPartner == false
+          && request.resource.data.isVerified == false
+          && request.resource.data.followersCount == 0
+          && request.resource.data.followingCount == 0
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'uid',
+            'email',
+            'displayName',
+            'username',
+            'bio',
+            'country',
+            'city',
+            'gender',
+            'photoUrl',
+            'photoPublicId',
+            'coverUrl',
+            'coverPublicId',
+            'birthDate',
+            'nativeLanguageCode',
+            'nativeLanguage',
+            'learningLanguageCodes',
+            'learningLanguages',
+            'languageLevel',
+            'professionKey',
+            'profession',
+            'travel',
+            'learningGoals',
+            'interests',
+            'profileCompleted',
+            'followersCount',
+            'followingCount',
+            'isVip',
+            'isPartner',
+            'isVerified',
+            'updatedAt',
+            'createdAt'
+          ]);
+    }
+
+    function selfEditableUserUpdate(userId) {
+      return isSelf(userId)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'displayName',
+            'bio',
+            'city',
+            'photoUrl',
+            'photoPublicId',
+            'coverUrl',
+            'coverPublicId',
+            'learningLanguageCodes',
+            'learningLanguages',
+            'languageLevel',
+            'professionKey',
+            'profession',
+            'travel',
+            'learningGoals',
+            'interests',
+            'updatedAt',
+            'hideCity',
+            'hideVisitLog',
+            'isOnline',
+            'lastActiveAt',
+            'lastSeenAt',
+            'voiceBioUrl',
+            'voiceBioPublicId',
+            'voiceBioUpdatedAt'
+          ]);
+    }
+
+    function socialCountOnlyUpdate() {
+      return signedIn()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'followersCount',
+            'followingCount'
+          ]);
+    }
+
+    match /users/{userId} {
+      allow read: if signedIn();
+
+      allow create: if presenceOnlyCreate(userId)
+          || fullProfileCreate(userId);
+
+      allow update: if initialProfileCompletion(userId)
+          || selfEditableUserUpdate(userId)
+          || socialCountOnlyUpdate();
+
+      allow delete: if isSelf(userId);
+
+      match /following/{targetId} {
+        allow read: if signedIn();
+        allow create: if isSelf(userId)
+            && targetId != request.auth.uid
+            && request.resource.data.keys().hasOnly(['createdAt']);
+        allow delete: if isSelf(userId);
+        allow update: if false;
+      }
+
+      match /followers/{followerId} {
+        allow read: if signedIn();
+        allow create: if signedIn()
+            && followerId == request.auth.uid
+            && userId != request.auth.uid
+            && request.resource.data.keys().hasOnly(['createdAt']);
+        allow delete: if signedIn() && followerId == request.auth.uid;
+        allow update: if false;
+      }
+
+      match /profile_visitors/{visitorId} {
+        allow read: if isSelf(userId)
+            && get(userPath(userId)).data.isVip == true;
+
+        allow create, update: if signedIn()
+            && visitorId == request.auth.uid
+            && visitorId != userId
+            && request.resource.data.keys().hasOnly([
+              'visitedAt',
+              'displayName',
+              'username',
+              'photoUrl'
+            ]);
+
+        allow delete: if isSelf(userId);
+      }
+
+      match /visited_profiles/{targetId} {
+        allow read: if isSelf(userId);
+
+        allow create, update: if isSelf(userId)
+            && targetId != request.auth.uid
+            && request.resource.data.keys().hasOnly([
+              'visitedAt',
+              'displayName',
+              'username',
+              'photoUrl'
+            ]);
+
+        allow delete: if isSelf(userId);
+      }
+    }
+
+    match /usernames/{username} {
+      allow read: if signedIn();
+
+      allow create: if signedIn()
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.keys().hasOnly([
+            'uid',
+            'createdAt',
+            'updatedAt'
+          ]);
+
+      allow update: if signedIn()
+          && resource.data.uid == request.auth.uid
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.keys().hasOnly([
+            'uid',
+            'createdAt',
+            'updatedAt'
+          ]);
+
+      allow delete: if signedIn()
+          && resource.data.uid == request.auth.uid;
     }
 
     function selfParticipantFieldsOnly() {
@@ -72,16 +275,13 @@ service cloud.firestore {
     }
 
     function validHostSelfState(roomId, userId) {
-      return isHost(roomId)
+      return isRoomHost(roomId)
           && userId == request.auth.uid
           && request.resource.data.uid == request.auth.uid
           && request.resource.data.role == 'host'
           && request.resource.data.seatIndex == 1;
     }
 
-    // -----------------------------
-    // Secure WorldVoice voice rooms
-    // -----------------------------
     match /rooms/{roomId} {
       allow read: if signedIn();
 
@@ -89,11 +289,11 @@ service cloud.firestore {
           && request.resource.data.hostId == request.auth.uid
           && request.resource.data.channelId == roomId;
 
-      allow update: if isHost(roomId)
+      allow update: if isRoomHost(roomId)
           && request.resource.data.hostId == resource.data.hostId
           && request.resource.data.channelId == resource.data.channelId;
 
-      allow delete: if isHost(roomId);
+      allow delete: if isRoomHost(roomId);
 
       match /participants/{userId} {
         allow read: if signedIn();
@@ -111,7 +311,7 @@ service cloud.firestore {
               (
                 request.resource.data.role == 'host'
                 && request.resource.data.seatIndex == 1
-                && isHostAfter(roomId)
+                && isRoomHostAfter(roomId)
               )
             );
 
@@ -128,24 +328,14 @@ service cloud.firestore {
               validHostSelfState(roomId, userId)
               ||
               (
-                isHost(roomId)
+                isRoomHost(roomId)
                 && validHostManagedUpdate()
               )
             );
 
         allow delete: if signedIn()
-            && (userId == request.auth.uid || isHost(roomId));
+            && (userId == request.auth.uid || isRoomHost(roomId));
       }
-    }
-
-    // -------------------------------------------------
-    // TEMPORARY compatibility rule for existing features
-    // Keeps the current app behavior outside /rooms only.
-    // Replace this with per-feature production rules later.
-    // -------------------------------------------------
-    match /{collection}/{document=**} {
-      allow read, write: if collection != 'rooms'
-          && request.time < timestamp.date(2026, 10, 11);
     }
   }
 }
