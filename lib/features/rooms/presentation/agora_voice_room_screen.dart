@@ -20,6 +20,9 @@ class AgoraVoiceRoomScreen extends StatefulWidget {
     required this.initialRole,
     this.roomLanguageCode,
     this.initialShowTeacherAiSeat = false,
+    this.initialIsPrivate = false,
+    this.initialVipOnly = false,
+    this.privateAccessCode,
     super.key,
   });
 
@@ -28,6 +31,9 @@ class AgoraVoiceRoomScreen extends StatefulWidget {
   final AgoraRoomRole initialRole;
   final String? roomLanguageCode;
   final bool initialShowTeacherAiSeat;
+  final bool initialIsPrivate;
+  final bool initialVipOnly;
+  final String? privateAccessCode;
 
   @override
   State<AgoraVoiceRoomScreen> createState() => _AgoraVoiceRoomScreenState();
@@ -64,6 +70,9 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       roomName: widget.roomName,
       roomLanguageCode: widget.roomLanguageCode,
       initialShowTeacherAiSeat: widget.initialShowTeacherAiSeat,
+      initialIsPrivate: widget.initialIsPrivate,
+      initialVipOnly: widget.initialVipOnly,
+      privateAccessCode: widget.privateAccessCode,
     );
     unawaited(_startRoomSession());
   }
