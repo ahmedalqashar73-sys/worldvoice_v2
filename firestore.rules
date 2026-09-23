@@ -14,6 +14,14 @@ service cloud.firestore {
       return /databases/$(database)/documents/rooms/$(roomId)/participants/$(userId);
     }
 
+    function accessGrantPath(roomId, userId) {
+      return /databases/$(database)/documents/rooms/$(roomId)/access_grants/$(userId);
+    }
+
+    function privateCodePath(code) {
+      return /databases/$(database)/documents/private_room_codes/$(code);
+    }
+
     function isHost(roomId) {
       return signedIn()
           && exists(roomPath(roomId))
@@ -132,6 +140,21 @@ service cloud.firestore {
     }
 
     // -------------------------
+    // PRIVATE ROOM CODES
+    // -------------------------
+    match /private_room_codes/{code} {
+      allow get: if signedIn();
+      allow list: if false;
+
+      allow create: if signedIn()
+          && request.resource.data.hostId == request.auth.uid
+          && request.resource.data.roomId is string;
+
+      allow update, delete: if signedIn()
+          && resource.data.hostId == request.auth.uid;
+    }
+
+    // -------------------------
     // VOICE ROOMS
     // -------------------------
     match /rooms/{roomId} {
@@ -159,6 +182,23 @@ service cloud.firestore {
           );
 
       allow delete: if isHost(roomId);
+
+      match /access_grants/{userId} {
+        allow read: if signedIn()
+            && (request.auth.uid == userId || isHost(roomId));
+
+        allow create: if signedIn()
+            && request.auth.uid == userId
+            && request.resource.data.uid == request.auth.uid
+            && request.resource.data.code is string
+            && exists(privateCodePath(request.resource.data.code))
+            && get(privateCodePath(request.resource.data.code)).data.roomId == roomId;
+
+        allow update: if false;
+
+        allow delete: if signedIn()
+            && (request.auth.uid == userId || isHost(roomId));
+      }
 
       match /messages/{messageId} {
         allow read: if signedIn()
@@ -209,6 +249,10 @@ service cloud.firestore {
               (
                 request.resource.data.role == 'listener'
                 && !('seatIndex' in request.resource.data)
+                && (
+                  get(roomPath(roomId)).data.isPrivate != true
+                  || exists(accessGrantPath(roomId, userId))
+                )
               )
               ||
               (
