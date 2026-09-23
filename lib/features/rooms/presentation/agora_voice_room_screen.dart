@@ -239,7 +239,14 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   }
 
   Future<void> _acceptHand(RoomParticipant participant) async {
-    final seatIndex = _firstFreeSeat;
+    final requested = participant.requestedSeatIndex;
+    final seatIndex = requested != null &&
+            requested >= 1 &&
+            requested <= 8 &&
+            !_occupiedSeatIndexes.contains(requested)
+        ? requested
+        : _firstFreeSeat;
+
     if (seatIndex == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -256,9 +263,11 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   }
 
   void _handleSeatTap(RoomSeatState seat) {
+    if (seat.role == RoomMemberRole.teacherAi) return;
+
     if (!_isHost) {
       if (_me?.role == RoomMemberRole.listener && seat.isEmpty) {
-        unawaited(_requestSeat());
+        unawaited(_requestSeat(seat.index));
       }
       return;
     }
@@ -282,19 +291,93 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     _showStageMemberActions(participant);
   }
 
-  Future<void> _requestSeat() async {
-    if (_handRaised) return;
-    await _moderation.setHandRaised(true);
+  Future<void> _requestSeat([int? seatIndex]) async {
+    await _moderation.setHandRaised(
+      true,
+      requestedSeatIndex: seatIndex,
+    );
     if (!mounted) return;
 
     final isArabic =
         Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
+    final seatText = seatIndex == null
+        ? ''
+        : (isArabic ? ' للمقعد $seatIndex' : ' for seat $seatIndex');
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
           isArabic
-              ? 'تم إرسال طلب الصعود للهوست.'
-              : 'Your seat request was sent to the host.',
+              ? 'تم إرسال طلب الصعود$seatText للهوست.'
+              : 'Your request$seatText was sent to the host.',
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showRaisedHandsSheet() async {
+    final isArabic =
+        Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
+
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          padding: const EdgeInsets.only(bottom: 16),
+          children: [
+            ListTile(
+              leading: const Icon(Icons.pan_tool_alt_rounded),
+              title: Text(
+                isArabic ? 'طلبات رفع اليد' : 'Raise hand requests',
+                style: const TextStyle(fontWeight: FontWeight.w900),
+              ),
+              subtitle: Text(
+                isArabic
+                    ? '${_raisedHands.length} طلب'
+                    : '${_raisedHands.length} request(s)',
+              ),
+            ),
+            for (final participant in _raisedHands)
+              ListTile(
+                leading: _ParticipantAvatar(participant: participant),
+                title: Text(participant.displayName),
+                subtitle: participant.requestedSeatIndex == null
+                    ? Text(isArabic ? 'يريد الصعود' : 'Wants to speak')
+                    : Text(
+                        isArabic
+                            ? 'طلب المقعد ${participant.requestedSeatIndex}'
+                            : 'Requested seat ${participant.requestedSeatIndex}',
+                      ),
+                trailing: Wrap(
+                  spacing: 6,
+                  children: [
+                    IconButton(
+                      tooltip: isArabic ? 'رفض' : 'Reject',
+                      onPressed: () async {
+                        await _moderation.rejectHand(participant.userId);
+                        if (sheetContext.mounted &&
+                            _raisedHands.length <= 1) {
+                          Navigator.pop(sheetContext);
+                        }
+                      },
+                      icon: const Icon(Icons.close_rounded),
+                    ),
+                    IconButton.filled(
+                      tooltip: isArabic ? 'موافقة' : 'Accept',
+                      onPressed: () async {
+                        await _acceptHand(participant);
+                        if (sheetContext.mounted) {
+                          Navigator.pop(sheetContext);
+                        }
+                      },
+                      icon: const Icon(Icons.check_rounded),
+                    ),
+                  ],
+                ),
+              ),
+          ],
         ),
       ),
     );
@@ -551,8 +634,19 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final isPublishing = _controller.role == AgoraRoomRole.speaker;
+    final myRole = _me?.role ??
+        (widget.initialRole == AgoraRoomRole.speaker
+            ? RoomMemberRole.host
+            : RoomMemberRole.listener);
+    final isArabic =
+        Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
+
     return Scaffold(
+      backgroundColor: const Color(0xFF17122F),
       appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.white,
         leading: IconButton(
           onPressed: _leave,
           icon: const Icon(Icons.close_rounded),
@@ -573,6 +667,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                         widget.roomName,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 4),
@@ -588,14 +686,17 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: _controller.joined
-                            ? Colors.green
-                            : colors.outline,
+                            ? const Color(0xFF5BFF91)
+                            : Colors.white38,
                       ),
                     ),
                     const SizedBox(width: 6),
                     Text(
                       '${_participants.length} members • LIVE',
-                      style: Theme.of(context).textTheme.labelSmall,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 11,
+                      ),
                     ),
                   ],
                 ),
@@ -603,118 +704,171 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
             ),
           ),
         ),
+        actions: [
+          if (_isHost)
+            IconButton(
+              tooltip: isArabic ? 'أدوات الغرفة' : 'Room tools',
+              onPressed: _showRoomControls,
+              icon: const Icon(Icons.more_horiz_rounded),
+            ),
+        ],
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            if (_controller.connecting)
-              const LinearProgressIndicator(minHeight: 2),
-            if (_controller.error != null)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 18),
-                child: Card(
-                  color: colors.errorContainer,
-                  child: Padding(
-                    padding: const EdgeInsets.all(14),
+      body: DecoratedBox(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF30216E),
+              Color(0xFF21194F),
+              Color(0xFF17122F),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            children: [
+              if (_controller.connecting)
+                const LinearProgressIndicator(minHeight: 2),
+              if (_controller.error != null)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 8, 14, 0),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: colors.errorContainer,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                     child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Icon(
                           Icons.error_outline_rounded,
                           color: colors.onErrorContainer,
                         ),
-                        const SizedBox(width: 10),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             _controller.error!,
-                            style: TextStyle(color: colors.onErrorContainer),
+                            style: TextStyle(
+                              color: colors.onErrorContainer,
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
-              ),
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(18, 12, 18, 18),
-                children: [
-                  RoomStageGrid(
-                    seats: _buildSeats(),
-                    onSeatTap: _handleSeatTap,
-                  ),
-                  if (_showTeacherAiSeat) ...[
-                    const SizedBox(height: 12),
-                    const _TeacherAiSeatCompact(),
-                  ],
-                  const SizedBox(height: 14),
-                  if (_isHost && _raisedHands.isNotEmpty)
-                    _RaisedHandsCard(
-                      requests: _raisedHands,
-                      onAccept: _acceptHand,
-                      onReject: (participant) =>
-                          _moderation.rejectHand(participant.userId),
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 20),
+                  children: [
+                    RoomStageGrid(
+                      seats: _buildSeats(),
+                      showTeacherAiSeat: _showTeacherAiSeat,
+                      onSeatTap: _handleSeatTap,
                     ),
-                ],
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.fromLTRB(18, 12, 18, 18),
-              decoration: BoxDecoration(
-                color: colors.surface,
-                border: Border(
-                  top: BorderSide(color: colors.outlineVariant),
+                    const SizedBox(height: 12),
+                    if (_isHost && _raisedHands.isNotEmpty)
+                      _RaisedHandNotice(
+                        participant: _raisedHands.first,
+                        total: _raisedHands.length,
+                        isArabic: isArabic,
+                        onTap: _showRaisedHandsSheet,
+                        onAccept: () => _acceptHand(_raisedHands.first),
+                        onReject: () =>
+                            _moderation.rejectHand(_raisedHands.first.userId),
+                      ),
+                    const SizedBox(height: 12),
+                    Container(
+                      constraints: const BoxConstraints(minHeight: 180),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: .10),
+                        borderRadius: BorderRadius.circular(22),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: .06),
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          myRole == RoomMemberRole.listener
+                              ? (_handRaised
+                                  ? (isArabic
+                                      ? 'طلب الصعود مُرسل'
+                                      : 'Seat request sent')
+                                  : (isArabic
+                                      ? 'اضغط مقعدًا فارغًا أو ارفع يدك'
+                                      : 'Tap an empty seat or raise your hand'))
+                              : (isArabic
+                                  ? 'أنت على الستيج'
+                                  : 'You are on stage'),
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: .58),
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              child: Row(
-                children: [
-                  if (isPublishing)
-                    Expanded(
-                      child: FilledButton.tonalIcon(
+              Container(
+                padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF110E24).withValues(alpha: .96),
+                  border: Border(
+                    top: BorderSide(
+                      color: Colors.white.withValues(alpha: .08),
+                    ),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    _RoomBottomAction(
+                      icon: Icons.call_end_rounded,
+                      background: const Color(0xFFFF9B9B),
+                      foreground: const Color(0xFF5B0000),
+                      onPressed: _leave,
+                    ),
+                    const Spacer(),
+                    if (isPublishing)
+                      _RoomBottomAction(
+                        icon: _controller.muted
+                            ? Icons.mic_off_rounded
+                            : Icons.mic_rounded,
+                        label: _controller.muted
+                            ? (isArabic ? 'تشغيل' : 'Unmute')
+                            : (isArabic ? 'كتم' : 'Mute'),
                         onPressed: _controller.joined
                             ? () => _controller.setMuted(!_controller.muted)
                             : null,
-                        icon: Icon(
-                          _controller.muted
-                              ? Icons.mic_off_rounded
-                              : Icons.mic_rounded,
-                        ),
-                        label: Text(
-                          _controller.muted ? 'Unmute' : 'Mute',
-                        ),
-                      ),
-                    )
-                  else
-                    Expanded(
-                      child: FilledButton.tonalIcon(
+                      )
+                    else
+                      _RoomBottomAction(
+                        icon: _handRaised
+                            ? Icons.pan_tool_rounded
+                            : Icons.pan_tool_alt_rounded,
+                        label: _handRaised
+                            ? (isArabic ? 'إلغاء الطلب' : 'Cancel')
+                            : (isArabic ? 'رفع اليد' : 'Raise hand'),
+                        highlighted: _handRaised,
                         onPressed: _controller.joined
                             ? () => _handRaised
                                 ? _moderation.setHandRaised(false)
                                 : _requestSeat()
                             : null,
-                        icon: Icon(
-                          _handRaised
-                              ? Icons.pan_tool_rounded
-                              : Icons.pan_tool_alt_rounded,
-                        ),
-                        label: Text(
-                          _handRaised ? 'Cancel hand' : 'Raise hand',
-                        ),
                       ),
+                    const SizedBox(width: 10),
+                    _RoomBottomAction(
+                      icon: Icons.more_horiz_rounded,
+                      label: isArabic ? 'المزيد' : 'More',
+                      onPressed: _showRoomControls,
                     ),
-                  const SizedBox(width: 10),
-                  FilledButton(
-                    onPressed: _leave,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: colors.error,
-                      foregroundColor: colors.onError,
-                    ),
-                    child: const Icon(Icons.call_end_rounded),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -795,80 +949,150 @@ class _RoomToolTile extends StatelessWidget {
   }
 }
 
-class _RaisedHandsCard extends StatelessWidget {
-  const _RaisedHandsCard({
-    required this.requests,
+class _RaisedHandNotice extends StatelessWidget {
+  const _RaisedHandNotice({
+    required this.participant,
+    required this.total,
+    required this.isArabic,
+    required this.onTap,
     required this.onAccept,
     required this.onReject,
   });
 
-  final List<RoomParticipant> requests;
-  final ValueChanged<RoomParticipant> onAccept;
-  final ValueChanged<RoomParticipant> onReject;
+  final RoomParticipant participant;
+  final int total;
+  final bool isArabic;
+  final VoidCallback onTap;
+  final VoidCallback onAccept;
+  final VoidCallback onReject;
 
   @override
   Widget build(BuildContext context) {
-    final isArabic =
-        Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
+    final seat = participant.requestedSeatIndex;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
-      decoration: BoxDecoration(
-        color: Theme.of(context)
-            .colorScheme
-            .surfaceContainerHighest
-            .withValues(alpha: .82),
+    return Material(
+      color: Colors.black.withValues(alpha: .32),
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
         borderRadius: BorderRadius.circular(18),
-      ),
-      child: Column(
-        children: [
-          Row(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 9, 8, 9),
+          child: Row(
             children: [
-              const Icon(Icons.pan_tool_rounded, size: 19),
-              const SizedBox(width: 8),
+              _ParticipantAvatar(participant: participant),
+              const SizedBox(width: 9),
               Expanded(
-                child: Text(
-                  isArabic
-                      ? 'طلبات الصعود (${requests.length})'
-                      : 'Seat requests (${requests.length})',
-                  style: const TextStyle(fontWeight: FontWeight.w900),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      participant.displayName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    Text(
+                      seat == null
+                          ? (isArabic ? 'يريد الصعود' : 'Wants to speak')
+                          : (isArabic
+                              ? 'يريد المقعد $seat'
+                              : 'Wants seat $seat'),
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
                 ),
+              ),
+              if (total > 1)
+                Container(
+                  margin: const EdgeInsetsDirectional.only(end: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF6E55FF),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    '+${total - 1}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              IconButton(
+                onPressed: onReject,
+                icon: const Icon(Icons.close_rounded, color: Colors.white70),
+              ),
+              IconButton.filled(
+                onPressed: onAccept,
+                style: IconButton.styleFrom(
+                  backgroundColor: const Color(0xFF55DFA0),
+                  foregroundColor: const Color(0xFF073B2A),
+                ),
+                icon: const Icon(Icons.check_rounded),
               ),
             ],
           ),
-          const SizedBox(height: 4),
-          for (final participant in requests)
-            ListTile(
-              dense: true,
-              contentPadding: EdgeInsets.zero,
-              leading: _ParticipantAvatar(participant: participant),
-              title: Text(
-                participant.displayName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              subtitle: Text(
-                isArabic ? 'يريد الصعود للمقعد' : 'Wants to join the stage',
-              ),
-              trailing: Wrap(
-                spacing: 4,
-                children: [
-                  IconButton(
-                    tooltip: isArabic ? 'رفض' : 'Reject',
-                    onPressed: () => onReject(participant),
-                    icon: const Icon(Icons.close_rounded),
-                  ),
-                  IconButton.filled(
-                    tooltip: isArabic ? 'موافقة' : 'Accept',
-                    onPressed: () => onAccept(participant),
-                    icon: const Icon(Icons.check_rounded),
-                  ),
-                ],
-              ),
-            ),
-        ],
+        ),
       ),
+    );
+  }
+}
+
+class _RoomBottomAction extends StatelessWidget {
+  const _RoomBottomAction({
+    required this.icon,
+    required this.onPressed,
+    this.label,
+    this.highlighted = false,
+    this.background,
+    this.foreground,
+  });
+
+  final IconData icon;
+  final VoidCallback? onPressed;
+  final String? label;
+  final bool highlighted;
+  final Color? background;
+  final Color? foreground;
+
+  @override
+  Widget build(BuildContext context) {
+    final bg = background ??
+        (highlighted
+            ? const Color(0xFF5B49C9)
+            : Colors.white.withValues(alpha: .10));
+    final fg = foreground ?? Colors.white;
+
+    if (label == null) {
+      return IconButton.filled(
+        onPressed: onPressed,
+        style: IconButton.styleFrom(
+          backgroundColor: bg,
+          foregroundColor: fg,
+          minimumSize: const Size(48, 48),
+        ),
+        icon: Icon(icon),
+      );
+    }
+
+    return FilledButton.icon(
+      onPressed: onPressed,
+      style: FilledButton.styleFrom(
+        backgroundColor: bg,
+        foregroundColor: fg,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      ),
+      icon: Icon(icon, size: 19),
+      label: Text(label!),
     );
   }
 }
