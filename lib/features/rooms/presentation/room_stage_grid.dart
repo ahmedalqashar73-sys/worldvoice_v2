@@ -232,7 +232,7 @@ class _SeatAvatar extends StatelessWidget {
       return Image.network(
         seat.avatarUrl!,
         fit: BoxFit.cover,
-        errorBuilder: (_, _, _) => const Icon(
+        errorBuilder: (context, error, stackTrace) => const Icon(
           Icons.person_rounded,
           size: 36,
         ),
@@ -261,19 +261,24 @@ class _RoleBadge extends StatelessWidget {
       case RoomMemberRole.host:
         background = const Color(0xFFFFE082);
         foreground = const Color(0xFF5C4300);
+        break;
       case RoomMemberRole.coHost:
         background = colors.secondaryContainer;
         foreground = colors.onSecondaryContainer;
+        break;
       case RoomMemberRole.vipSeat:
         background = const Color(0xFFFFE0B2);
         foreground = const Color(0xFF7A4100);
+        break;
       case RoomMemberRole.teacherAi:
         background = colors.primaryContainer;
         foreground = colors.onPrimaryContainer;
+        break;
       case RoomMemberRole.speaker:
       case RoomMemberRole.listener:
         background = colors.surfaceContainerHighest;
         foreground = colors.onSurfaceVariant;
+        break;
     }
 
     return Container(
