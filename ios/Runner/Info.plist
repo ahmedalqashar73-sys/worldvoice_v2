@@ -29,6 +29,8 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>WorldVoice uses the microphone to record your voice introduction and join voice rooms.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>WorldVoice uses speech recognition to create free live captions while you speak in voice rooms.</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>
