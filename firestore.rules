@@ -516,6 +516,14 @@ service cloud.firestore {
     }
 
     // -------------------------
+    // GIFT LEVEL THRESHOLDS
+    // -------------------------
+    match /gift_level_thresholds/{levelId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    // -------------------------
     // COIN PRODUCTS
     // -------------------------
     match /coin_products/{productId} {
