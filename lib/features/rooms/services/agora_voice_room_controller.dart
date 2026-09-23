@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:record/record.dart';
@@ -24,6 +26,8 @@ class AgoraVoiceRoomController extends ChangeNotifier {
   int? _localUid;
   int? _activeSpeakerUid;
   AgoraRoomRole _role = AgoraRoomRole.listener;
+  String? _channelId;
+  bool _renewingToken = false;
   final Set<int> _remoteSpeakers = <int>{};
 
   bool get connecting => _connecting;
@@ -52,6 +56,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
 
     _released = false;
     _connecting = true;
+    _channelId = channelId;
     _error = null;
     _role = role;
     notifyListeners();
@@ -121,6 +126,12 @@ class AgoraVoiceRoomController extends ChangeNotifier {
             notifyListeners();
           }
         },
+        onTokenPrivilegeWillExpire: (connection, token) {
+          unawaited(_renewToken());
+        },
+        onRequestToken: (connection) {
+          unawaited(_renewToken());
+        },
         onError: (err, message) {
           _error = 'Agora error: $err $message';
           _connecting = false;
@@ -140,15 +151,15 @@ class AgoraVoiceRoomController extends ChangeNotifier {
         profile: AudioProfileType.audioProfileSpeechStandard,
       );
 
-      final token = await _resolveToken(
+      final credential = await _resolveCredential(
         channelId: channelId,
         role: role,
       );
 
       await engine.joinChannel(
-        token: token,
+        token: credential.token,
         channelId: channelId,
-        uid: 0,
+        uid: credential.uid,
         options: ChannelMediaOptions(
           channelProfile:
               ChannelProfileType.channelProfileLiveBroadcasting,
@@ -170,27 +181,53 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     }
   }
 
-  Future<String> _resolveToken({
+  Future<({String token, int uid})> _resolveCredential({
     required String channelId,
     required AgoraRoomRole role,
   }) async {
     if (AgoraConfig.tokenEndpoint.trim().isEmpty) {
-      return AgoraConfig.tempToken;
+      return (
+        token: AgoraConfig.tempToken,
+        uid: 0,
+      );
+    }
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      throw StateError('Sign in is required before joining a voice room.');
+    }
+
+    final idToken = await user.getIdToken();
+    if (idToken == null || idToken.isEmpty) {
+      throw StateError('Could not authorize the Agora token request.');
     }
 
     final response = await http.post(
       Uri.parse(AgoraConfig.tokenEndpoint),
-      headers: const {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $idToken',
+      },
       body: jsonEncode({
         'channelName': channelId,
-        'uid': 0,
         'role': role == AgoraRoomRole.speaker ? 'publisher' : 'subscriber',
       }),
     );
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
+      String detail = '';
+      try {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic>) {
+          detail = decoded['error']?.toString() ?? '';
+        }
+      } catch (_) {
+        // Fall back to the HTTP status below.
+      }
       throw StateError(
-        'Token server failed with HTTP ${response.statusCode}.',
+        detail.isEmpty
+            ? 'Token server failed with HTTP ${response.statusCode}.'
+            : detail,
       );
     }
 
@@ -200,11 +237,52 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     }
 
     final token = body['token']?.toString() ?? '';
-    if (token.isEmpty) {
-      throw StateError('Token server did not return a token.');
+    final uid = (body['uid'] as num?)?.toInt() ?? 0;
+    if (token.isEmpty || uid <= 0) {
+      throw StateError('Token server did not return a valid token and UID.');
     }
 
-    return token;
+    return (
+      token: token,
+      uid: uid,
+    );
+  }
+
+  Future<void> _renewToken({
+    AgoraRoomRole? role,
+  }) async {
+    final engine = _engine;
+    final channelId = _channelId;
+    if (engine == null ||
+        channelId == null ||
+        !_joined ||
+        _renewingToken ||
+        AgoraConfig.tokenEndpoint.trim().isEmpty) {
+      return;
+    }
+
+    _renewingToken = true;
+    try {
+      final credential = await _resolveCredential(
+        channelId: channelId,
+        role: role ?? _role,
+      );
+
+      final currentUid = _localUid;
+      if (currentUid != null &&
+          currentUid > 0 &&
+          credential.uid != currentUid) {
+        throw StateError('Token server returned a different Agora UID.');
+      }
+
+      await engine.renewToken(credential.token);
+      _error = null;
+    } catch (error) {
+      _error = 'Agora token renewal failed: $error';
+      notifyListeners();
+    } finally {
+      _renewingToken = false;
+    }
   }
 
   Future<void> startScreenShare() async {
@@ -288,6 +366,10 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       }
     }
 
+    if (AgoraConfig.tokenEndpoint.trim().isNotEmpty) {
+      await _renewToken(role: role);
+    }
+
     await engine.setClientRole(
       role: role == AgoraRoomRole.speaker
           ? ClientRoleType.clientRoleBroadcaster
@@ -332,6 +414,8 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       _screenSharing = false;
       _localUid = null;
       _activeSpeakerUid = null;
+      _channelId = null;
+      _renewingToken = false;
       _remoteSpeakers.clear();
     }
   }
