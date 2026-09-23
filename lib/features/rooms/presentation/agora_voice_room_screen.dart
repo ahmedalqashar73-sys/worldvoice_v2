@@ -13,6 +13,7 @@ import 'room_board_screen.dart';
 import 'room_chat_sheet.dart';
 import 'room_music_sheet.dart';
 import 'room_quiz_sheet.dart';
+import 'room_extras_sheet.dart';
 import 'room_members_sheet.dart';
 import 'room_mod_log_sheet.dart';
 import 'room_stage_grid.dart';
@@ -537,6 +538,19 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     );
   }
 
+  Future<void> _showRoomExtras() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => RoomExtrasSheet(
+        roomId: widget.channelId,
+        participants: _participants,
+        isHost: _isHost,
+      ),
+    );
+  }
+
   Future<void> _showMembers() async {
     await showModalBottomSheet<void>(
       context: context,
@@ -662,6 +676,16 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                 onTap: () {
                   Navigator.pop(sheetContext);
                   _shareRoom();
+                },
+              ),
+              _RoomToolTile(
+                icon: Icons.auto_awesome_rounded,
+                label: isArabic
+                    ? 'الثيم والمهام والهدايا والترتيب'
+                    : 'Theme, tasks, gifts & leaderboard',
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _showRoomExtras();
                 },
               ),
             ],
