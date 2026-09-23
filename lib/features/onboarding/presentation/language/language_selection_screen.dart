@@ -105,7 +105,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
               child: ListView.separated(
                 padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
                 itemCount: languages.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 7),
+                separatorBuilder: (_, _) => const SizedBox(height: 7),
                 itemBuilder: (context, index) {
                   final language = languages[index];
                   final isSelected = language.code == selected;
