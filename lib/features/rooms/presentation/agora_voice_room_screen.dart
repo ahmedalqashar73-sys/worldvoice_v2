@@ -551,11 +551,6 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final isPublishing = _controller.role == AgoraRoomRole.speaker;
-    final myRole = _me?.role ??
-        (widget.initialRole == AgoraRoomRole.speaker
-            ? RoomMemberRole.host
-            : RoomMemberRole.listener);
-
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -644,25 +639,6 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(18, 12, 18, 18),
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'Stage',
-                          style:
-                              Theme.of(context).textTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.w900,
-                                  ),
-                        ),
-                      ),
-                      if (_isHost && _raisedHands.isNotEmpty)
-                        Badge(
-                          label: Text('${_raisedHands.length}'),
-                          child: const Icon(Icons.pan_tool_rounded),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
                   RoomStageGrid(
                     seats: _buildSeats(),
                     onSeatTap: _handleSeatTap,
@@ -679,26 +655,6 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                       onReject: (participant) =>
                           _moderation.rejectHand(participant.userId),
                     ),
-                  Card(
-                    child: ListTile(
-                      leading: Icon(
-                        myRole == RoomMemberRole.listener
-                            ? Icons.headphones_rounded
-                            : Icons.mic_rounded,
-                      ),
-                      title: Text(
-                        myRole.label,
-                        style: const TextStyle(fontWeight: FontWeight.w900),
-                      ),
-                      subtitle: Text(
-                        myRole == RoomMemberRole.listener
-                            ? _handRaised
-                                ? 'Hand raised — waiting for host approval.'
-                                : 'You are listening to the room.'
-                            : 'You are on the stage.',
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -772,6 +728,73 @@ enum _StageAction {
   listener,
 }
 
+class _TeacherAiSeatCompact extends StatelessWidget {
+  const _TeacherAiSeatCompact();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: Container(
+        width: 86,
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          color: colors.surfaceContainerHighest.withValues(alpha: .72),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: colors.primary.withValues(alpha: .45),
+          ),
+        ),
+        child: const Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircleAvatar(
+              radius: 23,
+              child: Icon(Icons.smart_toy_rounded, size: 26),
+            ),
+            SizedBox(height: 5),
+            Text(
+              'Teacher AI',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RoomToolTile extends StatelessWidget {
+  const _RoomToolTile({
+    required this.icon,
+    required this.label,
+  });
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: Icon(icon),
+      title: Text(
+        label,
+        style: const TextStyle(fontWeight: FontWeight.w800),
+      ),
+      trailing: const Icon(Icons.chevron_right_rounded),
+      onTap: () => Navigator.pop(context),
+    );
+  }
+}
+
 class _RaisedHandsCard extends StatelessWidget {
   const _RaisedHandsCard({
     required this.requests,
@@ -785,28 +808,59 @@ class _RaisedHandsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: ExpansionTile(
-        leading: const Icon(Icons.pan_tool_rounded),
-        title: Text(
-          'Raised hands (${requests.length})',
-          style: const TextStyle(fontWeight: FontWeight.w900),
-        ),
+    final isArabic =
+        Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context)
+            .colorScheme
+            .surfaceContainerHighest
+            .withValues(alpha: .82),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Column(
         children: [
+          Row(
+            children: [
+              const Icon(Icons.pan_tool_rounded, size: 19),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  isArabic
+                      ? 'طلبات الصعود (${requests.length})'
+                      : 'Seat requests (${requests.length})',
+                  style: const TextStyle(fontWeight: FontWeight.w900),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
           for (final participant in requests)
             ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
               leading: _ParticipantAvatar(participant: participant),
-              title: Text(participant.displayName),
+              title: Text(
+                participant.displayName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              subtitle: Text(
+                isArabic ? 'يريد الصعود للمقعد' : 'Wants to join the stage',
+              ),
               trailing: Wrap(
-                spacing: 6,
+                spacing: 4,
                 children: [
                   IconButton(
-                    tooltip: 'Reject',
+                    tooltip: isArabic ? 'رفض' : 'Reject',
                     onPressed: () => onReject(participant),
                     icon: const Icon(Icons.close_rounded),
                   ),
                   IconButton.filled(
-                    tooltip: 'Accept',
+                    tooltip: isArabic ? 'موافقة' : 'Accept',
                     onPressed: () => onAccept(participant),
                     icon: const Icon(Icons.check_rounded),
                   ),
