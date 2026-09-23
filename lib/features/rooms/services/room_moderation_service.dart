@@ -43,16 +43,18 @@ class RoomModerationService {
 
     final batch = _db.batch();
 
-    batch.set(
-      _roomRef,
-      {
-        'channelId': channelId,
-        'name': roomName,
-        if (asHost) 'hostId': user.uid,
-        'updatedAt': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
+    if (asHost) {
+      batch.set(
+        _roomRef,
+        {
+          'channelId': channelId,
+          'name': roomName,
+          'hostId': user.uid,
+          'updatedAt': FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
+      );
+    }
 
     batch.set(
       _participantsRef.doc(user.uid),
