@@ -273,6 +273,7 @@ class RoomFeatureService {
         {
           'roomXp': newXp,
           'roomLevel': newLevel,
+          'lastTaskCompletionId': taskRef.id,
           'updatedAt': FieldValue.serverTimestamp(),
         },
         SetOptions(merge: true),
