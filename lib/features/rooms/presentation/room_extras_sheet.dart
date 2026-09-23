@@ -315,34 +315,91 @@ class _LeaderboardTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<RoomGiftEvent>>(
-      stream: service.watchGifts(),
-      builder: (context, snapshot) {
-        final totals = <String, int>{};
-        final names = <String, String>{};
-        for (final gift in snapshot.data ?? const <RoomGiftEvent>[]) {
-          totals[gift.recipientId] =
-              (totals[gift.recipientId] ?? 0) + gift.points;
-          names[gift.recipientId] = gift.recipientName;
-        }
-        final ranking = totals.entries.toList()
-          ..sort((a, b) => b.value.compareTo(a.value));
-        if (ranking.isEmpty) {
-          return const Center(child: Text('No gifts yet.'));
-        }
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: ranking.length,
-          itemBuilder: (context, index) {
-            final entry = ranking[index];
-            return ListTile(
-              leading: CircleAvatar(child: Text('${index + 1}')),
-              title: Text(names[entry.key] ?? 'WorldVoice user'),
-              trailing: Text('${entry.value} pts'),
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: service.watchSpeakerStats(),
+      builder: (context, speakerSnapshot) {
+        return StreamBuilder<List<RoomGiftEvent>>(
+          stream: service.watchGifts(),
+          builder: (context, giftSnapshot) {
+            final giftTotals = <String, int>{};
+            final giftNames = <String, String>{};
+            for (final gift
+                in giftSnapshot.data ?? const <RoomGiftEvent>[]) {
+              giftTotals[gift.recipientId] =
+                  (giftTotals[gift.recipientId] ?? 0) + gift.points;
+              giftNames[gift.recipientId] = gift.recipientName;
+            }
+            final giftRanking = giftTotals.entries.toList()
+              ..sort((a, b) => b.value.compareTo(a.value));
+            final speakers = speakerSnapshot.data?.docs ??
+                const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
+
+            return ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                Text(
+                  'Most active speakers',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                if (speakers.isEmpty)
+                  const ListTile(
+                    leading: Icon(Icons.mic_none_rounded),
+                    title: Text('No speaking activity yet.'),
+                  )
+                else
+                  for (var index = 0; index < speakers.length; index++)
+                    ListTile(
+                      leading: CircleAvatar(child: Text('${index + 1}')),
+                      title: Text(
+                        (speakers[index].data()['displayName'] ??
+                                'WorldVoice user')
+                            .toString(),
+                      ),
+                      trailing: Text(
+                        _formatDuration(
+                          (speakers[index].data()['seconds'] as num?)
+                                  ?.toInt() ??
+                              0,
+                        ),
+                      ),
+                    ),
+                const Divider(height: 28),
+                Text(
+                  'Top gifts received',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                if (giftRanking.isEmpty)
+                  const ListTile(
+                    leading: Icon(Icons.card_giftcard_rounded),
+                    title: Text('No gifts yet.'),
+                  )
+                else
+                  for (var index = 0; index < giftRanking.length; index++)
+                    ListTile(
+                      leading: CircleAvatar(child: Text('${index + 1}')),
+                      title: Text(
+                        giftNames[giftRanking[index].key] ??
+                            'WorldVoice user',
+                      ),
+                      trailing: Text('${giftRanking[index].value} pts'),
+                    ),
+              ],
             );
           },
         );
       },
     );
+  }
+
+  String _formatDuration(int seconds) {
+    final minutes = seconds ~/ 60;
+    final remaining = seconds % 60;
+    return minutes > 0 ? '${minutes}m ${remaining}s' : '${remaining}s';
   }
 }
