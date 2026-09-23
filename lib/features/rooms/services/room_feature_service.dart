@@ -41,6 +41,22 @@ class RoomFeatureService {
   Future<void> setTheme(String themeId) => _room.set(
         {
           'themeId': themeId,
+          'backgroundUrl': FieldValue.delete(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
+      );
+
+  Future<void> setPurchasedBackground({
+    required String themeId,
+    required String? backgroundUrl,
+  }) =>
+      _room.set(
+        {
+          'themeId': themeId,
+          'backgroundUrl': backgroundUrl?.trim().isNotEmpty == true
+              ? backgroundUrl!.trim()
+              : FieldValue.delete(),
           'updatedAt': FieldValue.serverTimestamp(),
         },
         SetOptions(merge: true),
