@@ -66,6 +66,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   StreamSubscription<bool>? _roomOpenSub;
   StreamSubscription<bool>? _teacherAiSeatSub;
   StreamSubscription<RoomFeatureState>? _featuresSub;
+  StreamSubscription<List<RoomGiftEvent>>? _giftSub;
 
   List<RoomParticipant> _participants = const <RoomParticipant>[];
   RoomParticipant? _me;
@@ -75,6 +76,11 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   bool _participantWasReady = false;
   bool _trackingEnded = false;
   bool _minimized = false;
+  String? _lastGiftId;
+  bool _giftStreamPrimed = false;
+  OverlayEntry? _giftOverlay;
+  Timer? _giftOverlayTimer;
+
   RoomFeatureState _featureState = const RoomFeatureState(
     roomLevel: 1,
     roomXp: 0,
@@ -162,6 +168,21 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         unawaited(_syncRoomMusic(state));
       });
 
+      _giftSub = _features.watchGifts().listen((gifts) {
+        if (!mounted || gifts.isEmpty) return;
+        final latest = gifts.first;
+
+        if (!_giftStreamPrimed) {
+          _giftStreamPrimed = true;
+          _lastGiftId = latest.id;
+          return;
+        }
+
+        if (latest.id == _lastGiftId) return;
+        _lastGiftId = latest.id;
+        _showGiftOverlay(latest);
+      });
+
       _participantsSub =
           _moderation.watchParticipants().listen((participants) {
         if (!mounted) return;
@@ -183,6 +204,30 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       await _controller.leave();
       if (mounted) Navigator.of(context).pop();
     }
+  }
+
+  void _showGiftOverlay(RoomGiftEvent gift) {
+    if (!mounted) return;
+
+    _giftOverlayTimer?.cancel();
+    _giftOverlay?.remove();
+
+    final overlay = Overlay.of(context);
+    final entry = OverlayEntry(
+      builder: (_) => _RoomGiftOverlay(event: gift),
+    );
+    _giftOverlay = entry;
+    overlay.insert(entry);
+
+    _giftOverlayTimer = Timer(
+      Duration(seconds: gift.giftId == 'dragon' ? 5 : 3),
+      () {
+        if (_giftOverlay == entry) {
+          entry.remove();
+          _giftOverlay = null;
+        }
+      },
+    );
   }
 
   Future<void> _syncRoomMusic(RoomFeatureState state) async {
@@ -975,6 +1020,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     _roomOpenSub?.cancel();
     _teacherAiSeatSub?.cancel();
     _featuresSub?.cancel();
+    _giftSub?.cancel();
+    _giftOverlayTimer?.cancel();
+    _giftOverlay?.remove();
+    _giftOverlay = null;
     _controller.removeListener(_refresh);
     unawaited(_musicPlayer.dispose());
     unawaited(_finishSessionTracking());
@@ -1366,6 +1415,111 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RoomGiftOverlay extends StatelessWidget {
+  const _RoomGiftOverlay({required this.event});
+
+  final RoomGiftEvent event;
+
+  @override
+  Widget build(BuildContext context) {
+    final dragon = event.giftId == 'dragon';
+
+    return IgnorePointer(
+      child: Material(
+        color: dragon ? Colors.black.withValues(alpha: .34) : Colors.transparent,
+        child: SafeArea(
+          child: dragon
+              ? TweenAnimationBuilder<double>(
+                  tween: Tween(begin: -1, end: 1),
+                  duration: const Duration(milliseconds: 2200),
+                  curve: Curves.easeInOutCubic,
+                  builder: (context, value, child) {
+                    final width = MediaQuery.sizeOf(context).width;
+                    return Stack(
+                      children: [
+                        Positioned(
+                          left: (width * .5) + (value * width * .42) - 70,
+                          top: 120 + (40 * (1 - value.abs())),
+                          child: Transform.rotate(
+                            angle: value * .25,
+                            child: const Text(
+                              '🐉',
+                              style: TextStyle(fontSize: 118),
+                            ),
+                          ),
+                        ),
+                        if (value > .35)
+                          Positioned(
+                            right: 32,
+                            top: 250,
+                            child: Opacity(
+                              opacity: ((value - .35) / .65).clamp(0, 1),
+                              child: const Text(
+                                '🔥🔥🔥',
+                                style: TextStyle(fontSize: 54),
+                              ),
+                            ),
+                          ),
+                        Align(
+                          alignment: Alignment.bottomCenter,
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 110),
+                            child: _GiftCaption(event: event),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                )
+              : Align(
+                  alignment: Alignment.topCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 90),
+                    child: _GiftCaption(event: event),
+                  ),
+                ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GiftCaption extends StatelessWidget {
+  const _GiftCaption({required this.event});
+
+  final RoomGiftEvent event;
+
+  @override
+  Widget build(BuildContext context) {
+    final icon = switch (event.giftId) {
+      'dragon' => '🐉',
+      'star' => '⭐',
+      _ => '🌹',
+    };
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF17122F).withValues(alpha: .94),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: Colors.white24),
+        boxShadow: const [
+          BoxShadow(blurRadius: 22, color: Colors.black45),
+        ],
+      ),
+      child: Text(
+        '$icon  ${event.senderName} → ${event.recipientName}  •  ${event.points}',
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w900,
         ),
       ),
     );
