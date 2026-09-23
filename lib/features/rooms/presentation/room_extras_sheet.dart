@@ -215,31 +215,69 @@ class _GiftsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final targets = participants.where((p) => p.isOnStage).toList();
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        if (targets.isEmpty)
-          const Padding(
-            padding: EdgeInsets.all(24),
-            child: Text('No stage member is available for gifts.'),
-          ),
-        for (final target in targets)
-          _GiftTargetTile(
-            service: service,
-            recipientId: target.userId,
-            recipientName: target.displayName,
-            photoUrl: target.photoUrl,
-            onOpenCoinStore: onOpenCoinStore,
-          ),
-        if (showTeacherAiSeat)
-          _GiftTargetTile(
-            service: service,
-            recipientId: 'teacher_ai',
-            recipientName: 'Teacher AI',
-            teacherAi: true,
-            onOpenCoinStore: onOpenCoinStore,
-          ),
-      ],
+
+    return StreamBuilder<List<RoomGiftCatalogItem>>(
+      stream: service.watchGiftCatalog(),
+      builder: (context, snapshot) {
+        final configured = snapshot.data ?? const <RoomGiftCatalogItem>[];
+        final gifts = configured.isNotEmpty
+            ? configured
+            : const <RoomGiftCatalogItem>[
+                RoomGiftCatalogItem(
+                  id: 'rose',
+                  name: 'Rose',
+                  priceCoins: 10,
+                  active: true,
+                  category: '1-50',
+                  emoji: '🌹',
+                ),
+                RoomGiftCatalogItem(
+                  id: 'star',
+                  name: 'Star',
+                  priceCoins: 50,
+                  active: true,
+                  category: '1-50',
+                  emoji: '⭐',
+                ),
+                RoomGiftCatalogItem(
+                  id: 'dragon',
+                  name: 'Dragon',
+                  priceCoins: 500,
+                  active: true,
+                  category: '150-500',
+                  emoji: '🐉',
+                ),
+              ];
+
+        return ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            if (targets.isEmpty)
+              const Padding(
+                padding: EdgeInsets.all(24),
+                child: Text('No stage member is available for gifts.'),
+              ),
+            for (final target in targets)
+              _GiftTargetTile(
+                service: service,
+                recipientId: target.userId,
+                recipientName: target.displayName,
+                photoUrl: target.photoUrl,
+                gifts: gifts,
+                onOpenCoinStore: onOpenCoinStore,
+              ),
+            if (showTeacherAiSeat)
+              _GiftTargetTile(
+                service: service,
+                recipientId: 'teacher_ai',
+                recipientName: 'Teacher AI',
+                teacherAi: true,
+                gifts: gifts,
+                onOpenCoinStore: onOpenCoinStore,
+              ),
+          ],
+        );
+      },
     );
   }
 }
@@ -249,6 +287,7 @@ class _GiftTargetTile extends StatelessWidget {
     required this.service,
     required this.recipientId,
     required this.recipientName,
+    required this.gifts,
     this.photoUrl,
     this.teacherAi = false,
     this.onOpenCoinStore,
@@ -259,18 +298,19 @@ class _GiftTargetTile extends StatelessWidget {
   final String recipientName;
   final String? photoUrl;
   final bool teacherAi;
+  final List<RoomGiftCatalogItem> gifts;
   final VoidCallback? onOpenCoinStore;
 
   Future<void> _send(
     BuildContext context,
-    (String, int) gift,
+    RoomGiftCatalogItem gift,
   ) async {
     try {
       await service.sendGift(
         recipientId: recipientId,
         recipientName: recipientName,
-        giftId: gift.$1,
-        points: gift.$2,
+        giftId: gift.id,
+        points: gift.priceCoins,
       );
     } catch (error) {
       if (!context.mounted) return;
@@ -306,21 +346,18 @@ class _GiftTargetTile extends StatelessWidget {
         ),
         title: Text(recipientName),
         subtitle: const Text('Send room gift'),
-        trailing: PopupMenuButton<(String, int)>(
+        trailing: PopupMenuButton<RoomGiftCatalogItem>(
           onSelected: (gift) => _send(context, gift),
-          itemBuilder: (_) => const [
-            PopupMenuItem(
-              value: ('rose', 10),
-              child: Text('🌹 Rose • 10 coins'),
-            ),
-            PopupMenuItem(
-              value: ('star', 50),
-              child: Text('⭐ Star • 50 coins'),
-            ),
-            PopupMenuItem(
-              value: ('dragon', 500),
-              child: Text('🐉 Dragon • 500 coins'),
-            ),
+          itemBuilder: (_) => [
+            for (final gift in gifts)
+              PopupMenuItem(
+                value: gift,
+                child: Text(
+                  '${gift.emoji?.trim().isNotEmpty == true ? gift.emoji : '🎁'} '
+                  '${gift.name} • ${gift.priceCoins} coins'
+                  '${gift.category?.trim().isNotEmpty == true ? ' • ${gift.category}' : ''}',
+                ),
+              ),
           ],
         ),
       ),
