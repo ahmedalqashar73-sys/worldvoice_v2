@@ -9,12 +9,14 @@ class RoomExtrasSheet extends StatelessWidget {
     required this.roomId,
     required this.participants,
     required this.isHost,
+    required this.showTeacherAiSeat,
     super.key,
   });
 
   final String roomId;
   final List<RoomParticipant> participants;
   final bool isHost;
+  final bool showTeacherAiSeat;
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +58,7 @@ class RoomExtrasSheet extends StatelessWidget {
                     _GiftsTab(
                       service: service,
                       participants: participants,
+                      showTeacherAiSeat: showTeacherAiSeat,
                     ),
                     _LeaderboardTab(service: service),
                   ],
@@ -191,9 +194,11 @@ class _GiftsTab extends StatelessWidget {
   const _GiftsTab({
     required this.service,
     required this.participants,
+    required this.showTeacherAiSeat,
   });
   final RoomFeatureService service;
   final List<RoomParticipant> participants;
+  final bool showTeacherAiSeat;
 
   @override
   Widget build(BuildContext context) {
@@ -207,43 +212,99 @@ class _GiftsTab extends StatelessWidget {
             child: Text('No stage member is available for gifts.'),
           ),
         for (final target in targets)
-          Card(
-            child: ListTile(
-              leading: CircleAvatar(
-                backgroundImage: target.photoUrl?.isNotEmpty == true
-                    ? NetworkImage(target.photoUrl!)
-                    : null,
-                child: target.photoUrl?.isNotEmpty == true
-                    ? null
-                    : const Icon(Icons.person_rounded),
-              ),
-              title: Text(target.displayName),
-              subtitle: const Text('Send room gift'),
-              trailing: PopupMenuButton<(String, int)>(
-                onSelected: (gift) => service.sendGift(
-                  recipientId: target.userId,
-                  recipientName: target.displayName,
-                  giftId: gift.$1,
-                  points: gift.$2,
-                ),
-                itemBuilder: (_) => const [
-                  PopupMenuItem(
-                    value: ('rose', 10),
-                    child: Text('🌹 Rose • 10'),
-                  ),
-                  PopupMenuItem(
-                    value: ('star', 50),
-                    child: Text('⭐ Star • 50'),
-                  ),
-                  PopupMenuItem(
-                    value: ('dragon', 500),
-                    child: Text('🐉 Dragon • 500'),
-                  ),
-                ],
-              ),
-            ),
+          _GiftTargetTile(
+            service: service,
+            recipientId: target.userId,
+            recipientName: target.displayName,
+            photoUrl: target.photoUrl,
+          ),
+        if (showTeacherAiSeat)
+          _GiftTargetTile(
+            service: service,
+            recipientId: 'teacher_ai',
+            recipientName: 'Teacher AI',
+            teacherAi: true,
           ),
       ],
+    );
+  }
+}
+
+class _GiftTargetTile extends StatelessWidget {
+  const _GiftTargetTile({
+    required this.service,
+    required this.recipientId,
+    required this.recipientName,
+    this.photoUrl,
+    this.teacherAi = false,
+  });
+
+  final RoomFeatureService service;
+  final String recipientId;
+  final String recipientName;
+  final String? photoUrl;
+  final bool teacherAi;
+
+  Future<void> _send(
+    BuildContext context,
+    (String, int) gift,
+  ) async {
+    try {
+      await service.sendGift(
+        recipientId: recipientId,
+        recipientName: recipientName,
+        giftId: gift.$1,
+        points: gift.$2,
+      );
+    } catch (error) {
+      if (!context.mounted) return;
+      final notEnough = error.toString().contains('NOT_ENOUGH_COINS');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            notEnough
+                ? 'Not enough coins. Add coins from the WorldVoice store.'
+                : error.toString(),
+          ),
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundImage: !teacherAi && photoUrl?.isNotEmpty == true
+              ? NetworkImage(photoUrl!)
+              : null,
+          child: teacherAi
+              ? const Icon(Icons.smart_toy_rounded)
+              : photoUrl?.isNotEmpty == true
+                  ? null
+                  : const Icon(Icons.person_rounded),
+        ),
+        title: Text(recipientName),
+        subtitle: const Text('Send room gift'),
+        trailing: PopupMenuButton<(String, int)>(
+          onSelected: (gift) => _send(context, gift),
+          itemBuilder: (_) => const [
+            PopupMenuItem(
+              value: ('rose', 10),
+              child: Text('🌹 Rose • 10 coins'),
+            ),
+            PopupMenuItem(
+              value: ('star', 50),
+              child: Text('⭐ Star • 50 coins'),
+            ),
+            PopupMenuItem(
+              value: ('dragon', 500),
+              child: Text('🐉 Dragon • 500 coins'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
