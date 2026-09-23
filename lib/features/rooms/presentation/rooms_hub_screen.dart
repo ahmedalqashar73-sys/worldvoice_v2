@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../../learn/presentation/learn_screen.dart';
 import '../../live/presentation/live_screen.dart';
+import '../data/agora_config.dart';
 import '../services/agora_voice_room_controller.dart';
 import 'agora_voice_room_screen.dart';
 
@@ -242,10 +243,306 @@ class _VoiceRoomsPage extends StatelessWidget {
 
     if (roomName == null || !context.mounted) return;
 
+    if (AgoraConfig.tempToken.trim().isNotEmpty &&
+        AgoraConfig.tokenEndpoint.trim().isEmpty) {
+      _openRoom(
+        context,
+        channelId: 'worldvoice_english_lounge',
+        roomName: roomName,
+        role: AgoraRoomRole.speaker,
+      );
+      return;
+    }
+
     final slug = roomName
         .toLowerCase()
         .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
-        .replaceAll(RegExp(r'^_+|_+$'), '');
+        .replaceAll(RegExp(r'^_+|_+
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(18, 12, 18, 28),
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                labels.voiceRoomsTitle,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
+              ),
+            ),
+            FilledButton.icon(
+              onPressed: () => _createRoom(context),
+              icon: const Icon(Icons.add_rounded),
+              label: Text(labels.createRoom),
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        _VoiceRoomCard(
+          name: labels.englishRoom,
+          flag: '🇺🇸',
+          subtitle: labels.publicRoom,
+          listeners: 69,
+          onTap: () => _openRoom(
+            context,
+            channelId: 'worldvoice_english_lounge',
+            roomName: labels.englishRoom,
+            role: AgoraRoomRole.listener,
+          ),
+        ),
+        _VoiceRoomCard(
+          name: labels.arabicRoom,
+          flag: '🇸🇦',
+          subtitle: labels.publicRoom,
+          listeners: 262,
+          onTap: () {
+            if (AgoraConfig.tempToken.trim().isNotEmpty &&
+                AgoraConfig.tokenEndpoint.trim().isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Temporary token is only valid for worldvoice_english_lounge.',
+                  ),
+                ),
+              );
+              return;
+            }
+            _openRoom(
+              context,
+              channelId: 'worldvoice_arabic_friends',
+              roomName: labels.arabicRoom,
+              role: AgoraRoomRole.listener,
+            );
+          },
+        ),
+        _VoiceRoomCard(
+          name: labels.worldRoom,
+          flag: '🌍',
+          subtitle: labels.languageExchange,
+          listeners: 154,
+          onTap: () {
+            if (AgoraConfig.tempToken.trim().isNotEmpty &&
+                AgoraConfig.tokenEndpoint.trim().isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Temporary token is only valid for worldvoice_english_lounge.',
+                  ),
+                ),
+              );
+              return;
+            }
+            _openRoom(
+              context,
+              channelId: 'worldvoice_world_talk',
+              roomName: labels.worldRoom,
+              role: AgoraRoomRole.listener,
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _FeatureTile extends StatelessWidget {
+  const _FeatureTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 10),
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(16),
+        leading: CircleAvatar(child: Icon(icon)),
+        title: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.w900),
+        ),
+        subtitle: Text(subtitle),
+        trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
+        onTap: () {},
+      ),
+    );
+  }
+}
+
+class _VoiceRoomCard extends StatelessWidget {
+  const _VoiceRoomCard({
+    required this.name,
+    required this.flag,
+    required this.subtitle,
+    required this.listeners,
+    required this.onTap,
+  });
+
+  final String name;
+  final String flag;
+  final String subtitle;
+  final int listeners;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(16),
+        leading: CircleAvatar(
+          radius: 28,
+          child: Text(flag, style: const TextStyle(fontSize: 24)),
+        ),
+        title: Text(
+          name,
+          style: const TextStyle(fontWeight: FontWeight.w900),
+        ),
+        subtitle: Text(subtitle),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.headphones_rounded, size: 17),
+            const SizedBox(width: 4),
+            Text('$listeners'),
+          ],
+        ),
+        onTap: onTap,
+      ),
+    );
+  }
+}
+
+class _RoomsHubLabels {
+  _RoomsHubLabels(String code)
+      : hubTitle = 'Rooms',
+        search = code == 'ar'
+            ? 'بحث'
+            : code == 'es'
+                ? 'Buscar'
+                : 'Search',
+        sections = code == 'ar'
+            ? const ['ChatGPT AI', 'Live', 'تعلّم', 'الغرف الصوتية']
+            : code == 'es'
+                ? const ['ChatGPT AI', 'Live', 'Aprender', 'Salas']
+                : const ['ChatGPT AI', 'Live', 'Learn', 'Voice Rooms'],
+        aiTitle = 'ChatGPT AI',
+        aiSubtitle = code == 'ar'
+            ? 'معلمك الذكي للمحادثة والتعلّم.'
+            : code == 'es'
+                ? 'Tu profesor inteligente para hablar y aprender.'
+                : 'Your AI teacher for speaking and learning.',
+        aiConversation = code == 'ar'
+            ? 'محادثة مع AI'
+            : code == 'es'
+                ? 'Conversación con AI'
+                : 'AI conversation',
+        aiConversationBody = code == 'ar'
+            ? 'تدرّب على الكلام والنطق بشكل مباشر.'
+            : code == 'es'
+                ? 'Practica conversación y pronunciación.'
+                : 'Practice speaking and pronunciation.',
+        aiTranslate = code == 'ar'
+            ? 'ترجمة وشرح'
+            : code == 'es'
+                ? 'Traducción y explicación'
+                : 'Translate & explain',
+        aiTranslateBody = code == 'ar'
+            ? 'ترجمة الكلمات والجمل مع شرح مبسط.'
+            : code == 'es'
+                ? 'Traduce palabras y frases con explicaciones.'
+                : 'Translate words and sentences with explanations.',
+        aiQuiz = code == 'ar'
+            ? 'اختبارات قصيرة'
+            : code == 'es'
+                ? 'Pruebas rápidas'
+                : 'Quick quizzes',
+        aiQuizBody = code == 'ar'
+            ? 'اختبر مستواك وتابع تقدمك.'
+            : code == 'es'
+                ? 'Comprueba tu nivel y progreso.'
+                : 'Check your level and progress.',
+        startAi = code == 'ar'
+            ? 'ابدأ مع ChatGPT AI'
+            : code == 'es'
+                ? 'Empezar con ChatGPT AI'
+                : 'Start with ChatGPT AI',
+        voiceRoomsTitle = code == 'ar'
+            ? 'الغرف الصوتية'
+            : code == 'es'
+                ? 'Salas de voz'
+                : 'Voice Rooms',
+        createRoom = code == 'ar'
+            ? 'إنشاء'
+            : code == 'es'
+                ? 'Crear'
+                : 'Create',
+        roomNameHint = code == 'ar'
+            ? 'اسم الغرفة'
+            : code == 'es'
+                ? 'Nombre de la sala'
+                : 'Room name',
+        cancel = code == 'ar'
+            ? 'إلغاء'
+            : code == 'es'
+                ? 'Cancelar'
+                : 'Cancel',
+        englishRoom = 'English Lounge',
+        arabicRoom = code == 'ar'
+            ? 'أصدقاء العربية'
+            : code == 'es'
+                ? 'Amigos de árabe'
+                : 'Arabic Friends',
+        worldRoom = code == 'ar'
+            ? 'حديث العالم'
+            : code == 'es'
+                ? 'Charla mundial'
+                : 'World Talk',
+        publicRoom = code == 'ar'
+            ? 'غرفة عامة • تحدث مباشرة'
+            : code == 'es'
+                ? 'Sala pública • Habla en directo'
+                : 'Public room • Speak live',
+        languageExchange = code == 'ar'
+            ? 'تبادل لغات من جميع أنحاء العالم'
+            : code == 'es'
+                ? 'Intercambio de idiomas global'
+                : 'Global language exchange';
+
+  final String hubTitle;
+  final String search;
+  final List<String> sections;
+  final String aiTitle;
+  final String aiSubtitle;
+  final String aiConversation;
+  final String aiConversationBody;
+  final String aiTranslate;
+  final String aiTranslateBody;
+  final String aiQuiz;
+  final String aiQuizBody;
+  final String startAi;
+  final String voiceRoomsTitle;
+  final String createRoom;
+  final String roomNameHint;
+  final String cancel;
+  final String englishRoom;
+  final String arabicRoom;
+  final String worldRoom;
+  final String publicRoom;
+  final String languageExchange;
+}
+), '');
 
     final channelId = slug.isEmpty
         ? 'worldvoice_${DateTime.now().millisecondsSinceEpoch}'
