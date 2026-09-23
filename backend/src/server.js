@@ -452,6 +452,80 @@ app.post("/teacher-ai", async (req, res, next) => {
   }
 });
 
+app.post("/teacher-ai/ask", async (req, res, next) => {
+  try {
+    const user = await authenticatedUser(req);
+
+    requireEnv(openAiKey, "OPENAI_API_KEY");
+    requireEnv(teacherModel, "OPENAI_TEACHER_MODEL");
+
+    const roomId = String(req.body?.roomId || "").trim();
+    const prompt = String(req.body?.prompt || "").trim();
+    const requestedRoomLanguage = String(
+      req.body?.roomLanguageCode || "",
+    ).trim();
+
+    if (!roomId || !prompt) {
+      return res.status(400).json({
+        error: "roomId and prompt are required.",
+      });
+    }
+
+    if (prompt.length > 1200) {
+      return res.status(400).json({
+        error: "Teacher AI questions are limited to 1200 characters.",
+      });
+    }
+
+    const roomRef = db.collection("rooms").doc(roomId);
+    const participantRef = roomRef.collection("participants").doc(user.uid);
+    const [roomSnap, participantSnap] = await Promise.all([
+      roomRef.get(),
+      participantRef.get(),
+    ]);
+
+    if (!roomSnap.exists || roomSnap.data()?.isOpen !== true) {
+      return res.status(404).json({ error: "Room is not open." });
+    }
+
+    if (!participantSnap.exists) {
+      return res.status(403).json({ error: "User is not in this room." });
+    }
+
+    const roomLanguageCode =
+      requestedRoomLanguage ||
+      String(roomSnap.data()?.languageCode || "en").trim() ||
+      "en";
+
+    const response = await openai.responses.create({
+      model: teacherModel,
+      store: false,
+      instructions:
+        "You are WorldVoice Teacher AI inside a live language-learning room. " +
+        "Answer the member's language-learning question clearly and concisely. " +
+        "The room target language is provided as context. " +
+        "Reply in the same language as the member unless they explicitly ask to practice or receive an answer in another language. " +
+        "When correcting a sentence, show the corrected form and a short explanation. " +
+        "Do not claim to hear audio unless transcript text is explicitly provided.",
+      input:
+        `Target room language: ${roomLanguageCode}\n` +
+        `Member question: ${prompt}`,
+    });
+
+    const answer = String(response.output_text || "").trim().slice(0, 2400);
+    if (!answer) {
+      return res.status(502).json({ error: "Teacher AI returned no answer." });
+    }
+
+    return res.json({
+      ok: true,
+      answer,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.post("/store/purchase", async (req, res, next) => {
   try {
     const user = await authenticatedUser(req);
