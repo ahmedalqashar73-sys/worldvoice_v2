@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 
+import '../data/room_backend_config.dart';
 import '../data/room_caption.dart';
 import '../data/room_teacher_ai_note.dart';
 
@@ -12,8 +13,15 @@ class RoomTeacherAiService {
 
   final String roomId;
 
-  static const String endpoint =
+  static const String _explicitEndpoint =
       String.fromEnvironment('WORLDVOICE_TEACHER_AI_ENDPOINT');
+
+  String get endpoint {
+    final explicit = _explicitEndpoint.trim();
+    return explicit.isNotEmpty
+        ? explicit
+        : RoomBackendConfig.endpoint('/teacher-ai');
+  }
 
   bool get isConfigured => endpoint.trim().isNotEmpty;
 
