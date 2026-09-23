@@ -141,7 +141,7 @@ class _LearnScreenState extends State<LearnScreen> {
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: t.filters.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
                 itemBuilder: (_, i) => ChoiceChip(
                   selected: filter == i,
                   label: Text(t.filters[i]),
