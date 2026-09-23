@@ -85,7 +85,7 @@ class _ConnectionList extends StatelessWidget {
         return ListView.separated(
           padding: const EdgeInsets.all(14),
           itemCount: docs.length,
-          separatorBuilder: (_, __) => const Divider(height: 1),
+          separatorBuilder: (_, _) => const Divider(height: 1),
           itemBuilder: (context, index) => _PersonTile(
             userId: docs[index].id,
             fallback: docs[index].data(),
@@ -128,7 +128,7 @@ class _PartnersList extends StatelessWidget {
         return ListView.separated(
           padding: const EdgeInsets.all(14),
           itemCount: ids.length,
-          separatorBuilder: (_, __) => const Divider(height: 1),
+          separatorBuilder: (_, _) => const Divider(height: 1),
           itemBuilder: (context, index) => _PersonTile(
             userId: ids[index],
             fallback: const <String, dynamic>{},
@@ -175,7 +175,7 @@ class _PersonTile extends StatelessWidget {
             name?.isNotEmpty == true ? name! : 'WorldVoice',
             style: const TextStyle(fontWeight: FontWeight.w800),
           ),
-          subtitle: username?.isNotEmpty == true ? Text('@' + username!) : null,
+          subtitle: username?.isNotEmpty == true ? Text('@\${username!}') : null,
           trailing: const Icon(Icons.chevron_right_rounded),
           onTap: () {
             Navigator.of(context).push(
