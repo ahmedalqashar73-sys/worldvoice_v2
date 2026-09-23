@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../data/room_feature_models.dart';
@@ -29,7 +30,7 @@ class RoomExtrasSheet extends StatelessWidget {
       child: SizedBox(
         height: MediaQuery.sizeOf(context).height * .82,
         child: DefaultTabController(
-          length: 4,
+          length: 5,
           child: Column(
             children: [
               ListTile(
@@ -49,6 +50,7 @@ class RoomExtrasSheet extends StatelessWidget {
                   Tab(text: isArabic ? 'المهام' : 'Tasks'),
                   Tab(text: isArabic ? 'الهدايا' : 'Gifts'),
                   Tab(text: isArabic ? 'الترتيب' : 'Leaderboard'),
+                  Tab(text: isArabic ? 'المكافآت' : 'Rewards'),
                 ],
               ),
               Expanded(
@@ -62,6 +64,10 @@ class RoomExtrasSheet extends StatelessWidget {
                       showTeacherAiSeat: showTeacherAiSeat,
                     ),
                     _LeaderboardTab(service: service),
+                    _RewardsTab(
+                      roomId: roomId,
+                      isArabic: isArabic,
+                    ),
                   ],
                 ),
               ),
@@ -402,5 +408,102 @@ class _LeaderboardTab extends StatelessWidget {
     final minutes = seconds ~/ 60;
     final remaining = seconds % 60;
     return minutes > 0 ? '${minutes}m ${remaining}s' : '${remaining}s';
+  }
+}
+
+
+class _RewardsTab extends StatelessWidget {
+  const _RewardsTab({
+    required this.roomId,
+    required this.isArabic,
+  });
+
+  final String roomId;
+  final bool isArabic;
+
+  @override
+  Widget build(BuildContext context) {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) {
+      return const SizedBox.shrink();
+    }
+
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .collection('room_rewards')
+          .where('roomId', isEqualTo: roomId)
+          .snapshots(),
+      builder: (context, snapshot) {
+        final rewards = snapshot.data?.docs ??
+            const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
+
+        if (rewards.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(28),
+              child: Text(
+                isArabic
+                    ? 'لا توجد مكافآت من هذه الغرفة حتى الآن.'
+                    : 'No rewards from this room yet.',
+                textAlign: TextAlign.center,
+              ),
+            ),
+          );
+        }
+
+        final sorted = rewards.toList()
+          ..sort((a, b) {
+            final aLevel = (a.data()['level'] as num?)?.toInt() ?? 0;
+            final bLevel = (b.data()['level'] as num?)?.toInt() ?? 0;
+            return bLevel.compareTo(aLevel);
+          });
+
+        return ListView.separated(
+          padding: const EdgeInsets.all(16),
+          itemCount: sorted.length,
+          separatorBuilder: (_, _) => const SizedBox(height: 10),
+          itemBuilder: (context, index) {
+            final data = sorted[index].data();
+            final level = (data['level'] as num?)?.toInt() ?? 0;
+            final type = (data['type'] ?? '').toString();
+            final expiryRaw = data['expiresAt'];
+            final expiry =
+                expiryRaw is Timestamp ? expiryRaw.toDate() : null;
+
+            final isBackground = type == 'background_month';
+            return Card(
+              child: ListTile(
+                leading: CircleAvatar(
+                  child: Icon(
+                    isBackground
+                        ? Icons.wallpaper_rounded
+                        : Icons.card_giftcard_rounded,
+                  ),
+                ),
+                title: Text(
+                  isBackground
+                      ? (isArabic
+                          ? 'خلفية مجانية لمدة شهر'
+                          : 'Free background for one month')
+                      : (isArabic ? 'حزمة هدايا مجانية' : 'Free gift pack'),
+                  style: const TextStyle(fontWeight: FontWeight.w800),
+                ),
+                subtitle: Text(
+                  expiry == null
+                      ? '${isArabic ? 'مكافأة مستوى' : 'Room level reward'} $level'
+                      : '${isArabic ? 'مستوى' : 'Level'} $level • '
+                          '${expiry.year}-'
+                          '${expiry.month.toString().padLeft(2, '0')}-'
+                          '${expiry.day.toString().padLeft(2, '0')}',
+                ),
+                trailing: const Icon(Icons.verified_rounded),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 }
