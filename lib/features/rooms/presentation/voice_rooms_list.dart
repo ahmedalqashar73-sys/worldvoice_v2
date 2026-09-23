@@ -354,6 +354,7 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
 
         return Column(
           children: [
+            const _RoomPromotionBanner(),
             Padding(
               padding: const EdgeInsets.fromLTRB(18, 2, 18, 2),
               child: Row(
@@ -499,6 +500,74 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
               ),
             ),
           ],
+        );
+      },
+    );
+  }
+}
+
+class _RoomPromotionBanner extends StatelessWidget {
+  const _RoomPromotionBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance
+          .collection('room_promotions')
+          .doc('current')
+          .snapshots(),
+      builder: (context, snapshot) {
+        final data = snapshot.data?.data();
+        if (data == null || data['enabled'] != true) {
+          return const SizedBox.shrink();
+        }
+
+        final title = (data['title'] ?? '').toString().trim();
+        final subtitle = (data['subtitle'] ?? '').toString().trim();
+        final imageUrl = (data['imageUrl'] ?? '').toString().trim();
+
+        if (title.isEmpty && subtitle.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        return Container(
+          width: double.infinity,
+          margin: const EdgeInsets.fromLTRB(18, 8, 18, 8),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(22),
+            gradient: const LinearGradient(
+              colors: [Color(0xFF5C46E8), Color(0xFF16A978)],
+            ),
+            image: imageUrl.isEmpty
+                ? null
+                : DecorationImage(
+                    image: NetworkImage(imageUrl),
+                    fit: BoxFit.cover,
+                    opacity: .22,
+                  ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (title.isNotEmpty)
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 18,
+                  ),
+                ),
+              if (subtitle.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: const TextStyle(color: Colors.white70),
+                ),
+              ],
+            ],
+          ),
         );
       },
     );
