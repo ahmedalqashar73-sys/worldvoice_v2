@@ -59,6 +59,8 @@ class RoomTranslationService {
         return TranslateLanguage.french;
       case 'de':
         return TranslateLanguage.german;
+      case 'it':
+        return TranslateLanguage.italian;
       case 'pt':
         return TranslateLanguage.portuguese;
       case 'tr':
