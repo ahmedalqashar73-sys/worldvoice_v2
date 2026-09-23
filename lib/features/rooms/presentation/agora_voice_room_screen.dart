@@ -126,7 +126,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         }
 
         if (_controller.activeSpeakerUid == _controller.localUid) {
-          unawaited(_moderation.addSpeakingSeconds(10));
+          unawaited(_features.recordSpeakerActivity(seconds: 10));
           _speakerStatBufferSeconds += 10;
           if (_speakerStatBufferSeconds >= 30) {
             _speakerStatBufferSeconds = 0;
