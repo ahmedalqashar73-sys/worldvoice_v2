@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 
 import '../../../core/media/cloudinary_image_service.dart';
+import 'voice_bio_player.dart';
 
 class VoiceBioCard extends StatefulWidget {
   const VoiceBioCard({
@@ -148,62 +149,81 @@ class _VoiceBioCardState extends State<VoiceBioCard> {
       margin: const EdgeInsets.only(bottom: 10),
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Row(
+        child: Column(
           children: [
-            CircleAvatar(
-              child: Icon(
-                _recording ? Icons.mic_rounded : Icons.record_voice_over_rounded,
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    AppStrings.of(widget.code).profile('voiceAboutMe'),
-                    style: const TextStyle(fontWeight: FontWeight.w900),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
+            Row(
+              children: [
+                CircleAvatar(
+                  child: Icon(
                     _recording
-                        ? AppStrings.of(widget.code).profile('recordingNow')
-                        : hasVoice
-                            ? AppStrings.of(widget.code).profile('voiceIntroSaved')
-                            : AppStrings.of(widget.code).profile('recordVoiceIntro'),
+                        ? Icons.mic_rounded
+                        : Icons.record_voice_over_rounded,
                   ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        AppStrings.of(widget.code).profile('voiceAboutMe'),
+                        style: const TextStyle(fontWeight: FontWeight.w900),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        _recording
+                            ? AppStrings.of(widget.code).profile('recordingNow')
+                            : hasVoice
+                                ? AppStrings.of(widget.code)
+                                    .profile('voiceIntroSaved')
+                                : AppStrings.of(widget.code)
+                                    .profile('recordVoiceIntro'),
+                      ),
+                    ],
+                  ),
+                ),
+                if (_saving)
+                  const Padding(
+                    padding: EdgeInsets.all(10),
+                    child: SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  )
+                else if (_recording)
+                  IconButton.filled(
+                    onPressed: _stopAndSave,
+                    tooltip:
+                        AppStrings.of(widget.code).profile('stopAndSave'),
+                    icon: const Icon(Icons.stop_rounded),
+                  )
+                else ...[
+                  IconButton.filledTonal(
+                    onPressed: _start,
+                    tooltip: hasVoice
+                        ? AppStrings.of(widget.code).profile('recordAgain')
+                        : AppStrings.of(widget.code).profile('record'),
+                    icon: const Icon(Icons.mic_rounded),
+                  ),
+                  if (hasVoice)
+                    IconButton(
+                      onPressed: _delete,
+                      tooltip: AppStrings.of(widget.code).profile('delete'),
+                      icon: const Icon(Icons.delete_outline_rounded),
+                    ),
                 ],
-              ),
+              ],
             ),
-            if (_saving)
-              const Padding(
-                padding: EdgeInsets.all(10),
-                child: SizedBox(
-                  width: 22,
-                  height: 22,
-                  child: CircularProgressIndicator(strokeWidth: 2),
+            if (hasVoice && _voiceUrl != null) ...[
+              const SizedBox(height: 10),
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: VoiceBioPlayer(
+                  url: _voiceUrl!,
+                  code: widget.code,
                 ),
-              )
-            else if (_recording)
-              IconButton.filled(
-                onPressed: _stopAndSave,
-                tooltip: AppStrings.of(widget.code).profile('stopAndSave'),
-                icon: const Icon(Icons.stop_rounded),
-              )
-            else ...[
-              IconButton.filledTonal(
-                onPressed: _start,
-                tooltip: hasVoice
-                    ? AppStrings.of(widget.code).profile('recordAgain')
-                    : AppStrings.of(widget.code).profile('record'),
-                icon: const Icon(Icons.mic_rounded),
               ),
-              if (hasVoice)
-                IconButton(
-                  onPressed: _delete,
-                  tooltip: AppStrings.of(widget.code).profile('delete'),
-                  icon: const Icon(Icons.delete_outline_rounded),
-                ),
             ],
           ],
         ),
