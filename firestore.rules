@@ -349,8 +349,68 @@ service cloud.firestore {
       }
 
       match /room_usage/{dayKey} {
-        allow read, create, update: if signedIn()
-            && request.auth.uid == userId;
+        allow read: if signedIn() && request.auth.uid == userId;
+
+        allow create: if signedIn()
+            && request.auth.uid == userId
+            && request.resource.data.get('usedSeconds', 0) >= 0
+            && request.resource.data.get('adsWatched', 0) >= 0
+            && request.resource.data.get('adsWatched', 0) <= 3
+            && (
+              (
+                request.resource.data.get('adsWatched', 0) < 3
+                && request.resource.data.get('adBonusSeconds', 0) == 0
+              )
+              ||
+              (
+                request.resource.data.get('adsWatched', 0) == 3
+                && request.resource.data.get('adBonusSeconds', 0) == 10800
+              )
+            );
+
+        allow update: if signedIn()
+            && request.auth.uid == userId
+            && request.resource.data
+                .diff(resource.data)
+                .affectedKeys()
+                .hasOnly([
+                  'usedSeconds',
+                  'lastSessionWasHost',
+                  'lastRoomLevel',
+                  'adsWatched',
+                  'adBonusSeconds',
+                  'updatedAt'
+                ])
+            && (
+              (
+                request.resource.data.get('adsWatched', 0)
+                    == resource.data.get('adsWatched', 0)
+                && request.resource.data.get('adBonusSeconds', 0)
+                    == resource.data.get('adBonusSeconds', 0)
+                && request.resource.data.get('usedSeconds', 0)
+                    >= resource.data.get('usedSeconds', 0)
+              )
+              ||
+              (
+                request.resource.data.get('usedSeconds', 0)
+                    == resource.data.get('usedSeconds', 0)
+                && request.resource.data.get('adsWatched', 0)
+                    == resource.data.get('adsWatched', 0) + 1
+                && request.resource.data.get('adsWatched', 0) <= 3
+                && (
+                  (
+                    request.resource.data.get('adsWatched', 0) < 3
+                    && request.resource.data.get('adBonusSeconds', 0) == 0
+                  )
+                  ||
+                  (
+                    request.resource.data.get('adsWatched', 0) == 3
+                    && request.resource.data.get('adBonusSeconds', 0) == 10800
+                  )
+                )
+              )
+            );
+
         allow delete: if false;
       }
 
