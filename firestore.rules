@@ -14,6 +14,156 @@ service cloud.firestore {
       return /databases/$(database)/documents/rooms/$(roomId)/participants/$(userId);
     }
 
+    function userPath(userId) {
+      return /databases/$(database)/documents/users/$(userId);
+    }
+
+    function giftEventPath(roomId, giftId) {
+      return /databases/$(database)/documents/rooms/$(roomId)/gifts/$(giftId);
+    }
+
+    function validGiftPrice(data) {
+      return (
+        data.giftId == 'rose' && data.points == 10
+      ) || (
+        data.giftId == 'star' && data.points == 50
+      ) || (
+        data.giftId == 'dragon' && data.points == 500
+      );
+    }
+
+    function economyFieldsUntouched() {
+      return !request.resource.data
+          .diff(resource.data)
+          .affectedKeys()
+          .hasAny([
+            'coins',
+            'giftSentPoints',
+            'giftReceivedPoints',
+            'giftLevelPoints',
+            'giftLevel',
+            'lastGiftRoomId',
+            'lastGiftEventId'
+          ]);
+    }
+
+    function validGiftSenderUpdate(userId) {
+      return request.auth.uid == userId
+          && request.resource.data.lastGiftRoomId is string
+          && request.resource.data.lastGiftEventId is string
+          && existsAfter(
+            giftEventPath(
+              request.resource.data.lastGiftRoomId,
+              request.resource.data.lastGiftEventId
+            )
+          )
+          && getAfter(
+            giftEventPath(
+              request.resource.data.lastGiftRoomId,
+              request.resource.data.lastGiftEventId
+            )
+          ).data.senderId == request.auth.uid
+          && validGiftPrice(
+            getAfter(
+              giftEventPath(
+                request.resource.data.lastGiftRoomId,
+                request.resource.data.lastGiftEventId
+              )
+            ).data
+          )
+          && request.resource.data
+              .diff(resource.data)
+              .affectedKeys()
+              .hasOnly([
+                'coins',
+                'giftSentPoints',
+                'giftLevelPoints',
+                'lastGiftRoomId',
+                'lastGiftEventId',
+                'updatedAt'
+              ])
+          && request.resource.data.coins
+              == resource.data.get('coins', 0)
+                  - getAfter(
+                      giftEventPath(
+                        request.resource.data.lastGiftRoomId,
+                        request.resource.data.lastGiftEventId
+                      )
+                    ).data.points
+          && request.resource.data.giftSentPoints
+              == resource.data.get('giftSentPoints', 0)
+                  + getAfter(
+                      giftEventPath(
+                        request.resource.data.lastGiftRoomId,
+                        request.resource.data.lastGiftEventId
+                      )
+                    ).data.points
+          && request.resource.data.giftLevelPoints
+              == resource.data.get('giftLevelPoints', 0)
+                  + getAfter(
+                      giftEventPath(
+                        request.resource.data.lastGiftRoomId,
+                        request.resource.data.lastGiftEventId
+                      )
+                    ).data.points;
+    }
+
+    function validGiftRecipientUpdate(userId) {
+      return request.resource.data.lastGiftRoomId is string
+          && request.resource.data.lastGiftEventId is string
+          && existsAfter(
+            giftEventPath(
+              request.resource.data.lastGiftRoomId,
+              request.resource.data.lastGiftEventId
+            )
+          )
+          && getAfter(
+            giftEventPath(
+              request.resource.data.lastGiftRoomId,
+              request.resource.data.lastGiftEventId
+            )
+          ).data.senderId == request.auth.uid
+          && getAfter(
+            giftEventPath(
+              request.resource.data.lastGiftRoomId,
+              request.resource.data.lastGiftEventId
+            )
+          ).data.recipientId == userId
+          && validGiftPrice(
+            getAfter(
+              giftEventPath(
+                request.resource.data.lastGiftRoomId,
+                request.resource.data.lastGiftEventId
+              )
+            ).data
+          )
+          && request.resource.data
+              .diff(resource.data)
+              .affectedKeys()
+              .hasOnly([
+                'giftReceivedPoints',
+                'giftLevelPoints',
+                'lastGiftRoomId',
+                'lastGiftEventId'
+              ])
+          && request.resource.data.giftReceivedPoints
+              == resource.data.get('giftReceivedPoints', 0)
+                  + getAfter(
+                      giftEventPath(
+                        request.resource.data.lastGiftRoomId,
+                        request.resource.data.lastGiftEventId
+                      )
+                    ).data.points
+          && request.resource.data.giftLevelPoints
+              == resource.data.get('giftLevelPoints', 0)
+                  + getAfter(
+                      giftEventPath(
+                        request.resource.data.lastGiftRoomId,
+                        request.resource.data.lastGiftEventId
+                      )
+                    ).data.points;
+    }
+
     function accessGrantPath(roomId, userId) {
       return /databases/$(database)/documents/rooms/$(roomId)/access_grants/$(userId);
     }
@@ -58,12 +208,19 @@ service cloud.firestore {
           && request.auth.uid == userId
           && request.resource.data.uid == userId;
 
-      // A user manages their own profile.
-      // Other signed-in users may only refresh follower/following counters,
-      // which is required by the current client-side follow flow.
+      // Users manage their own normal profile fields, but economy fields are
+      // protected. Coin/gift counters may only change through an atomic,
+      // validated room-gift transaction.
       allow update: if signedIn()
           && (
-            request.auth.uid == userId
+            (
+              request.auth.uid == userId
+              && economyFieldsUntouched()
+            )
+            ||
+            validGiftSenderUpdate(userId)
+            ||
+            validGiftRecipientUpdate(userId)
             ||
             (
               request.resource.data
@@ -74,18 +231,6 @@ service cloud.firestore {
               && request.resource.data.followingCount is int
               && request.resource.data.followersCount >= 0
               && request.resource.data.followingCount >= 0
-            )
-            ||
-            (
-              request.resource.data
-                  .diff(resource.data)
-                  .affectedKeys()
-                  .hasOnly(['giftReceivedPoints'])
-              && request.resource.data.giftReceivedPoints is int
-              && request.resource.data.giftReceivedPoints >
-                  (resource.data.giftReceivedPoints is int
-                      ? resource.data.giftReceivedPoints
-                      : 0)
             )
           );
 
@@ -278,10 +423,26 @@ service cloud.firestore {
 
       match /gifts/{giftId} {
         allow read: if isRoomMember(roomId);
+
         allow create: if isRoomMember(roomId)
             && request.resource.data.senderId == request.auth.uid
-            && request.resource.data.points is int
-            && request.resource.data.points in [10, 50, 500];
+            && request.resource.data.recipientId != request.auth.uid
+            && validGiftPrice(request.resource.data)
+            && (
+              request.resource.data.recipientId == 'teacher_ai'
+              ||
+              exists(
+                participantPath(
+                  roomId,
+                  request.resource.data.recipientId
+                )
+              )
+            )
+            && getAfter(userPath(request.auth.uid)).data.lastGiftRoomId
+                == roomId
+            && getAfter(userPath(request.auth.uid)).data.lastGiftEventId
+                == giftId;
+
         allow update, delete: if false;
       }
 
