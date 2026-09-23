@@ -82,6 +82,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   OverlayEntry? _giftOverlay;
   Timer? _giftOverlayTimer;
   Timer? _speakingTimer;
+  Timer? _quotaTimer;
+  bool _quotaEnding = false;
 
   RoomFeatureState _featureState = const RoomFeatureState(
     roomLevel: 1,
@@ -159,6 +161,11 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         return;
       }
 
+      _quotaTimer ??= Timer.periodic(
+        const Duration(minutes: 1),
+        (_) => unawaited(_checkLiveQuota()),
+      );
+
       await _moderation.enter(
         asHost: asHost,
       );
@@ -225,10 +232,111 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     }
   }
 
+  Future<void> _checkLiveQuota() async {
+    if (_leaving || _quotaEnding) return;
+    final status = await _quota.currentSessionStatus();
+    if (status.allowed || status.isUnlimited || !mounted) return;
+
+    _quotaEnding = true;
+    await _controller.leave();
+    if (!mounted) return;
+
+    final isArabic =
+        Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(
+          isArabic ? 'انتهى وقت الغرفة اليومي' : 'Daily room time reached',
+        ),
+        content: Text(
+          isArabic
+              ? 'استهلكت الوقت المتاح اليوم. المستخدم المجاني يحصل على ساعتين، ويمكن بعد ربط Rewarded Ads مشاهدة 3 إعلانات للحصول على 3 ساعات إضافية.'
+              : 'You have used today’s room allowance. Free users get 2 hours; once Rewarded Ads are configured, 3 completed ads add 3 more hours.',
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(isArabic ? 'خروج' : 'Leave room'),
+          ),
+        ],
+      ),
+    );
+
+    if (!mounted) return;
+    _leaving = true;
+    await _finishSessionTracking();
+    await _moderation.leave();
+    if (mounted) Navigator.of(context).pop();
+  }
+
+  Future<void> _showQuotaStatus() async {
+    final status = await _quota.currentSessionStatus();
+    if (!mounted) return;
+    final isArabic =
+        Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
+
+    String formatSeconds(int value) {
+      final hours = value ~/ 3600;
+      final minutes = (value % 3600) ~/ 60;
+      return '${hours}h ${minutes}m';
+    }
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(isArabic ? 'وقت الغرف اليومي' : 'Daily room time'),
+        content: status.isUnlimited
+            ? Text(
+                isArabic
+                    ? 'VIP: وقت الغرف غير محدود.'
+                    : 'VIP: room time is unlimited.',
+              )
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${isArabic ? 'المتبقي' : 'Remaining'}: '
+                    '${formatSeconds(status.remainingSeconds)}',
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${isArabic ? 'المستخدم' : 'Used'}: '
+                    '${formatSeconds(status.usedSeconds)}',
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${isArabic ? 'الإعلانات المكتملة' : 'Rewarded ads completed'}: '
+                    '${status.adsWatched}/3',
+                  ),
+                  if (status.adsWatched < 3) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      isArabic
+                          ? 'لن يتم احتساب أي إعلان إلا بعد ربط Rewarded Ad حقيقي وإكمال مشاهدته.'
+                          : 'An ad will only count after a real Rewarded Ad is configured and fully completed.',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ],
+              ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(isArabic ? 'إغلاق' : 'Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showGiftOverlay(RoomGiftEvent gift) {
     if (!mounted) return;
 
     _giftOverlayTimer?.cancel();
+    _quotaTimer?.cancel();
     _giftOverlay?.remove();
 
     final overlay = Overlay.of(context);
@@ -807,6 +915,14 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   },
                 ),
               const Divider(),
+              _RoomToolTile(
+                icon: Icons.timer_outlined,
+                label: isArabic ? 'وقت الغرف اليومي' : 'Daily room time',
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _showQuotaStatus();
+                },
+              ),
               _RoomToolTile(
                 icon: Icons.groups_rounded,
                 label: isArabic ? 'أعضاء الغرفة' : 'Room members',
