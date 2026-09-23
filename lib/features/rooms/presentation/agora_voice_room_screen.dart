@@ -15,6 +15,7 @@ import '../services/room_feature_service.dart';
 import '../services/room_history_service.dart';
 import '../services/room_moderation_service.dart';
 import '../services/room_quota_service.dart';
+import '../services/room_rewarded_ad_service.dart';
 import 'room_board_screen.dart';
 import 'room_chat_sheet.dart';
 import 'room_music_sheet.dart';
@@ -58,6 +59,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   late final RoomModerationService _moderation;
   late final RoomHistoryService _history;
   late final RoomQuotaService _quota;
+  late final RoomRewardedAdService _rewardedAds;
   late final RoomFeatureService _features;
   late final AudioPlayer _musicPlayer;
   String? _loadedMusicUrl;
@@ -103,6 +105,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     _controller = AgoraVoiceRoomController()..addListener(_refresh);
     _history = RoomHistoryService();
     _quota = RoomQuotaService();
+    _rewardedAds = RoomRewardedAdService();
     _features = RoomFeatureService(roomId: widget.channelId);
     _musicPlayer = AudioPlayer();
     _moderation = RoomModerationService(
@@ -238,37 +241,146 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     if (status.allowed || status.isUnlimited || !mounted) return;
 
     _quotaEnding = true;
+
+    // Stop RTC immediately at the quota boundary and persist the consumed time.
     await _controller.leave();
+    await _quota.endSession();
+
     if (!mounted) return;
 
+    // Hosts use their separate 4h + room-level allowance and do not get
+    // the listener rewarded-ad extension.
+    if (_isHost) {
+      await _finishQuotaExit();
+      return;
+    }
+
+    var current = await _quota.check(
+      asHost: false,
+      roomLevel: _featureState.roomLevel,
+    );
+
+    while (mounted &&
+        current.adsWatched < 3 &&
+        current.adBonusSeconds < 3 * 60 * 60) {
+      final watch = await _askForRewardedAd(current);
+      if (watch != true || !mounted) {
+        await _finishQuotaExit();
+        return;
+      }
+
+      final earned = await _rewardedAds.show();
+      if (!mounted) return;
+
+      if (!earned) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              Localizations.localeOf(context).languageCode == 'ar'
+                  ? 'لم يكتمل الإعلان، لذلك لم يتم احتسابه.'
+                  : 'The ad was not completed, so it was not counted.',
+            ),
+          ),
+        );
+        continue;
+      }
+
+      current = await _quota.recordRewardedAdWatched();
+    }
+
+    current = await _quota.check(
+      asHost: false,
+      roomLevel: _featureState.roomLevel,
+    );
+
+    if (!current.allowed) {
+      await _finishQuotaExit();
+      return;
+    }
+
+    final restarted = await _quota.startSession(
+      asHost: false,
+      roomLevel: _featureState.roomLevel,
+    );
+    if (!restarted.allowed || !mounted) {
+      await _finishQuotaExit();
+      return;
+    }
+
+    _lastSyncedAgoraUid = null;
+    final desiredRole = _me?.isOnStage == true
+        ? AgoraRoomRole.speaker
+        : AgoraRoomRole.listener;
+    await _controller.connect(
+      channelId: widget.channelId,
+      role: desiredRole,
+    );
+
+    _quotaEnding = false;
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            Localizations.localeOf(context).languageCode == 'ar'
+                ? 'تمت إضافة 3 ساعات إضافية اليوم.'
+                : '3 extra room hours were added for today.',
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<bool?> _askForRewardedAd(RoomQuotaStatus status) {
     final isArabic =
         Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
-    await showDialog<void>(
+    final next = (status.adsWatched + 1).clamp(1, 3);
+
+    return showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
         title: Text(
-          isArabic ? 'انتهى وقت الغرفة اليومي' : 'Daily room time reached',
+          isArabic ? 'وقت إضافي للغرف' : 'Get more room time',
         ),
         content: Text(
           isArabic
-              ? 'استهلكت الوقت المتاح اليوم. المستخدم المجاني يحصل على ساعتين، ويمكن بعد ربط Rewarded Ads مشاهدة 3 إعلانات للحصول على 3 ساعات إضافية.'
-              : 'You have used today’s room allowance. Free users get 2 hours; once Rewarded Ads are configured, 3 completed ads add 3 more hours.',
+              ? 'شاهد الإعلان $next من 3 كاملًا. بعد إكمال 3 إعلانات تحصل على 3 ساعات إضافية اليوم.'
+              : 'Watch rewarded ad $next of 3 completely. Completing all 3 adds 3 extra hours today.',
         ),
         actions: [
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text(isArabic ? 'خروج' : 'Leave room'),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(isArabic ? 'خروج من الغرفة' : 'Leave room'),
+          ),
+          FilledButton.icon(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            icon: const Icon(Icons.ondemand_video_rounded),
+            label: Text(isArabic ? 'مشاهدة الإعلان' : 'Watch ad'),
           ),
         ],
       ),
     );
+  }
 
+  Future<void> _finishQuotaExit() async {
     if (!mounted) return;
     _leaving = true;
-    await _finishSessionTracking();
+    await _history.recordLeave(widget.channelId);
     await _moderation.leave();
-    if (mounted) Navigator.of(context).pop();
+
+    if (!mounted) return;
+    final isArabic =
+        Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          isArabic
+              ? 'انتهى وقت الغرف المتاح لك اليوم.'
+              : 'Your room time for today has been used.',
+        ),
+      ),
+    );
+    Navigator.of(context).pop();
   }
 
   Future<void> _showQuotaStatus() async {
@@ -314,9 +426,13 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   if (status.adsWatched < 3) ...[
                     const SizedBox(height: 12),
                     Text(
-                      isArabic
-                          ? 'لن يتم احتساب أي إعلان إلا بعد ربط Rewarded Ad حقيقي وإكمال مشاهدته.'
-                          : 'An ad will only count after a real Rewarded Ad is configured and fully completed.',
+                      _rewardedAds.usesTestAd
+                          ? (isArabic
+                              ? 'النسخة الحالية تستخدم إعلان Google الاختباري. قبل النشر العام نستبدله بإعلان WorldVoice الحقيقي.'
+                              : 'This test build uses Google test rewarded ads. Replace them with WorldVoice production ad IDs before public release.')
+                          : (isArabic
+                              ? 'يتم احتساب الإعلان فقط بعد إكمال المشاهدة.'
+                              : 'An ad only counts after the rewarded view is completed.'),
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],
