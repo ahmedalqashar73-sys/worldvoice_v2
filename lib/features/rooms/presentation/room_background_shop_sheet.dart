@@ -86,8 +86,9 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                     builder: (context, ownedSnapshot) {
                       final owned = ownedSnapshot.data ??
                           const <RoomBackgroundEntitlement>[];
-                      final ownedIds =
-                          owned.map((item) => item.themeId).toSet();
+                      final ownedByTheme = <String, RoomBackgroundEntitlement>{
+                        for (final item in owned) item.themeId: item,
+                      };
 
                       return StreamBuilder<List<RoomBackgroundReward>>(
                         stream: _shop.watchBackgroundRewards(),
@@ -126,7 +127,9 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                                 const SizedBox(height: 10),
                             itemBuilder: (context, index) {
                               final item = catalog[index];
-                              final isOwned = ownedIds.contains(item.themeId);
+                              final entitlement =
+                                  ownedByTheme[item.themeId];
+                              final isOwned = entitlement != null;
 
                               return _BackgroundStoreCard(
                                 item: item,
@@ -152,7 +155,8 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                                 onApply: isOwned && isHost
                                     ? () => roomFeatures.setPurchasedBackground(
                                           themeId: item.themeId,
-                                          backgroundUrl: item.previewUrl,
+                                          backgroundUrl:
+                                              entitlement.backgroundUrl,
                                         )
                                     : null,
                               );
