@@ -19,6 +19,7 @@ import 'room_board_screen.dart';
 import 'room_chat_sheet.dart';
 import 'room_music_sheet.dart';
 import 'room_quiz_sheet.dart';
+import 'room_rating_sheet.dart';
 import 'room_extras_sheet.dart';
 import 'room_members_sheet.dart';
 import 'room_mod_log_sheet.dart';
@@ -80,6 +81,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   bool _giftStreamPrimed = false;
   OverlayEntry? _giftOverlay;
   Timer? _giftOverlayTimer;
+  int _speakerStatBufferSeconds = 0;
   Timer? _speakingTimer;
 
   RoomFeatureState _featureState = const RoomFeatureState(
@@ -125,6 +127,13 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
         if (_controller.activeSpeakerUid == _controller.localUid) {
           unawaited(_moderation.addSpeakingSeconds(10));
+          _speakerStatBufferSeconds += 10;
+          if (_speakerStatBufferSeconds >= 30) {
+            _speakerStatBufferSeconds = 0;
+            unawaited(
+              _features.recordSpeakerActivity(seconds: 30),
+            );
+          }
         }
       },
     );
@@ -443,6 +452,28 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
   Future<void> _leave() async {
     if (_leaving) return;
+
+    final rateable = _participants
+        .where(
+          (participant) =>
+              participant.isOnStage &&
+              participant.userId != _moderation.currentUserId,
+        )
+        .toList(growable: false);
+
+    if (rateable.isNotEmpty && mounted) {
+      await showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        builder: (_) => RoomRatingSheet(
+          roomId: widget.channelId,
+          participants: rateable,
+        ),
+      );
+    }
+
+    if (!mounted || _leaving) return;
     _leaving = true;
 
     try {
