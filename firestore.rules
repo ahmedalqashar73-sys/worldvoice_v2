@@ -224,6 +224,62 @@ service cloud.firestore {
             );
       }
 
+      match /board_items/{itemId} {
+        allow read: if isRoomMember(roomId);
+        allow create: if isRoomMember(roomId)
+            && request.resource.data.userId == request.auth.uid
+            && (
+              isHost(roomId)
+              || get(roomPath(roomId)).data.boardWriteEnabled == true
+            );
+        allow update: if false;
+        allow delete: if isHost(roomId)
+            || (isRoomMember(roomId) && resource.data.userId == request.auth.uid);
+      }
+
+      match /quiz_answers/{userId} {
+        allow read: if isRoomMember(roomId);
+        allow create, update: if isRoomMember(roomId)
+            && userId == request.auth.uid
+            && request.resource.data.userId == request.auth.uid;
+        allow delete: if isHost(roomId)
+            || (isRoomMember(roomId) && userId == request.auth.uid);
+      }
+
+      match /gifts/{giftId} {
+        allow read: if isRoomMember(roomId);
+        allow create: if isRoomMember(roomId)
+            && request.resource.data.senderId == request.auth.uid
+            && request.resource.data.points is int
+            && request.resource.data.points > 0;
+        allow update, delete: if false;
+      }
+
+      match /task_completions/{taskId} {
+        allow read: if isRoomMember(roomId);
+        allow create: if isRoomMember(roomId)
+            && request.resource.data.userId == request.auth.uid
+            && request.resource.data.points is int
+            && request.resource.data.points > 0;
+        allow update, delete: if false;
+      }
+
+      match /rewards/{rewardId} {
+        allow read: if isRoomMember(roomId);
+        allow create, update: if isHost(roomId);
+        allow delete: if false;
+      }
+
+      match /ratings/{ratingId} {
+        allow read: if isRoomMember(roomId);
+        allow create, update: if isRoomMember(roomId)
+            && request.resource.data.fromUserId == request.auth.uid
+            && request.resource.data.stars is int
+            && request.resource.data.stars >= 1
+            && request.resource.data.stars <= 5;
+        allow delete: if false;
+      }
+
       match /mod_log/{logId} {
         allow read: if isHost(roomId) || isModerator(roomId);
         allow create: if isHost(roomId) || isModerator(roomId);
