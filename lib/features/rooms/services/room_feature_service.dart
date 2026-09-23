@@ -292,6 +292,37 @@ class RoomFeatureService {
     });
   }
 
+  Future<void> recordSpeakerActivity({
+    int seconds = 30,
+  }) async {
+    final user = _user;
+    if (user == null || seconds <= 0 || seconds > 60) return;
+
+    final profile = await _db.collection('users').doc(user.uid).get();
+    final data = profile.data() ?? const <String, dynamic>{};
+    final name =
+        (data['displayName'] ?? user.displayName ?? 'WorldVoice user')
+            .toString();
+
+    await _room.collection('speaker_stats').doc(user.uid).set(
+      {
+        'userId': user.uid,
+        'displayName': name,
+        'seconds': FieldValue.increment(seconds),
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+  }
+
+  Stream<QuerySnapshot<Map<String, dynamic>>> watchSpeakerStats() {
+    return _room
+        .collection('speaker_stats')
+        .orderBy('seconds', descending: true)
+        .limit(50)
+        .snapshots();
+  }
+
   Future<void> recordHistoryEnter(String roomName) async {
     final user = _user;
     if (user == null) return;
