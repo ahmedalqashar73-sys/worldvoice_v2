@@ -30,6 +30,16 @@ service cloud.firestore {
           && exists(participantPath(roomId, resource.data.hostId));
     }
 
+    function isRoomMember(roomId) {
+      return signedIn()
+          && exists(participantPath(roomId, request.auth.uid));
+    }
+
+    function isModerator(roomId) {
+      return isRoomMember(roomId)
+          && get(participantPath(roomId, request.auth.uid)).data.isModerator == true;
+    }
+
     // -------------------------
     // USERS / PROFILES
     // -------------------------
