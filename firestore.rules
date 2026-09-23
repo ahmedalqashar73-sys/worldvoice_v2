@@ -139,6 +139,30 @@ service cloud.firestore {
 
       allow delete: if isHost(roomId);
 
+      match /messages/{messageId} {
+        allow read: if signedIn()
+            && exists(participantPath(roomId, request.auth.uid));
+
+        allow create: if signedIn()
+            && exists(participantPath(roomId, request.auth.uid))
+            && request.resource.data.userId == request.auth.uid
+            && request.resource.data.text is string
+            && request.resource.data.text.size() > 0
+            && request.resource.data.text.size() <= 500;
+
+        allow update: if false;
+
+        allow delete: if signedIn()
+            && (
+              resource.data.userId == request.auth.uid
+              || isHost(roomId)
+              || (
+                exists(participantPath(roomId, request.auth.uid))
+                && get(participantPath(roomId, request.auth.uid)).data.isModerator == true
+              )
+            );
+      }
+
       match /participants/{userId} {
         allow read: if signedIn();
 
