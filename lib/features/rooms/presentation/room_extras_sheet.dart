@@ -12,6 +12,7 @@ class RoomExtrasSheet extends StatelessWidget {
     required this.participants,
     required this.isHost,
     required this.showTeacherAiSeat,
+    this.onOpenCoinStore,
     super.key,
   });
 
@@ -19,6 +20,7 @@ class RoomExtrasSheet extends StatelessWidget {
   final List<RoomParticipant> participants;
   final bool isHost;
   final bool showTeacherAiSeat;
+  final VoidCallback? onOpenCoinStore;
 
   @override
   Widget build(BuildContext context) {
@@ -62,6 +64,7 @@ class RoomExtrasSheet extends StatelessWidget {
                       service: service,
                       participants: participants,
                       showTeacherAiSeat: showTeacherAiSeat,
+                      onOpenCoinStore: onOpenCoinStore,
                     ),
                     _LeaderboardTab(service: service),
                     _RewardsTab(
@@ -202,10 +205,12 @@ class _GiftsTab extends StatelessWidget {
     required this.service,
     required this.participants,
     required this.showTeacherAiSeat,
+    this.onOpenCoinStore,
   });
   final RoomFeatureService service;
   final List<RoomParticipant> participants;
   final bool showTeacherAiSeat;
+  final VoidCallback? onOpenCoinStore;
 
   @override
   Widget build(BuildContext context) {
@@ -224,6 +229,7 @@ class _GiftsTab extends StatelessWidget {
             recipientId: target.userId,
             recipientName: target.displayName,
             photoUrl: target.photoUrl,
+            onOpenCoinStore: onOpenCoinStore,
           ),
         if (showTeacherAiSeat)
           _GiftTargetTile(
@@ -231,6 +237,7 @@ class _GiftsTab extends StatelessWidget {
             recipientId: 'teacher_ai',
             recipientName: 'Teacher AI',
             teacherAi: true,
+            onOpenCoinStore: onOpenCoinStore,
           ),
       ],
     );
@@ -244,6 +251,7 @@ class _GiftTargetTile extends StatelessWidget {
     required this.recipientName,
     this.photoUrl,
     this.teacherAi = false,
+    this.onOpenCoinStore,
   });
 
   final RoomFeatureService service;
@@ -251,6 +259,7 @@ class _GiftTargetTile extends StatelessWidget {
   final String recipientName;
   final String? photoUrl;
   final bool teacherAi;
+  final VoidCallback? onOpenCoinStore;
 
   Future<void> _send(
     BuildContext context,
@@ -275,6 +284,9 @@ class _GiftTargetTile extends StatelessWidget {
           ),
         ),
       );
+      if (notEnough && onOpenCoinStore != null) {
+        onOpenCoinStore!();
+      }
     }
   }
 
