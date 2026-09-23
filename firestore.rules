@@ -173,7 +173,16 @@ service cloud.firestore {
                 && request.resource.data
                     .diff(resource.data)
                     .affectedKeys()
-                    .hasOnly(['handRaised', 'agoraUid', 'updatedAt'])
+                    .hasOnly(['handRaised', 'requestedSeatIndex', 'agoraUid', 'updatedAt'])
+                && (
+                  !('requestedSeatIndex' in request.resource.data)
+                  ||
+                  (
+                    request.resource.data.requestedSeatIndex is int
+                    && request.resource.data.requestedSeatIndex >= 1
+                    && request.resource.data.requestedSeatIndex <= 8
+                  )
+                )
               )
               ||
               (
@@ -191,6 +200,7 @@ service cloud.firestore {
                       'role',
                       'handRaised',
                       'seatIndex',
+                      'requestedSeatIndex',
                       'agoraUid',
                       'joinedAt',
                       'updatedAt'
@@ -215,6 +225,7 @@ service cloud.firestore {
                       'role',
                       'seatIndex',
                       'handRaised',
+                      'requestedSeatIndex',
                       'updatedAt'
                     ])
                 && (
