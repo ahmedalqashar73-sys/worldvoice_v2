@@ -250,6 +250,8 @@ class RoomFeatureService {
         .collection('task_completions')
         .doc('${periodKey}_${taskKey}_${user.uid}');
 
+    int? unlockedLevel;
+
     await _db.runTransaction((tx) async {
       final task = await tx.get(taskRef);
       if (task.exists) return;
@@ -280,18 +282,60 @@ class RoomFeatureService {
       );
 
       if (newLevel > ((oldXp ~/ 100) + 1)) {
+        unlockedLevel = newLevel;
         final rewardRef = _room.collection('rewards').doc('level_$newLevel');
         tx.set(
           rewardRef,
           {
             'level': newLevel,
             'type': newLevel == 5 ? 'background_month' : 'gift_pack',
+            'unlockedBy': user.uid,
+            'sourceTaskId': taskRef.id,
             'unlockedAt': FieldValue.serverTimestamp(),
           },
           SetOptions(merge: true),
         );
       }
     });
+
+    final level = unlockedLevel;
+    if (level != null) {
+      await _grantLevelRewardToPresentMembers(level);
+    }
+  }
+
+  Future<void> _grantLevelRewardToPresentMembers(int level) async {
+    final participants = await _room.collection('participants').get();
+    if (participants.docs.isEmpty) return;
+
+    final rewardType = level == 5 ? 'background_month' : 'gift_pack';
+    final expiresAt = level == 5
+        ? Timestamp.fromDate(DateTime.now().add(const Duration(days: 30)))
+        : null;
+
+    final batch = _db.batch();
+    for (final participant in participants.docs) {
+      final rewardId = '${roomId}_level_$level';
+      final rewardRef = _db
+          .collection('users')
+          .doc(participant.id)
+          .collection('room_rewards')
+          .doc(rewardId);
+
+      batch.set(
+        rewardRef,
+        {
+          'userId': participant.id,
+          'roomId': roomId,
+          'level': level,
+          'type': rewardType,
+          if (expiresAt != null) 'expiresAt': expiresAt,
+          'grantedAt': FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
+      );
+    }
+    await batch.commit();
   }
 
   Future<void> recordSpeakerActivity({
