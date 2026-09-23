@@ -6,6 +6,7 @@ This service keeps privileged room credentials out of the Flutter APK.
 
 - `POST /agora/token` — verifies the Firebase ID token, verifies room membership/role, then issues an Agora RTC token.
 - `POST /teacher-ai` — verifies Firebase identity and caption ownership, asks the configured OpenAI model for a concise language correction, and writes the result to Firestore.
+- `POST /teacher-ai/ask` — verifies room membership and answers direct language-learning questions from the in-room Teacher AI panel.
 - `POST /store/purchase` — buys an owned room background using the server-authoritative coin balance.
 - `POST /store/claim-reward` — claims the level-5 one-month room background reward.
 - `POST /quiz/finish` — securely finalizes the quiz, stores the top three, and credits 5 coins once to first place.
@@ -27,7 +28,7 @@ After deploying this service, build WorldVoice with:
 
 - `AGORA_TOKEN_ENDPOINT=https://YOUR_BACKEND/agora/token`
 - Prefer one shared setting: `WORLDVOICE_ROOM_BACKEND_URL=https://YOUR_BACKEND`
-- The older explicit `AGORA_TOKEN_ENDPOINT`, `WORLDVOICE_TEACHER_AI_ENDPOINT`, and `WORLDVOICE_STORE_ENDPOINT` values remain supported as overrides.
+- The older explicit `AGORA_TOKEN_ENDPOINT`, `WORLDVOICE_TEACHER_AI_ENDPOINT`, `WORLDVOICE_TEACHER_AI_ASK_ENDPOINT`, and `WORLDVOICE_STORE_ENDPOINT` values remain supported as overrides.
 
 Do not include the Agora App Certificate or OpenAI API key in Dart defines.
 
