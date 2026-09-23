@@ -119,6 +119,28 @@ class RoomQuotaService {
     return status;
   }
 
+  Future<RoomQuotaStatus> currentSessionStatus() async {
+    final status = await check(
+      asHost: _sessionIsHost,
+      roomLevel: _sessionRoomLevel,
+    );
+    if (status.isUnlimited) return status;
+
+    final startedAt = _sessionStartedAt;
+    final elapsed = startedAt == null
+        ? 0
+        : DateTime.now().difference(startedAt).inSeconds;
+    final used = status.usedSeconds + elapsed;
+
+    return RoomQuotaStatus(
+      allowed: used < status.limitSeconds,
+      usedSeconds: used,
+      limitSeconds: status.limitSeconds,
+      adsWatched: status.adsWatched,
+      adBonusSeconds: status.adBonusSeconds,
+    );
+  }
+
   Future<void> endSession() async {
     final ref = _usageRef;
     final startedAt = _sessionStartedAt;
