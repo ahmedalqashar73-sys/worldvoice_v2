@@ -96,6 +96,7 @@ class RoomModerationService {
         'handRaised': false,
         'seatIndex': asHost ? 1 : FieldValue.delete(),
         'agoraUid': FieldValue.delete(),
+        'requestedSeatIndex': FieldValue.delete(),
         'joinedAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       },
@@ -144,6 +145,8 @@ class RoomModerationService {
             handRaised: data['handRaised'] == true,
             agoraUid: (data['agoraUid'] as num?)?.toInt(),
             seatIndex: (data['seatIndex'] as num?)?.toInt(),
+            requestedSeatIndex:
+                (data['requestedSeatIndex'] as num?)?.toInt(),
           ),
         );
       }
@@ -174,6 +177,8 @@ class RoomModerationService {
         handRaised: data['handRaised'] == true,
         agoraUid: (data['agoraUid'] as num?)?.toInt(),
         seatIndex: (data['seatIndex'] as num?)?.toInt(),
+        requestedSeatIndex:
+            (data['requestedSeatIndex'] as num?)?.toInt(),
       );
     });
   }
@@ -191,13 +196,19 @@ class RoomModerationService {
     );
   }
 
-  Future<void> setHandRaised(bool raised) async {
+  Future<void> setHandRaised(
+    bool raised, {
+    int? requestedSeatIndex,
+  }) async {
     final uid = currentUserId;
     if (uid == null) return;
 
     await _participantsRef.doc(uid).set(
       {
         'handRaised': raised,
+        'requestedSeatIndex': raised && requestedSeatIndex != null
+            ? requestedSeatIndex
+            : FieldValue.delete(),
         'updatedAt': FieldValue.serverTimestamp(),
       },
       SetOptions(merge: true),
@@ -208,6 +219,7 @@ class RoomModerationService {
     await _participantsRef.doc(userId).set(
       {
         'handRaised': false,
+        'requestedSeatIndex': FieldValue.delete(),
         'updatedAt': FieldValue.serverTimestamp(),
       },
       SetOptions(merge: true),
@@ -230,6 +242,7 @@ class RoomModerationService {
         'role': RoomParticipant.roleToString(role),
         'seatIndex': seatIndex,
         'handRaised': false,
+        'requestedSeatIndex': FieldValue.delete(),
         'updatedAt': FieldValue.serverTimestamp(),
       },
       SetOptions(merge: true),
@@ -242,6 +255,7 @@ class RoomModerationService {
         'role': 'listener',
         'seatIndex': FieldValue.delete(),
         'handRaised': false,
+        'requestedSeatIndex': FieldValue.delete(),
         'updatedAt': FieldValue.serverTimestamp(),
       },
       SetOptions(merge: true),
