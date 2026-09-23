@@ -165,6 +165,9 @@ class RoomFeatureService {
   }) async {
     final user = _user;
     if (user == null || points <= 0) return;
+    if (recipientId == user.uid) {
+      throw StateError('CANNOT_GIFT_SELF');
+    }
 
     final senderRef = _db.collection('users').doc(user.uid);
     final recipientRef = recipientId == 'teacher_ai'
@@ -190,6 +193,9 @@ class RoomFeatureService {
         {
           'coins': balance - points,
           'giftSentPoints': FieldValue.increment(points),
+          'giftLevelPoints': FieldValue.increment(points),
+          'lastGiftRoomId': roomId,
+          'lastGiftEventId': giftRef.id,
           'updatedAt': FieldValue.serverTimestamp(),
         },
         SetOptions(merge: true),
@@ -200,14 +206,9 @@ class RoomFeatureService {
           recipientRef,
           {
             'giftReceivedPoints': FieldValue.increment(points),
-          },
-          SetOptions(merge: true),
-        );
-      } else if (recipientRef != null) {
-        tx.set(
-          recipientRef,
-          {
-            'giftReceivedPoints': FieldValue.increment(points),
+            'giftLevelPoints': FieldValue.increment(points),
+            'lastGiftRoomId': roomId,
+            'lastGiftEventId': giftRef.id,
           },
           SetOptions(merge: true),
         );
