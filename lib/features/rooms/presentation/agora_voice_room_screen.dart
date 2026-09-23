@@ -7,17 +7,22 @@ import 'package:just_audio/just_audio.dart';
 import '../../home/presentation/home_screen.dart';
 import '../../profile/presentation/public_profile_screen.dart';
 import '../../../core/localization/locale_controller.dart';
+import '../data/room_caption.dart';
 import '../data/room_feature_models.dart';
 import '../data/room_moderation_models.dart';
 import '../data/room_stage_models.dart';
 import '../services/agora_voice_room_controller.dart';
+import '../services/room_caption_service.dart';
 import '../services/room_feature_service.dart';
 import '../services/room_history_service.dart';
+import '../services/room_live_caption_controller.dart';
 import '../services/room_moderation_service.dart';
 import '../services/room_quota_service.dart';
 import '../services/room_rewarded_ad_service.dart';
+import '../services/room_translation_service.dart';
 import 'room_board_screen.dart';
 import 'room_chat_sheet.dart';
+import 'room_captions_sheet.dart';
 import 'room_music_sheet.dart';
 import 'room_quiz_sheet.dart';
 import 'room_rating_sheet.dart';
@@ -61,6 +66,9 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   late final RoomQuotaService _quota;
   late final RoomRewardedAdService _rewardedAds;
   late final RoomFeatureService _features;
+  late final RoomCaptionService _captionService;
+  late final RoomLiveCaptionController _captionController;
+  late final RoomTranslationService _translationService;
   late final AudioPlayer _musicPlayer;
   String? _loadedMusicUrl;
 
@@ -70,6 +78,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   StreamSubscription<bool>? _teacherAiSeatSub;
   StreamSubscription<RoomFeatureState>? _featuresSub;
   StreamSubscription<List<RoomGiftEvent>>? _giftSub;
+  StreamSubscription<List<RoomCaption>>? _captionSub;
 
   List<RoomParticipant> _participants = const <RoomParticipant>[];
   RoomParticipant? _me;
@@ -86,6 +95,14 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   Timer? _speakingTimer;
   Timer? _quotaTimer;
   bool _quotaEnding = false;
+  bool _captionsEnabled = false;
+  bool _captionListening = false;
+  bool _captionTranslationEnabled = false;
+  String _captionTargetLanguage = 'en';
+  String? _captionError;
+  RoomCaption? _latestCaption;
+  String? _latestTranslatedCaption;
+  String? _lastTranslatedCaptionId;
 
   RoomFeatureState _featureState = const RoomFeatureState(
     roomLevel: 1,
@@ -107,6 +124,25 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     _quota = RoomQuotaService();
     _rewardedAds = RoomRewardedAdService();
     _features = RoomFeatureService(roomId: widget.channelId);
+    _captionService = RoomCaptionService(roomId: widget.channelId);
+    _translationService = RoomTranslationService();
+    _captionTargetLanguage =
+        widget.localeController?.locale?.languageCode ?? 'en';
+    _captionController = RoomLiveCaptionController(
+      service: _captionService,
+      onState: ({
+        required bool listening,
+        String? error,
+      }) {
+        if (!mounted) return;
+        setState(() {
+          _captionListening = listening;
+          if (error != null && error.trim().isNotEmpty) {
+            _captionError = error;
+          }
+        });
+      },
+    );
     _musicPlayer = AudioPlayer();
     _moderation = RoomModerationService(
       channelId: widget.channelId,
@@ -212,6 +248,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         _showGiftOverlay(latest);
       });
 
+      _captionSub = _captionService.watchLatest().listen(_handleCaptions);
+
       _participantsSub =
           _moderation.watchParticipants().listen((participants) {
         if (!mounted) return;
@@ -233,6 +271,122 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       await _controller.leave();
       if (mounted) Navigator.of(context).pop();
     }
+  }
+
+  void _handleCaptions(List<RoomCaption> captions) {
+    if (!mounted) return;
+    final latest = captions.isEmpty ? null : captions.first;
+    setState(() {
+      _latestCaption = latest;
+      if (latest == null) {
+        _latestTranslatedCaption = null;
+        _lastTranslatedCaptionId = null;
+      }
+    });
+
+    if (latest != null &&
+        _captionTranslationEnabled &&
+        latest.id != _lastTranslatedCaptionId) {
+      unawaited(_translateLatestCaption(latest));
+    }
+  }
+
+  Future<void> _translateLatestCaption(RoomCaption caption) async {
+    _lastTranslatedCaptionId = caption.id;
+    try {
+      final translated = await _translationService.translate(
+        text: caption.text,
+        sourceCode: caption.languageCode,
+        targetCode: _captionTargetLanguage,
+      );
+      if (!mounted || _latestCaption?.id != caption.id) return;
+      setState(() => _latestTranslatedCaption = translated);
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _latestTranslatedCaption = null;
+        _captionError = error.toString();
+      });
+    }
+  }
+
+  Future<void> _syncCaptionPublishing() async {
+    final me = _me;
+    final canPublish = _controller.joined &&
+        me != null &&
+        me.isOnStage &&
+        !_controller.muted &&
+        !me.forcedMuted;
+
+    await _captionController.configure(
+      enabled: _captionsEnabled,
+      canPublish: canPublish,
+      languageCode: widget.roomLanguageCode ?? 'en',
+      displayName: me?.displayName ?? 'WorldVoice user',
+    );
+  }
+
+  Future<void> _setCaptionsEnabled(bool value) async {
+    if (mounted) {
+      setState(() {
+        _captionsEnabled = value;
+        if (!value) {
+          _latestTranslatedCaption = null;
+          _captionError = null;
+        }
+      });
+    }
+    await _syncCaptionPublishing();
+  }
+
+  Future<void> _showCaptionSettings() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      useSafeArea: true,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setSheetState) {
+          void refreshSheet() => setSheetState(() {});
+
+          return RoomCaptionsSheet(
+            enabled: _captionsEnabled,
+            translationEnabled: _captionTranslationEnabled,
+            targetLanguage: _captionTargetLanguage,
+            canPublish: _me?.isOnStage == true,
+            listening: _captionListening,
+            error: _captionError,
+            onEnabledChanged: (value) {
+              unawaited(_setCaptionsEnabled(value));
+              refreshSheet();
+            },
+            onTranslationChanged: (value) {
+              setState(() {
+                _captionTranslationEnabled = value;
+                _latestTranslatedCaption = null;
+                _lastTranslatedCaptionId = null;
+              });
+              final latest = _latestCaption;
+              if (value && latest != null) {
+                unawaited(_translateLatestCaption(latest));
+              }
+              refreshSheet();
+            },
+            onTargetLanguageChanged: (value) {
+              setState(() {
+                _captionTargetLanguage = value;
+                _latestTranslatedCaption = null;
+                _lastTranslatedCaptionId = null;
+              });
+              final latest = _latestCaption;
+              if (_captionTranslationEnabled && latest != null) {
+                unawaited(_translateLatestCaption(latest));
+              }
+              refreshSheet();
+            },
+          );
+        },
+      ),
+    );
   }
 
   Future<void> _checkLiveQuota() async {
@@ -545,6 +699,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         !_controller.muted) {
       unawaited(_controller.setMuted(true));
     }
+
+    unawaited(_syncCaptionPublishing());
   }
 
   Future<void> _exitRemovedFromRoom() async {
@@ -578,6 +734,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       }
     }
 
+    unawaited(_syncCaptionPublishing());
     if (mounted) setState(() {});
   }
 
@@ -1056,6 +1213,16 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   },
                 ),
               _RoomToolTile(
+                icon: Icons.closed_caption_rounded,
+                label: isArabic
+                    ? 'الترجمة المباشرة'
+                    : 'Live captions & translation',
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _showCaptionSettings();
+                },
+              ),
+              _RoomToolTile(
                 icon: Icons.chat_bubble_rounded,
                 label: isArabic ? 'دردشة الغرفة' : 'Room chat',
                 onTap: () {
@@ -1298,12 +1465,15 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     _teacherAiSeatSub?.cancel();
     _featuresSub?.cancel();
     _giftSub?.cancel();
+    _captionSub?.cancel();
     _giftOverlayTimer?.cancel();
     _speakingTimer?.cancel();
     _quotaTimer?.cancel();
     _giftOverlay?.remove();
     _giftOverlay = null;
     _controller.removeListener(_refresh);
+    unawaited(_captionController.dispose());
+    unawaited(_translationService.dispose());
     unawaited(_musicPlayer.dispose());
     unawaited(_finishSessionTracking());
     unawaited(_moderation.leave());
@@ -1605,24 +1775,39 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                           color: Colors.white.withValues(alpha: .06),
                         ),
                       ),
-                      child: Center(
-                        child: Text(
-                          myRole == RoomMemberRole.listener
-                              ? (_handRaised
-                                  ? (isArabic
-                                      ? 'طلب الصعود مُرسل'
-                                      : 'Seat request sent')
-                                  : (isArabic
-                                      ? 'اضغط مقعدًا فارغًا أو ارفع يدك'
-                                      : 'Tap an empty seat or raise your hand'))
-                              : (isArabic
-                                  ? 'أنت على الستيج'
-                                  : 'You are on stage'),
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: .58),
-                            fontSize: 13,
-                          ),
-                        ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: _captionsEnabled && _latestCaption != null
+                            ? Align(
+                                alignment: Alignment.bottomCenter,
+                                child: RoomCaptionOverlay(
+                                  caption: _latestCaption!,
+                                  translationEnabled:
+                                      _captionTranslationEnabled,
+                                  translatedText:
+                                      _latestTranslatedCaption,
+                                ),
+                              )
+                            : Center(
+                                child: Text(
+                                  myRole == RoomMemberRole.listener
+                                      ? (_handRaised
+                                          ? (isArabic
+                                              ? 'طلب الصعود مُرسل'
+                                              : 'Seat request sent')
+                                          : (isArabic
+                                              ? 'اضغط مقعدًا فارغًا أو ارفع يدك'
+                                              : 'Tap an empty seat or raise your hand'))
+                                      : (isArabic
+                                          ? 'أنت على الستيج'
+                                          : 'You are on stage'),
+                                  style: TextStyle(
+                                    color:
+                                        Colors.white.withValues(alpha: .58),
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
                       ),
                     ),
                   ],
@@ -1645,6 +1830,12 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                       background: const Color(0xFFFF9B9B),
                       foreground: const Color(0xFF5B0000),
                       onPressed: _leave,
+                    ),
+                    const SizedBox(width: 8),
+                    _RoomBottomAction(
+                      icon: Icons.closed_caption_rounded,
+                      highlighted: _captionsEnabled,
+                      onPressed: _showCaptionSettings,
                     ),
                     const Spacer(),
                     if (isPublishing)
