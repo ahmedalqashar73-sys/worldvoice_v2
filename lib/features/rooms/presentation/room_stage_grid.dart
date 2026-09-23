@@ -7,36 +7,26 @@ import '../data/room_stage_models.dart';
 class RoomStageGrid extends StatelessWidget {
   const RoomStageGrid({
     required this.seats,
-    required this.showTeacherAiSeat,
     required this.onSeatTap,
     super.key,
   });
 
   final List<RoomSeatState> seats;
-  final bool showTeacherAiSeat;
   final ValueChanged<RoomSeatState> onSeatTap;
 
   @override
   Widget build(BuildContext context) {
-    final visibleSeats = <RoomSeatState>[
-      ...seats.take(8),
-      if (showTeacherAiSeat)
-        const RoomSeatState(
-          index: 9,
-          role: RoomMemberRole.teacherAi,
-          displayName: 'Teacher AI',
-        ),
-    ];
+    final visibleSeats = seats.take(8).toList(growable: false);
 
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: visibleSeats.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
+        crossAxisCount: 4,
         mainAxisSpacing: 14,
-        crossAxisSpacing: 10,
-        childAspectRatio: .82,
+        crossAxisSpacing: 8,
+        childAspectRatio: .70,
       ),
       itemBuilder: (context, index) {
         final seat = visibleSeats[index];
@@ -71,7 +61,7 @@ class _RoomSeatState extends State<_RoomSeat>
     super.initState();
     _pulse = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1100),
+      duration: const Duration(milliseconds: 1050),
       lowerBound: 0,
       upperBound: 1,
     );
@@ -101,79 +91,84 @@ class _RoomSeatState extends State<_RoomSeat>
   Widget build(BuildContext context) {
     final seat = widget.seat;
     final colors = Theme.of(context).colorScheme;
-    final isAi = seat.role == RoomMemberRole.teacherAi;
 
     return InkWell(
-      borderRadius: BorderRadius.circular(22),
+      borderRadius: BorderRadius.circular(18),
       onTap: widget.onTap,
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Expanded(
-            child: Center(
-              child: AnimatedBuilder(
-                animation: _pulse,
-                builder: (context, child) {
-                  final glow = seat.isActiveSpeaker
-                      ? 8 + (8 * math.sin(_pulse.value * math.pi))
-                      : 0.0;
+          AnimatedBuilder(
+            animation: _pulse,
+            builder: (context, child) {
+              final glow = seat.isActiveSpeaker
+                  ? 7 + (7 * math.sin(_pulse.value * math.pi))
+                  : 0.0;
 
-                  return Container(
-                    width: 76,
-                    height: 76,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: _seatFrameGradient(seat, colors),
-                      boxShadow: [
-                        if (seat.isActiveSpeaker)
-                          BoxShadow(
-                            blurRadius: glow,
-                            spreadRadius: 2,
-                            color: colors.primary.withValues(alpha: .45),
-                          ),
-                      ],
-                    ),
-                    padding: const EdgeInsets.all(3),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: colors.surfaceContainerHighest,
+              return Container(
+                width: 62,
+                height: 62,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: _seatFrameGradient(seat, colors),
+                  boxShadow: [
+                    if (seat.isActiveSpeaker)
+                      BoxShadow(
+                        blurRadius: glow,
+                        spreadRadius: 2,
+                        color: colors.primary.withValues(alpha: .50),
                       ),
-                      child: ClipOval(
-                        child: _SeatAvatar(seat: seat),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
+                  ],
+                ),
+                padding: const EdgeInsets.all(3),
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: seat.isEmpty
+                        ? colors.surfaceContainerHighest
+                        : colors.surface,
+                  ),
+                  child: ClipOval(
+                    child: _SeatAvatar(seat: seat),
+                  ),
+                ),
+              );
+            },
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 7),
           Text(
-            seat.isEmpty ? 'Seat ${seat.index}' : seat.displayName ?? 'Speaker',
+            seat.isEmpty ? '${seat.index}' : seat.displayName ?? 'Speaker',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
             style: TextStyle(
+              fontSize: 12,
               fontWeight: seat.role == RoomMemberRole.host ||
                       seat.role == RoomMemberRole.coHost
                   ? FontWeight.w900
                   : FontWeight.w700,
             ),
           ),
-          const SizedBox(height: 2),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _RoleBadge(role: seat.role),
-              if (!seat.isEmpty && !isAi) ...[
-                const SizedBox(width: 4),
+          const SizedBox(height: 3),
+          if (!seat.isEmpty)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _RoleBadge(role: seat.role),
+                const SizedBox(width: 3),
                 Icon(
                   seat.isMuted ? Icons.mic_off_rounded : Icons.mic_rounded,
-                  size: 13,
+                  size: 12,
                   color: seat.isMuted ? colors.error : colors.primary,
                 ),
               ],
-            ],
-          ),
+            )
+          else
+            Icon(
+              Icons.pan_tool_alt_rounded,
+              size: 12,
+              color: colors.onSurfaceVariant.withValues(alpha: .70),
+            ),
         ],
       ),
     );
@@ -183,11 +178,6 @@ class _RoomSeatState extends State<_RoomSeat>
     RoomSeatState seat,
     ColorScheme colors,
   ) {
-    if (seat.role == RoomMemberRole.teacherAi) {
-      return const LinearGradient(
-        colors: [Color(0xFF6E5DFF), Color(0xFF16C79A)],
-      );
-    }
     if (seat.role == RoomMemberRole.vipSeat) {
       return const LinearGradient(
         colors: [Color(0xFFFFD54F), Color(0xFFFFA000)],
@@ -195,7 +185,12 @@ class _RoomSeatState extends State<_RoomSeat>
     }
     if (seat.role == RoomMemberRole.host) {
       return const LinearGradient(
-        colors: [Color(0xFFFFD700), Color(0xFF5ABF63)],
+        colors: [Color(0xFFFFD700), Color(0xFF62D64F)],
+      );
+    }
+    if (seat.role == RoomMemberRole.coHost) {
+      return const LinearGradient(
+        colors: [Color(0xFF7C5CFF), Color(0xFF27C7B8)],
       );
     }
     if (seat.giftFrameLevel > 0) {
@@ -209,7 +204,10 @@ class _RoomSeatState extends State<_RoomSeat>
       );
     }
     return LinearGradient(
-      colors: [colors.outlineVariant, colors.outline],
+      colors: [
+        colors.outlineVariant,
+        colors.outline.withValues(alpha: .75),
+      ],
     );
   }
 }
@@ -221,27 +219,20 @@ class _SeatAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (seat.role == RoomMemberRole.teacherAi) {
-      return Container(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        child: const Icon(Icons.smart_toy_rounded, size: 36),
-      );
-    }
-
     if (seat.avatarUrl?.isNotEmpty == true) {
       return Image.network(
         seat.avatarUrl!,
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) => const Icon(
           Icons.person_rounded,
-          size: 36,
+          size: 30,
         ),
       );
     }
 
     return Icon(
-      seat.isEmpty ? Icons.add_rounded : Icons.person_rounded,
-      size: seat.isEmpty ? 28 : 36,
+      seat.isEmpty ? Icons.chair_alt_rounded : Icons.person_rounded,
+      size: seat.isEmpty ? 27 : 31,
     );
   }
 }
@@ -270,28 +261,31 @@ class _RoleBadge extends StatelessWidget {
         background = const Color(0xFFFFE0B2);
         foreground = const Color(0xFF7A4100);
         break;
-      case RoomMemberRole.teacherAi:
-        background = colors.primaryContainer;
-        foreground = colors.onPrimaryContainer;
-        break;
       case RoomMemberRole.speaker:
+        background = colors.surfaceContainerHighest;
+        foreground = colors.onSurfaceVariant;
+        break;
       case RoomMemberRole.listener:
+      case RoomMemberRole.teacherAi:
         background = colors.surfaceContainerHighest;
         foreground = colors.onSurfaceVariant;
         break;
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      constraints: const BoxConstraints(maxWidth: 54),
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
       decoration: BoxDecoration(
         color: background,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
         role.label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: TextStyle(
           color: foreground,
-          fontSize: 9,
+          fontSize: 8,
           fontWeight: FontWeight.w800,
         ),
       ),
