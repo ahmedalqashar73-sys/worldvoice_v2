@@ -173,6 +173,12 @@ service cloud.firestore {
             );
       }
 
+      match /mod_log/{logId} {
+        allow read: if isHost(roomId) || isModerator(roomId);
+        allow create: if isHost(roomId) || isModerator(roomId);
+        allow update, delete: if false;
+      }
+
       match /participants/{userId} {
         allow read: if signedIn();
 
@@ -184,6 +190,10 @@ service cloud.firestore {
             && userId == request.auth.uid
             && request.resource.data.uid == request.auth.uid
             && request.resource.data.handRaised == false
+            && request.resource.data.isModerator == false
+            && request.resource.data.warningCount == 0
+            && request.resource.data.forcedMuted == false
+            && request.resource.data.kicked == false
             && (
               (
                 request.resource.data.role == 'listener'
@@ -236,9 +246,17 @@ service cloud.firestore {
                       'seatIndex',
                       'requestedSeatIndex',
                       'agoraUid',
+                      'isModerator',
+                      'warningCount',
+                      'forcedMuted',
+                      'kicked',
                       'joinedAt',
                       'updatedAt'
                     ])
+                && request.resource.data.isModerator == false
+                && request.resource.data.warningCount == 0
+                && request.resource.data.forcedMuted == false
+                && request.resource.data.kicked == false
               )
               ||
               (
@@ -260,6 +278,9 @@ service cloud.firestore {
                       'seatIndex',
                       'handRaised',
                       'requestedSeatIndex',
+                      'isModerator',
+                      'warningCount',
+                      'forcedMuted',
                       'updatedAt'
                     ])
                 && (
@@ -280,12 +301,43 @@ service cloud.firestore {
                   )
                 )
               )
+              ||
+              (
+                isModerator(roomId)
+                && resource.data.role != 'host'
+                && request.resource.data.uid == resource.data.uid
+                && request.resource.data.isModerator == resource.data.isModerator
+                && request.resource.data
+                    .diff(resource.data)
+                    .affectedKeys()
+                    .hasOnly([
+                      'role',
+                      'seatIndex',
+                      'handRaised',
+                      'requestedSeatIndex',
+                      'warningCount',
+                      'forcedMuted',
+                      'updatedAt'
+                    ])
+                && (
+                  request.resource.data.role == resource.data.role
+                  ||
+                  (
+                    request.resource.data.role == 'listener'
+                    && !('seatIndex' in request.resource.data)
+                  )
+                )
+              )
             );
 
         allow delete: if signedIn()
             && (
               userId == request.auth.uid
               || isHost(roomId)
+              || (
+                isModerator(roomId)
+                && resource.data.role != 'host'
+              )
             );
       }
     }
