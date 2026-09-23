@@ -6,6 +6,7 @@ import '../data/room_moderation_models.dart';
 import '../data/room_stage_models.dart';
 import '../services/agora_voice_room_controller.dart';
 import '../services/room_moderation_service.dart';
+import 'room_chat_sheet.dart';
 import 'room_stage_grid.dart';
 
 class AgoraVoiceRoomScreen extends StatefulWidget {
@@ -379,6 +380,18 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               ),
           ],
         ),
+      ),
+    );
+  }
+
+  Future<void> _showRoomChat() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => RoomChatSheet(
+        roomId: widget.channelId,
+        canModerate: _isHost || _me?.role == RoomMemberRole.coHost,
       ),
     );
   }
@@ -858,7 +871,13 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                                 : _requestSeat()
                             : null,
                       ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 8),
+                    _RoomBottomAction(
+                      icon: Icons.chat_bubble_outline_rounded,
+                      label: isArabic ? 'الدردشة' : 'Chat',
+                      onPressed: _showRoomChat,
+                    ),
+                    const SizedBox(width: 8),
                     _RoomBottomAction(
                       icon: Icons.more_horiz_rounded,
                       label: isArabic ? 'المزيد' : 'More',
