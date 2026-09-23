@@ -31,3 +31,56 @@ jobs:
           path: build/app/outputs/flutter-apk/app-debug.apk
           if-no-files-found: error
           retention-days: 7
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Distribute to Firebase App Distribution
+        id: firebase_distribution
+        shell: bash
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          FIREBASE_TESTERS: ${{ secrets.FIREBASE_TESTERS }}
+          FIREBASE_TESTER_GROUPS: ${{ secrets.FIREBASE_TESTER_GROUPS }}
+        run: |
+          set -euo pipefail
+
+          APK="build/app/outputs/flutter-apk/app-debug.apk"
+          APP_ID="1:149108991969:android:f9000a8165a8a38166d4a0"
+          NOTES="WorldVoice voice-room test build - 8 seats, room chat, raise hand, mute, Teacher AI, quiz, gifts, minimize/leave/close."
+
+          AUTH_ARGS=()
+          if [ -n "${FIREBASE_SERVICE_ACCOUNT_JSON:-}" ]; then
+            printf '%s' "$FIREBASE_SERVICE_ACCOUNT_JSON" > "$RUNNER_TEMP/firebase-service-account.json"
+            export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/firebase-service-account.json"
+            echo "Firebase authentication: service account"
+          elif [ -n "${FIREBASE_TOKEN:-}" ]; then
+            AUTH_ARGS=(--token "$FIREBASE_TOKEN")
+            echo "Firebase authentication: CI token"
+          else
+            echo "Firebase App Distribution skipped: add FIREBASE_SERVICE_ACCOUNT_JSON or FIREBASE_TOKEN as a GitHub Actions secret."
+            echo "firebase_configured=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          DIST_ARGS=()
+          if [ -n "${FIREBASE_TESTER_GROUPS:-}" ]; then
+            DIST_ARGS+=(--groups "$FIREBASE_TESTER_GROUPS")
+          fi
+          if [ -n "${FIREBASE_TESTERS:-}" ]; then
+            DIST_ARGS+=(--testers "$FIREBASE_TESTERS")
+          fi
+
+          firebase appdistribution:distribute "$APK"             --app "$APP_ID"             --release-notes "$NOTES"             "${DIST_ARGS[@]}"             "${AUTH_ARGS[@]}" | tee firebase-distribution.txt
+
+          echo "firebase_configured=true" >> "$GITHUB_OUTPUT"
+
+      - name: Upload Firebase distribution result
+        if: steps.firebase_distribution.outputs.firebase_configured == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: firebase-distribution-result
+          path: firebase-distribution.txt
+          if-no-files-found: warn
+          retention-days: 7
