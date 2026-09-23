@@ -1175,6 +1175,46 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     );
   }
 
+  Future<void> _confirmCloseRoom() async {
+    if (!_isHost || _leaving || !mounted) return;
+
+    final isArabic =
+        Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(isArabic ? 'إغلاق الروم؟' : 'Close room?'),
+        content: Text(
+          isArabic
+              ? 'سيتم إنهاء الروم وإخراج جميع الموجودين منه.'
+              : 'This will end the room and disconnect everyone in it.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(isArabic ? 'إلغاء' : 'Cancel'),
+          ),
+          FilledButton.icon(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            icon: const Icon(Icons.stop_circle_rounded),
+            label: Text(isArabic ? 'إغلاق الروم' : 'Close room'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    try {
+      await _moderation.closeRoom();
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
+    }
+  }
+
   Future<void> _showRoomControls() async {
     final isArabic =
         Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
@@ -1339,6 +1379,34 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   _showRoomExtras();
                 },
               ),
+              const Divider(),
+              if (widget.localeController != null)
+                _RoomToolTile(
+                  icon: Icons.picture_in_picture_alt_rounded,
+                  label: isArabic ? 'تصغير الروم' : 'Minimize room',
+                  onTap: () {
+                    Navigator.pop(sheetContext);
+                    _minimizeRoom();
+                  },
+                ),
+              _RoomToolTile(
+                icon: Icons.logout_rounded,
+                label: isArabic ? 'الخروج من الروم' : 'Leave room',
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _leave();
+                },
+              ),
+              if (_isHost)
+                _RoomToolTile(
+                  icon: Icons.stop_circle_rounded,
+                  label: isArabic ? 'إغلاق الروم للجميع' : 'Close room for everyone',
+                  destructive: true,
+                  onTap: () {
+                    Navigator.pop(sheetContext);
+                    _confirmCloseRoom();
+                  },
+                ),
             ],
           ),
         ),
