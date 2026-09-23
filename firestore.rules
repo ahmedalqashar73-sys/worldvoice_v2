@@ -1,0 +1,151 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function roomPath(roomId) {
+      return /databases/$(database)/documents/rooms/$(roomId);
+    }
+
+    function isHost(roomId) {
+      return signedIn()
+          && exists(roomPath(roomId))
+          && get(roomPath(roomId)).data.hostId == request.auth.uid;
+    }
+
+    function isHostAfter(roomId) {
+      return signedIn()
+          && getAfter(roomPath(roomId)).data.hostId == request.auth.uid;
+    }
+
+    function selfParticipantFieldsOnly() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'handRaised',
+        'agoraUid',
+        'updatedAt'
+      ]);
+    }
+
+    function validManagedParticipant(data) {
+      return (
+        data.role == 'listener'
+        && !('seatIndex' in data)
+      ) || (
+        data.role in ['speaker', 'coHost', 'vipSeat']
+        && data.seatIndex is int
+        && data.seatIndex >= 2
+        && data.seatIndex <= 8
+      );
+    }
+
+    function validHostManagedUpdate() {
+      return request.resource.data.uid == resource.data.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'role',
+            'seatIndex',
+            'handRaised',
+            'updatedAt'
+          ])
+          && validManagedParticipant(request.resource.data);
+    }
+
+    function validSelfListenerReset(userId) {
+      return userId == request.auth.uid
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.role == 'listener'
+          && !('seatIndex' in request.resource.data)
+          && request.resource.data.handRaised == false
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'displayName',
+            'photoUrl',
+            'role',
+            'handRaised',
+            'seatIndex',
+            'agoraUid',
+            'joinedAt',
+            'updatedAt'
+          ]);
+    }
+
+    function validHostSelfState(roomId, userId) {
+      return isHost(roomId)
+          && userId == request.auth.uid
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.role == 'host'
+          && request.resource.data.seatIndex == 1;
+    }
+
+    // -----------------------------
+    // Secure WorldVoice voice rooms
+    // -----------------------------
+    match /rooms/{roomId} {
+      allow read: if signedIn();
+
+      allow create: if signedIn()
+          && request.resource.data.hostId == request.auth.uid
+          && request.resource.data.channelId == roomId;
+
+      allow update: if isHost(roomId)
+          && request.resource.data.hostId == resource.data.hostId
+          && request.resource.data.channelId == resource.data.channelId;
+
+      allow delete: if isHost(roomId);
+
+      match /participants/{userId} {
+        allow read: if signedIn();
+
+        allow create: if signedIn()
+            && userId == request.auth.uid
+            && request.resource.data.uid == request.auth.uid
+            && request.resource.data.handRaised == false
+            && (
+              (
+                request.resource.data.role == 'listener'
+                && !('seatIndex' in request.resource.data)
+              )
+              ||
+              (
+                request.resource.data.role == 'host'
+                && request.resource.data.seatIndex == 1
+                && isHostAfter(roomId)
+              )
+            );
+
+        allow update: if signedIn()
+            && (
+              (
+                userId == request.auth.uid
+                && request.resource.data.uid == resource.data.uid
+                && selfParticipantFieldsOnly()
+              )
+              ||
+              validSelfListenerReset(userId)
+              ||
+              validHostSelfState(roomId, userId)
+              ||
+              (
+                isHost(roomId)
+                && validHostManagedUpdate()
+              )
+            );
+
+        allow delete: if signedIn()
+            && (userId == request.auth.uid || isHost(roomId));
+      }
+    }
+
+    // -------------------------------------------------
+    // TEMPORARY compatibility rule for existing features
+    // Keeps the current app behavior outside /rooms only.
+    // Replace this with per-feature production rules later.
+    // -------------------------------------------------
+    match /{collection}/{document=**} {
+      allow read, write: if collection != 'rooms'
+          && request.time < timestamp.date(2026, 10, 11);
+    }
+  }
+}
