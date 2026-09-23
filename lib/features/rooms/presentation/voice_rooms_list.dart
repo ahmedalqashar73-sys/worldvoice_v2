@@ -8,6 +8,7 @@ import '../../../core/localization/locale_controller.dart';
 import '../../profile/data/profile_identity_utils.dart';
 import '../data/agora_config.dart';
 import '../services/agora_voice_room_controller.dart';
+import '../services/room_history_service.dart';
 import 'agora_voice_room_screen.dart';
 
 class VoiceRoomsList extends StatefulWidget {
@@ -260,6 +261,84 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
     }
   }
 
+  Future<void> _showHistory(BuildContext context) async {
+    final history = RoomHistoryService();
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (sheetContext) => SizedBox(
+        height: MediaQuery.sizeOf(sheetContext).height * .72,
+        child: Column(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.history_rounded),
+              title: Text(
+                _isArabic ? 'سجل الغرف' : 'Room history',
+                style: const TextStyle(fontWeight: FontWeight.w900),
+              ),
+              trailing: IconButton(
+                onPressed: () => Navigator.pop(sheetContext),
+                icon: const Icon(Icons.close_rounded),
+              ),
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                stream: history.watchHistory(),
+                builder: (context, snapshot) {
+                  final docs = snapshot.data?.docs ??
+                      const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
+                  if (docs.isEmpty) {
+                    return Center(
+                      child: Text(
+                        _isArabic
+                            ? 'لا يوجد سجل غرف بعد.'
+                            : 'No room history yet.',
+                      ),
+                    );
+                  }
+
+                  return ListView.separated(
+                    padding: const EdgeInsets.all(12),
+                    itemCount: docs.length,
+                    separatorBuilder: (_, _) => const Divider(),
+                    itemBuilder: (context, index) {
+                      final data = docs[index].data();
+                      final raw = data['lastEnteredAt'];
+                      final enteredAt =
+                          raw is Timestamp ? raw.toDate() : null;
+                      final visits =
+                          (data['visitCount'] as num?)?.toInt() ?? 1;
+
+                      return ListTile(
+                        leading: const CircleAvatar(
+                          child: Icon(Icons.mic_rounded),
+                        ),
+                        title: Text(
+                          (data['roomName'] ?? 'WorldVoice Room').toString(),
+                        ),
+                        subtitle: Text(
+                          enteredAt == null
+                              ? '$visits visit(s)'
+                              : '$visits visit(s) • '
+                                  '${enteredAt.year}-'
+                                  '${enteredAt.month.toString().padLeft(2, '0')}-'
+                                  '${enteredAt.day.toString().padLeft(2, '0')}',
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<_RoomLanguagePrefs>(
@@ -280,6 +359,13 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
+                  TextButton.icon(
+                    onPressed: () => _showHistory(context),
+                    icon: const Icon(Icons.history_rounded),
+                    label: Text(
+                      _isArabic ? 'السجل' : 'History',
+                    ),
+                  ),
                   TextButton.icon(
                     onPressed: () => _joinPrivateRoom(context),
                     icon: const Icon(Icons.lock_outline_rounded),
