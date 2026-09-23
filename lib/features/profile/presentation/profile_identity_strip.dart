@@ -45,12 +45,19 @@ class ProfileIdentityStrip extends StatelessWidget {
     }
 
     if (genderLabel != null) {
+      final isFemale = gender == 'female';
       items.add(
         _IdentityChip(
-          icon: gender == 'female'
+          icon: isFemale
               ? Icons.female_rounded
               : Icons.male_rounded,
           text: genderLabel,
+          backgroundColor: isFemale
+              ? const Color(0xFFFF4F9A).withValues(alpha: .16)
+              : const Color(0xFF27B9F3).withValues(alpha: .16),
+          foregroundColor: isFemale
+              ? const Color(0xFFFF4F9A)
+              : const Color(0xFF149FE0),
         ),
       );
     }
@@ -82,11 +89,15 @@ class _IdentityChip extends StatelessWidget {
     required this.text,
     this.icon,
     this.leadingText,
+    this.backgroundColor,
+    this.foregroundColor,
   });
 
   final String text;
   final IconData? icon;
   final String? leadingText;
+  final Color? backgroundColor;
+  final Color? foregroundColor;
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +106,8 @@ class _IdentityChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
       decoration: BoxDecoration(
-        color: colors.surfaceContainerHighest.withValues(alpha: .72),
+        color: backgroundColor ??
+            colors.surfaceContainerHighest.withValues(alpha: .72),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
@@ -106,14 +118,19 @@ class _IdentityChip extends StatelessWidget {
             const SizedBox(width: 6),
           ],
           if (icon != null) ...[
-            Icon(icon, size: 17, color: colors.primary),
+            Icon(
+              icon,
+              size: 17,
+              color: foregroundColor ?? colors.primary,
+            ),
             const SizedBox(width: 5),
           ],
           Text(
             text,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w700,
+              color: foregroundColor,
             ),
           ),
         ],
