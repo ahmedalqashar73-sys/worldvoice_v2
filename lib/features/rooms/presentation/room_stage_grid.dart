@@ -242,7 +242,7 @@ class _SeatAvatar extends StatelessWidget {
 
     if (seat.isEmpty) {
       return Icon(
-        Icons.chair_alt_rounded,
+        Icons.pan_tool_alt_rounded,
         size: 23,
         color: Colors.white.withValues(alpha: .78),
       );
