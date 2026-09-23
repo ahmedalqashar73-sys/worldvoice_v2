@@ -9,6 +9,7 @@ class RoomParticipant {
     this.photoUrl,
     this.agoraUid,
     this.seatIndex,
+    this.requestedSeatIndex,
   });
 
   final String userId;
@@ -18,6 +19,7 @@ class RoomParticipant {
   final bool handRaised;
   final int? agoraUid;
   final int? seatIndex;
+  final int? requestedSeatIndex;
 
   bool get isOnStage =>
       role == RoomMemberRole.host ||
