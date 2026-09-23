@@ -7,6 +7,8 @@ import '../data/room_stage_models.dart';
 import '../services/agora_voice_room_controller.dart';
 import '../services/room_moderation_service.dart';
 import 'room_chat_sheet.dart';
+import 'room_members_sheet.dart';
+import 'room_mod_log_sheet.dart';
 import 'room_stage_grid.dart';
 
 class AgoraVoiceRoomScreen extends StatefulWidget {
@@ -43,6 +45,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   int? _lastSyncedAgoraUid;
   late bool _showTeacherAiSeat;
   bool _leaving = false;
+  bool _participantWasReady = false;
 
   @override
   void initState() {
@@ -115,9 +118,18 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
   void _handleMyParticipant(RoomParticipant? participant) {
     if (!mounted) return;
+
+    if (participant == null) {
+      if (_participantWasReady && !_leaving) {
+        unawaited(_exitRemovedFromRoom());
+      }
+      return;
+    }
+
+    _participantWasReady = true;
     setState(() => _me = participant);
 
-    if (participant == null || !_controller.joined) return;
+    if (!_controller.joined) return;
 
     final desiredAgoraRole = participant.isOnStage
         ? AgoraRoomRole.speaker
@@ -126,6 +138,23 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     if (_controller.role != desiredAgoraRole) {
       unawaited(_controller.switchRole(desiredAgoraRole));
     }
+
+    if (participant.forcedMuted &&
+        desiredAgoraRole == AgoraRoomRole.speaker &&
+        !_controller.muted) {
+      unawaited(_controller.setMuted(true));
+    }
+  }
+
+  Future<void> _exitRemovedFromRoom() async {
+    if (_leaving) return;
+    _leaving = true;
+    await _controller.leave();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('You were removed from the room.')),
+    );
+    Navigator.of(context).pop();
   }
 
   void _refresh() {
@@ -155,6 +184,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       (_me == null && widget.initialRole == AgoraRoomRole.speaker);
 
   bool get _handRaised => _me?.handRaised == true;
+
+  bool get _isModerator => _me?.isModerator == true;
+
+  bool get _canModerate => _isHost || _isModerator;
 
   List<RoomParticipant> get _raisedHands => _participants
       .where(
@@ -206,7 +239,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         agoraUid: participant.agoraUid,
         isMuted: participant.userId == _moderation.currentUserId
             ? _controller.muted
-            : false,
+            : participant.forcedMuted,
         isLocalUser: participant.userId == _moderation.currentUserId,
       );
     }
@@ -391,8 +424,32 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       useSafeArea: true,
       builder: (_) => RoomChatSheet(
         roomId: widget.channelId,
-        canModerate: _isHost || _me?.role == RoomMemberRole.coHost,
+        canModerate: _canModerate,
       ),
+    );
+  }
+
+  Future<void> _showMembers() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => RoomMembersSheet(
+        roomId: widget.channelId,
+        participants: _participants,
+        isHost: _isHost,
+        isModerator: _isModerator,
+      ),
+    );
+  }
+
+  Future<void> _showModLog() async {
+    if (!_canModerate) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => RoomModLogSheet(roomId: widget.channelId),
     );
   }
 
@@ -442,6 +499,23 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   },
                 ),
               const Divider(),
+              _RoomToolTile(
+                icon: Icons.groups_rounded,
+                label: isArabic ? 'أعضاء الغرفة' : 'Room members',
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _showMembers();
+                },
+              ),
+              if (_canModerate)
+                _RoomToolTile(
+                  icon: Icons.receipt_long_rounded,
+                  label: isArabic ? 'سجل المودريتور' : 'Moderator log',
+                  onTap: () {
+                    Navigator.pop(sheetContext);
+                    _showModLog();
+                  },
+                ),
               _RoomToolTile(
                 icon: Icons.wallpaper_rounded,
                 label: isArabic ? 'الخلفية' : 'Background',
@@ -718,7 +792,15 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
           ),
         ),
         actions: [
-          if (_isHost)
+          IconButton(
+            tooltip: isArabic ? 'الأعضاء' : 'Members',
+            onPressed: _showMembers,
+            icon: Badge(
+              label: Text('${_participants.length}'),
+              child: const Icon(Icons.groups_rounded),
+            ),
+          ),
+          if (_canModerate)
             IconButton(
               tooltip: isArabic ? 'أدوات الغرفة' : 'Room tools',
               onPressed: _showRoomControls,
@@ -849,10 +931,13 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                         icon: _controller.muted
                             ? Icons.mic_off_rounded
                             : Icons.mic_rounded,
-                        label: _controller.muted
-                            ? (isArabic ? 'تشغيل' : 'Unmute')
-                            : (isArabic ? 'كتم' : 'Mute'),
-                        onPressed: _controller.joined
+                        label: _me?.forcedMuted == true
+                            ? (isArabic ? 'مكتوم من المودريتور' : 'Moderator mute')
+                            : _controller.muted
+                                ? (isArabic ? 'تشغيل' : 'Unmute')
+                                : (isArabic ? 'كتم' : 'Mute'),
+                        onPressed: _controller.joined &&
+                                _me?.forcedMuted != true
                             ? () => _controller.setMuted(!_controller.muted)
                             : null,
                       )
@@ -905,10 +990,12 @@ class _RoomToolTile extends StatelessWidget {
   const _RoomToolTile({
     required this.icon,
     required this.label,
+    this.onTap,
   });
 
   final IconData icon;
   final String label;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -920,7 +1007,7 @@ class _RoomToolTile extends StatelessWidget {
         style: const TextStyle(fontWeight: FontWeight.w800),
       ),
       trailing: const Icon(Icons.chevron_right_rounded),
-      onTap: () => Navigator.pop(context),
+      onTap: onTap ?? () => Navigator.pop(context),
     );
   }
 }
