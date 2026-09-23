@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/localization/locale_controller.dart';
+import '../services/agora_voice_room_controller.dart';
+import 'agora_voice_room_screen.dart';
 
 class RoomsHubScreen extends StatefulWidget {
   const RoomsHubScreen({
@@ -71,8 +73,12 @@ class _RoomsHubScreenState extends State<RoomsHubScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            const Expanded(
-              child: SizedBox.expand(),
+            Expanded(
+              child: _section == 0
+                  ? _VoiceRoomTestPanel(
+                      channelId: 'worldvoice_english_lounge',
+                    )
+                  : const SizedBox.expand(),
             ),
           ],
         ),
@@ -126,4 +132,74 @@ class _RoomsHubLabels {
   final String title;
   final String search;
   final List<String> sections;
+}
+
+
+class _VoiceRoomTestPanel extends StatelessWidget {
+  const _VoiceRoomTestPanel({required this.channelId});
+
+  final String channelId;
+
+  void _open(
+    BuildContext context, {
+    required AgoraRoomRole role,
+  }) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => AgoraVoiceRoomScreen(
+          channelId: channelId,
+          roomName: 'WorldVoice Test Room',
+          initialRole: role,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(18, 24, 18, 28),
+      children: [
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'WorldVoice Test Room',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  channelId,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const SizedBox(height: 18),
+                FilledButton.icon(
+                  onPressed: () => _open(
+                    context,
+                    role: AgoraRoomRole.speaker,
+                  ),
+                  icon: const Icon(Icons.admin_panel_settings_rounded),
+                  label: const Text('Enter as Host'),
+                ),
+                const SizedBox(height: 10),
+                FilledButton.tonalIcon(
+                  onPressed: () => _open(
+                    context,
+                    role: AgoraRoomRole.listener,
+                  ),
+                  icon: const Icon(Icons.headphones_rounded),
+                  label: const Text('Enter as Listener'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
