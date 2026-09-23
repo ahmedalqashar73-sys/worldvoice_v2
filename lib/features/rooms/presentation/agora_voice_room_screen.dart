@@ -11,6 +11,7 @@ import '../data/room_caption.dart';
 import '../data/room_feature_models.dart';
 import '../data/room_moderation_models.dart';
 import '../data/room_stage_models.dart';
+import '../data/room_teacher_ai_note.dart';
 import '../services/agora_voice_room_controller.dart';
 import '../services/room_caption_service.dart';
 import '../services/room_feature_service.dart';
@@ -20,6 +21,7 @@ import '../services/room_moderation_service.dart';
 import '../services/room_quota_service.dart';
 import '../services/room_rewarded_ad_service.dart';
 import '../services/room_translation_service.dart';
+import '../services/room_teacher_ai_service.dart';
 import 'room_board_screen.dart';
 import 'room_chat_sheet.dart';
 import 'room_captions_sheet.dart';
@@ -69,6 +71,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   late final RoomCaptionService _captionService;
   late final RoomLiveCaptionController _captionController;
   late final RoomTranslationService _translationService;
+  late final RoomTeacherAiService _teacherAi;
   late final AudioPlayer _musicPlayer;
   String? _loadedMusicUrl;
 
@@ -79,6 +82,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   StreamSubscription<RoomFeatureState>? _featuresSub;
   StreamSubscription<List<RoomGiftEvent>>? _giftSub;
   StreamSubscription<List<RoomCaption>>? _captionSub;
+  StreamSubscription<List<RoomTeacherAiNote>>? _teacherAiSub;
 
   List<RoomParticipant> _participants = const <RoomParticipant>[];
   RoomParticipant? _me;
@@ -103,6 +107,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   RoomCaption? _latestCaption;
   String? _latestTranslatedCaption;
   String? _lastTranslatedCaptionId;
+  String? _lastTeacherAiCaptionId;
+  RoomTeacherAiNote? _latestTeacherAiNote;
 
   RoomFeatureState _featureState = const RoomFeatureState(
     roomLevel: 1,
@@ -126,6 +132,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     _features = RoomFeatureService(roomId: widget.channelId);
     _captionService = RoomCaptionService(roomId: widget.channelId);
     _translationService = RoomTranslationService();
+    _teacherAi = RoomTeacherAiService(roomId: widget.channelId);
     _captionTargetLanguage =
         widget.localeController?.locale?.languageCode ?? 'en';
     _captionController = RoomLiveCaptionController(
@@ -250,6 +257,13 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
       _captionSub = _captionService.watchLatest().listen(_handleCaptions);
 
+      _teacherAiSub = _teacherAi.watchNotes().listen((notes) {
+        if (!mounted) return;
+        setState(() {
+          _latestTeacherAiNote = notes.isEmpty ? null : notes.first;
+        });
+      });
+
       _participantsSub =
           _moderation.watchParticipants().listen((participants) {
         if (!mounted) return;
@@ -288,6 +302,19 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         _captionTranslationEnabled &&
         latest.id != _lastTranslatedCaptionId) {
       unawaited(_translateLatestCaption(latest));
+    }
+
+    if (latest != null &&
+        _showTeacherAiSeat &&
+        latest.userId == _moderation.currentUserId &&
+        latest.id != _lastTeacherAiCaptionId) {
+      _lastTeacherAiCaptionId = latest.id;
+      unawaited(
+        _teacherAi.submitCaption(
+          caption: latest,
+          roomLanguageCode: widget.roomLanguageCode ?? 'en',
+        ),
+      );
     }
   }
 
@@ -1466,6 +1493,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     _featuresSub?.cancel();
     _giftSub?.cancel();
     _captionSub?.cancel();
+    _teacherAiSub?.cancel();
     _giftOverlayTimer?.cancel();
     _speakingTimer?.cancel();
     _quotaTimer?.cancel();
@@ -1752,7 +1780,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                     ),
                     if (_showTeacherAiSeat) ...[
                       const SizedBox(height: 8),
-                      const _TeacherAiCompactSeat(),
+                      _TeacherAiCompactSeat(
+                        note: _latestTeacherAiNote,
+                        configured: _teacherAi.isConfigured,
+                      ),
                     ],
                     const SizedBox(height: 12),
                     if (_isHost && _raisedHands.isNotEmpty)
@@ -2220,47 +2251,89 @@ class _RoleOption extends StatelessWidget {
 
 
 class _TeacherAiCompactSeat extends StatelessWidget {
-  const _TeacherAiCompactSeat();
+  const _TeacherAiCompactSeat({
+    required this.configured,
+    this.note,
+  });
+
+  final bool configured;
+  final RoomTeacherAiNote? note;
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: AlignmentDirectional.centerStart,
-      child: Container(
-        width: 92,
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: .08),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: const Color(0xFF6DE7C0).withValues(alpha: .50),
+    final correction = note?.correction.trim() ?? '';
+    final pronunciation = note?.pronunciationTip?.trim() ?? '';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(10, 8, 12, 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: .08),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: const Color(0xFF6DE7C0).withValues(alpha: .50),
+        ),
+      ),
+      child: Row(
+        children: [
+          const CircleAvatar(
+            radius: 23,
+            backgroundColor: Color(0xFF3A2D71),
+            child: Icon(
+              Icons.smart_toy_rounded,
+              color: Colors.white,
+              size: 25,
+            ),
           ),
-        ),
-        child: const Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircleAvatar(
-              radius: 23,
-              backgroundColor: Color(0xFF3A2D71),
-              child: Icon(
-                Icons.smart_toy_rounded,
-                color: Colors.white,
-                size: 25,
-              ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Teacher AI',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  correction.isNotEmpty
+                      ? correction
+                      : configured
+                          ? 'Listening for language corrections…'
+                          : 'AI backend connection required',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: correction.isNotEmpty
+                        ? const Color(0xFF8EEAD0)
+                        : Colors.white60,
+                    fontSize: 10,
+                    height: 1.2,
+                  ),
+                ),
+                if (pronunciation.isNotEmpty) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    pronunciation,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Color(0xFFFFD66B),
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ],
             ),
-            SizedBox(height: 5),
-            Text(
-              'Teacher AI',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 10,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
