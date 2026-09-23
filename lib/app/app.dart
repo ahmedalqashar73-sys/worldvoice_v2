@@ -55,11 +55,13 @@ class _WorldVoiceAppState extends State<WorldVoiceApp> with WidgetsBindingObserv
     switch (state) {
       case AppLifecycleState.resumed:
         _presenceSession.start();
+        return;
       case AppLifecycleState.inactive:
       case AppLifecycleState.paused:
       case AppLifecycleState.detached:
       case AppLifecycleState.hidden:
         _presenceSession.stop();
+        return;
     }
   }
 
