@@ -765,12 +765,9 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   children: [
                     RoomStageGrid(
                       seats: _buildSeats(),
+                      showTeacherAiSeat: _showTeacherAiSeat,
                       onSeatTap: _handleSeatTap,
                     ),
-                    if (_showTeacherAiSeat) ...[
-                      const SizedBox(height: 8),
-                      const _TeacherAiSeatCompact(),
-                    ],
                     const SizedBox(height: 12),
                     if (_isHost && _raisedHands.isNotEmpty)
                       _RaisedHandNotice(
