@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import '../../profile/services/user_presence_service.dart';
+
 class AuthService {
   AuthService._();
 
@@ -63,6 +65,7 @@ class AuthService {
   }
 
   static Future<void> signOut() async {
+    await UserPresenceService.markOffline();
     try {
       await _initializeGoogle();
       await GoogleSignIn.instance.signOut();
