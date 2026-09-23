@@ -56,8 +56,16 @@ service cloud.firestore {
       return /databases/$(database)/documents/rooms/$(roomId)/gifts/$(giftId);
     }
 
+    function giftCatalogPath(giftId) {
+      return /databases/$(database)/documents/room_gift_catalog/$(giftId);
+    }
+
     function validGiftPrice(data) {
       return (
+        exists(giftCatalogPath(data.giftId))
+        && get(giftCatalogPath(data.giftId)).data.active == true
+        && get(giftCatalogPath(data.giftId)).data.priceCoins == data.points
+      ) || (
         data.giftId == 'rose' && data.points == 10
       ) || (
         data.giftId == 'star' && data.points == 50
