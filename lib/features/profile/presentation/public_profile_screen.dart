@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -50,11 +52,23 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
             final data = snapshot.data!.data() ?? const <String, dynamic>{};
             final photo = data['photoUrl'] as String?;
             final name = (data['displayName'] as String?)?.trim();
+            final username = (data['username'] as String?)?.trim();
+            final bio = (data['bio'] as String?)?.trim();
             final country = data['country'] as String?;
+            final city = (data['city'] as String?)?.trim();
+            final hideCity = data['hideCity'] == true;
             final gender = data['gender'] as String?;
             final nativeLanguage = (data['nativeLanguage'] as String?)?.trim();
             final birthRaw = data['birthDate'];
             final birthDate = birthRaw is Timestamp ? birthRaw.toDate() : null;
+            final isOnline = data['isOnline'] == true;
+            final lastActiveRaw = data['lastActiveAt'];
+            final lastSeenRaw = data['lastSeenAt'];
+            final lastActiveAt =
+                lastActiveRaw is Timestamp ? lastActiveRaw.toDate() : null;
+            final lastSeenAt =
+                lastSeenRaw is Timestamp ? lastSeenRaw.toDate() : null;
+
             final learning = (data['learningLanguages'] as List?)
                     ?.map((item) => item.toString())
                     .where((item) => item.trim().isNotEmpty)
@@ -91,6 +105,29 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                         fontWeight: FontWeight.w900,
                       ),
                 ),
+                if (username?.isNotEmpty == true) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    '@$username',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: .72),
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                ],
+                const SizedBox(height: 7),
+                Center(
+                  child: _PresenceStatus(
+                    strings: strings,
+                    isOnline: isOnline,
+                    lastActiveAt: lastActiveAt,
+                    lastSeenAt: lastSeenAt,
+                  ),
+                ),
                 Center(
                   child: ProfileIdentityStrip(
                     code: code,
@@ -99,7 +136,28 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                     birthDate: birthDate,
                   ),
                 ),
-                const SizedBox(height: 24),
+                if (!hideCity && city?.isNotEmpty == true) ...[
+                  const SizedBox(height: 10),
+                  Center(
+                    child: _CityPill(
+                      label: city!,
+                    ),
+                  ),
+                ],
+                if (bio?.isNotEmpty == true) ...[
+                  const SizedBox(height: 24),
+                  _SectionCard(
+                    icon: Icons.auto_awesome_outlined,
+                    title: strings.profile('aboutMe'),
+                    children: [
+                      Text(
+                        bio!,
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                    ],
+                  ),
+                ],
+                const SizedBox(height: 14),
                 _SectionCard(
                   icon: Icons.translate_rounded,
                   title: strings.profile('languages'),
@@ -153,6 +211,126 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
             );
           },
         ),
+      ),
+    );
+  }
+}
+
+class _PresenceStatus extends StatefulWidget {
+  const _PresenceStatus({
+    required this.strings,
+    required this.isOnline,
+    required this.lastActiveAt,
+    required this.lastSeenAt,
+  });
+
+  final AppStrings strings;
+  final bool isOnline;
+  final DateTime? lastActiveAt;
+  final DateTime? lastSeenAt;
+
+  @override
+  State<_PresenceStatus> createState() => _PresenceStatusState();
+}
+
+class _PresenceStatusState extends State<_PresenceStatus> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(
+      const Duration(minutes: 1),
+      (_) {
+        if (mounted) setState(() {});
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final activeAt = widget.lastActiveAt;
+    final online = widget.isOnline &&
+        activeAt != null &&
+        now.difference(activeAt).abs() <= const Duration(minutes: 2);
+
+    final seenAt = widget.lastSeenAt ?? activeAt;
+    final label = online
+        ? widget.strings.profile('online')
+        : seenAt == null
+            ? widget.strings.profile('lastSeen')
+            : '${widget.strings.profile('lastSeen')} ${widget.strings.profileLastSeenAgo(now.difference(seenAt).abs())}';
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(
+            color: online
+                ? Colors.green
+                : Theme.of(context).colorScheme.outline,
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(width: 7),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontWeight: online ? FontWeight.w800 : FontWeight.w600,
+                color: online
+                    ? Colors.green
+                    : Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: .62),
+              ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CityPill extends StatelessWidget {
+  const _CityPill({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerHighest.withValues(alpha: .72),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.location_city_outlined,
+            size: 17,
+            color: colors.primary,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
       ),
     );
   }
