@@ -73,7 +73,7 @@ function validChannelName(value) {
     typeof value === "string" &&
     value.length > 0 &&
     value.length < 64 &&
-    /^[A-Za-z0-9 !#$%&()+\-:;<=>?@[\]^_{}|~,.]+$/.test(value)
+    /^[A-Za-z0-9_]+$/.test(value)
   );
 }
 
