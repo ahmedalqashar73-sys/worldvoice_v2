@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:just_audio/just_audio.dart';
 
+import '../../profile/presentation/public_profile_screen.dart';
 import '../data/room_feature_models.dart';
 import '../data/room_moderation_models.dart';
 import '../data/room_stage_models.dart';
@@ -410,30 +411,45 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   void _handleSeatTap(RoomSeatState seat) {
     if (seat.role == RoomMemberRole.teacherAi) return;
 
-    if (!_isHost) {
-      if (_me?.role == RoomMemberRole.listener && seat.isEmpty) {
+    if (seat.isEmpty) {
+      if (_isHost) {
+        _showInviteListenerSheet(seat.index);
+      } else if (_me?.role == RoomMemberRole.listener) {
         unawaited(_requestSeat(seat.index));
       }
       return;
     }
 
-    if (seat.isEmpty) {
-      _showInviteListenerSheet(seat.index);
-      return;
-    }
-
-    if (seat.role == RoomMemberRole.host) return;
+    final userId = seat.userId;
+    if (userId == null || userId.isEmpty) return;
 
     RoomParticipant? participant;
     for (final item in _participants) {
-      if (item.userId == seat.userId) {
+      if (item.userId == userId) {
         participant = item;
         break;
       }
     }
     if (participant == null) return;
 
-    _showStageMemberActions(participant);
+    if (_isHost && participant.role != RoomMemberRole.host) {
+      _showStageMemberActions(participant);
+      return;
+    }
+
+    _openParticipantProfile(participant.userId);
+  }
+
+  void _openParticipantProfile(String userId) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => PublicProfileScreen(
+          userId: userId,
+          languageCode:
+              Localizations.localeOf(context).languageCode.toLowerCase(),
+        ),
+      ),
+    );
   }
 
   Future<void> _requestSeat([int? seatIndex]) async {
@@ -875,6 +891,12 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               subtitle: Text(participant.role.label),
             ),
             _RoleOption(
+              icon: Icons.person_outline_rounded,
+              label: 'View profile',
+              onTap: () =>
+                  Navigator.pop(sheetContext, _StageAction.profile),
+            ),
+            _RoleOption(
               icon: Icons.mic_rounded,
               label: 'Set as Speaker',
               onTap: () =>
@@ -906,6 +928,9 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     if (action == null) return;
 
     switch (action) {
+      case _StageAction.profile:
+        _openParticipantProfile(participant.userId);
+        break;
       case _StageAction.speaker:
         await _moderation.changeStageRole(
           userId: participant.userId,
@@ -1228,6 +1253,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 }
 
 enum _StageAction {
+  profile,
   speaker,
   coHost,
   vipSeat,
