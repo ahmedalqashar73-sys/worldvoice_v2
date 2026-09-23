@@ -185,6 +185,10 @@ class RoomFeatureService {
       throw StateError('CANNOT_GIFT_SELF');
     }
 
+    final visual = await _db.collection('room_gift_catalog').doc(giftId).get();
+    final animationUrl =
+        (visual.data()?['animationUrl'] as String?)?.trim();
+
     final senderRef = _db.collection('users').doc(user.uid);
     final recipientRef = recipientId == 'teacher_ai'
         ? null
@@ -237,6 +241,8 @@ class RoomFeatureService {
         'recipientName': recipientName,
         'giftId': giftId,
         'points': points,
+        if (animationUrl?.isNotEmpty == true)
+          'animationUrl': animationUrl,
         'createdAt': FieldValue.serverTimestamp(),
       });
     });
