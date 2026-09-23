@@ -50,6 +50,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       return;
     }
 
+    _released = false;
     _connecting = true;
     _error = null;
     _role = role;
