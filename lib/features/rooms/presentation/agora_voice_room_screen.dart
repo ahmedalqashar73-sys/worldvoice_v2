@@ -30,6 +30,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
   StreamSubscription<List<RoomParticipant>>? _participantsSub;
   StreamSubscription<RoomParticipant?>? _meSub;
+  StreamSubscription<bool>? _roomOpenSub;
 
   List<RoomParticipant> _participants = const <RoomParticipant>[];
   RoomParticipant? _me;
@@ -49,21 +50,51 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   }
 
   Future<void> _startRoomSession() async {
-    await _moderation.enter(
-      asHost: widget.initialRole == AgoraRoomRole.speaker,
-    );
+    try {
+      await _moderation.enter(
+        asHost: widget.initialRole == AgoraRoomRole.speaker,
+      );
 
-    _participantsSub = _moderation.watchParticipants().listen((participants) {
+      _roomOpenSub = _moderation.watchRoomOpen().listen((isOpen) {
+        if (!isOpen && !_leaving) {
+          unawaited(_exitClosedRoom());
+        }
+      });
+
+      _participantsSub =
+          _moderation.watchParticipants().listen((participants) {
+        if (!mounted) return;
+        setState(() => _participants = participants);
+      });
+
+      _meSub = _moderation.watchMe().listen(_handleMyParticipant);
+
+      await _controller.connect(
+        channelId: widget.channelId,
+        role: widget.initialRole,
+      );
+    } catch (error) {
       if (!mounted) return;
-      setState(() => _participants = participants);
-    });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
+      await _controller.leave();
+      if (mounted) Navigator.of(context).pop();
+    }
+  }
 
-    _meSub = _moderation.watchMe().listen(_handleMyParticipant);
+  Future<void> _exitClosedRoom() async {
+    if (_leaving) return;
+    _leaving = true;
 
-    await _controller.connect(
-      channelId: widget.channelId,
-      role: widget.initialRole,
+    await _controller.leave();
+    await _moderation.leave();
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('The room has ended.')),
     );
+    Navigator.of(context).pop();
   }
 
   void _handleMyParticipant(RoomParticipant? participant) {
@@ -404,6 +435,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   void dispose() {
     _participantsSub?.cancel();
     _meSub?.cancel();
+    _roomOpenSub?.cancel();
     _controller.removeListener(_refresh);
     unawaited(_moderation.leave());
     unawaited(_controller.leave());
