@@ -1,0 +1,416 @@
+import 'dart:io';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/material.dart';
+import 'package:pdfrx/pdfrx.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import '../../../core/media/cloudinary_image_service.dart';
+import '../services/room_board_service.dart';
+
+class RoomBoardScreen extends StatefulWidget {
+  const RoomBoardScreen({
+    required this.roomId,
+    required this.canWrite,
+    required this.isHost,
+    super.key,
+  });
+
+  final String roomId;
+  final bool canWrite;
+  final bool isHost;
+
+  @override
+  State<RoomBoardScreen> createState() => _RoomBoardScreenState();
+}
+
+class _RoomBoardScreenState extends State<RoomBoardScreen> {
+  late final RoomBoardService _service;
+  final List<Offset> _draft = <Offset>[];
+  bool _uploading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _service = RoomBoardService(roomId: widget.roomId);
+  }
+
+  Future<void> _addText() async {
+    final controller = TextEditingController();
+    final value = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Board text'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          maxLines: 4,
+          maxLength: 300,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () =>
+                Navigator.pop(dialogContext, controller.text.trim()),
+            child: const Text('Add'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (value?.isNotEmpty == true) {
+      await _service.addText(value!);
+    }
+  }
+
+  Future<void> _pickAndUpload(String type) async {
+    final FileType pickerType;
+    final List<String>? extensions;
+    switch (type) {
+      case 'image':
+        pickerType = FileType.image;
+        extensions = null;
+        break;
+      case 'video':
+        pickerType = FileType.video;
+        extensions = null;
+        break;
+      case 'pdf':
+        pickerType = FileType.custom;
+        extensions = const ['pdf'];
+        break;
+      default:
+        return;
+    }
+
+    final picked = await FilePicker.pickFile(
+      type: pickerType,
+      allowedExtensions: extensions,
+    );
+    if (picked == null || picked.path == null) return;
+
+    setState(() => _uploading = true);
+    try {
+      final file = File(picked.path!);
+      final folder = 'worldvoice/rooms/${widget.roomId}/board';
+      final upload = switch (type) {
+        'image' => await CloudinaryImageService.uploadImage(
+            file,
+            folder: folder,
+          ),
+        'video' => await CloudinaryImageService.uploadVideo(
+            file,
+            folder: folder,
+          ),
+        'pdf' => await CloudinaryImageService.uploadRaw(
+            file,
+            folder: folder,
+          ),
+        _ => throw StateError('Unsupported board media'),
+      };
+
+      await _service.addMedia(
+        type: type,
+        url: upload.url,
+        name: picked.name,
+      );
+    } finally {
+      if (mounted) setState(() => _uploading = false);
+    }
+  }
+
+  Future<void> _saveStroke(Size size) async {
+    if (_draft.length < 2 || size.width <= 0 || size.height <= 0) {
+      _draft.clear();
+      return;
+    }
+
+    final normalized = _draft
+        .map(
+          (point) => <String, double>{
+            'x': (point.dx / size.width).clamp(0, 1),
+            'y': (point.dy / size.height).clamp(0, 1),
+          },
+        )
+        .toList(growable: false);
+
+    _draft.clear();
+    await _service.addStroke(
+      points: normalized,
+      colorValue: Colors.white.toARGB32(),
+      width: 3,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isArabic =
+        Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(isArabic ? 'السبورة المشتركة' : 'Shared board'),
+        actions: [
+          if (widget.isHost)
+            IconButton(
+              tooltip: isArabic ? 'مسح السبورة' : 'Clear board',
+              onPressed: _service.clear,
+              icon: const Icon(Icons.delete_sweep_rounded),
+            ),
+        ],
+      ),
+      body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        stream: _service.watchItems(),
+        builder: (context, snapshot) {
+          final docs = snapshot.data?.docs ??
+              const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
+          final strokes = docs
+              .where((doc) => doc.data()['type'] == 'stroke')
+              .toList(growable: false);
+          final content = docs
+              .where((doc) => doc.data()['type'] != 'stroke')
+              .toList(growable: false);
+
+          return Column(
+            children: [
+              Expanded(
+                flex: 5,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final size = Size(
+                      constraints.maxWidth,
+                      constraints.maxHeight,
+                    );
+
+                    return GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onPanStart: widget.canWrite
+                          ? (details) {
+                              _draft
+                                ..clear()
+                                ..add(details.localPosition);
+                              setState(() {});
+                            }
+                          : null,
+                      onPanUpdate: widget.canWrite
+                          ? (details) {
+                              _draft.add(details.localPosition);
+                              setState(() {});
+                            }
+                          : null,
+                      onPanEnd: widget.canWrite
+                          ? (_) => _saveStroke(size)
+                          : null,
+                      child: CustomPaint(
+                        painter: _BoardPainter(
+                          strokes: strokes,
+                          draft: _draft,
+                        ),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF161626),
+                            border: Border.all(color: Colors.white12),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              if (content.isNotEmpty)
+                SizedBox(
+                  height: 150,
+                  child: ListView.separated(
+                    padding: const EdgeInsets.all(10),
+                    scrollDirection: Axis.horizontal,
+                    itemCount: content.length,
+                    separatorBuilder: (_, _) => const SizedBox(width: 8),
+                    itemBuilder: (context, index) =>
+                        _BoardContentCard(data: content[index].data()),
+                  ),
+                ),
+              if (widget.canWrite)
+                SafeArea(
+                  top: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(10, 8, 10, 12),
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      alignment: WrapAlignment.center,
+                      children: [
+                        FilledButton.tonalIcon(
+                          onPressed: _addText,
+                          icon: const Icon(Icons.text_fields_rounded),
+                          label: Text(isArabic ? 'نص' : 'Text'),
+                        ),
+                        FilledButton.tonalIcon(
+                          onPressed:
+                              _uploading ? null : () => _pickAndUpload('image'),
+                          icon: const Icon(Icons.image_rounded),
+                          label: Text(isArabic ? 'صورة' : 'Image'),
+                        ),
+                        FilledButton.tonalIcon(
+                          onPressed:
+                              _uploading ? null : () => _pickAndUpload('video'),
+                          icon: const Icon(Icons.video_file_rounded),
+                          label: Text(isArabic ? 'فيديو' : 'Video'),
+                        ),
+                        FilledButton.tonalIcon(
+                          onPressed:
+                              _uploading ? null : () => _pickAndUpload('pdf'),
+                          icon: const Icon(Icons.picture_as_pdf_rounded),
+                          label: const Text('PDF'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _BoardPainter extends CustomPainter {
+  _BoardPainter({
+    required this.strokes,
+    required this.draft,
+  });
+
+  final List<QueryDocumentSnapshot<Map<String, dynamic>>> strokes;
+  final List<Offset> draft;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (final doc in strokes) {
+      final data = doc.data();
+      final rawPoints = data['points'] as List? ?? const [];
+      final points = rawPoints
+          .whereType<Map>()
+          .map(
+            (raw) => Offset(
+              ((raw['x'] as num?)?.toDouble() ?? 0) * size.width,
+              ((raw['y'] as num?)?.toDouble() ?? 0) * size.height,
+            ),
+          )
+          .toList(growable: false);
+      _drawLine(
+        canvas,
+        points,
+        Color((data['color'] as num?)?.toInt() ?? Colors.white.toARGB32()),
+        (data['width'] as num?)?.toDouble() ?? 3,
+      );
+    }
+
+    _drawLine(canvas, draft, Colors.white, 3);
+  }
+
+  void _drawLine(
+    Canvas canvas,
+    List<Offset> points,
+    Color color,
+    double width,
+  ) {
+    if (points.length < 2) return;
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = width
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+    final path = Path()..moveTo(points.first.dx, points.first.dy);
+    for (final point in points.skip(1)) {
+      path.lineTo(point.dx, point.dy);
+    }
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _BoardPainter oldDelegate) => true;
+}
+
+class _BoardContentCard extends StatelessWidget {
+  const _BoardContentCard({required this.data});
+
+  final Map<String, dynamic> data;
+
+  @override
+  Widget build(BuildContext context) {
+    final type = (data['type'] ?? '').toString();
+    final url = data['url']?.toString() ?? '';
+    final name = data['name']?.toString() ?? type;
+
+    if (type == 'image' && url.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(14),
+        child: Image.network(
+          url,
+          width: 130,
+          height: 130,
+          fit: BoxFit.cover,
+        ),
+      );
+    }
+
+    if (type == 'pdf' && url.isNotEmpty) {
+      return SizedBox(
+        width: 180,
+        child: Card(
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => Scaffold(
+                    appBar: AppBar(title: Text(name)),
+                    body: PdfViewer.uri(Uri.parse(url)),
+                  ),
+                ),
+              );
+            },
+            child: const Center(
+              child: Icon(Icons.picture_as_pdf_rounded, size: 48),
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (type == 'video' && url.isNotEmpty) {
+      return SizedBox(
+        width: 180,
+        child: Card(
+          child: InkWell(
+            onTap: () => launchUrl(
+              Uri.parse(url),
+              mode: LaunchMode.externalApplication,
+            ),
+            child: const Center(
+              child: Icon(Icons.play_circle_fill_rounded, size: 52),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return SizedBox(
+      width: 200,
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Text(
+            (data['text'] ?? name).toString(),
+            maxLines: 6,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ),
+    );
+  }
+}
