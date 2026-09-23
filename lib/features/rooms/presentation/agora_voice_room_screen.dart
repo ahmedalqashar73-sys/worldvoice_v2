@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:just_audio/just_audio.dart';
 
+import '../../home/presentation/home_screen.dart';
 import '../../profile/presentation/public_profile_screen.dart';
+import '../../../core/localization/locale_controller.dart';
 import '../data/room_feature_models.dart';
 import '../data/room_moderation_models.dart';
 import '../data/room_stage_models.dart';
@@ -27,6 +29,7 @@ class AgoraVoiceRoomScreen extends StatefulWidget {
     required this.channelId,
     required this.roomName,
     required this.initialRole,
+    this.localeController,
     this.roomLanguageCode,
     this.initialShowTeacherAiSeat = false,
     this.initialIsPrivate = false,
@@ -38,6 +41,7 @@ class AgoraVoiceRoomScreen extends StatefulWidget {
   final String channelId;
   final String roomName;
   final AgoraRoomRole initialRole;
+  final LocaleController? localeController;
   final String? roomLanguageCode;
   final bool initialShowTeacherAiSeat;
   final bool initialIsPrivate;
@@ -70,6 +74,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   bool _leaving = false;
   bool _participantWasReady = false;
   bool _trackingEnded = false;
+  bool _minimized = false;
   RoomFeatureState _featureState = const RoomFeatureState(
     roomLevel: 1,
     roomXp: 0,
@@ -422,6 +427,13 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
     final userId = seat.userId;
     if (userId == null || userId.isEmpty) return;
+    _openParticipantProfile(userId);
+  }
+
+  void _handleSeatLongPress(RoomSeatState seat) {
+    if (!_canModerate || seat.isEmpty) return;
+    final userId = seat.userId;
+    if (userId == null || userId.isEmpty) return;
 
     RoomParticipant? participant;
     for (final item in _participants) {
@@ -430,14 +442,12 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         break;
       }
     }
-    if (participant == null) return;
-
-    if (_isHost && participant.role != RoomMemberRole.host) {
-      _showStageMemberActions(participant);
+    if (participant == null ||
+        participant.role == RoomMemberRole.host) {
       return;
     }
 
-    _openParticipantProfile(participant.userId);
+    _showStageMemberActions(participant);
   }
 
   void _openParticipantProfile(String userId) {
@@ -994,8 +1004,105 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     }
   }
 
+  void _minimizeRoom() {
+    if (!mounted || widget.localeController == null) return;
+    setState(() => _minimized = true);
+  }
+
+  Widget _buildMinimizedRoom(BuildContext context) {
+    final localeController = widget.localeController;
+    if (localeController == null) {
+      _minimized = false;
+      return const SizedBox.shrink();
+    }
+
+    return Stack(
+      children: [
+        HomeScreen(localeController: localeController),
+        PositionedDirectional(
+          end: 14,
+          bottom: 92,
+          child: Material(
+            elevation: 12,
+            borderRadius: BorderRadius.circular(28),
+            color: const Color(0xFF241A4B),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(28),
+              onTap: () => setState(() => _minimized = false),
+              child: Container(
+                width: 178,
+                padding: const EdgeInsets.fromLTRB(12, 9, 8, 9),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: _controller.joined
+                            ? const Color(0xFF2BBE78)
+                            : Colors.white24,
+                      ),
+                      child: Icon(
+                        _controller.muted
+                            ? Icons.mic_off_rounded
+                            : Icons.mic_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 9),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            widget.roomName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 12,
+                            ),
+                          ),
+                          Text(
+                            '${_participants.length} • LIVE',
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: 'Leave',
+                      visualDensity: VisualDensity.compact,
+                      onPressed: _leave,
+                      icon: const Icon(
+                        Icons.close_rounded,
+                        color: Colors.white70,
+                        size: 18,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_minimized) {
+      return _buildMinimizedRoom(context);
+    }
+
     final colors = Theme.of(context).colorScheme;
     final isPublishing = _controller.role == AgoraRoomRole.speaker;
     final myRole = _me?.role ??
@@ -1069,6 +1176,12 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
           ),
         ),
         actions: [
+          if (widget.localeController != null)
+            IconButton(
+              tooltip: isArabic ? 'تصغير الغرفة' : 'Minimize room',
+              onPressed: _minimizeRoom,
+              icon: const Icon(Icons.picture_in_picture_alt_rounded),
+            ),
           IconButton(
             tooltip: isArabic ? 'الأعضاء' : 'Members',
             onPressed: _showMembers,
@@ -1133,9 +1246,13 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   children: [
                     RoomStageGrid(
                       seats: _buildSeats(),
-                      showTeacherAiSeat: _showTeacherAiSeat,
                       onSeatTap: _handleSeatTap,
+                      onSeatLongPress: _handleSeatLongPress,
                     ),
+                    if (_showTeacherAiSeat) ...[
+                      const SizedBox(height: 8),
+                      const _TeacherAiCompactSeat(),
+                    ],
                     const SizedBox(height: 12),
                     if (_isHost && _raisedHands.isNotEmpty)
                       _RaisedHandNotice(
@@ -1473,3 +1590,51 @@ class _RoleOption extends StatelessWidget {
   }
 }
 
+
+
+class _TeacherAiCompactSeat extends StatelessWidget {
+  const _TeacherAiCompactSeat();
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: Container(
+        width: 92,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: .08),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: const Color(0xFF6DE7C0).withValues(alpha: .50),
+          ),
+        ),
+        child: const Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircleAvatar(
+              radius: 23,
+              backgroundColor: Color(0xFF3A2D71),
+              child: Icon(
+                Icons.smart_toy_rounded,
+                color: Colors.white,
+                size: 25,
+              ),
+            ),
+            SizedBox(height: 5),
+            Text(
+              'Teacher AI',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
