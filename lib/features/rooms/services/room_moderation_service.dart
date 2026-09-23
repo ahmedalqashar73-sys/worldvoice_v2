@@ -12,12 +12,18 @@ class RoomModerationService {
     required this.roomName,
     this.roomLanguageCode,
     this.initialShowTeacherAiSeat = false,
+    this.initialIsPrivate = false,
+    this.initialVipOnly = false,
+    this.privateAccessCode,
   });
 
   final String channelId;
   final String roomName;
   final String? roomLanguageCode;
   final bool initialShowTeacherAiSeat;
+  final bool initialIsPrivate;
+  final bool initialVipOnly;
+  final String? privateAccessCode;
 
   FirebaseFirestore get _db => FirebaseFirestore.instance;
   User? get _user => FirebaseAuth.instance.currentUser;
@@ -58,6 +64,29 @@ class RoomModerationService {
       if (!existingRoom.exists || existingData?['isOpen'] != true) {
         throw StateError('This room is no longer open.');
       }
+
+      if (existingData?['vipOnly'] == true && data['isVip'] != true) {
+        throw StateError('This room is available to VIP members only.');
+      }
+
+      if (existingData?['isPrivate'] == true) {
+        final code = privateAccessCode?.trim() ?? '';
+        if (code.isEmpty) {
+          throw StateError('A private room code is required.');
+        }
+        final codeDoc =
+            await _db.collection('private_room_codes').doc(code).get();
+        if (!codeDoc.exists ||
+            codeDoc.data()?['roomId']?.toString() != channelId) {
+          throw StateError('The private room code is invalid.');
+        }
+
+        await _roomRef.collection('access_grants').doc(user.uid).set({
+          'uid': user.uid,
+          'code': code,
+          'grantedAt': FieldValue.serverTimestamp(),
+        });
+      }
     } else if (existingRoom.exists &&
         existingData?['isOpen'] == true &&
         existingData?['hostId'] != user.uid) {
@@ -67,6 +96,30 @@ class RoomModerationService {
     final batch = _db.batch();
 
     if (asHost) {
+      if (initialIsPrivate) {
+        final giftLevel = (data['giftLevel'] as num?)?.toInt() ?? 0;
+        if (giftLevel < 14) {
+          throw StateError(
+            'Gift Level 14 is required to create a private room.',
+          );
+        }
+
+        final code = privateAccessCode?.trim() ?? '';
+        if (code.isEmpty) {
+          throw StateError('Private room code is missing.');
+        }
+
+        batch.set(
+          _db.collection('private_room_codes').doc(code),
+          {
+            'roomId': channelId,
+            'hostId': user.uid,
+            'isOpen': true,
+            'createdAt': FieldValue.serverTimestamp(),
+          },
+        );
+      }
+
       batch.set(
         _roomRef,
         {
@@ -78,6 +131,11 @@ class RoomModerationService {
           'hostCountry': country,
           'languageCode': languageCode.isEmpty ? 'en' : languageCode,
           'showTeacherAiSeat': initialShowTeacherAiSeat,
+          'isPrivate': initialIsPrivate,
+          'vipOnly': initialVipOnly,
+          'roomLevel': existingData?['roomLevel'] ?? 1,
+          'roomPoints': existingData?['roomPoints'] ?? 0,
+          'themeId': existingData?['themeId'] ?? 'default',
           'isOpen': true,
           'createdAt': FieldValue.serverTimestamp(),
           'updatedAt': FieldValue.serverTimestamp(),
@@ -440,6 +498,21 @@ class RoomModerationService {
     batch.delete(_participantsRef.doc(uid));
 
     if (isCurrentHost) {
+      final roomData = room.data() ?? const <String, dynamic>{};
+      if (roomData['isPrivate'] == true) {
+        final code = privateAccessCode?.trim() ?? '';
+        if (code.isNotEmpty) {
+          batch.set(
+            _db.collection('private_room_codes').doc(code),
+            {
+              'isOpen': false,
+              'endedAt': FieldValue.serverTimestamp(),
+            },
+            SetOptions(merge: true),
+          );
+        }
+      }
+
       batch.set(
         _roomRef,
         {
