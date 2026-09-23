@@ -236,12 +236,58 @@ class _RoomQuizSheetState extends State<RoomQuizSheet> {
                     const SizedBox(height: 12),
                     if (widget.isHost && !state.quizRevealed)
                       FilledButton.icon(
-                        onPressed: _service.revealQuiz,
+                        onPressed: _service.finishQuiz,
                         icon: const Icon(Icons.visibility_rounded),
                         label: Text(
                           isArabic ? 'إظهار النتيجة' : 'Reveal result',
                         ),
                       ),
+                    if (state.quizRevealed &&
+                        state.quizWinners.isNotEmpty) ...[
+                      const SizedBox(height: 18),
+                      Text(
+                        isArabic ? 'الفائزون' : 'Winners',
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w900),
+                      ),
+                      const SizedBox(height: 8),
+                      for (final winner in state.quizWinners)
+                        Card(
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              child: Text(
+                                switch ((winner['place'] as num?)?.toInt()) {
+                                  1 => '🥇',
+                                  2 => '🥈',
+                                  3 => '🥉',
+                                  _ => '🏅',
+                                },
+                              ),
+                            ),
+                            title: Text(
+                              (winner['displayName'] ??
+                                      'WorldVoice user')
+                                  .toString(),
+                            ),
+                            subtitle: Text(
+                              isArabic
+                                  ? 'المركز ${winner['place']}'
+                                  : 'Place ${winner['place']}',
+                            ),
+                            trailing:
+                                (winner['prizeCoins'] as num?)?.toInt() == 5
+                                    ? const Text(
+                                        '+5 🪙',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w900,
+                                        ),
+                                      )
+                                    : null,
+                          ),
+                        ),
+                    ],
                   ],
                 );
               },
