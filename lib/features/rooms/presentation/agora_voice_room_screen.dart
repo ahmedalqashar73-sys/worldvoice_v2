@@ -1734,6 +1734,16 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
             end: Alignment.bottomCenter,
             colors: _roomThemeColors(_featureState.themeId),
           ),
+          image: _featureState.backgroundUrl?.trim().isNotEmpty == true
+              ? DecorationImage(
+                  image: NetworkImage(_featureState.backgroundUrl!.trim()),
+                  fit: BoxFit.cover,
+                  colorFilter: ColorFilter.mode(
+                    Colors.black.withValues(alpha: .28),
+                    BlendMode.darken,
+                  ),
+                )
+              : null,
         ),
         child: SafeArea(
           top: false,
