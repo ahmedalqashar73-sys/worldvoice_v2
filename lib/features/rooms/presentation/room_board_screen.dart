@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -7,19 +8,24 @@ import 'package:pdfrx/pdfrx.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/media/cloudinary_image_service.dart';
+import '../data/room_feature_models.dart';
+import '../services/agora_voice_room_controller.dart';
 import '../services/room_board_service.dart';
+import '../services/room_feature_service.dart';
 
 class RoomBoardScreen extends StatefulWidget {
   const RoomBoardScreen({
     required this.roomId,
     required this.canWrite,
     required this.isHost,
+    required this.agoraController,
     super.key,
   });
 
   final String roomId;
   final bool canWrite;
   final bool isHost;
+  final AgoraVoiceRoomController agoraController;
 
   @override
   State<RoomBoardScreen> createState() => _RoomBoardScreenState();
@@ -27,6 +33,7 @@ class RoomBoardScreen extends StatefulWidget {
 
 class _RoomBoardScreenState extends State<RoomBoardScreen> {
   late final RoomBoardService _service;
+  late final RoomFeatureService _features;
   final List<Offset> _draft = <Offset>[];
   bool _uploading = false;
 
@@ -34,6 +41,25 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
   void initState() {
     super.initState();
     _service = RoomBoardService(roomId: widget.roomId);
+    _features = RoomFeatureService(roomId: widget.roomId);
+  }
+
+  Future<void> _startScreenShare() async {
+    await widget.agoraController.startScreenShare();
+    final uid = widget.agoraController.localUid;
+    if (uid != null) {
+      await _features.setScreenSharing(
+        active: true,
+        sharerUid: uid,
+      );
+    }
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _stopScreenShare() async {
+    await widget.agoraController.stopScreenShare();
+    await _features.setScreenSharing(active: false);
+    if (mounted) setState(() {});
   }
 
   Future<void> _addText() async {
@@ -163,11 +189,15 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
             ),
         ],
       ),
-      body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: _service.watchItems(),
-        builder: (context, snapshot) {
-          final docs = snapshot.data?.docs ??
-              const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
+      body: StreamBuilder<RoomFeatureState>(
+        stream: _features.watchState(),
+        builder: (context, featureSnapshot) {
+          final featureState = featureSnapshot.data;
+          return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+            stream: _service.watchItems(),
+            builder: (context, snapshot) {
+              final docs = snapshot.data?.docs ??
+                  const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
           final strokes = docs
               .where((doc) => doc.data()['type'] == 'stroke')
               .toList(growable: false);
@@ -177,8 +207,36 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
 
           return Column(
             children: [
+              if (featureState?.screenShareActive == true)
+                _LiveScreenShare(
+                  roomId: widget.roomId,
+                  sharerUid: featureState?.screenSharerUid,
+                  controller: widget.agoraController,
+                ),
+              if (widget.isHost)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 8, 10, 4),
+                  child: Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: FilledButton.tonalIcon(
+                      onPressed: widget.agoraController.screenSharing
+                          ? _stopScreenShare
+                          : _startScreenShare,
+                      icon: Icon(
+                        widget.agoraController.screenSharing
+                            ? Icons.stop_screen_share_rounded
+                            : Icons.screen_share_rounded,
+                      ),
+                      label: Text(
+                        widget.agoraController.screenSharing
+                            ? (isArabic ? 'إيقاف مشاركة الشاشة' : 'Stop screen share')
+                            : (isArabic ? 'مشاركة شاشة الجوال' : 'Share phone screen'),
+                      ),
+                    ),
+                  ),
+                ),
               Expanded(
-                flex: 5,
+                flex: featureState?.screenShareActive == true ? 3 : 5,
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     final size = Size(
@@ -272,8 +330,59 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
                 ),
             ],
           );
+            },
+          );
         },
       ),
+    );
+  }
+}
+
+class _LiveScreenShare extends StatelessWidget {
+  const _LiveScreenShare({
+    required this.roomId,
+    required this.sharerUid,
+    required this.controller,
+  });
+
+  final String roomId;
+  final int? sharerUid;
+  final AgoraVoiceRoomController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final uid = sharerUid;
+    final engine = controller.engine;
+    if (uid == null || engine == null) {
+      return const SizedBox.shrink();
+    }
+
+    final isLocal = uid == controller.localUid;
+    return Container(
+      height: 220,
+      margin: const EdgeInsets.fromLTRB(10, 8, 10, 4),
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: Colors.black,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: isLocal
+          ? const Center(
+              child: Text(
+                'Your screen is live',
+                style: TextStyle(color: Colors.white),
+              ),
+            )
+          : AgoraVideoView(
+              controller: VideoViewController.remote(
+                rtcEngine: engine,
+                canvas: VideoCanvas(
+                  uid: uid,
+                  sourceType: VideoSourceType.videoSourceRemote,
+                ),
+                connection: RtcConnection(channelId: roomId),
+              ),
+            ),
     );
   }
 }
