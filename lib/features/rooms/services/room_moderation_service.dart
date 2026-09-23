@@ -10,10 +10,12 @@ class RoomModerationService {
   RoomModerationService({
     required this.channelId,
     required this.roomName,
+    this.roomLanguageCode,
   });
 
   final String channelId;
   final String roomName;
+  final String? roomLanguageCode;
 
   FirebaseFirestore get _db => FirebaseFirestore.instance;
   User? get _user => FirebaseAuth.instance.currentUser;
@@ -40,8 +42,12 @@ class RoomModerationService {
             .toString()
             .trim();
     final photoUrl = (data['photoUrl'] as String?)?.trim();
-    final languageCode =
+    final profileLanguageCode =
         (data['nativeLanguageCode'] ?? 'en').toString().trim();
+    final languageCode = (roomLanguageCode?.trim().isNotEmpty == true
+            ? roomLanguageCode!.trim()
+            : profileLanguageCode)
+        .toLowerCase();
     final country = (data['country'] ?? '').toString().trim();
 
     final existingRoom = await _roomRef.get();
