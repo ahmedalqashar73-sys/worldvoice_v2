@@ -74,7 +74,7 @@ class _RoomsHubScreenState extends State<RoomsHubScreen> {
             const SizedBox(height: 8),
             Expanded(
               child: _section == 0
-                  ? VoiceRoomsList(localeController: widget.localeController)
+                  ? VoiceRoomsList(languageCode: code)
                   : const SizedBox.expand(),
             ),
           ],
