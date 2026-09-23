@@ -35,6 +35,28 @@ class CloudinaryImageService {
     );
   }
 
+  static Future<CloudinaryUpload> uploadVideo(
+    File file, {
+    required String folder,
+  }) {
+    return _upload(
+      file,
+      folder: folder,
+      resourceType: 'video',
+    );
+  }
+
+  static Future<CloudinaryUpload> uploadRaw(
+    File file, {
+    required String folder,
+  }) {
+    return _upload(
+      file,
+      folder: folder,
+      resourceType: 'raw',
+    );
+  }
+
   static Future<CloudinaryUpload> _upload(
     File file, {
     required String folder,
