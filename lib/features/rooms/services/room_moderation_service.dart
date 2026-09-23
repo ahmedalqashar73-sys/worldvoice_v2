@@ -11,11 +11,13 @@ class RoomModerationService {
     required this.channelId,
     required this.roomName,
     this.roomLanguageCode,
+    this.initialShowTeacherAiSeat = false,
   });
 
   final String channelId;
   final String roomName;
   final String? roomLanguageCode;
+  final bool initialShowTeacherAiSeat;
 
   FirebaseFirestore get _db => FirebaseFirestore.instance;
   User? get _user => FirebaseAuth.instance.currentUser;
@@ -75,6 +77,7 @@ class RoomModerationService {
           'hostPhotoUrl': photoUrl,
           'hostCountry': country,
           'languageCode': languageCode.isEmpty ? 'en' : languageCode,
+          'showTeacherAiSeat': initialShowTeacherAiSeat,
           'isOpen': true,
           'createdAt': FieldValue.serverTimestamp(),
           'updatedAt': FieldValue.serverTimestamp(),
@@ -105,6 +108,22 @@ class RoomModerationService {
   Stream<bool> watchRoomOpen() {
     return _roomRef.snapshots().map(
       (snapshot) => snapshot.exists && snapshot.data()?['isOpen'] == true,
+    );
+  }
+
+  Stream<bool> watchTeacherAiSeatVisible() {
+    return _roomRef.snapshots().map(
+      (snapshot) => snapshot.data()?['showTeacherAiSeat'] == true,
+    );
+  }
+
+  Future<void> setTeacherAiSeatVisible(bool value) async {
+    await _roomRef.set(
+      {
+        'showTeacherAiSeat': value,
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
     );
   }
 
