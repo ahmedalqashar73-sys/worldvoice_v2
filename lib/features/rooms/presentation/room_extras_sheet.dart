@@ -102,16 +102,16 @@ class _ThemeTab extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           children: [
             for (final theme in themes)
-              RadioListTile<String>(
-                value: theme.$1,
-                groupValue: selected,
-                onChanged: !isHost
-                    ? null
-                    : (value) {
-                        if (value != null) service.setTheme(value);
-                      },
-                secondary: Icon(theme.$3),
-                title: Text(theme.$2),
+              Card(
+                child: ListTile(
+                  enabled: isHost,
+                  onTap: isHost ? () => service.setTheme(theme.$1) : null,
+                  leading: Icon(theme.$3),
+                  title: Text(theme.$2),
+                  trailing: selected == theme.$1
+                      ? const Icon(Icons.check_circle_rounded)
+                      : const Icon(Icons.circle_outlined),
+                ),
               ),
           ],
         );
