@@ -174,7 +174,7 @@ class _VisitList extends StatelessWidget {
         return ListView.separated(
           padding: const EdgeInsets.all(14),
           itemCount: docs.length,
-          separatorBuilder: (_, __) => const Divider(height: 1),
+          separatorBuilder: (_, _) => const Divider(height: 1),
           itemBuilder: (context, index) {
             final doc = docs[index];
             return _VisitTile(
@@ -224,7 +224,7 @@ class _VisitTile extends StatelessWidget {
             name?.isNotEmpty == true ? name! : 'WorldVoice',
             style: const TextStyle(fontWeight: FontWeight.w800),
           ),
-          subtitle: username?.isNotEmpty == true ? Text('@' + username!) : null,
+          subtitle: username?.isNotEmpty == true ? Text('@\${username!}') : null,
           trailing: const Icon(Icons.chevron_right_rounded),
           onTap: () {
             Navigator.of(context).push(
