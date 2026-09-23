@@ -1,0 +1,221 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+import '../data/room_moderation_models.dart';
+import '../data/room_stage_models.dart';
+
+class RoomModerationService {
+  RoomModerationService({
+    required this.channelId,
+    required this.roomName,
+  });
+
+  final String channelId;
+  final String roomName;
+
+  FirebaseFirestore get _db => FirebaseFirestore.instance;
+  User? get _user => FirebaseAuth.instance.currentUser;
+
+  DocumentReference<Map<String, dynamic>> get _roomRef =>
+      _db.collection('rooms').doc(channelId);
+
+  CollectionReference<Map<String, dynamic>> get _participantsRef =>
+      _roomRef.collection('participants');
+
+  String? get currentUserId => _user?.uid;
+
+  Future<void> enter({
+    required bool asHost,
+  }) async {
+    final user = _user;
+    if (user == null) return;
+
+    final profile =
+        await _db.collection('users').doc(user.uid).get();
+    final data = profile.data() ?? const <String, dynamic>{};
+    final displayName =
+        (data['displayName'] ?? user.displayName ?? 'WorldVoice user')
+            .toString()
+            .trim();
+    final photoUrl = (data['photoUrl'] as String?)?.trim();
+
+    final batch = _db.batch();
+
+    batch.set(
+      _roomRef,
+      {
+        'channelId': channelId,
+        'name': roomName,
+        if (asHost) 'hostId': user.uid,
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+
+    batch.set(
+      _participantsRef.doc(user.uid),
+      {
+        'uid': user.uid,
+        'displayName': displayName.isEmpty ? 'WorldVoice user' : displayName,
+        'photoUrl': photoUrl,
+        'role': asHost ? 'host' : 'listener',
+        'handRaised': false,
+        if (asHost) 'seatIndex': 1,
+        'joinedAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+
+    await batch.commit();
+  }
+
+  Stream<List<RoomParticipant>> watchParticipants() {
+    return _participantsRef.snapshots().map((snapshot) {
+      final result = <RoomParticipant>[];
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        result.add(
+          RoomParticipant(
+            userId: doc.id,
+            displayName:
+                (data['displayName'] ?? 'WorldVoice user').toString(),
+            photoUrl: data['photoUrl'] as String?,
+            role: RoomParticipant.roleFromString(
+              data['role']?.toString(),
+            ),
+            handRaised: data['handRaised'] == true,
+            agoraUid: (data['agoraUid'] as num?)?.toInt(),
+            seatIndex: (data['seatIndex'] as num?)?.toInt(),
+          ),
+        );
+      }
+
+      result.sort((a, b) {
+        final aSeat = a.seatIndex ?? 999;
+        final bSeat = b.seatIndex ?? 999;
+        final bySeat = aSeat.compareTo(bSeat);
+        if (bySeat != 0) return bySeat;
+        return a.displayName.compareTo(b.displayName);
+      });
+      return result;
+    });
+  }
+
+  Stream<RoomParticipant?> watchMe() {
+    final uid = currentUserId;
+    if (uid == null) return const Stream<RoomParticipant?>.empty();
+
+    return _participantsRef.doc(uid).snapshots().map((doc) {
+      if (!doc.exists) return null;
+      final data = doc.data() ?? const <String, dynamic>{};
+      return RoomParticipant(
+        userId: doc.id,
+        displayName: (data['displayName'] ?? 'WorldVoice user').toString(),
+        photoUrl: data['photoUrl'] as String?,
+        role: RoomParticipant.roleFromString(data['role']?.toString()),
+        handRaised: data['handRaised'] == true,
+        agoraUid: (data['agoraUid'] as num?)?.toInt(),
+        seatIndex: (data['seatIndex'] as num?)?.toInt(),
+      );
+    });
+  }
+
+  Future<void> syncAgoraUid(int uid) async {
+    final userId = currentUserId;
+    if (userId == null) return;
+
+    await _participantsRef.doc(userId).set(
+      {
+        'agoraUid': uid,
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+  }
+
+  Future<void> setHandRaised(bool raised) async {
+    final uid = currentUserId;
+    if (uid == null) return;
+
+    await _participantsRef.doc(uid).set(
+      {
+        'handRaised': raised,
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+  }
+
+  Future<void> rejectHand(String userId) async {
+    await _participantsRef.doc(userId).set(
+      {
+        'handRaised': false,
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+  }
+
+  Future<void> assignSeat({
+    required String userId,
+    required RoomMemberRole role,
+    required int seatIndex,
+  }) async {
+    if (role == RoomMemberRole.listener ||
+        role == RoomMemberRole.teacherAi ||
+        role == RoomMemberRole.host) {
+      return;
+    }
+
+    await _participantsRef.doc(userId).set(
+      {
+        'role': RoomParticipant.roleToString(role),
+        'seatIndex': seatIndex,
+        'handRaised': false,
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+  }
+
+  Future<void> moveToListener(String userId) async {
+    await _participantsRef.doc(userId).set(
+      {
+        'role': 'listener',
+        'seatIndex': FieldValue.delete(),
+        'handRaised': false,
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+  }
+
+  Future<void> changeStageRole({
+    required String userId,
+    required RoomMemberRole role,
+  }) async {
+    if (role != RoomMemberRole.coHost &&
+        role != RoomMemberRole.speaker &&
+        role != RoomMemberRole.vipSeat) {
+      return;
+    }
+
+    await _participantsRef.doc(userId).set(
+      {
+        'role': RoomParticipant.roleToString(role),
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+  }
+
+  Future<void> leave() async {
+    final uid = currentUserId;
+    if (uid == null) return;
+
+    await _participantsRef.doc(uid).delete();
+  }
+}
