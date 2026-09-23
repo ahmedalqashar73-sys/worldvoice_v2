@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../data/room_feature_models.dart';
 import '../data/room_moderation_models.dart';
 import '../data/room_stage_models.dart';
 import '../services/agora_voice_room_controller.dart';
+import '../services/room_feature_service.dart';
 import '../services/room_history_service.dart';
 import '../services/room_moderation_service.dart';
 import '../services/room_quota_service.dart';
@@ -49,11 +51,13 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   late final RoomModerationService _moderation;
   late final RoomHistoryService _history;
   late final RoomQuotaService _quota;
+  late final RoomFeatureService _features;
 
   StreamSubscription<List<RoomParticipant>>? _participantsSub;
   StreamSubscription<RoomParticipant?>? _meSub;
   StreamSubscription<bool>? _roomOpenSub;
   StreamSubscription<bool>? _teacherAiSeatSub;
+  StreamSubscription<RoomFeatureState>? _featuresSub;
 
   List<RoomParticipant> _participants = const <RoomParticipant>[];
   RoomParticipant? _me;
@@ -62,6 +66,15 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   bool _leaving = false;
   bool _participantWasReady = false;
   bool _trackingEnded = false;
+  RoomFeatureState _featureState = const RoomFeatureState(
+    roomLevel: 1,
+    roomXp: 0,
+    themeId: 'royalPurple',
+    boardWriteEnabled: true,
+    isPrivate: false,
+    vipOnly: false,
+    musicPlaying: false,
+  );
 
   @override
   void initState() {
@@ -70,6 +83,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     _controller = AgoraVoiceRoomController()..addListener(_refresh);
     _history = RoomHistoryService();
     _quota = RoomQuotaService();
+    _features = RoomFeatureService(roomId: widget.channelId);
     _moderation = RoomModerationService(
       channelId: widget.channelId,
       roomName: widget.roomName,
@@ -129,6 +143,11 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
           _moderation.watchTeacherAiSeatVisible().listen((isVisible) {
         if (!mounted) return;
         setState(() => _showTeacherAiSeat = isVisible);
+      });
+
+      _featuresSub = _features.watchState().listen((state) {
+        if (!mounted) return;
+        setState(() => _featureState = state);
       });
 
       _participantsSub =
@@ -496,7 +515,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       MaterialPageRoute(
         builder: (_) => RoomBoardScreen(
           roomId: widget.channelId,
-          canWrite: true,
+          canWrite: _isHost || _featureState.boardWriteEnabled,
           isHost: _isHost,
         ),
       ),
@@ -615,6 +634,23 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   value: _showTeacherAiSeat,
                   onChanged: (value) async {
                     await _moderation.setTeacherAiSeatVisible(value);
+                    if (sheetContext.mounted) {
+                      Navigator.pop(sheetContext);
+                    }
+                  },
+                ),
+              if (_isHost)
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  secondary: const Icon(Icons.edit_rounded),
+                  title: Text(
+                    isArabic
+                        ? 'السماح للأعضاء بالكتابة والرسم'
+                        : 'Allow members to write and draw',
+                  ),
+                  value: _featureState.boardWriteEnabled,
+                  onChanged: (value) async {
+                    await _features.setBoardWriteEnabled(value);
                     if (sheetContext.mounted) {
                       Navigator.pop(sheetContext);
                     }
@@ -870,12 +906,36 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     _meSub?.cancel();
     _roomOpenSub?.cancel();
     _teacherAiSeatSub?.cancel();
+    _featuresSub?.cancel();
     _controller.removeListener(_refresh);
     unawaited(_finishSessionTracking());
     unawaited(_moderation.leave());
     unawaited(_controller.leave());
     _controller.dispose();
     super.dispose();
+  }
+
+  List<Color> _roomThemeColors(String themeId) {
+    switch (themeId) {
+      case 'emerald':
+        return const [
+          Color(0xFF0D4A38),
+          Color(0xFF123A32),
+          Color(0xFF111D1A),
+        ];
+      case 'midnight':
+        return const [
+          Color(0xFF17223A),
+          Color(0xFF111827),
+          Color(0xFF090D16),
+        ];
+      default:
+        return const [
+          Color(0xFF30216E),
+          Color(0xFF21194F),
+          Color(0xFF17122F),
+        ];
+    }
   }
 
   @override
@@ -970,15 +1030,11 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         ],
       ),
       body: DecoratedBox(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF30216E),
-              Color(0xFF21194F),
-              Color(0xFF17122F),
-            ],
+            colors: _roomThemeColors(_featureState.themeId),
           ),
         ),
         child: SafeArea(
