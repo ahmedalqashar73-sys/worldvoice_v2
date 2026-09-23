@@ -624,6 +624,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         roomId: widget.channelId,
         participants: _participants,
         isHost: _isHost,
+        showTeacherAiSeat: _showTeacherAiSeat,
       ),
     );
   }
