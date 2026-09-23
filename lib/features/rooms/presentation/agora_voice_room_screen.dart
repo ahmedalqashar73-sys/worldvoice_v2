@@ -885,49 +885,6 @@ enum _StageAction {
   listener,
 }
 
-class _TeacherAiSeatCompact extends StatelessWidget {
-  const _TeacherAiSeatCompact();
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-
-    return Align(
-      alignment: AlignmentDirectional.centerStart,
-      child: Container(
-        width: 86,
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        decoration: BoxDecoration(
-          color: colors.surfaceContainerHighest.withValues(alpha: .72),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: colors.primary.withValues(alpha: .45),
-          ),
-        ),
-        child: const Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircleAvatar(
-              radius: 23,
-              child: Icon(Icons.smart_toy_rounded, size: 26),
-            ),
-            SizedBox(height: 5),
-            Text(
-              'Teacher AI',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _RoomToolTile extends StatelessWidget {
   const _RoomToolTile({
     required this.icon,
