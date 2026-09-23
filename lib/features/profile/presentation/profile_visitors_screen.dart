@@ -224,7 +224,7 @@ class _VisitTile extends StatelessWidget {
             name?.isNotEmpty == true ? name! : 'WorldVoice',
             style: const TextStyle(fontWeight: FontWeight.w800),
           ),
-          subtitle: username?.isNotEmpty == true ? Text('@\${username!}') : null,
+          subtitle: username?.isNotEmpty == true ? Text('@${username!}') : null,
           trailing: const Icon(Icons.chevron_right_rounded),
           onTap: () {
             Navigator.of(context).push(
