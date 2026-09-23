@@ -1,3 +1,6 @@
+// Agora reads this root property instead of falling back to compileSdk 31.
+extra["compileSdkVersion"] = 36
+
 allprojects {
     repositories {
         google()
