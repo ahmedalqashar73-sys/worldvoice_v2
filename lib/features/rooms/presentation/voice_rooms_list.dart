@@ -130,6 +130,7 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
           channelId: channelId,
           roomName: result.name,
           roomLanguageCode: result.languageCode,
+          initialShowTeacherAiSeat: result.showTeacherAiSeat,
           initialRole: AgoraRoomRole.speaker,
         ),
       ),
@@ -141,6 +142,7 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
     required String channelId,
     required String roomName,
     required String roomLanguageCode,
+    required bool showTeacherAiSeat,
   }) {
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -148,6 +150,7 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
           channelId: channelId,
           roomName: roomName,
           roomLanguageCode: roomLanguageCode,
+          initialShowTeacherAiSeat: showTeacherAiSeat,
           initialRole: AgoraRoomRole.listener,
         ),
       ),
@@ -248,6 +251,8 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
                                 (data['hostPhotoUrl'] as String?)?.trim();
                             final hostCountry =
                                 (data['hostCountry'] ?? '').toString();
+                            final showTeacherAiSeat =
+                                data['showTeacherAiSeat'] == true;
 
                             return _RoomCard(
                               channelId: doc.id,
@@ -261,6 +266,7 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
                                 channelId: doc.id,
                                 roomName: name,
                                 roomLanguageCode: roomLanguage,
+                                showTeacherAiSeat: showTeacherAiSeat,
                               ),
                             );
                           },
@@ -307,6 +313,7 @@ class _CreateRoomDialog extends StatefulWidget {
 class _CreateRoomDialogState extends State<_CreateRoomDialog> {
   final TextEditingController _nameController = TextEditingController();
   late String _language;
+  bool _showTeacherAiSeat = false;
 
   @override
   void initState() {
@@ -354,6 +361,23 @@ class _CreateRoomDialogState extends State<_CreateRoomDialog> {
               if (value != null) setState(() => _language = value);
             },
           ),
+          const SizedBox(height: 10),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            secondary: const Icon(Icons.smart_toy_rounded),
+            title: Text(
+              widget.isArabic ? 'إظهار Teacher AI' : 'Show Teacher AI',
+            ),
+            subtitle: Text(
+              widget.isArabic
+                  ? 'يمكنك تغييره لاحقًا من إعدادات الغرفة.'
+                  : 'You can change this later from room settings.',
+            ),
+            value: _showTeacherAiSeat,
+            onChanged: (value) {
+              setState(() => _showTeacherAiSeat = value);
+            },
+          ),
         ],
       ),
       actions: [
@@ -370,6 +394,7 @@ class _CreateRoomDialogState extends State<_CreateRoomDialog> {
               _CreateRoomResult(
                 name: name,
                 languageCode: _language,
+                showTeacherAiSeat: _showTeacherAiSeat,
               ),
             );
           },
@@ -720,10 +745,12 @@ class _CreateRoomResult {
   const _CreateRoomResult({
     required this.name,
     required this.languageCode,
+    required this.showTeacherAiSeat,
   });
 
   final String name;
   final String languageCode;
+  final bool showTeacherAiSeat;
 }
 
 String _languageLabel(String code) {
