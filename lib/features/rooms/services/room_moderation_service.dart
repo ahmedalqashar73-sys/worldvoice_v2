@@ -110,6 +110,11 @@ class RoomModerationService {
     await batch.commit();
   }
 
+  Future<int> roomLevel() async {
+    final snap = await _roomRef.get();
+    return (snap.data()?['roomLevel'] as num?)?.toInt() ?? 1;
+  }
+
   Stream<bool> watchRoomOpen() {
     return _roomRef.snapshots().map(
       (snapshot) => snapshot.exists && snapshot.data()?['isOpen'] == true,
