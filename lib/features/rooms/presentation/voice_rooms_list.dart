@@ -100,6 +100,8 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
       }
     }
 
+    if (!context.mounted) return;
+
     final initialLanguage = _selectedLanguage == null ||
             _selectedLanguage == 'all'
         ? prefs.nativeLanguage
