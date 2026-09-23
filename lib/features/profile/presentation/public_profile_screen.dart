@@ -1,9 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/localization/app_strings.dart';
-
 import '../../../core/localization/locale_controller.dart';
 import '../services/profile_social_service.dart';
 import 'profile_identity_strip.dart';
@@ -23,36 +21,17 @@ class PublicProfileScreen extends StatefulWidget {
 }
 
 class _PublicProfileScreenState extends State<PublicProfileScreen> {
-  bool _following = false;
-  bool _followBusy = false;
-
   @override
   void initState() {
     super.initState();
-    _loadRelationship();
     ProfileSocialService.recordVisit(widget.userId);
-  }
-
-  Future<void> _loadRelationship() async {
-    final value = await ProfileSocialService.isFollowing(widget.userId);
-    if (mounted) setState(() => _following = value);
-  }
-
-  Future<void> _toggleFollow() async {
-    if (_followBusy) return;
-    setState(() => _followBusy = true);
-    try {
-      await ProfileSocialService.toggleFollow(widget.userId);
-      if (mounted) setState(() => _following = !_following);
-    } finally {
-      if (mounted) setState(() => _followBusy = false);
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     final code = widget.localeController.locale?.languageCode ?? 'en';
     final rtl = const {'ar', 'ur', 'fa'}.contains(code);
+    final strings = AppStrings.of(code);
 
     return Directionality(
       textDirection: rtl ? TextDirection.rtl : TextDirection.ltr,
@@ -70,128 +49,105 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
 
             final data = snapshot.data!.data() ?? const <String, dynamic>{};
             final photo = data['photoUrl'] as String?;
-            final cover = data['coverUrl'] as String?;
             final name = (data['displayName'] as String?)?.trim();
-            final username = (data['username'] as String?)?.trim();
-            final bio = (data['bio'] as String?)?.trim();
             final country = data['country'] as String?;
             final gender = data['gender'] as String?;
-            final nativeLanguage = data['nativeLanguage'] as String?;
+            final nativeLanguage = (data['nativeLanguage'] as String?)?.trim();
             final birthRaw = data['birthDate'];
             final birthDate = birthRaw is Timestamp ? birthRaw.toDate() : null;
             final learning = (data['learningLanguages'] as List?)
-                    ?.map((e) => e.toString())
+                    ?.map((item) => item.toString())
+                    .where((item) => item.trim().isNotEmpty)
                     .toList() ??
                 const <String>[];
             final interests = (data['interests'] as List?)
-                    ?.map((e) => e.toString())
+                    ?.map((item) => item.toString())
+                    .where((item) => item.trim().isNotEmpty)
                     .toList() ??
                 const <String>[];
+            final profession = (data['profession'] ?? '').toString().trim();
 
             return ListView(
-              padding: const EdgeInsets.only(bottom: 28),
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
               children: [
-                SizedBox(
-                  height: 235,
-                  child: Stack(
-                    children: [
-                      Container(
-                        height: 170,
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF0D6B4F), Color(0xFF5F47C8)],
-                          ),
-                          image: cover == null || cover.isEmpty
-                              ? null
-                              : DecorationImage(
-                                  image: NetworkImage(cover),
-                                  fit: BoxFit.cover,
-                                ),
-                        ),
-                      ),
-                      PositionedDirectional(
-                        start: 22,
-                        bottom: 0,
-                        child: CircleAvatar(
-                          radius: 64,
-                          backgroundColor:
-                              Theme.of(context).colorScheme.surface,
-                          child: CircleAvatar(
-                            radius: 59,
-                            backgroundImage: photo == null || photo.isEmpty
-                                ? null
-                                : NetworkImage(photo),
-                            child: photo == null || photo.isEmpty
-                                ? const Icon(Icons.person_rounded, size: 58)
-                                : null,
-                          ),
-                        ),
-                      ),
-                    ],
+                Center(
+                  child: CircleAvatar(
+                    radius: 54,
+                    backgroundColor:
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
+                    backgroundImage: photo == null || photo.isEmpty
+                        ? null
+                        : NetworkImage(photo),
+                    child: photo == null || photo.isEmpty
+                        ? const Icon(Icons.person_rounded, size: 52)
+                        : null,
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(22, 10, 22, 0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        name?.isNotEmpty == true ? name! : 'WorldVoice',
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineSmall
-                            ?.copyWith(fontWeight: FontWeight.w900),
+                const SizedBox(height: 14),
+                Text(
+                  name?.isNotEmpty == true ? name! : 'WorldVoice',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w900,
                       ),
-                      const SizedBox(height: 4),
-                      Text('@' + (username?.isNotEmpty == true ? username! : 'user')),
-                      ProfileIdentityStrip(
-                        code: code,
-                        country: country,
-                        gender: gender,
-                        birthDate: birthDate,
-                        nativeLanguage: nativeLanguage,
-                      ),
-                      if (bio?.isNotEmpty == true) ...[
-                        const SizedBox(height: 12),
-                        Text(bio!),
-                      ],
-                      const SizedBox(height: 16),
-                      if (FirebaseAuth.instance.currentUser?.uid != widget.userId)
-                        FilledButton.icon(
-                          onPressed: _followBusy ? null : _toggleFollow,
-                          icon: Icon(
-                            _following
-                                ? Icons.person_remove_alt_1_rounded
-                                : Icons.person_add_alt_1_rounded,
-                          ),
-                          label: Text(
-                            _following
-                                ? AppStrings.of(code).profile('following')
-                                : AppStrings.of(code).profile('follow'),
-                          ),
-                        ),
-                      const SizedBox(height: 18),
-                      _Info(
-                        icon: Icons.translate_rounded,
-                        title: AppStrings.of(code).profile('languages'),
-                        value: learning.isEmpty
-                            ? '—'
-                            : AppStrings.of(code).profile('learning') +
-                                ': ' +
-                                learning.join(', '),
-                      ),
-                      _Info(
-                        icon: Icons.favorite_outline_rounded,
-                        title: AppStrings.of(code).profile('interests'),
-                        value: interests.isEmpty ? '—' : interests.join(' • '),
-                      ),
-                      _Info(
-                        icon: Icons.work_outline_rounded,
-                        title: AppStrings.of(code).profile('profession'),
-                        value: (data['profession'] ?? '—').toString(),
-                      ),
-                    ],
+                ),
+                Center(
+                  child: ProfileIdentityStrip(
+                    code: code,
+                    country: country,
+                    gender: gender,
+                    birthDate: birthDate,
                   ),
+                ),
+                const SizedBox(height: 24),
+                _SectionCard(
+                  icon: Icons.translate_rounded,
+                  title: strings.profile('languages'),
+                  children: [
+                    _LanguageRow(
+                      label: strings.profile('native'),
+                      value: nativeLanguage?.isNotEmpty == true
+                          ? nativeLanguage!
+                          : '—',
+                    ),
+                    const SizedBox(height: 10),
+                    _LanguageRow(
+                      label: strings.profile('learning'),
+                      value: learning.isEmpty ? '—' : learning.join(', '),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                _SectionCard(
+                  icon: Icons.favorite_outline_rounded,
+                  title: strings.profile('interests'),
+                  children: [
+                    if (interests.isEmpty)
+                      const Text('—')
+                    else
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          for (final interest in interests)
+                            Chip(
+                              label: Text(interest),
+                              visualDensity: VisualDensity.compact,
+                            ),
+                        ],
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                _SectionCard(
+                  icon: Icons.work_outline_rounded,
+                  title: strings.profile('profession'),
+                  children: [
+                    Text(
+                      profession.isEmpty ? '—' : profession,
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                  ],
                 ),
               ],
             );
@@ -202,26 +158,81 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
   }
 }
 
-class _Info extends StatelessWidget {
-  const _Info({
+class _SectionCard extends StatelessWidget {
+  const _SectionCard({
     required this.icon,
     required this.title,
-    required this.value,
+    required this.children,
   });
 
   final IconData icon;
   final String title;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: colors.outlineVariant.withValues(alpha: .35),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 19,
+                backgroundColor: colors.primaryContainer,
+                child: Icon(
+                  icon,
+                  size: 20,
+                  color: colors.onPrimaryContainer,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                title,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          ...children,
+        ],
+      ),
+    );
+  }
+}
+
+class _LanguageRow extends StatelessWidget {
+  const _LanguageRow({
+    required this.label,
+    required this.value,
+  });
+
+  final String label;
   final String value;
 
   @override
-  Widget build(BuildContext context) => Card(
-        margin: const EdgeInsets.only(bottom: 10),
-        child: ListTile(
-          contentPadding: const EdgeInsets.all(14),
-          leading: Icon(icon),
-          title: Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
-          subtitle: Text(value),
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text(
+          '$label:',
+          style: const TextStyle(fontWeight: FontWeight.w800),
         ),
-      );
+        const SizedBox(width: 8),
+        Expanded(child: Text(value)),
+      ],
+    );
+  }
 }
-
