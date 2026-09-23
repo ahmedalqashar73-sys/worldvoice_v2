@@ -81,7 +81,6 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   bool _giftStreamPrimed = false;
   OverlayEntry? _giftOverlay;
   Timer? _giftOverlayTimer;
-  int _speakerStatBufferSeconds = 0;
   Timer? _speakingTimer;
 
   RoomFeatureState _featureState = const RoomFeatureState(
@@ -127,13 +126,6 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
         if (_controller.activeSpeakerUid == _controller.localUid) {
           unawaited(_features.recordSpeakerActivity(seconds: 30));
-          _speakerStatBufferSeconds += 10;
-          if (_speakerStatBufferSeconds >= 30) {
-            _speakerStatBufferSeconds = 0;
-            unawaited(
-              _features.recordSpeakerActivity(seconds: 30),
-            );
-          }
         }
       },
     );
@@ -237,7 +229,6 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     if (!mounted) return;
 
     _giftOverlayTimer?.cancel();
-    _speakingTimer?.cancel();
     _giftOverlay?.remove();
 
     final overlay = Overlay.of(context);
