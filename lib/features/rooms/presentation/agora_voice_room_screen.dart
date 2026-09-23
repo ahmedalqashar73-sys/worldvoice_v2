@@ -1980,10 +1980,26 @@ class _RoomGiftOverlay extends StatelessWidget {
                           top: 120 + (40 * (1 - value.abs())),
                           child: Transform.rotate(
                             angle: value * .25,
-                            child: const Text(
-                              '🐉',
-                              style: TextStyle(fontSize: 118),
-                            ),
+                            child: event.animationUrl?.trim().isNotEmpty == true
+                                ? SizedBox(
+                                    width: 170,
+                                    height: 170,
+                                    child: Image.network(
+                                      event.animationUrl!.trim(),
+                                      fit: BoxFit.contain,
+                                      gaplessPlayback: true,
+                                      errorBuilder: (_, _, _) => const Center(
+                                        child: Text(
+                                          '🐉',
+                                          style: TextStyle(fontSize: 118),
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                : const Text(
+                                    '🐉',
+                                    style: TextStyle(fontSize: 118),
+                                  ),
                           ),
                         ),
                         if (value > .35)
