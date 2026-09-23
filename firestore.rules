@@ -297,6 +297,14 @@ service cloud.firestore {
     }
 
     // -------------------------
+    // ROOM PROMOTIONS
+    // -------------------------
+    match /room_promotions/{promoId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    // -------------------------
     // PRIVATE ROOM CODES
     // -------------------------
     match /private_room_codes/{code} {
