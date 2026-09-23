@@ -8,11 +8,13 @@ class RoomStageGrid extends StatelessWidget {
   const RoomStageGrid({
     required this.seats,
     required this.onSeatTap,
+    this.onSeatLongPress,
     super.key,
   });
 
   final List<RoomSeatState> seats;
   final ValueChanged<RoomSeatState> onSeatTap;
+  final ValueChanged<RoomSeatState>? onSeatLongPress;
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +35,9 @@ class RoomStageGrid extends StatelessWidget {
         return _CompactRoomSeat(
           seat: seat,
           onTap: () => onSeatTap(seat),
+          onLongPress: onSeatLongPress == null
+              ? null
+              : () => onSeatLongPress!(seat),
         );
       },
     );
@@ -43,10 +48,12 @@ class _CompactRoomSeat extends StatefulWidget {
   const _CompactRoomSeat({
     required this.seat,
     required this.onTap,
+    this.onLongPress,
   });
 
   final RoomSeatState seat;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
 
   @override
   State<_CompactRoomSeat> createState() => _CompactRoomSeatState();
@@ -95,6 +102,7 @@ class _CompactRoomSeatState extends State<_CompactRoomSeat>
     return InkWell(
       borderRadius: BorderRadius.circular(18),
       onTap: widget.onTap,
+      onLongPress: widget.onLongPress,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
