@@ -102,6 +102,9 @@ class AppStrings {
       'recordAgain':'Record again',
       'record':'Record',
       'delete':'Delete',
+      'voiceIntro':'Voice introduction',
+      'playVoiceIntro':'Play voice',
+      'pauseVoiceIntro':'Pause voice',
     },
     'ar': {
       'settings':'الإعدادات',
@@ -157,6 +160,9 @@ class AppStrings {
       'recordAgain':'تسجيل جديد',
       'record':'تسجيل',
       'delete':'حذف',
+      'voiceIntro':'التعريف الصوتي',
+      'playVoiceIntro':'تشغيل الصوت',
+      'pauseVoiceIntro':'إيقاف الصوت',
     },
     'es': {
       'settings':'Ajustes',
@@ -212,6 +218,9 @@ class AppStrings {
       'recordAgain':'Grabar otra vez',
       'record':'Grabar',
       'delete':'Eliminar',
+      'voiceIntro':'Presentación de voz',
+      'playVoiceIntro':'Reproducir voz',
+      'pauseVoiceIntro':'Pausar voz',
     },
   };
 
