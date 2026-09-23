@@ -138,7 +138,6 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => AgoraVoiceRoomScreen(
-          localeController: widget.localeController,
           channelId: channelId,
           roomName: result.name,
           roomLanguageCode: result.languageCode,
@@ -166,7 +165,6 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => AgoraVoiceRoomScreen(
-          localeController: widget.localeController,
           channelId: channelId,
           roomName: roomName,
           roomLanguageCode: roomLanguageCode,
