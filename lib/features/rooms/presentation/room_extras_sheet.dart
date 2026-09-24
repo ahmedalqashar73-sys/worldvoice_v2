@@ -229,8 +229,8 @@ class _GiftsTabState extends State<_GiftsTab> {
     try {
       await widget.service.sendGift(recipientId: recipient,
         recipientName: name, giftId: gift.id, points: gift.priceCoins);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(ar ? 'تم إرسال الهدية' : 'Gift sent')));
+      if (mounted) { ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(ar ? 'تم إرسال الهدية' : 'Gift sent'))); }
     } catch (error) {
       if (!mounted) return;
       final insufficient = error.toString().contains('NOT_ENOUGH_COINS');

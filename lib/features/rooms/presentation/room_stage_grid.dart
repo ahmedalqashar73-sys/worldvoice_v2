@@ -169,7 +169,7 @@ class _CompactRoomSeatState extends State<_CompactRoomSeat>
                         : const Color(0xFF7FFFC3),
                   ),
                 if (!isAi) const SizedBox(width: 3),
-                _TinyRoleBadge(role: seat.role),
+                Flexible(child: _TinyRoleBadge(role: seat.role)),
               ],
             ),
           ],

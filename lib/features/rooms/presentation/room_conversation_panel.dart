@@ -34,9 +34,9 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
       await widget.onSend(value);
       if (mounted && _text.text.trim() == value) _text.clear();
     } catch (_) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      if (mounted) { ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(widget.isArabic ? 'تعذر إرسال الرسالة. حاول مجددًا.' : 'Message not sent. Please retry.'),
-      ));
+      )); }
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -56,9 +56,9 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
       Expanded(child: StreamBuilder<List<RoomChatMessage>>(
         stream: widget.messages,
         builder: (context, snapshot) {
-          if (snapshot.hasError) return Center(child: Text(
+          if (snapshot.hasError) { return Center(child: Text(
             ar ? 'تعذر تحميل الرسائل' : 'Could not load messages',
-            style: const TextStyle(color: Colors.white70)));
+            style: const TextStyle(color: Colors.white70))); }
           final messages = snapshot.data ?? const <RoomChatMessage>[];
           return ListView.builder(
             reverse: true, padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),

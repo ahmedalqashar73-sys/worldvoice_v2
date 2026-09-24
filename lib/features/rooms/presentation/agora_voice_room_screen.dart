@@ -1347,7 +1347,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       (Icons.redeem_rounded, ar ? 'المكافآت' : 'Rewards', () => _showRoomExtras(initialTab: 4)),
       (Icons.wallpaper_rounded, ar ? 'الخلفيات' : 'Backgrounds', _showBackgroundStore),
       (Icons.groups_outlined, ar ? 'الأعضاء' : 'Members', _showMembers),
-      (Icons.pan_tool_alt_rounded, ar ? 'طلبات الصعود' : 'Seat requests', _showRaisedHandsSheet),
+      if (_canModerate) (Icons.pan_tool_alt_rounded, ar ? 'طلبات الصعود' : 'Seat requests', _showRaisedHandsSheet),
       (Icons.settings_outlined, ar ? 'الإعدادات' : 'Settings', _showRoomControls),
     ];
     await showModalBottomSheet<void>(
