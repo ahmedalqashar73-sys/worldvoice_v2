@@ -27,7 +27,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     await tester.enterText(find.byType(TextFormField), 'غرفة التعلم');
-    await tester.scrollUntilVisible(find.text('بدء الغرفة الصوتية'), 180, scrollable: find.byType(Scrollable).first);
+    await tester.dragUntilVisible(find.text('بدء الغرفة الصوتية').hitTestable(), find.byType(SingleChildScrollView).first, const Offset(0, -180));
     await tester.pumpAndSettle();
     expect(find.text('بدء الغرفة الصوتية').hitTestable(), findsOneWidget);
     expect(tester.takeException(), isNull);
