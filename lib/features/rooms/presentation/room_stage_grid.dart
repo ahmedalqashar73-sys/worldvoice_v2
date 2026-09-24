@@ -24,11 +24,11 @@ class RoomStageGrid extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: stageSeats.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 4,
         mainAxisSpacing: 12,
         crossAxisSpacing: 8,
-        childAspectRatio: .76,
+        mainAxisExtent: 82 + MediaQuery.textScalerOf(context).scale(30),
       ),
       itemBuilder: (context, index) {
         final seat = stageSeats[index];
@@ -250,7 +250,7 @@ class _SeatAvatar extends StatelessWidget {
 
     if (seat.isEmpty) {
       return Icon(
-        Icons.pan_tool_alt_rounded,
+        Icons.event_seat_rounded,
         size: 23,
         color: Colors.white.withValues(alpha: .78),
       );
