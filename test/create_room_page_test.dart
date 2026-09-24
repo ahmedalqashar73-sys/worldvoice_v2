@@ -28,6 +28,7 @@ void main() {
     expect(tester.takeException(), isNull);
     await tester.enterText(find.byType(TextFormField), 'غرفة التعلم');
     await tester.scrollUntilVisible(find.text('بدء الغرفة الصوتية'), 180, scrollable: find.byType(Scrollable).first);
+    await tester.pumpAndSettle();
     expect(find.text('بدء الغرفة الصوتية').hitTestable(), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
@@ -63,8 +64,10 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextFormField), '  Practice together  ');
     await tester.scrollUntilVisible(find.text('Quiz'), 120, scrollable: find.byType(Scrollable).first);
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Quiz'));
     await tester.scrollUntilVisible(find.text('Start voice room'), 180, scrollable: find.byType(Scrollable).first);
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Start voice room'));
     await tester.pumpAndSettle();
     expect(result?.name, 'Practice together');
@@ -96,10 +99,12 @@ void main() {
       ),
     );
     await tester.scrollUntilVisible(find.text('Start voice room'), 180, scrollable: find.byType(Scrollable).first);
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Start voice room'));
     await tester.pumpAndSettle();
     expect(find.byType(CreateRoomPage), findsOneWidget);
     await tester.scrollUntilVisible(find.text('Enter a room name'), -180, scrollable: find.byType(Scrollable).first);
+    await tester.pumpAndSettle();
     expect(find.text('Enter a room name'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });

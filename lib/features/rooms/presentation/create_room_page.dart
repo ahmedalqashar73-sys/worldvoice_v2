@@ -64,10 +64,12 @@ class _CreateRoomPageState extends State<CreateRoomPage> {
               constraints: const BoxConstraints(maxWidth: 720),
               child: Form(
                 key: _formKey,
-                child: ListView(
+                child: SingleChildScrollView(
                   padding: const EdgeInsets.all(20),
                   keyboardDismissBehavior:
                       ScrollViewKeyboardDismissBehavior.onDrag,
+                  child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
                       label(
@@ -279,6 +281,7 @@ class _CreateRoomPageState extends State<CreateRoomPage> {
                       },
                     ),
                   ],
+                  ),
                 ),
               ),
             ),
