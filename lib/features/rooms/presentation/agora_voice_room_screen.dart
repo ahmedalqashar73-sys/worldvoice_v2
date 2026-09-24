@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:just_audio/just_audio.dart';
 
@@ -188,9 +189,12 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   }
 
   Future<void> _startRoomSession() async {
+    var entryStage = 'room-read';
+    var membershipEstablished = false;
     try {
       final asHost = widget.initialRole == AgoraRoomRole.speaker;
       final level = await _moderation.roomLevel();
+      entryStage = 'quota-check';
       final quotaStatus = await _quota.startSession(
         asHost: asHost,
         roomLevel: level,
@@ -219,15 +223,31 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         (_) => unawaited(_checkLiveQuota()),
       );
 
+      entryStage = 'room-membership';
       await _moderation.enter(
         asHost: asHost,
       );
+      membershipEstablished = true;
 
-      await _history.recordEnter(
-        roomId: widget.channelId,
-        roomName: widget.roomName,
-        languageCode: widget.roomLanguageCode,
-      );
+      // History is optional; a denied history write must not close a room
+      // whose membership was successfully established.
+      try {
+        await _history.recordEnter(
+          roomId: widget.channelId,
+          roomName: widget.roomName,
+          languageCode: widget.roomLanguageCode,
+        ).timeout(const Duration(seconds: 8));
+      } catch (error) {
+        debugPrint('WorldVoice room-history: $error');
+        if (mounted) {
+          final isArabic = Localizations.localeOf(context).languageCode == 'ar';
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(isArabic
+                ? 'تم الدخول، لكن تعذر حفظ سجل الغرفة.'
+                : 'Joined the room, but room history could not be saved.'),
+          ));
+        }
+      }
 
       _roomOpenSub = _moderation.watchRoomOpen().listen((isOpen) {
         if (!isOpen && !_leaving) {
@@ -279,6 +299,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
       _meSub = _moderation.watchMe().listen(_handleMyParticipant);
 
+      entryStage = 'audio-connect';
       await _controller.connect(
         channelId: widget.channelId,
         role: widget.initialRole,
@@ -292,14 +313,28 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         unawaited(_showQuiz());
       }
     } catch (error) {
+      debugPrint('WorldVoice entry [$entryStage] '
+          'project=${Firebase.app().options.projectId}: $error');
       if (!mounted) return;
+      _leaving = true;
+      _quotaTimer?.cancel();
+      final isArabic = Localizations.localeOf(context).languageCode == 'ar';
+      final denied = error is FirebaseException &&
+          error.code == 'permission-denied';
+      final message = denied
+          ? (isArabic
+              ? 'رفضت Firebase صلاحية الدخول ($entryStage). تأكد من نشر قواعد الغرف الجديدة.'
+              : 'Firebase denied room access ($entryStage). Check the published room rules.')
+          : error.toString();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.toString())),
+        SnackBar(content: Text(message), duration: const Duration(seconds: 10)),
       );
-      try {
-        await _moderation.leave();
-      } catch (_) {
-        // Entry may have failed before this user acquired room permissions.
+      if (membershipEstablished) {
+        try {
+          await _moderation.leave();
+        } catch (cleanupError) {
+          debugPrint('WorldVoice entry cleanup: $cleanupError');
+        }
       }
       try {
         await _controller.leave();
