@@ -82,7 +82,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDOpnQL6_Hcpe7nrmHlrmxmRkHqO4_Udn8',
-    appId: '1:149108991969:android:f9000a8165a8a38166d4a0',
+    appId: '1:149108991969:android:b09d15308f8f5d9266d4a0',
     messagingSenderId: '149108991969',
     projectId: 'worldvoice-37896',
     storageBucket: 'worldvoice-37896.firebasestorage.app',
