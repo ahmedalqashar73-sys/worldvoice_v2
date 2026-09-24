@@ -1180,7 +1180,12 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     );
   }
 
+  bool _boardVisible = false;
   Future<void> _showBoard() async {
+    setState(() => _boardVisible = true);
+  }
+
+  Future<void> _expandBoard() async {
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => RoomBoardScreen(
@@ -1802,9 +1807,9 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         ];
       default:
         return const [
-          Color(0xFF30216E),
-          Color(0xFF21194F),
-          Color(0xFF17122F),
+          Color(0xFF0D4A38),
+          Color(0xFF123A32),
+          Color(0xFF111D1A),
         ];
     }
   }
@@ -1912,10 +1917,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     return Directionality(
       textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
       child: Scaffold(
-        backgroundColor: const Color(0xFF302263),
+        backgroundColor: const Color(0xFF0D4A38),
         appBar: AppBar(
           toolbarHeight: 68, elevation: 0,
-          backgroundColor: const Color(0xFF302263), foregroundColor: Colors.white,
+          backgroundColor: const Color(0xFF0D4A38), foregroundColor: Colors.white,
           leading: IconButton(tooltip: label('قائمة الغرفة', 'Room menu'),
             onPressed: _showRoomMenu, icon: const Icon(Icons.more_horiz_rounded)),
           titleSpacing: 0,
@@ -1981,7 +1986,15 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
             Expanded(child: LayoutBuilder(builder: (context, constraints) {
               final compact = MediaQuery.viewInsetsOf(context).bottom > 0 || constraints.maxHeight < 340;
               return Column(children: [
-                if (!compact) SizedBox(
+                if (_boardVisible && constraints.maxHeight >= 230) SizedBox(
+                  height: (constraints.maxHeight * .48).clamp(140.0, 320.0),
+                  child: RoomBoardScreen(roomId: widget.channelId,
+                    canWrite: _isHost || _featureState.boardWriteEnabled,
+                    isHost: _isHost, agoraController: _controller, embedded: true,
+                    onExpand: _expandBoard, onClose: () => setState(() => _boardVisible = false))),
+                if (_boardVisible && !compact) SizedBox(height: 106,
+                  child: RoomStageStrip(seats: _buildSeats(), onSeatTap: _handleSeatTap)),
+                if (!_boardVisible && !compact) SizedBox(
                   height: (constraints.maxHeight * .46).clamp(120.0, 268.0),
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
@@ -2234,7 +2247,7 @@ class _GiftCaption extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 24),
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF17122F).withValues(alpha: .94),
+        color: const Color(0xFF111D1A).withValues(alpha: .94),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(color: Colors.white24),
         boxShadow: const [

@@ -331,3 +331,19 @@ class _TinyRoleBadge extends StatelessWidget {
     );
   }
 }
+
+class RoomStageStrip extends StatelessWidget {
+  const RoomStageStrip({required this.seats, required this.onSeatTap, super.key});
+  final List<RoomSeatState> seats;
+  final ValueChanged<RoomSeatState> onSeatTap;
+  @override
+  Widget build(BuildContext context) => ListView.separated(
+    scrollDirection: Axis.horizontal, padding: const EdgeInsets.all(8),
+    itemCount: seats.take(8).length,
+    separatorBuilder: (_, _) => const SizedBox(width: 8),
+    itemBuilder: (context, index) => SizedBox(width: 66, child: FittedBox(
+      fit: BoxFit.scaleDown, alignment: Alignment.topCenter,
+      child: SizedBox(width: 66, height: 82 + MediaQuery.textScalerOf(context).scale(30),
+        child: _CompactRoomSeat(seat: seats[index], onTap: () => onSeatTap(seats[index]))))),
+  );
+}

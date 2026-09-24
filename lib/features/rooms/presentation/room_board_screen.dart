@@ -19,9 +19,15 @@ class RoomBoardScreen extends StatefulWidget {
     required this.canWrite,
     required this.isHost,
     required this.agoraController,
+    this.embedded = false,
+    this.onClose,
+    this.onExpand,
     super.key,
   });
 
+  final bool embedded;
+  final VoidCallback? onClose;
+  final VoidCallback? onExpand;
   final String roomId;
   final bool canWrite;
   final bool isHost;
@@ -36,30 +42,50 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
   late final RoomFeatureService _features;
   final List<Offset> _draft = <Offset>[];
   bool _uploading = false;
+  late final Stream<RoomFeatureState> _stateStream;
+  late final Stream<QuerySnapshot<Map<String, dynamic>>> _itemsStream;
 
   @override
   void initState() {
     super.initState();
     _service = RoomBoardService(roomId: widget.roomId);
     _features = RoomFeatureService(roomId: widget.roomId);
+    _stateStream = _features.watchState();
+    _itemsStream = _service.watchItems();
   }
 
-  Future<void> _startScreenShare() async {
-    await widget.agoraController.startScreenShare();
-    final uid = widget.agoraController.localUid;
-    if (uid != null) {
-      await _features.setScreenSharing(
-        active: true,
-        sharerUid: uid,
-      );
+  bool _sharingBusy = false;
+  Future<void> _toggleScreenShare() async {
+    if (_sharingBusy) return;
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    setState(() => _sharingBusy = true);
+    try {
+      final controller = widget.agoraController;
+      if (controller.screenSharing) {
+        await controller.stopScreenShare();
+        await _features.setScreenSharing(active: false);
+      } else {
+        if (!controller.joined) {
+          throw StateError(ar ? 'اتصل بالصوت أولًا ثم أعد مشاركة الشاشة' : 'Connect room audio before sharing your screen');
+        }
+        await controller.startScreenShare();
+        if (!controller.screenSharing || controller.localUid == null) {
+          throw StateError(ar ? 'لم تبدأ مشاركة الشاشة' : 'Screen sharing did not start');
+        }
+        try {
+          await _features.setScreenSharing(active: true, sharerUid: controller.localUid!);
+        } catch (_) {
+          await controller.stopScreenShare();
+          rethrow;
+        }
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.toString())));
+      }
+    } finally {
+      if (mounted) setState(() => _sharingBusy = false);
     }
-    if (mounted) setState(() {});
-  }
-
-  Future<void> _stopScreenShare() async {
-    await widget.agoraController.stopScreenShare();
-    await _features.setScreenSharing(active: false);
-    if (mounted) setState(() {});
   }
 
   Future<void> _addText() async {
@@ -177,24 +203,12 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
     final isArabic =
         Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(isArabic ? 'السبورة المشتركة' : 'Shared board'),
-        actions: [
-          if (widget.isHost)
-            IconButton(
-              tooltip: isArabic ? 'مسح السبورة' : 'Clear board',
-              onPressed: _service.clear,
-              icon: const Icon(Icons.delete_sweep_rounded),
-            ),
-        ],
-      ),
-      body: StreamBuilder<RoomFeatureState>(
-        stream: _features.watchState(),
+    final board = StreamBuilder<RoomFeatureState>(
+        stream: _stateStream,
         builder: (context, featureSnapshot) {
           final featureState = featureSnapshot.data;
           return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-            stream: _service.watchItems(),
+            stream: _itemsStream,
             builder: (context, snapshot) {
               final docs = snapshot.data?.docs ??
                   const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
@@ -208,34 +222,12 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
           return Column(
             children: [
               if (featureState?.screenShareActive == true)
-                _LiveScreenShare(
+                Expanded(child: _LiveScreenShare(
                   roomId: widget.roomId,
                   sharerUid: featureState?.screenSharerUid,
                   controller: widget.agoraController,
-                ),
-              if (widget.isHost)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(10, 8, 10, 4),
-                  child: Align(
-                    alignment: AlignmentDirectional.centerStart,
-                    child: FilledButton.tonalIcon(
-                      onPressed: widget.agoraController.screenSharing
-                          ? _stopScreenShare
-                          : _startScreenShare,
-                      icon: Icon(
-                        widget.agoraController.screenSharing
-                            ? Icons.stop_screen_share_rounded
-                            : Icons.screen_share_rounded,
-                      ),
-                      label: Text(
-                        widget.agoraController.screenSharing
-                            ? (isArabic ? 'إيقاف مشاركة الشاشة' : 'Stop screen share')
-                            : (isArabic ? 'مشاركة شاشة الجوال' : 'Share phone screen'),
-                      ),
-                    ),
-                  ),
-                ),
-              Expanded(
+                )),
+              if (featureState?.screenShareActive != true) Expanded(
                 flex: featureState?.screenShareActive == true ? 3 : 5,
                 child: LayoutBuilder(
                   builder: (context, constraints) {
@@ -264,13 +256,13 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
                           ? (_) => _saveStroke(size)
                           : null,
                       child: CustomPaint(
-                        painter: _BoardPainter(
+                        foregroundPainter: _BoardPainter(
                           strokes: strokes,
                           draft: _draft,
                         ),
                         child: Container(
                           decoration: BoxDecoration(
-                            color: const Color(0xFF161626),
+                            color: const Color(0xFF102C25),
                             border: Border.all(color: Colors.white12),
                           ),
                         ),
@@ -281,7 +273,7 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
               ),
               if (content.isNotEmpty)
                 SizedBox(
-                  height: 150,
+                  height: widget.embedded ? 40 : 150,
                   child: ListView.separated(
                     padding: const EdgeInsets.all(10),
                     scrollDirection: Axis.horizontal,
@@ -291,49 +283,42 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
                         _BoardContentCard(data: content[index].data()),
                   ),
                 ),
-              if (widget.canWrite)
-                SafeArea(
-                  top: false,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(10, 8, 10, 12),
-                    child: Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      alignment: WrapAlignment.center,
-                      children: [
-                        FilledButton.tonalIcon(
-                          onPressed: _addText,
-                          icon: const Icon(Icons.text_fields_rounded),
-                          label: Text(isArabic ? 'نص' : 'Text'),
-                        ),
-                        FilledButton.tonalIcon(
-                          onPressed:
-                              _uploading ? null : () => _pickAndUpload('image'),
-                          icon: const Icon(Icons.image_rounded),
-                          label: Text(isArabic ? 'صورة' : 'Image'),
-                        ),
-                        FilledButton.tonalIcon(
-                          onPressed:
-                              _uploading ? null : () => _pickAndUpload('video'),
-                          icon: const Icon(Icons.video_file_rounded),
-                          label: Text(isArabic ? 'فيديو' : 'Video'),
-                        ),
-                        FilledButton.tonalIcon(
-                          onPressed:
-                              _uploading ? null : () => _pickAndUpload('pdf'),
-                          icon: const Icon(Icons.picture_as_pdf_rounded),
-                          label: const Text('PDF'),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+              SizedBox(height: 48, child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(children: [
+                  if (widget.isHost) IconButton(tooltip: isArabic ? 'مشاركة الشاشة / إيقاف' : 'Start / stop screen sharing',
+                    onPressed: _sharingBusy ? null : _toggleScreenShare,
+                    icon: Icon(widget.agoraController.screenSharing ? Icons.stop_screen_share : Icons.screen_share)),
+                  if (widget.canWrite) ...[
+                    IconButton(tooltip: isArabic ? 'نص' : 'Text', onPressed: _addText, icon: const Icon(Icons.text_fields)),
+                    IconButton(tooltip: isArabic ? 'صورة' : 'Image', onPressed: _uploading ? null : () => _pickAndUpload('image'), icon: const Icon(Icons.image_outlined)),
+                    IconButton(tooltip: isArabic ? 'فيديو' : 'Video', onPressed: _uploading ? null : () => _pickAndUpload('video'), icon: const Icon(Icons.video_file_outlined)),
+                    IconButton(tooltip: 'PDF', onPressed: _uploading ? null : () => _pickAndUpload('pdf'), icon: const Icon(Icons.folder_open)),
+                  ],
+                  if (widget.isHost) IconButton(tooltip: isArabic ? 'مسح' : 'Clear', onPressed: _service.clear, icon: const Icon(Icons.delete_outline)),
+                ]),
+              )),
             ],
           );
             },
           );
         },
-      ),
+    );
+    return Theme(
+      data: Theme.of(context).copyWith(
+        iconTheme: const IconThemeData(color: Color(0xFFE7C56E))),
+      child: widget.embedded
+        ? ColoredBox(color: const Color(0xFF102C25), child: Column(children: [
+            SizedBox(height: 36, child: Row(children: [
+              IconButton(padding: EdgeInsets.zero, tooltip: isArabic ? 'تكبير' : 'Expand', onPressed: widget.onExpand, icon: const Icon(Icons.fullscreen)),
+              Expanded(child: Text(isArabic ? 'السبورة المشتركة' : 'Shared board', style: const TextStyle(color: Color(0xFFE7C56E), fontSize: 12))),
+              IconButton(padding: EdgeInsets.zero, tooltip: isArabic ? 'إخفاء السبورة' : 'Hide board', onPressed: widget.onClose, icon: const Icon(Icons.close)),
+            ])),
+            Expanded(child: board),
+          ]))
+        : Scaffold(backgroundColor: const Color(0xFF102C25),
+            appBar: AppBar(title: Text(isArabic ? 'السبورة المشتركة' : 'Shared board')),
+            body: board),
     );
   }
 }

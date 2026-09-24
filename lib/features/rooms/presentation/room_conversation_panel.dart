@@ -44,7 +44,7 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
   Widget _action(IconData icon, String label, VoidCallback? tap, {Color color = Colors.white}) {
     return IconButton(
       tooltip: label, onPressed: tap,
-      style: IconButton.styleFrom(backgroundColor: const Color(0xFF211749),
+      style: IconButton.styleFrom(backgroundColor: const Color(0xFF123C30),
         minimumSize: const Size(40, 44), padding: const EdgeInsets.all(8)),
       icon: Icon(icon, size: 21, color: tap == null ? Colors.white38 : color),
     );
@@ -71,11 +71,11 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
                 child: Container(
                   margin: const EdgeInsets.only(top: 8),
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-                  decoration: BoxDecoration(color: const Color(0xFF1C133F).withValues(alpha: .8),
+                  decoration: BoxDecoration(color: const Color(0xFF102C25).withValues(alpha: .8),
                     borderRadius: BorderRadius.circular(16)),
                   child: Text.rich(TextSpan(children: [
                     TextSpan(text: welcome ? 'WorldVoice  ' : '${msg!.displayName}  ',
-                      style: const TextStyle(color: Color(0xFFCEB9FF), fontWeight: FontWeight.w700)),
+                      style: const TextStyle(color: Color(0xFFE7C56E), fontWeight: FontWeight.w700)),
                     TextSpan(text: welcome
                       ? (ar ? 'أهلًا بك! تعلّم وتحدث وشارك باحترام.' : 'Welcome! Learn, talk and share with respect.')
                       : msg!.text),
@@ -98,12 +98,12 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
             decoration: InputDecoration(
               hintText: ar ? 'تعليق…' : 'Message…', counterText: '',
               hintStyle: const TextStyle(color: Colors.white54),
-              filled: true, fillColor: const Color(0xFF211749),
+              filled: true, fillColor: const Color(0xFF123C30),
               contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(28), borderSide: BorderSide.none),
               suffixIcon: typing ? IconButton(
                 tooltip: ar ? 'إرسال' : 'Send', onPressed: _sending ? null : _send,
-                icon: const Icon(Icons.send_rounded, color: Color(0xFFB79BFF), size: 20)) : null,
+                icon: const Icon(Icons.send_rounded, color: Color(0xFFE7C56E), size: 20)) : null,
             ),
           );
           final actions = [

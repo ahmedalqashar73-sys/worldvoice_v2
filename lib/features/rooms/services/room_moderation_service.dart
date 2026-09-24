@@ -138,7 +138,7 @@ class RoomModerationService {
           'vipOnly': initialVipOnly,
           'roomLevel': existingData?['roomLevel'] ?? 1,
           'roomXp': existingData?['roomXp'] ?? existingData?['roomPoints'] ?? 0,
-          'themeId': existingData?['themeId'] ?? 'royalPurple',
+          'themeId': existingData?['themeId'] ?? 'emerald',
           'mode': initialMode.name,
           'boardWriteEnabled': initialMode != RoomMode.lesson,
           'musicPlaying': existingData?['musicPlaying'] ?? false,
