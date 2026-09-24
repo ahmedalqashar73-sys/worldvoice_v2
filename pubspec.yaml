@@ -51,7 +51,7 @@ dependencies:
   file_picker: ^13.1.0
   url_launcher: ^6.3.2
   share_plus: ^13.3.0
-  pdfrx: ^2.5.0
+  pdfrx: 2.4.8
   speech_to_text: ^7.5.0
   google_mlkit_translation: ^0.15.1
   in_app_purchase: ^3.3.1
