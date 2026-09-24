@@ -37,7 +37,7 @@ backend configuration. No live deployment is performed by the tests.
 
     cd test/firestore
     npm install
-    npx firebase emulators:exec --only firestore --project demo-worldvoice-rules "npm test"
+    npx firebase emulators:exec --config ../../firebase.rules-test.json --only firestore --project demo-worldvoice-rules "npm test"
 
-The test configuration points at ../../firestore.rules. The demo project is
+The test configuration at the repository root points at firestore.rules. The demo project is
 isolated from production. Java 21 and Node 22 are used in CI.

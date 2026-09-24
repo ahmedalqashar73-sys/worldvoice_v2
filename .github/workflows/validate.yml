@@ -51,4 +51,4 @@ jobs:
         working-directory: test/firestore
       - name: Test Firestore room access in isolated emulator
         working-directory: test/firestore
-        run: npx firebase emulators:exec --only firestore --project demo-worldvoice-rules "npm test"
+        run: npx firebase emulators:exec --config ../../firebase.rules-test.json --only firestore --project demo-worldvoice-rules "npm test"
