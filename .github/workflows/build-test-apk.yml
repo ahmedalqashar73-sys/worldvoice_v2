@@ -47,7 +47,7 @@ jobs:
           set -euo pipefail
 
           APK="build/app/outputs/flutter-apk/app-debug.apk"
-          APP_ID="1:149108991969:android:f9000a8165a8a38166d4a0"
+          APP_ID="1:149108991969:android:b09d15308f8f5d9266d4a0"
           NOTES="WorldVoice voice-room test build - 8 seats, room chat, raise hand, mute, Teacher AI, quiz, gifts, minimize/leave/close."
 
           AUTH_ARGS=()
