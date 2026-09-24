@@ -54,11 +54,30 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
       );
     }
 
-    final profile = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .get();
-    final data = profile.data() ?? const <String, dynamic>{};
+    Map<String, dynamic> data = const <String, dynamic>{};
+
+    // Do not block the entire Rooms page forever if Firestore is slow/offline.
+    // The room list can still open with safe defaults and recover on the next
+    // app/session refresh.
+    try {
+      final profile = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get()
+          .timeout(const Duration(seconds: 8));
+      data = profile.data() ?? const <String, dynamic>{};
+    } catch (_) {
+      try {
+        final cachedProfile = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get(const GetOptions(source: Source.cache));
+        data = cachedProfile.data() ?? const <String, dynamic>{};
+      } catch (_) {
+        data = const <String, dynamic>{};
+      }
+    }
+
     final native =
         (data['nativeLanguageCode'] ?? 'en').toString().trim().toLowerCase();
     final learning = (data['learningLanguageCodes'] as List?)
@@ -67,7 +86,18 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
             .toList() ??
         const <String>[];
 
-    final giftLevel = await const GiftLevelService().resolveFromProfile(data);
+    final fallbackGiftLevel = (data['giftLevel'] as num?)?.toInt() ?? 0;
+    var giftLevel = fallbackGiftLevel;
+    try {
+      giftLevel = await const GiftLevelService()
+          .resolveFromProfile(data)
+          .timeout(
+            const Duration(seconds: 6),
+            onTimeout: () => fallbackGiftLevel,
+          );
+    } catch (_) {
+      giftLevel = fallbackGiftLevel;
+    }
 
     return _RoomLanguagePrefs(
       nativeLanguage: native.isEmpty ? 'en' : native,
@@ -347,8 +377,31 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
     return FutureBuilder<_RoomLanguagePrefs>(
       future: _prefsFuture,
       builder: (context, prefsSnapshot) {
-        if (!prefsSnapshot.hasData) {
+        if (prefsSnapshot.connectionState == ConnectionState.waiting &&
+            !prefsSnapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
+        }
+
+        if (prefsSnapshot.hasError) {
+          return _RoomsLoadError(
+            isArabic: _isArabic,
+            onRetry: () {
+              setState(() {
+                _prefsFuture = _loadLanguagePrefs();
+              });
+            },
+          );
+        }
+
+        if (!prefsSnapshot.hasData) {
+          return _RoomsLoadError(
+            isArabic: _isArabic,
+            onRetry: () {
+              setState(() {
+                _prefsFuture = _loadLanguagePrefs();
+              });
+            },
+          );
         }
 
         final prefs = prefsSnapshot.data!;
@@ -946,6 +999,54 @@ class _SmallBadge extends StatelessWidget {
           color: foreground,
           fontSize: 10,
           fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+}
+
+class _RoomsLoadError extends StatelessWidget {
+  const _RoomsLoadError({
+    required this.isArabic,
+    required this.onRetry,
+  });
+
+  final bool isArabic;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.cloud_off_rounded, size: 52),
+            const SizedBox(height: 12),
+            Text(
+              isArabic
+                  ? 'تعذر تحميل إعدادات الغرف'
+                  : 'Could not load room settings',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              isArabic
+                  ? 'تحقق من الإنترنت ثم حاول مرة أخرى.'
+                  : 'Check your connection and try again.',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh_rounded),
+              label: Text(isArabic ? 'إعادة المحاولة' : 'Retry'),
+            ),
+          ],
         ),
       ),
     );
