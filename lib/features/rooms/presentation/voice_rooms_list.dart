@@ -7,6 +7,7 @@ import '../../../core/localization/locale_controller.dart';
 
 import '../../profile/data/profile_identity_utils.dart';
 import '../data/agora_config.dart';
+import 'create_room_page.dart';
 import '../services/agora_voice_room_controller.dart';
 import '../services/gift_level_service.dart';
 import '../services/room_history_service.dart';
@@ -148,13 +149,14 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
         ? prefs.nativeLanguage
         : _selectedLanguage!;
 
-    final result = await showDialog<_CreateRoomResult>(
-      context: context,
-      builder: (dialogContext) => _CreateRoomDialog(
+    final result = await Navigator.of(context).push<CreateRoomResult>(
+      MaterialPageRoute(
+        builder: (_) => CreateRoomPage(
         isArabic: _isArabic,
         languageOptions: prefs.roomLanguages,
         initialLanguage: initialLanguage,
         giftLevel: prefs.giftLevel,
+      ),
       ),
     );
 
@@ -175,6 +177,7 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
           roomName: result.name,
           roomLanguageCode: result.languageCode,
           initialShowTeacherAiSeat: result.showTeacherAiSeat,
+          initialMode: result.mode,
           initialIsPrivate: result.isPrivate,
           initialVipOnly: result.vipOnly,
           privateAccessCode: privateCode,
@@ -481,7 +484,14 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
 
                   return Stack(
                     children: [
-                      if (snapshot.connectionState ==
+                      if (snapshot.hasError)
+                        _RoomsLoadError(
+                          isArabic: _isArabic,
+                          permissionDenied: snapshot.error is FirebaseException &&
+                              (snapshot.error as FirebaseException).code == 'permission-denied',
+                          onRetry: () => setState(() {}),
+                        )
+                      else if (snapshot.connectionState ==
                               ConnectionState.waiting &&
                           !snapshot.hasData)
                         const Center(child: CircularProgressIndicator())
@@ -543,7 +553,18 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
                         bottom: 18,
                         child: FloatingActionButton.extended(
                           heroTag: 'create_voice_room',
-                          onPressed: () => _createRoom(context, prefs),
+                          onPressed: () async {
+                            try {
+                              await _createRoom(context, prefs);
+                            } catch (_) {
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(_isArabic
+                                    ? 'تعذر فتح الغرفة. تحقق من تسجيل الدخول واتصال الخدمة.'
+                                    : 'Could not open the room. Check your sign-in and service connection.')),
+                              );
+                            }
+                          },
                           icon: const Icon(Icons.add_rounded),
                           label: Text(
                             _isArabic ? 'إنشاء غرفة' : 'Create room',
@@ -626,151 +647,6 @@ class _RoomPromotionBanner extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-class _CreateRoomDialog extends StatefulWidget {
-  const _CreateRoomDialog({
-    required this.isArabic,
-    required this.languageOptions,
-    required this.initialLanguage,
-    required this.giftLevel,
-  });
-
-  final bool isArabic;
-  final List<String> languageOptions;
-  final String initialLanguage;
-  final int giftLevel;
-
-  @override
-  State<_CreateRoomDialog> createState() => _CreateRoomDialogState();
-}
-
-class _CreateRoomDialogState extends State<_CreateRoomDialog> {
-  final TextEditingController _nameController = TextEditingController();
-  late String _language;
-  bool _showTeacherAiSeat = false;
-  bool _isPrivate = false;
-  bool _vipOnly = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _language = widget.languageOptions.contains(widget.initialLanguage)
-        ? widget.initialLanguage
-        : widget.languageOptions.first;
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(widget.isArabic ? 'إنشاء غرفة صوتية' : 'Create voice room'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: _nameController,
-            autofocus: true,
-            maxLength: 40,
-            decoration: InputDecoration(
-              labelText: widget.isArabic ? 'اسم الغرفة' : 'Room name',
-            ),
-          ),
-          const SizedBox(height: 8),
-          DropdownButtonFormField<String>(
-            initialValue: _language,
-            decoration: InputDecoration(
-              labelText: widget.isArabic ? 'لغة الغرفة' : 'Room language',
-            ),
-            items: [
-              for (final code in widget.languageOptions)
-                DropdownMenuItem(
-                  value: code,
-                  child: Text(_languageLabel(code)),
-                ),
-            ],
-            onChanged: (value) {
-              if (value != null) setState(() => _language = value);
-            },
-          ),
-          const SizedBox(height: 10),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            secondary: const Icon(Icons.smart_toy_rounded),
-            title: Text(
-              widget.isArabic ? 'إظهار Teacher AI' : 'Show Teacher AI',
-            ),
-            subtitle: Text(
-              widget.isArabic
-                  ? 'يمكنك تغييره لاحقًا من إعدادات الغرفة.'
-                  : 'You can change this later from room settings.',
-            ),
-            value: _showTeacherAiSeat,
-            onChanged: (value) {
-              setState(() => _showTeacherAiSeat = value);
-            },
-          ),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            secondary: const Icon(Icons.lock_rounded),
-            title: Text(
-              widget.isArabic ? 'غرفة خاصة' : 'Private room',
-            ),
-            subtitle: Text(
-              widget.giftLevel >= 14
-                  ? (widget.isArabic
-                      ? 'الدخول يكون بكود خاص.'
-                      : 'Members join using a private code.')
-                  : (widget.isArabic
-                      ? 'تتطلب Gift Level 14.'
-                      : 'Requires Gift Level 14.'),
-            ),
-            value: _isPrivate,
-            onChanged: widget.giftLevel >= 14
-                ? (value) => setState(() => _isPrivate = value)
-                : null,
-          ),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            secondary: const Icon(Icons.workspace_premium_rounded),
-            title: Text(
-              widget.isArabic ? 'VIP فقط' : 'VIP only',
-            ),
-            value: _vipOnly,
-            onChanged: (value) => setState(() => _vipOnly = value),
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(widget.isArabic ? 'إلغاء' : 'Cancel'),
-        ),
-        FilledButton(
-          onPressed: () {
-            final name = _nameController.text.trim();
-            if (name.isEmpty) return;
-            Navigator.pop(
-              context,
-              _CreateRoomResult(
-                name: name,
-                languageCode: _language,
-                showTeacherAiSeat: _showTeacherAiSeat,
-                isPrivate: _isPrivate,
-                vipOnly: _vipOnly,
-              ),
-            );
-          },
-          child: Text(widget.isArabic ? 'إنشاء' : 'Create'),
-        ),
-      ],
     );
   }
 }
@@ -1006,7 +882,9 @@ class _SmallBadge extends StatelessWidget {
 }
 
 class _RoomsLoadError extends StatelessWidget {
+  final bool permissionDenied;
   const _RoomsLoadError({
+    this.permissionDenied = false,
     required this.isArabic,
     required this.onRetry,
   });
@@ -1026,8 +904,8 @@ class _RoomsLoadError extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               isArabic
-                  ? 'تعذر تحميل إعدادات الغرف'
-                  : 'Could not load room settings',
+                  ? 'تعذر تحميل الغرف'
+                  : 'Could not load rooms',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w900,
@@ -1035,9 +913,13 @@ class _RoomsLoadError extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              isArabic
-                  ? 'تحقق من الإنترنت ثم حاول مرة أخرى.'
-                  : 'Check your connection and try again.',
+              permissionDenied
+                  ? (isArabic
+                      ? 'تعذر الوصول إلى الغرف بسبب صلاحيات الخدمة. حاول تسجيل الدخول مجددًا؛ إذا استمرت المشكلة، يلزم مراجعة إعدادات الخدمة.'
+                      : 'Room access was denied. Sign in again; if this continues, the service configuration needs review.')
+                  : (isArabic
+                      ? 'تحقق من الإنترنت ثم حاول مرة أخرى.'
+                      : 'Check your connection and try again.'),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
@@ -1167,22 +1049,6 @@ class _RoomLanguagePrefs {
         ...roomLanguages,
         'all',
       ];
-}
-
-class _CreateRoomResult {
-  const _CreateRoomResult({
-    required this.name,
-    required this.languageCode,
-    required this.showTeacherAiSeat,
-    required this.isPrivate,
-    required this.vipOnly,
-  });
-
-  final String name;
-  final String languageCode;
-  final bool showTeacherAiSeat;
-  final bool isPrivate;
-  final bool vipOnly;
 }
 
 String _languageLabel(String code) {

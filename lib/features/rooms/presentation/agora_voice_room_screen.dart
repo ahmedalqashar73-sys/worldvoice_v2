@@ -24,6 +24,7 @@ import '../services/room_translation_service.dart';
 import '../services/room_teacher_ai_service.dart';
 import 'room_background_shop_sheet.dart';
 import 'room_board_screen.dart';
+import '../data/room_mode.dart';
 import 'room_chat_sheet.dart';
 import 'room_captions_sheet.dart';
 import 'room_coin_store_sheet.dart';
@@ -46,6 +47,7 @@ class AgoraVoiceRoomScreen extends StatefulWidget {
     this.initialShowTeacherAiSeat = false,
     this.initialIsPrivate = false,
     this.initialVipOnly = false,
+    this.initialMode = RoomMode.chat,
     this.privateAccessCode,
     super.key,
   });
@@ -58,6 +60,7 @@ class AgoraVoiceRoomScreen extends StatefulWidget {
   final bool initialShowTeacherAiSeat;
   final bool initialIsPrivate;
   final bool initialVipOnly;
+  final RoomMode initialMode;
   final String? privateAccessCode;
 
   @override
@@ -161,6 +164,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       initialShowTeacherAiSeat: widget.initialShowTeacherAiSeat,
       initialIsPrivate: widget.initialIsPrivate,
       initialVipOnly: widget.initialVipOnly,
+      initialMode: widget.initialMode,
       privateAccessCode: widget.privateAccessCode,
     );
     _speakingTimer = Timer.periodic(
@@ -279,14 +283,29 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         channelId: widget.channelId,
         role: widget.initialRole,
       );
+      if (!mounted || _leaving || !asHost || _controller.error != null) return;
+      // Open the selected tool after room membership and the audio join request.
+      if (widget.initialMode == RoomMode.board ||
+          widget.initialMode == RoomMode.lesson) {
+        unawaited(_showBoard());
+      } else if (widget.initialMode == RoomMode.quiz) {
+        unawaited(_showQuiz());
+      }
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(error.toString())),
       );
-      await _moderation.leave();
-      await _controller.leave();
-      if (mounted) Navigator.of(context).pop();
+      try {
+        await _moderation.leave();
+      } catch (_) {
+        // Entry may have failed before this user acquired room permissions.
+      }
+      try {
+        await _controller.leave();
+      } finally {
+        if (mounted) Navigator.of(context).pop();
+      }
     }
   }
 
