@@ -166,13 +166,12 @@ class RoomFeatureService {
     });
   }
 
-  Future<void> revealQuiz() => _room.set(
-        {
-          'quiz.revealed': true,
-          'updatedAt': FieldValue.serverTimestamp(),
-        },
-        SetOptions(merge: true),
-      );
+  Future<void> revealQuiz() => _room.update({
+        // update interprets the dot as a nested field path. set(merge: true)
+        // would create a literal 'quiz.revealed' key and leave the quiz open.
+        'quiz.revealed': true,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
 
   Future<void> finishQuiz() async {
     final user = _user;
