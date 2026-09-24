@@ -103,6 +103,51 @@ class _AuthOptionsScreenState extends State<AuthOptionsScreen> {
     }
   }
 
+  Future<void> _sendPasswordReset() async {
+    final email = _email.text.trim();
+    if (email.isEmpty || !email.contains('@')) {
+      _message(
+        _rtl
+            ? 'أدخل بريدك الإلكتروني أولًا لإرسال رابط استعادة كلمة المرور.'
+            : 'Enter your email first to receive a password reset link.',
+      );
+      return;
+    }
+
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      await AuthService.sendPasswordReset(email);
+      _message(
+        _rtl
+            ? 'تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني.'
+            : 'Password reset link sent to your email.',
+        success: true,
+      );
+    } on FirebaseAuthException catch (error) {
+      final message = switch (error.code) {
+        'user-not-found' => _rtl
+            ? 'لا يوجد حساب مرتبط بهذا البريد.'
+            : 'No account was found for this email.',
+        'invalid-email' => _rtl
+            ? 'البريد الإلكتروني غير صحيح.'
+            : 'The email address is invalid.',
+        _ => _rtl
+            ? 'تعذر إرسال رابط الاستعادة. حاول مرة أخرى.'
+            : 'Could not send the reset link. Please try again.',
+      };
+      _message(message);
+    } catch (_) {
+      _message(
+        _rtl
+            ? 'تعذر إرسال رابط الاستعادة. تحقق من الإنترنت وحاول مرة أخرى.'
+            : 'Could not send the reset link. Check your connection and try again.',
+      );
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
   Future<void> _emailAuth() async {
     final email = _email.text.trim();
     final password = _password.text;
@@ -141,7 +186,23 @@ class _AuthOptionsScreenState extends State<AuthOptionsScreen> {
             TextField(controller: _email, keyboardType: TextInputType.emailAddress, decoration: InputDecoration(labelText: _rtl ? 'البريد الإلكتروني' : 'Email')),
             const SizedBox(height: 12),
             TextField(controller: _password, obscureText: _hidePassword, decoration: InputDecoration(labelText: _rtl ? 'كلمة المرور' : 'Password', suffixIcon: IconButton(onPressed: () => setState(() => _hidePassword = !_hidePassword), icon: Icon(_hidePassword ? Icons.visibility_off_rounded : Icons.visibility_rounded)))),
-            const SizedBox(height: 18),
+            if (widget.mode == AuthFlowMode.signIn)
+              Align(
+                alignment: _rtl ? Alignment.centerRight : Alignment.centerLeft,
+                child: TextButton(
+                  onPressed: _busy
+                      ? null
+                      : () async {
+                          Navigator.pop(sheetContext);
+                          await _sendPasswordReset();
+                        },
+                  child: Text(
+                    _rtl ? 'نسيت كلمة المرور؟' : 'Forgot password?',
+                    style: const TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                ),
+              ),
+            const SizedBox(height: 10),
             SizedBox(width: double.infinity, height: 54, child: FilledButton(
               onPressed: () async {
                 Navigator.pop(sheetContext);
