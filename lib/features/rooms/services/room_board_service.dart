@@ -5,6 +5,29 @@ class RoomBoardService {
   RoomBoardService({required this.roomId});
 
   final String roomId;
+  final List<Map<String, dynamic>> _redoStrokes = [];
+  bool get canRedo => _redoStrokes.isNotEmpty;
+  String? get currentUserId => _user?.uid;
+
+  Future<void> undoStroke() async {
+    final uid = currentUserId;
+    if (uid == null) return;
+    final snapshot = await _items.orderBy('createdAt').get();
+    final own = snapshot.docs.where((doc) =>
+        doc.data()['userId'] == uid && doc.data()['type'] == 'stroke');
+    if (own.isEmpty) return;
+    final last = own.last;
+    await last.reference.delete();
+    _redoStrokes.add(last.data());
+  }
+
+  Future<void> redoStroke() async {
+    if (_redoStrokes.isEmpty) return;
+    final data = _redoStrokes.last;
+    await _items.add({...data, 'createdAt': FieldValue.serverTimestamp()});
+    _redoStrokes.removeLast();
+  }
+
 
   FirebaseFirestore get _db => FirebaseFirestore.instance;
   User? get _user => FirebaseAuth.instance.currentUser;
@@ -62,6 +85,7 @@ class RoomBoardService {
       'userId': user.uid,
       'createdAt': FieldValue.serverTimestamp(),
     });
+    _redoStrokes.clear();
   }
 
   Future<void> clear() async {
@@ -71,5 +95,6 @@ class RoomBoardService {
       batch.delete(doc.reference);
     }
     await batch.commit();
+    _redoStrokes.clear();
   }
 }

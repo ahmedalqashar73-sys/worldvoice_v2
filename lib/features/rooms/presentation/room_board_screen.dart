@@ -42,6 +42,64 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
   late final RoomFeatureService _features;
   final List<Offset> _draft = <Offset>[];
   bool _uploading = false;
+  Color _penColor = Colors.white;
+  double _penWidth = 3;
+  bool _drawing = true;
+  bool _boardBusy = false;
+
+  Future<void> _boardAction(Future<void> Function() action) async {
+    if (_boardBusy) return;
+    setState(() => _boardBusy = true);
+    try {
+      await action();
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(
+          Localizations.localeOf(context).languageCode == 'ar'
+            ? 'تعذر حفظ تعديل السبورة. حاول مجددًا.' : 'Board change failed. Please retry.')));
+      }
+    } finally {
+      if (mounted) setState(() => _boardBusy = false);
+    }
+  }
+
+  Future<void> _penSettings() async {
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    await showModalBottomSheet<void>(context: context, useSafeArea: true,
+      isScrollControlled: true, showDragHandle: true,
+      builder: (sheetContext) => StatefulBuilder(builder: (context, update) =>
+        SingleChildScrollView(child: Padding(padding: const EdgeInsets.all(20),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Text(ar ? 'لون القلم وسماكته' : 'Pen color and width',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              for (final color in const [Colors.white, Colors.black,
+                Color(0xFFE7C56E), Colors.yellow, Colors.orange, Colors.red,
+                Colors.pink, Colors.purple, Colors.blue, Colors.cyan,
+                Colors.green, Colors.lime])
+                Semantics(button: true, selected: _penColor == color,
+                  label: '${ar ? 'لون' : 'Color'} ${color.toARGB32().toRadixString(16)}',
+                  child: InkWell(onTap: () {
+                    setState(() { _penColor = color; _drawing = true; });
+                    update(() {});
+                  }, child: Container(width: 44, height: 44,
+                    decoration: BoxDecoration(color: color, shape: BoxShape.circle,
+                      border: Border.all(color: Colors.grey, width: 2)),
+                    child: _penColor == color ? Icon(Icons.check,
+                      color: color.computeLuminance() > .5 ? Colors.black : Colors.white) : null))),
+            ]),
+            const SizedBox(height: 12),
+            Row(children: [Text(ar ? 'السماكة' : 'Width'),
+              Expanded(child: Slider(value: _penWidth, min: 1, max: 12, divisions: 11,
+                label: _penWidth.round().toString(), onChanged: (value) {
+                  setState(() => _penWidth = value); update(() {});
+                })), Text(_penWidth.round().toString())]),
+            Container(height: 24, width: double.infinity, color: const Color(0xFF102C25),
+              alignment: Alignment.center, child: Container(height: _penWidth, width: 120, color: _penColor)),
+          ])))));
+  }
+
   late final Stream<RoomFeatureState> _stateStream;
   late final Stream<QuerySnapshot<Map<String, dynamic>>> _itemsStream;
 
@@ -193,8 +251,8 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
     _draft.clear();
     await _service.addStroke(
       points: normalized,
-      colorValue: Colors.white.toARGB32(),
-      width: 3,
+      colorValue: _penColor.toARGB32(),
+      width: _penWidth,
     );
   }
 
@@ -238,7 +296,7 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
 
                     return GestureDetector(
                       behavior: HitTestBehavior.opaque,
-                      onPanStart: widget.canWrite
+                      onPanStart: widget.canWrite && _drawing && !_boardBusy
                           ? (details) {
                               _draft
                                 ..clear()
@@ -246,19 +304,21 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
                               setState(() {});
                             }
                           : null,
-                      onPanUpdate: widget.canWrite
+                      onPanUpdate: widget.canWrite && _drawing && !_boardBusy
                           ? (details) {
                               _draft.add(details.localPosition);
                               setState(() {});
                             }
                           : null,
-                      onPanEnd: widget.canWrite
-                          ? (_) => _saveStroke(size)
+                      onPanEnd: widget.canWrite && _drawing && !_boardBusy
+                          ? (_) => _boardAction(() => _saveStroke(size))
                           : null,
                       child: CustomPaint(
                         foregroundPainter: _BoardPainter(
                           strokes: strokes,
                           draft: _draft,
+                          draftColor: _penColor,
+                          draftWidth: _penWidth,
                         ),
                         child: Container(
                           decoration: BoxDecoration(
@@ -290,12 +350,24 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
                     onPressed: _sharingBusy ? null : _toggleScreenShare,
                     icon: Icon(widget.agoraController.screenSharing ? Icons.stop_screen_share : Icons.screen_share)),
                   if (widget.canWrite) ...[
+                    IconButton(tooltip: isArabic ? 'ألوان القلم والسماكة' : 'Pen colors and width',
+                      onPressed: _boardBusy ? null : _penSettings,
+                      icon: Icon(Icons.palette, color: _penColor)),
+                    IconButton(tooltip: isArabic ? 'الرسم' : 'Draw',
+                      onPressed: () => setState(() => _drawing = !_drawing),
+                      icon: Icon(_drawing ? Icons.edit : Icons.pan_tool_outlined)),
+                    IconButton(tooltip: isArabic ? 'تراجع عن رسمك' : 'Undo your stroke',
+                      onPressed: _boardBusy || !strokes.any((doc) => doc.data()['userId'] == _service.currentUserId)
+                        ? null : () => _boardAction(_service.undoStroke), icon: const Icon(Icons.undo)),
+                    IconButton(tooltip: isArabic ? 'إعادة رسمك' : 'Redo your stroke',
+                      onPressed: _boardBusy || !_service.canRedo ? null : () => _boardAction(_service.redoStroke),
+                      icon: const Icon(Icons.redo)),
                     IconButton(tooltip: isArabic ? 'نص' : 'Text', onPressed: _addText, icon: const Icon(Icons.text_fields)),
                     IconButton(tooltip: isArabic ? 'صورة' : 'Image', onPressed: _uploading ? null : () => _pickAndUpload('image'), icon: const Icon(Icons.image_outlined)),
                     IconButton(tooltip: isArabic ? 'فيديو' : 'Video', onPressed: _uploading ? null : () => _pickAndUpload('video'), icon: const Icon(Icons.video_file_outlined)),
                     IconButton(tooltip: 'PDF', onPressed: _uploading ? null : () => _pickAndUpload('pdf'), icon: const Icon(Icons.folder_open)),
                   ],
-                  if (widget.isHost) IconButton(tooltip: isArabic ? 'مسح' : 'Clear', onPressed: _service.clear, icon: const Icon(Icons.delete_outline)),
+                  if (widget.isHost) IconButton(tooltip: isArabic ? 'مسح' : 'Clear', onPressed: _boardBusy ? null : () => _boardAction(_service.clear), icon: const Icon(Icons.delete_outline)),
                 ]),
               )),
             ],
@@ -376,10 +448,14 @@ class _BoardPainter extends CustomPainter {
   _BoardPainter({
     required this.strokes,
     required this.draft,
+    required this.draftColor,
+    required this.draftWidth,
   });
 
   final List<QueryDocumentSnapshot<Map<String, dynamic>>> strokes;
   final List<Offset> draft;
+  final Color draftColor;
+  final double draftWidth;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -403,7 +479,7 @@ class _BoardPainter extends CustomPainter {
       );
     }
 
-    _drawLine(canvas, draft, Colors.white, 3);
+    _drawLine(canvas, draft, draftColor, draftWidth);
   }
 
   void _drawLine(
