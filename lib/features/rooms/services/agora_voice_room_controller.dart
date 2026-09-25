@@ -287,8 +287,13 @@ class AgoraVoiceRoomController extends ChangeNotifier {
 
   Future<void> startScreenShare() async {
     final engine = _engine;
-    if (engine == null || !_joined || _role != AgoraRoomRole.speaker) {
-      return;
+    if (engine == null || !_joined) {
+      throw StateError(
+        'Audio is offline. Connect to the Agora room before screen sharing.',
+      );
+    }
+    if (_role != AgoraRoomRole.speaker) {
+      throw StateError('Only stage speakers can share their screen.');
     }
     if (_screenSharing) return;
 
