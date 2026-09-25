@@ -71,7 +71,13 @@ class _BoardVideoState extends State<BoardVideo> {
       builder: (context, value, _) {
         if (value.hasError) return Center(child: Text(ar ? 'تعذر تشغيل الفيديو' : 'Video playback failed'));
         if (!value.isInitialized) return const Center(child: CircularProgressIndicator());
-        return Column(children: [
+        return LayoutBuilder(builder: (context, constraints) {
+          if (constraints.maxHeight < 80) {
+            return Center(child: IconButton(
+              onPressed: () => value.isPlaying ? _player.pause() : _player.play(),
+              icon: Icon(value.isPlaying ? Icons.pause : Icons.play_arrow)));
+          }
+          return Column(children: [
           Expanded(child: Center(child: AspectRatio(aspectRatio: value.aspectRatio, child: VideoPlayer(_player)))),
           SizedBox(height: 40, child: Row(children: [
             IconButton(tooltip: ar ? 'تشغيل / إيقاف' : 'Play / pause',
@@ -87,6 +93,7 @@ class _BoardVideoState extends State<BoardVideo> {
               icon: Icon(value.volume == 0 ? Icons.volume_off : Icons.volume_up)),
           ])),
         ]);
+        });
       });
   }
 }

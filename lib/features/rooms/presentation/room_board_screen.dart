@@ -44,7 +44,7 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
   bool _uploading = false;
   Color _penColor = Colors.white;
   double _penWidth = 3;
-  bool _drawing = true;
+  bool _drawing = false;
   bool _boardBusy = false;
 
   Future<void> _boardAction(Future<void> Function() action) async {
@@ -324,7 +324,7 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
                   },
                 ),
               ),
-              if (content.isNotEmpty && !_editingText)
+              if (content.isNotEmpty && !_editingText && MediaQuery.viewInsetsOf(context).bottom == 0)
                 SizedBox(height: 32, child: ListView(scrollDirection: Axis.horizontal, children: [
                   for (final doc in content) Padding(padding: const EdgeInsets.symmetric(horizontal: 4),
                     child: ActionChip(label: Text((doc.data()['name'] ?? doc.data()['text'] ?? doc.data()['type']).toString(),
