@@ -124,7 +124,7 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
         await _features.setScreenSharing(active: false);
       } else {
         if (!controller.joined) {
-          throw StateError(ar ? 'اتصل بالصوت أولًا ثم أعد مشاركة الشاشة' : 'Connect room audio before sharing your screen');
+          await controller.ensureConnected(channelId: widget.roomId, role: AgoraRoomRole.speaker);
         }
         await controller.startScreenShare();
         if (!controller.screenSharing || controller.localUid == null) {
@@ -139,7 +139,13 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
       }
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.toString())));
+        await showDialog<void>(context: context, builder: (ctx) => AlertDialog(
+          title: Text(ar ? 'تعذر بدء مشاركة الشاشة' : 'Screen sharing could not start'),
+          content: SingleChildScrollView(child: SelectableText(
+            '${ar ? 'تفاصيل اتصال Agora:' : 'Agora connection details:'}\n\n$error')),
+          actions: [TextButton(onPressed: () => Navigator.pop(ctx),
+            child: Text(ar ? 'إغلاق' : 'Close'))],
+        ));
       }
     } finally {
       if (mounted) setState(() => _sharingBusy = false);

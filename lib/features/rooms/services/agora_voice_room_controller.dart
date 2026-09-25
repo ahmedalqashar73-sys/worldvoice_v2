@@ -41,6 +41,41 @@ class AgoraVoiceRoomController extends ChangeNotifier {
   AgoraRoomRole get role => _role;
   List<int> get remoteSpeakers => _remoteSpeakers.toList(growable: false);
 
+  /// Wait for Agora's join callback, not just the joinChannel request.
+  Future<void> ensureConnected({
+    required String channelId,
+    required AgoraRoomRole role,
+  }) async {
+    if (_joined) return;
+    final result = Completer<void>();
+    void changed() {
+      if (result.isCompleted) return;
+      if (_joined) {
+        result.complete();
+      } else if (!_connecting && _error != null) {
+        result.completeError(StateError(_error!));
+      }
+    }
+    // Clear stale errors before observing a new connection attempt.
+    if (!_connecting) _error = null;
+    addListener(changed);
+    final timer = Timer(const Duration(seconds: 25), () {
+      if (!result.isCompleted) {
+        result.completeError(TimeoutException('Agora connection timed out. Check your network and token configuration.'));
+      }
+    });
+    try {
+      if (!_connecting) unawaited(connect(channelId: channelId, role: role));
+      await result.future;
+    } on TimeoutException {
+      await leave();
+      rethrow;
+    } finally {
+      timer.cancel();
+      removeListener(changed);
+    }
+  }
+
   Future<void> connect({
     required String channelId,
     required AgoraRoomRole role,
@@ -54,6 +89,8 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       return;
     }
 
+    // A failed asynchronous join can leave an engine allocated.
+    if (_engine != null) await leave();
     _released = false;
     _connecting = true;
     _channelId = channelId;
@@ -121,6 +158,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
         },
         onConnectionStateChanged: (connection, state, reason) {
           if (state == ConnectionStateType.connectionStateFailed) {
+            _joined = false;
             _error = 'Agora connection failed: $reason';
             _connecting = false;
             notifyListeners();
