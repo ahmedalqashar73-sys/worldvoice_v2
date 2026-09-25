@@ -523,11 +523,11 @@ class _BoardContentCard extends StatelessWidget {
         errorBuilder: (_, error, _) => BoardMediaError(url: url, error: error.toString()));
     }
     if (type == 'video' && url.isNotEmpty) return BoardVideo(key: ValueKey(url), url: url);
-    if (type == 'pdf' && url.isNotEmpty) return PdfViewer.uri(Uri.parse(url),
+    if (type == 'pdf' && url.isNotEmpty) { return PdfViewer.uri(Uri.parse(url),
       params: PdfViewerParams(
         loadingBannerBuilder: (context, downloaded, total) => const Center(child: CircularProgressIndicator()),
         errorBannerBuilder: (context, error, stack, document) => BoardMediaError(url: url, error: error.toString()),
-      ));
+      )); }
     return SingleChildScrollView(padding: const EdgeInsets.all(12),
       child: Text(data['text']?.toString() ?? '', style: const TextStyle(color: Colors.white, fontSize: 20)));
   }
