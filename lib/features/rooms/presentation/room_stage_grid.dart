@@ -24,11 +24,11 @@ class RoomStageGrid extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: stageSeats.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 4,
         mainAxisSpacing: 12,
         crossAxisSpacing: 8,
-        childAspectRatio: .76,
+        mainAxisExtent: 82 + MediaQuery.textScalerOf(context).scale(30),
       ),
       itemBuilder: (context, index) {
         final seat = stageSeats[index];
@@ -169,7 +169,7 @@ class _CompactRoomSeatState extends State<_CompactRoomSeat>
                         : const Color(0xFF7FFFC3),
                   ),
                 if (!isAi) const SizedBox(width: 3),
-                _TinyRoleBadge(role: seat.role),
+                Flexible(child: _TinyRoleBadge(role: seat.role)),
               ],
             ),
           ],
@@ -250,7 +250,7 @@ class _SeatAvatar extends StatelessWidget {
 
     if (seat.isEmpty) {
       return Icon(
-        Icons.pan_tool_alt_rounded,
+        Icons.event_seat_rounded,
         size: 23,
         color: Colors.white.withValues(alpha: .78),
       );
@@ -330,4 +330,20 @@ class _TinyRoleBadge extends StatelessWidget {
       ),
     );
   }
+}
+
+class RoomStageStrip extends StatelessWidget {
+  const RoomStageStrip({required this.seats, required this.onSeatTap, super.key});
+  final List<RoomSeatState> seats;
+  final ValueChanged<RoomSeatState> onSeatTap;
+  @override
+  Widget build(BuildContext context) => ListView.separated(
+    scrollDirection: Axis.horizontal, padding: const EdgeInsets.all(8),
+    itemCount: seats.take(8).length,
+    separatorBuilder: (_, _) => const SizedBox(width: 8),
+    itemBuilder: (context, index) => SizedBox(width: 66, child: FittedBox(
+      fit: BoxFit.scaleDown, alignment: Alignment.topCenter,
+      child: SizedBox(width: 66, height: 82 + MediaQuery.textScalerOf(context).scale(30),
+        child: _CompactRoomSeat(seat: seats[index], onTap: () => onSeatTap(seats[index]))))),
+  );
 }

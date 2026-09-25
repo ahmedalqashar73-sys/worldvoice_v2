@@ -87,19 +87,19 @@ class RoomFeatureService {
         SetOptions(merge: true),
       );
 
-  Future<void> setScreenSharing({
-    required bool active,
-    int? sharerUid,
-  }) =>
-      _room.set(
-        {
-          'screenShareActive': active,
-          'screenSharerUid':
-              active && sharerUid != null ? sharerUid : FieldValue.delete(),
-          'updatedAt': FieldValue.serverTimestamp(),
-        },
-        SetOptions(merge: true),
-      );
+  Future<void> setScreenSharing({required bool active, int? sharerUid}) async {
+    await FirebaseFirestore.instance.runTransaction((transaction) async {
+      final room = await transaction.get(_room);
+      if (active && room.data()?['boardMediaId'] != null) {
+        throw StateError('Stop the current media presentation first.');
+      }
+      transaction.update(_room, {
+        'screenShareActive': active,
+        'screenSharerUid': active && sharerUid != null ? sharerUid : FieldValue.delete(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    });
+  }
 
   Future<void> setMusic({
     required String? title,
@@ -166,13 +166,12 @@ class RoomFeatureService {
     });
   }
 
-  Future<void> revealQuiz() => _room.set(
-        {
-          'quiz.revealed': true,
-          'updatedAt': FieldValue.serverTimestamp(),
-        },
-        SetOptions(merge: true),
-      );
+  Future<void> revealQuiz() => _room.update({
+        // update interprets the dot as a nested field path. set(merge: true)
+        // would create a literal 'quiz.revealed' key and leave the quiz open.
+        'quiz.revealed': true,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
 
   Future<void> finishQuiz() async {
     final user = _user;

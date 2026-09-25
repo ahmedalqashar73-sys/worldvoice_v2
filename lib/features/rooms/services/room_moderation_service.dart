@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../data/room_moderation_models.dart';
 import '../data/room_stage_models.dart';
+import '../data/room_mode.dart';
 
 class RoomModerationService {
   RoomModerationService({
@@ -14,6 +15,7 @@ class RoomModerationService {
     this.initialShowTeacherAiSeat = false,
     this.initialIsPrivate = false,
     this.initialVipOnly = false,
+    this.initialMode = RoomMode.chat,
     this.privateAccessCode,
   });
 
@@ -23,6 +25,7 @@ class RoomModerationService {
   final bool initialShowTeacherAiSeat;
   final bool initialIsPrivate;
   final bool initialVipOnly;
+  final RoomMode initialMode;
   final String? privateAccessCode;
 
   FirebaseFirestore get _db => FirebaseFirestore.instance;
@@ -135,8 +138,9 @@ class RoomModerationService {
           'vipOnly': initialVipOnly,
           'roomLevel': existingData?['roomLevel'] ?? 1,
           'roomXp': existingData?['roomXp'] ?? existingData?['roomPoints'] ?? 0,
-          'themeId': existingData?['themeId'] ?? 'royalPurple',
-          'boardWriteEnabled': existingData?['boardWriteEnabled'] ?? true,
+          'themeId': existingData?['themeId'] ?? 'emerald',
+          'mode': initialMode.name,
+          'boardWriteEnabled': initialMode != RoomMode.lesson,
           'musicPlaying': existingData?['musicPlaying'] ?? false,
           'isOpen': true,
           'createdAt': FieldValue.serverTimestamp(),
