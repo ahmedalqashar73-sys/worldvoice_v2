@@ -87,19 +87,19 @@ class RoomFeatureService {
         SetOptions(merge: true),
       );
 
-  Future<void> setScreenSharing({
-    required bool active,
-    int? sharerUid,
-  }) =>
-      _room.set(
-        {
-          'screenShareActive': active,
-          'screenSharerUid':
-              active && sharerUid != null ? sharerUid : FieldValue.delete(),
-          'updatedAt': FieldValue.serverTimestamp(),
-        },
-        SetOptions(merge: true),
-      );
+  Future<void> setScreenSharing({required bool active, int? sharerUid}) async {
+    await FirebaseFirestore.instance.runTransaction((transaction) async {
+      final room = await transaction.get(_room);
+      if (active && room.data()?['boardMediaId'] != null) {
+        throw StateError('Stop the current media presentation first.');
+      }
+      transaction.update(_room, {
+        'screenShareActive': active,
+        'screenSharerUid': active && sharerUid != null ? sharerUid : FieldValue.delete(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    });
+  }
 
   Future<void> setMusic({
     required String? title,

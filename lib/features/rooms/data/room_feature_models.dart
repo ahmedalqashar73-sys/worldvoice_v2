@@ -12,6 +12,7 @@ class RoomFeatureState {
     required this.musicPlaying,
     required this.screenShareActive,
     this.screenSharerUid,
+    this.boardMediaId,
     this.musicTitle,
     this.musicUrl,
     this.quizQuestion,
@@ -31,6 +32,7 @@ class RoomFeatureState {
   final bool musicPlaying;
   final bool screenShareActive;
   final int? screenSharerUid;
+  final String? boardMediaId;
   final String? musicTitle;
   final String? musicUrl;
   final String? quizQuestion;
@@ -54,6 +56,7 @@ class RoomFeatureState {
       isPrivate: data['isPrivate'] == true,
       vipOnly: data['vipOnly'] == true,
       musicPlaying: data['musicPlaying'] == true,
+      boardMediaId: data['boardMediaId']?.toString(),
       screenShareActive: data['screenShareActive'] == true,
       screenSharerUid: (data['screenSharerUid'] as num?)?.toInt(),
       musicTitle: data['musicTitle']?.toString(),

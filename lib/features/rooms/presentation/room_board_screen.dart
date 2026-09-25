@@ -6,6 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:pdfrx/pdfrx.dart';
 import 'room_board_content.dart';
+import 'board_media_error.dart';
 
 import '../../../core/media/cloudinary_image_service.dart';
 import '../data/room_feature_models.dart';
@@ -153,7 +154,16 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
   }
 
   bool _editingText = false;
-  String? _selectedContent;
+  final _transform = TransformationController();
+  String _scope = 'board';
+  @override
+  void dispose() { _transform.dispose(); super.dispose(); }
+  void _zoom(double factor) {
+    final scale = _transform.value.getMaxScaleOnAxis();
+    final next = (scale * factor).clamp(1.0, 5.0);
+    _transform.value = Matrix4.identity()..scaleByDouble(next, next, 1, 1);
+  }
+
   void _addText() => setState(() { _editingText = true; _drawing = false; });
 
   Future<void> _pickAndUpload(String type) async {
@@ -207,7 +217,7 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
         url: upload.url,
         name: picked.name,
       );
-      if (mounted) setState(() { _selectedContent = null; _drawing = false; });
+      if (mounted) setState(() { _drawing = false; });
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(
@@ -238,6 +248,7 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
       points: normalized,
       colorValue: _penColor.toARGB32(),
       width: _penWidth,
+      scope: _scope,
     );
   }
 
@@ -255,25 +266,17 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
             builder: (context, snapshot) {
               final docs = snapshot.data?.docs ??
                   const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
-          final strokes = docs
-              .where((doc) => doc.data()['type'] == 'stroke')
-              .toList(growable: false);
-          final content = docs
-              .where((doc) => doc.data()['type'] != 'stroke')
-              .toList(growable: false);
-
-          final selected = content.where((doc) => doc.id == _selectedContent).firstOrNull
-              ?? (content.isEmpty ? null : content.last);
+          final selected = docs.where((doc) => doc.id == featureState?.boardMediaId).firstOrNull;
+          final sharing = featureState?.screenShareActive == true;
+          final presenting = sharing || featureState?.boardMediaId != null;
+          _scope = sharing ? 'screen:${featureState?.screenSharerUid}' : (featureState?.boardMediaId ?? 'board');
+          final strokes = docs.where((doc) => doc.data()['type'] == 'stroke' &&
+            (doc.data()['scope'] ?? 'board') == _scope).toList();
+          final texts = docs.where((doc) => doc.data()['type'] == 'text' &&
+            (doc.data()['scope'] ?? 'board') == _scope).toList();
           return Column(
             children: [
-              if (featureState?.screenShareActive == true)
-                Expanded(child: _LiveScreenShare(
-                  roomId: widget.roomId,
-                  sharerUid: featureState?.screenSharerUid,
-                  controller: widget.agoraController,
-                )),
-              if (featureState?.screenShareActive != true) Expanded(
-                flex: featureState?.screenShareActive == true ? 3 : 5,
+              Expanded(
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     final size = Size(
@@ -281,11 +284,24 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
                       constraints.maxHeight,
                     );
 
-                    return ClipRect(child: Stack(fit: StackFit.expand, children: [
+                    return ClipRect(child: InteractiveViewer(
+                      transformationController: _transform,
+                      panEnabled: !_drawing && !_editingText,
+                      scaleEnabled: !_drawing && !_editingText,
+                      minScale: 1, maxScale: 5,
+                      child: Stack(fit: StackFit.expand, children: [
+                      if (sharing) _LiveScreenShare(roomId: widget.roomId,
+                        sharerUid: featureState?.screenSharerUid, controller: widget.agoraController),
                       if (selected != null) _BoardContentCard(key: ValueKey(selected.id), data: selected.data()),
+                      if (texts.isNotEmpty) IgnorePointer(child: Align(alignment: Alignment.topLeft,
+                        child: Padding(padding: const EdgeInsets.all(12), child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min,
+                          children: [for (final doc in texts) Text(doc.data()['text']?.toString() ?? '',
+                            style: TextStyle(fontSize: 18, color: Color((doc.data()['color'] as num?)?.toInt() ?? 0xFFFFFFFF),
+                              shadows: const [Shadow(blurRadius: 3, color: Colors.black)]))])))),
                       if (_editingText) Align(alignment: Alignment.topCenter,
-                        child: BoardTextInput(onSave: _service.addText,
-                          onClose: () => setState(() { _editingText = false; _selectedContent = null; }))),
+                        child: BoardTextInput(onSave: (text) => _service.addText(text, scope: _scope, color: _penColor.toARGB32()),
+                          onClose: () => setState(() { _editingText = false; }))),
                       IgnorePointer(ignoring: !_drawing || _editingText, child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onPanStart: widget.canWrite && _drawing && !_boardBusy
@@ -314,28 +330,30 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
                         ),
                         child: Container(
                           decoration: BoxDecoration(
-                            color: selected == null && !_editingText ? const Color(0xFF102C25) : Colors.transparent,
+                            color: selected == null && !sharing && texts.isEmpty && !_editingText ? const Color(0xFF102C25) : Colors.transparent,
                             border: Border.all(color: Colors.white12),
                           ),
                         ),
                       ),
                     )),
-                    ]));
+                    ])));
                   },
                 ),
               ),
-              if (content.isNotEmpty && !_editingText && MediaQuery.viewInsetsOf(context).bottom == 0)
-                SizedBox(height: 32, child: ListView(scrollDirection: Axis.horizontal, children: [
-                  for (final doc in content) Padding(padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: ActionChip(label: Text((doc.data()['name'] ?? doc.data()['text'] ?? doc.data()['type']).toString(),
-                      maxLines: 1, overflow: TextOverflow.ellipsis),
-                      onPressed: () => setState(() { _selectedContent = doc.id; _drawing = false; }))),
-                ])),
               SizedBox(height: 48, child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(children: [
+                  IconButton(tooltip: isArabic ? 'تكبير' : 'Zoom in', onPressed: () => _zoom(1.25), icon: const Icon(Icons.zoom_in)),
+                  IconButton(tooltip: isArabic ? 'تصغير' : 'Zoom out', onPressed: () => _zoom(.8), icon: const Icon(Icons.zoom_out)),
+                  IconButton(tooltip: isArabic ? 'الحجم الأصلي' : 'Reset zoom', onPressed: () => _transform.value = Matrix4.identity(), icon: const Icon(Icons.center_focus_strong)),
+                  if (widget.isHost && presenting) IconButton(
+                    tooltip: isArabic ? 'إيقاف العرض الحالي' : 'Stop presentation',
+                    onPressed: _sharingBusy || _uploading ? null : () => _boardAction(() async {
+                      if (sharing) { await widget.agoraController.stopScreenShare(); await _features.setScreenSharing(active: false); } else { await _service.stopMedia(); }
+                      _transform.value = Matrix4.identity();
+                    }), icon: const Icon(Icons.stop_circle_outlined)),
                   if (widget.isHost) IconButton(tooltip: isArabic ? 'مشاركة الشاشة / إيقاف' : 'Start / stop screen sharing',
-                    onPressed: _sharingBusy ? null : _toggleScreenShare,
+                    onPressed: _sharingBusy || _uploading || (presenting && !sharing) ? null : _toggleScreenShare,
                     icon: Icon(widget.agoraController.screenSharing ? Icons.stop_screen_share : Icons.screen_share)),
                   if (widget.canWrite) ...[
                     IconButton(tooltip: isArabic ? 'ألوان القلم والسماكة' : 'Pen colors and width',
@@ -346,16 +364,16 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
                       icon: Icon(_drawing ? Icons.edit : Icons.pan_tool_outlined)),
                     IconButton(tooltip: isArabic ? 'تراجع عن رسمك' : 'Undo your stroke',
                       onPressed: _boardBusy || !strokes.any((doc) => doc.data()['userId'] == _service.currentUserId)
-                        ? null : () => _boardAction(_service.undoStroke), icon: const Icon(Icons.undo)),
+                        ? null : () => _boardAction(() => _service.undoStroke(scope: _scope)), icon: const Icon(Icons.undo)),
                     IconButton(tooltip: isArabic ? 'إعادة رسمك' : 'Redo your stroke',
-                      onPressed: _boardBusy || !_service.canRedo ? null : () => _boardAction(_service.redoStroke),
+                      onPressed: _boardBusy || !_service.canRedo ? null : () => _boardAction(() => _service.redoStroke(scope: _scope)),
                       icon: const Icon(Icons.redo)),
                     IconButton(tooltip: isArabic ? 'نص' : 'Text', onPressed: _addText, icon: const Icon(Icons.text_fields)),
-                    IconButton(tooltip: isArabic ? 'صورة' : 'Image', onPressed: _uploading ? null : () => _pickAndUpload('image'), icon: const Icon(Icons.image_outlined)),
-                    IconButton(tooltip: isArabic ? 'فيديو' : 'Video', onPressed: _uploading ? null : () => _pickAndUpload('video'), icon: const Icon(Icons.video_file_outlined)),
-                    IconButton(tooltip: 'PDF', onPressed: _uploading ? null : () => _pickAndUpload('pdf'), icon: const Icon(Icons.folder_open)),
+                    IconButton(tooltip: isArabic ? 'صورة' : 'Image', onPressed: !widget.isHost || _uploading || _sharingBusy || presenting ? null : () => _pickAndUpload('image'), icon: const Icon(Icons.image_outlined)),
+                    IconButton(tooltip: isArabic ? 'فيديو' : 'Video', onPressed: !widget.isHost || _uploading || _sharingBusy || presenting ? null : () => _pickAndUpload('video'), icon: const Icon(Icons.video_file_outlined)),
+                    IconButton(tooltip: 'PDF', onPressed: !widget.isHost || _uploading || _sharingBusy || presenting ? null : () => _pickAndUpload('pdf'), icon: const Icon(Icons.folder_open)),
                   ],
-                  if (widget.isHost) IconButton(tooltip: isArabic ? 'مسح' : 'Clear', onPressed: _boardBusy ? null : () => _boardAction(_service.clear), icon: const Icon(Icons.delete_outline)),
+                  if (widget.isHost) IconButton(tooltip: isArabic ? 'مسح' : 'Clear', onPressed: _boardBusy ? null : () => _boardAction(() => _service.clear(scope: _scope)), icon: const Icon(Icons.delete_outline)),
                 ]),
               )),
             ],
@@ -502,10 +520,14 @@ class _BoardContentCard extends StatelessWidget {
     final url = data['url']?.toString() ?? '';
     if (type == 'image' && url.isNotEmpty) {
       return Image.network(url, fit: BoxFit.contain,
-        errorBuilder: (_, _, _) => const Center(child: Icon(Icons.broken_image_outlined)));
+        errorBuilder: (_, error, _) => BoardMediaError(url: url, error: error.toString()));
     }
     if (type == 'video' && url.isNotEmpty) return BoardVideo(key: ValueKey(url), url: url);
-    if (type == 'pdf' && url.isNotEmpty) return PdfViewer.uri(Uri.parse(url));
+    if (type == 'pdf' && url.isNotEmpty) return PdfViewer.uri(Uri.parse(url),
+      params: PdfViewerParams(
+        loadingBannerBuilder: (context, downloaded, total) => const Center(child: CircularProgressIndicator()),
+        errorBannerBuilder: (context, error, stack, document) => BoardMediaError(url: url, error: error.toString()),
+      ));
     return SingleChildScrollView(padding: const EdgeInsets.all(12),
       child: Text(data['text']?.toString() ?? '', style: const TextStyle(color: Colors.white, fontSize: 20)));
   }

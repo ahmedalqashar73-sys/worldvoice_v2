@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import 'board_media_error.dart';
 
 class BoardTextInput extends StatefulWidget {
   const BoardTextInput({required this.onSave, required this.onClose, super.key});
@@ -48,7 +49,8 @@ class BoardVideo extends StatefulWidget {
   State<BoardVideo> createState() => _BoardVideoState();
 }
 class _BoardVideoState extends State<BoardVideo> {
-  late final VideoPlayerController _player;
+  late VideoPlayerController _player;
+  bool _disposed = false;
   String? _error;
   @override
   void initState() {
@@ -58,18 +60,27 @@ class _BoardVideoState extends State<BoardVideo> {
   }
   Future<void> _initialize() async {
     try { await _player.initialize(); }
-    catch (_) { _error = 'Video could not load'; }
+    catch (error) {
+      final fallback = compatibleBoardVideoUrl(widget.url);
+      if (fallback != null && !_disposed) {
+        await _player.dispose();
+        if (_disposed) return;
+        _player = VideoPlayerController.networkUrl(Uri.parse(fallback));
+        try { await _player.initialize(); }
+        catch (fallbackError) { _error = '$error\n$fallbackError'; }
+      } else { _error = error.toString(); }
+    }
     if (mounted) setState(() {});
   }
   @override
-  void dispose() { _player.dispose(); super.dispose(); }
+  void dispose() { _disposed = true; _player.dispose(); super.dispose(); }
   @override
   Widget build(BuildContext context) {
     final ar = Localizations.localeOf(context).languageCode == 'ar';
-    if (_error != null) return Center(child: Text(ar ? 'تعذر تحميل الفيديو' : _error!));
+    if (_error != null) return BoardMediaError(url: widget.url, error: _error!);
     return ValueListenableBuilder<VideoPlayerValue>(valueListenable: _player,
       builder: (context, value, _) {
-        if (value.hasError) return Center(child: Text(ar ? 'تعذر تشغيل الفيديو' : 'Video playback failed'));
+        if (value.hasError) return BoardMediaError(url: widget.url, error: value.errorDescription ?? 'Video playback failed');
         if (!value.isInitialized) return const Center(child: CircularProgressIndicator());
         return LayoutBuilder(builder: (context, constraints) {
           if (constraints.maxHeight < 80) {

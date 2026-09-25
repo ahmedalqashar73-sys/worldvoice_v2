@@ -1919,7 +1919,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       child: Scaffold(
         backgroundColor: const Color(0xFF0D4A38),
         appBar: AppBar(
-          toolbarHeight: 68, elevation: 0,
+          toolbarHeight: _boardVisible ? 52 : 68, elevation: 0,
           backgroundColor: const Color(0xFF0D4A38), foregroundColor: Colors.white,
           leading: IconButton(tooltip: label('قائمة الغرفة', 'Room menu'),
             onPressed: _showRoomMenu, icon: const Icon(Icons.more_horiz_rounded)),
@@ -1949,6 +1949,12 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
             ]),
           ),
           actions: [
+            if (_boardVisible && _controller.error != null) IconButton(
+              tooltip: label('خطأ اتصال الصوت', 'Audio connection error'),
+              icon: const Icon(Icons.warning_amber_rounded, color: Color(0xFFFFD68A)),
+              onPressed: () => showDialog<void>(context: context, builder: (ctx) => AlertDialog(
+                content: SelectableText(_controller.error!),
+                actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: Text(label('إغلاق', 'Close')))]))),
             IconButton(tooltip: label('الأعضاء', 'Members'), onPressed: _showMembers,
               icon: Badge(label: Text('${_participants.length}'), child: const Icon(Icons.people_outline_rounded))),
             IconButton(tooltip: label('تصغير', 'Minimize'), onPressed: widget.localeController == null ? null : _minimizeRoom,
@@ -1966,7 +1972,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
           ),
           child: SafeArea(top: false, child: Column(children: [
             if (_controller.connecting) const LinearProgressIndicator(minHeight: 2),
-            if (_controller.error != null) Container(
+            if (_controller.error != null && !_boardVisible) Container(
               width: double.infinity, margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(color: const Color(0xFF4D344E), borderRadius: BorderRadius.circular(12)),
