@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:pdfrx/pdfrx.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'room_board_content.dart';
 
 import '../../../core/media/cloudinary_image_service.dart';
 import '../data/room_feature_models.dart';
@@ -152,36 +152,9 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
     }
   }
 
-  Future<void> _addText() async {
-    final controller = TextEditingController();
-    final value = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Board text'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          maxLines: 4,
-          maxLength: 300,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () =>
-                Navigator.pop(dialogContext, controller.text.trim()),
-            child: const Text('Add'),
-          ),
-        ],
-      ),
-    );
-    controller.dispose();
-    if (value?.isNotEmpty == true) {
-      await _service.addText(value!);
-    }
-  }
+  bool _editingText = false;
+  String? _selectedContent;
+  void _addText() => setState(() { _editingText = true; _drawing = false; });
 
   Future<void> _pickAndUpload(String type) async {
     final FileType pickerType;
@@ -207,7 +180,7 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
       type: pickerType,
       allowedExtensions: extensions,
     );
-    if (picked == null || picked.path == null) return;
+    if (!mounted || picked == null || picked.path == null) return;
 
     setState(() => _uploading = true);
     try {
@@ -234,6 +207,12 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
         url: upload.url,
         name: picked.name,
       );
+      if (mounted) setState(() { _selectedContent = null; _drawing = false; });
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(
+          Localizations.localeOf(context).languageCode == 'ar' ? 'تعذر رفع الملف، حاول مجددًا' : 'Upload failed. Please retry.')));
+      }
     } finally {
       if (mounted) setState(() => _uploading = false);
     }
@@ -283,6 +262,8 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
               .where((doc) => doc.data()['type'] != 'stroke')
               .toList(growable: false);
 
+          final selected = content.where((doc) => doc.id == _selectedContent).firstOrNull
+              ?? (content.isEmpty ? null : content.last);
           return Column(
             children: [
               if (featureState?.screenShareActive == true)
@@ -300,7 +281,12 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
                       constraints.maxHeight,
                     );
 
-                    return GestureDetector(
+                    return ClipRect(child: Stack(fit: StackFit.expand, children: [
+                      if (selected != null) _BoardContentCard(key: ValueKey(selected.id), data: selected.data()),
+                      if (_editingText) Align(alignment: Alignment.topCenter,
+                        child: BoardTextInput(onSave: _service.addText,
+                          onClose: () => setState(() { _editingText = false; _selectedContent = null; }))),
+                      IgnorePointer(ignoring: !_drawing || _editingText, child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onPanStart: widget.canWrite && _drawing && !_boardBusy
                           ? (details) {
@@ -328,27 +314,23 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
                         ),
                         child: Container(
                           decoration: BoxDecoration(
-                            color: const Color(0xFF102C25),
+                            color: selected == null && !_editingText ? const Color(0xFF102C25) : Colors.transparent,
                             border: Border.all(color: Colors.white12),
                           ),
                         ),
                       ),
-                    );
+                    )),
+                    ]));
                   },
                 ),
               ),
-              if (content.isNotEmpty)
-                SizedBox(
-                  height: widget.embedded ? 40 : 150,
-                  child: ListView.separated(
-                    padding: const EdgeInsets.all(10),
-                    scrollDirection: Axis.horizontal,
-                    itemCount: content.length,
-                    separatorBuilder: (_, _) => const SizedBox(width: 8),
-                    itemBuilder: (context, index) =>
-                        _BoardContentCard(data: content[index].data()),
-                  ),
-                ),
+              if (content.isNotEmpty && !_editingText)
+                SizedBox(height: 32, child: ListView(scrollDirection: Axis.horizontal, children: [
+                  for (final doc in content) Padding(padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: ActionChip(label: Text((doc.data()['name'] ?? doc.data()['text'] ?? doc.data()['type']).toString(),
+                      maxLines: 1, overflow: TextOverflow.ellipsis),
+                      onPressed: () => setState(() { _selectedContent = doc.id; _drawing = false; }))),
+                ])),
               SizedBox(height: 48, child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(children: [
@@ -512,81 +494,19 @@ class _BoardPainter extends CustomPainter {
 }
 
 class _BoardContentCard extends StatelessWidget {
-  const _BoardContentCard({required this.data});
-
+  const _BoardContentCard({required this.data, super.key});
   final Map<String, dynamic> data;
-
   @override
   Widget build(BuildContext context) {
-    final type = (data['type'] ?? '').toString();
+    final type = data['type'];
     final url = data['url']?.toString() ?? '';
-    final name = data['name']?.toString() ?? type;
-
     if (type == 'image' && url.isNotEmpty) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(14),
-        child: Image.network(
-          url,
-          width: 130,
-          height: 130,
-          fit: BoxFit.cover,
-        ),
-      );
+      return Image.network(url, fit: BoxFit.contain,
+        errorBuilder: (_, _, _) => const Center(child: Icon(Icons.broken_image_outlined)));
     }
-
-    if (type == 'pdf' && url.isNotEmpty) {
-      return SizedBox(
-        width: 180,
-        child: Card(
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => Scaffold(
-                    appBar: AppBar(title: Text(name)),
-                    body: PdfViewer.uri(Uri.parse(url)),
-                  ),
-                ),
-              );
-            },
-            child: const Center(
-              child: Icon(Icons.picture_as_pdf_rounded, size: 48),
-            ),
-          ),
-        ),
-      );
-    }
-
-    if (type == 'video' && url.isNotEmpty) {
-      return SizedBox(
-        width: 180,
-        child: Card(
-          child: InkWell(
-            onTap: () => launchUrl(
-              Uri.parse(url),
-              mode: LaunchMode.externalApplication,
-            ),
-            child: const Center(
-              child: Icon(Icons.play_circle_fill_rounded, size: 52),
-            ),
-          ),
-        ),
-      );
-    }
-
-    return SizedBox(
-      width: 200,
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Text(
-            (data['text'] ?? name).toString(),
-            maxLines: 6,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ),
-    );
+    if (type == 'video' && url.isNotEmpty) return BoardVideo(key: ValueKey(url), url: url);
+    if (type == 'pdf' && url.isNotEmpty) return PdfViewer.uri(Uri.parse(url));
+    return SingleChildScrollView(padding: const EdgeInsets.all(12),
+      child: Text(data['text']?.toString() ?? '', style: const TextStyle(color: Colors.white, fontSize: 20)));
   }
 }

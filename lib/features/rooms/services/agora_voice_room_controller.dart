@@ -171,7 +171,9 @@ class AgoraVoiceRoomController extends ChangeNotifier {
           unawaited(_renewToken());
         },
         onError: (err, message) {
-          _error = 'Agora error: $err $message';
+          _error = err == ErrorCodeType.errInvalidToken
+              ? 'Agora rejected the token. Configure WORLDVOICE_ROOM_BACKEND_URL for this Agora project, or a valid AGORA_TEMP_TOKEN matching this channel: $channelId. App ID alone is not sufficient for a token-secured project.'
+              : 'Agora error: $err $message';
           _connecting = false;
           notifyListeners();
         },

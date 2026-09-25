@@ -19,7 +19,7 @@ jobs:
       - run: flutter --version
       - run: flutter pub get
       - run: flutter analyze
-      - run: flutter test test/create_room_page_test.dart test/room_conversation_panel_test.dart
+      - run: flutter test test/create_room_page_test.dart test/room_conversation_panel_test.dart test/room_board_text_test.dart
 
   backend-check:
     runs-on: ubuntu-latest

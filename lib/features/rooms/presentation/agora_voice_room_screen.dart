@@ -1986,8 +1986,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
             Expanded(child: LayoutBuilder(builder: (context, constraints) {
               final compact = MediaQuery.viewInsetsOf(context).bottom > 0 || constraints.maxHeight < 340;
               return Column(children: [
-                if (_boardVisible && constraints.maxHeight >= 230) SizedBox(
-                  height: (constraints.maxHeight * .48).clamp(140.0, 320.0),
+                if (_boardVisible) SizedBox(
+                  height: (constraints.maxHeight * .55).clamp(110.0, 320.0),
                   child: RoomBoardScreen(roomId: widget.channelId,
                     canWrite: _isHost || _featureState.boardWriteEnabled,
                     isHost: _isHost, agoraController: _controller, embedded: true,
