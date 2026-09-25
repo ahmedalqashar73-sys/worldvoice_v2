@@ -780,6 +780,31 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     Navigator.of(context).pop();
   }
 
+  Future<void> _retryAgoraAudio() async {
+    if (_leaving || _controller.connecting) return;
+
+    // Joining Firestore room membership is separate from joining Agora RTC.
+    // Retry the media connection without leaving or recreating the room.
+    final role = _me?.isOnStage == true ||
+            (_me == null && widget.initialRole == AgoraRoomRole.speaker)
+        ? AgoraRoomRole.speaker
+        : AgoraRoomRole.listener;
+
+    try {
+      await _controller.leave();
+      _lastSyncedAgoraUid = null;
+      await _controller.connect(
+        channelId: widget.channelId,
+        role: role,
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
+    }
+  }
+
   void _refresh() {
     final agoraUid = _controller.localUid;
     if (_controller.joined &&
@@ -1919,6 +1944,15 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                             ),
                           ),
                         ),
+                        if (!_controller.connecting && !_controller.joined)
+                          IconButton(
+                            tooltip: isArabic
+                                ? 'إعادة اتصال الصوت'
+                                : 'Retry audio connection',
+                            icon: const Icon(Icons.refresh_rounded),
+                            color: colors.onErrorContainer,
+                            onPressed: _retryAgoraAudio,
+                          ),
                       ],
                     ),
                   ),
