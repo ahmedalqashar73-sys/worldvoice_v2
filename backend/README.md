@@ -22,6 +22,34 @@ This service keeps privileged room credentials out of the Flutter APK.
 
 The server uses Firebase Application Default Credentials. On Google Cloud Run, attach a service account with the Firebase permissions required for Auth verification and Firestore access. For local development, use `GOOGLE_APPLICATION_CREDENTIALS`.
 
+## Fixing `Invalid or expired Firebase authorization token`
+
+The Flutter app is configured for Firebase project `worldvoice-37896`.
+The server must verify tokens against **the same project**. Set
+`FIREBASE_PROJECT_ID=worldvoice-37896` or `GOOGLE_CLOUD_PROJECT` before
+starting Node. Prefer `GOOGLE_APPLICATION_CREDENTIALS` pointing at a
+service-account JSON for that same Firebase project **outside the repository**.
+The service account needs Firebase Authentication and Firestore permissions
+to use `verifyIdToken(token, true)`, which checks revocation.
+
+For local PowerShell testing (in the backend's PowerShell window):
+
+```powershell
+$env:FIREBASE_PROJECT_ID = "worldvoice-37896"
+$env:GOOGLE_APPLICATION_CREDENTIALS = "C:\\secure\\worldvoice-service-account.json"
+npm start
+```
+
+Replace the example JSON path with the actual private location. Never
+upload or share this JSON or paste its contents into chat/GitHub. If the
+server still rejects tokens, read the backend console's *error code*
+(`auth/id-token-expired`, `auth/argument-error`,
+`auth/insufficient-permission`, etc.) without sharing tokens or secrets.
+The `GET /health` endpoint only tests reachability and does not validate
+Firebase credentials. A signed-in user can sign out and back in to get
+a fresh token before retrying.
+
+
 ## Flutter build configuration
 
 After deploying this service, build WorldVoice with:

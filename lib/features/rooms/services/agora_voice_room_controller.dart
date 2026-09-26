@@ -197,7 +197,9 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       throw StateError('Sign in is required before joining a voice room.');
     }
 
-    final idToken = await user.getIdToken();
+    // Always request a fresh Firebase session token when joining Agora.
+    // This prevents long-lived app sessions from reusing expired cached IDs.
+    final idToken = await user.getIdToken(true);
     if (idToken == null || idToken.isEmpty) {
       throw StateError('Could not authorize the Agora token request.');
     }
@@ -287,8 +289,13 @@ class AgoraVoiceRoomController extends ChangeNotifier {
 
   Future<void> startScreenShare() async {
     final engine = _engine;
-    if (engine == null || !_joined || _role != AgoraRoomRole.speaker) {
-      return;
+    if (engine == null || !_joined) {
+      throw StateError(
+        'Audio is offline. Connect to the Agora room before screen sharing.',
+      );
+    }
+    if (_role != AgoraRoomRole.speaker) {
+      throw StateError('Only stage speakers can share their screen.');
     }
     if (_screenSharing) return;
 
