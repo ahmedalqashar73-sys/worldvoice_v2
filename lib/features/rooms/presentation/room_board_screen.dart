@@ -104,7 +104,7 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Local media library: ' + error.toString())),
+        SnackBar(content: Text('Local media library: $error')),
       );
     }
   }
@@ -155,8 +155,7 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            imported.name +
-                ' is saved on this phone only. Start screen sharing '
+            '${imported.name} is saved on this phone only. Start screen sharing '
                 'to show it to room members.',
           ),
         ),
@@ -165,7 +164,7 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not save this file: ' + error.toString())),
+          SnackBar(content: Text('Could not save this file: $error')),
         );
       }
     } finally {
@@ -179,7 +178,7 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
       builder: (dialogContext) => AlertDialog(
         title: const Text('Remove local file?'),
         content: Text(
-          'Remove "' + media.name + '" from WorldVoice storage on this phone? '
+          'Remove "${media.name}" from WorldVoice storage on this phone? '
           'The original file in Downloads or Gallery will not be deleted.',
         ),
         actions: [
