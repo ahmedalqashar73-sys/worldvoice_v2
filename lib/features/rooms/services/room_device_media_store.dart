@@ -49,7 +49,7 @@ class RoomDeviceMediaStore {
   Future<Directory> _mediaDirectory() async {
     final root = await getApplicationSupportDirectory();
     final dir = Directory(
-      root.path + Platform.pathSeparator + 'worldvoice_device_media',
+      '${root.path}${Platform.pathSeparator}worldvoice_device_media',
     );
     if (!await dir.exists()) await dir.create(recursive: true);
     return dir;
@@ -58,7 +58,7 @@ class RoomDeviceMediaStore {
   Future<Directory> _legacyCacheDirectory() async {
     final root = await getApplicationSupportDirectory();
     final dir = Directory(
-      root.path + Platform.pathSeparator + 'worldvoice_legacy_pdf_cache',
+      '${root.path}${Platform.pathSeparator}worldvoice_legacy_pdf_cache',
     );
     if (!await dir.exists()) await dir.create(recursive: true);
     return dir;
@@ -69,7 +69,7 @@ class RoomDeviceMediaStore {
     if (uid == null) {
       throw StateError('Sign in before using your personal media library.');
     }
-    return 'worldvoice_device_media_v1_' + uid;
+    return 'worldvoice_device_media_v1_$uid';
   }
 
   Future<List<RoomDeviceMedia>> load() async {
@@ -131,7 +131,7 @@ class RoomDeviceMediaStore {
       0, extension.length > 8 ? 8 : extension.length,
     ).toLowerCase();
     final dest = File(
-      directory.path + Platform.pathSeparator + id + '.' + suffix,
+      '${directory.path}${Platform.pathSeparator}$id.$suffix',
     );
     await source.copy(dest.path);
 
@@ -197,12 +197,12 @@ class RoomDeviceMediaStore {
     final directory = await _legacyCacheDirectory();
     final id = sha256.convert(utf8.encode(url)).toString();
     final file = File(
-      directory.path + Platform.pathSeparator + id + '.pdf',
+      '${directory.path}${Platform.pathSeparator}$id.pdf',
     );
     if (await isPdf(file)) return file;
     if (await file.exists()) await file.delete();
 
-    final part = File(file.path + '.part');
+    final part = File('${file.path}.part');
     final client = http.Client();
     IOSink? sink;
     try {
@@ -210,9 +210,8 @@ class RoomDeviceMediaStore {
           .timeout(const Duration(seconds: 15));
       if (response.statusCode != 200) {
         throw StateError(
-          'Old PDF download failed (HTTP ' +
-              response.statusCode.toString() +
-              '). Re-import the file from this phone.',
+          'Old PDF download failed (HTTP ${response.statusCode}). '
+          'Re-import the file from this phone.',
         );
       }
       if (response.contentLength != null &&
