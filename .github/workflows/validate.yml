@@ -3,6 +3,8 @@ name: Validate WorldVoice
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -17,6 +19,7 @@ jobs:
       - run: flutter --version
       - run: flutter pub get
       - run: flutter analyze
+      - run: flutter test test/room_device_media_store_test.dart
 
   backend-check:
     runs-on: ubuntu-latest
