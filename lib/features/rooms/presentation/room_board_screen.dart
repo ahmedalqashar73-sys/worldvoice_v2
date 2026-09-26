@@ -486,14 +486,10 @@ class _BoardContentCard extends StatelessWidget {
     final name = data['name']?.toString() ?? type;
 
     if (type == 'image' && url.isNotEmpty) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(14),
-        child: Image.network(
-          url,
-          width: 130,
-          height: 130,
-          fit: BoxFit.cover,
-        ),
+      return SizedBox(
+        width: 130,
+        height: 130,
+        child: _CachedBoardImage(url: url, name: name),
       );
     }
 
@@ -757,6 +753,74 @@ class _CachedVideoPageState extends State<_CachedVideoPage> {
           );
         },
       ),
+    );
+  }
+}
+
+class _CachedBoardImage extends StatefulWidget {
+  const _CachedBoardImage({required this.url, required this.name});
+
+  final String url;
+  final String name;
+
+  @override
+  State<_CachedBoardImage> createState() => _CachedBoardImageState();
+}
+
+class _CachedBoardImageState extends State<_CachedBoardImage> {
+  late Future<File> _image;
+
+  @override
+  void initState() {
+    super.initState();
+    _image = BoardMediaCache.getFile(widget.url, 'image');
+  }
+
+  @override
+  void didUpdateWidget(covariant _CachedBoardImage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.url != widget.url) {
+      _image = BoardMediaCache.getFile(widget.url, 'image');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<File>(
+      future: _image,
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          final file = snapshot.data!;
+          return InkWell(
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => Scaffold(
+                  appBar: AppBar(title: Text(widget.name)),
+                  body: Center(
+                    child: InteractiveViewer(
+                      child: Image.file(file, fit: BoxFit.contain),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: Image.file(file, fit: BoxFit.cover),
+            ),
+          );
+        }
+        if (snapshot.hasError) {
+          return IconButton(
+            tooltip: 'Image failed to load; retry',
+            onPressed: () => setState(
+              () => _image = BoardMediaCache.getFile(widget.url, 'image'),
+            ),
+            icon: const Icon(Icons.broken_image_outlined),
+          );
+        }
+        return const Center(child: CircularProgressIndicator());
+      },
     );
   }
 }
