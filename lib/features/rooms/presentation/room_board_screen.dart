@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:pdfrx/pdfrx.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:video_player/video_player.dart';
 
 import '../../../core/media/cloudinary_image_service.dart';
 import '../data/room_feature_models.dart';
@@ -526,24 +526,11 @@ class _BoardContentCard extends StatelessWidget {
         width: 180,
         child: Card(
           child: InkWell(
-            onTap: () async {
-              final messenger = ScaffoldMessenger.of(context);
-              messenger.showSnackBar(
-                const SnackBar(content: Text('Opening saved video…')),
-              );
-              try {
-                final file = await BoardMediaCache.getFile(url, 'video');
-                final opened = await launchUrl(
-                  Uri.file(file.path),
-                  mode: LaunchMode.externalApplication,
-                );
-                if (!opened) throw StateError('No local video player available.');
-              } catch (error) {
-                messenger.showSnackBar(
-                  SnackBar(content: Text('Cannot open video: $error')),
-                );
-              }
-            },
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => _CachedVideoPage(name: name, url: url),
+              ),
+            ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -637,6 +624,134 @@ class _CachedPdfPageState extends State<_CachedPdfPage> {
                 CircularProgressIndicator(),
                 SizedBox(height: 12),
                 Text('Saving PDF to this phone…'),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _CachedVideoPage extends StatefulWidget {
+  const _CachedVideoPage({required this.name, required this.url});
+
+  final String name;
+  final String url;
+
+  @override
+  State<_CachedVideoPage> createState() => _CachedVideoPageState();
+}
+
+class _CachedVideoPageState extends State<_CachedVideoPage> {
+  late Future<void> _ready;
+  VideoPlayerController? _player;
+
+  @override
+  void initState() {
+    super.initState();
+    _ready = _loadVideo();
+  }
+
+  Future<void> _loadVideo() async {
+    final file = await BoardMediaCache.getFile(widget.url, 'video');
+    final player = VideoPlayerController.file(file);
+    try {
+      await player.initialize();
+      if (!mounted) {
+        await player.dispose();
+        return;
+      }
+      _player = player;
+      await player.play();
+    } catch (_) {
+      await player.dispose();
+      rethrow;
+    }
+  }
+
+  @override
+  void dispose() {
+    _player?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(widget.name)),
+      body: FutureBuilder<void>(
+        future: _ready,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Could not open this video.'),
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                      snapshot.error.toString(),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  FilledButton.icon(
+                    onPressed: () async {
+                      await _player?.dispose();
+                      _player = null;
+                      if (!mounted) return;
+                      setState(() => _ready = _loadVideo());
+                    },
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: const Text('Retry'),
+                  ),
+                ],
+              ),
+            );
+          }
+          final player = _player;
+          if (snapshot.connectionState != ConnectionState.done ||
+              player == null ||
+              !player.value.isInitialized) {
+            return const Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 10),
+                  Text('Saving video to this phone…'),
+                ],
+              ),
+            );
+          }
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AspectRatio(
+                  aspectRatio: player.value.aspectRatio,
+                  child: VideoPlayer(player),
+                ),
+                ValueListenableBuilder<VideoPlayerValue>(
+                  valueListenable: player,
+                  builder: (context, value, _) => IconButton.filled(
+                    tooltip: value.isPlaying ? 'Pause' : 'Play',
+                    onPressed: () => value.isPlaying
+                        ? player.pause()
+                        : player.play(),
+                    icon: Icon(
+                      value.isPlaying
+                          ? Icons.pause_rounded
+                          : Icons.play_arrow_rounded,
+                    ),
+                  ),
+                ),
+                VideoProgressIndicator(
+                  player,
+                  allowScrubbing: true,
+                  padding: const EdgeInsets.all(10),
+                ),
               ],
             ),
           );
