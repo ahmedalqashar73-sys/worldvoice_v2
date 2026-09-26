@@ -43,6 +43,15 @@ class BoardMediaCache {
     return File('${directory.path}${Platform.pathSeparator}${_filename(url, type)}');
   }
 
+  /// Look up an existing phone-local video without blocking initial playback.
+  static Future<File?> cachedFileIfPresent(String url, String type) async {
+    if (url.trim().isEmpty) return null;
+    final file = await _target(url, type);
+    if (!await file.exists() || await file.length() == 0) return null;
+    await file.setLastModified(DateTime.now());
+    return file;
+  }
+
   /// Seeds the cache from the owner's original local picker file. Uploading
   /// remains necessary to share with other devices.
   static Future<void> rememberLocalCopy({
