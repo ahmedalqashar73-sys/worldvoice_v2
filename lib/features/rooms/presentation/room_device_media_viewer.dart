@@ -117,7 +117,7 @@ class _OlderPdfPageState extends State<_OlderPdfPage> {
                         'The old PDF could not be downloaded to this phone.\n'
                         'It may have been removed or blocked. '
                         'Ask the owner to select the original PDF again.\n\n'
-                        + snapshot.error.toString(),
+                        '${snapshot.error}',
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 12),
@@ -197,7 +197,7 @@ class _LocalVideoPageState extends State<_LocalVideoPage> {
             if (snapshot.hasError) {
               return Center(
                 child: Text(
-                  'Could not play this video:\n' + snapshot.error.toString(),
+                  'Could not play this video:\n${snapshot.error}',
                   style: const TextStyle(color: Colors.white),
                   textAlign: TextAlign.center,
                 ),
