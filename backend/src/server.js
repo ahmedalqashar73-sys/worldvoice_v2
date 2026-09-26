@@ -14,9 +14,18 @@ import OpenAI from "openai";
 
 const { RtcRole, RtcTokenBuilder } = agoraToken;
 
+// Must match the project that issued the Flutter Firebase ID token.
+// On managed Google infrastructure, project auto-detection remains supported.
+const firebaseProjectId = (
+  process.env.FIREBASE_PROJECT_ID ||
+  process.env.GOOGLE_CLOUD_PROJECT ||
+  ""
+).trim();
+
 if (getApps().length === 0) {
   initializeApp({
     credential: applicationDefault(),
+    ...(firebaseProjectId ? { projectId: firebaseProjectId } : {}),
   });
 }
 
@@ -81,9 +90,26 @@ async function authenticatedUser(req) {
 
   try {
     return await auth.verifyIdToken(token, true);
-  } catch {
-    const error = new Error("Invalid or expired Firebase authorization token.");
-    error.status = 401;
+  } catch (verificationError) {
+    // Never log raw Firebase ID tokens. Preserve the SDK's error code so
+    // developers can distinguish project mismatch from bad credentials.
+    const code = String(verificationError?.code || "unknown");
+    console.error("Firebase ID token verification failed:", code);
+
+    const clientTokenErrors = new Set([
+      "auth/id-token-expired",
+      "auth/id-token-revoked",
+      "auth/invalid-id-token",
+      "auth/argument-error",
+      "auth/user-disabled",
+      "auth/user-not-found",
+    ]);
+    const error = new Error(
+      clientTokenErrors.has(code)
+        ? "Firebase session was rejected. Sign out and sign in again."
+        : "Firebase server authentication is not configured correctly.",
+    );
+    error.status = clientTokenErrors.has(code) ? 401 : 503;
     throw error;
   }
 }
@@ -947,4 +973,5 @@ app.use((error, _req, res, _next) => {
 
 app.listen(port, "0.0.0.0", () => {
   console.log(`WorldVoice room backend listening on port ${port}`);
+  console.log(`Firebase project: ${firebaseProjectId || "auto-detected"}`);
 });
