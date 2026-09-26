@@ -52,6 +52,8 @@ dependencies:
   url_launcher: ^6.3.2
   share_plus: ^13.3.0
   pdfrx: 2.4.8
+  crypto: ^3.0.6
+  video_player: ^2.14.0
   speech_to_text: ^7.5.0
   google_mlkit_translation: ^0.15.1
   in_app_purchase: ^3.3.1
