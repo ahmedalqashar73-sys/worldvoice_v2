@@ -5,11 +5,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:pdfrx/pdfrx.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:video_player/video_player.dart';
 
 import '../../../core/media/cloudinary_image_service.dart';
 import '../data/room_feature_models.dart';
 import '../services/agora_voice_room_controller.dart';
+import '../services/board_media_cache.dart';
 import '../services/room_board_service.dart';
 import '../services/room_feature_service.dart';
 
@@ -139,6 +140,17 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
         _ => throw StateError('Unsupported board media'),
       };
 
+      // Keep the original file on the owner's device. Other participants
+      // download and cache from the shared URL only when they open it.
+      try {
+        await BoardMediaCache.rememberLocalCopy(
+          url: upload.url,
+          type: type,
+          source: file,
+        );
+      } catch (_) {
+        // A cache failure must not discard a successfully uploaded board item.
+      }
       await _service.addMedia(
         type: type,
         url: upload.url,
@@ -207,11 +219,27 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
 
           return Column(
             children: [
-              if (featureState?.screenShareActive == true)
-                _LiveScreenShare(
-                  roomId: widget.roomId,
-                  sharerUid: featureState?.screenSharerUid,
-                  controller: widget.agoraController,
+              // The owner should not recursively preview their own screen.
+              // Viewers receive a full-size video area instead of a 220px tile.
+              if (featureState?.screenShareActive == true &&
+                  featureState?.screenSharerUid ==
+                      widget.agoraController.localUid)
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(12, 8, 12, 4),
+                  child: Text(
+                    'Your screen is live to room participants.',
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              if (featureState?.screenShareActive == true &&
+                  featureState?.screenSharerUid !=
+                      widget.agoraController.localUid)
+                Expanded(
+                  child: _LiveScreenShare(
+                    roomId: widget.roomId,
+                    sharerUid: featureState?.screenSharerUid,
+                    controller: widget.agoraController,
+                  ),
                 ),
               if (widget.isHost)
                 Padding(
@@ -235,8 +263,11 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
                     ),
                   ),
                 ),
+              if (featureState?.screenShareActive != true ||
+                  featureState?.screenSharerUid ==
+                      widget.agoraController.localUid)
               Expanded(
-                flex: featureState?.screenShareActive == true ? 3 : 5,
+                flex: 5,
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     final size = Size(
@@ -359,8 +390,7 @@ class _LiveScreenShare extends StatelessWidget {
 
     final isLocal = uid == controller.localUid;
     return Container(
-      height: 220,
-      margin: const EdgeInsets.fromLTRB(10, 8, 10, 4),
+      margin: const EdgeInsets.fromLTRB(8, 8, 8, 4),
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: Colors.black,
@@ -369,7 +399,7 @@ class _LiveScreenShare extends StatelessWidget {
       child: isLocal
           ? const Center(
               child: Text(
-                'Your screen is live',
+                'Your screen is live to room participants.',
                 style: TextStyle(color: Colors.white),
               ),
             )
@@ -456,14 +486,10 @@ class _BoardContentCard extends StatelessWidget {
     final name = data['name']?.toString() ?? type;
 
     if (type == 'image' && url.isNotEmpty) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(14),
-        child: Image.network(
-          url,
-          width: 130,
-          height: 130,
-          fit: BoxFit.cover,
-        ),
+      return SizedBox(
+        width: 130,
+        height: 130,
+        child: _CachedBoardImage(url: url, name: name),
       );
     }
 
@@ -473,18 +499,18 @@ class _BoardContentCard extends StatelessWidget {
         child: Card(
           clipBehavior: Clip.antiAlias,
           child: InkWell(
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => Scaffold(
-                    appBar: AppBar(title: Text(name)),
-                    body: PdfViewer.uri(Uri.parse(url)),
-                  ),
-                ),
-              );
-            },
-            child: const Center(
-              child: Icon(Icons.picture_as_pdf_rounded, size: 48),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => _CachedPdfPage(name: name, url: url),
+              ),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.picture_as_pdf_rounded, size: 45),
+                const SizedBox(height: 4),
+                Text(name, maxLines: 2, overflow: TextOverflow.ellipsis),
+              ],
             ),
           ),
         ),
@@ -496,12 +522,17 @@ class _BoardContentCard extends StatelessWidget {
         width: 180,
         child: Card(
           child: InkWell(
-            onTap: () => launchUrl(
-              Uri.parse(url),
-              mode: LaunchMode.externalApplication,
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => _CachedVideoPage(name: name, url: url),
+              ),
             ),
-            child: const Center(
-              child: Icon(Icons.play_circle_fill_rounded, size: 52),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.play_circle_fill_rounded, size: 48),
+                Text(name, maxLines: 2, overflow: TextOverflow.ellipsis),
+              ],
             ),
           ),
         ),
@@ -520,6 +551,276 @@ class _BoardContentCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _CachedPdfPage extends StatefulWidget {
+  const _CachedPdfPage({required this.name, required this.url});
+
+  final String name;
+  final String url;
+
+  @override
+  State<_CachedPdfPage> createState() => _CachedPdfPageState();
+}
+
+class _CachedPdfPageState extends State<_CachedPdfPage> {
+  late Future<File> _file;
+
+  @override
+  void initState() {
+    super.initState();
+    _file = BoardMediaCache.getFile(widget.url, 'pdf');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(widget.name)),
+      body: FutureBuilder<File>(
+        future: _file,
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            // Load pages from persistent phone storage, avoiding repeat
+            // Cloudinary network PDF requests and endless network spinners.
+            return PdfViewer.file(snapshot.data!.path);
+          }
+          if (snapshot.hasError) {
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.error_outline_rounded, size: 40),
+                  const SizedBox(height: 12),
+                  const Text('Could not download this PDF.'),
+                  const SizedBox(height: 6),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Text(
+                      snapshot.error.toString(),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  FilledButton.icon(
+                    onPressed: () => setState(() {
+                      _file = BoardMediaCache.getFile(widget.url, 'pdf');
+                    }),
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: const Text('Retry'),
+                  ),
+                ],
+              ),
+            );
+          }
+          return const Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 12),
+                Text('Saving PDF to this phone…'),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _CachedVideoPage extends StatefulWidget {
+  const _CachedVideoPage({required this.name, required this.url});
+
+  final String name;
+  final String url;
+
+  @override
+  State<_CachedVideoPage> createState() => _CachedVideoPageState();
+}
+
+class _CachedVideoPageState extends State<_CachedVideoPage> {
+  late Future<void> _ready;
+  VideoPlayerController? _player;
+
+  @override
+  void initState() {
+    super.initState();
+    _ready = _loadVideo();
+  }
+
+  Future<void> _loadVideo() async {
+    final file = await BoardMediaCache.getFile(widget.url, 'video');
+    final player = VideoPlayerController.file(file);
+    try {
+      await player.initialize();
+      if (!mounted) {
+        await player.dispose();
+        return;
+      }
+      _player = player;
+      await player.play();
+    } catch (_) {
+      await player.dispose();
+      rethrow;
+    }
+  }
+
+  @override
+  void dispose() {
+    _player?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(widget.name)),
+      body: FutureBuilder<void>(
+        future: _ready,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Could not open this video.'),
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                      snapshot.error.toString(),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  FilledButton.icon(
+                    onPressed: () async {
+                      await _player?.dispose();
+                      _player = null;
+                      if (!mounted) return;
+                      setState(() => _ready = _loadVideo());
+                    },
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: const Text('Retry'),
+                  ),
+                ],
+              ),
+            );
+          }
+          final player = _player;
+          if (snapshot.connectionState != ConnectionState.done ||
+              player == null ||
+              !player.value.isInitialized) {
+            return const Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 10),
+                  Text('Saving video to this phone…'),
+                ],
+              ),
+            );
+          }
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AspectRatio(
+                  aspectRatio: player.value.aspectRatio,
+                  child: VideoPlayer(player),
+                ),
+                ValueListenableBuilder<VideoPlayerValue>(
+                  valueListenable: player,
+                  builder: (context, value, _) => IconButton.filled(
+                    tooltip: value.isPlaying ? 'Pause' : 'Play',
+                    onPressed: () => value.isPlaying
+                        ? player.pause()
+                        : player.play(),
+                    icon: Icon(
+                      value.isPlaying
+                          ? Icons.pause_rounded
+                          : Icons.play_arrow_rounded,
+                    ),
+                  ),
+                ),
+                VideoProgressIndicator(
+                  player,
+                  allowScrubbing: true,
+                  padding: const EdgeInsets.all(10),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _CachedBoardImage extends StatefulWidget {
+  const _CachedBoardImage({required this.url, required this.name});
+
+  final String url;
+  final String name;
+
+  @override
+  State<_CachedBoardImage> createState() => _CachedBoardImageState();
+}
+
+class _CachedBoardImageState extends State<_CachedBoardImage> {
+  late Future<File> _image;
+
+  @override
+  void initState() {
+    super.initState();
+    _image = BoardMediaCache.getFile(widget.url, 'image');
+  }
+
+  @override
+  void didUpdateWidget(covariant _CachedBoardImage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.url != widget.url) {
+      _image = BoardMediaCache.getFile(widget.url, 'image');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<File>(
+      future: _image,
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          final file = snapshot.data!;
+          return InkWell(
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => Scaffold(
+                  appBar: AppBar(title: Text(widget.name)),
+                  body: Center(
+                    child: InteractiveViewer(
+                      child: Image.file(file, fit: BoxFit.contain),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: Image.file(file, fit: BoxFit.cover),
+            ),
+          );
+        }
+        if (snapshot.hasError) {
+          return IconButton(
+            tooltip: 'Image failed to load; retry',
+            onPressed: () => setState(
+              () => _image = BoardMediaCache.getFile(widget.url, 'image'),
+            ),
+            icon: const Icon(Icons.broken_image_outlined),
+          );
+        }
+        return const Center(child: CircularProgressIndicator());
+      },
     );
   }
 }
