@@ -4,13 +4,12 @@ import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:pdfrx/pdfrx.dart';
 import 'room_board_content.dart';
-import 'board_media_error.dart';
 
 import '../../../core/media/cloudinary_image_service.dart';
 import '../data/room_feature_models.dart';
 import '../services/agora_voice_room_controller.dart';
+import '../services/board_media_cache.dart';
 import '../services/room_board_service.dart';
 import '../services/room_feature_service.dart';
 
@@ -212,6 +211,17 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
         _ => throw StateError('Unsupported board media'),
       };
 
+      // Owner keeps a private device-local copy of the uploaded file.
+      // Firestore stores only the shared link for other room members.
+      try {
+        await BoardMediaCache.rememberLocalCopy(
+          url: upload.url,
+          type: type,
+          source: file,
+        );
+      } catch (_) {
+        // Local cache should not prevent a successful shared upload.
+      }
       await _service.addMedia(
         type: type,
         url: upload.url,
@@ -421,31 +431,37 @@ class _LiveScreenShare extends StatelessWidget {
     }
 
     final isLocal = uid == controller.localUid;
-    return Container(
-      height: 220,
-      margin: const EdgeInsets.fromLTRB(10, 8, 10, 4),
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: Colors.black,
-        borderRadius: BorderRadius.circular(16),
+    // The host cannot preview a capture of their own screen recursively.
+    // Render a compact indicator, while other members see full-board video.
+    if (isLocal) {
+      return Align(
+        alignment: Alignment.topCenter,
+        child: Container(
+          margin: const EdgeInsets.all(8),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: const Color(0xB3000000),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: const Text(
+            'Your screen is live to room members',
+            style: TextStyle(color: Colors.white, fontSize: 12),
+          ),
+        ),
+      );
+    }
+    return ColoredBox(
+      color: Colors.black,
+      child: AgoraVideoView(
+        controller: VideoViewController.remote(
+          rtcEngine: engine,
+          canvas: VideoCanvas(
+            uid: uid,
+            sourceType: VideoSourceType.videoSourceRemote,
+          ),
+          connection: RtcConnection(channelId: roomId),
+        ),
       ),
-      child: isLocal
-          ? const Center(
-              child: Text(
-                'Your screen is live',
-                style: TextStyle(color: Colors.white),
-              ),
-            )
-          : AgoraVideoView(
-              controller: VideoViewController.remote(
-                rtcEngine: engine,
-                canvas: VideoCanvas(
-                  uid: uid,
-                  sourceType: VideoSourceType.videoSourceRemote,
-                ),
-                connection: RtcConnection(channelId: roomId),
-              ),
-            ),
     );
   }
 }
@@ -519,15 +535,14 @@ class _BoardContentCard extends StatelessWidget {
     final type = data['type'];
     final url = data['url']?.toString() ?? '';
     if (type == 'image' && url.isNotEmpty) {
-      return Image.network(url, fit: BoxFit.contain,
-        errorBuilder: (_, error, _) => BoardMediaError(url: url, error: error.toString()));
+      return CachedBoardImage(key: ValueKey(url), url: url);
     }
-    if (type == 'video' && url.isNotEmpty) return BoardVideo(key: ValueKey(url), url: url);
-    if (type == 'pdf' && url.isNotEmpty) { return PdfViewer.uri(Uri.parse(url),
-      params: PdfViewerParams(
-        loadingBannerBuilder: (context, downloaded, total) => const Center(child: CircularProgressIndicator()),
-        errorBannerBuilder: (context, error, stack, document) => BoardMediaError(url: url, error: error.toString()),
-      )); }
+    if (type == 'video' && url.isNotEmpty) {
+      return BoardVideo(key: ValueKey(url), url: url);
+    }
+    if (type == 'pdf' && url.isNotEmpty) {
+      return CachedBoardPdf(key: ValueKey(url), url: url);
+    }
     return SingleChildScrollView(padding: const EdgeInsets.all(12),
       child: Text(data['text']?.toString() ?? '', style: const TextStyle(color: Colors.white, fontSize: 20)));
   }
