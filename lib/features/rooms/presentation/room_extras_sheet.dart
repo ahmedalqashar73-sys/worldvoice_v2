@@ -6,6 +6,18 @@ import '../data/room_feature_models.dart';
 import '../data/room_moderation_models.dart';
 import '../services/room_feature_service.dart';
 
+enum RoomFeaturePanel {
+  theme, tasks, gifts, leaderboard, rewards;
+
+  String title(bool ar) => switch (this) {
+    theme => ar ? 'الثيم' : 'Theme',
+    tasks => ar ? 'مهام الغرفة' : 'Room tasks',
+    gifts => ar ? 'متجر الهدايا والشحن' : 'Gifts & top up',
+    leaderboard => ar ? 'الترتيب' : 'Leaderboard',
+    rewards => ar ? 'المكافآت' : 'Rewards',
+  };
+}
+
 class RoomExtrasSheet extends StatelessWidget {
   const RoomExtrasSheet({
     required this.roomId,
@@ -13,11 +25,11 @@ class RoomExtrasSheet extends StatelessWidget {
     required this.isHost,
     required this.showTeacherAiSeat,
     this.onOpenCoinStore,
-    this.initialTab = 0,
+    required this.panel,
     super.key,
   });
 
-  final int initialTab;
+  final RoomFeaturePanel panel;
   final String roomId;
   final List<RoomParticipant> participants;
   final bool isHost;
@@ -33,52 +45,31 @@ class RoomExtrasSheet extends StatelessWidget {
     return SafeArea(
       child: SizedBox(
         height: MediaQuery.sizeOf(context).height * .82,
-        child: DefaultTabController(
-          length: 5,
-          initialIndex: initialTab,
-          child: Column(
-            children: [
-              ListTile(
-                title: Text(
-                  isArabic ? 'مزايا الغرفة' : 'Room features',
-                  style: const TextStyle(fontWeight: FontWeight.w900),
-                ),
-                trailing: IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close_rounded),
-                ),
+        child: Column(
+          children: [
+            ListTile(
+              title: Text(panel.title(isArabic),
+                style: const TextStyle(fontWeight: FontWeight.w900)),
+              trailing: IconButton(
+                tooltip: isArabic ? 'إغلاق' : 'Close',
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close_rounded),
               ),
-              TabBar(
-                isScrollable: true,
-                tabs: [
-                  Tab(text: isArabic ? 'الثيم' : 'Theme'),
-                  Tab(text: isArabic ? 'المهام' : 'Tasks'),
-                  Tab(text: isArabic ? 'الهدايا' : 'Gifts'),
-                  Tab(text: isArabic ? 'الترتيب' : 'Leaderboard'),
-                  Tab(text: isArabic ? 'المكافآت' : 'Rewards'),
-                ],
+            ),
+            const Divider(height: 1),
+            Expanded(child: switch (panel) {
+              RoomFeaturePanel.theme => _ThemeTab(service: service, isHost: isHost),
+              RoomFeaturePanel.tasks => _TasksTab(service: service),
+              RoomFeaturePanel.gifts => _GiftsTab(
+                service: service,
+                participants: participants,
+                showTeacherAiSeat: showTeacherAiSeat,
+                onOpenCoinStore: onOpenCoinStore,
               ),
-              Expanded(
-                child: TabBarView(
-                  children: [
-                    _ThemeTab(service: service, isHost: isHost),
-                    _TasksTab(service: service),
-                    _GiftsTab(
-                      service: service,
-                      participants: participants,
-                      showTeacherAiSeat: showTeacherAiSeat,
-                      onOpenCoinStore: onOpenCoinStore,
-                    ),
-                    _LeaderboardTab(service: service),
-                    _RewardsTab(
-                      roomId: roomId,
-                      isArabic: isArabic,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+              RoomFeaturePanel.leaderboard => _LeaderboardTab(service: service),
+              RoomFeaturePanel.rewards => _RewardsTab(roomId: roomId, isArabic: isArabic),
+            }),
+          ],
         ),
       ),
     );
@@ -234,10 +225,26 @@ class _GiftsTabState extends State<_GiftsTab> {
     } catch (error) {
       if (!mounted) return;
       final insufficient = error.toString().contains('NOT_ENOUGH_COINS');
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(insufficient
-        ? (ar ? 'رصيد العملات غير كافٍ' : 'Not enough coins')
-        : (ar ? 'تعذر إرسال الهدية، حاول مجددًا' : 'Could not send gift. Please retry.'))));
-      if (insufficient) widget.onOpenCoinStore?.call();
+      if (insufficient) {
+        final topUp = await showDialog<bool>(context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text(ar ? 'الرصيد غير كافٍ' : 'Not enough coins'),
+            content: Text(ar
+              ? 'تحتاج إلى شحن العملات لإرسال هذه الهدية. لم تُرسل الهدية ولم يُخصم رصيد.'
+              : 'Top up your coins to send this gift. No gift was sent and no coins were deducted.'),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx, false),
+                child: Text(ar ? 'رجوع للهدايا' : 'Back to gifts')),
+              if (widget.onOpenCoinStore != null)
+                FilledButton(onPressed: () => Navigator.pop(ctx, true),
+                  child: Text(ar ? 'الشحن' : 'Top up')),
+            ],
+          ));
+        if (mounted && topUp == true) widget.onOpenCoinStore?.call();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(
+          ar ? 'تعذر إرسال الهدية، حاول مجددًا' : 'Could not send gift. Please retry.')));
+      }
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -266,6 +273,19 @@ class _GiftsTabState extends State<_GiftsTab> {
         final canSend = !_sending && targets.containsKey(_recipient) &&
           _gift != null && gifts.any((g) => g.id == _gift!.id);
         return Column(children: [
+          if (uid != null)
+            StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+              stream: FirebaseFirestore.instance.collection('users').doc(uid).snapshots(),
+              builder: (context, balance) {
+                final coins = (balance.data?.data()?['coins'] as num?)?.toInt();
+                return Padding(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Align(alignment: AlignmentDirectional.centerStart,
+                    child: Text(balance.hasError
+                      ? (ar ? 'تعذر تحميل الرصيد' : 'Could not load balance')
+                      : coins == null ? (ar ? 'جارٍ تحميل الرصيد…' : 'Loading balance…')
+                      : (ar ? 'رصيدك: $coins عملة' : 'Your balance: $coins coins'))));
+              },
+            ),
           Padding(padding: const EdgeInsets.fromLTRB(16, 12, 16, 4), child: Align(
             alignment: AlignmentDirectional.centerStart,
             child: Text(ar ? 'اختر المستلم' : 'Choose recipient',

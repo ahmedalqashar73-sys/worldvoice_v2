@@ -147,19 +147,27 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
           );
           final actions = [
             _action(Icons.card_giftcard_rounded, ar ? 'الهدايا' : 'Gifts', widget.onGifts, color: const Color(0xFFFFC577)),
-            _action(Icons.storefront_rounded, ar ? 'المتجر' : 'Shop', widget.onShop),
+            _action(Icons.palette_outlined, ar ? 'المظهر' : 'Appearance', widget.onShop),
             _action(Icons.grid_view_rounded, ar ? 'الأدوات' : 'Tools', widget.onTools),
-            _action(Icons.closed_caption_outlined, ar ? 'الترجمة' : 'Captions', widget.onCaptions),
+            _action(Icons.closed_caption_outlined, ar ? 'مساعدة اللغة' : 'Language assistance', widget.onCaptions),
             _action(widget.micIcon, widget.micLabel, widget.onMic),
           ];
-          if (typing) return field;
-          if (constraints.maxWidth < 350 || MediaQuery.textScalerOf(context).scale(14) > 20) {
-            return Column(mainAxisSize: MainAxisSize.min, children: [
-              field, const SizedBox(height: 6),
+          final narrow = constraints.maxWidth < 350 ||
+              MediaQuery.textScalerOf(context).scale(14) > 20;
+          // Keep the same keyed input mounted when the keyboard hides actions.
+          // Replacing a Row with a bare TextField would lose input focus.
+          return Column(mainAxisSize: MainAxisSize.min, children: [
+            Row(children: [
+              if (!typing && !narrow) ...[
+                ...actions, const SizedBox(width: 6),
+              ],
+              Expanded(key: const ValueKey('room-message-input'), child: field),
+            ]),
+            if (!typing && narrow) ...[
+              const SizedBox(height: 6),
               Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: actions),
-            ]);
-          }
-          return Row(children: [...actions, const SizedBox(width: 6), Expanded(child: field)]);
+            ],
+          ]);
         }),
       ),
     ]);

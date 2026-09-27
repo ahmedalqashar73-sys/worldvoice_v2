@@ -28,6 +28,7 @@ import 'room_board_screen.dart';
 import '../data/room_mode.dart';
 import 'room_chat_sheet.dart';
 import 'room_conversation_panel.dart';
+import 'room_keyboard_layout.dart';
 import '../services/room_chat_service.dart';
 import '../data/room_chat_message.dart';
 import 'room_captions_sheet.dart';
@@ -1276,12 +1277,96 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     );
   }
 
+  Future<void> _showSection(String title,
+      List<(IconData, String, VoidCallback)> items) async {
+    await showModalBottomSheet<void>(
+      context: context, isScrollControlled: true, useSafeArea: true,
+      showDragHandle: true,
+      builder: (ctx) => SafeArea(child: SingleChildScrollView(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          ListTile(title: Text(title,
+            style: const TextStyle(fontWeight: FontWeight.w900)),
+            trailing: IconButton(icon: const Icon(Icons.close_rounded),
+              onPressed: () => Navigator.pop(ctx))),
+          for (final item in items)
+            ListTile(leading: Icon(item.$1), title: Text(item.$2),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              onTap: () { Navigator.pop(ctx); item.$3(); }),
+          const SizedBox(height: 16),
+        ]),
+      )),
+    );
+  }
+
+  bool get _sectionArabic => (widget.localeController?.locale?.languageCode ??
+      Localizations.localeOf(context).languageCode) == 'ar';
+
+  Future<void> _showGiftStore() => _showRoomExtras(RoomFeaturePanel.gifts);
+
+  Future<void> _showLanguageTools() {
+    final ar = _sectionArabic;
+    return _showSection(ar ? 'مساعدة اللغة' : 'Language assistance', [
+      (Icons.translate_rounded, ar ? 'الترجمة الفورية' : 'Live translation', _showCaptionSettings),
+      (Icons.closed_caption_outlined, ar ? 'النص المباشر • Subtitles' : 'Live subtitles', _showCaptionSettings),
+      (Icons.record_voice_over_rounded, ar ? 'تصحيح النطق' : 'Pronunciation correction', _showPronunciation),
+    ]);
+  }
+
+  Future<void> _showPronunciation() async {
+    final ar = _sectionArabic;
+    final tip = _latestTeacherAiNote?.pronunciationTip?.trim();
+    await showModalBottomSheet<void>(context: context, useSafeArea: true,
+      showDragHandle: true,
+      builder: (ctx) => SafeArea(child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Text(ar ? 'تصحيح النطق' : 'Pronunciation correction',
+            style: const TextStyle(fontWeight: FontWeight.w900)),
+          const SizedBox(height: 16),
+          Text(tip?.isNotEmpty == true ? tip! : (ar
+            ? 'لا توجد ملاحظات نطق حتى الآن. يمكنك طلب المساعدة من Teacher AI.'
+            : 'No pronunciation feedback yet. You can ask Teacher AI for help.')),
+          const SizedBox(height: 16),
+          TextButton(onPressed: () { Navigator.pop(ctx); _showTeacherAiChat(); },
+            child: const Text('Teacher AI')),
+        ]),
+      )));
+  }
+
+  Future<void> _showAppearance() {
+    final ar = _sectionArabic;
+    return _showSection(ar ? 'المظهر' : 'Appearance', [
+      (Icons.wallpaper_rounded, ar ? 'الخلفيات' : 'Backgrounds', _showBackgroundStore),
+      (Icons.palette_outlined, ar ? 'ثيم الغرفة' : 'Room theme',
+        () => _showRoomExtras(RoomFeaturePanel.theme)),
+      (Icons.account_circle_outlined, ar ? 'إطار المستخدم' : 'Avatar frame', _showAvatarFrames),
+    ]);
+  }
+
+  Future<void> _showAvatarFrames() async {
+    final ar = _sectionArabic;
+    await showModalBottomSheet<void>(context: context, useSafeArea: true,
+      showDragHandle: true,
+      builder: (ctx) => SafeArea(child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          const Icon(Icons.account_circle_outlined, size: 56),
+          const SizedBox(height: 12),
+          Text(ar ? 'إطار المستخدم' : 'Avatar frame',
+            style: const TextStyle(fontWeight: FontWeight.w900)),
+          const SizedBox(height: 12),
+          Text(ar ? 'تخصيص وشراء إطارات المستخدم سيتوفر لاحقًا.'
+            : 'Avatar frame customization and purchases are coming later.'),
+        ]),
+      )));
+  }
+
   Future<void> _showCoinStore() async {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (_) => const RoomCoinStoreSheet(),
+      builder: (_) => const RoomCoinStoreSheet(purchasesEnabled: false),
     );
   }
 
@@ -1367,13 +1452,14 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     );
   }
 
-  Future<void> _showRoomExtras({int initialTab = 0}) async {
+  Future<void> _showRoomExtras(RoomFeaturePanel panel) async {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       builder: (_) => RoomExtrasSheet(
-        initialTab: initialTab,        roomId: widget.channelId,
+        panel: panel,
+        roomId: widget.channelId,
         participants: _participants,
         isHost: _isHost,
         showTeacherAiSeat: _showTeacherAiSeat,
@@ -1449,9 +1535,18 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   Future<void> _showRoomMenu() async {
     final ar = (widget.localeController?.locale?.languageCode ?? Localizations.localeOf(context).languageCode) == 'ar';
     await showModalBottomSheet<void>(
-      context: context, showDragHandle: true, useSafeArea: true,
-      builder: (ctx) => Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      context: context, showDragHandle: true, useSafeArea: true, isScrollControlled: true,
+      builder: (ctx) => SizedBox(height: MediaQuery.sizeOf(ctx).height * .8,
+        child: SingleChildScrollView(child: Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
+          ListTile(leading: const Icon(Icons.settings_outlined), title: Text(ar ? 'إعدادات الغرفة' : 'Room settings'),
+            onTap: () { Navigator.pop(ctx); _showRoomControls(); }),
+          ListTile(leading: const Icon(Icons.card_giftcard_rounded), title: Text(ar ? 'متجر الهدايا والشحن' : 'Gifts & top up'),
+            onTap: () { Navigator.pop(ctx); _showGiftStore(); }),
+          ListTile(leading: const Icon(Icons.translate_rounded), title: Text(ar ? 'مساعدة اللغة' : 'Language assistance'),
+            onTap: () { Navigator.pop(ctx); _showLanguageTools(); }),
+          ListTile(leading: const Icon(Icons.palette_outlined), title: Text(ar ? 'المظهر' : 'Appearance'),
+            onTap: () { Navigator.pop(ctx); _showAppearance(); }),
           ListTile(leading: const Icon(Icons.share_outlined), title: Text(ar ? 'مشاركة الغرفة' : 'Share room'),
             onTap: () { Navigator.pop(ctx); _shareRoom(); }),
           if (widget.localeController != null)
@@ -1464,35 +1559,30 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
             onTap: () { Navigator.pop(ctx); _confirmCloseRoom(); }),
           const SizedBox(height: 8),
           SizedBox(width: double.infinity, child: FilledButton(onPressed: () => Navigator.pop(ctx), child: Text(ar ? 'إلغاء' : 'Cancel'))),
-        ])),
+        ])))),
     );
   }
 
   Future<void> _showToolsGrid() async {
     final ar = (widget.localeController?.locale?.languageCode ?? Localizations.localeOf(context).languageCode) == 'ar';
     final items = <(IconData, String, VoidCallback)>[
+      (Icons.chat_bubble_outline_rounded, ar ? 'الشات' : 'Chat', _showRoomChat),
       (Icons.draw_rounded, ar ? 'السبورة' : 'Whiteboard', _showBoard),
-      (Icons.quiz_rounded, ar ? 'مسابقات' : 'Quiz', _showQuiz),
-      (Icons.smart_toy_outlined, ar ? 'أستاذ AI' : 'Teacher AI', _showTeacherAiChat),
-      (Icons.music_note_rounded, ar ? 'موسيقى' : 'Music', _showMusic),
-      (Icons.castle_rounded, ar ? 'مهام الغرفة' : 'Room tasks', () => _showRoomExtras(initialTab: 1)),
-      (Icons.card_giftcard_rounded, ar ? 'الهدايا' : 'Gifts', () => _showRoomExtras(initialTab: 2)),
-      (Icons.emoji_events_rounded, ar ? 'الترتيب' : 'Leaderboard', () => _showRoomExtras(initialTab: 3)),
-      (Icons.redeem_rounded, ar ? 'المكافآت' : 'Rewards', () => _showRoomExtras(initialTab: 4)),
-      (Icons.wallpaper_rounded, ar ? 'الخلفيات' : 'Backgrounds', _showBackgroundStore),
-      (Icons.groups_outlined, ar ? 'الأعضاء' : 'Members', _showMembers),
-      if (_canModerate) (Icons.pan_tool_alt_rounded, ar ? 'طلبات الصعود' : 'Seat requests', _showRaisedHandsSheet),
-      (Icons.settings_outlined, ar ? 'الإعدادات' : 'Settings', _showRoomControls),
+      (Icons.music_note_rounded, ar ? 'الموسيقى' : 'Music', _showMusic),
+      (Icons.quiz_rounded, ar ? 'الكويز' : 'Quiz', _showQuiz),
+      (Icons.smart_toy_outlined, 'Teacher AI', _showTeacherAiChat),
+      if (_canModerate)
+        (Icons.admin_panel_settings_outlined, ar ? 'إدارة الغرفة' : 'Moderation', _showRoomControls),
     ];
     await showModalBottomSheet<void>(
       context: context, isScrollControlled: true, showDragHandle: true, useSafeArea: true,
-      builder: (ctx) => SizedBox(height: MediaQuery.sizeOf(ctx).height * .65,
+      builder: (ctx) => SizedBox(height: MediaQuery.sizeOf(ctx).height * .60,
         child: Directionality(textDirection: ar ? TextDirection.rtl : TextDirection.ltr,
           child: Column(children: [
             Padding(padding: const EdgeInsets.all(12), child: Text(ar ? 'أدوات الغرفة' : 'Room tools',
               style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 20))),
             Expanded(child: LayoutBuilder(builder: (context, constraints) {
-              final columns = constraints.maxWidth < 350 ? 3 : 4;
+              const columns = 2;
               return GridView.builder(
                 padding: const EdgeInsets.all(16), itemCount: items.length,
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -1606,64 +1696,6 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   },
                 ),
               _RoomToolTile(
-                icon: Icons.closed_caption_rounded,
-                label: isArabic
-                    ? 'الترجمة المباشرة'
-                    : 'Live captions & translation',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showCaptionSettings();
-                },
-              ),
-              _RoomToolTile(
-                icon: Icons.monetization_on_rounded,
-                label: isArabic ? 'شراء Coins' : 'Buy coins',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showCoinStore();
-                },
-              ),
-              _RoomToolTile(
-                icon: Icons.storefront_rounded,
-                label: isArabic ? 'متجر الخلفيات' : 'Background store',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showBackgroundStore();
-                },
-              ),
-              _RoomToolTile(
-                icon: Icons.chat_bubble_rounded,
-                label: isArabic ? 'دردشة الغرفة' : 'Room chat',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showRoomChat();
-                },
-              ),
-              _RoomToolTile(
-                icon: Icons.draw_rounded,
-                label: isArabic ? 'السبورة' : 'Board',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showBoard();
-                },
-              ),
-              _RoomToolTile(
-                icon: Icons.quiz_rounded,
-                label: isArabic ? 'الكويز' : 'Quiz',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showQuiz();
-                },
-              ),
-              _RoomToolTile(
-                icon: Icons.music_note_rounded,
-                label: isArabic ? 'الموسيقى' : 'Music',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showMusic();
-                },
-              ),
-              _RoomToolTile(
                 icon: Icons.share_rounded,
                 label: isArabic ? 'مشاركة الغرفة' : 'Share room',
                 onTap: () {
@@ -1671,16 +1703,21 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   _shareRoom();
                 },
               ),
-              _RoomToolTile(
-                icon: Icons.auto_awesome_rounded,
-                label: isArabic
-                    ? 'الثيم والمهام والهدايا والترتيب'
-                    : 'Theme, tasks, gifts & leaderboard',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showRoomExtras();
-                },
-              ),
+              for (final panel in [RoomFeaturePanel.tasks, RoomFeaturePanel.leaderboard, RoomFeaturePanel.rewards])
+                _RoomToolTile(
+                  icon: switch (panel) {
+                    RoomFeaturePanel.theme => Icons.palette_outlined,
+                    RoomFeaturePanel.tasks => Icons.castle_rounded,
+                    RoomFeaturePanel.gifts => Icons.card_giftcard_rounded,
+                    RoomFeaturePanel.leaderboard => Icons.emoji_events_rounded,
+                    RoomFeaturePanel.rewards => Icons.redeem_rounded,
+                  },
+                  label: panel.title(isArabic),
+                  onTap: () {
+                    Navigator.pop(sheetContext);
+                    _showRoomExtras(panel);
+                  },
+                ),
               const Divider(),
               if (widget.localeController != null)
                 _RoomToolTile(
@@ -2043,9 +2080,12 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         Localizations.localeOf(context).languageCode) == 'ar';
     final isPublishing = _me?.isOnStage ?? (widget.initialRole == AgoraRoomRole.speaker);
     String label(String ar, String en) => isArabic ? ar : en;
+    final keyboardInset = (MediaQuery.viewInsetsOf(context).bottom -
+        MediaQuery.viewPaddingOf(context).bottom).clamp(0.0, double.infinity);
     return Directionality(
       textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
       child: Scaffold(
+        resizeToAvoidBottomInset: false,
         backgroundColor: const Color(0xFF0D4A38),
         appBar: AppBar(
           toolbarHeight: _boardVisible ? 52 : 68, elevation: 0,
@@ -2054,13 +2094,13 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
             onPressed: _showRoomMenu, icon: const Icon(Icons.more_horiz_rounded)),
           titleSpacing: 0,
           title: InkWell(
-            onTap: _showRoomControls,
+            onTap: _showToolsGrid,
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(widget.roomName, maxLines: 1, overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
               const SizedBox(height: 4),
               Wrap(spacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
-                InkWell(onTap: () => _showRoomExtras(initialTab: 1), child: Container(
+                InkWell(onTap: () => _showRoomExtras(RoomFeaturePanel.tasks), child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                   decoration: BoxDecoration(color: const Color(0xFFFFCE79),
                     borderRadius: BorderRadius.circular(12)),
@@ -2099,7 +2139,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   fit: BoxFit.cover, colorFilter: ColorFilter.mode(Colors.black.withValues(alpha: .25), BlendMode.darken))
               : null,
           ),
-          child: SafeArea(top: false, child: Column(children: [
+          child: SafeArea(top: false, maintainBottomViewPadding: true, child: Column(children: [
             if (_controller.connecting) const LinearProgressIndicator(minHeight: 2),
             if (_controller.error != null && !_boardVisible) Container(
               width: double.infinity, margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -2120,8 +2160,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
             ),
             Expanded(child: LayoutBuilder(builder: (context, constraints) {
               // Reserve actual two-row seat height instead of letting a short
-              // viewport scroll or clip the stage. Chat is the only vertical
-              // message scroller; tiny/keyboard viewports use compact mode.
+              // viewport scroll or clip the stage. Keyboard changes only the chat
+              // dock; the board, seats and Teacher AI keep their layout.
               final stageHeight =
                   2 * (82 + MediaQuery.textScalerOf(context).scale(30)) + 24;
               final contentHeight = _boardVisible
@@ -2131,9 +2171,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   (_controller.joined ? 42 : 0) +
                   (_canModerate && _raisedHands.isNotEmpty ? 84 : 0) +
                   130;
-              final compact = MediaQuery.viewInsetsOf(context).bottom > 0 ||
-                  constraints.maxHeight < neededHeight;
-              return Column(children: [
+              final compact = constraints.maxHeight < neededHeight;
+              return RoomKeyboardLayout(
+                keyboardInset: keyboardInset,
+                room: Column(mainAxisSize: MainAxisSize.min, children: [
                 if (_boardVisible) SizedBox(
                   height: (constraints.maxHeight * .55).clamp(110.0, 320.0),
                   child: RoomBoardScreen(roomId: widget.channelId,
@@ -2186,11 +2227,12 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: ActionChip(avatar: const Icon(Icons.quiz_outlined, size: 16),
                       label: Text(label('مسابقة الغرفة', 'Room quiz')), onPressed: _showQuiz))),
-                Expanded(child: RoomConversationPanel(
+                ]),
+                conversation: RoomConversationPanel(
                   messages: _chatMessages ?? const Stream<List<RoomChatMessage>>.empty(),
                   enabled: _chatMessages != null, onSend: _roomChat.send, isArabic: isArabic,
-                  onGifts: () => _showRoomExtras(initialTab: 2), onShop: _showBackgroundStore,
-                  onTools: _showToolsGrid, onCaptions: _showCaptionSettings,
+                  onGifts: _showGiftStore, onShop: _showAppearance,
+                  onTools: _showToolsGrid, onCaptions: _showLanguageTools,
                   micIcon: isPublishing
                     ? (_controller.muted || !_controller.joined ? Icons.mic_off_rounded : Icons.mic_rounded)
                     : Icons.pan_tool_alt_rounded,
@@ -2198,8 +2240,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   onMic: !_controller.joined || _me?.forcedMuted == true ? null
                     : isPublishing ? () => _controller.setMuted(!_controller.muted)
                     : () => _handRaised ? _moderation.setHandRaised(false) : _requestSeat(),
-                )),
-              ]);
+                ),
+              );
             })),
           ])),
         ),

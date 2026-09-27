@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import '../services/room_coin_purchase_service.dart';
 
 class RoomCoinStoreSheet extends StatefulWidget {
-  const RoomCoinStoreSheet({super.key});
+  const RoomCoinStoreSheet({this.purchasesEnabled = true, super.key});
+
+  final bool purchasesEnabled;
 
   @override
   State<RoomCoinStoreSheet> createState() => _RoomCoinStoreSheetState();
@@ -18,8 +20,10 @@ class _RoomCoinStoreSheetState extends State<RoomCoinStoreSheet> {
   @override
   void initState() {
     super.initState();
-    _store.addListener(_refresh);
-    _store.initialize();
+    if (widget.purchasesEnabled) {
+      _store.addListener(_refresh);
+      _store.initialize();
+    }
   }
 
   void _refresh() {
@@ -28,7 +32,7 @@ class _RoomCoinStoreSheetState extends State<RoomCoinStoreSheet> {
 
   @override
   void dispose() {
-    _store.removeListener(_refresh);
+    if (widget.purchasesEnabled) _store.removeListener(_refresh);
     super.dispose();
   }
 
@@ -72,7 +76,7 @@ class _RoomCoinStoreSheetState extends State<RoomCoinStoreSheet> {
                 icon: const Icon(Icons.close_rounded),
               ),
             ),
-            if (_store.message?.trim().isNotEmpty == true)
+            if (widget.purchasesEnabled && _store.message?.trim().isNotEmpty == true)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
                 child: Material(
@@ -89,7 +93,13 @@ class _RoomCoinStoreSheetState extends State<RoomCoinStoreSheet> {
                 ),
               ),
             Expanded(
-              child: _store.loading
+              child: !widget.purchasesEnabled
+                  ? Center(child: Padding(padding: const EdgeInsets.all(24),
+                      child: Text(isArabic
+                        ? 'شحن العملات غير مفعّل حاليًا. سيُتاح الشراء لاحقًا؛ لم يُخصم أي مبلغ.'
+                        : 'Coin top up is not enabled yet. Purchases will be available later; no payment was taken.',
+                        textAlign: TextAlign.center)))
+                  : _store.loading
                   ? const Center(child: CircularProgressIndicator())
                   : !_store.storeAvailable
                       ? Center(
