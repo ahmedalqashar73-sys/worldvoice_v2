@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:record/record.dart';
 
 import '../data/agora_config.dart';
+import '../data/room_backend_config.dart';
 
 enum AgoraRoomRole { speaker, listener }
 
@@ -225,10 +226,22 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     required String channelId,
     required AgoraRoomRole role,
   }) async {
+    // Never fall back silently to temporary/local tokens in a published APK.
+    // Without a persistent backend all users would lose audio on app restart.
+    if (RoomBackendConfig.configurationError.isNotEmpty &&
+        AgoraConfig.tokenEndpoint.trim().isEmpty) {
+      throw StateError(RoomBackendConfig.configurationError);
+    }
     if (AgoraConfig.tokenEndpoint.trim().isEmpty) {
       return (
         token: AgoraConfig.tempToken,
         uid: 0,
+      );
+    }
+    if (kReleaseMode &&
+        Uri.tryParse(AgoraConfig.tokenEndpoint)?.scheme != 'https') {
+      throw StateError(
+        'Published WorldVoice rooms require a persistent HTTPS token endpoint.',
       );
     }
 
@@ -237,7 +250,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       throw StateError('Sign in is required before joining a voice room.');
     }
 
-    final idToken = await user.getIdToken();
+    final idToken = await user.getIdToken(true);
     if (idToken == null || idToken.isEmpty) {
       throw StateError('Could not authorize the Agora token request.');
     }
