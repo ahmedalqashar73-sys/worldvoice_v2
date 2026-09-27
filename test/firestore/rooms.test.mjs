@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { before, beforeEach, after, test } from 'node:test';
 import { strict as assert } from 'node:assert';
 import { initializeTestEnvironment, assertSucceeds, assertFails } from '@firebase/rules-unit-testing';
-import { doc, collection, getDoc, getDocs, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp, increment } from 'firebase/firestore';
+import { doc, collection, getDoc, getDocs, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp, increment, query, orderBy, limit } from 'firebase/firestore';
 
 let env;
 const user = (uid) => env.authenticatedContext(uid).firestore();
@@ -100,6 +100,26 @@ test('AI notes are readable by members but only the backend may write', async ()
   await assertSucceeds(getDocs(collection(user('listener'), 'rooms/r1/teacher_ai_notes')));
   await assertFails(getDocs(collection(user('outsider'), 'rooms/r1/teacher_ai_notes')));
   await assertFails(setDoc(doc(user('host'), 'rooms/r1/teacher_ai_notes/fake'), {text: 'fake'}));
+});
+
+test('live captions query allows room members and denies non-members', async () => {
+  const captions = 'rooms/r1/captions';
+  const payload = {
+    userId: 'host', displayName: 'Host', text: 'Testing captions',
+    languageCode: 'en', createdAt: serverTimestamp()
+  };
+  // A room's host can publish while a listener can read, as the Flutter
+  // UI queries captions ordered by createdAt descending with a limit.
+  await assertSucceeds(setDoc(doc(user('host'), captions + '/c1'), payload));
+  const watchQuery = (uid) =>
+    query(collection(user(uid), captions), orderBy('createdAt', 'desc'), limit(30));
+  const listenerRead = await assertSucceeds(getDocs(watchQuery('listener')));
+  assert.equal(listenerRead.size, 1);
+  await assertFails(getDocs(watchQuery('outsider')));
+  await assertFails(setDoc(doc(user('outsider'), captions + '/c2'),
+    {...payload, userId: 'outsider'}));
+  await assertFails(setDoc(doc(user('listener'), captions + '/c3'),
+    {...payload, userId: 'listener'}));
 });
 
 test('private room join requires a matching code grant', async () => {
