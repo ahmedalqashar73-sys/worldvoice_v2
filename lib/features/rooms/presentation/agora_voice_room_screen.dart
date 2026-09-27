@@ -2102,7 +2102,18 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               ]),
             ),
             Expanded(child: LayoutBuilder(builder: (context, constraints) {
-              final compact = MediaQuery.viewInsetsOf(context).bottom > 0 || constraints.maxHeight < 340;
+              // Reserve actual two-row seat height instead of letting a short
+              // viewport scroll or clip the stage. Chat is the only vertical
+              // message scroller; tiny/keyboard viewports use compact mode.
+              final stageHeight =
+                  2 * (82 + MediaQuery.textScalerOf(context).scale(30)) + 24;
+              final neededHeight = stageHeight +
+                  (_showTeacherAiSeat && !_boardVisible ? 88 : 0) +
+                  (_controller.joined ? 42 : 0) +
+                  (_canModerate && _raisedHands.isNotEmpty ? 84 : 0) +
+                  130;
+              final compact = MediaQuery.viewInsetsOf(context).bottom > 0 ||
+                  constraints.maxHeight < neededHeight;
               return Column(children: [
                 if (_boardVisible) SizedBox(
                   height: (constraints.maxHeight * .55).clamp(110.0, 320.0),
@@ -2115,10 +2126,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                 // Stage is a separate fixed viewport. Teacher AI and hand
                 // requests stay pinned; new chat messages never scroll them.
                 if (!_boardVisible && !compact) SizedBox(
-                  height: (constraints.maxHeight * (_showTeacherAiSeat ? .35 : .42)).clamp(116.0, 248.0),
-                  child: SingleChildScrollView(
-                    primary: false,
-                    physics: const ClampingScrollPhysics(),
+                  height: stageHeight,
+                  child: Padding(
                     padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
                     child: RoomStageGrid(seats: _buildSeats(),
                       onSeatTap: _handleSeatTap,
