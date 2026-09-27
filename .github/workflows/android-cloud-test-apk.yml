@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - fix/free-worker-always-available-agora-20260927
+      - fix/green-room-chat-stage-hand-preview-20260927
     paths:
       - ".github/workflows/android-cloud-test-apk.yml"
   workflow_dispatch:
@@ -69,7 +70,7 @@ jobs:
         if: steps.android_build.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: WorldVoice-green-online-test-apk
+          name: WorldVoice-green-room-chat-hand-preview-apk
           path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
           retention-days: 7
