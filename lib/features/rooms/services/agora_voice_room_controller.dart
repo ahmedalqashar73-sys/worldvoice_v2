@@ -352,6 +352,14 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       ),
     );
 
+    // A local preview uses Agora's screen video track instead of a static
+    // placeholder. Failure to preview must never interrupt publishing.
+    try {
+      await engine.startPreview(sourceType: VideoSourceType.videoSourceScreen);
+    } catch (_) {
+      // Sharing can still proceed; the remote participant renders the stream.
+    }
+
     await engine.updateChannelMediaOptions(
       ChannelMediaOptions(
         clientRoleType: ClientRoleType.clientRoleBroadcaster,
@@ -373,6 +381,11 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     final engine = _engine;
     if (engine == null || !_joined || !_screenSharing) return;
 
+    try {
+      await engine.stopPreview(sourceType: VideoSourceType.videoSourceScreen);
+    } catch (_) {
+      // Cleanup is best effort even when the preview wasn't available.
+    }
     await engine.stopScreenCapture();
     await engine.updateChannelMediaOptions(
       ChannelMediaOptions(

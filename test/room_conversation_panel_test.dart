@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:worldvoice/features/rooms/data/room_chat_message.dart';
@@ -34,4 +36,44 @@ void main() {
       });
     }
   }
+  testWidgets('only newly arriving room message gets bubble animation', (tester) async {
+    final updates = StreamController<List<RoomChatMessage>>();
+    addTearDown(updates.close);
+    RoomChatMessage message(String id) => RoomChatMessage(
+      id: id, userId: 'u1', displayName: 'Ahmed', text: id, createdAt: null,
+    );
+    final original = message('first-message');
+    final newest = message('new-message');
+
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: RoomConversationPanel(
+          messages: updates.stream,
+          isArabic: false,
+          onSend: (_) async {},
+          onGifts: () {},
+          onShop: () {},
+          onTools: () {},
+          onCaptions: () {},
+          onMic: () {},
+          micIcon: Icons.mic,
+          micLabel: 'Mic',
+        ),
+      ),
+    ));
+
+    updates.add([original]);
+    await tester.pump();
+    expect(find.textContaining('first-message'), findsOneWidget);
+    expect(find.byKey(const ValueKey('new-message-first-message')), findsNothing);
+
+    updates.add([newest, original]);
+    await tester.pump();
+    await tester.pump();
+    expect(find.textContaining('new-message'), findsOneWidget);
+    expect(find.byKey(const ValueKey('new-message-new-message')), findsOneWidget);
+    expect(find.byKey(const ValueKey('new-message-first-message')), findsNothing);
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(tester.takeException(), isNull);
+  });
 }

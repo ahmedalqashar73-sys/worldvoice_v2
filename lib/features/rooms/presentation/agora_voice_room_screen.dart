@@ -901,6 +901,82 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     return null;
   }
 
+  // Dedicated hand control. The host and listeners see the same Firestore
+  // request state; this control must never be embedded inside the chat list.
+  Widget _buildHandControl(bool isArabic, bool isPublishing) {
+    if (!_controller.joined) return const SizedBox.shrink();
+
+    if (_canModerate) {
+      return Align(
+        alignment: AlignmentDirectional.centerEnd,
+        child: Badge(
+          isLabelVisible: _raisedHands.isNotEmpty,
+          label: Text('${_raisedHands.length}'),
+          backgroundColor: const Color(0xFFFFD57F),
+          textColor: const Color(0xFF164434),
+          child: ActionChip(
+            tooltip: isArabic ? 'الاطلاع على طلبات رفع اليد' : 'View hand requests',
+            avatar: const Icon(Icons.pan_tool_alt_rounded,
+                size: 17, color: Color(0xFFFFD57F)),
+            label: Text(
+              _raisedHands.isEmpty
+                  ? (isArabic ? 'رفع اليد' : 'Raise hand')
+                  : (isArabic ? 'طلبات الصعود' : 'Seat requests'),
+              style: const TextStyle(color: Colors.white, fontSize: 11),
+            ),
+            backgroundColor: const Color(0xFF173F37),
+            side: const BorderSide(color: Color(0xFF5FC99B)),
+            visualDensity: VisualDensity.compact,
+            onPressed: _showRaisedHandsSheet,
+          ),
+        ),
+      );
+    }
+    if (isPublishing) return const SizedBox.shrink();
+    return Align(
+      alignment: AlignmentDirectional.centerEnd,
+      child: ActionChip(
+        tooltip: _handRaised
+            ? (isArabic ? 'إلغاء الطلب' : 'Cancel hand request')
+            : (isArabic ? 'طلب التحدث' : 'Request to speak'),
+        avatar: Icon(
+          _handRaised ? Icons.pan_tool_rounded : Icons.pan_tool_alt_outlined,
+          size: 17,
+          color: _handRaised ? const Color(0xFF103F30) : const Color(0xFFFFD57F),
+        ),
+        label: Text(
+          _handRaised
+              ? (isArabic ? 'طلبك قيد الانتظار' : 'Request pending')
+              : (isArabic ? 'رفع اليد' : 'Raise hand'),
+          style: TextStyle(
+            color: _handRaised ? const Color(0xFF103F30) : Colors.white,
+            fontSize: 11,
+          ),
+        ),
+        backgroundColor:
+            _handRaised ? const Color(0xFFFFD57F) : const Color(0xFF173F37),
+        side: const BorderSide(color: Color(0xFFFFD57F)),
+        visualDensity: VisualDensity.compact,
+        onPressed: () async {
+          try {
+            if (_handRaised) {
+              await _moderation.setHandRaised(false);
+            } else {
+              await _requestSeat();
+            }
+          } catch (_) {
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(isArabic
+                  ? 'تعذر إرسال طلب الصعود. حاول مجددًا.'
+                  : 'Could not update your hand request. Retry.'),
+            ));
+          }
+        },
+      ),
+    );
+  }
+
   List<RoomSeatState> _buildSeats() {
     final seats = List<RoomSeatState>.generate(
       8,
@@ -1086,62 +1162,98 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     await showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
+      isScrollControlled: true,
       builder: (sheetContext) => SafeArea(
-        child: ListView(
-          shrinkWrap: true,
-          padding: const EdgeInsets.only(bottom: 16),
-          children: [
-            ListTile(
-              leading: const Icon(Icons.pan_tool_alt_rounded),
-              title: Text(
-                isArabic ? 'طلبات رفع اليد' : 'Raise hand requests',
-                style: const TextStyle(fontWeight: FontWeight.w900),
-              ),
-              subtitle: Text(
-                isArabic
-                    ? '${_raisedHands.length} طلب'
-                    : '${_raisedHands.length} request(s)',
-              ),
-            ),
-            for (final participant in _raisedHands)
-              ListTile(
-                leading: _ParticipantAvatar(participant: participant),
-                title: Text(participant.displayName),
-                subtitle: participant.requestedSeatIndex == null
-                    ? Text(isArabic ? 'يريد الصعود' : 'Wants to speak')
-                    : Text(
-                        isArabic
-                            ? 'طلب المقعد ${participant.requestedSeatIndex}'
-                            : 'Requested seat ${participant.requestedSeatIndex}',
-                      ),
-                trailing: Wrap(
-                  spacing: 6,
-                  children: [
-                    IconButton(
-                      tooltip: isArabic ? 'رفض' : 'Reject',
-                      onPressed: () async {
-                        await _moderation.rejectHand(participant.userId);
-                        if (sheetContext.mounted &&
-                            _raisedHands.length <= 1) {
-                          Navigator.pop(sheetContext);
-                        }
-                      },
-                      icon: const Icon(Icons.close_rounded),
-                    ),
-                    IconButton.filled(
-                      tooltip: isArabic ? 'موافقة' : 'Accept',
-                      onPressed: () async {
-                        await _acceptHand(participant);
-                        if (sheetContext.mounted) {
-                          Navigator.pop(sheetContext);
-                        }
-                      },
-                      icon: const Icon(Icons.check_rounded),
-                    ),
-                  ],
+        child: StreamBuilder<List<RoomParticipant>>(
+          // Live request list: no need to close/reopen to see another member
+          // raise or withdraw their hand.
+          stream: _moderation.watchParticipants(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const SizedBox(
+                height: 170,
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+            final hands = snapshot.data!
+                .where((member) =>
+                    member.role == RoomMemberRole.listener &&
+                    member.handRaised)
+                .toList(growable: false);
+            return ListView(
+              shrinkWrap: true,
+              padding: const EdgeInsets.only(bottom: 16),
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.pan_tool_alt_rounded),
+                  title: Text(
+                    isArabic ? 'طلبات رفع اليد' : 'Raise hand requests',
+                    style: const TextStyle(fontWeight: FontWeight.w900),
+                  ),
+                  subtitle: Text(isArabic
+                      ? '${hands.length} طلب'
+                      : '${hands.length} request(s)'),
                 ),
-              ),
-          ],
+                if (hands.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Center(
+                      child: Text(isArabic
+                          ? 'لا توجد طلبات حاليًا'
+                          : 'No pending requests'),
+                    ),
+                  ),
+                for (final participant in hands)
+                  ListTile(
+                    leading: _ParticipantAvatar(participant: participant),
+                    title: Text(participant.displayName),
+                    subtitle: participant.requestedSeatIndex == null
+                        ? Text(isArabic ? 'يريد الصعود' : 'Wants to speak')
+                        : Text(isArabic
+                            ? 'طلب المقعد ${participant.requestedSeatIndex}'
+                            : 'Requested seat ${participant.requestedSeatIndex}'),
+                    trailing: Wrap(
+                      spacing: 6,
+                      children: [
+                        IconButton(
+                          tooltip: isArabic ? 'رفض' : 'Reject',
+                          onPressed: () async {
+                            try {
+                              await _moderation.rejectHand(participant.userId);
+                            } catch (_) {
+                              if (!sheetContext.mounted) return;
+                              ScaffoldMessenger.of(sheetContext).showSnackBar(
+                                SnackBar(content: Text(isArabic
+                                    ? 'تعذر رفض الطلب'
+                                    : 'Could not reject the request')),
+                              );
+                            }
+                          },
+                          icon: const Icon(Icons.close_rounded),
+                        ),
+                        IconButton.filled(
+                          tooltip: isArabic ? 'موافقة' : 'Accept',
+                          onPressed: () async {
+                            try {
+                              await _acceptHand(participant);
+                              if (sheetContext.mounted) Navigator.pop(sheetContext);
+                            } catch (_) {
+                              if (!sheetContext.mounted) return;
+                              ScaffoldMessenger.of(sheetContext).showSnackBar(
+                                SnackBar(content: Text(isArabic
+                                    ? 'تعذر قبول الطلب. تحقق من المقاعد.'
+                                    : 'Could not accept request. Check seats.')),
+                              );
+                            }
+                          },
+                          icon: const Icon(Icons.check_rounded),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -1990,7 +2102,20 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               ]),
             ),
             Expanded(child: LayoutBuilder(builder: (context, constraints) {
-              final compact = MediaQuery.viewInsetsOf(context).bottom > 0 || constraints.maxHeight < 340;
+              // Reserve actual two-row seat height instead of letting a short
+              // viewport scroll or clip the stage. Chat is the only vertical
+              // message scroller; tiny/keyboard viewports use compact mode.
+              final stageHeight =
+                  2 * (82 + MediaQuery.textScalerOf(context).scale(30)) + 24;
+              final contentHeight = _boardVisible
+                  ? (constraints.maxHeight * .55).clamp(110.0, 320.0) + 106
+                  : stageHeight + (_showTeacherAiSeat ? 88 : 0);
+              final neededHeight = contentHeight +
+                  (_controller.joined ? 42 : 0) +
+                  (_canModerate && _raisedHands.isNotEmpty ? 84 : 0) +
+                  130;
+              final compact = MediaQuery.viewInsetsOf(context).bottom > 0 ||
+                  constraints.maxHeight < neededHeight;
               return Column(children: [
                 if (_boardVisible) SizedBox(
                   height: (constraints.maxHeight * .55).clamp(110.0, 320.0),
@@ -2000,22 +2125,42 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                     onExpand: _expandBoard, onClose: () => setState(() => _boardVisible = false))),
                 if (_boardVisible && !compact) SizedBox(height: 106,
                   child: RoomStageStrip(seats: _buildSeats(), onSeatTap: _handleSeatTap)),
+                // Stage is a separate fixed viewport. Teacher AI and hand
+                // requests stay pinned; new chat messages never scroll them.
                 if (!_boardVisible && !compact) SizedBox(
-                  height: (constraints.maxHeight * .46).clamp(120.0, 268.0),
-                  child: SingleChildScrollView(
+                  height: stageHeight,
+                  child: Padding(
                     padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-                    child: Column(children: [
-                      RoomStageGrid(seats: _buildSeats(), onSeatTap: _handleSeatTap, onSeatLongPress: _handleSeatLongPress),
-                      if (_showTeacherAiSeat) _TeacherAiCompactSeat(
-                        note: _latestTeacherAiNote, configured: _teacherAi.isConfigured || _teacherAi.isAskConfigured,
-                        onTap: _showTeacherAiChat),
-                      if (_isHost && _raisedHands.isNotEmpty) _RaisedHandNotice(
-                        participant: _raisedHands.first, total: _raisedHands.length, isArabic: isArabic,
-                        onTap: _showRaisedHandsSheet, onAccept: () => _acceptHand(_raisedHands.first),
-                        onReject: () => _moderation.rejectHand(_raisedHands.first.userId)),
-                    ]),
+                    child: RoomStageGrid(seats: _buildSeats(),
+                      onSeatTap: _handleSeatTap,
+                      onSeatLongPress: _handleSeatLongPress),
                   ),
                 ),
+                if (!_boardVisible && !compact && _showTeacherAiSeat)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    child: _TeacherAiCompactSeat(
+                      note: _latestTeacherAiNote,
+                      configured: _teacherAi.isConfigured || _teacherAi.isAskConfigured,
+                      onTap: _showTeacherAiChat,
+                    ),
+                  ),
+                if (!compact && _controller.joined)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+                    child: _buildHandControl(isArabic, isPublishing),
+                  ),
+                if (!compact && _canModerate && _raisedHands.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: _RaisedHandNotice(
+                      participant: _raisedHands.first, total: _raisedHands.length,
+                      isArabic: isArabic,
+                      onTap: _showRaisedHandsSheet,
+                      onAccept: () => _acceptHand(_raisedHands.first),
+                      onReject: () => _moderation.rejectHand(_raisedHands.first.userId),
+                    ),
+                  ),
                 if (_captionsEnabled && _latestCaption != null && !compact)
                   RoomCaptionOverlay(caption: _latestCaption!, translationEnabled: _captionTranslationEnabled,
                     translatedText: _latestTranslatedCaption),

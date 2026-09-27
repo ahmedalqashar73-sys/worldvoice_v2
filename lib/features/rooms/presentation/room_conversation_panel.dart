@@ -24,6 +24,11 @@ class RoomConversationPanel extends StatefulWidget {
 class _RoomConversationPanelState extends State<RoomConversationPanel> {
   final _text = TextEditingController();
   bool _sending = false;
+  // Do not animate historical messages on first entry or move the room when a
+  // new chat arrives; only the new message bubble fades in.
+  final Set<String> _seenMessageIds = <String>{};
+  final Set<String> _pendingMessageAnimations = <String>{};
+  bool _initialMessagesLoaded = false;
   @override
   void dispose() { _text.dispose(); super.dispose(); }
   Future<void> _send() async {
@@ -60,13 +65,33 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
             ar ? 'تعذر تحميل الرسائل' : 'Could not load messages',
             style: const TextStyle(color: Colors.white70))); }
           final messages = snapshot.data ?? const <RoomChatMessage>[];
+          if (snapshot.hasData) {
+            if (_initialMessagesLoaded) {
+              for (final message in messages) {
+                if (!_seenMessageIds.contains(message.id)) {
+                  _pendingMessageAnimations.add(message.id);
+                }
+              }
+            }
+            _seenMessageIds.addAll(messages.map((message) => message.id));
+            _initialMessagesLoaded = true;
+            if (_seenMessageIds.length > 400) {
+              _pendingMessageAnimations.removeWhere(
+                  (id) => !messages.any((msg) => msg.id == id));
+              _seenMessageIds
+                ..clear()
+                ..addAll(messages.map((message) => message.id));
+            }
+          }
           return ListView.builder(
+            key: const PageStorageKey<String>('worldvoice-room-chat-only'),
+            primary: false,
             reverse: true, padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
             itemCount: messages.length + 1,
             itemBuilder: (context, index) {
               final welcome = index == messages.length;
               final msg = welcome ? null : messages[index];
-              return Align(
+              final bubble = Align(
                 alignment: AlignmentDirectional.centerStart,
                 child: Container(
                   margin: const EdgeInsets.only(top: 8),
@@ -82,6 +107,20 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
                   ]), style: const TextStyle(color: Colors.white, fontSize: 13, height: 1.5)),
                 ),
               );
+              // Fade the words of each NEW message only. The seats, Teacher AI
+              // and chat viewport stay fixed on arrival.
+              if (msg != null && _pendingMessageAnimations.contains(msg.id)) {
+                return TweenAnimationBuilder<double>(
+                  key: ValueKey<String>('new-message-${msg.id}'),
+                  tween: Tween<double>(begin: 0, end: 1),
+                  duration: const Duration(milliseconds: 260),
+                  onEnd: () => _pendingMessageAnimations.remove(msg.id),
+                  builder: (context, value, child) =>
+                      Opacity(opacity: value, child: child),
+                  child: bubble,
+                );
+              }
+              return bubble;
             },
           );
         },
