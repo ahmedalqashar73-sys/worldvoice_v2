@@ -39,6 +39,33 @@ jobs:
           cat /tmp/worldvoice-backend.log
           exit 1
 
+  powershell:
+    name: Validate deployment and release scripts syntax
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse release scripts without running cloud commands
+        shell: pwsh
+        run: |
+          $scripts = @(
+            "scripts/deploy-green-backend.ps1",
+            "scripts/build-green-tester.ps1",
+            "scripts/start-local-green.ps1"
+          )
+          foreach ($script in $scripts) {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile(
+              (Resolve-Path $script).Path,
+              [ref]$tokens,
+              [ref]$errors
+            ) | Out-Null
+            if ($errors.Count -gt 0) {
+              $errors | ForEach-Object { Write-Error $_.Message }
+              exit 1
+            }
+          }
+
   flutter:
     name: Flutter static analysis / original green room
     runs-on: ubuntu-latest
