@@ -12,22 +12,37 @@ $keyDirectory = Join-Path $HOME 'firebase-keys'
 $privateDirectory = Join-Path $env:LOCALAPPDATA 'WorldVoice'
 $encryptedCertPath = Join-Path $privateDirectory 'agora-certificate.clixml'
 
-# Do not accidentally pick up a service-account key for another project.
+# Select the correct project by reading JSON metadata without printing secrets.
+# On a first run, securely MOVE a downloaded service-account file out of Downloads.
 if (-not (Test-Path -LiteralPath $keyDirectory)) {
-    throw "Firebase key folder missing. Move the service-account JSON into $keyDirectory (NOT the project folder)."
+    New-Item -Path $keyDirectory -ItemType Directory -Force | Out-Null
 }
-$key = Get-ChildItem -LiteralPath $keyDirectory -Filter '*.json' -File |
-    Where-Object {
-        try {
-            (Get-Content -LiteralPath $_.FullName -Raw | ConvertFrom-Json).project_id -eq $firebaseProjectId
-        } catch {
-            $false
-        }
-    } |
-    Sort-Object LastWriteTime -Descending |
-    Select-Object -First 1
+$findMatchingKey = {
+    param([string]$directory)
+    if (-not (Test-Path -LiteralPath $directory)) { return $null }
+    Get-ChildItem -LiteralPath $directory -Filter '*firebase-adminsdk-*.json' -File |
+        Where-Object {
+            try {
+                (Get-Content -LiteralPath $_.FullName -Raw | ConvertFrom-Json).project_id -eq $firebaseProjectId
+            } catch {
+                $false
+            }
+        } |
+        Sort-Object LastWriteTime -Descending |
+        Select-Object -First 1
+}
+$key = & $findMatchingKey $keyDirectory
 if ($null -eq $key) {
-    throw "No Firebase service-account JSON found for $firebaseProjectId in $keyDirectory."
+    $downloaded = & $findMatchingKey (Join-Path $HOME 'Downloads')
+    if ($null -ne $downloaded) {
+        $newPath = Join-Path $keyDirectory $downloaded.Name
+        Move-Item -LiteralPath $downloaded.FullName -Destination $newPath
+        $key = Get-Item -LiteralPath $newPath
+        Write-Host 'Moved Firebase JSON from Downloads into the private firebase-keys folder.'
+    }
+}
+if ($null -eq $key) {
+    throw "No Firebase service-account JSON for $firebaseProjectId found. Save it in $keyDirectory, outside the project."
 }
 $env:FIREBASE_PROJECT_ID = $firebaseProjectId
 $env:GOOGLE_CLOUD_PROJECT = $firebaseProjectId
