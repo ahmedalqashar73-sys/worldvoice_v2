@@ -103,6 +103,18 @@ if ($needInstall) {
 if (-not (Test-Path -LiteralPath (Join-Path $PSScriptRoot 'node_modules\agora-token\package.json'))) {
     throw 'Backend is still missing agora-token. npm install did not finish successfully.'
 }
+# Catch accidentally leaving an older backend running in a separate window.
+# Otherwise Flutter might reach that old process and show the previous errors.
+$existingBackend = $null
+try {
+    $existingBackend = Invoke-RestMethod -Uri 'http://127.0.0.1:8080/health' -TimeoutSec 2
+} catch {
+    # No healthy HTTP backend currently listening.
+}
+if ($null -ne $existingBackend) {
+    throw 'Port 8080 is already occupied. Stop the OLD backend (Ctrl+C) before launching this one.'
+}
+
 Write-Host 'Firebase project and certificate configured. Starting WorldVoice on localhost:8080.'
 & npm.cmd start
 if ($LASTEXITCODE -ne 0) {
