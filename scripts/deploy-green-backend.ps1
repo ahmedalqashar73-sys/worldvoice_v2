@@ -87,8 +87,8 @@ Invoke-Gcloud -CliArgs @("run","deploy",$serviceName,
   "--memory=1Gi",
   "--quiet")
 
-$url = (& gcloud run services describe $serviceName
-  "--region=$Region" "--project=$ProjectId" "--format=value(status.url)").Trim()
+$url = & gcloud run services describe $serviceName "--region=$Region" "--project=$ProjectId" "--format=value(status.url)"
+$url = ([string]$url).Trim()
 if ($LASTEXITCODE -ne 0 -or -not $url -or -not $url.StartsWith("https://")) {
   throw "Deployment might have succeeded, but no HTTPS service URL was returned."
 }
