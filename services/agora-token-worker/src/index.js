@@ -163,6 +163,43 @@ async function agoraTokenForUser(request, env) {
   return json({ token, uid: agoraUid, expiresIn: ttlSeconds });
 }
 
+// Optional: all remaining routes can be enabled later without rebuilding the
+// Android APK by setting AUX_BACKEND_URL to a deployed full Node backend.
+// Only known WorldVoice endpoints are forwarded; no arbitrary proxying.
+const auxiliaryRoutes = new Set([
+  "/teacher-ai",
+  "/teacher-ai/ask",
+  "/quiz/finish",
+  "/store/purchase",
+  "/store/claim-reward",
+  "/iap/verify",
+]);
+
+async function forwardAuxiliaryRequest(request, env) {
+  const raw = (env.AUX_BACKEND_URL || "").trim();
+  if (!raw) {
+    return json({
+      error: "This feature is not yet enabled on the free test backend.",
+    }, 503);
+  }
+  const base = URL.canParse(raw) ? new URL(raw) : null;
+  if (base?.protocol !== "https:" || base.username || base.password ||
+      base.search || base.hash) {
+    return json({ error: "Auxiliary backend needs an HTTPS URL." }, 503);
+  }
+  try {
+    const original = new URL(request.url);
+    const target = new URL(original.pathname + original.search, base.origin);
+    const response = await fetch(new Request(target, request));
+    // Forward only the backend's authenticated response and status.
+    return response;
+  } catch (_) {
+    return json({
+      error: "Optional backend is waking up or currently unavailable. Try again.",
+    }, 503);
+  }
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -172,6 +209,9 @@ export default {
         ok: ready,
         service: "worldvoice-agora-token-worker",
       }, ready ? 200 : 503);
+    }
+    if (request.method === "POST" && auxiliaryRoutes.has(url.pathname)) {
+      return forwardAuxiliaryRequest(request, env);
     }
     if (request.method !== "POST" || url.pathname !== "/agora/token") {
       return json({ error: "Endpoint not found." }, 404);
