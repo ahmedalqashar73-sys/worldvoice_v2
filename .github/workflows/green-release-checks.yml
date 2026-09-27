@@ -61,7 +61,9 @@ jobs:
               [ref]$errors
             ) | Out-Null
             if ($errors.Count -gt 0) {
-              $errors | ForEach-Object { Write-Error $_.Message }
+              foreach ($parseError in $errors) {
+                Write-Host "$script : line $($parseError.Extent.StartLineNumber): $($parseError.Message)"
+              }
               exit 1
             }
           }
