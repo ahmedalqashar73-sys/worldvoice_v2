@@ -55,7 +55,7 @@ class _RoomKeyboardDelegate extends MultiChildLayoutDelegate {
     positionChild(_RoomPart.room, Offset.zero);
 
     final available = math.max(0.0, size.height - keyboardInset);
-    final minimumChat = math.min(130.0, available);
+    final minimumChat = math.min(keyboardInset > 0 ? 130.0 : 200.0, available);
     final chatHeight = (available - roomSize.height).clamp(
       minimumChat,
       available,

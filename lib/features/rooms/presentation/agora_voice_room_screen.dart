@@ -922,8 +922,6 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   // Dedicated hand control. The host and listeners see the same Firestore
   // request state; this control must never be embedded inside the chat list.
   Widget _buildHandControl(bool isArabic, bool isPublishing) {
-    if (!_controller.joined) return const SizedBox.shrink();
-
     if (_canModerate) {
       return Align(
         alignment: AlignmentDirectional.centerEnd,
@@ -1536,19 +1534,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     final ar = (widget.localeController?.locale?.languageCode ?? Localizations.localeOf(context).languageCode) == 'ar';
     await showModalBottomSheet<void>(
       context: context, showDragHandle: true, useSafeArea: true, isScrollControlled: true,
-      builder: (ctx) => SizedBox(height: MediaQuery.sizeOf(ctx).height * .8,
-        child: SingleChildScrollView(child: Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      builder: (ctx) => SingleChildScrollView(child: Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          ListTile(leading: const Icon(Icons.settings_outlined), title: Text(ar ? 'إعدادات الغرفة' : 'Room settings'),
-            onTap: () { Navigator.pop(ctx); _showRoomControls(); }),
-          ListTile(leading: const Icon(Icons.card_giftcard_rounded), title: Text(ar ? 'متجر الهدايا والشحن' : 'Gifts & top up'),
-            onTap: () { Navigator.pop(ctx); _showGiftStore(); }),
-          ListTile(leading: const Icon(Icons.translate_rounded), title: Text(ar ? 'مساعدة اللغة' : 'Language assistance'),
-            onTap: () { Navigator.pop(ctx); _showLanguageTools(); }),
-          ListTile(leading: const Icon(Icons.palette_outlined), title: Text(ar ? 'المظهر' : 'Appearance'),
-            onTap: () { Navigator.pop(ctx); _showAppearance(); }),
-          ListTile(leading: const Icon(Icons.share_outlined), title: Text(ar ? 'مشاركة الغرفة' : 'Share room'),
-            onTap: () { Navigator.pop(ctx); _shareRoom(); }),
           if (widget.localeController != null)
             ListTile(leading: const Icon(Icons.picture_in_picture_alt_outlined), title: Text(ar ? 'تصغير نافذة الغرفة' : 'Minimize room'),
               onTap: () { Navigator.pop(ctx); _minimizeRoom(); }),
@@ -1559,7 +1546,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
             onTap: () { Navigator.pop(ctx); _confirmCloseRoom(); }),
           const SizedBox(height: 8),
           SizedBox(width: double.infinity, child: FilledButton(onPressed: () => Navigator.pop(ctx), child: Text(ar ? 'إلغاء' : 'Cancel'))),
-        ])))),
+        ]))),
     );
   }
 
@@ -1571,8 +1558,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       (Icons.music_note_rounded, ar ? 'الموسيقى' : 'Music', _showMusic),
       (Icons.quiz_rounded, ar ? 'الكويز' : 'Quiz', _showQuiz),
       (Icons.smart_toy_outlined, 'Teacher AI', _showTeacherAiChat),
-      if (_canModerate)
-        (Icons.admin_panel_settings_outlined, ar ? 'إدارة الغرفة' : 'Moderation', _showRoomControls),
+      (Icons.settings_outlined, ar ? 'إعدادات الغرفة' : 'Room settings', _showRoomControls),
     ];
     await showModalBottomSheet<void>(
       context: context, isScrollControlled: true, showDragHandle: true, useSafeArea: true,
@@ -2168,9 +2154,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   ? (constraints.maxHeight * .55).clamp(110.0, 320.0) + 106
                   : stageHeight + (_showTeacherAiSeat ? 88 : 0);
               final neededHeight = contentHeight +
-                  (_controller.joined ? 42 : 0) +
                   (_canModerate && _raisedHands.isNotEmpty ? 84 : 0) +
-                  130;
+                  200;
               final compact = constraints.maxHeight < neededHeight;
               return RoomKeyboardLayout(
                 keyboardInset: keyboardInset,
@@ -2203,11 +2188,6 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                       onTap: _showTeacherAiChat,
                     ),
                   ),
-                if (!compact && _controller.joined)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
-                    child: _buildHandControl(isArabic, isPublishing),
-                  ),
                 if (!compact && _canModerate && _raisedHands.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -2233,6 +2213,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   enabled: _chatMessages != null, onSend: _roomChat.send, isArabic: isArabic,
                   onGifts: _showGiftStore, onShop: _showAppearance,
                   onTools: _showToolsGrid, onCaptions: _showLanguageTools,
+                  bottomControl: _buildHandControl(isArabic, isPublishing),
+                  showMic: isPublishing,
                   micIcon: isPublishing
                     ? (_controller.muted || !_controller.joined ? Icons.mic_off_rounded : Icons.mic_rounded)
                     : Icons.pan_tool_alt_rounded,

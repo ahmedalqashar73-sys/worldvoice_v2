@@ -7,12 +7,15 @@ class RoomConversationPanel extends StatefulWidget {
     required this.messages, required this.onSend, required this.isArabic,
     required this.onGifts, required this.onShop, required this.onTools,
     required this.onCaptions, required this.onMic, required this.micIcon,
-    required this.micLabel, this.enabled = true, super.key,
+    required this.micLabel, this.enabled = true, this.bottomControl,
+    this.showMic = true, super.key,
   });
   final Stream<List<RoomChatMessage>> messages;
   final Future<void> Function(String) onSend;
   final bool isArabic;
   final bool enabled;
+  final Widget? bottomControl;
+  final bool showMic;
   final VoidCallback onGifts, onShop, onTools, onCaptions;
   final VoidCallback? onMic;
   final IconData micIcon;
@@ -125,7 +128,11 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
           );
         },
       )),
+      if (widget.bottomControl != null && MediaQuery.viewInsetsOf(context).bottom == 0)
+        Padding(padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: widget.bottomControl),
       Padding(
+        key: const ValueKey('room-composer'),
         padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
         child: LayoutBuilder(builder: (context, constraints) {
           final typing = MediaQuery.viewInsetsOf(context).bottom > 0;
@@ -150,7 +157,7 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
             _action(Icons.palette_outlined, ar ? 'المظهر' : 'Appearance', widget.onShop),
             _action(Icons.grid_view_rounded, ar ? 'الأدوات' : 'Tools', widget.onTools),
             _action(Icons.closed_caption_outlined, ar ? 'مساعدة اللغة' : 'Language assistance', widget.onCaptions),
-            _action(widget.micIcon, widget.micLabel, widget.onMic),
+            if (widget.showMic) _action(widget.micIcon, widget.micLabel, widget.onMic),
           ];
           final narrow = constraints.maxWidth < 350 ||
               MediaQuery.textScalerOf(context).scale(14) > 20;
