@@ -43,3 +43,11 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Local Node backend artifacts and private credentials (never commit these).
+**/node_modules/
+**/.env
+**/.env.local
+**/*.clixml
+**/*-firebase-adminsdk-*.json
+/firebase-keys/
