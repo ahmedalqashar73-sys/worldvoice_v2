@@ -14,9 +14,18 @@ import OpenAI from "openai";
 
 const { RtcRole, RtcTokenBuilder } = agoraToken;
 
+// Cloud Run uses its attached service account. Explicit project binding
+// avoids accidental verification against a developer's other Firebase app.
+const firebaseProjectId = (
+  process.env.FIREBASE_PROJECT_ID ||
+  process.env.GOOGLE_CLOUD_PROJECT ||
+  ""
+).trim();
+
 if (getApps().length === 0) {
   initializeApp({
     credential: applicationDefault(),
+    ...(firebaseProjectId ? { projectId: firebaseProjectId } : {}),
   });
 }
 
@@ -81,9 +90,25 @@ async function authenticatedUser(req) {
 
   try {
     return await auth.verifyIdToken(token, true);
-  } catch {
-    const error = new Error("Invalid or expired Firebase authorization token.");
-    error.status = 401;
+  } catch (verificationError) {
+    // Log only SDK error codes. Never log incoming Firebase ID tokens.
+    const code = String(verificationError?.code || "unknown");
+    console.error("Firebase authorization failed:", code);
+
+    const invalidSession = new Set([
+      "auth/id-token-expired",
+      "auth/id-token-revoked",
+      "auth/invalid-id-token",
+      "auth/argument-error",
+      "auth/user-disabled",
+      "auth/user-not-found",
+    ]);
+    const error = new Error(
+      invalidSession.has(code)
+        ? "Firebase session rejected. Sign in again."
+        : "Firebase server authorization failed. Check backend credentials.",
+    );
+    error.status = invalidSession.has(code) ? 401 : 503;
     throw error;
   }
 }
@@ -275,6 +300,20 @@ app.get("/health", (_req, res) => {
   res.json({
     ok: true,
     service: "worldvoice-room-backend",
+  });
+});
+
+// A distinct readiness probe prevents a plain HTTP 200 from being mistaken
+// for working Agora configuration. No credentials are exposed in responses.
+app.get("/ready", (_req, res) => {
+  const configured =
+    agoraAppId.length === 32 &&
+    agoraCertificate.length === 32 &&
+    firebaseProjectId.length > 0;
+  res.status(configured ? 200 : 503).json({
+    ok: configured,
+    service: "worldvoice-room-backend",
+    configured: configured,
   });
 });
 
