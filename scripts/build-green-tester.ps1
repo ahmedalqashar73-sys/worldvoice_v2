@@ -12,11 +12,20 @@ param(
 )
 $ErrorActionPreference = "Stop"
 $BackendUrl = $BackendUrl.TrimEnd("/")
+$parsedUrl = $null
+if (-not [System.Uri]::TryCreate($BackendUrl, [System.UriKind]::Absolute, [ref]$parsedUrl)) {
+  throw "BackendUrl must be a full public HTTPS URL."
+}
+$hostname = $parsedUrl.Host.ToLowerInvariant()
+$numericAddress = $null
 if (
-  -not $BackendUrl.StartsWith("https://") -or
-  $BackendUrl -match "(?i)(127\\.0\\.0\\.1|localhost|192\\.168\\.|10\\.0\\.)"
+  $parsedUrl.Scheme -ne "https" -or
+  $hostname -eq "localhost" -or
+  $hostname.EndsWith(".localhost") -or
+  $hostname.EndsWith(".local") -or
+  [System.Net.IPAddress]::TryParse($hostname, [ref]$numericAddress)
 ) {
-  throw "An HTTPS public token server is REQUIRED for the tester APK. Do not build with a USB or local network address."
+  throw "A public HTTPS DNS address is REQUIRED. Do not use localhost, private or numeric IP addresses in an APK."
 }
 if (-not (Get-Command flutter -ErrorAction SilentlyContinue)) {
   throw "Flutter was not found on PATH."
