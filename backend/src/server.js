@@ -14,9 +14,25 @@ import OpenAI from "openai";
 
 const { RtcRole, RtcTokenBuilder } = agoraToken;
 
+const firebaseProjectId = (
+  process.env.FIREBASE_PROJECT_ID ||
+  process.env.GOOGLE_CLOUD_PROJECT ||
+  ""
+).trim();
+if (process.env.NODE_ENV === "production") {
+  for (const key of ["AGORA_APP_ID", "AGORA_APP_CERTIFICATE"]) {
+    if (!(process.env[key] || "").trim()) {
+      throw new Error(`Cannot start production backend: missing ${key}`);
+    }
+  }
+  if (!firebaseProjectId) {
+    throw new Error("Cannot start production backend: missing FIREBASE_PROJECT_ID");
+  }
+}
 if (getApps().length === 0) {
   initializeApp({
     credential: applicationDefault(),
+    ...(firebaseProjectId ? { projectId: firebaseProjectId } : {}),
   });
 }
 
@@ -81,9 +97,22 @@ async function authenticatedUser(req) {
 
   try {
     return await auth.verifyIdToken(token, true);
-  } catch {
-    const error = new Error("Invalid or expired Firebase authorization token.");
-    error.status = 401;
+  } catch (cause) {
+    // Keep secrets and raw bearer tokens out of server logs.
+    const code = String(cause?.code || "unknown");
+    console.error("Firebase authorization failed:", code);
+    const sessionErrors = new Set([
+      "auth/id-token-expired",
+      "auth/id-token-revoked",
+      "auth/invalid-id-token",
+      "auth/argument-error",
+      "auth/user-disabled",
+      "auth/user-not-found",
+    ]);
+    const error = new Error(sessionErrors.has(code)
+      ? "Your Firebase login has expired. Sign in again."
+      : "Firebase server authentication needs administrator attention.");
+    error.status = sessionErrors.has(code) ? 401 : 503;
     throw error;
   }
 }
@@ -947,4 +976,5 @@ app.use((error, _req, res, _next) => {
 
 app.listen(port, "0.0.0.0", () => {
   console.log(`WorldVoice room backend listening on port ${port}`);
+  console.log(`Firebase project: ${firebaseProjectId || "auto"}`);
 });
