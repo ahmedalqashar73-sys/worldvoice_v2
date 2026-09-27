@@ -1162,62 +1162,98 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     await showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
+      isScrollControlled: true,
       builder: (sheetContext) => SafeArea(
-        child: ListView(
-          shrinkWrap: true,
-          padding: const EdgeInsets.only(bottom: 16),
-          children: [
-            ListTile(
-              leading: const Icon(Icons.pan_tool_alt_rounded),
-              title: Text(
-                isArabic ? 'طلبات رفع اليد' : 'Raise hand requests',
-                style: const TextStyle(fontWeight: FontWeight.w900),
-              ),
-              subtitle: Text(
-                isArabic
-                    ? '${_raisedHands.length} طلب'
-                    : '${_raisedHands.length} request(s)',
-              ),
-            ),
-            for (final participant in _raisedHands)
-              ListTile(
-                leading: _ParticipantAvatar(participant: participant),
-                title: Text(participant.displayName),
-                subtitle: participant.requestedSeatIndex == null
-                    ? Text(isArabic ? 'يريد الصعود' : 'Wants to speak')
-                    : Text(
-                        isArabic
-                            ? 'طلب المقعد ${participant.requestedSeatIndex}'
-                            : 'Requested seat ${participant.requestedSeatIndex}',
-                      ),
-                trailing: Wrap(
-                  spacing: 6,
-                  children: [
-                    IconButton(
-                      tooltip: isArabic ? 'رفض' : 'Reject',
-                      onPressed: () async {
-                        await _moderation.rejectHand(participant.userId);
-                        if (sheetContext.mounted &&
-                            _raisedHands.length <= 1) {
-                          Navigator.pop(sheetContext);
-                        }
-                      },
-                      icon: const Icon(Icons.close_rounded),
-                    ),
-                    IconButton.filled(
-                      tooltip: isArabic ? 'موافقة' : 'Accept',
-                      onPressed: () async {
-                        await _acceptHand(participant);
-                        if (sheetContext.mounted) {
-                          Navigator.pop(sheetContext);
-                        }
-                      },
-                      icon: const Icon(Icons.check_rounded),
-                    ),
-                  ],
+        child: StreamBuilder<List<RoomParticipant>>(
+          // Live request list: no need to close/reopen to see another member
+          // raise or withdraw their hand.
+          stream: _moderation.watchParticipants(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const SizedBox(
+                height: 170,
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+            final hands = snapshot.data!
+                .where((member) =>
+                    member.role == RoomMemberRole.listener &&
+                    member.handRaised)
+                .toList(growable: false);
+            return ListView(
+              shrinkWrap: true,
+              padding: const EdgeInsets.only(bottom: 16),
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.pan_tool_alt_rounded),
+                  title: Text(
+                    isArabic ? 'طلبات رفع اليد' : 'Raise hand requests',
+                    style: const TextStyle(fontWeight: FontWeight.w900),
+                  ),
+                  subtitle: Text(isArabic
+                      ? '${hands.length} طلب'
+                      : '${hands.length} request(s)'),
                 ),
-              ),
-          ],
+                if (hands.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Center(
+                      child: Text(isArabic
+                          ? 'لا توجد طلبات حاليًا'
+                          : 'No pending requests'),
+                    ),
+                  ),
+                for (final participant in hands)
+                  ListTile(
+                    leading: _ParticipantAvatar(participant: participant),
+                    title: Text(participant.displayName),
+                    subtitle: participant.requestedSeatIndex == null
+                        ? Text(isArabic ? 'يريد الصعود' : 'Wants to speak')
+                        : Text(isArabic
+                            ? 'طلب المقعد ${participant.requestedSeatIndex}'
+                            : 'Requested seat ${participant.requestedSeatIndex}'),
+                    trailing: Wrap(
+                      spacing: 6,
+                      children: [
+                        IconButton(
+                          tooltip: isArabic ? 'رفض' : 'Reject',
+                          onPressed: () async {
+                            try {
+                              await _moderation.rejectHand(participant.userId);
+                            } catch (_) {
+                              if (!sheetContext.mounted) return;
+                              ScaffoldMessenger.of(sheetContext).showSnackBar(
+                                SnackBar(content: Text(isArabic
+                                    ? 'تعذر رفض الطلب'
+                                    : 'Could not reject the request')),
+                              );
+                            }
+                          },
+                          icon: const Icon(Icons.close_rounded),
+                        ),
+                        IconButton.filled(
+                          tooltip: isArabic ? 'موافقة' : 'Accept',
+                          onPressed: () async {
+                            try {
+                              await _acceptHand(participant);
+                              if (sheetContext.mounted) Navigator.pop(sheetContext);
+                            } catch (_) {
+                              if (!sheetContext.mounted) return;
+                              ScaffoldMessenger.of(sheetContext).showSnackBar(
+                                SnackBar(content: Text(isArabic
+                                    ? 'تعذر قبول الطلب. تحقق من المقاعد.'
+                                    : 'Could not accept request. Check seats.')),
+                              );
+                            }
+                          },
+                          icon: const Icon(Icons.check_rounded),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            );
+          },
         ),
       ),
     );
