@@ -69,6 +69,8 @@ void main() {
 
     updates.add([newest, original]);
     await tester.pump();
+    await tester.pump();
+    expect(find.textContaining('new-message'), findsOneWidget);
     expect(find.byKey(const ValueKey('new-message-new-message')), findsOneWidget);
     expect(find.byKey(const ValueKey('new-message-first-message')), findsNothing);
     await tester.pump(const Duration(milliseconds: 300));
