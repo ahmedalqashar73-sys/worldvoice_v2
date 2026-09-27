@@ -1,0 +1,10 @@
+node_modules
+npm-debug.log*
+.env
+.env.*
+*.pem
+*.key
+*service-account*.json
+*firebase-adminsdk*.json
+.DS_Store
+.git

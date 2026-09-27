@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -59,7 +60,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     // Clear stale errors before observing a new connection attempt.
     if (!_connecting) _error = null;
     addListener(changed);
-    final timer = Timer(const Duration(seconds: 25), () {
+    final timer = Timer(const Duration(seconds: 65), () {
       if (!result.isCompleted) {
         result.completeError(TimeoutException('Agora connection timed out. Check your network and token configuration.'));
       }
@@ -225,7 +226,16 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     required String channelId,
     required AgoraRoomRole role,
   }) async {
-    if (AgoraConfig.tokenEndpoint.trim().isEmpty) {
+    final endpoint = AgoraConfig.tokenEndpoint.trim();
+    // Production APKs must use the hosted HTTPS token service, never a local
+    // USB loopback address or an expiring temporary Agora console token.
+    if (kReleaseMode && !endpoint.startsWith('https://')) {
+      throw StateError(
+        'This build has no production HTTPS token server. '
+        'Rebuild with WORLDVOICE_ROOM_BACKEND_URL=https://YOUR_SERVICE_URL',
+      );
+    }
+    if (endpoint.isEmpty) {
       return (
         token: AgoraConfig.tempToken,
         uid: 0,
@@ -237,22 +247,50 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       throw StateError('Sign in is required before joining a voice room.');
     }
 
-    final idToken = await user.getIdToken();
+    // A session can remain signed in for days. Force-refresh the ID token
+    // before every Agora join/renewal instead of reusing expired cached IDs.
+    final idToken = await user.getIdToken(true);
     if (idToken == null || idToken.isEmpty) {
       throw StateError('Could not authorize the Agora token request.');
     }
 
-    final response = await http.post(
-      Uri.parse(AgoraConfig.tokenEndpoint),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $idToken',
-      },
-      body: jsonEncode({
-        'channelName': channelId,
-        'role': role == AgoraRoomRole.speaker ? 'publisher' : 'subscriber',
-      }),
-    );
+    // Cloud Run can start from zero on the first request. Retry temporary
+    // network errors and 5xx replies, but never retry invalid credentials
+    // or room permission failures (4xx except rate limiting).
+    late http.Response response;
+    const maxAttempts = 3;
+    for (var attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        response = await http.post(
+          Uri.parse(endpoint),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $idToken',
+          },
+          body: jsonEncode({
+            'channelName': channelId,
+            'role': role == AgoraRoomRole.speaker ? 'publisher' : 'subscriber',
+          }),
+        ).timeout(const Duration(seconds: 15));
+
+        if ((response.statusCode == 429 || response.statusCode >= 500) &&
+            attempt < maxAttempts - 1) {
+          await Future<void>.delayed(
+            Duration(milliseconds: 700 * (attempt + 1)),
+          );
+          continue;
+        }
+        break;
+      } catch (error) {
+        final transient = error is SocketException ||
+            error is TimeoutException ||
+            error is http.ClientException;
+        if (!transient || attempt == maxAttempts - 1) rethrow;
+        await Future<void>.delayed(
+          Duration(milliseconds: 700 * (attempt + 1)),
+        );
+      }
+    }
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
       String detail = '';

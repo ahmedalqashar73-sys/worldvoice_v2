@@ -1,0 +1,81 @@
+name: Green room release checks
+
+on:
+  pull_request:
+    branches:
+      - fix/green-room-board-only-20260927
+  workflow_dispatch:
+
+jobs:
+  backend:
+    name: Node 22 / backend readiness
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Node dependencies
+        working-directory: backend
+        run: npm install --no-audit --no-fund
+      - name: Parse backend JavaScript
+        working-directory: backend
+        run: node --check src/server.js
+      - name: Smoke-test readiness without real credentials
+        working-directory: backend
+        env:
+          FIREBASE_PROJECT_ID: worldvoice-37896
+          AGORA_APP_ID: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          AGORA_APP_CERTIFICATE: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+        run: |
+          node src/server.js >/tmp/worldvoice-backend.log 2>&1 &
+          for attempt in 1 2 3 4 5; do
+            if curl --fail --silent http://127.0.0.1:8080/ready | grep -q '"ok":true'; then
+              echo "Backend readiness OK (placeholder configuration only)"
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/worldvoice-backend.log
+          exit 1
+
+  powershell:
+    name: Validate deployment and release scripts syntax
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse release scripts without running cloud commands
+        shell: pwsh
+        run: |
+          $scripts = @(
+            "scripts/deploy-green-backend.ps1",
+            "scripts/build-green-tester.ps1",
+            "scripts/start-local-green.ps1"
+          )
+          foreach ($script in $scripts) {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile(
+              (Resolve-Path $script).Path,
+              [ref]$tokens,
+              [ref]$errors
+            ) | Out-Null
+            if ($errors.Count -gt 0) {
+              foreach ($parseError in $errors) {
+                Write-Host "$script : line $($parseError.Extent.StartLineNumber): $($parseError.Message)"
+              }
+              exit 1
+            }
+          }
+
+  flutter:
+    name: Flutter static analysis / original green room
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
