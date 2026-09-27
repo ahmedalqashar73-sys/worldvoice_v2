@@ -50,7 +50,7 @@ if ($LASTEXITCODE -ne 0 -or -not $versions) {
   throw "The Secret Manager secret has no enabled versions. Add the new Agora primary certificate before deploying."
 }
 
-Invoke-Gcloud @("services", "enable",
+Invoke-Gcloud -CliArgs @("services", "enable",
   "run.googleapis.com",
   "cloudbuild.googleapis.com",
   "artifactregistry.googleapis.com",
@@ -59,22 +59,22 @@ Invoke-Gcloud @("services", "enable",
 
 & gcloud iam service-accounts describe $serviceAccount "--project=$ProjectId" "--format=value(email)" 2>$null | Out-Null
 if ($LASTEXITCODE -ne 0) {
-  Invoke-Gcloud @("iam","service-accounts","create",$saName,
+  Invoke-Gcloud -CliArgs @("iam","service-accounts","create",$saName,
     "--display-name=WorldVoice room backend","--project=$ProjectId")
 }
 
 $identity = "serviceAccount:$serviceAccount"
-Invoke-Gcloud @("projects","add-iam-policy-binding",$ProjectId,
+Invoke-Gcloud -CliArgs @("projects","add-iam-policy-binding",$ProjectId,
   "--member=$identity","--role=roles/firebaseauth.viewer","--quiet")
-Invoke-Gcloud @("projects","add-iam-policy-binding",$ProjectId,
+Invoke-Gcloud -CliArgs @("projects","add-iam-policy-binding",$ProjectId,
   "--member=$identity","--role=roles/datastore.user","--quiet")
-Invoke-Gcloud @("secrets","add-iam-policy-binding",$secretName,
+Invoke-Gcloud -CliArgs @("secrets","add-iam-policy-binding",$secretName,
   "--project=$ProjectId","--member=$identity",
   "--role=roles/secretmanager.secretAccessor","--quiet")
 
 # Min instances 0 avoids idle-instance charges but can incur cold starts.
 # Firebase bearer authentication is enforced by the Express API itself.
-Invoke-Gcloud @("run","deploy",$serviceName,
+Invoke-Gcloud -CliArgs @("run","deploy",$serviceName,
   "--source=$backend",
   "--region=$Region",
   "--project=$ProjectId",
