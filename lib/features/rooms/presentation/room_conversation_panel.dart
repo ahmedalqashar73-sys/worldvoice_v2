@@ -27,6 +27,7 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
   // Do not animate historical messages on first entry or move the room when a
   // new chat arrives; only the new message bubble fades in.
   final Set<String> _seenMessageIds = <String>{};
+  final Set<String> _pendingMessageAnimations = <String>{};
   bool _initialMessagesLoaded = false;
   @override
   void dispose() { _text.dispose(); super.dispose(); }
@@ -64,18 +65,19 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
             ar ? 'تعذر تحميل الرسائل' : 'Could not load messages',
             style: const TextStyle(color: Colors.white70))); }
           final messages = snapshot.data ?? const <RoomChatMessage>[];
-          final freshlyArrived = <String>{};
           if (snapshot.hasData) {
             if (_initialMessagesLoaded) {
               for (final message in messages) {
                 if (!_seenMessageIds.contains(message.id)) {
-                  freshlyArrived.add(message.id);
+                  _pendingMessageAnimations.add(message.id);
                 }
               }
             }
             _seenMessageIds.addAll(messages.map((message) => message.id));
             _initialMessagesLoaded = true;
             if (_seenMessageIds.length > 400) {
+              _pendingMessageAnimations.removeWhere(
+                  (id) => !messages.any((msg) => msg.id == id));
               _seenMessageIds
                 ..clear()
                 ..addAll(messages.map((message) => message.id));
@@ -107,11 +109,12 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
               );
               // Fade the words of each NEW message only. The seats, Teacher AI
               // and chat viewport stay fixed on arrival.
-              if (msg != null && freshlyArrived.contains(msg.id)) {
+              if (msg != null && _pendingMessageAnimations.contains(msg.id)) {
                 return TweenAnimationBuilder<double>(
                   key: ValueKey<String>('new-message-${msg.id}'),
                   tween: Tween<double>(begin: 0, end: 1),
                   duration: const Duration(milliseconds: 260),
+                  onEnd: () => _pendingMessageAnimations.remove(msg.id),
                   builder: (context, value, child) =>
                       Opacity(opacity: value, child: child),
                   child: bubble,
