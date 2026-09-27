@@ -1,0 +1,9 @@
+name = "worldvoice-agora-token"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+[vars]
+FIREBASE_PROJECT_ID = "worldvoice-37896"
+AGORA_APP_ID = "fa41476c6813471eb45c059bcb4a0e19"
+# NEVER put AGORA_APP_CERTIFICATE here. Use:
+# npx wrangler secret put AGORA_APP_CERTIFICATE
