@@ -289,7 +289,24 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         _showGiftOverlay(latest);
       });
 
-      _captionSub = _captionService.watchLatest().listen(_handleCaptions);
+      // Captions are optional. Missing/out-of-date deployed Firestore rules
+      // must not cause an unhandled stream exception or disconnect Agora.
+      _captionSub = _captionService.watchLatest().listen(
+        _handleCaptions,
+        onError: (Object error, StackTrace stackTrace) {
+          debugPrint('WorldVoice room captions unavailable: $error');
+          if (!mounted || _leaving) return;
+          final isArabic =
+              Localizations.localeOf(context).languageCode == 'ar';
+          setState(() {
+            _captionError = isArabic
+                ? 'الترجمة المباشرة غير متاحة حاليًا. تحقّق من أذونات الغرفة في Firebase.'
+                : 'Live captions are unavailable. Check room permissions in Firebase.';
+            _captionsEnabled = false;
+          });
+          // Other streams, room seats, mic and Agora remain connected.
+        },
+      );
 
       _teacherAiSub = _teacherAi.watchNotes().listen((notes) {
         if (!mounted) return;
