@@ -431,24 +431,46 @@ class _LiveScreenShare extends StatelessWidget {
     }
 
     final isLocal = uid == controller.localUid;
-    // The host cannot preview a capture of their own screen recursively.
-    // Render a compact indicator, while other members see full-board video.
+    // Agora provides a *local* screen capture texture. This is a real
+    // preview, not a placeholder; keep it fitted so the entire phone display
+    // remains visible within the board. The owner may see a mirror effect
+    // while this very app is foregrounded; opening a PDF or another app
+    // makes the actual shared content visible instead.
     if (isLocal) {
-      return Align(
-        alignment: Alignment.topCenter,
-        child: Container(
-          margin: const EdgeInsets.all(8),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: const Color(0xB3000000),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: const Text(
-            'Your screen is live to room members',
-            style: TextStyle(color: Colors.white, fontSize: 12),
+      return Stack(fit: StackFit.expand, children: [
+        const ColoredBox(color: Colors.black),
+        AgoraVideoView(
+          controller: VideoViewController(
+            rtcEngine: engine,
+            canvas: const VideoCanvas(
+              uid: 0,
+              sourceType: VideoSourceType.videoSourceScreen,
+              renderMode: RenderModeType.renderModeFit,
+            ),
+            useFlutterTexture: true,
           ),
         ),
-      );
+        Positioned(
+          top: 8,
+          left: 8,
+          right: 8,
+          child: IgnorePointer(child: Center(child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: const Color(0xB3000000),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              child: Text(
+                Localizations.localeOf(context).languageCode == 'ar'
+                    ? 'معاينة مباشرة • افتح الملف أو التطبيق المراد مشاركته'
+                    : 'Live preview • open the file or app you want to share',
+                style: const TextStyle(color: Colors.white, fontSize: 11),
+              ),
+            ),
+          ))),
+        ),
+      ]);
     }
     return ColoredBox(
       color: Colors.black,
@@ -458,6 +480,7 @@ class _LiveScreenShare extends StatelessWidget {
           canvas: VideoCanvas(
             uid: uid,
             sourceType: VideoSourceType.videoSourceRemote,
+            renderMode: RenderModeType.renderModeFit,
           ),
           connection: RtcConnection(channelId: roomId),
         ),
