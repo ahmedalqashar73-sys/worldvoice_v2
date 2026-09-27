@@ -2107,8 +2107,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               // message scroller; tiny/keyboard viewports use compact mode.
               final stageHeight =
                   2 * (82 + MediaQuery.textScalerOf(context).scale(30)) + 24;
-              final neededHeight = stageHeight +
-                  (_showTeacherAiSeat && !_boardVisible ? 88 : 0) +
+              final contentHeight = _boardVisible
+                  ? (constraints.maxHeight * .55).clamp(110.0, 320.0) + 106
+                  : stageHeight + (_showTeacherAiSeat ? 88 : 0);
+              final neededHeight = contentHeight +
                   (_controller.joined ? 42 : 0) +
                   (_canModerate && _raisedHands.isNotEmpty ? 84 : 0) +
                   130;
