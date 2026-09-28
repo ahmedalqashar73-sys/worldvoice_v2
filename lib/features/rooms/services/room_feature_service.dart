@@ -224,6 +224,9 @@ class RoomFeatureService {
     required String recipientName,
     required String giftId,
     required int points,
+    String context = 'room',
+    String? contextId,
+    int quantity = 1,
   }) async {
     final user = _user;
     if (user == null) throw StateError('SIGN_IN_REQUIRED');
@@ -235,11 +238,11 @@ class RoomFeatureService {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $token',
     }, body: jsonEncode({
-      'context': 'room',
-      'contextId': roomId,
+      'context': context,
+      'contextId': contextId ?? roomId,
       'recipientId': recipientId,
       'giftId': giftId,
-      'quantity': 1,
+      'quantity': quantity,
       'requestId': _db.collection('_nonce').doc().id,
     }));
     if (response.statusCode < 200 || response.statusCode >= 300) {
