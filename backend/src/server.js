@@ -12,7 +12,7 @@ import { FieldValue, Timestamp, getFirestore } from "firebase-admin/firestore";
 import { google } from "googleapis";
 import OpenAI from "openai";
 import Stripe from "stripe";
-import { requireLiveEconomy, calculateGiftSettlement } from "./economy_policy.js";
+import { requireLiveEconomy, calculateGiftSettlement, calculatePurchaseCredit } from "./economy_policy.js";
 
 const { RtcRole, RtcTokenBuilder } = agoraToken;
 
@@ -100,13 +100,10 @@ app.post("/web/stripe/webhook", express.raw({type: "application/json"}),
           lines.data[0].quantity !== 1) {
         throw new Error("Stripe line items do not match approved catalog.");
       }
-      const extraCoins = Math.floor(
-        units * policy.webCardBonusPercent / 100,
-      );
       const credit = await creditVerifiedCoins({
         userId, platform: "web", receiptId: session.id,
         productId: product.webPriceId, catalogId,
-        coins: units + extraCoins,
+        coins: units,
         purchasedAt: Date.now(),
       });
       res.json({received: true, credited: !credit.alreadyCredited});
@@ -319,78 +316,101 @@ async function fetchAppleTransaction(transactionId, environmentHint) {
 }
 
 async function creditVerifiedCoins({
-  userId,
-  platform,
-  receiptId,
-  productId,
-  catalogId,
-  coins,
-  purchasedAt,
+  userId, platform, receiptId, productId, catalogId, coins, purchasedAt,
 }) {
+  // The receipt key is stable across retries and duplicated Stripe events.
   const receiptKey = createHash("sha256")
-    .update(`${platform}:${receiptId}`)
-    .digest("hex");
+    .update(`${platform}:${receiptId}`).digest("hex");
   const receiptRef = db.collection("iap_receipts").doc(receiptKey);
   const userRef = db.collection("users").doc(userId);
-
-  return db.runTransaction(async (tx) => {
-    const [receiptSnap, userSnap] = await Promise.all([
-      tx.get(receiptRef),
-      tx.get(userRef),
-    ]);
+  const configRef = db.doc("economy_config/current");
+  const productRef = db.collection("coin_products").doc(catalogId);
+  const day = new Date().toISOString().slice(0, 10);
+  const dailyRef = userRef.collection("economy_daily").doc(day);
+  return db.runTransaction(async tx => {
+    // Read all snapshots BEFORE making any transaction write.
+    const [receiptSnap, userSnap, configSnap, productSnap, dailySnap] =
+      await Promise.all([receiptRef, userRef, configRef, productRef, dailyRef]
+        .map(ref => tx.get(ref)));
     if (receiptSnap.exists) {
-      const existing = receiptSnap.data() || {};
-      if (existing.userId !== userId) {
-        const error = new Error("This store receipt was already used.");
-        error.status = 409;
-        throw error;
+      const receipt = receiptSnap.data() || {};
+      if (receipt.userId !== userId || receipt.platform !== platform ||
+          receipt.productId !== productId || receipt.catalogId !== catalogId) {
+        throw Object.assign(new Error("Receipt was already applied elsewhere."),
+          {status: 409});
       }
       return {
         alreadyCredited: true,
-        coins: Number(existing.coins || coins),
+        coins: Number(receipt.coins || 0),
       };
     }
-
+    const policy = requireLiveEconomy(configSnap.data());
+    const product = productSnap.data() || {};
+    const base = Number(product.coins);
+    const priceCents = Math.round(Number(product.priceUsd) * 100);
+    if (!productSnap.exists || product.active !== true ||
+        !Number.isSafeInteger(base) || base <= 0 || base !== coins ||
+        !Number.isSafeInteger(priceCents) || priceCents <= 0 ||
+        (platform === "android" && product.androidProductId !== productId) ||
+        (platform === "ios" && product.iosProductId !== productId) ||
+        (platform === "web" && product.webPriceId !== productId)) {
+      throw Object.assign(new Error("Purchase does not match the approved catalog."),
+        {status: 409});
+    }
+    const limitCents = Math.round(
+      Number(policy.purchaseDailyUsdLimit) * 100,
+    );
+    const spentCents = Number(dailySnap.data()?.purchaseCents || 0);
+    if (!Number.isSafeInteger(limitCents) || limitCents <= 0 ||
+        !Number.isSafeInteger(spentCents)) {
+      throw Object.assign(new Error("Purchase daily limit is not configured."),
+        {status: 503});
+    }
+    if (spentCents + priceCents > limitCents) {
+      throw Object.assign(new Error("Daily purchase limit reached."), {status: 429});
+    }
+    const previousPurchases = Number(userSnap.data()?.purchasedCoins || 0);
+    const firstRecharge = previousPurchases === 0;
+    const reward = calculatePurchaseCredit({
+      config: policy, baseCoins: base, platform, firstRecharge,
+    });
     const balanceBefore = Number(userSnap.data()?.coins || 0);
-    const balanceAfter = balanceBefore + coins;
-    if (!Number.isSafeInteger(coins) || coins <= 0 ||
-        !Number.isSafeInteger(balanceBefore) ||
+    const balanceAfter = balanceBefore + reward.totalCoins;
+    if (!Number.isSafeInteger(balanceBefore) ||
         !Number.isSafeInteger(balanceAfter)) {
       throw Object.assign(new Error("Coin ledger balance is invalid."), {status: 503});
     }
     tx.set(userRef, {
       coins: balanceAfter,
-      purchasedCoins: FieldValue.increment(coins),
+      purchasedCoins: previousPurchases + reward.totalCoins,
       updatedAt: FieldValue.serverTimestamp(),
-    }, { merge: true });
-
+    }, {merge: true});
+    tx.set(dailyRef, {
+      purchaseCents: spentCents + priceCents,
+      updatedAt: FieldValue.serverTimestamp(),
+    }, {merge: true});
     tx.create(userRef.collection("wallet_transactions").doc(receiptKey), {
-      type: "coin_purchase", amount: coins, currency: "coins",
+      type: "coin_purchase", amount: reward.totalCoins, currency: "coins",
       balanceBefore, balanceAfter, source: platform,
-      catalogId, productId, receiptKey,
+      catalogId, productId, receiptKey, baseCoins: base,
+      bonusCoins: reward.bonusCoins, firstRecharge,
       createdAt: FieldValue.serverTimestamp(),
     });
     tx.create(db.collection("economy_audit").doc(receiptKey), {
       type: "coin_purchase", userId, platform, catalogId,
-      productId, receiptKey, coins,
+      productId, receiptKey, baseCoins: base,
+      bonusCoins: reward.bonusCoins, creditedCoins: reward.totalCoins,
       createdAt: FieldValue.serverTimestamp(),
     });
-
-    tx.set(receiptRef, {
-      userId,
-      platform,
-      receiptId,
-      productId,
-      catalogId,
-      coins,
+    tx.create(receiptRef, {
+      userId, platform, receiptId, productId, catalogId,
+      baseCoins: base, bonusCoins: reward.bonusCoins,
+      coins: reward.totalCoins, priceCents,
       purchasedAt: purchasedAt || null,
       creditedAt: FieldValue.serverTimestamp(),
+      reversed: false,
     });
-
-    return {
-      alreadyCredited: false,
-      coins,
-    };
+    return {alreadyCredited: false, coins: reward.totalCoins};
   });
 }
 
