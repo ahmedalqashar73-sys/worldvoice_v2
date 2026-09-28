@@ -58,3 +58,55 @@ chargebacks use externally-derived idempotency keys.
    corresponding backend moderation, identity verification and store-review
    integration is deployed. Cloudflare Agora Worker is only a token service;
    it is **not** the full economy backend.
+
+
+### Private wallet / public profile rollout (not activated)
+
+Legacy `users/{uid}` documents remain readable by all signed-in clients and
+still hold balances. This is a **release blocker**, even if Firestore also
+contains private wallet copies. Do not enable purchases/gifts/payouts until
+the full profile-reader and ledger-writer migration below is completed.
+
+A non-destructive **staging-only** tool and regression tests now exist:
+- `backend/src/profile_projection.js` uses explicit public-profile and
+  private-wallet field allowlists, never spreading arbitrary user fields.
+- `backend/test/profile_projection.test.js` verifies balance redaction,
+  separation, and invalid legacy balance rejection.
+- `backend/scripts/stage-private-wallet.mjs` previews users by default,
+  logs only field counts, validates legacy balances, and can atomically
+  create missing `users/{uid}/private/wallet` and
+  `public_profiles/{uid}` records. It never overwrites source balances
+  or deletes a legacy document.
+
+For a Firebase **emulator**, run after a separate data backup:
+```bash
+cd backend
+npm test
+FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 node scripts/stage-private-wallet.mjs --project demo-worldvoice
+FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 node scripts/stage-private-wallet.mjs --project demo-worldvoice --apply --confirm-project demo-worldvoice
+```
+Outside the emulator, `--apply` is restricted to a named test/staging
+project with matching confirmation and disabled
+`economy_config/current.enabled`. **Do not point it at production.**
+
+To finish this migration, in order:
+1. Back up and verify legacy `users`, inventories, wallet ledgers and
+   receipts; suspend legacy mobile-client financial writes.
+2. Stage and audit copies for all accounts; reconcile balances with immutable
+   transactions and existing receipts. Reject mismatches; do not reset them.
+3. Change all *server* purchase, refund, gift, exchange, withdrawal,
+   VIP-entitlement and wallet-hold operations to transact against
+   `users/{uid}/private/wallet` exclusively. Remove legacy public writes,
+   cover retries/idempotency and refund rollback in tests.
+4. Change all *client* wallet/coin/diamond/profile consumers to read the
+   private wallet for their own account and `public_profiles` for others.
+   Handle older app versions explicitly rather than silently breaking them.
+5. Only after staging two-device, Firestore-emulator and payment tests pass,
+   remove legacy financial fields from public documents and restrict
+   `users/{uid}` reads; verify unauthenticated and unrelated signed-in
+   clients cannot retrieve another person's financial records.
+6. Obtain approved USD prices/SKUs, actual platform sandbox receipts,
+   signed store refund notification handlers, KYC and payout-provider
+   integration; otherwise retain `enabled=false` and inactive products.
+
+**This staging addition does not complete steps 1–6 or make live money safe.**
