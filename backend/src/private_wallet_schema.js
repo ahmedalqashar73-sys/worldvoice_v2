@@ -12,6 +12,20 @@ const NON_NEGATIVE = Object.freeze([
   "diamondsReserved", "walletDebtCoins", "purchasedCoins",
   "quizCoinsEarned",
 ]);
+// This server-only control must be approved AFTER backup, client/rules rollout
+// verification and a zero-conflict migration. Setting economy_config.enabled
+// alone never allows real-money operations.
+export function requirePrivateWalletCutover(control) {
+  if (!control || control.approved !== true ||
+      control.completed !== true || control.schemaVersion !== 2) {
+    throw Object.assign(
+      new Error("Private wallet migration requires finance approval."),
+      {status:503},
+    );
+  }
+  return true;
+}
+
 export function privateWalletRef(userRef) {
   return userRef.collection("private_wallet").doc("summary");
 }
