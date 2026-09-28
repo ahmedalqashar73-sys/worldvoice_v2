@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   PRIVATE_WALLET_FIELDS, legacyWalletSnapshot,
   containsLegacyWalletFields, assertMigrationConsistency,
+  requirePrivateWalletCutover,
 } from "../src/private_wallet_schema.js";
 
 test("private wallet fields do not include social gift level or display name", () => {
@@ -29,4 +30,11 @@ test("migration fails closed on malformed or conflicting balances", () => {
   assert.throws(() => legacyWalletSnapshot({diamonds:1.5}));
   assert.throws(() => assertMigrationConsistency({coins:20},{coins:21}));
   assert.equal(legacyWalletSnapshot({displayName:"New"}).coins,0);
+});
+
+test("real monetary operations require an independent migration approval", () => {
+  assert.throws(() => requirePrivateWalletCutover(undefined));
+  assert.throws(() => requirePrivateWalletCutover({completed:true,approved:false,schemaVersion:2}));
+  assert.throws(() => requirePrivateWalletCutover({completed:true,approved:true,schemaVersion:1}));
+  assert.equal(requirePrivateWalletCutover({completed:true,approved:true,schemaVersion:2}),true);
 });
