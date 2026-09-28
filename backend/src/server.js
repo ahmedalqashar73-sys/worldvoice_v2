@@ -165,9 +165,13 @@ async function coinProductFor(platform, productId) {
     throw error;
   }
 
+  const priceUsd = Number(product.priceUsd);
+  if (!Number.isFinite(priceUsd) || priceUsd <= 0)
+    throw economyError("coin_products priceUsd must be configured.", 503);
   return {
     catalogId: snapshot.docs[0].id,
     coins,
+    priceUsd,
   };
 }
 
@@ -245,60 +249,61 @@ async function fetchAppleTransaction(transactionId, environmentHint) {
 }
 
 async function creditVerifiedCoins({
-  userId,
-  platform,
-  receiptId,
-  productId,
-  catalogId,
-  coins,
-  purchasedAt,
+  userId, platform, receiptId, productId, catalogId, coins,
+  priceUsd, purchasedAt,
 }) {
   const receiptKey = createHash("sha256")
-    .update(`${platform}:${receiptId}`)
-    .digest("hex");
+    .update(platform + ":" + receiptId).digest("hex");
   const receiptRef = db.collection("iap_receipts").doc(receiptKey);
   const userRef = db.collection("users").doc(userId);
-
+  const dayKey = new Date().toISOString().slice(0, 10);
+  const dailyRef = userRef.collection("economy_daily").doc(dayKey);
+  const configRef = db.collection("economy_config").doc("global");
+  const ledgerRef = db.collection("wallet_transactions").doc("iap_" + receiptKey);
   return db.runTransaction(async (tx) => {
-    const receiptSnap = await tx.get(receiptRef);
-    if (receiptSnap.exists) {
-      const existing = receiptSnap.data() || {};
-      if (existing.userId !== userId) {
-        const error = new Error("This store receipt was already used.");
-        error.status = 409;
-        throw error;
-      }
-      return {
-        alreadyCredited: true,
-        coins: Number(existing.coins || coins),
-      };
+    const old = await tx.get(receiptRef);
+    if (old.exists) {
+      const value = old.data() || {};
+      if (value.userId !== userId)
+        throw economyError("This receipt was used by another account.", 409);
+      if (value.refundedAt || value.chargebackAt)
+        throw economyError("This receipt was refunded or disputed.", 409);
+      return { alreadyCredited:true, coins:Number(value.coins) };
     }
-
-    tx.set(
-      userRef,
-      {
-        coins: FieldValue.increment(coins),
-        purchasedCoins: FieldValue.increment(coins),
-        updatedAt: FieldValue.serverTimestamp(),
-      },
-      { merge: true },
-    );
-
-    tx.set(receiptRef, {
-      userId,
-      platform,
-      receiptId,
-      productId,
-      catalogId,
-      coins,
-      purchasedAt: purchasedAt || null,
-      creditedAt: FieldValue.serverTimestamp(),
+    const [user, today, settings] = await Promise.all([
+      tx.get(userRef), tx.get(dailyRef), tx.get(configRef)
+    ]);
+    const cfg = validateEconomy(settings.data());
+    const previousUsd = Number(today.data()?.purchasedUsd || 0);
+    if (!Number.isFinite(previousUsd) || previousUsd + priceUsd >
+        cfg.dailyPurchaseLimitUsd)
+      throw economyError("DAILY_PURCHASE_LIMIT", 429);
+    const userData = user.data() || {};
+    const before = positiveBalance(userData.coins);
+    const firstRecharge = positiveBalance(userData.purchasedCoins) === 0;
+    const result = coinCredit(cfg, coins, { firstRecharge });
+    const after = before + result.coins;
+    if (!Number.isSafeInteger(after)) throw economyError("Wallet overflow.", 503);
+    tx.set(userRef, {
+      coins:after, purchasedCoins:positiveBalance(userData.purchasedCoins) + coins,
+      updatedAt:FieldValue.serverTimestamp(),
+    }, { merge:true });
+    tx.set(dailyRef, {purchasedUsd:previousUsd + priceUsd,
+      updatedAt:FieldValue.serverTimestamp()}, {merge:true});
+    tx.create(receiptRef, {
+      userId, platform, receiptId, productId, catalogId,
+      coins:result.coins, baseCoins:coins, bonusCoins:result.firstBonus,
+      priceUsd, purchasedAt:purchasedAt || null,
+      creditedAt:FieldValue.serverTimestamp(), status:"credited",
     });
-
-    return {
-      alreadyCredited: false,
-      coins,
-    };
+    tx.create(ledgerRef, {
+      userId, type:"iap_purchase", currency:"coins", amount:result.coins,
+      balanceBefore:before, balanceAfter:after, source:platform,
+      refId:receiptRef.id,
+      metadata:{catalogId, baseCoins:coins, bonusCoins:result.firstBonus},
+      createdAt:FieldValue.serverTimestamp(),
+    });
+    return { alreadyCredited:false, coins:result.coins };
   });
 }
 
@@ -733,6 +738,7 @@ app.post("/iap/verify", async (req, res, next) => {
       productId,
       catalogId: catalog.catalogId,
       coins: catalog.coins,
+      priceUsd: catalog.priceUsd,
       purchasedAt: verified.purchasedAt,
     });
 
