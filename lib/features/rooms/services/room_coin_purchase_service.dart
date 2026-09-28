@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -28,6 +29,9 @@ class RoomCoinPurchaseService extends ChangeNotifier {
 
   final InAppPurchase _iap = InAppPurchase.instance;
   StreamSubscription<List<PurchaseDetails>>? _purchaseSub;
+  String? _pendingExchangeKey;
+  int? _pendingExchangeDiamonds;
+
 
   bool _initialized = false;
   bool _loading = false;
@@ -240,6 +244,88 @@ class RoomCoinPurchaseService extends ChangeNotifier {
 
     final body = jsonDecode(response.body);
     return body is Map<String, dynamic> && body['ok'] == true;
+  }
+
+  // The backend alone applies diamond conversions and quotes.
+  // Failed requests retain the idempotency key so a retry cannot debit twice.
+  Uri get _walletBase {
+    const raw = String.fromEnvironment('WORLDVOICE_ECONOMY_ENDPOINT');
+    final parsed = Uri.tryParse(raw.trim());
+    if (parsed == null || parsed.scheme != 'https' || !parsed.hasAuthority ||
+        parsed.userInfo.isNotEmpty || parsed.query.isNotEmpty ||
+        parsed.fragment.isNotEmpty) {
+      throw StateError('Economy server is not configured for the wallet.');
+    }
+    return parsed.replace(path: parsed.path.replaceFirst(RegExp(r'/
+    _purchaseSub?.cancel();
+    super.dispose();
+  }
+}
+), ''));
+  }
+
+  Future<Map<String, dynamic>> _walletPost(
+    String path,
+    Map<String, dynamic> body, {
+    String? idempotencyKey,
+  }) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) throw StateError('Sign in to use the wallet.');
+    final token = await user.getIdToken(true);
+    if (token == null || token.isEmpty) {
+      throw StateError('Your login could not be verified.');
+    }
+    final base = _walletBase;
+    final response = await http.post(
+      base.replace(path: '${base.path}$path'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+        if (idempotencyKey != null) 'Idempotency-Key': idempotencyKey,
+      },
+      body: jsonEncode(body),
+    );
+    Map<String, dynamic> decoded;
+    try {
+      final raw = jsonDecode(response.body);
+      decoded = raw is Map<String, dynamic> ? raw : <String, dynamic>{};
+    } catch (_) {
+      throw StateError('The wallet server returned an invalid response.');
+    }
+    if (response.statusCode < 200 || response.statusCode >= 300 ||
+        decoded['ok'] != true) {
+      throw StateError(decoded['error']?.toString() ??
+          'The wallet request was not completed.');
+    }
+    return decoded;
+  }
+
+  Future<Map<String, dynamic>> exchangeDiamonds(int amount) async {
+    if (amount <= 0) throw StateError('Enter a positive diamond amount.');
+    if (_pendingExchangeDiamonds != amount || _pendingExchangeKey == null) {
+      final random = Random.secure();
+      _pendingExchangeKey = List<int>.generate(
+        24, (_) => random.nextInt(256),
+      ).map((value) => value.toRadixString(16).padLeft(2, '0')).join();
+      _pendingExchangeDiamonds = amount;
+    }
+    final result = await _walletPost(
+      '/wallet/exchange', {'diamonds': amount},
+      idempotencyKey: _pendingExchangeKey,
+    );
+    _pendingExchangeKey = null;
+    _pendingExchangeDiamonds = null;
+    return result;
+  }
+
+  Future<Map<String, dynamic>> getWithdrawalQuote(int amount) async {
+    if (amount <= 0) throw StateError('Enter a positive diamond amount.');
+    return _walletPost('/wallet/withdraw/quote', {'diamonds': amount});
+  }
+
+  Future<int> releaseMaturedDiamonds() async {
+    final result = await _walletPost('/wallet/settle', <String, dynamic>{});
+    return (result['diamondsReleased'] as num?)?.toInt() ?? 0;
   }
 
   @override
