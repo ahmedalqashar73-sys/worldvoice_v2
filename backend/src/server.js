@@ -16,7 +16,7 @@ import { requireLiveEconomy, calculateGiftSettlement, calculatePurchaseCredit } 
 import {registerWalletRoutes} from "./wallet_routes.js";
 import {registerChatRoutes} from "./chat_routes.js";
 import {registerQuizRoutes} from "./quiz_routes.js";
-import {privateWalletRef} from "./private_wallet_schema.js";
+import {privateWalletRef, requirePrivateWalletCutover} from "./private_wallet_schema.js";
 import {chatIdFor, assertChatMembership} from "./chat_membership.js";
 import {reverseVerifiedWebPurchase} from "./payment_reversals.js";
 
@@ -339,15 +339,17 @@ async function creditVerifiedCoins({
   const receiptRef = db.collection("iap_receipts").doc(receiptKey);
   const userRef = db.collection("users").doc(userId);
   const walletRef = privateWalletRef(userRef);
+  const privacyRef = db.doc("economy_global_controls/privacy_migration");
   const configRef = db.doc("economy_config/current");
   const productRef = db.collection("coin_products").doc(catalogId);
   const day = new Date().toISOString().slice(0, 10);
   const dailyRef = userRef.collection("economy_daily").doc(day);
   return db.runTransaction(async tx => {
     // Read all snapshots BEFORE making any transaction write.
-    const [receiptSnap, userSnap, configSnap, productSnap, dailySnap, walletSnap] =
+    const [receiptSnap, userSnap, configSnap, productSnap, dailySnap,
+      walletSnap, privacySnap] =
       await Promise.all([receiptRef, userRef, configRef, productRef, dailyRef,
-        walletRef].map(ref => tx.get(ref)));
+        walletRef, privacyRef].map(ref => tx.get(ref)));
     if (receiptSnap.exists) {
       const receipt = receiptSnap.data() || {};
       if (receipt.userId !== userId || receipt.platform !== platform ||
@@ -369,6 +371,7 @@ async function creditVerifiedCoins({
       throw Object.assign(new Error("User profile unavailable."), {status: 409});
     }
     const policy = requireLiveEconomy(configSnap.data());
+    requirePrivateWalletCutover(privacySnap.data());
     const product = productSnap.data() || {};
     const base = Number(product.coins);
     const priceCents = Math.round(Number(product.priceUsd) * 100);
@@ -720,6 +723,7 @@ app.post("/store/purchase", async (req, res, next) => {
     const operationRef = db.collection("economy_store_operations").doc(refKey);
     const itemRef = db.collection("store_items").doc(itemId);
     const configRef = db.doc("economy_config/current");
+    const privacyRef = db.doc("economy_global_controls/privacy_migration");
     const payerRef = db.collection("users").doc(sender.uid);
     const payerWalletRef = privateWalletRef(payerRef);
     const recipientRef = db.collection("users").doc(recipientId);
@@ -730,11 +734,13 @@ app.post("/store/purchase", async (req, res, next) => {
     const dailyRef = payerRef.collection("economy_daily").doc(day);
     const outcome = await db.runTransaction(async tx => {
       const refs = [operationRef, itemRef, configRef, payerRef, inventoryRef,
-        dailyRef, ...(gifting ? [recipientRef, friendRef] : []), payerWalletRef];
+        dailyRef, ...(gifting ? [recipientRef, friendRef] : []),
+        privacyRef, payerWalletRef];
       const snaps = await Promise.all(refs.map(ref => tx.get(ref)));
       const [existing, itemSnap, configSnap, payerSnap, ownedSnap, dailySnap] =
         snaps;
       const payerWalletSnap = snaps[snaps.length - 1];
+      const privacySnap = snaps[snaps.length - 2];
       if (existing.exists) {
         const old = existing.data() || {};
         if (old.senderId !== sender.uid || old.recipientId !== recipientId ||
@@ -744,6 +750,7 @@ app.post("/store/purchase", async (req, res, next) => {
         return {...old.outcome, alreadyProcessed: true};
       }
       const policy = requireLiveEconomy(configSnap.data());
+      requirePrivateWalletCutover(privacySnap.data());
       const item = itemSnap.data() || {};
       if (!itemSnap.exists || item.active !== true ||
           !["background", "frame", "entrance", "vip"].includes(item.type) ||
@@ -1077,6 +1084,7 @@ app.post("/gift/send", async (req, res, next) => {
     const recipientFollow = context === "chat"
       ? recipientRef.collection("following").doc(sender.uid) : null;
     const configRef = db.collection("economy_config").doc("current");
+    const privacyRef = db.doc("economy_global_controls/privacy_migration");
     const giftEventRef = context === "chat"
       ? roomRef.collection("messages").doc(requestHash)
       : roomRef.collection("gifts").doc(requestHash);
@@ -1087,10 +1095,13 @@ app.post("/gift/send", async (req, res, next) => {
         senderRef, inventoryRef, ...(recipientRef
           ? [recipientMemberRef, recipientRef] : []),
         ...(senderFollow ? [senderFollow, recipientFollow] : []),
-        senderWalletRef, ...(recipientWalletRef ? [recipientWalletRef] : [])];
+        privacyRef, senderWalletRef,
+        ...(recipientWalletRef ? [recipientWalletRef] : [])];
       const snapshots = await Promise.all(refs.map(ref => tx.get(ref)));
       const [existing, configSnap, itemSnap, roomSnap, senderMember,
         senderSnap, freeGiftSnap] = snapshots;
+      const privacySnap = snapshots[snapshots.length -
+        (recipientWalletRef ? 3 : 2)];
       const senderWalletSnap = snapshots[snapshots.length -
         (recipientWalletRef ? 2 : 1)];
       const recipientWalletSnap = recipientWalletRef
@@ -1123,6 +1134,7 @@ app.post("/gift/send", async (req, res, next) => {
         assertChatMembership(roomSnap.data(), sender.uid, recipientId);
       }
       const config = requireLiveEconomy(configSnap.data());
+      requirePrivateWalletCutover(privacySnap.data());
       const item = itemSnap.data();
       const price = Number(item?.priceCoins);
       if (!itemSnap.exists || item.type !== "gift" || item.active !== true ||
