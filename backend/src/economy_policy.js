@@ -7,7 +7,7 @@ const requiredPositive = [
 ];
 const requiredPercent = [
   "receiverSharePercent", "withdrawalFeePercent", "exchangeBonusPercent",
-  "webCardBonusPercent", "firstRechargeBonusPercent", "firstRechargeBonusPercent",
+  "webCardBonusPercent", "firstRechargeBonusPercent",
 ];
 const requiredNonnegativeIntegers = ["holdDays"];
 const requiredPositiveIntegers = [
@@ -16,6 +16,14 @@ const requiredPositiveIntegers = [
 export function requireLiveEconomy(config) {
   if (!config || config.enabled !== true) {
     throw Object.assign(new Error("Economy not enabled."), {status: 503});
+  }
+  // Prevent accidentally activating real-money flows while legacy finance
+  // remains visible on public users/{uid} documents.
+  if (config.walletPrivacyCutoverComplete !== true) {
+    throw Object.assign(
+      new Error("Private wallet security cutover is not verified."),
+      {status: 503},
+    );
   }
   for (const field of requiredPositive) {
     if (typeof config[field] !== "number" ||

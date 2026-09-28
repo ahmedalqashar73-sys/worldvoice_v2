@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {sanitizedPublicProfile, extractPrivateWallet} from "../src/wallet_privacy.js";
+import {sanitizedPublicProfile, extractPrivateWallet,
+  privateSnapshotMatches} from "../src/wallet_privacy.js";
 
 test("public profile projection cannot expose emails, full DOB, city or money", () => {
   const source = {
@@ -26,4 +27,12 @@ test("broken legacy money stops the migration rather than resetting it", () => {
 
 test("new accounts may start with an empty private wallet", () => {
   assert.deepEqual(extractPrivateWallet({displayName: "New"}), {});
+});
+
+test("private migration refuses conflicting balances", () => {
+  assert.equal(privateSnapshotMatches({coins: 10, diamonds: 5},
+    {coins: 10, diamonds: 5}), true);
+  assert.equal(privateSnapshotMatches({coins: 9, diamonds: 5},
+    {coins: 10, diamonds: 5}), false);
+  assert.equal(privateSnapshotMatches({}, {coins: 10}), false);
 });

@@ -23,6 +23,7 @@ const db = getFirestore();
 
 const policy = {
   enabled: false,
+  walletPrivacyCutoverComplete: false,
   coinsPerUsd: null,
   receiverSharePercent: null,
   diamondUsdValue: null,

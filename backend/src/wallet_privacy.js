@@ -55,3 +55,14 @@ export function extractPrivateWallet(raw = {}) {
   }
   return wallet;
 }
+
+/**
+ * Non-destructive migration consistency check. Never overwrite a balance
+ * when a prior staging snapshot no longer matches the legacy source.
+ */
+export function privateSnapshotMatches(existing = {}, projected = {}) {
+  const same = (a, b) =>
+    a?.toMillis && b?.toMillis ? a.toMillis() === b.toMillis() : a === b;
+  return Object.entries(projected).every(([key, value]) =>
+    Object.hasOwn(existing, key) && same(existing[key], value));
+}

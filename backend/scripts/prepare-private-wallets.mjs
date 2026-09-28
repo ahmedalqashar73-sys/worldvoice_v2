@@ -2,7 +2,7 @@
  * Staged, NON-DESTRUCTIVE privacy migration.
  * Dry run: node scripts/prepare-private-wallets.mjs --project YOUR_PROJECT
  * Apply AFTER BACKUP:
- *   node scripts/prepare-private-wallets.mjs --project YOUR_PROJECT --apply --backup-confirmed
+ *   node scripts/prepare-private-wallets.mjs --project YOUR_STAGING_PROJECT --apply --backup-confirmed --staging-confirmed
  *
  * This does NOT remove legacy public financial fields. Keep economy disabled
  * until ALL readers/writers have moved and a frozen final reconciliation
@@ -10,8 +10,8 @@
  */
 import {initializeApp, applicationDefault} from "firebase-admin/app";
 import {FieldPath, FieldValue, getFirestore} from "firebase-admin/firestore";
-import {sanitizedPublicProfile, extractPrivateWallet} from
-  "../src/wallet_privacy.js";
+import {sanitizedPublicProfile, extractPrivateWallet,
+  privateSnapshotMatches} from "../src/wallet_privacy.js";
 
 const args = process.argv.slice(2);
 const projectAt = args.indexOf("--project");
@@ -22,6 +22,9 @@ if (!/^[a-z][a-z0-9-]+$/.test(projectId)) {
 const apply = args.includes("--apply");
 if (apply && !args.includes("--backup-confirmed")) {
   throw new Error("Do not apply without a Firestore backup; pass --backup-confirmed.");
+}
+if (apply && !args.includes("--staging-confirmed")) {
+  throw new Error("Staging-only script: pass --staging-confirmed for a dedicated test project.");
 }
 initializeApp({credential: applicationDefault(), projectId});
 const db = getFirestore();
@@ -60,7 +63,15 @@ do {
         const profile = sanitizedPublicProfile(doc.id, latest.data());
         // Never overwrite a separately updated private wallet or profile.
         // Freeze economic writes and reconcile before cutover.
-        if (privateDoc.exists || publicDoc.exists) return "existing";
+        if (privateDoc.exists !== publicDoc.exists) {
+          throw new Error("Incomplete prior migration: public/private mismatch");
+        }
+        if (privateDoc.exists && publicDoc.exists) {
+          if (!privateSnapshotMatches(privateDoc.data(), financial)) {
+            throw new Error("Private wallet differs from legacy: halt for reconciliation");
+          }
+          return "existing";
+        }
         tx.create(privateRef, {
           ...financial,
           migrationVersion: 1,
