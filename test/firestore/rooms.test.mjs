@@ -58,6 +58,29 @@ test('signed-in room listing works and anonymous access is rejected', async () =
   }
 });
 
+test('economy reads are permitted but client-side money and gifts cannot be forged', async () => {
+  const db = user('listener');
+  for (const name of ['coin_products', 'economy_config', 'store_items']) {
+    await assertSucceeds(getDocs(collection(db, name)));
+    await assertFails(setDoc(doc(db, name + '/fake'), {active: true}));
+  }
+  const profile = doc(db, 'users/listener');
+  await assertSucceeds(setDoc(profile, {uid: 'listener', displayName: 'Guest', coins: 0}));
+  for (const field of ['coins', 'diamonds', 'diamondsPending', 'giftLevel']) {
+    await assertFails(updateDoc(profile, {[field]: 1000000}));
+  }
+  await assertSucceeds(updateDoc(profile, {displayName: 'Guest 2'}));
+  await assertFails(setDoc(doc(db, 'users/new'), {uid: 'new', coins: 500}));
+  for (const name of ['inventory', 'wallet_transactions', 'economy_daily']) {
+    await assertFails(setDoc(doc(db, 'users/listener/' + name + '/fake'), {value: 100}));
+  }
+  await assertFails(setDoc(doc(db, 'rooms/r1/gifts/fake'), {
+    senderId: 'listener', recipientId: 'host', giftId: 'rose',
+    points: 10, createdAt: serverTimestamp()
+  }));
+  await assertFails(setDoc(doc(db, 'economy_gift_operations/fake'), {coins: 100}));
+});
+
 test('host creates room and participant atomically; listener cannot self-promote', async () => {
   const db = user('new');
   const batch = writeBatch(db);
