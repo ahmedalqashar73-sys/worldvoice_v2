@@ -28,6 +28,13 @@ enum RoomMode {
     'Quiz',
     'أسئلة وتنافس داخل الغرفة',
     'Questions and room competition',
+  ),
+  live(
+    Icons.live_tv_outlined,
+    'غرفة مباشرة',
+    'Live room',
+    'غرفة صوتية مباشرة مع مشاركة الشاشة',
+    'Live voice room with screen sharing',
   );
 
   const RoomMode(
