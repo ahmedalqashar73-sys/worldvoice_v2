@@ -9,7 +9,6 @@ import 'package:http/http.dart' as http;
 import 'package:in_app_purchase/in_app_purchase.dart';
 
 import '../data/coin_product_config.dart';
-import '../data/room_backend_config.dart';
 
 class CoinStoreProduct {
   const CoinStoreProduct({
@@ -194,7 +193,11 @@ class RoomCoinPurchaseService extends ChangeNotifier {
     PurchaseDetails purchase,
   ) async {
     final user = FirebaseAuth.instance.currentUser;
-    final endpoint = RoomBackendConfig.endpoint('/iap/verify');
+    const base = String.fromEnvironment('WORLDVOICE_ECONOMY_ENDPOINT');
+    final uri = Uri.tryParse(base);
+    final endpoint = uri == null || uri.scheme != 'https' || !uri.hasAuthority
+        ? ''
+        : '${base.endsWith('/') ? base.substring(0, base.length - 1) : base}/iap/verify';
 
     if (user == null || endpoint.isEmpty) {
       throw StateError(

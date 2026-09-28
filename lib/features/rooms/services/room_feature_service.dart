@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -216,84 +217,85 @@ class RoomFeatureService {
   Stream<QuerySnapshot<Map<String, dynamic>>> watchQuizAnswers() =>
       _room.collection('quiz_answers').snapshots();
 
+  static const String _economyBackend =
+      String.fromEnvironment('WORLDVOICE_ECONOMY_ENDPOINT');
+
+  /// Existing room caller: the backend alone calculates catalog price.
   Future<void> sendGift({
     required String recipientId,
     required String recipientName,
     required String giftId,
     required int points,
+    int quantity = 1,
+    String? requestKey,
+  }) {
+    // Keep legacy UI callers compatible while refusing client-controlled price.
+    assert(points >= 0 && recipientName.isNotEmpty);
+    return sendContextGift(
+      context: 'room', contextId: roomId, recipientId: recipientId,
+      giftId: giftId, quantity: quantity, requestKey: requestKey,
+    );
+  }
+
+  /// Shared by room, real live sessions and real conversations only.
+  /// Unsupported contexts receive a 501 from the backend until membership
+  /// checks and message event streams exist (never simulate a paid success).
+  static Future<void> sendContextGift({
+    required String context,
+    required String contextId,
+    required String recipientId,
+    required String giftId,
+    int quantity = 1,
+    String? requestKey,
   }) async {
-    final user = _user;
-    if (user == null || points <= 0) return;
-    if (recipientId == user.uid) {
-      throw StateError('CANNOT_GIFT_SELF');
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) throw StateError('SIGN_IN_REQUIRED');
+    if (recipientId == user.uid) throw StateError('CANNOT_GIFT_SELF');
+    if (!const {'room', 'live', 'chat'}.contains(context) ||
+        quantity <= 0 || giftId.trim().isEmpty || contextId.trim().isEmpty) {
+      throw StateError('INVALID_GIFT');
     }
+    final uri = Uri.tryParse(_economyBackend.trim().replaceFirst(RegExp(r'/$'), ''));
+    if (uri == null || !uri.hasAuthority || uri.scheme != 'https') {
+      throw StateError('Economy backend unavailable. Gifts are disabled.');
+    }
+    final token = await user.getIdToken();
+    if (token == null || token.isEmpty) {
+      throw StateError('Could not authorize gift request.');
+    }
+    final secureRandom = Random.secure();
+    final key = requestKey ?? List<int>.generate(
+      24, (_) => secureRandom.nextInt(256),
+    ).map((v) => v.toRadixString(16).padLeft(2, '0')).join();
 
-    final visual = await _db.collection('room_gift_catalog').doc(giftId).get();
-    final animationUrl =
-        (visual.data()?['animationUrl'] as String?)?.trim();
-
-    final senderRef = _db.collection('users').doc(user.uid);
-    final recipientRef = recipientId == 'teacher_ai'
-        ? null
-        : _db.collection('users').doc(recipientId);
-    final giftRef = _room.collection('gifts').doc();
-
-    await _db.runTransaction((tx) async {
-      final sender = await tx.get(senderRef);
-      final senderData = sender.data() ?? const <String, dynamic>{};
-      final balance = (senderData['coins'] as num?)?.toInt() ?? 0;
-
-      if (balance < points) {
-        throw StateError('NOT_ENOUGH_COINS');
-      }
-
-      final senderName =
-          (senderData['displayName'] ?? user.displayName ?? 'WorldVoice user')
-              .toString();
-
-      tx.set(
-        senderRef,
-        {
-          'coins': balance - points,
-          'giftSentPoints': FieldValue.increment(points),
-          'giftLevelPoints': FieldValue.increment(points),
-          'lastGiftRoomId': roomId,
-          'lastGiftEventId': giftRef.id,
-          'updatedAt': FieldValue.serverTimestamp(),
-        },
-        SetOptions(merge: true),
-      );
-
-      if (recipientRef != null && recipientId != user.uid) {
-        tx.set(
-          recipientRef,
-          {
-            'giftReceivedPoints': FieldValue.increment(points),
-            'giftLevelPoints': FieldValue.increment(points),
-            'lastGiftRoomId': roomId,
-            'lastGiftEventId': giftRef.id,
-          },
-          SetOptions(merge: true),
-        );
-      }
-
-      tx.set(giftRef, {
-        'senderId': user.uid,
-        'senderName': senderName,
-        'recipientId': recipientId,
-        'recipientName': recipientName,
-        'giftId': giftId,
-        'points': points,
-        if (animationUrl?.isNotEmpty == true)
-          'animationUrl': animationUrl,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-    });
+    final response = await http.post(
+      uri.replace(path: '${uri.path.replaceFirst(RegExp(r"/$"), "")}/gift/send'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+        'Idempotency-Key': key,
+      },
+      body: jsonEncode({
+        'context': context, 'contextId': contextId,
+        'recipientId': recipientId, 'giftId': giftId, 'quantity': quantity,
+      }),
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      String reason = 'Gift could not be sent.';
+      try {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic>) {
+          reason = decoded['error']?.toString() ?? reason;
+        }
+      } catch (_) { /* Keep stable error. */ }
+      throw StateError(reason);
+    }
   }
 
   Stream<List<RoomGiftCatalogItem>> watchGiftCatalog() {
     return _db
-        .collection('room_gift_catalog')
+        .collection('store_items')
+        .where('type', isEqualTo: 'gift')
         .snapshots()
         .map((snapshot) {
       final items = snapshot.docs

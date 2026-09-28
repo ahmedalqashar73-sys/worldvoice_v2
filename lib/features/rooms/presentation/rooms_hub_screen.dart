@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/localization/locale_controller.dart';
+import '../../live/presentation/live_screen.dart';
 import 'voice_rooms_list.dart';
 
 class RoomsHubScreen extends StatefulWidget {
@@ -73,12 +74,15 @@ class _RoomsHubScreenState extends State<RoomsHubScreen> {
             ),
             const SizedBox(height: 8),
             Expanded(
-              child: _section == 0
-                  ? VoiceRoomsList(
-                      languageCode: code,
-                      localeController: widget.localeController,
-                    )
-                  : const SizedBox.expand(),
+              child: switch (_section) {
+                0 => VoiceRoomsList(
+                    languageCode: code,
+                    localeController: widget.localeController),
+                1 => LiveScreen(localeController: widget.localeController),
+                _ => Center(child: Text(code == 'ar'
+                    ? 'هذا القسم قيد الإعداد.'
+                    : 'This section is being prepared.')),
+              },
             ),
           ],
         ),

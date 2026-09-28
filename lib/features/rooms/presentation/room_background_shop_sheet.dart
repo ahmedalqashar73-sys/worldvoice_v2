@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../data/room_shop_models.dart';
 import '../services/room_feature_service.dart';
 import '../services/room_shop_service.dart';
+import 'room_coin_store_sheet.dart';
 
 class RoomBackgroundShopSheet extends StatelessWidget {
   RoomBackgroundShopSheet({
@@ -55,6 +56,33 @@ class RoomBackgroundShopSheet extends StatelessWidget {
               trailing: IconButton(
                 onPressed: () => Navigator.pop(context),
                 icon: const Icon(Icons.close_rounded),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 6,
+                children: [
+                  for (final type in const ['frame', 'entrance', 'vip'])
+                    ActionChip(
+                      avatar: Icon(switch (type) {
+                        'frame' => Icons.crop_free_rounded,
+                        'entrance' => Icons.auto_awesome_rounded,
+                        _ => Icons.workspace_premium_rounded,
+                      }, size: 17),
+                      label: Text(switch (type) {
+                        'frame' => isArabic ? 'الإطارات' : 'Frames',
+                        'entrance' => isArabic ? 'تأثيرات الدخول' : 'Entrance',
+                        _ => 'VIP',
+                      }),
+                      onPressed: () => showModalBottomSheet<void>(
+                        context: context, isScrollControlled: true,
+                        builder: (_) => _OtherStoreTab(
+                          type: type, shop: _shop, isArabic: isArabic),
+                      ),
+                    ),
+                ],
               ),
             ),
             if (!_shop.isConfigured)
@@ -343,5 +371,156 @@ class _BackgroundPlaceholder extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _OtherStoreTab extends StatelessWidget {
+  const _OtherStoreTab({
+    required this.type, required this.shop, required this.isArabic,
+  });
+  final String type;
+  final RoomShopService shop;
+  final bool isArabic;
+
+  Future<void> _pay(BuildContext context, RoomStoreItem item) async {
+    try {
+      await shop.purchaseItem(item.id);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(isArabic ? 'تم الشراء' : 'Purchase complete'),
+        ));
+      }
+    } catch (error) {
+      if (!context.mounted) return;
+      if (error.toString().contains('NOT_ENOUGH_COINS')) {
+        await showModalBottomSheet<void>(
+          context: context, isScrollControlled: true,
+          builder: (_) => const RoomCoinStoreSheet(),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(error.toString()),
+        ));
+      }
+    }
+  }
+
+  Future<void> _gift(BuildContext context, RoomStoreItem item) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    final contacts = await FirebaseFirestore.instance.collection('users')
+        .doc(user.uid).collection('following').get();
+    if (!context.mounted) return;
+    final toId = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => SimpleDialog(
+        title: Text(isArabic ? 'اختر صديقًا' : 'Choose a friend'),
+        children: contacts.docs.isEmpty
+          ? [Padding(padding: const EdgeInsets.all(18),
+              child: Text(isArabic ? 'لا يوجد أصدقاء' : 'No friends found'))]
+          : contacts.docs.map((contact) => SimpleDialogOption(
+              onPressed: () => Navigator.pop(dialogContext, contact.id),
+              child: Text(contact.data()['displayName']?.toString()
+                  ?? contact.id),
+            )).toList(),
+      ),
+    );
+    if (toId == null || !context.mounted) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(isArabic ? 'تأكيد الإهداء' : 'Confirm gift'),
+        content: Text('${item.name} • ${item.priceCoins} Coins'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(isArabic ? 'إلغاء' : 'Cancel')),
+          FilledButton(onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(isArabic ? 'إهداء' : 'Gift')),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    try {
+      await shop.giftItem(itemId: item.id, recipientId: toId);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(isArabic ? 'تم إرسال الإهداء' : 'Gift delivered')),
+        );
+      }
+    } catch (error) {
+      if (!context.mounted) return;
+      if (error.toString().contains('NOT_ENOUGH_COINS')) {
+        await showModalBottomSheet<void>(
+          context: context, isScrollControlled: true,
+          builder: (_) => const RoomCoinStoreSheet(),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.toString())),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(child: SizedBox(
+      height: MediaQuery.sizeOf(context).height * .72,
+      child: Column(children: [
+        ListTile(title: Text(switch (type) {
+          'frame' => isArabic ? 'الإطارات' : 'Frames',
+          'entrance' => isArabic ? 'تأثيرات الدخول' : 'Entrance effects',
+          _ => 'VIP',
+        }), trailing: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.close_rounded),
+        )),
+        Expanded(child: StreamBuilder<List<RoomStoreItem>>(
+          stream: shop.watchStoreItems(type),
+          builder: (context, snapshot) {
+            final items = snapshot.data ?? const <RoomStoreItem>[];
+            if (snapshot.hasError) {
+              return Center(child: Text(
+                isArabic ? 'تعذر تحميل المتجر' : 'Store unavailable',
+              ));
+            }
+            if (items.isEmpty) {
+              return Center(child: Text(
+                isArabic ? 'لا توجد عناصر مفعلة' : 'No active items',
+              ));
+            }
+            return ListView.separated(
+              padding: const EdgeInsets.all(10),
+              itemCount: items.length,
+              separatorBuilder: (_, _) => const SizedBox(height: 8),
+              itemBuilder: (context, i) {
+                final item = items[i];
+                return Card(child: ListTile(
+                  leading: Icon(switch (item.type) {
+                    'frame' => Icons.crop_free_rounded,
+                    'entrance' => Icons.auto_awesome_rounded,
+                    _ => Icons.workspace_premium_rounded,
+                  }),
+                  title: Text(item.name),
+                  subtitle: Text('${item.priceCoins} Coins • ${item.durationDays == null ? (isArabic ? 'دائم' : 'Permanent') : "${item.durationDays} days"}'),
+                  trailing: Wrap(spacing: 4, children: [
+                    if (type != 'vip') IconButton(
+                      tooltip: isArabic ? 'شراء' : 'Buy',
+                      onPressed: shop.isConfigured ? () => _pay(context, item) : null,
+                      icon: const Icon(Icons.shopping_bag_outlined),
+                    ),
+                    IconButton(
+                      tooltip: isArabic ? 'إهداء' : 'Gift',
+                      onPressed: shop.isConfigured ? () => _gift(context, item) : null,
+                      icon: const Icon(Icons.card_giftcard_outlined),
+                    ),
+                  ]),
+                ));
+              },
+            );
+          },
+        )),
+      ]),
+    ));
   }
 }
