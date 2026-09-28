@@ -1035,11 +1035,15 @@ app.post("/gift/send", async (req, res, next) => {
         !/^[A-Za-z0-9_-]{12,100}$/.test(requestKey)) {
       return res.status(400).json({error: "Invalid gift request or idempotency key."});
     }
-    // Live and chat lack completed server-verified participant ACLs for now.
-    if (context !== "room") {
+    // Live is blocked until the broadcaster has a server-verified media
+    // session. A client may not create a fake live room to launder funds.
+    if (context === "live") {
       return res.status(501).json({
-        error: "Gifting in this context is not yet safely available.",
+        error: "Live gifting requires a verified live-media session.",
       });
+    }
+    if (context === "chat" && recipientId === "teacher_ai") {
+      return res.status(400).json({error: "Teacher AI gifts are room-only."});
     }
     const requestHash = createHash("sha256")
       .update(`${sender.uid}:${requestKey}`).digest("hex");
@@ -1050,10 +1054,16 @@ app.post("/gift/send", async (req, res, next) => {
     const inventoryRef = senderRef.collection("inventory")
       .doc(`gift__${giftId}`);
     const itemRef = db.collection("store_items").doc(`gift__${giftId}`);
-    const roomRef = db.collection("rooms").doc(contextId);
-    const senderMemberRef = roomRef.collection("participants").doc(sender.uid);
+    const roomRef = db.collection(
+      context === "room" ? "rooms" : "conversations",
+    ).doc(contextId);
+    // In accepted conversations, the container itself is the authenticated
+    // membership authority. Rooms retain their participant ACLs unchanged.
+    const senderMemberRef = context === "room"
+      ? roomRef.collection("participants").doc(sender.uid) : roomRef;
     const recipientMemberRef = recipientRef
-      ? roomRef.collection("participants").doc(recipientId) : null;
+      ? (context === "room"
+        ? roomRef.collection("participants").doc(recipientId) : roomRef) : null;
     const configRef = db.collection("economy_config").doc("current");
     const giftEventRef = roomRef.collection("gifts").doc(requestHash);
 
@@ -1075,9 +1085,21 @@ app.post("/gift/send", async (req, res, next) => {
         }
         return {...data.outcome, alreadyProcessed: true};
       }
-      if (roomSnap.data()?.isOpen !== true || !senderMember.exists ||
-          (recipientMemberRef && !snapshots[7].exists)) {
-        throw Object.assign(new Error("Room membership is required."), {status: 403});
+      const acceptedChat = context === "chat" &&
+        roomSnap.data()?.status === "active" &&
+        Array.isArray(roomSnap.data()?.members) &&
+        roomSnap.data().members.length === 2 &&
+        roomSnap.data().members.includes(sender.uid) &&
+        roomSnap.data().members.includes(recipientId) &&
+        Array.isArray(roomSnap.data()?.acceptedBy) &&
+        roomSnap.data().acceptedBy.includes(sender.uid) &&
+        roomSnap.data().acceptedBy.includes(recipientId);
+      if (context === "room"
+        ? (roomSnap.data()?.isOpen !== true || !senderMember.exists ||
+            (recipientMemberRef && !snapshots[7].exists))
+        : !acceptedChat) {
+        throw Object.assign(new Error("Verified context membership is required."),
+          {status: 403});
       }
       const config = requireLiveEconomy(configSnap.data());
       const item = itemSnap.data();
@@ -1110,8 +1132,8 @@ app.post("/gift/send", async (req, res, next) => {
       }
       const after = balance - amounts.chargedCoins;
       const roomXp = Number(roomSnap.data()?.roomXp || 0);
-      if (recipientId === "teacher_ai" && !Number.isSafeInteger(roomXp +
-          amounts.giftLevelPoints)) {
+      if (context === "room" && recipientId === "teacher_ai" &&
+          !Number.isSafeInteger(roomXp + amounts.giftLevelPoints)) {
         throw Object.assign(new Error("Room XP exceeds safe limits."), {status: 400});
       }
       // Server-enforced sender daily spend limit. Not configured => stop.
