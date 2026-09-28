@@ -6,6 +6,9 @@ import '../../../core/localization/locale_controller.dart';
 import '../../live/presentation/live_screen.dart';
 import '../../learn/presentation/learn_screen.dart';
 import '../services/room_teacher_ai_service.dart';
+import '../services/agora_voice_room_controller.dart';
+import '../data/room_mode.dart';
+import 'agora_voice_room_screen.dart';
 import 'room_teacher_ai_sheet.dart';
 import 'voice_rooms_list.dart';
 
@@ -192,10 +195,37 @@ class _TeacherAiHub extends StatelessWidget {
       final room = await roomRef.get();
       final participant = await roomRef.collection('participants').doc(user.uid).get();
       if (!context.mounted) return;
-      if (room.data()?['isOpen'] != true || !participant.exists) {
+      if (room.data()?['isOpen'] != true) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(_ar ? 'ادخل الغرفة المفتوحة أولاً لاستخدام أستاذ AI.'
-              : 'Join the open room first to use Teacher AI.'),
+          content: Text(_ar ? 'الغرفة مغلقة. اختر غرفة مفتوحة من الأسفل.'
+              : 'That room is closed. Pick an open room below.'),
+        ));
+        return;
+      }
+      final roomData = room.data() ?? const <String, dynamic>{};
+      if (!participant.exists) {
+        if (roomData['isPrivate'] == true) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(_ar ? 'ادخل الغرفة الخاصة باستخدام الكود أولاً.'
+                : 'Join that private room with its access code first.'),
+          ));
+          return;
+        }
+        await Navigator.of(context).push<void>(MaterialPageRoute(
+          builder: (_) => AgoraVoiceRoomScreen(
+            channelId: roomId,
+            roomName: (roomData['name'] ?? 'WorldVoice Room').toString(),
+            roomLanguageCode:
+                (roomData['languageCode'] ?? languageCode).toString(),
+            initialShowTeacherAiSeat: roomData['showTeacherAiSeat'] == true,
+            initialMode: RoomMode.values.firstWhere(
+              (mode) => mode.name == roomData['mode']?.toString(),
+              orElse: () => RoomMode.chat,
+            ),
+            initialRole: AgoraRoomRole.listener,
+            openTeacherAiOnJoin: true,
+            localeController: localeController,
+          ),
         ));
         return;
       }
@@ -235,8 +265,8 @@ class _TeacherAiHub extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(18, 8, 18, 8),
           child: Text(
             _ar
-                ? 'أستاذ AI مرتبط بالغرف الصوتية. افتح غرفة أنت عضو فيها أو ادخل غرفة من القائمة.'
-                : 'Teacher AI works inside voice rooms. Open a room you are in, or join one below.',
+                ? 'أستاذ AI مرتبط بالغرف الصوتية. اختر غرفة وسيفتح بعد دخولك.'
+                : 'Teacher AI works inside voice rooms. Pick a room below and AI opens after joining.',
           ),
         ),
         if (user != null)
@@ -290,6 +320,7 @@ class _TeacherAiHub extends StatelessWidget {
           child: VoiceRoomsList(
             languageCode: languageCode,
             searchQuery: searchQuery,
+            openTeacherAiOnJoin: true,
             localeController: localeController,
           ),
         ),
