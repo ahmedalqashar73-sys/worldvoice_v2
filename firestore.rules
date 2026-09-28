@@ -665,14 +665,37 @@ service cloud.firestore {
             || (isRoomMember(roomId) && resource.data.userId == request.auth.uid);
       }
 
+      // Correct answers for server-created rounds are never exposed to
+      // clients, including the room host. Admin SDK alone writes these.
+      match /quiz_private/{quizId} {
+        allow read, write: if false;
+      }
+
       match /quiz_answers/{userId} {
         allow read: if isRoomMember(roomId);
-        allow create, update: if isRoomMember(roomId)
+        // Exactly one answer per participant per round, with a trusted
+        // server timestamp and the currently published round identifier.
+        allow create: if isRoomMember(roomId)
             && userId == request.auth.uid
+            && request.resource.data.keys().hasOnly([
+              'userId', 'roundId', 'displayName', 'optionIndex', 'answeredAt'
+            ])
             && request.resource.data.userId == request.auth.uid
-            && get(roomPath(roomId)).data.quiz.revealed != true;
+            && request.resource.data.displayName is string
+            && request.resource.data.displayName.size() <= 100
+            && request.resource.data.optionIndex is int
+            && request.resource.data.optionIndex >= 0
+            && request.resource.data.optionIndex <
+                get(roomPath(roomId)).data.quiz.options.size()
+            && request.resource.data.answeredAt == request.time
+            && request.resource.data.get('roundId', '') ==
+                get(roomPath(roomId)).data.quiz.get('roundId', '')
+            && get(roomPath(roomId)).data.quiz.revealed == false;
+        allow update: if false;
+        // The host may reset old local-practice votes. For verified rounds,
+        // only the server can clean votes between questions.
         allow delete: if isHost(roomId)
-            || (isRoomMember(roomId) && userId == request.auth.uid);
+            && get(roomPath(roomId)).data.quiz.get('roundId', '') == '';
       }
 
       match /gifts/{giftId} {
