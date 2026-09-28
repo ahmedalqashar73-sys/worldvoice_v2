@@ -154,7 +154,7 @@ export function registerEconomyRoutes(app, { db, authenticatedUser }) {
           // A gift extends a currently active VIP period.
           const until = Timestamp.fromMillis(base + ttl * 24 * 60 * 60 * 1000);
           tx.set(ownerRef, {
-            vipUntil:until, updatedAt:FieldValue.serverTimestamp()
+            vipUntil:until, isVip:true, updatedAt:FieldValue.serverTimestamp()
           }, { merge:true });
         }
         tx.set(dayRef, {storeCoinsSpent:dailyCoins+cost,
