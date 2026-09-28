@@ -27,3 +27,24 @@ test("broken legacy money stops the migration rather than resetting it", () => {
 test("new accounts may start with an empty private wallet", () => {
   assert.deepEqual(extractPrivateWallet({displayName: "New"}), {});
 });
+
+
+test("private wallet retains gift-level finance metadata", () => {
+  const input = {displayName: "Public", giftLevelPoints: 44,
+    lastGiftRoomId: "room01", lastGiftEventId: "gift01"};
+  assert.deepEqual(extractPrivateWallet(input), {
+    giftLevelPoints: 44, lastGiftRoomId: "room01", lastGiftEventId: "gift01",
+  });
+  assert.equal("giftLevelPoints" in sanitizedPublicProfile("u", input), false);
+  assert.throws(() => extractPrivateWallet({giftLevelPoints: -1}), /Invalid legacy/);
+});
+
+test("unknown private, identifying and banking fields never enter public profile", () => {
+  const profile = sanitizedPublicProfile("u", {
+    displayName: "Speaker", coins: 123, diamonds: 8,
+    identityVerified: true, city: "Private", birthDate: "1980-01-01",
+    bankIban: "SECRET", phoneNumber: "SECRET", email: "secret@example.com",
+    customFinanceRate: 0.13,
+  });
+  assert.deepEqual(profile, {uid: "u", displayName: "Speaker"});
+});
