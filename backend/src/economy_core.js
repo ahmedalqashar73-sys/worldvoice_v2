@@ -4,6 +4,8 @@ const requiredRates = [
   "coinsPerUsd", "receiverSharePercent", "diamondUsdValue",
   "withdrawalFeePercent", "minWithdrawalDiamonds", "holdDays",
   "giftLevelPointsPerCoin", "exchangeBonusPercent",
+  "minExchangeDiamonds", "cardBonusPercent", "firstRechargeBonusPercent",
+  "dailySendLimitCoins", "dailyPurchaseLimitUsd", "withdrawalWindowDays",
 ];
 const int = (n) => typeof n === "number" && Number.isSafeInteger(n);
 const positive = (n) => typeof n === "number" && Number.isFinite(n) && n > 0;
