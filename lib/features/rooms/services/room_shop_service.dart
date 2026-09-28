@@ -82,7 +82,7 @@ class RoomShopService {
       body: {
         'itemId': itemId,
         'requestId': _db.collection('_nonce').doc().id,
-        if (recipientId != null) 'recipientId': recipientId,
+        'recipientId': recipientId,
       },
     );
   }
