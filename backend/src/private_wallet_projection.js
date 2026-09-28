@@ -62,3 +62,17 @@ export function projectPublicProfile(uid, legacy = {}) {
   }
   return publicData;
 }
+
+/// Only truly fresh, zero-balance signup profiles may initialize a blank
+/// wallet themselves via the authenticated backend. Existing balances, holds,
+/// fraud flags or purchases MUST be processed by the audited migration.
+export function canBootstrapZeroWallet(legacy = {}) {
+  if (!legacy || typeof legacy !== "object") return false;
+  if ((legacy.coins !== undefined && legacy.coins !== 0) ||
+      (legacy.diamonds !== undefined && legacy.diamonds !== 0)) {
+    return false;
+  }
+  return PRIVATE_WALLET_FIELDS
+      .filter(field => field !== "coins" && field !== "diamonds")
+      .every(field => !Object.prototype.hasOwnProperty.call(legacy, field));
+}
