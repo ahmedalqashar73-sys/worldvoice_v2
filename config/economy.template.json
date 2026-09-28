@@ -1,0 +1,85 @@
+{
+  "economy_config": {
+    "enabled": false,
+    "coinsPerUsd": null,
+    "receiverSharePercent": null,
+    "diamondUsdValue": null,
+    "withdrawalFeePercent": null,
+    "minWithdrawalDiamonds": null,
+    "holdDays": null,
+    "giftLevelPointsPerCoin": 1,
+    "exchangeBonusPercent": 10,
+    "minExchangeDiamonds": 100,
+    "cardBonusPercent": 10,
+    "firstRechargeBonusPercent": null,
+    "dailySendLimitCoins": null,
+    "dailyPurchaseLimitUsd": null,
+    "withdrawalWindowDays": null,
+    "quizFirstPrizeCoins": 5
+  },
+  "coin_products": [
+    {
+      "id": "pack_1",
+      "priceUsd": null,
+      "coins": null,
+      "androidProductId": "",
+      "iosProductId": "",
+      "webPriceId": "",
+      "active": false
+    },
+    {
+      "id": "pack_2",
+      "priceUsd": null,
+      "coins": null,
+      "androidProductId": "",
+      "iosProductId": "",
+      "webPriceId": "",
+      "active": false
+    },
+    {
+      "id": "pack_3",
+      "priceUsd": null,
+      "coins": null,
+      "androidProductId": "",
+      "iosProductId": "",
+      "webPriceId": "",
+      "active": false
+    },
+    {
+      "id": "pack_4",
+      "priceUsd": null,
+      "coins": null,
+      "androidProductId": "",
+      "iosProductId": "",
+      "webPriceId": "",
+      "active": false
+    },
+    {
+      "id": "pack_5",
+      "priceUsd": null,
+      "coins": null,
+      "androidProductId": "",
+      "iosProductId": "",
+      "webPriceId": "",
+      "active": false
+    },
+    {
+      "id": "pack_6",
+      "priceUsd": null,
+      "coins": null,
+      "androidProductId": "",
+      "iosProductId": "",
+      "webPriceId": "",
+      "active": false
+    },
+    {
+      "id": "pack_7",
+      "priceUsd": null,
+      "coins": null,
+      "androidProductId": "",
+      "iosProductId": "",
+      "webPriceId": "",
+      "active": false
+    }
+  ]
+}

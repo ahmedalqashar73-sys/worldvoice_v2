@@ -216,84 +216,51 @@ class RoomFeatureService {
   Stream<QuerySnapshot<Map<String, dynamic>>> watchQuizAnswers() =>
       _room.collection('quiz_answers').snapshots();
 
+  // Security: only the authenticated server may price, debit or mint gifts.
+  // The points argument remains temporarily for compatibility with room UI;
+  // it is deliberately ignored and never sent as an authoritative price.
   Future<void> sendGift({
     required String recipientId,
     required String recipientName,
     required String giftId,
     required int points,
+    String context = 'room',
+    String? contextId,
+    int quantity = 1,
   }) async {
     final user = _user;
-    if (user == null || points <= 0) return;
-    if (recipientId == user.uid) {
-      throw StateError('CANNOT_GIFT_SELF');
+    if (user == null) throw StateError('SIGN_IN_REQUIRED');
+    final url = RoomBackendConfig.endpoint('/gift/send');
+    if (url.isEmpty) throw StateError('ECONOMY_BACKEND_NOT_CONFIGURED');
+    final token = await user.getIdToken();
+    if (token == null || token.isEmpty) throw StateError('SIGN_IN_REQUIRED');
+    final response = await http.post(Uri.parse(url), headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    }, body: jsonEncode({
+      'context': context,
+      'contextId': contextId ?? roomId,
+      'recipientId': recipientId,
+      'giftId': giftId,
+      'quantity': quantity,
+      'requestId': _db.collection('_nonce').doc().id,
+    }));
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      String error = 'GIFT_SEND_FAILED';
+      try {
+        final body = jsonDecode(response.body);
+        if (body is Map<String, dynamic>) {
+          error = body['error']?.toString() ?? error;
+        }
+      } catch (_) {}
+      throw StateError(error);
     }
-
-    final visual = await _db.collection('room_gift_catalog').doc(giftId).get();
-    final animationUrl =
-        (visual.data()?['animationUrl'] as String?)?.trim();
-
-    final senderRef = _db.collection('users').doc(user.uid);
-    final recipientRef = recipientId == 'teacher_ai'
-        ? null
-        : _db.collection('users').doc(recipientId);
-    final giftRef = _room.collection('gifts').doc();
-
-    await _db.runTransaction((tx) async {
-      final sender = await tx.get(senderRef);
-      final senderData = sender.data() ?? const <String, dynamic>{};
-      final balance = (senderData['coins'] as num?)?.toInt() ?? 0;
-
-      if (balance < points) {
-        throw StateError('NOT_ENOUGH_COINS');
-      }
-
-      final senderName =
-          (senderData['displayName'] ?? user.displayName ?? 'WorldVoice user')
-              .toString();
-
-      tx.set(
-        senderRef,
-        {
-          'coins': balance - points,
-          'giftSentPoints': FieldValue.increment(points),
-          'giftLevelPoints': FieldValue.increment(points),
-          'lastGiftRoomId': roomId,
-          'lastGiftEventId': giftRef.id,
-          'updatedAt': FieldValue.serverTimestamp(),
-        },
-        SetOptions(merge: true),
-      );
-
-      if (recipientRef != null && recipientId != user.uid) {
-        tx.set(
-          recipientRef,
-          {
-            'giftReceivedPoints': FieldValue.increment(points),
-            'giftLevelPoints': FieldValue.increment(points),
-            'lastGiftRoomId': roomId,
-            'lastGiftEventId': giftRef.id,
-          },
-          SetOptions(merge: true),
-        );
-      }
-
-      tx.set(giftRef, {
-        'senderId': user.uid,
-        'senderName': senderName,
-        'recipientId': recipientId,
-        'recipientName': recipientName,
-        'giftId': giftId,
-        'points': points,
-        if (animationUrl?.isNotEmpty == true)
-          'animationUrl': animationUrl,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-    });
   }
 
   Stream<List<RoomGiftCatalogItem>> watchGiftCatalog() {
     return _db
-        .collection('room_gift_catalog')
+        .collection('store_items')
+        .where('type', isEqualTo: 'gift')
         .snapshots()
         .map((snapshot) {
       final items = snapshot.docs

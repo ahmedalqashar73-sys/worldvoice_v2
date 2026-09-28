@@ -6,6 +6,7 @@ on:
       - fix/free-worker-always-available-agora-20260927
       - fix/green-room-chat-stage-hand-preview-20260927
       - fix/firestore-captions-permission-20260927
+      - feat/unified-economy-ledger-20260928
 jobs:
   flutter-analyze:
     runs-on: ubuntu-latest
@@ -49,3 +50,19 @@ jobs:
       - name: Run isolated Firestore security rule regression tests
         working-directory: test/firestore
         run: npx firebase emulators:exec --config ../../firebase.rules-test.json --only firestore --project demo-worldvoice-rules "npm test"
+
+  economy-backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm install --no-audit --no-fund
+      - run: node --check src/server.js
+      - run: node --check src/economy_routes.js
+      - run: node --check src/stripe_checkout.js
+      - run: node --test test/*.test.mjs

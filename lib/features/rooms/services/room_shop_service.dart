@@ -25,7 +25,7 @@ class RoomShopService {
 
   Stream<List<RoomShopBackground>> watchBackgrounds() {
     return _db
-        .collection('room_shop_items')
+        .collection('store_items')
         .where('type', isEqualTo: 'background')
         .snapshots()
         .map(
@@ -45,7 +45,8 @@ class RoomShopService {
     return _db
         .collection('users')
         .doc(user.uid)
-        .collection('room_backgrounds')
+        .collection('inventory')
+        .where('type', isEqualTo: 'background')
         .snapshots()
         .map(
           (snapshot) => snapshot.docs
@@ -75,10 +76,14 @@ class RoomShopService {
         );
   }
 
-  Future<void> purchaseBackground(String itemId) {
+  Future<void> purchaseBackground(String itemId, {String? recipientId}) {
     return _post(
       action: 'purchase',
-      body: {'itemId': itemId},
+      body: {
+        'itemId': itemId,
+        'requestId': _db.collection('_nonce').doc().id,
+        'recipientId': recipientId,
+      },
     );
   }
 

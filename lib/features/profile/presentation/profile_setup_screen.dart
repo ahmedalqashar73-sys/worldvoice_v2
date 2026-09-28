@@ -377,15 +377,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             'profileCompleted':true,
             if(!widget.editMode) 'followersCount':0,
             if(!widget.editMode) 'followingCount':0,
-            if(!widget.editMode) 'isVip':false,
-            if(!widget.editMode) 'coins':0,
-            if(!widget.editMode) 'diamonds':0,
-            if(!widget.editMode) 'giftLevel':0,
-            if(!widget.editMode) 'giftLevelPoints':0,
-            if(!widget.editMode) 'giftSentPoints':0,
-            if(!widget.editMode) 'giftReceivedPoints':0,
-            if(!widget.editMode) 'isPartner':false,
-            if(!widget.editMode) 'isVerified':false,
             'updatedAt':FieldValue.serverTimestamp(),
             if(!widget.editMode) 'createdAt':FieldValue.serverTimestamp(),
           },
@@ -650,3 +641,4 @@ const Map<String,Map<String,String>> _countryNames={
 'th':{"Yemen":"เยเมน","Saudi Arabia":"ซาอุดีอาระเบีย","United Arab Emirates":"สหรัฐอาหรับเอมิเรตส์","Egypt":"อียิปต์","Germany":"เยอรมนี","United States":"สหรัฐอเมริกา","United Kingdom":"สหราชอาณาจักร"},
 'hi':{"Yemen":"यमन","Saudi Arabia":"सऊदी अरब","United Arab Emirates":"संयुक्त अरब अमीरात","Egypt":"मिस्र","Germany":"जर्मनी","United States":"संयुक्त राज्य अमेरिका","United Kingdom":"यूनाइटेड किंगडम"},
 };
+

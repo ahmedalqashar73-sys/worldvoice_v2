@@ -11,6 +11,9 @@ import { getAuth } from "firebase-admin/auth";
 import { FieldValue, Timestamp, getFirestore } from "firebase-admin/firestore";
 import { google } from "googleapis";
 import OpenAI from "openai";
+import { registerEconomyRoutes } from "./economy_routes.js";
+import { registerStripeWebhook, registerStripeCheckout } from "./stripe_checkout.js";
+import { validateEconomy, coinCredit, positiveBalance, economyError } from "./economy_core.js";
 
 const { RtcRole, RtcTokenBuilder } = agoraToken;
 
@@ -41,6 +44,7 @@ const db = getFirestore();
 
 const app = express();
 app.disable("x-powered-by");
+registerStripeWebhook(app, db);
 app.use(express.json({ limit: "32kb" }));
 
 const port = Number(process.env.PORT || 8080);
@@ -163,9 +167,13 @@ async function coinProductFor(platform, productId) {
     throw error;
   }
 
+  const priceUsd = Number(product.priceUsd);
+  if (!Number.isFinite(priceUsd) || priceUsd <= 0)
+    throw economyError("coin_products priceUsd must be configured.", 503);
   return {
     catalogId: snapshot.docs[0].id,
     coins,
+    priceUsd,
   };
 }
 
@@ -243,60 +251,61 @@ async function fetchAppleTransaction(transactionId, environmentHint) {
 }
 
 async function creditVerifiedCoins({
-  userId,
-  platform,
-  receiptId,
-  productId,
-  catalogId,
-  coins,
-  purchasedAt,
+  userId, platform, receiptId, productId, catalogId, coins,
+  priceUsd, purchasedAt,
 }) {
   const receiptKey = createHash("sha256")
-    .update(`${platform}:${receiptId}`)
-    .digest("hex");
+    .update(platform + ":" + receiptId).digest("hex");
   const receiptRef = db.collection("iap_receipts").doc(receiptKey);
   const userRef = db.collection("users").doc(userId);
-
+  const dayKey = new Date().toISOString().slice(0, 10);
+  const dailyRef = userRef.collection("economy_daily").doc(dayKey);
+  const configRef = db.collection("economy_config").doc("global");
+  const ledgerRef = db.collection("wallet_transactions").doc("iap_" + receiptKey);
   return db.runTransaction(async (tx) => {
-    const receiptSnap = await tx.get(receiptRef);
-    if (receiptSnap.exists) {
-      const existing = receiptSnap.data() || {};
-      if (existing.userId !== userId) {
-        const error = new Error("This store receipt was already used.");
-        error.status = 409;
-        throw error;
-      }
-      return {
-        alreadyCredited: true,
-        coins: Number(existing.coins || coins),
-      };
+    const old = await tx.get(receiptRef);
+    if (old.exists) {
+      const value = old.data() || {};
+      if (value.userId !== userId)
+        throw economyError("This receipt was used by another account.", 409);
+      if (value.refundedAt || value.chargebackAt)
+        throw economyError("This receipt was refunded or disputed.", 409);
+      return { alreadyCredited:true, coins:Number(value.coins) };
     }
-
-    tx.set(
-      userRef,
-      {
-        coins: FieldValue.increment(coins),
-        purchasedCoins: FieldValue.increment(coins),
-        updatedAt: FieldValue.serverTimestamp(),
-      },
-      { merge: true },
-    );
-
-    tx.set(receiptRef, {
-      userId,
-      platform,
-      receiptId,
-      productId,
-      catalogId,
-      coins,
-      purchasedAt: purchasedAt || null,
-      creditedAt: FieldValue.serverTimestamp(),
+    const [user, today, settings] = await Promise.all([
+      tx.get(userRef), tx.get(dailyRef), tx.get(configRef)
+    ]);
+    const cfg = validateEconomy(settings.data());
+    const previousUsd = Number(today.data()?.purchasedUsd || 0);
+    if (!Number.isFinite(previousUsd) || previousUsd + priceUsd >
+        cfg.dailyPurchaseLimitUsd)
+      throw economyError("DAILY_PURCHASE_LIMIT", 429);
+    const userData = user.data() || {};
+    const before = positiveBalance(userData.coins);
+    const firstRecharge = positiveBalance(userData.purchasedCoins) === 0;
+    const result = coinCredit(cfg, coins, { firstRecharge });
+    const after = before + result.coins;
+    if (!Number.isSafeInteger(after)) throw economyError("Wallet overflow.", 503);
+    tx.set(userRef, {
+      coins:after, purchasedCoins:positiveBalance(userData.purchasedCoins) + coins,
+      updatedAt:FieldValue.serverTimestamp(),
+    }, { merge:true });
+    tx.set(dailyRef, {purchasedUsd:previousUsd + priceUsd,
+      updatedAt:FieldValue.serverTimestamp()}, {merge:true});
+    tx.create(receiptRef, {
+      userId, platform, receiptId, productId, catalogId,
+      coins:result.coins, baseCoins:coins, bonusCoins:result.firstBonus,
+      priceUsd, purchasedAt:purchasedAt || null,
+      creditedAt:FieldValue.serverTimestamp(), status:"credited",
     });
-
-    return {
-      alreadyCredited: false,
-      coins,
-    };
+    tx.create(ledgerRef, {
+      userId, type:"iap_purchase", currency:"coins", amount:result.coins,
+      balanceBefore:before, balanceAfter:after, source:platform,
+      refId:receiptRef.id,
+      metadata:{catalogId, baseCoins:coins, bonusCoins:result.firstBonus},
+      createdAt:FieldValue.serverTimestamp(),
+    });
+    return { alreadyCredited:false, coins:result.coins };
   });
 }
 
@@ -555,126 +564,10 @@ app.post("/teacher-ai/ask", async (req, res, next) => {
   }
 });
 
-app.post("/store/purchase", async (req, res, next) => {
-  try {
-    const user = await authenticatedUser(req);
-    const itemId = String(req.body?.itemId || "").trim();
-
-    if (!itemId) {
-      return res.status(400).json({ error: "itemId is required." });
-    }
-
-    const itemRef = db.collection("room_shop_items").doc(itemId);
-    const userRef = db.collection("users").doc(user.uid);
-
-    const result = await db.runTransaction(async (tx) => {
-      const itemSnap = await tx.get(itemRef);
-      if (!itemSnap.exists) {
-        const error = new Error("Store item not found.");
-        error.status = 404;
-        throw error;
-      }
-
-      const item = itemSnap.data() || {};
-      if (item.active !== true || item.type !== "background") {
-        const error = new Error("This background is not available.");
-        error.status = 409;
-        throw error;
-      }
-
-      const themeId = String(item.themeId || itemId).trim();
-      const name = String(item.name || "WorldVoice Background").trim();
-      const backgroundUrl = String(item.previewUrl || "").trim();
-      const priceCoins = Number(item.priceCoins);
-      const durationDays =
-        item.durationDays == null ? null : Number(item.durationDays);
-
-      if (
-        !themeId ||
-        !Number.isInteger(priceCoins) ||
-        priceCoins < 0 ||
-        (durationDays != null &&
-          (!Number.isInteger(durationDays) || durationDays <= 0))
-      ) {
-        const error = new Error("Store item configuration is invalid.");
-        error.status = 500;
-        throw error;
-      }
-
-      const entitlementRef = userRef
-        .collection("room_backgrounds")
-        .doc(themeId);
-
-      const [userSnap, entitlementSnap] = await Promise.all([
-        tx.get(userRef),
-        tx.get(entitlementRef),
-      ]);
-
-      const existing = entitlementSnap.data() || {};
-      const existingExpiry = existing.expiresAt?.toDate?.() || null;
-      const alreadyActive =
-        entitlementSnap.exists &&
-        (existingExpiry == null || existingExpiry.getTime() > Date.now());
-
-      if (alreadyActive) {
-        return {
-          themeId,
-          alreadyOwned: true,
-          balance: Number(userSnap.data()?.coins || 0),
-        };
-      }
-
-      const userData = userSnap.data() || {};
-      const balance = Number(userData.coins || 0);
-      if (!Number.isInteger(balance) || balance < priceCoins) {
-        const error = new Error("NOT_ENOUGH_COINS");
-        error.status = 409;
-        throw error;
-      }
-
-      const expiresAt =
-        durationDays == null
-          ? null
-          : Timestamp.fromMillis(
-              Date.now() + durationDays * 24 * 60 * 60 * 1000,
-            );
-
-      tx.set(
-        userRef,
-        {
-          coins: balance - priceCoins,
-          updatedAt: FieldValue.serverTimestamp(),
-        },
-        { merge: true },
-      );
-
-      tx.set(
-        entitlementRef,
-        {
-          itemId,
-          themeId,
-          name,
-          backgroundUrl,
-          source: "purchase",
-          priceCoins,
-          purchasedAt: FieldValue.serverTimestamp(),
-          ...(expiresAt ? { expiresAt } : {}),
-        },
-        { merge: true },
-      );
-
-      return {
-        themeId,
-        alreadyOwned: false,
-        balance: balance - priceCoins,
-      };
-    });
-
-    return res.json({ ok: true, ...result });
-  } catch (error) {
-    next(error);
-  }
-});
+// Economy routes replace the previous room_shop_items purchase handler.
+// Do not register duplicate /store/purchase endpoints.
+registerEconomyRoutes(app, { db, authenticatedUser });
+registerStripeCheckout(app, { db, authenticatedUser });
 
 app.post("/store/claim-reward", async (req, res, next) => {
   try {
@@ -848,6 +741,7 @@ app.post("/iap/verify", async (req, res, next) => {
       productId,
       catalogId: catalog.catalogId,
       coins: catalog.coins,
+      priceUsd: catalog.priceUsd,
       purchasedAt: verified.purchasedAt,
     });
 
@@ -900,11 +794,16 @@ app.post("/quiz/finish", async (req, res, next) => {
       })
       .slice(0, 3);
 
+    const economyConfig = validateEconomy(
+      (await db.collection("economy_config").doc("global").get()).data()
+    );
+    const quizPrizeCoins = economyConfig.quizFirstPrizeCoins;
+
     const winners = correctAnswers.map((answer, index) => ({
       place: index + 1,
       userId: String(answer.userId || answer.id),
       displayName: String(answer.displayName || "WorldVoice user"),
-      prizeCoins: index === 0 ? 5 : 0,
+      prizeCoins: index === 0 ? quizPrizeCoins : 0,
     }));
 
     const transactionResult = await db.runTransaction(async (tx) => {
@@ -927,12 +826,22 @@ app.post("/quiz/finish", async (req, res, next) => {
         tx.set(
           winnerRef,
           {
-            coins: balance + 5,
-            quizCoinsEarned: FieldValue.increment(5),
+            coins: balance + quizPrizeCoins,
+            quizCoinsEarned: FieldValue.increment(quizPrizeCoins),
             updatedAt: FieldValue.serverTimestamp(),
           },
           { merge: true },
         );
+        const prizeLedgerRef = db.collection("wallet_transactions")
+          .doc("quiz_" + roomId + "_" +
+            createHash("sha256").update(String(latestQuiz.startedAt?.toMillis?.() || "none")).digest("hex"));
+        tx.create(prizeLedgerRef, {
+          userId:winners[0].userId,
+          type:"quiz_prize", currency:"coins",
+          amount:quizPrizeCoins, balanceBefore:balance,
+          balanceAfter:balance+quizPrizeCoins, source:"quiz",
+          refId:roomId, createdAt:FieldValue.serverTimestamp(),
+        });
       }
 
       tx.set(
@@ -940,7 +849,7 @@ app.post("/quiz/finish", async (req, res, next) => {
         {
           "quiz.revealed": true,
           "quiz.winners": winners,
-          "quiz.firstPrizeCoins": 5,
+          "quiz.firstPrizeCoins": quizPrizeCoins,
           "quiz.rewardedAt": FieldValue.serverTimestamp(),
           updatedAt: FieldValue.serverTimestamp(),
         },
