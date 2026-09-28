@@ -20,6 +20,22 @@ class RoomQuizService {
   DocumentReference<Map<String, dynamic>> get _room =>
       _db.collection('rooms').doc(roomId);
 
+  /// Reindex the host's selected answer after blank answer fields are removed.
+  /// Do not silently switch a blank selected answer to another option.
+  static int normalizedCorrectIndex(List<String> rawOptions, int chosenIndex) {
+    if (chosenIndex < 0 || chosenIndex >= rawOptions.length) {
+      throw StateError('Choose a correct answer.');
+    }
+    if (rawOptions[chosenIndex].trim().isEmpty) {
+      throw StateError('The correct answer cannot be empty.');
+    }
+    return rawOptions
+            .take(chosenIndex + 1)
+            .where((value) => value.trim().isNotEmpty)
+            .length -
+        1;
+  }
+
   Stream<RoomFeatureState> watchState() => _room.snapshots().map(
         (snapshot) => RoomFeatureState.fromData(
           snapshot.data() ?? const <String, dynamic>{},
