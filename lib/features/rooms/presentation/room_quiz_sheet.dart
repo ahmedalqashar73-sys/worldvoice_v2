@@ -145,10 +145,8 @@ class _RoomQuizSheetState extends State<RoomQuizSheet> {
           d.dispose();
           return;
         }
-        final safeCorrect = rawOptions
-            .take(correctIndex + 1)
-            .where((value) => value.isNotEmpty)
-            .length - 1;
+        final safeCorrect =
+            RoomQuizService.normalizedCorrectIndex(rawOptions, correctIndex);
         try {
           await _service.startQuiz(
             question: question.text.trim(),
