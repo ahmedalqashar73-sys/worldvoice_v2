@@ -7,7 +7,7 @@ const requiredPositive = [
 ];
 const requiredPercent = [
   "receiverSharePercent", "withdrawalFeePercent", "exchangeBonusPercent",
-  "webCardBonusPercent", "firstRechargeBonusPercent", "firstRechargeBonusPercent",
+  "webCardBonusPercent", "firstRechargeBonusPercent",
 ];
 const requiredNonnegativeIntegers = ["holdDays"];
 const requiredPositiveIntegers = [
