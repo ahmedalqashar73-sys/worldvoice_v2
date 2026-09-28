@@ -1053,8 +1053,14 @@ app.post("/gift/send", async (req, res, next) => {
         !/^[A-Za-z0-9_-]{12,100}$/.test(requestKey)) {
       return res.status(400).json({error: "Invalid gift request or idempotency key."});
     }
-    // Live uses the existing verified Agora ROOM membership and is
-    // available only when the room itself was created in live mode.
+    // A client-created voice room with mode=live is NOT evidence of a
+    // server-verified Agora video broadcast. Fail closed; never charge paid
+    // live gifts until signed media-session ACL verification is implemented.
+    if (context === "live") {
+      return res.status(503).json({
+        error: "Live-video gifts require verified Agora broadcast sessions.",
+      });
+    }
     if (context !== "room" && recipientId === "teacher_ai") {
       return res.status(400).json({error: "AI gift XP is room-only."});
     }
