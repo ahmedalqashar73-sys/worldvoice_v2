@@ -14,7 +14,8 @@
     "firstRechargeBonusPercent": null,
     "dailySendLimitCoins": null,
     "dailyPurchaseLimitUsd": null,
-    "withdrawalWindowDays": null
+    "withdrawalWindowDays": null,
+    "quizFirstPrizeCoins": 5
   },
   "coin_products": [
     {
