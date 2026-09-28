@@ -8,6 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../data/coin_product_config.dart';
 
@@ -314,6 +315,23 @@ class RoomCoinPurchaseService extends ChangeNotifier {
     _pendingExchangeKey = null;
     _pendingExchangeDiamonds = null;
     return result;
+  }
+
+  /// Card checkout is WEB-ONLY. Native Android/iOS must use their respective
+  /// in-app billing systems unless independently approved by store policy.
+  Future<void> startWebCheckout(CoinProductConfig item) async {
+    if (!kIsWeb || !item.hasApprovedWebPrice) {
+      throw StateError('Web checkout is not available for this product.');
+    }
+    final result = await _walletPost('/web/checkout', {'catalogId': item.id});
+    final url = Uri.tryParse((result['checkoutUrl'] ?? '').toString());
+    if (url == null || url.scheme != 'https' || !url.hasAuthority) {
+      throw StateError('The card checkout URL was invalid.');
+    }
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication,
+        webOnlyWindowName: '_self')) {
+      throw StateError('Could not open the secure card checkout.');
+    }
   }
 
   Future<Map<String, dynamic>> getWithdrawalQuote(int amount) async {
