@@ -161,8 +161,11 @@ export function registerQuizRoutes({app, db, authenticatedUser}) {
         ? db.doc(`users/${first.userId}/wallet_transactions/quiz_${round.roundId}`) : null;
       const outcome = await db.runTransaction(async tx => {
         // Read all before any write.
-        const [latestRoom, latestSecret, wallet, ledger] = await Promise.all([
+        const [latestRoom, latestSecret, latestConfig, latestPrivacy,
+          wallet, ledger] = await Promise.all([
           tx.get(roomRef), tx.get(privateRef),
+          tx.get(db.doc("economy_config/current")),
+          tx.get(db.doc("economy_global_controls/privacy_migration")),
           ...(walletRef ? [tx.get(walletRef), tx.get(ledgerRef)] : []),
         ]);
         const quiz = latestRoom.data()?.quiz || {};
@@ -173,6 +176,15 @@ export function registerQuizRoutes({app, db, authenticatedUser}) {
         }
         if (quiz.closed !== true || latestSecret.data()?.closed !== true) {
           throw bad("Quiz must be closed before scoring.");
+        }
+        // Finance controls must still match at the exact commit boundary,
+        // not merely when the preceding network reads were performed.
+        if (approvedQuizPrize(latestConfig.data()) !== prize) {
+          throw bad("Quiz reward policy changed; retry finalization.", 409);
+        }
+        if (prize > 0) {
+          requireLiveEconomy(latestConfig.data());
+          requirePrivateWalletCutover(latestPrivacy.data());
         }
         const awardedWinners = winners.map((entry, index) => ({
           ...entry, prizeCoins: index === 0 ? (first ? prize : 0) : 0,
