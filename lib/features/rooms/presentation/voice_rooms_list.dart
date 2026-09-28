@@ -94,11 +94,20 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
             .toList() ??
         const <String>[];
 
-    final fallbackGiftLevel = (data['giftLevel'] as num?)?.toInt() ?? 0;
+    Map<String, dynamic> wallet = const <String, dynamic>{};
+    try {
+      wallet = (await FirebaseFirestore.instance
+          .collection('wallets').doc(user.uid).get()
+          .timeout(const Duration(seconds: 6))).data() ??
+          const <String, dynamic>{};
+    } catch (_) {
+      // Money and paid access remain unavailable until the wallet migrates.
+    }
+    final fallbackGiftLevel = (wallet['giftLevel'] as num?)?.toInt() ?? 0;
     var giftLevel = fallbackGiftLevel;
     try {
       giftLevel = await const GiftLevelService()
-          .resolveFromProfile(data)
+          .resolveFromProfile(wallet)
           .timeout(
             const Duration(seconds: 6),
             onTimeout: () => fallbackGiftLevel,
