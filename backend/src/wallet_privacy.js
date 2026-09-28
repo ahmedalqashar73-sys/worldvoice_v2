@@ -55,3 +55,43 @@ export function extractPrivateWallet(raw = {}) {
   }
   return wallet;
 }
+
+/**
+ * A previous migration copy is NOT proof of a current balance. Detect drift,
+ * preserve the existing ledger and require manual reconciliation on mismatch.
+ * Dates and Firestore Timestamps must compare by value, not object identity.
+ */
+function stable(value) {
+  if (value && typeof value.toMillis === "function") {
+    return {timestampMs: value.toMillis()};
+  }
+  if (Array.isArray(value)) return value.map(stable);
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).sort(([a], [b]) => a.localeCompare(b))
+        .map(([key, item]) => [key, stable(item)]),
+    );
+  }
+  return value;
+}
+function equivalent(a, b) {
+  return JSON.stringify(stable(a)) === JSON.stringify(stable(b));
+}
+export function walletCopyMatches(legacyUser, walletCopy) {
+  return equivalent(
+    extractPrivateWallet(legacyUser),
+    extractPrivateWallet(walletCopy),
+  );
+}
+export function publicCopyMatches(uid, legacyUser, existing) {
+  const projected = sanitizedPublicProfile(uid, legacyUser);
+  const permitted = new Set([...Object.keys(projected),
+    "migrationVersion", "snapshotAt"]);
+  // Never accept an existing public projection with a secret extra key.
+  if (Object.keys(existing).some(key => !permitted.has(key))) return false;
+  const actual = Object.fromEntries(
+    Object.keys(projected).filter(key => existing[key] !== undefined)
+      .map(key => [key, existing[key]]),
+  );
+  return equivalent(projected, actual);
+}
