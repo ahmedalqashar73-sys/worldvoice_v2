@@ -1,4 +1,6 @@
 // Only economy_config/current controls payouts; no production values in code.
+const fail = (message, status = 400) => { throw Object.assign(new Error(message), {status}); };
+const pos = (n) => Number.isSafeInteger(n) && n > 0;
 export function approvedPayoutWindows(policy, now) {
   const days = policy.payoutWindows;
   if (!Array.isArray(days) || days.length !== 2 ||
