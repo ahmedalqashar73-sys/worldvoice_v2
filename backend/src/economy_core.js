@@ -6,6 +6,7 @@ const requiredRates = [
   "giftLevelPointsPerCoin", "exchangeBonusPercent",
   "minExchangeDiamonds", "cardBonusPercent", "firstRechargeBonusPercent",
   "dailySendLimitCoins", "dailyPurchaseLimitUsd", "withdrawalWindowDays",
+  "quizFirstPrizeCoins",
 ];
 const int = (n) => typeof n === "number" && Number.isSafeInteger(n);
 const positive = (n) => typeof n === "number" && Number.isFinite(n) && n > 0;
@@ -21,7 +22,7 @@ export function validateEconomy(data) {
     if (!positive(data[key])) throw economyError(key + " must be positive.");
   for (const key of ["receiverSharePercent", "withdrawalFeePercent", "exchangeBonusPercent"])
     if (!percent(data[key])) throw economyError(key + " must be a percent.");
-  for (const key of ["minWithdrawalDiamonds", "holdDays", "giftLevelPointsPerCoin"])
+  for (const key of ["minWithdrawalDiamonds", "holdDays", "giftLevelPointsPerCoin", "quizFirstPrizeCoins"])
     if (!int(data[key]) || data[key] < 0) throw economyError(key + " must be a nonnegative integer.");
   for (const key of ["cardBonusPercent", "firstRechargeBonusPercent"])
     if (data[key] != null && !percent(data[key])) throw economyError(key + " must be a percent.");
