@@ -18,12 +18,14 @@ class VoiceRoomsList extends StatefulWidget {
     required this.languageCode,
     this.localeController,
     this.onlyLive = false,
+    this.searchQuery = '',
     super.key,
   });
 
   final String languageCode;
   final LocaleController? localeController;
   final bool onlyLive;
+  final String searchQuery;
 
   @override
   State<VoiceRoomsList> createState() => _VoiceRoomsListState();
@@ -482,7 +484,7 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
                   final publicDocs = allDocs
                       .where((doc) => doc.data()['isPrivate'] != true)
                       .toList(growable: false);
-                  final docs = selected == 'all'
+                  final languageDocs = selected == 'all'
                       ? publicDocs
                       : publicDocs
                           .where(
@@ -493,6 +495,19 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
                                 selected,
                           )
                           .toList(growable: false);
+                  final query = widget.searchQuery.trim().toLowerCase();
+                  final docs = query.isEmpty
+                      ? languageDocs
+                      : languageDocs.where((doc) {
+                          final data = doc.data();
+                          return [
+                            data['name'],
+                            data['hostName'],
+                            data['languageCode'],
+                          ].any((value) =>
+                              value?.toString().toLowerCase().contains(query) ==
+                              true);
+                        }).toList(growable: false);
 
                   return Stack(
                     children: [
