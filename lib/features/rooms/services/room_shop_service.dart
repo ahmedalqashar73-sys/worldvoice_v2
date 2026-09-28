@@ -46,6 +46,7 @@ class RoomShopService {
         .collection('users')
         .doc(user.uid)
         .collection('inventory')
+        .where('type', isEqualTo: 'background')
         .snapshots()
         .map(
           (snapshot) => snapshot.docs
