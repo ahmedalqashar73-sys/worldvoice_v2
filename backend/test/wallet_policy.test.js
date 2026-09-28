@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {approvedPayoutWindows, withdrawalQuote} from "../src/wallet_policy.js";
+import {approvedPayoutWindows, withdrawalQuote, assertSameWithdrawalIntent, assertPayoutReviewAllowed} from "../src/wallet_policy.js";
 
 // Synthetic test numbers, never published or relied on by the app/backend.
 const policy = {
@@ -25,4 +25,54 @@ test("minimum, invalid configuration and unavailable payout methods fail closed"
   assert.throws(() => withdrawalQuote(policy, 10, new Date()));
   assert.throws(() => withdrawalQuote({...policy, withdrawalMethods: []}, 100, new Date()));
   assert.throws(() => withdrawalQuote({...policy, diamondUsdValue: 0}, 100, new Date()));
+});
+
+test("idempotent withdrawal retry requires identical payout destination", () => {
+  const original = {
+    userId: "member-1", diamonds: 400, method: "bank",
+    payoutAccountToken: "payout_token_one_123",
+  };
+  const same = {
+    uid: "member-1", diamonds: 400, method: "bank",
+    payoutAccountToken: "payout_token_one_123",
+  };
+  assert.doesNotThrow(() => assertSameWithdrawalIntent(original, same));
+  for (const change of [
+    {uid: "member-2"},
+    {diamonds: 500},
+    {method: "paypal"},
+    {payoutAccountToken: "payout_token_two_456"},
+  ]) {
+    assert.throws(
+      () => assertSameWithdrawalIntent(original, {...same, ...change}),
+      {status: 409},
+    );
+  }
+});
+
+test("payout review is re-gated against freezes, debt and KYC changes", () => {
+  const verifiedOwner = {
+    identityVerified: true, walletFrozen: false,
+    payoutFrozen: false, walletDebtCoins: 0,
+  };
+  assert.doesNotThrow(() =>
+    assertPayoutReviewAllowed(verifiedOwner, {frozen: false}));
+  for (const change of [
+    {walletFrozen: true}, {payoutFrozen: true},
+    {walletDebtCoins: 2}, {walletDebtCoins: -1},
+    {walletDebtCoins: NaN}, {identityVerified: false},
+  ]) {
+    assert.throws(
+      () => assertPayoutReviewAllowed({...verifiedOwner, ...change}, {}),
+      {status: 423},
+    );
+  }
+  assert.throws(
+    () => assertPayoutReviewAllowed(verifiedOwner, {frozen: true}),
+    {status: 423},
+  );
+  assert.throws(
+    () => assertPayoutReviewAllowed(null, {frozen: false}),
+    {status: 423},
+  );
 });
