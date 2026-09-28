@@ -6,6 +6,15 @@ other signed-in accounts under the old rules until the cutover below is complete
 
 ## Existing first-stage changes
 
+- The trusted backend's verified IAP purchase credit, store purchase, room/chat
+  gift settlement, wallet settle/exchange/withdrawal/admin review, and verified
+  Stripe refund/linked-recipient freeze paths now target private wallets on
+  this **isolated branch**. Existing accounts must be migrated before these
+  code paths can operate; do not deploy them against the old production data.
+  Fresh zero-balance accounts can bootstrap an owner-only wallet via the
+  authenticated backend. Native/web purchase paths preflight this first.
+- Emulator tests now check owner-only private wallet access and prohibit
+  client wallet writes; these are CI assertions, not proof of live deployment.
 - The allowlist in `backend/src/private_wallet_projection.js` extracts
   private monetary fields and creates sanitized `public_profiles/{uid}`
   projection data; arbitrary legacy user fields are NEVER copied into public
@@ -46,12 +55,12 @@ other signed-in accounts under the old rules until the cutover below is complete
 
 ## Required coordinated cutover — NOT implemented by the staging script
 
-1. Convert ALL server credit/debit/refund/chargeback, hold/release, exchange,
-   purchase, withdrawal and admin paths to the same
-   `users/{uid}/private/wallet` balance document. Keep the transaction ledger
-   append-only with receipt-idempotent operations and reconcile every lot.
-   All newly registered users must receive initialized private wallets
-   server-side before transactions are enabled.
+1. Audit/test the now-modified server credit/debit/refund/chargeback,
+   hold/release, exchange, purchase, withdrawal and admin paths against the
+   same private-wallet document using the Firebase emulator and real payment
+   provider sandboxes; reconcile each immutable ledger and diamond lot.
+   Review every additional payment notification and new onboarding path
+   before treating backend migration as complete.
 2. Replace **every** Flutter balance and other-person profile reader across
    Rooms, Chat, Live, gifts, notifications, profile, levels and rewards.
    Other-person displays may read ONLY sanitized
