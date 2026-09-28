@@ -1,6 +1,9 @@
 name: Agora Worker Unit Tests
 on:
   workflow_dispatch:
+  pull_request:
+    branches:
+      - fix/finish-room-hub-quiz-gift-20260928
   push:
     branches:
       - fix/free-worker-always-available-agora-20260927
