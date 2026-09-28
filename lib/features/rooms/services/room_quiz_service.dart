@@ -54,9 +54,46 @@ class RoomQuizService {
       throw StateError('Invalid quiz');
     }
 
-    // Publish the new question and clear previous votes in one atomic batch.
-    // A full replacement of the quiz map also clears stale winners and
-    // rewardedAt from earlier rounds instead of merging nested fields.
+    final user = _user;
+    if (user == null) throw StateError('Sign in is required.');
+    final startEndpoint = RoomBackendConfig.endpoint('/quiz/start');
+    if (startEndpoint.isNotEmpty) {
+      final token = await user.getIdToken();
+      if (token == null || token.isEmpty) {
+        throw StateError('Could not authorize quiz creation.');
+      }
+      final response = await http.post(
+        Uri.parse(startEndpoint),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'roomId': roomId,
+          'question': question.trim(),
+          'options': options,
+          'correctIndex': correctIndex,
+        }),
+      );
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return; // Server holds the secret correct answer privately.
+      }
+      var message = 'Could not create quiz.';
+      try {
+        final body = jsonDecode(response.body);
+        if (body is Map<String, dynamic>) {
+          message = body['error']?.toString() ?? message;
+        }
+      } catch (_) {
+        // Preserve the generic error.
+      }
+      if (response.statusCode != 503 ||
+          !message.contains('not yet enabled on the free test backend')) {
+        throw StateError(message);
+      }
+    }
+    // Free local room: the legacy public-answer format is restricted to
+    // explicitly non-monetary practice. No paid prize can derive from it.
     final answers = await _room.collection('quiz_answers').get();
     final batch = _db.batch();
     for (final doc in answers.docs) {
@@ -68,6 +105,7 @@ class RoomQuizService {
         'options': options,
         'correctIndex': correctIndex,
         'revealed': false,
+        'practiceOnly': true,
         'startedAt': FieldValue.serverTimestamp(),
       },
       'updatedAt': FieldValue.serverTimestamp(),
@@ -81,8 +119,15 @@ class RoomQuizService {
     final profile = await _db.collection('users').doc(user.uid).get();
     final data = profile.data() ?? const <String, dynamic>{};
 
+    final room = await _room.get();
+    final quiz = room.data()?['quiz'];
+    if (quiz is! Map || quiz['revealed'] == true) {
+      throw StateError('There is no open quiz.');
+    }
+    final roundId = quiz['roundId']?.toString().trim() ?? '';
     await _room.collection('quiz_answers').doc(user.uid).set({
       'userId': user.uid,
+      if (roundId.isNotEmpty) 'roundId': roundId,
       'displayName':
           (data['displayName'] ?? user.displayName ?? 'WorldVoice user')
               .toString(),
@@ -198,8 +243,10 @@ class RoomQuizService {
       // The free token-only worker intentionally returns this exact error
       // until a trusted auxiliary backend is configured. Practice results
       // must not award coins or falsely claim a paid prize.
-      if (response.statusCode == 503 &&
-          message.contains('not yet enabled on the free test backend')) {
+      if ((response.statusCode == 503 &&
+              message.contains('not yet enabled on the free test backend')) ||
+          (response.statusCode == 409 &&
+              message.contains('no verified private answer'))) {
         await _finishPracticeQuiz();
         return;
       }
