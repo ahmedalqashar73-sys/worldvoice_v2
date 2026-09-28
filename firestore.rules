@@ -58,6 +58,8 @@ service cloud.firestore {
               'coins',
               'diamonds',
               'diamondsPendingWithdrawal',
+              'coinDebt',
+              'payoutHold',
               'diamondFrozen',
               'giftSentPoints',
               'giftReceivedPoints',
@@ -78,6 +80,8 @@ service cloud.firestore {
               'coins',
               'diamonds',
               'diamondsPendingWithdrawal',
+              'coinDebt',
+              'payoutHold',
               'diamondFrozen',
               'giftSentPoints',
               'giftReceivedPoints',
@@ -438,6 +442,9 @@ service cloud.firestore {
       allow read, write: if false;
     }
     match /stripe_orders/{orderId} {
+      allow read, write: if false;
+    }
+    match /economy_audit/{eventId} {
       allow read, write: if false;
     }
 
