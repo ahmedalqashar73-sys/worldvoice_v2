@@ -11,7 +11,8 @@ const publicFields = [
 const financialFields = [
   "coins", "diamonds", "diamondsPending", "diamondsOnHold",
   "diamondsReserved", "purchasedCoins", "quizCoinsEarned",
-  "giftSentPoints", "giftReceivedPoints", "walletDebtCoins",
+  "giftSentPoints", "giftReceivedPoints", "giftLevelPoints",
+  "lastGiftRoomId", "lastGiftEventId", "walletDebtCoins",
   "walletFrozen", "payoutFrozen", "payoutFreezeReason",
   "withdrawableDiamonds", "walletBalance", "firstRechargeUsed",
   "identityVerified", "vipExpiresAt",
@@ -19,7 +20,8 @@ const financialFields = [
 const nonnegativeIntegers = new Set([
   "coins", "diamonds", "diamondsPending", "diamondsOnHold",
   "diamondsReserved", "purchasedCoins", "quizCoinsEarned",
-  "giftSentPoints", "giftReceivedPoints", "withdrawableDiamonds",
+  "giftSentPoints", "giftReceivedPoints", "giftLevelPoints",
+  "withdrawableDiamonds",
 ]);
 
 export function sanitizedPublicProfile(uid, raw = {}) {
