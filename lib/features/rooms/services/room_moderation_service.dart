@@ -48,6 +48,13 @@ class RoomModerationService {
     final profile =
         await _db.collection('users').doc(user.uid).get();
     final data = profile.data() ?? const <String, dynamic>{};
+    Map<String, dynamic> wallet = const <String, dynamic>{};
+    try {
+      wallet = (await _db.collection('wallets').doc(user.uid).get()).data() ??
+          const <String, dynamic>{};
+    } catch (_) {
+      // Do not grant VIP/private-room privileges without verified wallet data.
+    }
     final displayName =
         (data['displayName'] ?? user.displayName ?? 'WorldVoice user')
             .toString()
@@ -68,7 +75,10 @@ class RoomModerationService {
         throw StateError('This room is no longer open.');
       }
 
-      if (existingData?['vipOnly'] == true && data['isVip'] != true) {
+      final vipExpiry = wallet['vipExpiresAt'];
+      final vipActive = vipExpiry is Timestamp &&
+          vipExpiry.toDate().isAfter(DateTime.now());
+      if (existingData?['vipOnly'] == true && !vipActive) {
         throw StateError('This room is available to VIP members only.');
       }
 
@@ -100,7 +110,7 @@ class RoomModerationService {
 
     if (asHost) {
       if (initialIsPrivate) {
-        final giftLevel = (data['giftLevel'] as num?)?.toInt() ?? 0;
+        final giftLevel = (wallet['giftLevel'] as num?)?.toInt() ?? 0;
         if (giftLevel < 14) {
           throw StateError(
             'Gift Level 14 is required to create a private room.',
