@@ -794,11 +794,16 @@ app.post("/quiz/finish", async (req, res, next) => {
       })
       .slice(0, 3);
 
+    const economyConfig = validateEconomy(
+      (await db.collection("economy_config").doc("global").get()).data()
+    );
+    const quizPrizeCoins = economyConfig.quizFirstPrizeCoins;
+
     const winners = correctAnswers.map((answer, index) => ({
       place: index + 1,
       userId: String(answer.userId || answer.id),
       displayName: String(answer.displayName || "WorldVoice user"),
-      prizeCoins: index === 0 ? 5 : 0,
+      prizeCoins: index === 0 ? quizPrizeCoins : 0,
     }));
 
     const transactionResult = await db.runTransaction(async (tx) => {
@@ -821,12 +826,22 @@ app.post("/quiz/finish", async (req, res, next) => {
         tx.set(
           winnerRef,
           {
-            coins: balance + 5,
-            quizCoinsEarned: FieldValue.increment(5),
+            coins: balance + quizPrizeCoins,
+            quizCoinsEarned: FieldValue.increment(quizPrizeCoins),
             updatedAt: FieldValue.serverTimestamp(),
           },
           { merge: true },
         );
+        const prizeLedgerRef = db.collection("wallet_transactions")
+          .doc("quiz_" + roomId + "_" +
+            createHash("sha256").update(String(latestQuiz.startedAt?.toMillis?.() || "none")).digest("hex"));
+        tx.create(prizeLedgerRef, {
+          userId:winners[0].userId,
+          type:"quiz_prize", currency:"coins",
+          amount:quizPrizeCoins, balanceBefore:balance,
+          balanceAfter:balance+quizPrizeCoins, source:"quiz",
+          refId:roomId, createdAt:FieldValue.serverTimestamp(),
+        });
       }
 
       tx.set(
@@ -834,7 +849,7 @@ app.post("/quiz/finish", async (req, res, next) => {
         {
           "quiz.revealed": true,
           "quiz.winners": winners,
-          "quiz.firstPrizeCoins": 5,
+          "quiz.firstPrizeCoins": quizPrizeCoins,
           "quiz.rewardedAt": FieldValue.serverTimestamp(),
           updatedAt: FieldValue.serverTimestamp(),
         },
