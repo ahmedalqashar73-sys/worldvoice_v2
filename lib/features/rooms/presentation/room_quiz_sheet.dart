@@ -289,6 +289,16 @@ class _RoomQuizSheetState extends State<RoomQuizSheet> {
                           isArabic ? 'إظهار النتيجة' : 'Reveal result',
                         ),
                       ),
+                    if (state.quizRevealed && state.quizPracticeOnly)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Text(
+                          isArabic
+                              ? 'وضع التدريب: لا تُمنح عملات دون خدمة المكافآت الآمنة.'
+                              : 'Practice mode: coins are not awarded without the secure reward service.',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ),
                     if (state.quizRevealed &&
                         state.quizWinners.isNotEmpty) ...[
                       const SizedBox(height: 18),
