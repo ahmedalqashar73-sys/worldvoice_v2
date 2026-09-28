@@ -14,6 +14,7 @@ import OpenAI from "openai";
 import Stripe from "stripe";
 import { requireLiveEconomy, calculateGiftSettlement, calculatePurchaseCredit } from "./economy_policy.js";
 import {registerWalletRoutes} from "./wallet_routes.js";
+import {reverseVerifiedWebPurchase} from "./payment_reversals.js";
 
 const { RtcRole, RtcTokenBuilder } = agoraToken;
 
@@ -66,6 +67,15 @@ app.post("/web/stripe/webhook", express.raw({type: "application/json"}),
       );
     } catch {
       return res.status(400).send("Invalid Stripe signature.");
+    }
+    if (["charge.refunded", "charge.dispute.created"].includes(event.type)) {
+      try {
+        const reversal = await reverseVerifiedWebPurchase({stripe, db, event});
+        return res.json({received: true, reversal});
+      } catch (error) {
+        // Stripe must retry if reconciliation or a security hold failed.
+        return next(error);
+      }
     }
     if (!["checkout.session.completed",
       "checkout.session.async_payment_succeeded"].includes(event.type)) {
@@ -336,14 +346,19 @@ async function creditVerifiedCoins({
     if (receiptSnap.exists) {
       const receipt = receiptSnap.data() || {};
       if (receipt.userId !== userId || receipt.platform !== platform ||
-          receipt.productId !== productId || receipt.catalogId !== catalogId) {
+          receipt.catalogId !== catalogId) {
         throw Object.assign(new Error("Receipt was already applied elsewhere."),
           {status: 409});
       }
-      return {
-        alreadyCredited: true,
-        coins: Number(receipt.coins || 0),
-      };
+      // A signed refund may arrive before checkout.session.completed.
+      // The tombstone prevents late callbacks from minting refunded coins.
+      if (receipt.reversed === true) {
+        return {alreadyCredited: true, coins: 0, reversed: true};
+      }
+      if (receipt.productId !== productId) {
+        throw Object.assign(new Error("Receipt product mismatch."), {status: 409});
+      }
+      return {alreadyCredited: true, coins: Number(receipt.coins || 0)};
     }
     const policy = requireLiveEconomy(configSnap.data());
     const product = productSnap.data() || {};
@@ -370,8 +385,13 @@ async function creditVerifiedCoins({
     if (spentCents + priceCents > limitCents) {
       throw Object.assign(new Error("Daily purchase limit reached."), {status: 429});
     }
+    if (userSnap.data()?.walletFrozen === true ||
+        Number(userSnap.data()?.walletDebtCoins || 0) > 0) {
+      throw Object.assign(new Error("Wallet requires payment review."), {status: 423});
+    }
     const previousPurchases = Number(userSnap.data()?.purchasedCoins || 0);
-    const firstRecharge = previousPurchases === 0;
+    const firstRecharge = previousPurchases === 0 &&
+      userSnap.data()?.firstRechargeUsed !== true;
     const reward = calculatePurchaseCredit({
       config: policy, baseCoins: base, platform, firstRecharge,
     });
@@ -384,6 +404,7 @@ async function creditVerifiedCoins({
     tx.set(userRef, {
       coins: balanceAfter,
       purchasedCoins: previousPurchases + reward.totalCoins,
+      firstRechargeUsed: true,
       updatedAt: FieldValue.serverTimestamp(),
     }, {merge: true});
     tx.set(dailyRef, {
