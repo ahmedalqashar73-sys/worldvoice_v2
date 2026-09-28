@@ -169,3 +169,24 @@ test('private room join requires a matching code grant', async () => {
   await assertSucceeds(setDoc(doc(db, 'rooms/r1/access_grants/new'), {uid: 'new', code: 'ABC123'}));
   await assertSucceeds(setDoc(member(db, 'new'), participant('new')));
 });
+
+
+test('private wallet and sanitized public profile are server-owned', async () => {
+  await env.withSecurityRulesDisabled(async ctx => {
+    const db = ctx.firestore();
+    await setDoc(doc(db, 'users/owner/wallet/private'),
+      {uid: 'owner', coins: 120, diamonds: 3});
+    await setDoc(doc(db, 'public_profiles/owner'),
+      {uid: 'owner', displayName: 'Public Name'});
+  });
+  await assertSucceeds(getDoc(doc(user('owner'), 'users/owner/wallet/private')));
+  await assertFails(getDoc(doc(user('outsider'), 'users/owner/wallet/private')));
+  await assertFails(getDocs(collection(user('outsider'), 'users/owner/wallet')));
+  await assertFails(getDoc(doc(env.unauthenticatedContext().firestore(),
+    'users/owner/wallet/private')));
+  await assertFails(updateDoc(doc(user('owner'), 'users/owner/wallet/private'),
+    {coins: 1000000}));
+  await assertSucceeds(getDoc(doc(user('outsider'), 'public_profiles/owner')));
+  await assertFails(updateDoc(doc(user('owner'), 'public_profiles/owner'),
+    {coins: 1000000}));
+});
