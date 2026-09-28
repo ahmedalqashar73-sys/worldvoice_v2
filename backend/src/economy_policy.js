@@ -7,7 +7,7 @@ const requiredPositive = [
 ];
 const requiredPercent = [
   "receiverSharePercent", "withdrawalFeePercent", "exchangeBonusPercent",
-  "webCardBonusPercent", "firstRechargeBonusPercent", "firstRechargeBonusPercent",
+  "webCardBonusPercent", "firstRechargeBonusPercent",
 ];
 const requiredNonnegativeIntegers = ["holdDays"];
 const requiredPositiveIntegers = [
@@ -16,6 +16,16 @@ const requiredPositiveIntegers = [
 export function requireLiveEconomy(config) {
   if (!config || config.enabled !== true) {
     throw Object.assign(new Error("Economy not enabled."), {status: 503});
+  }
+  // An accidental enabled=true in Firestore must NEVER activate purchases or
+  // cashouts while legacy users/{uid} financial fields are readable by
+  // unrelated signed-in accounts. This flag is set only after migration,
+  // all backend/client consumers switch, and public-read rules are removed.
+  if (config.walletPrivacyMigrationComplete !== true) {
+    throw Object.assign(
+      new Error("Owner-only wallet migration has not been verified."),
+      {status: 503},
+    );
   }
   for (const field of requiredPositive) {
     if (typeof config[field] !== "number" ||
@@ -53,23 +63,6 @@ export function requireLiveEconomy(config) {
       !config.withdrawalMethods.every(method =>
         ["paypal", "payoneer", "bank", "local_wallet"].includes(method))) {
     throw Object.assign(new Error("Economy limit or payout setup incomplete."), {status: 503});
-  }
-  if (config.minWithdrawalDiamonds === 0 || config.minExchangeDiamonds === 0 ||
-      config.giftingDailyCoinLimit === 0 ||
-      typeof config.purchaseDailyUsdLimit !== "number" ||
-      !Number.isFinite(config.purchaseDailyUsdLimit) ||
-      config.purchaseDailyUsdLimit <= 0 ||
-      !Array.isArray(config.payoutWindows) ||
-      config.payoutWindows.length !== 2 ||
-      !config.payoutWindows.every(day => Number.isSafeInteger(day) &&
-        day >= 1 && day <= 28) ||
-      config.payoutWindows[0] === config.payoutWindows[1] ||
-      !Array.isArray(config.withdrawalMethods) ||
-      config.withdrawalMethods.length === 0 ||
-      !config.withdrawalMethods.every(method =>
-        ["paypal", "payoneer", "bank", "local_wallet"].includes(method))) {
-    throw Object.assign(new Error("Incomplete approved economy configuration."),
-      {status: 503});
   }
   return config;
 }
