@@ -9,6 +9,9 @@ const fixture = {
   exchangeBonusPercent: 10, webCardBonusPercent: 10,
   giftLevelPointsPerCoin: 1, holdDays: 3,
   minWithdrawalDiamonds: 100, minExchangeDiamonds: 100,
+  firstRechargeBonusPercent: 0, purchaseDailyUsdLimit: 100,
+  giftingDailyCoinLimit: 10000, payoutWindows: [1, 15],
+  withdrawalMethods: ['paypal', 'payoneer'],
   firstRechargeBonusPercent: 5, giftingDailyCoinLimit: 10000,
   purchaseDailyUsdLimit: 250, payoutWindows: [3, 16],
   withdrawalMethods: ["paypal", "payoneer", "bank"],
@@ -17,6 +20,10 @@ test("economy stays locked without complete approved values", () => {
   assert.throws(() => requireLiveEconomy({enabled: false}));
   assert.throws(() => requireLiveEconomy({...fixture, diamondUsdValue: null}));
   assert.throws(() => requireLiveEconomy({...fixture, receiverSharePercent: 150}));
+  assert.throws(() => requireLiveEconomy({...fixture, purchaseDailyUsdLimit: null}));
+  assert.throws(() => requireLiveEconomy({...fixture, firstRechargeBonusPercent: null}));
+  assert.throws(() => requireLiveEconomy({...fixture, payoutWindows: []}));
+  assert.throws(() => requireLiveEconomy({...fixture, withdrawalMethods: []}));
 });
 test("uses free gift inventory first and settles only paid portion", () => {
   const r = calculateGiftSettlement({
