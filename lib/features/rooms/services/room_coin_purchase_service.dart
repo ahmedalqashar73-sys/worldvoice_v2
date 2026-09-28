@@ -280,7 +280,8 @@ class RoomCoinPurchaseService extends ChangeNotifier {
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
-        if (idempotencyKey != null) 'Idempotency-Key': idempotencyKey,
+        ...(idempotencyKey == null ? <String, String>{} :
+          <String, String>{'Idempotency-Key': idempotencyKey}),
       },
       body: jsonEncode(body),
     );
