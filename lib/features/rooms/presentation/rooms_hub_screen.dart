@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/localization/locale_controller.dart';
+import '../../live/presentation/live_screen.dart';
 import 'voice_rooms_list.dart';
 
 class RoomsHubScreen extends StatefulWidget {
@@ -78,7 +79,9 @@ class _RoomsHubScreenState extends State<RoomsHubScreen> {
                       languageCode: code,
                       localeController: widget.localeController,
                     )
-                  : const SizedBox.expand(),
+                  : _section == 1
+                      ? LiveScreen(localeController: widget.localeController)
+                      : const SizedBox.expand(),
             ),
           ],
         ),
