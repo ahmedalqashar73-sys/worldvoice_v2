@@ -95,3 +95,37 @@ class RoomBackgroundReward {
     );
   }
 }
+
+/** Unified catalog view for frames, entrance effects and VIP gifts. */
+class RoomStoreItem {
+  const RoomStoreItem({
+    required this.id, required this.type, required this.name,
+    required this.priceCoins, required this.requiredGiftLevel,
+    required this.active, this.durationDays, this.animationUrl,
+  });
+
+  final String id;
+  final String type;
+  final String name;
+  final int priceCoins;
+  final int requiredGiftLevel;
+  final bool active;
+  final int? durationDays;
+  final String? animationUrl;
+
+  factory RoomStoreItem.fromDoc(
+    QueryDocumentSnapshot<Map<String, dynamic>> doc,
+  ) {
+    final data = doc.data();
+    return RoomStoreItem(
+      id: doc.id,
+      type: data['type']?.toString() ?? '',
+      name: data['name']?.toString() ?? doc.id,
+      priceCoins: (data['priceCoins'] as num?)?.toInt() ?? 0,
+      requiredGiftLevel: (data['requiredGiftLevel'] as num?)?.toInt() ?? 0,
+      active: data['active'] == true,
+      durationDays: (data['durationDays'] as num?)?.toInt(),
+      animationUrl: data['animationUrl']?.toString(),
+    );
+  }
+}
