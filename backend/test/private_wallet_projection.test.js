@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   PRIVATE_WALLET_FIELDS, PUBLIC_PROFILE_FIELDS,
-  projectPrivateWallet, projectPublicProfile,
+  projectPrivateWallet, projectPublicProfile, canBootstrapZeroWallet,
 } from "../src/private_wallet_projection.js";
 
 test("only approved public fields leave a legacy user document", () => {
@@ -60,4 +60,13 @@ test("public user ID is server-derived rather than copied from legacy data", () 
     uid: "spoofed", username: "teacher", walletFrozen: true,
   });
   assert.deepEqual(result, {uid: "verified-uid", username: "teacher"});
+});
+
+test("only clean zero-balance signups may bootstrap a private wallet", () => {
+  assert.equal(canBootstrapZeroWallet({coins: 0, diamonds: 0, username: "new"}), true);
+  assert.equal(canBootstrapZeroWallet({coins: 1, diamonds: 0}), false);
+  assert.equal(canBootstrapZeroWallet({coins: 0, diamonds: 0, walletFrozen: false}), false);
+  assert.equal(canBootstrapZeroWallet({coins: 0, purchasedCoins: 0}), false);
+  assert.equal(canBootstrapZeroWallet({coins: "0", diamonds: 0}), false);
+  assert.equal(canBootstrapZeroWallet(null), false);
 });
