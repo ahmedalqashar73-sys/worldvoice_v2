@@ -42,6 +42,46 @@ class RoomQuizService {
         ),
       );
 
+  Future<http.Response> _postSecure(
+    String route,
+    Map<String, Object?> payload,
+  ) async {
+    final url = RoomBackendConfig.endpoint(route);
+    if (url.isEmpty) {
+      throw StateError('The secure quiz backend is not configured.');
+    }
+    final user = _user;
+    if (user == null) throw StateError('Sign in is required.');
+    final token = await user.getIdToken();
+    if (token == null || token.isEmpty) {
+      throw StateError('Could not authenticate this quiz request.');
+    }
+    return http.post(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(payload),
+    ).timeout(const Duration(seconds: 25));
+  }
+
+  String _serverError(http.Response response) {
+    try {
+      final decoded = jsonDecode(response.body);
+      if (decoded is Map<String, dynamic>) {
+        return decoded['error']?.toString() ?? 'Quiz request failed.';
+      }
+    } catch (_) {
+      // Return a safe generic error for non-JSON gateway failures.
+    }
+    return 'Quiz request failed (${response.statusCode}).';
+  }
+
+  bool _tokenOnlyWorker(http.Response response) =>
+      response.statusCode == 503 &&
+      _serverError(response).contains('not yet enabled on the free test backend');
+
   Future<void> startQuiz({
     required String question,
     required List<String> options,
@@ -54,9 +94,31 @@ class RoomQuizService {
       throw StateError('Invalid quiz');
     }
 
-    // Publish the new question and clear previous votes in one atomic batch.
-    // A full replacement of the quiz map also clears stale winners and
-    // rewardedAt from earlier rounds instead of merging nested fields.
+    if (RoomBackendConfig.endpoint('/quiz/start').isNotEmpty) {
+      final response = await _postSecure('/quiz/start', {
+        'roomId': roomId,
+        'question': question.trim(),
+        'options': options,
+        'correctIndex': correctIndex,
+      });
+      if (response.statusCode >= 200 && response.statusCode < 300) return;
+      if (!_tokenOnlyWorker(response)) {
+        throw StateError(_serverError(response));
+      }
+    }
+    // Token-only workers support free practice, not monetary prizes.
+    await _startPracticeQuiz(
+      question: question, options: options, correctIndex: correctIndex,
+    );
+  }
+
+  Future<void> _startPracticeQuiz({
+    required String question,
+    required List<String> options,
+    required int correctIndex,
+  }) async {
+    // Public correctness is acceptable ONLY for explicitly non-monetary
+    // practice quizzes. Secure rounds never expose the private answer key.
     final answers = await _room.collection('quiz_answers').get();
     final batch = _db.batch();
     for (final doc in answers.docs) {
@@ -64,6 +126,8 @@ class RoomQuizService {
     }
     batch.update(_room, {
       'quiz': {
+        'roundId': DateTime.now().microsecondsSinceEpoch.toString(),
+        'secure': false, 'practiceOnly': true,
         'question': question.trim(),
         'options': options,
         'correctIndex': correctIndex,
@@ -77,11 +141,30 @@ class RoomQuizService {
 
   Future<void> answerQuiz(int optionIndex) async {
     final user = _user;
-    if (user == null) return;
+    if (user == null) throw StateError('Sign in is required.');
+    final room = await _room.get();
+    final raw = room.data()?['quiz'];
+    final quiz = raw is Map
+        ? Map<String, dynamic>.from(raw)
+        : const <String, dynamic>{};
+    if (quiz['revealed'] == true || quiz['closed'] == true) {
+      throw StateError('The quiz is already closed.');
+    }
+    final roundId = quiz['roundId']?.toString() ?? '';
+    if (quiz['secure'] == true) {
+      if (roundId.isEmpty) throw StateError('Invalid secure quiz round.');
+      final response = await _postSecure('/quiz/answer', {
+        'roomId': roomId, 'roundId': roundId, 'selectedIndex': optionIndex,
+      });
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw StateError(_serverError(response));
+      }
+      return;
+    }
     final profile = await _db.collection('users').doc(user.uid).get();
     final data = profile.data() ?? const <String, dynamic>{};
-
     await _room.collection('quiz_answers').doc(user.uid).set({
+      'roundId': roundId,
       'userId': user.uid,
       'displayName':
           (data['displayName'] ?? user.displayName ?? 'WorldVoice user')
@@ -112,6 +195,9 @@ class RoomQuizService {
     final quiz = rawQuiz is Map
         ? Map<String, dynamic>.from(rawQuiz)
         : const <String, dynamic>{};
+    if (quiz['secure'] == true || quiz['practiceOnly'] != true) {
+      throw StateError('Secure rounds require server-side scoring.');
+    }
     if (quiz['revealed'] == true) return;
     final correctIndex = (quiz['correctIndex'] as num?)?.toInt();
     if (correctIndex == null) throw StateError('No quiz to reveal.');
@@ -161,49 +247,22 @@ class RoomQuizService {
 
   Future<void> finishQuiz() async {
     final user = _user;
-    if (user == null) {
-      throw StateError('Sign in is required.');
-    }
-
-    final endpoint = RoomBackendConfig.endpoint('/quiz/finish');
-    if (endpoint.isEmpty) {
+    if (user == null) throw StateError('Sign in is required.');
+    final snap = await _room.get();
+    final raw = snap.data()?['quiz'];
+    final quiz = raw is Map
+        ? Map<String, dynamic>.from(raw)
+        : const <String, dynamic>{};
+    if (quiz['secure'] != true) {
       await _finishPracticeQuiz();
       return;
     }
 
-    final idToken = await user.getIdToken();
-    if (idToken == null || idToken.isEmpty) {
-      throw StateError('Could not authorize quiz finalization.');
-    }
-
-    final response = await http.post(
-      Uri.parse(endpoint),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $idToken',
-      },
-      body: jsonEncode({'roomId': roomId}),
-    );
-
+    // No downgrade of a secure round: if the trusted backend is down, do
+    // not substitute client-calculated winners or credit a fake prize.
+    final response = await _postSecure('/quiz/finish', {'roomId': roomId});
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      String message = 'Could not finish quiz.';
-      try {
-        final decoded = jsonDecode(response.body);
-        if (decoded is Map<String, dynamic>) {
-          message = decoded['error']?.toString() ?? message;
-        }
-      } catch (_) {
-        // Keep the generic message.
-      }
-      // The free token-only worker intentionally returns this exact error
-      // until a trusted auxiliary backend is configured. Practice results
-      // must not award coins or falsely claim a paid prize.
-      if (response.statusCode == 503 &&
-          message.contains('not yet enabled on the free test backend')) {
-        await _finishPracticeQuiz();
-        return;
-      }
-      throw StateError(message);
+      throw StateError(_serverError(response));
     }
   }
 
