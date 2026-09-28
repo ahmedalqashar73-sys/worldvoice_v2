@@ -259,7 +259,10 @@ async function creditVerifiedCoins({
   const userRef = db.collection("users").doc(userId);
 
   return db.runTransaction(async (tx) => {
-    const receiptSnap = await tx.get(receiptRef);
+    const [receiptSnap, userSnap] = await Promise.all([
+      tx.get(receiptRef),
+      tx.get(userRef),
+    ]);
     if (receiptSnap.exists) {
       const existing = receiptSnap.data() || {};
       if (existing.userId !== userId) {
@@ -273,15 +276,30 @@ async function creditVerifiedCoins({
       };
     }
 
-    tx.set(
-      userRef,
-      {
-        coins: FieldValue.increment(coins),
-        purchasedCoins: FieldValue.increment(coins),
-        updatedAt: FieldValue.serverTimestamp(),
-      },
-      { merge: true },
-    );
+    const balanceBefore = Number(userSnap.data()?.coins || 0);
+    const balanceAfter = balanceBefore + coins;
+    if (!Number.isSafeInteger(coins) || coins <= 0 ||
+        !Number.isSafeInteger(balanceBefore) ||
+        !Number.isSafeInteger(balanceAfter)) {
+      throw Object.assign(new Error("Coin ledger balance is invalid."), {status: 503});
+    }
+    tx.set(userRef, {
+      coins: balanceAfter,
+      purchasedCoins: FieldValue.increment(coins),
+      updatedAt: FieldValue.serverTimestamp(),
+    }, { merge: true });
+
+    tx.create(userRef.collection("wallet_transactions").doc(receiptKey), {
+      type: "coin_purchase", amount: coins, currency: "coins",
+      balanceBefore, balanceAfter, source: platform,
+      catalogId, productId, receiptKey,
+      createdAt: FieldValue.serverTimestamp(),
+    });
+    tx.create(db.collection("economy_audit").doc(receiptKey), {
+      type: "coin_purchase", userId, platform, catalogId,
+      productId, receiptKey, coins,
+      createdAt: FieldValue.serverTimestamp(),
+    });
 
     tx.set(receiptRef, {
       userId,
