@@ -14,6 +14,7 @@ class RoomExtrasSheet extends StatelessWidget {
     required this.isHost,
     required this.showTeacherAiSeat,
     this.onOpenCoinStore,
+    this.contextType = 'room',
     this.initialTab = 0,
     super.key,
   });
@@ -24,6 +25,7 @@ class RoomExtrasSheet extends StatelessWidget {
   final bool isHost;
   final bool showTeacherAiSeat;
   final VoidCallback? onOpenCoinStore;
+  final String contextType;
 
   @override
   Widget build(BuildContext context) {
@@ -68,6 +70,7 @@ class RoomExtrasSheet extends StatelessWidget {
                       service: service,
                       participants: participants,
                       showTeacherAiSeat: showTeacherAiSeat,
+                      contextType: contextType,
                       onOpenCoinStore: onOpenCoinStore,
                     ),
                     _LeaderboardTab(service: service),
@@ -209,6 +212,7 @@ class _GiftsTab extends StatelessWidget {
     required this.service,
     required this.participants,
     required this.showTeacherAiSeat,
+    required this.contextType,
     this.onOpenCoinStore,
   });
 
@@ -216,18 +220,20 @@ class _GiftsTab extends StatelessWidget {
   final List<RoomParticipant> participants;
   final bool showTeacherAiSeat;
   final VoidCallback? onOpenCoinStore;
+  final String contextType;
 
   @override
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     return UnifiedGiftPanel(
-      contextType: 'room',
+      contextType: contextType,
       contextId: service.roomId,
       recipients: {
         for (final member in participants.where(
             (member) => member.isOnStage && member.userId != uid))
           member.userId: member.displayName,
-        if (showTeacherAiSeat) 'teacher_ai': 'Teacher AI',
+        if (showTeacherAiSeat && contextType == 'room')
+          'teacher_ai': 'Teacher AI',
       },
       onOpenCoinStore: onOpenCoinStore,
     );
