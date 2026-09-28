@@ -4,9 +4,10 @@ const publicFields = [
   "displayName", "username", "bio", "country", "gender",
   "photoUrl", "coverUrl", "nativeLanguageCode", "nativeLanguage",
   "learningLanguageCodes", "learningLanguages", "languageLevel",
-  "profession", "professionKey", "travel", "learningGoals", "interests",
+  "profession", "professionKey", "interests",
   "followersCount", "followingCount", "profileCompleted",
-  "isPartner", "isVerified", "giftLevel", "isVip",
+  // Entitlement/verification badges need a trusted server source.
+  "giftLevel",
 ];
 const financialFields = [
   "coins", "diamonds", "diamondsPending", "diamondsOnHold",
