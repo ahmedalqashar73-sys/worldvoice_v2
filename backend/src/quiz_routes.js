@@ -155,6 +155,8 @@ export function registerQuizRoutes({app, db, authenticatedUser}) {
         requirePrivateWalletCutover(privacySnap.data());
       }
       const first = prize > 0 && winners.length > 0 ? winners[0] : null;
+      const winnerProfileRef = first
+        ? db.collection("users").doc(first.userId) : null;
       const walletRef = first
         ? db.doc(`users/${first.userId}/private_wallet/summary`) : null;
       const ledgerRef = first
@@ -162,11 +164,13 @@ export function registerQuizRoutes({app, db, authenticatedUser}) {
       const outcome = await db.runTransaction(async tx => {
         // Read all before any write.
         const [latestRoom, latestSecret, latestConfig, latestPrivacy,
-          wallet, ledger] = await Promise.all([
+          winnerProfile, wallet, ledger] = await Promise.all([
           tx.get(roomRef), tx.get(privateRef),
           tx.get(db.doc("economy_config/current")),
           tx.get(db.doc("economy_global_controls/privacy_migration")),
-          ...(walletRef ? [tx.get(walletRef), tx.get(ledgerRef)] : []),
+          ...(walletRef ? [
+            tx.get(winnerProfileRef), tx.get(walletRef), tx.get(ledgerRef),
+          ] : []),
         ]);
         const quiz = latestRoom.data()?.quiz || {};
         matchesPrivateRound(quiz, latestSecret.data(), round.roundId);
@@ -191,21 +195,40 @@ export function registerQuizRoutes({app, db, authenticatedUser}) {
         }));
         if (first) {
           const walletData = wallet?.data();
-          if (!wallet?.exists || walletData?.walletFrozen === true ||
-              !Number.isSafeInteger(walletData?.coins) ||
-              walletData.coins < 0) {
-            throw bad("Verified winner's private wallet is unavailable.", 503);
+          if (!winnerProfile?.exists) {
+            throw bad("Winner's account is unavailable.", 409);
+          }
+          if (walletData?.walletFrozen === true ||
+              (wallet?.exists &&
+               (!Number.isSafeInteger(walletData?.coins) ||
+                walletData.coins < 0))) {
+            throw bad("Verified winner's private wallet requires review.", 503);
           }
           if (ledger?.exists) throw bad("Prize ledger exists but round is unfinished.", 409);
-          const next = walletData.coins + prize;
+          // Freshly registered users may not have bought any coins yet.
+          // Backend can create their zero-based PRIVATE wallet when awarding
+          // the first verified prize after migration approval.
+          const before = wallet?.exists ? walletData.coins : 0;
+          const next = before + prize;
           if (!Number.isSafeInteger(next)) throw bad("Prize exceeds safe balance.", 409);
-          tx.update(walletRef, {
-            coins: next, quizCoinsEarned: FieldValue.increment(prize),
-            updatedAt: FieldValue.serverTimestamp(),
-          });
+          if (wallet?.exists) {
+            tx.update(walletRef, {
+              coins: next, quizCoinsEarned: FieldValue.increment(prize),
+              updatedAt: FieldValue.serverTimestamp(),
+            });
+          } else {
+            tx.create(walletRef, {
+              coins: next, diamonds: 0, diamondsPending: 0,
+              diamondsReserved: 0, walletFrozen: false,
+              payoutFrozen: false, walletDebtCoins: 0,
+              purchasedCoins: 0, quizCoinsEarned: prize, schemaVersion: 2,
+              createdAt: FieldValue.serverTimestamp(),
+              updatedAt: FieldValue.serverTimestamp(),
+            });
+          }
           tx.create(ledgerRef, {
             type: "verified_quiz_prize", amount: prize, currency: "coins",
-            balanceBefore: walletData.coins, balanceAfter: next,
+            balanceBefore: before, balanceAfter: next,
             source: "quiz", roomId, roundId: round.roundId,
             createdAt: FieldValue.serverTimestamp(),
           });
