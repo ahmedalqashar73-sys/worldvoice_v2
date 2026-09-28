@@ -65,7 +65,7 @@ service cloud.firestore {
             'purchasedCoins', 'quizCoinsEarned',
             'lastGiftRoomId', 'lastGiftEventId',
             'walletBalance', 'withdrawableDiamonds', 'walletDebtCoins',
-            'walletFrozen', 'payoutFrozen', 'identityVerified',
+            'walletFrozen', 'payoutFrozen', 'diamondsReserved', 'identityVerified',
             'vipExpiresAt'
           ]);
     }
@@ -208,7 +208,7 @@ service cloud.firestore {
           && noInitialClientEconomyCredit()
           && !request.resource.data.keys().hasAny([
             'walletDebtCoins', 'walletFrozen', 'payoutFrozen',
-            'identityVerified'
+            'diamondsReserved', 'identityVerified'
           ]);
 
       // Preserve existing non-financial profile/follow operations only.
@@ -426,6 +426,10 @@ service cloud.firestore {
     match /store_items/{itemId} {
       allow read: if signedIn();
       allow write: if false;
+    }
+
+    match /economy_exchange_operations/{id} {
+      allow read, write: if false;
     }
 
     match /economy_store_operations/{id} {
