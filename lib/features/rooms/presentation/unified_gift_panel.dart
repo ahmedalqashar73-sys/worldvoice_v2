@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -75,6 +76,7 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
         final canSend = !_sending && targets.containsKey(_recipient) &&
           _gift != null && gifts.any((g) => g.id == _gift!.id);
         return Column(children: [
+          if (uid != null) _WalletBalance(uid: uid, ar: ar),
           Padding(padding: const EdgeInsets.fromLTRB(16, 12, 16, 4), child: Align(
             alignment: AlignmentDirectional.centerStart,
             child: Text(ar ? 'اختر المستلم' : 'Choose recipient',
@@ -120,8 +122,12 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                             const SizedBox(height: 6),
                             Text(gift.name, maxLines: 1, overflow: TextOverflow.ellipsis),
                             Text('🪙 ${gift.priceCoins}', style: const TextStyle(color: Color(0xFFFFD68A), fontSize: 12)),
+                            if (gift.requiredGiftLevel > 0) Text(
+                              ar ? 'لفل الهدايا ${gift.requiredGiftLevel}' : 'Gift level ${gift.requiredGiftLevel}',
+                              style: const TextStyle(fontSize: 10)),
                           ]))));
                   })),
+          if (_gift != null) _GiftQuote(gift: _gift!, ar: ar),
           Padding(padding: const EdgeInsets.all(12), child: Row(children: [
             if (widget.onOpenCoinStore != null) TextButton.icon(
               onPressed: widget.onOpenCoinStore, icon: const Icon(Icons.add_circle_outline),
@@ -137,3 +143,66 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
   }
 }
 
+
+class _WalletBalance extends StatelessWidget {
+  const _WalletBalance({required this.uid, required this.ar});
+  final String uid;
+  final bool ar;
+  @override
+  Widget build(BuildContext context) =>
+    StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance.collection('users').doc(uid).snapshots(),
+      builder: (context, snapshot) {
+        final balance = (snapshot.data?.data()?['coins'] as num?)?.toInt();
+        return Padding(
+          padding: const EdgeInsetsDirectional.only(start: 16, end: 16, top: 6),
+          child: Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: Text(balance == null
+                ? (ar ? 'جارٍ تحميل الرصيد' : 'Loading balance…')
+                : (ar ? 'رصيدك: $balance 🪙' : 'Your balance: $balance 🪙'),
+              style: const TextStyle(fontWeight: FontWeight.w700)),
+          ),
+        );
+      },
+    );
+}
+class _GiftQuote extends StatelessWidget {
+  const _GiftQuote({required this.gift, required this.ar});
+  final RoomGiftCatalogItem gift;
+  final bool ar;
+  @override
+  Widget build(BuildContext context) =>
+    StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance.collection('economy_config')
+          .doc('global').snapshots(),
+      builder: (context, snapshot) {
+        final config = snapshot.data?.data();
+        if (config == null || config['enabled'] != true) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 3),
+            child: Text(ar ? 'تقييم الهدية غير متاح حتى تفعيل الاقتصاد'
+                : 'Gift value will appear when economy is activated'),
+          );
+        }
+        final coinsPerUsd = (config['coinsPerUsd'] as num?)?.toDouble();
+        final share = (config['receiverSharePercent'] as num?)?.toDouble();
+        final diamondUsd = (config['diamondUsdValue'] as num?)?.toDouble();
+        if (coinsPerUsd == null || coinsPerUsd <= 0 || share == null ||
+            share < 0 || diamondUsd == null || diamondUsd <= 0) {
+          return const SizedBox.shrink();
+        }
+        // Only a quote: free gifts do not mint diamonds, and the backend
+        // decides the actual amount using server-only transaction data.
+        final usd = gift.priceCoins / coinsPerUsd * share / 100;
+        final diamonds = (usd / diamondUsd).floor();
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 3),
+          child: Text(ar
+              ? 'الهدية المدفوعة ≈ $diamonds دايموند ≈ ${usd.toStringAsFixed(2)} دولار'
+              : 'Paid gift ≈ $diamonds diamonds ≈ ${usd.toStringAsFixed(2)} USD',
+              style: const TextStyle(fontSize: 12, color: Color(0xFFFFD68A))),
+        );
+      },
+    );
+}
