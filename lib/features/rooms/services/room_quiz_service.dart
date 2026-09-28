@@ -98,6 +98,67 @@ class RoomQuizService {
         'updatedAt': FieldValue.serverTimestamp(),
       });
 
+  /// Free-room fallback when the Agora-only worker has no optional quiz
+  /// backend. This displays practice winners but NEVER credits coins.
+  Future<void> _finishPracticeQuiz() async {
+    final user = _user;
+    if (user == null) throw StateError('Sign in is required.');
+    final room = await _room.get();
+    final data = room.data() ?? const <String, dynamic>{};
+    if (data['hostId'] != user.uid) {
+      throw StateError('Only the host can reveal quiz results.');
+    }
+    final rawQuiz = data['quiz'];
+    final quiz = rawQuiz is Map
+        ? Map<String, dynamic>.from(rawQuiz)
+        : const <String, dynamic>{};
+    if (quiz['revealed'] == true) return;
+    final correctIndex = (quiz['correctIndex'] as num?)?.toInt();
+    if (correctIndex == null) throw StateError('No quiz to reveal.');
+
+    final votes = await _room.collection('quiz_answers').get();
+    final correct = votes.docs
+        .where((doc) =>
+            (doc.data()['optionIndex'] as num?)?.toInt() == correctIndex)
+        .toList(growable: false);
+    correct.sort((a, b) {
+      final first = a.data()['answeredAt'];
+      final second = b.data()['answeredAt'];
+      final firstMs =
+          first is Timestamp ? first.millisecondsSinceEpoch : 0x7fffffffffffffff;
+      final secondMs =
+          second is Timestamp ? second.millisecondsSinceEpoch : 0x7fffffffffffffff;
+      final comparison = firstMs.compareTo(secondMs);
+      return comparison != 0 ? comparison : a.id.compareTo(b.id);
+    });
+
+    final winners = <Map<String, dynamic>>[
+      for (var i = 0; i < correct.length && i < 3; i++)
+        {
+          'place': i + 1,
+          'userId': correct[i].id,
+          'displayName':
+              (correct[i].data()['displayName'] ?? 'WorldVoice user').toString(),
+          'prizeCoins': 0,
+        },
+    ];
+    await _db.runTransaction((tx) async {
+      final latest = await tx.get(_room);
+      final latestQuiz = latest.data()?['quiz'];
+      if (latestQuiz is Map &&
+          (latestQuiz['revealed'] == true || latestQuiz['rewardedAt'] != null)) {
+        return;
+      }
+      tx.update(_room, {
+        'quiz.revealed': true,
+        'quiz.practiceOnly': true,
+        'quiz.winners': winners,
+        'quiz.firstPrizeCoins': 0,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    });
+  }
+
   Future<void> finishQuiz() async {
     final user = _user;
     if (user == null) {
@@ -106,7 +167,7 @@ class RoomQuizService {
 
     final endpoint = RoomBackendConfig.endpoint('/quiz/finish');
     if (endpoint.isEmpty) {
-      await revealQuiz();
+      await _finishPracticeQuiz();
       return;
     }
 
@@ -133,6 +194,14 @@ class RoomQuizService {
         }
       } catch (_) {
         // Keep the generic message.
+      }
+      // The free token-only worker intentionally returns this exact error
+      // until a trusted auxiliary backend is configured. Practice results
+      // must not award coins or falsely claim a paid prize.
+      if (response.statusCode == 503 &&
+          message.contains('not yet enabled on the free test backend')) {
+        await _finishPracticeQuiz();
+        return;
       }
       throw StateError(message);
     }
