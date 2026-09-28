@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { before, beforeEach, after, test } from 'node:test';
 import { strict as assert } from 'node:assert';
 import { initializeTestEnvironment, assertSucceeds, assertFails } from '@firebase/rules-unit-testing';
-import { doc, collection, getDoc, getDocs, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp, increment, query, orderBy, limit } from 'firebase/firestore';
+import { doc, collection, getDoc, getDocs, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp, increment, query, orderBy, limit, deleteField } from 'firebase/firestore';
 
 let env;
 const user = (uid) => env.authenticatedContext(uid).firestore();
@@ -65,7 +65,7 @@ test('economy reads are permitted but client-side money and gifts cannot be forg
     await assertFails(setDoc(doc(db, name + '/fake'), {active: true}));
   }
   const profile = doc(db, 'users/listener');
-  await assertSucceeds(setDoc(profile, {uid: 'listener', displayName: 'Guest', coins: 0}));
+  await assertSucceeds(setDoc(profile, {uid: 'listener', displayName: 'Guest'}));
   for (const field of ['coins', 'diamonds', 'diamondsPending', 'giftLevel']) {
     await assertFails(updateDoc(profile, {[field]: 1000000}));
   }
@@ -81,7 +81,7 @@ test('economy reads are permitted but client-side money and gifts cannot be forg
     await assertFails(setDoc(doc(user('fresh'), 'users/fresh'), profile));
   }
   await assertSucceeds(setDoc(doc(user('fresh'), 'users/fresh'),
-    {uid: 'fresh', displayName: 'Fresh', coins: 0}));
+    {uid: 'fresh', displayName: 'Fresh'}));
   for (const field of ['walletFrozen', 'payoutFrozen', 'walletDebtCoins', 'identityVerified']) {
     await assertFails(updateDoc(doc(user('fresh'), 'users/fresh'), {[field]: 1}));
   }
@@ -135,6 +135,38 @@ test('secure quizzes hide answer keys and reject client scoring or impersonation
   }));
   // Ordinary non-quiz moderation is unaffected by the lock.
   await assertSucceeds(updateDoc(room(host), {boardWriteEnabled: false}));
+});
+
+test('private wallets are owner-only and legacy public finance fails closed', async () => {
+  const owner = user('owner');
+  const stranger = user('stranger');
+  const profile = doc(owner, 'users/owner');
+  const wallet = doc(owner, 'users/owner/private_wallet/summary');
+  await assertSucceeds(setDoc(profile, {
+    uid: 'owner', displayName: 'Visible', isVip: false,
+  }));
+  await env.withSecurityRulesDisabled(async ctx => {
+    await setDoc(doc(ctx.firestore(), 'users/owner/private_wallet/summary'),
+      {coins: 120, diamonds: 32, walletFrozen: false});
+    // An unmigrated profile must not leak balances to other users.
+    await updateDoc(doc(ctx.firestore(), 'users/owner'), {coins: 120});
+  });
+  await assertSucceeds(getDoc(profile));
+  await assertFails(getDoc(doc(stranger, 'users/owner')));
+  await assertSucceeds(getDoc(wallet));
+  await assertFails(getDoc(doc(stranger, 'users/owner/private_wallet/summary')));
+  await assertFails(setDoc(wallet, {coins: 999999}));
+  await assertFails(updateDoc(profile, {coins: 5000}));
+  await assertFails(updateDoc(profile, {isVip: true}));
+  await assertFails(updateDoc(profile, {isVerified: true}));
+  await env.withSecurityRulesDisabled(async ctx => {
+    await updateDoc(doc(ctx.firestore(), 'users/owner'), {coins: deleteField()});
+  });
+  // Once atomic migration has scrubbed the root, other users can see the
+  // public profile but not its private wallet.
+  await assertSucceeds(getDoc(doc(stranger, 'users/owner')));
+  await assertFails(setDoc(doc(user('fresh_zero'), 'users/fresh_zero'),
+    {uid: 'fresh_zero', coins: 0}));
 });
 
 test('host creates room and participant atomically; listener cannot self-promote', async () => {
