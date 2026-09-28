@@ -14,6 +14,7 @@ import OpenAI from "openai";
 import Stripe from "stripe";
 import { requireLiveEconomy, calculateGiftSettlement, calculatePurchaseCredit } from "./economy_policy.js";
 import {registerWalletRoutes} from "./wallet_routes.js";
+import {walletRef, requireMigratedWallet, projectWallet, walletFields} from "./wallet_schema.js";
 import {registerChatRoutes} from "./chat_routes.js";
 import {chatIdFor, assertChatMembership} from "./chat_membership.js";
 import {reverseVerifiedWebPurchase} from "./payment_reversals.js";
@@ -336,14 +337,15 @@ async function creditVerifiedCoins({
     .update(`${platform}:${receiptId}`).digest("hex");
   const receiptRef = db.collection("iap_receipts").doc(receiptKey);
   const userRef = db.collection("users").doc(userId);
+  const privateWallet = walletRef(db, userId);
   const configRef = db.doc("economy_config/current");
   const productRef = db.collection("coin_products").doc(catalogId);
   const day = new Date().toISOString().slice(0, 10);
   const dailyRef = userRef.collection("economy_daily").doc(day);
   return db.runTransaction(async tx => {
     // Read all snapshots BEFORE making any transaction write.
-    const [receiptSnap, userSnap, configSnap, productSnap, dailySnap] =
-      await Promise.all([receiptRef, userRef, configRef, productRef, dailyRef]
+    const [receiptSnap, userSnap, walletSnap, configSnap, productSnap, dailySnap] =
+      await Promise.all([receiptRef, userRef, privateWallet, configRef, productRef, dailyRef]
         .map(ref => tx.get(ref)));
     if (receiptSnap.exists) {
       const receipt = receiptSnap.data() || {};
@@ -362,6 +364,10 @@ async function creditVerifiedCoins({
       }
       return {alreadyCredited: true, coins: Number(receipt.coins || 0)};
     }
+    if (!userSnap.exists) {
+      throw Object.assign(new Error("Complete your profile before purchase."), {status: 403});
+    }
+    const balanceData = requireMigratedWallet(walletSnap);
     const policy = requireLiveEconomy(configSnap.data());
     const product = productSnap.data() || {};
     const base = Number(product.coins);
@@ -387,23 +393,23 @@ async function creditVerifiedCoins({
     if (spentCents + priceCents > limitCents) {
       throw Object.assign(new Error("Daily purchase limit reached."), {status: 429});
     }
-    if (userSnap.data()?.walletFrozen === true ||
-        Number(userSnap.data()?.walletDebtCoins || 0) > 0) {
+    if (balanceData.walletFrozen === true ||
+        Number(balanceData.walletDebtCoins || 0) > 0) {
       throw Object.assign(new Error("Wallet requires payment review."), {status: 423});
     }
-    const previousPurchases = Number(userSnap.data()?.purchasedCoins || 0);
+    const previousPurchases = Number(balanceData.purchasedCoins || 0);
     const firstRecharge = previousPurchases === 0 &&
-      userSnap.data()?.firstRechargeUsed !== true;
+      balanceData.firstRechargeUsed !== true;
     const reward = calculatePurchaseCredit({
       config: policy, baseCoins: base, platform, firstRecharge,
     });
-    const balanceBefore = Number(userSnap.data()?.coins || 0);
+    const balanceBefore = Number(balanceData.coins || 0);
     const balanceAfter = balanceBefore + reward.totalCoins;
     if (!Number.isSafeInteger(balanceBefore) ||
         !Number.isSafeInteger(balanceAfter)) {
       throw Object.assign(new Error("Coin ledger balance is invalid."), {status: 503});
     }
-    tx.set(userRef, {
+    tx.set(privateWallet, {
       coins: balanceAfter,
       purchasedCoins: previousPurchases + reward.totalCoins,
       firstRechargeUsed: true,
