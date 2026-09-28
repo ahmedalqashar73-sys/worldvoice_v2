@@ -57,10 +57,10 @@ class ChatScreen extends StatelessWidget {
     return body;
   }
 
-  Future<void> _startChat(BuildContext context, bool ar, String uid) async {
+  Future<void> _startChat(BuildContext parentContext, bool ar, String uid) async {
     final db = FirebaseFirestore.instance;
     await showModalBottomSheet<void>(
-      context: context,
+      context: parentContext,
       showDragHandle: true,
       isScrollControlled: true,
       builder: (sheetContext) => SafeArea(
@@ -109,8 +109,8 @@ class ChatScreen extends StatelessWidget {
                                       {'recipientId': peerId});
                                   if (!sheetContext.mounted) return;
                                   Navigator.pop(sheetContext);
-                                  if (!context.mounted) return;
-                                  await Navigator.of(context).push(MaterialPageRoute<void>(
+                                  if (!parentContext.mounted) return;
+                                  await Navigator.of(parentContext).push(MaterialPageRoute<void>(
                                     builder: (_) => _ChatConversation(
                                       chatId: result['chatId'].toString(),
                                       peerId: peerId, peerName: displayName,
