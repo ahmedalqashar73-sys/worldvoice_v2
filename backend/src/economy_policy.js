@@ -65,3 +65,27 @@ export function calculateGiftSettlement({
     freeUnits, chargedCoins, giftLevelPoints, pendingDiamonds,
   };
 }
+
+/** Store-verified purchases only: no policy math is performed on a device. */
+export function calculatePurchaseCredit({config, baseCoins, platform, firstRecharge}) {
+  requireLiveEconomy(config);
+  if (!Number.isSafeInteger(baseCoins) || baseCoins <= 0 ||
+      !["android", "ios", "web"].includes(platform)) {
+    throw Object.assign(new Error("Invalid purchase."), {status: 400});
+  }
+  const webPercent = platform === "web" ? config.webCardBonusPercent : 0;
+  const firstPercent = firstRecharge ? config.firstRechargeBonusPercent : 0;
+  if (firstPercent != null && (typeof firstPercent !== "number" ||
+      !Number.isFinite(firstPercent) || firstPercent < 0 ||
+      firstPercent > 100)) {
+    throw Object.assign(new Error("Invalid first recharge promotion."), {status: 503});
+  }
+  const bonusCoins = Math.floor(
+    baseCoins * (webPercent + (firstPercent ?? 0)) / 100,
+  );
+  const totalCoins = baseCoins + bonusCoins;
+  if (!Number.isSafeInteger(totalCoins)) {
+    throw Object.assign(new Error("Coin amount exceeds limits."), {status: 400});
+  }
+  return {baseCoins, bonusCoins, totalCoins};
+}
