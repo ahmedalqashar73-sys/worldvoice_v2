@@ -457,7 +457,7 @@ class RoomModerationService {
       final nextHostId = nextHostDoc.id;
       final nextData = nextHostDoc.data();
       final nextProfile =
-          await _db.collection('users').doc(nextHostId).get();
+          await _db.collection('public_profiles').doc(nextHostId).get();
       final nextCountry =
           (nextProfile.data()?['country'] ?? '').toString().trim();
 
