@@ -669,122 +669,159 @@ app.post("/teacher-ai/ask", async (req, res, next) => {
   }
 });
 
+/**
+ * Uniform non-currency entitlement purchase/gift. VIP with coins is gifted
+ * only; a user's own recurring VIP plan goes through verified store billing.
+ */
 app.post("/store/purchase", async (req, res, next) => {
   try {
-    const user = await authenticatedUser(req);
+    const sender = await authenticatedUser(req);
     const itemId = String(req.body?.itemId || "").trim();
-
-    if (!itemId) {
-      return res.status(400).json({ error: "itemId is required." });
+    const requestedRecipient = String(req.body?.recipientId || "").trim();
+    const recipientId = requestedRecipient || sender.uid;
+    const gifting = recipientId !== sender.uid;
+    const key = String(req.headers["idempotency-key"] || "").trim();
+    if (!/^(background|frame|entrance|vip)__[A-Za-z0-9_-]{1,80}$/.test(itemId) ||
+        !/^[A-Za-z0-9_-]{12,100}$/.test(key)) {
+      return res.status(400).json({error: "Invalid item or idempotency key."});
     }
-
-    const itemRef = db.collection("room_shop_items").doc(itemId);
-    const userRef = db.collection("users").doc(user.uid);
-
-    const result = await db.runTransaction(async (tx) => {
-      const itemSnap = await tx.get(itemRef);
-      if (!itemSnap.exists) {
-        const error = new Error("Store item not found.");
-        error.status = 404;
-        throw error;
+    const refKey = createHash("sha256")
+      .update(`${sender.uid}:store:${key}`).digest("hex");
+    const operationRef = db.collection("economy_store_operations").doc(refKey);
+    const itemRef = db.collection("store_items").doc(itemId);
+    const configRef = db.doc("economy_config/current");
+    const payerRef = db.collection("users").doc(sender.uid);
+    const recipientRef = db.collection("users").doc(recipientId);
+    const inventoryRef = recipientRef.collection("inventory").doc(itemId);
+    const friendRef = gifting ? payerRef.collection("following").doc(recipientId)
+      : null;
+    const day = new Date().toISOString().slice(0, 10);
+    const dailyRef = payerRef.collection("economy_daily").doc(day);
+    const outcome = await db.runTransaction(async tx => {
+      const refs = [operationRef, itemRef, configRef, payerRef, inventoryRef,
+        dailyRef, ...(gifting ? [recipientRef, friendRef] : [])];
+      const snaps = await Promise.all(refs.map(ref => tx.get(ref)));
+      const [existing, itemSnap, configSnap, payerSnap, ownedSnap, dailySnap] =
+        snaps;
+      if (existing.exists) {
+        const old = existing.data() || {};
+        if (old.senderId !== sender.uid || old.recipientId !== recipientId ||
+            old.itemId !== itemId) {
+          throw Object.assign(new Error("Idempotency key reused."), {status: 409});
+        }
+        return {...old.outcome, alreadyProcessed: true};
       }
-
+      const policy = requireLiveEconomy(configSnap.data());
       const item = itemSnap.data() || {};
-      if (item.active !== true || item.type !== "background") {
-        const error = new Error("This background is not available.");
-        error.status = 409;
-        throw error;
+      if (!itemSnap.exists || item.active !== true ||
+          !["background", "frame", "entrance", "vip"].includes(item.type) ||
+          !itemId.startsWith(item.type + "__")) {
+        throw Object.assign(new Error("Store item unavailable."), {status: 404});
       }
-
-      const themeId = String(item.themeId || itemId).trim();
-      const name = String(item.name || "WorldVoice Background").trim();
-      const backgroundUrl = String(item.previewUrl || "").trim();
-      const priceCoins = Number(item.priceCoins);
-      const durationDays =
-        item.durationDays == null ? null : Number(item.durationDays);
-
-      if (
-        !themeId ||
-        !Number.isInteger(priceCoins) ||
-        priceCoins < 0 ||
-        (durationDays != null &&
-          (!Number.isInteger(durationDays) || durationDays <= 0))
-      ) {
-        const error = new Error("Store item configuration is invalid.");
-        error.status = 500;
-        throw error;
+      if (item.type === "vip" && !gifting) {
+        throw Object.assign(new Error("Use verified store billing for personal VIP."),
+          {status: 400});
       }
-
-      const entitlementRef = userRef
-        .collection("room_backgrounds")
-        .doc(themeId);
-
-      const [userSnap, entitlementSnap] = await Promise.all([
-        tx.get(userRef),
-        tx.get(entitlementRef),
-      ]);
-
-      const existing = entitlementSnap.data() || {};
-      const existingExpiry = existing.expiresAt?.toDate?.() || null;
-      const alreadyActive =
-        entitlementSnap.exists &&
-        (existingExpiry == null || existingExpiry.getTime() > Date.now());
-
-      if (alreadyActive) {
-        return {
-          themeId,
-          alreadyOwned: true,
-          balance: Number(userSnap.data()?.coins || 0),
-        };
+      const price = Number(item.priceCoins);
+      const duration = item.durationDays == null
+        ? null : Number(item.durationDays);
+      if (!Number.isSafeInteger(price) || price <= 0 ||
+          (duration != null && (!Number.isSafeInteger(duration) || duration <= 0)) ||
+          (item.type === "vip" && duration == null)) {
+        throw Object.assign(new Error("Store item price or duration is invalid."),
+          {status: 503});
       }
-
-      const userData = userSnap.data() || {};
-      const balance = Number(userData.coins || 0);
-      if (!Number.isInteger(balance) || balance < priceCoins) {
-        const error = new Error("NOT_ENOUGH_COINS");
-        error.status = 409;
-        throw error;
+      if (!payerSnap.exists || Number(payerSnap.data()?.giftLevel || 0) <
+          Number(item.requiredGiftLevel || 0) ||
+          (gifting && (!snaps[6].exists || !snaps[7].exists))) {
+        throw Object.assign(new Error("User, gift level or friendship requirement failed."),
+          {status: 403});
       }
-
-      const expiresAt =
-        durationDays == null
-          ? null
-          : Timestamp.fromMillis(
-              Date.now() + durationDays * 24 * 60 * 60 * 1000,
-            );
-
-      tx.set(
-        userRef,
-        {
-          coins: balance - priceCoins,
+      const owner = gifting ? snaps[6].data() || {} : payerSnap.data() || {};
+      const existingExpiry = item.type === "vip"
+        ? owner.vipExpiresAt?.toMillis?.()
+        : ownedSnap.data()?.expiresAt?.toMillis?.();
+      if (ownedSnap.exists && item.type !== "vip" &&
+          ownedSnap.data()?.expiresAt == null &&
+          Number(ownedSnap.data()?.quantity || 0) > 0) {
+        return {alreadyOwned: true, itemId, recipientId};
+      }
+      const now = Date.now();
+      const expiresAt = duration == null ? null : Timestamp.fromMillis(
+        Math.max(now, existingExpiry || now) + duration * 24 * 60 * 60 * 1000,
+      );
+      const before = Number(payerSnap.data()?.coins || 0);
+      if (!Number.isSafeInteger(before) || before < price) {
+        throw Object.assign(new Error("NOT_ENOUGH_COINS"), {status: 409});
+      }
+      const dailyGift = Number(dailySnap.data()?.giftCoins || 0);
+      if (gifting && (!Number.isSafeInteger(policy.giftingDailyCoinLimit) ||
+          policy.giftingDailyCoinLimit <= 0 ||
+          !Number.isSafeInteger(dailyGift) ||
+          dailyGift + price > policy.giftingDailyCoinLimit)) {
+        throw Object.assign(new Error("Gifting daily limit exceeded."), {status: 429});
+      }
+      tx.update(payerRef, {
+        coins: before - price,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+      if (gifting) {
+        tx.set(dailyRef, {
+          giftCoins: dailyGift + price,
           updatedAt: FieldValue.serverTimestamp(),
-        },
-        { merge: true },
-      );
-
-      tx.set(
-        entitlementRef,
-        {
-          itemId,
-          themeId,
-          name,
-          backgroundUrl,
-          source: "purchase",
-          priceCoins,
+        }, {merge: true});
+      }
+      tx.set(inventoryRef, {
+        itemId, type: item.type, source: gifting ? "gift" : "purchase",
+        giftedBy: gifting ? sender.uid : null,
+        quantity: 1, freeGiftBalance: 0,
+        name: String(item.name || itemId),
+        ...(item.type === "background" ? {
+          themeId: String(item.themeId || item.legacyId || itemId),
+          backgroundUrl: item.previewUrl || null,
+        } : {}),
+        expiresAt,
+        updatedAt: FieldValue.serverTimestamp(),
+      }, {merge: true});
+      if (item.type === "vip") {
+        tx.update(recipientRef, {vipExpiresAt: expiresAt});
+      }
+      if (item.type === "background") {
+        // Temporary mirrored legacy read model; remove after all clients
+        // consume users/{uid}/inventory and background migration is complete.
+        tx.set(recipientRef.collection("room_backgrounds")
+          .doc(String(item.themeId || item.legacyId || itemId)), {
+          itemId, themeId: String(item.themeId || item.legacyId || itemId),
+          backgroundUrl: item.previewUrl || null,
+          name: String(item.name || "WorldVoice Background"),
+          expiresAt, source: gifting ? "gift" : "purchase",
           purchasedAt: FieldValue.serverTimestamp(),
-          ...(expiresAt ? { expiresAt } : {}),
-        },
-        { merge: true },
-      );
-
-      return {
-        themeId,
-        alreadyOwned: false,
-        balance: balance - priceCoins,
+        }, {merge: true});
+      }
+      tx.create(payerRef.collection("wallet_transactions").doc(refKey), {
+        type: gifting ? "item_gift" : "item_purchase",
+        amount: -price, currency: "coins",
+        balanceBefore: before, balanceAfter: before - price,
+        source: "store_items", itemId, recipientId,
+        operationId: refKey,
+        createdAt: FieldValue.serverTimestamp(),
+      });
+      const response = {
+        itemId, recipientId, balanceAfter: before - price,
+        expiresAt: expiresAt ? expiresAt.toDate().toISOString() : null,
       };
+      tx.create(operationRef, {
+        senderId: sender.uid, recipientId, itemId,
+        outcome: response, createdAt: FieldValue.serverTimestamp(),
+      });
+      tx.create(db.collection("economy_audit").doc(refKey), {
+        type: gifting ? "item_gift" : "item_purchase",
+        senderId: sender.uid, recipientId, itemId,
+        paidCoins: price, createdAt: FieldValue.serverTimestamp(),
+      });
+      return {...response, alreadyProcessed: false};
     });
-
-    return res.json({ ok: true, ...result });
+    res.json({ok: true, ...outcome});
   } catch (error) {
     next(error);
   }
