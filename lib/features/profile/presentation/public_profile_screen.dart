@@ -46,7 +46,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
         appBar: AppBar(),
         body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
           stream: FirebaseFirestore.instance
-              .collection('users')
+              .collection('public_profiles')
               .doc(widget.userId)
               .snapshots(),
           builder: (context, snapshot) {
@@ -65,8 +65,11 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
             final hideCity = data['hideCity'] == true;
             final gender = data['gender'] as String?;
             final nativeLanguage = (data['nativeLanguage'] as String?)?.trim();
-            final birthRaw = data['birthDate'];
-            final birthDate = birthRaw is Timestamp ? birthRaw.toDate() : null;
+            final age = (data['ageYears'] as num?)?.toInt();
+            // Only approximate age, never exact date of birth, is public.
+            final birthDate = age != null && age >= 0 && age <= 120
+                ? DateTime(DateTime.now().year - age, 1, 1)
+                : null;
             final isOnline = data['isOnline'] == true;
             final lastActiveRaw = data['lastActiveAt'];
             final lastSeenRaw = data['lastSeenAt'];
