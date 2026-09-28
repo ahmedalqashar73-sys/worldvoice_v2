@@ -19,6 +19,9 @@ class RoomFeatureState {
     this.quizOptions = const <String>[],
     this.quizCorrectIndex,
     this.quizRevealed = false,
+    this.quizSecure = false,
+    this.quizClosed = false,
+    this.quizRoundId,
     this.quizPracticeOnly = false,
     this.quizWinners = const <Map<String, dynamic>>[],
   });
@@ -40,6 +43,9 @@ class RoomFeatureState {
   final List<String> quizOptions;
   final int? quizCorrectIndex;
   final bool quizRevealed;
+  final bool quizSecure;
+  final bool quizClosed;
+  final String? quizRoundId;
   final bool quizPracticeOnly;
   final List<Map<String, dynamic>> quizWinners;
 
@@ -70,6 +76,9 @@ class RoomFeatureState {
           const <String>[],
       quizCorrectIndex: (quizData['correctIndex'] as num?)?.toInt(),
       quizRevealed: quizData['revealed'] == true,
+      quizSecure: quizData['secure'] == true,
+      quizClosed: quizData['closed'] == true,
+      quizRoundId: quizData['roundId']?.toString(),
       quizPracticeOnly: quizData['practiceOnly'] == true,
       quizWinners: (quizData['winners'] as List?)
               ?.whereType<Map>()
