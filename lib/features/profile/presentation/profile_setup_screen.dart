@@ -378,8 +378,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             if(!widget.editMode) 'followersCount':0,
             if(!widget.editMode) 'followingCount':0,
             if(!widget.editMode) 'isVip':false,
-            if(!widget.editMode) 'coins':0,
-            if(!widget.editMode) 'diamonds':0,
             if(!widget.editMode) 'giftLevel':0,
             if(!widget.editMode) 'giftLevelPoints':0,
             if(!widget.editMode) 'giftSentPoints':0,

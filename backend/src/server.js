@@ -15,6 +15,8 @@ import Stripe from "stripe";
 import { requireLiveEconomy, calculateGiftSettlement, calculatePurchaseCredit } from "./economy_policy.js";
 import {registerWalletRoutes} from "./wallet_routes.js";
 import {registerChatRoutes} from "./chat_routes.js";
+import {registerQuizRoutes} from "./quiz_routes.js";
+import {privateWalletRef, requirePrivateWalletCutover} from "./private_wallet_schema.js";
 import {chatIdFor, assertChatMembership} from "./chat_membership.js";
 import {reverseVerifiedWebPurchase} from "./payment_reversals.js";
 
@@ -336,15 +338,18 @@ async function creditVerifiedCoins({
     .update(`${platform}:${receiptId}`).digest("hex");
   const receiptRef = db.collection("iap_receipts").doc(receiptKey);
   const userRef = db.collection("users").doc(userId);
+  const walletRef = privateWalletRef(userRef);
+  const privacyRef = db.doc("economy_global_controls/privacy_migration");
   const configRef = db.doc("economy_config/current");
   const productRef = db.collection("coin_products").doc(catalogId);
   const day = new Date().toISOString().slice(0, 10);
   const dailyRef = userRef.collection("economy_daily").doc(day);
   return db.runTransaction(async tx => {
     // Read all snapshots BEFORE making any transaction write.
-    const [receiptSnap, userSnap, configSnap, productSnap, dailySnap] =
-      await Promise.all([receiptRef, userRef, configRef, productRef, dailyRef]
-        .map(ref => tx.get(ref)));
+    const [receiptSnap, userSnap, configSnap, productSnap, dailySnap,
+      walletSnap, privacySnap] =
+      await Promise.all([receiptRef, userRef, configRef, productRef, dailyRef,
+        walletRef, privacyRef].map(ref => tx.get(ref)));
     if (receiptSnap.exists) {
       const receipt = receiptSnap.data() || {};
       if (receipt.userId !== userId || receipt.platform !== platform ||
@@ -362,7 +367,11 @@ async function creditVerifiedCoins({
       }
       return {alreadyCredited: true, coins: Number(receipt.coins || 0)};
     }
+    if (!userSnap.exists) {
+      throw Object.assign(new Error("User profile unavailable."), {status: 409});
+    }
     const policy = requireLiveEconomy(configSnap.data());
+    requirePrivateWalletCutover(privacySnap.data());
     const product = productSnap.data() || {};
     const base = Number(product.coins);
     const priceCents = Math.round(Number(product.priceUsd) * 100);
@@ -387,23 +396,23 @@ async function creditVerifiedCoins({
     if (spentCents + priceCents > limitCents) {
       throw Object.assign(new Error("Daily purchase limit reached."), {status: 429});
     }
-    if (userSnap.data()?.walletFrozen === true ||
-        Number(userSnap.data()?.walletDebtCoins || 0) > 0) {
+    if (walletSnap.data()?.walletFrozen === true ||
+        Number(walletSnap.data()?.walletDebtCoins || 0) > 0) {
       throw Object.assign(new Error("Wallet requires payment review."), {status: 423});
     }
-    const previousPurchases = Number(userSnap.data()?.purchasedCoins || 0);
+    const previousPurchases = Number(walletSnap.data()?.purchasedCoins || 0);
     const firstRecharge = previousPurchases === 0 &&
-      userSnap.data()?.firstRechargeUsed !== true;
+      walletSnap.data()?.firstRechargeUsed !== true;
     const reward = calculatePurchaseCredit({
       config: policy, baseCoins: base, platform, firstRecharge,
     });
-    const balanceBefore = Number(userSnap.data()?.coins || 0);
+    const balanceBefore = Number(walletSnap.data()?.coins || 0);
     const balanceAfter = balanceBefore + reward.totalCoins;
     if (!Number.isSafeInteger(balanceBefore) ||
         !Number.isSafeInteger(balanceAfter)) {
       throw Object.assign(new Error("Coin ledger balance is invalid."), {status: 503});
     }
-    tx.set(userRef, {
+    tx.set(walletRef, {
       coins: balanceAfter,
       purchasedCoins: previousPurchases + reward.totalCoins,
       firstRechargeUsed: true,
@@ -714,7 +723,9 @@ app.post("/store/purchase", async (req, res, next) => {
     const operationRef = db.collection("economy_store_operations").doc(refKey);
     const itemRef = db.collection("store_items").doc(itemId);
     const configRef = db.doc("economy_config/current");
+    const privacyRef = db.doc("economy_global_controls/privacy_migration");
     const payerRef = db.collection("users").doc(sender.uid);
+    const payerWalletRef = privateWalletRef(payerRef);
     const recipientRef = db.collection("users").doc(recipientId);
     const inventoryRef = recipientRef.collection("inventory").doc(itemId);
     const friendRef = gifting ? payerRef.collection("following").doc(recipientId)
@@ -723,10 +734,13 @@ app.post("/store/purchase", async (req, res, next) => {
     const dailyRef = payerRef.collection("economy_daily").doc(day);
     const outcome = await db.runTransaction(async tx => {
       const refs = [operationRef, itemRef, configRef, payerRef, inventoryRef,
-        dailyRef, ...(gifting ? [recipientRef, friendRef] : [])];
+        dailyRef, ...(gifting ? [recipientRef, friendRef] : []),
+        privacyRef, payerWalletRef];
       const snaps = await Promise.all(refs.map(ref => tx.get(ref)));
       const [existing, itemSnap, configSnap, payerSnap, ownedSnap, dailySnap] =
         snaps;
+      const payerWalletSnap = snaps[snaps.length - 1];
+      const privacySnap = snaps[snaps.length - 2];
       if (existing.exists) {
         const old = existing.data() || {};
         if (old.senderId !== sender.uid || old.recipientId !== recipientId ||
@@ -736,6 +750,7 @@ app.post("/store/purchase", async (req, res, next) => {
         return {...old.outcome, alreadyProcessed: true};
       }
       const policy = requireLiveEconomy(configSnap.data());
+      requirePrivateWalletCutover(privacySnap.data());
       const item = itemSnap.data() || {};
       if (!itemSnap.exists || item.active !== true ||
           !["background", "frame", "entrance", "vip"].includes(item.type) ||
@@ -761,8 +776,8 @@ app.post("/store/purchase", async (req, res, next) => {
         throw Object.assign(new Error("User, gift level or friendship requirement failed."),
           {status: 403});
       }
-      if (payerSnap.data()?.walletFrozen === true ||
-          Number(payerSnap.data()?.walletDebtCoins || 0) > 0) {
+      if (payerWalletSnap.data()?.walletFrozen === true ||
+          Number(payerWalletSnap.data()?.walletDebtCoins || 0) > 0) {
         throw Object.assign(new Error("Wallet under payment review."), {status: 423});
       }
       const owner = gifting ? snaps[6].data() || {} : payerSnap.data() || {};
@@ -778,7 +793,7 @@ app.post("/store/purchase", async (req, res, next) => {
       const expiresAt = duration == null ? null : Timestamp.fromMillis(
         Math.max(now, existingExpiry || now) + duration * 24 * 60 * 60 * 1000,
       );
-      const before = Number(payerSnap.data()?.coins || 0);
+      const before = Number(payerWalletSnap.data()?.coins || 0);
       if (!Number.isSafeInteger(before) || before < price) {
         throw Object.assign(new Error("NOT_ENOUGH_COINS"), {status: 409});
       }
@@ -789,7 +804,7 @@ app.post("/store/purchase", async (req, res, next) => {
           dailyGift + price > policy.giftingDailyCoinLimit)) {
         throw Object.assign(new Error("Gifting daily limit exceeded."), {status: 429});
       }
-      tx.update(payerRef, {
+      tx.update(payerWalletRef, {
         coins: before - price,
         updatedAt: FieldValue.serverTimestamp(),
       });
@@ -1047,8 +1062,10 @@ app.post("/gift/send", async (req, res, next) => {
       .update(`${sender.uid}:${requestKey}`).digest("hex");
     const eventRef = db.collection("economy_gift_operations").doc(requestHash);
     const senderRef = db.collection("users").doc(sender.uid);
+    const senderWalletRef = privateWalletRef(senderRef);
     const recipientRef = recipientId === "teacher_ai" ? null
       : db.collection("users").doc(recipientId);
+    const recipientWalletRef = recipientRef ? privateWalletRef(recipientRef) : null;
     const inventoryRef = senderRef.collection("inventory")
       .doc(`gift__${giftId}`);
     const itemRef = db.collection("store_items").doc(`gift__${giftId}`);
@@ -1067,6 +1084,7 @@ app.post("/gift/send", async (req, res, next) => {
     const recipientFollow = context === "chat"
       ? recipientRef.collection("following").doc(sender.uid) : null;
     const configRef = db.collection("economy_config").doc("current");
+    const privacyRef = db.doc("economy_global_controls/privacy_migration");
     const giftEventRef = context === "chat"
       ? roomRef.collection("messages").doc(requestHash)
       : roomRef.collection("gifts").doc(requestHash);
@@ -1076,10 +1094,18 @@ app.post("/gift/send", async (req, res, next) => {
       const refs = [eventRef, configRef, itemRef, roomRef, senderMemberRef,
         senderRef, inventoryRef, ...(recipientRef
           ? [recipientMemberRef, recipientRef] : []),
-        ...(senderFollow ? [senderFollow, recipientFollow] : [])];
+        ...(senderFollow ? [senderFollow, recipientFollow] : []),
+        privacyRef, senderWalletRef,
+        ...(recipientWalletRef ? [recipientWalletRef] : [])];
       const snapshots = await Promise.all(refs.map(ref => tx.get(ref)));
       const [existing, configSnap, itemSnap, roomSnap, senderMember,
         senderSnap, freeGiftSnap] = snapshots;
+      const privacySnap = snapshots[snapshots.length -
+        (recipientWalletRef ? 3 : 2)];
+      const senderWalletSnap = snapshots[snapshots.length -
+        (recipientWalletRef ? 2 : 1)];
+      const recipientWalletSnap = recipientWalletRef
+        ? snapshots[snapshots.length - 1] : null;
       if (existing.exists) {
         const data = existing.data();
         if (data.userId !== sender.uid || data.context !== context ||
@@ -1108,6 +1134,7 @@ app.post("/gift/send", async (req, res, next) => {
         assertChatMembership(roomSnap.data(), sender.uid, recipientId);
       }
       const config = requireLiveEconomy(configSnap.data());
+      requirePrivateWalletCutover(privacySnap.data());
       const item = itemSnap.data();
       const price = Number(item?.priceCoins);
       if (!itemSnap.exists || item.type !== "gift" || item.active !== true ||
@@ -1119,6 +1146,7 @@ app.post("/gift/send", async (req, res, next) => {
           {status: 409});
       }
       const senderData = senderSnap.data() || {};
+      const senderWallet = senderWalletSnap.data() || {};
       if (Number(senderData.giftLevel || 0) <
           Number(item.requiredGiftLevel || 0)) {
         throw Object.assign(new Error("Gift level requirement not met."),
@@ -1132,11 +1160,11 @@ app.post("/gift/send", async (req, res, next) => {
       const amounts = calculateGiftSettlement({
         config, priceCoins: price, quantity, freeGiftBalance: freeBalance,
       });
-      if (senderData.walletFrozen === true ||
-          Number(senderData.walletDebtCoins || 0) > 0) {
+      if (senderWallet.walletFrozen === true ||
+          Number(senderWallet.walletDebtCoins || 0) > 0) {
         throw Object.assign(new Error("Wallet under payment review."), {status: 423});
       }
-      const balance = Number(senderData.coins || 0);
+      const balance = Number(senderWallet.coins || 0);
       if (!Number.isSafeInteger(balance) || balance < amounts.chargedCoins) {
         throw Object.assign(new Error("NOT_ENOUGH_COINS"), {status: 409});
       }
@@ -1160,7 +1188,7 @@ app.post("/gift/send", async (req, res, next) => {
           spent + amounts.chargedCoins > config.giftingDailyCoinLimit) {
         throw Object.assign(new Error("Daily gift limit reached."), {status: 429});
       }
-      const recipientData = recipientRef ? snapshots[8].data() || {} : null;
+      const recipientData = recipientWalletSnap?.data() || null;
       const recipientBefore = recipientData
         ? Number(recipientData.diamondsPending || 0) : 0;
       const receiverAfter = recipientBefore + amounts.pendingDiamonds;
@@ -1177,8 +1205,10 @@ app.post("/gift/send", async (req, res, next) => {
         pendingDiamonds: recipientRef ? amounts.pendingDiamonds : 0,
         holdUntil: recipientRef ? holdUntil.toDate().toISOString() : null,
       };
+      tx.set(senderWalletRef, {
+        coins: after, updatedAt: FieldValue.serverTimestamp(),
+      }, {merge: true});
       tx.set(senderRef, {
-        coins: after,
         giftSentPoints: FieldValue.increment(amounts.chargedCoins),
         giftLevelPoints: FieldValue.increment(amounts.giftLevelPoints),
         updatedAt: FieldValue.serverTimestamp(),
@@ -1201,8 +1231,11 @@ app.post("/gift/send", async (req, res, next) => {
         createdAt: FieldValue.serverTimestamp(),
       });
       if (recipientRef) {
-        tx.set(recipientRef, {
+        tx.set(recipientWalletRef, {
           diamondsPending: receiverAfter,
+          updatedAt: FieldValue.serverTimestamp(),
+        }, {merge: true});
+        tx.set(recipientRef, {
           giftReceivedPoints: FieldValue.increment(amounts.chargedCoins),
           updatedAt: FieldValue.serverTimestamp(),
         }, {merge: true});
@@ -1340,114 +1373,8 @@ app.post("/iap/verify", async (req, res, next) => {
   }
 });
 
-app.post("/quiz/finish", async (req, res, next) => {
-  try {
-    const user = await authenticatedUser(req);
-    const roomId = String(req.body?.roomId || "").trim();
-
-    if (!roomId) {
-      return res.status(400).json({ error: "roomId is required." });
-    }
-
-    const roomRef = db.collection("rooms").doc(roomId);
-    const roomSnap = await roomRef.get();
-
-    if (!roomSnap.exists || roomSnap.data()?.isOpen !== true) {
-      return res.status(404).json({ error: "Room is not open." });
-    }
-
-    if (roomSnap.data()?.hostId !== user.uid) {
-      return res.status(403).json({ error: "Only the host can finish the quiz." });
-    }
-
-    const answersSnap = await roomRef.collection("quiz_answers").get();
-    const roomData = roomSnap.data() || {};
-    const quiz = roomData.quiz || {};
-    // A free-room client may already have revealed non-monetary practice
-    // results. Never retroactively convert those answers into paid coins.
-    if (quiz.practiceOnly === true) {
-      return res.status(409).json({error: "This round ended as a practice quiz."});
-    }
-    const correctIndex = Number(quiz.correctIndex);
-
-    if (!Number.isInteger(correctIndex)) {
-      return res.status(409).json({ error: "No active quiz." });
-    }
-
-    const correctAnswers = answersSnap.docs
-      .map((doc) => ({ id: doc.id, ...doc.data() }))
-      .filter((answer) => Number(answer.optionIndex) === correctIndex)
-      .sort((a, b) => {
-        const aTime = a.answeredAt?.toMillis?.() || Number.MAX_SAFE_INTEGER;
-        const bTime = b.answeredAt?.toMillis?.() || Number.MAX_SAFE_INTEGER;
-        return aTime - bTime;
-      })
-      .slice(0, 3);
-
-    const winners = correctAnswers.map((answer, index) => ({
-      place: index + 1,
-      userId: String(answer.userId || answer.id),
-      displayName: String(answer.displayName || "WorldVoice user"),
-      prizeCoins: index === 0 ? 5 : 0,
-    }));
-
-    const transactionResult = await db.runTransaction(async (tx) => {
-      const latestRoom = await tx.get(roomRef);
-      const latestQuiz = latestRoom.data()?.quiz || {};
-
-      if (latestQuiz.practiceOnly === true) {
-        return {
-          alreadyFinished: true,
-          practiceOnly: true,
-          winners: Array.isArray(latestQuiz.winners) ? latestQuiz.winners : [],
-        };
-      }
-
-      if (latestQuiz.rewardedAt != null) {
-        return {
-          alreadyFinished: true,
-          winners: Array.isArray(latestQuiz.winners)
-            ? latestQuiz.winners
-            : [],
-        };
-      }
-
-      if (winners.length > 0) {
-        const winnerRef = db.collection("users").doc(winners[0].userId);
-        const winnerSnap = await tx.get(winnerRef);
-        const balance = Number(winnerSnap.data()?.coins || 0);
-        tx.set(
-          winnerRef,
-          {
-            coins: balance + 5,
-            quizCoinsEarned: FieldValue.increment(5),
-            updatedAt: FieldValue.serverTimestamp(),
-          },
-          { merge: true },
-        );
-      }
-
-      // The Admin SDK treats dotted keys inside set(merge) as literal field
-      // names. update() interprets them as nested paths in rooms/{id}.quiz.
-      tx.update(roomRef, {
-        "quiz.revealed": true,
-        "quiz.winners": winners,
-        "quiz.firstPrizeCoins": 5,
-        "quiz.rewardedAt": FieldValue.serverTimestamp(),
-        updatedAt: FieldValue.serverTimestamp(),
-      });
-
-      return {
-        alreadyFinished: false,
-        winners,
-      };
-    });
-
-    return res.json({ ok: true, ...transactionResult });
-  } catch (error) {
-    next(error);
-  }
-});
+// All verified quizzes are handled by the secret-backed, server-scored router.
+registerQuizRoutes({app, db, authenticatedUser});
 
 // Finance routes run only on the separately deployed authenticated backend.
 registerWalletRoutes({app, db, authenticatedUser});

@@ -44,6 +44,16 @@ test("auxiliary features are explicitly unavailable until connected", async () =
   assert.match((await response.json()).error, /not yet enabled/);
 });
 
+test("secure quiz routes are unavailable without configured trusted backend", async () => {
+  for (const endpoint of ["/quiz/start", "/quiz/answer", "/quiz/finish"]) {
+    const response = await worker.fetch(
+      new Request("https://test.example" + endpoint, {method: "POST"}), {},
+    );
+    assert.equal(response.status, 503);
+    assert.match((await response.json()).error, /not yet enabled/);
+  }
+});
+
 test("nonexistent path rejects requests", async () => {
   const response = await worker.fetch(
     new Request("https://test.example/arbitrary", { method: "POST" }),

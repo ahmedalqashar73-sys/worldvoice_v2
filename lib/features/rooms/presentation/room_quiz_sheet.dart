@@ -132,7 +132,7 @@ class _RoomQuizSheetState extends State<RoomQuizSheet> {
       if (question.text.trim().isNotEmpty && options.length >= 2) {
         if (rawOptions[correctIndex].isEmpty) {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(Localizations.localeOf(context).languageCode == 'ar'
                   ? 'يجب ألا تكون الإجابة الصحيحة فارغة.'
                   : 'The correct answer cannot be empty.'),
@@ -214,8 +214,15 @@ class _RoomQuizSheetState extends State<RoomQuizSheet> {
             return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
               stream: _service.watchQuizAnswers(),
               builder: (context, answerSnapshot) {
-                final answers = answerSnapshot.data?.docs ??
+                final allAnswers = answerSnapshot.data?.docs ??
                     const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
+                // The backend retains immutable proofs across rounds; only
+                // show votes for the active round, never previous winners.
+                final answers = allAnswers
+                    .where((doc) =>
+                        state?.quizRoundId == null ||
+                        doc.data()['roundId'] == state?.quizRoundId)
+                    .toList(growable: false);
                 QueryDocumentSnapshot<Map<String, dynamic>>? myAnswer;
                 for (final answer in answers) {
                   if (answer.id == uid) {
@@ -257,6 +264,20 @@ class _RoomQuizSheetState extends State<RoomQuizSheet> {
                           ),
                       ],
                     ),
+                    if (state.quizSecure && !state.quizRevealed)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Text(
+                          isArabic
+                              ? 'الكويز آمن: الإجابة الصحيحة محفوظة على الخادم حتى ظهور النتائج.'
+                              : 'Verified quiz: the correct answer stays private until results are revealed.',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ),
+                    if (state.quizClosed && !state.quizRevealed)
+                      Text(isArabic
+                          ? 'يجري احتساب النتائج على الخادم.'
+                          : 'The server is finalizing results.'),
                     const SizedBox(height: 14),
                     for (var i = 0; i < state.quizOptions.length; i++)
                       Card(
@@ -275,7 +296,7 @@ class _RoomQuizSheetState extends State<RoomQuizSheet> {
                                       i
                                   ? const Icon(Icons.check_circle_rounded)
                                   : null,
-                          onTap: state.quizRevealed || myAnswer != null
+                          onTap: state.quizRevealed || state.quizClosed || myAnswer != null
                               ? null
                               : () => _answerQuiz(i),
                         ),
@@ -286,7 +307,10 @@ class _RoomQuizSheetState extends State<RoomQuizSheet> {
                         onPressed: _finishQuiz,
                         icon: const Icon(Icons.visibility_rounded),
                         label: Text(
-                          isArabic ? 'إظهار النتيجة' : 'Reveal result',
+                          state.quizClosed
+                              ? (isArabic ? 'إعادة محاولة احتساب النتيجة'
+                                  : 'Retry finalizing results')
+                              : (isArabic ? 'إظهار النتيجة' : 'Reveal result'),
                         ),
                       ),
                     if (state.quizRevealed && state.quizPracticeOnly)

@@ -56,6 +56,8 @@ class _RoomCoinStoreSheetState extends State<RoomCoinStoreSheet> {
                       stream: FirebaseFirestore.instance
                           .collection('users')
                           .doc(user.uid)
+                          .collection('private_wallet')
+                          .doc('summary')
                           .snapshots(),
                       builder: (context, snapshot) {
                         final coins =
@@ -236,7 +238,8 @@ class _WalletViewState extends State<_WalletView> {
               ),
               StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
                 stream: FirebaseFirestore.instance
-                    .collection('users').doc(uid).snapshots(),
+                    .collection('users').doc(uid)
+                    .collection('private_wallet').doc('summary').snapshots(),
                 builder: (context, snapshot) {
                   final data = snapshot.data?.data() ?? <String, dynamic>{};
                   if (snapshot.hasError) {

@@ -1,6 +1,9 @@
 name: Agora Worker Unit Tests
 on:
   workflow_dispatch:
+  pull_request:
+    branches:
+      - fix/finish-room-hub-quiz-gift-20260928
   push:
     branches:
       - fix/free-worker-always-available-agora-20260927
@@ -10,6 +13,7 @@ on:
       - feat/economy-wallet-ui-20260928
       - feat/economy-chat-context-20260928
       - fix/finish-room-hub-quiz-gift-20260928
+      - feat/economy-secure-quiz-and-wallet-20260928
 jobs:
   flutter-analyze:
     runs-on: ubuntu-latest

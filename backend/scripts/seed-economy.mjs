@@ -23,6 +23,9 @@ const db = getFirestore();
 
 const policy = {
   enabled: false,
+  quizRewardsEnabled: false,
+  quizFirstPrizeCoins: 5, // proposed non-cash incentive, disabled until wallet migration
+  walletSchemaVersion: 1, // v2 requires verified, privacy-preserving migration
   coinsPerUsd: null,
   receiverSharePercent: null,
   diamondUsdValue: null,
