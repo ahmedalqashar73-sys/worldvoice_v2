@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../services/room_coin_purchase_service.dart';
+import '../services/room_wallet_read_service.dart';
 import '../data/coin_product_config.dart';
 
 class RoomCoinStoreSheet extends StatefulWidget {
@@ -53,11 +54,21 @@ class _RoomCoinStoreSheetState extends State<RoomCoinStoreSheet> {
               subtitle: user == null
                   ? null
                   : StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                      stream: FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(user.uid)
-                          .snapshots(),
+                      stream: RoomWalletReadService.watchOwnWallet(user.uid),
                       builder: (context, snapshot) {
+                        if (RoomWalletReadService.privateWalletCutover &&
+                            !snapshot.hasData) {
+                          return Text(isArabic
+                              ? 'جارٍ تحميل المحفظة الآمنة...'
+                              : 'Loading secure wallet...');
+                        }
+                        if (RoomWalletReadService.privateWalletCutover &&
+                            (snapshot.hasError ||
+                                snapshot.data?.exists != true)) {
+                          return Text(isArabic
+                              ? 'المحفظة الآمنة غير متاحة. لا يمكن عرض الرصيد.'
+                              : 'Secure wallet unavailable; balance hidden.');
+                        }
                         final coins =
                             (snapshot.data?.data()?['coins'] as num?)
                                     ?.toInt() ??
@@ -235,11 +246,12 @@ class _WalletViewState extends State<_WalletView> {
                 ),
               ),
               StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                stream: FirebaseFirestore.instance
-                    .collection('users').doc(uid).snapshots(),
+                stream: RoomWalletReadService.watchOwnWallet(uid),
                 builder: (context, snapshot) {
                   final data = snapshot.data?.data() ?? <String, dynamic>{};
-                  if (snapshot.hasError) {
+                  if (snapshot.hasError ||
+                      (RoomWalletReadService.privateWalletCutover &&
+                          snapshot.hasData && snapshot.data?.exists != true)) {
                     return Text(ar ? 'المحفظة غير متاحة' : 'Wallet unavailable');
                   }
                   final coins = (data['coins'] as num?)?.toInt() ?? 0;
