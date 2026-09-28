@@ -256,12 +256,10 @@ class RoomCoinPurchaseService extends ChangeNotifier {
         parsed.fragment.isNotEmpty) {
       throw StateError('Economy server is not configured for the wallet.');
     }
-    return parsed.replace(path: parsed.path.replaceFirst(RegExp(r'/
-    _purchaseSub?.cancel();
-    super.dispose();
-  }
-}
-), ''));
+    final path = parsed.path.endsWith('/')
+        ? parsed.path.substring(0, parsed.path.length - 1)
+        : parsed.path;
+    return parsed.replace(path: path);
   }
 
   Future<Map<String, dynamic>> _walletPost(
