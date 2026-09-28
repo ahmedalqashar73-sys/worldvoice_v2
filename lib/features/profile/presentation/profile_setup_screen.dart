@@ -355,11 +355,21 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           'interests':selectedHobbies.toList(),
           'updatedAt':FieldValue.serverTimestamp(),
         };
+        // Existing city-privacy preference is not editable in this form.
+        // Never re-publish a hidden city when other profile fields are saved.
+        final savedProfile = await db.collection('users').doc(user.uid).get();
+        final hideCity = savedProfile.data()?['hideCity'] == true;
+        final publicChanges = PublicProfileFields.editable({
+          ...privateChanges,
+          'uid': user.uid,
+          'hideCity': hideCity,
+        });
+        if (hideCity) publicChanges['city'] = FieldValue.delete();
         final batch = db.batch();
         batch.set(db.collection('users').doc(user.uid), privateChanges,
             SetOptions(merge: true));
         batch.set(db.collection('public_profiles').doc(user.uid),
-            PublicProfileFields.editable(privateChanges), SetOptions(merge: true));
+            publicChanges, SetOptions(merge: true));
         await batch.commit();
       }else{
         await db.runTransaction((tx)async{
