@@ -134,6 +134,35 @@ test('quiz accepts member answers, host reveals, and late answers are denied', a
   await assertSucceeds(deleteDoc(doc(user('host'), 'rooms/r1/quiz_answers/listener')));
 });
 
+test('verified quiz answers are immutable, round-scoped, and secret stays private', async () => {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const db = ctx.firestore();
+    await setDoc(doc(db, 'rooms/r1/quiz_private/current'), {
+      roundId: 'secure-round', correctIndex: 1,
+    });
+    await updateDoc(room(db), {
+      quiz: {question: 'Question?', options: ['No', 'Yes'],
+        roundId: 'secure-round', revealed: false, practiceOnly: true}
+    });
+  });
+  const listenerDb = user('listener');
+  const answerRef = doc(listenerDb, 'rooms/r1/quiz_answers/listener');
+  const payload = {
+    userId: 'listener', displayName: 'Listener', optionIndex: 1,
+    roundId: 'secure-round', answeredAt: serverTimestamp(),
+  };
+  await assertFails(getDoc(doc(listenerDb, 'rooms/r1/quiz_private/current')));
+  await assertFails(getDoc(doc(user('host'), 'rooms/r1/quiz_private/current')));
+  await assertFails(setDoc(doc(user('host'), 'rooms/r1/quiz_private/current'),
+    {roundId: 'hacked', correctIndex: 0}));
+  await assertFails(setDoc(answerRef, {...payload, roundId: 'previous'}));
+  await assertFails(setDoc(answerRef, {...payload, optionIndex: 999}));
+  await assertSucceeds(setDoc(answerRef, payload));
+  await assertFails(updateDoc(answerRef, {optionIndex: 0}));
+  await assertFails(deleteDoc(answerRef));
+  await assertFails(deleteDoc(doc(user('host'), 'rooms/r1/quiz_answers/listener')));
+});
+
 test('AI notes are readable by members but only the backend may write', async () => {
   await assertSucceeds(getDocs(collection(user('listener'), 'rooms/r1/teacher_ai_notes')));
   await assertFails(getDocs(collection(user('outsider'), 'rooms/r1/teacher_ai_notes')));
