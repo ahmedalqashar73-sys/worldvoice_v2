@@ -436,4 +436,131 @@ export function registerEconomyRoutes(app, { db, authenticatedUser }) {
       res.json(result);
     } catch (error) { next(error); }
   });
+  // Admin-only audit/review. Firebase custom claims are assigned from an
+  // offline trusted administrator environment, never by mobile clients.
+  app.get("/admin/withdrawals", async (req, res, next) => {
+    try {
+      const moderator = await verifiedUser(authenticatedUser, req);
+      if (moderator.admin !== true)
+        throw economyError("Administrator authorization required.", 403);
+      const status = String(req.query.status || "pending_admin_review");
+      if (!["pending_admin_review", "approved_awaiting_payout",
+        "paid", "rejected"].includes(status))
+        throw economyError("Invalid withdrawal status.", 400);
+      const snapshot = await db.collection("withdraw_requests")
+        .where("status", "==", status).limit(100).get();
+      res.json({ ok:true, requests:snapshot.docs.map((doc) =>
+        ({id:doc.id, ...doc.data()})) });
+    } catch (error) { next(error); }
+  });
+
+  app.post("/admin/withdrawals/:requestId/decision", async (req, res, next) => {
+    try {
+      const admin = await verifiedUser(authenticatedUser, req);
+      if (admin.admin !== true)
+        throw economyError("Administrator authorization required.", 403);
+      const requestId = req.params.requestId;
+      const decision = String(req.body?.decision || "");
+      const reason = String(req.body?.reason || "").trim();
+      if (!id(requestId) || !["approve", "reject"].includes(decision))
+        throw economyError("Invalid review decision.", 400);
+      if (decision === "reject" && !reason)
+        throw economyError("Rejection requires a reason.", 400);
+      const ref = db.collection("withdraw_requests").doc(requestId);
+      const original = await ref.get();
+      if (!original.exists) throw economyError("Request not found.", 404);
+      const userRef = db.collection("users").doc(original.data().userId);
+      const result = await db.runTransaction(async (tx) => {
+        const [request, wallet] = await Promise.all([
+          tx.get(ref), tx.get(userRef),
+        ]);
+        const data = request.data() || {};
+        if (data.status !== "pending_admin_review")
+          throw economyError("Request has already been reviewed.", 409);
+        if (decision === "approve" &&
+            (wallet.data()?.kycStatus !== "verified" ||
+             wallet.data()?.payoutHold === true ||
+             positiveBalance(wallet.data()?.coinDebt) > 0))
+          throw economyError("Payout is blocked pending wallet/KYC review.", 403);
+        const pending = positiveBalance(wallet.data()?.diamondsPendingWithdrawal);
+        const count = Number(data.diamonds);
+        if (!Number.isSafeInteger(count) || count <= 0 || pending < count)
+          throw economyError("Withdrawal ledger mismatch.", 503);
+        if (decision === "reject") {
+          const before = positiveBalance(wallet.data()?.diamonds);
+          tx.set(userRef, {
+            diamonds:before+count,
+            diamondsPendingWithdrawal:pending-count,
+            updatedAt:FieldValue.serverTimestamp(),
+          }, {merge:true});
+          // Restore eligible diamonds without resetting the old hold period:
+          // it already elapsed before the original withdrawal request.
+          tx.create(userRef.collection("diamond_lots").doc("return_"+requestId), {
+            source:"withdrawal_reversal",
+            remaining:count, diamonds:count, frozen:false,
+            createdAt:FieldValue.serverTimestamp(),
+            availableAt:nowTimestamp(),
+          });
+          ledger(tx, db, {userId:data.userId, type:"withdrawal_rejected",
+            currency:"diamonds", amount:count, before, after:before+count,
+            source:"admin_review", refId:requestId,
+            metadata:{reason,reviewedBy:admin.uid}});
+        }
+        const status = decision === "approve"
+          ? "approved_awaiting_payout" : "rejected";
+        tx.update(ref, {status, reviewReason:reason, reviewerUid:admin.uid,
+          reviewedAt:FieldValue.serverTimestamp()});
+        tx.create(db.collection("economy_audit").doc(), {
+          type:"withdrawal_review", withdrawRequestId:requestId,
+          decision,status, reviewerUid:admin.uid, reason,
+          createdAt:FieldValue.serverTimestamp(),
+        });
+        return {ok:true, status};
+      });
+      res.json(result);
+    } catch (error) {next(error);}
+  });
+
+  // Payout confirmation requires a real provider reference. This route
+  // RECORDS an already completed manual transfer; it does NOT send money.
+  app.post("/admin/withdrawals/:requestId/mark-paid", async (req, res, next) => {
+    try {
+      const admin = await verifiedUser(authenticatedUser, req);
+      if (admin.admin !== true)
+        throw economyError("Administrator authorization required.", 403);
+      const requestId = req.params.requestId;
+      const providerReference = String(req.body?.providerReference || "").trim();
+      if (!id(requestId) || providerReference.length < 8 || providerReference.length > 180)
+        throw economyError("An external payout reference is required.", 400);
+      const ref = db.collection("withdraw_requests").doc(requestId);
+      const snapshot = await ref.get();
+      if (!snapshot.exists) throw economyError("Withdrawal not found.", 404);
+      const userRef = db.collection("users").doc(snapshot.data().userId);
+      const result = await db.runTransaction(async (tx) => {
+        const [request, wallet] = await Promise.all([
+          tx.get(ref), tx.get(userRef),
+        ]);
+        const data = request.data() || {};
+        if (data.status !== "approved_awaiting_payout")
+          throw economyError("Request is not ready for payout confirmation.", 409);
+        const diamonds = Number(data.diamonds);
+        const pending = positiveBalance(wallet.data()?.diamondsPendingWithdrawal);
+        if (!Number.isSafeInteger(diamonds) || pending < diamonds)
+          throw economyError("Withdrawal reserve mismatch.", 503);
+        tx.update(ref, {status:"paid", providerReference,
+          paidAt:FieldValue.serverTimestamp(),
+          confirmedBy:admin.uid});
+        tx.set(userRef, {diamondsPendingWithdrawal:pending-diamonds,
+          updatedAt:FieldValue.serverTimestamp()}, {merge:true});
+        tx.create(db.collection("economy_audit").doc(), {
+          type:"withdrawal_marked_paid", withdrawRequestId:requestId,
+          method:data.method, providerReference, confirmedBy:admin.uid,
+          createdAt:FieldValue.serverTimestamp(),
+        });
+        return {ok:true,status:"paid"};
+      });
+      res.json(result);
+    } catch (error) {next(error);}
+  });
+
 }
