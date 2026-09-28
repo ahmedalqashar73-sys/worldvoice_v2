@@ -379,6 +379,13 @@ service cloud.firestore {
         allow write: if false;
       }
 
+      // New private wallet documents created by the staging migration.
+      // Owner-only reads, and only the trusted Admin SDK may mutate money.
+      match /private/{documentId} {
+        allow read: if signedIn() && request.auth.uid == userId;
+        allow write: if false;
+      }
+
       match /wallet_transactions/{transactionId} {
         allow read: if signedIn() && request.auth.uid == userId;
         allow write: if false;
@@ -393,6 +400,13 @@ service cloud.firestore {
         allow read: if signedIn() && request.auth.uid == userId;
         allow create, update, delete: if false;
       }
+    }
+
+    // Sanitized public projection only; clients cannot create or alter it.
+    // Do not switch existing profile readers until the migration is checked.
+    match /public_profiles/{userId} {
+      allow read: if signedIn();
+      allow write: if false;
     }
 
     // -------------------------
