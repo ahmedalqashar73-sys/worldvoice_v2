@@ -67,7 +67,7 @@ service cloud.firestore {
             'walletBalance', 'withdrawableDiamonds', 'walletDebtCoins',
             'walletFrozen', 'payoutFrozen', 'diamondsReserved',
             'firstRechargeUsed', 'payoutFreezeReason', 'identityVerified',
-            'vipExpiresAt'
+            'vipExpiresAt', 'isVip', 'isVerified', 'isPartner'
           ]);
     }
 
@@ -103,7 +103,10 @@ service cloud.firestore {
       && request.resource.data.get('giftLevel', 0) == 0
       && request.resource.data.get('giftLevelPoints', 0) == 0
       && request.resource.data.get('giftReceivedPoints', 0) == 0
-      && request.resource.data.get('giftSentPoints', 0) == 0;
+      && request.resource.data.get('giftSentPoints', 0) == 0
+      && request.resource.data.get('isVip', false) == false
+      && request.resource.data.get('isVerified', false) == false
+      && request.resource.data.get('isPartner', false) == false;
     }
 
     function accessGrantPath(roomId, userId) {
