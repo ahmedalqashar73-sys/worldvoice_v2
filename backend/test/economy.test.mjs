@@ -10,7 +10,8 @@ const cfg = {
   minWithdrawalDiamonds: 200, holdDays: 7,
   giftLevelPointsPerCoin: 1, exchangeBonusPercent: 10,
   minExchangeDiamonds: 100, cardBonusPercent: 10,
-  firstRechargeBonusPercent: 20
+  firstRechargeBonusPercent: 20, dailySendLimitCoins: 2000,
+  dailyPurchaseLimitUsd: 100, withdrawalWindowDays: [1, 15]
 };
 test("missing/malformed/disabled monetary config never silently defaults", () => {
   assert.throws(() => validateEconomy({}), /missing/);
