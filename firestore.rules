@@ -71,6 +71,16 @@ service cloud.firestore {
           ]);
     }
 
+    // An old room client may still run a non-monetary practice quiz, but
+    // no client may forge or overwrite a server-backed quiz round.
+    function secureQuizUntouched() {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['quiz'])
+          || (
+            resource.data.get('quiz', {}).get('secure', false) != true
+            && request.resource.data.get('quiz', {}).get('secure', false) != true
+          );
+    }
+
     function noInitialClientEconomyCredit() {
       return request.resource.data.get('coins', 0) == 0
           && request.resource.data.get('diamonds', 0) == 0
@@ -544,6 +554,7 @@ service cloud.firestore {
       allow update: if signedIn()
           && request.resource.data.channelId == resource.data.channelId
           && validRoomThemeChange()
+          && secureQuizUntouched()
           && (
             (
               request.auth.uid == resource.data.hostId
@@ -665,11 +676,20 @@ service cloud.firestore {
             || (isRoomMember(roomId) && resource.data.userId == request.auth.uid);
       }
 
+      // Immutable answers and correct answer key: trusted backend only.
+      match /quiz_private/{roundId} {
+        allow read, write: if false;
+        match /answers/{userId} {
+          allow read, write: if false;
+        }
+      }
+
       match /quiz_answers/{userId} {
         allow read: if isRoomMember(roomId);
         allow create, update: if isRoomMember(roomId)
             && userId == request.auth.uid
             && request.resource.data.userId == request.auth.uid
+            && get(roomPath(roomId)).data.quiz.get('secure', false) != true
             && get(roomPath(roomId)).data.quiz.revealed != true;
         allow delete: if isHost(roomId)
             || (isRoomMember(roomId) && userId == request.auth.uid);
