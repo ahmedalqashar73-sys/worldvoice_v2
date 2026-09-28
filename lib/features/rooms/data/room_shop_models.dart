@@ -9,6 +9,8 @@ class RoomShopBackground {
     required this.active,
     this.previewUrl,
     this.durationDays,
+    this.animationUrl,
+    this.requiredGiftLevel = 0,
   });
 
   final String id;
@@ -18,6 +20,8 @@ class RoomShopBackground {
   final bool active;
   final String? previewUrl;
   final int? durationDays;
+  final String? animationUrl;
+  final int requiredGiftLevel;
 
   factory RoomShopBackground.fromDoc(
     QueryDocumentSnapshot<Map<String, dynamic>> doc,
@@ -31,6 +35,8 @@ class RoomShopBackground {
       active: data['active'] == true,
       previewUrl: data['previewUrl']?.toString(),
       durationDays: (data['durationDays'] as num?)?.toInt(),
+      animationUrl: data['animationUrl']?.toString(),
+      requiredGiftLevel: (data['requiredGiftLevel'] as num?)?.toInt() ?? 0,
     );
   }
 }
@@ -59,7 +65,7 @@ class RoomBackgroundEntitlement {
     return RoomBackgroundEntitlement(
       themeId: (data['themeId'] ?? doc.id).toString(),
       name: (data['name'] ?? 'WorldVoice Background').toString(),
-      backgroundUrl: data['backgroundUrl']?.toString(),
+      backgroundUrl: data['backgroundUrl']?.toString() ?? data['previewUrl']?.toString(),
       expiresAt: rawExpires is Timestamp ? rawExpires.toDate() : null,
     );
   }
