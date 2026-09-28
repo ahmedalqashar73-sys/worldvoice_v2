@@ -15,6 +15,7 @@ import Stripe from "stripe";
 import { requireLiveEconomy, calculateGiftSettlement, calculatePurchaseCredit } from "./economy_policy.js";
 import {registerWalletRoutes} from "./wallet_routes.js";
 import {registerChatRoutes} from "./chat_routes.js";
+import {registerQuizRoutes} from "./quiz_routes.js";
 import {chatIdFor, assertChatMembership} from "./chat_membership.js";
 import {reverseVerifiedWebPurchase} from "./payment_reversals.js";
 
@@ -1340,114 +1341,8 @@ app.post("/iap/verify", async (req, res, next) => {
   }
 });
 
-app.post("/quiz/finish", async (req, res, next) => {
-  try {
-    const user = await authenticatedUser(req);
-    const roomId = String(req.body?.roomId || "").trim();
-
-    if (!roomId) {
-      return res.status(400).json({ error: "roomId is required." });
-    }
-
-    const roomRef = db.collection("rooms").doc(roomId);
-    const roomSnap = await roomRef.get();
-
-    if (!roomSnap.exists || roomSnap.data()?.isOpen !== true) {
-      return res.status(404).json({ error: "Room is not open." });
-    }
-
-    if (roomSnap.data()?.hostId !== user.uid) {
-      return res.status(403).json({ error: "Only the host can finish the quiz." });
-    }
-
-    const answersSnap = await roomRef.collection("quiz_answers").get();
-    const roomData = roomSnap.data() || {};
-    const quiz = roomData.quiz || {};
-    // A free-room client may already have revealed non-monetary practice
-    // results. Never retroactively convert those answers into paid coins.
-    if (quiz.practiceOnly === true) {
-      return res.status(409).json({error: "This round ended as a practice quiz."});
-    }
-    const correctIndex = Number(quiz.correctIndex);
-
-    if (!Number.isInteger(correctIndex)) {
-      return res.status(409).json({ error: "No active quiz." });
-    }
-
-    const correctAnswers = answersSnap.docs
-      .map((doc) => ({ id: doc.id, ...doc.data() }))
-      .filter((answer) => Number(answer.optionIndex) === correctIndex)
-      .sort((a, b) => {
-        const aTime = a.answeredAt?.toMillis?.() || Number.MAX_SAFE_INTEGER;
-        const bTime = b.answeredAt?.toMillis?.() || Number.MAX_SAFE_INTEGER;
-        return aTime - bTime;
-      })
-      .slice(0, 3);
-
-    const winners = correctAnswers.map((answer, index) => ({
-      place: index + 1,
-      userId: String(answer.userId || answer.id),
-      displayName: String(answer.displayName || "WorldVoice user"),
-      prizeCoins: index === 0 ? 5 : 0,
-    }));
-
-    const transactionResult = await db.runTransaction(async (tx) => {
-      const latestRoom = await tx.get(roomRef);
-      const latestQuiz = latestRoom.data()?.quiz || {};
-
-      if (latestQuiz.practiceOnly === true) {
-        return {
-          alreadyFinished: true,
-          practiceOnly: true,
-          winners: Array.isArray(latestQuiz.winners) ? latestQuiz.winners : [],
-        };
-      }
-
-      if (latestQuiz.rewardedAt != null) {
-        return {
-          alreadyFinished: true,
-          winners: Array.isArray(latestQuiz.winners)
-            ? latestQuiz.winners
-            : [],
-        };
-      }
-
-      if (winners.length > 0) {
-        const winnerRef = db.collection("users").doc(winners[0].userId);
-        const winnerSnap = await tx.get(winnerRef);
-        const balance = Number(winnerSnap.data()?.coins || 0);
-        tx.set(
-          winnerRef,
-          {
-            coins: balance + 5,
-            quizCoinsEarned: FieldValue.increment(5),
-            updatedAt: FieldValue.serverTimestamp(),
-          },
-          { merge: true },
-        );
-      }
-
-      // The Admin SDK treats dotted keys inside set(merge) as literal field
-      // names. update() interprets them as nested paths in rooms/{id}.quiz.
-      tx.update(roomRef, {
-        "quiz.revealed": true,
-        "quiz.winners": winners,
-        "quiz.firstPrizeCoins": 5,
-        "quiz.rewardedAt": FieldValue.serverTimestamp(),
-        updatedAt: FieldValue.serverTimestamp(),
-      });
-
-      return {
-        alreadyFinished: false,
-        winners,
-      };
-    });
-
-    return res.json({ ok: true, ...transactionResult });
-  } catch (error) {
-    next(error);
-  }
-});
+// All verified quizzes are handled by the secret-backed, server-scored router.
+registerQuizRoutes({app, db, authenticatedUser});
 
 // Finance routes run only on the separately deployed authenticated backend.
 registerWalletRoutes({app, db, authenticatedUser});
