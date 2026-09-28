@@ -220,8 +220,8 @@ class _RoomQuizSheetState extends State<RoomQuizSheet> {
                 // show votes for the active round, never previous winners.
                 final answers = allAnswers
                     .where((doc) =>
-                        state!.quizRoundId == null ||
-                        doc.data()['roundId'] == state.quizRoundId)
+                        state?.quizRoundId == null ||
+                        doc.data()['roundId'] == state?.quizRoundId)
                     .toList(growable: false);
                 QueryDocumentSnapshot<Map<String, dynamic>>? myAnswer;
                 for (final answer in answers) {
@@ -302,12 +302,15 @@ class _RoomQuizSheetState extends State<RoomQuizSheet> {
                         ),
                       ),
                     const SizedBox(height: 12),
-                    if (widget.isHost && !state.quizRevealed && !state.quizClosed)
+                    if (widget.isHost && !state.quizRevealed)
                       FilledButton.icon(
                         onPressed: _finishQuiz,
                         icon: const Icon(Icons.visibility_rounded),
                         label: Text(
-                          isArabic ? 'إظهار النتيجة' : 'Reveal result',
+                          state.quizClosed
+                              ? (isArabic ? 'إعادة محاولة احتساب النتيجة'
+                                  : 'Retry finalizing results')
+                              : (isArabic ? 'إظهار النتيجة' : 'Reveal result'),
                         ),
                       ),
                     if (state.quizRevealed && state.quizPracticeOnly)
