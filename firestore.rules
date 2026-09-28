@@ -64,7 +64,8 @@ service cloud.firestore {
             'giftLevelPoints', 'giftLevel',
             'purchasedCoins', 'quizCoinsEarned',
             'lastGiftRoomId', 'lastGiftEventId',
-            'walletBalance', 'withdrawableDiamonds',
+            'walletBalance', 'withdrawableDiamonds', 'walletDebtCoins',
+            'walletFrozen', 'payoutFrozen', 'identityVerified',
             'vipExpiresAt'
           ]);
     }
@@ -203,7 +204,12 @@ service cloud.firestore {
 
       allow create: if signedIn()
           && request.auth.uid == userId
-          && request.resource.data.uid == userId;
+          && request.resource.data.uid == userId
+          && noInitialClientEconomyCredit()
+          && !request.resource.data.keys().hasAny([
+            'walletDebtCoins', 'walletFrozen', 'payoutFrozen',
+            'identityVerified'
+          ]);
 
       // Preserve existing non-financial profile/follow operations only.
       allow update: if signedIn()
@@ -365,6 +371,12 @@ service cloud.firestore {
         allow write: if false;
       }
 
+      // Holding lots cannot be forged or prematurely matured by a mobile client.
+      match /diamond_lots/{lotId} {
+        allow read: if signedIn() && request.auth.uid == userId;
+        allow write: if false;
+      }
+
       match /wallet_transactions/{transactionId} {
         allow read: if signedIn() && request.auth.uid == userId;
         allow write: if false;
@@ -414,6 +426,14 @@ service cloud.firestore {
     match /store_items/{itemId} {
       allow read: if signedIn();
       allow write: if false;
+    }
+
+    match /economy_store_operations/{id} {
+      allow read, write: if false;
+    }
+
+    match /economy_refund_operations/{id} {
+      allow read, write: if false;
     }
 
     match /economy_gift_operations/{id} {
