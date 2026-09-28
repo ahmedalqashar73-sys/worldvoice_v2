@@ -722,6 +722,8 @@ app.post("/store/purchase", async (req, res, next) => {
     const configRef = db.doc("economy_config/current");
     const payerRef = db.collection("users").doc(sender.uid);
     const recipientRef = db.collection("users").doc(recipientId);
+    const payerWalletRef = walletRef(db, sender.uid);
+    const recipientWalletRef = walletRef(db, recipientId);
     const inventoryRef = recipientRef.collection("inventory").doc(itemId);
     const friendRef = gifting ? payerRef.collection("following").doc(recipientId)
       : null;
@@ -729,10 +731,13 @@ app.post("/store/purchase", async (req, res, next) => {
     const dailyRef = payerRef.collection("economy_daily").doc(day);
     const outcome = await db.runTransaction(async tx => {
       const refs = [operationRef, itemRef, configRef, payerRef, inventoryRef,
-        dailyRef, ...(gifting ? [recipientRef, friendRef] : [])];
+        dailyRef, ...(gifting ? [recipientRef, friendRef] : []),
+        payerWalletRef, ...(gifting ? [recipientWalletRef] : [])];
       const snaps = await Promise.all(refs.map(ref => tx.get(ref)));
       const [existing, itemSnap, configSnap, payerSnap, ownedSnap, dailySnap] =
         snaps;
+      const payerWalletSnap = snaps[gifting ? 8 : 6];
+      const recipientWalletSnap = gifting ? snaps[9] : payerWalletSnap;
       if (existing.exists) {
         const old = existing.data() || {};
         if (old.senderId !== sender.uid || old.recipientId !== recipientId ||
@@ -761,17 +766,19 @@ app.post("/store/purchase", async (req, res, next) => {
         throw Object.assign(new Error("Store item price or duration is invalid."),
           {status: 503});
       }
-      if (!payerSnap.exists || Number(payerSnap.data()?.giftLevel || 0) <
+      if (!payerSnap.exists || (gifting && !snaps[6].exists) ||
+          Number(requireMigratedWallet(payerWalletSnap).giftLevel || 0) <
           Number(item.requiredGiftLevel || 0) ||
           (gifting && (!snaps[6].exists || !snaps[7].exists))) {
         throw Object.assign(new Error("User, gift level or friendship requirement failed."),
           {status: 403});
       }
-      if (payerSnap.data()?.walletFrozen === true ||
-          Number(payerSnap.data()?.walletDebtCoins || 0) > 0) {
+      requireMigratedWallet(recipientWalletSnap);
+      if (payerWalletSnap.data()?.walletFrozen === true ||
+          Number(payerWalletSnap.data()?.walletDebtCoins || 0) > 0) {
         throw Object.assign(new Error("Wallet under payment review."), {status: 423});
       }
-      const owner = gifting ? snaps[6].data() || {} : payerSnap.data() || {};
+      const owner = recipientWalletSnap.data() || {};
       const existingExpiry = item.type === "vip"
         ? owner.vipExpiresAt?.toMillis?.()
         : ownedSnap.data()?.expiresAt?.toMillis?.();
@@ -784,7 +791,7 @@ app.post("/store/purchase", async (req, res, next) => {
       const expiresAt = duration == null ? null : Timestamp.fromMillis(
         Math.max(now, existingExpiry || now) + duration * 24 * 60 * 60 * 1000,
       );
-      const before = Number(payerSnap.data()?.coins || 0);
+      const before = Number(payerWalletSnap.data()?.coins || 0);
       if (!Number.isSafeInteger(before) || before < price) {
         throw Object.assign(new Error("NOT_ENOUGH_COINS"), {status: 409});
       }
@@ -795,7 +802,7 @@ app.post("/store/purchase", async (req, res, next) => {
           dailyGift + price > policy.giftingDailyCoinLimit)) {
         throw Object.assign(new Error("Gifting daily limit exceeded."), {status: 429});
       }
-      tx.update(payerRef, {
+      tx.update(payerWalletRef, {
         coins: before - price,
         updatedAt: FieldValue.serverTimestamp(),
       });
@@ -818,7 +825,8 @@ app.post("/store/purchase", async (req, res, next) => {
         updatedAt: FieldValue.serverTimestamp(),
       }, {merge: true});
       if (item.type === "vip") {
-        tx.update(recipientRef, {vipExpiresAt: expiresAt});
+        tx.update(recipientWalletRef, {vipExpiresAt: expiresAt});
+        tx.update(recipientRef, {isVip: true});
       }
       if (item.type === "background") {
         // Temporary mirrored legacy read model; remove after all clients
