@@ -1038,13 +1038,9 @@ app.post("/gift/send", async (req, res, next) => {
         !/^[A-Za-z0-9_-]{12,100}$/.test(requestKey)) {
       return res.status(400).json({error: "Invalid gift request or idempotency key."});
     }
-    // Live stays locked until actual streaming sessions have verified ACLs.
-    if (context === "live") {
-      return res.status(501).json({
-        error: "Live gifting needs verified streaming membership.",
-      });
-    }
-    if (context === "chat" && recipientId === "teacher_ai") {
+    // Live uses the existing verified Agora ROOM membership and is
+    // available only when the room itself was created in live mode.
+    if (context !== "room" && recipientId === "teacher_ai") {
       return res.status(400).json({error: "AI gift XP is room-only."});
     }
     const requestHash = createHash("sha256")
@@ -1056,13 +1052,13 @@ app.post("/gift/send", async (req, res, next) => {
     const inventoryRef = senderRef.collection("inventory")
       .doc(`gift__${giftId}`);
     const itemRef = db.collection("store_items").doc(`gift__${giftId}`);
-    const roomRef = context === "room"
-      ? db.collection("rooms").doc(contextId)
-      : db.collection("chats").doc(contextId);
-    const senderMemberRef = context === "room"
+    const roomRef = context === "chat"
+      ? db.collection("chats").doc(contextId)
+      : db.collection("rooms").doc(contextId);
+    const senderMemberRef = context !== "chat"
       ? roomRef.collection("participants").doc(sender.uid) : roomRef;
     const recipientMemberRef = recipientRef
-      ? context === "room"
+      ? context !== "chat"
         ? roomRef.collection("participants").doc(recipientId)
         : roomRef
       : null;
@@ -1094,8 +1090,10 @@ app.post("/gift/send", async (req, res, next) => {
         }
         return {...data.outcome, alreadyProcessed: true};
       }
-      if (context === "room") {
-        if (roomSnap.data()?.isOpen !== true || !senderMember.exists ||
+      if (context !== "chat") {
+        if (roomSnap.data()?.isOpen !== true ||
+            (context === "live" && roomSnap.data()?.mode !== "live") ||
+            !senderMember.exists ||
             (recipientMemberRef && !snapshots[7].exists)) {
           throw Object.assign(new Error("Room membership is required."),
             {status: 403});
