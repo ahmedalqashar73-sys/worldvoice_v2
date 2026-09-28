@@ -65,4 +65,6 @@ jobs:
         with:
           node-version: "22"
       - run: node --check src/server.js
+      - run: node --check src/profile_projection.js
+      - run: node --check scripts/stage-private-wallet.mjs
       - run: npm test
