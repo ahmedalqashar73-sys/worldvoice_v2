@@ -721,6 +721,7 @@ app.post("/store/purchase", async (req, res, next) => {
     const itemRef = db.collection("store_items").doc(itemId);
     const configRef = db.doc("economy_config/current");
     const payerRef = db.collection("users").doc(sender.uid);
+    const payerWalletRef = payerRef.collection("private").doc("wallet");
     const recipientRef = db.collection("users").doc(recipientId);
     const inventoryRef = recipientRef.collection("inventory").doc(itemId);
     const friendRef = gifting ? payerRef.collection("following").doc(recipientId)
@@ -729,10 +730,11 @@ app.post("/store/purchase", async (req, res, next) => {
     const dailyRef = payerRef.collection("economy_daily").doc(day);
     const outcome = await db.runTransaction(async tx => {
       const refs = [operationRef, itemRef, configRef, payerRef, inventoryRef,
-        dailyRef, ...(gifting ? [recipientRef, friendRef] : [])];
+        dailyRef, ...(gifting ? [recipientRef, friendRef] : []), payerWalletRef];
       const snaps = await Promise.all(refs.map(ref => tx.get(ref)));
       const [existing, itemSnap, configSnap, payerSnap, ownedSnap, dailySnap] =
         snaps;
+      const payerWalletSnap = snaps[snaps.length - 1];
       if (existing.exists) {
         const old = existing.data() || {};
         if (old.senderId !== sender.uid || old.recipientId !== recipientId ||
@@ -742,6 +744,10 @@ app.post("/store/purchase", async (req, res, next) => {
         return {...old.outcome, alreadyProcessed: true};
       }
       const policy = requireLiveEconomy(configSnap.data());
+      if (!payerWalletSnap.exists) {
+        throw Object.assign(new Error("Private wallet must be initialized."),
+          {status: 409});
+      }
       const item = itemSnap.data() || {};
       if (!itemSnap.exists || item.active !== true ||
           !["background", "frame", "entrance", "vip"].includes(item.type) ||
@@ -767,8 +773,8 @@ app.post("/store/purchase", async (req, res, next) => {
         throw Object.assign(new Error("User, gift level or friendship requirement failed."),
           {status: 403});
       }
-      if (payerSnap.data()?.walletFrozen === true ||
-          Number(payerSnap.data()?.walletDebtCoins || 0) > 0) {
+      if (payerWalletSnap.data()?.walletFrozen === true ||
+          Number(payerWalletSnap.data()?.walletDebtCoins || 0) > 0) {
         throw Object.assign(new Error("Wallet under payment review."), {status: 423});
       }
       const owner = gifting ? snaps[6].data() || {} : payerSnap.data() || {};
@@ -784,7 +790,7 @@ app.post("/store/purchase", async (req, res, next) => {
       const expiresAt = duration == null ? null : Timestamp.fromMillis(
         Math.max(now, existingExpiry || now) + duration * 24 * 60 * 60 * 1000,
       );
-      const before = Number(payerSnap.data()?.coins || 0);
+      const before = Number(payerWalletSnap.data()?.coins || 0);
       if (!Number.isSafeInteger(before) || before < price) {
         throw Object.assign(new Error("NOT_ENOUGH_COINS"), {status: 409});
       }
@@ -795,7 +801,7 @@ app.post("/store/purchase", async (req, res, next) => {
           dailyGift + price > policy.giftingDailyCoinLimit)) {
         throw Object.assign(new Error("Gifting daily limit exceeded."), {status: 429});
       }
-      tx.update(payerRef, {
+      tx.update(payerWalletRef, {
         coins: before - price,
         updatedAt: FieldValue.serverTimestamp(),
       });
