@@ -7,10 +7,11 @@ const requiredPositive = [
 ];
 const requiredPercent = [
   "receiverSharePercent", "withdrawalFeePercent", "exchangeBonusPercent",
-  "webCardBonusPercent",
+  "webCardBonusPercent", "firstRechargeBonusPercent",
 ];
-const requiredNonnegativeIntegers = [
-  "holdDays", "minWithdrawalDiamonds", "minExchangeDiamonds",
+const requiredNonnegativeIntegers = ["holdDays"];
+const requiredPositiveIntegers = [
+  "minWithdrawalDiamonds", "minExchangeDiamonds", "giftingDailyCoinLimit",
 ];
 export function requireLiveEconomy(config) {
   if (!config || config.enabled !== true) {
@@ -33,6 +34,25 @@ export function requireLiveEconomy(config) {
     if (!Number.isSafeInteger(config[field]) || config[field] < 0) {
       throw Object.assign(new Error(`Invalid economy_config/${field}`), {status: 503});
     }
+  }
+  for (const field of requiredPositiveIntegers) {
+    if (!Number.isSafeInteger(config[field]) || config[field] <= 0) {
+      throw Object.assign(new Error(`Invalid economy_config/${field}`), {status: 503});
+    }
+  }
+  if (typeof config.purchaseDailyUsdLimit !== "number" ||
+      !Number.isFinite(config.purchaseDailyUsdLimit) ||
+      config.purchaseDailyUsdLimit <= 0 ||
+      !Array.isArray(config.payoutWindows) ||
+      config.payoutWindows.length !== 2 ||
+      config.payoutWindows[0] === config.payoutWindows[1] ||
+      !config.payoutWindows.every(day =>
+        Number.isSafeInteger(day) && day >= 1 && day <= 28) ||
+      !Array.isArray(config.withdrawalMethods) ||
+      config.withdrawalMethods.length === 0 ||
+      !config.withdrawalMethods.every(method =>
+        ["paypal", "payoneer", "bank", "local_wallet"].includes(method))) {
+    throw Object.assign(new Error("Economy limit or payout setup incomplete."), {status: 503});
   }
   return config;
 }
