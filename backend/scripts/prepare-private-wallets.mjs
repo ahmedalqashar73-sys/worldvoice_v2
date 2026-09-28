@@ -10,8 +10,10 @@
  */
 import {initializeApp, applicationDefault} from "firebase-admin/app";
 import {FieldPath, FieldValue, getFirestore} from "firebase-admin/firestore";
-import {sanitizedPublicProfile, extractPrivateWallet} from
-  "../src/wallet_privacy.js";
+import {
+  sanitizedPublicProfile, extractPrivateWallet,
+  walletCopyMatches, publicCopyMatches,
+} from "../src/wallet_privacy.js";
 
 const args = process.argv.slice(2);
 const projectAt = args.indexOf("--project");
@@ -47,7 +49,11 @@ do {
         privateRef.get(), publicRef.get(),
       ]);
       if (!wallet.exists) stats.walletsMissing++;
+      else if (!walletCopyMatches(doc.data(), wallet.data())) stats.conflicts++;
       if (!profile.exists) stats.profilesMissing++;
+      else if (!publicCopyMatches(doc.id, doc.data(), profile.data())) {
+        stats.conflicts++;
+      }
       continue;
     }
     try {
@@ -58,19 +64,32 @@ do {
         if (!latest.exists) return "existing";
         const financial = extractPrivateWallet(latest.data());
         const profile = sanitizedPublicProfile(doc.id, latest.data());
-        // Never overwrite a separately updated private wallet or profile.
-        // Freeze economic writes and reconcile before cutover.
-        if (privateDoc.exists || publicDoc.exists) return "existing";
-        tx.create(privateRef, {
-          ...financial,
-          migrationVersion: 1,
-          snapshotAt: FieldValue.serverTimestamp(),
-          legacySource: "users/" + doc.id,
-        });
-        tx.create(publicRef, {
-          ...profile, migrationVersion: 1,
-          snapshotAt: FieldValue.serverTimestamp(),
-        });
+        // Reject stale copies instead of silently treating them as current.
+        // A partial previous migration may safely create only the missing
+        // document, never overwrite a newer wallet or published profile.
+        if (privateDoc.exists &&
+            !walletCopyMatches(latest.data(), privateDoc.data())) {
+          return "conflicts";
+        }
+        if (publicDoc.exists &&
+            !publicCopyMatches(doc.id, latest.data(), publicDoc.data())) {
+          return "conflicts";
+        }
+        if (privateDoc.exists && publicDoc.exists) return "existing";
+        if (!privateDoc.exists) {
+          tx.create(privateRef, {
+            ...financial,
+            migrationVersion: 1,
+            snapshotAt: FieldValue.serverTimestamp(),
+            legacySource: "users/" + doc.id,
+          });
+        }
+        if (!publicDoc.exists) {
+          tx.create(publicRef, {
+            ...profile, migrationVersion: 1,
+            snapshotAt: FieldValue.serverTimestamp(),
+          });
+        }
         return "migrated";
       });
       stats[result] = (stats[result] || 0) + 1;
