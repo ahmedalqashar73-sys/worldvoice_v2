@@ -1,6 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {sanitizedPublicProfile, extractPrivateWallet} from "../src/wallet_privacy.js";
+import {
+  sanitizedPublicProfile, extractPrivateWallet,
+  walletCopyMatches, publicCopyMatches,
+} from "../src/wallet_privacy.js";
 
 test("public profile projection cannot expose emails, full DOB, city or money", () => {
   const source = {
@@ -26,4 +29,35 @@ test("broken legacy money stops the migration rather than resetting it", () => {
 
 test("new accounts may start with an empty private wallet", () => {
   assert.deepEqual(extractPrivateWallet({displayName: "New"}), {});
+});
+
+test("an existing wallet copy must match live money before cutover", () => {
+  const source = {coins: 80, diamonds: 3, isVip: true};
+  assert.equal(walletCopyMatches(source, {
+    coins: 80, diamonds: 3, migrationVersion: 1,
+  }), true);
+  assert.equal(walletCopyMatches(source, {
+    coins: 79, diamonds: 3, migrationVersion: 1,
+  }), false);
+  assert.equal(walletCopyMatches(source, {
+    coins: 80, migrationVersion: 1,
+  }), false);
+});
+
+test("a partial migration permits only a safe matching public copy", () => {
+  const legacy = {
+    displayName: "Name", country: "SA", coins: 50,
+    birthDate: "2000-01-01", email: "private@example.com",
+  };
+  const safe = sanitizedPublicProfile("owner", legacy);
+  assert.equal(publicCopyMatches("owner", legacy, {
+    ...safe, migrationVersion: 1, snapshotAt: {toMillis: () => 123},
+  }), true);
+  assert.equal(publicCopyMatches("owner", legacy, {
+    ...safe, coins: 50,
+  }), false);
+  assert.equal(publicCopyMatches("owner", legacy, {
+    ...safe, birthDate: "2000-01-01",
+  }), false);
+  assert.equal(publicCopyMatches("owner", legacy, {uid: "owner"}), false);
 });
