@@ -1028,7 +1028,8 @@ app.post("/gift/send", async (req, res, next) => {
     const quantity = Number(req.body?.quantity);
     const requestKey = String(req.headers["idempotency-key"] || "").trim();
     if (!["room", "live", "chat"].includes(context) ||
-        !validChannelName(contextId) ||
+        !(context === "chat" ? /^[a-f0-9]{64}$/.test(contextId) :
+          validChannelName(contextId)) ||
         typeof recipientId !== "string" || !recipientId.trim() ||
         recipientId === sender.uid ||
         typeof giftId !== "string" ||
@@ -1037,11 +1038,14 @@ app.post("/gift/send", async (req, res, next) => {
         !/^[A-Za-z0-9_-]{12,100}$/.test(requestKey)) {
       return res.status(400).json({error: "Invalid gift request or idempotency key."});
     }
-    // Live and chat lack completed server-verified participant ACLs for now.
-    if (context !== "room") {
+    // Live stays locked until actual streaming sessions have verified ACLs.
+    if (context === "live") {
       return res.status(501).json({
-        error: "Gifting in this context is not yet safely available.",
+        error: "Live gifting needs verified streaming membership.",
       });
+    }
+    if (context === "chat" && recipientId === "teacher_ai") {
+      return res.status(400).json({error: "AI gift XP is room-only."});
     }
     const requestHash = createHash("sha256")
       .update(`${sender.uid}:${requestKey}`).digest("hex");
@@ -1052,18 +1056,31 @@ app.post("/gift/send", async (req, res, next) => {
     const inventoryRef = senderRef.collection("inventory")
       .doc(`gift__${giftId}`);
     const itemRef = db.collection("store_items").doc(`gift__${giftId}`);
-    const roomRef = db.collection("rooms").doc(contextId);
-    const senderMemberRef = roomRef.collection("participants").doc(sender.uid);
+    const roomRef = context === "room"
+      ? db.collection("rooms").doc(contextId)
+      : db.collection("chats").doc(contextId);
+    const senderMemberRef = context === "room"
+      ? roomRef.collection("participants").doc(sender.uid) : roomRef;
     const recipientMemberRef = recipientRef
-      ? roomRef.collection("participants").doc(recipientId) : null;
+      ? context === "room"
+        ? roomRef.collection("participants").doc(recipientId)
+        : roomRef
+      : null;
+    const senderFollow = context === "chat"
+      ? senderRef.collection("following").doc(recipientId) : null;
+    const recipientFollow = context === "chat"
+      ? recipientRef.collection("following").doc(sender.uid) : null;
     const configRef = db.collection("economy_config").doc("current");
-    const giftEventRef = roomRef.collection("gifts").doc(requestHash);
+    const giftEventRef = context === "chat"
+      ? roomRef.collection("messages").doc(requestHash)
+      : roomRef.collection("gifts").doc(requestHash);
 
     const outcome = await db.runTransaction(async (tx) => {
       // All reads before writes (Firestore transaction requirement).
       const refs = [eventRef, configRef, itemRef, roomRef, senderMemberRef,
         senderRef, inventoryRef, ...(recipientRef
-          ? [recipientMemberRef, recipientRef] : [])];
+          ? [recipientMemberRef, recipientRef] : []),
+        ...(senderFollow ? [senderFollow, recipientFollow] : [])];
       const snapshots = await Promise.all(refs.map(ref => tx.get(ref)));
       const [existing, configSnap, itemSnap, roomSnap, senderMember,
         senderSnap, freeGiftSnap] = snapshots;
@@ -1077,9 +1094,20 @@ app.post("/gift/send", async (req, res, next) => {
         }
         return {...data.outcome, alreadyProcessed: true};
       }
-      if (roomSnap.data()?.isOpen !== true || !senderMember.exists ||
-          (recipientMemberRef && !snapshots[7].exists)) {
-        throw Object.assign(new Error("Room membership is required."), {status: 403});
+      if (context === "room") {
+        if (roomSnap.data()?.isOpen !== true || !senderMember.exists ||
+            (recipientMemberRef && !snapshots[7].exists)) {
+          throw Object.assign(new Error("Room membership is required."),
+            {status: 403});
+        }
+      } else {
+        if (!roomSnap.exists ||
+            chatIdFor(sender.uid, recipientId) !== contextId ||
+            !snapshots[9]?.exists || !snapshots[10]?.exists) {
+          throw Object.assign(new Error("Mutual following required for chat gifts."),
+            {status: 403});
+        }
+        assertChatMembership(roomSnap.data(), sender.uid, recipientId);
       }
       const config = requireLiveEconomy(configSnap.data());
       const item = itemSnap.data();
@@ -1198,6 +1226,7 @@ app.post("/gift/send", async (req, res, next) => {
         });
       }
       tx.create(giftEventRef, {
+        ...(context === "chat" ? {type: "gift"} : {}),
         senderId: sender.uid,
         senderName: String(senderData.displayName || "WorldVoice user"),
         recipientId, recipientName: recipientRef
@@ -1207,6 +1236,12 @@ app.post("/gift/send", async (req, res, next) => {
         animationUrl: item.animationUrl || null,
         createdAt: FieldValue.serverTimestamp(),
       });
+      if (context === "chat") {
+        tx.update(roomRef, {
+          latestText: "🎁 Gift",
+          lastMessageAt: FieldValue.serverTimestamp(),
+        });
+      }
       tx.create(eventRef, {
         userId: sender.uid, context, contextId, recipientId,
         giftId, quantity, outcome,
