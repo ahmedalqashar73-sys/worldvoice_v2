@@ -70,6 +70,9 @@ service cloud.firestore {
               'lastGiftRoomId',
               'lastGiftEventId',
               'vipUntil',
+              'isVip',
+              'isPartner',
+              'isVerified',
               'vipLevel',
               'kycStatus'
       ]);
@@ -92,6 +95,9 @@ service cloud.firestore {
               'lastGiftRoomId',
               'lastGiftEventId',
               'vipUntil',
+              'isVip',
+              'isPartner',
+              'isVerified',
               'vipLevel',
               'kycStatus'
       ]);
