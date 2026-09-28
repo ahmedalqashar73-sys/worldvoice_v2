@@ -9,6 +9,9 @@ const fixture = {
   exchangeBonusPercent: 10, webCardBonusPercent: 10,
   giftLevelPointsPerCoin: 1, holdDays: 3,
   minWithdrawalDiamonds: 100, minExchangeDiamonds: 100,
+  firstRechargeBonusPercent: 5, giftingDailyCoinLimit: 10000,
+  purchaseDailyUsdLimit: 250, payoutWindows: [3, 16],
+  withdrawalMethods: ["paypal", "payoneer", "bank"],
 };
 test("economy stays locked without complete approved values", () => {
   assert.throws(() => requireLiveEconomy({enabled: false}));
@@ -40,4 +43,11 @@ test("invalid amount or overflow is rejected", () => {
     config: fixture, priceCoins: Number.MAX_SAFE_INTEGER,
     quantity: 2, freeGiftBalance: 0,
   }));
+});
+
+test("enabled economy rejects missing promotion, daily limit or payout windows", () => {
+  assert.throws(() => requireLiveEconomy({...fixture, firstRechargeBonusPercent: null}));
+  assert.throws(() => requireLiveEconomy({...fixture, giftingDailyCoinLimit: 0}));
+  assert.throws(() => requireLiveEconomy({...fixture, payoutWindows: []}));
+  assert.throws(() => requireLiveEconomy({...fixture, withdrawalMethods: []}));
 });
