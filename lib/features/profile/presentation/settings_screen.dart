@@ -75,13 +75,27 @@ class SettingsScreen extends StatelessWidget {
                           AppStrings.of(code).profile('hideCityDescription'),
                         ),
                         value: hideCity,
-                        onChanged: (value) {
-                          FirebaseFirestore.instance
-                              .collection('users')
-                              .doc(uid)
-                              .set({
+                        onChanged: (value) async {
+                          final db = FirebaseFirestore.instance;
+                          final batch = db.batch();
+                          batch.set(db.collection('users').doc(uid), {
                             'hideCity': value,
                           }, SetOptions(merge: true));
+                          batch.set(db.collection('public_profiles').doc(uid), {
+                            'hideCity': value,
+                            'city': value ? FieldValue.delete()
+                                : (data['city'] ?? '').toString(),
+                          }, SetOptions(merge: true));
+                          try {
+                            await batch.commit();
+                          } catch (_) {
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text(
+                                'Could not update city privacy settings.',
+                              )),
+                            );
+                          }
                         },
                       ),
                     ),
