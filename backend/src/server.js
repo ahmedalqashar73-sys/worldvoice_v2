@@ -11,6 +11,7 @@ import { getAuth } from "firebase-admin/auth";
 import { FieldValue, Timestamp, getFirestore } from "firebase-admin/firestore";
 import { google } from "googleapis";
 import OpenAI from "openai";
+import { requireLiveEconomy, calculateGiftSettlement } from "./economy_policy.js";
 
 const { RtcRole, RtcTokenBuilder } = agoraToken;
 
@@ -778,6 +779,205 @@ app.post("/store/claim-reward", async (req, res, next) => {
     });
 
     return res.json({ ok: true, ...result });
+  } catch (error) {
+    next(error);
+  }
+});
+
+
+/**
+ * Unified gift contract for room/live/chat. Only room has a deployed, audited
+ * membership model currently. Other contexts intentionally fail closed until
+ * their permission checks and event streams are implemented.
+ * Idempotency-Key is mandatory; clients reuse it for a checkout retry.
+ */
+app.post("/gift/send", async (req, res, next) => {
+  try {
+    const sender = await authenticatedUser(req);
+    const {context, contextId, recipientId, giftId} = req.body || {};
+    const quantity = Number(req.body?.quantity);
+    const requestKey = String(req.headers["idempotency-key"] || "").trim();
+    if (!["room", "live", "chat"].includes(context) ||
+        !validChannelName(contextId) ||
+        typeof recipientId !== "string" || !recipientId.trim() ||
+        recipientId === sender.uid ||
+        typeof giftId !== "string" ||
+        !/^[A-Za-z0-9_-]{1,80}$/.test(giftId) ||
+        !Number.isSafeInteger(quantity) || quantity <= 0 ||
+        !/^[A-Za-z0-9_-]{12,100}$/.test(requestKey)) {
+      return res.status(400).json({error: "Invalid gift request or idempotency key."});
+    }
+    // Live and chat lack completed server-verified participant ACLs for now.
+    if (context !== "room") {
+      return res.status(501).json({
+        error: "Gifting in this context is not yet safely available.",
+      });
+    }
+    const requestHash = createHash("sha256")
+      .update(`${sender.uid}:${requestKey}`).digest("hex");
+    const eventRef = db.collection("economy_gift_operations").doc(requestHash);
+    const senderRef = db.collection("users").doc(sender.uid);
+    const recipientRef = recipientId === "teacher_ai" ? null
+      : db.collection("users").doc(recipientId);
+    const inventoryRef = senderRef.collection("inventory")
+      .doc(`gift__${giftId}`);
+    const itemRef = db.collection("store_items").doc(`gift__${giftId}`);
+    const roomRef = db.collection("rooms").doc(contextId);
+    const senderMemberRef = roomRef.collection("participants").doc(sender.uid);
+    const recipientMemberRef = recipientRef
+      ? roomRef.collection("participants").doc(recipientId) : null;
+    const configRef = db.collection("economy_config").doc("current");
+    const giftEventRef = roomRef.collection("gifts").doc(requestHash);
+
+    const outcome = await db.runTransaction(async (tx) => {
+      // All reads before writes (Firestore transaction requirement).
+      const refs = [eventRef, configRef, itemRef, roomRef, senderMemberRef,
+        senderRef, inventoryRef, ...(recipientRef
+          ? [recipientMemberRef, recipientRef] : [])];
+      const snapshots = await Promise.all(refs.map(ref => tx.get(ref)));
+      const [existing, configSnap, itemSnap, roomSnap, senderMember,
+        senderSnap, freeGiftSnap] = snapshots;
+      if (existing.exists) {
+        const data = existing.data();
+        if (data.userId !== sender.uid || data.context !== context ||
+            data.contextId !== contextId || data.recipientId !== recipientId ||
+            data.giftId !== giftId || data.quantity !== quantity) {
+          throw Object.assign(new Error("Idempotency key reused for another request."),
+            {status: 409});
+        }
+        return {...data.outcome, alreadyProcessed: true};
+      }
+      if (roomSnap.data()?.isOpen !== true || !senderMember.exists ||
+          (recipientMemberRef && !snapshots[7].exists)) {
+        throw Object.assign(new Error("Room membership is required."), {status: 403});
+      }
+      const config = requireLiveEconomy(configSnap.data());
+      const item = itemSnap.data();
+      const price = Number(item?.priceCoins);
+      if (!itemSnap.exists || item.type !== "gift" || item.active !== true ||
+          !Number.isSafeInteger(price) || price <= 0) {
+        throw Object.assign(new Error("This gift is unavailable."), {status: 404});
+      }
+      const senderData = senderSnap.data() || {};
+      if (Number(senderData.giftLevel || 0) <
+          Number(item.requiredGiftLevel || 0)) {
+        throw Object.assign(new Error("Gift level requirement not met."),
+          {status: 403});
+      }
+      const now = Date.now();
+      const freeData = freeGiftSnap.data() || {};
+      const freeExpiry = freeData.expiresAt?.toMillis?.() ?? null;
+      const freeBalance = freeExpiry !== null && freeExpiry <= now ? 0
+        : Number(freeData.freeGiftBalance || 0);
+      const amounts = calculateGiftSettlement({
+        config, priceCoins: price, quantity, freeGiftBalance: freeBalance,
+      });
+      const balance = Number(senderData.coins || 0);
+      if (!Number.isSafeInteger(balance) || balance < amounts.chargedCoins) {
+        throw Object.assign(new Error("NOT_ENOUGH_COINS"), {status: 409});
+      }
+      const after = balance - amounts.chargedCoins;
+      const roomXp = Number(roomSnap.data()?.roomXp || 0);
+      if (recipientId === "teacher_ai" && !Number.isSafeInteger(roomXp +
+          amounts.giftLevelPoints)) {
+        throw Object.assign(new Error("Room XP exceeds safe limits."), {status: 400});
+      }
+      // Server-enforced sender daily spend limit. Not configured => stop.
+      if (!Number.isSafeInteger(config.giftingDailyCoinLimit) ||
+          config.giftingDailyCoinLimit <= 0) {
+        throw Object.assign(new Error("Gifting daily limit not configured."),
+          {status: 503});
+      }
+      const day = new Date(now).toISOString().slice(0, 10);
+      const dailyRef = senderRef.collection("economy_daily").doc(day);
+      const dailySnap = await tx.get(dailyRef);
+      const spent = Number(dailySnap.data()?.giftCoins || 0);
+      if (!Number.isSafeInteger(spent) ||
+          spent + amounts.chargedCoins > config.giftingDailyCoinLimit) {
+        throw Object.assign(new Error("Daily gift limit reached."), {status: 429});
+      }
+      const recipientData = recipientRef ? snapshots[8].data() || {} : null;
+      const recipientBefore = recipientData
+        ? Number(recipientData.diamondsPending || 0) : 0;
+      const receiverAfter = recipientBefore + amounts.pendingDiamonds;
+      if (!Number.isSafeInteger(receiverAfter)) {
+        throw Object.assign(new Error("Recipient settlement exceeds limits."),
+          {status: 400});
+      }
+      const holdUntil = Timestamp.fromMillis(
+        now + config.holdDays * 24 * 60 * 60 * 1000,
+      );
+      const outcome = {
+        giftId, quantity, freeUnits: amounts.freeUnits,
+        chargedCoins: amounts.chargedCoins, balanceAfter: after,
+        pendingDiamonds: recipientRef ? amounts.pendingDiamonds : 0,
+        holdUntil: recipientRef ? holdUntil.toDate().toISOString() : null,
+      };
+      tx.set(senderRef, {
+        coins: after,
+        giftSentPoints: FieldValue.increment(amounts.chargedCoins),
+        giftLevelPoints: FieldValue.increment(amounts.giftLevelPoints),
+        updatedAt: FieldValue.serverTimestamp(),
+      }, {merge: true});
+      if (freeGiftSnap.exists && amounts.freeUnits > 0) {
+        tx.update(inventoryRef, {
+          freeGiftBalance: freeBalance - amounts.freeUnits,
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+      }
+      tx.set(dailyRef, {
+        giftCoins: spent + amounts.chargedCoins,
+        updatedAt: FieldValue.serverTimestamp(),
+      }, {merge: true});
+      tx.create(senderRef.collection("wallet_transactions").doc(requestHash), {
+        type: "gift_send", amount: -amounts.chargedCoins, currency: "coins",
+        balanceBefore: balance, balanceAfter: after, source: context,
+        sourceId: contextId, itemId: giftId, quantity,
+        freeUnits: amounts.freeUnits, operationId: requestHash,
+        createdAt: FieldValue.serverTimestamp(),
+      });
+      if (recipientRef) {
+        tx.set(recipientRef, {
+          diamondsPending: receiverAfter,
+          giftReceivedPoints: FieldValue.increment(amounts.chargedCoins),
+          updatedAt: FieldValue.serverTimestamp(),
+        }, {merge: true});
+        tx.create(recipientRef.collection("wallet_transactions")
+          .doc(requestHash), {
+          type: "gift_received_pending", amount: amounts.pendingDiamonds,
+          currency: "diamonds_pending", balanceBefore: recipientBefore,
+          balanceAfter: receiverAfter, holdUntil, source: context,
+          sourceId: contextId, senderId: sender.uid, itemId: giftId,
+          operationId: requestHash, createdAt: FieldValue.serverTimestamp(),
+        });
+      } else {
+        tx.update(roomRef, {
+          roomXp: roomXp + amounts.giftLevelPoints,
+        });
+      }
+      tx.create(giftEventRef, {
+        senderId: sender.uid,
+        senderName: String(senderData.displayName || "WorldVoice user"),
+        recipientId, recipientName: recipientRef
+          ? String(recipientData.displayName || "WorldVoice member")
+          : "Teacher AI",
+        giftId, points: amounts.chargedCoins, quantity,
+        animationUrl: item.animationUrl || null,
+        createdAt: FieldValue.serverTimestamp(),
+      });
+      tx.create(eventRef, {
+        userId: sender.uid, context, contextId, recipientId,
+        giftId, quantity, outcome,
+        createdAt: FieldValue.serverTimestamp(),
+      });
+      tx.create(db.collection("economy_audit").doc(requestHash), {
+        type: "gift_send", senderId: sender.uid, recipientId, context,
+        contextId, giftId, quantity, chargedCoins: amounts.chargedCoins,
+        freeUnits: amounts.freeUnits, createdAt: FieldValue.serverTimestamp(),
+      });
+      return {...outcome, alreadyProcessed: false};
+    });
+    res.json({ok: true, ...outcome});
   } catch (error) {
     next(error);
   }
