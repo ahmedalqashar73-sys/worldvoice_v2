@@ -96,6 +96,47 @@ test('economy reads are permitted but client-side money and gifts cannot be forg
   await assertFails(setDoc(doc(db, 'economy_gift_operations/fake'), {coins: 100}));
 });
 
+test('secure quizzes hide answer keys and reject client scoring or impersonation', async () => {
+  await env.withSecurityRulesDisabled(async ctx => {
+    const admin = ctx.firestore();
+    await updateDoc(room(admin), {
+      quiz: {
+        secure: true, roundId: 'server-test-round',
+        question: '2 + 2?', options: ['3', '4'],
+        revealed: false, closed: false,
+      },
+    });
+    await setDoc(doc(admin, 'rooms/r1/quiz_private/server-test-round'), {
+      roundId: 'server-test-round', correctIndex: 1,
+      question: '2 + 2?', options: ['3', '4'],
+    });
+  });
+  const listener = user('listener');
+  const host = user('host');
+  const snapshot = await getDoc(room(listener));
+  assert.equal(snapshot.data().quiz.correctIndex, undefined);
+  await assertFails(getDoc(
+    doc(listener, 'rooms/r1/quiz_private/server-test-round'),
+  ));
+  await assertFails(getDocs(collection(
+    listener, 'rooms/r1/quiz_private/server-test-round/answers',
+  )));
+  await assertFails(setDoc(doc(
+    listener, 'rooms/r1/quiz_private/server-test-round/answers/listener',
+  ), {isCorrect: true}));
+  await assertFails(setDoc(
+    doc(listener, 'rooms/r1/quiz_answers/listener'),
+    {userId: 'listener', optionIndex: 1, isCorrect: true},
+  ));
+  await assertFails(updateDoc(room(host), {'quiz.revealed': true}));
+  await assertFails(updateDoc(room(host), {'quiz.correctIndex': 1}));
+  await assertFails(updateDoc(room(host), {
+    quiz: {secure: true, roundId: 'forged', question: 'x', options: ['a','b']},
+  }));
+  // Ordinary non-quiz moderation is unaffected by the lock.
+  await assertSucceeds(updateDoc(room(host), {boardWriteEnabled: false}));
+});
+
 test('host creates room and participant atomically; listener cannot self-promote', async () => {
   const db = user('new');
   const batch = writeBatch(db);
