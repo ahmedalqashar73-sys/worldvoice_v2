@@ -28,11 +28,13 @@ export function registerWalletRoutes({app, db, authenticatedUser}) {
         .limit(50).get();
       if (list.empty) return res.json({ok: true, diamondsReleased: 0});
       const outcome = await db.runTransaction(async tx => {
-        const [userSnap, configSnap, ...lots] = await Promise.all([
+        const [userSnap, configSnap, controlSnap, ...lots] = await Promise.all([
           tx.get(ref), tx.get(db.doc("economy_config/current")),
+          tx.get(db.doc("economy_global_controls/payouts")),
           ...list.docs.map(d => tx.get(d.ref)),
         ]);
         requireLiveEconomy(configSnap.data());
+        if (controlSnap.data()?.frozen === true) fail("Payouts are on hold.", 423);
         if (userSnap.data()?.payoutFrozen === true ||
             userSnap.data()?.walletFrozen === true) {
           fail("Wallet is under review.", 423);
@@ -84,14 +86,16 @@ export function registerWalletRoutes({app, db, authenticatedUser}) {
       const ref = db.collection("users").doc(user.uid);
       const opRef = db.collection("economy_exchange_operations").doc(key);
       const outcome = await db.runTransaction(async tx => {
-        const [old, snap, config] = await Promise.all([
+        const [old, snap, config, controls] = await Promise.all([
           tx.get(opRef), tx.get(ref), tx.get(db.doc("economy_config/current")),
+          tx.get(db.doc("economy_global_controls/payouts")),
         ]);
         if (old.exists) {
           if (old.data()?.diamonds !== amount) fail("Reused idempotency key.", 409);
           return {...old.data().outcome, alreadyProcessed: true};
         }
         const policy = requireLiveEconomy(config.data());
+        if (controls.data()?.frozen === true) fail("Economy review hold.", 423);
         if (!pos(policy.minExchangeDiamonds) || amount < policy.minExchangeDiamonds) {
           fail("Exchange amount is below the configured minimum.");
         }
@@ -135,8 +139,12 @@ export function registerWalletRoutes({app, db, authenticatedUser}) {
   app.post("/wallet/withdraw/quote", async (req, res, next) => {
     try {
       await authenticatedUser(req);
-      const config = (await db.doc("economy_config/current").get()).data();
-      res.json({ok: true, ...withdrawalQuote(requireLiveEconomy(config),
+      const [configSnap, controlSnap] = await Promise.all([
+        db.doc("economy_config/current").get(),
+        db.doc("economy_global_controls/payouts").get(),
+      ]);
+      if (controlSnap.data()?.frozen === true) fail("Payouts under review.", 423);
+      res.json({ok: true, ...withdrawalQuote(requireLiveEconomy(configSnap.data()),
         Number(req.body?.diamonds), new Date())});
     } catch (error) {next(error);}
   });
@@ -157,9 +165,9 @@ export function registerWalletRoutes({app, db, authenticatedUser}) {
       const withdrawalRef = db.collection("withdraw_requests").doc(key);
       const now = new Date();
       const outcome = await db.runTransaction(async tx => {
-        const [existing, config, snapshot] = await Promise.all([
+        const [existing, config, snapshot, control] = await Promise.all([
           tx.get(withdrawalRef), tx.get(db.doc("economy_config/current")),
-          tx.get(ref),
+          tx.get(ref), tx.get(db.doc("economy_global_controls/payouts")),
         ]);
         if (existing.exists) {
           if (existing.data()?.userId !== user.uid ||
@@ -169,6 +177,7 @@ export function registerWalletRoutes({app, db, authenticatedUser}) {
           }
           return {...existing.data()?.quote, alreadyProcessed: true};
         }
+        if (control.data()?.frozen === true) fail("Payouts under review.", 423);
         const policy = requireLiveEconomy(config.data());
         const quote = withdrawalQuote(policy, amount, now);
         if (!policy.withdrawalMethods.includes(method)) {
@@ -220,9 +229,13 @@ export function registerWalletRoutes({app, db, authenticatedUser}) {
       if (!snapshot.exists) fail("Withdrawal not found.", 404);
       const ownerRef = db.collection("users").doc(snapshot.data()?.userId);
       const result = await db.runTransaction(async tx => {
-        const [withdrawal, owner] = await Promise.all([
+        const [withdrawal, owner, control] = await Promise.all([
           tx.get(withdrawalRef), tx.get(ownerRef),
+          tx.get(db.doc("economy_global_controls/payouts")),
         ]);
+        if (decision === "approve" && control.data()?.frozen === true) {
+          fail("Global payout hold requires resolution.", 423);
+        }
         if (withdrawal.data()?.status !== "pending_admin_review") {
           fail("Withdrawal has already been reviewed.", 409);
         }
