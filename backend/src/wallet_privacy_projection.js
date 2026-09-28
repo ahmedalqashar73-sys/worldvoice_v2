@@ -9,6 +9,8 @@ export const PRIVATE_WALLET_FIELDS = Object.freeze([
   "payoutFreezeReason", "firstRechargeUsed", "identityVerified",
   "purchasedCoins", "quizCoinsEarned",
   "giftSentPoints", "giftReceivedPoints", "giftLevelPoints",
+  "giftLevel", "walletBalance", "withdrawableDiamonds",
+  "vipExpiresAt", "lastGiftRoomId", "lastGiftEventId",
 ]);
 
 export const PUBLIC_PROFILE_FIELDS = Object.freeze([
@@ -21,6 +23,7 @@ const NONNEGATIVE_WALLET_AMOUNTS = new Set([
   "coins", "diamonds", "diamondsPending", "diamondsOnHold",
   "diamondsReserved", "walletDebtCoins", "purchasedCoins",
   "quizCoinsEarned", "giftSentPoints", "giftReceivedPoints", "giftLevelPoints",
+  "giftLevel", "walletBalance", "withdrawableDiamonds",
 ]);
 
 export function projectPrivateWallet(user, uid) {
