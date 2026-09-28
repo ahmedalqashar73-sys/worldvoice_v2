@@ -262,25 +262,36 @@ class UserProfileScreen extends StatelessWidget {
                         value: (data['profession'] ?? '—').toString(),
                       ),
                       const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _Wallet(
-                              icon: Icons.diamond_outlined,
-                              value: (data['diamonds'] ?? 0).toString(),
-                              label:
-                                  AppStrings.of(code).profile('diamonds'),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: _Wallet(
-                              icon: Icons.monetization_on_outlined,
-                              value: (data['coins'] ?? 0).toString(),
-                              label: AppStrings.of(code).profile('coins'),
-                            ),
-                          ),
-                        ],
+                      StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                        stream: FirebaseFirestore.instance
+                            .collection('wallets').doc(uid).snapshots(),
+                        builder: (context, walletSnapshot) {
+                          final wallet = walletSnapshot.data?.data() ??
+                              const <String, dynamic>{};
+                          final diamondValue = walletSnapshot.hasError
+                              ? '—' : (wallet['diamonds'] ?? 0).toString();
+                          final coinValue = walletSnapshot.hasError
+                              ? '—' : (wallet['coins'] ?? 0).toString();
+                          return Row(
+                            children: [
+                              Expanded(
+                                child: _Wallet(
+                                  icon: Icons.diamond_outlined,
+                                  value: diamondValue,
+                                  label: AppStrings.of(code).profile('diamonds'),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: _Wallet(
+                                  icon: Icons.monetization_on_outlined,
+                                  value: coinValue,
+                                  label: AppStrings.of(code).profile('coins'),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
                       ),
                     ],
                   ),
