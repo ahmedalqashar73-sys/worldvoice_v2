@@ -215,11 +215,10 @@ service cloud.firestore {
 
       allow create: if signedIn()
           && request.auth.uid == userId
-          && request.resource.data.uid == userId;
+          && request.resource.data.uid == userId
+          && clientProfileHasNoEconomyFields();
 
-      // Users manage their own normal profile fields, but economy fields are
-      // protected. Coin/gift counters may only change through an atomic,
-      // validated room-gift transaction.
+      // Profiles remain self-editable; all monetary fields are backend-owned.
       allow update: if signedIn() && request.auth.uid == userId
           && economyFieldsUntouched();
       // Economic accounts require server-side deletion/reconciliation.
