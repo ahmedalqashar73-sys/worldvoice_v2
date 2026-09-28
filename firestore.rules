@@ -52,160 +52,45 @@ service cloud.firestore {
       );
     }
 
-    function giftEventPath(roomId, giftId) {
-      return /databases/$(database)/documents/rooms/$(roomId)/gifts/$(giftId);
-    }
-
-    function giftCatalogPath(giftId) {
-      return /databases/$(database)/documents/room_gift_catalog/$(giftId);
-    }
-
-    function validGiftPrice(data) {
-      return (
-        exists(giftCatalogPath(data.giftId))
-        && get(giftCatalogPath(data.giftId)).data.active == true
-        && get(giftCatalogPath(data.giftId)).data.priceCoins == data.points
-      ) || (
-        data.giftId == 'rose' && data.points == 10
-      ) || (
-        data.giftId == 'star' && data.points == 50
-      ) || (
-        data.giftId == 'dragon' && data.points == 500
-      );
-    }
-
+    // Only the trusted backend Admin SDK may mutate economic balances.
     function economyFieldsUntouched() {
-      return !request.resource.data
-          .diff(resource.data)
-          .affectedKeys()
-          .hasAny([
-            'coins',
-            'giftSentPoints',
-            'giftReceivedPoints',
-            'giftLevelPoints',
-            'giftLevel',
-            'purchasedCoins',
-            'quizCoinsEarned',
-            'lastGiftRoomId',
-            'lastGiftEventId'
-          ]);
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+              'coins',
+              'diamonds',
+              'diamondsPendingWithdrawal',
+              'diamondFrozen',
+              'giftSentPoints',
+              'giftReceivedPoints',
+              'giftLevelPoints',
+              'giftLevel',
+              'purchasedCoins',
+              'quizCoinsEarned',
+              'lastGiftRoomId',
+              'lastGiftEventId',
+              'vipUntil',
+              'vipLevel',
+              'kycStatus'
+      ]);
     }
 
-    function validGiftSenderUpdate(userId) {
-      return request.auth.uid == userId
-          && request.resource.data.lastGiftRoomId is string
-          && request.resource.data.lastGiftEventId is string
-          && existsAfter(
-            giftEventPath(
-              request.resource.data.lastGiftRoomId,
-              request.resource.data.lastGiftEventId
-            )
-          )
-          && getAfter(
-            giftEventPath(
-              request.resource.data.lastGiftRoomId,
-              request.resource.data.lastGiftEventId
-            )
-          ).data.senderId == request.auth.uid
-          && validGiftPrice(
-            getAfter(
-              giftEventPath(
-                request.resource.data.lastGiftRoomId,
-                request.resource.data.lastGiftEventId
-              )
-            ).data
-          )
-          && request.resource.data
-              .diff(resource.data)
-              .affectedKeys()
-              .hasOnly([
-                'coins',
-                'giftSentPoints',
-                'giftLevelPoints',
-                'lastGiftRoomId',
-                'lastGiftEventId',
-                'updatedAt'
-              ])
-          && request.resource.data.coins
-              == resource.data.get('coins', 0)
-                  - getAfter(
-                      giftEventPath(
-                        request.resource.data.lastGiftRoomId,
-                        request.resource.data.lastGiftEventId
-                      )
-                    ).data.points
-          && request.resource.data.giftSentPoints
-              == resource.data.get('giftSentPoints', 0)
-                  + getAfter(
-                      giftEventPath(
-                        request.resource.data.lastGiftRoomId,
-                        request.resource.data.lastGiftEventId
-                      )
-                    ).data.points
-          && request.resource.data.giftLevelPoints
-              == resource.data.get('giftLevelPoints', 0)
-                  + getAfter(
-                      giftEventPath(
-                        request.resource.data.lastGiftRoomId,
-                        request.resource.data.lastGiftEventId
-                      )
-                    ).data.points;
-    }
-
-    function validGiftRecipientUpdate(userId) {
-      return request.resource.data.lastGiftRoomId is string
-          && request.resource.data.lastGiftEventId is string
-          && existsAfter(
-            giftEventPath(
-              request.resource.data.lastGiftRoomId,
-              request.resource.data.lastGiftEventId
-            )
-          )
-          && getAfter(
-            giftEventPath(
-              request.resource.data.lastGiftRoomId,
-              request.resource.data.lastGiftEventId
-            )
-          ).data.senderId == request.auth.uid
-          && getAfter(
-            giftEventPath(
-              request.resource.data.lastGiftRoomId,
-              request.resource.data.lastGiftEventId
-            )
-          ).data.recipientId == userId
-          && validGiftPrice(
-            getAfter(
-              giftEventPath(
-                request.resource.data.lastGiftRoomId,
-                request.resource.data.lastGiftEventId
-              )
-            ).data
-          )
-          && request.resource.data
-              .diff(resource.data)
-              .affectedKeys()
-              .hasOnly([
-                'giftReceivedPoints',
-                'giftLevelPoints',
-                'lastGiftRoomId',
-                'lastGiftEventId'
-              ])
-          && request.resource.data.giftReceivedPoints
-              == resource.data.get('giftReceivedPoints', 0)
-                  + getAfter(
-                      giftEventPath(
-                        request.resource.data.lastGiftRoomId,
-                        request.resource.data.lastGiftEventId
-                      )
-                    ).data.points
-          && request.resource.data.giftLevelPoints
-              == resource.data.get('giftLevelPoints', 0)
-                  + getAfter(
-                      giftEventPath(
-                        request.resource.data.lastGiftRoomId,
-                        request.resource.data.lastGiftEventId
-                      )
-                    ).data.points;
+    function clientProfileHasNoEconomyFields() {
+      return !request.resource.data.keys().hasAny([
+              'coins',
+              'diamonds',
+              'diamondsPendingWithdrawal',
+              'diamondFrozen',
+              'giftSentPoints',
+              'giftReceivedPoints',
+              'giftLevelPoints',
+              'giftLevel',
+              'purchasedCoins',
+              'quizCoinsEarned',
+              'lastGiftRoomId',
+              'lastGiftEventId',
+              'vipUntil',
+              'vipLevel',
+              'kycStatus'
+      ]);
     }
 
     function accessGrantPath(roomId, userId) {
@@ -331,30 +216,10 @@ service cloud.firestore {
       // Users manage their own normal profile fields, but economy fields are
       // protected. Coin/gift counters may only change through an atomic,
       // validated room-gift transaction.
-      allow update: if signedIn()
-          && (
-            (
-              request.auth.uid == userId
-              && economyFieldsUntouched()
-            )
-            ||
-            validGiftSenderUpdate(userId)
-            ||
-            validGiftRecipientUpdate(userId)
-            ||
-            (
-              request.resource.data
-                  .diff(resource.data)
-                  .affectedKeys()
-                  .hasOnly(['followersCount', 'followingCount'])
-              && request.resource.data.followersCount is int
-              && request.resource.data.followingCount is int
-              && request.resource.data.followersCount >= 0
-              && request.resource.data.followingCount >= 0
-            )
-          );
-
-      allow delete: if signedIn() && request.auth.uid == userId;
+      allow update: if signedIn() && request.auth.uid == userId
+          && economyFieldsUntouched();
+      // Economic accounts require server-side deletion/reconciliation.
+      allow delete: if false;
 
       match /following/{targetUserId} {
         allow read: if signedIn();
@@ -492,6 +357,19 @@ service cloud.firestore {
         allow update, delete: if false;
       }
 
+      match /inventory/{itemId} {
+        allow read: if signedIn() && request.auth.uid == userId;
+        allow write: if false;
+      }
+      match /diamond_lots/{lotId} {
+        allow read: if signedIn() && request.auth.uid == userId;
+        allow write: if false;
+      }
+      match /economy_daily/{dayId} {
+        allow read: if signedIn() && request.auth.uid == userId;
+        allow write: if false;
+      }
+
       match /room_backgrounds/{themeId} {
         allow read: if signedIn() && request.auth.uid == userId;
         allow create, update, delete: if false;
@@ -534,6 +412,35 @@ service cloud.firestore {
     // -------------------------
     // ROOM SHOP CATALOG
     // -------------------------
+    match /economy_config/{docId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+    match /store_items/{itemId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+    match /wallet_transactions/{entryId} {
+      allow read: if signedIn() && resource.data.userId == request.auth.uid;
+      allow write: if false;
+    }
+    match /withdraw_requests/{requestId} {
+      allow read: if signedIn() && resource.data.userId == request.auth.uid;
+      allow write: if false;
+    }
+    match /economy_actions/{actionId} {
+      allow read, write: if false;
+    }
+    match /iap_receipts/{receiptId} {
+      allow read, write: if false;
+    }
+    match /stripe_events/{eventId} {
+      allow read, write: if false;
+    }
+    match /stripe_orders/{orderId} {
+      allow read, write: if false;
+    }
+
     match /room_shop_items/{itemId} {
       allow read: if signedIn();
       allow write: if false;
@@ -716,40 +623,8 @@ service cloud.firestore {
 
       match /gifts/{giftId} {
         allow read: if isRoomMember(roomId);
-
-        allow create: if isRoomMember(roomId)
-            && request.resource.data.senderId == request.auth.uid
-            && request.resource.data.recipientId != request.auth.uid
-            && validGiftPrice(request.resource.data)
-            && (
-              !('animationUrl' in request.resource.data)
-              ||
-              (
-                exists(
-                  /databases/$(database)/documents/room_gift_catalog/$(request.resource.data.giftId)
-                )
-                && request.resource.data.animationUrl
-                    == get(
-                      /databases/$(database)/documents/room_gift_catalog/$(request.resource.data.giftId)
-                    ).data.animationUrl
-              )
-            )
-            && (
-              request.resource.data.recipientId == 'teacher_ai'
-              ||
-              exists(
-                participantPath(
-                  roomId,
-                  request.resource.data.recipientId
-                )
-              )
-            )
-            && getAfter(userPath(request.auth.uid)).data.lastGiftRoomId
-                == roomId
-            && getAfter(userPath(request.auth.uid)).data.lastGiftEventId
-                == giftId;
-
-        allow update, delete: if false;
+        // All gifting now uses authenticated /gift/send on a trusted backend.
+        allow create, update, delete: if false;
       }
 
       match /task_completions/{taskId} {
