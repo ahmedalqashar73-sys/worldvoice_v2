@@ -759,6 +759,10 @@ app.post("/store/purchase", async (req, res, next) => {
         throw Object.assign(new Error("User, gift level or friendship requirement failed."),
           {status: 403});
       }
+      if (payerSnap.data()?.walletFrozen === true ||
+          Number(payerSnap.data()?.walletDebtCoins || 0) > 0) {
+        throw Object.assign(new Error("Wallet under payment review."), {status: 423});
+      }
       const owner = gifting ? snaps[6].data() || {} : payerSnap.data() || {};
       const existingExpiry = item.type === "vip"
         ? owner.vipExpiresAt?.toMillis?.()
