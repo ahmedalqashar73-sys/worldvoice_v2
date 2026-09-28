@@ -154,7 +154,7 @@ class _PersonTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-      future: FirebaseFirestore.instance.collection('users').doc(userId).get(),
+      future: FirebaseFirestore.instance.collection('public_profiles').doc(userId).get(),
       builder: (context, snapshot) {
         final data = snapshot.data?.data() ?? fallback;
         final name = (data['displayName'] as String?)?.trim();
