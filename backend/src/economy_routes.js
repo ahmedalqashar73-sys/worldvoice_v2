@@ -339,6 +339,9 @@ export function registerEconomyRoutes(app, { db, authenticatedUser }) {
         const [wallet, ...lots] = await Promise.all([
           tx.get(userRef), ...eligible.docs.map((doc) => tx.get(doc.ref))
         ]);
+        if (wallet.data()?.payoutHold === true ||
+            positiveBalance(wallet.data()?.coinDebt) > 0)
+          throw economyError("WALLET_UNDER_REVIEW", 403);
         let remaining = diamonds;
         const consume = [];
         for (const lot of lots) {
