@@ -1,56 +1,15 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http/http.dart' as http;
 
-class RoomQuizQuestion {
-  const RoomQuizQuestion({
-    required this.id,
-    required this.question,
-    required this.options,
-    required this.status,
-    required this.correctIndex,
-  });
+import '../data/room_backend_config.dart';
+import '../data/room_feature_models.dart';
 
-  final String id;
-  final String question;
-  final List<String> options;
-  final String status;
-  final int correctIndex;
-
-  bool get isOpen => status == 'open';
-
-  factory RoomQuizQuestion.fromDoc(
-    DocumentSnapshot<Map<String, dynamic>> doc,
-  ) {
-    final data = doc.data() ?? const <String, dynamic>{};
-    return RoomQuizQuestion(
-      id: doc.id,
-      question: (data['question'] ?? '').toString(),
-      options: (data['options'] as List?)
-              ?.map((value) => value.toString())
-              .toList() ??
-          const <String>[],
-      status: (data['status'] ?? 'closed').toString(),
-      correctIndex: (data['correctIndex'] as num?)?.toInt() ?? -1,
-    );
-  }
-}
-
-class RoomQuizAnswer {
-  const RoomQuizAnswer({
-    required this.userId,
-    required this.displayName,
-    required this.selectedIndex,
-    required this.isCorrect,
-    required this.answeredAt,
-  });
-
-  final String userId;
-  final String displayName;
-  final int selectedIndex;
-  final bool isCorrect;
-  final DateTime? answeredAt;
-}
-
+/// The canonical room quiz uses rooms/{roomId}.quiz and quiz_answers.
+/// Keep reads, lifecycle updates and trusted reward finalization here so the
+/// widget and other room features use the same Firestore representation.
 class RoomQuizService {
   RoomQuizService({required this.roomId});
 
@@ -58,106 +17,113 @@ class RoomQuizService {
 
   FirebaseFirestore get _db => FirebaseFirestore.instance;
   User? get _user => FirebaseAuth.instance.currentUser;
+  DocumentReference<Map<String, dynamic>> get _room =>
+      _db.collection('rooms').doc(roomId);
 
-  DocumentReference<Map<String, dynamic>> get _current =>
-      _db.collection('rooms').doc(roomId).collection('quiz').doc('current');
+  Stream<RoomFeatureState> watchState() => _room.snapshots().map(
+        (snapshot) => RoomFeatureState.fromData(
+          snapshot.data() ?? const <String, dynamic>{},
+        ),
+      );
 
-  CollectionReference<Map<String, dynamic>> get _answers =>
-      _db.collection('rooms').doc(roomId).collection('quiz_answers');
-
-  Stream<RoomQuizQuestion?> watchQuestion() {
-    return _current.snapshots().map(
-      (doc) => doc.exists ? RoomQuizQuestion.fromDoc(doc) : null,
-    );
-  }
-
-  Stream<List<RoomQuizAnswer>> watchAnswers() {
-    return _answers.snapshots().map((snapshot) {
-      final answers = snapshot.docs.map((doc) {
-        final data = doc.data();
-        final raw = data['answeredAt'];
-        return RoomQuizAnswer(
-          userId: doc.id,
-          displayName: (data['displayName'] ?? 'WorldVoice user').toString(),
-          selectedIndex: (data['selectedIndex'] as num?)?.toInt() ?? -1,
-          isCorrect: data['isCorrect'] == true,
-          answeredAt: raw is Timestamp ? raw.toDate() : null,
-        );
-      }).toList();
-
-      answers.sort((a, b) {
-        final at = a.answeredAt;
-        final bt = b.answeredAt;
-        if (at == null && bt == null) return 0;
-        if (at == null) return 1;
-        if (bt == null) return -1;
-        return at.compareTo(bt);
-      });
-      return answers;
-    });
-  }
-
-  Future<void> createQuestion({
+  Future<void> startQuiz({
     required String question,
     required List<String> options,
     required int correctIndex,
   }) async {
-    final user = _user;
-    if (user == null) return;
-
-    final cleaned = options.map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
-    if (question.trim().isEmpty || cleaned.length < 2) {
-      throw StateError('Quiz needs a question and at least two options.');
-    }
-    if (correctIndex < 0 || correctIndex >= cleaned.length) {
-      throw StateError('Choose the correct answer.');
+    if (question.trim().isEmpty ||
+        options.length < 2 ||
+        correctIndex < 0 ||
+        correctIndex >= options.length) {
+      throw StateError('Invalid quiz');
     }
 
-    final oldAnswers = await _answers.get();
+    await _room.set(
+      {
+        'quiz': {
+          'question': question.trim(),
+          'options': options,
+          'correctIndex': correctIndex,
+          'revealed': false,
+          'startedAt': FieldValue.serverTimestamp(),
+        },
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+
+    final answers = await _room.collection('quiz_answers').get();
     final batch = _db.batch();
-    for (final answer in oldAnswers.docs) {
-      batch.delete(answer.reference);
+    for (final doc in answers.docs) {
+      batch.delete(doc.reference);
     }
-
-    batch.set(_current, {
-      'question': question.trim(),
-      'options': cleaned,
-      'correctIndex': correctIndex,
-      'status': 'open',
-      'createdBy': user.uid,
-      'createdAt': FieldValue.serverTimestamp(),
-      'updatedAt': FieldValue.serverTimestamp(),
-    });
     await batch.commit();
   }
 
-  Future<void> answer(RoomQuizQuestion question, int selectedIndex) async {
+  Future<void> answerQuiz(int optionIndex) async {
     final user = _user;
-    if (user == null || !question.isOpen) return;
+    if (user == null) return;
+    final profile = await _db.collection('users').doc(user.uid).get();
+    final data = profile.data() ?? const <String, dynamic>{};
 
-    final participant = await _db
-        .collection('rooms')
-        .doc(roomId)
-        .collection('participants')
-        .doc(user.uid)
-        .get();
-    final displayName =
-        (participant.data()?['displayName'] ?? user.displayName ?? 'WorldVoice user')
-            .toString();
-
-    await _answers.doc(user.uid).set({
+    await _room.collection('quiz_answers').doc(user.uid).set({
       'userId': user.uid,
-      'displayName': displayName,
-      'selectedIndex': selectedIndex,
-      'isCorrect': selectedIndex == question.correctIndex,
+      'displayName':
+          (data['displayName'] ?? user.displayName ?? 'WorldVoice user')
+              .toString(),
+      'optionIndex': optionIndex,
       'answeredAt': FieldValue.serverTimestamp(),
     });
   }
 
-  Future<void> closeQuestion() async {
-    await _current.set({
-      'status': 'closed',
-      'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+  Future<void> revealQuiz() => _room.update({
+        // update interprets the dot as a nested field path. set(merge: true)
+        // would create a literal 'quiz.revealed' key and leave the quiz open.
+        'quiz.revealed': true,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+  Future<void> finishQuiz() async {
+    final user = _user;
+    if (user == null) {
+      throw StateError('Sign in is required.');
+    }
+
+    final endpoint = RoomBackendConfig.endpoint('/quiz/finish');
+    if (endpoint.isEmpty) {
+      await revealQuiz();
+      return;
+    }
+
+    final idToken = await user.getIdToken();
+    if (idToken == null || idToken.isEmpty) {
+      throw StateError('Could not authorize quiz finalization.');
+    }
+
+    final response = await http.post(
+      Uri.parse(endpoint),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $idToken',
+      },
+      body: jsonEncode({'roomId': roomId}),
+    );
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      String message = 'Could not finish quiz.';
+      try {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic>) {
+          message = decoded['error']?.toString() ?? message;
+        }
+      } catch (_) {
+        // Keep the generic message.
+      }
+      throw StateError(message);
+    }
   }
+
+  Stream<QuerySnapshot<Map<String, dynamic>>> watchQuizAnswers() =>
+      _room.collection('quiz_answers').snapshots();
+
 }
