@@ -27,6 +27,17 @@ export function registerWalletRoutes({app, db, authenticatedUser}) {
       const user = await authenticatedUser(req);
       const profile = db.collection("users").doc(user.uid);
       const wallet = walletRef(db, user.uid);
+      // Never zero-initialize an account with historical financial traces
+      // even if someone previously stripped its root balance fields.
+      const financeHistory = await Promise.all([
+        "wallet_transactions", "diamond_lots", "economy_daily", "inventory",
+      ].map(name => profile.collection(name).limit(1).get()));
+      if (financeHistory.some(snapshot => !snapshot.empty)) {
+        const existing = await wallet.get();
+        if (!existing.exists) {
+          fail("Historical account requires audited wallet migration.", 409);
+        }
+      }
       const outcome = await db.runTransaction(async tx => {
         const [profileSnap, walletSnap] = await Promise.all([
           tx.get(profile), tx.get(wallet),
