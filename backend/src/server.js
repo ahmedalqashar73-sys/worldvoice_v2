@@ -1063,6 +1063,8 @@ app.post("/gift/send", async (req, res, next) => {
     const senderRef = db.collection("users").doc(sender.uid);
     const recipientRef = recipientId === "teacher_ai" ? null
       : db.collection("users").doc(recipientId);
+    const senderWalletRef = walletRef(db, sender.uid);
+    const recipientWalletRef = recipientRef ? walletRef(db, recipientId) : null;
     const inventoryRef = senderRef.collection("inventory")
       .doc(`gift__${giftId}`);
     const itemRef = db.collection("store_items").doc(`gift__${giftId}`);
@@ -1090,10 +1092,15 @@ app.post("/gift/send", async (req, res, next) => {
       const refs = [eventRef, configRef, itemRef, roomRef, senderMemberRef,
         senderRef, inventoryRef, ...(recipientRef
           ? [recipientMemberRef, recipientRef] : []),
-        ...(senderFollow ? [senderFollow, recipientFollow] : [])];
+        ...(senderFollow ? [senderFollow, recipientFollow] : []),
+        senderWalletRef, ...(recipientWalletRef ? [recipientWalletRef] : [])];
       const snapshots = await Promise.all(refs.map(ref => tx.get(ref)));
       const [existing, configSnap, itemSnap, roomSnap, senderMember,
         senderSnap, freeGiftSnap] = snapshots;
+      const senderWalletSnap = snapshots[snapshots.length -
+        (recipientWalletRef ? 2 : 1)];
+      const recipientWalletSnap = recipientWalletRef
+        ? snapshots[snapshots.length - 1] : null;
       if (existing.exists) {
         const data = existing.data();
         if (data.userId !== sender.uid || data.context !== context ||
@@ -1132,7 +1139,9 @@ app.post("/gift/send", async (req, res, next) => {
         throw Object.assign(new Error("Gift wallet profiles are unavailable."),
           {status: 409});
       }
-      const senderData = senderSnap.data() || {};
+      const senderProfile = senderSnap.data() || {};
+      const senderData = requireMigratedWallet(senderWalletSnap);
+      if (recipientWalletRef) requireMigratedWallet(recipientWalletSnap);
       if (Number(senderData.giftLevel || 0) <
           Number(item.requiredGiftLevel || 0)) {
         throw Object.assign(new Error("Gift level requirement not met."),
@@ -1174,9 +1183,9 @@ app.post("/gift/send", async (req, res, next) => {
           spent + amounts.chargedCoins > config.giftingDailyCoinLimit) {
         throw Object.assign(new Error("Daily gift limit reached."), {status: 429});
       }
-      const recipientData = recipientRef ? snapshots[8].data() || {} : null;
-      const recipientBefore = recipientData
-        ? Number(recipientData.diamondsPending || 0) : 0;
+      const recipientProfile = recipientRef ? snapshots[8].data() || {} : null;
+      const recipientBefore = recipientWalletSnap
+        ? Number(recipientWalletSnap.data()?.diamondsPending || 0) : 0;
       const receiverAfter = recipientBefore + amounts.pendingDiamonds;
       if (!Number.isSafeInteger(receiverAfter)) {
         throw Object.assign(new Error("Recipient settlement exceeds limits."),
@@ -1191,7 +1200,7 @@ app.post("/gift/send", async (req, res, next) => {
         pendingDiamonds: recipientRef ? amounts.pendingDiamonds : 0,
         holdUntil: recipientRef ? holdUntil.toDate().toISOString() : null,
       };
-      tx.set(senderRef, {
+      tx.set(senderWalletRef, {
         coins: after,
         giftSentPoints: FieldValue.increment(amounts.chargedCoins),
         giftLevelPoints: FieldValue.increment(amounts.giftLevelPoints),
@@ -1215,7 +1224,7 @@ app.post("/gift/send", async (req, res, next) => {
         createdAt: FieldValue.serverTimestamp(),
       });
       if (recipientRef) {
-        tx.set(recipientRef, {
+        tx.set(recipientWalletRef, {
           diamondsPending: receiverAfter,
           giftReceivedPoints: FieldValue.increment(amounts.chargedCoins),
           updatedAt: FieldValue.serverTimestamp(),
@@ -1244,9 +1253,9 @@ app.post("/gift/send", async (req, res, next) => {
       tx.create(giftEventRef, {
         ...(context === "chat" ? {type: "gift"} : {}),
         senderId: sender.uid,
-        senderName: String(senderData.displayName || "WorldVoice user"),
+        senderName: String(senderProfile.displayName || "WorldVoice user"),
         recipientId, recipientName: recipientRef
-          ? String(recipientData.displayName || "WorldVoice member")
+          ? String(recipientProfile.displayName || "WorldVoice member")
           : "Teacher AI",
         giftId, points: amounts.chargedCoins, quantity,
         animationUrl: item.animationUrl || null,
