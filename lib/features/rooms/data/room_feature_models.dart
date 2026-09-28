@@ -129,6 +129,7 @@ class RoomGiftCatalogItem {
     this.category,
     this.emoji,
     this.animationUrl,
+    this.requiredGiftLevel = 0,
   });
 
   final String id;
@@ -138,6 +139,7 @@ class RoomGiftCatalogItem {
   final String? category;
   final String? emoji;
   final String? animationUrl;
+  final int requiredGiftLevel;
 
   factory RoomGiftCatalogItem.fromDoc(
     QueryDocumentSnapshot<Map<String, dynamic>> doc,
@@ -151,6 +153,7 @@ class RoomGiftCatalogItem {
       category: data['category']?.toString(),
       emoji: data['emoji']?.toString(),
       animationUrl: data['animationUrl']?.toString(),
+      requiredGiftLevel: (data['requiredGiftLevel'] as num?)?.toInt() ?? 0,
     );
   }
 }
