@@ -1,5 +1,6 @@
 import {createHash} from "node:crypto";
 import {FieldValue} from "firebase-admin/firestore";
+import {privateWalletRef} from "./private_wallet_schema.js";
 import {reversalDelta} from "./reversal_policy.js";
 
 const err = (message, status = 409) =>
@@ -38,6 +39,7 @@ export async function reverseVerifiedWebPurchase({stripe, db, event}) {
   const receiptRef = db.collection("iap_receipts").doc(receiptKey);
   const operation = db.collection("economy_refund_operations").doc(opKey);
   const userRef = db.collection("users").doc(uid);
+  const walletRef = privateWalletRef(userRef);
   const globalRef = db.doc("economy_global_controls/payouts");
   // Freezes every recent gift receiver from the chargeback sender, until
   // finance can trace lots to their funding purchases.
@@ -48,8 +50,8 @@ export async function reverseVerifiedWebPurchase({stripe, db, event}) {
       .filter(id => id && id !== "teacher_ai" && id !== uid),
   )];
   const overLimit = gifts.size >= 91 || recipients.length >= 80;
-  const recipientRefs = overLimit ? [] : recipients.map(id =>
-    db.collection("users").doc(id));
+  const recipientWalletRefs = overLimit ? [] : recipients.map(id =>
+    privateWalletRef(db.collection("users").doc(id)));
   const amountRefunded = dispute
     ? session.amount_total
     : Number(charge.amount_refunded);
@@ -57,9 +59,10 @@ export async function reverseVerifiedWebPurchase({stripe, db, event}) {
     throw err("Invalid signed Stripe refund amount.", 503);
   }
   return db.runTransaction(async tx => {
-    const refs = [operation, receiptRef, userRef, globalRef, ...recipientRefs];
+    const refs = [operation, receiptRef, userRef, globalRef, walletRef,
+      ...recipientWalletRefs];
     const snaps = await Promise.all(refs.map(ref => tx.get(ref)));
-    const [old, receiptSnap, userSnap] = snaps;
+    const [old, receiptSnap, userSnap, , userWalletSnap] = snaps;
     if (old.exists) return {...old.data().outcome, alreadyProcessed: true};
     const targetCents = Math.min(amountRefunded, session.amount_total);
     if (targetCents <= 0) throw err("No refunded amount on signed event.", 503);
@@ -104,9 +107,9 @@ export async function reverseVerifiedWebPurchase({stripe, db, event}) {
       creditedCoins, priceCents, targetRefundCents: requestedTarget,
       alreadyDebitedCoins: Number(existing.debitedCoins || 0),
     });
-    const before = Number(userSnap.data()?.coins || 0);
-    const debtBefore = Number(userSnap.data()?.walletDebtCoins || 0);
-    const purchased = Number(userSnap.data()?.purchasedCoins || 0);
+    const before = Number(userWalletSnap.data()?.coins || 0);
+    const debtBefore = Number(userWalletSnap.data()?.walletDebtCoins || 0);
+    const purchased = Number(userWalletSnap.data()?.purchasedCoins || 0);
     if (!Number.isSafeInteger(before) || before < 0 ||
         !Number.isSafeInteger(debtBefore) || debtBefore < 0 ||
         !Number.isSafeInteger(purchased) || purchased < 0) {
@@ -119,7 +122,7 @@ export async function reverseVerifiedWebPurchase({stripe, db, event}) {
       targetRefundCents: requestedTarget,
       payoutFrozen: true, recipientsFrozen: overLimit ? "global" : recipients.length,
     };
-    tx.set(userRef, {
+    tx.set(walletRef, {
       coins: before - availableDebit,
       purchasedCoins: Math.max(0, purchased - result.deltaCoins),
       walletDebtCoins: debtBefore + debt,
@@ -128,7 +131,7 @@ export async function reverseVerifiedWebPurchase({stripe, db, event}) {
       firstRechargeUsed: true,
       updatedAt: FieldValue.serverTimestamp(),
     }, {merge: true});
-    for (const ref of recipientRefs) {
+    for (const ref of recipientWalletRefs) {
       tx.set(ref, {payoutFrozen: true,
         payoutFreezeReason: "linked_gift_sender_refund",
         updatedAt: FieldValue.serverTimestamp()}, {merge: true});
