@@ -25,6 +25,9 @@ catalog prices, limits, conversion and inventory.
 | giftingDailyCoinLimit | integer | Configurable anti-abuse gifting limit | **TBD** |
 | payoutWindows | array | Two monthly payout processing windows | **TBD** |
 | enabled | boolean | Explicit economy launch gate | false until financial approvals |
+| quizRewardsEnabled | boolean | Enable server-scored first-place coin prize, only after wallet migration | false |
+| quizFirstPrizeCoins | positive integer | Configured first-place quiz prize (proposed five) | 5 proposed |
+| walletSchemaVersion | integer | Private-wallet schema required before any verified prize | 1 until migration |
 
 ### Catalogs
 
