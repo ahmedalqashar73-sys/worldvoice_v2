@@ -9,7 +9,6 @@ import 'package:http/http.dart' as http;
 import 'package:in_app_purchase/in_app_purchase.dart';
 
 import '../data/coin_product_config.dart';
-import '../data/room_backend_config.dart';
 
 class CoinStoreProduct {
   const CoinStoreProduct({
@@ -194,7 +193,61 @@ class RoomCoinPurchaseService extends ChangeNotifier {
     PurchaseDetails purchase,
   ) async {
     final user = FirebaseAuth.instance.currentUser;
-    final endpoint = RoomBackendConfig.endpoint('/iap/verify');
+    const base = String.fromEnvironment('WORLDVOICE_ECONOMY_ENDPOINT');
+    final uri = Uri.tryParse(base);
+    final endpoint = uri == null || uri.scheme != 'https' || !uri.hasAuthority
+        ? '' : '${base.replaceFirst(RegExp(r'/
+
+    if (user == null || endpoint.isEmpty) {
+      throw StateError(
+        'WorldVoice purchase verification backend is not configured.',
+      );
+    }
+
+    final idToken = await user.getIdToken();
+    if (idToken == null || idToken.isEmpty) {
+      throw StateError('Could not authorize purchase verification.');
+    }
+
+    final response = await http.post(
+      Uri.parse(endpoint),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $idToken',
+      },
+      body: jsonEncode({
+        'platform': Platform.isAndroid ? 'android' : 'ios',
+        'productId': purchase.productID,
+        'purchaseId': purchase.purchaseID,
+        'verificationData':
+            purchase.verificationData.serverVerificationData,
+      }),
+    );
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      String message = 'Purchase verification failed.';
+      try {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic>) {
+          message = decoded['error']?.toString() ?? message;
+        }
+      } catch (_) {
+        // Keep the generic message.
+      }
+      throw StateError(message);
+    }
+
+    final body = jsonDecode(response.body);
+    return body is Map<String, dynamic> && body['ok'] == true;
+  }
+
+  @override
+  void dispose() {
+    _purchaseSub?.cancel();
+    super.dispose();
+  }
+}
+), '')}/iap/verify';
 
     if (user == null || endpoint.isEmpty) {
       throw StateError(
