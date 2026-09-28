@@ -108,6 +108,9 @@ export async function reverseVerifiedWebPurchase({stripe, db, event}) {
     if (!userSnap.exists) {
       throw err("Private wallet missing; refund requires manual review.", 503);
     }
+    if (snaps.slice(4).some(recipient => !recipient.exists)) {
+      throw err("Recipient private wallet missing; hold payouts for manual review.", 503);
+    }
     const before = Number(userSnap.data()?.coins || 0);
     const debtBefore = Number(userSnap.data()?.walletDebtCoins || 0);
     const purchased = Number(userSnap.data()?.purchasedCoins || 0);
