@@ -28,7 +28,7 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
   String? _recipient;
   RoomGiftCatalogItem? _gift;
   bool _sending = false;
-  int _category = 0;
+  String? _category;
 
   Future<void> _send(String name, bool ar) async {
     final gift = _gift;
@@ -66,13 +66,12 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
       stream: _catalog,
       builder: (context, snapshot) {
         final gifts = snapshot.data ?? const <RoomGiftCatalogItem>[];
-        final filtered = gifts.where((g) => switch (_category) {
-          1 => g.priceCoins <= 50,
-          2 => g.priceCoins > 50 && g.priceCoins <= 150,
-          3 => g.priceCoins > 150 && g.priceCoins <= 500,
-          4 => g.priceCoins > 500,
-          _ => true,
-        }).toList();
+        // All grouping comes from store_items.category, never hardcoded prices.
+        final categories = gifts.map((gift) => gift.category?.trim())
+            .whereType<String>().where((value) => value.isNotEmpty)
+            .toSet().toList()..sort();
+        final filtered = gifts.where((gift) =>
+            _category == null || gift.category == _category).toList();
         final canSend = !_sending && targets.containsKey(_recipient) &&
           _gift != null && gifts.any((g) => g.id == _gift!.id);
         return Column(children: [
@@ -90,14 +89,17 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                   label: Text(e.value), selected: _recipient == e.key,
                   onSelected: _sending ? null : (_) => setState(() => _recipient = e.key),
                 ))).toList())),
-          SizedBox(height: 48, child: ListView(scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12), children: [
-              for (final (index, label) in [(0, ar ? 'الكل' : 'All'), (1, '1–50'),
-                (2, '51–150'), (3, '151–500'), (4, '501+')])
-                Padding(padding: const EdgeInsets.symmetric(horizontal: 3), child: ChoiceChip(
-                  label: Text(label), selected: _category == index,
-                  onSelected: (_) => setState(() => _category = index))),
-            ])),
+          if (categories.isNotEmpty)
+            SizedBox(height: 48, child: ListView(scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              children: [
+                for (final value in <String?>[null, ...categories])
+                  Padding(padding: const EdgeInsets.symmetric(horizontal: 3),
+                    child: ChoiceChip(
+                      label: Text(value ?? (ar ? 'الكل' : 'All')),
+                      selected: _category == value,
+                      onSelected: (_) => setState(() => _category = value))),
+              ])),
           Expanded(child: snapshot.hasError
             ? Center(child: Text(ar ? 'تعذر تحميل الهدايا' : 'Could not load gifts'))
             : snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData
