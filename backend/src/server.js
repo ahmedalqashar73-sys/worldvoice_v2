@@ -1363,6 +1363,11 @@ app.post("/quiz/finish", async (req, res, next) => {
     const answersSnap = await roomRef.collection("quiz_answers").get();
     const roomData = roomSnap.data() || {};
     const quiz = roomData.quiz || {};
+    // A free-room client may already have revealed non-monetary practice
+    // results. Never retroactively convert those answers into paid coins.
+    if (quiz.practiceOnly === true) {
+      return res.status(409).json({error: "This round ended as a practice quiz."});
+    }
     const correctIndex = Number(quiz.correctIndex);
 
     if (!Number.isInteger(correctIndex)) {
@@ -1390,6 +1395,14 @@ app.post("/quiz/finish", async (req, res, next) => {
       const latestRoom = await tx.get(roomRef);
       const latestQuiz = latestRoom.data()?.quiz || {};
 
+      if (latestQuiz.practiceOnly === true) {
+        return {
+          alreadyFinished: true,
+          practiceOnly: true,
+          winners: Array.isArray(latestQuiz.winners) ? latestQuiz.winners : [],
+        };
+      }
+
       if (latestQuiz.rewardedAt != null) {
         return {
           alreadyFinished: true,
@@ -1414,17 +1427,15 @@ app.post("/quiz/finish", async (req, res, next) => {
         );
       }
 
-      tx.set(
-        roomRef,
-        {
-          "quiz.revealed": true,
-          "quiz.winners": winners,
-          "quiz.firstPrizeCoins": 5,
-          "quiz.rewardedAt": FieldValue.serverTimestamp(),
-          updatedAt: FieldValue.serverTimestamp(),
-        },
-        { merge: true },
-      );
+      // The Admin SDK treats dotted keys inside set(merge) as literal field
+      // names. update() interprets them as nested paths in rooms/{id}.quiz.
+      tx.update(roomRef, {
+        "quiz.revealed": true,
+        "quiz.winners": winners,
+        "quiz.firstPrizeCoins": 5,
+        "quiz.rewardedAt": FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
 
       return {
         alreadyFinished: false,
