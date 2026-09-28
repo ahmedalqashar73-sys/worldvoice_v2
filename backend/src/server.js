@@ -1116,6 +1116,10 @@ app.post("/gift/send", async (req, res, next) => {
           !Number.isSafeInteger(price) || price <= 0) {
         throw Object.assign(new Error("This gift is unavailable."), {status: 404});
       }
+      if (!senderSnap.exists || (recipientRef && !snapshots[8].exists)) {
+        throw Object.assign(new Error("Gift wallet profiles are unavailable."),
+          {status: 409});
+      }
       const senderData = senderSnap.data() || {};
       if (Number(senderData.giftLevel || 0) <
           Number(item.requiredGiftLevel || 0)) {
