@@ -40,6 +40,23 @@ export function projectWallet(data = {}) {
   }
   for (const name of ["walletFrozen", "payoutFrozen", "firstRechargeUsed",
     "identityVerified"]) result[name] = data[name] === true;
+  // Alternate historical fields must be reconciled rather than silently
+  // dropped by migration. A mismatch stops the entire user's migration.
+  for (const [legacy, canonical] of [
+    ["walletBalance", "coins"],
+    ["withdrawableDiamonds", "diamonds"],
+  ]) {
+    if (data[legacy] == null) continue;
+    if (!safeNonnegative(data[legacy]) || data[legacy] !== result[canonical]) {
+      throw new Error("Legacy balance conflict: " + legacy);
+    }
+  }
+  if (data.lastGiftRoomId != null) {
+    result.lastGiftRoomId = String(data.lastGiftRoomId);
+  }
+  if (data.lastGiftEventId != null) {
+    result.lastGiftEventId = String(data.lastGiftEventId);
+  }
   if (data.vipExpiresAt != null) result.vipExpiresAt = data.vipExpiresAt;
   if (data.payoutFreezeReason != null) {
     result.payoutFreezeReason = String(data.payoutFreezeReason);
