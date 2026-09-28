@@ -17,11 +17,13 @@ class VoiceRoomsList extends StatefulWidget {
   const VoiceRoomsList({
     required this.languageCode,
     this.localeController,
+    this.onlyLive = false,
     super.key,
   });
 
   final String languageCode;
   final LocaleController? localeController;
+  final bool onlyLive;
 
   @override
   State<VoiceRoomsList> createState() => _VoiceRoomsListState();
@@ -108,10 +110,13 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
   }
 
   Stream<QuerySnapshot<Map<String, dynamic>>> _roomsStream() {
-    return FirebaseFirestore.instance
+    var query = FirebaseFirestore.instance
         .collection('rooms')
-        .where('isOpen', isEqualTo: true)
-        .snapshots();
+        .where('isOpen', isEqualTo: true);
+    if (widget.onlyLive) {
+      query = query.where('mode', isEqualTo: 'live');
+    }
+    return query.snapshots();
   }
 
   Future<void> _createRoom(
@@ -156,6 +161,7 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
         languageOptions: prefs.roomLanguages,
         initialLanguage: initialLanguage,
         giftLevel: prefs.giftLevel,
+        fixedMode: widget.onlyLive ? RoomMode.live : null,
       ),
       ),
     );
@@ -197,6 +203,7 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
     bool isPrivate = false,
     bool vipOnly = false,
     String? privateAccessCode,
+    String? roomModeName,
   }) {
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -205,6 +212,10 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
           roomName: roomName,
           roomLanguageCode: roomLanguageCode,
           initialShowTeacherAiSeat: showTeacherAiSeat,
+          initialMode: RoomMode.values.firstWhere(
+            (mode) => mode.name == roomModeName,
+            orElse: () => RoomMode.chat,
+          ),
           initialIsPrivate: isPrivate,
           initialVipOnly: vipOnly,
           privateAccessCode: privateAccessCode,
@@ -288,6 +299,7 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
         isPrivate: true,
         vipOnly: data?['vipOnly'] == true,
         privateAccessCode: code,
+        roomModeName: data?['mode']?.toString(),
       );
     } catch (error) {
       if (!context.mounted) return;
@@ -543,6 +555,7 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
                                 roomName: name,
                                 roomLanguageCode: roomLanguage,
                                 showTeacherAiSeat: showTeacherAiSeat,
+                                roomModeName: data['mode']?.toString(),
                                 vipOnly: vipOnly,
                               ),
                             );
