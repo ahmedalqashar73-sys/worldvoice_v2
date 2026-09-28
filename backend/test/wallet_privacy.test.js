@@ -61,3 +61,18 @@ test("a partial migration permits only a safe matching public copy", () => {
   }), false);
   assert.equal(publicCopyMatches("owner", legacy, {uid: "owner"}), false);
 });
+
+test("unverified legacy VIP and verification flags cannot enter public projection", () => {
+  const legacy = {
+    displayName: "Owner", giftLevel: 7, isVip: true,
+    isVerified: true, isPartner: true, travel: "Private",
+    learningGoals: "Private", coins: 500, giftLevelPoints: 200,
+  };
+  const profile = sanitizedPublicProfile("owner", legacy);
+  assert.deepEqual(profile, {
+    uid: "owner", displayName: "Owner", giftLevel: 7,
+  });
+  assert.equal(extractPrivateWallet(legacy).giftLevelPoints, 200);
+  assert.throws(() =>
+    extractPrivateWallet({giftLevelPoints: -1}), /Invalid legacy/);
+});
