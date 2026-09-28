@@ -11,6 +11,7 @@ import { getAuth } from "firebase-admin/auth";
 import { FieldValue, Timestamp, getFirestore } from "firebase-admin/firestore";
 import { google } from "googleapis";
 import OpenAI from "openai";
+import Stripe from "stripe";
 import { requireLiveEconomy, calculateGiftSettlement } from "./economy_policy.js";
 
 const { RtcRole, RtcTokenBuilder } = agoraToken;
@@ -42,6 +43,80 @@ const db = getFirestore();
 
 const app = express();
 app.disable("x-powered-by");
+
+const stripeSecret = String(process.env.STRIPE_SECRET_KEY || "").trim();
+const stripeWebhookSecret = String(process.env.STRIPE_WEBHOOK_SECRET || "").trim();
+const stripe = stripeSecret ? new Stripe(stripeSecret) : null;
+
+/**
+ * Web-only card checkout webhook: raw body and Stripe signature are mandatory.
+ * No Flutter mobile view or payment UI may expose this route as an alternate
+ * checkout unless store-specific eligibility has been independently approved.
+ */
+app.post("/web/stripe/webhook", express.raw({type: "application/json"}),
+  async (req, res, next) => {
+    if (!stripe || !stripeWebhookSecret) {
+      return res.status(503).json({error: "Stripe webhook not configured."});
+    }
+    let event;
+    try {
+      event = stripe.webhooks.constructEvent(
+        req.body, req.headers["stripe-signature"], stripeWebhookSecret,
+      );
+    } catch {
+      return res.status(400).send("Invalid Stripe signature.");
+    }
+    if (!["checkout.session.completed",
+      "checkout.session.async_payment_succeeded"].includes(event.type)) {
+      return res.json({received: true});
+    }
+    const session = event.data.object;
+    if (session.mode !== "payment" || session.payment_status !== "paid") {
+      return res.json({received: true, credited: false});
+    }
+    try {
+      const userId = String(session.client_reference_id || "");
+      const catalogId = String(session.metadata?.catalogId || "");
+      if (!userId || !catalogId) {
+        throw new Error("Signed session is missing purchase metadata.");
+      }
+      const productSnap = await db.collection("coin_products").doc(catalogId).get();
+      const product = productSnap.data() || {};
+      const policy = requireLiveEconomy(
+        (await db.doc("economy_config/current").get()).data(),
+      );
+      const units = Number(product.coins);
+      const expectedCents = Math.round(Number(product.priceUsd) * 100);
+      if (!productSnap.exists || product.active !== true ||
+          !product.webPriceId || !Number.isSafeInteger(units) ||
+          units <= 0 || !Number.isSafeInteger(expectedCents) ||
+          expectedCents <= 0 || session.currency !== "usd" ||
+          session.amount_total !== expectedCents) {
+        throw new Error("Stripe payment does not match approved catalog.");
+      }
+      const lines = await stripe.checkout.sessions.listLineItems(session.id);
+      if (lines.data.length !== 1 || lines.has_more ||
+          lines.data[0].price?.id !== product.webPriceId ||
+          lines.data[0].quantity !== 1) {
+        throw new Error("Stripe line items do not match approved catalog.");
+      }
+      const extraCoins = Math.floor(
+        units * policy.webCardBonusPercent / 100,
+      );
+      const credit = await creditVerifiedCoins({
+        userId, platform: "web", receiptId: session.id,
+        productId: product.webPriceId, catalogId,
+        coins: units + extraCoins,
+        purchasedAt: Date.now(),
+      });
+      res.json({received: true, credited: !credit.alreadyCredited});
+    } catch (error) {
+      // Return non-2xx so Stripe can safely redeliver the SAME session.
+      next(error);
+    }
+  },
+);
+
 app.use(express.json({ limit: "32kb" }));
 
 const port = Number(process.env.PORT || 8080);
@@ -809,6 +884,58 @@ app.post("/store/claim-reward", async (req, res, next) => {
  * their permission checks and event streams are implemented.
  * Idempotency-Key is mandatory; clients reuse it for a checkout retry.
  */
+
+/**
+ * WEB ONLY; intended for the WorldVoice website, NOT a mobile alternative
+ * billing button. Storefront eligibility checks belong in app release logic.
+ * Stripe's server-side price ID is taken from approved coin_products only.
+ */
+app.post("/web/checkout", async (req, res, next) => {
+  try {
+    const user = await authenticatedUser(req);
+    if (!stripe) {
+      return res.status(503).json({error: "Web checkout is not configured."});
+    }
+    const successUrl = String(process.env.WEB_CHECKOUT_SUCCESS_URL || "").trim();
+    const cancelUrl = String(process.env.WEB_CHECKOUT_CANCEL_URL || "").trim();
+    if (!successUrl.startsWith("https://") ||
+        !cancelUrl.startsWith("https://")) {
+      return res.status(503).json({error: "Web checkout redirect URLs are missing."});
+    }
+    const catalogId = String(req.body?.catalogId || "").trim();
+    if (!/^[A-Za-z0-9_-]{1,80}$/.test(catalogId)) {
+      return res.status(400).json({error: "Invalid product ID."});
+    }
+    requireLiveEconomy((await db.doc("economy_config/current").get()).data());
+    const snap = await db.collection("coin_products").doc(catalogId).get();
+    const product = snap.data() || {};
+    const expectedCents = Math.round(Number(product.priceUsd) * 100);
+    if (!snap.exists || product.active !== true ||
+        typeof product.webPriceId !== "string" || !product.webPriceId ||
+        !Number.isSafeInteger(expectedCents) || expectedCents <= 0) {
+      return res.status(404).json({error: "Web product is not active."});
+    }
+    // Verify that the actual Stripe price matches Firestore; the client never
+    // supplies quantity, USD amount, discount, price ID or credited coins.
+    const price = await stripe.prices.retrieve(product.webPriceId);
+    if (!price.active || price.type !== "one_time" ||
+        price.currency !== "usd" || price.unit_amount !== expectedCents) {
+      return res.status(503).json({error: "Stripe catalog mismatch."});
+    }
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      client_reference_id: user.uid,
+      metadata: {catalogId},
+      line_items: [{price: product.webPriceId, quantity: 1}],
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+    });
+    res.json({ok: true, checkoutUrl: session.url});
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.post("/gift/send", async (req, res, next) => {
   try {
     const sender = await authenticatedUser(req);
