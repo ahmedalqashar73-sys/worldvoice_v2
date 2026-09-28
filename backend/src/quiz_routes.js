@@ -1,5 +1,7 @@
 import {randomUUID} from "node:crypto";
 import {FieldValue} from "firebase-admin/firestore";
+import {requireLiveEconomy} from "./economy_policy.js";
+import {requirePrivateWalletCutover} from "./private_wallet_schema.js";
 import {
   quizQuestion, quizChoice, matchesPrivateRound, rankVerifiedAnswers,
   approvedQuizPrize,
@@ -136,9 +138,10 @@ export function registerQuizRoutes({app, db, authenticatedUser}) {
       if (round.done) return res.json({ok: true, alreadyFinished: true,
         winners: round.winners, practiceOnly: round.practiceOnly});
       const privateRef = roomRef.collection("quiz_private").doc(round.roundId);
-      const [secretSnap, answerSnap, configSnap] = await Promise.all([
+      const [secretSnap, answerSnap, configSnap, privacySnap] = await Promise.all([
         privateRef.get(), privateRef.collection("answers").get(),
         db.doc("economy_config/current").get(),
+        db.doc("economy_global_controls/privacy_migration").get(),
       ]);
       const secret = secretSnap.data();
       if (!secret) throw bad("Missing immutable quiz secret.");
@@ -147,6 +150,10 @@ export function registerQuizRoutes({app, db, authenticatedUser}) {
         answeredAt: doc.data().answeredAt?.toMillis?.() ?? Number.MAX_SAFE_INTEGER,
       })), secret.correctIndex);
       const prize = approvedQuizPrize(configSnap.data());
+      if (prize > 0) {
+        requireLiveEconomy(configSnap.data());
+        requirePrivateWalletCutover(privacySnap.data());
+      }
       const first = prize > 0 && winners.length > 0 ? winners[0] : null;
       const walletRef = first
         ? db.doc(`users/${first.userId}/private_wallet/summary`) : null;
