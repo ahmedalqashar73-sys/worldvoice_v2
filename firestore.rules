@@ -81,20 +81,29 @@ service cloud.firestore {
           );
     }
 
+    // No financial, verification or payout flags in globally readable user
+    // profiles. All monetary fields live in the owner-only private wallet.
+    function publicProfileHasNoWallet() {
+      return !resource.data.keys().hasAny([
+        'coins', 'diamonds', 'diamondsPending', 'diamondsOnHold',
+        'diamondsReserved', 'walletDebtCoins', 'walletFrozen', 'payoutFrozen',
+        'firstRechargeUsed', 'payoutFreezeReason', 'identityVerified',
+        'purchasedCoins', 'quizCoinsEarned', 'withdrawableDiamonds', 'walletBalance'
+      ]);
+    }
+
     function noInitialClientEconomyCredit() {
-      return request.resource.data.get('coins', 0) == 0
-          && request.resource.data.get('diamonds', 0) == 0
-          && request.resource.data.get('diamondsPending', 0) == 0
-          && request.resource.data.get('diamondsOnHold', 0) == 0
-          && request.resource.data.get('giftLevel', 0) == 0
-          && request.resource.data.get('giftLevelPoints', 0) == 0
-          && request.resource.data.get('purchasedCoins', 0) == 0
-          && request.resource.data.get('giftReceivedPoints', 0) == 0
-          && request.resource.data.get('giftSentPoints', 0) == 0
-          && !request.resource.data.keys().hasAny([
-            'lastGiftRoomId', 'lastGiftEventId', 'withdrawableDiamonds',
-            'walletBalance', 'vipExpiresAt'
-          ]);
+      return !request.resource.data.keys().hasAny([
+        'coins', 'diamonds', 'diamondsPending', 'diamondsOnHold',
+        'diamondsReserved', 'walletDebtCoins', 'walletFrozen', 'payoutFrozen',
+        'firstRechargeUsed', 'payoutFreezeReason', 'identityVerified',
+        'purchasedCoins', 'quizCoinsEarned', 'withdrawableDiamonds', 'walletBalance',
+        'lastGiftRoomId', 'lastGiftEventId', 'vipExpiresAt'
+      ])
+      && request.resource.data.get('giftLevel', 0) == 0
+      && request.resource.data.get('giftLevelPoints', 0) == 0
+      && request.resource.data.get('giftReceivedPoints', 0) == 0
+      && request.resource.data.get('giftSentPoints', 0) == 0;
     }
 
     function accessGrantPath(roomId, userId) {
@@ -211,7 +220,8 @@ service cloud.firestore {
     // USERS / PROFILES
     // -------------------------
     match /users/{userId} {
-      allow read: if signedIn();
+      allow read: if signedIn()
+          && (request.auth.uid == userId || publicProfileHasNoWallet());
 
       allow create: if signedIn()
           && request.auth.uid == userId
@@ -387,6 +397,13 @@ service cloud.firestore {
       match /diamond_lots/{lotId} {
         allow read: if signedIn() && request.auth.uid == userId;
         allow write: if false;
+      }
+
+      // Only the account owner can read balances, payout status and KYC
+      // eligibility. Only authenticated Admin SDK server routes may write.
+      match /private_wallet/{walletDocId} {
+        allow read: if signedIn() && request.auth.uid == userId;
+        allow create, update, delete: if false;
       }
 
       match /wallet_transactions/{transactionId} {
