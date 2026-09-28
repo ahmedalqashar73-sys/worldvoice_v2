@@ -7,6 +7,7 @@ import '../../../core/localization/locale_controller.dart';
 
 import '../../profile/data/profile_identity_utils.dart';
 import '../data/agora_config.dart';
+import '../data/room_mode.dart';
 import 'create_room_page.dart';
 import '../services/agora_voice_room_controller.dart';
 import '../services/gift_level_service.dart';
@@ -18,6 +19,7 @@ class VoiceRoomsList extends StatefulWidget {
     required this.languageCode,
     this.localeController,
     this.onlyLive = false,
+    this.openTeacherAiOnJoin = false,
     this.searchQuery = '',
     super.key,
   });
@@ -25,6 +27,7 @@ class VoiceRoomsList extends StatefulWidget {
   final String languageCode;
   final LocaleController? localeController;
   final bool onlyLive;
+  final bool openTeacherAiOnJoin;
   final String searchQuery;
 
   @override
@@ -183,6 +186,7 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
         builder: (_) => AgoraVoiceRoomScreen(
           channelId: channelId,
           roomName: result.name,
+          openTeacherAiOnJoin: widget.openTeacherAiOnJoin,
           roomLanguageCode: result.languageCode,
           initialShowTeacherAiSeat: result.showTeacherAiSeat,
           initialMode: result.mode,
@@ -212,6 +216,7 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
         builder: (_) => AgoraVoiceRoomScreen(
           channelId: channelId,
           roomName: roomName,
+          openTeacherAiOnJoin: widget.openTeacherAiOnJoin,
           roomLanguageCode: roomLanguageCode,
           initialShowTeacherAiSeat: showTeacherAiSeat,
           initialMode: RoomMode.values.firstWhere(
