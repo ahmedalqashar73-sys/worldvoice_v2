@@ -88,6 +88,22 @@ class RoomShopService {
         );
   }
 
+  Stream<List<RoomStoreItem>> watchStoreItems(String type) {
+    if (!const {'gift', 'background', 'frame', 'entrance', 'vip'}
+        .contains(type)) {
+      return Stream.value(const <RoomStoreItem>[]);
+    }
+    return _db.collection('store_items')
+        .where('type', isEqualTo: type).snapshots().map((snapshot) =>
+            snapshot.docs.map(RoomStoreItem.fromDoc)
+                .where((item) => item.active && item.priceCoins > 0)
+                .toList(growable: false)
+              ..sort((a, b) => a.priceCoins.compareTo(b.priceCoins)));
+  }
+
+  Future<void> purchaseItem(String itemId) =>
+      _post(action: 'purchase', body: {'itemId': itemId});
+
   Future<void> purchaseBackground(String itemId) {
     return _post(
       action: 'purchase',
