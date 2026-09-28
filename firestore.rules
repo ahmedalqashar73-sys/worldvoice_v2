@@ -54,6 +54,17 @@ service cloud.firestore {
 
     // Economic state is backend-authoritative. No Firestore client-side gift
     // transaction is allowed, even if a client presents a catalog price.
+    // Secure quizzes can be changed only by the trusted backend, even if a
+    // room host has ordinary moderation permission.
+    function secureQuizUnchanged() {
+      let previous = resource.data.get('quiz', {});
+      let proposed = request.resource.data.get('quiz', {});
+      return (
+        previous.get('secure', false) != true
+        && proposed.get('secure', false) != true
+      ) || previous == proposed;
+    }
+
     function economyFieldsUntouched() {
       return !request.resource.data
           .diff(resource.data)
@@ -572,6 +583,11 @@ service cloud.firestore {
           && resource.data.hostId == request.auth.uid;
     }
 
+    // Server-only correct answers. Do not move this under a readable room.
+    match /room_quiz_secrets/{roomId} {
+      allow read, write: if false;
+    }
+
     // -------------------------
     // VOICE ROOMS
     // -------------------------
@@ -588,6 +604,7 @@ service cloud.firestore {
       allow update: if signedIn()
           && request.resource.data.channelId == resource.data.channelId
           && validRoomThemeChange()
+          && secureQuizUnchanged()
           && (
             (
               request.auth.uid == resource.data.hostId
@@ -711,10 +728,31 @@ service cloud.firestore {
 
       match /quiz_answers/{userId} {
         allow read: if isRoomMember(roomId);
-        allow create, update: if isRoomMember(roomId)
+        allow create: if isRoomMember(roomId)
             && userId == request.auth.uid
             && request.resource.data.userId == request.auth.uid
-            && get(roomPath(roomId)).data.quiz.revealed != true;
+            && request.resource.data.optionIndex is int
+            && request.resource.data.optionIndex >= 0
+            && request.resource.data.answeredAt == request.time
+            && request.resource.data.keys().hasOnly([
+              'userId', 'displayName', 'optionIndex', 'answeredAt', 'roundId'
+            ])
+            && get(roomPath(roomId)).data.quiz.revealed != true
+            && (
+              (
+                get(roomPath(roomId)).data.quiz.get('secure', false) == true
+                && get(roomPath(roomId)).data.quiz.acceptingAnswers == true
+                && request.resource.data.get('roundId', '') ==
+                  get(roomPath(roomId)).data.quiz.roundId
+              )
+              ||
+              (
+                get(roomPath(roomId)).data.quiz.get('secure', false) != true
+                && !request.resource.data.keys().hasAny(['roundId'])
+              )
+            );
+        // One immutable answer per user/round; late rewrites are not votes.
+        allow update: if false;
         allow delete: if isHost(roomId)
             || (isRoomMember(roomId) && userId == request.auth.uid);
       }
