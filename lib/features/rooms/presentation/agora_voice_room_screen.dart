@@ -1377,6 +1377,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         participants: _participants,
         isHost: _isHost,
         showTeacherAiSeat: _showTeacherAiSeat,
+        contextType: widget.initialMode == RoomMode.live ? 'live' : 'room',
         onOpenCoinStore: _showCoinStore,
       ),
     );
