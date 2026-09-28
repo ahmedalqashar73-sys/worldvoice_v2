@@ -54,25 +54,24 @@ class RoomQuizService {
       throw StateError('Invalid quiz');
     }
 
-    await _room.set(
-      {
-        'quiz': {
-          'question': question.trim(),
-          'options': options,
-          'correctIndex': correctIndex,
-          'revealed': false,
-          'startedAt': FieldValue.serverTimestamp(),
-        },
-        'updatedAt': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
-
+    // Publish the new question and clear previous votes in one atomic batch.
+    // A full replacement of the quiz map also clears stale winners and
+    // rewardedAt from earlier rounds instead of merging nested fields.
     final answers = await _room.collection('quiz_answers').get();
     final batch = _db.batch();
     for (final doc in answers.docs) {
       batch.delete(doc.reference);
     }
+    batch.update(_room, {
+      'quiz': {
+        'question': question.trim(),
+        'options': options,
+        'correctIndex': correctIndex,
+        'revealed': false,
+        'startedAt': FieldValue.serverTimestamp(),
+      },
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
     await batch.commit();
   }
 
