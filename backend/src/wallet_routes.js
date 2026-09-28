@@ -2,7 +2,7 @@ import {createHash} from "node:crypto";
 import {FieldValue, Timestamp} from "firebase-admin/firestore";
 import {requireLiveEconomy} from "./economy_policy.js";
 import {withdrawalQuote} from "./wallet_policy.js";
-import {privateWalletRef} from "./private_wallet_schema.js";
+import {privateWalletRef, requirePrivateWalletCutover} from "./private_wallet_schema.js";
 
 const fail = (message, status = 400) => {
   throw Object.assign(new Error(message), {status});
@@ -19,6 +19,7 @@ const dateDay = (date) => date.toISOString().slice(0, 10);
 
 /** All routes are additive to existing room backend; never run on the Agora Worker. */
 export function registerWalletRoutes({app, db, authenticatedUser}) {
+  const privacyRef = db.doc("economy_global_controls/privacy_migration");
   app.post("/wallet/settle", async (req, res, next) => {
     try {
       const user = await authenticatedUser(req);
@@ -30,12 +31,14 @@ export function registerWalletRoutes({app, db, authenticatedUser}) {
         .limit(50).get();
       if (list.empty) return res.json({ok: true, diamondsReleased: 0});
       const outcome = await db.runTransaction(async tx => {
-        const [userSnap, walletSnap, configSnap, controlSnap, ...lots] = await Promise.all([
+        const [userSnap, walletSnap, configSnap, privacySnap, controlSnap,
+          ...lots] = await Promise.all([
           tx.get(ref), tx.get(walletRef), tx.get(db.doc("economy_config/current")),
-          tx.get(db.doc("economy_global_controls/payouts")),
+          tx.get(privacyRef), tx.get(db.doc("economy_global_controls/payouts")),
           ...list.docs.map(d => tx.get(d.ref)),
         ]);
         requireLiveEconomy(configSnap.data());
+        requirePrivateWalletCutover(privacySnap.data());
         if (!userSnap.exists || !walletSnap.exists) fail("Private wallet unavailable.", 409);
         if (controlSnap.data()?.frozen === true) fail("Payouts are on hold.", 423);
         if (walletSnap.data()?.payoutFrozen === true ||
@@ -90,15 +93,16 @@ export function registerWalletRoutes({app, db, authenticatedUser}) {
       const walletRef = privateWalletRef(ref);
       const opRef = db.collection("economy_exchange_operations").doc(key);
       const outcome = await db.runTransaction(async tx => {
-        const [old, snap, config, controls] = await Promise.all([
+        const [old, snap, config, privacySnap, controls] = await Promise.all([
           tx.get(opRef), tx.get(walletRef), tx.get(db.doc("economy_config/current")),
-          tx.get(db.doc("economy_global_controls/payouts")),
+          tx.get(privacyRef), tx.get(db.doc("economy_global_controls/payouts")),
         ]);
         if (old.exists) {
           if (old.data()?.diamonds !== amount) fail("Reused idempotency key.", 409);
           return {...old.data().outcome, alreadyProcessed: true};
         }
         const policy = requireLiveEconomy(config.data());
+        requirePrivateWalletCutover(privacySnap.data());
         if (!snap.exists) fail("Private wallet unavailable.", 409);
         if (controls.data()?.frozen === true) fail("Economy review hold.", 423);
         if (!pos(policy.minExchangeDiamonds) || amount < policy.minExchangeDiamonds) {
@@ -144,11 +148,13 @@ export function registerWalletRoutes({app, db, authenticatedUser}) {
   app.post("/wallet/withdraw/quote", async (req, res, next) => {
     try {
       await authenticatedUser(req);
-      const [configSnap, controlSnap] = await Promise.all([
+      const [configSnap, controlSnap, privacySnap] = await Promise.all([
         db.doc("economy_config/current").get(),
         db.doc("economy_global_controls/payouts").get(),
+        privacyRef.get(),
       ]);
       if (controlSnap.data()?.frozen === true) fail("Payouts under review.", 423);
+      requirePrivateWalletCutover(privacySnap.data());
       res.json({ok: true, ...withdrawalQuote(requireLiveEconomy(configSnap.data()),
         Number(req.body?.diamonds), new Date())});
     } catch (error) {next(error);}
@@ -171,9 +177,10 @@ export function registerWalletRoutes({app, db, authenticatedUser}) {
       const withdrawalRef = db.collection("withdraw_requests").doc(key);
       const now = new Date();
       const outcome = await db.runTransaction(async tx => {
-        const [existing, config, snapshot, control] = await Promise.all([
+        const [existing, config, snapshot, privacySnap, control] = await Promise.all([
           tx.get(withdrawalRef), tx.get(db.doc("economy_config/current")),
-          tx.get(walletRef), tx.get(db.doc("economy_global_controls/payouts")),
+          tx.get(walletRef), tx.get(privacyRef),
+          tx.get(db.doc("economy_global_controls/payouts")),
         ]);
         if (existing.exists) {
           if (existing.data()?.userId !== user.uid ||
@@ -185,6 +192,7 @@ export function registerWalletRoutes({app, db, authenticatedUser}) {
         }
         if (control.data()?.frozen === true) fail("Payouts under review.", 423);
         const policy = requireLiveEconomy(config.data());
+        requirePrivateWalletCutover(privacySnap.data());
         const quote = withdrawalQuote(policy, amount, now);
         if (!policy.withdrawalMethods.includes(method)) {
           fail("Withdrawal method is not configured.");
