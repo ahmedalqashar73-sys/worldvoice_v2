@@ -8,6 +8,8 @@ import 'package:image_picker/image_picker.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../../../core/media/cloudinary_image_service.dart';
 import '../../home/presentation/home_screen.dart';
+import '../../rooms/services/room_wallet_read_service.dart';
+import '../../rooms/services/room_coin_purchase_service.dart';
 import '../data/profile_language_catalog.dart';
 import '../data/profession_catalog.dart';
 import '../data/profile_identity_utils.dart';
@@ -378,8 +380,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             if(!widget.editMode) 'followersCount':0,
             if(!widget.editMode) 'followingCount':0,
             if(!widget.editMode) 'isVip':false,
-            if(!widget.editMode) 'coins':0,
-            if(!widget.editMode) 'diamonds':0,
+            if(!widget.editMode && !RoomWalletReadService.privateWalletCutover)
+              'coins':0,
+            if(!widget.editMode && !RoomWalletReadService.privateWalletCutover)
+              'diamonds':0,
             if(!widget.editMode) 'giftLevel':0,
             if(!widget.editMode) 'giftLevelPoints':0,
             if(!widget.editMode) 'giftSentPoints':0,
@@ -392,6 +396,13 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           SetOptions(merge:true),
         );
       });
+      }
+
+      // For coordinated private-wallet releases, the server initializes
+      // new zero-balance wallets after profile creation. Existing balances
+      // are never reset through signup or profile editing.
+      if (!widget.editMode && RoomWalletReadService.privateWalletCutover) {
+        await RoomCoinPurchaseService.instance.ensurePrivateWalletReady();
       }
 
       if(!mounted)return;
