@@ -2,6 +2,7 @@ import {createHash} from "node:crypto";
 import {FieldValue, Timestamp} from "firebase-admin/firestore";
 import {requireLiveEconomy} from "./economy_policy.js";
 import {withdrawalQuote} from "./wallet_policy.js";
+import {canBootstrapZeroWallet} from "./private_wallet_projection.js";
 
 const fail = (message, status = 400) => {
   throw Object.assign(new Error(message), {status});
@@ -18,6 +19,35 @@ const dateDay = (date) => date.toISOString().slice(0, 10);
 
 /** All routes are additive to existing room backend; never run on the Agora Worker. */
 export function registerWalletRoutes({app, db, authenticatedUser}) {
+  // Initialize a private wallet ONLY for a fresh signup with no legacy money.
+  // Previously-used accounts and nonzero/malformed legacy balances must go
+  // through the audited migration, never this self-service route.
+  app.post("/wallet/bootstrap", async (req, res, next) => {
+    try {
+      const user = await authenticatedUser(req);
+      const profileRef = db.collection("users").doc(user.uid);
+      const walletRef = profileRef.collection("private").doc("wallet");
+      const outcome = await db.runTransaction(async tx => {
+        const [profile, wallet] = await Promise.all([
+          tx.get(profileRef), tx.get(walletRef),
+        ]);
+        if (wallet.exists) return {alreadyInitialized: true};
+        if (!profile.exists || !canBootstrapZeroWallet(profile.data())) {
+          fail("Existing account requires an audited wallet migration.", 409);
+        }
+        tx.create(walletRef, {
+          coins: 0, diamonds: 0, diamondsPending: 0, diamondsReserved: 0,
+          purchasedCoins: 0, quizCoinsEarned: 0, walletDebtCoins: 0,
+          walletFrozen: false, payoutFrozen: false,
+          firstRechargeUsed: false, identityVerified: false,
+          schemaVersion: 1, createdAt: FieldValue.serverTimestamp(),
+        });
+        return {alreadyInitialized: false};
+      });
+      res.json({ok: true, ...outcome});
+    } catch (error) {next(error);}
+  });
+
   app.post("/wallet/settle", async (req, res, next) => {
     try {
       const user = await authenticatedUser(req);
