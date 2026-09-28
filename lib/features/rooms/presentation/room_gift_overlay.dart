@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/room_feature_models.dart';
 
 class RoomGiftOverlay extends StatelessWidget {
-  const RoomGiftOverlay({required this.event});
+  const RoomGiftOverlay({required this.event, super.key});
 
   final RoomGiftEvent event;
 
