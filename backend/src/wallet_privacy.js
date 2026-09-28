@@ -55,3 +55,48 @@ export function extractPrivateWallet(raw = {}) {
   }
   return wallet;
 }
+
+
+/**
+ * Read-only cutover audit after legacy financial writes have been FROZEN.
+ * This is deliberately a strict comparison: discrepancies prevent cutover.
+ * Only error categories are returned; never emit user balances or identity.
+ */
+export function auditPrivacySnapshot(uid, legacy, walletDoc, publicDoc) {
+  const issues = [];
+  let expectedWallet;
+  try {
+    expectedWallet = extractPrivateWallet(legacy);
+  } catch (_) {
+    issues.push("invalid_legacy_wallet");
+  }
+  const safeProfile = sanitizedPublicProfile(uid, legacy);
+  if (!walletDoc) {
+    issues.push("missing_private_wallet");
+  } else if (expectedWallet) {
+    for (const [field, value] of Object.entries(expectedWallet)) {
+      if (!Object.hasOwn(walletDoc, field) ||
+          JSON.stringify(walletDoc[field]) !== JSON.stringify(value)) {
+        issues.push("wallet_mismatch");
+        break;
+      }
+    }
+  }
+  if (!publicDoc) {
+    issues.push("missing_public_profile");
+  } else {
+    // The projection may have only these two migration metadata fields.
+    const safeKeys = new Set([
+      ...Object.keys(safeProfile), "migrationVersion", "snapshotAt",
+    ]);
+    if (Object.keys(publicDoc).some(field => !safeKeys.has(field))) {
+      issues.push("unsafe_public_profile_field");
+    }
+    if (Object.entries(safeProfile).some(([field, value]) =>
+      !Object.hasOwn(publicDoc, field) ||
+      JSON.stringify(publicDoc[field]) !== JSON.stringify(value))) {
+      issues.push("public_profile_mismatch");
+    }
+  }
+  return [...new Set(issues)];
+}

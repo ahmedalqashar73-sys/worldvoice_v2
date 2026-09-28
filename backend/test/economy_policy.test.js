@@ -9,9 +9,6 @@ const fixture = {
   exchangeBonusPercent: 10, webCardBonusPercent: 10,
   giftLevelPointsPerCoin: 1, holdDays: 3,
   minWithdrawalDiamonds: 100, minExchangeDiamonds: 100,
-  firstRechargeBonusPercent: 0, purchaseDailyUsdLimit: 100,
-  giftingDailyCoinLimit: 10000, payoutWindows: [1, 15],
-  withdrawalMethods: ['paypal', 'payoneer'],
   firstRechargeBonusPercent: 5, giftingDailyCoinLimit: 10000,
   purchaseDailyUsdLimit: 250, payoutWindows: [3, 16],
   withdrawalMethods: ["paypal", "payoneer", "bank"],
@@ -57,4 +54,16 @@ test("enabled economy rejects missing promotion, daily limit or payout windows",
   assert.throws(() => requireLiveEconomy({...fixture, giftingDailyCoinLimit: 0}));
   assert.throws(() => requireLiveEconomy({...fixture, payoutWindows: []}));
   assert.throws(() => requireLiveEconomy({...fixture, withdrawalMethods: []}));
+});
+
+test("duplicate payout methods and invalid economy limits fail closed", () => {
+  assert.throws(() => requireLiveEconomy({
+    ...fixture, withdrawalMethods: ["paypal", "paypal"],
+  }), {status: 503});
+  assert.throws(() => requireLiveEconomy({
+    ...fixture, giftingDailyCoinLimit: 0,
+  }), {status: 503});
+  assert.throws(() => requireLiveEconomy({
+    ...fixture, purchaseDailyUsdLimit: Infinity,
+  }), {status: 503});
 });
