@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 
 import agoraToken from "agora-token";
 import {
@@ -17,6 +17,7 @@ import {registerWalletRoutes} from "./wallet_routes.js";
 import {registerChatRoutes} from "./chat_routes.js";
 import {chatIdFor, assertChatMembership} from "./chat_membership.js";
 import {reverseVerifiedWebPurchase} from "./payment_reversals.js";
+import {validateQuizDraft, quizWinners} from "./quiz_policy.js";
 
 const { RtcRole, RtcTokenBuilder } = agoraToken;
 
@@ -1340,110 +1341,136 @@ app.post("/iap/verify", async (req, res, next) => {
   }
 });
 
+/**
+ * Host-only quiz creation. The correct answer never leaves the trusted
+ * backend and may never be read by another authenticated client.
+ */
+app.post("/quiz/start", async (req, res, next) => {
+  try {
+    const user = await authenticatedUser(req);
+    const roomId = String(req.body?.roomId || "").trim();
+    if (!roomId || roomId.length > 160) {
+      return res.status(400).json({error: "Invalid room ID."});
+    }
+    const draft = validateQuizDraft(req.body || {});
+    const roomRef = db.collection("rooms").doc(roomId);
+    const roomSnap = await roomRef.get();
+    if (!roomSnap.exists || roomSnap.data()?.isOpen !== true) {
+      return res.status(404).json({error: "Room is not open."});
+    }
+    if (roomSnap.data()?.hostId !== user.uid) {
+      return res.status(403).json({error: "Only the host may start a quiz."});
+    }
+    const previous = await roomRef.collection("quiz_answers").get();
+    if (previous.size > 400) {
+      return res.status(409).json({
+        error: "Too many previous quiz answers; finish cleanup first.",
+      });
+    }
+    const roundId = randomUUID();
+    const batch = db.batch();
+    for (const answer of previous.docs) batch.delete(answer.ref);
+    batch.set(roomRef.collection("quiz_private").doc("current"), {
+      correctIndex: draft.correctIndex,
+      startedAt: FieldValue.serverTimestamp(),
+      roundId,
+      status: "open",
+      hostId: user.uid,
+    });
+    batch.update(roomRef, {
+      quiz: {
+        question: draft.question,
+        options: draft.options,
+        roundId,
+        revealed: false,
+        // No client-visible correctIndex. Until a server-side reward ledger
+        // uses owner-only wallets, every result is non-monetary practice.
+        practiceOnly: true,
+        startedAt: FieldValue.serverTimestamp(),
+      },
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+    await batch.commit();
+    return res.json({ok: true, roundId});
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * Legacy client-created quizzes still function as FREE practice using the
+ * on-device fallback. This endpoint refuses to credit a public correctIndex.
+ * Trusted server-created rounds are scored only using quiz_private/current.
+ */
 app.post("/quiz/finish", async (req, res, next) => {
   try {
     const user = await authenticatedUser(req);
     const roomId = String(req.body?.roomId || "").trim();
-
-    if (!roomId) {
-      return res.status(400).json({ error: "roomId is required." });
+    if (!roomId || roomId.length > 160) {
+      return res.status(400).json({error: "Invalid room ID."});
     }
-
     const roomRef = db.collection("rooms").doc(roomId);
-    const roomSnap = await roomRef.get();
-
+    const privateRef = roomRef.collection("quiz_private").doc("current");
+    const [roomSnap, privateSnap] = await Promise.all([
+      roomRef.get(), privateRef.get(),
+    ]);
     if (!roomSnap.exists || roomSnap.data()?.isOpen !== true) {
-      return res.status(404).json({ error: "Room is not open." });
+      return res.status(404).json({error: "Room is not open."});
     }
-
     if (roomSnap.data()?.hostId !== user.uid) {
-      return res.status(403).json({ error: "Only the host can finish the quiz." });
+      return res.status(403).json({error: "Only the host can finish the quiz."});
     }
-
+    const quiz = roomSnap.data()?.quiz || {};
+    const secret = privateSnap.data() || {};
+    if (!privateSnap.exists || !secret.roundId ||
+        quiz.roundId !== secret.roundId ||
+        !Number.isInteger(secret.correctIndex)) {
+      return res.status(409).json({
+        error: "This quiz has no verified private answer; use free practice mode.",
+      });
+    }
+    if (quiz.revealed === true || secret.status === "closed") {
+      return res.json({ok: true, alreadyFinished: true, winners: quiz.winners || []});
+    }
     const answersSnap = await roomRef.collection("quiz_answers").get();
-    const roomData = roomSnap.data() || {};
-    const quiz = roomData.quiz || {};
-    // A free-room client may already have revealed non-monetary practice
-    // results. Never retroactively convert those answers into paid coins.
-    if (quiz.practiceOnly === true) {
-      return res.status(409).json({error: "This round ended as a practice quiz."});
-    }
-    const correctIndex = Number(quiz.correctIndex);
-
-    if (!Number.isInteger(correctIndex)) {
-      return res.status(409).json({ error: "No active quiz." });
-    }
-
-    const correctAnswers = answersSnap.docs
-      .map((doc) => ({ id: doc.id, ...doc.data() }))
-      .filter((answer) => Number(answer.optionIndex) === correctIndex)
-      .sort((a, b) => {
-        const aTime = a.answeredAt?.toMillis?.() || Number.MAX_SAFE_INTEGER;
-        const bTime = b.answeredAt?.toMillis?.() || Number.MAX_SAFE_INTEGER;
-        return aTime - bTime;
-      })
-      .slice(0, 3);
-
-    const winners = correctAnswers.map((answer, index) => ({
-      place: index + 1,
-      userId: String(answer.userId || answer.id),
-      displayName: String(answer.displayName || "WorldVoice user"),
-      prizeCoins: index === 0 ? 5 : 0,
-    }));
-
-    const transactionResult = await db.runTransaction(async (tx) => {
-      const latestRoom = await tx.get(roomRef);
-      const latestQuiz = latestRoom.data()?.quiz || {};
-
-      if (latestQuiz.practiceOnly === true) {
-        return {
-          alreadyFinished: true,
-          practiceOnly: true,
-          winners: Array.isArray(latestQuiz.winners) ? latestQuiz.winners : [],
-        };
+    const winners = quizWinners({
+      answers: answersSnap.docs.map(doc => ({id: doc.id, ...doc.data()})),
+      correctIndex: secret.correctIndex,
+      startedAt: secret.startedAt,
+      roundId: secret.roundId,
+    });
+    const result = await db.runTransaction(async tx => {
+      const [currentRoom, currentSecret] = await Promise.all([
+        tx.get(roomRef), tx.get(privateRef),
+      ]);
+      const publicQuiz = currentRoom.data()?.quiz || {};
+      const privateQuiz = currentSecret.data() || {};
+      if (currentRoom.data()?.hostId !== user.uid ||
+          publicQuiz.roundId !== secret.roundId ||
+          privateQuiz.roundId !== secret.roundId) {
+        const conflict = new Error("Quiz round changed; retry.");
+        conflict.status = 409;
+        throw conflict;
       }
-
-      if (latestQuiz.rewardedAt != null) {
-        return {
-          alreadyFinished: true,
-          winners: Array.isArray(latestQuiz.winners)
-            ? latestQuiz.winners
-            : [],
-        };
+      if (publicQuiz.revealed === true || privateQuiz.status !== "open") {
+        return {alreadyFinished: true, winners: publicQuiz.winners || []};
       }
-
-      if (winners.length > 0) {
-        const winnerRef = db.collection("users").doc(winners[0].userId);
-        const winnerSnap = await tx.get(winnerRef);
-        const balance = Number(winnerSnap.data()?.coins || 0);
-        tx.set(
-          winnerRef,
-          {
-            coins: balance + 5,
-            quizCoinsEarned: FieldValue.increment(5),
-            updatedAt: FieldValue.serverTimestamp(),
-          },
-          { merge: true },
-        );
-      }
-
-      // The Admin SDK treats dotted keys inside set(merge) as literal field
-      // names. update() interprets them as nested paths in rooms/{id}.quiz.
+      tx.update(privateRef, {
+        status: "closed",
+        closedAt: FieldValue.serverTimestamp(),
+      });
       tx.update(roomRef, {
+        "quiz.correctIndex": privateQuiz.correctIndex,
         "quiz.revealed": true,
+        "quiz.practiceOnly": true,
         "quiz.winners": winners,
-        "quiz.firstPrizeCoins": 5,
+        "quiz.firstPrizeCoins": 0,
         "quiz.rewardedAt": FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),
       });
-
-      return {
-        alreadyFinished: false,
-        winners,
-      };
+      return {alreadyFinished: false, winners};
     });
-
-    return res.json({ ok: true, ...transactionResult });
+    return res.json({ok: true, practiceOnly: true, ...result});
   } catch (error) {
     next(error);
   }
