@@ -274,13 +274,16 @@ class RoomCoinPurchaseService extends ChangeNotifier {
       throw StateError('Your login could not be verified.');
     }
     final base = _walletBase;
+    final headers = <String, String>{
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    };
+    if (idempotencyKey != null) {
+      headers['Idempotency-Key'] = idempotencyKey;
+    }
     final response = await http.post(
       base.replace(path: '${base.path}$path'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-        if (idempotencyKey != null) 'Idempotency-Key': idempotencyKey,
-      },
+      headers: headers,
       body: jsonEncode(body),
     );
     Map<String, dynamic> decoded;
