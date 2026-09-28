@@ -5,6 +5,8 @@ class CoinProductConfig {
     required this.id,
     required this.coins,
     required this.active,
+    required this.priceUsd,
+    this.webPriceId,
     this.androidProductId,
     this.iosProductId,
   });
@@ -12,6 +14,8 @@ class CoinProductConfig {
   final String id;
   final int coins;
   final bool active;
+  final double priceUsd;
+  final String? webPriceId;
   final String? androidProductId;
   final String? iosProductId;
 
@@ -23,6 +27,8 @@ class CoinProductConfig {
       id: doc.id,
       coins: (data['coins'] as num?)?.toInt() ?? 0,
       active: data['active'] == true,
+      priceUsd: (data['priceUsd'] as num?)?.toDouble() ?? 0,
+      webPriceId: data['webPriceId']?.toString(),
       androidProductId: data['androidProductId']?.toString(),
       iosProductId: data['iosProductId']?.toString(),
     );
