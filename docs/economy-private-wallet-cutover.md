@@ -41,7 +41,13 @@ Preserve the current working Agora green room and the installed users' data.
 4. Verify that no user root contains private balance/status fields, that
    stored private balances match the backed-up source, that all public
    profiles remain queryable, and that no lost/orphaned ledgers or holds
-   exist. Run the Firestore emulator permission suite. Test fresh profile
+   exist. A Firestore collection query on `users` is **not**
+   automatically safe simply because a staging snapshot is scrubbed:
+   Firestore Rules are not per-document query filters. Explicitly test each
+   production profile/follower/discovery query against the tightened rule,
+   replace unsafe cross-user queries with sanitized public-profile indexes
+   if needed, and **block rollout** if any existing view breaks. Run the
+   Firestore emulator permission suite. Test fresh profile
    sign-up, wallet reads, existing users and the mandatory old-client
    upgrade path.
 5. Upgrade trusted Node routes, Cloudflare auxiliary routing, Android/iOS
