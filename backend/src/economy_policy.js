@@ -17,6 +17,15 @@ export function requireLiveEconomy(config) {
   if (!config || config.enabled !== true) {
     throw Object.assign(new Error("Economy not enabled."), {status: 503});
   }
+  // Never allow purchases, paid gifts, exchanges, or withdrawals while
+  // legacy users/{uid} may expose private balances or while any server/client
+  // still spends from the legacy public user profile. This flag is set only
+  // AFTER independently verified full migration and strict deployed rules.
+  if (config.walletPrivacyCutover !== true) {
+    throw Object.assign(new Error(
+      "Economy locked until private wallet migration is verified.",
+    ), {status: 503});
+  }
   for (const field of requiredPositive) {
     if (typeof config[field] !== "number" ||
         !Number.isFinite(config[field]) || config[field] <= 0) {

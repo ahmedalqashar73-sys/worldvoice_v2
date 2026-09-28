@@ -38,6 +38,7 @@ export async function reverseVerifiedWebPurchase({stripe, db, event}) {
   const receiptRef = db.collection("iap_receipts").doc(receiptKey);
   const operation = db.collection("economy_refund_operations").doc(opKey);
   const userRef = db.collection("users").doc(uid);
+  const walletRef = userRef.collection("private").doc("wallet");
   const globalRef = db.doc("economy_global_controls/payouts");
   // Freezes every recent gift receiver from the chargeback sender, until
   // finance can trace lots to their funding purchases.
@@ -49,7 +50,7 @@ export async function reverseVerifiedWebPurchase({stripe, db, event}) {
   )];
   const overLimit = gifts.size >= 91 || recipients.length >= 80;
   const recipientRefs = overLimit ? [] : recipients.map(id =>
-    db.collection("users").doc(id));
+    db.collection("users").doc(id).collection("private").doc("wallet"));
   const amountRefunded = dispute
     ? session.amount_total
     : Number(charge.amount_refunded);
@@ -57,7 +58,7 @@ export async function reverseVerifiedWebPurchase({stripe, db, event}) {
     throw err("Invalid signed Stripe refund amount.", 503);
   }
   return db.runTransaction(async tx => {
-    const refs = [operation, receiptRef, userRef, globalRef, ...recipientRefs];
+    const refs = [operation, receiptRef, walletRef, globalRef, ...recipientRefs];
     const snaps = await Promise.all(refs.map(ref => tx.get(ref)));
     const [old, receiptSnap, userSnap] = snaps;
     if (old.exists) return {...old.data().outcome, alreadyProcessed: true};
@@ -104,6 +105,12 @@ export async function reverseVerifiedWebPurchase({stripe, db, event}) {
       creditedCoins, priceCents, targetRefundCents: requestedTarget,
       alreadyDebitedCoins: Number(existing.debitedCoins || 0),
     });
+    if (!userSnap.exists) {
+      throw err("Private wallet missing; refund requires manual review.", 503);
+    }
+    if (snaps.slice(4).some(recipient => !recipient.exists)) {
+      throw err("Recipient private wallet missing; hold payouts for manual review.", 503);
+    }
     const before = Number(userSnap.data()?.coins || 0);
     const debtBefore = Number(userSnap.data()?.walletDebtCoins || 0);
     const purchased = Number(userSnap.data()?.purchasedCoins || 0);
@@ -119,7 +126,7 @@ export async function reverseVerifiedWebPurchase({stripe, db, event}) {
       targetRefundCents: requestedTarget,
       payoutFrozen: true, recipientsFrozen: overLimit ? "global" : recipients.length,
     };
-    tx.set(userRef, {
+    tx.set(walletRef, {
       coins: before - availableDebit,
       purchasedCoins: Math.max(0, purchased - result.deltaCoins),
       walletDebtCoins: debtBefore + debt,

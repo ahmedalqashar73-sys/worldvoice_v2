@@ -9,6 +9,7 @@ on:
       - feat/economy-foundation-20260928
       - feat/economy-wallet-ui-20260928
       - feat/economy-chat-context-20260928
+      - feat/economy-private-wallet-migration-20260928
       - fix/finish-room-hub-quiz-gift-20260928
 jobs:
   flutter-analyze:

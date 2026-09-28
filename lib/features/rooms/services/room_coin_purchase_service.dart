@@ -11,6 +11,7 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../data/coin_product_config.dart';
+import 'room_wallet_read_service.dart';
 
 class CoinStoreProduct {
   const CoinStoreProduct({
@@ -134,9 +135,24 @@ class RoomCoinPurchaseService extends ChangeNotifier {
     }
   }
 
+  /// Fails before starting native/web billing if the new owner wallet is
+  /// unavailable. Legacy nonzero-balance profiles are deliberately rejected
+  /// by the backend: only the audited migration may move their balances.
+  Future<void> ensurePrivateWalletReady() async {
+    if (!RoomWalletReadService.privateWalletCutover) return;
+    await _walletPost('/wallet/bootstrap', const <String, dynamic>{});
+  }
+
   Future<void> buy(CoinStoreProduct item) async {
     _message = null;
     notifyListeners();
+    try {
+      await ensurePrivateWalletReady();
+    } catch (error) {
+      _message = error.toString().replaceFirst('Bad state: ', '');
+      notifyListeners();
+      return; // Never start billing before the private wallet is ready.
+    }
 
     final parameter = PurchaseParam(
       productDetails: item.product,
@@ -324,6 +340,7 @@ class RoomCoinPurchaseService extends ChangeNotifier {
     if (!kIsWeb || !item.hasApprovedWebPrice) {
       throw StateError('Web checkout is not available for this product.');
     }
+    await ensurePrivateWalletReady();
     final result = await _walletPost('/web/checkout', {'catalogId': item.id});
     final url = Uri.tryParse((result['checkoutUrl'] ?? '').toString());
     if (url == null || url.scheme != 'https' || !url.hasAuthority) {
