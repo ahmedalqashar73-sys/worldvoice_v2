@@ -118,6 +118,8 @@ export function registerEconomyRoutes(app, { db, authenticatedUser }) {
         if (item.type === "vip" && ttl == null)
           throw economyError("VIP must have a fixed duration.", 503);
         const before = positiveBalance(sender.data()?.coins);
+        if (positiveBalance(sender.data()?.coinDebt) > 0 || sender.data()?.payoutHold === true)
+          throw economyError("WALLET_UNDER_REVIEW", 403);
         if (before < cost) throw economyError("NOT_ENOUGH_COINS", 409);
         const dailyCoins = positiveBalance(daily.data()?.storeCoinsSpent);
         if (dailyCoins + cost > config.dailySendLimitCoins)
@@ -132,6 +134,7 @@ export function registerEconomyRoutes(app, { db, authenticatedUser }) {
         tx.set(inventoryRef, {
           itemId, type:item.type, name:item.name || itemId,
           animationUrl:item.animationUrl || null, themeId:item.themeId || itemId,
+          backgroundUrl:item.previewUrl || null,
           permanent: ttl == null, expiresAt,
           source:ownerId === user.uid ? "purchase" : "gift",
           updatedAt:FieldValue.serverTimestamp(),
@@ -237,6 +240,8 @@ export function registerEconomyRoutes(app, { db, authenticatedUser }) {
           ? giftQuote(config, priceCoins, paidQuantity)
           : { coins: 0, diamonds: 0, receiverUsd: 0, giftLevelPoints: 0 };
         const senderCoinsBefore = positiveBalance(senderData.coins);
+        if (positiveBalance(senderData.coinDebt) > 0 || senderData.payoutHold === true)
+          throw economyError("WALLET_UNDER_REVIEW", 403);
         if (senderCoinsBefore < quote.coins)
           throw economyError("NOT_ENOUGH_COINS", 409);
         const spentToday = positiveBalance(today.data()?.giftCoinsSent);
@@ -392,6 +397,9 @@ export function registerEconomyRoutes(app, { db, authenticatedUser }) {
         const [wallet, ...lots] = await Promise.all([
           tx.get(userRef), ...eligible.docs.map((doc) => tx.get(doc.ref))
         ]);
+        if (wallet.data()?.payoutHold === true ||
+            positiveBalance(wallet.data()?.coinDebt) > 0)
+          throw economyError("WALLET_UNDER_REVIEW", 403);
         if (wallet.data()?.kycStatus !== "verified")
           throw economyError("IDENTITY_VERIFICATION_REQUIRED", 403);
         let left = diamonds;
