@@ -133,6 +133,10 @@ test('secure quizzes hide answer keys and reject client scoring or impersonation
   await assertFails(updateDoc(room(host), {
     quiz: {secure: true, roundId: 'forged', question: 'x', options: ['a','b']},
   }));
+  await assertFails(setDoc(doc(host, 'rooms/forged-secure'), {
+    channelId: 'forged-secure', hostId: 'host', isOpen: true,
+    quiz: {secure: true, roundId: 'forged', question: 'x', options: ['a','b']},
+  }));
   // Ordinary non-quiz moderation is unaffected by the lock.
   await assertSucceeds(updateDoc(room(host), {boardWriteEnabled: false}));
 });
