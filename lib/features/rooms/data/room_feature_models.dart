@@ -146,7 +146,9 @@ class RoomGiftCatalogItem {
     return RoomGiftCatalogItem(
       // Unified store IDs are type-prefixed; keep the legacy gift ID used
       // by existing animations and the backend /gift/send contract.
-      id: (data['legacyId'] ?? doc.id).toString(),
+      id: (data['legacyId'] ??
+          (doc.id.startsWith('gift__') ? doc.id.substring('gift__'.length)
+              : doc.id)).toString(),
       name: (data['name'] ?? doc.id).toString(),
       priceCoins: (data['priceCoins'] as num?)?.toInt() ?? 0,
       active: data['active'] == true,
