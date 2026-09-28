@@ -43,10 +43,14 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     final base = Uri.tryParse(_economyEndpoint.trim());
     if (base == null || base.scheme != 'https' || !base.hasAuthority ||
         base.userInfo.isNotEmpty || base.query.isNotEmpty ||
-        base.fragment.isNotEmpty) return;
+        base.fragment.isNotEmpty) {
+      return;
+    }
     try {
       final token = await user.getIdToken();
-      if (token == null || token.isEmpty) return;
+      if (token == null || token.isEmpty) {
+        return;
+      }
       final normalizedPath = base.path.endsWith('/')
           ? base.path.substring(0, base.path.length - 1)
           : base.path;
