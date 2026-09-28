@@ -18,7 +18,7 @@ class ChatScreen extends StatelessWidget {
   static const _backend = String.fromEnvironment('WORLDVOICE_ECONOMY_ENDPOINT');
 
   static Future<Map<String, dynamic>> _post(
-    String route, Map<String, dynamic> payload, {String? requestKey},
+    String route, Map<String, dynamic> payload, {String? requestKey,}
   ) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) throw StateError('Sign in to chat.');
@@ -39,7 +39,8 @@ class ChatScreen extends StatelessWidget {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
-        if (requestKey != null) 'Idempotency-Key': requestKey,
+        ...(requestKey == null ? <String, String>{} :
+          <String, String>{'Idempotency-Key': requestKey}),
       },
       body: jsonEncode(payload),
     );
