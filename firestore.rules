@@ -566,7 +566,8 @@ service cloud.firestore {
 
       allow create: if signedIn()
           && request.resource.data.hostId == request.auth.uid
-          && request.resource.data.channelId == roomId;
+          && request.resource.data.channelId == roomId
+          && request.resource.data.get('quiz', {}).get('secure', false) != true;
 
       // Normally only the host updates the room.
       // If the old host participant is gone, a new authenticated host may
