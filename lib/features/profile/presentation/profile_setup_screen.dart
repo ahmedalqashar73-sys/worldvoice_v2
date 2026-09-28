@@ -385,7 +385,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             if(!widget.editMode) 'isPartner':false,
             'updatedAt':FieldValue.serverTimestamp(),
             if(!widget.editMode) 'createdAt':FieldValue.serverTimestamp(),
-          },
         };
         tx.set(db.collection('users').doc(user.uid), privateProfile,
             SetOptions(merge: true));
