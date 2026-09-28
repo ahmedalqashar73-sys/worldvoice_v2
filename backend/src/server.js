@@ -13,6 +13,7 @@ import { google } from "googleapis";
 import OpenAI from "openai";
 import Stripe from "stripe";
 import { requireLiveEconomy, calculateGiftSettlement, calculatePurchaseCredit } from "./economy_policy.js";
+import {registerWalletRoutes} from "./wallet_routes.js";
 
 const { RtcRole, RtcTokenBuilder } = agoraToken;
 
@@ -1074,6 +1075,10 @@ app.post("/gift/send", async (req, res, next) => {
       const amounts = calculateGiftSettlement({
         config, priceCoins: price, quantity, freeGiftBalance: freeBalance,
       });
+      if (senderData.walletFrozen === true ||
+          Number(senderData.walletDebtCoins || 0) > 0) {
+        throw Object.assign(new Error("Wallet under payment review."), {status: 423});
+      }
       const balance = Number(senderData.coins || 0);
       if (!Number.isSafeInteger(balance) || balance < amounts.chargedCoins) {
         throw Object.assign(new Error("NOT_ENOUGH_COINS"), {status: 409});
@@ -1144,6 +1149,14 @@ app.post("/gift/send", async (req, res, next) => {
           giftReceivedPoints: FieldValue.increment(amounts.chargedCoins),
           updatedAt: FieldValue.serverTimestamp(),
         }, {merge: true});
+        if (amounts.pendingDiamonds > 0) {
+          tx.create(recipientRef.collection("diamond_lots").doc(requestHash), {
+            status: "pending", diamonds: amounts.pendingDiamonds,
+            senderId: sender.uid, source: context,
+            sourceId: contextId, giftId, operationId: requestHash,
+            holdUntil, createdAt: FieldValue.serverTimestamp(),
+          });
+        }
         tx.create(recipientRef.collection("wallet_transactions")
           .doc(requestHash), {
           type: "gift_received_pending", amount: amounts.pendingDiamonds,
@@ -1360,6 +1373,9 @@ app.post("/quiz/finish", async (req, res, next) => {
     next(error);
   }
 });
+
+// Finance routes run only on the separately deployed authenticated backend.
+registerWalletRoutes({app, db, authenticatedUser});
 
 app.use((error, _req, res, _next) => {
   const status =
