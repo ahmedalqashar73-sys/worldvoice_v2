@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../data/room_feature_models.dart';
-import '../services/room_feature_service.dart';
+import '../services/room_quiz_service.dart';
 
 class RoomQuizSheet extends StatefulWidget {
   const RoomQuizSheet({
@@ -20,12 +20,12 @@ class RoomQuizSheet extends StatefulWidget {
 }
 
 class _RoomQuizSheetState extends State<RoomQuizSheet> {
-  late final RoomFeatureService _service;
+  late final RoomQuizService _service;
 
   @override
   void initState() {
     super.initState();
-    _service = RoomFeatureService(roomId: widget.roomId);
+    _service = RoomQuizService(roomId: widget.roomId);
   }
 
   Future<void> _createQuiz() async {
@@ -99,11 +99,26 @@ class _RoomQuizSheetState extends State<RoomQuizSheet> {
     );
 
     if (result == true) {
-      final options = [a.text.trim(), b.text.trim(), c.text.trim(), d.text.trim()]
-          .where((value) => value.isNotEmpty)
-          .toList(growable: false);
+      final rawOptions = [a.text.trim(), b.text.trim(), c.text.trim(), d.text.trim()];
+      final options = rawOptions.where((value) => value.isNotEmpty).toList(growable: false);
       if (question.text.trim().isNotEmpty && options.length >= 2) {
-        final safeCorrect = correctIndex.clamp(0, options.length - 1);
+        if (rawOptions[correctIndex].isEmpty) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text('The correct answer cannot be empty.'),
+            ));
+          }
+          question.dispose();
+          a.dispose();
+          b.dispose();
+          c.dispose();
+          d.dispose();
+          return;
+        }
+        final safeCorrect = rawOptions
+            .take(correctIndex + 1)
+            .where((value) => value.isNotEmpty)
+            .length - 1;
         await _service.startQuiz(
           question: question.text.trim(),
           options: options,
