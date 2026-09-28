@@ -128,7 +128,7 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                 : null;
             final usd = diamonds == null ? null : diamonds * diamondUsd!;
             return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-              stream: FirebaseFirestore.instance.collection('users').doc(uid)
+              stream: FirebaseFirestore.instance.collection('wallets').doc(uid)
                   .snapshots(),
               builder: (context, walletSnapshot) {
                 final coins = (walletSnapshot.data?.data()?['coins'] as num?)?.toInt() ?? 0;
