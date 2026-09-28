@@ -37,6 +37,7 @@ const policy = {
   purchaseDailyUsdLimit: null,
   giftingDailyCoinLimit: null,
   payoutWindows: [],
+  withdrawalMethods: [],
 };
 
 // PROPOSED pack sizes; user has NOT approved USD prices or product IDs.
