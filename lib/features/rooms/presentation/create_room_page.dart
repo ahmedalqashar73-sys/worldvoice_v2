@@ -9,12 +9,14 @@ class CreateRoomPage extends StatefulWidget {
     required this.languageOptions,
     required this.initialLanguage,
     required this.giftLevel,
+    this.fixedMode,
   });
 
   final bool isArabic;
   final List<String> languageOptions;
   final String initialLanguage;
   final int giftLevel;
+  final RoomMode? fixedMode;
 
   @override
   State<CreateRoomPage> createState() => _CreateRoomPageState();
@@ -32,6 +34,7 @@ class _CreateRoomPageState extends State<CreateRoomPage> {
   @override
   void initState() {
     super.initState();
+    _mode = widget.fixedMode ?? RoomMode.chat;
     _language = widget.languageOptions.contains(widget.initialLanguage)
         ? widget.initialLanguage
         : widget.languageOptions.first;
@@ -145,7 +148,9 @@ class _CreateRoomPageState extends State<CreateRoomPage> {
                           spacing: 12,
                           runSpacing: 12,
                           children: [
-                            for (final mode in RoomMode.values)
+                            for (final mode in widget.fixedMode == null
+                                ? RoomMode.values
+                                : <RoomMode>[widget.fixedMode!])
                               SizedBox(
                                 width: width,
                                 child: Semantics(
