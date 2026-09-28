@@ -71,7 +71,22 @@ test('economy reads are permitted but client-side money and gifts cannot be forg
   }
   await assertSucceeds(updateDoc(profile, {displayName: 'Guest 2'}));
   await assertFails(setDoc(doc(db, 'users/new'), {uid: 'new', coins: 500}));
-  for (const name of ['inventory', 'wallet_transactions', 'economy_daily']) {
+  for (const profile of [
+    {uid: 'fresh', coins: 500},
+    {uid: 'fresh', diamonds: 1},
+    {uid: 'fresh', walletFrozen: false},
+    {uid: 'fresh', identityVerified: true},
+    {uid: 'fresh', giftLevel: 99}
+  ]) {
+    await assertFails(setDoc(doc(user('fresh'), 'users/fresh'), profile));
+  }
+  await assertSucceeds(setDoc(doc(user('fresh'), 'users/fresh'),
+    {uid: 'fresh', displayName: 'Fresh', coins: 0}));
+  for (const field of ['walletFrozen', 'payoutFrozen', 'walletDebtCoins', 'identityVerified']) {
+    await assertFails(updateDoc(doc(user('fresh'), 'users/fresh'), {[field]: 1}));
+  }
+
+  for (const name of ['inventory', 'wallet_transactions', 'diamond_lots', 'economy_daily']) {
     await assertFails(setDoc(doc(db, 'users/listener/' + name + '/fake'), {value: 100}));
   }
   await assertFails(setDoc(doc(db, 'rooms/r1/gifts/fake'), {
