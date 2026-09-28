@@ -96,6 +96,46 @@ test('economy reads are permitted but client-side money and gifts cannot be forg
   await assertFails(setDoc(doc(db, 'economy_gift_operations/fake'), {coins: 100}));
 });
 
+test('direct chat needs mutual acceptance before messaging or gifts', async () => {
+  await env.withSecurityRulesDisabled(async ctx => {
+    await setDoc(doc(ctx.firestore(), 'users/host/following/listener'),
+      {createdAt: serverTimestamp()});
+  });
+  const inviter = user('host');
+  const invited = user('listener');
+  const conversation = 'conversations/acceptedChatTest1';
+  await assertFails(setDoc(doc(user('outsider'), conversation), {
+    members: ['host', 'listener'], acceptedBy: ['outsider'],
+    status: 'active', createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
+  }));
+  await assertSucceeds(setDoc(doc(inviter, conversation), {
+    members: ['host', 'listener'], acceptedBy: ['host'],
+    status: 'invited', createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
+  }));
+  await assertSucceeds(getDoc(doc(invited, conversation)));
+  await assertFails(setDoc(doc(inviter, conversation + '/messages/m1'), {
+    senderId: 'host', type: 'text', text: 'not accepted',
+    createdAt: serverTimestamp(),
+  }));
+  await assertFails(updateDoc(doc(inviter, conversation), {
+    acceptedBy: ['host', 'listener'], status: 'active',
+    updatedAt: serverTimestamp(),
+  }));
+  await assertSucceeds(updateDoc(doc(invited, conversation), {
+    acceptedBy: ['host', 'listener'], status: 'active',
+    updatedAt: serverTimestamp(),
+  }));
+  await assertSucceeds(setDoc(doc(inviter, conversation + '/messages/m1'), {
+    senderId: 'host', type: 'text', text: 'Hello',
+    createdAt: serverTimestamp(),
+  }));
+  await assertSucceeds(getDocs(collection(invited, conversation + '/messages')));
+  await assertFails(getDocs(collection(user('outsider'), conversation + '/messages')));
+  await assertFails(setDoc(doc(inviter, conversation + '/gifts/fake'), {
+    senderId: 'host', amount: 1000,
+  }));
+});
+
 test('host creates room and participant atomically; listener cannot self-promote', async () => {
   const db = user('new');
   const batch = writeBatch(db);
