@@ -1,173 +1,133 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/localization/locale_controller.dart';
+import '../../rooms/presentation/unified_gift_panel.dart';
 
+/// Server-approved broadcasts only; never show fake viewers or sell gifts for
+/// a stream that has no verified Agora media session.
 class LiveScreen extends StatelessWidget {
   const LiveScreen({required this.localeController, super.key});
-
   final LocaleController localeController;
 
   @override
   Widget build(BuildContext context) {
     final code = localeController.locale?.languageCode ?? 'en';
     final rtl = const {'ar', 'ur', 'fa'}.contains(code);
-    final labels = _LiveLabels(code);
-
+    final ar = code == 'ar';
     return Directionality(
       textDirection: rtl ? TextDirection.rtl : TextDirection.ltr,
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(18, 12, 18, 28),
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  labels.title,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
-                ),
-              ),
-              FilledButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.videocam_rounded),
-                label: Text(labels.goLive),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(26),
-              gradient: const LinearGradient(
-                colors: [Color(0xFF7B3FF2), Color(0xFFE54A8D)],
-              ),
-            ),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.live_tv_rounded,
-                  size: 54,
-                  color: Colors.white,
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Text(
-                    labels.banner,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 21,
-                      height: 1.2,
-                      fontWeight: FontWeight.w900,
-                    ),
+      child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        stream: FirebaseFirestore.instance.collection('live_sessions')
+            .where('status', isEqualTo: 'broadcasting').snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(child: Text(ar
+                ? 'البث غير متاح حاليًا' : 'Live sessions unavailable'));
+          }
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final sessions = snapshot.data!.docs;
+          return ListView(padding: const EdgeInsets.all(16), children: [
+            Text(ar ? 'البث المباشر' : 'Live',
+              style: Theme.of(context).textTheme.headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.w900)),
+            const SizedBox(height: 8),
+            Text(ar
+              ? 'لا يبدأ البث المدفوع قبل التحقق من اتصال الصوت والفيديو.'
+              : 'Live gifts require a verified broadcasting session.'),
+            const SizedBox(height: 16),
+            if (sessions.isEmpty)
+              Card(child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(children: [
+                  const Icon(Icons.live_tv_rounded, size: 46),
+                  const SizedBox(height: 8),
+                  Text(ar
+                    ? 'لا توجد بثوث موثّقة الآن. نكمل ربط الفيديو.'
+                    : 'No verified live broadcasts yet. Video integration is pending.',
+                    textAlign: TextAlign.center),
+                ]),
+              )),
+            for (final session in sessions)
+              ListTile(
+                leading: const CircleAvatar(
+                  child: Icon(Icons.live_tv_rounded)),
+                title: Text(session.data()['title']?.toString() ??
+                    (ar ? 'بث مباشر' : 'Live broadcast')),
+                subtitle: Text(session.data()['hostName']?.toString() ??
+                    (ar ? 'المضيف' : 'Host')),
+                onTap: () => Navigator.push(context, MaterialPageRoute<void>(
+                  builder: (_) => _VerifiedLiveSession(
+                    id: session.id,
+                    title: session.data()['title']?.toString() ??
+                        'Live',
+                    hostId: session.data()['hostId']?.toString() ?? '',
                   ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            labels.nowLive,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w900,
-                ),
-          ),
-          const SizedBox(height: 10),
-          const _LiveCard(
-            name: 'Priscilia',
-            flag: '🇮🇩',
-            topic: 'Language exchange • English',
-            viewers: 2621,
-          ),
-          const _LiveCard(
-            name: 'Alice',
-            flag: '🇯🇵',
-            topic: 'English beginner practice',
-            viewers: 1543,
-          ),
-          const _LiveCard(
-            name: 'Global Live',
-            flag: '🌍',
-            topic: 'Meet people worldwide',
-            viewers: 859,
-          ),
-        ],
+                )),
+              ),
+          ]);
+        },
       ),
     );
   }
 }
 
-class _LiveCard extends StatelessWidget {
-  const _LiveCard({
-    required this.name,
-    required this.flag,
-    required this.topic,
-    required this.viewers,
+class _VerifiedLiveSession extends StatelessWidget {
+  const _VerifiedLiveSession({
+    required this.id, required this.title, required this.hostId,
   });
-
-  final String name;
-  final String flag;
-  final String topic;
-  final int viewers;
+  final String id;
+  final String title;
+  final String hostId;
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(16),
-        leading: CircleAvatar(
-          radius: 28,
-          backgroundColor: colors.secondaryContainer,
-          child: Text(flag, style: const TextStyle(fontSize: 24)),
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    return Scaffold(
+      appBar: AppBar(title: Text(title)),
+      body: SafeArea(child: Column(children: [
+        const Expanded(child: Center(child:
+          Icon(Icons.videocam_off_outlined, size: 54))),
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(ar
+            ? 'مشغل الفيديو المباشر لم يُربط بعد. لا يمكن إرسال هدايا مدفوعة حتى يكتمل.'
+            : 'The live video player is not linked yet. Paid gifts remain locked.',
+            textAlign: TextAlign.center),
         ),
-        title: Text(
-          name,
-          style: const TextStyle(fontWeight: FontWeight.w900),
+        StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+          stream: FirebaseFirestore.instance.collection('live_sessions')
+            .doc(id).collection('gifts')
+            .orderBy('createdAt', descending: true).limit(3).snapshots(),
+          builder: (context, snapshot) => SizedBox(
+            height: 55,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: [
+                for (final event in snapshot.data?.docs ??
+                    <QueryDocumentSnapshot<Map<String, dynamic>>>[])
+                  Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Chip(
+                      avatar: const Icon(Icons.card_giftcard_rounded, size: 18),
+                      label: Text('${event.data()['senderName'] ?? 'Guest'}: '
+                        '${event.data()['giftId'] ?? 'Gift'}'),
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ),
-        subtitle: Text(topic),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.visibility_outlined, size: 17),
-            const SizedBox(width: 4),
-            Text('$viewers'),
-          ],
+        SizedBox(
+          height: 305,
+          child: UnifiedGiftPanel(
+            contextType: 'live', contextId: id,
+            recipients: hostId.isEmpty ? const {} : {hostId: title},
+          ),
         ),
-        onTap: () {},
-      ),
+      ])),
     );
   }
-}
-
-class _LiveLabels {
-  _LiveLabels(String code)
-      : title = code == 'ar'
-            ? 'البث المباشر'
-            : code == 'es'
-                ? 'En vivo'
-                : 'Live',
-        goLive = code == 'ar'
-            ? 'ابدأ بث'
-            : code == 'es'
-                ? 'Transmitir'
-                : 'Go Live',
-        banner = code == 'ar'
-            ? 'شاهد وتفاعل مع البثوث المباشرة حول العالم.'
-            : code == 'es'
-                ? 'Mira y participa en directos de todo el mundo.'
-                : 'Watch and join live broadcasts from around the world.',
-        nowLive = code == 'ar'
-            ? 'مباشر الآن'
-            : code == 'es'
-                ? 'En vivo ahora'
-                : 'Live now';
-
-  final String title;
-  final String goLive;
-  final String banner;
-  final String nowLive;
 }
