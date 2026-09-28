@@ -96,7 +96,7 @@ class RoomBackgroundReward {
   }
 }
 
-/** Unified catalog view for frames, entrance effects and VIP gifts. */
+/// Unified catalog view for frames, entrance effects and VIP gifts.
 class RoomStoreItem {
   const RoomStoreItem({
     required this.id, required this.type, required this.name,
