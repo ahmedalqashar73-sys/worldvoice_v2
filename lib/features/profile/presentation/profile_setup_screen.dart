@@ -47,7 +47,21 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     try {
       final token = await user.getIdToken();
       if (token == null || token.isEmpty) return;
-      final path = base.path.replaceFirst(RegExp(r'/
+      final normalizedPath = base.path.endsWith('/')
+          ? base.path.substring(0, base.path.length - 1)
+          : base.path;
+      final response = await http.post(
+        base.replace(path: '$normalizedPath/wallet/bootstrap'),
+        headers: {'Authorization': 'Bearer $token'},
+      ).timeout(const Duration(seconds: 8));
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        debugPrint('Wallet bootstrap gated: ${response.statusCode}');
+      }
+    } catch (error) {
+      debugPrint('Wallet bootstrap unavailable: $error');
+    }
+  }
+  bool? usernameAvailable; bool saving=false;
   final ImagePicker _imagePicker=ImagePicker();
   File? profileImage, coverImage;
   String? photoUrl, photoPublicId, coverUrl, coverPublicId, voiceBioUrl;
