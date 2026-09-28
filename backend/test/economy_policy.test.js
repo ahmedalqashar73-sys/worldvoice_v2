@@ -4,7 +4,7 @@ import {requireLiveEconomy, calculateGiftSettlement} from "../src/economy_policy
 
 // Values in tests are synthetic fixtures, NOT published economy settings.
 const fixture = {
-  enabled: true, coinsPerUsd: 100, receiverSharePercent: 40,
+  enabled: true, walletPrivacyCutoverComplete: true, coinsPerUsd: 100, receiverSharePercent: 40,
   diamondUsdValue: 0.01, withdrawalFeePercent: 5,
   exchangeBonusPercent: 10, webCardBonusPercent: 10,
   giftLevelPointsPerCoin: 1, holdDays: 3,
@@ -18,6 +18,7 @@ const fixture = {
 };
 test("economy stays locked without complete approved values", () => {
   assert.throws(() => requireLiveEconomy({enabled: false}));
+  assert.throws(() => requireLiveEconomy({...fixture, walletPrivacyCutoverComplete: false}));
   assert.throws(() => requireLiveEconomy({...fixture, diamondUsdValue: null}));
   assert.throws(() => requireLiveEconomy({...fixture, receiverSharePercent: 150}));
   assert.throws(() => requireLiveEconomy({...fixture, purchaseDailyUsdLimit: null}));
