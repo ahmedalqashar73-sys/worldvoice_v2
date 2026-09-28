@@ -96,6 +96,28 @@ test('economy reads are permitted but client-side money and gifts cannot be forg
   await assertFails(setDoc(doc(db, 'economy_gift_operations/fake'), {coins: 100}));
 });
 
+test('migrated wallets are owner-only and public profile projection is backend-only', async () => {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const db = ctx.firestore();
+    await setDoc(doc(db, 'users/listener/private/wallet'), {
+      coins: 77, diamonds: 9,
+    });
+    await setDoc(doc(db, 'public_profiles/listener'), {
+      uid: 'listener', displayName: 'Public Listener',
+    });
+  });
+  await assertSucceeds(getDoc(doc(user('listener'),
+    'users/listener/private/wallet')));
+  await assertFails(getDoc(doc(user('other'),
+    'users/listener/private/wallet')));
+  await assertFails(setDoc(doc(user('listener'),
+    'users/listener/private/wallet'), {coins: 9999}));
+  await assertSucceeds(getDoc(doc(user('other'),
+    'public_profiles/listener')));
+  await assertFails(setDoc(doc(user('other'),
+    'public_profiles/listener'), {coins: 9999}));
+});
+
 test('host creates room and participant atomically; listener cannot self-promote', async () => {
   const db = user('new');
   const batch = writeBatch(db);
