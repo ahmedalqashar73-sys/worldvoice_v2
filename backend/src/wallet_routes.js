@@ -1,7 +1,7 @@
 import {createHash} from "node:crypto";
 import {FieldValue, Timestamp} from "firebase-admin/firestore";
 import {requireLiveEconomy} from "./economy_policy.js";
-import {withdrawalQuote} from "./wallet_policy.js";
+import {withdrawalQuote, assertSameWithdrawalIntent, assertPayoutReviewAllowed} from "./wallet_policy.js";
 
 const fail = (message, status = 400) => {
   throw Object.assign(new Error(message), {status});
@@ -170,12 +170,9 @@ export function registerWalletRoutes({app, db, authenticatedUser}) {
           tx.get(ref), tx.get(db.doc("economy_global_controls/payouts")),
         ]);
         if (existing.exists) {
-          if (existing.data()?.userId !== user.uid ||
-              existing.data()?.diamonds !== amount ||
-              existing.data()?.method !== method ||
-              existing.data()?.payoutAccountToken !== payoutAccountToken) {
-            fail("Reused idempotency key.", 409);
-          }
+          assertSameWithdrawalIntent(existing.data(), {
+            uid: user.uid, diamonds: amount, method, payoutAccountToken,
+          });
           return {...existing.data()?.quote, alreadyProcessed: true};
         }
         if (control.data()?.frozen === true) fail("Payouts under review.", 423);
@@ -234,17 +231,10 @@ export function registerWalletRoutes({app, db, authenticatedUser}) {
           tx.get(withdrawalRef), tx.get(ownerRef),
           tx.get(db.doc("economy_global_controls/payouts")),
         ]);
-        if (decision === "approve" && control.data()?.frozen === true) {
-          fail("Global payout hold requires resolution.", 423);
-        }
-        // A refund, dispute or account suspension can arrive after a user
-        // reserves their withdrawal. Re-check owner status at review time.
-        if (decision === "approve" &&
-            (owner.data()?.walletFrozen === true ||
-             owner.data()?.payoutFrozen === true ||
-             Number(owner.data()?.walletDebtCoins || 0) > 0 ||
-             owner.data()?.identityVerified !== true)) {
-          fail("Wallet review or identity hold prevents payout approval.", 423);
+        // A newly frozen payout or identity check must block approval,
+        // even when the reservation was accepted earlier.
+        if (decision === "approve") {
+          assertPayoutReviewAllowed(owner.data(), control.data());
         }
         if (withdrawal.data()?.status !== "pending_admin_review") {
           fail("Withdrawal has already been reviewed.", 409);
