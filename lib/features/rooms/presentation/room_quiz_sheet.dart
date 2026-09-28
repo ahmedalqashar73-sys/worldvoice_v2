@@ -28,6 +28,34 @@ class _RoomQuizSheetState extends State<RoomQuizSheet> {
     _service = RoomQuizService(roomId: widget.roomId);
   }
 
+  void _reportQuizError(Object error) {
+    if (!mounted) return;
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          ar ? 'تعذر إكمال العملية: $error' : 'Quiz action failed: $error',
+        ),
+      ),
+    );
+  }
+
+  Future<void> _answerQuiz(int index) async {
+    try {
+      await _service.answerQuiz(index);
+    } catch (error) {
+      _reportQuizError(error);
+    }
+  }
+
+  Future<void> _finishQuiz() async {
+    try {
+      await _service.finishQuiz();
+    } catch (error) {
+      _reportQuizError(error);
+    }
+  }
+
   Future<void> _createQuiz() async {
     final question = TextEditingController();
     final a = TextEditingController();
@@ -105,7 +133,9 @@ class _RoomQuizSheetState extends State<RoomQuizSheet> {
         if (rawOptions[correctIndex].isEmpty) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              content: Text('The correct answer cannot be empty.'),
+              content: Text(Localizations.localeOf(context).languageCode == 'ar'
+                  ? 'يجب ألا تكون الإجابة الصحيحة فارغة.'
+                  : 'The correct answer cannot be empty.'),
             ));
           }
           question.dispose();
@@ -119,11 +149,15 @@ class _RoomQuizSheetState extends State<RoomQuizSheet> {
             .take(correctIndex + 1)
             .where((value) => value.isNotEmpty)
             .length - 1;
-        await _service.startQuiz(
-          question: question.text.trim(),
-          options: options,
-          correctIndex: safeCorrect,
-        );
+        try {
+          await _service.startQuiz(
+            question: question.text.trim(),
+            options: options,
+            correctIndex: safeCorrect,
+          );
+        } catch (error) {
+          _reportQuizError(error);
+        }
       }
     }
 
@@ -245,13 +279,13 @@ class _RoomQuizSheetState extends State<RoomQuizSheet> {
                                   : null,
                           onTap: state.quizRevealed || myAnswer != null
                               ? null
-                              : () => _service.answerQuiz(i),
+                              : () => _answerQuiz(i),
                         ),
                       ),
                     const SizedBox(height: 12),
                     if (widget.isHost && !state.quizRevealed)
                       FilledButton.icon(
-                        onPressed: _service.finishQuiz,
+                        onPressed: _finishQuiz,
                         icon: const Icon(Icons.visibility_rounded),
                         label: Text(
                           isArabic ? 'إظهار النتيجة' : 'Reveal result',
