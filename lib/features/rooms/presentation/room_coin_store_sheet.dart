@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../services/room_coin_purchase_service.dart';
+import '../data/coin_product_config.dart';
 
 class RoomCoinStoreSheet extends StatefulWidget {
   const RoomCoinStoreSheet({super.key});
@@ -19,7 +21,7 @@ class _RoomCoinStoreSheetState extends State<RoomCoinStoreSheet> {
   void initState() {
     super.initState();
     _store.addListener(_refresh);
-    _store.initialize();
+    if (!kIsWeb) _store.initialize();
   }
 
   void _refresh() {
@@ -105,7 +107,9 @@ class _RoomCoinStoreSheetState extends State<RoomCoinStoreSheet> {
                 ),
               ),
             Expanded(
-              child: _store.loading
+              child: kIsWeb
+                  ? _WebCheckoutCatalog(isArabic: isArabic, store: _store)
+                  : _store.loading
                   ? const Center(child: CircularProgressIndicator())
                   : !_store.storeAvailable
                       ? Center(
@@ -432,6 +436,74 @@ class _WalletViewState extends State<_WalletView> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Stripe is presented only when WorldVoice is opened on the web. Android
+/// and iOS must continue through native in_app_purchase.
+class _WebCheckoutCatalog extends StatelessWidget {
+  const _WebCheckoutCatalog({
+    required this.isArabic, required this.store,
+  });
+  final bool isArabic;
+  final RoomCoinPurchaseService store;
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance.collection('coin_products')
+          .where('active', isEqualTo: true).snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Center(child: Text(isArabic
+              ? 'تعذر تحميل باقات الويب'
+              : 'Web packs unavailable'));
+        }
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final products = snapshot.data!.docs.map(CoinProductConfig.fromDoc)
+            .where((item) => item.hasApprovedWebPrice)
+            .toList(growable: false)
+          ..sort((a, b) => a.coins.compareTo(b.coins));
+        if (products.isEmpty) {
+          return Center(child: Text(isArabic
+              ? 'لا توجد باقات ويب معتمدة حاليًا.'
+              : 'No approved web packs are active.'));
+        }
+        return ListView.separated(
+          padding: const EdgeInsets.all(16),
+          itemCount: products.length,
+          separatorBuilder: (_, _) => const SizedBox(height: 8),
+          itemBuilder: (context, index) {
+            final product = products[index];
+            return Card(
+              child: ListTile(
+                leading: const Icon(Icons.credit_card_rounded),
+                title: Text(isArabic
+                    ? '${product.coins} كوينز' : '${product.coins} Coins'),
+                subtitle: Text(
+                    '${product.priceUsd!.toStringAsFixed(2)} USD'),
+                trailing: FilledButton(
+                  onPressed: () async {
+                    try {
+                      await store.startWebCheckout(product);
+                    } catch (error) {
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(error.toString()
+                            .replaceFirst('Bad state: ', ''))),
+                      );
+                    }
+                  },
+                  child: Text(isArabic ? 'الدفع الآمن' : 'Secure checkout'),
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
