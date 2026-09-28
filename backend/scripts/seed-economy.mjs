@@ -90,6 +90,21 @@ for (const [sourceCollection, type] of [
     }]);
   }
 }
+// Preserve already-purchased room backgrounds during catalog migration.
+const oldBackgrounds = await db.collectionGroup("room_backgrounds").get();
+for (const snap of oldBackgrounds.docs) {
+  const userDoc = snap.ref.parent.parent;
+  if (!userDoc || userDoc.parent.id !== "users") continue;
+  const data = snap.data();
+  const themeId = String(data.themeId || snap.id);
+  batch.push([userDoc.collection("inventory").doc(`background__${themeId}`), {
+    type: "background", themeId, itemId: `background__${themeId}`,
+    quantity: 1, freeGiftBalance: 0, name: String(data.name || themeId),
+    backgroundUrl: data.backgroundUrl || null,
+    expiresAt: data.expiresAt || null, source: "legacy_background_import",
+    importedFrom: snap.ref.path,
+  }]);
+}
 console.log(JSON.stringify({
   projectId, dryRun: !apply, documents: batch.map(([ref]) => ref.path),
 }, null, 2));
