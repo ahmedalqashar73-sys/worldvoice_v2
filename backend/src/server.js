@@ -337,14 +337,15 @@ async function creditVerifiedCoins({
     .update(`${platform}:${receiptId}`).digest("hex");
   const receiptRef = db.collection("iap_receipts").doc(receiptKey);
   const userRef = db.collection("users").doc(userId);
+  const walletRef = userRef.collection("private").doc("wallet");
   const configRef = db.doc("economy_config/current");
   const productRef = db.collection("coin_products").doc(catalogId);
   const day = new Date().toISOString().slice(0, 10);
   const dailyRef = userRef.collection("economy_daily").doc(day);
   return db.runTransaction(async tx => {
     // Read all snapshots BEFORE making any transaction write.
-    const [receiptSnap, userSnap, configSnap, productSnap, dailySnap] =
-      await Promise.all([receiptRef, userRef, configRef, productRef, dailyRef]
+    const [receiptSnap, userSnap, configSnap, productSnap, dailySnap, walletSnap] =
+      await Promise.all([receiptRef, userRef, configRef, productRef, dailyRef, walletRef]
         .map(ref => tx.get(ref)));
     if (receiptSnap.exists) {
       const receipt = receiptSnap.data() || {};
@@ -364,6 +365,10 @@ async function creditVerifiedCoins({
       return {alreadyCredited: true, coins: Number(receipt.coins || 0)};
     }
     const policy = requireLiveEconomy(configSnap.data());
+    if (!userSnap.exists || !walletSnap.exists) {
+      throw Object.assign(new Error("Private wallet must be initialized."),
+        {status: 409});
+    }
     const product = productSnap.data() || {};
     const base = Number(product.coins);
     const priceCents = Math.round(Number(product.priceUsd) * 100);
@@ -388,23 +393,23 @@ async function creditVerifiedCoins({
     if (spentCents + priceCents > limitCents) {
       throw Object.assign(new Error("Daily purchase limit reached."), {status: 429});
     }
-    if (userSnap.data()?.walletFrozen === true ||
-        Number(userSnap.data()?.walletDebtCoins || 0) > 0) {
+    if (walletSnap.data()?.walletFrozen === true ||
+        Number(walletSnap.data()?.walletDebtCoins || 0) > 0) {
       throw Object.assign(new Error("Wallet requires payment review."), {status: 423});
     }
-    const previousPurchases = Number(userSnap.data()?.purchasedCoins || 0);
+    const previousPurchases = Number(walletSnap.data()?.purchasedCoins || 0);
     const firstRecharge = previousPurchases === 0 &&
-      userSnap.data()?.firstRechargeUsed !== true;
+      walletSnap.data()?.firstRechargeUsed !== true;
     const reward = calculatePurchaseCredit({
       config: policy, baseCoins: base, platform, firstRecharge,
     });
-    const balanceBefore = Number(userSnap.data()?.coins || 0);
+    const balanceBefore = Number(walletSnap.data()?.coins || 0);
     const balanceAfter = balanceBefore + reward.totalCoins;
     if (!Number.isSafeInteger(balanceBefore) ||
         !Number.isSafeInteger(balanceAfter)) {
       throw Object.assign(new Error("Coin ledger balance is invalid."), {status: 503});
     }
-    tx.set(userRef, {
+    tx.set(walletRef, {
       coins: balanceAfter,
       purchasedCoins: previousPurchases + reward.totalCoins,
       firstRechargeUsed: true,
