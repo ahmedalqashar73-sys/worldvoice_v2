@@ -46,3 +46,26 @@ export function withdrawalQuote(policy, amount, now) {
   };
 }
 
+
+
+/** A retry must not silently substitute a different payout destination. */
+export function assertSameWithdrawalIntent(existing, intended) {
+  if (existing?.userId !== intended.uid ||
+      existing?.diamonds !== intended.diamonds ||
+      existing?.method !== intended.method ||
+      existing?.payoutAccountToken !== intended.payoutAccountToken) {
+    fail("Reused idempotency key for a different withdrawal.", 409);
+  }
+}
+
+/** Apply a second security gate when finance reviews a reserved withdrawal. */
+export function assertPayoutReviewAllowed(owner, control) {
+  if (control?.frozen === true) fail("Global payout hold requires resolution.", 423);
+  const debt = owner?.walletDebtCoins ?? 0;
+  if (!owner || owner.walletFrozen === true ||
+      owner.payoutFrozen === true ||
+      !Number.isSafeInteger(debt) || debt < 0 || debt > 0 ||
+      owner.identityVerified !== true) {
+    fail("Wallet review or identity hold prevents payout approval.", 423);
+  }
+}
