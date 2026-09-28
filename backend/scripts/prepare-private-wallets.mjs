@@ -8,6 +8,7 @@
  * until ALL readers/writers have moved and a frozen final reconciliation
  * is complete. Avoid treating a migration snapshot as a live balance.
  */
+import {isDeepStrictEqual} from "node:util";
 import {initializeApp, applicationDefault} from "firebase-admin/app";
 import {FieldPath, FieldValue, getFirestore} from "firebase-admin/firestore";
 import {sanitizedPublicProfile, extractPrivateWallet} from
@@ -23,8 +24,18 @@ const apply = args.includes("--apply");
 if (apply && !args.includes("--backup-confirmed")) {
   throw new Error("Do not apply without a Firestore backup; pass --backup-confirmed.");
 }
+if (apply && (process.env.WORLDVOICE_STAGING_MIGRATION !== "YES" ||
+  args[args.indexOf("--confirm-staging-project") + 1] !== projectId ||
+  !/(?:-staging|-dev|^demo-)/.test(projectId))) {
+  throw new Error("Apply requires a confirmed STAGING/DEV project and explicit environment approval.");
+}
 initializeApp({credential: applicationDefault(), projectId});
 const db = getFirestore();
+const policyRef = db.doc("economy_config/current");
+const policy = await policyRef.get();
+if (apply && (!policy.exists || policy.data()?.enabled !== false)) {
+  throw new Error("Staging economy_config/current must exist with enabled=false.");
+}
 const stats = {scanned: 0, walletsMissing: 0, profilesMissing: 0,
   migrated: 0, existing: 0, conflicts: 0, invalidLegacy: 0};
 let after = null;
@@ -52,15 +63,31 @@ do {
     }
     try {
       const result = await db.runTransaction(async tx => {
-        const [latest, privateDoc, publicDoc] = await Promise.all([
-          tx.get(doc.ref), tx.get(privateRef), tx.get(publicRef),
+        const [policySnap, latest, privateDoc, publicDoc] = await Promise.all([
+          tx.get(policyRef), tx.get(doc.ref), tx.get(privateRef), tx.get(publicRef),
         ]);
-        if (!latest.exists) return "existing";
+        if (!policySnap.exists || policySnap.data()?.enabled !== false) {
+          throw new Error("Economy was enabled during migration; stop.");
+        }
+        if (!latest.exists) throw new Error("Legacy user disappeared; stop.");
         const financial = extractPrivateWallet(latest.data());
         const profile = sanitizedPublicProfile(doc.id, latest.data());
         // Never overwrite a separately updated private wallet or profile.
         // Freeze economic writes and reconcile before cutover.
-        if (privateDoc.exists || publicDoc.exists) return "existing";
+        // Never claim success for half-migrated or stale money documents.
+        // Metadata fields are excluded from the immutable source comparison.
+        if (privateDoc.exists !== publicDoc.exists) {
+          throw new Error("Partial privacy projection; manual reconciliation required.");
+        }
+        if (privateDoc.exists) {
+          const {migrationVersion: _v, snapshotAt: _t, legacySource: _s, ...oldWallet} = privateDoc.data();
+          const {migrationVersion: _p, snapshotAt: _pt, ...oldProfile} = publicDoc.data();
+          if (!isDeepStrictEqual(oldWallet, financial) ||
+              !isDeepStrictEqual(oldProfile, profile)) {
+            throw new Error("Existing wallet/profile differs from legacy source; reconcile before cutover.");
+          }
+          return "existing";
+        }
         tx.create(privateRef, {
           ...financial,
           migrationVersion: 1,

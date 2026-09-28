@@ -14,12 +14,14 @@ const financialFields = [
   "giftSentPoints", "giftReceivedPoints", "walletDebtCoins",
   "walletFrozen", "payoutFrozen", "payoutFreezeReason",
   "withdrawableDiamonds", "walletBalance", "firstRechargeUsed",
+  "giftLevelPoints", "lastGiftRoomId", "lastGiftEventId",
   "identityVerified", "vipExpiresAt",
 ];
 const nonnegativeIntegers = new Set([
   "coins", "diamonds", "diamondsPending", "diamondsOnHold",
   "diamondsReserved", "purchasedCoins", "quizCoinsEarned",
   "giftSentPoints", "giftReceivedPoints", "withdrawableDiamonds",
+  "giftLevelPoints",
 ]);
 
 export function sanitizedPublicProfile(uid, raw = {}) {
