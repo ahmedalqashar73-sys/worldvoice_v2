@@ -138,6 +138,14 @@ class RoomCoinPurchaseService extends ChangeNotifier {
     _message = null;
     notifyListeners();
 
+    // Do not start a charge if the backend cannot safely credit the balance.
+    try {
+      await _walletPost('/wallet/bootstrap', <String, dynamic>{});
+    } catch (error) {
+      _message = 'Purchase blocked: $error';
+      notifyListeners();
+      return;
+    }
     final parameter = PurchaseParam(
       productDetails: item.product,
     );
