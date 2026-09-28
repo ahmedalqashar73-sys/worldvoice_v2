@@ -14,6 +14,8 @@ import OpenAI from "openai";
 import Stripe from "stripe";
 import { requireLiveEconomy, calculateGiftSettlement, calculatePurchaseCredit } from "./economy_policy.js";
 import {registerWalletRoutes} from "./wallet_routes.js";
+import {registerChatRoutes} from "./chat_routes.js";
+import {chatIdFor, assertChatMembership} from "./chat_membership.js";
 import {reverseVerifiedWebPurchase} from "./payment_reversals.js";
 
 const { RtcRole, RtcTokenBuilder } = agoraToken;
@@ -1401,6 +1403,7 @@ app.post("/quiz/finish", async (req, res, next) => {
 
 // Finance routes run only on the separately deployed authenticated backend.
 registerWalletRoutes({app, db, authenticatedUser});
+registerChatRoutes({app, db, authenticatedUser});
 
 app.use((error, _req, res, _next) => {
   const status =
