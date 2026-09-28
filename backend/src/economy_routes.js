@@ -69,6 +69,108 @@ export function registerEconomyRoutes(app, { db, authenticatedUser }) {
     } catch (error) { next(error); }
   });
 
+  // Existing RoomShopService continues to call /store/purchase. Entitlements
+  // and spending are now server-only, and all types share store_items.
+  app.post("/store/purchase", async (req, res, next) => {
+    try {
+      const user = await verifiedUser(authenticatedUser, req);
+      const { itemId, recipientId, requestId } = req.body || {};
+      if (!id(itemId) || !id(requestId) || (recipientId != null && !id(recipientId)))
+        throw economyError("Invalid catalog purchase.", 400);
+      const config = await loadConfig(db);
+      const ownerId = recipientId || user.uid;
+      const senderRef = db.collection("users").doc(user.uid);
+      const ownerRef = db.collection("users").doc(ownerId);
+      const itemRef = db.collection("store_items").doc(itemId);
+      const inventoryRef = ownerRef.collection("inventory").doc(itemId);
+      const legacyBackgroundRef = ownerRef.collection("room_backgrounds").doc(itemId);
+      const dayRef = senderRef.collection("economy_daily").doc(dailyKey());
+      const operationRef = db.collection("economy_actions").doc(
+        createHash("sha256").update(user.uid + ":purchase:" + requestId).digest("hex"));
+      const result = await db.runTransaction(async (tx) => {
+        const [previous, listing, sender, owner, inventory, legacy, daily] =
+          await Promise.all([tx.get(operationRef), tx.get(itemRef),
+            tx.get(senderRef), tx.get(ownerRef), tx.get(inventoryRef),
+            tx.get(legacyBackgroundRef), tx.get(dayRef)]);
+        if (previous.exists) {
+          if (previous.data()?.ownerId !== ownerId ||
+              previous.data()?.itemId !== itemId)
+            throw economyError("Purchase ID was reused.", 409);
+          return { ...previous.data().result, alreadyProcessed:true };
+        }
+        if (!owner.exists || !sender.exists)
+          throw economyError("Account not available.", 404);
+        const item = listing.data() || {};
+        if (!listing.exists || item.active !== true ||
+            !["background", "frame", "entrance", "vip"].includes(item.type))
+          throw economyError("This item is not for sale.", 409);
+        const cost = item.priceCoins;
+        if (!Number.isSafeInteger(cost) || cost < 0)
+          throw economyError("Invalid store item price.", 503);
+        const owned = inventory.data() || {};
+        const previousExpiry = asDate(owned.expiresAt);
+        const indefinite = inventory.exists &&
+          owned.permanent === true && item.type !== "vip";
+        if (indefinite) throw economyError("Item already owned permanently.", 409);
+        const ttl = item.durationDays;
+        if (ttl != null && (!Number.isSafeInteger(ttl) || ttl <= 0))
+          throw economyError("Invalid item duration.", 503);
+        if (item.type === "vip" && ttl == null)
+          throw economyError("VIP must have a fixed duration.", 503);
+        const before = positiveBalance(sender.data()?.coins);
+        if (before < cost) throw economyError("NOT_ENOUGH_COINS", 409);
+        const dailyCoins = positiveBalance(daily.data()?.storeCoinsSpent);
+        if (dailyCoins + cost > config.dailySendLimitCoins)
+          throw economyError("DAILY_STORE_LIMIT", 429);
+        const validCurrentExpiry = previousExpiry && previousExpiry > new Date()
+          ? previousExpiry.getTime() : Date.now();
+        const expiresAt = ttl == null ? null : Timestamp.fromMillis(
+          validCurrentExpiry + ttl * 24 * 60 * 60 * 1000);
+        tx.set(senderRef, {
+          coins: before - cost, updatedAt:FieldValue.serverTimestamp(),
+        }, { merge:true });
+        tx.set(inventoryRef, {
+          itemId, type:item.type, name:item.name || itemId,
+          animationUrl:item.animationUrl || null, themeId:item.themeId || itemId,
+          permanent: ttl == null, expiresAt,
+          source:ownerId === user.uid ? "purchase" : "gift",
+          updatedAt:FieldValue.serverTimestamp(),
+        }, { merge:true });
+        // Preserve legacy background display until its Flutter sheet has been
+        // switched over completely to the inventory collection.
+        if (item.type === "background") tx.set(legacyBackgroundRef, {
+          itemId, themeId:item.themeId || itemId, name:item.name || itemId,
+          backgroundUrl:item.previewUrl || null, source:"store_items",
+          purchasedAt:FieldValue.serverTimestamp(),
+          ...(expiresAt ? {expiresAt} : {}),
+        }, { merge:true });
+        if (item.type === "vip") {
+          const previousVip = asDate(owner.data()?.vipUntil);
+          const base = previousVip && previousVip > new Date()
+            ? previousVip.getTime() : Date.now();
+          // A gift extends a currently active VIP period.
+          const until = Timestamp.fromMillis(base + ttl * 24 * 60 * 60 * 1000);
+          tx.set(ownerRef, {
+            vipUntil:until, updatedAt:FieldValue.serverTimestamp()
+          }, { merge:true });
+        }
+        tx.set(dayRef, {storeCoinsSpent:dailyCoins+cost,
+          updatedAt:FieldValue.serverTimestamp()}, {merge:true});
+        ledger(tx, db, { userId:user.uid, type:ownerId===user.uid ?
+          "store_purchase" : "store_gift", currency:"coins",
+          amount:-cost, before, after:before-cost, source:"store",
+          refId:operationRef.id, relatedUserId:ownerId,
+          metadata:{itemId, itemType:item.type} });
+        const output = {ok:true, balance:before-cost, ownerId,
+          itemId, expiresAt: expiresAt ? expiresAt.toMillis() : null};
+        tx.create(operationRef, {userId:user.uid, ownerId, itemId,
+          result:output, createdAt:FieldValue.serverTimestamp()});
+        return output;
+      });
+      res.json(result);
+    } catch (error) {next(error);}
+  });
+
   app.post("/gift/send", async (req, res, next) => {
     try {
       const user = await verifiedUser(authenticatedUser, req);
