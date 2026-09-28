@@ -12,6 +12,7 @@ import { FieldValue, Timestamp, getFirestore } from "firebase-admin/firestore";
 import { google } from "googleapis";
 import OpenAI from "openai";
 import { registerEconomyRoutes } from "./economy_routes.js";
+import { registerStripeWebhook, registerStripeCheckout } from "./stripe_checkout.js";
 import { validateEconomy, coinCredit, positiveBalance, economyError } from "./economy_core.js";
 
 const { RtcRole, RtcTokenBuilder } = agoraToken;
@@ -43,6 +44,7 @@ const db = getFirestore();
 
 const app = express();
 app.disable("x-powered-by");
+registerStripeWebhook(app, db);
 app.use(express.json({ limit: "32kb" }));
 
 const port = Number(process.env.PORT || 8080);
@@ -565,6 +567,7 @@ app.post("/teacher-ai/ask", async (req, res, next) => {
 // Economy routes replace the previous room_shop_items purchase handler.
 // Do not register duplicate /store/purchase endpoints.
 registerEconomyRoutes(app, { db, authenticatedUser });
+registerStripeCheckout(app, { db, authenticatedUser });
 
 app.post("/store/claim-reward", async (req, res, next) => {
   try {
