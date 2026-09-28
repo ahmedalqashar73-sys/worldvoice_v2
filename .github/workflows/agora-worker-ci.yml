@@ -21,7 +21,7 @@ jobs:
           cache: true
       - run: flutter pub get
       - run: flutter analyze
-      - run: flutter test test/room_conversation_panel_test.dart
+      - run: flutter test test/room_conversation_panel_test.dart test/room_quiz_options_test.dart
 
   test:
     runs-on: ubuntu-latest
