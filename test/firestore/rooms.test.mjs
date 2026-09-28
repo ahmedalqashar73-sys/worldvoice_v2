@@ -172,7 +172,7 @@ test('private room join requires a matching code grant', async () => {
 
 
 test('public profiles show only allowed data; owner-only private users and wallets', async () => {
-  const adminDb = await env.withSecurityRulesDisabled(async context => {
+  await env.withSecurityRulesDisabled(async context => {
     const db = context.firestore();
     await setDoc(doc(db, 'users/alice'), {
       uid: 'alice', profileCompleted: true, displayName: 'Alice',
@@ -184,9 +184,7 @@ test('public profiles show only allowed data; owner-only private users and walle
     await setDoc(doc(db, 'wallets/alice'), {
       schemaVersion: 1, coins: 1000, diamonds: 50,
     });
-    return true;
   });
-  assert.equal(adminDb, true);
   await assertSucceeds(getDoc(doc(user('alice'), 'users/alice')));
   await assertFails(getDoc(doc(user('listener'), 'users/alice')));
   await assertFails(getDocs(collection(user('alice'), 'users')));
