@@ -23,6 +23,14 @@ class RoomsHubScreen extends StatefulWidget {
 
 class _RoomsHubScreenState extends State<RoomsHubScreen> {
   int _section = 0;
+  bool _searchOpen = false;
+  final TextEditingController _search = TextEditingController();
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,13 +56,32 @@ class _RoomsHubScreenState extends State<RoomsHubScreen> {
                     ),
                   ),
                   IconButton.filledTonal(
-                    onPressed: () {},
+                    onPressed: () => setState(() {
+                      _searchOpen = !_searchOpen;
+                      if (!_searchOpen) _search.clear();
+                    }),
                     tooltip: labels.search,
-                    icon: const Icon(Icons.search_rounded),
+                    icon: Icon(_searchOpen
+                        ? Icons.close_rounded
+                        : Icons.search_rounded),
                   ),
                 ],
               ),
             ),
+            if (_searchOpen)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 18),
+                child: TextField(
+                  controller: _search,
+                  onChanged: (_) => setState(() {}),
+                  decoration: InputDecoration(
+                    hintText: labels.search,
+                    prefixIcon: const Icon(Icons.search_rounded),
+                    isDense: true,
+                    border: const OutlineInputBorder(),
+                  ),
+                ),
+              ),
             SizedBox(
               height: 50,
               child: ListView.separated(
@@ -82,12 +109,13 @@ class _RoomsHubScreenState extends State<RoomsHubScreen> {
               child: _section == 0
                   ? VoiceRoomsList(
                       languageCode: code,
+                      searchQuery: _search.text,
                       localeController: widget.localeController,
                     )
                   : _section == 1
                       ? LiveScreen(localeController: widget.localeController)
                       : _section == 2
-                          ? _TeacherAiHub(languageCode: code, localeController: widget.localeController)
+                          ? _TeacherAiHub(languageCode: code, searchQuery: _search.text, localeController: widget.localeController)
                           : LearnScreen(localeController: widget.localeController),
             ),
           ],
@@ -148,9 +176,10 @@ class _RoomsHubLabels {
 /// Teacher AI is room-bound: use the real room membership and backend rather
 /// than inventing a separate AI session or displaying a dead tab.
 class _TeacherAiHub extends StatelessWidget {
-  const _TeacherAiHub({required this.languageCode, required this.localeController});
+  const _TeacherAiHub({required this.languageCode, required this.searchQuery, required this.localeController});
 
   final String languageCode;
+  final String searchQuery;
   final LocaleController localeController;
 
   bool get _ar => languageCode == 'ar';
@@ -260,6 +289,7 @@ class _TeacherAiHub extends StatelessWidget {
         Expanded(
           child: VoiceRoomsList(
             languageCode: languageCode,
+            searchQuery: searchQuery,
             localeController: localeController,
           ),
         ),
