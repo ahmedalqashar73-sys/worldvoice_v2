@@ -91,14 +91,17 @@ class _VoiceBioCardState extends State<VoiceBioCard> {
         folder: 'worldvoice/voice_bios/${widget.userId}',
       );
 
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(widget.userId)
-          .set({
+      final firestore = FirebaseFirestore.instance;
+      final batch = firestore.batch();
+      batch.set(firestore.collection('users').doc(widget.userId), {
         'voiceBioUrl': upload.url,
         'voiceBioPublicId': upload.publicId,
         'voiceBioUpdatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
+      batch.set(firestore.collection('public_profiles').doc(widget.userId), {
+        'voiceBioUrl': upload.url,
+      }, SetOptions(merge: true));
+      await batch.commit();
 
       if (!mounted) return;
       setState(() => _voiceUrl = upload.url);
@@ -124,14 +127,17 @@ class _VoiceBioCardState extends State<VoiceBioCard> {
   }
 
   Future<void> _delete() async {
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(widget.userId)
-        .set({
+    final firestore = FirebaseFirestore.instance;
+    final batch = firestore.batch();
+    batch.set(firestore.collection('users').doc(widget.userId), {
       'voiceBioUrl': FieldValue.delete(),
       'voiceBioPublicId': FieldValue.delete(),
       'voiceBioUpdatedAt': FieldValue.delete(),
     }, SetOptions(merge: true));
+    batch.set(firestore.collection('public_profiles').doc(widget.userId), {
+      'voiceBioUrl': FieldValue.delete(),
+    }, SetOptions(merge: true));
+    await batch.commit();
     if (mounted) setState(() => _voiceUrl = null);
   }
 

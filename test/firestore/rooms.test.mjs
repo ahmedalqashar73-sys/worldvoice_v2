@@ -169,3 +169,73 @@ test('private room join requires a matching code grant', async () => {
   await assertSucceeds(setDoc(doc(db, 'rooms/r1/access_grants/new'), {uid: 'new', code: 'ABC123'}));
   await assertSucceeds(setDoc(member(db, 'new'), participant('new')));
 });
+
+
+test('public profiles show only allowed data; owner-only private users and wallets', async () => {
+  await env.withSecurityRulesDisabled(async context => {
+    const db = context.firestore();
+    await setDoc(doc(db, 'users/alice'), {
+      uid: 'alice', profileCompleted: true, displayName: 'Alice',
+      email: 'private@example.invalid', coins: 1000,
+    });
+    await setDoc(doc(db, 'public_profiles/alice'), {
+      uid: 'alice', displayName: 'Alice', country: 'SA', ageYears: 25,
+    });
+    await setDoc(doc(db, 'wallets/alice'), {
+      schemaVersion: 1, coins: 1000, diamonds: 50,
+    });
+  });
+  await assertSucceeds(getDoc(doc(user('alice'), 'users/alice')));
+  await assertFails(getDoc(doc(user('listener'), 'users/alice')));
+  await assertFails(getDocs(collection(user('alice'), 'users')));
+  const publicSnap = await assertSucceeds(
+    getDoc(doc(user('listener'), 'public_profiles/alice')));
+  assert.equal(publicSnap.data().displayName, 'Alice');
+  assert.equal(publicSnap.data().coins, undefined);
+  await assertSucceeds(getDoc(doc(user('alice'), 'wallets/alice')));
+  await assertFails(getDoc(doc(user('listener'), 'wallets/alice')));
+  await assertFails(getDocs(collection(user('alice'), 'wallets')));
+  await assertFails(updateDoc(doc(user('alice'), 'wallets/alice'), {coins: 1000000}));
+  await assertFails(setDoc(doc(user('listener'), 'public_profiles/listener'), {
+    uid: 'listener', displayName: 'Spammer', coins: 1000000,
+  }));
+  await assertFails(updateDoc(doc(user('alice'), 'users/alice'), {isVip: true}));
+});
+
+test('secure quiz answer key stays backend-only and each vote is immutable', async () => {
+  await env.withSecurityRulesDisabled(async ctx => {
+    const db = ctx.firestore();
+    await updateDoc(room(db), {
+      quiz: {
+        roundId: 'sealed-round-a',
+        secure: true,
+        acceptingAnswers: true,
+        question: 'Hello?', options: ['Yes', 'No'], revealed: false,
+      },
+    });
+    await setDoc(doc(db, 'room_quiz_secrets/r1'), {
+      roundId: 'sealed-round-a', correctIndex: 1,
+    });
+  });
+  await assertFails(getDoc(doc(user('host'), 'room_quiz_secrets/r1')));
+  await assertFails(getDoc(doc(user('listener'), 'room_quiz_secrets/r1')));
+  await assertFails(getDocs(collection(user('host'), 'room_quiz_secrets')));
+  const voteRef = doc(user('listener'), 'rooms/r1/quiz_answers/listener');
+  const vote = {
+    userId: 'listener', displayName: 'Listener', optionIndex: 0,
+    roundId: 'sealed-round-a', answeredAt: serverTimestamp(),
+  };
+  await assertSucceeds(setDoc(voteRef, vote));
+  await assertFails(updateDoc(voteRef, {optionIndex: 1}));
+  await assertFails(deleteDoc(voteRef));
+  await assertFails(deleteDoc(doc(user('host'), 'rooms/r1/quiz_answers/listener')));
+  await assertFails(updateDoc(room(user('host')), {'quiz.correctIndex': 1}));
+  await assertSucceeds(updateDoc(room(user('host')), {musicPlaying: true}));
+  await env.withSecurityRulesDisabled(async ctx => {
+    await updateDoc(room(ctx.firestore()), {'quiz.acceptingAnswers': false});
+  });
+  await assertFails(setDoc(doc(user('host'), 'rooms/r1/quiz_answers/host'), {
+    userId: 'host', displayName: 'Host', optionIndex: 1,
+    roundId: 'sealed-round-a', answeredAt: serverTimestamp(),
+  }));
+});

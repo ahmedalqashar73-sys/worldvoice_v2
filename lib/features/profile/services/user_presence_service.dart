@@ -17,6 +17,13 @@ class UserPresenceService {
       'isOnline': true,
       'lastActiveAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
+    try {
+      await _db.collection('public_profiles').doc(user.uid).update({
+        'isOnline': true, 'lastActiveAt': FieldValue.serverTimestamp(),
+      });
+    } catch (_) {
+      // No public profile until profile setup or staged migration.
+    }
   }
 
   static Future<void> heartbeat() => markOnline();
@@ -30,6 +37,15 @@ class UserPresenceService {
       'lastActiveAt': FieldValue.serverTimestamp(),
       'lastSeenAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
+    try {
+      await _db.collection('public_profiles').doc(user.uid).update({
+        'isOnline': false,
+        'lastActiveAt': FieldValue.serverTimestamp(),
+        'lastSeenAt': FieldValue.serverTimestamp(),
+      });
+    } catch (_) {
+      // Preserve private state even if the public projection is unavailable.
+    }
   }
 }
 

@@ -89,7 +89,7 @@ class ProfileSocialService {
 
     final viewerSnap = await _db.collection('users').doc(viewer.uid).get();
     final viewerData = viewerSnap.data() ?? const <String, dynamic>{};
-    final targetSnap = await _db.collection('users').doc(targetUid).get();
+    final targetSnap = await _db.collection('public_profiles').doc(targetUid).get();
     final targetData = targetSnap.data() ?? const <String, dynamic>{};
 
     final viewerIsVip = viewerData['isVip'] == true;

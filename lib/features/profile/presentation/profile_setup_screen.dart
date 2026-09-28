@@ -1,6 +1,8 @@
 import 'dart:io';
+import 'package:http/http.dart' as http;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../data/public_profile_fields.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -31,6 +33,38 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   final name=TextEditingController(), username=TextEditingController(), bio=TextEditingController(),
       city=TextEditingController(), profession=TextEditingController(), travel=TextEditingController(),
       goals=TextEditingController(), interests=TextEditingController();
+  static const String _economyEndpoint =
+      String.fromEnvironment('WORLDVOICE_ECONOMY_ENDPOINT');
+
+  /// Never fabricates an initial balance. The authenticated backend creates
+  /// only an empty wallet for a new completed profile; older balances require
+  /// the guarded migration. Profile creation itself works in the free build.
+  Future<void> _bootstrapNewWallet(User user) async {
+    final base = Uri.tryParse(_economyEndpoint.trim());
+    if (base == null || base.scheme != 'https' || !base.hasAuthority ||
+        base.userInfo.isNotEmpty || base.query.isNotEmpty ||
+        base.fragment.isNotEmpty) {
+      return;
+    }
+    try {
+      final token = await user.getIdToken();
+      if (token == null || token.isEmpty) {
+        return;
+      }
+      final normalizedPath = base.path.endsWith('/')
+          ? base.path.substring(0, base.path.length - 1)
+          : base.path;
+      final response = await http.post(
+        base.replace(path: '$normalizedPath/wallet/bootstrap'),
+        headers: {'Authorization': 'Bearer $token'},
+      ).timeout(const Duration(seconds: 8));
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        debugPrint('Wallet bootstrap gated: ${response.statusCode}');
+      }
+    } catch (error) {
+      debugPrint('Wallet bootstrap unavailable: $error');
+    }
+  }
   bool? usernameAvailable; bool saving=false;
   final ImagePicker _imagePicker=ImagePicker();
   File? profileImage, coverImage;
@@ -303,7 +337,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       if(widget.editMode){
         // Locked identity fields are intentionally not written here:
         // username, country, birthDate, gender, nativeLanguage.
-        await db.collection('users').doc(user.uid).set({
+        final privateChanges = <String, dynamic>{
           'displayName':name.text.trim(),
           'bio':bio.text.trim(),
           'city':city.text.trim(),
@@ -324,7 +358,23 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           'learningGoals':goals.text.trim(),
           'interests':selectedHobbies.toList(),
           'updatedAt':FieldValue.serverTimestamp(),
-        },SetOptions(merge:true));
+        };
+        // Existing city-privacy preference is not editable in this form.
+        // Never re-publish a hidden city when other profile fields are saved.
+        final savedProfile = await db.collection('users').doc(user.uid).get();
+        final hideCity = savedProfile.data()?['hideCity'] == true;
+        final publicChanges = PublicProfileFields.editable({
+          ...privateChanges,
+          'uid': user.uid,
+          'hideCity': hideCity,
+        });
+        if (hideCity) publicChanges['city'] = FieldValue.delete();
+        final batch = db.batch();
+        batch.set(db.collection('users').doc(user.uid), privateChanges,
+            SetOptions(merge: true));
+        batch.set(db.collection('public_profiles').doc(user.uid),
+            publicChanges, SetOptions(merge: true));
+        await batch.commit();
       }else{
         await db.runTransaction((tx)async{
         if(!widget.editMode){
@@ -342,9 +392,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           },SetOptions(merge:true));
         }
 
-        tx.set(
-          db.collection('users').doc(user.uid),
-          {
+        final privateProfile = <String, dynamic>{
             'uid':user.uid,
             'email':user.email,
             'displayName':name.text.trim(),
@@ -377,23 +425,20 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             'profileCompleted':true,
             if(!widget.editMode) 'followersCount':0,
             if(!widget.editMode) 'followingCount':0,
-            if(!widget.editMode) 'isVip':false,
-            if(!widget.editMode) 'coins':0,
-            if(!widget.editMode) 'diamonds':0,
-            if(!widget.editMode) 'giftLevel':0,
-            if(!widget.editMode) 'giftLevelPoints':0,
-            if(!widget.editMode) 'giftSentPoints':0,
-            if(!widget.editMode) 'giftReceivedPoints':0,
             if(!widget.editMode) 'isPartner':false,
-            if(!widget.editMode) 'isVerified':false,
             'updatedAt':FieldValue.serverTimestamp(),
             if(!widget.editMode) 'createdAt':FieldValue.serverTimestamp(),
-          },
-          SetOptions(merge:true),
-        );
+        };
+        tx.set(db.collection('users').doc(user.uid), privateProfile,
+            SetOptions(merge: true));
+        tx.set(db.collection('public_profiles').doc(user.uid),
+            PublicProfileFields.project(privateProfile), SetOptions(merge: true));
       });
       }
 
+      if (!widget.editMode) {
+        await _bootstrapNewWallet(user);
+      }
       if(!mounted)return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

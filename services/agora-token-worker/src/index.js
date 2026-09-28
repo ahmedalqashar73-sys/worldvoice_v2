@@ -169,6 +169,7 @@ async function agoraTokenForUser(request, env) {
 const auxiliaryRoutes = new Set([
   "/teacher-ai",
   "/teacher-ai/ask",
+  "/quiz/start",
   "/quiz/finish",
   "/store/purchase",
   "/store/claim-reward",

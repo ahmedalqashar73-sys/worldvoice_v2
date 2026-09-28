@@ -54,6 +54,43 @@ class RoomQuizService {
       throw StateError('Invalid quiz');
     }
 
+    // Prefer the trusted backend: the correct answer stays server-only until
+    // results are revealed. The free token worker explicitly permits local,
+    // non-monetary practice only when no auxiliary backend is configured.
+    final secureEndpoint = RoomBackendConfig.endpoint('/quiz/start');
+    if (secureEndpoint.isNotEmpty) {
+      final user = _user;
+      if (user == null) throw StateError('Sign in to start a quiz.');
+      final token = await user.getIdToken();
+      if (token == null || token.isEmpty) {
+        throw StateError('Could not authorize the quiz.');
+      }
+      final response = await http.post(
+        Uri.parse(secureEndpoint),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'roomId': roomId,
+          'question': question.trim(),
+          'options': options,
+          'correctIndex': correctIndex,
+        }),
+      ).timeout(const Duration(seconds: 25));
+      if (response.statusCode >= 200 && response.statusCode < 300) return;
+      var error = 'Could not start the secure quiz.';
+      try {
+        final body = jsonDecode(response.body);
+        if (body is Map) error = (body['error'] ?? error).toString();
+      } catch (_) { /* Keep the neutral failure message. */ }
+      if (response.statusCode != 503 ||
+          !error.contains('not yet enabled on the free test backend')) {
+        throw StateError(error);
+      }
+    }
+    // Local practice rounds never award coins. A public correct answer is
+    // acceptable ONLY because the trusted backend refuses monetary credit.
     // Publish the new question and clear previous votes in one atomic batch.
     // A full replacement of the quiz map also clears stale winners and
     // rewardedAt from earlier rounds instead of merging nested fields.
@@ -81,12 +118,22 @@ class RoomQuizService {
     final profile = await _db.collection('users').doc(user.uid).get();
     final data = profile.data() ?? const <String, dynamic>{};
 
+    final current = (await _room.get()).data()?['quiz'];
+    final active = current is Map
+        ? Map<String, dynamic>.from(current)
+        : const <String, dynamic>{};
+    if (active['revealed'] == true ||
+        (active['secure'] == true && active['acceptingAnswers'] != true)) {
+      throw StateError('This quiz is closed for answers.');
+    }
+    final roundId = active['roundId']?.toString();
     await _room.collection('quiz_answers').doc(user.uid).set({
       'userId': user.uid,
       'displayName':
           (data['displayName'] ?? user.displayName ?? 'WorldVoice user')
               .toString(),
       'optionIndex': optionIndex,
+      if (active['secure'] == true && roundId != null) 'roundId': roundId,
       'answeredAt': FieldValue.serverTimestamp(),
     });
   }

@@ -20,6 +20,9 @@ catalog prices, limits, conversion and inventory.
 | exchangeBonusPercent | number | Diamond-to-coin exchange bonus | 10 (requested) |
 | webCardBonusPercent | number | Web card checkout coin bonus | 10 (requested) |
 | minExchangeDiamonds | positive integer | Minimum diamond exchange | 100 (requested) |
+| quizRewardsEnabled | boolean | Enables ONLY sealed server-owned quiz coin awards | false until sandbox review |
+| quizFirstPrizeCoins | positive integer | First-place prize for sealed quiz | 5 (requested) |
+| quizDailyRewardCapCoins | positive integer | Per-user daily anti-abuse award ceiling | **TBD** |
 | firstRechargeBonusPercent | number | First recharge promotion | **TBD** |
 | purchaseDailyUsdLimit | number | Configurable anti-abuse purchase limit | **TBD** |
 | giftingDailyCoinLimit | integer | Configurable anti-abuse gifting limit | **TBD** |

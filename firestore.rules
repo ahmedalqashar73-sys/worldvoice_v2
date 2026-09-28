@@ -54,6 +54,17 @@ service cloud.firestore {
 
     // Economic state is backend-authoritative. No Firestore client-side gift
     // transaction is allowed, even if a client presents a catalog price.
+    // Secure quizzes can be changed only by the trusted backend, even if a
+    // room host has ordinary moderation permission.
+    function secureQuizUnchanged() {
+      let previous = resource.data.get('quiz', {});
+      let proposed = request.resource.data.get('quiz', {});
+      return (
+        previous.get('secure', false) != true
+        && proposed.get('secure', false) != true
+      ) || previous == proposed;
+    }
+
     function economyFieldsUntouched() {
       return !request.resource.data
           .diff(resource.data)
@@ -67,7 +78,7 @@ service cloud.firestore {
             'walletBalance', 'withdrawableDiamonds', 'walletDebtCoins',
             'walletFrozen', 'payoutFrozen', 'diamondsReserved',
             'firstRechargeUsed', 'payoutFreezeReason', 'identityVerified',
-            'vipExpiresAt'
+            'vipExpiresAt', 'isVip', 'isVerified'
           ]);
     }
 
@@ -81,6 +92,8 @@ service cloud.firestore {
           && request.resource.data.get('purchasedCoins', 0) == 0
           && request.resource.data.get('giftReceivedPoints', 0) == 0
           && request.resource.data.get('giftSentPoints', 0) == 0
+          && request.resource.data.get('isVip', false) == false
+          && request.resource.data.get('isVerified', false) == false
           && !request.resource.data.keys().hasAny([
             'lastGiftRoomId', 'lastGiftEventId', 'withdrawableDiamonds',
             'walletBalance', 'vipExpiresAt'
@@ -197,11 +210,53 @@ service cloud.firestore {
           && get(participantPath(roomId, request.auth.uid)).data.isModerator == true;
     }
 
+    // Public display data contains ONLY approved profile fields; private
+    // wallets, identity verification and payment data never belong here.
+    match /public_profiles/{userId} {
+      allow get, list: if signedIn();
+      allow create: if signedIn()
+          && request.auth.uid == userId
+          && request.resource.data.uid == userId
+          && request.resource.data.keys().hasOnly([
+            'uid', 'displayName', 'username', 'bio', 'country', 'gender',
+            'photoUrl', 'coverUrl', 'nativeLanguageCode', 'nativeLanguage',
+            'learningLanguageCodes', 'learningLanguages', 'languageLevel',
+            'professionKey', 'profession', 'travel', 'learningGoals',
+            'interests', 'voiceBioUrl', 'isPartner', 'isOnline',
+            'lastActiveAt', 'lastSeenAt', 'followersCount', 'followingCount',
+            'hideCity', 'city', 'profileCompleted', 'ageYears'
+          ])
+          && request.resource.data.get('followersCount', 0) == 0
+          && request.resource.data.get('followingCount', 0) == 0
+          && request.resource.data.get('isPartner', false) == false;
+      allow update: if signedIn()
+          && request.auth.uid == userId
+          && request.resource.data.uid == resource.data.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'displayName', 'bio', 'city', 'hideCity', 'photoUrl', 'coverUrl',
+            'learningLanguageCodes', 'learningLanguages', 'languageLevel',
+            'professionKey', 'profession', 'travel', 'learningGoals',
+            'interests', 'voiceBioUrl', 'isOnline', 'lastActiveAt',
+            'lastSeenAt', 'profileCompleted'
+          ]);
+      allow delete: if false;
+    }
+
+    // Balance and payout metadata live in an owner-readable collection.
+    // Clients can never initialize, credit, freeze or redeem wallets.
+    match /wallets/{userId} {
+      allow get: if signedIn() && request.auth.uid == userId;
+      allow list, create, update, delete: if false;
+    }
+
     // -------------------------
     // USERS / PROFILES
     // -------------------------
+    // Profiles are private: email, exact DOB and the legacy economy fields
+    // can still exist until the staged migration is applied.
     match /users/{userId} {
-      allow read: if signedIn();
+      allow get: if signedIn() && request.auth.uid == userId;
+      allow list: if false;
 
       allow create: if signedIn()
           && request.auth.uid == userId
@@ -528,6 +583,11 @@ service cloud.firestore {
           && resource.data.hostId == request.auth.uid;
     }
 
+    // Server-only correct answers. Do not move this under a readable room.
+    match /room_quiz_secrets/{roomId} {
+      allow read, write: if false;
+    }
+
     // -------------------------
     // VOICE ROOMS
     // -------------------------
@@ -544,6 +604,7 @@ service cloud.firestore {
       allow update: if signedIn()
           && request.resource.data.channelId == resource.data.channelId
           && validRoomThemeChange()
+          && secureQuizUnchanged()
           && (
             (
               request.auth.uid == resource.data.hostId
@@ -667,12 +728,34 @@ service cloud.firestore {
 
       match /quiz_answers/{userId} {
         allow read: if isRoomMember(roomId);
-        allow create, update: if isRoomMember(roomId)
+        allow create: if isRoomMember(roomId)
             && userId == request.auth.uid
             && request.resource.data.userId == request.auth.uid
-            && get(roomPath(roomId)).data.quiz.revealed != true;
-        allow delete: if isHost(roomId)
-            || (isRoomMember(roomId) && userId == request.auth.uid);
+            && request.resource.data.optionIndex is int
+            && request.resource.data.optionIndex >= 0
+            && request.resource.data.answeredAt == request.time
+            && request.resource.data.keys().hasOnly([
+              'userId', 'displayName', 'optionIndex', 'answeredAt', 'roundId'
+            ])
+            && get(roomPath(roomId)).data.quiz.revealed != true
+            && (
+              (
+                get(roomPath(roomId)).data.quiz.get('secure', false) == true
+                && get(roomPath(roomId)).data.quiz.acceptingAnswers == true
+                && request.resource.data.get('roundId', '') ==
+                  get(roomPath(roomId)).data.quiz.roundId
+              )
+              ||
+              (
+                get(roomPath(roomId)).data.quiz.get('secure', false) != true
+                && !request.resource.data.keys().hasAny(['roundId'])
+              )
+            );
+        // One immutable answer per user/round; late rewrites are not votes.
+        allow update: if false;
+        allow delete: if get(roomPath(roomId)).data.quiz.get('secure', false) != true
+            && (isHost(roomId)
+              || (isRoomMember(roomId) && userId == request.auth.uid));
       }
 
       match /gifts/{giftId} {

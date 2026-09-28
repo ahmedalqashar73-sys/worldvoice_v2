@@ -33,10 +33,15 @@ const policy = {
   exchangeBonusPercent: 10,
   webCardBonusPercent: 10,
   minExchangeDiamonds: 100,
+  // Real coin awards require sealed backend quizzes and a risk-approved cap.
+  quizRewardsEnabled: false,
+  quizFirstPrizeCoins: 5,
+  quizDailyRewardCapCoins: null,
   firstRechargeBonusPercent: null,
   purchaseDailyUsdLimit: null,
   giftingDailyCoinLimit: null,
   payoutWindows: [],
+  withdrawalMethods: [],
 };
 
 // PROPOSED pack sizes; user has NOT approved USD prices or product IDs.
