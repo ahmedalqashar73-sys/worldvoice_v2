@@ -2,6 +2,7 @@ import {createHash} from "node:crypto";
 import {FieldValue, Timestamp} from "firebase-admin/firestore";
 import {requireLiveEconomy} from "./economy_policy.js";
 import {withdrawalQuote} from "./wallet_policy.js";
+import {walletRef, requireMigratedWallet} from "./wallet_schema.js";
 
 const fail = (message, status = 400) => {
   throw Object.assign(new Error(message), {status});
@@ -22,6 +23,7 @@ export function registerWalletRoutes({app, db, authenticatedUser}) {
     try {
       const user = await authenticatedUser(req);
       const ref = db.collection("users").doc(user.uid);
+      const balanceRef = walletRef(db, user.uid);
       const now = Timestamp.now();
       const list = await ref.collection("diamond_lots")
         .where("status", "==", "pending").where("holdUntil", "<=", now)
@@ -29,10 +31,11 @@ export function registerWalletRoutes({app, db, authenticatedUser}) {
       if (list.empty) return res.json({ok: true, diamondsReleased: 0});
       const outcome = await db.runTransaction(async tx => {
         const [userSnap, configSnap, controlSnap, ...lots] = await Promise.all([
-          tx.get(ref), tx.get(db.doc("economy_config/current")),
+          tx.get(balanceRef), tx.get(db.doc("economy_config/current")),
           tx.get(db.doc("economy_global_controls/payouts")),
           ...list.docs.map(d => tx.get(d.ref)),
         ]);
+        requireMigratedWallet(userSnap);
         requireLiveEconomy(configSnap.data());
         if (controlSnap.data()?.frozen === true) fail("Payouts are on hold.", 423);
         if (userSnap.data()?.payoutFrozen === true ||
@@ -57,7 +60,7 @@ export function registerWalletRoutes({app, db, authenticatedUser}) {
         const ledger = ref.collection("wallet_transactions").doc(key);
         const existingLedger = await tx.get(ledger);
         if (existingLedger.exists) return 0;
-        tx.update(ref, {
+        tx.update(balanceRef, {
           diamonds: beforeAvailable + released,
           diamondsPending: beforePending - released,
           updatedAt: FieldValue.serverTimestamp(),
@@ -84,16 +87,18 @@ export function registerWalletRoutes({app, db, authenticatedUser}) {
       if (!pos(amount)) fail("Invalid diamonds amount.");
       const key = keyFor(user.uid, "exchange", req.headers["idempotency-key"]);
       const ref = db.collection("users").doc(user.uid);
+      const balanceRef = walletRef(db, user.uid);
       const opRef = db.collection("economy_exchange_operations").doc(key);
       const outcome = await db.runTransaction(async tx => {
         const [old, snap, config, controls] = await Promise.all([
-          tx.get(opRef), tx.get(ref), tx.get(db.doc("economy_config/current")),
+          tx.get(opRef), tx.get(balanceRef), tx.get(db.doc("economy_config/current")),
           tx.get(db.doc("economy_global_controls/payouts")),
         ]);
         if (old.exists) {
           if (old.data()?.diamonds !== amount) fail("Reused idempotency key.", 409);
           return {...old.data().outcome, alreadyProcessed: true};
         }
+        requireMigratedWallet(snap);
         const policy = requireLiveEconomy(config.data());
         if (controls.data()?.frozen === true) fail("Economy review hold.", 423);
         if (!pos(policy.minExchangeDiamonds) || amount < policy.minExchangeDiamonds) {
@@ -112,7 +117,7 @@ export function registerWalletRoutes({app, db, authenticatedUser}) {
         const outcome = {spentDiamonds: amount, receivedCoins: resultCoins,
           bonusCoins: bonus, diamondBalance: diamondBefore - amount,
           coinBalance: coinBefore + resultCoins};
-        tx.update(ref, {
+        tx.update(balanceRef, {
           diamonds: outcome.diamondBalance, coins: outcome.coinBalance,
           updatedAt: FieldValue.serverTimestamp(),
         });
@@ -162,12 +167,13 @@ export function registerWalletRoutes({app, db, authenticatedUser}) {
       }
       const key = keyFor(user.uid, "withdraw", req.headers["idempotency-key"]);
       const ref = db.collection("users").doc(user.uid);
+      const balanceRef = walletRef(db, user.uid);
       const withdrawalRef = db.collection("withdraw_requests").doc(key);
       const now = new Date();
       const outcome = await db.runTransaction(async tx => {
         const [existing, config, snapshot, control] = await Promise.all([
           tx.get(withdrawalRef), tx.get(db.doc("economy_config/current")),
-          tx.get(ref), tx.get(db.doc("economy_global_controls/payouts")),
+          tx.get(balanceRef), tx.get(db.doc("economy_global_controls/payouts")),
         ]);
         if (existing.exists) {
           if (existing.data()?.userId !== user.uid ||
@@ -179,6 +185,7 @@ export function registerWalletRoutes({app, db, authenticatedUser}) {
         }
         if (control.data()?.frozen === true) fail("Payouts under review.", 423);
         const policy = requireLiveEconomy(config.data());
+        requireMigratedWallet(snapshot);
         const quote = withdrawalQuote(policy, amount, now);
         if (!policy.withdrawalMethods.includes(method)) {
           fail("Withdrawal method is not configured.");
@@ -192,7 +199,7 @@ export function registerWalletRoutes({app, db, authenticatedUser}) {
         const reserved = Number(data.diamondsReserved || 0);
         if (!safe(available) || !safe(reserved) || available < amount ||
             !safe(reserved + amount)) fail("Insufficient unlocked diamonds.", 409);
-        tx.update(ref, {
+        tx.update(balanceRef, {
           diamonds: available - amount, diamondsReserved: reserved + amount,
           updatedAt: FieldValue.serverTimestamp(),
         });
@@ -228,9 +235,10 @@ export function registerWalletRoutes({app, db, authenticatedUser}) {
       const snapshot = await withdrawalRef.get();
       if (!snapshot.exists) fail("Withdrawal not found.", 404);
       const ownerRef = db.collection("users").doc(snapshot.data()?.userId);
+      const ownerWalletRef = walletRef(db, snapshot.data()?.userId);
       const result = await db.runTransaction(async tx => {
         const [withdrawal, owner, control] = await Promise.all([
-          tx.get(withdrawalRef), tx.get(ownerRef),
+          tx.get(withdrawalRef), tx.get(ownerWalletRef),
           tx.get(db.doc("economy_global_controls/payouts")),
         ]);
         if (decision === "approve" && control.data()?.frozen === true) {
@@ -239,6 +247,7 @@ export function registerWalletRoutes({app, db, authenticatedUser}) {
         if (withdrawal.data()?.status !== "pending_admin_review") {
           fail("Withdrawal has already been reviewed.", 409);
         }
+        requireMigratedWallet(owner);
         const amount = Number(withdrawal.data()?.diamonds);
         const reserved = Number(owner.data()?.diamondsReserved);
         const available = Number(owner.data()?.diamonds || 0);
@@ -246,7 +255,7 @@ export function registerWalletRoutes({app, db, authenticatedUser}) {
             !safe(available)) fail("Reserved balance mismatch.", 409);
         if (decision === "reject") {
           if (!safe(available + amount)) fail("Balance overflow.", 409);
-          tx.update(ownerRef, {
+          tx.update(ownerWalletRef, {
             diamonds: available + amount, diamondsReserved: reserved - amount,
             updatedAt: FieldValue.serverTimestamp(),
           });
