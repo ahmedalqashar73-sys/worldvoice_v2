@@ -753,8 +753,9 @@ service cloud.firestore {
             );
         // One immutable answer per user/round; late rewrites are not votes.
         allow update: if false;
-        allow delete: if isHost(roomId)
-            || (isRoomMember(roomId) && userId == request.auth.uid);
+        allow delete: if get(roomPath(roomId)).data.quiz.get('secure', false) != true
+            && (isHost(roomId)
+              || (isRoomMember(roomId) && userId == request.auth.uid));
       }
 
       match /gifts/{giftId} {
