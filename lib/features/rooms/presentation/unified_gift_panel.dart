@@ -152,13 +152,6 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                         : 'Purchases disabled until the economy is configured.',
                       textAlign: TextAlign.center),
                   ),
-                  if (widget.contextType != 'room') Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: Text(ar
-                      ? 'هدايا اللايف والشات تحتاج تفعيل عضوية موثقة أولًا.'
-                      : 'Live/chat gifting is locked until verified membership is available.',
-                      textAlign: TextAlign.center),
-                  ),
                   SizedBox(height: 48, child: widget.recipients.isEmpty
                     ? Center(child: Text(ar ? 'لا يوجد مستلم متاح' : 'No eligible recipients'))
                     : ListView(
@@ -233,8 +226,8 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                   Padding(padding: const EdgeInsets.all(12),
                     child: FilledButton.icon(
                       onPressed: !_busy && ready && selected != null &&
-                          widget.recipients.containsKey(_recipient) &&
-                          widget.contextType == 'room' ? _send : null,
+                          widget.recipients.containsKey(_recipient)
+                          ? _send : null,
                       icon: _busy ? const SizedBox(width: 14, height: 14,
                           child: CircularProgressIndicator(strokeWidth: 2))
                         : const Icon(Icons.card_giftcard_outlined),
