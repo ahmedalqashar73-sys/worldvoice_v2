@@ -479,12 +479,16 @@ class _OtherStoreTab extends StatelessWidget {
           stream: shop.watchStoreItems(type),
           builder: (context, snapshot) {
             final items = snapshot.data ?? const <RoomStoreItem>[];
-            if (snapshot.hasError) return Center(child: Text(
-              isArabic ? 'تعذر تحميل المتجر' : 'Store unavailable',
-            ));
-            if (items.isEmpty) return Center(child: Text(
-              isArabic ? 'لا توجد عناصر مفعلة' : 'No active items',
-            ));
+            if (snapshot.hasError) {
+              return Center(child: Text(
+                isArabic ? 'تعذر تحميل المتجر' : 'Store unavailable',
+              ));
+            }
+            if (items.isEmpty) {
+              return Center(child: Text(
+                isArabic ? 'لا توجد عناصر مفعلة' : 'No active items',
+              ));
+            }
             return ListView.separated(
               padding: const EdgeInsets.all(10),
               itemCount: items.length,
