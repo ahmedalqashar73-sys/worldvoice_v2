@@ -2,6 +2,7 @@ import {createHash} from "node:crypto";
 import {FieldValue, Timestamp} from "firebase-admin/firestore";
 import {requireLiveEconomy} from "./economy_policy.js";
 import {withdrawalQuote} from "./wallet_policy.js";
+import {privateWalletRef} from "./private_wallet_schema.js";
 
 const fail = (message, status = 400) => {
   throw Object.assign(new Error(message), {status});
@@ -22,21 +23,23 @@ export function registerWalletRoutes({app, db, authenticatedUser}) {
     try {
       const user = await authenticatedUser(req);
       const ref = db.collection("users").doc(user.uid);
+      const walletRef = privateWalletRef(ref);
       const now = Timestamp.now();
       const list = await ref.collection("diamond_lots")
         .where("status", "==", "pending").where("holdUntil", "<=", now)
         .limit(50).get();
       if (list.empty) return res.json({ok: true, diamondsReleased: 0});
       const outcome = await db.runTransaction(async tx => {
-        const [userSnap, configSnap, controlSnap, ...lots] = await Promise.all([
-          tx.get(ref), tx.get(db.doc("economy_config/current")),
+        const [userSnap, walletSnap, configSnap, controlSnap, ...lots] = await Promise.all([
+          tx.get(ref), tx.get(walletRef), tx.get(db.doc("economy_config/current")),
           tx.get(db.doc("economy_global_controls/payouts")),
           ...list.docs.map(d => tx.get(d.ref)),
         ]);
         requireLiveEconomy(configSnap.data());
+        if (!userSnap.exists || !walletSnap.exists) fail("Private wallet unavailable.", 409);
         if (controlSnap.data()?.frozen === true) fail("Payouts are on hold.", 423);
-        if (userSnap.data()?.payoutFrozen === true ||
-            userSnap.data()?.walletFrozen === true) {
+        if (walletSnap.data()?.payoutFrozen === true ||
+            walletSnap.data()?.walletFrozen === true) {
           fail("Wallet is under review.", 423);
         }
         const chosen = lots.filter(l => l.exists &&
@@ -44,8 +47,8 @@ export function registerWalletRoutes({app, db, authenticatedUser}) {
           l.data()?.holdUntil?.toMillis?.() <= now.toMillis());
         const released = chosen.reduce((sum, l) =>
           sum + Number(l.data().diamonds), 0);
-        const beforePending = Number(userSnap.data()?.diamondsPending || 0);
-        const beforeAvailable = Number(userSnap.data()?.diamonds || 0);
+        const beforePending = Number(walletSnap.data()?.diamondsPending || 0);
+        const beforeAvailable = Number(walletSnap.data()?.diamonds || 0);
         if (!safe(released) || !safe(beforePending) || !safe(beforeAvailable) ||
             beforePending < released || !safe(beforeAvailable + released)) {
           fail("Holding lot balance mismatch; contact support.", 409);
@@ -57,7 +60,7 @@ export function registerWalletRoutes({app, db, authenticatedUser}) {
         const ledger = ref.collection("wallet_transactions").doc(key);
         const existingLedger = await tx.get(ledger);
         if (existingLedger.exists) return 0;
-        tx.update(ref, {
+        tx.update(walletRef, {
           diamonds: beforeAvailable + released,
           diamondsPending: beforePending - released,
           updatedAt: FieldValue.serverTimestamp(),
@@ -84,10 +87,11 @@ export function registerWalletRoutes({app, db, authenticatedUser}) {
       if (!pos(amount)) fail("Invalid diamonds amount.");
       const key = keyFor(user.uid, "exchange", req.headers["idempotency-key"]);
       const ref = db.collection("users").doc(user.uid);
+      const walletRef = privateWalletRef(ref);
       const opRef = db.collection("economy_exchange_operations").doc(key);
       const outcome = await db.runTransaction(async tx => {
         const [old, snap, config, controls] = await Promise.all([
-          tx.get(opRef), tx.get(ref), tx.get(db.doc("economy_config/current")),
+          tx.get(opRef), tx.get(walletRef), tx.get(db.doc("economy_config/current")),
           tx.get(db.doc("economy_global_controls/payouts")),
         ]);
         if (old.exists) {
@@ -95,6 +99,7 @@ export function registerWalletRoutes({app, db, authenticatedUser}) {
           return {...old.data().outcome, alreadyProcessed: true};
         }
         const policy = requireLiveEconomy(config.data());
+        if (!snap.exists) fail("Private wallet unavailable.", 409);
         if (controls.data()?.frozen === true) fail("Economy review hold.", 423);
         if (!pos(policy.minExchangeDiamonds) || amount < policy.minExchangeDiamonds) {
           fail("Exchange amount is below the configured minimum.");
@@ -112,7 +117,7 @@ export function registerWalletRoutes({app, db, authenticatedUser}) {
         const outcome = {spentDiamonds: amount, receivedCoins: resultCoins,
           bonusCoins: bonus, diamondBalance: diamondBefore - amount,
           coinBalance: coinBefore + resultCoins};
-        tx.update(ref, {
+        tx.update(walletRef, {
           diamonds: outcome.diamondBalance, coins: outcome.coinBalance,
           updatedAt: FieldValue.serverTimestamp(),
         });
@@ -162,12 +167,13 @@ export function registerWalletRoutes({app, db, authenticatedUser}) {
       }
       const key = keyFor(user.uid, "withdraw", req.headers["idempotency-key"]);
       const ref = db.collection("users").doc(user.uid);
+      const walletRef = privateWalletRef(ref);
       const withdrawalRef = db.collection("withdraw_requests").doc(key);
       const now = new Date();
       const outcome = await db.runTransaction(async tx => {
         const [existing, config, snapshot, control] = await Promise.all([
           tx.get(withdrawalRef), tx.get(db.doc("economy_config/current")),
-          tx.get(ref), tx.get(db.doc("economy_global_controls/payouts")),
+          tx.get(walletRef), tx.get(db.doc("economy_global_controls/payouts")),
         ]);
         if (existing.exists) {
           if (existing.data()?.userId !== user.uid ||
@@ -183,6 +189,7 @@ export function registerWalletRoutes({app, db, authenticatedUser}) {
         if (!policy.withdrawalMethods.includes(method)) {
           fail("Withdrawal method is not configured.");
         }
+        if (!snapshot.exists) fail("Private wallet unavailable.", 409);
         const data = snapshot.data() || {};
         if (data.identityVerified !== true || data.walletFrozen === true ||
             data.payoutFrozen === true) {
@@ -192,7 +199,7 @@ export function registerWalletRoutes({app, db, authenticatedUser}) {
         const reserved = Number(data.diamondsReserved || 0);
         if (!safe(available) || !safe(reserved) || available < amount ||
             !safe(reserved + amount)) fail("Insufficient unlocked diamonds.", 409);
-        tx.update(ref, {
+        tx.update(walletRef, {
           diamonds: available - amount, diamondsReserved: reserved + amount,
           updatedAt: FieldValue.serverTimestamp(),
         });
@@ -228,9 +235,10 @@ export function registerWalletRoutes({app, db, authenticatedUser}) {
       const snapshot = await withdrawalRef.get();
       if (!snapshot.exists) fail("Withdrawal not found.", 404);
       const ownerRef = db.collection("users").doc(snapshot.data()?.userId);
+      const ownerWalletRef = privateWalletRef(ownerRef);
       const result = await db.runTransaction(async tx => {
         const [withdrawal, owner, control] = await Promise.all([
-          tx.get(withdrawalRef), tx.get(ownerRef),
+          tx.get(withdrawalRef), tx.get(ownerWalletRef),
           tx.get(db.doc("economy_global_controls/payouts")),
         ]);
         if (decision === "approve" && control.data()?.frozen === true) {
@@ -246,7 +254,7 @@ export function registerWalletRoutes({app, db, authenticatedUser}) {
             !safe(available)) fail("Reserved balance mismatch.", 409);
         if (decision === "reject") {
           if (!safe(available + amount)) fail("Balance overflow.", 409);
-          tx.update(ownerRef, {
+          tx.update(ownerWalletRef, {
             diamonds: available + amount, diamondsReserved: reserved - amount,
             updatedAt: FieldValue.serverTimestamp(),
           });
