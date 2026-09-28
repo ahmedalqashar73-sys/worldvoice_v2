@@ -131,3 +131,31 @@ test('private room join requires a matching code grant', async () => {
   await assertSucceeds(setDoc(doc(db, 'rooms/r1/access_grants/new'), {uid: 'new', code: 'ABC123'}));
   await assertSucceeds(setDoc(member(db, 'new'), participant('new')));
 });
+
+test('money, inventory and gift event writes are exclusively backend-owned', async () => {
+  const db = user('listener');
+  await assertFails(setDoc(doc(db, 'users/listener'), {
+    uid: 'listener', displayName: 'Listener', coins: 99999
+  }));
+  await assertSucceeds(setDoc(doc(db, 'users/listener'), {
+    uid: 'listener', displayName: 'Listener'
+  }));
+  for (const field of ['coins', 'diamonds', 'giftLevel',
+    'giftLevelPoints', 'coinDebt', 'payoutHold']) {
+    await assertFails(updateDoc(doc(db, 'users/listener'), {[field]: 1000}));
+  }
+  await assertFails(setDoc(doc(db, 'users/listener/inventory/freeGift'), {
+    freeGiftBalance: 1000
+  }));
+  await assertFails(setDoc(doc(db, 'users/listener/diamond_lots/forged'), {
+    remaining: 99999
+  }));
+  await assertFails(setDoc(doc(db, 'rooms/r1/gifts/forged'), {
+    senderId: 'listener', recipientId: 'host', giftId: 'rose', points: 10,
+    createdAt: serverTimestamp()
+  }));
+  for (const catalog of ['economy_config', 'store_items', 'coin_products',
+    'wallet_transactions', 'withdraw_requests', 'economy_actions', 'iap_receipts']) {
+    await assertFails(setDoc(doc(db, catalog + '/forged'), {coins: 100}));
+  }
+});
