@@ -124,7 +124,7 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
             final selected = _gift != null && gifts.any((g) => g.id == _gift!.id)
                 ? gifts.firstWhere((g) => g.id == _gift!.id) : null;
             final diamonds = selected != null && ready
-                ? (selected.priceCoins / perUsd! * (share! / 100) / diamondUsd!).floor()
+                ? (selected.priceCoins / perUsd * (share / 100) / diamondUsd).floor()
                 : null;
             final usd = diamonds == null ? null : diamonds * diamondUsd!;
             return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
