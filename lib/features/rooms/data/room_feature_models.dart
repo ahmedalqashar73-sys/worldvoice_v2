@@ -19,6 +19,7 @@ class RoomFeatureState {
     this.quizOptions = const <String>[],
     this.quizCorrectIndex,
     this.quizRevealed = false,
+    this.quizPracticeOnly = false,
     this.quizWinners = const <Map<String, dynamic>>[],
   });
 
@@ -39,6 +40,7 @@ class RoomFeatureState {
   final List<String> quizOptions;
   final int? quizCorrectIndex;
   final bool quizRevealed;
+  final bool quizPracticeOnly;
   final List<Map<String, dynamic>> quizWinners;
 
   factory RoomFeatureState.fromData(Map<String, dynamic> data) {
@@ -68,6 +70,7 @@ class RoomFeatureState {
           const <String>[],
       quizCorrectIndex: (quizData['correctIndex'] as num?)?.toInt(),
       quizRevealed: quizData['revealed'] == true,
+      quizPracticeOnly: quizData['practiceOnly'] == true,
       quizWinners: (quizData['winners'] as List?)
               ?.whereType<Map>()
               .map((value) => Map<String, dynamic>.from(value))
