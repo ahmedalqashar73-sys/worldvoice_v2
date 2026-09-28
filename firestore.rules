@@ -379,6 +379,14 @@ service cloud.firestore {
         allow write: if false;
       }
 
+      // New owner-only balance snapshot, populated by a trusted migration
+      // and subsequently owned exclusively by the trusted economy backend.
+      match /wallet/{walletId} {
+        allow read: if signedIn() && request.auth.uid == userId
+            && walletId == 'private';
+        allow write: if false;
+      }
+
       match /wallet_transactions/{transactionId} {
         allow read: if signedIn() && request.auth.uid == userId;
         allow write: if false;
@@ -393,6 +401,14 @@ service cloud.firestore {
         allow read: if signedIn() && request.auth.uid == userId;
         allow create, update, delete: if false;
       }
+    }
+
+    // Safe, sanitized profile documents. Never store email, birthday, KYC
+    // details, coins or diamonds in this public collection.
+    match /public_profiles/{userId} {
+      allow read: if signedIn();
+      // Server-side migration and verified profile synchronization only.
+      allow write: if false;
     }
 
     // -------------------------
