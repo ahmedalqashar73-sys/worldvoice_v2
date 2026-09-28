@@ -244,7 +244,9 @@ class _TeacherAiHub extends StatelessWidget {
         useSafeArea: true,
         builder: (_) => RoomTeacherAiSheet(
           service: service,
-          roomLanguageCode: language.isNotEmpty ? language : languageCode,
+          roomLanguageCode: (roomData['languageCode'] ?? language).toString().isNotEmpty
+              ? (roomData['languageCode'] ?? language).toString()
+              : languageCode,
         ),
       );
     } catch (_) {
@@ -307,7 +309,7 @@ class _TeacherAiHub extends StatelessWidget {
                         onPressed: () => _openRecentRoom(
                           context,
                           room.id,
-                          (data['roomLanguageCode'] ?? languageCode).toString(),
+                          (data['languageCode'] ?? languageCode).toString(),
                         ),
                       ),
                     );
