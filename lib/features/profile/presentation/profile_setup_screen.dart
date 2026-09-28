@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../data/public_profile_fields.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -303,7 +304,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       if(widget.editMode){
         // Locked identity fields are intentionally not written here:
         // username, country, birthDate, gender, nativeLanguage.
-        await db.collection('users').doc(user.uid).set({
+        final privateChanges = <String, dynamic>{
           'displayName':name.text.trim(),
           'bio':bio.text.trim(),
           'city':city.text.trim(),
@@ -324,7 +325,13 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           'learningGoals':goals.text.trim(),
           'interests':selectedHobbies.toList(),
           'updatedAt':FieldValue.serverTimestamp(),
-        },SetOptions(merge:true));
+        };
+        final batch = db.batch();
+        batch.set(db.collection('users').doc(user.uid), privateChanges,
+            SetOptions(merge: true));
+        batch.set(db.collection('public_profiles').doc(user.uid),
+            PublicProfileFields.editable(privateChanges), SetOptions(merge: true));
+        await batch.commit();
       }else{
         await db.runTransaction((tx)async{
         if(!widget.editMode){
@@ -342,9 +349,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           },SetOptions(merge:true));
         }
 
-        tx.set(
-          db.collection('users').doc(user.uid),
-          {
+        final privateProfile = <String, dynamic>{
             'uid':user.uid,
             'email':user.email,
             'displayName':name.text.trim(),
@@ -378,19 +383,16 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             if(!widget.editMode) 'followersCount':0,
             if(!widget.editMode) 'followingCount':0,
             if(!widget.editMode) 'isVip':false,
-            if(!widget.editMode) 'coins':0,
-            if(!widget.editMode) 'diamonds':0,
-            if(!widget.editMode) 'giftLevel':0,
-            if(!widget.editMode) 'giftLevelPoints':0,
-            if(!widget.editMode) 'giftSentPoints':0,
-            if(!widget.editMode) 'giftReceivedPoints':0,
             if(!widget.editMode) 'isPartner':false,
             if(!widget.editMode) 'isVerified':false,
             'updatedAt':FieldValue.serverTimestamp(),
             if(!widget.editMode) 'createdAt':FieldValue.serverTimestamp(),
           },
-          SetOptions(merge:true),
-        );
+        };
+        tx.set(db.collection('users').doc(user.uid), privateProfile,
+            SetOptions(merge: true));
+        tx.set(db.collection('public_profiles').doc(user.uid),
+            PublicProfileFields.project(privateProfile), SetOptions(merge: true));
       });
       }
 
