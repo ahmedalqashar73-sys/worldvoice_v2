@@ -96,7 +96,7 @@ class ChatScreen extends StatelessWidget {
                       itemBuilder: (context, index) {
                         final peerId = peers[index].id;
                         return FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                          future: db.collection('users').doc(peerId).get(),
+                          future: db.collection('public_profiles').doc(peerId).get(),
                           builder: (context, profile) {
                             final displayName = (profile.data?.data()?['displayName'] ??
                                 profile.data?.data()?['name'] ?? peerId).toString();
