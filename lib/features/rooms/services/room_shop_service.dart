@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -7,6 +8,16 @@ import 'package:http/http.dart' as http;
 import '../data/room_shop_models.dart';
 
 class RoomShopService {
+  // A network retry for the same item must reuse the same operation key;
+  // it is removed only after the backend confirms success.
+  final Map<String, String> _pendingKeys = <String, String>{};
+
+  String _newRequestKey() {
+    final random = Random.secure();
+    return List<int>.generate(24, (_) => random.nextInt(256))
+        .map((v) => v.toRadixString(16).padLeft(2, '0'))
+        .join();
+  }
   FirebaseFirestore get _db => FirebaseFirestore.instance;
   User? get _user => FirebaseAuth.instance.currentUser;
 
@@ -85,6 +96,17 @@ class RoomShopService {
     );
   }
 
+  /// Gifts grant inventory only; recipients never receive diamonds for items.
+  Future<void> giftItem({
+    required String itemId,
+    required String recipientId,
+  }) {
+    return _post(
+      action: 'purchase',
+      body: {'itemId': itemId, 'recipientId': recipientId},
+    );
+  }
+
   Future<void> claimReward({
     required String rewardId,
     required String itemId,
@@ -118,11 +140,14 @@ class RoomShopService {
     final base = endpoint.endsWith('/')
         ? endpoint.substring(0, endpoint.length - 1)
         : endpoint;
+    final keyId = '$action:${body['itemId'] ?? ''}:${body['recipientId'] ?? ''}:${body['rewardId'] ?? ''}';
+    final requestKey = _pendingKeys.putIfAbsent(keyId, _newRequestKey);
     final response = await http.post(
       Uri.parse('$base/$action'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $idToken',
+        'Idempotency-Key': requestKey,
       },
       body: jsonEncode(body),
     );
@@ -139,6 +164,7 @@ class RoomShopService {
       }
       throw StateError(message);
     }
+    _pendingKeys.remove(keyId);
   }
 }
 ), '')}/store';
