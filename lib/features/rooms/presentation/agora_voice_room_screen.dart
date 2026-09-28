@@ -50,6 +50,7 @@ class AgoraVoiceRoomScreen extends StatefulWidget {
     this.localeController,
     this.roomLanguageCode,
     this.initialShowTeacherAiSeat = false,
+    this.openTeacherAiOnJoin = false,
     this.initialIsPrivate = false,
     this.initialVipOnly = false,
     this.initialMode = RoomMode.chat,
@@ -63,6 +64,7 @@ class AgoraVoiceRoomScreen extends StatefulWidget {
   final LocaleController? localeController;
   final String? roomLanguageCode;
   final bool initialShowTeacherAiSeat;
+  final bool openTeacherAiOnJoin;
   final bool initialIsPrivate;
   final bool initialVipOnly;
   final RoomMode initialMode;
@@ -329,7 +331,13 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         channelId: widget.channelId,
         role: widget.initialRole,
       );
-      if (!mounted || _leaving || !asHost || _controller.error != null) return;
+      if (!mounted || _leaving || _controller.error != null) return;
+      // From the hub, open Teacher AI only AFTER actual room membership
+      // and the Agora join have completed. Normal room entry is unchanged.
+      if (widget.openTeacherAiOnJoin) {
+        unawaited(_showTeacherAiChat());
+      }
+      if (!asHost) return;
       // Open the selected tool after room membership and the audio join request.
       if (widget.initialMode == RoomMode.board ||
           widget.initialMode == RoomMode.lesson) {
