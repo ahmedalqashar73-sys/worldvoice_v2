@@ -18,7 +18,7 @@ const PUBLIC_STRING_FIELDS = Object.freeze([
   "displayName", "name", "username", "customId", "country", "countryCode",
   "nativeLanguageCode", "nativeLanguage", "bio", "photoURL", "photoUrl",
   "coverUrl", "voiceBioUrl", "gender", "profession", "professionKey",
-  "job", "languageLevel",
+  "job", "languageLevel", "learningGoals", "travel",
 ]);
 const PUBLIC_ARRAY_FIELDS = Object.freeze([
   "learningLanguageCodes", "learningLanguages", "hobbies", "interests",
@@ -26,6 +26,7 @@ const PUBLIC_ARRAY_FIELDS = Object.freeze([
 ]);
 const PUBLIC_BOOLEAN_FIELDS = Object.freeze([
   "profileCompleted", "isPartner", "isVerified", "isVip", "isOnline",
+  "travel",
 ]);
 const PUBLIC_INTEGER_FIELDS = Object.freeze([
   "followersCount", "followingCount", "giftLevel",
@@ -128,6 +129,9 @@ export function assertExistingProjectionMatches(expected, actual, label) {
   const fieldNames = new Set([...Object.keys(expected), ...Object.keys(actual)]);
   fieldNames.delete("migrationSource");
   fieldNames.delete("stagedAt");
+  fieldNames.delete("migrationVersion");
+  fieldNames.delete("snapshotAt");
+  fieldNames.delete("legacySource");
   for (const field of fieldNames) {
     const left = expected[field];
     const right = actual[field];
