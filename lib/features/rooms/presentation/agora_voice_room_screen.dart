@@ -1303,6 +1303,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       builder: (_) => RoomBackgroundShopSheet(
         roomFeatures: _features,
         isHost: _isHost,
+        // The shared board already supports text and a multi-color palette.
+        onOpenWriting: _isHost || _featureState.boardWriteEnabled
+            ? _expandBoard
+            : null,
       ),
     );
   }
@@ -1513,7 +1517,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       (Icons.card_giftcard_rounded, ar ? 'الهدايا' : 'Gifts', _showGifts),
       (Icons.emoji_events_rounded, ar ? 'الترتيب' : 'Leaderboard', () => _showRoomExtras(initialTab: 1)),
       (Icons.redeem_rounded, ar ? 'المكافآت' : 'Rewards', () => _showRoomExtras(initialTab: 2)),
-      (Icons.wallpaper_rounded, ar ? 'الخلفيات' : 'Backgrounds', _showBackgroundStore),
+      (Icons.wallpaper_rounded, ar ? 'تصميم الغرفة' : 'Room look', _showBackgroundStore),
       (Icons.groups_outlined, ar ? 'الأعضاء' : 'Members', _showMembers),
       if (_canModerate) (Icons.pan_tool_alt_rounded, ar ? 'طلبات الصعود' : 'Seat requests', _showRaisedHandsSheet),
       (Icons.settings_outlined, ar ? 'الإعدادات' : 'Settings', _showRoomControls),
@@ -1961,6 +1965,18 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
           Color(0xFF0D4A38),
           Color(0xFF123A32),
           Color(0xFF111D1A),
+        ];
+      case 'skyBlue':
+        return const [
+          Color(0xFF145C76),
+          Color(0xFF123B56),
+          Color(0xFF0B2535),
+        ];
+      case 'forestGold':
+        return const [
+          Color(0xFF265338),
+          Color(0xFF284A39),
+          Color(0xFF17322A),
         ];
       case 'midnight':
         return const [
