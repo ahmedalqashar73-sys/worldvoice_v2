@@ -28,7 +28,7 @@ class UnifiedGiftPanel extends StatefulWidget {
   final Map<String, String> recipients;
   final VoidCallback? onOpenCoinStore;
   /// Optional in-context animation preview, never a gift delivery.
-  final ValueChanged<RoomGiftCatalogItem>? onPreview;
+  final void Function(RoomGiftCatalogItem gift, String? recipientId)? onPreview;
 
   @override
   State<UnifiedGiftPanel> createState() => _UnifiedGiftPanelState();
@@ -116,7 +116,7 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
     // Voice rooms can dismiss the picker and preview directly over the stage.
     // This callback is presentation-only and never touches Firestore/wallets.
     if (widget.onPreview != null) {
-      widget.onPreview!(gift);
+      widget.onPreview!(gift, _recipient);
       return;
     }
     final ar = Localizations.localeOf(context).languageCode == 'ar';
@@ -162,7 +162,13 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
     if (uid == null) {
       return Center(child: Text(ar ? 'سجّل دخولك أولًا' : 'Sign in first'));
     }
-    return FutureBuilder<List<RoomGiftCatalogItem>>(
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft, end: Alignment.bottomRight,
+          colors: [Color(0xFF09271F), Color(0xFF14513A),
+                   Color(0xFF082B25)])),
+      child: FutureBuilder<List<RoomGiftCatalogItem>>(
       future: _classicPreviews,
       builder: (context, classicSnapshot) => StreamBuilder<
           QuerySnapshot<Map<String, dynamic>>>(
@@ -212,19 +218,43 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                     ? (walletSnapshot.data!.data()?['coins'] as num?)?.toInt()
                     : null;
                 return Column(children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(14, 9, 14, 9),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF08281F).withValues(alpha: .65),
+                      border: const Border(bottom: BorderSide(
+                        color: Color(0x66DCBE77))),
+                    ),
                     child: Row(children: [
-                      const Icon(Icons.monetization_on_rounded, color: Color(0xFFD1AB4A)),
-                      const SizedBox(width: 6),
-                      Expanded(child: Text(walletReady
-                          ? (ar ? 'الرصيد: $coins كوينز' : 'Balance: $coins coins')
-                          : (ar ? 'المحفظة الخاصة غير جاهزة'
-                              : 'Private wallet is not ready'),
-                          style: const TextStyle(fontWeight: FontWeight.w800))),
-                      TextButton.icon(onPressed: _openRecharge,
-                        icon: const Icon(Icons.add_circle_outline, size: 17),
-                        label: Text(ar ? 'شحن' : 'Recharge')),
+                      const Icon(Icons.auto_awesome_rounded,
+                        color: Color(0xFFF8DC95), size: 24),
+                      const SizedBox(width: 9),
+                      Expanded(child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(ar ? 'WorldVoice • الهدايا الملكية'
+                                  : 'WorldVoice • Royal Gifts',
+                            style: const TextStyle(
+                              color: Colors.white, fontSize: 16,
+                              fontWeight: FontWeight.w900)),
+                          Text(walletReady
+                            ? (ar ? 'رصيدك: $coins كوينز'
+                                  : 'Balance: $coins coins')
+                            : (ar ? 'المحفظة قيد التجهيز'
+                                  : 'Wallet setup pending'),
+                            style: const TextStyle(
+                              color: Color(0xFFF6DCA0), fontSize: 12,
+                              fontWeight: FontWeight.w800)),
+                        ],
+                      )),
+                      FilledButton.tonalIcon(
+                        onPressed: _openRecharge,
+                        style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFFE4C27B),
+                          foregroundColor: const Color(0xFF17412E)),
+                        icon: const Icon(Icons.add_circle_rounded, size: 17),
+                        label: Text(ar ? 'شحن' : 'Recharge'),
+                      ),
                     ]),
                   ),
                   if (!ready) Padding(
@@ -235,7 +265,11 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                       textAlign: TextAlign.center),
                   ),
                   SizedBox(height: 48, child: widget.recipients.isEmpty
-                    ? Center(child: Text(ar ? 'لا يوجد مستلم متاح' : 'No eligible recipients'))
+                    ? Center(child: Text(
+                        ar ? 'اختر هديتك لتجربة التأثير'
+                           : 'Choose a gift to preview its effect',
+                        style: const TextStyle(color: Color(0xFFB5D7C5),
+                            fontSize: 12)))
                     : ListView(
                         scrollDirection: Axis.horizontal,
                         padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -245,6 +279,11 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                               padding: const EdgeInsets.symmetric(horizontal: 4),
                               child: ChoiceChip(
                                 label: Text(entry.value),
+                                labelStyle: const TextStyle(
+                                  color: Colors.white, fontWeight: FontWeight.w700),
+                                backgroundColor: const Color(0xFF265B46),
+                                selectedColor: const Color(0xFF956C30),
+                                side: const BorderSide(color: Color(0x6680CBA9)),
                                 selected: _recipient == entry.key,
                                 onSelected: _busy ? null : (_) => setState(() {
                                   _recipient = entry.key; _pendingKey = null;
@@ -265,6 +304,11 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                             padding: const EdgeInsetsDirectional.only(end: 6),
                             child: ChoiceChip(
                               selected: _giftCategory == tier,
+                              selectedColor: const Color(0xFF93703D),
+                              backgroundColor: const Color(0xFF214C3A),
+                              labelStyle: const TextStyle(
+                                color: Colors.white, fontWeight: FontWeight.w800),
+                              side: const BorderSide(color: Color(0x6689C8A6)),
                               avatar: Icon(
                                 tier == 3 ? Icons.auto_awesome_rounded
                                     : Icons.card_giftcard_rounded,
@@ -300,7 +344,7 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                         : '30 classic premium gifts • tap to preview effects',
                         textAlign: TextAlign.center,
                         style: const TextStyle(
-                          color: Color(0xFF167A59),
+                          color: Color(0xFFEBD49B),
                           fontWeight: FontWeight.w800,
                           fontSize: 12)),
                     ),
@@ -323,8 +367,8 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                               horizontal: 8, vertical: 8),
                             gridDelegate:
                                 const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 3, childAspectRatio: .75,
-                              mainAxisSpacing: 10, crossAxisSpacing: 3),
+                              crossAxisCount: 3, mainAxisExtent: 139,
+                              mainAxisSpacing: 6, crossAxisSpacing: 4),
                             itemCount: shownGifts.length,
                             itemBuilder: (context, index) {
                               final gift = shownGifts[index];
@@ -347,7 +391,7 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                                       duration: const Duration(
                                         milliseconds: 180),
                                       child: ClassicGiftVisual(
-                                        gift: gift, size: 74),
+                                        gift: gift, size: 86),
                                     ),
                                     Text(gift.localizedName(ar),
                                       textAlign: TextAlign.center,
@@ -357,8 +401,8 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                                         fontSize: 11,
                                         fontWeight: FontWeight.w700,
                                         color: chosen
-                                            ? const Color(0xFF087951)
-                                            : null)),
+                                            ? const Color(0xFFFFDE94)
+                                            : Colors.white)),
                                     const SizedBox(height: 2),
                                     Text('${gift.priceCoins} 🪙',
                                       style: const TextStyle(
@@ -370,7 +414,7 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                                         width: 17, height: 3,
                                         margin: const EdgeInsets.only(top: 4),
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFF13A46E),
+                                          color: const Color(0xFFF8D589),
                                           borderRadius:
                                               BorderRadius.circular(100))),
                                   ],
@@ -429,6 +473,6 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
           },
         );
       },
-    ));
+    )));
   }
 }
