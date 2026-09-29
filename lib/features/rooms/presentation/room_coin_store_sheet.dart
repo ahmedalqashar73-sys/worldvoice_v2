@@ -203,17 +203,30 @@ class _RoomCoinStoreSheetState extends State<RoomCoinStoreSheet> {
                             child: ListView.separated(
                               padding: const EdgeInsets.fromLTRB(
                                   16, 8, 16, 28),
-                              itemCount: _store.products.length,
+                              itemCount: CoinProductConfig.proposedPackSizes.length,
                               separatorBuilder: (_, _) =>
                                   const SizedBox(height: 10),
                               itemBuilder: (context, index) {
-                                final item = _store.products[index];
+                                final amount =
+                                    CoinProductConfig.proposedPackSizes[index];
+                                CoinStoreProduct? item;
+                                for (final available in _store.products) {
+                                  if (available.config.coins == amount) {
+                                    item = available;
+                                    break;
+                                  }
+                                }
+                                final approved = item;
                                 return _PremiumCoinPack(
-                                  amount: item.config.coins,
-                                  subtitle: item.product.title,
-                                  buttonLabel: item.product.price,
-                                  enabled: true,
-                                  onBuy: () => _store.buy(item));
+                                  amount: amount,
+                                  subtitle: approved?.product.title ??
+                                      (ar ? 'قيد اعتماد المتجر' :
+                                         'Pending store approval'),
+                                  buttonLabel: approved?.product.price ??
+                                      (ar ? 'قريبًا' : 'Soon'),
+                                  enabled: approved != null,
+                                  onBuy: approved == null ? null :
+                                      () => _store.buy(approved));
                               },
                             ),
                           ),
@@ -628,20 +641,30 @@ class _WebCheckoutCatalog extends StatelessWidget {
         }
         return ListView.separated(
           padding: const EdgeInsets.all(16),
-          itemCount: products.length,
+          itemCount: CoinProductConfig.proposedPackSizes.length,
           separatorBuilder: (_, _) => const SizedBox(height: 8),
           itemBuilder: (context, index) {
-            final product = products[index];
+            final amount = CoinProductConfig.proposedPackSizes[index];
+            CoinProductConfig? product;
+            for (final candidate in products) {
+              if (candidate.coins == amount) {
+                product = candidate;
+                break;
+              }
+            }
+            final approved = product;
             return _PremiumCoinPack(
-              amount: product.coins,
-              subtitle:
-                  '${product.priceUsd!.toStringAsFixed(2)} USD • Visa / Mastercard',
-              buttonLabel: isArabic ? 'الدفع الآمن'
-                                    : 'Secure checkout',
-              enabled: true,
-              onBuy: () async {
+              amount: amount,
+              subtitle: approved == null
+                ? (isArabic ? 'قيد اعتماد السعر' : 'Price approval pending')
+                : '${approved.priceUsd!.toStringAsFixed(2)} USD • Visa / Mastercard',
+              buttonLabel: approved == null
+                ? (isArabic ? 'قريبًا' : 'Soon')
+                : (isArabic ? 'الدفع الآمن' : 'Secure checkout'),
+              enabled: approved != null,
+              onBuy: approved == null ? null : () async {
                 try {
-                  await store.startWebCheckout(product);
+                  await store.startWebCheckout(approved);
                 } catch (error) {
                   if (!context.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
