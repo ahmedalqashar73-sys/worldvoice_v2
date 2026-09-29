@@ -106,9 +106,10 @@ class RoomQuizService {
     }
     final currentQuiz = roomData['quiz'];
     if (currentQuiz is Map &&
-        currentQuiz['roundId']?.toString().trim().isNotEmpty == true &&
-        currentQuiz['revealed'] != true) {
-      throw StateError('Finish the verified quiz before starting practice.');
+        currentQuiz['roundId']?.toString().trim().isNotEmpty == true) {
+      throw StateError(
+        'A verified quiz needs the full backend to reset its answers.',
+      );
     }
     final answers = await _room.collection('quiz_answers').get();
     // Firestore batches allow at most 500 writes: include one room update.
@@ -180,6 +181,10 @@ class RoomQuizService {
         ? Map<String, dynamic>.from(rawQuiz)
         : const <String, dynamic>{};
     if (quiz['revealed'] == true) return;
+    if (quiz['roundId']?.toString().trim().isNotEmpty == true) {
+      throw StateError('Verified quiz results require the trusted backend.');
+    }
+    final originalStart = quiz['startedAt'];
     final correctIndex = (quiz['correctIndex'] as num?)?.toInt();
     if (correctIndex == null) throw StateError('No quiz to reveal.');
 
@@ -212,8 +217,17 @@ class RoomQuizService {
     await _db.runTransaction((tx) async {
       final latest = await tx.get(_room);
       final latestQuiz = latest.data()?['quiz'];
-      if (latestQuiz is Map &&
-          (latestQuiz['revealed'] == true || latestQuiz['rewardedAt'] != null)) {
+      if (latestQuiz is! Map ||
+          latestQuiz['roundId']?.toString().trim().isNotEmpty == true) {
+        throw StateError('The quiz changed while results were calculated.');
+      }
+      final latestStart = latestQuiz['startedAt'];
+      if (originalStart is Timestamp && latestStart is Timestamp &&
+          originalStart != latestStart) {
+        throw StateError('A newer quiz started. Refresh and try again.');
+      }
+      if (latestQuiz['revealed'] == true ||
+          latestQuiz['rewardedAt'] != null) {
         return;
       }
       tx.update(_room, {
