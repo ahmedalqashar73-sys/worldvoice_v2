@@ -150,7 +150,8 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
             _action(Icons.storefront_rounded, ar ? 'المتجر' : 'Shop', widget.onShop),
             _action(Icons.grid_view_rounded, ar ? 'الأدوات' : 'Tools', widget.onTools),
             _action(Icons.closed_caption_outlined, ar ? 'الترجمة' : 'Captions', widget.onCaptions),
-            _action(widget.micIcon, widget.micLabel, widget.onMic),
+            if (widget.onMic != null)
+              _action(widget.micIcon, widget.micLabel, widget.onMic),
           ];
           if (typing) return field;
           if (constraints.maxWidth < 350 || MediaQuery.textScalerOf(context).scale(14) > 20) {
