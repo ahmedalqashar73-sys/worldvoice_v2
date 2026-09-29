@@ -1564,7 +1564,9 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
             contextId: widget.channelId,
             recipients: {
               for (final member in _participants.where(
-                  (member) => member.isOnStage && member.userId != myId))
+                  (member) => member.userId != myId &&
+                      (member.isOnStage ||
+                          RoomFeatureService.friendPreviewEnabled)))
                 member.userId: member.displayName,
               if (_showTeacherAiSeat && widget.initialMode != RoomMode.live)
                 'teacher_ai': 'Teacher AI',
