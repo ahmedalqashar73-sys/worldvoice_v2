@@ -149,7 +149,8 @@ class _CreateRoomPageState extends State<CreateRoomPage> {
                           runSpacing: 12,
                           children: [
                             for (final mode in widget.fixedMode == null
-                                ? RoomMode.values
+                                ? RoomMode.values.where(
+                                    (mode) => mode != RoomMode.live)
                                 : <RoomMode>[widget.fixedMode!])
                               SizedBox(
                                 width: width,
