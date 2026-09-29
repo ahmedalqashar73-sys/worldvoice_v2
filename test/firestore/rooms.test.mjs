@@ -278,3 +278,40 @@ test('private room join requires a matching code grant', async () => {
   await assertSucceeds(setDoc(doc(db, 'rooms/r1/access_grants/new'), {uid: 'new', code: 'ABC123'}));
   await assertSucceeds(setDoc(member(db, 'new'), participant('new')));
 });
+
+
+test('verified room members can show rate-limited free gift demos without minting gifts', async () => {
+  const host = user('host');
+  const receiver = user('listener');
+  const previewPath = 'rooms/r1/gift_previews/host';
+  const payload = {
+    nonce: 'abcdefabcdefabcdefabcdef',
+    senderId: 'host',
+    senderName: 'host',
+    recipientId: 'listener',
+    recipientName: 'listener',
+    giftId: 'classic_royal_rose',
+    sentAt: serverTimestamp(),
+  };
+  await assertSucceeds(setDoc(doc(host, previewPath), payload));
+  await assertSucceeds(getDocs(collection(receiver, 'rooms/r1/gift_previews')));
+  await assertFails(setDoc(doc(host, previewPath), {
+    ...payload, nonce: '123456123456123456123456',
+  })); // server-enforced three-second cooldown
+  await assertFails(setDoc(doc(user('stranger'),
+    'rooms/r1/gift_previews/stranger'), {
+    ...payload, senderId: 'stranger',
+  }));
+  await assertFails(setDoc(doc(receiver,
+    'rooms/r1/gift_previews/listener'), {
+    ...payload, senderId: 'listener', recipientId: 'nobody',
+  }));
+  await assertFails(setDoc(doc(receiver,
+    'rooms/r1/gift_previews/listener'), {
+    ...payload, senderId: 'listener', recipientId: 'host',
+    senderName: 'listener', recipientName: 'host',
+    chargedCoins: 5000000,
+  }));
+  await assertFails(setDoc(doc(host, 'rooms/r1/gifts/fake-gift'),
+    {senderId: 'host', giftId: 'classic_royal_rose', points: 1000}));
+});
