@@ -132,7 +132,7 @@ class _RoomQuizSheetState extends State<RoomQuizSheet> {
       if (question.text.trim().isNotEmpty && options.length >= 2) {
         if (rawOptions[correctIndex].isEmpty) {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(Localizations.localeOf(context).languageCode == 'ar'
                   ? 'يجب ألا تكون الإجابة الصحيحة فارغة.'
                   : 'The correct answer cannot be empty.'),
