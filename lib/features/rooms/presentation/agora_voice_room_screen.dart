@@ -108,6 +108,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   bool _leaving = false;
   bool _roleUpdateInProgress = false;
   bool _micBusy = false;
+  String? _audioFailure;
+  bool _audioRetrying = false;
   bool _participantWasReady = false;
   bool _trackingEnded = false;
   bool _minimized = false;
@@ -338,11 +340,25 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       _meSub = _moderation.watchMe().listen(_handleMyParticipant);
 
       entryStage = 'audio-connect';
-      await _controller.connect(
-        channelId: widget.channelId,
-        role: widget.initialRole,
-      );
-      if (!mounted || _leaving || _controller.error != null) return;
+      // A successful joinChannel() request is not a completed voice
+      // connection. Wait for Agora's onJoinChannelSuccess callback.
+      try {
+        await _controller.ensureConnected(
+          channelId: widget.channelId,
+          role: widget.initialRole,
+        );
+        if (mounted) setState(() => _audioFailure = null);
+        await _synchronizeParticipantAudio();
+      } catch (error) {
+        debugPrint('WorldVoice voice join needs attention: $error');
+        // A token/network problem must not kick the user out of an otherwise
+        // valid Firestore room. Show the exact error and offer a real retry.
+        if (mounted && !_leaving) {
+          setState(() => _audioFailure = error.toString());
+        }
+        return;
+      }
+      if (!mounted || _leaving || !_controller.joined) return;
       // From the hub, open Teacher AI only AFTER actual room membership
       // and the Agora join have completed. Normal room entry is unchanged.
       if (widget.openTeacherAiOnJoin) {
@@ -900,6 +916,27 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     }
   }
 
+  Future<void> _retryAudioConnection() async {
+    if (_audioRetrying || _leaving) return;
+    setState(() {
+      _audioRetrying = true;
+      _audioFailure = null;
+    });
+    try {
+      await _controller.ensureConnected(
+        channelId: widget.channelId,
+        role: (_me?.isOnStage ?? (widget.initialRole == AgoraRoomRole.speaker))
+            ? AgoraRoomRole.speaker : AgoraRoomRole.listener,
+      );
+      await _synchronizeParticipantAudio();
+      if (mounted) setState(() => _audioFailure = null);
+    } catch (error) {
+      if (mounted) setState(() => _audioFailure = error.toString());
+    } finally {
+      if (mounted) setState(() => _audioRetrying = false);
+    }
+  }
+
   Future<void> _toggleMicSafely() async {
     if (_micBusy || _leaving || !_controller.joined ||
         _me?.isOnStage != true) {
@@ -1018,7 +1055,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
     if (_canModerate) {
       return Align(
-        alignment: AlignmentDirectional.centerEnd,
+        alignment: Alignment.centerLeft,
+        widthFactor: 1,
         child: Badge(
           isLabelVisible: _raisedHands.isNotEmpty,
           label: Text('${_raisedHands.length}'),
@@ -1044,7 +1082,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     }
     if (isPublishing) return const SizedBox.shrink();
     return Align(
-      alignment: AlignmentDirectional.centerEnd,
+      alignment: Alignment.centerLeft,
+        widthFactor: 1,
       child: ActionChip(
         tooltip: _handRaised
             ? (isArabic ? 'إلغاء الطلب' : 'Cancel hand request')
@@ -2184,21 +2223,30 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
           ),
           child: SafeArea(top: false, child: Column(children: [
             if (_controller.connecting) const LinearProgressIndicator(minHeight: 2),
-            if (_controller.error != null && !_boardVisible) Container(
+            if ((_controller.error != null || _audioFailure != null) && !_boardVisible) Container(
               width: double.infinity, margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(color: const Color(0xFF4D344E), borderRadius: BorderRadius.circular(12)),
               child: Row(children: [
                 const Icon(Icons.info_outline_rounded, color: Color(0xFFFFD3A4), size: 18),
                 const SizedBox(width: 8),
-                Expanded(child: Text(label('الصوت غير متاح الآن. تحقق من إعداد الاتصال.', 'Audio unavailable. Check the connection setup.'),
+                Expanded(child: Text(label('الصوت غير متصل. افتح التفاصيل أو أعد المحاولة.', 'Audio offline. Check details or retry.'),
                   style: const TextStyle(color: Colors.white, fontSize: 12))),
                 IconButton(tooltip: label('تفاصيل الاتصال', 'Connection details'),
                   onPressed: () => showDialog<void>(context: context, builder: (ctx) => AlertDialog(
                     title: Text(label('اتصال الصوت', 'Audio connection')),
-                    content: SingleChildScrollView(child: SelectableText(_controller.error!)),
+                    content: SingleChildScrollView(child: SelectableText(_audioFailure ?? _controller.error ?? 'Unknown Agora error')),
                     actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: Text(label('إغلاق', 'Close')))],
                   )), icon: const Icon(Icons.chevron_right_rounded, color: Colors.white70, size: 18)),
+                IconButton(
+                  tooltip: label('إعادة اتصال الصوت', 'Retry audio'),
+                  onPressed: _audioRetrying ? null : _retryAudioConnection,
+                  icon: _audioRetrying
+                    ? const SizedBox.square(dimension: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Icon(Icons.refresh_rounded,
+                        color: Colors.white, size: 20),
+                ),
               ]),
             ),
             Expanded(child: LayoutBuilder(builder: (context, constraints) {
@@ -2245,11 +2293,6 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                       onTap: _showTeacherAiChat,
                     ),
                   ),
-                if (!compact && _controller.joined)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
-                    child: _buildHandControl(isArabic, isPublishing),
-                  ),
                 if (!compact && _canModerate && _raisedHands.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -2269,7 +2312,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: ActionChip(avatar: const Icon(Icons.quiz_outlined, size: 16),
                       label: Text(label('مسابقة الغرفة', 'Room quiz')), onPressed: _showQuiz))),
-                Expanded(child: RoomConversationPanel(
+                Expanded(child: Stack(children: [
+                  Positioned.fill(child: RoomConversationPanel(
                   messages: _chatMessages ?? const Stream<List<RoomChatMessage>>.empty(),
                   enabled: _chatMessages != null, onSend: _roomChat.send, isArabic: isArabic,
                   onGifts: _showGifts, onShop: _showBackgroundStore,
@@ -2283,14 +2327,16 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                           : label('الميكروفون', 'Microphone'))
                       : label('رفع اليد', 'Raise hand'),
                   onMic: !_controller.joined || _micBusy ||
-                          _me?.forcedMuted == true
-                      ? null
-                      : isPublishing
-                          ? _toggleMicSafely
-                          : () => _handRaised
-                              ? _moderation.setHandRaised(false)
-                              : _requestSeat(),
-                )),
+                          _me?.forcedMuted == true || !isPublishing
+                      ? null : _toggleMicSafely,
+                  )),
+                  if (_controller.joined && (_canModerate || !isPublishing))
+                    Positioned(
+                      left: 10,
+                      bottom: 79,
+                      child: _buildHandControl(isArabic, isPublishing),
+                    ),
+                ])),
               ]);
             })),
           ])),
