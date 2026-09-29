@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
@@ -8,6 +9,10 @@ import 'package:http/http.dart' as http;
 
 import '../../../core/localization/locale_controller.dart';
 import '../../rooms/presentation/unified_gift_panel.dart';
+import '../../rooms/presentation/classic_gift_visual.dart';
+import '../../rooms/presentation/room_gift_overlay.dart';
+import '../../rooms/data/classic_gift_catalog.dart';
+import '../../rooms/data/room_feature_models.dart';
 
 /// Real authenticated conversations. The economy backend, not Flutter,
 /// establishes mutual-follower membership and writes chat/gift messages.
@@ -245,6 +250,55 @@ class _ChatConversation extends StatefulWidget {
 
 class _ChatConversationState extends State<_ChatConversation> {
   final _text = TextEditingController();
+  final _knownGiftIds = <String>{};
+  bool _giftStreamPrimed = false;
+  OverlayEntry? _giftOverlay;
+  Timer? _giftTimer;
+
+  void _showIncomingGift(
+      QueryDocumentSnapshot<Map<String, dynamic>> message) {
+    if (!mounted) return;
+    final data = message.data();
+    _giftTimer?.cancel();
+    _giftOverlay?.remove();
+    final event = RoomGiftEvent(
+      id: message.id,
+      senderId: (data['senderId'] ?? '').toString(),
+      senderName: (data['senderName'] ?? '').toString(),
+      recipientId: (data['recipientId'] ?? '').toString(),
+      recipientName: (data['recipientName'] ?? '').toString(),
+      giftId: (data['giftId'] ?? '').toString(),
+      points: (data['points'] as num?)?.toInt() ?? 0,
+      animationUrl: data['animationUrl']?.toString(),
+    );
+    final overlay = OverlayEntry(
+      builder: (_) => RoomGiftOverlay(event: event),
+    );
+    _giftOverlay = overlay;
+    Overlay.of(context).insert(overlay);
+    _giftTimer = Timer(const Duration(seconds: 3), () {
+      if (_giftOverlay == overlay) {
+        overlay.remove();
+        _giftOverlay = null;
+      }
+    });
+  }
+
+  void _observeGiftMessages(
+      List<QueryDocumentSnapshot<Map<String, dynamic>>> messages) {
+    final gifts = messages.where((doc) => doc.data()['type'] == 'gift').toList();
+    if (!_giftStreamPrimed) {
+      _giftStreamPrimed = true;
+      _knownGiftIds.addAll(gifts.map((doc) => doc.id));
+      return;
+    }
+    final incoming = gifts.where(
+      (doc) => _knownGiftIds.add(doc.id)).toList();
+    if (incoming.isEmpty) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _showIncomingGift(incoming.first);
+    });
+  }
   bool _sending = false;
   String? _pendingText;
   String? _pendingKey;
@@ -298,6 +352,9 @@ class _ChatConversationState extends State<_ChatConversation> {
 
   @override
   void dispose() {
+    _giftTimer?.cancel();
+    _giftOverlay?.remove();
+    _giftOverlay = null;
     _text.dispose();
     super.dispose();
   }
@@ -328,6 +385,7 @@ class _ChatConversationState extends State<_ChatConversation> {
                     return const Center(child: CircularProgressIndicator());
                   }
                   final messages = snapshot.data!.docs;
+                  _observeGiftMessages(messages);
                   return ListView.builder(
                     reverse: true,
                     padding: const EdgeInsets.symmetric(
@@ -337,10 +395,11 @@ class _ChatConversationState extends State<_ChatConversation> {
                       final data = messages[index].data();
                       final mine = data['senderId'] == uid;
                       final isGift = data['type'] == 'gift';
+                      final giftId = (data['giftId'] ?? '').toString();
+                      final classicGift = isGift &&
+                          giftId.startsWith('classic_');
                       final value = isGift
-                          ? (ar
-                              ? '🎁 هدية: ${data['giftId']}'
-                              : '🎁 Gift: ${data['giftId']}')
+                          ? (ar ? '🎁 هدية: $giftId' : '🎁 Gift: $giftId')
                           : (data['text'] ?? '').toString();
                       return Align(
                         alignment: mine ? AlignmentDirectional.centerEnd
@@ -350,18 +409,52 @@ class _ChatConversationState extends State<_ChatConversation> {
                           margin: const EdgeInsets.symmetric(vertical: 4),
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: mine
-                                ? Theme.of(context).colorScheme.primaryContainer
-                                : Theme.of(context).colorScheme.surfaceContainerHighest,
+                            color: classicGift
+                                ? Colors.transparent
+                                : mine
+                                    ? Theme.of(context).colorScheme.primaryContainer
+                                    : Theme.of(context).colorScheme.surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(17),
                           ),
-                          child: isGift
-                              ? Column(mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(Icons.card_giftcard, size: 36),
-                                    Text(value),
-                                  ])
-                              : Text(value),
+                          child: classicGift
+                              ? FutureBuilder<List<RoomGiftCatalogItem>>(
+                                  future: ClassicGiftCatalog.load(),
+                                  builder: (context, giftSnapshot) {
+                                    RoomGiftCatalogItem? gift;
+                                    for (final item in giftSnapshot.data ??
+                                        const <RoomGiftCatalogItem>[]) {
+                                      if (item.id == giftId) {
+                                        gift = item;
+                                        break;
+                                      }
+                                    }
+                                    if (gift == null) return Text(value);
+                                    return Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        ClassicGiftVisual(
+                                            gift: gift, size: 100),
+                                        Text(gift.localizedName(ar),
+                                            style: const TextStyle(
+                                              color: Color(0xFF0D7654),
+                                              fontWeight: FontWeight.w800)),
+                                        Text('${gift.priceCoins} 🪙',
+                                            style: const TextStyle(
+                                              color: Color(0xFFB58A2A),
+                                              fontWeight: FontWeight.bold)),
+                                      ],
+                                    );
+                                  },
+                                )
+                              : isGift
+                                  ? Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                            Icons.card_giftcard, size: 36),
+                                        Text(value),
+                                      ])
+                                  : Text(value),
                         ),
                       );
                     },
