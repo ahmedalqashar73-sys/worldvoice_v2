@@ -404,7 +404,10 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
                   final allDocs = snapshot.data?.docs ??
                       const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
                   final publicDocs = allDocs
-                      .where((doc) => doc.data()['isPrivate'] != true)
+                      .where((doc) => doc.data()['isPrivate'] != true &&
+                          (widget.onlyLive
+                              ? doc.data()['mode'] == RoomMode.live.name
+                              : doc.data()['mode'] != RoomMode.live.name))
                       .toList(growable: false);
                   final languageDocs = selected == 'all'
                       ? publicDocs
