@@ -212,11 +212,17 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                             );
                           }
 
-                          return ListView.separated(
-                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                          // Dedicated two-column background cards with the
+                          // user's own catalog previews, not gift inventory.
+                          return GridView.builder(
+                            padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
                             itemCount: catalog.length,
-                            separatorBuilder: (_, _) =>
-                                const SizedBox(height: 10),
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              childAspectRatio: .68,
+                              mainAxisSpacing: 12,
+                              crossAxisSpacing: 10,
+                            ),
                             itemBuilder: (context, index) {
                               final item = catalog[index];
                               final entitlement =
@@ -251,6 +257,10 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                                               entitlement.backgroundUrl,
                                         )
                                     : null,
+                                onGift: _shop.isConfigured
+                                    ? () => _giftBackground(
+                                          context, item, isArabic)
+                                    : null,
                               );
                             },
                           );
@@ -265,6 +275,69 @@ class RoomBackgroundShopSheet extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _giftBackground(
+    BuildContext context,
+    RoomShopBackground item,
+    bool isArabic,
+  ) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    try {
+      final contacts = await FirebaseFirestore.instance
+          .collection('users').doc(user.uid)
+          .collection('following').get();
+      if (!context.mounted) return;
+      final recipient = await showDialog<String>(
+        context: context,
+        builder: (dialog) => SimpleDialog(
+          title: Text(isArabic ? 'إهداء الخلفية لصديق' : 'Send background to a friend'),
+          children: [
+            if (contacts.docs.isEmpty)
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(isArabic ? 'لا يوجد أصدقاء بعد'
+                    : 'No followed friends yet'),
+              ),
+            for (final contact in contacts.docs)
+              SimpleDialogOption(
+                onPressed: () => Navigator.pop(dialog, contact.id),
+                child: Text(contact.data()['displayName']?.toString()
+                    ?? contact.id),
+              ),
+          ],
+        ),
+      );
+      if (recipient == null || !context.mounted) return;
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialog) => AlertDialog(
+          title: Text(isArabic ? 'تأكيد الإهداء' : 'Confirm send'),
+          content: Text('${item.name} • ${item.priceCoins} coins'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(dialog, false),
+              child: Text(isArabic ? 'إلغاء' : 'Cancel')),
+            FilledButton(onPressed: () => Navigator.pop(dialog, true),
+              child: Text(isArabic ? 'إرسال' : 'Send')),
+          ],
+        ),
+      );
+      if (confirmed != true) return;
+      await _shop.giftItem(itemId: item.id, recipientId: recipient);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(isArabic ? 'تم إرسال الخلفية'
+              : 'Background sent')),
+        );
+      }
+    } catch (error) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.toString())),
+        );
+      }
+    }
   }
 
   Future<void> _purchase(
@@ -330,6 +403,7 @@ class _BackgroundStoreCard extends StatelessWidget {
     required this.onBuy,
     required this.onClaim,
     required this.onApply,
+    required this.onGift,
   });
 
   final RoomShopBackground item;
@@ -340,53 +414,53 @@ class _BackgroundStoreCard extends StatelessWidget {
   final VoidCallback? onBuy;
   final VoidCallback? onClaim;
   final VoidCallback? onApply;
+  final VoidCallback? onGift;
 
   @override
   Widget build(BuildContext context) {
     final previewUrl = item.previewUrl?.trim() ?? '';
-
+    final subtitle = item.durationDays == null
+        ? (isArabic ? 'دائم' : 'Permanent')
+        : '${item.durationDays} ${isArabic ? 'يوم' : 'days'}';
     return Card(
+      margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (previewUrl.isNotEmpty)
-            AspectRatio(
-              aspectRatio: 16 / 7,
-              child: Image.network(
-                previewUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => const _BackgroundPlaceholder(),
-              ),
-            )
-          else
-            const AspectRatio(
-              aspectRatio: 16 / 7,
-              child: _BackgroundPlaceholder(),
-            ),
+          Expanded(
+            child: previewUrl.isNotEmpty
+                ? Image.network(
+                    previewUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => const _BackgroundPlaceholder(),
+                  )
+                : const _BackgroundPlaceholder(),
+          ),
           Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
+            padding: const EdgeInsets.fromLTRB(8, 7, 8, 0),
+            child: Text(item.name, maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.w800)),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 3),
+            child: Text(
+              owned ? (isArabic ? 'مملوكة' : 'Owned')
+                  : '${item.priceCoins} coins • $subtitle',
+              textAlign: TextAlign.center,
+              maxLines: 1, overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(6, 7, 6, 9),
+            child: Wrap(
+              alignment: WrapAlignment.spaceEvenly,
+              runSpacing: 4,
+              spacing: 4,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item.name,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        owned
-                            ? (isArabic ? 'مملوكة' : 'Owned')
-                            : '${item.priceCoins} ${isArabic ? 'عملة' : 'coins'}',
-                      ),
-                    ],
-                  ),
-                ),
                 if (owned && isHost)
                   FilledButton.tonal(
                     onPressed: onApply,
@@ -395,14 +469,17 @@ class _BackgroundStoreCard extends StatelessWidget {
                 else if (!owned && rewardAvailable)
                   FilledButton.tonal(
                     onPressed: onClaim,
-                    child: Text(
-                      isArabic ? 'مكافأة شهر' : '1-month reward',
-                    ),
+                    child: Text(isArabic ? 'مكافأة' : 'Reward'),
                   )
                 else if (!owned)
                   FilledButton(
                     onPressed: onBuy,
-                    child: Text(isArabic ? 'شراء' : 'Buy'),
+                    child: Text(isArabic ? 'اشتري' : 'Buy'),
+                  ),
+                if (!owned)
+                  OutlinedButton(
+                    onPressed: onGift,
+                    child: Text(isArabic ? 'إرسال' : 'Send'),
                   ),
               ],
             ),
