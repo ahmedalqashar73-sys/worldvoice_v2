@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 
 import '../data/room_feature_models.dart';
 import '../services/room_feature_service.dart';
+import '../services/room_coin_purchase_service.dart';
 import 'room_coin_store_sheet.dart';
 
 /// The ONE gift chooser for real room/live/chat membership contexts.
@@ -118,7 +119,10 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
             final perUsd = (policy['coinsPerUsd'] as num?)?.toDouble();
             final share = (policy['receiverSharePercent'] as num?)?.toDouble();
             final diamondUsd = (policy['diamondUsdValue'] as num?)?.toDouble();
-            final ready = enabled && perUsd != null && perUsd > 0 &&
+            final ready = enabled &&
+                policy['privateWalletCutoverVerified'] == true &&
+                policy['publicProfileRulesVerified'] == true &&
+                perUsd != null && perUsd > 0 &&
                 share != null && share >= 0 && share <= 100 &&
                 diamondUsd != null && diamondUsd > 0;
             final selected = _gift != null && gifts.any((g) => g.id == _gift!.id)
@@ -128,17 +132,23 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                 : null;
             final usd = diamonds == null ? null : diamonds * diamondUsd!;
             return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-              stream: FirebaseFirestore.instance.collection('users').doc(uid)
-                  .snapshots(),
+              stream: RoomCoinPurchaseService.instance.watchMyWallet(),
               builder: (context, walletSnapshot) {
-                final coins = (walletSnapshot.data?.data()?['coins'] as num?)?.toInt() ?? 0;
+                final walletReady = walletSnapshot.data?.exists == true &&
+                    !walletSnapshot.hasError;
+                final coins = walletReady
+                    ? (walletSnapshot.data!.data()?['coins'] as num?)?.toInt()
+                    : null;
                 return Column(children: [
                   Padding(
                     padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
                     child: Row(children: [
                       const Icon(Icons.monetization_on_rounded, color: Color(0xFFD1AB4A)),
                       const SizedBox(width: 6),
-                      Expanded(child: Text(ar ? 'الرصيد: $coins كوينز' : 'Balance: $coins coins',
+                      Expanded(child: Text(walletReady
+                          ? (ar ? 'الرصيد: $coins كوينز' : 'Balance: $coins coins')
+                          : (ar ? 'المحفظة الخاصة غير جاهزة'
+                              : 'Private wallet is not ready'),
                           style: const TextStyle(fontWeight: FontWeight.w800))),
                       TextButton.icon(onPressed: _openRecharge,
                         icon: const Icon(Icons.add_circle_outline, size: 17),
@@ -225,7 +235,7 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                   ),
                   Padding(padding: const EdgeInsets.all(12),
                     child: FilledButton.icon(
-                      onPressed: !_busy && ready && selected != null &&
+                      onPressed: !_busy && ready && walletReady && selected != null &&
                           widget.recipients.containsKey(_recipient)
                           ? _send : null,
                       icon: _busy ? const SizedBox(width: 14, height: 14,
