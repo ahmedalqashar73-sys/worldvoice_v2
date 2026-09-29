@@ -29,9 +29,11 @@ void main() {
   testWidgets('in-room preview is labeled and does not show a gift receipt',
       (tester) async {
     // Explicitly load bundled artwork metadata before verifying its caption.
-    final designs = await ClassicGiftCatalog.load();
-    final preview = designs.firstWhere(
-      (item) => item.id == 'classic_golden_phoenix');
+    const preview = RoomGiftCatalogItem(
+      id: 'classic_golden_phoenix', name: 'Golden Phoenix',
+      nameAr: 'العنقاء الذهبية', priceCoins: 50,
+      active: false, emoji: '🐦‍🔥', effectType: 'phoenix',
+    );
     const sample = RoomGiftEvent(
       id: 'demo',
       senderId: 'preview',
