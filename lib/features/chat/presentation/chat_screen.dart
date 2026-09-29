@@ -251,6 +251,7 @@ class _ChatConversation extends StatefulWidget {
 class _ChatConversationState extends State<_ChatConversation> {
   final _text = TextEditingController();
   final _knownGiftIds = <String>{};
+  final DateTime _conversationOpenedAt = DateTime.now();
   bool _giftStreamPrimed = false;
   OverlayEntry? _giftOverlay;
   Timer? _giftTimer;
@@ -295,6 +296,15 @@ class _ChatConversationState extends State<_ChatConversation> {
     final incoming = gifts.where(
       (doc) => _knownGiftIds.add(doc.id)).toList();
     if (incoming.isEmpty) return;
+    // Firestore can first show cached empty results then load history.
+    // Replayed older gifts belong in the transcript, not a new animation.
+    final latest = incoming.first;
+    final timestamp = latest.data()['createdAt'];
+    if (timestamp is! Timestamp ||
+        timestamp.toDate().isBefore(
+            _conversationOpenedAt.subtract(const Duration(seconds: 2)))) {
+      return;
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _showIncomingGift(incoming.first);
     });
