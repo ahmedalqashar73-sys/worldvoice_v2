@@ -532,8 +532,8 @@ service cloud.firestore {
       // recover that stale room document without changing the channel id.
       allow update: if signedIn()
           && request.resource.data.channelId == resource.data.channelId
-          && request.resource.data.diff(resource.data)
-              .affectedKeys().hasNone([
+          && !request.resource.data.diff(resource.data)
+              .affectedKeys().hasAny([
                 'roomXp', 'roomLevel', 'lastTaskCompletionId'
               ])
           && validRoomThemeChange()
