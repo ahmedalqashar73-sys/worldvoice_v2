@@ -807,7 +807,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     );
   }
 
-  void _showGiftOverlay(RoomGiftEvent gift, {bool preview = false}) {
+  void _showGiftOverlay(RoomGiftEvent gift, {
+    bool preview = false,
+    RoomGiftCatalogItem? previewGift,
+  }) {
     if (!mounted) return;
 
     _giftOverlayTimer?.cancel();
@@ -815,7 +818,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
     final overlay = Overlay.of(context);
     final entry = OverlayEntry(
-      builder: (_) => RoomGiftOverlay(event: gift, preview: preview),
+      builder: (_) => RoomGiftOverlay(
+        event: gift, preview: preview, previewGift: previewGift),
     );
     _giftOverlay = entry;
     overlay.insert(entry);
@@ -1545,7 +1549,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   recipientName: '',
                   giftId: gift.id,
                   points: gift.priceCoins,
-                ), preview: true);
+                ), preview: true, previewGift: gift);
               });
             },
           ),
