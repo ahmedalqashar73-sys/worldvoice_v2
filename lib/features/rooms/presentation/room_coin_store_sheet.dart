@@ -53,13 +53,16 @@ class _RoomCoinStoreSheetState extends State<RoomCoinStoreSheet> {
               subtitle: user == null
                   ? null
                   : StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                      stream: FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(user.uid)
-                          .snapshots(),
+                      stream: _store.watchMyWallet(),
                       builder: (context, snapshot) {
+                        if (snapshot.hasError ||
+                            snapshot.data?.exists != true) {
+                          return Text(isArabic
+                              ? 'المحفظة الخاصة غير جاهزة'
+                              : 'Private wallet is not ready');
+                        }
                         final coins =
-                            (snapshot.data?.data()?['coins'] as num?)
+                            (snapshot.data!.data()?['coins'] as num?)
                                     ?.toInt() ??
                                 0;
                         return Text(
@@ -235,12 +238,14 @@ class _WalletViewState extends State<_WalletView> {
                 ),
               ),
               StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                stream: FirebaseFirestore.instance
-                    .collection('users').doc(uid).snapshots(),
+                stream: _service.watchMyWallet(),
                 builder: (context, snapshot) {
                   final data = snapshot.data?.data() ?? <String, dynamic>{};
-                  if (snapshot.hasError) {
-                    return Text(ar ? 'المحفظة غير متاحة' : 'Wallet unavailable');
+                  if (snapshot.hasError ||
+                      snapshot.data?.exists != true) {
+                    return Text(ar
+                        ? 'يلزم تجهيز محفظتك الخاصة قبل استخدام الميزات المالية.'
+                        : 'Your private wallet must be prepared before using financial features.');
                   }
                   final coins = (data['coins'] as num?)?.toInt() ?? 0;
                   final available = (data['diamonds'] as num?)?.toInt() ?? 0;
