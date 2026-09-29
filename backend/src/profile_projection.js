@@ -120,8 +120,8 @@ export function assertExistingProjectionMatches(expected, actual, label) {
     const b = normalize(right);
     const same = Array.isArray(a) && Array.isArray(b)
       ? a.length === b.length && a.every((value, index) => value === b[index])
-      : a === b || ((a == null || a === 0 || a === false) &&
-          (b == null || b === 0 || b === false));
+      : a === b || (a == null && (b === 0 || b === false)) ||
+          (b == null && (a === 0 || a === false));
     if (!same) {
       // Field names only: never include names, wallet amounts or other
       // personal values in migration logs or thrown errors.
