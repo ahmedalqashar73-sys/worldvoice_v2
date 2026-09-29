@@ -51,9 +51,11 @@ independent privacy review; no automatic Firebase deployment is performed.
    **unchanged**. Real coin purchasing and paid live gifting remain
    disabled until separate authorized launch steps.
 
-If the rules have not been reviewed/deployed, both devices can still open
-the exact same local 30-gift gallery and preview animations independently.
-Cross-device demos will intentionally report permission-denied.
+If dedicated preview rules have not been deployed, voice and Live room
+demos can use the existing authenticated room chat as a compatibility
+transport. Existing chat rules and a current room membership are required.
+For one-to-one chats, no such fallback exists: deploy reviewed preview
+rules and the full authenticated chat backend first.
 
 ## How Ahmed tests in PowerShell
 
