@@ -172,7 +172,17 @@ class RoomGiftOverlay extends StatelessWidget {
             alignment: Alignment.topCenter,
             child: Padding(
               padding: const EdgeInsets.only(top: 68),
-              child: FutureBuilder<List<RoomGiftCatalogItem>>(
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                // Always show the no-charge watermark, even if catalog assets
+                // are still loading or the image source fails.
+                if (preview) const Text('PREVIEW • NO COINS CHARGED',
+                  style: TextStyle(
+                    color: Color(0xFFFFE4A3),
+                    fontSize: 11, fontWeight: FontWeight.w800,
+                    shadows: [Shadow(
+                      color: Color(0xFF073C2A), blurRadius: 9)],
+                  )),
+                FutureBuilder<List<RoomGiftCatalogItem>>(
                 future: ClassicGiftCatalog.load(),
                 builder: (context, snapshot) {
                   RoomGiftCatalogItem? approved;
@@ -206,19 +216,6 @@ class RoomGiftOverlay extends StatelessWidget {
                     builder: (context, scale, child) =>
                         Transform.scale(scale: scale, child: child),
                     child: Column(mainAxisSize: MainAxisSize.min, children: [
-                      if (preview)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 4),
-                          child: Text(ar ? 'معاينة فقط • دون خصم كوينات'
-                              : 'PREVIEW • NO COINS CHARGED',
-                            style: const TextStyle(
-                              color: Color(0xFFFFE4A3),
-                              fontSize: 11,
-                              fontWeight: FontWeight.w800,
-                              shadows: [Shadow(
-                                color: Color(0xFF073C2A), blurRadius: 9)],
-                            )),
-                        ),
                       ClassicGiftVisual(gift: art, size: 165, animate: true),
                       Text(approved.localizedName(ar),
                         textAlign: TextAlign.center,
@@ -236,6 +233,7 @@ class RoomGiftOverlay extends StatelessWidget {
                   );
                 },
               ),
+              ]),
             ),
           ),
         ),
