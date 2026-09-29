@@ -175,8 +175,11 @@ class RoomGiftOverlay extends StatelessWidget {
               child: Column(mainAxisSize: MainAxisSize.min, children: [
                 // Always show the no-charge watermark, even if catalog assets
                 // are still loading or the image source fails.
-                if (preview) const Text('PREVIEW • NO COINS CHARGED',
-                  style: TextStyle(
+                if (preview) Text(
+                  Localizations.localeOf(context).languageCode == 'ar'
+                    ? 'معاينة فقط • دون خصم كوينات'
+                    : 'PREVIEW • NO COINS CHARGED',
+                  style: const TextStyle(
                     color: Color(0xFFFFE4A3),
                     fontSize: 11, fontWeight: FontWeight.w800,
                     shadows: [Shadow(
