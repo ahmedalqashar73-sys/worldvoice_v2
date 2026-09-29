@@ -168,10 +168,10 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
           previews: previews, published: published);
         final shownGifts = _giftCategory == 0
             ? classics
-            : published.where((gift) =>
+            : (published.where((gift) =>
                 gift.active && gift.priceCoins > 0 &&
-                _inSelectedCategory(gift)).toList(growable: false)
-              ..sort((a, b) => a.priceCoins.compareTo(b.priceCoins));
+                _inSelectedCategory(gift)).toList(growable: true)
+                  ..sort((a, b) => a.priceCoins.compareTo(b.priceCoins)));
         return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
           stream: FirebaseFirestore.instance.doc('economy_config/current')
               .snapshots(),
