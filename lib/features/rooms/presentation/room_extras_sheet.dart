@@ -3,29 +3,17 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../data/room_feature_models.dart';
-import '../data/room_moderation_models.dart';
 import '../services/room_feature_service.dart';
-import 'unified_gift_panel.dart';
 
 class RoomExtrasSheet extends StatelessWidget {
   const RoomExtrasSheet({
     required this.roomId,
-    required this.participants,
-    required this.isHost,
-    required this.showTeacherAiSeat,
-    this.onOpenCoinStore,
-    this.contextType = 'room',
     this.initialTab = 0,
     super.key,
   });
 
   final int initialTab;
   final String roomId;
-  final List<RoomParticipant> participants;
-  final bool isHost;
-  final bool showTeacherAiSeat;
-  final VoidCallback? onOpenCoinStore;
-  final String contextType;
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +25,7 @@ class RoomExtrasSheet extends StatelessWidget {
       child: SizedBox(
         height: MediaQuery.sizeOf(context).height * .82,
         child: DefaultTabController(
-          length: 5,
+          length: 3,
           initialIndex: initialTab,
           child: Column(
             children: [
@@ -54,9 +42,7 @@ class RoomExtrasSheet extends StatelessWidget {
               TabBar(
                 isScrollable: true,
                 tabs: [
-                  Tab(text: isArabic ? 'الثيم' : 'Theme'),
                   Tab(text: isArabic ? 'المهام' : 'Tasks'),
-                  Tab(text: isArabic ? 'الهدايا' : 'Gifts'),
                   Tab(text: isArabic ? 'الترتيب' : 'Leaderboard'),
                   Tab(text: isArabic ? 'المكافآت' : 'Rewards'),
                 ],
@@ -64,15 +50,7 @@ class RoomExtrasSheet extends StatelessWidget {
               Expanded(
                 child: TabBarView(
                   children: [
-                    _ThemeTab(service: service, isHost: isHost),
                     _TasksTab(service: service),
-                    _GiftsTab(
-                      service: service,
-                      participants: participants,
-                      showTeacherAiSeat: showTeacherAiSeat,
-                      contextType: contextType,
-                      onOpenCoinStore: onOpenCoinStore,
-                    ),
                     _LeaderboardTab(service: service),
                     _RewardsTab(
                       roomId: roomId,
@@ -85,44 +63,6 @@ class RoomExtrasSheet extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _ThemeTab extends StatelessWidget {
-  const _ThemeTab({required this.service, required this.isHost});
-  final RoomFeatureService service;
-  final bool isHost;
-
-  @override
-  Widget build(BuildContext context) {
-    const themes = <(String, String, IconData)>[
-      ('royalPurple', 'Royal Purple', Icons.auto_awesome_rounded),
-      ('emerald', 'Emerald', Icons.eco_rounded),
-      ('midnight', 'Midnight', Icons.nights_stay_rounded),
-    ];
-    return StreamBuilder<RoomFeatureState>(
-      stream: service.watchState(),
-      builder: (context, snapshot) {
-        final selected = snapshot.data?.themeId ?? 'royalPurple';
-        return ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            for (final theme in themes)
-              Card(
-                child: ListTile(
-                  enabled: isHost,
-                  onTap: isHost ? () => service.setTheme(theme.$1) : null,
-                  leading: Icon(theme.$3),
-                  title: Text(theme.$2),
-                  trailing: selected == theme.$1
-                      ? const Icon(Icons.check_circle_rounded)
-                      : const Icon(Icons.circle_outlined),
-                ),
-              ),
-          ],
-        );
-      },
     );
   }
 }
@@ -205,39 +145,6 @@ class _TaskTile extends StatelessWidget {
           ),
         ),
       );
-}
-
-class _GiftsTab extends StatelessWidget {
-  const _GiftsTab({
-    required this.service,
-    required this.participants,
-    required this.showTeacherAiSeat,
-    required this.contextType,
-    this.onOpenCoinStore,
-  });
-
-  final RoomFeatureService service;
-  final List<RoomParticipant> participants;
-  final bool showTeacherAiSeat;
-  final VoidCallback? onOpenCoinStore;
-  final String contextType;
-
-  @override
-  Widget build(BuildContext context) {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    return UnifiedGiftPanel(
-      contextType: contextType,
-      contextId: service.roomId,
-      recipients: {
-        for (final member in participants.where(
-            (member) => member.isOnStage && member.userId != uid))
-          member.userId: member.displayName,
-        if (showTeacherAiSeat && contextType == 'room')
-          'teacher_ai': 'Teacher AI',
-      },
-      onOpenCoinStore: onOpenCoinStore,
-    );
-  }
 }
 
 class _LeaderboardTab extends StatelessWidget {
