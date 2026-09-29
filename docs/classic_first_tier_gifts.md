@@ -14,10 +14,13 @@ one-to-one chat, Live and voice rooms. No second catalog/store implementation.
 - **Motion:** 30 effect labels in JSON drive motion families such as float,
   pulse, orbit, feather drift, butterfly flight and phoenix glow.
   The `Preview gift effect` control opens an explicitly free local animation.
-  The screen currently uses platform emoji as **temporary art**, NOT completed
-  custom 3D assets. `previewUrl` accepts a reviewed HTTPS image and the actual
-  event `animationUrl` may provide a compatible animated image (e.g. GIF).
-  Real rigged 3D and specialist effects still require approved assets.
+  The screen now ships **30 individually drawn premium gradient SVG assets** in
+  `assets/gifts/art/` via `flutter_svg`, including separate rose, butterfly,
+  orchid, bouquet, peacock and phoenix artwork. Emoji is retained only as a
+  loading/error fallback. The SVGs are polished **vector illustrations, not
+  photorealistic 3D models**. `previewUrl` can override a gift with reviewed
+  HTTPS art, and actual `animationUrl` events can supply compatible animated
+  images. True rigged 3D requires separately produced and reviewed art assets.
 - **One shared API:** `RoomFeatureService.sendContextGift` is unchanged.
   Active status and final price come only from backend-published `store_items`.
   First-tier local previews and new staging docs default to **inactive**.
@@ -41,7 +44,8 @@ must never decrement wallet balances or create Firestore gift events.
    Agora project and Worker launch flags if needed.
 2. Voice room > Gifts > 1–50: all 30 previews should be present. Tap
    butterflies, royal rose, bouquet and phoenix; press Preview. The picker
-   closes and a clearly labeled free animation plays **over the room seats**.
+   closes and a clearly labeled free animation with the actual sender name and selected
+   recipient plays **over the room seats**.
    No gift is delivered and no coin balance changes.
 3. Chat tab > gift icon: the **same** 30 should appear. Live tab > Preview the
    30 gifts: the **same** list should appear even without real live broadcasts.
@@ -64,6 +68,8 @@ and never overwrites an existing document, price or activation status.
 
 `test/classic_gift_catalog_test.dart` checks count, pricing range, uniqueness
 and server-authoritative published prices. `test/classic_gift_visual_test.dart`
-checks non-framed Flutter rendering. Backend checks consume the same JSON.
+checks non-framed Flutter rendering. `test/luxury_gift_assets_test.dart`
+verifies all 30 bundled artworks. The same emerald/gold theme now styles the
+existing 7-pack coin store and real sender/recipient chat gift bubbles. Backend checks consume the same JSON.
 The Flutter, backend and Firestore CI must pass before updating a test phone.
 No production deployment is included.
