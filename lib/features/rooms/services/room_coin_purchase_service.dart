@@ -184,12 +184,13 @@ class RoomCoinPurchaseService extends ChangeNotifier {
     ]);
     final policy = responses[0].data();
     final catalog = responses[1].data();
+    final approvedPrice = catalog?['priceUsd'];
     if (policy?['enabled'] != true ||
         policy?['privateWalletCutoverVerified'] != true ||
         policy?['publicProfileRulesVerified'] != true ||
         responses[2].exists != true ||
         catalog?['active'] != true ||
-        (catalog?['priceUsd'] as num? ?? 0) <= 0 ||
+        approvedPrice is! num || approvedPrice <= 0 ||
         catalog?['coins'] != item.config.coins ||
         (Platform.isAndroid
             ? catalog?['androidProductId']
