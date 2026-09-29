@@ -1056,8 +1056,10 @@ app.post("/gift/send", async (req, res, next) => {
       .update(`${sender.uid}:${requestKey}`).digest("hex");
     const eventRef = db.collection("economy_gift_operations").doc(requestHash);
     const senderRef = db.collection("users").doc(sender.uid);
+    const senderWalletRef = privateWalletRef(senderRef);
     const recipientRef = recipientId === "teacher_ai" ? null
       : db.collection("users").doc(recipientId);
+    const recipientWalletRef = recipientRef ? privateWalletRef(recipientRef) : null;
     const inventoryRef = senderRef.collection("inventory")
       .doc(`gift__${giftId}`);
     const itemRef = db.collection("store_items").doc(`gift__${giftId}`);
@@ -1083,12 +1085,12 @@ app.post("/gift/send", async (req, res, next) => {
     const outcome = await db.runTransaction(async (tx) => {
       // All reads before writes (Firestore transaction requirement).
       const refs = [eventRef, configRef, itemRef, roomRef, senderMemberRef,
-        senderRef, inventoryRef, ...(recipientRef
-          ? [recipientMemberRef, recipientRef] : []),
+        senderRef, senderWalletRef, inventoryRef, ...(recipientRef
+          ? [recipientMemberRef, recipientRef, recipientWalletRef] : []),
         ...(senderFollow ? [senderFollow, recipientFollow] : [])];
       const snapshots = await Promise.all(refs.map(ref => tx.get(ref)));
       const [existing, configSnap, itemSnap, roomSnap, senderMember,
-        senderSnap, freeGiftSnap] = snapshots;
+        senderProfileSnap, senderSnap, freeGiftSnap] = snapshots;
       if (existing.exists) {
         const data = existing.data();
         if (data.userId !== sender.uid || data.context !== context ||
@@ -1103,27 +1105,30 @@ app.post("/gift/send", async (req, res, next) => {
         if (roomSnap.data()?.isOpen !== true ||
             (context === "live" && roomSnap.data()?.mode !== "live") ||
             !senderMember.exists ||
-            (recipientMemberRef && !snapshots[7].exists)) {
+            (recipientMemberRef && !snapshots[8].exists)) {
           throw Object.assign(new Error("Room membership is required."),
             {status: 403});
         }
       } else {
         if (!roomSnap.exists ||
             chatIdFor(sender.uid, recipientId) !== contextId ||
-            !snapshots[9]?.exists || !snapshots[10]?.exists) {
+            !snapshots[11]?.exists || !snapshots[12]?.exists) {
           throw Object.assign(new Error("Mutual following required for chat gifts."),
             {status: 403});
         }
         assertChatMembership(roomSnap.data(), sender.uid, recipientId);
       }
       const config = requireLiveEconomy(configSnap.data());
+      requirePrivateWallet(senderSnap);
+      if (recipientRef) requirePrivateWallet(snapshots[10]);
       const item = itemSnap.data();
       const price = Number(item?.priceCoins);
       if (!itemSnap.exists || item.type !== "gift" || item.active !== true ||
           !Number.isSafeInteger(price) || price <= 0) {
         throw Object.assign(new Error("This gift is unavailable."), {status: 404});
       }
-      if (!senderSnap.exists || (recipientRef && !snapshots[8].exists)) {
+      if (!senderProfileSnap.exists ||
+          (recipientRef && !snapshots[9].exists)) {
         throw Object.assign(new Error("Gift wallet profiles are unavailable."),
           {status: 409});
       }
@@ -1169,7 +1174,8 @@ app.post("/gift/send", async (req, res, next) => {
           spent + amounts.chargedCoins > config.giftingDailyCoinLimit) {
         throw Object.assign(new Error("Daily gift limit reached."), {status: 429});
       }
-      const recipientData = recipientRef ? snapshots[8].data() || {} : null;
+      const recipientData = recipientRef ? snapshots[10].data() || {} : null;
+      const recipientProfile = recipientRef ? snapshots[9].data() || {} : null;
       const recipientBefore = recipientData
         ? Number(recipientData.diamondsPending || 0) : 0;
       const receiverAfter = recipientBefore + amounts.pendingDiamonds;
@@ -1186,7 +1192,7 @@ app.post("/gift/send", async (req, res, next) => {
         pendingDiamonds: recipientRef ? amounts.pendingDiamonds : 0,
         holdUntil: recipientRef ? holdUntil.toDate().toISOString() : null,
       };
-      tx.set(senderRef, {
+      tx.set(senderWalletRef, {
         coins: after,
         giftSentPoints: FieldValue.increment(amounts.chargedCoins),
         giftLevelPoints: FieldValue.increment(amounts.giftLevelPoints),
@@ -1210,7 +1216,7 @@ app.post("/gift/send", async (req, res, next) => {
         createdAt: FieldValue.serverTimestamp(),
       });
       if (recipientRef) {
-        tx.set(recipientRef, {
+        tx.set(recipientWalletRef, {
           diamondsPending: receiverAfter,
           giftReceivedPoints: FieldValue.increment(amounts.chargedCoins),
           updatedAt: FieldValue.serverTimestamp(),
@@ -1239,9 +1245,9 @@ app.post("/gift/send", async (req, res, next) => {
       tx.create(giftEventRef, {
         ...(context === "chat" ? {type: "gift"} : {}),
         senderId: sender.uid,
-        senderName: String(senderData.displayName || "WorldVoice user"),
+        senderName: String(senderProfileSnap.data()?.displayName || "WorldVoice user"),
         recipientId, recipientName: recipientRef
-          ? String(recipientData.displayName || "WorldVoice member")
+          ? String(recipientProfile.displayName || "WorldVoice member")
           : "Teacher AI",
         giftId, points: amounts.chargedCoins, quantity,
         animationUrl: item.animationUrl || null,
