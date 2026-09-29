@@ -441,11 +441,20 @@ class _ChatConversationState extends State<_ChatConversation> {
                           margin: const EdgeInsets.symmetric(vertical: 4),
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: classicGift
-                                ? Colors.transparent
+                            color: classicGift ? null
                                 : mine
                                     ? Theme.of(context).colorScheme.primaryContainer
                                     : Theme.of(context).colorScheme.surfaceContainerHighest,
+                            gradient: classicGift ? const LinearGradient(
+                              colors: [Color(0xFF124C37), Color(0xFF1B5942),
+                                       Color(0xFF0A382B)]) : null,
+                            border: classicGift
+                                ? Border.all(color: const Color(0xBBE6C881))
+                                : null,
+                            boxShadow: classicGift ? const [
+                              BoxShadow(color: Color(0x332AAC74),
+                                  blurRadius: 12, offset: Offset(0, 4)),
+                            ] : null,
                             borderRadius: BorderRadius.circular(17),
                           ),
                           child: classicGift
@@ -461,19 +470,40 @@ class _ChatConversationState extends State<_ChatConversation> {
                                       }
                                     }
                                     if (gift == null) return Text(value);
+                                    final sender = (data['senderName'] ??
+                                        (ar ? 'المرسل' : 'Sender')).toString();
+                                    final receiver = (data['recipientName'] ??
+                                        widget.peerName).toString();
+                                    final paidCoins =
+                                        (data['points'] as num?)?.toInt();
                                     return Column(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
+                                        const Icon(Icons.auto_awesome_rounded,
+                                          color: Color(0xFFF5D893), size: 15),
+                                        const SizedBox(height: 2),
+                                        Text(ar
+                                          ? '$sender أهدى إلى $receiver'
+                                          : '$sender sent to $receiver',
+                                          maxLines: 2,
+                                          textAlign: TextAlign.center,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            color: Color(0xFFFFE7AC),
+                                            fontWeight: FontWeight.w800,
+                                            fontSize: 12)),
                                         ClassicGiftVisual(
-                                            gift: gift, size: 100),
+                                            gift: gift, size: 115),
                                         Text(gift.localizedName(ar),
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w900)),
+                                        const SizedBox(height: 3),
+                                        Text('${paidCoins ?? gift.priceCoins} 🪙',
                                             style: const TextStyle(
-                                              color: Color(0xFF0D7654),
-                                              fontWeight: FontWeight.w800)),
-                                        Text('${gift.priceCoins} 🪙',
-                                            style: const TextStyle(
-                                              color: Color(0xFFB58A2A),
-                                              fontWeight: FontWeight.bold)),
+                                              color: Color(0xFFFFD98E),
+                                              fontWeight: FontWeight.w900)),
                                       ],
                                     );
                                   },
