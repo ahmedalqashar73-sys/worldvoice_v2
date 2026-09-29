@@ -56,6 +56,7 @@ dependencies:
   speech_to_text: ^7.5.0
   google_mlkit_translation: ^0.15.1
   in_app_purchase: ^3.3.1
+  flutter_svg: ^2.2.1
 
 dev_dependencies:
   flutter_test:
@@ -82,6 +83,7 @@ flutter:
   # Shared gift presentation catalog; no monetary authorization is stored here.
   assets:
     - assets/gifts/classic_premium_1_50.json
+    - assets/gifts/art/
 
   # To add assets to your application, add an assets section, like this:
   # assets:
