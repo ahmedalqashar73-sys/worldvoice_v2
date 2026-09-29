@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/localization/locale_controller.dart';
 import '../../rooms/presentation/voice_rooms_list.dart';
+import '../../rooms/presentation/unified_gift_panel.dart';
 
 /// Live uses real Agora voice rooms with screen sharing rather than the old
 /// fake streamer cards. Camera/video publishing requires a separate tested
@@ -36,6 +37,34 @@ class LiveScreen extends StatelessWidget {
                     ? 'صوت مباشر ومشاركة شاشة. بث الكاميرا قيد التطوير.'
                     : 'Live voice and screen sharing. Camera broadcasting is being developed.',
                     style: const TextStyle(color: Colors.white70)),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: TextButton.icon(
+                onPressed: () => showModalBottomSheet<void>(
+                  context: context,
+                  isScrollControlled: true,
+                  useSafeArea: true,
+                  showDragHandle: true,
+                  builder: (sheet) => SizedBox(
+                    height: MediaQuery.sizeOf(sheet).height * .76,
+                    child: const UnifiedGiftPanel(
+                      contextType: 'live',
+                      contextId: 'preview',
+                      recipients: <String, String>{},
+                    ),
+                  ),
+                ),
+                icon: const Icon(Icons.auto_awesome_rounded,
+                    color: Color(0xFF11835D)),
+                label: Text(ar ? 'تجربة الهدايا الثلاثين'
+                    : 'Preview the 30 gifts',
+                  style: const TextStyle(color: Color(0xFF11835D),
+                      fontWeight: FontWeight.bold)),
               ),
             ),
           ),
