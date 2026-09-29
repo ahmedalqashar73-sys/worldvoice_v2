@@ -15,12 +15,20 @@ export const PRIVATE_WALLET_FIELDS = Object.freeze([
 
 // A public projection must never use object spreading from the legacy record.
 const PUBLIC_STRING_FIELDS = Object.freeze([
-  "displayName", "name", "username", "customId", "countryCode",
-  "nativeLanguageCode", "bio", "photoURL", "photoUrl", "gender",
-  "profession", "job",
+  "displayName", "name", "username", "customId", "country", "countryCode",
+  "nativeLanguageCode", "nativeLanguage", "bio", "photoURL", "photoUrl",
+  "coverUrl", "voiceBioUrl", "gender", "profession", "professionKey",
+  "job", "languageLevel",
 ]);
 const PUBLIC_ARRAY_FIELDS = Object.freeze([
-  "learningLanguageCodes", "hobbies",
+  "learningLanguageCodes", "learningLanguages", "hobbies", "interests",
+  "learningGoals",
+]);
+const PUBLIC_BOOLEAN_FIELDS = Object.freeze([
+  "profileCompleted", "isPartner", "isVerified", "isVip", "isOnline",
+]);
+const PUBLIC_INTEGER_FIELDS = Object.freeze([
+  "followersCount", "followingCount", "giftLevel",
 ]);
 
 export function projectPublicProfile(userId, source) {
@@ -46,6 +54,19 @@ export function projectPublicProfile(userId, source) {
       output[field] = [...values];
     }
   }
+  for (const field of PUBLIC_BOOLEAN_FIELDS) {
+    if (typeof source[field] === "boolean") output[field] = source[field];
+  }
+  for (const field of PUBLIC_INTEGER_FIELDS) {
+    if (Number.isSafeInteger(source[field]) && source[field] >= 0) {
+      output[field] = source[field];
+    }
+  }
+  for (const field of ["lastActiveAt", "lastSeenAt"]) {
+    const value = source[field];
+    if (typeof value?.toMillis === "function") output[field] = value;
+  }
+  // City and full DOB remain hidden by default; do not publish either.
   if (Number.isSafeInteger(source.age) &&
       source.age >= 0 && source.age <= 120) {
     output.age = source.age;
