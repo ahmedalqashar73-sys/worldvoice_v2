@@ -5,9 +5,10 @@ import '../data/classic_gift_catalog.dart';
 import 'classic_gift_visual.dart';
 
 class RoomGiftOverlay extends StatelessWidget {
-  const RoomGiftOverlay({required this.event, super.key});
+  const RoomGiftOverlay({required this.event, this.preview = false, super.key});
 
   final RoomGiftEvent event;
+  final bool preview;
 
   String get _giftId => event.giftId.trim().toLowerCase();
 
@@ -205,6 +206,19 @@ class RoomGiftOverlay extends StatelessWidget {
                     builder: (context, scale, child) =>
                         Transform.scale(scale: scale, child: child),
                     child: Column(mainAxisSize: MainAxisSize.min, children: [
+                      if (preview)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Text(ar ? 'معاينة فقط • دون خصم كوينات'
+                              : 'PREVIEW • NO COINS CHARGED',
+                            style: const TextStyle(
+                              color: Color(0xFFFFE4A3),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              shadows: [Shadow(
+                                color: Color(0xFF073C2A), blurRadius: 9)],
+                            )),
+                        ),
                       ClassicGiftVisual(gift: art, size: 165, animate: true),
                       Text(approved.localizedName(ar),
                         textAlign: TextAlign.center,
