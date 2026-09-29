@@ -8,6 +8,10 @@ on:
       - fix/finish-room-hub-quiz-gift-20260928
     paths:
       - ".github/workflows/android-cloud-test-apk.yml"
+      - "lib/features/rooms/**"
+      - "lib/features/chat/**"
+      - "assets/gifts/**"
+      - "test/friend_gift_preview_test.dart"
   workflow_dispatch:
 
 permissions:
@@ -45,6 +49,9 @@ jobs:
       - name: Analyze project
         run: flutter analyze
 
+      - name: Verify friend-demo safety and bundled premium gift assets
+        run: flutter test test/friend_gift_preview_test.dart test/luxury_gift_assets_test.dart
+
       # The URL and App ID are public; certificate stays solely in Cloudflare.
       # This test APK uses the existing project's temporary DEBUG signing only.
       - name: Build Android release-mode TEST APK
@@ -66,7 +73,7 @@ jobs:
           name: android-build-log
           path: android-build.log
           if-no-files-found: warn
-          retention-days: 7
+          retention-days: 14
 
       - name: Upload Android TEST APK
         if: steps.android_build.outcome == 'success'
@@ -75,4 +82,4 @@ jobs:
           name: WorldVoice-friend-gift-demo-test-apk
           path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 14
