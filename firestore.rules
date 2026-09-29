@@ -31,7 +31,7 @@ service cloud.firestore {
       return (
         oldTheme == newTheme && oldUrl == newUrl
       ) || (
-        newTheme in ['royalPurple', 'emerald', 'midnight']
+        newTheme in ['royalPurple', 'emerald', 'midnight', 'skyBlue', 'forestGold']
         && newUrl == ''
       ) || (
         exists(backgroundEntitlementPath(request.auth.uid, newTheme))
