@@ -58,6 +58,28 @@ test('signed-in room listing works and anonymous access is rejected', async () =
   }
 });
 
+test('private wallet balances stay owner-only, even for signed-in strangers', async () => {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const db = ctx.firestore();
+    await setDoc(doc(db, 'users/listener/private/wallet'),
+      {coins: 425, diamonds: 17, walletFrozen: false});
+    await setDoc(doc(db, 'public_profiles/listener'),
+      {uid: 'listener', displayName: 'Visible member'});
+  });
+  const owner = user('listener');
+  const stranger = user('other');
+  const privatePath = 'users/listener/private/wallet';
+  const visible = await assertSucceeds(getDoc(doc(owner, privatePath)));
+  assert.equal(visible.data().coins, 425);
+  await assertFails(getDoc(doc(stranger, privatePath)));
+  await assertFails(getDocs(collection(stranger, 'users/listener/private')));
+  await assertFails(setDoc(doc(owner, privatePath), {coins: 999999}));
+  await assertFails(updateDoc(doc(owner, privatePath), {diamonds: 999999}));
+  await assertSucceeds(getDoc(doc(stranger, 'public_profiles/listener')));
+  await assertFails(setDoc(doc(stranger, 'public_profiles/listener'),
+    {coins: 9000000}));
+});
+
 test('economy reads are permitted but client-side money and gifts cannot be forged', async () => {
   const db = user('listener');
   for (const name of ['coin_products', 'economy_config', 'store_items']) {
