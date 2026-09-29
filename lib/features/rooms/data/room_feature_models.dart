@@ -132,6 +132,9 @@ class RoomGiftCatalogItem {
     this.category,
     this.emoji,
     this.animationUrl,
+    this.previewUrl,
+    this.nameAr,
+    this.effectType,
   });
 
   final String id;
@@ -141,6 +144,28 @@ class RoomGiftCatalogItem {
   final String? category;
   final String? emoji;
   final String? animationUrl;
+  final String? previewUrl;
+  final String? nameAr;
+  final String? effectType;
+
+  String localizedName(bool ar) =>
+      ar && nameAr?.isNotEmpty == true ? nameAr! : name;
+
+  /// Only a backend-published Firestore item can ever be active.
+  /// Local design previews have no payment authority.
+  factory RoomGiftCatalogItem.preview(Map<String, dynamic> data) {
+    return RoomGiftCatalogItem(
+      id: data['id'].toString(),
+      name: data['name'].toString(),
+      nameAr: data['nameAr']?.toString(),
+      priceCoins: (data['priceCoins'] as num).toInt(),
+      active: false,
+      category: 'classic_1_50',
+      emoji: data['emoji']?.toString(),
+      effectType: data['effectType']?.toString(),
+      previewUrl: data['previewUrl']?.toString(),
+    );
+  }
 
   factory RoomGiftCatalogItem.fromDoc(
     QueryDocumentSnapshot<Map<String, dynamic>> doc,
@@ -158,6 +183,9 @@ class RoomGiftCatalogItem {
       category: data['category']?.toString(),
       emoji: data['emoji']?.toString(),
       animationUrl: data['animationUrl']?.toString(),
+      previewUrl: data['previewUrl']?.toString(),
+      nameAr: data['nameAr']?.toString(),
+      effectType: data['effectType']?.toString(),
     );
   }
 }
