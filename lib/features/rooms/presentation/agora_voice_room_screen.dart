@@ -100,6 +100,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   StreamSubscription<RoomFeatureState>? _featuresSub;
   StreamSubscription<List<RoomGiftEvent>>? _giftSub;
   StreamSubscription<List<RoomGiftPreview>>? _freeGiftPreviewSub;
+  StreamSubscription<List<RoomChatMessage>>? _freeChatGiftSub;
   StreamSubscription<List<RoomCaption>>? _captionSub;
   StreamSubscription<List<RoomTeacherAiNote>>? _teacherAiSub;
 
@@ -335,6 +336,48 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
           // Existing Agora audio always survives missing or older Firebase
           // rules. New preview rule deployment is a separate testing step.
           debugPrint('WorldVoice friend gift demo unavailable: $error');
+        });
+      }
+
+
+      if (RoomFeatureService.friendPreviewEnabled) {
+        _freeChatGiftSub = _roomChat.watchMessages().listen((messages) {
+          if (!mounted) return;
+          final now = DateTime.now();
+          RoomChatMessage? latest;
+          ({String giftId, String recipientId, String nonce})? detail;
+          for (final message in messages) {
+            final payload = RoomGiftPreviewChatCodec.decode(message.text);
+            final timestamp = message.createdAt;
+            if (payload == null || timestamp == null ||
+                timestamp.isBefore(_friendPreviewOpenedAt.subtract(
+                    const Duration(seconds: 1))) ||
+                now.difference(timestamp).inSeconds.abs() > 20 ||
+                !_seenFriendPreviewEvents.add('chat:${message.id}')) {
+              continue;
+            }
+            latest ??= message;
+            detail ??= payload;
+          }
+          if (latest == null || detail == null) return;
+          final recipient = _participants.where(
+            (p) => p.userId == detail!.recipientId);
+          final sender = _participants.where(
+            (p) => p.userId == latest!.userId);
+          _showGiftOverlay(RoomGiftEvent(
+            id: 'free-chat:${latest.id}',
+            senderId: latest.userId,
+            senderName: sender.isNotEmpty
+                ? sender.first.displayName : latest.displayName,
+            recipientId: detail.recipientId,
+            recipientName: recipient.isNotEmpty
+                ? recipient.first.displayName : 'Friend',
+            giftId: detail.giftId,
+            points: 0,
+            createdAt: latest.createdAt,
+          ), preview: true);
+        }, onError: (Object error, StackTrace stack) {
+          debugPrint('WorldVoice room demo chat transport unavailable: $error');
         });
       }
 
@@ -2193,6 +2236,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     _featuresSub?.cancel();
     _giftSub?.cancel();
     _freeGiftPreviewSub?.cancel();
+    _freeChatGiftSub?.cancel();
     _captionSub?.cancel();
     _teacherAiSub?.cancel();
     _giftOverlayTimer?.cancel();
