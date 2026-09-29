@@ -5,10 +5,13 @@ import '../data/classic_gift_catalog.dart';
 import 'classic_gift_visual.dart';
 
 class RoomGiftOverlay extends StatelessWidget {
-  const RoomGiftOverlay({required this.event, this.preview = false, super.key});
+  const RoomGiftOverlay({required this.event, this.preview = false,
+    this.previewGift, super.key});
 
   final RoomGiftEvent event;
   final bool preview;
+  /// Immediate local art for a preview; server events still use shared JSON.
+  final RoomGiftCatalogItem? previewGift;
 
   String get _giftId => event.giftId.trim().toLowerCase();
 
@@ -188,10 +191,10 @@ class RoomGiftOverlay extends StatelessWidget {
                 FutureBuilder<List<RoomGiftCatalogItem>>(
                 future: ClassicGiftCatalog.load(),
                 builder: (context, snapshot) {
-                  RoomGiftCatalogItem? approved;
+                  RoomGiftCatalogItem? approved = previewGift;
                   for (final item in snapshot.data ??
                       const <RoomGiftCatalogItem>[]) {
-                    if (item.id == _giftId) {
+                    if (approved == null && item.id == _giftId) {
                       approved = item;
                       break;
                     }
