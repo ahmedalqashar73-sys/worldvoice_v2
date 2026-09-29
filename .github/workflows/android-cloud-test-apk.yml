@@ -62,7 +62,10 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          flutter build apk --release \
+          # CI uses a larger heap than 2 GB Windows laptops. The previous
+          # build failed at :app:packageRelease with Java heap OOM.
+          sed -i 's/-Xmx2048m/-Xmx4096m/' android/gradle.properties
+          flutter build apk --release --split-per-abi \
             --dart-define=WORLDVOICE_FRIEND_GIFT_PREVIEW=true \
             --dart-define=AGORA_APP_ID=fa41476c6813471eb45c059bcb4a0e19 \
             --dart-define=WORLDVOICE_ROOM_BACKEND_URL=https://worldvoice-agora-token.worldvoice.workers.dev \
@@ -82,7 +85,7 @@ jobs:
         if: steps.android_build.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: WorldVoice-3d-gifts-friends-test-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: WorldVoice-3d-gifts-friends-test-apks
+          path: build/app/outputs/flutter-apk/app-*-release.apk
           if-no-files-found: error
           retention-days: 14
