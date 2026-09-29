@@ -40,7 +40,9 @@ must never decrement wallet balances or create Firestore gift events.
    before switching. `flutter pub get`; `flutter run` with the current public
    Agora project and Worker launch flags if needed.
 2. Voice room > Gifts > 1–50: all 30 previews should be present. Tap
-   butterflies, royal rose, bouquet and phoenix; press Preview. No coin changes.
+   butterflies, royal rose, bouquet and phoenix; press Preview. The picker
+   closes and a clearly labeled free animation plays **over the room seats**.
+   No gift is delivered and no coin balance changes.
 3. Chat tab > gift icon: the **same** 30 should appear. Live tab > Preview the
    30 gifts: the **same** list should appear even without real live broadcasts.
 4. For any already published paid catalog entry, verify that the server still
