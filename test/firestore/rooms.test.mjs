@@ -12,7 +12,8 @@ const participant = (uid, host = false) => ({
   uid, displayName: uid, role: host ? 'host' : 'listener',
   ...(host ? {seatIndex: 1} : {}),
   handRaised: false, isModerator: false, warningCount: 0,
-  forcedMuted: false, kicked: false
+  forcedMuted: false, kicked: false,
+  joinedAt: serverTimestamp(),
 });
 before(async () => {
   env = await initializeTestEnvironment({
