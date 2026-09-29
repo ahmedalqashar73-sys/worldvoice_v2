@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../data/room_shop_models.dart';
+import '../data/room_feature_models.dart';
 import '../services/room_feature_service.dart';
 import '../services/room_shop_service.dart';
 import 'room_coin_store_sheet.dart';
