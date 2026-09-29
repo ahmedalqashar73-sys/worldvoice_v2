@@ -1535,7 +1535,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                 'teacher_ai': 'Teacher AI',
             },
             onOpenCoinStore: _showCoinStore,
-            onPreview: (gift) {
+            onPreview: (gift, recipientId) {
               // Local effect test over the real seats: never write a gift
               // document, debit coins or display a sent-gift receipt.
               Navigator.pop(sheetContext);
@@ -1544,9 +1544,21 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                 _showGiftOverlay(RoomGiftEvent(
                   id: 'preview',
                   senderId: myId ?? '',
-                  senderName: 'Preview',
-                  recipientId: '',
-                  recipientName: '',
+                  senderName: _me?.displayName ??
+                      FirebaseAuth.instance.currentUser?.displayName ??
+                      'WorldVoice',
+                  recipientId: recipientId ?? '',
+                  recipientName: widget.initialMode != RoomMode.live &&
+                          recipientId == 'teacher_ai'
+                      ? 'Teacher AI'
+                      : _participants.where(
+                          (p) => p.userId == recipientId).isNotEmpty
+                        ? _participants.firstWhere(
+                            (p) => p.userId == recipientId).displayName
+                        : (recipientId == null
+                            ? (Localizations.localeOf(context).languageCode == 'ar'
+                                ? 'اختر المستلم' : 'Select recipient')
+                            : 'Member'),
                   giftId: gift.id,
                   points: gift.priceCoins,
                 ), preview: true, previewGift: gift);
