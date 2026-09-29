@@ -624,9 +624,7 @@ class _WebCheckoutCatalog extends StatelessWidget {
             .toList(growable: false)
           ..sort((a, b) => a.coins.compareTo(b.coins));
         if (products.isEmpty) {
-          return Center(child: Text(isArabic
-              ? 'لا توجد باقات ويب معتمدة حاليًا.'
-              : 'No approved web packs are active.'));
+          return _PlannedCoinPacks(ar: isArabic);
         }
         return ListView.separated(
           padding: const EdgeInsets.all(16),
@@ -634,28 +632,24 @@ class _WebCheckoutCatalog extends StatelessWidget {
           separatorBuilder: (_, _) => const SizedBox(height: 8),
           itemBuilder: (context, index) {
             final product = products[index];
-            return Card(
-              child: ListTile(
-                leading: const Icon(Icons.credit_card_rounded),
-                title: Text(isArabic
-                    ? '${product.coins} كوينز' : '${product.coins} Coins'),
-                subtitle: Text(
-                    '${product.priceUsd!.toStringAsFixed(2)} USD'),
-                trailing: FilledButton(
-                  onPressed: () async {
-                    try {
-                      await store.startWebCheckout(product);
-                    } catch (error) {
-                      if (!context.mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(error.toString()
-                            .replaceFirst('Bad state: ', ''))),
-                      );
-                    }
-                  },
-                  child: Text(isArabic ? 'الدفع الآمن' : 'Secure checkout'),
-                ),
-              ),
+            return _PremiumCoinPack(
+              amount: product.coins,
+              subtitle:
+                  '${product.priceUsd!.toStringAsFixed(2)} USD • Visa / Mastercard',
+              buttonLabel: isArabic ? 'الدفع الآمن'
+                                    : 'Secure checkout',
+              enabled: true,
+              onBuy: () async {
+                try {
+                  await store.startWebCheckout(product);
+                } catch (error) {
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(error.toString()
+                        .replaceFirst('Bad state: ', ''))),
+                  );
+                }
+              },
             );
           },
         );
