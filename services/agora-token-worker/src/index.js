@@ -171,6 +171,8 @@ const auxiliaryRoutes = new Set([
   "/teacher-ai/ask",
   "/quiz/start",
   "/quiz/finish",
+  "/room/tasks/status",
+  "/room/tasks/claim",
   "/store/purchase",
   "/store/claim-reward",
   "/iap/verify",
@@ -211,7 +213,9 @@ export default {
         service: "worldvoice-agora-token-worker",
       }, ready ? 200 : 503);
     }
-    if (request.method === "POST" && auxiliaryRoutes.has(url.pathname)) {
+    if (auxiliaryRoutes.has(url.pathname) &&
+        (request.method === "POST" ||
+         (request.method === "GET" && url.pathname === "/room/tasks/status"))) {
       return forwardAuxiliaryRequest(request, env);
     }
     if (request.method !== "POST" || url.pathname !== "/agora/token") {
