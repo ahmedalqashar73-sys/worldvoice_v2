@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:worldvoice/features/rooms/data/classic_gift_catalog.dart';
+import 'package:worldvoice/features/rooms/data/room_feature_models.dart';
+import 'package:worldvoice/features/rooms/presentation/room_gift_overlay.dart';
 import 'package:worldvoice/features/rooms/presentation/classic_gift_visual.dart';
 
 void main() {
@@ -24,4 +26,27 @@ void main() {
     await tester.pump(const Duration(milliseconds: 180));
     expect(tester.takeException(), isNull);
   });
+  testWidgets('in-room preview is labeled and does not show a gift receipt',
+      (tester) async {
+    const sample = RoomGiftEvent(
+      id: 'demo',
+      senderId: 'preview',
+      senderName: 'Preview',
+      recipientId: '',
+      recipientName: '',
+      giftId: 'classic_golden_phoenix',
+      points: 50,
+    );
+    await tester.pumpWidget(const MaterialApp(
+      home: Scaffold(
+        body: RoomGiftOverlay(event: sample, preview: true),
+      ),
+    ));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(find.textContaining('PREVIEW'), findsOneWidget);
+    expect(find.text('Golden Phoenix'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
 }
