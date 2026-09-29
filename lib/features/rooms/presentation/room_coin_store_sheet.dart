@@ -273,7 +273,9 @@ class _WalletViewState extends State<_WalletView> {
                     .doc('economy_config/current').snapshots(),
                 builder: (context, snapshot) {
                   final policy = snapshot.data?.data();
-                  if (policy?['enabled'] != true) {
+                  if (policy?['enabled'] != true ||
+                      policy?['privateWalletCutoverVerified'] != true ||
+                      policy?['publicProfileRulesVerified'] != true) {
                     return Padding(
                       padding: const EdgeInsets.all(10),
                       child: Text(ar
