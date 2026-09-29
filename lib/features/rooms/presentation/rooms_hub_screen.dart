@@ -40,6 +40,7 @@ class _RoomsHubScreenState extends State<RoomsHubScreen> {
     final code = widget.localeController.locale?.languageCode ?? 'en';
     final rtl = const {'ar', 'ur', 'fa'}.contains(code);
     final labels = _RoomsHubLabels(code);
+    final canSearchRooms = _section == 0 || _section == 2;
 
     return Directionality(
       textDirection: rtl ? TextDirection.rtl : TextDirection.ltr,
@@ -58,20 +59,21 @@ class _RoomsHubScreenState extends State<RoomsHubScreen> {
                           ),
                     ),
                   ),
-                  IconButton.filledTonal(
-                    onPressed: () => setState(() {
-                      _searchOpen = !_searchOpen;
-                      if (!_searchOpen) _search.clear();
-                    }),
-                    tooltip: labels.search,
-                    icon: Icon(_searchOpen
-                        ? Icons.close_rounded
-                        : Icons.search_rounded),
-                  ),
+                  if (canSearchRooms)
+                    IconButton.filledTonal(
+                      onPressed: () => setState(() {
+                        _searchOpen = !_searchOpen;
+                        if (!_searchOpen) _search.clear();
+                      }),
+                      tooltip: labels.search,
+                      icon: Icon(_searchOpen
+                          ? Icons.close_rounded
+                          : Icons.search_rounded),
+                    ),
                 ],
               ),
             ),
-            if (_searchOpen)
+            if (canSearchRooms && _searchOpen)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 18),
                 child: TextField(
@@ -97,7 +99,15 @@ class _RoomsHubScreenState extends State<RoomsHubScreen> {
                   return ChoiceChip(
                     selected: selected,
                     showCheckmark: false,
-                    onSelected: (_) => setState(() => _section = index),
+                    onSelected: (_) => setState(() {
+                      _section = index;
+                      // Search applies to rooms only; never show an inert
+                      // search box on the Live or Learn screens.
+                      if (index != 0 && index != 2) {
+                        _searchOpen = false;
+                        _search.clear();
+                      }
+                    }),
                     avatar: Icon(
                       _sectionIcon(index),
                       size: 18,
