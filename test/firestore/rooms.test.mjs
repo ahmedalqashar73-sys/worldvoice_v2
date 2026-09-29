@@ -49,6 +49,41 @@ test('quota and history are available only to their owner before joining', async
   await assertFails(setDoc(doc(user('other'), 'users/new/room_history/r1'), {roomId: 'r1'}));
 });
 
+test('room tasks and level XP cannot be forged by host or listener', async () => {
+  const hostDb = user('host');
+  const listenerDb = user('listener');
+  await assertFails(updateDoc(room(hostDb), {
+    roomXp: 5900, roomLevel: 60,
+  }));
+  await assertFails(updateDoc(room(listenerDb), {
+    roomXp: 500, roomLevel: 6,
+  }));
+  await assertFails(setDoc(doc(listenerDb, 'rooms/r1/task_completions/ten_minutes_listener_today'), {
+    userId: 'listener', taskKey: 'ten_minutes', points: 4,
+    periodKey: 'today', completedAt: serverTimestamp(),
+  }));
+  await assertFails(setDoc(doc(hostDb, 'rooms/r1/rewards/level_60'), {
+    level: 60, type: 'gift_pack', unlockedBy: 'host',
+  }));
+  await assertFails(setDoc(doc(listenerDb, 'users/listener/room_rewards/r1_level_60'), {
+    userId: 'listener', roomId: 'r1', level: 60,
+    type: 'gift_pack', sourceRewardId: 'level_60',
+  }));
+});
+
+test('new participant entry must use trusted server time', async () => {
+  const db = user('new');
+  const candidate = participant('new');
+  await assertFails(setDoc(member(db, 'new'), {
+    ...candidate, joinedAt: new Date('2020-01-01T00:00:00Z'),
+    updatedAt: serverTimestamp(),
+  }));
+  await assertSucceeds(setDoc(member(db, 'new'), {
+    ...candidate, joinedAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  }));
+});
+
 test('signed-in room listing works and anonymous access is rejected', async () => {
   await assertSucceeds(getDocs(collection(user('new'), 'rooms')));
   await assertFails(getDocs(collection(env.unauthenticatedContext().firestore(), 'rooms')));
