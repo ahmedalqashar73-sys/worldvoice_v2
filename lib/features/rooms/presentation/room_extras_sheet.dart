@@ -101,7 +101,9 @@ class _TasksTabState extends State<_TasksTab> {
         _error = error.toString().replaceFirst('Bad state: ', '');
       });
     } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 
@@ -126,7 +128,9 @@ class _TasksTabState extends State<_TasksTab> {
         _error = error.toString().replaceFirst('Bad state: ', '');
       });
     } finally {
-      if (mounted) setState(() => _busyTask = null);
+      if (mounted) {
+        setState(() => _busyTask = null);
+      }
     }
   }
 
