@@ -18,6 +18,7 @@ import {registerChatRoutes} from "./chat_routes.js";
 import {chatIdFor, assertChatMembership} from "./chat_membership.js";
 import {reverseVerifiedWebPurchase} from "./payment_reversals.js";
 import {validateQuizDraft, quizWinners} from "./quiz_policy.js";
+import {roomTaskSpec, advanceRoomLevel, roomLevelFromXp} from "./room_task_policy.js";
 import {privateWalletRef, requirePrivateWallet} from "./wallet_store.js";
 
 const { RtcRole, RtcTokenBuilder } = agoraToken;
@@ -1491,6 +1492,193 @@ app.post("/quiz/finish", async (req, res, next) => {
       return {alreadyFinished: false, winners};
     });
     return res.json({ok: true, practiceOnly: true, ...result});
+  } catch (error) {
+    next(error);
+  }
+});
+
+
+/**
+ * Non-monetary, server-verified room missions. Device buttons cannot grant
+ * XP or level rewards. Config-required missions stay disabled without owner
+ * approved values; no task mints coins, diamonds or cashout inventory.
+ */
+const ROOM_TASK_KEYS = ["ten_minutes", "host_five", "three_gifts", "stay_hours"];
+const roomTaskDay = () => new Date().toISOString().slice(0, 10);
+
+function roomTaskId(key, uid, day) {
+  const period = (key === "ten_minutes" || key === "stay_hours") ? day : "once";
+  return `${key}_${uid}_${period}`;
+}
+function joinedMinutes(participant, nowMs) {
+  const joined = participant?.joinedAt?.toMillis?.();
+  if (!Number.isSafeInteger(joined) || joined > nowMs) return 0;
+  return Math.max(0, Math.floor((nowMs - joined) / 60000));
+}
+
+app.get("/room/tasks/status", async (req, res, next) => {
+  try {
+    const user = await authenticatedUser(req);
+    const roomId = String(req.query.roomId || "").trim();
+    if (!roomId || roomId.length > 160) {
+      return res.status(400).json({error: "Invalid room ID."});
+    }
+    const roomRef = db.collection("rooms").doc(roomId);
+    const participantRef = roomRef.collection("participants").doc(user.uid);
+    const now = Date.now();
+    const day = roomTaskDay();
+    const [room, participant, members, gifts, config, ...completions] =
+      await Promise.all([
+        roomRef.get(),
+        participantRef.get(),
+        roomRef.collection("participants").get(),
+        roomRef.collection("gifts").where("senderId", "==", user.uid)
+          .limit(3).get(),
+        db.doc("room_task_config/current").get(),
+        ...ROOM_TASK_KEYS.map(key =>
+          roomRef.collection("task_completions")
+            .doc(roomTaskId(key, user.uid, day)).get()),
+      ]);
+    if (!room.exists || room.data()?.isOpen !== true || !participant.exists) {
+      return res.status(403).json({error: "Join an open room to view its tasks."});
+    }
+    const isHost = room.data()?.hostId === user.uid;
+    const guestCount = isHost ?
+      members.docs.filter(doc => doc.id !== user.uid).length : 0;
+    const minutes = joinedMinutes(participant.data(), now);
+    const progress = {minutes, guestCount, giftsSent: gifts.size};
+    const configData = config.data() || {};
+    const missions = ROOM_TASK_KEYS.map((key, index) => {
+      let spec;
+      try {
+        spec = roomTaskSpec(key, configData);
+      } catch (error) {
+        if (error.status !== 503) throw error;
+        return {key, configured: false, claimed: completions[index].exists,
+          requiredMinutes: key === "stay_hours" ? null : undefined,
+          xp: null};
+      }
+      const current = key === "ten_minutes" || key === "stay_hours"
+        ? minutes : key === "host_five" ? guestCount : gifts.size;
+      const required = spec.requiredMinutes ?? spec.requiredCount;
+      return {key, configured: true, claimed: completions[index].exists,
+        eligible: current >= required, current, required, xp: spec.xp};
+    });
+    const xp = Number(room.data()?.roomXp || 0);
+    return res.json({ok: true, roomId, xp, level: roomLevelFromXp(xp),
+      maxLevel: 60, progress, missions});
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/room/tasks/claim", async (req, res, next) => {
+  try {
+    const user = await authenticatedUser(req);
+    const roomId = String(req.body?.roomId || "").trim();
+    const taskKey = String(req.body?.taskKey || "").trim();
+    if (!roomId || roomId.length > 160 || !ROOM_TASK_KEYS.includes(taskKey)) {
+      return res.status(400).json({error: "Invalid room mission."});
+    }
+    const roomRef = db.collection("rooms").doc(roomId);
+    const memberRef = roomRef.collection("participants").doc(user.uid);
+    const configRef = db.doc("room_task_config/current");
+    const day = roomTaskDay();
+    const completionRef = roomRef.collection("task_completions")
+      .doc(roomTaskId(taskKey, user.uid, day));
+    const now = Date.now();
+
+    const outcome = await db.runTransaction(async tx => {
+      // Read all snapshots and evidence BEFORE the first transaction write.
+      const [room, member, config, prior, members, gifts] = await Promise.all([
+        tx.get(roomRef), tx.get(memberRef), tx.get(configRef),
+        tx.get(completionRef),
+        taskKey === "host_five"
+          ? tx.get(roomRef.collection("participants")) : Promise.resolve(null),
+        taskKey === "three_gifts"
+          ? tx.get(roomRef.collection("gifts").where(
+              "senderId", "==", user.uid).limit(3))
+          : Promise.resolve(null),
+      ]);
+      if (!room.exists || room.data()?.isOpen !== true || !member.exists) {
+        throw Object.assign(new Error("Join an open room first."), {status: 403});
+      }
+      if (prior.exists) return {...prior.data().outcome, alreadyProcessed: true};
+      const spec = roomTaskSpec(taskKey, config.data());
+      let count = 0;
+      switch (taskKey) {
+        case "ten_minutes":
+        case "stay_hours":
+          count = joinedMinutes(member.data(), now);
+          break;
+        case "host_five":
+          if (room.data()?.hostId !== user.uid) {
+            throw Object.assign(new Error("Only the host may claim this mission."),
+              {status: 403});
+          }
+          count = members.docs.filter(doc => doc.id !== user.uid).length;
+          break;
+        case "three_gifts":
+          count = gifts.size;
+          break;
+      }
+      const required = spec.requiredMinutes ?? spec.requiredCount;
+      if (count < required) {
+        throw Object.assign(new Error("Mission conditions are not verified yet."),
+          {status: 409});
+      }
+      const previousXp = Number(room.data()?.roomXp || 0);
+      const advancement = advanceRoomLevel(previousXp, spec.xp);
+      const result = {taskKey, awardedXp: advancement.awardedXp,
+        roomXp: advancement.nextXp, roomLevel: advancement.newLevel,
+        unlockedLevels: advancement.unlockedLevels, completedAtMillis: now};
+      tx.create(completionRef, {
+        taskKey, userId: user.uid, points: advancement.awardedXp,
+        periodKey: day, evidence: {observed: count, required},
+        outcome: result, completedAt: FieldValue.serverTimestamp(),
+      });
+      tx.update(roomRef, {
+        roomXp: advancement.nextXp,
+        roomLevel: advancement.newLevel,
+        lastTaskCompletionId: completionRef.id,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+      for (const level of advancement.unlockedLevels) {
+        tx.set(roomRef.collection("rewards").doc(`level_${level}`), {
+          level, type: level === 5 ? "background_month" : "gift_pack",
+          unlockedBy: user.uid, sourceTaskId: completionRef.id,
+          unlockedAt: FieldValue.serverTimestamp(),
+        }, {merge: true});
+      }
+      return {...result, alreadyProcessed: false};
+    });
+
+    // Idempotent retry also retries fanout if a previous response was lost.
+    // These are non-monetary, catalog-dependent reward eligibility documents.
+    if (outcome.unlockedLevels?.length) {
+      const present = await roomRef.collection("participants").get();
+      const levels = outcome.unlockedLevels;
+      const expiration = Timestamp.fromMillis(
+        outcome.completedAtMillis + 30 * 24 * 60 * 60 * 1000);
+      for (let offset = 0; offset < present.size; offset += 150) {
+        const batch = db.batch();
+        for (const person of present.docs.slice(offset, offset + 150)) {
+          for (const level of levels) {
+            const rewardId = `${roomId}_level_${level}`;
+            batch.set(db.collection("users").doc(person.id)
+              .collection("room_rewards").doc(rewardId), {
+              userId: person.id, roomId, level,
+              type: level === 5 ? "background_month" : "gift_pack",
+              sourceRewardId: `level_${level}`,
+              ...(level === 5 ? {expiresAt: expiration} : {}),
+              grantedAt: FieldValue.serverTimestamp(),
+            }, {merge: true});
+          }
+        }
+        await batch.commit();
+      }
+    }
+    return res.json({ok: true, ...outcome});
   } catch (error) {
     next(error);
   }
