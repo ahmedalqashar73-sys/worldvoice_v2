@@ -1589,251 +1589,200 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     );
   }
 
-  Future<void> _showToolsGrid() async {
-    final ar = (widget.localeController?.locale?.languageCode ?? Localizations.localeOf(context).languageCode) == 'ar';
+  // Tapping the room title opens only the five working room controls.
+  // Host/moderation controls remain role-gated.
+  Future<void> _showTitleActions() async {
+    final ar = (widget.localeController?.locale?.languageCode ??
+        Localizations.localeOf(context).languageCode) == 'ar';
     final items = <(IconData, String, VoidCallback)>[
-      (Icons.draw_rounded, ar ? 'السبورة' : 'Whiteboard', _showBoard),
-      (Icons.quiz_rounded, ar ? 'مسابقات' : 'Quiz', _showQuiz),
-      (Icons.smart_toy_outlined, ar ? 'أستاذ AI' : 'Teacher AI', _showTeacherAiChat),
-      (Icons.translate_rounded, ar ? 'أدوات اللغة' : 'Language tools', _showCaptionSettings),
-      (Icons.music_note_rounded, ar ? 'موسيقى' : 'Music', _showMusic),
-      (Icons.castle_rounded, ar ? 'مهام الغرفة' : 'Room tasks', () => _showRoomExtras(initialTab: 0)),
-      (Icons.card_giftcard_rounded, ar ? 'الهدايا' : 'Gifts', _showGifts),
-      (Icons.emoji_events_rounded, ar ? 'الترتيب' : 'Leaderboard', () => _showRoomExtras(initialTab: 1)),
-      (Icons.redeem_rounded, ar ? 'المكافآت' : 'Rewards', () => _showRoomExtras(initialTab: 2)),
-      (Icons.wallpaper_rounded, ar ? 'تصميم الغرفة' : 'Room look', _showBackgroundStore),
-      (Icons.groups_outlined, ar ? 'الأعضاء' : 'Members', _showMembers),
-      if (_canModerate) (Icons.pan_tool_alt_rounded, ar ? 'طلبات الصعود' : 'Seat requests', _showRaisedHandsSheet),
-      (Icons.settings_outlined, ar ? 'الإعدادات' : 'Settings', _showRoomControls),
+      if (_canModerate)
+        (Icons.admin_panel_settings_rounded,
+          ar ? 'المدير' : 'Moderator', _showRoomControls),
+      (Icons.chat_bubble_outline_rounded,
+        ar ? 'الشات' : 'Chat', _showRoomChat),
+      (Icons.music_note_rounded,
+        ar ? 'الموسيقى' : 'Music', _showMusic),
+      (Icons.draw_rounded,
+        ar ? 'السبورة' : 'Whiteboard', _showBoard),
+      (Icons.quiz_outlined,
+        ar ? 'الكويز' : 'Quiz', _showQuiz),
     ];
-    await showModalBottomSheet<void>(
-      context: context, isScrollControlled: true, showDragHandle: true, useSafeArea: true,
-      builder: (ctx) => SizedBox(height: MediaQuery.sizeOf(ctx).height * .65,
-        child: Directionality(textDirection: ar ? TextDirection.rtl : TextDirection.ltr,
-          child: Column(children: [
-            Padding(padding: const EdgeInsets.all(12), child: Text(ar ? 'أدوات الغرفة' : 'Room tools',
-              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 20))),
-            Expanded(child: LayoutBuilder(builder: (context, constraints) {
-              final columns = constraints.maxWidth < 350 ? 3 : 4;
-              return GridView.builder(
-                padding: const EdgeInsets.all(16), itemCount: items.length,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: columns, mainAxisExtent: MediaQuery.textScalerOf(context).scale(32) + 78,
-                  mainAxisSpacing: 12, crossAxisSpacing: 10),
-                itemBuilder: (context, index) {
-                  final item = items[index];
-                  return InkWell(borderRadius: BorderRadius.circular(18),
-                    onTap: () { Navigator.pop(ctx); item.$3(); },
-                    child: Column(children: [
-                      Container(padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(color: Theme.of(ctx).colorScheme.primaryContainer, shape: BoxShape.circle),
-                        child: Icon(item.$1, size: 26, color: Theme.of(ctx).colorScheme.onPrimaryContainer)),
-                      const SizedBox(height: 8),
-                      Text(item.$2, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                    ]));
-                },
-              );
-            })),
-          ]))),
-    );
-  }
-
-  Future<void> _showRoomControls() async {
-    final isArabic =
-        Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
-
     await showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
-      isScrollControlled: true,
-      builder: (sheetContext) => SafeArea(
-        child: SizedBox(height: MediaQuery.sizeOf(sheetContext).height * .8, child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
-          child: SingleChildScrollView(child: Column(
+      useSafeArea: true,
+      builder: (sheet) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 18),
+          child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text(
-                  widget.roomName,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                subtitle: Text(
-                  isArabic ? 'أدوات الغرفة' : 'Room tools',
-                ),
-              ),
-              if (_isHost)
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  secondary: const Icon(Icons.smart_toy_rounded),
-                  title: const Text('Teacher AI'),
-                  subtitle: Text(
-                    isArabic
-                        ? 'إظهار أو إخفاء مقعد Teacher AI خارج المقاعد الثمانية.'
-                        : 'Show or hide the Teacher AI seat outside the 8 seats.',
-                  ),
-                  value: _showTeacherAiSeat,
-                  onChanged: (value) async {
-                    await _moderation.setTeacherAiSeatVisible(value);
-                    if (sheetContext.mounted) {
-                      Navigator.pop(sheetContext);
-                    }
-                  },
-                ),
-              if (_isHost)
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  secondary: const Icon(Icons.edit_rounded),
-                  title: Text(
-                    isArabic
-                        ? 'السماح للأعضاء بالكتابة والرسم'
-                        : 'Allow members to write and draw',
-                  ),
-                  value: _featureState.boardWriteEnabled,
-                  onChanged: (value) async {
-                    await _features.setBoardWriteEnabled(value);
-                    if (sheetContext.mounted) {
-                      Navigator.pop(sheetContext);
-                    }
-                  },
-                ),
-              const Divider(),
-              _RoomToolTile(
-                icon: Icons.timer_outlined,
-                label: isArabic ? 'وقت الغرف اليومي' : 'Daily room time',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showQuotaStatus();
-                },
-              ),
-              _RoomToolTile(
-                icon: Icons.groups_rounded,
-                label: isArabic ? 'أعضاء الغرفة' : 'Room members',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showMembers();
-                },
-              ),
-              if (_canModerate)
-                _RoomToolTile(
-                  icon: Icons.receipt_long_rounded,
-                  label: isArabic ? 'سجل المودريتور' : 'Moderator log',
+              Text(ar ? 'التحكم بالغرفة' : 'Room controls',
+                style: Theme.of(sheet).textTheme.titleLarge),
+              const SizedBox(height: 12),
+              for (final item in items)
+                ListTile(
+                  leading: Icon(item.$1),
+                  title: Text(item.$2),
+                  trailing: const Icon(Icons.chevron_right_rounded),
                   onTap: () {
-                    Navigator.pop(sheetContext);
-                    _showModLog();
-                  },
-                ),
-              _RoomToolTile(
-                icon: Icons.closed_caption_rounded,
-                label: isArabic
-                    ? 'الترجمة المباشرة'
-                    : 'Live captions & translation',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showCaptionSettings();
-                },
-              ),
-              _RoomToolTile(
-                icon: Icons.monetization_on_rounded,
-                label: isArabic ? 'شراء Coins' : 'Buy coins',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showCoinStore();
-                },
-              ),
-              _RoomToolTile(
-                icon: Icons.storefront_rounded,
-                label: isArabic ? 'متجر الخلفيات' : 'Background store',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showBackgroundStore();
-                },
-              ),
-              _RoomToolTile(
-                icon: Icons.chat_bubble_rounded,
-                label: isArabic ? 'دردشة الغرفة' : 'Room chat',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showRoomChat();
-                },
-              ),
-              _RoomToolTile(
-                icon: Icons.draw_rounded,
-                label: isArabic ? 'السبورة' : 'Board',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showBoard();
-                },
-              ),
-              _RoomToolTile(
-                icon: Icons.quiz_rounded,
-                label: isArabic ? 'الكويز' : 'Quiz',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showQuiz();
-                },
-              ),
-              _RoomToolTile(
-                icon: Icons.music_note_rounded,
-                label: isArabic ? 'الموسيقى' : 'Music',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showMusic();
-                },
-              ),
-              _RoomToolTile(
-                icon: Icons.share_rounded,
-                label: isArabic ? 'مشاركة الغرفة' : 'Share room',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _shareRoom();
-                },
-              ),
-              _RoomToolTile(
-                icon: Icons.auto_awesome_rounded,
-                label: isArabic
-                    ? 'الثيم والمهام والهدايا والترتيب'
-                    : 'Theme, tasks, gifts & leaderboard',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showRoomExtras();
-                },
-              ),
-              const Divider(),
-              if (widget.localeController != null)
-                _RoomToolTile(
-                  icon: Icons.picture_in_picture_alt_rounded,
-                  label: isArabic ? 'تصغير الروم' : 'Minimize room',
-                  onTap: () {
-                    Navigator.pop(sheetContext);
-                    _minimizeRoom();
-                  },
-                ),
-              _RoomToolTile(
-                icon: Icons.logout_rounded,
-                label: isArabic ? 'الخروج من الروم' : 'Leave room',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _leave();
-                },
-              ),
-              if (_isHost)
-                _RoomToolTile(
-                  icon: Icons.stop_circle_rounded,
-                  label: isArabic ? 'إغلاق الروم للجميع' : 'Close room for everyone',
-                  destructive: true,
-                  onTap: () {
-                    Navigator.pop(sheetContext);
-                    _confirmCloseRoom();
+                    Navigator.pop(sheet);
+                    item.$3();
                   },
                 ),
             ],
-          )),
-        )),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // The four squares in the bottom toolbar open these four tools only.
+  Future<void> _showToolsGrid() async {
+    final ar = (widget.localeController?.locale?.languageCode ??
+        Localizations.localeOf(context).languageCode) == 'ar';
+    final items = <(IconData, String, VoidCallback)>[
+      (Icons.castle_outlined, ar ? 'مهام الغرفة' : 'Room tasks',
+        () => _showRoomExtras(initialTab: 0)),
+      (Icons.card_giftcard_rounded, ar ? 'الهدايا' : 'Gifts', _showGifts),
+      (Icons.timer_outlined, ar ? 'الوقت المتبقي' : 'Remaining time',
+        _showQuotaStatus),
+      (Icons.groups_outlined,
+        ar ? 'الأعضاء: ${_participants.length}' : 'Members: ${_participants.length}',
+        _showMembers),
+    ];
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      useSafeArea: true,
+      builder: (sheet) => Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(ar ? 'مركز الغرفة' : 'Room center',
+              style: Theme.of(sheet).textTheme.titleLarge),
+            const SizedBox(height: 16),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: items.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisExtent: 104,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+              ),
+              itemBuilder: (ctx, index) {
+                final item = items[index];
+                return Material(
+                  color: Theme.of(ctx).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(16),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () {
+                      Navigator.pop(sheet);
+                      item.$3();
+                    },
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(item.$1, size: 29),
+                        const SizedBox(height: 8),
+                        Text(item.$2, textAlign: TextAlign.center),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Moderator panel, never used as the gift/theme/task menu.
+  Future<void> _showRoomControls() async {
+    if (!_canModerate) return;
+    final ar = (widget.localeController?.locale?.languageCode ??
+        Localizations.localeOf(context).languageCode) == 'ar';
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      useSafeArea: true,
+      isScrollControlled: true,
+      builder: (sheet) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 22),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            ListTile(
+              title: Text(ar ? 'إدارة الغرفة' : 'Room moderation',
+                style: const TextStyle(fontWeight: FontWeight.w800)),
+            ),
+            if (_isHost) SwitchListTile(
+              title: const Text('Teacher AI'),
+              subtitle: Text(ar ? 'إظهار المقعد التاسع'
+                  : 'Show the ninth AI seat'),
+              value: _showTeacherAiSeat,
+              onChanged: (value) async {
+                try {
+                  await _moderation.setTeacherAiSeatVisible(value);
+                  if (sheet.mounted) Navigator.pop(sheet);
+                } catch (error) {
+                  if (sheet.mounted) {
+                    ScaffoldMessenger.of(sheet).showSnackBar(
+                      SnackBar(content: Text(error.toString())));
+                  }
+                }
+              },
+            ),
+            if (_isHost) SwitchListTile(
+              title: Text(ar ? 'السماح بالكتابة والرسم'
+                  : 'Allow writing and drawing'),
+              value: _featureState.boardWriteEnabled,
+              onChanged: (value) async {
+                try {
+                  await _features.setBoardWriteEnabled(value);
+                  if (sheet.mounted) Navigator.pop(sheet);
+                } catch (error) {
+                  if (sheet.mounted) {
+                    ScaffoldMessenger.of(sheet).showSnackBar(
+                      SnackBar(content: Text(error.toString())));
+                  }
+                }
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.pan_tool_alt_rounded),
+              title: Text(ar ? 'طلبات رفع اليد' : 'Raise hand requests'),
+              trailing: Badge(label: Text('${_raisedHands.length}'),
+                child: const Icon(Icons.chevron_right_rounded)),
+              onTap: () {
+                Navigator.pop(sheet);
+                _showRaisedHandsSheet();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.receipt_long_rounded),
+              title: Text(ar ? 'سجل المودريتور' : 'Moderator log'),
+              onTap: () {
+                Navigator.pop(sheet);
+                _showModLog();
+              },
+            ),
+            if (_isHost) ListTile(
+              leading: const Icon(Icons.stop_circle_outlined,
+                color: Colors.redAccent),
+              title: Text(ar ? 'إغلاق الغرفة للجميع'
+                  : 'Close room for everyone'),
+              onTap: () {
+                Navigator.pop(sheet);
+                _confirmCloseRoom();
+              },
+            ),
+          ]),
+        ),
       ),
     );
   }
@@ -2188,7 +2137,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
             onPressed: _showRoomMenu, icon: const Icon(Icons.more_horiz_rounded)),
           titleSpacing: 0,
           title: InkWell(
-            onTap: _showRoomControls,
+            onTap: _showTitleActions,
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(widget.roomName, maxLines: 1, overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
