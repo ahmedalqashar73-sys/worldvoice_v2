@@ -304,8 +304,9 @@ class _ChatConversationState extends State<_ChatConversation> {
         if (latest != null) {
           final demo = latest;
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) _showGiftAnimation(
-              demo.toVisualEvent(), preview: true);
+            if (mounted) {
+              _showGiftAnimation(demo.toVisualEvent(), preview: true);
+            }
           });
         }
       }, onError: (Object error, StackTrace trace) {
