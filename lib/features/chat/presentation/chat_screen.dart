@@ -291,9 +291,12 @@ class _ChatConversationState extends State<_ChatConversation> {
         final now = DateTime.now();
         RoomGiftPreview? latest;
         for (final event in previews) {
-          final newEvent = _seenFriendPreviewEvents.add(event.eventKey);
           final sent = event.sentAt;
-          if (!newEvent || sent == null ||
+          // The initial local Firestore write can contain a pending
+          // serverTimestamp; don't mark it seen before the real ack.
+          if (sent == null) continue;
+          final newEvent = _seenFriendPreviewEvents.add(event.eventKey);
+          if (!newEvent ||
               sent.isBefore(_conversationOpenedAt.subtract(
                   const Duration(seconds: 1))) ||
               now.difference(sent).inSeconds.abs() > 20) {
