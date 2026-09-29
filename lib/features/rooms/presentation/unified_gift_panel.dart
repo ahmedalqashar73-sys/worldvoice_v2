@@ -62,7 +62,12 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
   Future<void> _send() async {
     final gift = _gift;
     final recipient = _recipient;
-    if (_busy || gift == null || recipient == null) return;
+    final myself = FirebaseAuth.instance.currentUser?.uid;
+    if (_busy || gift == null || recipient == null || myself == null ||
+        recipient == myself || recipient == 'teacher_ai' ||
+        !widget.recipients.containsKey(recipient)) {
+      return;
+    }
     final signature = '${widget.contextType}:${widget.contextId}:$recipient:${gift.id}';
     if (signature != _pendingSignature) {
       _pendingSignature = signature;
@@ -103,7 +108,9 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
   Future<void> _sendFriendDemo(RoomGiftCatalogItem gift) async {
     final recipient = _recipient;
     if (!RoomFeatureService.friendPreviewEnabled || _busy ||
-        recipient == null || !widget.recipients.containsKey(recipient) ||
+        recipient == null ||
+        recipient == FirebaseAuth.instance.currentUser?.uid ||
+        !widget.recipients.containsKey(recipient) ||
         recipient == 'teacher_ai') {
       return;
     }
@@ -521,7 +528,8 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                             color: Color(0xFF0A8056), width: 1.2),
                         ),
                         onPressed: _busy || _recipient == null ||
-                            _recipient == 'teacher_ai'
+                            _recipient == 'teacher_ai' ||
+                            _recipient == uid
                             ? null : () => _sendFriendDemo(selected),
                         icon: const Icon(Icons.groups_rounded),
                         label: Text(ar
@@ -538,7 +546,8 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                       onPressed: !_busy && ready && walletReady &&
                           selected?.active == true &&
                           widget.contextType != 'live' &&
-                          widget.recipients.containsKey(_recipient)
+                          widget.recipients.containsKey(_recipient) &&
+                          _recipient != uid && _recipient != 'teacher_ai'
                           ? _send : null,
                       icon: _busy ? const SizedBox(width: 14, height: 14,
                           child: CircularProgressIndicator(strokeWidth: 2))
