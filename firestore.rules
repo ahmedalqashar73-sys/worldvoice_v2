@@ -52,6 +52,20 @@ service cloud.firestore {
       );
     }
 
+    // A device may run non-monetary legacy/practice quizzes. Verified quiz
+    // rounds have a private server answer and cannot be edited or revealed
+    // by a client while they are open. Admin SDK bypasses client rules.
+    function validClientQuizChange() {
+      let previous = resource.data.get('quiz', {});
+      let requested = request.resource.data.get('quiz', {});
+      return previous == requested || (
+        previous.get('roundId', '') == ''
+        && requested.get('roundId', '') == ''
+        && requested.get('firstPrizeCoins', 0) == 0
+        && !('rewardedAt' in requested)
+      );
+    }
+
     // Economic state is backend-authoritative. No Firestore client-side gift
     // transaction is allowed, even if a client presents a catalog price.
     function economyFieldsUntouched() {
@@ -449,7 +463,9 @@ service cloud.firestore {
           && request.resource.data.hostId == request.auth.uid
           && request.resource.data.channelId == roomId
           && request.resource.data.get('roomLevel', 1) == 1
-          && request.resource.data.get('roomXp', 0) == 0;
+          && request.resource.data.get('roomXp', 0) == 0
+          // A verified quiz must be created by the authenticated backend.
+          && !('quiz' in request.resource.data);
 
       // Normally only the host updates the room.
       // If the old host participant is gone, a new authenticated host may
@@ -461,6 +477,7 @@ service cloud.firestore {
                 'roomXp', 'roomLevel', 'lastTaskCompletionId'
               ])
           && validRoomThemeChange()
+          && validClientQuizChange()
           && (
             (
               request.auth.uid == resource.data.hostId
