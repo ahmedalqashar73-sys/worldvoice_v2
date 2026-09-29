@@ -51,7 +51,7 @@ void main() {
       ),
     ));
     await tester.pump();
-    expect(find.textContaining('PREVIEW'), findsOneWidget);
+    expect(find.text('PREVIEW • NO COINS CHARGED'), findsOneWidget);
     expect(find.byType(ClassicGiftVisual), findsOneWidget);
     await tester.pump(const Duration(milliseconds: 120));
     // Artwork metadata is loaded asynchronously; the no-charge watermark
