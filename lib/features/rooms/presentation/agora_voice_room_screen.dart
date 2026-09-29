@@ -2342,8 +2342,21 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               child: Row(children: [
                 const Icon(Icons.info_outline_rounded, color: Color(0xFFFFD3A4), size: 18),
                 const SizedBox(width: 8),
-                Expanded(child: Text(label('الصوت غير متصل. افتح التفاصيل أو أعد المحاولة.', 'Audio offline. Check details or retry.'),
-                  style: const TextStyle(color: Colors.white, fontSize: 12))),
+                Expanded(child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(label('الصوت غير متصل. افتح التفاصيل أو أعد المحاولة.',
+                        'Audio offline. Check details or retry.'),
+                      style: const TextStyle(color: Colors.white, fontSize: 12)),
+                    if (MediaQuery.viewInsetsOf(context).bottom == 0)
+                      Text(_audioFailure ?? _controller.error ?? '',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: Color(0xFFFFE3BE),
+                            fontSize: 10)),
+                  ],
+                )),
                 IconButton(tooltip: label('تفاصيل الاتصال', 'Connection details'),
                   onPressed: () => showDialog<void>(context: context, builder: (ctx) => AlertDialog(
                     title: Text(label('اتصال الصوت', 'Audio connection')),
