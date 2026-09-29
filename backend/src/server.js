@@ -719,18 +719,20 @@ app.post("/store/purchase", async (req, res, next) => {
     const itemRef = db.collection("store_items").doc(itemId);
     const configRef = db.doc("economy_config/current");
     const payerRef = db.collection("users").doc(sender.uid);
+    const payerWalletRef = privateWalletRef(payerRef);
     const recipientRef = db.collection("users").doc(recipientId);
+    const recipientWalletRef = gifting ? privateWalletRef(recipientRef) : payerWalletRef;
     const inventoryRef = recipientRef.collection("inventory").doc(itemId);
     const friendRef = gifting ? payerRef.collection("following").doc(recipientId)
       : null;
     const day = new Date().toISOString().slice(0, 10);
     const dailyRef = payerRef.collection("economy_daily").doc(day);
     const outcome = await db.runTransaction(async tx => {
-      const refs = [operationRef, itemRef, configRef, payerRef, inventoryRef,
-        dailyRef, ...(gifting ? [recipientRef, friendRef] : [])];
+      const refs = [operationRef, itemRef, configRef, payerRef, payerWalletRef,
+        inventoryRef, dailyRef, ...(gifting ? [recipientRef, recipientWalletRef, friendRef] : [])];
       const snaps = await Promise.all(refs.map(ref => tx.get(ref)));
-      const [existing, itemSnap, configSnap, payerSnap, ownedSnap, dailySnap] =
-        snaps;
+      const [existing, itemSnap, configSnap, payerProfileSnap, payerSnap,
+        ownedSnap, dailySnap] = snaps;
       if (existing.exists) {
         const old = existing.data() || {};
         if (old.senderId !== sender.uid || old.recipientId !== recipientId ||
@@ -740,6 +742,8 @@ app.post("/store/purchase", async (req, res, next) => {
         return {...old.outcome, alreadyProcessed: true};
       }
       const policy = requireLiveEconomy(configSnap.data());
+      requirePrivateWallet(payerSnap);
+      if (gifting) requirePrivateWallet(snaps[8]);
       const item = itemSnap.data() || {};
       if (!itemSnap.exists || item.active !== true ||
           !["background", "frame", "entrance", "vip"].includes(item.type) ||
@@ -759,9 +763,10 @@ app.post("/store/purchase", async (req, res, next) => {
         throw Object.assign(new Error("Store item price or duration is invalid."),
           {status: 503});
       }
-      if (!payerSnap.exists || Number(payerSnap.data()?.giftLevel || 0) <
+      if (!payerProfileSnap.exists ||
+          Number(payerSnap.data()?.giftLevel || 0) <
           Number(item.requiredGiftLevel || 0) ||
-          (gifting && (!snaps[6].exists || !snaps[7].exists))) {
+          (gifting && (!snaps[7].exists || !snaps[9].exists))) {
         throw Object.assign(new Error("User, gift level or friendship requirement failed."),
           {status: 403});
       }
@@ -769,7 +774,7 @@ app.post("/store/purchase", async (req, res, next) => {
           Number(payerSnap.data()?.walletDebtCoins || 0) > 0) {
         throw Object.assign(new Error("Wallet under payment review."), {status: 423});
       }
-      const owner = gifting ? snaps[6].data() || {} : payerSnap.data() || {};
+      const owner = gifting ? snaps[8].data() || {} : payerSnap.data() || {};
       const existingExpiry = item.type === "vip"
         ? owner.vipExpiresAt?.toMillis?.()
         : ownedSnap.data()?.expiresAt?.toMillis?.();
@@ -793,7 +798,7 @@ app.post("/store/purchase", async (req, res, next) => {
           dailyGift + price > policy.giftingDailyCoinLimit)) {
         throw Object.assign(new Error("Gifting daily limit exceeded."), {status: 429});
       }
-      tx.update(payerRef, {
+      tx.update(payerWalletRef, {
         coins: before - price,
         updatedAt: FieldValue.serverTimestamp(),
       });
@@ -816,7 +821,7 @@ app.post("/store/purchase", async (req, res, next) => {
         updatedAt: FieldValue.serverTimestamp(),
       }, {merge: true});
       if (item.type === "vip") {
-        tx.update(recipientRef, {vipExpiresAt: expiresAt});
+        tx.update(recipientWalletRef, {vipExpiresAt: expiresAt});
       }
       if (item.type === "background") {
         // Temporary mirrored legacy read model; remove after all clients
