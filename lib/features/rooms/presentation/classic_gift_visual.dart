@@ -1,4 +1,6 @@
 import 'dart:math' as math;
+import 'dart:typed_data';
+import 'package:flutter/services.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -69,6 +71,20 @@ class _ClassicGiftVisualState extends State<ClassicGiftVisual>
     }
     if (widget.gift.id.startsWith('classic_') &&
         RegExp(r'^classic_[a-z0-9_]+$').hasMatch(widget.gift.id)) {
+      if (const {'classic_royal_rose', 'classic_luminous_butterfly',
+        'classic_golden_phoenix'}.contains(widget.gift.id)) {
+        return FutureBuilder<ByteData?>(
+          future: _approvedImage(widget.gift.id),
+          builder: (context, snap) {
+            if (snap.hasData && snap.data != null) {
+              return Image.memory(snap.data!.buffer.asUint8List(),
+                  fit: BoxFit.contain);
+            }
+            return SvgPicture.asset('assets/gifts/art/${widget.gift.id}.svg',
+                fit: BoxFit.contain);
+          },
+        );
+      }
       return SvgPicture.asset(
         'assets/gifts/art/${widget.gift.id}.svg',
         fit: BoxFit.contain,
@@ -77,6 +93,17 @@ class _ClassicGiftVisualState extends State<ClassicGiftVisual>
     }
     return _fallback();
   }
+
+  static final Map<String, Future<ByteData?>> _artCache = {};
+
+  static Future<ByteData?> _approvedImage(String id) =>
+      _artCache.putIfAbsent(id, () async {
+        try {
+          return await rootBundle.load('assets/gifts/luxury/$id.webp');
+        } on FlutterError {
+          return null;
+        }
+      });
 
   Widget _fallback() => Text(
         widget.gift.emoji ?? '🎁',
