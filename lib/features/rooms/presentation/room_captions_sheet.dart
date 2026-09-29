@@ -1,29 +1,36 @@
 import 'package:flutter/material.dart';
 
 import '../data/room_caption.dart';
+import '../data/room_teacher_ai_note.dart';
 
 class RoomCaptionsSheet extends StatelessWidget {
   const RoomCaptionsSheet({
     required this.enabled,
     required this.translationEnabled,
+    required this.pronunciationEnabled,
     required this.targetLanguage,
     required this.canPublish,
     required this.listening,
     required this.onEnabledChanged,
     required this.onTranslationChanged,
+    required this.onPronunciationChanged,
     required this.onTargetLanguageChanged,
+    this.pronunciationNotes,
     this.error,
     super.key,
   });
 
   final bool enabled;
   final bool translationEnabled;
+  final bool pronunciationEnabled;
   final String targetLanguage;
+  final Stream<List<RoomTeacherAiNote>>? pronunciationNotes;
   final bool canPublish;
   final bool listening;
   final String? error;
   final ValueChanged<bool> onEnabledChanged;
   final ValueChanged<bool> onTranslationChanged;
+  final ValueChanged<bool> onPronunciationChanged;
   final ValueChanged<String> onTargetLanguageChanged;
 
   @override
@@ -41,7 +48,7 @@ class RoomCaptionsSheet extends StatelessWidget {
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.closed_caption_rounded),
               title: Text(
-                isArabic ? 'الترجمة المباشرة' : 'Live captions',
+                isArabic ? 'أدوات اللغة' : 'Language tools',
                 style: const TextStyle(fontWeight: FontWeight.w900),
               ),
               subtitle: Text(
@@ -60,7 +67,7 @@ class RoomCaptionsSheet extends StatelessWidget {
                     : Icons.subtitles_rounded,
               ),
               title: Text(
-                isArabic ? 'تشغيل Live Captions' : 'Enable live captions',
+                isArabic ? 'السبتايتل المباشر' : 'Live subtitles',
               ),
               subtitle: canPublish
                   ? Text(
@@ -84,7 +91,7 @@ class RoomCaptionsSheet extends StatelessWidget {
               onChanged: enabled ? onTranslationChanged : null,
               secondary: const Icon(Icons.translate_rounded),
               title: Text(
-                isArabic ? 'ترجمة النص' : 'Translate captions',
+                isArabic ? 'الترجمة الفورية' : 'Instant translation',
               ),
               subtitle: Text(
                 isArabic
@@ -92,6 +99,55 @@ class RoomCaptionsSheet extends StatelessWidget {
                     : 'Translation runs on-device after its language model downloads.',
               ),
             ),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              value: pronunciationEnabled,
+              onChanged: enabled ? onPronunciationChanged : null,
+              secondary: const Icon(Icons.record_voice_over_rounded),
+              title: Text(isArabic ? 'تصحيح النطق' : 'Pronunciation guidance'),
+              subtitle: Text(isArabic
+                  ? 'يعتمد على الكلام المحوّل إلى نص بواسطة Teacher AI، ولا يقيم الصوت نفسه. يحتاج خادم AI.'
+                  : 'Teacher AI gives guidance from captions, not an audio pronunciation score. An AI server is required.'),
+            ),
+            if (enabled && pronunciationEnabled && pronunciationNotes != null)
+              SizedBox(
+                height: 155,
+                child: StreamBuilder<List<RoomTeacherAiNote>>(
+                  stream: pronunciationNotes,
+                  builder: (context, notesSnapshot) {
+                    if (notesSnapshot.hasError) {
+                      return Center(child: Text(isArabic
+                          ? 'تعذّر تحميل ملاحظات النطق.'
+                          : 'Could not load pronunciation guidance.'));
+                    }
+                    final notes = notesSnapshot.data ??
+                        const <RoomTeacherAiNote>[];
+                    if (notes.isEmpty) {
+                      return Center(child: Text(isArabic
+                          ? 'تكلّم لتظهر ملاحظات النص والنطق إذا كان خادم AI متاحًا.'
+                          : 'Speak to see transcript-based guidance when AI is available.'));
+                    }
+                    return ListView(
+                      children: [
+                        for (final note in notes.take(4))
+                          Card(
+                            child: ListTile(
+                              title: Text(note.correction.isEmpty
+                                  ? note.originalText : note.correction),
+                              subtitle: Text(
+                                note.pronunciationTip?.trim().isNotEmpty == true
+                                    ? note.pronunciationTip!
+                                    : (isArabic
+                                        ? 'لا توجد ملاحظة نطق لهذه الجملة.'
+                                        : 'No pronunciation note for this sentence.'),
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
+                ),
+              ),
             if (enabled && translationEnabled)
               DropdownButtonFormField<String>(
                 initialValue: targetLanguage,
