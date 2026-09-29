@@ -476,9 +476,11 @@ class _RewardsTab extends StatelessWidget {
                 title: Text(
                   isBackground
                       ? (isArabic
-                          ? 'خلفية مجانية لمدة شهر'
-                          : 'Free background for one month')
-                      : (isArabic ? 'حزمة هدايا مجانية' : 'Free gift pack'),
+                          ? 'استحقاق خلفية لمدة شهر'
+                          : 'One-month background eligibility')
+                      : (isArabic
+                          ? 'استحقاق باقة هدايا (بعد تفعيل الكتالوج)'
+                          : 'Gift pack eligibility (pending catalog activation)'),
                   style: const TextStyle(fontWeight: FontWeight.w800),
                 ),
                 subtitle: Text(
@@ -489,7 +491,9 @@ class _RewardsTab extends StatelessWidget {
                           '${expiry.month.toString().padLeft(2, '0')}-'
                           '${expiry.day.toString().padLeft(2, '0')}',
                 ),
-                trailing: const Icon(Icons.verified_rounded),
+                trailing: Icon(isBackground
+                    ? Icons.redeem_rounded
+                    : Icons.hourglass_bottom_rounded),
               ),
             );
           },
