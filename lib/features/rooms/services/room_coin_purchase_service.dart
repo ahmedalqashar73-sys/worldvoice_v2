@@ -185,9 +185,13 @@ class RoomCoinPurchaseService extends ChangeNotifier {
     final policy = responses[0].data();
     final catalog = responses[1].data();
     final approvedPrice = catalog?['priceUsd'];
-    final expectedStoreSku = Platform.isAndroid
-        ? catalog?['androidProductId']
-        : catalog?['iosProductId'];
+    String? expectedStoreSku;
+    if (catalog != null) {
+      expectedStoreSku = (Platform.isAndroid
+              ? catalog['androidProductId']
+              : catalog['iosProductId'])
+          ?.toString();
+    }
     if (policy?['enabled'] != true ||
         policy?['privateWalletCutoverVerified'] != true ||
         policy?['publicProfileRulesVerified'] != true ||
