@@ -32,6 +32,17 @@ class UnifiedGiftPanel extends StatefulWidget {
 class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
   String? _recipient;
   RoomGiftCatalogItem? _gift;
+  int _giftCategory = 0; // 1-50, 51-150, 151-500, premium 501+
+
+  bool _inSelectedCategory(RoomGiftCatalogItem gift) {
+    final price = gift.priceCoins;
+    return switch (_giftCategory) {
+      0 => price >= 1 && price <= 50,
+      1 => price > 50 && price <= 150,
+      2 => price > 150 && price <= 500,
+      _ => price > 500,
+    };
+  }
   bool _busy = false;
   bool _needsRecharge = false;
   String? _pendingKey;
@@ -110,6 +121,7 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
             .where((gift) => gift.active && gift.priceCoins > 0)
             .toList(growable: false) ?? <RoomGiftCatalogItem>[];
         gifts.sort((a, b) => a.priceCoins.compareTo(b.priceCoins));
+        final shownGifts = gifts.where(_inSelectedCategory).toList(growable: false);
         return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
           stream: FirebaseFirestore.instance.doc('economy_config/current')
               .snapshots(),
@@ -182,19 +194,56 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                             )).toList(),
                       ),
                   ),
+                  SizedBox(
+                    height: 50,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      children: [
+                        for (var tier = 0; tier < 4; tier++)
+                          Padding(
+                            padding: const EdgeInsetsDirectional.only(end: 6),
+                            child: ChoiceChip(
+                              selected: _giftCategory == tier,
+                              avatar: Icon(
+                                tier == 3 ? Icons.auto_awesome_rounded
+                                    : Icons.card_giftcard_rounded,
+                                size: 17,
+                                color: tier == 3
+                                    ? const Color(0xFFC79730)
+                                    : null,
+                              ),
+                              label: Text(switch (tier) {
+                                0 => ar ? '1–50 كوينز' : '1–50 coins',
+                                1 => ar ? '51–150 كوينز' : '51–150 coins',
+                                2 => ar ? '151–500 كوينز' : '151–500 coins',
+                                _ => ar ? 'الهدايا الفخمة' : 'Luxury gifts',
+                              }),
+                              onSelected: _busy ? null : (_) => setState(() {
+                                _giftCategory = tier;
+                                _gift = null;
+                                _pendingKey = null;
+                                _pendingSignature = null;
+                                _needsRecharge = false;
+                              }),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
                   Expanded(child: giftSnapshot.hasError
                     ? Center(child: Text(ar ? 'تعذر تحميل الكتالوج' : 'Catalog unavailable'))
-                    : gifts.isEmpty
-                        ? Center(child: Text(ar ? 'لا توجد هدايا مفعلة' : 'No active gifts'))
+                    : shownGifts.isEmpty
+                        ? Center(child: Text(ar ? 'لا توجد هدايا مفعلة في هذه الفئة' : 'No active gifts in this category'))
                         : GridView.builder(
                             padding: const EdgeInsets.all(10),
                             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 3, childAspectRatio: .9,
                               mainAxisSpacing: 6, crossAxisSpacing: 6,
                             ),
-                            itemCount: gifts.length,
+                            itemCount: shownGifts.length,
                             itemBuilder: (context, index) {
-                              final gift = gifts[index];
+                              final gift = shownGifts[index];
                               return Card(
                                 color: selected?.id == gift.id
                                     ? Theme.of(context).colorScheme.primaryContainer
