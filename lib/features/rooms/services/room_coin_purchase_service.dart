@@ -91,6 +91,20 @@ class RoomCoinPurchaseService extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // Do not offer a real-money checkout while the private-wallet and
+      // public-profile security migration has not been verified.
+      final policy = (await FirebaseFirestore.instance
+              .doc('economy_config/current')
+              .get())
+          .data();
+      if (policy?['enabled'] != true ||
+          policy?['privateWalletCutoverVerified'] != true ||
+          policy?['publicProfileRulesVerified'] != true) {
+        _storeAvailable = false;
+        _products = const <CoinStoreProduct>[];
+        _message = 'Coin purchases are disabled until wallet security is verified.';
+        return;
+      }
       _storeAvailable = await _iap.isAvailable();
       if (!_storeAvailable) {
         _products = const <CoinStoreProduct>[];
@@ -155,6 +169,33 @@ class RoomCoinPurchaseService extends ChangeNotifier {
   Future<void> buy(CoinStoreProduct item) async {
     _message = null;
     notifyListeners();
+    // Re-check at purchase time: a product or the economy can be disabled
+    // while the store sheet remains open.
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      throw StateError('Sign in is required before purchasing coins.');
+    }
+    final db = FirebaseFirestore.instance;
+    final responses = await Future.wait([
+      db.doc('economy_config/current').get(),
+      db.collection('coin_products').doc(item.config.id).get(),
+      db.collection('users').doc(user.uid)
+          .collection('private').doc('wallet').get(),
+    ]);
+    final policy = responses[0].data();
+    final catalog = responses[1].data();
+    if (policy?['enabled'] != true ||
+        policy?['privateWalletCutoverVerified'] != true ||
+        policy?['publicProfileRulesVerified'] != true ||
+        responses[2].exists != true ||
+        catalog?['active'] != true ||
+        (catalog?['priceUsd'] as num? ?? 0) <= 0 ||
+        catalog?['coins'] != item.config.coins ||
+        (Platform.isAndroid
+            ? catalog?['androidProductId']
+            : catalog?['iosProductId']) != item.product.id) {
+      throw StateError('Purchase is not approved or your private wallet is unavailable.');
+    }
 
     final parameter = PurchaseParam(
       productDetails: item.product,
