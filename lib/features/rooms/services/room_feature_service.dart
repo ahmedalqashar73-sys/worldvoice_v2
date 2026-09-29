@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 
 import '../data/room_feature_models.dart';
+import '../data/classic_gift_catalog.dart';
 import '../data/room_backend_config.dart';
 import 'room_quiz_service.dart';
 
@@ -216,6 +217,81 @@ class RoomFeatureService {
       } catch (_) { /* Keep stable error. */ }
       throw StateError(reason);
     }
+  }
+
+  /// Opt-in TEST APK mode only. Never enabled in the production default.
+  /// These notices are separate from /gifts, balances and paid chat messages.
+  static const bool friendPreviewEnabled = bool.fromEnvironment(
+      'WORLDVOICE_FRIEND_GIFT_PREVIEW', defaultValue: false);
+
+  static CollectionReference<Map<String, dynamic>> _previewCollection({
+    required String context,
+    required String contextId,
+  }) {
+    if (!const {'room', 'live', 'chat'}.contains(context) ||
+        contextId.isEmpty || contextId.contains('/')) {
+      throw ArgumentError('Invalid test preview destination');
+    }
+    final parent = FirebaseFirestore.instance
+        .collection(context == 'chat' ? 'chats' : 'rooms')
+        .doc(contextId);
+    return parent.collection('gift_previews');
+  }
+
+  /// Read only explicitly free demonstration notices. The Firebase rules
+  /// verify both parties' room/chat membership and throttle each sender.
+  static Stream<List<RoomGiftPreview>> watchFriendGiftPreviews({
+    required String context,
+    required String contextId,
+  }) {
+    if (!friendPreviewEnabled) {
+      return const Stream<List<RoomGiftPreview>>.empty();
+    }
+    return _previewCollection(context: context, contextId: contextId)
+        .orderBy('sentAt', descending: true).limit(20).snapshots()
+        .map((snap) =>
+            snap.docs.map(RoomGiftPreview.fromDoc).toList(growable: false));
+  }
+
+  /// A TEST ANIMATION sent across two devices. It never touches an economy
+  /// endpoint, paid gift events, room XP or private-wallet balances.
+  static Future<void> sendFriendGiftPreview({
+    required String context,
+    required String contextId,
+    required String recipientId,
+    required String recipientName,
+    required String giftId,
+  }) async {
+    if (!friendPreviewEnabled) throw StateError('TEST_PREVIEWS_DISABLED');
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) throw StateError('SIGN_IN_REQUIRED');
+    if (recipientId.isEmpty || recipientId == user.uid ||
+        recipientId == 'teacher_ai') {
+      throw StateError('SELECT_A_REAL_FRIEND');
+    }
+    final approved = await ClassicGiftCatalog.load();
+    if (!approved.any((g) => g.id == giftId)) {
+      throw StateError('INVALID_TEST_GIFT');
+    }
+    final displayName = user.displayName?.trim() ?? '';
+    final sender = displayName.isNotEmpty ? displayName : 'WorldVoice';
+    final receiver = recipientName.trim();
+    if (sender.length > 64 || receiver.isEmpty || receiver.length > 64) {
+      throw StateError('INVALID_TEST_RECIPIENT');
+    }
+    final random = Random.secure();
+    final nonce = List<int>.generate(12, (_) => random.nextInt(256))
+        .map((v) => v.toRadixString(16).padLeft(2, '0')).join();
+    await _previewCollection(context: context, contextId: contextId)
+        .doc(user.uid).set({
+      'nonce': nonce,
+      'senderId': user.uid,
+      'senderName': sender,
+      'recipientId': recipientId,
+      'recipientName': receiver,
+      'giftId': giftId,
+      'sentAt': FieldValue.serverTimestamp(),
+    });
   }
 
   Stream<List<RoomGiftCatalogItem>> watchGiftCatalog() {
