@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import '../data/room_feature_models.dart';
 import '../data/classic_gift_catalog.dart';
 import 'classic_gift_visual.dart';
+import 'classic_gift_3d_stage.dart';
 import '../services/room_feature_service.dart';
 import '../services/room_coin_purchase_service.dart';
 import 'room_coin_store_sheet.dart';
@@ -151,6 +152,55 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
     );
   }
 
+  Future<void> _show3D(RoomGiftCatalogItem gift) async {
+    if (!mounted) return;
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    final sender = FirebaseAuth.instance.currentUser?.displayName?.trim();
+    final senderName = sender?.isNotEmpty == true
+        ? sender! : (ar ? 'أنت' : 'You');
+    final recipientName = widget.recipients[_recipient] ??
+        (ar ? 'اختر صديقًا من القائمة' : 'Select a friend');
+    await showDialog<void>(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: .77),
+      builder: (dialogContext) => Dialog(
+        backgroundColor: const Color(0xFF0E382C),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24)),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Text(ar ? 'معاينة مجانية • لا تخصم كوينات'
+                    : 'FREE 3D VIEW • NO COINS CHARGED',
+                style: const TextStyle(color: Color(0xFFEACB8B),
+                    fontSize: 11, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text('$senderName   ✦   $recipientName',
+                maxLines: 2, overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white,
+                    fontWeight: FontWeight.w800)),
+            const SizedBox(height: 8),
+            ClassicGift3DStage(gift: gift, height: 217),
+            const SizedBox(height: 5),
+            Text(gift.localizedName(ar),
+                style: const TextStyle(color: Colors.white,
+                    fontSize: 17, fontWeight: FontWeight.w900)),
+            Text('${gift.priceCoins} 🪙',
+                style: const TextStyle(
+                    color: Color(0xFFFFDA89),
+                    fontWeight: FontWeight.w800)),
+            TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: Text(ar ? 'إغلاق' : 'Close',
+                    style: const TextStyle(color: Color(0xFFF6D995)))),
+          ]),
+        ),
+      ),
+    );
+  }
+
   Future<void> _previewGift(RoomGiftCatalogItem gift) async {
     // Voice rooms can dismiss the picker and preview directly over the stage.
     // This callback is presentation-only and never touches Firestore/wallets.
@@ -202,7 +252,7 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
               ]),
             ),
             const SizedBox(height: 5),
-            ClassicGiftVisual(gift: gift, size: 177, animate: true),
+            ClassicGift3DStage(gift: gift, height: 208),
             Text(gift.localizedName(ar), textAlign: TextAlign.center,
               style: const TextStyle(color: Colors.white, fontSize: 18,
                   fontWeight: FontWeight.w900)),
@@ -449,7 +499,7 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                                   _pendingSignature = null;
                                   _needsRecharge = false;
                                 }),
-                                onLongPress: () => _previewGift(gift),
+                                onLongPress: () => _show3D(gift),
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
@@ -506,14 +556,30 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                       style: const TextStyle(fontSize: 12,
                           color: Color(0xFF9D7327))),
                   if (selected != null)
-                    TextButton.icon(
-                      key: const ValueKey('gift-animation-preview'),
-                      onPressed: () => _previewGift(selected),
-                      icon: const Icon(Icons.play_circle_outline,
-                          color: Color(0xFF0B8358)),
-                      label: Text(ar ? 'جرّب تأثير الهدية'
-                          : 'Preview gift effect',
-                        style: const TextStyle(color: Color(0xFF0B8358))),
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      spacing: 5,
+                      runSpacing: 0,
+                      children: [
+                        TextButton.icon(
+                          key: const ValueKey('gift-3d-preview'),
+                          onPressed: () => _show3D(selected),
+                          icon: const Icon(Icons.view_in_ar_rounded,
+                              size: 18, color: Color(0xFFFFD88A)),
+                          label: Text(ar ? 'المجسم 3D' : 'View 3D',
+                              style: const TextStyle(
+                                  color: Color(0xFFFFD88A), fontSize: 12)),
+                        ),
+                        TextButton.icon(
+                          key: const ValueKey('gift-animation-preview'),
+                          onPressed: () => _previewGift(selected),
+                          icon: const Icon(Icons.play_circle_outline,
+                              size: 18, color: Color(0xFF87DDB6)),
+                          label: Text(ar ? 'تأثير الهدية' : 'Gift effect',
+                              style: const TextStyle(
+                                  color: Color(0xFF87DDB6), fontSize: 12)),
+                        ),
+                      ],
                     ),
                   if (RoomFeatureService.friendPreviewEnabled &&
                       selected != null && selected.id.startsWith('classic_') &&
