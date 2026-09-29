@@ -92,7 +92,9 @@ class _TasksTabState extends State<_TasksTab> {
     setState(() { _loading = true; _error = null; });
     try {
       final status = await widget.service.taskStatus();
-      if (mounted) setState(() => _status = status);
+      if (mounted) {
+        setState(() => _status = status);
+      }
     } catch (error) {
       if (mounted) setState(() {
         _status = null;
@@ -116,7 +118,9 @@ class _TasksTabState extends State<_TasksTab> {
       ));
       // No client XP or rewards are created by this widget.
       final status = await widget.service.taskStatus();
-      if (mounted) setState(() => _status = status);
+      if (mounted) {
+        setState(() => _status = status);
+      }
     } catch (error) {
       if (mounted) setState(() {
         _error = error.toString().replaceFirst('Bad state: ', '');
