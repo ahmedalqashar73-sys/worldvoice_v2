@@ -96,3 +96,40 @@ export function extractLegacyWallet(source) {
   }
   return wallet;
 }
+
+
+/** Reject stale pre-existing migration data. Never replace balances blindly. */
+export function assertExistingProjectionMatches(expected, actual, label) {
+  if (!actual || typeof actual !== "object" ||
+      !expected || typeof expected !== "object") {
+    throw new TypeError("Two migration projections are required.");
+  }
+  const fieldNames = new Set([...Object.keys(expected), ...Object.keys(actual)]);
+  fieldNames.delete("migrationSource");
+  fieldNames.delete("stagedAt");
+  for (const field of fieldNames) {
+    const left = expected[field];
+    const right = actual[field];
+    const normalize = value => {
+      if (value?.toMillis && typeof value.toMillis === "function") {
+        return value.toMillis();
+      }
+      return value;
+    };
+    const a = normalize(left);
+    const b = normalize(right);
+    const same = Array.isArray(a) && Array.isArray(b)
+      ? a.length === b.length && a.every((value, index) => value === b[index])
+      : a === b || ((a == null || a === 0 || a === false) &&
+          (b == null || b === 0 || b === false));
+    if (!same) {
+      // Field names only: never include names, wallet amounts or other
+      // personal values in migration logs or thrown errors.
+      throw Object.assign(
+        new Error(`Stale ${label} projection; reconcile before continuing.`),
+        {code: "MIGRATION_RECONCILIATION_REQUIRED"},
+      );
+    }
+  }
+  return true;
+}
