@@ -158,10 +158,23 @@ class AgoraVoiceRoomController extends ChangeNotifier {
           }
         },
         onConnectionStateChanged: (connection, state, reason) {
-          if (state == ConnectionStateType.connectionStateFailed) {
+          if (_released) return;
+          if (state == ConnectionStateType.connectionStateFailed ||
+              state == ConnectionStateType.connectionStateDisconnected) {
+            // Preserve the room document and seats, but never pretend audio
+            // is connected after Agora reports an offline transport.
             _joined = false;
-            _error = 'Agora connection failed: $reason';
             _connecting = false;
+            _error = state == ConnectionStateType.connectionStateFailed
+                ? 'Agora connection failed: $reason'
+                : 'Audio transport disconnected: $reason. Retry your connection.';
+            notifyListeners();
+          } else if (state == ConnectionStateType.connectionStateConnected &&
+              _localUid != null) {
+            // Agora may automatically recover an existing voice session.
+            _joined = true;
+            _connecting = false;
+            _error = null;
             notifyListeners();
           }
         },
@@ -434,6 +447,11 @@ class AgoraVoiceRoomController extends ChangeNotifier {
 
     if (AgoraConfig.tokenEndpoint.trim().isNotEmpty) {
       await _renewToken(role: role);
+      if (role == AgoraRoomRole.speaker && _error != null) {
+        // A member must never claim a working microphone before receiving
+        // the publisher privilege for the same channel and UID.
+        throw StateError(_error!);
+      }
     }
 
     await engine.setClientRole(
