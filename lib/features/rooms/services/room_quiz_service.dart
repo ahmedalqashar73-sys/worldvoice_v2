@@ -47,11 +47,15 @@ class RoomQuizService {
     required List<String> options,
     required int correctIndex,
   }) async {
-    if (question.trim().isEmpty ||
-        options.length < 2 ||
-        correctIndex < 0 ||
-        correctIndex >= options.length) {
-      throw StateError('Invalid quiz');
+    // Mirror the backend validation before touching Firestore. The chosen
+    // answer must refer to an actual non-empty visible option.
+    final cleanQuestion = question.trim();
+    final cleanOptions = options.map((value) => value.trim()).toList();
+    if (cleanQuestion.isEmpty || cleanQuestion.length > 500 ||
+        cleanOptions.length < 2 || cleanOptions.length > 4 ||
+        cleanOptions.any((value) => value.isEmpty || value.length > 220) ||
+        correctIndex < 0 || correctIndex >= cleanOptions.length) {
+      throw StateError('Enter a valid question and 2–4 non-empty answers.');
     }
 
     final user = _user;
@@ -70,8 +74,8 @@ class RoomQuizService {
         },
         body: jsonEncode({
           'roomId': roomId,
-          'question': question.trim(),
-          'options': options,
+          'question': cleanQuestion,
+          'options': cleanOptions,
           'correctIndex': correctIndex,
         }),
       );
@@ -92,17 +96,33 @@ class RoomQuizService {
         throw StateError(message);
       }
     }
-    // Free local room: the legacy public-answer format is restricted to
-    // explicitly non-monetary practice. No paid prize can derive from it.
+    // Free local room: validate host and room first. Practice has no coins,
+    // and cannot replace a verified round if its secure backend is offline.
+    final roomSnap = await _room.get();
+    final roomData = roomSnap.data() ?? const <String, dynamic>{};
+    if (!roomSnap.exists || roomData['isOpen'] != true ||
+        roomData['hostId'] != user.uid) {
+      throw StateError('Only the host of an open room can start a quiz.');
+    }
+    final currentQuiz = roomData['quiz'];
+    if (currentQuiz is Map &&
+        currentQuiz['roundId']?.toString().trim().isNotEmpty == true &&
+        currentQuiz['revealed'] != true) {
+      throw StateError('Finish the verified quiz before starting practice.');
+    }
     final answers = await _room.collection('quiz_answers').get();
+    // Firestore batches allow at most 500 writes: include one room update.
+    if (answers.docs.length > 450) {
+      throw StateError('Too many prior votes to reset safely in one round.');
+    }
     final batch = _db.batch();
     for (final doc in answers.docs) {
       batch.delete(doc.reference);
     }
     batch.update(_room, {
       'quiz': {
-        'question': question.trim(),
-        'options': options,
+        'question': cleanQuestion,
+        'options': cleanOptions,
         'correctIndex': correctIndex,
         'revealed': false,
         'practiceOnly': true,
@@ -116,6 +136,7 @@ class RoomQuizService {
   Future<void> answerQuiz(int optionIndex) async {
     final user = _user;
     if (user == null) return;
+    if (optionIndex < 0) throw StateError('Choose a valid answer.');
     final profile = await _db.collection('users').doc(user.uid).get();
     final data = profile.data() ?? const <String, dynamic>{};
 
@@ -123,6 +144,10 @@ class RoomQuizService {
     final quiz = room.data()?['quiz'];
     if (quiz is! Map || quiz['revealed'] == true) {
       throw StateError('There is no open quiz.');
+    }
+    final visibleOptions = quiz['options'];
+    if (visibleOptions is! List || optionIndex >= visibleOptions.length) {
+      throw StateError('Choose one of the displayed answers.');
     }
     final roundId = quiz['roundId']?.toString().trim() ?? '';
     await _room.collection('quiz_answers').doc(user.uid).set({
@@ -136,12 +161,9 @@ class RoomQuizService {
     });
   }
 
-  Future<void> revealQuiz() => _room.update({
-        // update interprets the dot as a nested field path. set(merge: true)
-        // would create a literal 'quiz.revealed' key and leave the quiz open.
-        'quiz.revealed': true,
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
+  /// Use the same trusted/practice finalizer for every caller. A direct
+  /// Firestore reveal could close a verified round without ranking votes.
+  Future<void> revealQuiz() => finishQuiz();
 
   /// Free-room fallback when the Agora-only worker has no optional quiz
   /// backend. This displays practice winners but NEVER credits coins.
