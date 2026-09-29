@@ -27,7 +27,14 @@ class RoomGiftOverlay extends StatelessWidget {
     }
   }
 
-  String get _fallbackEmoji => _giftId == 'vhagar' ? '🐲' : '🐉';
+  String get _fallbackEmoji => switch (_giftId) {
+        'vhagar' => '🐲',
+        'caraxes' || 'dragon' => '🐉',
+        'falling_tree' || 'tree' => '🌳',
+        'star' => '⭐',
+        'rose' => '🌹',
+        _ => '🎁',
+      };
 
   Widget _catalogVisual({
     required double width,
@@ -64,7 +71,9 @@ class RoomGiftOverlay extends StatelessWidget {
     if (_isPremiumDragon) {
       return IgnorePointer(
         child: Material(
-          color: Colors.black.withValues(alpha: .34),
+          // Preserve the room and its selected background while a premium
+          // gift flies over it; never cover it with a black gift frame.
+          color: Colors.transparent,
           child: SafeArea(
             child: TweenAnimationBuilder<double>(
               tween: Tween(begin: -1.15, end: 1.15),
@@ -199,10 +208,13 @@ class _GiftCaption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final icon = switch (event.giftId) {
-      'dragon' => '🐉',
+    final icon = switch (event.giftId.trim().toLowerCase()) {
+      'dragon' || 'caraxes' => '🐉',
+      'vhagar' => '🐲',
+      'falling_tree' || 'tree' => '🌳',
       'star' => '⭐',
-      _ => '🌹',
+      'rose' => '🌹',
+      _ => '🎁',
     };
 
     return Container(
@@ -216,13 +228,33 @@ class _GiftCaption extends StatelessWidget {
           BoxShadow(blurRadius: 22, color: Colors.black45),
         ],
       ),
-      child: Text(
-        '$icon  ${event.senderName} → ${event.recipientName}  •  ${event.points}',
-        textAlign: TextAlign.center,
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w900,
-        ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (titleOverride?.isNotEmpty == true) ...[
+            Text(
+              titleOverride!,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Color(0xFFFFD98B),
+                fontSize: 17,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.3,
+              ),
+            ),
+            const SizedBox(height: 3),
+          ],
+          Text(
+            '$icon  ${event.senderName} → ${event.recipientName}  •  ${event.points}',
+            textAlign: TextAlign.center,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
       ),
     );
   }
