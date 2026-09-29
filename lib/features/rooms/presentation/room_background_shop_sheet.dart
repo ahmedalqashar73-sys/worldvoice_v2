@@ -6,16 +6,19 @@ import '../data/room_shop_models.dart';
 import '../services/room_feature_service.dart';
 import '../services/room_shop_service.dart';
 import 'room_coin_store_sheet.dart';
+import '../services/room_coin_purchase_service.dart';
 
 class RoomBackgroundShopSheet extends StatelessWidget {
   RoomBackgroundShopSheet({
     required this.roomFeatures,
     required this.isHost,
+    this.onOpenWriting,
     super.key,
   });
 
   final RoomFeatureService roomFeatures;
   final bool isHost;
+  final VoidCallback? onOpenWriting;
   final RoomShopService _shop = RoomShopService();
 
   @override
@@ -31,17 +34,19 @@ class RoomBackgroundShopSheet extends StatelessWidget {
           children: [
             ListTile(
               title: Text(
-                isArabic ? 'متجر خلفيات الغرفة' : 'Room background store',
+                isArabic ? 'تصميم الغرفة: الخلفيات والإطارات' : 'Room look: backgrounds and frames',
                 style: const TextStyle(fontWeight: FontWeight.w900),
               ),
               subtitle: user == null
                   ? null
                   : StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                      stream: FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(user.uid)
-                          .snapshots(),
+                      stream: RoomCoinPurchaseService.instance.watchMyWallet(),
                       builder: (context, snapshot) {
+                        if (snapshot.hasError || snapshot.data?.exists != true) {
+                          return Text(isArabic
+                              ? 'المحفظة غير جاهزة'
+                              : 'Wallet unavailable');
+                        }
                         final coins =
                             (snapshot.data?.data()?['coins'] as num?)
                                     ?.toInt() ??
@@ -58,32 +63,90 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                 icon: const Icon(Icons.close_rounded),
               ),
             ),
+            // Visual styling stays separate from the gift catalog.
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               child: Wrap(
                 alignment: WrapAlignment.center,
-                spacing: 6,
+                spacing: 8,
+                runSpacing: 5,
                 children: [
-                  for (final type in const ['frame', 'entrance', 'vip'])
-                    ActionChip(
-                      avatar: Icon(switch (type) {
-                        'frame' => Icons.crop_free_rounded,
-                        'entrance' => Icons.auto_awesome_rounded,
-                        _ => Icons.workspace_premium_rounded,
-                      }, size: 17),
-                      label: Text(switch (type) {
-                        'frame' => isArabic ? 'الإطارات' : 'Frames',
-                        'entrance' => isArabic ? 'تأثيرات الدخول' : 'Entrance',
-                        _ => 'VIP',
-                      }),
-                      onPressed: () => showModalBottomSheet<void>(
-                        context: context, isScrollControlled: true,
-                        builder: (_) => _OtherStoreTab(
-                          type: type, shop: _shop, isArabic: isArabic),
+                  ActionChip(
+                    avatar: const Icon(Icons.crop_free_rounded, size: 17),
+                    label: Text(isArabic ? 'الإطارات' : 'Frames'),
+                    onPressed: () => showModalBottomSheet<void>(
+                      context: context,
+                      isScrollControlled: true,
+                      builder: (_) => _OtherStoreTab(
+                        type: 'frame',
+                        shop: _shop,
+                        isArabic: isArabic,
                       ),
+                    ),
+                  ),
+                  if (onOpenWriting != null)
+                    ActionChip(
+                      avatar: const Icon(Icons.text_fields_rounded, size: 17),
+                      label: Text(isArabic ? 'الكتابة والألوان' : 'Writing and colors'),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        onOpenWriting!();
+                      },
                     ),
                 ],
               ),
+            ),
+            StreamBuilder<RoomFeatureState>(
+              stream: roomFeatures.watchState(),
+              builder: (context, snapshot) {
+                final selected = snapshot.data?.themeId ?? 'emerald';
+                const palette = <(String, String, Color)>[
+                  ('emerald', 'Emerald', Color(0xFF197A58)),
+                  ('forestGold', 'Green & Gold', Color(0xFFA78C36)),
+                  ('skyBlue', 'Sky Blue', Color(0xFF3295C0)),
+                  ('midnight', 'Midnight', Color(0xFF273957)),
+                ];
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(isArabic ? 'لون الغرفة (الهوست)' : 'Room color (host)',
+                          style: Theme.of(context).textTheme.labelLarge),
+                      const SizedBox(height: 7),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(children: [
+                          for (final color in palette)
+                            Padding(
+                              padding: const EdgeInsetsDirectional.only(end: 7),
+                              child: ChoiceChip(
+                                avatar: CircleAvatar(
+                                  radius: 9, backgroundColor: color.$3),
+                                label: Text(switch (color.$1) {
+                                  'emerald' => isArabic ? 'أخضر' : 'Green',
+                                  'forestGold' => isArabic ? 'أخضر وذهبي' : 'Green & Gold',
+                                  'skyBlue' => isArabic ? 'سماوي' : 'Sky Blue',
+                                  _ => isArabic ? 'داكن' : 'Dark',
+                                }),
+                                selected: selected == color.$1,
+                                onSelected: !isHost ? null : (_) async {
+                                  try {
+                                    await roomFeatures.setTheme(color.$1);
+                                  } catch (error) {
+                                    if (!context.mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text(error.toString())));
+                                  }
+                                },
+                              ),
+                            ),
+                        ]),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
             if (!_shop.isConfigured)
               Padding(
