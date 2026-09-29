@@ -100,6 +100,38 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
     }
   }
 
+  Future<void> _sendFriendDemo(RoomGiftCatalogItem gift) async {
+    final recipient = _recipient;
+    if (!RoomFeatureService.friendPreviewEnabled || _busy ||
+        recipient == null || !widget.recipients.containsKey(recipient) ||
+        recipient == 'teacher_ai') {
+      return;
+    }
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    setState(() { _busy = true; _message = null; });
+    try {
+      await RoomFeatureService.sendFriendGiftPreview(
+        context: widget.contextType,
+        contextId: widget.contextId,
+        recipientId: recipient,
+        recipientName: widget.recipients[recipient]!,
+        giftId: gift.id,
+      );
+      if (!mounted) return;
+      setState(() => _message = ar
+          ? 'تم إرسال تأثير تجريبي إلى صديقك • دون كوينات أو دايموندز'
+          : 'Demo animation shared with your friend • no coins or diamonds');
+    } catch (error) {
+      if (!mounted) return;
+      final reason = error.toString().replaceFirst('Bad state: ', '');
+      setState(() => _message = ar
+          ? 'تعذر إرسال المعاينة: $reason'
+          : 'Could not share preview: $reason');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
   void _openRecharge() {
     if (widget.onOpenCoinStore != null) {
       widget.onOpenCoinStore!();
@@ -475,6 +507,27 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                       label: Text(ar ? 'جرّب تأثير الهدية'
                           : 'Preview gift effect',
                         style: const TextStyle(color: Color(0xFF0B8358))),
+                    ),
+                  if (RoomFeatureService.friendPreviewEnabled &&
+                      selected != null && selected.id.startsWith('classic_') &&
+                      widget.recipients.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 2, 12, 4),
+                      child: OutlinedButton.icon(
+                        key: const ValueKey('send-free-friend-gift-preview'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF0A8056),
+                          side: const BorderSide(
+                            color: Color(0xFF0A8056), width: 1.2),
+                        ),
+                        onPressed: _busy || _recipient == null ||
+                            _recipient == 'teacher_ai'
+                            ? null : () => _sendFriendDemo(selected),
+                        icon: const Icon(Icons.groups_rounded),
+                        label: Text(ar
+                            ? 'عرض مجاني لصديقك • بدون خصم'
+                            : 'Show demo to friend • no charge'),
+                      ),
                     ),
                   if (_message != null) Padding(
                     padding: const EdgeInsets.all(5),
