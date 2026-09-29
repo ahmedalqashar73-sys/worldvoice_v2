@@ -68,6 +68,7 @@ jobs:
         with:
           node-version: "22"
       - run: node --check src/server.js
+      - run: node --check src/room_task_policy.js
       - run: node --check src/wallet_store.js
       - run: node --check src/wallet_routes.js
       - run: node --check src/payment_reversals.js
