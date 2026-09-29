@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 
 import '../data/room_feature_models.dart';
+import '../data/room_backend_config.dart';
 import 'room_quiz_service.dart';
 
 class RoomFeatureService {
@@ -237,106 +238,67 @@ class RoomFeatureService {
         );
   }
 
-  Future<void> completeTask({
-    required String taskKey,
-    required int points,
-    required String periodKey,
-  }) async {
-    final user = _user;
-    if (user == null) return;
-
-    final taskRef = _room
-        .collection('task_completions')
-        .doc('${periodKey}_${taskKey}_${user.uid}');
-
-    int? unlockedLevel;
-
-    await _db.runTransaction((tx) async {
-      final task = await tx.get(taskRef);
-      if (task.exists) return;
-
-      final roomSnapshot = await tx.get(_room);
-      final roomData =
-          roomSnapshot.data() ?? const <String, dynamic>{};
-      final oldXp = (roomData['roomXp'] as num?)?.toInt() ?? 0;
-      final newXp = oldXp + points;
-      final newLevel = 1 + (newXp ~/ 100);
-
-      tx.set(taskRef, {
-        'taskKey': taskKey,
-        'userId': user.uid,
-        'points': points,
-        'periodKey': periodKey,
-        'completedAt': FieldValue.serverTimestamp(),
-      });
-      tx.set(
-        _room,
-        {
-          'roomXp': newXp,
-          'roomLevel': newLevel,
-          'lastTaskCompletionId': taskRef.id,
-          'updatedAt': FieldValue.serverTimestamp(),
-        },
-        SetOptions(merge: true),
-      );
-
-      if (newLevel > ((oldXp ~/ 100) + 1)) {
-        unlockedLevel = newLevel;
-        final rewardRef = _room.collection('rewards').doc('level_$newLevel');
-        tx.set(
-          rewardRef,
-          {
-            'level': newLevel,
-            'type': newLevel == 5 ? 'background_month' : 'gift_pack',
-            'unlockedBy': user.uid,
-            'sourceTaskId': taskRef.id,
-            'unlockedAt': FieldValue.serverTimestamp(),
-          },
-          SetOptions(merge: true),
-        );
+  // Mission credit is now backend-only. Never compute or set XP from a
+  // client-side button; server verifies joinedAt, live guests and gift events.
+  Uri _missionEndpoint(String path) {
+    final configured = _economyBackend.trim();
+    if (configured.isNotEmpty) {
+      final uri = Uri.tryParse(configured);
+      if (uri == null || !uri.hasAuthority || uri.scheme != 'https') {
+        throw StateError('The verified room mission backend URL is invalid.');
       }
-    });
-
-    final level = unlockedLevel;
-    if (level != null) {
-      await _grantLevelRewardToPresentMembers(level);
+      final prefix = uri.path.replaceFirst(RegExp(r'/$'), '');
+      return uri.replace(path: '$prefix$path');
     }
+    final endpoint = RoomBackendConfig.endpoint(path);
+    if (endpoint.isEmpty) {
+      throw StateError('Room mission backend is not configured.');
+    }
+    return Uri.parse(endpoint);
   }
 
-  Future<void> _grantLevelRewardToPresentMembers(int level) async {
-    final participants = await _room.collection('participants').get();
-    if (participants.docs.isEmpty) return;
-
-    final rewardType = level == 5 ? 'background_month' : 'gift_pack';
-    final expiresAt = level == 5
-        ? Timestamp.fromDate(DateTime.now().add(const Duration(days: 30)))
-        : null;
-
-    final batch = _db.batch();
-    for (final participant in participants.docs) {
-      final rewardId = '${roomId}_level_$level';
-      final rewardRef = _db
-          .collection('users')
-          .doc(participant.id)
-          .collection('room_rewards')
-          .doc(rewardId);
-
-      batch.set(
-        rewardRef,
-        {
-          'userId': participant.id,
-          'roomId': roomId,
-          'level': level,
-          'type': rewardType,
-          'sourceRewardId': 'level_$level',
-          'expiresAt': ?expiresAt,
-          'grantedAt': FieldValue.serverTimestamp(),
-        },
-        SetOptions(merge: true),
-      );
+  Future<Map<String, dynamic>> _missionRequest(
+    String path, {Map<String, dynamic>? payload}
+  ) async {
+    final user = _user;
+    if (user == null) throw StateError('Sign in to view room missions.');
+    final token = await user.getIdToken();
+    if (token == null || token.isEmpty) {
+      throw StateError('Could not authorize room missions.');
     }
-    await batch.commit();
+    final uri = _missionEndpoint(path);
+    final headers = <String, String>{
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    };
+    final response = payload == null
+        ? await http.get(uri.replace(queryParameters: {'roomId': roomId}),
+            headers: headers).timeout(const Duration(seconds: 15))
+        : await http.post(uri, headers: headers, body: jsonEncode(payload))
+            .timeout(const Duration(seconds: 15));
+    Map<String, dynamic>? decoded;
+    try {
+      final parsed = jsonDecode(response.body);
+      if (parsed is Map) decoded = Map<String, dynamic>.from(parsed);
+    } catch (_) {
+      // The deployed free Worker may not include the optional mission routes.
+    }
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw StateError(decoded?['error']?.toString() ??
+          'Verified room missions need the full backend, not the token-only Worker.');
+    }
+    if (decoded?['ok'] != true) {
+      throw StateError('The mission server returned an invalid result.');
+    }
+    return decoded!;
   }
+
+  Future<Map<String, dynamic>> taskStatus() =>
+      _missionRequest('/room/tasks/status');
+
+  Future<Map<String, dynamic>> claimVerifiedTask(String taskKey) =>
+      _missionRequest('/room/tasks/claim',
+          payload: {'roomId': roomId, 'taskKey': taskKey});
 
   Future<void> recordSpeakerActivity({
     int seconds = 30,
