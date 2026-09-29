@@ -3,8 +3,13 @@ import 'room_backend_config.dart';
 class AgoraConfig {
   AgoraConfig._();
 
-  static const String appId =
-      String.fromEnvironment('AGORA_APP_ID');
+  // These project identifiers are public (already used by the existing
+  // Android CI). Runtime --dart-define values still override them. The
+  // private Agora App Certificate stays exclusively on the server.
+  static const String appId = String.fromEnvironment(
+    'AGORA_APP_ID',
+    defaultValue: 'fa41476c6813471eb45c059bcb4a0e19',
+  );
 
   static const String tempToken =
       String.fromEnvironment('AGORA_TEMP_TOKEN');
