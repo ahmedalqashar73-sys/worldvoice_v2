@@ -121,6 +121,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
 
       _handler = RtcEngineEventHandler(
         onJoinChannelSuccess: (connection, elapsed) {
+          if (_released) return;
           _localUid = connection.localUid;
           _joined = true;
           _connecting = false;
@@ -166,7 +167,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
             // is connected after Agora reports an offline transport.
             _joined = false;
             _connecting = false;
-            _error = state == ConnectionStateType.connectionStateFailed
+            _error ??= state == ConnectionStateType.connectionStateFailed
                 ? 'Agora connection failed: $reason'
                 : 'Audio transport disconnected: $reason. Retry your connection.';
             notifyListeners();
@@ -186,6 +187,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
           unawaited(_renewToken());
         },
         onError: (err, message) {
+          if (_released) return;
           _error = err == ErrorCodeType.errInvalidToken
               ? 'Agora rejected the token. Configure WORLDVOICE_ROOM_BACKEND_URL for this Agora project, or a valid AGORA_TEMP_TOKEN matching this channel: $channelId. App ID alone is not sufficient for a token-secured project.'
               : 'Agora error: $err $message';
@@ -211,6 +213,9 @@ class AgoraVoiceRoomController extends ChangeNotifier {
         role: role,
       );
 
+      // A timed-out request or a user retry may release this engine while
+      // an HTTPS token request is still pending. Never join a stale engine.
+      if (_released || !identical(engine, _engine)) return;
       await engine.joinChannel(
         token: credential.token,
         channelId: channelId,
@@ -279,7 +284,11 @@ class AgoraVoiceRoomController extends ChangeNotifier {
         'channelName': channelId,
         'role': role == AgoraRoomRole.speaker ? 'publisher' : 'subscriber',
       }),
-    );
+    ).timeout(const Duration(seconds: 12), onTimeout: () {
+      throw TimeoutException(
+        'Agora token server did not respond within 12 seconds. Check the deployed room backend URL and connection.',
+      );
+    });
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
       String detail = '';
