@@ -15,6 +15,7 @@ import {initializeApp, applicationDefault} from "firebase-admin/app";
 import {getFirestore, FieldPath, FieldValue} from "firebase-admin/firestore";
 import {
   projectPublicProfile, extractLegacyWallet,
+  assertExistingProjectionMatches,
 } from "../src/profile_projection.js";
 
 const args = process.argv.slice(2);
@@ -76,18 +77,32 @@ while (visited < maxUsers) {
     const walletRef = doc.ref.collection("private").doc("wallet");
     const publicRef = db.collection("public_profiles").doc(doc.id);
     const result = await db.runTransaction(async tx => {
-      const [walletSnap, publicSnap] = await Promise.all([
-        tx.get(walletRef), tx.get(publicRef),
+      const [currentSource, walletSnap, publicSnap] = await Promise.all([
+        tx.get(doc.ref), tx.get(walletRef), tx.get(publicRef),
       ]);
-      if (!walletSnap.exists) {
+      // Re-read within the transaction: a concurrently edited legacy
+      // profile must never produce a stale private-wallet snapshot.
+      if (!currentSource.exists ||
+          currentSource.updateTime?.toMillis() !== doc.updateTime?.toMillis()) {
+        throw new Error("Source changed while staging; restart the audit.");
+      }
+      const currentWallet = extractLegacyWallet(currentSource.data());
+      const currentPublic = projectPublicProfile(doc.id, currentSource.data());
+      if (walletSnap.exists) {
+        assertExistingProjectionMatches(
+          currentWallet, walletSnap.data(), "private wallet");
+      } else {
         tx.create(walletRef, {
-          ...privateWallet, migrationSource: "legacy_users",
+          ...currentWallet, migrationSource: "legacy_users",
           stagedAt: FieldValue.serverTimestamp(),
         });
       }
-      if (!publicSnap.exists) {
+      if (publicSnap.exists) {
+        assertExistingProjectionMatches(
+          currentPublic, publicSnap.data(), "public profile");
+      } else {
         tx.create(publicRef, {
-          ...publicProfile, migrationSource: "legacy_users",
+          ...currentPublic, migrationSource: "legacy_users",
           stagedAt: FieldValue.serverTimestamp(),
         });
       }
