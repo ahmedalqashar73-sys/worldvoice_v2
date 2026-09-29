@@ -13,7 +13,7 @@ class ClassicGiftMesh {
 
   static String dataUri(String id) =>
       _cache.putIfAbsent(id, () => 'data:model/gltf-binary;base64,'
-          '${base64Encode(_GiftBuilder().._model(id))}');
+          '${base64Encode(binary(id))}');
 
   // Keep a raw binary entry point for deterministic schema validation.
   static Uint8List binary(String id) {
