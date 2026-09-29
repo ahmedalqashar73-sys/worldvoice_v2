@@ -337,35 +337,8 @@ service cloud.firestore {
       match /room_rewards/{rewardId} {
         allow read: if signedIn() && request.auth.uid == userId;
 
-        allow create: if signedIn()
-            && request.resource.data.userId == userId
-            && request.resource.data.roomId is string
-            && request.resource.data.level is int
-            && request.resource.data.type is string
-            && request.resource.data.sourceRewardId is string
-            && exists(
-              /databases/$(database)/documents/rooms/$(request.resource.data.roomId)/participants/$(userId)
-            )
-            && exists(
-              roomRewardPath(
-                request.resource.data.roomId,
-                request.resource.data.sourceRewardId
-              )
-            )
-            && get(
-              roomRewardPath(
-                request.resource.data.roomId,
-                request.resource.data.sourceRewardId
-              )
-            ).data.level == request.resource.data.level
-            && get(
-              roomRewardPath(
-                request.resource.data.roomId,
-                request.resource.data.sourceRewardId
-              )
-            ).data.type == request.resource.data.type;
-
-        allow update, delete: if false;
+        // Server-only: clients cannot forge new level rewards.
+        allow create, update, delete: if false;
       }
 
       match /inventory/{itemId} {
@@ -550,13 +523,19 @@ service cloud.firestore {
 
       allow create: if signedIn()
           && request.resource.data.hostId == request.auth.uid
-          && request.resource.data.channelId == roomId;
+          && request.resource.data.channelId == roomId
+          && request.resource.data.get('roomLevel', 1) == 1
+          && request.resource.data.get('roomXp', 0) == 0;
 
       // Normally only the host updates the room.
       // If the old host participant is gone, a new authenticated host may
       // recover that stale room document without changing the channel id.
       allow update: if signedIn()
           && request.resource.data.channelId == resource.data.channelId
+          && request.resource.data.diff(resource.data)
+              .affectedKeys().hasNone([
+                'roomXp', 'roomLevel', 'lastTaskCompletionId'
+              ])
           && validRoomThemeChange()
           && (
             (
@@ -586,12 +565,7 @@ service cloud.firestore {
               !oldHostStillPresent(roomId)
               && request.resource.data.hostId == request.auth.uid
             )
-            ||
-            (
-              isRoomMember(roomId)
-              && request.resource.data.hostId == resource.data.hostId
-              && validTaskRoomProgress(roomId)
-            )
+
           );
 
       allow delete: if isHost(roomId);
@@ -720,44 +694,15 @@ service cloud.firestore {
 
       match /task_completions/{taskId} {
         allow read: if isRoomMember(roomId);
-
-        allow create: if isRoomMember(roomId)
-            && request.resource.data.userId == request.auth.uid
-            && request.resource.data.periodKey is string
-            && validRoomTask(request.resource.data)
-            && request.resource.data.completedAt == request.time
-            && getAfter(roomPath(roomId)).data.lastTaskCompletionId
-                == taskId;
-
-        allow update, delete: if false;
+        // Mission evidence and XP are validated by the authenticated backend.
+        allow create, update, delete: if false;
       }
 
       match /rewards/{rewardId} {
         allow read: if isRoomMember(roomId);
 
-        allow create: if isHost(roomId)
-            || (
-              isRoomMember(roomId)
-              && request.resource.data.level
-                  == getAfter(roomPath(roomId)).data.roomLevel
-              && request.resource.data.unlockedBy == request.auth.uid
-              && request.resource.data.sourceTaskId
-                  == getAfter(roomPath(roomId)).data.lastTaskCompletionId
-              && (
-                (
-                  request.resource.data.level == 5
-                  && request.resource.data.type == 'background_month'
-                )
-                ||
-                (
-                  request.resource.data.level != 5
-                  && request.resource.data.type == 'gift_pack'
-                )
-              )
-            );
-
-        allow update: if isHost(roomId);
-        allow delete: if false;
+        // Catalog reward eligibility is minted by verified backend levels.
+        allow create, update, delete: if false;
       }
 
       match /speaker_stats/{userId} {
@@ -811,6 +756,7 @@ service cloud.firestore {
             && request.resource.data.warningCount == 0
             && request.resource.data.forcedMuted == false
             && request.resource.data.kicked == false
+            && request.resource.data.joinedAt == request.time
             && (
               (
                 request.resource.data.role == 'listener'
@@ -856,6 +802,7 @@ service cloud.firestore {
                 && request.resource.data.role == 'listener'
                 && !('seatIndex' in request.resource.data)
                 && request.resource.data.handRaised == false
+                && request.resource.data.joinedAt == request.time
                 && request.resource.data
                     .diff(resource.data)
                     .affectedKeys()
@@ -886,6 +833,10 @@ service cloud.firestore {
                 && request.resource.data.uid == request.auth.uid
                 && request.resource.data.role == 'host'
                 && request.resource.data.seatIndex == 1
+                && (
+                  request.resource.data.joinedAt == resource.data.joinedAt
+                  || request.resource.data.joinedAt == request.time
+                )
               )
               ||
               (
