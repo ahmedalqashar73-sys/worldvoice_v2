@@ -199,16 +199,81 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                           }
 
                           if (catalog.isEmpty) {
-                            return Center(
-                              child: Padding(
-                                padding: const EdgeInsets.all(24),
-                                child: Text(
-                                  isArabic
-                                      ? 'لا توجد خلفيات للبيع في الكتالوج حاليًا.'
-                                      : 'No purchasable room backgrounds are configured yet.',
-                                  textAlign: TextAlign.center,
-                                ),
+                            // Keep the room-design shop useful without
+                            // inventing paid catalog items or stock imagery.
+                            const freeThemes = <(String, String, List<Color>)>[
+                              ('emerald', 'Emerald',
+                                [Color(0xFF0D4A38), Color(0xFF1D9270)]),
+                              ('forestGold', 'Green & Gold',
+                                [Color(0xFF124B38), Color(0xFFC0A44D)]),
+                              ('skyBlue', 'Sky Blue',
+                                [Color(0xFF14678F), Color(0xFF8DDBF5)]),
+                              ('midnight', 'Midnight',
+                                [Color(0xFF17223A), Color(0xFF283E6D)]),
+                            ];
+                            return GridView.builder(
+                              padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
+                              itemCount: freeThemes.length,
+                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                childAspectRatio: .76,
+                                mainAxisSpacing: 12,
+                                crossAxisSpacing: 10,
                               ),
+                              itemBuilder: (context, index) {
+                                final theme = freeThemes[index];
+                                return Card(
+                                  clipBehavior: Clip.antiAlias,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    children: [
+                                      Expanded(
+                                        child: DecoratedBox(
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                              colors: theme.$3,
+                                            ),
+                                          ),
+                                          child: const Icon(
+                                            Icons.wallpaper_rounded,
+                                            size: 45, color: Colors.white70,
+                                          ),
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(6),
+                                        child: Text(
+                                          switch (theme.$1) {
+                                            'emerald' => isArabic ? 'أخضر' : 'Emerald',
+                                            'forestGold' => isArabic ? 'أخضر وذهبي' : 'Green & Gold',
+                                            'skyBlue' => isArabic ? 'سماوي' : 'Sky Blue',
+                                            _ => isArabic ? 'داكن' : 'Midnight',
+                                          },
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(fontWeight: FontWeight.w800),
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.fromLTRB(7, 0, 7, 9),
+                                        child: OutlinedButton(
+                                          onPressed: !isHost ? null : () async {
+                                            try {
+                                              await roomFeatures.setTheme(theme.$1);
+                                            } catch (error) {
+                                              if (!context.mounted) return;
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(content: Text(error.toString())));
+                                            }
+                                          },
+                                          child: Text(isArabic ? 'استخدام مجانًا' : 'Use free'),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
                             );
                           }
 
