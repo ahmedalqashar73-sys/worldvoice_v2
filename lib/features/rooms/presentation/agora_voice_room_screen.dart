@@ -37,6 +37,7 @@ import 'room_quiz_sheet.dart';
 import 'room_rating_sheet.dart';
 import 'room_extras_sheet.dart';
 import 'room_gift_overlay.dart';
+import 'unified_gift_panel.dart';
 import 'room_members_sheet.dart';
 import 'room_mod_log_sheet.dart';
 import 'room_stage_grid.dart';
@@ -1382,12 +1383,35 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       isScrollControlled: true,
       useSafeArea: true,
       builder: (_) => RoomExtrasSheet(
-        initialTab: initialTab,        roomId: widget.channelId,
-        participants: _participants,
-        isHost: _isHost,
-        showTeacherAiSeat: _showTeacherAiSeat,
-        contextType: widget.initialMode == RoomMode.live ? 'live' : 'room',
-        onOpenCoinStore: _showCoinStore,
+        initialTab: initialTab,
+        roomId: widget.channelId,
+      ),
+    );
+  }
+
+  // Gifts are a self-contained tool, never a tab inside themes or tasks.
+  Future<void> _showGifts() async {
+    final myId = FirebaseAuth.instance.currentUser?.uid;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => SafeArea(
+        child: SizedBox(
+          height: MediaQuery.sizeOf(context).height * .75,
+          child: UnifiedGiftPanel(
+            contextType: widget.initialMode == RoomMode.live ? 'live' : 'room',
+            contextId: widget.channelId,
+            recipients: {
+              for (final member in _participants.where(
+                  (member) => member.isOnStage && member.userId != myId))
+                member.userId: member.displayName,
+              if (_showTeacherAiSeat && widget.initialMode != RoomMode.live)
+                'teacher_ai': 'Teacher AI',
+            },
+            onOpenCoinStore: _showCoinStore,
+          ),
+        ),
       ),
     );
   }
@@ -1485,10 +1509,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       (Icons.quiz_rounded, ar ? 'مسابقات' : 'Quiz', _showQuiz),
       (Icons.smart_toy_outlined, ar ? 'أستاذ AI' : 'Teacher AI', _showTeacherAiChat),
       (Icons.music_note_rounded, ar ? 'موسيقى' : 'Music', _showMusic),
-      (Icons.castle_rounded, ar ? 'مهام الغرفة' : 'Room tasks', () => _showRoomExtras(initialTab: 1)),
-      (Icons.card_giftcard_rounded, ar ? 'الهدايا' : 'Gifts', () => _showRoomExtras(initialTab: 2)),
-      (Icons.emoji_events_rounded, ar ? 'الترتيب' : 'Leaderboard', () => _showRoomExtras(initialTab: 3)),
-      (Icons.redeem_rounded, ar ? 'المكافآت' : 'Rewards', () => _showRoomExtras(initialTab: 4)),
+      (Icons.castle_rounded, ar ? 'مهام الغرفة' : 'Room tasks', () => _showRoomExtras(initialTab: 0)),
+      (Icons.card_giftcard_rounded, ar ? 'الهدايا' : 'Gifts', _showGifts),
+      (Icons.emoji_events_rounded, ar ? 'الترتيب' : 'Leaderboard', () => _showRoomExtras(initialTab: 1)),
+      (Icons.redeem_rounded, ar ? 'المكافآت' : 'Rewards', () => _showRoomExtras(initialTab: 2)),
       (Icons.wallpaper_rounded, ar ? 'الخلفيات' : 'Backgrounds', _showBackgroundStore),
       (Icons.groups_outlined, ar ? 'الأعضاء' : 'Members', _showMembers),
       if (_canModerate) (Icons.pan_tool_alt_rounded, ar ? 'طلبات الصعود' : 'Seat requests', _showRaisedHandsSheet),
@@ -2070,7 +2094,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                 style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
               const SizedBox(height: 4),
               Wrap(spacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
-                InkWell(onTap: () => _showRoomExtras(initialTab: 1), child: Container(
+                InkWell(onTap: () => _showRoomExtras(initialTab: 0), child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                   decoration: BoxDecoration(color: const Color(0xFFFFCE79),
                     borderRadius: BorderRadius.circular(12)),
@@ -2199,7 +2223,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                 Expanded(child: RoomConversationPanel(
                   messages: _chatMessages ?? const Stream<List<RoomChatMessage>>.empty(),
                   enabled: _chatMessages != null, onSend: _roomChat.send, isArabic: isArabic,
-                  onGifts: () => _showRoomExtras(initialTab: 2), onShop: _showBackgroundStore,
+                  onGifts: _showGifts, onShop: _showBackgroundStore,
                   onTools: _showToolsGrid, onCaptions: _showCaptionSettings,
                   micIcon: isPublishing
                     ? (_controller.muted || !_controller.joined ? Icons.mic_off_rounded : Icons.mic_rounded)
