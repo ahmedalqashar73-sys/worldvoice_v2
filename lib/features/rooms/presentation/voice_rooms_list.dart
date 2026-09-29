@@ -240,82 +240,6 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
     return raw.length <= 6 ? raw : raw.substring(raw.length - 6);
   }
 
-  Future<void> _joinPrivateRoom(BuildContext context) async {
-    final controller = TextEditingController();
-    final code = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(_isArabic ? 'دخول غرفة خاصة' : 'Join private room'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          textCapitalization: TextCapitalization.characters,
-          decoration: InputDecoration(
-            labelText: _isArabic ? 'كود الغرفة' : 'Room code',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text(_isArabic ? 'إلغاء' : 'Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              final value = controller.text.trim().toUpperCase();
-              if (value.isNotEmpty) Navigator.pop(dialogContext, value);
-            },
-            child: Text(_isArabic ? 'دخول' : 'Join'),
-          ),
-        ],
-      ),
-    );
-    controller.dispose();
-
-    if (code == null || !context.mounted) return;
-
-    try {
-      final codeDoc = await FirebaseFirestore.instance
-          .collection('private_room_codes')
-          .doc(code)
-          .get();
-      final roomId = codeDoc.data()?['roomId']?.toString();
-      if (!codeDoc.exists || roomId == null || roomId.isEmpty) {
-        throw StateError(
-          _isArabic ? 'كود الغرفة غير صحيح.' : 'Invalid room code.',
-        );
-      }
-
-      final roomDoc = await FirebaseFirestore.instance
-          .collection('rooms')
-          .doc(roomId)
-          .get();
-      final data = roomDoc.data();
-      if (!roomDoc.exists || data?['isOpen'] != true) {
-        throw StateError(
-          _isArabic ? 'الغرفة غير متاحة الآن.' : 'The room is not open.',
-        );
-      }
-
-      if (!context.mounted) return;
-      _joinRoom(
-        context,
-        channelId: roomId,
-        roomName: (data?['name'] ?? 'WorldVoice Room').toString(),
-        roomLanguageCode: (data?['languageCode'] ?? 'en').toString(),
-        showTeacherAiSeat: data?['showTeacherAiSeat'] == true,
-        isPrivate: true,
-        vipOnly: data?['vipOnly'] == true,
-        privateAccessCode: code,
-        roomModeName: data?['mode']?.toString(),
-      );
-    } catch (error) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.toString())),
-      );
-    }
-  }
-
   Future<void> _showHistory(BuildContext context) async {
     final history = RoomHistoryService();
 
@@ -443,13 +367,6 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
                     icon: const Icon(Icons.history_rounded),
                     label: Text(
                       _isArabic ? 'السجل' : 'History',
-                    ),
-                  ),
-                  TextButton.icon(
-                    onPressed: () => _joinPrivateRoom(context),
-                    icon: const Icon(Icons.lock_outline_rounded),
-                    label: Text(
-                      _isArabic ? 'دخول بكود' : 'Join by code',
                     ),
                   ),
                 ],
