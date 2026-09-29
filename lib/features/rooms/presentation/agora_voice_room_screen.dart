@@ -1051,7 +1051,9 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
   // A compact emerald hand button stays separate from chat actions.
   Widget _buildHandControl(bool isArabic, bool isPublishing) {
-    if (!_controller.joined) return const SizedBox.shrink();
+    // Request management is backed by Firestore. Keep the button visible
+    // while the user retries a failed Agora audio connection.
+    if (_me == null) return const SizedBox.shrink();
     if (_canModerate) {
       return Badge(
         isLabelVisible: _raisedHands.isNotEmpty,
@@ -1741,6 +1743,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     final ar = (widget.localeController?.locale?.languageCode ??
         Localizations.localeOf(context).languageCode) == 'ar';
     final admin = RoomAdminService(roomId: widget.channelId);
+    final membersStream = _moderation.watchParticipants();
     String? savingUser;
     await showModalBottomSheet<void>(
       context: context,
@@ -1763,7 +1766,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               ),
               const Divider(height: 1),
               Expanded(child: StreamBuilder<List<RoomParticipant>>(
-                stream: _moderation.watchParticipants(),
+                stream: membersStream,
                 builder: (context, snapshot) {
                   if (snapshot.hasError) {
                     return Center(child: Text(ar
@@ -2439,7 +2442,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                       ? null : _toggleMicSafely,
                   )),
                   if (MediaQuery.viewInsetsOf(context).bottom == 0 &&
-                      _controller.joined && (_canModerate || !isPublishing))
+                      _me != null && (_canModerate || !isPublishing))
                     Positioned(
                       left: 10,
                       bottom: 79,
