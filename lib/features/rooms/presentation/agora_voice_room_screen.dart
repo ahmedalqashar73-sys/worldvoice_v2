@@ -99,6 +99,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   StreamSubscription<bool>? _teacherAiSeatSub;
   StreamSubscription<RoomFeatureState>? _featuresSub;
   StreamSubscription<List<RoomGiftEvent>>? _giftSub;
+  StreamSubscription<List<RoomGiftPreview>>? _freeGiftPreviewSub;
   StreamSubscription<List<RoomCaption>>? _captionSub;
   StreamSubscription<List<RoomTeacherAiNote>>? _teacherAiSub;
 
@@ -116,6 +117,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   bool _minimized = false;
   String? _lastGiftId;
   bool _giftStreamPrimed = false;
+  final DateTime _friendPreviewOpenedAt = DateTime.now();
+  final Set<String> _seenFriendPreviewEvents = <String>{};
   OverlayEntry? _giftOverlay;
   Timer? _giftOverlayTimer;
   Timer? _speakingTimer;
@@ -302,6 +305,35 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         // An optional gift stream must not disconnect the voice session.
         debugPrint('WorldVoice gift effects unavailable: $error');
       });
+
+      if (RoomFeatureService.friendPreviewEnabled) {
+        _freeGiftPreviewSub = RoomFeatureService.watchFriendGiftPreviews(
+          context: widget.initialMode == RoomMode.live ? 'live' : 'room',
+          contextId: widget.channelId,
+        ).listen((previews) {
+          if (!mounted || previews.isEmpty) return;
+          final now = DateTime.now();
+          RoomGiftPreview? latest;
+          for (final event in previews) {
+            final newEvent = _seenFriendPreviewEvents.add(event.eventKey);
+            final sent = event.sentAt;
+            if (!newEvent || sent == null ||
+                sent.isBefore(_friendPreviewOpenedAt.subtract(
+                    const Duration(seconds: 1))) ||
+                now.difference(sent).inSeconds.abs() > 20) {
+              continue;
+            }
+            latest ??= event;
+          }
+          if (latest != null) {
+            _showGiftOverlay(latest.toVisualEvent(), preview: true);
+          }
+        }, onError: (Object error, StackTrace stack) {
+          // Existing Agora audio always survives missing or older Firebase
+          // rules. New preview rule deployment is a separate testing step.
+          debugPrint('WorldVoice friend gift demo unavailable: $error');
+        });
+      }
 
       // Captions are optional. Missing/out-of-date deployed Firestore rules
       // must not cause an unhandled stream exception or disconnect Agora.
@@ -2155,6 +2187,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     _teacherAiSeatSub?.cancel();
     _featuresSub?.cancel();
     _giftSub?.cancel();
+    _freeGiftPreviewSub?.cancel();
     _captionSub?.cancel();
     _teacherAiSub?.cancel();
     _giftOverlayTimer?.cancel();
