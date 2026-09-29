@@ -18,6 +18,7 @@ import {registerChatRoutes} from "./chat_routes.js";
 import {chatIdFor, assertChatMembership} from "./chat_membership.js";
 import {reverseVerifiedWebPurchase} from "./payment_reversals.js";
 import {validateQuizDraft, quizWinners} from "./quiz_policy.js";
+import {privateWalletRef, requirePrivateWallet} from "./wallet_store.js";
 
 const { RtcRole, RtcTokenBuilder } = agoraToken;
 
@@ -337,6 +338,7 @@ async function creditVerifiedCoins({
     .update(`${platform}:${receiptId}`).digest("hex");
   const receiptRef = db.collection("iap_receipts").doc(receiptKey);
   const userRef = db.collection("users").doc(userId);
+  const walletRef = privateWalletRef(userRef);
   const configRef = db.doc("economy_config/current");
   const productRef = db.collection("coin_products").doc(catalogId);
   const day = new Date().toISOString().slice(0, 10);
@@ -344,7 +346,7 @@ async function creditVerifiedCoins({
   return db.runTransaction(async tx => {
     // Read all snapshots BEFORE making any transaction write.
     const [receiptSnap, userSnap, configSnap, productSnap, dailySnap] =
-      await Promise.all([receiptRef, userRef, configRef, productRef, dailyRef]
+      await Promise.all([receiptRef, walletRef, configRef, productRef, dailyRef]
         .map(ref => tx.get(ref)));
     if (receiptSnap.exists) {
       const receipt = receiptSnap.data() || {};
@@ -364,6 +366,7 @@ async function creditVerifiedCoins({
       return {alreadyCredited: true, coins: Number(receipt.coins || 0)};
     }
     const policy = requireLiveEconomy(configSnap.data());
+    requirePrivateWallet(userSnap);
     const product = productSnap.data() || {};
     const base = Number(product.coins);
     const priceCents = Math.round(Number(product.priceUsd) * 100);
@@ -404,7 +407,7 @@ async function creditVerifiedCoins({
         !Number.isSafeInteger(balanceAfter)) {
       throw Object.assign(new Error("Coin ledger balance is invalid."), {status: 503});
     }
-    tx.set(userRef, {
+    tx.set(walletRef, {
       coins: balanceAfter,
       purchasedCoins: previousPurchases + reward.totalCoins,
       firstRechargeUsed: true,
