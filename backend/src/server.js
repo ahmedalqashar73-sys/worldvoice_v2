@@ -1047,8 +1047,14 @@ app.post("/gift/send", async (req, res, next) => {
         !/^[A-Za-z0-9_-]{12,100}$/.test(requestKey)) {
       return res.status(400).json({error: "Invalid gift request or idempotency key."});
     }
-    // Live uses the existing verified Agora ROOM membership and is
-    // available only when the room itself was created in live mode.
+    // Firestore room membership is not proof of a server-verified Agora
+    // video broadcast. Paid live gifts remain disabled until a trusted
+    // session ACL and broadcast-event ledger are implemented and tested.
+    if (context === "live") {
+      return res.status(501).json({
+        error: "Paid live gifting requires a verified live broadcast session.",
+      });
+    }
     if (context !== "room" && recipientId === "teacher_ai") {
       return res.status(400).json({error: "AI gift XP is room-only."});
     }
