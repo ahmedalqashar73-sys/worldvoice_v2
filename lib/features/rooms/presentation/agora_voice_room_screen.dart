@@ -118,6 +118,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   bool _captionsEnabled = false;
   bool _captionListening = false;
   bool _captionTranslationEnabled = false;
+  bool _pronunciationTipsEnabled = false;
   String _captionTargetLanguage = 'en';
   String? _captionError;
   RoomCaption? _latestCaption;
@@ -396,16 +397,28 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     }
 
     if (latest != null &&
-        _showTeacherAiSeat &&
+        (_showTeacherAiSeat || _pronunciationTipsEnabled) &&
         latest.userId == _moderation.currentUserId &&
         latest.id != _lastTeacherAiCaptionId) {
       _lastTeacherAiCaptionId = latest.id;
-      unawaited(
-        _teacherAi.submitCaption(
-          caption: latest,
-          roomLanguageCode: widget.roomLanguageCode ?? 'en',
-        ),
+      unawaited(_requestPronunciationGuidance(latest));
+    }
+  }
+
+  Future<void> _requestPronunciationGuidance(RoomCaption caption) async {
+    try {
+      final received = await _teacherAi.submitCaption(
+        caption: caption,
+        roomLanguageCode: widget.roomLanguageCode ?? 'en',
       );
+      if (!received && mounted && _pronunciationTipsEnabled) {
+        setState(() => _captionError =
+            'Pronunciation guidance needs the deployed Teacher AI backend.');
+      }
+    } catch (error) {
+      if (mounted && _pronunciationTipsEnabled) {
+        setState(() => _captionError = error.toString());
+      }
     }
   }
 
@@ -497,6 +510,12 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
           return RoomCaptionsSheet(
             enabled: _captionsEnabled,
             translationEnabled: _captionTranslationEnabled,
+            pronunciationEnabled: _pronunciationTipsEnabled,
+            pronunciationNotes: _teacherAi.watchNotes().map(
+              (notes) => notes
+                  .where((note) => note.userId == _moderation.currentUserId)
+                  .toList(growable: false),
+            ),
             targetLanguage: _captionTargetLanguage,
             canPublish: _me?.isOnStage == true,
             listening: _captionListening,
@@ -514,6 +533,20 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               final latest = _latestCaption;
               if (value && latest != null) {
                 unawaited(_translateLatestCaption(latest));
+              }
+              refreshSheet();
+            },
+            onPronunciationChanged: (value) {
+              setState(() {
+                _pronunciationTipsEnabled = value;
+                _lastTeacherAiCaptionId = null;
+                _captionError = null;
+              });
+              final latest = _latestCaption;
+              if (value && latest != null &&
+                  latest.userId == _moderation.currentUserId) {
+                _lastTeacherAiCaptionId = latest.id;
+                unawaited(_requestPronunciationGuidance(latest));
               }
               refreshSheet();
             },
