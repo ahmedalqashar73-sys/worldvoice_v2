@@ -19,6 +19,7 @@ class UnifiedGiftPanel extends StatefulWidget {
     required this.contextId,
     required this.recipients,
     this.onOpenCoinStore,
+    this.onPreview,
     super.key,
   });
 
@@ -26,6 +27,8 @@ class UnifiedGiftPanel extends StatefulWidget {
   final String contextId;
   final Map<String, String> recipients;
   final VoidCallback? onOpenCoinStore;
+  /// Optional in-context animation preview, never a gift delivery.
+  final ValueChanged<RoomGiftCatalogItem>? onPreview;
 
   @override
   State<UnifiedGiftPanel> createState() => _UnifiedGiftPanelState();
@@ -110,6 +113,12 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
   }
 
   Future<void> _previewGift(RoomGiftCatalogItem gift) async {
+    // Voice rooms can dismiss the picker and preview directly over the stage.
+    // This callback is presentation-only and never touches Firestore/wallets.
+    if (widget.onPreview != null) {
+      widget.onPreview!(gift);
+      return;
+    }
     final ar = Localizations.localeOf(context).languageCode == 'ar';
     await showDialog<void>(
       context: context,
