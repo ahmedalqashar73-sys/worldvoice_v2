@@ -13,6 +13,7 @@ import '../../rooms/presentation/classic_gift_visual.dart';
 import '../../rooms/presentation/room_gift_overlay.dart';
 import '../../rooms/data/classic_gift_catalog.dart';
 import '../../rooms/data/room_feature_models.dart';
+import '../../rooms/services/room_feature_service.dart';
 
 /// Real authenticated conversations. The economy backend, not Flutter,
 /// establishes mutual-follower membership and writes chat/gift messages.
@@ -277,14 +278,47 @@ class _ChatConversationState extends State<_ChatConversation> {
   bool _giftStreamPrimed = false;
   OverlayEntry? _giftOverlay;
   Timer? _giftTimer;
+  StreamSubscription<List<RoomGiftPreview>>? _friendGiftPreviewSub;
+  final Set<String> _seenFriendPreviewEvents = <String>{};
+
+  @override
+  void initState() {
+    super.initState();
+    if (RoomFeatureService.friendPreviewEnabled) {
+      _friendGiftPreviewSub = RoomFeatureService.watchFriendGiftPreviews(
+        context: 'chat', contextId: widget.chatId,
+      ).listen((previews) {
+        final now = DateTime.now();
+        RoomGiftPreview? latest;
+        for (final event in previews) {
+          final newEvent = _seenFriendPreviewEvents.add(event.eventKey);
+          final sent = event.sentAt;
+          if (!newEvent || sent == null ||
+              sent.isBefore(_conversationOpenedAt.subtract(
+                  const Duration(seconds: 1))) ||
+              now.difference(sent).inSeconds.abs() > 20) {
+            continue;
+          }
+          latest ??= event;
+        }
+        if (latest != null) {
+          final demo = latest;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) _showGiftAnimation(
+              demo.toVisualEvent(), preview: true);
+          });
+        }
+      }, onError: (Object error, StackTrace trace) {
+        debugPrint('WorldVoice chat gift demos unavailable: $error');
+      });
+    }
+  }
 
   void _showIncomingGift(
       QueryDocumentSnapshot<Map<String, dynamic>> message) {
     if (!mounted) return;
     final data = message.data();
-    _giftTimer?.cancel();
-    _giftOverlay?.remove();
-    final event = RoomGiftEvent(
+    _showGiftAnimation(RoomGiftEvent(
       id: message.id,
       senderId: (data['senderId'] ?? '').toString(),
       senderName: (data['senderName'] ?? '').toString(),
@@ -293,9 +327,15 @@ class _ChatConversationState extends State<_ChatConversation> {
       giftId: (data['giftId'] ?? '').toString(),
       points: (data['points'] as num?)?.toInt() ?? 0,
       animationUrl: data['animationUrl']?.toString(),
-    );
+    ));
+  }
+
+  void _showGiftAnimation(RoomGiftEvent event, {bool preview = false}) {
+    if (!mounted) return;
+    _giftTimer?.cancel();
+    _giftOverlay?.remove();
     final overlay = OverlayEntry(
-      builder: (_) => RoomGiftOverlay(event: event),
+      builder: (_) => RoomGiftOverlay(event: event, preview: preview),
     );
     _giftOverlay = overlay;
     Overlay.of(context).insert(overlay);
@@ -385,6 +425,7 @@ class _ChatConversationState extends State<_ChatConversation> {
   @override
   void dispose() {
     _giftTimer?.cancel();
+    _friendGiftPreviewSub?.cancel();
     _giftOverlay?.remove();
     _giftOverlay = null;
     _text.dispose();
