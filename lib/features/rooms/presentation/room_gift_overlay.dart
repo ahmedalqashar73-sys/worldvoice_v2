@@ -188,6 +188,9 @@ class RoomGiftOverlay extends StatelessWidget {
                     shadows: [Shadow(
                       color: Color(0xFF073C2A), blurRadius: 9)],
                   )),
+                const SizedBox(height: 6),
+                _LuxuryGiftAddress(event: event, preview: preview),
+                const SizedBox(height: 4),
                 FutureBuilder<List<RoomGiftCatalogItem>>(
                 future: ClassicGiftCatalog.load(),
                 builder: (context, snapshot) {
@@ -230,7 +233,8 @@ class RoomGiftOverlay extends StatelessWidget {
                             shadows: [Shadow(
                                 color: Color(0xFF093E30), blurRadius: 9)])),
                       const SizedBox(height: 4),
-                      Text('${approved.priceCoins} 🪙',
+                      Text(
+                        '${preview ? approved.priceCoins : event.points} 🪙',
                         style: const TextStyle(color: Color(0xFFFFDC88),
                             fontSize: 13, fontWeight: FontWeight.w800,
                             shadows: [Shadow(
@@ -284,6 +288,60 @@ class RoomGiftOverlay extends StatelessWidget {
   }
 }
 
+/// Names are sourced from an actual settled server gift event. For a local
+/// preview they identify the user/selected recipient but never imply delivery.
+class _LuxuryGiftAddress extends StatelessWidget {
+  const _LuxuryGiftAddress({required this.event, required this.preview});
+  final RoomGiftEvent event;
+  final bool preview;
+
+  @override
+  Widget build(BuildContext context) {
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    final from = event.senderName.trim().isNotEmpty
+        ? event.senderName.trim()
+        : (ar ? 'المرسل' : 'Sender');
+    final to = event.recipientName.trim().isNotEmpty
+        ? event.recipientName.trim()
+        : (ar ? 'اختر المستلم' : 'Choose recipient');
+    return Container(
+      constraints: BoxConstraints(
+        maxWidth: MediaQuery.sizeOf(context).width - 40),
+      padding: const EdgeInsets.symmetric(
+        vertical: 8, horizontal: 14),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xEB0B3829), Color(0xEE1E5943),
+                   Color(0xEB0D3329)]),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0x99F3D389), width: 1),
+        boxShadow: const [
+          BoxShadow(color: Color(0x8829A67A), blurRadius: 18),
+        ],
+      ),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Text(ar
+          ? (preview ? 'معاينة طريقة الإهداء'
+              : 'تم إرسال هدية')
+          : (preview ? 'GIFT EFFECT PREVIEW' : 'GIFT SENT'),
+          style: const TextStyle(color: Color(0xFFFFDA93),
+              fontSize: 10, fontWeight: FontWeight.w800)),
+        const SizedBox(height: 3),
+        Text(ar ? '$from  ✦  $to' : '$from  ✦  $to',
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(color: Colors.white,
+              fontSize: 13, fontWeight: FontWeight.w900,
+              shadows: [Shadow(color: Color(0xFF124932), blurRadius: 7)])),
+        Text(ar ? 'من المرسل إلى المستلم' : 'FROM SENDER TO RECIPIENT',
+          style: const TextStyle(color: Color(0xFFB7EBCB),
+              fontSize: 9, fontWeight: FontWeight.w600)),
+      ]),
+    );
+  }
+}
+
 class _GiftCaption extends StatelessWidget {
   const _GiftCaption({
     required this.event,
@@ -332,7 +390,7 @@ class _GiftCaption extends StatelessWidget {
             const SizedBox(height: 3),
           ],
           Text(
-            '$icon  ${event.senderName} → ${event.recipientName}  •  ${event.points}',
+            '$icon  ${event.senderName}  ✦  ${event.recipientName}  •  ${event.points} 🪙',
             textAlign: TextAlign.center,
             maxLines: 3,
             overflow: TextOverflow.ellipsis,
