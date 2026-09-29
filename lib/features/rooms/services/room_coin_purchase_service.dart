@@ -45,6 +45,24 @@ class RoomCoinPurchaseService extends ChangeNotifier {
   String? get message => _message;
   List<CoinStoreProduct> get products => _products;
 
+  /// This stream is always scoped to the signed-in user's owner-only wallet.
+  /// Do not fall back to users/{uid}, which exposes legacy finance publicly.
+  Stream<DocumentSnapshot<Map<String, dynamic>>> watchMyWallet() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return Stream<DocumentSnapshot<Map<String, dynamic>>>.error(
+        StateError('Sign in is required to view your wallet.'),
+      );
+    }
+    return FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('private')
+        .doc('wallet')
+        .snapshots();
+  }
+
+
   Future<void> initialize() async {
     if (_initialized) return;
     _initialized = true;
