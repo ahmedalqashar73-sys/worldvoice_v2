@@ -273,10 +273,40 @@ class RoomFeatureService {
     if (!approved.any((g) => g.id == giftId)) {
       throw StateError('INVALID_TEST_GIFT');
     }
-    final displayName = user.displayName?.trim() ?? '';
-    final sender = displayName.isNotEmpty ? displayName : 'WorldVoice';
-    final receiver = recipientName.trim();
-    if (sender.length > 64 || receiver.isEmpty || receiver.length > 64) {
+    // Always resolve names from existing authorized membership documents.
+    // Never trust arbitrary sender/receiver labels from the device.
+    final db = FirebaseFirestore.instance;
+    late final String sender;
+    late final String receiver;
+    if (context == 'chat') {
+      final chat = await db.collection('chats').doc(contextId).get();
+      final members = chat.data()?['memberIds'];
+      final names = chat.data()?['memberNames'];
+      if (chat.data()?['active'] != true || members is! List ||
+          !members.contains(user.uid) || !members.contains(recipientId) ||
+          names is! Map) {
+        throw StateError('TEST_CHAT_MEMBERSHIP_REQUIRED');
+      }
+      sender = (names[user.uid] ?? '').toString();
+      receiver = (names[recipientId] ?? '').toString();
+    } else {
+      final participants = db.collection('rooms').doc(contextId)
+          .collection('participants');
+      final docs = await Future.wait([
+        participants.doc(user.uid).get(),
+        participants.doc(recipientId).get(),
+      ]);
+      if (docs.any((doc) => !doc.exists)) {
+        throw StateError('TEST_ROOM_MEMBERSHIP_REQUIRED');
+      }
+      sender = (docs[0].data()?['displayName'] ?? '').toString();
+      receiver = (docs[1].data()?['displayName'] ?? '').toString();
+    }
+    // The argument is used only to select the recipient id; Firestore is the
+    // authority for the display name on the cross-device preview.
+    assert(recipientName.isNotEmpty);
+    if (sender.trim().isEmpty || sender.length > 100 ||
+        receiver.trim().isEmpty || receiver.length > 100) {
       throw StateError('INVALID_TEST_RECIPIENT');
     }
     final random = Random.secure();
