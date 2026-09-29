@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches: [main]
+    branches: [main, fix/finish-room-hub-quiz-gift-20260928]
   workflow_dispatch:
 
 jobs:
