@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 
 import '../data/room_feature_models.dart';
 import '../data/classic_gift_catalog.dart';
+import 'room_chat_service.dart';
 import '../data/room_backend_config.dart';
 import 'room_quiz_service.dart';
 
@@ -312,16 +313,27 @@ class RoomFeatureService {
     final random = Random.secure();
     final nonce = List<int>.generate(12, (_) => random.nextInt(256))
         .map((v) => v.toRadixString(16).padLeft(2, '0')).join();
-    await _previewCollection(context: context, contextId: contextId)
-        .doc(user.uid).set({
-      'nonce': nonce,
-      'senderId': user.uid,
-      'senderName': sender,
-      'recipientId': recipientId,
-      'recipientName': receiver,
-      'giftId': giftId,
-      'sentAt': FieldValue.serverTimestamp(),
-    });
+    try {
+      await _previewCollection(context: context, contextId: contextId)
+          .doc(user.uid).set({
+        'nonce': nonce,
+        'senderId': user.uid,
+        'senderName': sender,
+        'recipientId': recipientId,
+        'recipientName': receiver,
+        'giftId': giftId,
+        'sentAt': FieldValue.serverTimestamp(),
+      });
+    } on FirebaseException catch (error) {
+      // Users can test with friends before deploying the NEW isolated
+      // preview rules if their existing voice-room chat is operational.
+      // This fallback is only a marked free chat text; the server-owned
+      // monetary /gifts and wallet records remain untouched.
+      if (error.code != 'permission-denied' || context == 'chat') rethrow;
+      final marker = RoomGiftPreviewChatCodec.encode(
+        giftId: giftId, recipientId: recipientId, nonce: nonce);
+      await RoomChatService(roomId: contextId).send(marker);
+    }
   }
 
   Stream<List<RoomGiftCatalogItem>> watchGiftCatalog() {
