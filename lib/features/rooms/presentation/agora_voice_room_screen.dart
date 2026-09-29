@@ -2354,45 +2354,6 @@ enum _StageAction {
   listener,
 }
 
-class _RoomToolTile extends StatelessWidget {
-  const _RoomToolTile({
-    required this.icon,
-    required this.label,
-    this.onTap,
-    this.destructive = false,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback? onTap;
-  final bool destructive;
-
-  @override
-  Widget build(BuildContext context) {
-    final errorColor = Theme.of(context).colorScheme.error;
-
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: Icon(
-        icon,
-        color: destructive ? errorColor : null,
-      ),
-      title: Text(
-        label,
-        style: TextStyle(
-          fontWeight: FontWeight.w800,
-          color: destructive ? errorColor : null,
-        ),
-      ),
-      trailing: Icon(
-        Icons.chevron_right_rounded,
-        color: destructive ? errorColor : null,
-      ),
-      onTap: onTap ?? () => Navigator.pop(context),
-    );
-  }
-}
-
 class _RaisedHandNotice extends StatelessWidget {
   const _RaisedHandNotice({
     required this.participant,
