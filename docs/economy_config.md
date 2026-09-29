@@ -25,6 +25,8 @@ catalog prices, limits, conversion and inventory.
 | giftingDailyCoinLimit | integer | Configurable anti-abuse gifting limit | **TBD** |
 | payoutWindows | array | Two monthly payout processing windows | **TBD** |
 | enabled | boolean | Explicit economy launch gate | false until financial approvals |
+| privateWalletCutoverVerified | boolean | Complete server/client private wallet migration and ledger reconciliation | false |
+| publicProfileRulesVerified | boolean | Independently verify strict non-owner access rules and supported client versions | false |
 
 ### Catalogs
 
@@ -110,3 +112,46 @@ To finish this migration, in order:
    integration; otherwise retain `enabled=false` and inactive products.
 
 **This staging addition does not complete steps 1–6 or make live money safe.**
+
+
+### Staged private-wallet code: what has changed
+
+The economy branch now sends *backend-owned* purchase credits, premium
+store spending, gift debits and held receiver diamonds, diamond
+settlement, exchanges, withdrawal reservations/rejections and verified
+Stripe reversals through `users/{uid}/private/wallet` rather than
+modifying the public `users/{uid}` profile. The original immutable
+`users/{uid}/wallet_transactions` ledger and owner-only
+`diamond_lots` remain intact. Refund processing globally freezes
+payouts if a linked recipient lacks a migrated wallet. Operations
+reject missing/invalid private wallets rather than copying stale
+legacy balances on a purchase path.
+
+The existing Flutter coin store, wallet view and unified gift panel
+now read the signed-in account's private wallet only. They display an
+unavailable state instead of inventing a zero balance when migration
+is unfinished. Native checkout revalidates the policy, migrated wallet,
+active product and platform SKU immediately before opening the store.
+
+**These commits are not a production cutover.** Legacy
+`users/{uid}` still contains financial fields and is readable by
+other signed-in clients under the original rules. Other profile,
+presence and legacy client consumers still need a coordinated
+public-profile conversion. Never deploy monetization with those rules.
+
+The backend's `requireLiveEconomy` now requires three independent
+truths: `enabled=true`, `privateWalletCutoverVerified=true` and
+`publicProfileRulesVerified=true`; missing flags reject all monetary
+settlement. The non-destructive seed leaves all three false. The
+staging script now checks existing projections for stale balances
+and detects concurrently updated source profiles; it stops for
+manual reconciliation rather than overwriting. Review its output
+only on a Firebase emulator or an explicitly named staging project.
+
+Before marking either privacy flag true, migrate every remaining
+profile/presence reader, validate dual-device backward compatibility,
+reconcile every old ledger and receipt, remove legacy public money
+fields, deploy strict Firestore rules and test access as the wallet
+owner, an unrelated signed-in user and an anonymous user. Tests
+must also confirm store cancellations, full/partial refunds,
+chargebacks, wallet debt, retries and non-duplicated payouts.
