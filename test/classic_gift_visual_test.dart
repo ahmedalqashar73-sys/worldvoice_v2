@@ -28,6 +28,8 @@ void main() {
   });
   testWidgets('in-room preview is labeled and does not show a gift receipt',
       (tester) async {
+    // Explicitly load bundled artwork metadata before verifying its caption.
+    await ClassicGiftCatalog.load();
     const sample = RoomGiftEvent(
       id: 'demo',
       senderId: 'preview',
@@ -43,8 +45,8 @@ void main() {
       ),
     ));
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 50));
     expect(find.textContaining('PREVIEW'), findsOneWidget);
+    await tester.pump(const Duration(milliseconds: 120));
     expect(find.text('Golden Phoenix'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
