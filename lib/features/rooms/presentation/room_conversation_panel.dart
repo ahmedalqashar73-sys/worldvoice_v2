@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../data/room_chat_message.dart';
+import '../data/room_feature_models.dart';
 
 /// Live room conversation, independent of Firebase for layout testing.
 class RoomConversationPanel extends StatefulWidget {
@@ -107,7 +108,11 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
                       style: const TextStyle(color: Color(0xFFE7C56E), fontWeight: FontWeight.w700)),
                     TextSpan(text: welcome
                       ? (ar ? 'أهلًا بك! تعلّم وتحدث وشارك باحترام.' : 'Welcome! Learn, talk and share with respect.')
-                      : msg!.text),
+                      : RoomGiftPreviewChatCodec.decode(msg!.text) != null
+                          ? (ar
+                              ? '🎁 معاينة هدية مجانية لصديق • دون خصم كوينات'
+                              : '🎁 Free gift effect for a friend • no coins')
+                          : msg.text),
                   ]), style: const TextStyle(color: Colors.white, fontSize: 13, height: 1.5)),
                 ),
               );
