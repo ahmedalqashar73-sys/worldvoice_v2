@@ -243,3 +243,38 @@ class RoomGiftPreview {
     createdAt: sentAt,
   );
 }
+
+
+/// Legacy-rule fallback for voice/Live room friend demos. This is plain room
+/// chat transport only; unlike /gifts it has no financial authority. Explicit
+/// v1 marker and strict parser prevent accidentally treating ordinary chat
+/// messages or fake paid gift claims as a demo.
+class RoomGiftPreviewChatCodec {
+  RoomGiftPreviewChatCodec._();
+
+  static final RegExp _pattern = RegExp(
+    r'^WV_FREE_GIFT_PREVIEW:v1:(classic_[a-z_]{1,60}):'
+    r'([A-Za-z0-9_-]{1,128}):([0-9a-f]{24})$',
+  );
+
+  static String encode({
+    required String giftId,
+    required String recipientId,
+    required String nonce,
+  }) {
+    final value = 'WV_FREE_GIFT_PREVIEW:v1:$giftId:$recipientId:$nonce';
+    if (!_pattern.hasMatch(value)) throw ArgumentError('Invalid demo marker');
+    return value;
+  }
+
+  static ({String giftId, String recipientId, String nonce})?
+      decode(String text) {
+    final match = _pattern.firstMatch(text);
+    if (match == null) return null;
+    return (
+      giftId: match.group(1)!,
+      recipientId: match.group(2)!,
+      nonce: match.group(3)!,
+    );
+  }
+}
