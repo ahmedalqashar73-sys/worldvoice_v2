@@ -10,6 +10,7 @@
     <application
         android:label="worldvoice"
         android:name="${applicationName}"
+        android:networkSecurityConfig="@xml/worldvoice_model_viewer_network"
         android:icon="@mipmap/ic_launcher">
         <!-- Google test AdMob app ID. Replace with WorldVoice production ID before public release. -->
         <meta-data
