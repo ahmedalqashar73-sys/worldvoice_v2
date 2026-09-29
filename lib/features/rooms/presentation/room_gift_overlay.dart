@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../data/room_feature_models.dart';
+import '../data/classic_gift_catalog.dart';
+import 'classic_gift_visual.dart';
 
 class RoomGiftOverlay extends StatelessWidget {
   const RoomGiftOverlay({required this.event, super.key});
@@ -157,6 +159,73 @@ class RoomGiftOverlay extends StatelessWidget {
           ),
         ),
       );
+    }
+
+    // Render the same first-tier effect in a real room and in the chat
+    // conversation. The backend event is proof of an actual sent gift.
+    if (_giftId.startsWith('classic_')) {
+      return IgnorePointer(child: Material(
+        color: Colors.transparent,
+        child: SafeArea(
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 68),
+              child: FutureBuilder<List<RoomGiftCatalogItem>>(
+                future: ClassicGiftCatalog.load(),
+                builder: (context, snapshot) {
+                  RoomGiftCatalogItem? approved;
+                  for (final item in snapshot.data ??
+                      const <RoomGiftCatalogItem>[]) {
+                    if (item.id == _giftId) {
+                      approved = item;
+                      break;
+                    }
+                  }
+                  if (approved == null) {
+                    return _GiftCaption(event: event);
+                  }
+                  final art = RoomGiftCatalogItem(
+                    id: approved.id,
+                    name: approved.name,
+                    nameAr: approved.nameAr,
+                    priceCoins: approved.priceCoins,
+                    active: false,
+                    emoji: approved.emoji,
+                    effectType: approved.effectType,
+                    previewUrl: event.animationUrl?.trim().isNotEmpty == true
+                        ? event.animationUrl : approved.previewUrl,
+                  );
+                  final ar = Localizations.localeOf(context)
+                      .languageCode == 'ar';
+                  return TweenAnimationBuilder<double>(
+                    tween: Tween(begin: .7, end: 1),
+                    duration: const Duration(milliseconds: 480),
+                    curve: Curves.easeOutBack,
+                    builder: (context, scale, child) =>
+                        Transform.scale(scale: scale, child: child),
+                    child: Column(mainAxisSize: MainAxisSize.min, children: [
+                      ClassicGiftVisual(gift: art, size: 165, animate: true),
+                      Text(approved.localizedName(ar),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.white,
+                            fontSize: 17, fontWeight: FontWeight.w900,
+                            shadows: [Shadow(
+                                color: Color(0xFF093E30), blurRadius: 9)])),
+                      const SizedBox(height: 4),
+                      Text('${approved.priceCoins} 🪙',
+                        style: const TextStyle(color: Color(0xFFFFDC88),
+                            fontSize: 13, fontWeight: FontWeight.w800,
+                            shadows: [Shadow(
+                                color: Color(0xFF093E30), blurRadius: 9)])),
+                    ]),
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      ));
     }
 
     final hasCatalogAnimation = event.animationUrl?.trim().isNotEmpty == true;
