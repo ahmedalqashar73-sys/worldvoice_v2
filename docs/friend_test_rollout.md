@@ -15,20 +15,21 @@ The separate friend-demo switch defaults to OFF in all normal production
 builds. **Only** this friend-test APK opts in using
 `WORLDVOICE_FRIEND_GIFT_PREVIEW=true`.
 
-**Important blocker before cross-device testing:** the updated Firestore
-`gift_previews` rules must be reviewed, backed up against the *currently
-deployed* rules, and deliberately deployed to the same Firebase project that
-the test APK uses. Neither merging this GitHub branch nor building an APK
-deploys Firebase rules. A permission-denied error means this prerequisite
-has not been completed; do not claim an animation was delivered.
+**Room and Live friend testing:** the app first uses the dedicated preview
+collection, and if the deployed Firebase rules have not been updated yet,
+it can use the existing authenticated room-chat transport for the same
+clearly labeled free animation. The chat transport may leave a short
+"free demo" line in the room chat. The fallback works only if the room
+already supports normal Firestore chat messages for both friends.
 
-The repository's old `users/{uid}` rules have unresolved public-finance
-access implications. A GitHub checkout is NOT proof of production privacy
-compliance. Before deploying any rules, manually compare the live rules,
-ensure no existing security fix is overwritten, back up current rules, and
-rerun `test/firestore/` security tests. Prefer an isolated staging Firebase
-project and corresponding **staging Firebase options** rather than silently
-overwriting active production rules. We do not automate the deploy.
+**Private one-to-one chats:** the isolated preview collection needs the
+reviewed new Firebase rules; creating real conversations still needs the
+separately deployed, authenticated full chat backend.
+
+Before deliberately deploying any rules, compare and back up the currently
+deployed production configuration. Do not overwrite security improvements
+in the active Firebase project. The repository's older profile rules need
+independent privacy review; no automatic Firebase deployment is performed.
 
 ## Tests before inviting friends
 
