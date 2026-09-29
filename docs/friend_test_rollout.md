@@ -105,8 +105,19 @@ be verified on their own phones.
   store approves prices/identifiers and the private wallet / public profile
   migration is independently verified. A test APK is not a billing
   acceptance test.
-- Premium SVG art is NOT rigged 3D; custom 3D geometry, motion and reviewed
-  commercial-use source files remain a separate creative asset task.
+- All 30 first-tier gifts also have real **original stylized low-poly 3D**
+  glTF meshes generated on the device by `ClassicGiftMesh`. Choose an item
+  in Gifts and press **المجسم 3D**, or long-press the item, to rotate the
+  model on Android/iOS/web. The mobile 3D widget uses the package's bundled
+  renderer, and mesh geometry is locally generated; it never downloads
+  unreviewed third-party models. The original SVGs remain as lightweight
+  gallery thumbnails, fallback art, and the fast 3-second sent-gift effect
+  so Agora voice/live calls are not overloaded with 30 WebViews.
+  **These are stylized 3D geometry, not film-quality photorealistic models
+  or fully rigged/animated 3D characters.**
+- You cannot actually send a gift to yourself. The gift picker, free
+  friend-demo service and economy backend all reject self-gifts. Select
+  another signed-in person in the current room or an eligible chat.
 
 Never paste API secrets, merchant credentials or customer card numbers in a
 chat, issue, GitHub source file, Firestore document, or application build flag.
