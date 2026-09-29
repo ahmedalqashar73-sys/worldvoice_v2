@@ -630,33 +630,71 @@ class _OtherStoreTab extends StatelessWidget {
                 isArabic ? 'لا توجد عناصر مفعلة' : 'No active items',
               ));
             }
-            return ListView.separated(
+            return GridView.builder(
               padding: const EdgeInsets.all(10),
               itemCount: items.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 8),
-              itemBuilder: (context, i) {
-                final item = items[i];
-                return Card(child: ListTile(
-                  leading: Icon(switch (item.type) {
-                    'frame' => Icons.crop_free_rounded,
-                    'entrance' => Icons.auto_awesome_rounded,
-                    _ => Icons.workspace_premium_rounded,
-                  }),
-                  title: Text(item.name),
-                  subtitle: Text('${item.priceCoins} Coins • ${item.durationDays == null ? (isArabic ? 'دائم' : 'Permanent') : "${item.durationDays} days"}'),
-                  trailing: Wrap(spacing: 4, children: [
-                    if (type != 'vip') IconButton(
-                      tooltip: isArabic ? 'شراء' : 'Buy',
-                      onPressed: shop.isConfigured ? () => _pay(context, item) : null,
-                      icon: const Icon(Icons.shopping_bag_outlined),
-                    ),
-                    IconButton(
-                      tooltip: isArabic ? 'إهداء' : 'Gift',
-                      onPressed: shop.isConfigured ? () => _gift(context, item) : null,
-                      icon: const Icon(Icons.card_giftcard_outlined),
-                    ),
-                  ]),
-                ));
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: .68,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 10,
+              ),
+              itemBuilder: (context, index) {
+                final item = items[index];
+                final imageUrl = item.animationUrl?.trim() ?? '';
+                final isImage = RegExp(r'\\.(png|jpe?g|gif|webp)(\\?|$)',
+                  caseSensitive: false).hasMatch(imageUrl);
+                return Card(
+                  margin: EdgeInsets.zero,
+                  clipBehavior: Clip.antiAlias,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        child: isImage ? Image.network(
+                          imageUrl,
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, _, _) => const Icon(
+                            Icons.crop_free_rounded, size: 65),
+                        ) : const Icon(Icons.crop_free_rounded, size: 65),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        child: Text(item.name,
+                          maxLines: 1, overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontWeight: FontWeight.w800)),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Text('${item.priceCoins} coins • '
+                            '${item.durationDays == null ? (isArabic ? 'دائم' : 'Permanent') : "${item.durationDays} days"}',
+                          maxLines: 1, overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodySmall),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(6, 3, 6, 8),
+                        child: Wrap(
+                          alignment: WrapAlignment.spaceEvenly,
+                          spacing: 4,
+                          children: [
+                            FilledButton(
+                              onPressed: shop.isConfigured ?
+                                  () => _pay(context, item) : null,
+                              child: Text(isArabic ? 'شراء' : 'Buy'),
+                            ),
+                            OutlinedButton(
+                              onPressed: shop.isConfigured ?
+                                  () => _gift(context, item) : null,
+                              child: Text(isArabic ? 'إرسال' : 'Send'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
               },
             );
           },
