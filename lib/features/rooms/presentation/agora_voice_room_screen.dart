@@ -807,7 +807,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     );
   }
 
-  void _showGiftOverlay(RoomGiftEvent gift) {
+  void _showGiftOverlay(RoomGiftEvent gift, {bool preview = false}) {
     if (!mounted) return;
 
     _giftOverlayTimer?.cancel();
@@ -815,7 +815,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
     final overlay = Overlay.of(context);
     final entry = OverlayEntry(
-      builder: (_) => RoomGiftOverlay(event: gift),
+      builder: (_) => RoomGiftOverlay(event: gift, preview: preview),
     );
     _giftOverlay = entry;
     overlay.insert(entry);
@@ -1517,7 +1517,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (_) => SafeArea(
+      builder: (sheetContext) => SafeArea(
         child: SizedBox(
           height: MediaQuery.sizeOf(context).height * .75,
           child: UnifiedGiftPanel(
@@ -1531,6 +1531,23 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                 'teacher_ai': 'Teacher AI',
             },
             onOpenCoinStore: _showCoinStore,
+            onPreview: (gift) {
+              // Local effect test over the real seats: never write a gift
+              // document, debit coins or display a sent-gift receipt.
+              Navigator.pop(sheetContext);
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!mounted) return;
+                _showGiftOverlay(RoomGiftEvent(
+                  id: 'preview',
+                  senderId: myId ?? '',
+                  senderName: 'Preview',
+                  recipientId: '',
+                  recipientName: '',
+                  giftId: gift.id,
+                  points: gift.priceCoins,
+                ), preview: true);
+              });
+            },
           ),
         ),
       ),
