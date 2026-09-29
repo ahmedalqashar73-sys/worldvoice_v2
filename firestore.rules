@@ -130,6 +130,35 @@ service cloud.firestore {
           && exists(participantPath(roomId, request.auth.uid));
     }
 
+    // TEST-only preview events have no fields for economy, rewards or XP.
+    function validFreeGiftPreview(senderId) {
+      return signedIn()
+          && senderId == request.auth.uid
+          && request.resource.data.keys().hasOnly([
+            'nonce', 'senderId', 'senderName', 'recipientId',
+            'recipientName', 'giftId', 'sentAt'
+          ])
+          && request.resource.data.keys().hasAll([
+            'nonce', 'senderId', 'senderName', 'recipientId',
+            'recipientName', 'giftId', 'sentAt'
+          ])
+          && request.resource.data.senderId == request.auth.uid
+          && request.resource.data.nonce is string
+          && request.resource.data.nonce.matches('^[0-9a-f]{24}$')
+          && request.resource.data.giftId is string
+          && request.resource.data.giftId.matches('^classic_[a-z_]{1,60}$')
+          && request.resource.data.recipientId is string
+          && request.resource.data.recipientId != request.auth.uid
+          && request.resource.data.recipientId != 'teacher_ai'
+          && request.resource.data.senderName is string
+          && request.resource.data.senderName.size() > 0
+          && request.resource.data.senderName.size() <= 100
+          && request.resource.data.recipientName is string
+          && request.resource.data.recipientName.size() > 0
+          && request.resource.data.recipientName.size() <= 100
+          && request.resource.data.sentAt == request.time;
+    }
+
     function isModerator(roomId) {
       return isRoomMember(roomId)
           && get(participantPath(roomId, request.auth.uid)).data.isModerator == true;
@@ -396,6 +425,49 @@ service cloud.firestore {
           && request.auth.uid in resource.data.memberIds;
       allow create, update, delete: if false;
 
+      // Free friend-test animation stream: no paid message is ever created.
+      match /gift_previews/{senderId} {
+        allow read: if signedIn()
+            && get(/databases/$(database)/documents/chats/$(chatId))
+                .data.active == true
+            && request.auth.uid in get(
+                /databases/$(database)/documents/chats/$(chatId)
+              ).data.memberIds;
+        allow create: if validFreeGiftPreview(senderId)
+            && get(/databases/$(database)/documents/chats/$(chatId))
+                .data.active == true
+            && request.auth.uid in get(
+                /databases/$(database)/documents/chats/$(chatId)
+              ).data.memberIds
+            && request.resource.data.recipientId in get(
+                /databases/$(database)/documents/chats/$(chatId)
+              ).data.memberIds
+            && request.resource.data.senderName == get(
+                /databases/$(database)/documents/chats/$(chatId)
+              ).data.memberNames[request.auth.uid]
+            && request.resource.data.recipientName == get(
+                /databases/$(database)/documents/chats/$(chatId)
+              ).data.memberNames[request.resource.data.recipientId];
+        allow update: if resource.data.senderId == request.auth.uid
+            && request.time > resource.data.sentAt + duration.value(3, 's')
+            && validFreeGiftPreview(senderId)
+            && get(/databases/$(database)/documents/chats/$(chatId))
+                .data.active == true
+            && request.auth.uid in get(
+                /databases/$(database)/documents/chats/$(chatId)
+              ).data.memberIds
+            && request.resource.data.recipientId in get(
+                /databases/$(database)/documents/chats/$(chatId)
+              ).data.memberIds
+            && request.resource.data.senderName == get(
+                /databases/$(database)/documents/chats/$(chatId)
+              ).data.memberNames[request.auth.uid]
+            && request.resource.data.recipientName == get(
+                /databases/$(database)/documents/chats/$(chatId)
+              ).data.memberNames[request.resource.data.recipientId];
+        allow delete: if false;
+      }
+
       match /messages/{messageId} {
         allow get, list: if signedIn()
             && exists(/databases/$(database)/documents/chats/$(chatId))
@@ -625,6 +697,36 @@ service cloud.firestore {
         // only the server can clean votes between questions.
         allow delete: if isHost(roomId)
             && get(roomPath(roomId)).data.quiz.get('roundId', '') == '';
+      }
+
+      // Voice and live room test effects: REAL /gifts remain backend-only.
+      match /gift_previews/{senderId} {
+        allow read: if isRoomMember(roomId);
+        allow create: if validFreeGiftPreview(senderId)
+            && isRoomMember(roomId)
+            && get(roomPath(roomId)).data.isOpen == true
+            && exists(participantPath(
+                roomId, request.resource.data.recipientId))
+            && request.resource.data.senderName == get(
+                participantPath(roomId, request.auth.uid)
+              ).data.displayName
+            && request.resource.data.recipientName == get(
+                participantPath(roomId, request.resource.data.recipientId)
+              ).data.displayName;
+        allow update: if resource.data.senderId == request.auth.uid
+            && request.time > resource.data.sentAt + duration.value(3, 's')
+            && validFreeGiftPreview(senderId)
+            && isRoomMember(roomId)
+            && get(roomPath(roomId)).data.isOpen == true
+            && exists(participantPath(
+                roomId, request.resource.data.recipientId))
+            && request.resource.data.senderName == get(
+                participantPath(roomId, request.auth.uid)
+              ).data.displayName
+            && request.resource.data.recipientName == get(
+                participantPath(roomId, request.resource.data.recipientId)
+              ).data.displayName;
+        allow delete: if false;
       }
 
       match /gifts/{giftId} {
