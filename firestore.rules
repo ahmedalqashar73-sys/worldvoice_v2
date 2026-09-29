@@ -834,8 +834,9 @@ service cloud.firestore {
                 && request.resource.data.role == 'host'
                 && request.resource.data.seatIndex == 1
                 && (
-                  request.resource.data.joinedAt == resource.data.joinedAt
-                  || request.resource.data.joinedAt == request.time
+                  request.resource.data.get('joinedAt', null) ==
+                      resource.data.get('joinedAt', null)
+                  || request.resource.data.get('joinedAt', null) == request.time
                 )
               )
               ||
