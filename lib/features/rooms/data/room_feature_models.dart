@@ -189,3 +189,57 @@ class RoomGiftCatalogItem {
     );
   }
 }
+
+ 
+/// Free, short-lived tester animation notice. This is NOT a paid gift event;
+/// it never represents coins, diamonds, XP or gift delivery.
+class RoomGiftPreview {
+  const RoomGiftPreview({
+    required this.id,
+    required this.nonce,
+    required this.senderId,
+    required this.senderName,
+    required this.recipientId,
+    required this.recipientName,
+    required this.giftId,
+    required this.sentAt,
+  });
+
+  final String id;
+  final String nonce;
+  final String senderId;
+  final String senderName;
+  final String recipientId;
+  final String recipientName;
+  final String giftId;
+  final DateTime? sentAt;
+
+  String get eventKey => '$id:$nonce';
+
+  factory RoomGiftPreview.fromDoc(
+      QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+    final data = doc.data();
+    final time = data['sentAt'];
+    return RoomGiftPreview(
+      id: doc.id,
+      nonce: (data['nonce'] ?? '').toString(),
+      senderId: (data['senderId'] ?? '').toString(),
+      senderName: (data['senderName'] ?? '').toString(),
+      recipientId: (data['recipientId'] ?? '').toString(),
+      recipientName: (data['recipientName'] ?? '').toString(),
+      giftId: (data['giftId'] ?? '').toString(),
+      sentAt: time is Timestamp ? time.toDate() : null,
+    );
+  }
+
+  RoomGiftEvent toVisualEvent() => RoomGiftEvent(
+    id: eventKey,
+    senderId: senderId,
+    senderName: senderName,
+    recipientId: recipientId,
+    recipientName: recipientName,
+    giftId: giftId,
+    points: 0,
+    createdAt: sentAt,
+  );
+}
