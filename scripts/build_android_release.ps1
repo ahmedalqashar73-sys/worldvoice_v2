@@ -1,7 +1,8 @@
 param(
   [Parameter(Mandatory = $true)][string]$BackendUrl,
   [string]$TokenEndpoint = "",
-  [string]$AgoraAppId = "fa41476c6813471eb45c059bcb4a0e19"
+  [string]$AgoraAppId = "fa41476c6813471eb45c059bcb4a0e19",
+  [switch]$FriendPreviewTest
 )
 
 $ErrorActionPreference = "Stop"
@@ -31,6 +32,10 @@ flutter pub get
 if ($LASTEXITCODE -ne 0) { throw "flutter pub get failed" }
 flutter analyze
 if ($LASTEXITCODE -ne 0) { throw "flutter analyze failed" }
+if ($FriendPreviewTest) {
+  $tokenArgs += "--dart-define=WORLDVOICE_FRIEND_GIFT_PREVIEW=true"
+  Write-Warning "FRIEND TEST BUILD: free demos require the reviewed firestore.rules deployed to the SAME Firebase project. Real paid gifts are still gated."
+}
 flutter build apk --release "--dart-define=AGORA_APP_ID=$AgoraAppId" "--dart-define=WORLDVOICE_ROOM_BACKEND_URL=$($parsed.AbsoluteUri.TrimEnd('/'))" @tokenArgs
 if ($LASTEXITCODE -ne 0) { throw "flutter build apk failed" }
 Write-Host "Release APK created at build/app/outputs/flutter-apk/app-release.apk"
