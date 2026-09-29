@@ -29,7 +29,9 @@ void main() {
   testWidgets('in-room preview is labeled and does not show a gift receipt',
       (tester) async {
     // Explicitly load bundled artwork metadata before verifying its caption.
-    await ClassicGiftCatalog.load();
+    final designs = await ClassicGiftCatalog.load();
+    final preview = designs.firstWhere(
+      (item) => item.id == 'classic_golden_phoenix');
     const sample = RoomGiftEvent(
       id: 'demo',
       senderId: 'preview',
@@ -39,13 +41,15 @@ void main() {
       giftId: 'classic_golden_phoenix',
       points: 50,
     );
-    await tester.pumpWidget(const MaterialApp(
+    await tester.pumpWidget(MaterialApp(
       home: Scaffold(
-        body: RoomGiftOverlay(event: sample, preview: true),
+        body: RoomGiftOverlay(
+          event: sample, preview: true, previewGift: preview),
       ),
     ));
     await tester.pump();
     expect(find.textContaining('PREVIEW'), findsOneWidget);
+    expect(find.byType(ClassicGiftVisual), findsOneWidget);
     await tester.pump(const Duration(milliseconds: 120));
     // Artwork metadata is loaded asynchronously; the no-charge watermark
     // must render immediately even if image/catalog loading is delayed.
