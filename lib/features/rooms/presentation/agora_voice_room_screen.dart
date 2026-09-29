@@ -20,6 +20,7 @@ import '../services/room_feature_service.dart';
 import '../services/room_history_service.dart';
 import '../services/room_live_caption_controller.dart';
 import '../services/room_moderation_service.dart';
+import '../services/room_admin_service.dart';
 import '../services/room_quota_service.dart';
 import '../services/room_rewarded_ad_service.dart';
 import '../services/room_translation_service.dart';
@@ -1048,82 +1049,74 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     return null;
   }
 
-  // Dedicated hand control. The host and listeners see the same Firestore
-  // request state; this control must never be embedded inside the chat list.
+  // A compact emerald hand button stays separate from chat actions.
   Widget _buildHandControl(bool isArabic, bool isPublishing) {
     if (!_controller.joined) return const SizedBox.shrink();
-
     if (_canModerate) {
-      return Align(
-        alignment: Alignment.centerLeft,
-        widthFactor: 1,
-        child: Badge(
-          isLabelVisible: _raisedHands.isNotEmpty,
-          label: Text('${_raisedHands.length}'),
-          backgroundColor: const Color(0xFFFFD57F),
-          textColor: const Color(0xFF164434),
-          child: ActionChip(
-            tooltip: isArabic ? 'الاطلاع على طلبات رفع اليد' : 'View hand requests',
-            avatar: const Icon(Icons.pan_tool_alt_rounded,
-                size: 17, color: Color(0xFFFFD57F)),
-            label: Text(
-              _raisedHands.isEmpty
-                  ? (isArabic ? 'رفع اليد' : 'Raise hand')
-                  : (isArabic ? 'طلبات الصعود' : 'Seat requests'),
-              style: const TextStyle(color: Colors.white, fontSize: 11),
-            ),
-            backgroundColor: const Color(0xFF173F37),
-            side: const BorderSide(color: Color(0xFF5FC99B)),
-            visualDensity: VisualDensity.compact,
+      return Badge(
+        isLabelVisible: _raisedHands.isNotEmpty,
+        label: Text('${_raisedHands.length}'),
+        backgroundColor: const Color(0xFFFFD57F),
+        textColor: const Color(0xFF164434),
+        child: Material(
+          elevation: 4,
+          color: const Color(0xFF087951),
+          shape: const CircleBorder(
+            side: BorderSide(color: Color(0xFF75E0AB), width: 1.2)),
+          child: IconButton(
+            constraints: const BoxConstraints.tightFor(width: 38, height: 38),
+            padding: EdgeInsets.zero,
+            tooltip: isArabic ? 'طلبات رفع اليد' : 'Raise hand requests',
+            icon: const Icon(Icons.pan_tool_alt_rounded,
+              size: 19, color: Colors.white),
             onPressed: _showRaisedHandsSheet,
           ),
         ),
       );
     }
     if (isPublishing) return const SizedBox.shrink();
-    return Align(
-      alignment: Alignment.centerLeft,
-        widthFactor: 1,
-      child: ActionChip(
-        tooltip: _handRaised
-            ? (isArabic ? 'إلغاء الطلب' : 'Cancel hand request')
-            : (isArabic ? 'طلب التحدث' : 'Request to speak'),
-        avatar: Icon(
-          _handRaised ? Icons.pan_tool_rounded : Icons.pan_tool_alt_outlined,
-          size: 17,
-          color: _handRaised ? const Color(0xFF103F30) : const Color(0xFFFFD57F),
-        ),
-        label: Text(
-          _handRaised
-              ? (isArabic ? 'طلبك قيد الانتظار' : 'Request pending')
+    return Stack(clipBehavior: Clip.none, children: [
+      Material(
+        elevation: 4,
+        color: _handRaised
+            ? const Color(0xFF18A66D) : const Color(0xFF087951),
+        shape: const CircleBorder(
+          side: BorderSide(color: Color(0xFF75E0AB), width: 1.2)),
+        child: IconButton(
+          constraints: const BoxConstraints.tightFor(width: 38, height: 38),
+          padding: EdgeInsets.zero,
+          tooltip: _handRaised
+              ? (isArabic ? 'إلغاء رفع اليد' : 'Cancel hand request')
               : (isArabic ? 'رفع اليد' : 'Raise hand'),
-          style: TextStyle(
-            color: _handRaised ? const Color(0xFF103F30) : Colors.white,
-            fontSize: 11,
-          ),
-        ),
-        backgroundColor:
-            _handRaised ? const Color(0xFFFFD57F) : const Color(0xFF173F37),
-        side: const BorderSide(color: Color(0xFFFFD57F)),
-        visualDensity: VisualDensity.compact,
-        onPressed: () async {
-          try {
-            if (_handRaised) {
-              await _moderation.setHandRaised(false);
-            } else {
-              await _requestSeat();
+          icon: const Icon(Icons.pan_tool_alt_rounded,
+              color: Colors.white, size: 19),
+          onPressed: () async {
+            try {
+              if (_handRaised) {
+                await _moderation.setHandRaised(false);
+              } else {
+                await _requestSeat();
+              }
+            } catch (error) {
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(isArabic
+                    ? 'تعذر إرسال طلب رفع اليد: $error'
+                    : 'Could not update hand request: $error'),
+              ));
             }
-          } catch (_) {
-            if (!mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(isArabic
-                  ? 'تعذر إرسال طلب الصعود. حاول مجددًا.'
-                  : 'Could not update your hand request. Retry.'),
-            ));
-          }
-        },
+          },
+        ),
       ),
-    );
+      if (_handRaised)
+        const Positioned(
+          top: -2, right: -2,
+          child: CircleAvatar(radius: 6,
+            backgroundColor: Color(0xFFEAC16B),
+            child: Icon(Icons.check_rounded,
+              size: 9, color: Color(0xFF0D4A38))),
+        ),
+    ]);
   }
 
   List<RoomSeatState> _buildSeats() {
@@ -1741,6 +1734,111 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     );
   }
 
+  // Host-only live moderator management; use the existing admin service
+  // instead of creating a second roles or permissions implementation.
+  Future<void> _showModeratorManagement() async {
+    if (!_isHost) return;
+    final ar = (widget.localeController?.locale?.languageCode ??
+        Localizations.localeOf(context).languageCode) == 'ar';
+    final admin = RoomAdminService(roomId: widget.channelId);
+    String? savingUser;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setSheetState) => SafeArea(
+          child: SizedBox(
+            height: MediaQuery.sizeOf(sheetContext).height * .7,
+            child: Column(children: [
+              ListTile(
+                leading: const Icon(Icons.admin_panel_settings_rounded,
+                    color: Color(0xFF11835D)),
+                title: Text(ar ? 'إدارة المشرفين' : 'Manage moderators',
+                    style: const TextStyle(fontWeight: FontWeight.w800)),
+                subtitle: Text(ar
+                    ? 'عيّن مشرفاً من أعضاء الغرفة أو أزل صلاحياته'
+                    : 'Add or remove moderators among current room members'),
+              ),
+              const Divider(height: 1),
+              Expanded(child: StreamBuilder<List<RoomParticipant>>(
+                stream: _moderation.watchParticipants(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return Center(child: Text(ar
+                        ? 'تعذر تحميل أعضاء الغرفة'
+                        : 'Could not load room members'));
+                  }
+                  if (!snapshot.hasData) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  final eligible = snapshot.data!
+                      .where((person) => person.role != RoomMemberRole.host)
+                      .toList()
+                    ..sort((a, b) {
+                      if (a.isModerator != b.isModerator) {
+                        return a.isModerator ? -1 : 1;
+                      }
+                      return a.displayName.toLowerCase()
+                          .compareTo(b.displayName.toLowerCase());
+                    });
+                  if (eligible.isEmpty) {
+                    return Center(child: Text(ar
+                        ? 'لا يوجد أعضاء آخرون في الغرفة بعد'
+                        : 'No other members are in this room yet'));
+                  }
+                  return ListView.builder(
+                    itemCount: eligible.length,
+                    itemBuilder: (context, index) {
+                      final person = eligible[index];
+                      return ListTile(
+                        leading: _ParticipantAvatar(participant: person),
+                        title: Text(person.displayName,
+                            maxLines: 1, overflow: TextOverflow.ellipsis),
+                        subtitle: Text(person.isModerator
+                            ? (ar ? 'مشرف حالي' : 'Current moderator')
+                            : (ar ? 'عضو' : 'Member')),
+                        trailing: FilledButton.tonal(
+                          onPressed: savingUser != null ? null : () async {
+                            setSheetState(() => savingUser = person.userId);
+                            try {
+                              await admin.setModerator(
+                                participant: person,
+                                value: !person.isModerator,
+                              );
+                            } catch (error) {
+                              if (sheetContext.mounted) {
+                                ScaffoldMessenger.of(sheetContext)
+                                    .showSnackBar(SnackBar(
+                                      content: Text(error.toString())));
+                              }
+                            } finally {
+                              if (sheetContext.mounted) {
+                                setSheetState(() => savingUser = null);
+                              }
+                            }
+                          },
+                          child: savingUser == person.userId
+                              ? const SizedBox.square(dimension: 16,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2))
+                              : Text(person.isModerator
+                                  ? (ar ? 'إزالة' : 'Remove')
+                                  : (ar ? 'تعيين' : 'Add')),
+                        ),
+                      );
+                    },
+                  );
+                },
+              )),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+
   // Moderator panel, never used as the gift/theme/task menu.
   Future<void> _showRoomControls() async {
     if (!_canModerate) return;
@@ -1790,6 +1888,15 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                       SnackBar(content: Text(error.toString())));
                   }
                 }
+              },
+            ),
+            if (_isHost) ListTile(
+              leading: const Icon(Icons.admin_panel_settings_rounded,
+                  color: Color(0xFF11835D)),
+              title: Text(ar ? 'إضافة أو إزالة المشرفين' : 'Manage moderators'),
+              onTap: () {
+                Navigator.pop(sheet);
+                _showModeratorManagement();
               },
             ),
             ListTile(
@@ -2168,6 +2275,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     return Directionality(
       textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
       child: Scaffold(
+        // Only the chat composer moves over the keyboard; seats stay fixed.
+        resizeToAvoidBottomInset: false,
         backgroundColor: const Color(0xFF0D4A38),
         appBar: AppBar(
           toolbarHeight: _boardVisible ? 52 : 68, elevation: 0,
@@ -2262,8 +2371,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   (_controller.joined ? 42 : 0) +
                   (_canModerate && _raisedHands.isNotEmpty ? 84 : 0) +
                   130;
-              final compact = MediaQuery.viewInsetsOf(context).bottom > 0 ||
-                  constraints.maxHeight < neededHeight;
+              final compact = constraints.maxHeight < neededHeight;
               return Column(children: [
                 if (_boardVisible) SizedBox(
                   height: (constraints.maxHeight * .55).clamp(110.0, 320.0),
@@ -2330,7 +2438,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                           _me?.forcedMuted == true || !isPublishing
                       ? null : _toggleMicSafely,
                   )),
-                  if (_controller.joined && (_canModerate || !isPublishing))
+                  if (MediaQuery.viewInsetsOf(context).bottom == 0 &&
+                      _controller.joined && (_canModerate || !isPublishing))
                     Positioned(
                       left: 10,
                       bottom: 79,
