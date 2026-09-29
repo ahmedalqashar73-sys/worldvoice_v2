@@ -57,8 +57,11 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
   @override
   Widget build(BuildContext context) {
     final ar = widget.isArabic;
-    return Column(children: [
-      Expanded(child: StreamBuilder<List<RoomChatMessage>>(
+    // Keep the chat viewport independent of the keyboard. Only the
+    // composer floats above it while the room stage remains completely fixed.
+    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+    return Stack(clipBehavior: Clip.none, children: [
+      Positioned.fill(child: StreamBuilder<List<RoomChatMessage>>(
         stream: widget.messages,
         builder: (context, snapshot) {
           if (snapshot.hasError) { return Center(child: Text(
@@ -86,7 +89,8 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
           return ListView.builder(
             key: const PageStorageKey<String>('worldvoice-room-chat-only'),
             primary: false,
-            reverse: true, padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            reverse: true, padding: EdgeInsets.fromLTRB(16, 12, 16,
+              keyboardInset > 0 ? keyboardInset + 70 : 92),
             itemCount: messages.length + 1,
             itemBuilder: (context, index) {
               final welcome = index == messages.length;
@@ -125,8 +129,10 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
           );
         },
       )),
-      Padding(
-        padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
+      Positioned(
+        left: 0, right: 0, bottom: keyboardInset,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
         child: LayoutBuilder(builder: (context, constraints) {
           final typing = MediaQuery.viewInsetsOf(context).bottom > 0;
           final field = TextField(
@@ -162,7 +168,7 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
           }
           return Row(children: [...actions, const SizedBox(width: 6), Expanded(child: field)]);
         }),
-      ),
+      )),
     ]);
   }
 }
