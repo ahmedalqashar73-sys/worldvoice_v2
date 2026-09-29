@@ -185,6 +185,9 @@ class RoomCoinPurchaseService extends ChangeNotifier {
     final policy = responses[0].data();
     final catalog = responses[1].data();
     final approvedPrice = catalog?['priceUsd'];
+    final expectedStoreSku = Platform.isAndroid
+        ? catalog?['androidProductId']
+        : catalog?['iosProductId'];
     if (policy?['enabled'] != true ||
         policy?['privateWalletCutoverVerified'] != true ||
         policy?['publicProfileRulesVerified'] != true ||
@@ -192,9 +195,7 @@ class RoomCoinPurchaseService extends ChangeNotifier {
         catalog?['active'] != true ||
         approvedPrice is! num || approvedPrice <= 0 ||
         catalog?['coins'] != item.config.coins ||
-        (Platform.isAndroid
-            ? catalog?['androidProductId']
-            : catalog?['iosProductId']) != item.product.id) {
+        expectedStoreSku != item.product.id) {
       throw StateError('Purchase is not approved or your private wallet is unavailable.');
     }
 
