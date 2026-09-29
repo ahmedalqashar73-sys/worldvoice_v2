@@ -120,6 +120,11 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
       return;
     }
     final ar = Localizations.localeOf(context).languageCode == 'ar';
+    final sender = FirebaseAuth.instance.currentUser?.displayName?.trim();
+    final senderName = sender?.isNotEmpty == true
+        ? sender! : (ar ? 'أنت' : 'You');
+    final recipientName = widget.recipients[_recipient] ??
+        (ar ? 'اختر المستلم' : 'Select recipient');
     await showDialog<void>(
       context: context,
       barrierColor: Colors.black.withValues(alpha: .7),
@@ -135,7 +140,30 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
               style: const TextStyle(color: Color(0xFFB8F0D4),
                   fontSize: 12, fontWeight: FontWeight.w700)),
             const SizedBox(height: 10),
-            ClassicGiftVisual(gift: gift, size: 200, animate: true),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 14, vertical: 9),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(colors: [
+                  Color(0xFF164D38), Color(0xFF275B42)]),
+                border: Border.all(color: const Color(0xFFDFBF76)),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                Text(ar ? 'من المرسل إلى المستلم' : 'GIFT FROM • TO',
+                  style: const TextStyle(
+                    color: Color(0xFF9CD9B5),
+                    fontSize: 10, fontWeight: FontWeight.bold)),
+                Text('$senderName  ✦  $recipientName',
+                  maxLines: 2, textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xFFFFE3AA),
+                    fontSize: 13, fontWeight: FontWeight.w900)),
+              ]),
+            ),
+            const SizedBox(height: 5),
+            ClassicGiftVisual(gift: gift, size: 177, animate: true),
             Text(gift.localizedName(ar), textAlign: TextAlign.center,
               style: const TextStyle(color: Colors.white, fontSize: 18,
                   fontWeight: FontWeight.w900)),
