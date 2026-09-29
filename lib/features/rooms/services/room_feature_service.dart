@@ -28,20 +28,25 @@ class RoomFeatureService {
     );
   }
 
+  /// Host-created rooms already contain their level and XP. Never reset
+  /// progress, privacy, live sharing or music when reopening a room.
   Future<void> initializeDefaults() async {
-    await _room.set(
-      {
-        'roomLevel': 1,
-        'roomXp': 0,
-        'themeId': 'royalPurple',
+    final snapshot = await _room.get();
+    if (!snapshot.exists) {
+      throw StateError('Create or join the room before initializing tools.');
+    }
+    final data = snapshot.data() ?? const <String, dynamic>{};
+    final missing = <String, dynamic>{
+      if (!data.containsKey('themeId')) 'themeId': 'emerald',
+      if (!data.containsKey('boardWriteEnabled'))
         'boardWriteEnabled': true,
-        'isPrivate': false,
-        'vipOnly': false,
-        'musicPlaying': false,
-        'screenShareActive': false,
-      },
-      SetOptions(merge: true),
-    );
+    };
+    if (missing.isNotEmpty) {
+      await _room.update({
+        ...missing,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    }
   }
 
   Future<void> setTheme(String themeId) => _room.set(
@@ -187,6 +192,8 @@ class RoomFeatureService {
       24, (_) => secureRandom.nextInt(256),
     ).map((v) => v.toRadixString(16).padLeft(2, '0')).join();
 
+    // Keep the caller's idempotency key when retrying after a timeout;
+    // never claim delivery when the backend has not acknowledged settlement.
     final response = await http.post(
       uri.replace(path: '${uri.path.replaceFirst(RegExp(r"/$"), "")}/gift/send'),
       headers: {
@@ -198,7 +205,7 @@ class RoomFeatureService {
         'context': context, 'contextId': contextId,
         'recipientId': recipientId, 'giftId': giftId, 'quantity': quantity,
       }),
-    );
+    ).timeout(const Duration(seconds: 20));
     if (response.statusCode < 200 || response.statusCode >= 300) {
       String reason = 'Gift could not be sent.';
       try {
@@ -296,9 +303,15 @@ class RoomFeatureService {
   Future<Map<String, dynamic>> taskStatus() =>
       _missionRequest('/room/tasks/status');
 
-  Future<Map<String, dynamic>> claimVerifiedTask(String taskKey) =>
-      _missionRequest('/room/tasks/claim',
-          payload: {'roomId': roomId, 'taskKey': taskKey});
+  Future<Map<String, dynamic>> claimVerifiedTask(String taskKey) {
+    if (!const {
+      'ten_minutes', 'host_five', 'three_gifts', 'stay_hours',
+    }.contains(taskKey)) {
+      throw ArgumentError.value(taskKey, 'taskKey', 'Unknown room mission');
+    }
+    return _missionRequest('/room/tasks/claim',
+        payload: {'roomId': roomId, 'taskKey': taskKey});
+  }
 
   Future<void> recordSpeakerActivity({
     int seconds = 30,
