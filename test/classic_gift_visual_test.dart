@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:worldvoice/features/rooms/data/classic_gift_catalog.dart';
 import 'package:worldvoice/features/rooms/data/room_feature_models.dart';
 import 'package:worldvoice/features/rooms/presentation/room_gift_overlay.dart';
@@ -21,7 +22,7 @@ void main() {
       ),
     ));
     expect(find.byType(Card), findsNothing);
-    expect(find.text('🦋'), findsOneWidget);
+    expect(find.byType(SvgPicture), findsOneWidget);
     expect(tester.takeException(), isNull);
     await tester.pump(const Duration(milliseconds: 180));
     expect(tester.takeException(), isNull);
