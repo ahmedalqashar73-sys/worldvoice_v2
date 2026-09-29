@@ -1546,6 +1546,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       (Icons.draw_rounded, ar ? 'السبورة' : 'Whiteboard', _showBoard),
       (Icons.quiz_rounded, ar ? 'مسابقات' : 'Quiz', _showQuiz),
       (Icons.smart_toy_outlined, ar ? 'أستاذ AI' : 'Teacher AI', _showTeacherAiChat),
+      (Icons.translate_rounded, ar ? 'أدوات اللغة' : 'Language tools', _showCaptionSettings),
       (Icons.music_note_rounded, ar ? 'موسيقى' : 'Music', _showMusic),
       (Icons.castle_rounded, ar ? 'مهام الغرفة' : 'Room tasks', () => _showRoomExtras(initialTab: 0)),
       (Icons.card_giftcard_rounded, ar ? 'الهدايا' : 'Gifts', _showGifts),
