@@ -160,7 +160,8 @@ class AgoraVoiceRoomController extends ChangeNotifier {
         onConnectionStateChanged: (connection, state, reason) {
           if (_released) return;
           if (state == ConnectionStateType.connectionStateFailed ||
-              state == ConnectionStateType.connectionStateDisconnected) {
+              (state == ConnectionStateType.connectionStateDisconnected &&
+                  _joined)) {
             // Preserve the room document and seats, but never pretend audio
             // is connected after Agora reports an offline transport.
             _joined = false;
