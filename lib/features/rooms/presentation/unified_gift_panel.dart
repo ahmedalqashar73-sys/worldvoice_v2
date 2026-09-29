@@ -5,6 +5,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../data/room_feature_models.dart';
+import '../data/classic_gift_catalog.dart';
+import 'classic_gift_visual.dart';
 import '../services/room_feature_service.dart';
 import '../services/room_coin_purchase_service.dart';
 import 'room_coin_store_sheet.dart';
@@ -30,6 +32,8 @@ class UnifiedGiftPanel extends StatefulWidget {
 }
 
 class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
+  late final Future<List<RoomGiftCatalogItem>> _classicPreviews =
+      ClassicGiftCatalog.load();
   String? _recipient;
   RoomGiftCatalogItem? _gift;
   int _giftCategory = 0; // 1-50, 51-150, 151-500, premium 501+
@@ -105,6 +109,43 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
     );
   }
 
+  Future<void> _previewGift(RoomGiftCatalogItem gift) async {
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    await showDialog<void>(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: .7),
+      builder: (dialogContext) => Dialog(
+        backgroundColor: const Color(0xFF104C39),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(22)),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 22),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Text(ar ? 'تجربة التأثير — دون خصم كوينات'
+                : 'Animation preview — no coins charged',
+              style: const TextStyle(color: Color(0xFFB8F0D4),
+                  fontSize: 12, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 10),
+            ClassicGiftVisual(gift: gift, size: 200, animate: true),
+            Text(gift.localizedName(ar), textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.white, fontSize: 18,
+                  fontWeight: FontWeight.w900)),
+            const SizedBox(height: 4),
+            Text('${gift.priceCoins} 🪙',
+              style: const TextStyle(color: Color(0xFFFFD981),
+                  fontWeight: FontWeight.w800)),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(ar ? 'إغلاق' : 'Close',
+                style: const TextStyle(color: Colors.white)),
+            ),
+          ]),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final ar = Localizations.localeOf(context).languageCode == 'ar';
@@ -112,16 +153,25 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
     if (uid == null) {
       return Center(child: Text(ar ? 'سجّل دخولك أولًا' : 'Sign in first'));
     }
-    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+    return FutureBuilder<List<RoomGiftCatalogItem>>(
+      future: _classicPreviews,
+      builder: (context, classicSnapshot) => StreamBuilder<
+          QuerySnapshot<Map<String, dynamic>>>(
       stream: FirebaseFirestore.instance.collection('store_items')
           .where('type', isEqualTo: 'gift').snapshots(),
       builder: (context, giftSnapshot) {
-        final gifts = giftSnapshot.data?.docs
+        final published = giftSnapshot.data?.docs
             .map(RoomGiftCatalogItem.fromDoc)
-            .where((gift) => gift.active && gift.priceCoins > 0)
             .toList(growable: false) ?? <RoomGiftCatalogItem>[];
-        gifts.sort((a, b) => a.priceCoins.compareTo(b.priceCoins));
-        final shownGifts = gifts.where(_inSelectedCategory).toList(growable: false);
+        final previews = classicSnapshot.data ?? const <RoomGiftCatalogItem>[];
+        final classics = ClassicGiftCatalog.merge(
+          previews: previews, published: published);
+        final shownGifts = _giftCategory == 0
+            ? classics
+            : published.where((gift) =>
+                gift.active && gift.priceCoins > 0 &&
+                _inSelectedCategory(gift)).toList(growable: false)
+              ..sort((a, b) => a.priceCoins.compareTo(b.priceCoins));
         return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
           stream: FirebaseFirestore.instance.doc('economy_config/current')
               .snapshots(),
@@ -137,8 +187,9 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                 perUsd != null && perUsd > 0 &&
                 share != null && share >= 0 && share <= 100 &&
                 diamondUsd != null && diamondUsd > 0;
-            final selected = _gift != null && gifts.any((g) => g.id == _gift!.id)
-                ? gifts.firstWhere((g) => g.id == _gift!.id) : null;
+            final selected = _gift != null &&
+                    shownGifts.any((g) => g.id == _gift!.id)
+                ? shownGifts.firstWhere((g) => g.id == _gift!.id) : null;
             final diamonds = selected != null && ready
                 ? (selected.priceCoins / perUsd * (share / 100) / diamondUsd).floor()
                 : null;
@@ -231,60 +282,128 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                       ],
                     ),
                   ),
-                  Expanded(child: giftSnapshot.hasError
-                    ? Center(child: Text(ar ? 'تعذر تحميل الكتالوج' : 'Catalog unavailable'))
+                  if (_giftCategory == 0)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 4),
+                      child: Text(ar
+                        ? '30 هدية كلاسيكية فاخرة • اختر هدية لتجربة الحركة'
+                        : '30 classic premium gifts • tap to preview effects',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Color(0xFF167A59),
+                          fontWeight: FontWeight.w800,
+                          fontSize: 12)),
+                    ),
+                  Expanded(child: classicSnapshot.hasError && _giftCategory == 0
+                    ? Center(child: Text(ar
+                        ? 'تعذر تحميل هدايا التجربة'
+                        : 'Gift previews could not be loaded'))
+                    : _giftCategory == 0 && !classicSnapshot.hasData
+                        ? const Center(child: CircularProgressIndicator())
+                    : giftSnapshot.hasError && _giftCategory != 0
+                        ? Center(child: Text(ar
+                            ? 'تعذر تحميل الكتالوج'
+                            : 'Catalog unavailable'))
                     : shownGifts.isEmpty
-                        ? Center(child: Text(ar ? 'لا توجد هدايا مفعلة في هذه الفئة' : 'No active gifts in this category'))
+                        ? Center(child: Text(ar
+                            ? 'لا توجد هدايا منشورة في هذه الفئة'
+                            : 'No published gifts in this category'))
                         : GridView.builder(
-                            padding: const EdgeInsets.all(10),
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 3, childAspectRatio: .9,
-                              mainAxisSpacing: 6, crossAxisSpacing: 6,
-                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 8),
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 3, childAspectRatio: .75,
+                              mainAxisSpacing: 10, crossAxisSpacing: 3),
                             itemCount: shownGifts.length,
                             itemBuilder: (context, index) {
                               final gift = shownGifts[index];
-                              return Card(
-                                color: selected?.id == gift.id
-                                    ? Theme.of(context).colorScheme.primaryContainer
-                                    : null,
-                                child: InkWell(
-                                  onTap: _busy ? null : () => setState(() {
-                                    _gift = gift; _pendingKey = null;
-                                    _needsRecharge = false;
-                                  }),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(gift.emoji ?? '🎁',
-                                          style: const TextStyle(fontSize: 26)),
-                                      Text(gift.name, maxLines: 1,
-                                          overflow: TextOverflow.ellipsis),
-                                      Text('${gift.priceCoins} 🪙'),
-                                    ],
-                                  ),
+                              final chosen = selected?.id == gift.id;
+                              return InkWell(
+                                key: ValueKey('gift-${gift.id}'),
+                                borderRadius: BorderRadius.circular(14),
+                                onTap: _busy ? null : () => setState(() {
+                                  _gift = gift;
+                                  _pendingKey = null;
+                                  _pendingSignature = null;
+                                  _needsRecharge = false;
+                                }),
+                                onLongPress: () => _previewGift(gift),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    AnimatedScale(
+                                      scale: chosen ? 1.08 : 1,
+                                      duration: const Duration(
+                                        milliseconds: 180),
+                                      child: ClassicGiftVisual(
+                                        gift: gift, size: 74),
+                                    ),
+                                    Text(gift.localizedName(ar),
+                                      textAlign: TextAlign.center,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        color: chosen
+                                            ? const Color(0xFF087951)
+                                            : null)),
+                                    const SizedBox(height: 2),
+                                    Text('${gift.priceCoins} 🪙',
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w800,
+                                        color: Color(0xFFC69B33))),
+                                    if (chosen)
+                                      Container(
+                                        width: 17, height: 3,
+                                        margin: const EdgeInsets.only(top: 4),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF13A46E),
+                                          borderRadius:
+                                              BorderRadius.circular(100))),
+                                  ],
                                 ),
                               );
                             },
                           )),
-                  if (selected != null) Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  if (selected != null && selected.active) Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 4),
                     child: Text(diamonds == null
                       ? (ar ? 'قيمة المستلم تظهر بعد اعتماد الاقتصاد'
-                          : 'Receiver value shown after economy setup')
+                          : 'Receiver value appears after economy setup')
                       : (ar
-                          ? 'الهدية = حوالي $diamonds دايموند ≈ ${usd!.toStringAsFixed(2)} دولار (للهدية المدفوعة)'
-                          : 'Paid gift ≈ $diamonds diamonds ≈ ${usd!.toStringAsFixed(2)} USD'),
-                      textAlign: TextAlign.center,
-                    ),
+                          ? 'قيمة المستلم: $diamonds دايموند ≈ ${usd!.toStringAsFixed(2)} دولار'
+                          : 'Receiver value: $diamonds diamonds ≈ ${usd!.toStringAsFixed(2)} USD'),
+                      textAlign: TextAlign.center),
                   ),
+                  if (selected != null && !selected.active)
+                    Text(ar ? 'عرض تجريبي فقط • الإرسال غير مفعل'
+                        : 'Preview only • sending not enabled',
+                      style: const TextStyle(fontSize: 12,
+                          color: Color(0xFF9D7327))),
+                  if (selected != null)
+                    TextButton.icon(
+                      key: const ValueKey('gift-animation-preview'),
+                      onPressed: () => _previewGift(selected),
+                      icon: const Icon(Icons.play_circle_outline,
+                          color: Color(0xFF0B8358)),
+                      label: Text(ar ? 'جرّب تأثير الهدية'
+                          : 'Preview gift effect',
+                        style: const TextStyle(color: Color(0xFF0B8358))),
+                    ),
                   if (_message != null) Padding(
                     padding: const EdgeInsets.all(5),
                     child: Text(_message!, textAlign: TextAlign.center),
                   ),
                   Padding(padding: const EdgeInsets.all(12),
                     child: FilledButton.icon(
-                      onPressed: !_busy && ready && walletReady && selected != null &&
+                      onPressed: !_busy && ready && walletReady &&
+                          selected?.active == true &&
+                          widget.contextType != 'live' &&
                           widget.recipients.containsKey(_recipient)
                           ? _send : null,
                       icon: _busy ? const SizedBox(width: 14, height: 14,
@@ -301,6 +420,6 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
           },
         );
       },
-    );
+    ));
   }
 }
