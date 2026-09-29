@@ -106,6 +106,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   int? _lastSyncedAgoraUid;
   late bool _showTeacherAiSeat;
   bool _leaving = false;
+  bool _roleUpdateInProgress = false;
+  bool _micBusy = false;
   bool _participantWasReady = false;
   bool _trackingEnded = false;
   bool _minimized = false;
@@ -293,6 +295,9 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         if (latest.id == _lastGiftId) return;
         _lastGiftId = latest.id;
         _showGiftOverlay(latest);
+      }, onError: (Object error, StackTrace stackTrace) {
+        // An optional gift stream must not disconnect the voice session.
+        debugPrint('WorldVoice gift effects unavailable: $error');
       });
 
       // Captions are optional. Missing/out-of-date deployed Firestore rules
@@ -319,6 +324,9 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         setState(() {
           _latestTeacherAiNote = notes.isEmpty ? null : notes.first;
         });
+      }, onError: (Object error, StackTrace stackTrace) {
+        // Teacher AI is optional and must not break seats, chat or audio.
+        debugPrint('WorldVoice Teacher AI notes unavailable: $error');
       });
 
       _participantsSub =
@@ -858,36 +866,87 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     Navigator.of(context).pop();
   }
 
+  Future<void> _synchronizeParticipantAudio() async {
+    if (_roleUpdateInProgress || !_controller.joined || _me == null ||
+        _leaving) {
+      return;
+    }
+    _roleUpdateInProgress = true;
+    try {
+      final participant = _me!;
+      final role = participant.isOnStage
+          ? AgoraRoomRole.speaker
+          : AgoraRoomRole.listener;
+      if (_controller.role != role) {
+        await _controller.switchRole(role);
+      }
+      // Only the host can set forcedMuted. Never unmute on the member's
+      // behalf when moderation lifts it: the member chooses when to speak.
+      if (_me?.isOnStage == true && _me?.forcedMuted == true &&
+          _controller.role == AgoraRoomRole.speaker &&
+          !_controller.muted) {
+        await _controller.setMuted(true);
+      }
+      await _syncCaptionPublishing();
+    } catch (error) {
+      debugPrint('WorldVoice audio-role synchronization: $error');
+      if (mounted && !_leaving) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.toString())),
+        );
+      }
+    } finally {
+      _roleUpdateInProgress = false;
+    }
+  }
+
+  Future<void> _toggleMicSafely() async {
+    if (_micBusy || _leaving || !_controller.joined ||
+        _me?.isOnStage != true) {
+      return;
+    }
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    if (_me?.forcedMuted == true || _roleUpdateInProgress) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(ar
+            ? 'الميكروفون مقفل من المضيف أو جاري تحديث المقعد.'
+            : 'The host muted you, or your speaking seat is still updating.'),
+      ));
+      return;
+    }
+    setState(() => _micBusy = true);
+    try {
+      if (_controller.role != AgoraRoomRole.speaker) {
+        await _controller.switchRole(AgoraRoomRole.speaker);
+      }
+      if (_controller.role != AgoraRoomRole.speaker) {
+        throw StateError(_controller.error ??
+            'Microphone is not available. Check audio permissions.');
+      }
+      await _controller.setMuted(!_controller.muted);
+      await _syncCaptionPublishing();
+    } catch (error) {
+      if (mounted && !_leaving) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(error.toString()),
+        ));
+      }
+    } finally {
+      if (mounted) setState(() => _micBusy = false);
+    }
+  }
+
   void _handleMyParticipant(RoomParticipant? participant) {
     if (!mounted) return;
-
     if (participant == null) {
       if (_participantWasReady && !_leaving) {
         unawaited(_exitRemovedFromRoom());
       }
       return;
     }
-
     _participantWasReady = true;
     setState(() => _me = participant);
-
-    if (!_controller.joined) return;
-
-    final desiredAgoraRole = participant.isOnStage
-        ? AgoraRoomRole.speaker
-        : AgoraRoomRole.listener;
-
-    if (_controller.role != desiredAgoraRole) {
-      unawaited(_controller.switchRole(desiredAgoraRole));
-    }
-
-    if (participant.forcedMuted &&
-        desiredAgoraRole == AgoraRoomRole.speaker &&
-        !_controller.muted) {
-      unawaited(_controller.setMuted(true));
-    }
-
-    unawaited(_syncCaptionPublishing());
+    unawaited(_synchronizeParticipantAudio());
   }
 
   Future<void> _exitRemovedFromRoom() async {
@@ -911,17 +970,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       unawaited(_moderation.syncAgoraUid(agoraUid));
     }
 
-    final participant = _me;
-    if (_controller.joined && participant != null) {
-      final desiredAgoraRole = participant.isOnStage
-          ? AgoraRoomRole.speaker
-          : AgoraRoomRole.listener;
-      if (_controller.role != desiredAgoraRole) {
-        unawaited(_controller.switchRole(desiredAgoraRole));
-      }
-    }
-
-    unawaited(_syncCaptionPublishing());
+    unawaited(_synchronizeParticipantAudio());
     if (mounted) setState(() {});
   }
 
@@ -2279,10 +2328,19 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   micIcon: isPublishing
                     ? (_controller.muted || !_controller.joined ? Icons.mic_off_rounded : Icons.mic_rounded)
                     : Icons.pan_tool_alt_rounded,
-                  micLabel: isPublishing ? label('الميكروفون', 'Microphone') : label('رفع اليد', 'Raise hand'),
-                  onMic: !_controller.joined || _me?.forcedMuted == true ? null
-                    : isPublishing ? () => _controller.setMuted(!_controller.muted)
-                    : () => _handRaised ? _moderation.setHandRaised(false) : _requestSeat(),
+                  micLabel: isPublishing
+                      ? (_me?.forcedMuted == true
+                          ? label('كتم المضيف', 'Muted by host')
+                          : label('الميكروفون', 'Microphone'))
+                      : label('رفع اليد', 'Raise hand'),
+                  onMic: !_controller.joined || _micBusy ||
+                          _me?.forcedMuted == true
+                      ? null
+                      : isPublishing
+                          ? _toggleMicSafely
+                          : () => _handRaised
+                              ? _moderation.setHandRaised(false)
+                              : _requestSeat(),
                 )),
               ]);
             })),
