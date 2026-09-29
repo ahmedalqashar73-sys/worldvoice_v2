@@ -620,7 +620,15 @@ class _WebCheckoutCatalog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance.doc('economy_config/current')
+          .snapshots(),
+      builder: (context, policySnapshot) {
+        final policy = policySnapshot.data?.data();
+        final economyReady = policy?['enabled'] == true &&
+            policy?['privateWalletCutoverVerified'] == true &&
+            policy?['publicProfileRulesVerified'] == true;
+        return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: FirebaseFirestore.instance.collection('coin_products')
           .where('active', isEqualTo: true).snapshots(),
       builder: (context, snapshot) {
@@ -658,11 +666,13 @@ class _WebCheckoutCatalog extends StatelessWidget {
               subtitle: approved == null
                 ? (isArabic ? 'قيد اعتماد السعر' : 'Price approval pending')
                 : '${approved.priceUsd!.toStringAsFixed(2)} USD • Visa / Mastercard',
-              buttonLabel: approved == null
-                ? (isArabic ? 'قريبًا' : 'Soon')
-                : (isArabic ? 'الدفع الآمن' : 'Secure checkout'),
-              enabled: approved != null,
-              onBuy: approved == null ? null : () async {
+              buttonLabel: !economyReady
+                ? (isArabic ? 'بانتظار التفعيل' : 'Pending')
+                : approved == null
+                    ? (isArabic ? 'قريبًا' : 'Soon')
+                    : (isArabic ? 'الدفع الآمن' : 'Secure checkout'),
+              enabled: approved != null && economyReady,
+              onBuy: approved == null || !economyReady ? null : () async {
                 try {
                   await store.startWebCheckout(approved);
                 } catch (error) {
@@ -676,6 +686,8 @@ class _WebCheckoutCatalog extends StatelessWidget {
             );
           },
         );
+      },
+    );
       },
     );
   }
