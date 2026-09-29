@@ -642,7 +642,7 @@ class _OtherStoreTab extends StatelessWidget {
               itemBuilder: (context, index) {
                 final item = items[index];
                 final imageUrl = item.animationUrl?.trim() ?? '';
-                final isImage = RegExp(r'\\.(png|jpe?g|gif|webp)(\\?|$)',
+                final isImage = RegExp(r'\.(png|jpe?g|gif|webp)(\?|$)',
                   caseSensitive: false).hasMatch(imageUrl);
                 return Card(
                   margin: EdgeInsets.zero,
