@@ -1660,9 +1660,10 @@ app.post("/room/tasks/claim", async (req, res, next) => {
       const levels = outcome.unlockedLevels;
       const expiration = Timestamp.fromMillis(
         outcome.completedAtMillis + 30 * 24 * 60 * 60 * 1000);
-      for (let offset = 0; offset < present.size; offset += 150) {
+      const membersPerBatch = Math.max(1, Math.floor(450 / levels.length));
+      for (let offset = 0; offset < present.size; offset += membersPerBatch) {
         const batch = db.batch();
-        for (const person of present.docs.slice(offset, offset + 150)) {
+        for (const person of present.docs.slice(offset, offset + membersPerBatch)) {
           for (const level of levels) {
             const rewardId = `${roomId}_level_${level}`;
             batch.set(db.collection("users").doc(person.id)
