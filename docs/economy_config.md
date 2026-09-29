@@ -48,6 +48,40 @@ collection; never silently delete existing inventory or catalog.
 balanceBefore / balanceAfter / source / createdAt; payment receipts and
 chargebacks use externally-derived idempotency keys.
 
+### Payment checkout surfaces prepared (no production payments enabled)
+
+The existing Flutter coin store now uses a consistent emerald/gold design and
+previews the seven requested sizes (10/50/100/500/1000/5000/10000) **without
+making up prices or enabling charge buttons**. Registered, approved products
+replace previews with their **actual localized platform price** automatically.
+
+- **Android:** existing `in_app_purchase` path uses Google Play Billing for
+  digital coin packs. The user may select any card supported in their Google
+  Play account (potentially Visa); WorldVoice does not collect card details.
+  A Play Console developer account, published consumable product IDs, linked
+  billing profile and actual Play internal-test track builds are required.
+  `flutter run` alone cannot verify genuine Play billing.
+- **iOS:** same native `in_app_purchase` integration uses App Store products.
+  App Store Connect SKU configuration, an eligible developer account, test
+  users and an appropriately signed app are required.
+- **Web:** existing `startWebCheckout` opens the backend-created Stripe hosted
+  checkout over HTTPS. Approved `coin_products/{id}.webPriceId`, a merchant
+  account with `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET`, and allowed
+  `WEB_CHECKOUT_SUCCESS_URL`/`WEB_CHECKOUT_CANCEL_URL` must be configured.
+  Stripe handles Visa/Mastercard and any further methods enabled by the
+  merchant account. This page is web-only.
+- **Google Play alternative/card billing inside Android:** do not add a
+  direct in-app Visa/Stripe bypass unless the developer enrolls in an
+  applicable regional billing-choice program and implements its requirements.
+  See: https://support.google.com/googleplay/android-developer/answer/9858738
+
+The Cloudflare Agora token-only Worker does not run `/iap/verify` or
+`/web/checkout`. The full authenticated finance backend
+(`WORLDVOICE_ECONOMY_ENDPOINT`) and verified real Play/Apple receipts or a
+signed Stripe webhook are required for actual credit. All coin and gift
+settlement stays blocked by private-wallet migration and `enabled=false`
+until explicit financial and privacy launch approval.
+
 ### Deployment gates
 
 1. Populate and approve complete economy_config + all 7 store product IDs.
