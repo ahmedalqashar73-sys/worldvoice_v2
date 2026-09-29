@@ -166,11 +166,33 @@ class ChatScreen extends StatelessWidget {
                     ? 'بانتظار نشر سيرفر المحادثة الآمن'
                     : 'Secure chat backend is not deployed yet')
                 : null,
-            trailing: IconButton.filledTonal(
-              tooltip: ar ? 'محادثة جديدة' : 'New chat',
-              onPressed: ready ? () => _startChat(context, ar, uid) : null,
-              icon: const Icon(Icons.edit_rounded),
-            ),
+            trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+              IconButton(
+                tooltip: ar ? 'تجربة الهدايا الثلاثين'
+                    : 'Preview 30 gifts',
+                onPressed: () => showModalBottomSheet<void>(
+                  context: context,
+                  isScrollControlled: true,
+                  useSafeArea: true,
+                  showDragHandle: true,
+                  builder: (sheet) => SizedBox(
+                    height: MediaQuery.sizeOf(sheet).height * .76,
+                    child: const UnifiedGiftPanel(
+                      contextType: 'chat',
+                      contextId: 'preview',
+                      recipients: <String, String>{},
+                    ),
+                  ),
+                ),
+                icon: const Icon(Icons.card_giftcard_outlined,
+                    color: Color(0xFF11835D)),
+              ),
+              IconButton.filledTonal(
+                tooltip: ar ? 'محادثة جديدة' : 'New chat',
+                onPressed: ready ? () => _startChat(context, ar, uid) : null,
+                icon: const Icon(Icons.edit_rounded),
+              ),
+            ]),
           ),
           Expanded(
             child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
