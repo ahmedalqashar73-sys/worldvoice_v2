@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 
 import '../data/room_feature_models.dart';
 import '../data/classic_gift_catalog.dart';
+import '../data/luxury_gift_catalog.dart';
 import 'room_chat_service.dart';
 import '../data/room_backend_config.dart';
 import 'room_quiz_service.dart';
@@ -271,7 +272,9 @@ class RoomFeatureService {
       throw StateError('SELECT_A_REAL_FRIEND');
     }
     final approved = await ClassicGiftCatalog.load();
-    if (!approved.any((g) => g.id == giftId)) {
+    final approvedForDemo = approved.any((g) => g.id == giftId) ||
+        LuxuryGiftCatalog.items.any((g) => g.id == giftId);
+    if (!approvedForDemo) {
       throw StateError('INVALID_TEST_GIFT');
     }
     // Always resolve names from existing authorized membership documents.
