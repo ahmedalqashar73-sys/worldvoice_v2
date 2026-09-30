@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 
 import '../data/room_feature_models.dart';
 import '../data/classic_gift_catalog.dart';
+import '../data/luxury_gift_catalog.dart';
 import 'classic_gift_visual.dart';
 import 'classic_gift_3d_stage.dart';
 import '../services/room_feature_service.dart';
@@ -300,10 +301,19 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
           previews: previews, published: published);
         final shownGifts = _giftCategory == 0
             ? classics
-            : (published.where((gift) =>
-                gift.active && gift.priceCoins > 0 &&
-                _inSelectedCategory(gift)).toList(growable: true)
-                  ..sort((a, b) => a.priceCoins.compareTo(b.priceCoins)));
+            : _giftCategory == 3
+                ? <RoomGiftCatalogItem>[
+                    ...LuxuryGiftCatalog.items,
+                    ...published.where((gift) =>
+                      gift.active && gift.priceCoins > 500 &&
+                      !LuxuryGiftCatalog.items.any((local) =>
+                        local.id == gift.id)),
+                  ]
+                : (published.where((gift) =>
+                    gift.active && gift.priceCoins > 0 &&
+                    _inSelectedCategory(gift)).toList(growable: true)
+                      ..sort((a, b) =>
+                        a.priceCoins.compareTo(b.priceCoins)));
         return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
           stream: FirebaseFirestore.instance.doc('economy_config/current')
               .snapshots(),
