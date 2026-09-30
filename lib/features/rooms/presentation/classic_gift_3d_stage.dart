@@ -1,8 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:model_viewer_plus/model_viewer_plus.dart';
+import 'package:flutter_3d_controller/flutter_3d_controller.dart';
 
 import '../data/classic_gift_mesh.dart';
+import '../data/luxury_gift_catalog.dart';
 import '../data/room_feature_models.dart';
 import 'classic_gift_visual.dart';
 
@@ -25,6 +27,7 @@ class ClassicGift3DStage extends StatefulWidget {
 
 class _ClassicGift3DStageState extends State<ClassicGift3DStage> {
   late Future<String> _model;
+  Flutter3DController? _luxuryController;
   bool _use3D = true;
 
   bool get _supported => kIsWeb ||
@@ -34,6 +37,9 @@ class _ClassicGift3DStageState extends State<ClassicGift3DStage> {
   @override
   void initState() {
     super.initState();
+    if (LuxuryGiftCatalog.assetFor(widget.gift.id) != null) {
+      _luxuryController = Flutter3DController();
+    }
     _model = Future<String>(() => ClassicGiftMesh.dataUri(widget.gift.id));
   }
 
@@ -41,6 +47,8 @@ class _ClassicGift3DStageState extends State<ClassicGift3DStage> {
   void didUpdateWidget(covariant ClassicGift3DStage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.gift.id != widget.gift.id) {
+      _luxuryController = LuxuryGiftCatalog.assetFor(widget.gift.id) != null
+          ? Flutter3DController() : null;
       _model = Future<String>(() => ClassicGiftMesh.dataUri(widget.gift.id));
       _use3D = true;
     }
@@ -49,7 +57,10 @@ class _ClassicGift3DStageState extends State<ClassicGift3DStage> {
   @override
   Widget build(BuildContext context) {
     final ar = Localizations.localeOf(context).languageCode == 'ar';
-    final interactive = _supported && ClassicGiftMesh.supports(widget.gift.id);
+    final luxuryAsset = LuxuryGiftCatalog.assetFor(widget.gift.id);
+    final luxury = _supported && luxuryAsset != null;
+    final interactive =
+        luxury || (_supported && ClassicGiftMesh.supports(widget.gift.id));
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -64,7 +75,23 @@ class _ClassicGift3DStageState extends State<ClassicGift3DStage> {
               radius: .94,
             ),
           ),
-          child: interactive && _use3D
+          child: luxury && _use3D
+              ? Flutter3DViewer(
+                  key: ValueKey('luxury3d:${widget.gift.id}'),
+                  src: luxuryAsset,
+                  controller: _luxuryController,
+                  activeGestureInterceptor: true,
+                  enableTouch: true,
+                  progressBarColor: const Color(0xFFFFD98A),
+                  onLoad: (_) {
+                    _luxuryController?.startRotation(rotationSpeed: 8);
+                  },
+                  onError: (error) {
+                    debugPrint('Luxury gift GLB failed: $error');
+                    if (mounted) setState(() => _use3D = false);
+                  },
+                )
+              : interactive && _use3D
               ? FutureBuilder<String>(
                   future: _model,
                   builder: (context, snapshot) {
