@@ -481,7 +481,7 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                         : 'Gift previews could not be loaded'))
                     : _giftCategory == 0 && !classicSnapshot.hasData
                         ? const Center(child: CircularProgressIndicator())
-                    : giftSnapshot.hasError && _giftCategory != 0
+                    : giftSnapshot.hasError && (_giftCategory == 1 || _giftCategory == 2)
                         ? Center(child: Text(ar
                             ? 'تعذر تحميل الكتالوج'
                             : 'Catalog unavailable'))
