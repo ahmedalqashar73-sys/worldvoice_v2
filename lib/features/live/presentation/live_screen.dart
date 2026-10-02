@@ -566,16 +566,73 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                         PositionedDirectional(
                           top: 12,
                           start: 12,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Colors.redAccent,
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: Text(
-                              'LIVE  •  ${tiles.length}/4',
-                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900),
-                            ),
+                          child: StreamBuilder<
+                              DocumentSnapshot<Map<String, dynamic>>>(
+                            stream: _liveId == null
+                                ? null
+                                : _liveService.watch(_liveId!),
+                            builder: (context, snapshot) {
+                              final viewers =
+                                  snapshot.data?.data()?['viewerCount'] ?? 0;
+                              final user = FirebaseAuth.instance.currentUser;
+                              final photo = user?.photoURL?.trim() ?? '';
+                              return DecoratedBox(
+                                decoration: BoxDecoration(
+                                  color: const Color(0xB3000000),
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsetsDirectional.fromSTEB(
+                                    6,
+                                    5,
+                                    10,
+                                    5,
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      CircleAvatar(
+                                        radius: 14,
+                                        backgroundImage: photo.isEmpty
+                                            ? null
+                                            : NetworkImage(photo),
+                                        child: photo.isEmpty
+                                            ? const Icon(
+                                                Icons.person_rounded,
+                                                size: 15,
+                                              )
+                                            : null,
+                                      ),
+                                      const SizedBox(width: 7),
+                                      ConstrainedBox(
+                                        constraints:
+                                            const BoxConstraints(maxWidth: 120),
+                                        child: Text(
+                                          user?.displayName ??
+                                              (widget.ar
+                                                  ? 'المضيف'
+                                                  : 'Host'),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'LIVE • $viewers 👁 • ${tiles.length}/4',
+                                        style: const TextStyle(
+                                          color: Colors.redAccent,
+                                          fontWeight: FontWeight.w900,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                         ),
                         PositionedDirectional(
