@@ -526,6 +526,59 @@ service cloud.firestore {
     }
 
     // -------------------------
+    // VIDEO LIVE
+    // -------------------------
+    match /live_sessions/{liveId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+          && request.resource.data.hostId == request.auth.uid
+          && request.resource.data.channelId == liveId
+          && request.resource.data.isLive == true
+          && request.resource.data.viewerCount == 0
+          && request.resource.data.guestCount == 0;
+      allow update: if signedIn()
+          && (
+            resource.data.hostId == request.auth.uid
+            || (
+              request.resource.data.diff(resource.data).affectedKeys()
+                  .hasOnly(['viewerCount', 'updatedAt'])
+              && request.resource.data.viewerCount >= 0
+            )
+          );
+      allow delete: if false;
+
+      match /viewers/{userId} {
+        allow read: if signedIn();
+        allow create: if signedIn()
+            && userId == request.auth.uid
+            && request.resource.data.uid == request.auth.uid;
+        allow delete: if signedIn() && userId == request.auth.uid;
+        allow update: if false;
+      }
+
+      match /join_requests/{userId} {
+        allow read: if signedIn()
+            && (
+              userId == request.auth.uid
+              || get(/databases/$(database)/documents/live_sessions/$(liveId))
+                  .data.hostId == request.auth.uid
+            );
+        allow create: if signedIn()
+            && userId == request.auth.uid
+            && request.resource.data.uid == request.auth.uid
+            && request.resource.data.status == 'pending';
+        allow update: if signedIn()
+            && get(/databases/$(database)/documents/live_sessions/$(liveId))
+                .data.hostId == request.auth.uid
+            && request.resource.data.uid == resource.data.uid
+            && request.resource.data.diff(resource.data).affectedKeys()
+                .hasOnly(['status', 'decidedAt'])
+            && request.resource.data.status in ['accepted', 'declined'];
+        allow delete: if false;
+      }
+    }
+
+    // -------------------------
     // VOICE ROOMS
     // -------------------------
     match /rooms/{roomId} {
