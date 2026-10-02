@@ -714,6 +714,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   bool _joining = true;
   bool _requested = false;
   bool _guestPublishing = false;
+  bool _guestMicMuted = false;
   bool _guestBeautyEnabled = false;
   bool _guestBackgroundBlurEnabled = false;
   double _guestCameraZoom = 1;
@@ -1063,6 +1064,22 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                             const SizedBox(width: 8),
                             if (_guestPublishing) ...[
                               IconButton.filledTonal(
+                                tooltip: widget.ar ? 'المايك' : 'Microphone',
+                                onPressed: () async {
+                                  final next = !_guestMicMuted;
+                                  await _controller.setMuted(next);
+                                  if (mounted) {
+                                    setState(() => _guestMicMuted = next);
+                                  }
+                                },
+                                icon: Icon(
+                                  _guestMicMuted
+                                      ? Icons.mic_off_rounded
+                                      : Icons.mic_rounded,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton.filledTonal(
                                 tooltip: widget.ar
                                     ? 'أدوات الكاميرا'
                                     : 'Camera tools',
@@ -1137,6 +1154,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
       if (!mounted) return;
       setState(() {
         _guestPublishing = false;
+        _guestMicMuted = false;
         _requested = false;
       });
     } catch (error) {
@@ -1166,7 +1184,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
         );
       }
       await _controller.setCameraPublishing(true);
-      if (mounted) setState(() {});
+      if (mounted) {
+        setState(() => _guestMicMuted = false);
+      }
     } catch (error) {
       _guestPublishing = false;
       await _service.leaveGuest(widget.liveId).catchError((Object _) {});
