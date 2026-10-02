@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:agora_rtc_engine/agora_rtc_engine.dart';
+
+import '../../rooms/services/agora_voice_room_controller.dart';
 
 import '../../../core/localization/locale_controller.dart';
 
@@ -108,8 +111,57 @@ class _LiveCameraGate extends StatefulWidget {
 }
 
 class _LiveCameraGateState extends State<_LiveCameraGate> {
+  final AgoraVoiceRoomController _controller = AgoraVoiceRoomController();
   int _seconds = 20;
   bool _cameraReady = false;
+  bool _starting = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _startCamera() async {
+    if (_starting) return;
+    setState(() => _starting = true);
+    try {
+      // Use a unique preview channel for now. The Live session document will
+      // provide the persistent channel id when discovery/guest join is wired.
+      final channel = 'live_${DateTime.now().millisecondsSinceEpoch}';
+      await _controller.ensureConnected(
+        channelId: channel,
+        role: AgoraRoomRole.speaker,
+      );
+      final engine = _controller.engine;
+      if (engine == null || !_controller.joined) {
+        throw StateError(_controller.error ?? 'Could not start Live.');
+      }
+      await engine.enableVideo();
+      await engine.startPreview();
+      await engine.updateChannelMediaOptions(
+        const ChannelMediaOptions(
+          clientRoleType: ClientRoleType.clientRoleBroadcaster,
+          publishCameraTrack: true,
+          publishMicrophoneTrack: true,
+          autoSubscribeAudio: true,
+          autoSubscribeVideo: true,
+          enableAudioRecordingOrPlayout: true,
+        ),
+      );
+      if (!mounted) return;
+      setState(() {
+        _cameraReady = true;
+        _starting = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _starting = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
+    }
+  }
 
   @override
   void initState() {
@@ -175,13 +227,11 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                     ),
                     const SizedBox(height: 22),
                     FilledButton.icon(
-                      onPressed: () {
-                        // The UI gate is ready. Agora camera publication is
-                        // connected in the next isolated Live controller step.
-                        setState(() => _cameraReady = true);
-                      },
+                      onPressed: _starting ? null : _startCamera,
                       icon: const Icon(Icons.videocam_rounded),
-                      label: Text(widget.ar ? 'تشغيل الكاميرا' : 'Turn on camera'),
+                      label: Text(_starting
+                          ? (widget.ar ? 'جاري تشغيل الكاميرا...' : 'Starting camera...')
+                          : (widget.ar ? 'تشغيل الكاميرا' : 'Turn on camera')),
                     ),
                   ],
                 ),
@@ -195,19 +245,40 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                 icon: const Icon(Icons.close_rounded),
               ),
             ),
-            if (_cameraReady)
+            if (_cameraReady && _controller.engine != null)
               Positioned.fill(
-                child: ColoredBox(
-                  color: const Color(0xFF081A15),
-                  child: Center(
-                    child: Text(
-                      widget.ar
-                          ? 'الكاميرا جاهزة — ربط فيديو Agora هو الخطوة التالية.'
-                          : 'Camera ready — Agora video publishing is the next step.',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.white70),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    AgoraVideoView(
+                      controller: VideoViewController(
+                        rtcEngine: _controller.engine!,
+                        canvas: const VideoCanvas(uid: 0),
+                      ),
                     ),
-                  ),
+                    PositionedDirectional(
+                      top: 12,
+                      end: 12,
+                      child: Row(
+                        children: [
+                          IconButton.filled(
+                            tooltip: widget.ar ? 'تبديل الكاميرا' : 'Switch camera',
+                            onPressed: () => _controller.engine?.switchCamera(),
+                            icon: const Icon(Icons.cameraswitch_rounded),
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton.filled(
+                            tooltip: widget.ar ? 'إنهاء اللايف' : 'End live',
+                            onPressed: () async {
+                              await _controller.leave();
+                              if (mounted) Navigator.of(context).pop();
+                            },
+                            icon: const Icon(Icons.stop_circle_rounded),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
           ],
