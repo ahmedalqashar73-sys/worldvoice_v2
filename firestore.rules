@@ -543,6 +543,7 @@ service cloud.firestore {
               request.resource.data.diff(resource.data).affectedKeys()
                   .hasOnly(['viewerCount', 'updatedAt'])
               && request.resource.data.viewerCount >= 0
+              && request.resource.data.guestCount == resource.data.guestCount
             )
           );
       allow delete: if false;
@@ -573,7 +574,7 @@ service cloud.firestore {
             && request.resource.data.uid == resource.data.uid
             && request.resource.data.diff(resource.data).affectedKeys()
                 .hasOnly(['status', 'decidedAt'])
-            && request.resource.data.status in ['accepted', 'declined'];
+            && request.resource.data.status in ['accepted', 'declined', 'left'];
         allow delete: if false;
       }
     }
