@@ -505,6 +505,24 @@ service cloud.firestore {
             );
       }
 
+      match /captions/{captionId} {
+        allow read: if signedIn();
+        allow create: if signedIn()
+            && request.resource.data.userId == request.auth.uid
+            && request.resource.data.text is string
+            && request.resource.data.text.size() > 0
+            && request.resource.data.text.size() <= 400
+            && (
+              get(/databases/$(database)/documents/live_sessions/$(liveId))
+                  .data.hostId == request.auth.uid
+              || get(
+                /databases/$(database)/documents/live_sessions/$(liveId)/
+                join_requests/$(request.auth.uid)
+              ).data.status == 'accepted'
+            );
+        allow update, delete: if false;
+      }
+
       match /messages/{messageId} {
         allow get, list: if signedIn()
             && exists(/databases/$(database)/documents/chats/$(chatId))
