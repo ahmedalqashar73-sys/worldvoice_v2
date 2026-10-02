@@ -486,6 +486,52 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     );
   }
 
+  Future<bool> isBeautyAvailable() async {
+    final engine = _engine;
+    if (engine == null || !_joined) return false;
+    try {
+      return await engine.isFeatureAvailableOnDevice(
+        FeatureType.videoBeautyEffect,
+      );
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> isVirtualBackgroundAvailable() async {
+    final engine = _engine;
+    if (engine == null || !_joined) return false;
+    try {
+      return await engine.isFeatureAvailableOnDevice(
+        FeatureType.videoVirtualBackground,
+      );
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> setBackgroundBlurEnabled(bool enabled) async {
+    final engine = _engine;
+    if (engine == null || !_joined || !_cameraPublishing) {
+      throw StateError(
+        'Camera must be publishing before background blur is changed.',
+      );
+    }
+    if (enabled && !await isVirtualBackgroundAvailable()) {
+      throw StateError('Virtual background is not supported on this device.');
+    }
+    await engine.enableVirtualBackground(
+      enabled: enabled,
+      backgroundSource: VirtualBackgroundSource(
+        backgroundSourceType: BackgroundSourceType.backgroundBlur,
+        blurDegree: BackgroundBlurDegree.blurDegreeMedium,
+      ),
+      segproperty: const SegmentationProperty(
+        modelType: SegModelType.segModelAi,
+      ),
+    );
+  }
+
   Future<double> getCameraMaxZoom() async {
     final engine = _engine;
     if (engine == null || !_joined || !_cameraPublishing) return 1;
