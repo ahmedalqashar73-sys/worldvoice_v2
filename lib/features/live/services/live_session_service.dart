@@ -41,6 +41,7 @@ class LiveSessionService {
       'guestCount': 0,
       'boardWriteEnabled': true,
       'startedAt': FieldValue.serverTimestamp(),
+      'hostHeartbeatAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     });
     return ref.id;
@@ -54,6 +55,25 @@ class LiveSessionService {
   Stream<DocumentSnapshot<Map<String, dynamic>>> watch(String liveId) =>
       _sessions.doc(liveId).snapshots();
 
+  Future<void> touchHostHeartbeat(String liveId) async {
+    await _sessions.doc(liveId).update({
+      'hostHeartbeatAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  static bool isFresh(Map<String, dynamic>? data, {DateTime? now}) {
+    if (data == null || data['isLive'] != true) return false;
+    final heartbeat = data['hostHeartbeatAt'];
+    if (heartbeat is! Timestamp) {
+      // Backward compatibility for sessions created before heartbeats existed.
+      final started = data['startedAt'];
+      if (started is! Timestamp) return true;
+      return (now ?? DateTime.now()).difference(started.toDate()).inSeconds < 60;
+    }
+    return (now ?? DateTime.now()).difference(heartbeat.toDate()).inSeconds < 45;
+  }
+
   Stream<QuerySnapshot<Map<String, dynamic>>> watchJoinRequests(String liveId) =>
       _sessions
           .doc(liveId)
@@ -66,6 +86,10 @@ class LiveSessionService {
     final session = _sessions.doc(liveId);
     final viewer = session.collection('viewers').doc(user.uid);
     await _db.runTransaction((tx) async {
+      final sessionSnap = await tx.get(session);
+      if (!isFresh(sessionSnap.data())) {
+        throw StateError('LIVE_ENDED');
+      }
       final existing = await tx.get(viewer);
       if (!existing.exists) {
         tx.set(viewer, {
