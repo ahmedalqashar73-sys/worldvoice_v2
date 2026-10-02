@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 
 import '../../rooms/services/agora_voice_room_controller.dart';
+import '../../rooms/presentation/room_board_screen.dart';
 import '../services/live_session_service.dart';
 
 import '../../../core/localization/locale_controller.dart';
@@ -290,6 +291,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   bool _starting = false;
   bool _micMuted = false;
   bool _requestsOpen = false;
+  bool _boardOpen = false;
   bool _sessionClosed = false;
   String? _channelId;
   String? _liveId;
@@ -482,6 +484,36 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                       fit: StackFit.expand,
                       children: [
                         _LiveVideoGrid(children: tiles),
+                        if (_boardOpen && _liveId != null)
+                          Positioned.fill(
+                            child: RoomBoardScreen(
+                              roomId: _liveId!,
+                              parentCollection: 'live_sessions',
+                              canWrite: true,
+                              isHost: true,
+                              agoraController: _controller,
+                              embedded: true,
+                              onClose: () => setState(() => _boardOpen = false),
+                            ),
+                          ),
+                        if (_boardOpen && _controller.engine != null)
+                          PositionedDirectional(
+                            top: 58,
+                            end: 12,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: SizedBox(
+                                width: 110,
+                                height: 150,
+                                child: AgoraVideoView(
+                                  controller: VideoViewController(
+                                    rtcEngine: _controller.engine!,
+                                    canvas: const VideoCanvas(uid: 0),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
                         PositionedDirectional(
                           top: 12,
                           start: 12,
@@ -521,6 +553,18 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                           ar: widget.ar,
                                         ),
                                 icon: const Icon(Icons.chat_bubble_outline_rounded),
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton.filledTonal(
+                                tooltip: widget.ar ? 'السبورة' : 'Board',
+                                onPressed: _liveId == null
+                                    ? null
+                                    : () => setState(() => _boardOpen = !_boardOpen),
+                                icon: Icon(
+                                  _boardOpen
+                                      ? Icons.dashboard_rounded
+                                      : Icons.dashboard_outlined,
+                                ),
                               ),
                             ],
                           ),
@@ -597,6 +641,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   bool _joining = true;
   bool _requested = false;
   bool _guestPublishing = false;
+  bool _boardOpen = false;
 
   @override
   void initState() {
@@ -697,6 +742,38 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                           child: Icon(Icons.live_tv_rounded,
                               color: Colors.white54, size: 72),
                         ),
+                      if (_boardOpen)
+                        Positioned.fill(
+                          child: RoomBoardScreen(
+                            roomId: widget.liveId,
+                            parentCollection: 'live_sessions',
+                            canWrite: false,
+                            isHost: false,
+                            agoraController: _controller,
+                            embedded: true,
+                            onClose: () => setState(() => _boardOpen = false),
+                          ),
+                        ),
+                      if (_boardOpen && engine != null && remote.isNotEmpty)
+                        PositionedDirectional(
+                          top: 58,
+                          end: 12,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: SizedBox(
+                              width: 110,
+                              height: 150,
+                              child: AgoraVideoView(
+                                controller: VideoViewController.remote(
+                                  rtcEngine: engine,
+                                  canvas: VideoCanvas(uid: remote.first),
+                                  connection:
+                                      RtcConnection(channelId: widget.liveId),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                       PositionedDirectional(
                         top: 12,
                         start: 12,
@@ -729,6 +806,17 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                 ar: widget.ar,
                               ),
                               icon: const Icon(Icons.chat_bubble_outline_rounded),
+                            ),
+                            const SizedBox(width: 8),
+                            IconButton.filledTonal(
+                              tooltip: widget.ar ? 'السبورة' : 'Board',
+                              onPressed: () =>
+                                  setState(() => _boardOpen = !_boardOpen),
+                              icon: Icon(
+                                _boardOpen
+                                    ? Icons.dashboard_rounded
+                                    : Icons.dashboard_outlined,
+                              ),
                             ),
                             const SizedBox(width: 8),
                             if (_guestPublishing)
