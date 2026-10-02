@@ -413,7 +413,8 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                 onPressed: () async {
                                   if (_liveId != null) await _liveService.end(_liveId!);
                                   await _controller.leave();
-                                  if (mounted) Navigator.of(context).pop();
+                                  if (!context.mounted) return;
+                                  Navigator.of(context).pop();
                                 },
                                 icon: const Icon(Icons.stop_circle_rounded),
                               ),
