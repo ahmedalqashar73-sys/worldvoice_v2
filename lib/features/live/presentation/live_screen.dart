@@ -848,11 +848,99 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                         ),
                       ),
                       PositionedDirectional(
-                        top: 12,
-                        start: 12,
-                        child: IconButton.filledTonal(
-                          onPressed: () => Navigator.of(context).pop(),
-                          icon: const Icon(Icons.close_rounded),
+                        top: 10,
+                        start: 10,
+                        end: 10,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: const Color(0x99000000),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 6,
+                            ),
+                            child: Row(
+                              children: [
+                                CircleAvatar(
+                                  radius: 17,
+                                  backgroundImage: (() {
+                                    final url = (live?['hostPhotoUrl'] ??
+                                            widget.data['hostPhotoUrl'] ??
+                                            '')
+                                        .toString()
+                                        .trim();
+                                    return url.isEmpty ? null : NetworkImage(url);
+                                  })(),
+                                  child: ((live?['hostPhotoUrl'] ??
+                                                  widget.data['hostPhotoUrl'] ??
+                                                  '')
+                                              .toString()
+                                              .trim()
+                                              .isEmpty)
+                                      ? const Icon(Icons.person_rounded, size: 18)
+                                      : null,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        (live?['hostName'] ??
+                                                widget.data['hostName'] ??
+                                                'WorldVoice host')
+                                            .toString(),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                      Text(
+                                        'LIVE • ${live?['viewerCount'] ?? widget.data['viewerCount'] ?? 0} 👁',
+                                        style: const TextStyle(
+                                          color: Colors.white70,
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                if ((widget.data['hostId'] ?? '').toString() !=
+                                    FirebaseAuth.instance.currentUser?.uid)
+                                  FilledButton.tonal(
+                                    onPressed:
+                                        _followBusy ? null : _toggleFollow,
+                                    child: Text(
+                                      _following
+                                          ? (widget.ar ? 'متابَع' : 'Following')
+                                          : (widget.ar ? 'متابعة' : 'Follow'),
+                                    ),
+                                  ),
+                                IconButton(
+                                  tooltip: widget.ar ? 'مشاركة' : 'Share',
+                                  onPressed: _shareLive,
+                                  icon: const Icon(
+                                    Icons.share_rounded,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                IconButton(
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(),
+                                  icon: const Icon(
+                                    Icons.close_rounded,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
                       PositionedDirectional(
