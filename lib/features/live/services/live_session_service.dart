@@ -25,6 +25,7 @@ class LiveSessionService {
   Future<String> create({
     required String channelId,
     required String languageCode,
+    required int hostAgoraUid,
     String topic = '',
   }) async {
     final user = _user;
@@ -34,6 +35,7 @@ class LiveSessionService {
       'hostId': user.uid,
       'hostName': user.displayName ?? 'WorldVoice host',
       'hostPhotoUrl': user.photoURL ?? '',
+      'hostAgoraUid': hostAgoraUid,
       'languageCode': languageCode,
       'topic': topic.trim(),
       'isLive': true,
