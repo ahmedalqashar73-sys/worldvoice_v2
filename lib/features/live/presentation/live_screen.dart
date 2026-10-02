@@ -747,7 +747,8 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                           child: RoomBoardScreen(
                             roomId: widget.liveId,
                             parentCollection: 'live_sessions',
-                            canWrite: false,
+                            canWrite: _guestPublishing &&
+                                (live?['boardWriteEnabled'] != false),
                             isHost: false,
                             agoraController: _controller,
                             embedded: true,
