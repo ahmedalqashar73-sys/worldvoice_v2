@@ -14,12 +14,9 @@ import UIKit
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
 
-    let registrar = engineBridge.pluginRegistry.registrar(
-      forPlugin: "WorldVoiceLivePermissions"
-    )
     let channel = FlutterMethodChannel(
       name: "worldvoice/live_permissions",
-      binaryMessenger: registrar.messenger()
+      binaryMessenger: engineBridge.applicationRegistrar.messenger()
     )
     channel.setMethodCallHandler { call, result in
       guard call.method == "requestCamera" else {
