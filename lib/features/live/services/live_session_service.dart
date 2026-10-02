@@ -192,6 +192,19 @@ class LiveSessionService {
     });
   }
 
+  Future<void> cancelPendingRequest(String liveId) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+    final request =
+        _sessions.doc(liveId).collection('join_requests').doc(user.uid);
+    await _db.runTransaction((tx) async {
+      final snap = await tx.get(request);
+      if (snap.data()?['status']?.toString() == 'pending') {
+        tx.delete(request);
+      }
+    });
+  }
+
   Stream<DocumentSnapshot<Map<String, dynamic>>> watchMyRequest(String liveId) {
     final user = _user;
     return _sessions
