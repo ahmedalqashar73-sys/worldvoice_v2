@@ -652,11 +652,60 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   bool _requested = false;
   bool _guestPublishing = false;
   bool _boardOpen = false;
+  bool _following = false;
+  bool _followBusy = false;
 
   @override
   void initState() {
     super.initState();
     _join();
+    _loadFollow();
+  }
+
+  Future<void> _loadFollow() async {
+    final hostId = widget.data['hostId']?.toString() ?? '';
+    final me = FirebaseAuth.instance.currentUser?.uid;
+    if (hostId.isEmpty || me == null || me == hostId) return;
+    try {
+      final value = await ProfileSocialService.isFollowing(hostId);
+      if (mounted) setState(() => _following = value);
+    } catch (_) {
+      // Follow status must never block Live playback.
+    }
+  }
+
+  Future<void> _toggleFollow() async {
+    if (_followBusy) return;
+    final hostId = widget.data['hostId']?.toString() ?? '';
+    final me = FirebaseAuth.instance.currentUser?.uid;
+    if (hostId.isEmpty || me == null || me == hostId) return;
+    setState(() => _followBusy = true);
+    try {
+      await ProfileSocialService.toggleFollow(hostId);
+      if (!mounted) return;
+      setState(() => _following = !_following);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.toString())),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _followBusy = false);
+    }
+  }
+
+  Future<void> _shareLive() async {
+    final topic = (widget.data['topic'] ?? '').toString().trim();
+    final host = (widget.data['hostName'] ?? 'WorldVoice host').toString();
+    await SharePlus.instance.share(
+      ShareParams(
+        title: 'WorldVoice Live',
+        text: topic.isEmpty
+            ? 'WorldVoice Live • $host • ${widget.liveId}'
+            : 'WorldVoice Live • $topic • $host • ${widget.liveId}',
+      ),
+    );
   }
 
   Future<void> _join() async {
