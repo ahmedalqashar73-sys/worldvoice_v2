@@ -1031,16 +1031,22 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                         end: 18,
                         child: Row(
                           children: [
-                            Expanded(
-                              child: FilledButton.icon(
-                                onPressed: _requested ? null : _requestCamera,
-                                icon: const Icon(Icons.group_add_rounded),
-                                label: Text(_requested
-                                    ? (widget.ar ? 'تم إرسال الطلب' : 'Request sent')
-                                    : (widget.ar ? 'اطلب الانضمام' : 'Request to join')),
+                            if (!_guestPublishing) ...[
+                              Expanded(
+                                child: FilledButton.icon(
+                                  onPressed: _requested ? null : _requestCamera,
+                                  icon: const Icon(Icons.group_add_rounded),
+                                  label: Text(_requested
+                                      ? (widget.ar
+                                          ? 'تم إرسال الطلب'
+                                          : 'Request sent')
+                                      : (widget.ar
+                                          ? 'اطلب الانضمام'
+                                          : 'Request to join')),
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 10),
+                              const SizedBox(width: 10),
+                            ],
                             IconButton.filledTonal(
                               onPressed: () => _showLiveChat(
                                 context,
@@ -1374,6 +1380,44 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
     );
   }
 
+  Future<void> _showMoreTools() async {
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.smart_toy_outlined),
+              title: const Text('Teacher AI'),
+              subtitle: Text(
+                widget.ar
+                    ? 'أسئلة ودروس وتصحيح داخل البث.'
+                    : 'Questions, lessons and coaching inside Live.',
+              ),
+              onTap: () => Navigator.of(sheetContext).pop('teacher'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.language_rounded),
+              title: Text(
+                widget.ar ? 'الترجمة والسبتايتل' : 'Translation & subtitles',
+              ),
+              onTap: () => Navigator.of(sheetContext).pop('language'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (!mounted || action == null) return;
+    if (action == 'teacher') {
+      await _showTeacherAi();
+    } else if (action == 'language') {
+      await _showSettings();
+    }
+  }
+
   Future<void> _showSettings() => showModalBottomSheet<void>(
         context: context,
         showDragHandle: true,
@@ -1451,9 +1495,9 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
               ),
               const SizedBox(width: 6),
               IconButton.filledTonal(
-                tooltip: 'Teacher AI',
-                onPressed: _showTeacherAi,
-                icon: const Icon(Icons.smart_toy_outlined),
+                tooltip: widget.ar ? 'المزيد' : 'More',
+                onPressed: _showMoreTools,
+                icon: const Icon(Icons.more_horiz_rounded),
               ),
             ],
           ),
