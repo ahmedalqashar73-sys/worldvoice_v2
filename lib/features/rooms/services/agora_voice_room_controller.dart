@@ -23,6 +23,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
   bool _muted = false;
   bool _released = false;
   bool _screenSharing = false;
+  bool _cameraPublishing = false;
   String? _error;
   int? _localUid;
   int? _activeSpeakerUid;
@@ -36,6 +37,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
   bool get muted => _muted;
   String? get error => _error;
   bool get screenSharing => _screenSharing;
+  bool get cameraPublishing => _cameraPublishing;
   RtcEngine? get engine => _engine;
   int? get localUid => _localUid;
   int? get activeSpeakerUid => _activeSpeakerUid;
@@ -361,6 +363,40 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     }
   }
 
+  Future<void> setCameraPublishing(bool value) async {
+    final engine = _engine;
+    if (engine == null || !_joined) return;
+    if (value && _role != AgoraRoomRole.speaker) {
+      throw StateError('Camera publishing requires broadcaster role.');
+    }
+    _cameraPublishing = value;
+    if (value) {
+      await engine.enableVideo();
+      await engine.startPreview();
+    } else {
+      try {
+        await engine.stopPreview();
+      } catch (_) {
+        // Preview may already be stopped.
+      }
+    }
+    if (!_screenSharing) {
+      await engine.updateChannelMediaOptions(
+        ChannelMediaOptions(
+          clientRoleType: _role == AgoraRoomRole.speaker
+              ? ClientRoleType.clientRoleBroadcaster
+              : ClientRoleType.clientRoleAudience,
+          publishMicrophoneTrack: _role == AgoraRoomRole.speaker,
+          publishCameraTrack: value && _role == AgoraRoomRole.speaker,
+          autoSubscribeAudio: true,
+          autoSubscribeVideo: true,
+          enableAudioRecordingOrPlayout: true,
+        ),
+      );
+    }
+    notifyListeners();
+  }
+
   Future<void> startScreenShare() async {
     final engine = _engine;
     if (engine == null || !_joined || _role != AgoraRoomRole.speaker) {
@@ -416,7 +452,8 @@ class AgoraVoiceRoomController extends ChangeNotifier {
             ? ClientRoleType.clientRoleBroadcaster
             : ClientRoleType.clientRoleAudience,
         publishMicrophoneTrack: _role == AgoraRoomRole.speaker,
-        publishCameraTrack: false,
+        publishCameraTrack:
+            _role == AgoraRoomRole.speaker && _cameraPublishing,
         publishScreenCaptureVideo: false,
         publishScreenCaptureAudio: false,
         autoSubscribeAudio: true,
@@ -464,6 +501,15 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       }
     }
 
+    if (role == AgoraRoomRole.listener && _cameraPublishing) {
+      try {
+        await engine.stopPreview();
+      } catch (_) {
+        // Preview may already be stopped.
+      }
+      _cameraPublishing = false;
+    }
+
     await engine.setClientRole(
       role: role == AgoraRoomRole.speaker
           ? ClientRoleType.clientRoleBroadcaster
@@ -506,6 +552,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       _connecting = false;
       _muted = false;
       _screenSharing = false;
+      _cameraPublishing = false;
       _localUid = null;
       _activeSpeakerUid = null;
       _channelId = null;
