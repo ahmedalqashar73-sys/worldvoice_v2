@@ -1731,13 +1731,6 @@ Future<void> _showLiveCameraTools(
   var localBlur = backgroundBlurEnabled;
   var localZoom = zoom.clamp(1.0, maxZoom < 1 ? 1.0 : maxZoom).toDouble();
 
-  Future<void> showError(BuildContext sheetContext, Object error) async {
-    if (!sheetContext.mounted) return;
-    ScaffoldMessenger.of(sheetContext).showSnackBar(
-      SnackBar(content: Text(error.toString())),
-    );
-  }
-
   await showModalBottomSheet<void>(
     context: context,
     useSafeArea: true,
@@ -1776,7 +1769,10 @@ Future<void> _showLiveCameraTools(
                         onBeautyChanged(value);
                         refresh(() {});
                       } catch (error) {
-                        await showError(sheetContext, error);
+                        if (!sheetContext.mounted) return;
+                        ScaffoldMessenger.of(sheetContext).showSnackBar(
+                          SnackBar(content: Text(error.toString())),
+                        );
                       }
                     },
             ),
@@ -1803,7 +1799,10 @@ Future<void> _showLiveCameraTools(
                         onBackgroundBlurChanged(value);
                         refresh(() {});
                       } catch (error) {
-                        await showError(sheetContext, error);
+                        if (!sheetContext.mounted) return;
+                        ScaffoldMessenger.of(sheetContext).showSnackBar(
+                          SnackBar(content: Text(error.toString())),
+                        );
                       }
                     },
             ),
@@ -1827,7 +1826,10 @@ Future<void> _showLiveCameraTools(
                       await controller.setCameraZoom(value);
                       onZoomChanged(value);
                     } catch (error) {
-                      await showError(sheetContext, error);
+                      if (!sheetContext.mounted) return;
+                        ScaffoldMessenger.of(sheetContext).showSnackBar(
+                          SnackBar(content: Text(error.toString())),
+                        );
                     }
                   },
                 ),
@@ -1851,7 +1853,10 @@ Future<void> _showLiveCameraTools(
                         onZoomChanged(1);
                         refresh(() {});
                       } catch (error) {
-                        await showError(sheetContext, error);
+                        if (!sheetContext.mounted) return;
+                        ScaffoldMessenger.of(sheetContext).showSnackBar(
+                          SnackBar(content: Text(error.toString())),
+                        );
                       }
                     },
                     icon: const Icon(Icons.cameraswitch_rounded),
@@ -1869,7 +1874,10 @@ Future<void> _showLiveCameraTools(
                             onZoomChanged(1);
                             refresh(() {});
                           } catch (error) {
-                            await showError(sheetContext, error);
+                            if (!sheetContext.mounted) return;
+                        ScaffoldMessenger.of(sheetContext).showSnackBar(
+                          SnackBar(content: Text(error.toString())),
+                        );
                           }
                         },
                   child: const Text('1×'),
