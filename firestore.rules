@@ -557,6 +557,19 @@ service cloud.firestore {
         allow update: if false;
       }
 
+      match /messages/{messageId} {
+        allow read: if signedIn();
+        allow create: if signedIn()
+            && request.resource.data.senderId == request.auth.uid
+            && request.resource.data.text is string
+            && request.resource.data.text.size() > 0
+            && request.resource.data.text.size() <= 500
+            && request.resource.data.keys().hasOnly([
+              'senderId', 'senderName', 'senderPhotoUrl', 'text', 'createdAt'
+            ]);
+        allow update, delete: if false;
+      }
+
       match /join_requests/{userId} {
         allow read: if signedIn()
             && (
