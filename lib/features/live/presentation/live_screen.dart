@@ -174,6 +174,7 @@ class LiveScreen extends StatelessWidget {
                           ),
                           subtitle: Text(
                             '${doc.data()['hostName'] ?? 'WorldVoice host'} • '
+                            '${(doc.data()['languageCode'] ?? 'en').toString().toUpperCase()} • '
                             '${doc.data()['viewerCount'] ?? 0} 👁',
                           ),
                           trailing: const Icon(Icons.chevron_right_rounded),
@@ -287,12 +288,27 @@ Future<_LiveSetupResult?> _showLiveSetup(
             SizedBox(
               width: double.infinity,
               child: FilledButton.icon(
-                onPressed: () => Navigator.of(sheetContext).pop(
-                  _LiveSetupResult(
-                    topic: topic.text.trim(),
-                    languageCode: languageCode,
-                  ),
-                ),
+                onPressed: () {
+                  final value = topic.text.trim();
+                  if (value.isEmpty) {
+                    ScaffoldMessenger.of(sheetContext).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          ar
+                              ? 'اكتب موضوعًا للبث أولًا.'
+                              : 'Add a Live topic first.',
+                        ),
+                      ),
+                    );
+                    return;
+                  }
+                  Navigator.of(sheetContext).pop(
+                    _LiveSetupResult(
+                      topic: value,
+                      languageCode: languageCode,
+                    ),
+                  );
+                },
                 icon: const Icon(Icons.videocam_rounded),
                 label: Text(ar ? 'متابعة للكاميرا' : 'Continue to camera'),
               ),
@@ -345,6 +361,19 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     unawaited(_controller.leave());
     _controller.dispose();
     super.dispose();
+  }
+
+  Future<void> _shareHostLive() async {
+    final liveId = _liveId;
+    if (liveId == null) return;
+    final host =
+        FirebaseAuth.instance.currentUser?.displayName ?? 'WorldVoice host';
+    await SharePlus.instance.share(
+      ShareParams(
+        title: 'WorldVoice Live',
+        text: 'WorldVoice Live • ${widget.topic} • $host • $liveId',
+      ),
+    );
   }
 
   Future<void> _endLiveAndPop() async {
@@ -694,6 +723,13 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                       ? Icons.dashboard_rounded
                                       : Icons.dashboard_outlined,
                                 ),
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton.filledTonal(
+                                tooltip: widget.ar ? 'مشاركة اللايف' : 'Share Live',
+                                onPressed:
+                                    _liveId == null ? null : _shareHostLive,
+                                icon: const Icon(Icons.share_rounded),
                               ),
                             ],
                           ),
