@@ -68,12 +68,24 @@ class LiveScreen extends StatelessWidget {
                       backgroundColor: Colors.white,
                       foregroundColor: const Color(0xFF0B5D46),
                     ),
-                    onPressed: () => Navigator.of(context).push<void>(
-                      MaterialPageRoute(
-                        fullscreenDialog: true,
-                        builder: (_) => _LiveCameraGate(ar: ar),
-                      ),
-                    ),
+                    onPressed: () async {
+                      final setup = await _showLiveSetup(
+                        context,
+                        ar: ar,
+                        initialLanguageCode: language,
+                      );
+                      if (setup == null || !context.mounted) return;
+                      await Navigator.of(context).push<void>(
+                        MaterialPageRoute(
+                          fullscreenDialog: true,
+                          builder: (_) => _LiveCameraGate(
+                            ar: ar,
+                            topic: setup.topic,
+                            languageCode: setup.languageCode,
+                          ),
+                        ),
+                      );
+                    },
                     icon: const Icon(Icons.videocam_rounded),
                     label: Text(
                       ar ? 'ابدأ بثًا مباشرًا' : 'Start live',
@@ -168,9 +180,104 @@ class LiveScreen extends StatelessWidget {
   }
 }
 
+class _LiveSetupResult {
+  const _LiveSetupResult({required this.topic, required this.languageCode});
+  final String topic;
+  final String languageCode;
+}
+
+Future<_LiveSetupResult?> _showLiveSetup(
+  BuildContext context, {
+  required bool ar,
+  required String initialLanguageCode,
+}) {
+  final topic = TextEditingController();
+  var languageCode = const <String>{
+    'ar', 'en', 'es', 'fr', 'zh', 'ko', 'ja', 'ru',
+    'tr', 'ur', 'de', 'pt', 'fa', 'id', 'th',
+  }.contains(initialLanguageCode)
+      ? initialLanguageCode
+      : 'en';
+  return showModalBottomSheet<_LiveSetupResult>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    showDragHandle: true,
+    builder: (sheetContext) => StatefulBuilder(
+      builder: (context, update) => Padding(
+        padding: EdgeInsets.fromLTRB(
+          20,
+          8,
+          20,
+          20 + MediaQuery.viewInsetsOf(sheetContext).bottom,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              ar ? 'جهّز البث المباشر' : 'Set up your Live',
+              style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w900),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: topic,
+              maxLength: 80,
+              decoration: InputDecoration(
+                labelText: ar ? 'موضوع البث' : 'Live topic',
+                hintText: ar ? 'مثال: نتعلم الإنجليزية معًا' : 'Example: Learn English together',
+                border: const OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              initialValue: languageCode,
+              decoration: InputDecoration(
+                labelText: ar ? 'لغة البث' : 'Live language',
+                border: const OutlineInputBorder(),
+              ),
+              items: const [
+                'ar', 'en', 'es', 'fr', 'zh', 'ko', 'ja', 'ru',
+                'tr', 'ur', 'de', 'pt', 'fa', 'id', 'th',
+              ]
+                  .map((code) => DropdownMenuItem(
+                        value: code,
+                        child: Text(code.toUpperCase()),
+                      ))
+                  .toList(),
+              onChanged: (value) {
+                if (value != null) update(() => languageCode = value);
+              },
+            ),
+            const SizedBox(height: 18),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () => Navigator.of(sheetContext).pop(
+                  _LiveSetupResult(
+                    topic: topic.text.trim(),
+                    languageCode: languageCode,
+                  ),
+                ),
+                icon: const Icon(Icons.videocam_rounded),
+                label: Text(ar ? 'متابعة للكاميرا' : 'Continue to camera'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  ).whenComplete(topic.dispose);
+}
+
 class _LiveCameraGate extends StatefulWidget {
-  const _LiveCameraGate({required this.ar});
+  const _LiveCameraGate({
+    required this.ar,
+    required this.topic,
+    required this.languageCode,
+  });
   final bool ar;
+  final String topic;
+  final String languageCode;
 
   @override
   State<_LiveCameraGate> createState() => _LiveCameraGateState();
@@ -244,11 +351,10 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
           enableAudioRecordingOrPlayout: true,
         ),
       );
-      if (!mounted) return;
-      final languageCode = Localizations.localeOf(context).languageCode;
       _liveId = await _liveService.create(
         channelId: channel,
-        languageCode: languageCode,
+        languageCode: widget.languageCode,
+        topic: widget.topic,
       );
       if (!mounted) return;
       setState(() {
