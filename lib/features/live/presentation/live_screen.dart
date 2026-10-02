@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
@@ -18,6 +20,25 @@ import '../services/live_session_service.dart';
 
 import '../../../core/localization/locale_controller.dart';
 import '../../profile/services/profile_social_service.dart';
+
+const MethodChannel _livePermissionChannel =
+    MethodChannel('worldvoice/live_permissions');
+
+Future<bool> _requestLiveCameraPermission() async {
+  if (kIsWeb) return true;
+  if (defaultTargetPlatform != TargetPlatform.android &&
+      defaultTargetPlatform != TargetPlatform.iOS) {
+    return true;
+  }
+  try {
+    return await _livePermissionChannel.invokeMethod<bool>('requestCamera') ??
+        false;
+  } on PlatformException {
+    return false;
+  } on MissingPluginException {
+    return false;
+  }
+}
 
 /// WorldVoice Live entry point.
 ///
@@ -342,6 +363,14 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     if (_starting) return;
     setState(() => _starting = true);
     try {
+      final cameraAllowed = await _requestLiveCameraPermission();
+      if (!cameraAllowed) {
+        throw StateError(
+          widget.ar
+              ? 'اسمح باستخدام الكاميرا لبدء البث المباشر.'
+              : 'Camera permission is required to start Live.',
+        );
+      }
       // Use a unique preview channel for now. The Live session document will
       // provide the persistent channel id when discovery/guest join is wired.
       final channel = 'live_${DateTime.now().millisecondsSinceEpoch}';
@@ -1122,6 +1151,14 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
     if (_guestPublishing || _controller.engine == null) return;
     _guestPublishing = true;
     try {
+      final cameraAllowed = await _requestLiveCameraPermission();
+      if (!cameraAllowed) {
+        throw StateError(
+          widget.ar
+              ? 'اسمح باستخدام الكاميرا للانضمام إلى البث.'
+              : 'Camera permission is required to join the Live camera.',
+        );
+      }
       await _controller.switchRole(AgoraRoomRole.speaker);
       if (_controller.role != AgoraRoomRole.speaker) {
         throw StateError(
