@@ -468,66 +468,6 @@ service cloud.firestore {
         allow delete: if false;
       }
 
-      match /board_items/{itemId} {
-        allow read: if signedIn();
-        allow create: if signedIn()
-            && (
-              get(/databases/$(database)/documents/live_sessions/$(liveId))
-                  .data.hostId == request.auth.uid
-              || (
-                get(/databases/$(database)/documents/live_sessions/$(liveId))
-                    .data.boardWriteEnabled == true
-                && get(
-                  /databases/$(database)/documents/live_sessions/$(liveId)/
-                  join_requests/$(request.auth.uid)
-                ).data.status == 'accepted'
-                && request.resource.data.userId == request.auth.uid
-                && request.resource.data.type in ['stroke', 'text']
-              )
-            );
-        allow update: if signedIn()
-            && get(/databases/$(database)/documents/live_sessions/$(liveId))
-                .data.hostId == request.auth.uid;
-        allow delete: if signedIn()
-            && (
-              get(/databases/$(database)/documents/live_sessions/$(liveId))
-                  .data.hostId == request.auth.uid
-              || (
-                resource.data.userId == request.auth.uid
-                && resource.data.type in ['stroke', 'text']
-                && get(/databases/$(database)/documents/live_sessions/$(liveId))
-                    .data.boardWriteEnabled == true
-                && get(
-                  /databases/$(database)/documents/live_sessions/$(liveId)/
-                  join_requests/$(request.auth.uid)
-                ).data.status == 'accepted'
-              )
-            );
-      }
-
-      match /teacher_ai_notes/{noteId} {
-        allow read: if signedIn();
-        allow write: if false;
-      }
-
-      match /captions/{captionId} {
-        allow read: if signedIn();
-        allow create: if signedIn()
-            && request.resource.data.userId == request.auth.uid
-            && request.resource.data.text is string
-            && request.resource.data.text.size() > 0
-            && request.resource.data.text.size() <= 400
-            && (
-              get(/databases/$(database)/documents/live_sessions/$(liveId))
-                  .data.hostId == request.auth.uid
-              || get(
-                /databases/$(database)/documents/live_sessions/$(liveId)/
-                join_requests/$(request.auth.uid)
-              ).data.status == 'accepted'
-            );
-        allow update, delete: if false;
-      }
-
       match /messages/{messageId} {
         allow get, list: if signedIn()
             && exists(/databases/$(database)/documents/chats/$(chatId))
@@ -650,6 +590,63 @@ service cloud.firestore {
             && request.resource.data.uid == request.auth.uid;
         allow delete: if signedIn() && userId == request.auth.uid;
         allow update: if false;
+      }
+
+      match /board_items/{itemId} {
+        allow read: if signedIn();
+        allow create: if signedIn()
+            && (
+              get(/databases/$(database)/documents/live_sessions/$(liveId))
+                  .data.hostId == request.auth.uid
+              || (
+                get(/databases/$(database)/documents/live_sessions/$(liveId))
+                    .data.boardWriteEnabled == true
+                && get(
+                  /databases/$(database)/documents/live_sessions/$(liveId)/join_requests/$(request.auth.uid)
+                ).data.status == 'accepted'
+                && request.resource.data.userId == request.auth.uid
+                && request.resource.data.type in ['stroke', 'text']
+              )
+            );
+        allow update: if signedIn()
+            && get(/databases/$(database)/documents/live_sessions/$(liveId))
+                .data.hostId == request.auth.uid;
+        allow delete: if signedIn()
+            && (
+              get(/databases/$(database)/documents/live_sessions/$(liveId))
+                  .data.hostId == request.auth.uid
+              || (
+                resource.data.userId == request.auth.uid
+                && resource.data.type in ['stroke', 'text']
+                && get(/databases/$(database)/documents/live_sessions/$(liveId))
+                    .data.boardWriteEnabled == true
+                && get(
+                  /databases/$(database)/documents/live_sessions/$(liveId)/join_requests/$(request.auth.uid)
+                ).data.status == 'accepted'
+              )
+            );
+      }
+
+      match /teacher_ai_notes/{noteId} {
+        allow read: if signedIn();
+        allow write: if false;
+      }
+
+      match /captions/{captionId} {
+        allow read: if signedIn();
+        allow create: if signedIn()
+            && request.resource.data.userId == request.auth.uid
+            && request.resource.data.text is string
+            && request.resource.data.text.size() > 0
+            && request.resource.data.text.size() <= 400
+            && (
+              get(/databases/$(database)/documents/live_sessions/$(liveId))
+                  .data.hostId == request.auth.uid
+              || get(
+                /databases/$(database)/documents/live_sessions/$(liveId)/join_requests/$(request.auth.uid)
+              ).data.status == 'accepted'
+            );
+        allow update, delete: if false;
       }
 
       match /messages/{messageId} {
