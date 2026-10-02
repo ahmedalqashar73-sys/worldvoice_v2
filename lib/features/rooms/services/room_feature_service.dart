@@ -13,15 +13,16 @@ import '../data/room_backend_config.dart';
 import 'room_quiz_service.dart';
 
 class RoomFeatureService {
-  RoomFeatureService({required this.roomId});
+  RoomFeatureService({required this.roomId, this.collectionName = 'rooms'});
 
   final String roomId;
+  final String collectionName;
 
   FirebaseFirestore get _db => FirebaseFirestore.instance;
   User? get _user => FirebaseAuth.instance.currentUser;
 
   DocumentReference<Map<String, dynamic>> get _room =>
-      _db.collection('rooms').doc(roomId);
+      _db.collection(collectionName).doc(roomId);
 
   Stream<RoomFeatureState> watchState() {
     return _room.snapshots().map(
