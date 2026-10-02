@@ -136,8 +136,11 @@ class LiveScreen extends StatelessWidget {
             StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
               stream: LiveSessionService().watchOpen(),
               builder: (context, snapshot) {
-                final docs = snapshot.data?.docs ??
+                final rawDocs = snapshot.data?.docs ??
                     const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
+                final docs = rawDocs
+                    .where((doc) => LiveSessionService.isFresh(doc.data()))
+                    .toList(growable: false);
                 if (snapshot.connectionState == ConnectionState.waiting &&
                     !snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
@@ -327,12 +330,14 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   bool _requestsOpen = false;
   bool _boardOpen = false;
   bool _sessionClosed = false;
+  Timer? _heartbeatTimer;
   String? _channelId;
   String? _liveId;
   final LiveSessionService _liveService = LiveSessionService();
 
   @override
   void dispose() {
+    _heartbeatTimer?.cancel();
     final liveId = _liveId;
     if (liveId != null && !_sessionClosed) {
       unawaited(_liveService.end(liveId).catchError((Object _) {}));
@@ -345,6 +350,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   Future<void> _endLiveAndPop() async {
     if (_sessionClosed) return;
     _sessionClosed = true;
+    _heartbeatTimer?.cancel();
     final liveId = _liveId;
     if (liveId != null) {
       try {
@@ -357,6 +363,17 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     await _controller.leave();
     if (!mounted) return;
     Navigator.of(context).pop();
+  }
+
+  void _startHeartbeat() {
+    _heartbeatTimer?.cancel();
+    _heartbeatTimer = Timer.periodic(const Duration(seconds: 15), (_) {
+      final liveId = _liveId;
+      if (liveId == null || _sessionClosed) return;
+      unawaited(
+        _liveService.touchHostHeartbeat(liveId).catchError((Object _) {}),
+      );
+    });
   }
 
   Future<void> _startCamera() async {
@@ -384,11 +401,17 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
         throw StateError(_controller.error ?? 'Could not start Live.');
       }
       await _controller.setCameraPublishing(true);
+      final hostAgoraUid = _controller.localUid;
+      if (hostAgoraUid == null || hostAgoraUid <= 0) {
+        throw StateError('Agora did not return a valid host UID.');
+      }
       _liveId = await _liveService.create(
         channelId: channel,
         languageCode: widget.languageCode,
+        hostAgoraUid: hostAgoraUid,
         topic: widget.topic,
       );
+      _startHeartbeat();
       if (!mounted) return;
       setState(() {
         _cameraReady = true;
@@ -771,6 +794,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   bool _joining = true;
   bool _requested = false;
   bool _guestPublishing = false;
+  bool _hostSeen = false;
   bool _guestMicMuted = false;
   bool _guestBeautyEnabled = false;
   bool _guestBackgroundBlurEnabled = false;
@@ -902,6 +926,18 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                 animation: _controller,
                 builder: (context, _) {
                   final remote = _controller.remoteSpeakers;
+                  final hostAgoraUid =
+                      (live?['hostAgoraUid'] as num?)?.toInt() ??
+                          (widget.data['hostAgoraUid'] as num?)?.toInt();
+                  if (hostAgoraUid != null && remote.contains(hostAgoraUid)) {
+                    _hostSeen = true;
+                  } else if (_hostSeen && hostAgoraUid != null) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted && Navigator.of(context).canPop()) {
+                        Navigator.of(context).pop();
+                      }
+                    });
+                  }
                   final engine = _controller.engine;
                   final tiles = <Widget>[
                     if (_guestPublishing && engine != null)
