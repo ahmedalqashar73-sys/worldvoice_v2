@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../rooms/services/agora_voice_room_controller.dart';
 import '../../rooms/presentation/room_board_screen.dart';
@@ -16,6 +17,7 @@ import '../../rooms/services/room_translation_service.dart';
 import '../services/live_session_service.dart';
 
 import '../../../core/localization/locale_controller.dart';
+import '../../profile/services/profile_social_service.dart';
 
 /// WorldVoice Live entry point.
 ///
