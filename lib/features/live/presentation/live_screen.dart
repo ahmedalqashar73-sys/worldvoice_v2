@@ -763,6 +763,11 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
         if (status == 'accepted' && !_guestPublishing) {
           WidgetsBinding.instance.addPostFrameCallback((_) => _becomeGuest());
         }
+        if ((status == 'declined' || status == 'left') && _requested) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) setState(() => _requested = false);
+          });
+        }
         return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
@@ -1509,20 +1514,49 @@ class _HostJoinRequests extends StatelessWidget {
                     children: [
                       IconButton(
                         tooltip: ar ? 'رفض' : 'Decline',
-                        onPressed: () => service.decideRequest(
-                          liveId: liveId,
-                          userId: doc.id,
-                          accept: false,
-                        ),
+                        onPressed: () async {
+                          try {
+                            await service.decideRequest(
+                              liveId: liveId,
+                              userId: doc.id,
+                              accept: false,
+                            );
+                          } catch (error) {
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(error.toString())),
+                            );
+                          }
+                        },
                         icon: const Icon(Icons.close_rounded, color: Colors.redAccent),
                       ),
                       IconButton(
                         tooltip: ar ? 'قبول' : 'Accept',
-                        onPressed: () => service.decideRequest(
-                          liveId: liveId,
-                          userId: doc.id,
-                          accept: true,
-                        ),
+                        onPressed: () async {
+                          try {
+                            await service.decideRequest(
+                              liveId: liveId,
+                              userId: doc.id,
+                              accept: true,
+                            );
+                          } catch (error) {
+                            if (!context.mounted) return;
+                            final full = error.toString().contains(
+                              'LIVE_GUEST_LIMIT_REACHED',
+                            );
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  full
+                                      ? (ar
+                                          ? 'وصل اللايف للحد الأقصى: المضيف + 3 ضيوف.'
+                                          : 'Live is full: host + 3 guests.')
+                                      : error.toString(),
+                                ),
+                              ),
+                            );
+                          }
+                        },
                         icon: const Icon(Icons.check_rounded, color: Colors.greenAccent),
                       ),
                     ],
