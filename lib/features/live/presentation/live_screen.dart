@@ -181,6 +181,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   bool _cameraReady = false;
   bool _starting = false;
   bool _micMuted = false;
+  bool _requestsOpen = false;
   String? _channelId;
   String? _liveId;
   final LiveSessionService _liveService = LiveSessionService();
@@ -363,6 +364,28 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                           ),
                         ),
                         PositionedDirectional(
+                          bottom: 18,
+                          start: 18,
+                          child: FilledButton.icon(
+                            onPressed: () => setState(
+                              () => _requestsOpen = !_requestsOpen,
+                            ),
+                            icon: const Icon(Icons.group_add_rounded),
+                            label: Text(widget.ar ? 'طلبات الانضمام' : 'Join requests'),
+                          ),
+                        ),
+                        if (_requestsOpen && _liveId != null)
+                          PositionedDirectional(
+                            bottom: 72,
+                            start: 14,
+                            end: 14,
+                            child: _HostJoinRequests(
+                              liveId: _liveId!,
+                              service: _liveService,
+                              ar: widget.ar,
+                            ),
+                          ),
+                        PositionedDirectional(
                           top: 12,
                           end: 12,
                           child: Row(
@@ -426,6 +449,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   final LiveSessionService _service = LiveSessionService();
   bool _joining = true;
   bool _requested = false;
+  bool _guestPublishing = false;
 
   @override
   void initState() {
@@ -460,7 +484,14 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: _service.watchMyRequest(widget.liveId),
+      builder: (context, requestSnapshot) {
+        final status = requestSnapshot.data?.data()?['status']?.toString();
+        if (status == 'accepted' && !_guestPublishing) {
+          WidgetsBinding.instance.addPostFrameCallback((_) => _becomeGuest());
+        }
+        return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
         child: _joining
@@ -525,6 +556,111 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                   );
                 },
               ),
+      ),
+    );
+      },
+    );
+  }
+
+  Future<void> _becomeGuest() async {
+    if (_guestPublishing || _controller.engine == null) return;
+    _guestPublishing = true;
+    try {
+      final engine = _controller.engine!;
+      await engine.enableVideo();
+      await engine.startPreview();
+      await engine.updateChannelMediaOptions(
+        const ChannelMediaOptions(
+          clientRoleType: ClientRoleType.clientRoleBroadcaster,
+          publishCameraTrack: true,
+          publishMicrophoneTrack: true,
+          autoSubscribeAudio: true,
+          autoSubscribeVideo: true,
+          enableAudioRecordingOrPlayout: true,
+        ),
+      );
+      if (mounted) setState(() {});
+    } catch (_) {
+      _guestPublishing = false;
+      if (mounted) setState(() {});
+    }
+  }
+}
+
+class _HostJoinRequests extends StatelessWidget {
+  const _HostJoinRequests({
+    required this.liveId,
+    required this.service,
+    required this.ar,
+  });
+
+  final String liveId;
+  final LiveSessionService service;
+  final bool ar;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.black87,
+      borderRadius: BorderRadius.circular(20),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxHeight: 260),
+        child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+          stream: service.watchJoinRequests(liveId),
+          builder: (context, snapshot) {
+            final docs = snapshot.data?.docs ??
+                const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
+            if (docs.isEmpty) {
+              return Padding(
+                padding: const EdgeInsets.all(18),
+                child: Text(
+                  ar ? 'لا توجد طلبات الآن.' : 'No requests right now.',
+                  style: const TextStyle(color: Colors.white70),
+                ),
+              );
+            }
+            return ListView.builder(
+              shrinkWrap: true,
+              itemCount: docs.length,
+              itemBuilder: (context, index) {
+                final doc = docs[index];
+                final data = doc.data();
+                return ListTile(
+                  leading: const CircleAvatar(
+                    child: Icon(Icons.person_rounded),
+                  ),
+                  title: Text(
+                    data['displayName']?.toString() ?? 'WorldVoice user',
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        tooltip: ar ? 'رفض' : 'Decline',
+                        onPressed: () => service.decideRequest(
+                          liveId: liveId,
+                          userId: doc.id,
+                          accept: false,
+                        ),
+                        icon: const Icon(Icons.close_rounded, color: Colors.redAccent),
+                      ),
+                      IconButton(
+                        tooltip: ar ? 'قبول' : 'Accept',
+                        onPressed: () => service.decideRequest(
+                          liveId: liveId,
+                          userId: doc.id,
+                          accept: true,
+                        ),
+                        icon: const Icon(Icons.check_rounded, color: Colors.greenAccent),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }
