@@ -220,9 +220,11 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
           enableAudioRecordingOrPlayout: true,
         ),
       );
+      if (!mounted) return;
+      final languageCode = Localizations.localeOf(context).languageCode;
       _liveId = await _liveService.create(
         channelId: channel,
-        languageCode: Localizations.localeOf(context).languageCode,
+        languageCode: languageCode,
       );
       if (!mounted) return;
       setState(() {
