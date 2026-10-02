@@ -729,9 +729,10 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
 
   @override
   void dispose() {
-    if (_guestPublishing) {
-      unawaited(_service.leaveGuest(widget.liveId).catchError((Object _) {}));
-    }
+    unawaited(_service.leaveGuest(widget.liveId).catchError((Object _) {}));
+    unawaited(
+      _service.cancelPendingRequest(widget.liveId).catchError((Object _) {}),
+    );
     unawaited(_service.leaveViewer(widget.liveId).catchError((Object _) {}));
     unawaited(_controller.leave());
     _controller.dispose();
