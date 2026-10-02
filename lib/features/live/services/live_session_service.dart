@@ -165,6 +165,31 @@ class LiveSessionService {
     });
   }
 
+  Stream<QuerySnapshot<Map<String, dynamic>>> watchChat(String liveId) =>
+      _sessions
+          .doc(liveId)
+          .collection('messages')
+          .orderBy('createdAt', descending: true)
+          .limit(80)
+          .snapshots();
+
+  Future<void> sendChat(String liveId, String text) async {
+    final user = _user;
+    final value = text.trim();
+    if (value.isEmpty || value.length > 500) return;
+    final session = await _sessions.doc(liveId).get();
+    if (!session.exists || session.data()?['isLive'] != true) {
+      throw StateError('LIVE_ENDED');
+    }
+    await _sessions.doc(liveId).collection('messages').add({
+      'senderId': user.uid,
+      'senderName': user.displayName ?? 'WorldVoice user',
+      'senderPhotoUrl': user.photoURL ?? '',
+      'text': value,
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+  }
+
   Stream<DocumentSnapshot<Map<String, dynamic>>> watchMyRequest(String liveId) {
     final user = _user;
     return _sessions
