@@ -39,6 +39,7 @@ class LiveSessionService {
       'isLive': true,
       'viewerCount': 0,
       'guestCount': 0,
+      'boardWriteEnabled': true,
       'startedAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     });
