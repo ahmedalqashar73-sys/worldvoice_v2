@@ -368,12 +368,29 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                         PositionedDirectional(
                           bottom: 18,
                           start: 18,
-                          child: FilledButton.icon(
-                            onPressed: () => setState(
-                              () => _requestsOpen = !_requestsOpen,
-                            ),
-                            icon: const Icon(Icons.group_add_rounded),
-                            label: Text(widget.ar ? 'طلبات الانضمام' : 'Join requests'),
+                          child: Row(
+                            children: [
+                              FilledButton.icon(
+                                onPressed: () => setState(
+                                  () => _requestsOpen = !_requestsOpen,
+                                ),
+                                icon: const Icon(Icons.group_add_rounded),
+                                label: Text(widget.ar ? 'طلبات الانضمام' : 'Join requests'),
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton.filledTonal(
+                                tooltip: widget.ar ? 'دردشة اللايف' : 'Live chat',
+                                onPressed: _liveId == null
+                                    ? null
+                                    : () => _showLiveChat(
+                                          context,
+                                          service: _liveService,
+                                          liveId: _liveId!,
+                                          ar: widget.ar,
+                                        ),
+                                icon: const Icon(Icons.chat_bubble_outline_rounded),
+                              ),
+                            ],
                           ),
                         ),
                         if (_requestsOpen && _liveId != null)
@@ -553,10 +570,17 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                               icon: const Icon(Icons.chat_bubble_outline_rounded),
                             ),
                             const SizedBox(width: 8),
-                            IconButton.filledTonal(
-                              onPressed: () {},
-                              icon: const Icon(Icons.card_giftcard_rounded),
-                            ),
+                            if (_guestPublishing)
+                              IconButton.filledTonal(
+                                tooltip: widget.ar ? 'اخرج من الكاميرا' : 'Leave camera',
+                                onPressed: _leaveGuestCamera,
+                                icon: const Icon(Icons.videocam_off_rounded),
+                              )
+                            else
+                              IconButton.filledTonal(
+                                onPressed: () {},
+                                icon: const Icon(Icons.card_giftcard_rounded),
+                              ),
                           ],
                         ),
                       ),
@@ -568,6 +592,28 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
     );
       },
     );
+  }
+
+  Future<void> _leaveGuestCamera() async {
+    if (!_guestPublishing || _controller.engine == null) return;
+    final engine = _controller.engine!;
+    await engine.updateChannelMediaOptions(
+      const ChannelMediaOptions(
+        clientRoleType: ClientRoleType.clientRoleAudience,
+        publishCameraTrack: false,
+        publishMicrophoneTrack: false,
+        autoSubscribeAudio: true,
+        autoSubscribeVideo: true,
+        enableAudioRecordingOrPlayout: true,
+      ),
+    );
+    await engine.stopPreview();
+    await _service.leaveGuest(widget.liveId);
+    if (!mounted) return;
+    setState(() {
+      _guestPublishing = false;
+      _requested = false;
+    });
   }
 
   Future<void> _becomeGuest() async {
