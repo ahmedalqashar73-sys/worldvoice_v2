@@ -679,19 +679,21 @@ service cloud.firestore {
             && request.resource.data.status == 'pending';
         allow update: if signedIn()
             && request.resource.data.uid == resource.data.uid
-            && request.resource.data.diff(resource.data).affectedKeys()
-                .hasOnly(['status', 'decidedAt'])
             && (
               (
                 get(/databases/$(database)/documents/live_sessions/$(liveId))
                     .data.hostId == request.auth.uid
                 && resource.data.status == 'pending'
                 && request.resource.data.status in ['accepted', 'declined']
+                && request.resource.data.diff(resource.data).affectedKeys()
+                    .hasOnly(['status', 'decidedAt'])
               )
               || (
                 userId == request.auth.uid
                 && resource.data.status == 'accepted'
                 && request.resource.data.status == 'left'
+                && request.resource.data.diff(resource.data).affectedKeys()
+                    .hasOnly(['status', 'decidedAt'])
               )
               || (
                 userId == request.auth.uid
