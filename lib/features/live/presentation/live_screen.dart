@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 
 import '../../rooms/services/agora_voice_room_controller.dart';
+import '../services/live_session_service.dart';
 
 import '../../../core/localization/locale_controller.dart';
 
@@ -81,6 +83,69 @@ class LiveScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 18),
+            Text(
+              ar ? 'البثوث المباشرة الآن' : 'Live now',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+            ),
+            const SizedBox(height: 10),
+            StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              stream: LiveSessionService().watchOpen(),
+              builder: (context, snapshot) {
+                final docs = snapshot.data?.docs ??
+                    const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
+                if (snapshot.connectionState == ConnectionState.waiting &&
+                    !snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (docs.isEmpty) {
+                  return Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: Text(ar
+                        ? 'لا يوجد بث مباشر الآن. ابدأ أول Live.'
+                        : 'No one is live yet. Start the first Live.'),
+                  );
+                }
+                return Column(
+                  children: [
+                    for (final doc in docs)
+                      Card(
+                        child: ListTile(
+                          leading: const CircleAvatar(
+                            child: Icon(Icons.videocam_rounded),
+                          ),
+                          title: Text(
+                            (doc.data()['topic'] as String?)?.trim().isNotEmpty == true
+                                ? doc.data()['topic'].toString()
+                                : doc.data()['hostName']?.toString() ??
+                                    'WorldVoice Live',
+                            style: const TextStyle(fontWeight: FontWeight.w800),
+                          ),
+                          subtitle: Text(
+                            '${doc.data()['hostName'] ?? 'WorldVoice host'} • '
+                            '${doc.data()['viewerCount'] ?? 0} 👁',
+                          ),
+                          trailing: const Icon(Icons.chevron_right_rounded),
+                          onTap: () => Navigator.of(context).push<void>(
+                            MaterialPageRoute(
+                              fullscreenDialog: true,
+                              builder: (_) => _LiveViewerScreen(
+                                liveId: doc.id,
+                                data: doc.data(),
+                                ar: ar,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
+            const SizedBox(height: 18),
             _FeatureRow(
               icon: Icons.groups_2_rounded,
               title: ar ? 'حتى 4 أشخاص' : 'Up to 4 people',
@@ -117,6 +182,8 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   bool _starting = false;
   bool _micMuted = false;
   String? _channelId;
+  String? _liveId;
+  final LiveSessionService _liveService = LiveSessionService();
 
   @override
   void dispose() {
@@ -151,6 +218,10 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
           autoSubscribeVideo: true,
           enableAudioRecordingOrPlayout: true,
         ),
+      );
+      _liveId = await _liveService.create(
+        channelId: channel,
+        languageCode: Localizations.localeOf(context).languageCode,
       );
       if (!mounted) return;
       setState(() {
@@ -315,6 +386,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                               IconButton.filled(
                                 tooltip: widget.ar ? 'إنهاء اللايف' : 'End live',
                                 onPressed: () async {
+                                  if (_liveId != null) await _liveService.end(_liveId!);
                                   await _controller.leave();
                                   if (mounted) Navigator.of(context).pop();
                                 },
@@ -330,6 +402,129 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
               ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _LiveViewerScreen extends StatefulWidget {
+  const _LiveViewerScreen({
+    required this.liveId,
+    required this.data,
+    required this.ar,
+  });
+  final String liveId;
+  final Map<String, dynamic> data;
+  final bool ar;
+
+  @override
+  State<_LiveViewerScreen> createState() => _LiveViewerScreenState();
+}
+
+class _LiveViewerScreenState extends State<_LiveViewerScreen> {
+  final AgoraVoiceRoomController _controller = AgoraVoiceRoomController();
+  final LiveSessionService _service = LiveSessionService();
+  bool _joining = true;
+  bool _requested = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _join();
+  }
+
+  Future<void> _join() async {
+    try {
+      await _service.enterViewer(widget.liveId);
+      await _controller.ensureConnected(
+        channelId: widget.liveId,
+        role: AgoraRoomRole.listener,
+      );
+    } finally {
+      if (mounted) setState(() => _joining = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.leave();
+    _service.leaveViewer(widget.liveId);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _requestCamera() async {
+    await _service.requestToJoin(widget.liveId);
+    if (mounted) setState(() => _requested = true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: _joining
+            ? const Center(child: CircularProgressIndicator())
+            : AnimatedBuilder(
+                animation: _controller,
+                builder: (context, _) {
+                  final remote = _controller.remoteSpeakers;
+                  return Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      if (remote.isNotEmpty && _controller.engine != null)
+                        AgoraVideoView(
+                          controller: VideoViewController.remote(
+                            rtcEngine: _controller.engine!,
+                            canvas: VideoCanvas(uid: remote.first),
+                            connection: RtcConnection(channelId: widget.liveId),
+                          ),
+                        )
+                      else
+                        const Center(
+                          child: Icon(Icons.live_tv_rounded,
+                              color: Colors.white54, size: 72),
+                        ),
+                      PositionedDirectional(
+                        top: 12,
+                        start: 12,
+                        child: IconButton.filledTonal(
+                          onPressed: () => Navigator.of(context).pop(),
+                          icon: const Icon(Icons.close_rounded),
+                        ),
+                      ),
+                      PositionedDirectional(
+                        bottom: 20,
+                        start: 18,
+                        end: 18,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: FilledButton.icon(
+                                onPressed: _requested ? null : _requestCamera,
+                                icon: const Icon(Icons.group_add_rounded),
+                                label: Text(_requested
+                                    ? (widget.ar ? 'تم إرسال الطلب' : 'Request sent')
+                                    : (widget.ar ? 'اطلب الانضمام' : 'Request to join')),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            IconButton.filledTonal(
+                              onPressed: () {},
+                              icon: const Icon(Icons.chat_bubble_outline_rounded),
+                            ),
+                            const SizedBox(width: 8),
+                            IconButton.filledTonal(
+                              onPressed: () {},
+                              icon: const Icon(Icons.card_giftcard_rounded),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
       ),
     );
   }
