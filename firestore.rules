@@ -505,6 +505,11 @@ service cloud.firestore {
             );
       }
 
+      match /teacher_ai_notes/{noteId} {
+        allow read: if signedIn();
+        allow write: if false;
+      }
+
       match /captions/{captionId} {
         allow read: if signedIn();
         allow create: if signedIn()
