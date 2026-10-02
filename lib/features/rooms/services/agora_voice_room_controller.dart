@@ -493,7 +493,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       final value = await engine.getCameraMaxZoomFactor();
       if (!value.isFinite || value < 1) return 1;
       // Keep the Live UI practical even on devices reporting huge ranges.
-      return value.clamp(1.0, 8.0);
+      return value.clamp(1.0, 8.0).toDouble();
     } catch (_) {
       return 1;
     }
@@ -503,7 +503,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     final engine = _engine;
     if (engine == null || !_joined || !_cameraPublishing) return;
     final max = await getCameraMaxZoom();
-    await engine.setCameraZoomFactor(factor.clamp(1.0, max));
+    await engine.setCameraZoomFactor(factor.clamp(1.0, max).toDouble());
   }
 
   Future<void> setMuted(bool value) async {
