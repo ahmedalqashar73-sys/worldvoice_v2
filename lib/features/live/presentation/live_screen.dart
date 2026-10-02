@@ -1,10 +1,18 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 
 import '../../rooms/services/agora_voice_room_controller.dart';
 import '../../rooms/presentation/room_board_screen.dart';
+import '../../rooms/presentation/room_captions_sheet.dart';
+import '../../rooms/presentation/room_teacher_ai_sheet.dart';
+import '../../rooms/data/room_caption.dart';
+import '../../rooms/services/room_caption_service.dart';
+import '../../rooms/services/room_live_caption_controller.dart';
+import '../../rooms/services/room_teacher_ai_service.dart';
+import '../../rooms/services/room_translation_service.dart';
 import '../services/live_session_service.dart';
 
 import '../../../core/localization/locale_controller.dart';
@@ -514,6 +522,17 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                               ),
                             ),
                           ),
+                        Positioned.fill(
+                          child: _LiveLanguageToolsOverlay(
+                            liveId: _liveId ?? '',
+                            roomLanguageCode: widget.languageCode,
+                            canPublish: !_micMuted,
+                            displayName:
+                                FirebaseAuth.instance.currentUser?.displayName ??
+                                    'WorldVoice host',
+                            ar: widget.ar,
+                          ),
+                        ),
                         PositionedDirectional(
                           top: 12,
                           start: 12,
@@ -775,6 +794,19 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                             ),
                           ),
                         ),
+                      Positioned.fill(
+                        child: _LiveLanguageToolsOverlay(
+                          liveId: widget.liveId,
+                          roomLanguageCode:
+                              (live?['languageCode'] ?? widget.data['languageCode'] ?? 'en')
+                                  .toString(),
+                          canPublish: _guestPublishing,
+                          displayName:
+                              FirebaseAuth.instance.currentUser?.displayName ??
+                                  'WorldVoice user',
+                          ar: widget.ar,
+                        ),
+                      ),
                       PositionedDirectional(
                         top: 12,
                         start: 12,
@@ -890,6 +922,299 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
       _guestPublishing = false;
       if (mounted) setState(() {});
     }
+  }
+}
+
+class _LiveLanguageToolsOverlay extends StatefulWidget {
+  const _LiveLanguageToolsOverlay({
+    required this.liveId,
+    required this.roomLanguageCode,
+    required this.canPublish,
+    required this.displayName,
+    required this.ar,
+  });
+
+  final String liveId;
+  final String roomLanguageCode;
+  final bool canPublish;
+  final String displayName;
+  final bool ar;
+
+  @override
+  State<_LiveLanguageToolsOverlay> createState() =>
+      _LiveLanguageToolsOverlayState();
+}
+
+class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
+  late final RoomCaptionService _captionService;
+  late final RoomLiveCaptionController _captionController;
+  late final RoomTranslationService _translationService;
+  late final RoomTeacherAiService _teacherAi;
+  StreamSubscription<List<RoomCaption>>? _captionSub;
+
+  bool _enabled = false;
+  bool _listening = false;
+  bool _translationEnabled = false;
+  bool _pronunciationEnabled = false;
+  String _targetLanguage = 'en';
+  bool _targetInitialized = false;
+  String? _error;
+  RoomCaption? _latest;
+  String? _translated;
+  String? _translatedCaptionId;
+
+  @override
+  void initState() {
+    super.initState();
+    _captionService = RoomCaptionService(
+      roomId: widget.liveId,
+      collectionName: 'live_sessions',
+    );
+    _translationService = RoomTranslationService();
+    _teacherAi = RoomTeacherAiService(
+      roomId: widget.liveId,
+      collectionName: 'live_sessions',
+    );
+    _captionController = RoomLiveCaptionController(
+      service: _captionService,
+      onState: ({required bool listening, String? error}) {
+        if (!mounted) return;
+        setState(() {
+          _listening = listening;
+          if (error?.trim().isNotEmpty == true) _error = error;
+        });
+      },
+    );
+    if (widget.liveId.isNotEmpty) {
+      _captionSub = _captionService.watchLatest().listen(
+        _handleCaptions,
+        onError: (Object error) {
+          if (mounted) setState(() => _error = error.toString());
+        },
+      );
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_targetInitialized) {
+      _targetInitialized = true;
+      _targetLanguage = Localizations.localeOf(context).languageCode;
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant _LiveLanguageToolsOverlay oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_enabled &&
+        (oldWidget.canPublish != widget.canPublish ||
+            oldWidget.displayName != widget.displayName ||
+            oldWidget.roomLanguageCode != widget.roomLanguageCode)) {
+      unawaited(_syncPublishing());
+    }
+  }
+
+  void _handleCaptions(List<RoomCaption> captions) {
+    if (!mounted) return;
+    final latest = captions.isEmpty ? null : captions.first;
+    setState(() {
+      _latest = latest;
+      if (latest == null) {
+        _translated = null;
+        _translatedCaptionId = null;
+      }
+    });
+    if (latest != null &&
+        _translationEnabled &&
+        latest.id != _translatedCaptionId) {
+      unawaited(_translate(latest));
+    }
+    if (latest != null &&
+        _pronunciationEnabled &&
+        latest.userId == FirebaseAuth.instance.currentUser?.uid) {
+      unawaited(
+        _teacherAi.submitCaption(
+          caption: latest,
+          roomLanguageCode: widget.roomLanguageCode,
+        ),
+      );
+    }
+  }
+
+  Future<void> _translate(RoomCaption caption) async {
+    _translatedCaptionId = caption.id;
+    try {
+      final value = await _translationService.translate(
+        text: caption.text,
+        sourceCode: caption.languageCode,
+        targetCode: _targetLanguage,
+      );
+      if (!mounted || _latest?.id != caption.id) return;
+      setState(() => _translated = value);
+    } catch (error) {
+      if (mounted) setState(() => _error = error.toString());
+    }
+  }
+
+  Future<void> _syncPublishing() => _captionController.configure(
+        enabled: _enabled,
+        canPublish: widget.canPublish,
+        languageCode: widget.roomLanguageCode,
+        displayName: widget.displayName,
+      );
+
+  Future<void> _setEnabled(bool value) async {
+    setState(() {
+      _enabled = value;
+      if (!value) {
+        _translated = null;
+        _error = null;
+      }
+    });
+    await _syncPublishing();
+  }
+
+  Future<void> _showTeacherAi() async {
+    if (!_teacherAi.isAskConfigured) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            widget.ar
+                ? 'Teacher AI يحتاج Backend مفعّل.'
+                : 'Teacher AI needs the configured backend.',
+          ),
+        ),
+      );
+      return;
+    }
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => RoomTeacherAiSheet(
+        service: _teacherAi,
+        roomLanguageCode: widget.roomLanguageCode,
+      ),
+    );
+  }
+
+  Future<void> _showSettings() => showModalBottomSheet<void>(
+        context: context,
+        showDragHandle: true,
+        useSafeArea: true,
+        builder: (sheetContext) => StatefulBuilder(
+          builder: (sheetContext, refresh) => RoomCaptionsSheet(
+            enabled: _enabled,
+            translationEnabled: _translationEnabled,
+            pronunciationEnabled: _pronunciationEnabled,
+            pronunciationNotes: _teacherAi.watchNotes(),
+            targetLanguage: _targetLanguage,
+            canPublish: widget.canPublish,
+            listening: _listening,
+            error: _error,
+            onEnabledChanged: (value) {
+              unawaited(_setEnabled(value));
+              refresh(() {});
+            },
+            onTranslationChanged: (value) {
+              setState(() {
+                _translationEnabled = value;
+                _translated = null;
+                _translatedCaptionId = null;
+              });
+              final latest = _latest;
+              if (value && latest != null) unawaited(_translate(latest));
+              refresh(() {});
+            },
+            onPronunciationChanged: (value) {
+              setState(() {
+                _pronunciationEnabled = value;
+                _error = null;
+              });
+              refresh(() {});
+            },
+            onTargetLanguageChanged: (value) {
+              setState(() {
+                _targetLanguage = value;
+                _translated = null;
+                _translatedCaptionId = null;
+              });
+              final latest = _latest;
+              if (_translationEnabled && latest != null) {
+                unawaited(_translate(latest));
+              }
+              refresh(() {});
+            },
+          ),
+        ),
+      );
+
+  @override
+  void dispose() {
+    unawaited(_captionSub?.cancel());
+    unawaited(_captionController.dispose());
+    unawaited(_translationService.dispose());
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final caption = _latest;
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        PositionedDirectional(
+          top: 64,
+          start: 12,
+          child: Row(
+            children: [
+              IconButton.filledTonal(
+                tooltip: widget.ar ? 'الترجمة والسبتايتل' : 'Language tools',
+                onPressed: _showSettings,
+                icon: const Icon(Icons.language_rounded),
+              ),
+              const SizedBox(width: 6),
+              IconButton.filledTonal(
+                tooltip: 'Teacher AI',
+                onPressed: _showTeacherAi,
+                icon: const Icon(Icons.smart_toy_outlined),
+              ),
+            ],
+          ),
+        ),
+        if (_enabled && caption != null)
+          PositionedDirectional(
+            start: 28,
+            end: 28,
+            bottom: 88,
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: const Color(0xB3000000),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  child: Text(
+                    _translationEnabled && _translated?.trim().isNotEmpty == true
+                        ? _translated!
+                        : caption.text,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
   }
 }
 
