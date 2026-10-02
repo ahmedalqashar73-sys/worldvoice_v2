@@ -1608,7 +1608,7 @@ Future<void> _showLiveCameraTools(
                 subtitle: Slider(
                   min: 1,
                   max: maxZoom,
-                  divisions: ((maxZoom - 1) * 10).round().clamp(1, 70),
+                  divisions: ((maxZoom - 1) * 10).round().clamp(1, 70).toInt(),
                   value: localZoom.clamp(1.0, maxZoom).toDouble(),
                   label: '${localZoom.toStringAsFixed(1)}×',
                   onChanged: (value) {
