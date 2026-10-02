@@ -9,9 +9,10 @@ import '../data/room_caption.dart';
 import '../data/room_teacher_ai_note.dart';
 
 class RoomTeacherAiService {
-  RoomTeacherAiService({required this.roomId});
+  RoomTeacherAiService({required this.roomId, this.collectionName = 'rooms'});
 
   final String roomId;
+  final String collectionName;
 
   static const String _explicitEndpoint =
       String.fromEnvironment('WORLDVOICE_TEACHER_AI_ENDPOINT');
@@ -40,7 +41,7 @@ class RoomTeacherAiService {
 
   Stream<List<RoomTeacherAiNote>> watchNotes({int limit = 20}) {
     return _db
-        .collection('rooms')
+        .collection(collectionName)
         .doc(roomId)
         .collection('teacher_ai_notes')
         .orderBy('createdAt', descending: true)
