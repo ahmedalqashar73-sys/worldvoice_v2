@@ -605,12 +605,19 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   }
 
   Future<void> _join() async {
+    var countedViewer = false;
     try {
       await _service.enterViewer(widget.liveId);
+      countedViewer = true;
       await _controller.ensureConnected(
         channelId: widget.liveId,
         role: AgoraRoomRole.listener,
       );
+    } catch (_) {
+      if (countedViewer) {
+        await _service.leaveViewer(widget.liveId).catchError((Object _) {});
+      }
+      rethrow;
     } finally {
       if (mounted) setState(() => _joining = false);
     }
@@ -618,8 +625,11 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
 
   @override
   void dispose() {
-    _controller.leave();
-    _service.leaveViewer(widget.liveId);
+    if (_guestPublishing) {
+      unawaited(_service.leaveGuest(widget.liveId).catchError((Object _) {}));
+    }
+    unawaited(_service.leaveViewer(widget.liveId).catchError((Object _) {}));
+    unawaited(_controller.leave());
     _controller.dispose();
     super.dispose();
   }
