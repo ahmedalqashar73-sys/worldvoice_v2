@@ -115,6 +115,8 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   int _seconds = 20;
   bool _cameraReady = false;
   bool _starting = false;
+  bool _micMuted = false;
+  String? _channelId;
 
   @override
   void dispose() {
@@ -129,6 +131,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
       // Use a unique preview channel for now. The Live session document will
       // provide the persistent channel id when discovery/guest join is wired.
       final channel = 'live_${DateTime.now().millisecondsSinceEpoch}';
+      _channelId = channel;
       await _controller.ensureConnected(
         channelId: channel,
         role: AgoraRoomRole.speaker,
@@ -247,43 +250,109 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
             ),
             if (_cameraReady && _controller.engine != null)
               Positioned.fill(
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    AgoraVideoView(
-                      controller: VideoViewController(
-                        rtcEngine: _controller.engine!,
-                        canvas: const VideoCanvas(uid: 0),
+                child: AnimatedBuilder(
+                  animation: _controller,
+                  builder: (context, _) {
+                    final remote = _controller.remoteSpeakers.take(3).toList();
+                    final tiles = <Widget>[
+                      AgoraVideoView(
+                        controller: VideoViewController(
+                          rtcEngine: _controller.engine!,
+                          canvas: const VideoCanvas(uid: 0),
+                        ),
                       ),
-                    ),
-                    PositionedDirectional(
-                      top: 12,
-                      end: 12,
-                      child: Row(
-                        children: [
-                          IconButton.filled(
-                            tooltip: widget.ar ? 'تبديل الكاميرا' : 'Switch camera',
-                            onPressed: () => _controller.engine?.switchCamera(),
-                            icon: const Icon(Icons.cameraswitch_rounded),
+                      for (final uid in remote)
+                        AgoraVideoView(
+                          controller: VideoViewController.remote(
+                            rtcEngine: _controller.engine!,
+                            canvas: VideoCanvas(uid: uid),
+                            connection: RtcConnection(
+                              channelId: _channelId ?? '',
+                            ),
                           ),
-                          const SizedBox(width: 8),
-                          IconButton.filled(
-                            tooltip: widget.ar ? 'إنهاء اللايف' : 'End live',
-                            onPressed: () async {
-                              await _controller.leave();
-                              if (mounted) Navigator.of(context).pop();
-                            },
-                            icon: const Icon(Icons.stop_circle_rounded),
+                        ),
+                    ];
+                    return Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        _LiveVideoGrid(children: tiles),
+                        PositionedDirectional(
+                          top: 12,
+                          start: 12,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.redAccent,
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Text(
+                              'LIVE  •  ${tiles.length}/4',
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900),
+                            ),
                           ),
-                        ],
-                      ),
-                    ),
-                  ],
+                        ),
+                        PositionedDirectional(
+                          top: 12,
+                          end: 12,
+                          child: Row(
+                            children: [
+                              IconButton.filled(
+                                tooltip: widget.ar ? 'المايك' : 'Microphone',
+                                onPressed: () async {
+                                  final next = !_micMuted;
+                                  await _controller.setMuted(next);
+                                  if (mounted) setState(() => _micMuted = next);
+                                },
+                                icon: Icon(_micMuted ? Icons.mic_off_rounded : Icons.mic_rounded),
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton.filled(
+                                tooltip: widget.ar ? 'تبديل الكاميرا' : 'Switch camera',
+                                onPressed: () => _controller.engine?.switchCamera(),
+                                icon: const Icon(Icons.cameraswitch_rounded),
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton.filled(
+                                tooltip: widget.ar ? 'إنهاء اللايف' : 'End live',
+                                onPressed: () async {
+                                  await _controller.leave();
+                                  if (mounted) Navigator.of(context).pop();
+                                },
+                                icon: const Icon(Icons.stop_circle_rounded),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _LiveVideoGrid extends StatelessWidget {
+  const _LiveVideoGrid({required this.children});
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    if (children.length == 1) return children.first;
+    if (children.length == 2) {
+      return Column(children: [
+        Expanded(child: children[0]),
+        Expanded(child: children[1]),
+      ]);
+    }
+    return GridView.count(
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      childAspectRatio: children.length == 3 ? .72 : .58,
+      children: children,
     );
   }
 }
