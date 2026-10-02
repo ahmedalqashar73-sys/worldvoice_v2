@@ -300,6 +300,9 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   bool _cameraReady = false;
   bool _starting = false;
   bool _micMuted = false;
+  bool _beautyEnabled = false;
+  bool _backgroundBlurEnabled = false;
+  double _cameraZoom = 1;
   bool _requestsOpen = false;
   bool _boardOpen = false;
   bool _sessionClosed = false;
@@ -462,10 +465,17 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                   builder: (context, _) {
                     final remote = _controller.remoteSpeakers.take(3).toList();
                     final tiles = <Widget>[
-                      AgoraVideoView(
-                        controller: VideoViewController(
-                          rtcEngine: _controller.engine!,
-                          canvas: const VideoCanvas(uid: 0),
+                      _PinchZoomCameraView(
+                        controller: _controller,
+                        zoom: _cameraZoom,
+                        onZoomChanged: (value) {
+                          if (mounted) setState(() => _cameraZoom = value);
+                        },
+                        child: AgoraVideoView(
+                          controller: VideoViewController(
+                            rtcEngine: _controller.engine!,
+                            canvas: const VideoCanvas(uid: 0),
+                          ),
                         ),
                       ),
                       for (final uid in remote)
@@ -606,9 +616,33 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                               ),
                               const SizedBox(width: 8),
                               IconButton.filled(
-                                tooltip: widget.ar ? 'تبديل الكاميرا' : 'Switch camera',
-                                onPressed: () => _controller.engine?.switchCamera(),
-                                icon: const Icon(Icons.cameraswitch_rounded),
+                                tooltip: widget.ar ? 'أدوات الكاميرا' : 'Camera tools',
+                                onPressed: () => _showLiveCameraTools(
+                                  context,
+                                  controller: _controller,
+                                  ar: widget.ar,
+                                  beautyEnabled: _beautyEnabled,
+                                  backgroundBlurEnabled: _backgroundBlurEnabled,
+                                  zoom: _cameraZoom,
+                                  onBeautyChanged: (value) {
+                                    if (mounted) {
+                                      setState(() => _beautyEnabled = value);
+                                    }
+                                  },
+                                  onBackgroundBlurChanged: (value) {
+                                    if (mounted) {
+                                      setState(
+                                        () => _backgroundBlurEnabled = value,
+                                      );
+                                    }
+                                  },
+                                  onZoomChanged: (value) {
+                                    if (mounted) {
+                                      setState(() => _cameraZoom = value);
+                                    }
+                                  },
+                                ),
+                                icon: const Icon(Icons.auto_fix_high_rounded),
                               ),
                               const SizedBox(width: 8),
                               IconButton.filled(
@@ -651,6 +685,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   bool _joining = true;
   bool _requested = false;
   bool _guestPublishing = false;
+  bool _guestBeautyEnabled = false;
+  bool _guestBackgroundBlurEnabled = false;
+  double _guestCameraZoom = 1;
   bool _boardOpen = false;
   bool _following = false;
   bool _followBusy = false;
@@ -781,10 +818,19 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                   final engine = _controller.engine;
                   final tiles = <Widget>[
                     if (_guestPublishing && engine != null)
-                      AgoraVideoView(
-                        controller: VideoViewController(
-                          rtcEngine: engine,
-                          canvas: const VideoCanvas(uid: 0),
+                      _PinchZoomCameraView(
+                        controller: _controller,
+                        zoom: _guestCameraZoom,
+                        onZoomChanged: (value) {
+                          if (mounted) {
+                            setState(() => _guestCameraZoom = value);
+                          }
+                        },
+                        child: AgoraVideoView(
+                          controller: VideoViewController(
+                            rtcEngine: engine,
+                            canvas: const VideoCanvas(uid: 0),
+                          ),
                         ),
                       ),
                     if (engine != null)
@@ -986,12 +1032,53 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            if (_guestPublishing)
+                            if (_guestPublishing) ...[
                               IconButton.filledTonal(
-                                tooltip: widget.ar ? 'اخرج من الكاميرا' : 'Leave camera',
+                                tooltip: widget.ar
+                                    ? 'أدوات الكاميرا'
+                                    : 'Camera tools',
+                                onPressed: () => _showLiveCameraTools(
+                                  context,
+                                  controller: _controller,
+                                  ar: widget.ar,
+                                  beautyEnabled: _guestBeautyEnabled,
+                                  backgroundBlurEnabled:
+                                      _guestBackgroundBlurEnabled,
+                                  zoom: _guestCameraZoom,
+                                  onBeautyChanged: (value) {
+                                    if (mounted) {
+                                      setState(
+                                        () => _guestBeautyEnabled = value,
+                                      );
+                                    }
+                                  },
+                                  onBackgroundBlurChanged: (value) {
+                                    if (mounted) {
+                                      setState(
+                                        () => _guestBackgroundBlurEnabled =
+                                            value,
+                                      );
+                                    }
+                                  },
+                                  onZoomChanged: (value) {
+                                    if (mounted) {
+                                      setState(
+                                        () => _guestCameraZoom = value,
+                                      );
+                                    }
+                                  },
+                                ),
+                                icon: const Icon(Icons.auto_fix_high_rounded),
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton.filledTonal(
+                                tooltip: widget.ar
+                                    ? 'اخرج من الكاميرا'
+                                    : 'Leave camera',
                                 onPressed: _leaveGuestCamera,
                                 icon: const Icon(Icons.videocam_off_rounded),
-                              )
+                              ),
+                            ]
                             else
                               IconButton.filledTonal(
                                 onPressed: () {},
@@ -1346,6 +1433,254 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
       ],
     );
   }
+}
+
+class _PinchZoomCameraView extends StatefulWidget {
+  const _PinchZoomCameraView({
+    required this.controller,
+    required this.zoom,
+    required this.onZoomChanged,
+    required this.child,
+  });
+
+  final AgoraVoiceRoomController controller;
+  final double zoom;
+  final ValueChanged<double> onZoomChanged;
+  final Widget child;
+
+  @override
+  State<_PinchZoomCameraView> createState() => _PinchZoomCameraViewState();
+}
+
+class _PinchZoomCameraViewState extends State<_PinchZoomCameraView> {
+  double _startZoom = 1;
+  double _maxZoom = 1;
+  Timer? _zoomTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_loadMaxZoom());
+  }
+
+  Future<void> _loadMaxZoom() async {
+    final value = await widget.controller.getCameraMaxZoom();
+    if (mounted) setState(() => _maxZoom = value);
+  }
+
+  @override
+  void dispose() {
+    _zoomTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onScaleStart: (_) => _startZoom = widget.zoom,
+      onScaleUpdate: (details) {
+        if (details.pointerCount < 2 || _maxZoom <= 1) return;
+        final next =
+            (_startZoom * details.scale).clamp(1.0, _maxZoom).toDouble();
+        widget.onZoomChanged(next);
+        _zoomTimer?.cancel();
+        _zoomTimer = Timer(const Duration(milliseconds: 45), () {
+          unawaited(
+            widget.controller.setCameraZoom(next).catchError((Object _) {}),
+          );
+        });
+      },
+      child: widget.child,
+    );
+  }
+}
+
+Future<void> _showLiveCameraTools(
+  BuildContext context, {
+  required AgoraVoiceRoomController controller,
+  required bool ar,
+  required bool beautyEnabled,
+  required bool backgroundBlurEnabled,
+  required double zoom,
+  required ValueChanged<bool> onBeautyChanged,
+  required ValueChanged<bool> onBackgroundBlurChanged,
+  required ValueChanged<double> onZoomChanged,
+}) async {
+  final engine = controller.engine;
+  if (engine == null || !controller.cameraPublishing) return;
+
+  final values = await Future.wait<Object>([
+    controller.isBeautyAvailable(),
+    controller.isVirtualBackgroundAvailable(),
+    controller.getCameraMaxZoom(),
+  ]);
+  if (!context.mounted) return;
+
+  final beautyAvailable = values[0] as bool;
+  final blurAvailable = values[1] as bool;
+  final maxZoom = values[2] as double;
+  var localBeauty = beautyEnabled;
+  var localBlur = backgroundBlurEnabled;
+  var localZoom = zoom.clamp(1.0, maxZoom < 1 ? 1.0 : maxZoom).toDouble();
+
+  Future<void> showError(BuildContext sheetContext, Object error) async {
+    if (!sheetContext.mounted) return;
+    ScaffoldMessenger.of(sheetContext).showSnackBar(
+      SnackBar(content: Text(error.toString())),
+    );
+  }
+
+  await showModalBottomSheet<void>(
+    context: context,
+    useSafeArea: true,
+    showDragHandle: true,
+    builder: (sheetContext) => StatefulBuilder(
+      builder: (sheetContext, refresh) => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              ar ? 'أدوات الكاميرا' : 'Camera tools',
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+            ),
+            const SizedBox(height: 8),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              secondary: const Icon(Icons.face_retouching_natural_rounded),
+              title: Text(ar ? 'Beauty خفيف' : 'Subtle beauty'),
+              subtitle: Text(
+                beautyAvailable
+                    ? (ar
+                        ? 'تنعيم وإضاءة خفيفة بدون تغيير الملامح.'
+                        : 'Light smoothing and brightness without reshaping.')
+                    : (ar
+                        ? 'غير مدعوم على هذا الجهاز.'
+                        : 'Not supported on this device.'),
+              ),
+              value: localBeauty && beautyAvailable,
+              onChanged: !beautyAvailable
+                  ? null
+                  : (value) async {
+                      try {
+                        await controller.setBeautyEnabled(value);
+                        localBeauty = value;
+                        onBeautyChanged(value);
+                        refresh(() {});
+                      } catch (error) {
+                        await showError(sheetContext, error);
+                      }
+                    },
+            ),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              secondary: const Icon(Icons.blur_on_rounded),
+              title: Text(ar ? 'تمويه الخلفية' : 'Background blur'),
+              subtitle: Text(
+                blurAvailable
+                    ? (ar
+                        ? 'يستخدمه الجهاز فقط إذا كان الأداء يدعمه.'
+                        : 'Enabled only when the device supports it.')
+                    : (ar
+                        ? 'غير مدعوم على هذا الجهاز.'
+                        : 'Not supported on this device.'),
+              ),
+              value: localBlur && blurAvailable,
+              onChanged: !blurAvailable
+                  ? null
+                  : (value) async {
+                      try {
+                        await controller.setBackgroundBlurEnabled(value);
+                        localBlur = value;
+                        onBackgroundBlurChanged(value);
+                        refresh(() {});
+                      } catch (error) {
+                        await showError(sheetContext, error);
+                      }
+                    },
+            ),
+            if (maxZoom > 1) ...[
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.zoom_in_rounded),
+                title: Text(ar ? 'التقريب' : 'Zoom'),
+                subtitle: Slider(
+                  min: 1,
+                  max: maxZoom,
+                  divisions: ((maxZoom - 1) * 10).round().clamp(1, 70),
+                  value: localZoom.clamp(1.0, maxZoom).toDouble(),
+                  label: '${localZoom.toStringAsFixed(1)}×',
+                  onChanged: (value) {
+                    localZoom = value;
+                    refresh(() {});
+                  },
+                  onChangeEnd: (value) async {
+                    try {
+                      await controller.setCameraZoom(value);
+                      onZoomChanged(value);
+                    } catch (error) {
+                      await showError(sheetContext, error);
+                    }
+                  },
+                ),
+              ),
+            ] else
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.zoom_in_rounded),
+                title: Text(ar ? 'التقريب غير مدعوم' : 'Zoom unavailable'),
+              ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () async {
+                      try {
+                        await engine.switchCamera();
+                        await controller.setCameraZoom(1);
+                        localZoom = 1;
+                        onZoomChanged(1);
+                        refresh(() {});
+                      } catch (error) {
+                        await showError(sheetContext, error);
+                      }
+                    },
+                    icon: const Icon(Icons.cameraswitch_rounded),
+                    label: Text(ar ? 'أمامية / خلفية' : 'Front / back'),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                OutlinedButton(
+                  onPressed: maxZoom <= 1
+                      ? null
+                      : () async {
+                          try {
+                            await controller.setCameraZoom(1);
+                            localZoom = 1;
+                            onZoomChanged(1);
+                            refresh(() {});
+                          } catch (error) {
+                            await showError(sheetContext, error);
+                          }
+                        },
+                  child: const Text('1×'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              ar
+                  ? 'يمكنك أيضًا استخدام إصبعين على فيديوك للتقريب.'
+                  : 'You can also pinch your own video to zoom.',
+              style: Theme.of(sheetContext).textTheme.bodySmall,
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 }
 
 Future<void> _showLiveChat(
