@@ -106,7 +106,8 @@ class LiveSessionService {
       'photoUrl': user.photoURL ?? '',
       'status': 'pending',
       'requestedAt': FieldValue.serverTimestamp(),
-    });
+      'decidedAt': FieldValue.delete(),
+    }, SetOptions(merge: true));
   }
 
   Future<void> decideRequest({
