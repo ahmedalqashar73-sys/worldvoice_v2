@@ -349,18 +349,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
       if (engine == null || !_controller.joined) {
         throw StateError(_controller.error ?? 'Could not start Live.');
       }
-      await engine.enableVideo();
-      await engine.startPreview();
-      await engine.updateChannelMediaOptions(
-        const ChannelMediaOptions(
-          clientRoleType: ClientRoleType.clientRoleBroadcaster,
-          publishCameraTrack: true,
-          publishMicrophoneTrack: true,
-          autoSubscribeAudio: true,
-          autoSubscribeVideo: true,
-          enableAudioRecordingOrPlayout: true,
-        ),
-      );
+      await _controller.setCameraPublishing(true);
       _liveId = await _liveService.create(
         channelId: channel,
         languageCode: widget.languageCode,
@@ -880,47 +869,43 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
 
   Future<void> _leaveGuestCamera() async {
     if (!_guestPublishing || _controller.engine == null) return;
-    final engine = _controller.engine!;
-    await engine.updateChannelMediaOptions(
-      const ChannelMediaOptions(
-        clientRoleType: ClientRoleType.clientRoleAudience,
-        publishCameraTrack: false,
-        publishMicrophoneTrack: false,
-        autoSubscribeAudio: true,
-        autoSubscribeVideo: true,
-        enableAudioRecordingOrPlayout: true,
-      ),
-    );
-    await engine.stopPreview();
-    await _service.leaveGuest(widget.liveId);
-    if (!mounted) return;
-    setState(() {
-      _guestPublishing = false;
-      _requested = false;
-    });
+    try {
+      await _controller.setCameraPublishing(false);
+      await _controller.switchRole(AgoraRoomRole.listener);
+      await _service.leaveGuest(widget.liveId);
+      if (!mounted) return;
+      setState(() {
+        _guestPublishing = false;
+        _requested = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
+    }
   }
 
   Future<void> _becomeGuest() async {
     if (_guestPublishing || _controller.engine == null) return;
     _guestPublishing = true;
     try {
-      final engine = _controller.engine!;
-      await engine.enableVideo();
-      await engine.startPreview();
-      await engine.updateChannelMediaOptions(
-        const ChannelMediaOptions(
-          clientRoleType: ClientRoleType.clientRoleBroadcaster,
-          publishCameraTrack: true,
-          publishMicrophoneTrack: true,
-          autoSubscribeAudio: true,
-          autoSubscribeVideo: true,
-          enableAudioRecordingOrPlayout: true,
-        ),
-      );
+      await _controller.switchRole(AgoraRoomRole.speaker);
+      if (_controller.role != AgoraRoomRole.speaker) {
+        throw StateError(
+          _controller.error ?? 'Could not receive broadcaster permission.',
+        );
+      }
+      await _controller.setCameraPublishing(true);
       if (mounted) setState(() {});
-    } catch (_) {
+    } catch (error) {
       _guestPublishing = false;
-      if (mounted) setState(() {});
+      await _service.leaveGuest(widget.liveId).catchError((Object _) {});
+      if (!mounted) return;
+      setState(() => _requested = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
     }
   }
 }
