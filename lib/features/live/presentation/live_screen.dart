@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
@@ -182,14 +183,37 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   bool _starting = false;
   bool _micMuted = false;
   bool _requestsOpen = false;
+  bool _sessionClosed = false;
   String? _channelId;
   String? _liveId;
   final LiveSessionService _liveService = LiveSessionService();
 
   @override
   void dispose() {
+    final liveId = _liveId;
+    if (liveId != null && !_sessionClosed) {
+      unawaited(_liveService.end(liveId).catchError((Object _) {}));
+    }
+    unawaited(_controller.leave());
     _controller.dispose();
     super.dispose();
+  }
+
+  Future<void> _endLiveAndPop() async {
+    if (_sessionClosed) return;
+    _sessionClosed = true;
+    final liveId = _liveId;
+    if (liveId != null) {
+      try {
+        await _liveService.end(liveId);
+      } catch (_) {
+        _sessionClosed = false;
+        rethrow;
+      }
+    }
+    await _controller.leave();
+    if (!mounted) return;
+    Navigator.of(context).pop();
   }
 
   Future<void> _startCamera() async {
@@ -318,7 +342,9 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
               top: 10,
               start: 10,
               child: IconButton.filledTonal(
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: _cameraReady
+                    ? _endLiveAndPop
+                    : () => Navigator.of(context).pop(),
                 icon: const Icon(Icons.close_rounded),
               ),
             ),
@@ -427,12 +453,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                               const SizedBox(width: 8),
                               IconButton.filled(
                                 tooltip: widget.ar ? 'إنهاء اللايف' : 'End live',
-                                onPressed: () async {
-                                  if (_liveId != null) await _liveService.end(_liveId!);
-                                  await _controller.leave();
-                                  if (!context.mounted) return;
-                                  Navigator.of(context).pop();
-                                },
+                                onPressed: _endLiveAndPop,
                                 icon: const Icon(Icons.stop_circle_rounded),
                               ),
                             ],
@@ -505,6 +526,17 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: _service.watch(widget.liveId),
+      builder: (context, liveSnapshot) {
+        final live = liveSnapshot.data?.data();
+        if (liveSnapshot.hasData && live?['isLive'] != true) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted && Navigator.of(context).canPop()) {
+              Navigator.of(context).pop();
+            }
+          });
+        }
+        return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
       stream: _service.watchMyRequest(widget.liveId),
       builder: (context, requestSnapshot) {
         final status = requestSnapshot.data?.data()?['status']?.toString();
@@ -520,17 +552,30 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                 animation: _controller,
                 builder: (context, _) {
                   final remote = _controller.remoteSpeakers;
+                  final engine = _controller.engine;
+                  final tiles = <Widget>[
+                    if (_guestPublishing && engine != null)
+                      AgoraVideoView(
+                        controller: VideoViewController(
+                          rtcEngine: engine,
+                          canvas: const VideoCanvas(uid: 0),
+                        ),
+                      ),
+                    if (engine != null)
+                      for (final uid in remote.take(_guestPublishing ? 3 : 4))
+                        AgoraVideoView(
+                          controller: VideoViewController.remote(
+                            rtcEngine: engine,
+                            canvas: VideoCanvas(uid: uid),
+                            connection: RtcConnection(channelId: widget.liveId),
+                          ),
+                        ),
+                  ];
                   return Stack(
                     fit: StackFit.expand,
                     children: [
-                      if (remote.isNotEmpty && _controller.engine != null)
-                        AgoraVideoView(
-                          controller: VideoViewController.remote(
-                            rtcEngine: _controller.engine!,
-                            canvas: VideoCanvas(uid: remote.first),
-                            connection: RtcConnection(channelId: widget.liveId),
-                          ),
-                        )
+                      if (tiles.isNotEmpty)
+                        _LiveVideoGrid(children: tiles)
                       else
                         const Center(
                           child: Icon(Icons.live_tv_rounded,
@@ -589,6 +634,8 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                 },
               ),
       ),
+    );
+      },
     );
       },
     );
