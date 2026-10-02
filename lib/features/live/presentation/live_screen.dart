@@ -544,7 +544,12 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                             ),
                             const SizedBox(width: 10),
                             IconButton.filledTonal(
-                              onPressed: () {},
+                              onPressed: () => _showLiveChat(
+                                context,
+                                service: _service,
+                                liveId: widget.liveId,
+                                ar: widget.ar,
+                              ),
                               icon: const Icon(Icons.chat_bubble_outline_rounded),
                             ),
                             const SizedBox(width: 8),
@@ -588,6 +593,122 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
       if (mounted) setState(() {});
     }
   }
+}
+
+Future<void> _showLiveChat(
+  BuildContext context, {
+  required LiveSessionService service,
+  required String liveId,
+  required bool ar,
+}) {
+  final input = TextEditingController();
+  return showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (sheetContext) => Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
+      ),
+      child: Container(
+        height: MediaQuery.sizeOf(sheetContext).height * .58,
+        decoration: const BoxDecoration(
+          color: Color(0xE6141414),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          children: [
+            ListTile(
+              title: Text(
+                ar ? 'دردشة اللايف' : 'Live chat',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              trailing: IconButton(
+                onPressed: () => Navigator.pop(sheetContext),
+                icon: const Icon(Icons.close_rounded, color: Colors.white),
+              ),
+            ),
+            Expanded(
+              child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                stream: service.watchChat(liveId),
+                builder: (context, snapshot) {
+                  final docs = snapshot.data?.docs ??
+                      const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
+                  return ListView.builder(
+                    reverse: true,
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    itemCount: docs.length,
+                    itemBuilder: (context, index) {
+                      final data = docs[index].data();
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 5),
+                        child: Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(
+                                text: '${data['senderName'] ?? 'WorldVoice'}  ',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              TextSpan(
+                                text: data['text']?.toString() ?? '',
+                                style: const TextStyle(color: Colors.white70),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+            SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: input,
+                        maxLength: 500,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          counterText: '',
+                          hintText: ar ? 'اكتب رسالة...' : 'Message...',
+                          hintStyle: const TextStyle(color: Colors.white54),
+                          filled: true,
+                          fillColor: Colors.white10,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(22),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () async {
+                        final value = input.text;
+                        input.clear();
+                        await service.sendChat(liveId, value);
+                      },
+                      icon: const Icon(Icons.send_rounded, color: Colors.white),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  ).whenComplete(input.dispose);
 }
 
 class _HostJoinRequests extends StatelessWidget {
