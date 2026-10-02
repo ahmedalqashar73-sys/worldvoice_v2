@@ -534,6 +534,10 @@ service cloud.firestore {
           && request.resource.data.hostId == request.auth.uid
           && request.resource.data.channelId == liveId
           && request.resource.data.isLive == true
+          && request.resource.data.hostAgoraUid is int
+          && request.resource.data.hostAgoraUid > 0
+          && request.resource.data.topic is string
+          && request.resource.data.topic.size() <= 80
           && request.resource.data.viewerCount == 0
           && request.resource.data.guestCount == 0;
       allow update: if signedIn()
@@ -542,6 +546,11 @@ service cloud.firestore {
               resource.data.hostId == request.auth.uid
               && request.resource.data.hostId == resource.data.hostId
               && request.resource.data.channelId == resource.data.channelId
+              && request.resource.data.hostAgoraUid == resource.data.hostAgoraUid
+              && request.resource.data.viewerCount == resource.data.viewerCount
+              && request.resource.data.guestCount >= resource.data.guestCount
+              && request.resource.data.guestCount <= 3
+              && request.resource.data.guestCount <= resource.data.guestCount + 1
             )
             || (
               request.resource.data.diff(resource.data).affectedKeys()
