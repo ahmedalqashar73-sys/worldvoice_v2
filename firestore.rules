@@ -545,6 +545,16 @@ service cloud.firestore {
               && request.resource.data.viewerCount >= 0
               && request.resource.data.guestCount == resource.data.guestCount
             )
+            || (
+              request.resource.data.diff(resource.data).affectedKeys()
+                  .hasOnly(['guestCount', 'updatedAt'])
+              && resource.data.guestCount > 0
+              && request.resource.data.guestCount == resource.data.guestCount - 1
+              && getAfter(
+                /databases/$(database)/documents/live_sessions/$(liveId)/
+                join_requests/$(request.auth.uid)
+              ).data.status == 'left'
+            )
           );
       allow delete: if false;
 
@@ -582,12 +592,22 @@ service cloud.firestore {
             && request.resource.data.uid == request.auth.uid
             && request.resource.data.status == 'pending';
         allow update: if signedIn()
-            && get(/databases/$(database)/documents/live_sessions/$(liveId))
-                .data.hostId == request.auth.uid
             && request.resource.data.uid == resource.data.uid
             && request.resource.data.diff(resource.data).affectedKeys()
                 .hasOnly(['status', 'decidedAt'])
-            && request.resource.data.status in ['accepted', 'declined', 'left'];
+            && (
+              (
+                get(/databases/$(database)/documents/live_sessions/$(liveId))
+                    .data.hostId == request.auth.uid
+                && resource.data.status == 'pending'
+                && request.resource.data.status in ['accepted', 'declined']
+              )
+              || (
+                userId == request.auth.uid
+                && resource.data.status == 'accepted'
+                && request.resource.data.status == 'left'
+              )
+            );
         allow delete: if false;
       }
     }
