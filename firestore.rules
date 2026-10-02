@@ -468,6 +468,43 @@ service cloud.firestore {
         allow delete: if false;
       }
 
+      match /board_items/{itemId} {
+        allow read: if signedIn();
+        allow create: if signedIn()
+            && (
+              get(/databases/$(database)/documents/live_sessions/$(liveId))
+                  .data.hostId == request.auth.uid
+              || (
+                get(/databases/$(database)/documents/live_sessions/$(liveId))
+                    .data.boardWriteEnabled == true
+                && get(
+                  /databases/$(database)/documents/live_sessions/$(liveId)/
+                  join_requests/$(request.auth.uid)
+                ).data.status == 'accepted'
+                && request.resource.data.userId == request.auth.uid
+                && request.resource.data.type in ['stroke', 'text']
+              )
+            );
+        allow update: if signedIn()
+            && get(/databases/$(database)/documents/live_sessions/$(liveId))
+                .data.hostId == request.auth.uid;
+        allow delete: if signedIn()
+            && (
+              get(/databases/$(database)/documents/live_sessions/$(liveId))
+                  .data.hostId == request.auth.uid
+              || (
+                resource.data.userId == request.auth.uid
+                && resource.data.type in ['stroke', 'text']
+                && get(/databases/$(database)/documents/live_sessions/$(liveId))
+                    .data.boardWriteEnabled == true
+                && get(
+                  /databases/$(database)/documents/live_sessions/$(liveId)/
+                  join_requests/$(request.auth.uid)
+                ).data.status == 'accepted'
+              )
+            );
+      }
+
       match /messages/{messageId} {
         allow get, list: if signedIn()
             && exists(/databases/$(database)/documents/chats/$(chatId))
