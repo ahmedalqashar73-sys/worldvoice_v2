@@ -115,11 +115,53 @@ class LiveSessionService {
     required bool accept,
   }) async {
     final session = _sessions.doc(liveId);
-    final snap = await session.get();
-    if (snap.data()?['hostId'] != _user.uid) throw StateError('HOST_ONLY');
-    await session.collection('join_requests').doc(userId).update({
-      'status': accept ? 'accepted' : 'declined',
-      'decidedAt': FieldValue.serverTimestamp(),
+    final request = session.collection('join_requests').doc(userId);
+    await _db.runTransaction((tx) async {
+      final sessionSnap = await tx.get(session);
+      if (sessionSnap.data()?['hostId'] != _user.uid) {
+        throw StateError('HOST_ONLY');
+      }
+      final requestSnap = await tx.get(request);
+      if (!requestSnap.exists ||
+          requestSnap.data()?['status']?.toString() != 'pending') {
+        throw StateError('REQUEST_NOT_PENDING');
+      }
+      final guestCount =
+          (sessionSnap.data()?['guestCount'] as num?)?.toInt() ?? 0;
+      if (accept && guestCount >= 3) {
+        throw StateError('LIVE_GUEST_LIMIT_REACHED');
+      }
+      tx.update(request, {
+        'status': accept ? 'accepted' : 'declined',
+        'decidedAt': FieldValue.serverTimestamp(),
+      });
+      if (accept) {
+        tx.update(session, {
+          'guestCount': FieldValue.increment(1),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      }
+    });
+  }
+
+  Future<void> leaveGuest(String liveId) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+    final session = _sessions.doc(liveId);
+    final request = session.collection('join_requests').doc(user.uid);
+    await _db.runTransaction((tx) async {
+      final requestSnap = await tx.get(request);
+      if (requestSnap.data()?['status']?.toString() != 'accepted') return;
+      final sessionSnap = await tx.get(session);
+      final count = (sessionSnap.data()?['guestCount'] as num?)?.toInt() ?? 0;
+      tx.update(request, {
+        'status': 'left',
+        'decidedAt': FieldValue.serverTimestamp(),
+      });
+      tx.update(session, {
+        'guestCount': count > 0 ? FieldValue.increment(-1) : 0,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
     });
   }
 
