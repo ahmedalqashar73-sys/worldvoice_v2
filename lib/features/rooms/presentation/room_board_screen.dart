@@ -19,6 +19,7 @@ class RoomBoardScreen extends StatefulWidget {
     required this.canWrite,
     required this.isHost,
     required this.agoraController,
+    this.parentCollection = 'rooms',
     this.embedded = false,
     this.onClose,
     this.onExpand,
@@ -32,6 +33,7 @@ class RoomBoardScreen extends StatefulWidget {
   final bool canWrite;
   final bool isHost;
   final AgoraVoiceRoomController agoraController;
+  final String parentCollection;
 
   @override
   State<RoomBoardScreen> createState() => _RoomBoardScreenState();
@@ -106,8 +108,14 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
   @override
   void initState() {
     super.initState();
-    _service = RoomBoardService(roomId: widget.roomId);
-    _features = RoomFeatureService(roomId: widget.roomId);
+    _service = RoomBoardService(
+      roomId: widget.roomId,
+      collectionName: widget.parentCollection,
+    );
+    _features = RoomFeatureService(
+      roomId: widget.roomId,
+      collectionName: widget.parentCollection,
+    );
     _stateStream = _features.watchState();
     _itemsStream = _service.watchItems();
   }
@@ -194,7 +202,8 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
     setState(() => _uploading = true);
     try {
       final file = File(picked.path!);
-      final folder = 'worldvoice/rooms/${widget.roomId}/board';
+      final folder =
+          'worldvoice/${widget.parentCollection}/${widget.roomId}/board';
       final upload = switch (type) {
         'image' => await CloudinaryImageService.uploadImage(
             file,
