@@ -466,6 +466,46 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Live-only camera controls. These are additive and do not alter the
+  /// existing Rooms camera/audio flow unless explicitly called.
+  Future<void> setBeautyEnabled(bool enabled) async {
+    final engine = _engine;
+    if (engine == null || !_joined || !_cameraPublishing) {
+      throw StateError('Camera must be publishing before beauty is changed.');
+    }
+    await engine.setBeautyEffectOptions(
+      enabled: enabled,
+      options: BeautyOptions(
+        lighteningContrastLevel:
+            LighteningContrastLevel.lighteningContrastNormal,
+        lighteningLevel: 0.22,
+        smoothnessLevel: 0.32,
+        rednessLevel: 0.06,
+        sharpnessLevel: 0.12,
+      ),
+    );
+  }
+
+  Future<double> getCameraMaxZoom() async {
+    final engine = _engine;
+    if (engine == null || !_joined || !_cameraPublishing) return 1;
+    try {
+      final value = await engine.getCameraMaxZoomFactor();
+      if (!value.isFinite || value < 1) return 1;
+      // Keep the Live UI practical even on devices reporting huge ranges.
+      return value.clamp(1.0, 8.0);
+    } catch (_) {
+      return 1;
+    }
+  }
+
+  Future<void> setCameraZoom(double factor) async {
+    final engine = _engine;
+    if (engine == null || !_joined || !_cameraPublishing) return;
+    final max = await getCameraMaxZoom();
+    await engine.setCameraZoomFactor(factor.clamp(1.0, max));
+  }
+
   Future<void> setMuted(bool value) async {
     final engine = _engine;
     if (engine == null || !_joined || _role != AgoraRoomRole.speaker) {
