@@ -1190,7 +1190,20 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                             ]
                             else
                               IconButton.filledTonal(
-                                onPressed: () {},
+                                tooltip: widget.ar
+                                    ? 'هدايا اللايف'
+                                    : 'Live gifts',
+                                onPressed: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        widget.ar
+                                            ? 'هدايا اللايف متوقفة مؤقتًا حتى يكتمل التحقق الآمن من جلسة البث والمحفظة.'
+                                            : 'Live gifts are temporarily disabled until secure session and wallet verification is enabled.',
+                                      ),
+                                    ),
+                                  );
+                                },
                                 icon: const Icon(Icons.card_giftcard_rounded),
                               ),
                           ],
