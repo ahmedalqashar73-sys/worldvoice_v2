@@ -2,7 +2,7 @@ name: Build WorldVoice Test APK
 
 on:
   push:
-    branches: [main]
+    branches: [main, feat/chat-social-foundation-20261004]
   workflow_dispatch:
 
 jobs:
@@ -18,17 +18,20 @@ jobs:
 
       - run: flutter pub get
 
-      - name: Build debug APK
+      - name: Build Android TEST APK
         run: >
-          flutter build apk --debug
-          --dart-define=AGORA_APP_ID=${{ secrets.AGORA_APP_ID }}
-          --dart-define=WORLDVOICE_ROOM_BACKEND_URL=${{ secrets.WORLDVOICE_ROOM_BACKEND_URL }}
+          flutter build apk --release
+          --dart-define=WORLDVOICE_FRIEND_GIFT_PREVIEW=true
+          --dart-define=AGORA_APP_ID=fa41476c6813471eb45c059bcb4a0e19
+          --dart-define=WORLDVOICE_ROOM_BACKEND_URL=https://worldvoice-v2.onrender.com
+          --dart-define=AGORA_TOKEN_ENDPOINT=https://worldvoice-agora-token.worldvoice.workers.dev/agora/token
+          --dart-define=WORLDVOICE_ECONOMY_ENDPOINT=https://worldvoice-v2.onrender.com
 
       - name: Upload test APK
         uses: actions/upload-artifact@v4
         with:
           name: worldvoice-test-apk
-          path: build/app/outputs/flutter-apk/app-debug.apk
+          path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
           retention-days: 7
 
@@ -46,9 +49,9 @@ jobs:
         run: |
           set -euo pipefail
 
-          APK="build/app/outputs/flutter-apk/app-debug.apk"
-          APP_ID="1:149108991969:android:b09d15308f8f5d9266d4a0"
-          NOTES="WorldVoice voice-room test build - 8 seats, room chat, raise hand, mute, Teacher AI, quiz, gifts, minimize/leave/close."
+          APK="build/app/outputs/flutter-apk/app-release.apk"
+          APP_ID="1:149108991969:android:f9000a8165a8a38166d4a0"
+          NOTES="WorldVoice friends test - messages, username search, Live improvements, voice rooms and current app features."
 
           AUTH_ARGS=()
           if [ -n "${FIREBASE_SERVICE_ACCOUNT_JSON:-}" ]; then
