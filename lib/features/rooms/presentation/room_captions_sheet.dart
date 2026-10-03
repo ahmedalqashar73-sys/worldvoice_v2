@@ -16,6 +16,7 @@ class RoomCaptionsSheet extends StatelessWidget {
     required this.onPronunciationChanged,
     required this.onTargetLanguageChanged,
     this.pronunciationNotes,
+    this.targetLanguages,
     this.error,
     super.key,
   });
@@ -25,6 +26,7 @@ class RoomCaptionsSheet extends StatelessWidget {
   final bool pronunciationEnabled;
   final String targetLanguage;
   final Stream<List<RoomTeacherAiNote>>? pronunciationNotes;
+  final List<RoomCaptionLanguage>? targetLanguages;
   final bool canPublish;
   final bool listening;
   final String? error;
@@ -38,8 +40,13 @@ class RoomCaptionsSheet extends StatelessWidget {
     final isArabic =
         Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
 
+    final availableLanguages =
+        targetLanguages == null || targetLanguages!.isEmpty
+            ? roomCaptionLanguages
+            : targetLanguages!;
+
     return SafeArea(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 18),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -149,23 +156,41 @@ class RoomCaptionsSheet extends StatelessWidget {
                 ),
               ),
             if (enabled && translationEnabled)
-              DropdownButtonFormField<String>(
-                initialValue: targetLanguage,
-                decoration: InputDecoration(
-                  labelText:
-                      isArabic ? 'لغة الترجمة' : 'Translation language',
+              if (availableLanguages.length == 1)
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.school_rounded),
+                  title: Text(
+                    isArabic ? 'لغة الترجمة' : 'Translation language',
+                  ),
+                  subtitle: Text(availableLanguages.first.label),
+                )
+              else
+                DropdownButtonFormField<String>(
+                  initialValue: availableLanguages.any(
+                    (item) => item.code == targetLanguage,
+                  )
+                      ? targetLanguage
+                      : availableLanguages.first.code,
+                  isExpanded: true,
+                  decoration: InputDecoration(
+                    labelText:
+                        isArabic ? 'لغة الترجمة' : 'Translation language',
+                  ),
+                  items: [
+                    for (final item in availableLanguages)
+                      DropdownMenuItem(
+                        value: item.code,
+                        child: Text(
+                          item.label,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) onTargetLanguageChanged(value);
+                  },
                 ),
-                items: [
-                  for (final item in roomCaptionLanguages)
-                    DropdownMenuItem(
-                      value: item.code,
-                      child: Text(item.label),
-                    ),
-                ],
-                onChanged: (value) {
-                  if (value != null) onTargetLanguageChanged(value);
-                },
-              ),
             if (error?.trim().isNotEmpty == true) ...[
               const SizedBox(height: 10),
               Material(
