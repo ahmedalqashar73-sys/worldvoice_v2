@@ -27,6 +27,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
   bool _screenSharing = false;
   bool _cameraPublishing = false;
   bool _localPreviewPrepared = false;
+  bool _preparingLocalPreview = false;
   String? _error;
   int? _localUid;
   int? _activeSpeakerUid;
@@ -52,35 +53,39 @@ class AgoraVoiceRoomController extends ChangeNotifier {
   /// Live uses this so the host sees the camera immediately while Agora
   /// authentication/join happens in the background.
   Future<void> prepareCameraPreview() async {
-    if (_disposed) return;
-    if (_engine != null) {
-      try {
-        await _engine!.enableVideo();
-        await _engine!.startPreview();
-      } catch (_) {}
-      return;
-    }
-
+    if (_disposed || _preparingLocalPreview || _localPreviewPrepared) return;
+    _preparingLocalPreview = true;
     _released = false;
     _error = null;
-    final engine = createAgoraRtcEngine();
-    _engine = engine;
+
     try {
-      await engine.initialize(
-        const RtcEngineContext(
-          appId: AgoraConfig.appId,
-          channelProfile: ChannelProfileType.channelProfileLiveBroadcasting,
-        ),
-      );
+      var engine = _engine;
+      if (engine == null) {
+        engine = createAgoraRtcEngine();
+        _engine = engine;
+        await engine.initialize(
+          const RtcEngineContext(
+            appId: AgoraConfig.appId,
+            channelProfile: ChannelProfileType.channelProfileLiveBroadcasting,
+          ),
+        );
+      }
+
+      if (_disposed || _released || !identical(engine, _engine)) return;
       await engine.enableVideo();
-      await engine.startPreview();
-      _localPreviewPrepared = true;
+      if (!_localPreviewPrepared) {
+        await engine.startPreview();
+        _localPreviewPrepared = true;
+      }
+      _error = null;
       notifyListeners();
     } catch (error) {
       _error = error.toString();
       notifyListeners();
       await leave();
       rethrow;
+    } finally {
+      _preparingLocalPreview = false;
     }
   }
 
@@ -266,8 +271,11 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       engine.registerEventHandler(_handler!);
       await engine.enableAudio();
       await engine.enableVideo();
-      if (previewCamera && role == AgoraRoomRole.speaker) {
+      if (previewCamera &&
+          role == AgoraRoomRole.speaker &&
+          !_localPreviewPrepared) {
         await engine.startPreview();
+        _localPreviewPrepared = true;
         notifyListeners();
       }
       await engine.enableAudioVolumeIndication(
@@ -470,17 +478,25 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     if (value && _role != AgoraRoomRole.speaker) {
       throw StateError('Camera publishing requires broadcaster role.');
     }
+
     _cameraPublishing = value;
     if (value) {
       await engine.enableVideo();
-      await engine.startPreview();
-    } else {
-      try {
-        await engine.stopPreview();
-      } catch (_) {
-        // Preview may already be stopped.
+      if (!_localPreviewPrepared) {
+        await engine.startPreview();
+        _localPreviewPrepared = true;
       }
+    } else {
+      if (_localPreviewPrepared) {
+        try {
+          await engine.stopPreview();
+        } catch (_) {
+          // Preview may already be stopped.
+        }
+      }
+      _localPreviewPrepared = false;
     }
+
     if (!_screenSharing) {
       await engine.updateChannelMediaOptions(
         ChannelMediaOptions(
@@ -744,12 +760,15 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     }
 
     if (role == AgoraRoomRole.listener && _cameraPublishing) {
-      try {
-        await engine.stopPreview();
-      } catch (_) {
-        // Preview may already be stopped.
+      if (_localPreviewPrepared) {
+        try {
+          await engine.stopPreview();
+        } catch (_) {
+          // Preview may already be stopped.
+        }
       }
       _cameraPublishing = false;
+      _localPreviewPrepared = false;
     }
 
     await engine.setClientRole(
@@ -786,7 +805,16 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       if (_handler != null) {
         engine.unregisterEventHandler(_handler!);
       }
-      await engine.leaveChannel();
+      if (_localPreviewPrepared) {
+        try {
+          await engine.stopPreview();
+        } catch (_) {
+          // The camera session may already be closing.
+        }
+      }
+      if (_joined) {
+        await engine.leaveChannel();
+      }
       await engine.release();
     } finally {
       _engine = null;
@@ -797,6 +825,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       _screenSharing = false;
       _cameraPublishing = false;
       _localPreviewPrepared = false;
+      _preparingLocalPreview = false;
       _localUid = null;
       _activeSpeakerUid = null;
       _channelId = null;
