@@ -1593,13 +1593,18 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
     super.didChangeDependencies();
     if (!_targetInitialized) {
       _targetInitialized = true;
-      _targetLanguage = Localizations.localeOf(context).languageCode;
+      _targetLanguage = widget.roomLanguageCode;
     }
   }
 
   @override
   void didUpdateWidget(covariant _LiveLanguageToolsOverlay oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.roomLanguageCode != widget.roomLanguageCode) {
+      _targetLanguage = widget.roomLanguageCode;
+      _translated = null;
+      _translatedCaptionId = null;
+    }
     if (_enabled &&
         (oldWidget.canPublish != widget.canPublish ||
             oldWidget.displayName != widget.displayName ||
@@ -1742,6 +1747,12 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
             pronunciationEnabled: _pronunciationEnabled,
             pronunciationNotes: _teacherAi.watchNotes(),
             targetLanguage: _targetLanguage,
+            targetLanguages: [
+              RoomCaptionLanguage(
+                widget.roomLanguageCode,
+                ProfileLanguageCatalog.label(widget.roomLanguageCode),
+              ),
+            ],
             canPublish: widget.canPublish,
             listening: _listening,
             error: _error,
