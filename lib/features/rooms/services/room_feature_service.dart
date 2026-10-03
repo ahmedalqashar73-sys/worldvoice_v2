@@ -367,6 +367,33 @@ class RoomFeatureService {
         );
   }
 
+  static Stream<List<RoomGiftEvent>> watchContextGifts({
+    required String context,
+    required String contextId,
+  }) {
+    if (!const {'room', 'live', 'chat'}.contains(context) ||
+        contextId.trim().isEmpty ||
+        contextId.contains('/')) {
+      throw ArgumentError('Invalid gift event context');
+    }
+    final parent = switch (context) {
+      'live' => 'live_sessions',
+      'chat' => 'chats',
+      _ => 'rooms',
+    };
+    return FirebaseFirestore.instance
+        .collection(parent)
+        .doc(contextId)
+        .collection('gifts')
+        .orderBy('createdAt', descending: true)
+        .limit(100)
+        .snapshots()
+        .map(
+          (snapshot) =>
+              snapshot.docs.map(RoomGiftEvent.fromDoc).toList(growable: false),
+        );
+  }
+
   // Mission credit is now backend-only. Never compute or set XP from a
   // client-side button; server verifies joinedAt, live guests and gift events.
   Uri _missionEndpoint(String path) {
