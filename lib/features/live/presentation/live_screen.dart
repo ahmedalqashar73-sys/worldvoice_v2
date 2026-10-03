@@ -1030,28 +1030,23 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                         ),
                         PositionedDirectional(
                           bottom: 18,
-                          start: 18,
-                          child: Row(
+                          start: 12,
+                          end: 12,
+                          child: _LiveControlDock(
                             children: [
                               IconButton(
-                                style: IconButton.styleFrom(
-                                  backgroundColor: const Color(0xB3000000),
-                                  foregroundColor: Colors.white,
-                                ),
                                 tooltip: widget.ar
                                     ? 'طلبات الانضمام'
                                     : 'Join requests',
                                 onPressed: () => setState(
                                   () => _requestsOpen = !_requestsOpen,
                                 ),
-                                icon: const Icon(Icons.group_add_rounded),
-                              ),
-                              const SizedBox(width: 6),
-                              IconButton(
-                                style: IconButton.styleFrom(
-                                  backgroundColor: const Color(0xB3000000),
-                                  foregroundColor: Colors.white,
+                                icon: const Icon(
+                                  Icons.group_add_rounded,
+                                  color: Colors.white,
                                 ),
+                              ),
+                              IconButton(
                                 tooltip: widget.ar
                                     ? 'المودريتر'
                                     : 'Moderators',
@@ -1065,11 +1060,13 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                         ),
                                 icon: const Icon(
                                   Icons.admin_panel_settings_rounded,
+                                  color: Color(0xFFFFD77A),
                                 ),
                               ),
-                              const SizedBox(width: 6),
-                              IconButton.filledTonal(
-                                tooltip: widget.ar ? 'دردشة اللايف' : 'Live chat',
+                              IconButton(
+                                tooltip: widget.ar
+                                    ? 'دردشة اللايف'
+                                    : 'Live chat',
                                 onPressed: _liveId == null
                                     ? null
                                     : () => _showLiveChat(
@@ -1078,22 +1075,26 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                           liveId: _liveId!,
                                           ar: widget.ar,
                                         ),
-                                icon: const Icon(Icons.chat_bubble_outline_rounded),
+                                icon: const Icon(
+                                  Icons.chat_bubble_outline_rounded,
+                                  color: Colors.white,
+                                ),
                               ),
-                              const SizedBox(width: 6),
-                              IconButton.filledTonal(
+                              IconButton(
                                 tooltip: widget.ar ? 'السبورة' : 'Board',
                                 onPressed: _liveId == null
                                     ? null
-                                    : () => setState(() => _boardOpen = !_boardOpen),
+                                    : () => setState(
+                                          () => _boardOpen = !_boardOpen,
+                                        ),
                                 icon: Icon(
                                   _boardOpen
                                       ? Icons.dashboard_rounded
                                       : Icons.dashboard_outlined,
+                                  color: Colors.white,
                                 ),
                               ),
-                              const SizedBox(width: 6),
-                              IconButton.filledTonal(
+                              IconButton(
                                 tooltip: widget.ar ? 'الهدايا' : 'Gifts',
                                 onPressed: _liveId == null
                                     ? null
@@ -1101,30 +1102,36 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                           context,
                                           liveId: _liveId!,
                                           service: _liveService,
-                                          hostId:
-                                              FirebaseAuth.instance.currentUser?.uid ??
-                                                  '',
-                                          hostName:
-                                              FirebaseAuth.instance.currentUser
-                                                      ?.displayName ??
-                                                  'WorldVoice host',
+                                          hostId: FirebaseAuth
+                                                  .instance.currentUser?.uid ??
+                                              '',
+                                          hostName: FirebaseAuth.instance
+                                                  .currentUser?.displayName ??
+                                              'WorldVoice host',
                                           ar: widget.ar,
                                         ),
-                                icon: const Icon(Icons.card_giftcard_rounded),
+                                icon: const Icon(
+                                  Icons.card_giftcard_rounded,
+                                  color: Color(0xFFFFC857),
+                                ),
                               ),
-                              const SizedBox(width: 6),
-                              IconButton.filledTonal(
-                                tooltip: widget.ar ? 'مشاركة اللايف' : 'Share Live',
+                              IconButton(
+                                tooltip: widget.ar
+                                    ? 'مشاركة اللايف'
+                                    : 'Share Live',
                                 onPressed:
                                     _liveId == null ? null : _shareHostLive,
-                                icon: const Icon(Icons.share_rounded),
+                                icon: const Icon(
+                                  Icons.share_rounded,
+                                  color: Colors.white,
+                                ),
                               ),
                             ],
                           ),
                         ),
                         if (_requestsOpen && _liveId != null)
                           PositionedDirectional(
-                            bottom: 72,
+                            bottom: 86,
                             start: 14,
                             end: 14,
                             child: _HostJoinRequests(
