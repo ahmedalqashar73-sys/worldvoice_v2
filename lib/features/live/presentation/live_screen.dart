@@ -431,7 +431,6 @@ class _LiveCameraGate extends StatefulWidget {
 
 class _LiveCameraGateState extends State<_LiveCameraGate> {
   final AgoraVoiceRoomController _controller = AgoraVoiceRoomController();
-  int _seconds = 20;
   bool _cameraReady = false;
   bool _starting = false;
   bool _cameraPaused = false;
@@ -445,7 +444,6 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   bool _boardOpen = false;
   bool _sessionClosed = false;
   Timer? _heartbeatTimer;
-  Timer? _cameraFailureTimer;
   Timer? _cameraOffTimer;
   int _cameraOffSeconds = 0;
   String? _channelId;
@@ -455,7 +453,6 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   @override
   void dispose() {
     _heartbeatTimer?.cancel();
-    _cameraFailureTimer?.cancel();
     _cameraOffTimer?.cancel();
     final liveId = _liveId;
     if (liveId != null && !_sessionClosed) {
@@ -511,7 +508,6 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
 
   Future<void> _startCamera() async {
     if (_starting || _cameraReady) return;
-    _cameraFailureTimer?.cancel();
     setState(() {
       _starting = true;
       _cameraStartError = null;
@@ -551,7 +547,6 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
       );
       _startHeartbeat();
       if (!mounted) return;
-      _cameraFailureTimer?.cancel();
       setState(() {
         _cameraReady = true;
         _starting = false;
@@ -564,30 +559,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
         _starting = false;
         _cameraStartError = error.toString();
       });
-      _startFailureCountdown();
     }
-  }
-
-  void _startFailureCountdown() {
-    _cameraFailureTimer?.cancel();
-    _seconds = 20;
-    _cameraFailureTimer =
-        Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!mounted || _cameraReady || _starting) {
-        timer.cancel();
-        return;
-      }
-      if (_seconds <= 1) {
-        timer.cancel();
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted && !_cameraReady && !_starting) {
-            Navigator.of(context).maybePop();
-          }
-        });
-        return;
-      }
-      setState(() => _seconds--);
-    });
   }
 
   Future<void> _toggleHostCamera() async {
@@ -703,8 +675,8 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                               ? 'لا تحتاج تضغط أي زر. يبدأ اللايف فور جاهزية الكاميرا.'
                               : 'No button needed. Live starts as soon as the camera is ready.')
                           : (widget.ar
-                              ? '${_cameraStartError ?? ''}\nسيتم إغلاق الشاشة بعد $_seconds ثانية إذا لم تُعِد المحاولة.'
-                              : '${_cameraStartError ?? ''}\nThis screen closes in $_seconds seconds unless you retry.'),
+                              ? '${_cameraStartError ?? ''}\nاضغط إعادة المحاولة بعد التأكد من الاتصال.'
+                              : '${_cameraStartError ?? ''}\nCheck your connection, then retry.'),
                       textAlign: TextAlign.center,
                       style: const TextStyle(color: Colors.white70),
                     ),
