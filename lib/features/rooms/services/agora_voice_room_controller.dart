@@ -564,8 +564,10 @@ class AgoraVoiceRoomController extends ChangeNotifier {
 
   Future<void> setBeautyPreset(String preset) async {
     final engine = _engine;
-    if (engine == null || !_joined || !_cameraPublishing) {
-      throw StateError('Camera must be publishing before beauty is changed.');
+    final cameraActive =
+        _localPreviewPrepared || (_joined && _cameraPublishing);
+    if (engine == null || !cameraActive) {
+      throw StateError('Camera preview must be active before beauty is changed.');
     }
 
     final normalized = preset.trim().toLowerCase();
@@ -620,7 +622,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
 
   Future<bool> isBeautyAvailable() async {
     final engine = _engine;
-    if (engine == null || !_joined) return false;
+    if (engine == null) return false;
     try {
       return await engine.isFeatureAvailableOnDevice(
         FeatureType.videoBeautyEffect,
@@ -632,7 +634,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
 
   Future<bool> isVirtualBackgroundAvailable() async {
     final engine = _engine;
-    if (engine == null || !_joined) return false;
+    if (engine == null) return false;
     try {
       return await engine.isFeatureAvailableOnDevice(
         FeatureType.videoVirtualBackground,
@@ -644,9 +646,11 @@ class AgoraVoiceRoomController extends ChangeNotifier {
 
   Future<void> setBackgroundBlurEnabled(bool enabled) async {
     final engine = _engine;
-    if (engine == null || !_joined || !_cameraPublishing) {
+    final cameraActive =
+        _localPreviewPrepared || (_joined && _cameraPublishing);
+    if (engine == null || !cameraActive) {
       throw StateError(
-        'Camera must be publishing before background blur is changed.',
+        'Camera preview must be active before background blur is changed.',
       );
     }
     if (enabled && !await isVirtualBackgroundAvailable()) {
@@ -666,7 +670,9 @@ class AgoraVoiceRoomController extends ChangeNotifier {
 
   Future<double> getCameraMaxZoom() async {
     final engine = _engine;
-    if (engine == null || !_joined || !_cameraPublishing) return 1;
+    final cameraActive =
+        _localPreviewPrepared || (_joined && _cameraPublishing);
+    if (engine == null || !cameraActive) return 1;
     try {
       final value = await engine.getCameraMaxZoomFactor();
       if (!value.isFinite || value < 1) return 1;
@@ -679,9 +685,17 @@ class AgoraVoiceRoomController extends ChangeNotifier {
 
   Future<void> setCameraZoom(double factor) async {
     final engine = _engine;
-    if (engine == null || !_joined || !_cameraPublishing) return;
+    final cameraActive =
+        _localPreviewPrepared || (_joined && _cameraPublishing);
+    if (engine == null || !cameraActive) return;
     final max = await getCameraMaxZoom();
     await engine.setCameraZoomFactor(factor.clamp(1.0, max).toDouble());
+  }
+
+  Future<void> switchCamera() async {
+    final engine = _engine;
+    if (engine == null) return;
+    await engine.switchCamera();
   }
 
   Future<void> setMuted(bool value) async {
