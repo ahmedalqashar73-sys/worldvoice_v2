@@ -138,21 +138,18 @@ class LiveScreen extends StatelessWidget {
                       backgroundColor: Colors.white,
                       foregroundColor: const Color(0xFF0B5D46),
                     ),
-                    onPressed: () async {
+                    onPressed: () {
                       unawaited(_warmLiveBackend());
                       final fallback =
                           ProfileLanguageCatalog.byCode(language) == null
                               ? 'en'
                               : language;
-                      final learningCodes =
-                          await _myLearningLanguageCodes(fallback);
-                      if (!context.mounted) return;
-                      await Navigator.of(context).push<void>(
+                      Navigator.of(context).push<void>(
                         MaterialPageRoute(
                           fullscreenDialog: true,
                           builder: (_) => _LiveCameraGate(
                             ar: ar,
-                            learningCodes: learningCodes,
+                            initialLanguageCode: fallback,
                           ),
                         ),
                       );
@@ -281,10 +278,10 @@ Future<List<String>> _myLearningLanguageCodes(String fallback) async {
 class _LiveCameraGate extends StatefulWidget {
   const _LiveCameraGate({
     required this.ar,
-    required this.learningCodes,
+    required this.initialLanguageCode,
   });
   final bool ar;
-  final List<String> learningCodes;
+  final String initialLanguageCode;
 
   @override
   State<_LiveCameraGate> createState() => _LiveCameraGateState();
@@ -294,6 +291,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   final AgoraVoiceRoomController _controller = AgoraVoiceRoomController();
   final TextEditingController _topicController = TextEditingController();
   late String _languageCode;
+  late List<String> _learningCodes;
   bool _previewReady = false;
   bool _preparingPreview = false;
   bool _cameraReady = false;
@@ -383,6 +381,17 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     if (typed.isNotEmpty) return typed;
     final language = ProfileLanguageCatalog.label(_languageCode);
     return widget.ar ? 'نتعلم $language معًا' : 'Practice $language together';
+  }
+
+  Future<void> _loadLearningLanguages() async {
+    final codes = await _myLearningLanguageCodes(widget.initialLanguageCode);
+    if (!mounted || codes.isEmpty) return;
+    setState(() {
+      _learningCodes = codes;
+      if (!_learningCodes.contains(_languageCode)) {
+        _languageCode = _learningCodes.first;
+      }
+    });
   }
 
   Future<void> _preparePreview() async {
@@ -529,10 +538,13 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   @override
   void initState() {
     super.initState();
-    _languageCode = widget.learningCodes.first;
+    _languageCode = widget.initialLanguageCode;
+    _learningCodes = <String>[_languageCode];
     _controller.addListener(_onControllerChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) unawaited(_preparePreview());
+      if (!mounted) return;
+      unawaited(_preparePreview());
+      unawaited(_loadLearningLanguages());
     });
   }
 
@@ -646,7 +658,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        if (widget.learningCodes.length > 1)
+                        if (_learningCodes.length > 1)
                           DropdownButtonFormField<String>(
                             initialValue: _languageCode,
                             isExpanded: true,
@@ -670,7 +682,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                             ),
                             style: const TextStyle(color: Colors.white),
                             items: [
-                              for (final code in widget.learningCodes)
+                              for (final code in _learningCodes)
                                 DropdownMenuItem(
                                   value: code,
                                   child: Text(
