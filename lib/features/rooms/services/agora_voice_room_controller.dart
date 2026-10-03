@@ -44,6 +44,40 @@ class AgoraVoiceRoomController extends ChangeNotifier {
   AgoraRoomRole get role => _role;
   List<int> get remoteSpeakers => _remoteSpeakers.toList(growable: false);
 
+  /// Starts a local camera preview without waiting for a network token.
+  /// Live uses this so the host sees the camera immediately while Agora
+  /// authentication/join happens in the background.
+  Future<void> prepareCameraPreview() async {
+    if (_engine != null) {
+      try {
+        await _engine!.enableVideo();
+        await _engine!.startPreview();
+      } catch (_) {}
+      return;
+    }
+
+    _released = false;
+    _error = null;
+    final engine = createAgoraRtcEngine();
+    _engine = engine;
+    try {
+      await engine.initialize(
+        const RtcEngineContext(
+          appId: AgoraConfig.appId,
+          channelProfile: ChannelProfileType.channelProfileLiveBroadcasting,
+        ),
+      );
+      await engine.enableVideo();
+      await engine.startPreview();
+      notifyListeners();
+    } catch (error) {
+      _error = error.toString();
+      notifyListeners();
+      await leave();
+      rethrow;
+    }
+  }
+
   /// Wait for Agora's join callback, not just the joinChannel request.
   Future<void> ensureConnected({
     required String channelId,
@@ -92,8 +126,9 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       return;
     }
 
-    // A failed asynchronous join can leave an engine allocated.
-    if (_engine != null) await leave();
+    // Reuse a local preview engine when Live prepared the camera before
+    // requesting a token. A stale joined/failed engine is still released.
+    if (_engine != null && _handler != null) await leave();
     _released = false;
     _connecting = true;
     _channelId = channelId;
@@ -111,15 +146,17 @@ class AgoraVoiceRoomController extends ChangeNotifier {
         }
       }
 
-      final engine = createAgoraRtcEngine();
-      _engine = engine;
-
-      await engine.initialize(
-        const RtcEngineContext(
-          appId: AgoraConfig.appId,
-          channelProfile: ChannelProfileType.channelProfileLiveBroadcasting,
-        ),
-      );
+      var engine = _engine;
+      if (engine == null) {
+        engine = createAgoraRtcEngine();
+        _engine = engine;
+        await engine.initialize(
+          const RtcEngineContext(
+            appId: AgoraConfig.appId,
+            channelProfile: ChannelProfileType.channelProfileLiveBroadcasting,
+          ),
+        );
+      }
 
       _handler = RtcEngineEventHandler(
         onJoinChannelSuccess: (connection, elapsed) {
