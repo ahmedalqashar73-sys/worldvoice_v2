@@ -151,7 +151,7 @@ class RoomFeatureService {
   static String get _economyBackend {
     final explicit = _explicitEconomyBackend.trim();
     if (explicit.isNotEmpty) return explicit;
-    return RoomBackendConfig.configuredBaseUrl.trim();
+    return RoomBackendConfig.baseUrl.trim();
   }
 
   /// Existing room caller: the backend alone calculates catalog price.
