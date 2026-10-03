@@ -412,7 +412,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
 
     throw StateError(
       'Agora token service is temporarily unavailable. '
-      'Tried the always-on token worker and configured fallback. '
+      'Tried the fast token worker and the WorldVoice backend fallback. '
       '${lastError ?? ''}',
     );
   }
