@@ -5,18 +5,14 @@ import 'package:flutter/foundation.dart';
 class RoomBackendConfig {
   RoomBackendConfig._();
 
-  // Keep plain `flutter run` working with the existing Agora worker, while
-  // exposing whether a full WorldVoice backend was explicitly configured.
-  static const String configuredBaseUrl =
-      String.fromEnvironment('WORLDVOICE_ROOM_BACKEND_URL');
+  // The deployed unified WorldVoice backend is now the default for plain
+  // `flutter run`. A dart-define can still override it per environment.
+  static const String configuredBaseUrl = String.fromEnvironment(
+    'WORLDVOICE_ROOM_BACKEND_URL',
+    defaultValue: 'https://worldvoice-v2.onrender.com',
+  );
 
-  static const String _agoraWorkerFallback =
-      'https://worldvoice-agora-token.worldvoice.workers.dev';
-
-  static String get baseUrl {
-    final configured = configuredBaseUrl.trim();
-    return configured.isNotEmpty ? configured : _agoraWorkerFallback;
-  }
+  static String get baseUrl => configuredBaseUrl.trim();
 
   static String get configurationError {
     final base = baseUrl.trim();
