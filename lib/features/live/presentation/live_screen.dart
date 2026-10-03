@@ -2256,7 +2256,10 @@ Future<void> _showLiveCameraTools(
   required ValueChanged<double> onZoomChanged,
 }) async {
   final engine = controller.engine;
-  if (engine == null || !controller.cameraPublishing) return;
+  if (engine == null ||
+      (!controller.cameraPublishing && !controller.localPreviewPrepared)) {
+    return;
+  }
 
   final values = await Future.wait<Object>([
     controller.isBeautyAvailable(),
