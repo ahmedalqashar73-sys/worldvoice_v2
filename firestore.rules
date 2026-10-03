@@ -18,6 +18,22 @@ service cloud.firestore {
       return /databases/$(database)/documents/users/$(userId);
     }
 
+    function globalModeratorPath(ownerId, userId) {
+      return /databases/$(database)/documents/users/$(ownerId)/moderators/$(userId);
+    }
+
+    function isGlobalModerator(ownerId, userId) {
+      return signedIn()
+          && ownerId is string
+          && ownerId.size() > 0
+          && exists(globalModeratorPath(ownerId, userId));
+    }
+
+    function isTrustedRoomModerator(roomId, userId) {
+      let hostId = getAfter(roomPath(roomId)).data.hostId;
+      return isGlobalModerator(hostId, userId);
+    }
+
     function backgroundEntitlementPath(userId, themeId) {
       return /databases/$(database)/documents/users/$(userId)/room_backgrounds/$(themeId);
     }
@@ -198,6 +214,16 @@ service cloud.firestore {
 
       // Account deletion must be processed server-side to preserve the ledger.
       allow delete: if false;
+
+      match /moderators/{moderatorUserId} {
+        allow read: if signedIn();
+        allow create, update: if signedIn()
+            && request.auth.uid == userId
+            && moderatorUserId != userId
+            && request.resource.data.uid == moderatorUserId
+            && request.resource.data.assignedBy == userId;
+        allow delete: if signedIn() && request.auth.uid == userId;
+      }
 
       match /following/{targetUserId} {
         allow read: if signedIn();
@@ -580,6 +606,14 @@ service cloud.firestore {
               )
             )
             || (
+              isGlobalModerator(resource.data.hostId, request.auth.uid)
+              && request.resource.data.diff(resource.data).affectedKeys()
+                  .hasOnly(['guestCount', 'updatedAt'])
+              && request.resource.data.guestCount
+                  == resource.data.guestCount + 1
+              && request.resource.data.guestCount <= 3
+            )
+            || (
               request.resource.data.diff(resource.data).affectedKeys()
                   .hasOnly(['guestCount', 'updatedAt'])
               && resource.data.guestCount > 0
@@ -696,6 +730,11 @@ service cloud.firestore {
               userId == request.auth.uid
               || get(/databases/$(database)/documents/live_sessions/$(liveId))
                   .data.hostId == request.auth.uid
+              || isGlobalModerator(
+                get(/databases/$(database)/documents/live_sessions/$(liveId))
+                    .data.hostId,
+                request.auth.uid
+              )
             );
         allow create: if signedIn()
             && userId == request.auth.uid
@@ -705,8 +744,15 @@ service cloud.firestore {
             && request.resource.data.uid == resource.data.uid
             && (
               (
-                get(/databases/$(database)/documents/live_sessions/$(liveId))
-                    .data.hostId == request.auth.uid
+                (
+                  get(/databases/$(database)/documents/live_sessions/$(liveId))
+                      .data.hostId == request.auth.uid
+                  || isGlobalModerator(
+                    get(/databases/$(database)/documents/live_sessions/$(liveId))
+                        .data.hostId,
+                    request.auth.uid
+                  )
+                )
                 && resource.data.status == 'pending'
                 && request.resource.data.status in ['accepted', 'declined']
                 && request.resource.data.diff(resource.data).affectedKeys()
@@ -1006,7 +1052,10 @@ service cloud.firestore {
             && userId == request.auth.uid
             && request.resource.data.uid == request.auth.uid
             && request.resource.data.handRaised == false
-            && request.resource.data.isModerator == false
+            && (
+              request.resource.data.isModerator == false
+              || isTrustedRoomModerator(roomId, userId)
+            )
             && request.resource.data.warningCount == 0
             && request.resource.data.forcedMuted == false
             && request.resource.data.kicked == false
@@ -1075,7 +1124,10 @@ service cloud.firestore {
                       'joinedAt',
                       'updatedAt'
                     ])
-                && request.resource.data.isModerator == false
+                && (
+                  request.resource.data.isModerator == false
+                  || isTrustedRoomModerator(roomId, userId)
+                )
                 && request.resource.data.warningCount == 0
                 && request.resource.data.forcedMuted == false
                 && request.resource.data.kicked == false
