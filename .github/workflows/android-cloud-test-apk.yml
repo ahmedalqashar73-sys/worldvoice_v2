@@ -72,7 +72,7 @@ jobs:
             --dart-define=WORLDVOICE_FRIEND_GIFT_PREVIEW=true \
             --dart-define=AGORA_APP_ID=fa41476c6813471eb45c059bcb4a0e19 \
             --dart-define=WORLDVOICE_ROOM_BACKEND_URL=https://worldvoice-v2.onrender.com \
-            --dart-define=AGORA_TOKEN_ENDPOINT=https://worldvoice-v2.onrender.com/agora/token \
+            --dart-define=AGORA_TOKEN_ENDPOINT=https://worldvoice-agora-token.worldvoice.workers.dev/agora/token \
             --dart-define=WORLDVOICE_ECONOMY_ENDPOINT=https://worldvoice-v2.onrender.com \
             -v 2>&1 | tee android-build.log
 
