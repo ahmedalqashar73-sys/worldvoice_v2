@@ -9,11 +9,13 @@ on:
     paths:
       - ".github/workflows/android-cloud-test-apk.yml"
       - "lib/features/rooms/**"
+      - "lib/features/live/**"
       - "lib/features/chat/**"
       - "assets/gifts/**"
       - "test/friend_gift_preview_test.dart"
       - "pubspec.yaml"
       - "android/app/src/main/AndroidManifest.xml"
+      - "android/app/src/main/kotlin/**"
       - "android/app/src/main/res/xml/**"
   workflow_dispatch:
 
