@@ -2730,6 +2730,197 @@ Future<void> _showLiveChat(
   ).whenComplete(input.dispose);
 }
 
+Future<void> _showLiveModeratorManagement(
+  BuildContext context, {
+  required String liveId,
+  required LiveSessionService service,
+  required bool ar,
+}) {
+  final hostId = FirebaseAuth.instance.currentUser?.uid ?? '';
+  if (hostId.isEmpty) return Future<void>.value();
+
+  return showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    backgroundColor: Colors.transparent,
+    builder: (sheetContext) => Container(
+      height: MediaQuery.sizeOf(sheetContext).height * .72,
+      decoration: const BoxDecoration(
+        color: Color(0xF2141716),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 14, 10, 8),
+            child: Row(
+              children: [
+                const CircleAvatar(
+                  backgroundColor: Color(0xFF174D3D),
+                  child: Icon(
+                    Icons.admin_panel_settings_rounded,
+                    color: Color(0xFFFFD77A),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        ar ? 'مودريتر WorldVoice' : 'WorldVoice moderators',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      Text(
+                        ar
+                            ? 'المودريتر الذي تعيّنه هنا يبقى مودريتر في اللايف والرومات الصوتية التابعة لك.'
+                            : 'A moderator assigned here stays moderator across your Live and voice rooms.',
+                        style: const TextStyle(
+                          color: Colors.white60,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => Navigator.pop(sheetContext),
+                  icon: const Icon(Icons.close_rounded, color: Colors.white),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: Colors.white12),
+          Expanded(
+            child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              stream: service.watchGlobalModerators(hostId),
+              builder: (context, moderatorSnapshot) {
+                final moderatorDocs = moderatorSnapshot.data?.docs ??
+                    const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
+                final moderatorIds =
+                    moderatorDocs.map((doc) => doc.id).toSet();
+                return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                  stream: service.watchViewers(liveId),
+                  builder: (context, viewerSnapshot) {
+                    final viewers = viewerSnapshot.data?.docs ??
+                        const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
+                    if (viewers.isEmpty && moderatorDocs.isEmpty) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(28),
+                          child: Text(
+                            ar
+                                ? 'عندما يدخل المشاهدون تقدر تعيّن الموثوقين كمودريتر.'
+                                : 'When viewers join, you can assign trusted people as moderators.',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(color: Colors.white60),
+                          ),
+                        ),
+                      );
+                    }
+
+                    final byId = <String, Map<String, dynamic>>{
+                      for (final doc in moderatorDocs)
+                        doc.id: <String, dynamic>{...doc.data()},
+                      for (final doc in viewers)
+                        doc.id: <String, dynamic>{...doc.data()},
+                    };
+                    final entries = byId.entries.toList()
+                      ..sort((a, b) {
+                        final am = moderatorIds.contains(a.key);
+                        final bm = moderatorIds.contains(b.key);
+                        if (am != bm) return am ? -1 : 1;
+                        return (a.value['displayName'] ?? '')
+                            .toString()
+                            .compareTo(
+                              (b.value['displayName'] ?? '').toString(),
+                            );
+                      });
+
+                    return ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(12, 10, 12, 24),
+                      itemCount: entries.length,
+                      separatorBuilder: (_, __) =>
+                          const Divider(height: 1, color: Colors.white10),
+                      itemBuilder: (context, index) {
+                        final entry = entries[index];
+                        final data = entry.value;
+                        final selected = moderatorIds.contains(entry.key);
+                        final name =
+                            (data['displayName'] ?? 'WorldVoice user')
+                                .toString();
+                        final photo =
+                            (data['photoUrl'] ?? '').toString().trim();
+                        return ListTile(
+                          leading: CircleAvatar(
+                            backgroundImage:
+                                photo.isEmpty ? null : NetworkImage(photo),
+                            child: photo.isEmpty
+                                ? const Icon(Icons.person_rounded)
+                                : null,
+                          ),
+                          title: Text(
+                            name,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          subtitle: Text(
+                            selected
+                                ? (ar
+                                    ? 'مودريتر في Live + Voice Rooms'
+                                    : 'Moderator in Live + Voice Rooms')
+                                : (ar
+                                    ? 'مشاهد'
+                                    : 'Viewer'),
+                            style: TextStyle(
+                              color: selected
+                                  ? const Color(0xFFFFD77A)
+                                  : Colors.white54,
+                            ),
+                          ),
+                          trailing: Switch(
+                            value: selected,
+                            onChanged: (value) async {
+                              try {
+                                await service.setGlobalModerator(
+                                  liveId: liveId,
+                                  targetUserId: entry.key,
+                                  displayName: name,
+                                  photoUrl: photo,
+                                  value: value,
+                                );
+                              } catch (error) {
+                                if (!sheetContext.mounted) return;
+                                ScaffoldMessenger.of(sheetContext)
+                                    .showSnackBar(
+                                  SnackBar(
+                                    content: Text(error.toString()),
+                                  ),
+                                );
+                              }
+                            },
+                          ),
+                        );
+                      },
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
 class _HostJoinRequests extends StatelessWidget {
   const _HostJoinRequests({
     required this.liveId,
