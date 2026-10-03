@@ -321,6 +321,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
 
   @override
   void dispose() {
+    _topicController.dispose();
     _controller.removeListener(_onControllerChanged);
     _heartbeatTimer?.cancel();
     _cameraOffTimer?.cancel();
@@ -624,11 +625,15 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                     borderRadius: BorderRadius.circular(24),
                     border: Border.all(color: Colors.white24),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.sizeOf(context).height * .58,
+                    ),
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
                         TextField(
                           controller: _topicController,
                           enabled: !_starting,
@@ -821,7 +826,8 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                             ),
                           ),
                         ],
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
