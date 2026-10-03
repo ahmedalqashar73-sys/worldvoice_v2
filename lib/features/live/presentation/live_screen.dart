@@ -1694,6 +1694,12 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
       builder: (_) => RoomTeacherAiSheet(
         service: _teacherAi,
         roomLanguageCode: widget.roomLanguageCode,
+        closeAfterAnswer: true,
+        onAnswer: (answer) {
+          unawaited(
+            _speakLiveTeacher(answer, widget.roomLanguageCode),
+          );
+        },
       ),
     );
   }
