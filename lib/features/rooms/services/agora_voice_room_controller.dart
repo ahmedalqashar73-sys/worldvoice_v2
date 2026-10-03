@@ -325,7 +325,11 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     required String channelId,
     required AgoraRoomRole role,
   }) async {
-    final endpoints = AgoraConfig.tokenEndpoints;
+    final endpoints = <String>[
+      ...AgoraConfig.tokenEndpoints,
+      if (RoomBackendConfig.configurationError.isEmpty)
+        RoomBackendConfig.endpoint('/agora/token'),
+    ].where((value) => value.trim().isNotEmpty).toSet().toList(growable: false);
     if (endpoints.isEmpty) {
       if (AgoraConfig.tempToken.trim().isNotEmpty) {
         return (token: AgoraConfig.tempToken, uid: 0);
@@ -365,7 +369,11 @@ class AgoraVoiceRoomController extends ChangeNotifier {
                     role == AgoraRoomRole.speaker ? 'publisher' : 'subscriber',
               }),
             )
-            .timeout(const Duration(seconds: 8));
+            .timeout(
+              endpoint == AgoraConfig.stableTokenEndpoint
+                  ? const Duration(seconds: 10)
+                  : const Duration(seconds: 35),
+            );
 
         if (response.statusCode < 200 || response.statusCode >= 300) {
           String detail = '';
