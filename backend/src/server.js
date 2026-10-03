@@ -28,16 +28,13 @@ const firebaseProjectId = (
   process.env.GOOGLE_CLOUD_PROJECT ||
   ""
 ).trim();
-if (process.env.NODE_ENV === "production") {
-  for (const key of ["AGORA_APP_ID", "AGORA_APP_CERTIFICATE"]) {
-    if (!(process.env[key] || "").trim()) {
-      throw new Error(`Cannot start production backend: missing ${key}`);
-    }
-  }
-  if (!firebaseProjectId) {
-    throw new Error("Cannot start production backend: missing FIREBASE_PROJECT_ID");
-  }
+if (process.env.NODE_ENV === "production" && !firebaseProjectId) {
+  throw new Error("Cannot start production backend: missing FIREBASE_PROJECT_ID");
 }
+// Agora credentials are required only by /agora/token. Production deployments
+// may intentionally keep the certificate solely in the existing Cloudflare
+// token Worker and use this service for Teacher AI, gifts, wallet and stores.
+
 if (getApps().length === 0) {
   const rawServiceAccount = String(
     process.env.FIREBASE_SERVICE_ACCOUNT_JSON || "",
