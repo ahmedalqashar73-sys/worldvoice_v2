@@ -310,6 +310,67 @@ class _LiveSetupSheetState extends State<_LiveSetupSheet> {
   final TextEditingController _topic = TextEditingController();
   late String _languageCode;
 
+  Future<void> _toggleHostCamera() async {
+    if (!_cameraReady || _controller.engine == null) return;
+    final turnOff = !_cameraPaused;
+    try {
+      await _controller.setCameraPublishing(!turnOff);
+      if (!mounted) return;
+      setState(() => _cameraPaused = turnOff);
+      if (turnOff) {
+        _startCameraOffGracePeriod();
+      } else {
+        _cameraOffTimer?.cancel();
+        _cameraOffSeconds = 0;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              widget.ar
+                  ? 'تم تشغيل الكاميرا من جديد.'
+                  : 'Camera is back on.',
+            ),
+          ),
+        );
+      }
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
+    }
+  }
+
+  void _startCameraOffGracePeriod() {
+    _cameraOffTimer?.cancel();
+    _cameraOffSeconds = 0;
+    _cameraOffTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted || !_cameraPaused || _sessionClosed) {
+        timer.cancel();
+        return;
+      }
+      _cameraOffSeconds += 1;
+      if (_cameraOffSeconds == 20 ||
+          _cameraOffSeconds == 60 ||
+          _cameraOffSeconds == 120) {
+        final remaining = 180 - _cameraOffSeconds;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 6),
+            content: Text(
+              widget.ar
+                  ? 'الكاميرا مغلقة. شغّلها للاستمرار في اللايف. سيتم إنهاء اللايف بعد $remaining ثانية.'
+                  : 'Your camera is off. Turn it back on to keep the Live running. Live ends in $remaining seconds.',
+            ),
+          ),
+        );
+      }
+      if (_cameraOffSeconds >= 180) {
+        timer.cancel();
+        unawaited(_endLiveAndPop());
+      }
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -434,6 +495,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   int _seconds = 20;
   bool _cameraReady = false;
   bool _starting = false;
+  bool _cameraPaused = false;
   String? _cameraStartError;
   bool _micMuted = false;
   bool _beautyEnabled = false;
@@ -445,6 +507,8 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   bool _sessionClosed = false;
   Timer? _heartbeatTimer;
   Timer? _cameraFailureTimer;
+  Timer? _cameraOffTimer;
+  int _cameraOffSeconds = 0;
   String? _channelId;
   String? _liveId;
   final LiveSessionService _liveService = LiveSessionService();
@@ -453,6 +517,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   void dispose() {
     _heartbeatTimer?.cancel();
     _cameraFailureTimer?.cancel();
+    _cameraOffTimer?.cancel();
     final liveId = _liveId;
     if (liveId != null && !_sessionClosed) {
       unawaited(_liveService.end(liveId).catchError((Object _) {}));
@@ -479,6 +544,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     if (_sessionClosed) return;
     _sessionClosed = true;
     _heartbeatTimer?.cancel();
+    _cameraOffTimer?.cancel();
     final liveId = _liveId;
     if (liveId != null) {
       try {
@@ -550,6 +616,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
       setState(() {
         _cameraReady = true;
         _starting = false;
+        _cameraPaused = false;
         _cameraStartError = null;
       });
     } catch (error) {
@@ -672,19 +739,45 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                   builder: (context, _) {
                     final remote = _controller.remoteSpeakers.take(3).toList();
                     final tiles = <Widget>[
-                      _PinchZoomCameraView(
-                        controller: _controller,
-                        zoom: _cameraZoom,
-                        onZoomChanged: (value) {
-                          if (mounted) setState(() => _cameraZoom = value);
-                        },
-                        child: AgoraVideoView(
-                          controller: VideoViewController(
-                            rtcEngine: _controller.engine!,
-                            canvas: const VideoCanvas(uid: 0),
-                          ),
-                        ),
-                      ),
+                      _cameraPaused
+                          ? ColoredBox(
+                              color: Colors.black,
+                              child: Center(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Icons.videocam_off_rounded,
+                                      color: Colors.white70,
+                                      size: 56,
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Text(
+                                      widget.ar
+                                          ? 'الكاميرا مغلقة'
+                                          : 'Camera off',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                          : _PinchZoomCameraView(
+                              controller: _controller,
+                              zoom: _cameraZoom,
+                              onZoomChanged: (value) {
+                                if (mounted) setState(() => _cameraZoom = value);
+                              },
+                              child: AgoraVideoView(
+                                controller: VideoViewController(
+                                  rtcEngine: _controller.engine!,
+                                  canvas: const VideoCanvas(uid: 0),
+                                ),
+                              ),
+                            ),
                       for (final uid in remote)
                         AgoraVideoView(
                           controller: VideoViewController.remote(
@@ -721,12 +814,20 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                               child: SizedBox(
                                 width: 110,
                                 height: 150,
-                                child: AgoraVideoView(
-                                  controller: VideoViewController(
-                                    rtcEngine: _controller.engine!,
-                                    canvas: const VideoCanvas(uid: 0),
-                                  ),
-                                ),
+                                child: _cameraPaused
+                                    ? const ColoredBox(
+                                        color: Colors.black,
+                                        child: Icon(
+                                          Icons.videocam_off_rounded,
+                                          color: Colors.white70,
+                                        ),
+                                      )
+                                    : AgoraVideoView(
+                                        controller: VideoViewController(
+                                          rtcEngine: _controller.engine!,
+                                          canvas: const VideoCanvas(uid: 0),
+                                        ),
+                                      ),
                               ),
                             ),
                           ),
@@ -901,6 +1002,18 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                           child: Row(
                             children: [
                               IconButton.filled(
+                                tooltip: _cameraPaused
+                                    ? (widget.ar ? 'تشغيل الكاميرا' : 'Turn camera on')
+                                    : (widget.ar ? 'إيقاف الكاميرا' : 'Turn camera off'),
+                                onPressed: _toggleHostCamera,
+                                icon: Icon(
+                                  _cameraPaused
+                                      ? Icons.videocam_off_rounded
+                                      : Icons.videocam_rounded,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton.filled(
                                 tooltip: widget.ar ? 'المايك' : 'Microphone',
                                 onPressed: () async {
                                   final next = !_micMuted;
@@ -912,7 +1025,9 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                               const SizedBox(width: 8),
                               IconButton.filled(
                                 tooltip: widget.ar ? 'الفلاتر والكاميرا' : 'Filters & camera',
-                                onPressed: () => _showLiveCameraTools(
+                                onPressed: _cameraPaused
+                                    ? null
+                                    : () => _showLiveCameraTools(
                                   context,
                                   controller: _controller,
                                   ar: widget.ar,
