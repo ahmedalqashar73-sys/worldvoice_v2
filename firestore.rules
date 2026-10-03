@@ -443,6 +443,47 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // -------------------------
+    // STORIES
+    // -------------------------
+    // Stories are social content only. They never carry wallet/economy state.
+    // A signed-in user may read active story documents, while only the owner
+    // may create or remove their own story.
+    match /stories/{storyId} {
+      allow read: if signedIn();
+
+      allow create: if signedIn()
+          && request.resource.data.ownerId == request.auth.uid
+          && request.resource.data.ownerName is string
+          && request.resource.data.ownerName.size() > 0
+          && request.resource.data.ownerName.size() <= 100
+          && request.resource.data.ownerPhotoUrl is string
+          && request.resource.data.mediaUrl is string
+          && request.resource.data.mediaUrl.size() > 0
+          && request.resource.data.mediaType in ['image', 'video']
+          && request.resource.data.get('caption', '') is string
+          && request.resource.data.get('caption', '').size() <= 300
+          && request.resource.data.active == true
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.expiresAt is timestamp
+          && request.resource.data.expiresAt > request.time
+          && request.resource.data.expiresAt
+              <= request.time + duration.value(24, 'h');
+
+      allow update: if signedIn()
+          && resource.data.ownerId == request.auth.uid
+          && request.resource.data.ownerId == resource.data.ownerId
+          && request.resource.data.createdAt == resource.data.createdAt
+          && request.resource.data.expiresAt == resource.data.expiresAt
+          && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['caption', 'active'])
+          && request.resource.data.get('caption', '') is string
+          && request.resource.data.get('caption', '').size() <= 300;
+
+      allow delete: if signedIn()
+          && resource.data.ownerId == request.auth.uid;
+    }
+
     // Verified chat membership is written ONLY by the trusted backend.
     // The client may read a chat only when a stored participant.
     match /chats/{chatId} {
