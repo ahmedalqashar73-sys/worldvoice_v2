@@ -159,14 +159,6 @@ class _ChatCallScreenState extends State<ChatCallScreen> {
   bool get _video => (_call['callType'] ?? 'audio') == 'video';
   String get _channelId => (_call['channelId'] ?? '').toString();
 
-  String get _peerId {
-    final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
-    return (_call['callerId'] == uid
-            ? _call['calleeId']
-            : _call['callerId'])
-        .toString();
-  }
-
   String get _peerName {
     final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
     return (_call['callerId'] == uid
