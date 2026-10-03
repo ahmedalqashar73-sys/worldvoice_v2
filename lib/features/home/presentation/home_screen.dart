@@ -1,13 +1,8 @@
-import 'dart:async';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/ads/free_home_banner.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../../chat/presentation/chat_screen.dart';
-import '../../chat/presentation/chat_call_screen.dart';
 import '../../discover/presentation/discover_screen.dart';
 import '../../profile/presentation/user_profile_screen.dart';
 import '../../rooms/presentation/rooms_hub_screen.dart';
@@ -23,145 +18,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _index = 0;
-  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _incomingCallSub;
-  final Set<String> _handledIncomingCallIds = <String>{};
-  bool _incomingDialogOpen = false;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _listenForIncomingCalls();
-    });
-  }
-
-  void _listenForIncomingCalls() {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null || _incomingCallSub != null) return;
-
-    _incomingCallSub = FirebaseFirestore.instance
-        .collection('calls')
-        .where('calleeId', isEqualTo: uid)
-        .limit(20)
-        .snapshots()
-        .listen((snapshot) {
-      if (!mounted || _incomingDialogOpen) return;
-
-      final now = DateTime.now();
-      for (final doc in snapshot.docs) {
-        if (_handledIncomingCallIds.contains(doc.id)) continue;
-        final data = doc.data();
-        if (data['status'] != 'ringing') continue;
-        final createdAt = data['createdAt'];
-        if (createdAt is! Timestamp) continue;
-        if (now.difference(createdAt.toDate()).abs() >
-            const Duration(seconds: 90)) {
-          continue;
-        }
-
-        _handledIncomingCallIds.add(doc.id);
-        _incomingDialogOpen = true;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            unawaited(_showIncomingCall(doc.id, data));
-          } else {
-            _incomingDialogOpen = false;
-          }
-        });
-        break;
-      }
-    }, onError: (Object error, StackTrace stackTrace) {
-      debugPrint('WorldVoice incoming call listener unavailable: $error');
-    });
-  }
-
-  Future<void> _showIncomingCall(
-    String callId,
-    Map<String, dynamic> data,
-  ) async {
-    final code = widget.localeController.locale?.languageCode ??
-        Localizations.localeOf(context).languageCode;
-    final ar = code == 'ar';
-    final callerName = (data['callerName'] ?? 'WorldVoice').toString();
-    final photo = (data['callerPhotoUrl'] ?? '').toString().trim();
-    final video = data['callType'] == 'video';
-
-    final accepted = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(
-          video
-              ? (ar ? 'مكالمة فيديو واردة' : 'Incoming video call')
-              : (ar ? 'مكالمة صوتية واردة' : 'Incoming voice call'),
-        ),
-        content: Row(
-          children: [
-            CircleAvatar(
-              radius: 28,
-              backgroundImage: photo.isEmpty ? null : NetworkImage(photo),
-              child: photo.isEmpty
-                  ? const Icon(Icons.person_rounded, size: 28)
-                  : null,
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Text(
-                callerName,
-                style: const TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton.icon(
-            onPressed: () async {
-              await ChatCallScreen.declineIncoming(callId: callId);
-              if (dialogContext.mounted) {
-                Navigator.of(dialogContext).pop(false);
-              }
-            },
-            icon: const Icon(Icons.call_end_rounded),
-            label: Text(ar ? 'رفض' : 'Decline'),
-          ),
-          FilledButton.icon(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            icon: Icon(video ? Icons.videocam_rounded : Icons.call_rounded),
-            label: Text(ar ? 'قبول' : 'Accept'),
-          ),
-        ],
-      ),
-    );
-
-    _incomingDialogOpen = false;
-    if (!mounted || accepted != true) return;
-
-    try {
-      await ChatCallScreen.acceptIncoming(
-        context,
-        callId: callId,
-        data: data,
-      );
-    } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            error.toString().replaceFirst('Bad state: ', ''),
-          ),
-        ),
-      );
-    }
-  }
-
-  @override
-  void dispose() {
-    unawaited(_incomingCallSub?.cancel());
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
