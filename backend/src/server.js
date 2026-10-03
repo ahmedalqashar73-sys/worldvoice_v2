@@ -526,6 +526,14 @@ app.post("/agora/token", async (req, res, next) => {
             error: "This viewer is not approved to publish Live video.",
           });
         }
+      } else if (live.hostId !== user.uid) {
+        const viewerSnap = await liveRef.collection("viewers")
+          .doc(user.uid).get();
+        if (!viewerSnap.exists || viewerSnap.data()?.uid !== user.uid) {
+          return res.status(403).json({
+            error: "Join the Live before subscribing.",
+          });
+        }
       }
     } else {
       // A signed-in user may bootstrap a brand-new Live publisher channel.
