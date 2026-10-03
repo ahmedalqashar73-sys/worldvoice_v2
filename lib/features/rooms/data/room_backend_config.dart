@@ -5,13 +5,18 @@ import 'package:flutter/foundation.dart';
 class RoomBackendConfig {
   RoomBackendConfig._();
 
-  // The existing public, persistent WorldVoice token Worker. Having the
-  // same fallback as the Android test build makes plain `flutter run` work
-  // without fragile per-terminal launch flags. Override for other environments.
-  static const String baseUrl = String.fromEnvironment(
-    'WORLDVOICE_ROOM_BACKEND_URL',
-    defaultValue: 'https://worldvoice-agora-token.worldvoice.workers.dev',
-  );
+  // Keep plain `flutter run` working with the existing Agora worker, while
+  // exposing whether a full WorldVoice backend was explicitly configured.
+  static const String configuredBaseUrl =
+      String.fromEnvironment('WORLDVOICE_ROOM_BACKEND_URL');
+
+  static const String _agoraWorkerFallback =
+      'https://worldvoice-agora-token.worldvoice.workers.dev';
+
+  static String get baseUrl {
+    final configured = configuredBaseUrl.trim();
+    return configured.isNotEmpty ? configured : _agoraWorkerFallback;
+  }
 
   static String get configurationError {
     final base = baseUrl.trim();
