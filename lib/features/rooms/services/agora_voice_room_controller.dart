@@ -468,21 +468,62 @@ class AgoraVoiceRoomController extends ChangeNotifier {
 
   /// Live-only camera controls. These are additive and do not alter the
   /// existing Rooms camera/audio flow unless explicitly called.
-  Future<void> setBeautyEnabled(bool enabled) async {
+  Future<void> setBeautyEnabled(bool enabled) =>
+      setBeautyPreset(enabled ? 'natural' : 'off');
+
+  Future<void> setBeautyPreset(String preset) async {
     final engine = _engine;
     if (engine == null || !_joined || !_cameraPublishing) {
       throw StateError('Camera must be publishing before beauty is changed.');
     }
+
+    final normalized = preset.trim().toLowerCase();
+    if (normalized == 'off') {
+      await engine.setBeautyEffectOptions(
+        enabled: false,
+        options: const BeautyOptions(),
+      );
+      return;
+    }
+
+    final options = switch (normalized) {
+      'soft' => BeautyOptions(
+          lighteningContrastLevel:
+              LighteningContrastLevel.lighteningContrastNormal,
+          lighteningLevel: 0.18,
+          smoothnessLevel: 0.52,
+          rednessLevel: 0.05,
+          sharpnessLevel: 0.06,
+        ),
+      'bright' => BeautyOptions(
+          lighteningContrastLevel:
+              LighteningContrastLevel.lighteningContrastHigh,
+          lighteningLevel: 0.38,
+          smoothnessLevel: 0.28,
+          rednessLevel: 0.05,
+          sharpnessLevel: 0.14,
+        ),
+      'clean' => BeautyOptions(
+          lighteningContrastLevel:
+              LighteningContrastLevel.lighteningContrastNormal,
+          lighteningLevel: 0.24,
+          smoothnessLevel: 0.22,
+          rednessLevel: 0.02,
+          sharpnessLevel: 0.22,
+        ),
+      _ => BeautyOptions(
+          lighteningContrastLevel:
+              LighteningContrastLevel.lighteningContrastNormal,
+          lighteningLevel: 0.22,
+          smoothnessLevel: 0.32,
+          rednessLevel: 0.06,
+          sharpnessLevel: 0.12,
+        ),
+    };
+
     await engine.setBeautyEffectOptions(
-      enabled: enabled,
-      options: BeautyOptions(
-        lighteningContrastLevel:
-            LighteningContrastLevel.lighteningContrastNormal,
-        lighteningLevel: 0.22,
-        smoothnessLevel: 0.32,
-        rednessLevel: 0.06,
-        sharpnessLevel: 0.12,
-      ),
+      enabled: true,
+      options: options,
     );
   }
 
