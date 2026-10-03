@@ -911,17 +911,23 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                               ),
                               const SizedBox(width: 8),
                               IconButton.filled(
-                                tooltip: widget.ar ? 'أدوات الكاميرا' : 'Camera tools',
+                                tooltip: widget.ar ? 'الفلاتر والكاميرا' : 'Filters & camera',
                                 onPressed: () => _showLiveCameraTools(
                                   context,
                                   controller: _controller,
                                   ar: widget.ar,
                                   beautyEnabled: _beautyEnabled,
+                                  filterPreset: _filterPreset,
                                   backgroundBlurEnabled: _backgroundBlurEnabled,
                                   zoom: _cameraZoom,
                                   onBeautyChanged: (value) {
                                     if (mounted) {
                                       setState(() => _beautyEnabled = value);
+                                    }
+                                  },
+                                  onFilterPresetChanged: (value) {
+                                    if (mounted) {
+                                      setState(() => _filterPreset = value);
                                     }
                                   },
                                   onBackgroundBlurChanged: (value) {
@@ -983,6 +989,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   bool _hostSeen = false;
   bool _guestMicMuted = false;
   bool _guestBeautyEnabled = false;
+  String _guestFilterPreset = 'off';
   bool _guestBackgroundBlurEnabled = false;
   double _guestCameraZoom = 1;
   bool _boardOpen = false;
@@ -1376,6 +1383,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                   controller: _controller,
                                   ar: widget.ar,
                                   beautyEnabled: _guestBeautyEnabled,
+                                  filterPreset: _guestFilterPreset,
                                   backgroundBlurEnabled:
                                       _guestBackgroundBlurEnabled,
                                   zoom: _guestCameraZoom,
@@ -1383,6 +1391,13 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                     if (mounted) {
                                       setState(
                                         () => _guestBeautyEnabled = value,
+                                      );
+                                    }
+                                  },
+                                  onFilterPresetChanged: (value) {
+                                    if (mounted) {
+                                      setState(
+                                        () => _guestFilterPreset = value,
                                       );
                                     }
                                   },
@@ -2034,9 +2049,11 @@ Future<void> _showLiveCameraTools(
   required AgoraVoiceRoomController controller,
   required bool ar,
   required bool beautyEnabled,
+  required String filterPreset,
   required bool backgroundBlurEnabled,
   required double zoom,
   required ValueChanged<bool> onBeautyChanged,
+  required ValueChanged<String> onFilterPresetChanged,
   required ValueChanged<bool> onBackgroundBlurChanged,
   required ValueChanged<double> onZoomChanged,
 }) async {
@@ -2054,6 +2071,7 @@ Future<void> _showLiveCameraTools(
   final blurAvailable = values[1] as bool;
   final maxZoom = values[2] as double;
   var localBeauty = beautyEnabled;
+  var localPreset = filterPreset;
   var localBlur = backgroundBlurEnabled;
   var localZoom = zoom.clamp(1.0, maxZoom < 1 ? 1.0 : maxZoom).toDouble();
 
@@ -2068,40 +2086,74 @@ Future<void> _showLiveCameraTools(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              ar ? 'أدوات الكاميرا' : 'Camera tools',
+              ar ? 'الفلاتر والكاميرا' : 'Filters & camera',
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 8),
-            SwitchListTile(
+            ListTile(
               contentPadding: EdgeInsets.zero,
-              secondary: const Icon(Icons.face_retouching_natural_rounded),
-              title: Text(ar ? 'Beauty خفيف' : 'Subtle beauty'),
+              leading: const Icon(Icons.auto_awesome_rounded),
+              title: Text(ar ? 'فلاتر الوجه' : 'Face filters'),
               subtitle: Text(
                 beautyAvailable
                     ? (ar
-                        ? 'تنعيم وإضاءة خفيفة بدون تغيير الملامح.'
-                        : 'Light smoothing and brightness without reshaping.')
+                        ? 'اختر فلترًا لنفسك مثل تطبيقات اللايف.'
+                        : 'Choose a subtle Live-style filter for yourself.')
                     : (ar
-                        ? 'غير مدعوم على هذا الجهاز.'
-                        : 'Not supported on this device.'),
+                        ? 'الفلاتر غير مدعومة على هذا الجهاز.'
+                        : 'Filters are not supported on this device.'),
               ),
-              value: localBeauty && beautyAvailable,
-              onChanged: !beautyAvailable
-                  ? null
-                  : (value) async {
-                      try {
-                        await controller.setBeautyEnabled(value);
-                        localBeauty = value;
-                        onBeautyChanged(value);
-                        refresh(() {});
-                      } catch (error) {
-                        if (!sheetContext.mounted) return;
-                        ScaffoldMessenger.of(sheetContext).showSnackBar(
-                          SnackBar(content: Text(error.toString())),
-                        );
-                      }
-                    },
             ),
+            if (beautyAvailable)
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    for (final preset in const <String>[
+                      'off',
+                      'natural',
+                      'soft',
+                      'bright',
+                      'clean',
+                    ]) ...[
+                      ChoiceChip(
+                        selected: localPreset == preset,
+                        avatar: Icon(
+                          preset == 'off'
+                              ? Icons.block_rounded
+                              : Icons.face_retouching_natural_rounded,
+                          size: 17,
+                        ),
+                        label: Text(
+                          switch (preset) {
+                            'off' => ar ? 'بدون' : 'Off',
+                            'natural' => ar ? 'طبيعي' : 'Natural',
+                            'soft' => ar ? 'ناعم' : 'Soft',
+                            'bright' => ar ? 'مشرق' : 'Bright',
+                            _ => ar ? 'نظيف' : 'Clean',
+                          },
+                        ),
+                        onSelected: (_) async {
+                          try {
+                            await controller.setBeautyPreset(preset);
+                            localPreset = preset;
+                            localBeauty = preset != 'off';
+                            onFilterPresetChanged(preset);
+                            onBeautyChanged(localBeauty);
+                            refresh(() {});
+                          } catch (error) {
+                            if (!sheetContext.mounted) return;
+                            ScaffoldMessenger.of(sheetContext).showSnackBar(
+                              SnackBar(content: Text(error.toString())),
+                            );
+                          }
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                  ],
+                ),
+              ),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               secondary: const Icon(Icons.blur_on_rounded),
