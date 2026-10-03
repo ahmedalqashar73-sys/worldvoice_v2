@@ -482,26 +482,57 @@ app.post("/agora/token", async (req, res, next) => {
     requireEnv(agoraCertificate, "AGORA_APP_CERTIFICATE");
 
     const roomRef = db.collection("rooms").doc(channelName);
-    const participantRef = roomRef.collection("participants").doc(user.uid);
-
-    const [roomSnap, participantSnap] = await Promise.all([
+    const liveRef = db.collection("live_sessions").doc(channelName);
+    const [roomSnap, liveSnap] = await Promise.all([
       roomRef.get(),
-      participantRef.get(),
+      liveRef.get(),
     ]);
 
-    if (!roomSnap.exists || roomSnap.data()?.isOpen !== true) {
-      return res.status(404).json({ error: "Room is not open." });
-    }
+    if (roomSnap.exists) {
+      if (roomSnap.data()?.isOpen !== true) {
+        return res.status(404).json({error: "Room is not open."});
+      }
+      const participantSnap =
+        await roomRef.collection("participants").doc(user.uid).get();
+      if (!participantSnap.exists) {
+        return res.status(403).json({error: "User is not a room participant."});
+      }
+      const participant = participantSnap.data() || {};
+      if (requestedRole === "publisher" && !isStageRole(participant.role)) {
+        return res.status(403).json({
+          error: "This participant is not allowed to publish room audio.",
+        });
+      }
+    } else if (liveSnap.exists) {
+      const live = liveSnap.data() || {};
+      const heartbeatMs = live.hostHeartbeatAt?.toMillis?.() ?? 0;
+      const fresh = live.isLive === true &&
+        live.channelId === channelName &&
+        heartbeatMs > Date.now() - 60000;
+      if (!fresh) {
+        return res.status(404).json({error: "Live session is not active."});
+      }
 
-    if (!participantSnap.exists) {
-      return res.status(403).json({ error: "User is not a room participant." });
-    }
-
-    const participant = participantSnap.data() || {};
-    if (requestedRole === "publisher" && !isStageRole(participant.role)) {
-      return res.status(403).json({
-        error: "This participant is not allowed to publish room audio.",
-      });
+      if (requestedRole === "publisher") {
+        const isHost = live.hostId === user.uid;
+        let approvedGuest = false;
+        if (!isHost) {
+          const requestSnap = await liveRef.collection("join_requests")
+            .doc(user.uid).get();
+          approvedGuest = requestSnap.data()?.status === "accepted";
+        }
+        if (!isHost && !approvedGuest) {
+          return res.status(403).json({
+            error: "This viewer is not approved to publish Live video.",
+          });
+        }
+      }
+    } else {
+      // A signed-in user may bootstrap a brand-new Live publisher channel.
+      // It is not discoverable until the client creates live_sessions/{id}.
+      if (!(requestedRole === "publisher" && channelName.startsWith("live_"))) {
+        return res.status(404).json({error: "Room or Live session not found."});
+      }
     }
 
     const uid = agoraUidForFirebaseUid(user.uid);
@@ -536,33 +567,49 @@ app.post("/teacher-ai", async (req, res, next) => {
     requireEnv(openAiKey, "OPENAI_API_KEY");
     requireEnv(teacherModel, "OPENAI_TEACHER_MODEL");
 
+    const context = req.body?.context === "live" ? "live" : "room";
     const roomId = String(req.body?.roomId || "").trim();
     const captionId = String(req.body?.captionId || "").trim();
 
     if (!roomId || !captionId) {
-      return res.status(400).json({ error: "roomId and captionId are required." });
+      return res.status(400).json({error: "roomId and captionId are required."});
     }
 
-    const roomRef = db.collection("rooms").doc(roomId);
-    const participantRef = roomRef.collection("participants").doc(user.uid);
+    const parentCollection = context === "live" ? "live_sessions" : "rooms";
+    const roomRef = db.collection(parentCollection).doc(roomId);
     const captionRef = roomRef.collection("captions").doc(captionId);
     const noteRef = roomRef.collection("teacher_ai_notes").doc(captionId);
+    const roomSnap = await roomRef.get();
 
-    const [roomSnap, participantSnap, captionSnap, existingNote] =
-      await Promise.all([
-        roomRef.get(),
-        participantRef.get(),
-        captionRef.get(),
-        noteRef.get(),
-      ]);
-
-    if (!roomSnap.exists || roomSnap.data()?.isOpen !== true) {
-      return res.status(404).json({ error: "Room is not open." });
+    if (!roomSnap.exists ||
+        (context === "room" && roomSnap.data()?.isOpen !== true) ||
+        (context === "live" && roomSnap.data()?.isLive !== true)) {
+      return res.status(404).json({
+        error: context === "live" ? "Live session is not active." : "Room is not open.",
+      });
     }
 
-    if (!participantSnap.exists) {
-      return res.status(403).json({ error: "User is not in this room." });
+    let memberAllowed = false;
+    if (context === "room") {
+      memberAllowed = (await roomRef.collection("participants").doc(user.uid).get()).exists;
+    } else {
+      const live = roomSnap.data() || {};
+      if (live.hostId === user.uid) {
+        memberAllowed = true;
+      } else {
+        memberAllowed = (await roomRef.collection("viewers").doc(user.uid).get()).exists;
+      }
     }
+    if (!memberAllowed) {
+      return res.status(403).json({
+        error: context === "live" ? "User is not in this Live." : "User is not in this room.",
+      });
+    }
+
+    const [captionSnap, existingNote] = await Promise.all([
+      captionRef.get(),
+      noteRef.get(),
+    ]);
 
     if (!captionSnap.exists) {
       return res.status(404).json({ error: "Caption not found." });
@@ -648,6 +695,7 @@ app.post("/teacher-ai/ask", async (req, res, next) => {
     requireEnv(openAiKey, "OPENAI_API_KEY");
     requireEnv(teacherModel, "OPENAI_TEACHER_MODEL");
 
+    const context = req.body?.context === "live" ? "live" : "room";
     const roomId = String(req.body?.roomId || "").trim();
     const prompt = String(req.body?.prompt || "").trim();
     const requestedRoomLanguage = String(
@@ -666,19 +714,30 @@ app.post("/teacher-ai/ask", async (req, res, next) => {
       });
     }
 
-    const roomRef = db.collection("rooms").doc(roomId);
-    const participantRef = roomRef.collection("participants").doc(user.uid);
-    const [roomSnap, participantSnap] = await Promise.all([
-      roomRef.get(),
-      participantRef.get(),
-    ]);
+    const parentCollection = context === "live" ? "live_sessions" : "rooms";
+    const roomRef = db.collection(parentCollection).doc(roomId);
+    const roomSnap = await roomRef.get();
 
-    if (!roomSnap.exists || roomSnap.data()?.isOpen !== true) {
-      return res.status(404).json({ error: "Room is not open." });
+    if (!roomSnap.exists ||
+        (context === "room" && roomSnap.data()?.isOpen !== true) ||
+        (context === "live" && roomSnap.data()?.isLive !== true)) {
+      return res.status(404).json({
+        error: context === "live" ? "Live session is not active." : "Room is not open.",
+      });
     }
 
-    if (!participantSnap.exists) {
-      return res.status(403).json({ error: "User is not in this room." });
+    let memberAllowed = false;
+    if (context === "room") {
+      memberAllowed = (await roomRef.collection("participants").doc(user.uid).get()).exists;
+    } else {
+      const live = roomSnap.data() || {};
+      memberAllowed = live.hostId === user.uid ||
+        (await roomRef.collection("viewers").doc(user.uid).get()).exists;
+    }
+    if (!memberAllowed) {
+      return res.status(403).json({
+        error: context === "live" ? "User is not in this Live." : "User is not in this room.",
+      });
     }
 
     const roomLanguageCode =
