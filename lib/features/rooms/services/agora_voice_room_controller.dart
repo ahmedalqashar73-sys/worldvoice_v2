@@ -82,6 +82,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
   Future<void> ensureConnected({
     required String channelId,
     required AgoraRoomRole role,
+    bool previewCamera = false,
   }) async {
     if (_joined) return;
     final result = Completer<void>();
@@ -102,7 +103,15 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       }
     });
     try {
-      if (!_connecting) unawaited(connect(channelId: channelId, role: role));
+      if (!_connecting) {
+        unawaited(
+          connect(
+            channelId: channelId,
+            role: role,
+            previewCamera: previewCamera,
+          ),
+        );
+      }
       await result.future;
     } on TimeoutException {
       await leave();
@@ -116,6 +125,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
   Future<void> connect({
     required String channelId,
     required AgoraRoomRole role,
+    bool previewCamera = false,
   }) async {
     if (_connecting || _joined) return;
 
@@ -238,6 +248,10 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       engine.registerEventHandler(_handler!);
       await engine.enableAudio();
       await engine.enableVideo();
+      if (previewCamera && role == AgoraRoomRole.speaker) {
+        await engine.startPreview();
+        notifyListeners();
+      }
       await engine.enableAudioVolumeIndication(
         interval: 200,
         smooth: 3,
@@ -284,23 +298,14 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     required String channelId,
     required AgoraRoomRole role,
   }) async {
-    // Never fall back silently to temporary/local tokens in a published APK.
-    // Without a persistent backend all users would lose audio on app restart.
-    if (RoomBackendConfig.configurationError.isNotEmpty &&
-        AgoraConfig.tokenEndpoint.trim().isEmpty) {
-      throw StateError(RoomBackendConfig.configurationError);
-    }
-    if (AgoraConfig.tokenEndpoint.trim().isEmpty) {
-      return (
-        token: AgoraConfig.tempToken,
-        uid: 0,
-      );
-    }
-    if (kReleaseMode &&
-        Uri.tryParse(AgoraConfig.tokenEndpoint)?.scheme != 'https') {
-      throw StateError(
-        'Published WorldVoice rooms require a persistent HTTPS token endpoint.',
-      );
+    final endpoints = AgoraConfig.tokenEndpoints;
+    if (endpoints.isEmpty) {
+      if (AgoraConfig.tempToken.trim().isNotEmpty) {
+        return (token: AgoraConfig.tempToken, uid: 0);
+      }
+      throw StateError(RoomBackendConfig.configurationError.isNotEmpty
+          ? RoomBackendConfig.configurationError
+          : 'Agora token endpoint is missing.');
     }
 
     final user = FirebaseAuth.instance.currentUser;
@@ -313,53 +318,67 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       throw StateError('Could not authorize the Agora token request.');
     }
 
-    final response = await http.post(
-      Uri.parse(AgoraConfig.tokenEndpoint),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $idToken',
-      },
-      body: jsonEncode({
-        'channelName': channelId,
-        'role': role == AgoraRoomRole.speaker ? 'publisher' : 'subscriber',
-      }),
-    ).timeout(const Duration(seconds: 12), onTimeout: () {
-      throw TimeoutException(
-        'Agora token server did not respond within 12 seconds. Check the deployed room backend URL and connection.',
-      );
-    });
+    Object? lastError;
+    for (final endpoint in endpoints) {
+      final uri = Uri.tryParse(endpoint);
+      if (uri == null || !uri.hasAuthority) continue;
+      if (kReleaseMode && uri.scheme != 'https') continue;
 
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      String detail = '';
       try {
-        final decoded = jsonDecode(response.body);
-        if (decoded is Map<String, dynamic>) {
-          detail = decoded['error']?.toString() ?? '';
+        final response = await http
+            .post(
+              uri,
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer $idToken',
+              },
+              body: jsonEncode({
+                'channelName': channelId,
+                'role':
+                    role == AgoraRoomRole.speaker ? 'publisher' : 'subscriber',
+              }),
+            )
+            .timeout(const Duration(seconds: 8));
+
+        if (response.statusCode < 200 || response.statusCode >= 300) {
+          String detail = '';
+          try {
+            final decoded = jsonDecode(response.body);
+            if (decoded is Map<String, dynamic>) {
+              detail = decoded['error']?.toString() ?? '';
+            }
+          } catch (_) {
+            // Fall back to the HTTP status below.
+          }
+          throw StateError(
+            detail.isEmpty
+                ? 'Token server failed with HTTP ${response.statusCode}.'
+                : detail,
+          );
         }
-      } catch (_) {
-        // Fall back to the HTTP status below.
+
+        final body = jsonDecode(response.body);
+        if (body is! Map<String, dynamic>) {
+          throw StateError('Token server returned an invalid response.');
+        }
+
+        final token = body['token']?.toString() ?? '';
+        final uid = (body['uid'] as num?)?.toInt() ?? 0;
+        if (token.isEmpty || uid <= 0) {
+          throw StateError('Token server did not return a valid token and UID.');
+        }
+        return (token: token, uid: uid);
+      } on TimeoutException catch (error) {
+        lastError = error;
+      } catch (error) {
+        lastError = error;
       }
-      throw StateError(
-        detail.isEmpty
-            ? 'Token server failed with HTTP ${response.statusCode}.'
-            : detail,
-      );
     }
 
-    final body = jsonDecode(response.body);
-    if (body is! Map<String, dynamic>) {
-      throw StateError('Token server returned an invalid response.');
-    }
-
-    final token = body['token']?.toString() ?? '';
-    final uid = (body['uid'] as num?)?.toInt() ?? 0;
-    if (token.isEmpty || uid <= 0) {
-      throw StateError('Token server did not return a valid token and UID.');
-    }
-
-    return (
-      token: token,
-      uid: uid,
+    throw StateError(
+      'Agora token service is temporarily unavailable. '
+      'Tried the always-on token worker and configured fallback. '
+      '${lastError ?? ''}',
     );
   }
 
