@@ -27,6 +27,7 @@ import '../services/live_session_service.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../../profile/services/profile_social_service.dart';
 import '../../profile/data/profile_language_catalog.dart';
+import '../../chat/presentation/chat_screen.dart';
 
 const MethodChannel _livePermissionChannel =
     MethodChannel('worldvoice/live_permissions');
@@ -391,11 +392,12 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     if (liveId == null) return;
     final host =
         FirebaseAuth.instance.currentUser?.displayName ?? 'WorldVoice host';
-    await SharePlus.instance.share(
-      ShareParams(
-        title: 'WorldVoice Live',
-        text: 'WorldVoice Live • $_resolvedTopic • $host • $liveId',
-      ),
+    await _showLiveShareSheet(
+      context,
+      liveId: liveId,
+      topic: _resolvedTopic,
+      hostName: host,
+      ar: widget.ar,
     );
   }
 
@@ -693,6 +695,32 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                        Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: Text(
+                            widget.ar ? 'إنشاء بثك المباشر' : 'Create your live',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 21,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: Text(
+                            widget.ar
+                                ? 'جهّز العنوان ولغة التعلم. اللايف يدعمك مع 3 ضيوف — 4 أشخاص كحد أقصى.'
+                                : 'Set the topic and learning language. Live supports you plus 3 guests — 4 people maximum.',
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              height: 1.35,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
                         TextField(
                           controller: _topicController,
                           enabled: !_starting,
@@ -1049,6 +1077,13 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                         ),
                                       ),
                                       const SizedBox(width: 8),
+                                      if (_liveId != null) ...[
+                                        _LiveViewerFaces(
+                                          service: _liveService,
+                                          liveId: _liveId!,
+                                        ),
+                                        const SizedBox(width: 6),
+                                      ],
                                       Text(
                                         'LIVE • $viewers 👁 • ${tiles.length}/4',
                                         style: const TextStyle(
@@ -1401,13 +1436,12 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   Future<void> _shareLive() async {
     final topic = (widget.data['topic'] ?? '').toString().trim();
     final host = (widget.data['hostName'] ?? 'WorldVoice host').toString();
-    await SharePlus.instance.share(
-      ShareParams(
-        title: 'WorldVoice Live',
-        text: topic.isEmpty
-            ? 'WorldVoice Live • $host • ${widget.liveId}'
-            : 'WorldVoice Live • $topic • $host • ${widget.liveId}',
-      ),
+    await _showLiveShareSheet(
+      context,
+      liveId: widget.liveId,
+      topic: topic,
+      hostName: host,
+      ar: widget.ar,
     );
   }
 
@@ -1639,6 +1673,11 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                     ],
                                   ),
                                 ),
+                                _LiveViewerFaces(
+                                  service: _service,
+                                  liveId: widget.liveId,
+                                ),
+                                const SizedBox(width: 4),
                                 if ((widget.data['hostId'] ?? '').toString() !=
                                     FirebaseAuth.instance.currentUser?.uid)
                                   FilledButton.tonal(
@@ -2705,6 +2744,290 @@ Future<void> _showLiveCameraTools(
   );
 }
 
+String _liveShareUri(String liveId) => 'worldvoice://live/$liveId';
+
+String _liveShareText({
+  required String liveId,
+  required String topic,
+  required String hostName,
+}) {
+  final cleanTopic = topic.trim();
+  final title = cleanTopic.isEmpty ? 'WorldVoice Live' : cleanTopic;
+  return '🔴 WorldVoice Live\n$title\n$hostName\n${_liveShareUri(liveId)}';
+}
+
+Future<void> _showLiveShareSheet(
+  BuildContext context, {
+  required String liveId,
+  required String topic,
+  required String hostName,
+  required bool ar,
+}) {
+  final shareText = _liveShareText(
+    liveId: liveId,
+    topic: topic,
+    hostName: hostName,
+  );
+  final link = _liveShareUri(liveId);
+
+  return showModalBottomSheet<void>(
+    context: context,
+    showDragHandle: true,
+    useSafeArea: true,
+    builder: (sheetContext) => Padding(
+      padding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const CircleAvatar(
+              child: Icon(Icons.chat_bubble_rounded),
+            ),
+            title: Text(
+              ar ? 'إرسال داخل شات WorldVoice' : 'Send in WorldVoice chat',
+              style: const TextStyle(fontWeight: FontWeight.w800),
+            ),
+            subtitle: Text(
+              ar
+                  ? 'اختر شخصًا من محادثاتك وأرسل له اللايف.'
+                  : 'Choose a conversation and send the Live.',
+            ),
+            onTap: () async {
+              Navigator.of(sheetContext).pop();
+              await Future<void>.delayed(Duration.zero);
+              if (!context.mounted) return;
+              await _showLiveShareToChat(
+                context,
+                shareText: shareText,
+                ar: ar,
+              );
+            },
+          ),
+          ListTile(
+            leading: const CircleAvatar(
+              child: Icon(Icons.link_rounded),
+            ),
+            title: Text(
+              ar ? 'نسخ رابط اللايف' : 'Copy Live link',
+              style: const TextStyle(fontWeight: FontWeight.w800),
+            ),
+            subtitle: Text(
+              link,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            onTap: () async {
+              await Clipboard.setData(ClipboardData(text: link));
+              if (!sheetContext.mounted) return;
+              Navigator.of(sheetContext).pop();
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    ar ? 'تم نسخ رابط اللايف.' : 'Live link copied.',
+                  ),
+                ),
+              );
+            },
+          ),
+          ListTile(
+            leading: const CircleAvatar(
+              child: Icon(Icons.ios_share_rounded),
+            ),
+            title: Text(
+              ar ? 'مشاركة الرابط' : 'Share link',
+              style: const TextStyle(fontWeight: FontWeight.w800),
+            ),
+            subtitle: Text(
+              ar
+                  ? 'شارك اللايف في أي تطبيق.'
+                  : 'Share the Live in any app.',
+            ),
+            onTap: () async {
+              Navigator.of(sheetContext).pop();
+              await SharePlus.instance.share(
+                ShareParams(
+                  title: 'WorldVoice Live',
+                  text: shareText,
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+Future<void> _showLiveShareToChat(
+  BuildContext context, {
+  required String shareText,
+  required bool ar,
+}) {
+  final uid = FirebaseAuth.instance.currentUser?.uid;
+  if (uid == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(ar ? 'سجّل دخولك أولًا.' : 'Sign in first.'),
+      ),
+    );
+    return Future<void>.value();
+  }
+
+  String? sendingChatId;
+  return showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    showDragHandle: true,
+    useSafeArea: true,
+    builder: (sheetContext) => StatefulBuilder(
+      builder: (innerContext, setSheetState) => SizedBox(
+        height: MediaQuery.sizeOf(innerContext).height * .68,
+        child: Column(
+          children: [
+            ListTile(
+              title: Text(
+                ar ? 'إرسال اللايف إلى...' : 'Send Live to...',
+                style: const TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              subtitle: Text(
+                ar
+                    ? 'اختر محادثة موجودة.'
+                    : 'Choose an existing conversation.',
+              ),
+            ),
+            Expanded(
+              child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                stream: FirebaseFirestore.instance
+                    .collection('chats')
+                    .where('memberIds', arrayContains: uid)
+                    .where('active', isEqualTo: true)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Text(
+                        ar
+                            ? 'تعذر تحميل المحادثات.'
+                            : 'Could not load conversations.',
+                      ),
+                    );
+                  }
+                  if (!snapshot.hasData) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  final chats = snapshot.data!.docs.toList()
+                    ..sort((a, b) {
+                      final aTime = a.data()['lastMessageAt'];
+                      final bTime = b.data()['lastMessageAt'];
+                      final aMs =
+                          aTime is Timestamp ? aTime.millisecondsSinceEpoch : 0;
+                      final bMs =
+                          bTime is Timestamp ? bTime.millisecondsSinceEpoch : 0;
+                      return bMs.compareTo(aMs);
+                    });
+                  if (chats.isEmpty) {
+                    return Center(
+                      child: Text(
+                        ar
+                            ? 'لا توجد محادثات لإرسال اللايف إليها.'
+                            : 'No conversations available for Live sharing.',
+                        textAlign: TextAlign.center,
+                      ),
+                    );
+                  }
+
+                  return ListView.builder(
+                    itemCount: chats.length,
+                    itemBuilder: (context, index) {
+                      final doc = chats[index];
+                      final data = doc.data();
+                      final memberIds =
+                          List<String>.from(data['memberIds'] ?? const []);
+                      final peerId = memberIds.firstWhere(
+                        (value) => value != uid,
+                        orElse: () => '',
+                      );
+                      final names = Map<String, dynamic>.from(
+                        data['memberNames'] as Map? ?? <String, dynamic>{},
+                      );
+                      final peerName = (names[peerId] ?? 'WorldVoice').toString();
+                      final sending = sendingChatId == doc.id;
+
+                      return ListTile(
+                        leading: const CircleAvatar(
+                          child: Icon(Icons.person_rounded),
+                        ),
+                        title: Text(
+                          peerName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        subtitle: Text(
+                          (data['latestText'] ?? '').toString(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        trailing: sending
+                            ? const SizedBox.square(
+                                dimension: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.send_rounded),
+                        onTap: sendingChatId != null
+                            ? null
+                            : () async {
+                                setSheetState(() => sendingChatId = doc.id);
+                                try {
+                                  await ChatScreen.sendTextMessageToConversation(
+                                    chatId: doc.id,
+                                    text: shareText,
+                                  );
+                                  if (!sheetContext.mounted) return;
+                                  Navigator.of(sheetContext).pop();
+                                  if (!context.mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        ar
+                                            ? 'تم إرسال اللايف في الشات.'
+                                            : 'Live sent in chat.',
+                                      ),
+                                    ),
+                                  );
+                                } catch (error) {
+                                  if (!sheetContext.mounted) return;
+                                  setSheetState(() => sendingChatId = null);
+                                  ScaffoldMessenger.of(sheetContext)
+                                      .showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        error
+                                            .toString()
+                                            .replaceFirst('Bad state: ', ''),
+                                      ),
+                                    ),
+                                  );
+                                }
+                              },
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
 Future<void> _showLiveChat(
   BuildContext context, {
   required LiveSessionService service,
@@ -2715,72 +3038,144 @@ Future<void> _showLiveChat(
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     backgroundColor: Colors.transparent,
+    barrierColor: Colors.black12,
     builder: (sheetContext) => Padding(
       padding: EdgeInsets.only(
         bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
       ),
-      child: Container(
-        height: MediaQuery.sizeOf(sheetContext).height * .58,
-        decoration: const BoxDecoration(
-          color: Color(0xE6141414),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          children: [
-            ListTile(
-              title: Text(
-                ar ? 'دردشة اللايف' : 'Live chat',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w900,
+      child: SizedBox(
+        height: MediaQuery.sizeOf(sheetContext).height * .62,
+        child: DecoratedBox(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.transparent,
+                Color(0x33000000),
+                Color(0x99000000),
+              ],
+              stops: [0, .48, 1],
+            ),
+          ),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(14, 6, 8, 4),
+                child: Row(
+                  children: [
+                    Text(
+                      ar ? 'دردشة اللايف' : 'Live chat',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 17,
+                        shadows: [
+                          Shadow(color: Colors.black54, blurRadius: 8),
+                        ],
+                      ),
+                    ),
+                    const Spacer(),
+                    IconButton.filledTonal(
+                      onPressed: () => Navigator.pop(sheetContext),
+                      icon: const Icon(Icons.close_rounded),
+                    ),
+                  ],
                 ),
               ),
-              trailing: IconButton(
-                onPressed: () => Navigator.pop(sheetContext),
-                icon: const Icon(Icons.close_rounded, color: Colors.white),
-              ),
-            ),
-            Expanded(
-              child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                stream: service.watchChat(liveId),
-                builder: (context, snapshot) {
-                  final docs = snapshot.data?.docs ??
-                      const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
-                  return ListView.builder(
-                    reverse: true,
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    itemCount: docs.length,
-                    itemBuilder: (context, index) {
-                      final data = docs[index].data();
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 5),
-                        child: Text.rich(
-                          TextSpan(
+              Expanded(
+                child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                  stream: service.watchChat(liveId),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Text(
+                          ar
+                              ? 'تعذر تحميل دردشة اللايف.'
+                              : 'Could not load Live chat.',
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      );
+                    }
+                    final docs = snapshot.data?.docs ??
+                        const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
+                    if (docs.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+                    return ListView.builder(
+                      reverse: true,
+                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
+                      itemCount: docs.length,
+                      itemBuilder: (context, index) {
+                        final data = docs[index].data();
+                        final name =
+                            (data['senderName'] ?? 'WorldVoice').toString();
+                        final photo =
+                            (data['senderPhotoUrl'] ?? '').toString().trim();
+                        final message = (data['text'] ?? '').toString();
+
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 5),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              TextSpan(
-                                text: '${data['senderName'] ?? 'WorldVoice'}  ',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w800,
-                                ),
+                              CircleAvatar(
+                                radius: 15,
+                                backgroundColor: const Color(0xAAFFFFFF),
+                                foregroundImage:
+                                    photo.isEmpty ? null : NetworkImage(photo),
+                                child: photo.isEmpty
+                                    ? const Icon(
+                                        Icons.person_rounded,
+                                        size: 17,
+                                        color: Colors.black54,
+                                      )
+                                    : null,
                               ),
-                              TextSpan(
-                                text: data['text']?.toString() ?? '',
-                                style: const TextStyle(color: Colors.white70),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 7,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0x26000000),
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  child: Text.rich(
+                                    TextSpan(
+                                      children: [
+                                        TextSpan(
+                                          text: '$name  ',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w900,
+                                          ),
+                                        ),
+                                        TextSpan(
+                                          text: message,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            height: 1.3,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
                               ),
                             ],
                           ),
-                        ),
-                      );
-                    },
-                  );
-                },
+                        );
+                      },
+                    );
+                  },
+                ),
               ),
-            ),
-            SafeArea(
-              top: false,
-              child: Padding(
+              Padding(
                 padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
                 child: Row(
                   children: [
@@ -2788,33 +3183,48 @@ Future<void> _showLiveChat(
                       child: TextField(
                         controller: input,
                         maxLength: 500,
-                        style: const TextStyle(color: Colors.white),
+                        textInputAction: TextInputAction.send,
+                        onSubmitted: (_) async {
+                          final value = input.text;
+                          input.clear();
+                          await service.sendChat(liveId, value);
+                        },
+                        style: const TextStyle(color: Colors.black87),
                         decoration: InputDecoration(
                           counterText: '',
-                          hintText: ar ? 'اكتب رسالة...' : 'Message...',
-                          hintStyle: const TextStyle(color: Colors.white54),
+                          hintText: ar ? 'اكتب تعليقًا...' : 'Add a comment...',
+                          hintStyle: const TextStyle(color: Colors.black45),
                           filled: true,
-                          fillColor: Colors.white10,
+                          fillColor: const Color(0xF5FFFFFF),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 11,
+                          ),
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(22),
+                            borderRadius: BorderRadius.circular(24),
                             borderSide: BorderSide.none,
                           ),
                         ),
                       ),
                     ),
-                    IconButton(
+                    const SizedBox(width: 6),
+                    IconButton.filled(
+                      style: IconButton.styleFrom(
+                        backgroundColor: const Color(0xFF11835D),
+                        foregroundColor: Colors.white,
+                      ),
                       onPressed: () async {
                         final value = input.text;
                         input.clear();
                         await service.sendChat(liveId, value);
                       },
-                      icon: const Icon(Icons.send_rounded, color: Colors.white),
+                      icon: const Icon(Icons.send_rounded),
                     ),
                   ],
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     ),
@@ -3138,6 +3548,72 @@ class _LiveVideoGrid extends StatelessWidget {
       crossAxisCount: 2,
       childAspectRatio: children.length == 3 ? .72 : .58,
       children: children,
+    );
+  }
+}
+
+class _LiveViewerFaces extends StatelessWidget {
+  const _LiveViewerFaces({
+    required this.service,
+    required this.liveId,
+  });
+
+  final LiveSessionService service;
+  final String liveId;
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: service.watchViewers(liveId),
+      builder: (context, snapshot) {
+        final viewers = snapshot.data?.docs.take(3).toList(growable: false) ??
+            const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
+        if (viewers.isEmpty) return const SizedBox.shrink();
+
+        final width = 24.0 + ((viewers.length - 1) * 15);
+        return SizedBox(
+          width: width,
+          height: 26,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              for (var index = 0; index < viewers.length; index++)
+                Positioned(
+                  left: index * 15,
+                  child: Builder(
+                    builder: (context) {
+                      final data = viewers[index].data();
+                      final photo =
+                          (data['photoUrl'] ?? '').toString().trim();
+                      return Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white,
+                            width: 1.5,
+                          ),
+                        ),
+                        child: CircleAvatar(
+                          radius: 11,
+                          backgroundColor: const Color(0xFF245A49),
+                          foregroundImage:
+                              photo.isEmpty ? null : NetworkImage(photo),
+                          child: photo.isEmpty
+                              ? const Icon(
+                                  Icons.person_rounded,
+                                  color: Colors.white,
+                                  size: 13,
+                                )
+                              : null,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
