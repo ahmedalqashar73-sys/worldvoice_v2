@@ -595,8 +595,23 @@ service cloud.firestore {
         allow read: if signedIn();
         allow create: if signedIn()
             && userId == request.auth.uid
-            && request.resource.data.uid == request.auth.uid;
-        allow delete: if signedIn() && userId == request.auth.uid;
+            && request.resource.data.uid == request.auth.uid
+            && get(/databases/$(database)/documents/live_sessions/$(liveId))
+                .data.isLive == true
+            && getAfter(
+              /databases/$(database)/documents/live_sessions/$(liveId)
+            ).data.viewerCount
+                == get(
+                  /databases/$(database)/documents/live_sessions/$(liveId)
+                ).data.viewerCount + 1;
+        allow delete: if signedIn()
+            && userId == request.auth.uid
+            && getAfter(
+              /databases/$(database)/documents/live_sessions/$(liveId)
+            ).data.viewerCount
+                == get(
+                  /databases/$(database)/documents/live_sessions/$(liveId)
+                ).data.viewerCount - 1;
         allow update: if false;
       }
 
