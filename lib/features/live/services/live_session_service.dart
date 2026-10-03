@@ -83,6 +83,16 @@ class LiveSessionService {
           .where('status', isEqualTo: 'pending')
           .snapshots();
 
+  Stream<QuerySnapshot<Map<String, dynamic>>> watchActiveGuests(
+    String liveId,
+  ) =>
+      _sessions
+          .doc(liveId)
+          .collection('join_requests')
+          .where('status', isEqualTo: 'accepted')
+          .snapshots();
+
+
   Future<void> enterViewer(String liveId) async {
     final user = _user;
     final session = _sessions.doc(liveId);
