@@ -2212,11 +2212,12 @@ Future<void> _showLiveCameraTools(
     useSafeArea: true,
     showDragHandle: true,
     builder: (sheetContext) => StatefulBuilder(
-      builder: (sheetContext, refresh) => Padding(
-        padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+      builder: (sheetContext, refresh) => SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
             Text(
               ar ? 'الفلاتر والكاميرا' : 'Filters & camera',
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
@@ -2401,7 +2402,8 @@ Future<void> _showLiveCameraTools(
                   : 'You can also pinch your own video to zoom.',
               style: Theme.of(sheetContext).textTheme.bodySmall,
             ),
-          ],
+            ],
+          ),
         ),
       ),
     ),
