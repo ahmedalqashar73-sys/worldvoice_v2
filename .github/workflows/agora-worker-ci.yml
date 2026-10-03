@@ -75,3 +75,44 @@ jobs:
       - run: node --check src/profile_projection.js
       - run: node --check scripts/stage-private-wallet.mjs
       - run: npm test
+
+
+  deploy-worker:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/fix/finish-room-hub-quiz-gift-20260928'
+    needs: [test, backend-economy, firestore-captions-rules, flutter-analyze]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/agora-token-worker
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      WORLDVOICE_FULL_BACKEND_URL: ${{ secrets.WORLDVOICE_FULL_BACKEND_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm install
+      - name: Deploy Worker gateway when Cloudflare credentials exist
+        id: deploy
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${CLOUDFLARE_API_TOKEN:-}" ] || [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "Cloudflare deploy skipped: CLOUDFLARE_API_TOKEN/CLOUDFLARE_ACCOUNT_ID not configured."
+            exit 0
+          fi
+          npx wrangler deploy
+          echo "configured=true" >> "$GITHUB_OUTPUT"
+      - name: Connect full backend gateway
+        if: steps.deploy.outputs.configured == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${WORLDVOICE_FULL_BACKEND_URL:-}" ]; then
+            echo "AUX_BACKEND_URL unchanged: WORLDVOICE_FULL_BACKEND_URL is not configured."
+            exit 0
+          fi
+          printf '%s' "$WORLDVOICE_FULL_BACKEND_URL" | npx wrangler secret put AUX_BACKEND_URL
