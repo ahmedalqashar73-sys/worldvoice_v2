@@ -6,7 +6,7 @@ import {
   Environment as AppleEnvironment,
 } from "@apple/app-store-server-library";
 import express from "express";
-import { applicationDefault, getApps, initializeApp } from "firebase-admin/app";
+import { applicationDefault, cert, getApps, initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { FieldValue, Timestamp, getFirestore } from "firebase-admin/firestore";
 import { google } from "googleapis";
@@ -39,9 +39,26 @@ if (process.env.NODE_ENV === "production") {
   }
 }
 if (getApps().length === 0) {
+  const rawServiceAccount = String(
+    process.env.FIREBASE_SERVICE_ACCOUNT_JSON || "",
+  ).trim();
+  let credential;
+  if (rawServiceAccount) {
+    let serviceAccount;
+    try {
+      serviceAccount = JSON.parse(rawServiceAccount);
+    } catch {
+      throw new Error(
+        "FIREBASE_SERVICE_ACCOUNT_JSON must contain valid JSON.",
+      );
+    }
+    credential = cert(serviceAccount);
+  } else {
+    credential = applicationDefault();
+  }
   initializeApp({
-    credential: applicationDefault(),
-    ...(firebaseProjectId ? { projectId: firebaseProjectId } : {}),
+    credential,
+    ...(firebaseProjectId ? {projectId: firebaseProjectId} : {}),
   });
 }
 
