@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:http/http.dart' as http;
 
 import '../../rooms/services/agora_voice_room_controller.dart';
 import '../../rooms/presentation/room_board_screen.dart';
@@ -14,6 +15,7 @@ import '../../rooms/presentation/room_teacher_ai_sheet.dart';
 import '../../rooms/presentation/unified_gift_panel.dart';
 import '../../rooms/presentation/room_gift_overlay.dart';
 import '../../rooms/data/room_caption.dart';
+import '../../rooms/data/room_backend_config.dart';
 import '../../rooms/data/room_feature_models.dart';
 import '../../rooms/services/room_feature_service.dart';
 import '../../rooms/services/room_caption_service.dart';
@@ -29,6 +31,17 @@ import '../../profile/data/profile_language_catalog.dart';
 const MethodChannel _livePermissionChannel =
     MethodChannel('worldvoice/live_permissions');
 const MethodChannel _liveTtsChannel = MethodChannel('worldvoice/live_tts');
+
+Future<void> _warmLiveBackend() async {
+  final endpoint = RoomBackendConfig.endpoint('/health');
+  final uri = Uri.tryParse(endpoint);
+  if (uri == null) return;
+  try {
+    await http.get(uri).timeout(const Duration(seconds: 20));
+  } catch (_) {
+    // Warming is opportunistic; camera preview and Agora worker still proceed.
+  }
+}
 
 Future<void> _speakLiveTeacher(String text, String languageCode) async {
   final value = text.trim();
@@ -126,6 +139,7 @@ class LiveScreen extends StatelessWidget {
                       foregroundColor: const Color(0xFF0B5D46),
                     ),
                     onPressed: () async {
+                      unawaited(_warmLiveBackend());
                       final setup = await _showLiveSetup(
                         context,
                         ar: ar,
