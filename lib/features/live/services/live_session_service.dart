@@ -57,6 +57,68 @@ class LiveSessionService {
   Stream<DocumentSnapshot<Map<String, dynamic>>> watch(String liveId) =>
       _sessions.doc(liveId).snapshots();
 
+  Stream<QuerySnapshot<Map<String, dynamic>>> watchViewers(String liveId) =>
+      _sessions.doc(liveId).collection('viewers').snapshots();
+
+  Stream<bool> watchMyModeratorStatus(String hostId) {
+    final user = _auth.currentUser;
+    if (user == null || hostId.isEmpty || user.uid == hostId) {
+      return Stream<bool>.value(false);
+    }
+    return _db
+        .collection('users')
+        .doc(hostId)
+        .collection('moderators')
+        .doc(user.uid)
+        .snapshots()
+        .map((snapshot) => snapshot.exists);
+  }
+
+  Stream<QuerySnapshot<Map<String, dynamic>>> watchGlobalModerators(
+    String hostId,
+  ) =>
+      _db
+          .collection('users')
+          .doc(hostId)
+          .collection('moderators')
+          .snapshots();
+
+  Future<void> setGlobalModerator({
+    required String liveId,
+    required String targetUserId,
+    required String displayName,
+    required String photoUrl,
+    required bool value,
+  }) async {
+    final user = _user;
+    final session = await _sessions.doc(liveId).get();
+    final hostId = session.data()?['hostId']?.toString() ?? '';
+    if (hostId != user.uid) {
+      throw StateError('HOST_ONLY');
+    }
+    if (targetUserId.isEmpty || targetUserId == user.uid) return;
+
+    final ref = _db
+        .collection('users')
+        .doc(user.uid)
+        .collection('moderators')
+        .doc(targetUserId);
+    if (value) {
+      await ref.set({
+        'uid': targetUserId,
+        'displayName': displayName.trim().isEmpty
+            ? 'WorldVoice user'
+            : displayName.trim(),
+        'photoUrl': photoUrl.trim(),
+        'assignedBy': user.uid,
+        'assignedAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } else {
+      await ref.delete();
+    }
+  }
+
   Future<void> touchHostHeartbeat(String liveId) async {
     await _sessions.doc(liveId).update({
       'hostHeartbeatAt': FieldValue.serverTimestamp(),
@@ -156,8 +218,18 @@ class LiveSessionService {
     final request = session.collection('join_requests').doc(userId);
     await _db.runTransaction((tx) async {
       final sessionSnap = await tx.get(session);
-      if (sessionSnap.data()?['hostId'] != _user.uid) {
-        throw StateError('HOST_ONLY');
+      final hostId = sessionSnap.data()?['hostId']?.toString() ?? '';
+      final currentUser = _user;
+      if (hostId != currentUser.uid) {
+        final moderatorRef = _db
+            .collection('users')
+            .doc(hostId)
+            .collection('moderators')
+            .doc(currentUser.uid);
+        final moderatorSnap = await tx.get(moderatorRef);
+        if (!moderatorSnap.exists) {
+          throw StateError('MODERATOR_ONLY');
+        }
       }
       final requestSnap = await tx.get(request);
       if (!requestSnap.exists ||
