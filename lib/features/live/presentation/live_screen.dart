@@ -1289,17 +1289,20 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                 tooltip: widget.ar
                                     ? 'هدايا اللايف'
                                     : 'Live gifts',
-                                onPressed: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        widget.ar
-                                            ? 'هدايا اللايف متوقفة مؤقتًا حتى يكتمل التحقق الآمن من جلسة البث والمحفظة.'
-                                            : 'Live gifts are temporarily disabled until secure session and wallet verification is enabled.',
-                                      ),
-                                    ),
-                                  );
-                                },
+                                onPressed: () => _showLiveGifts(
+                                  context,
+                                  liveId: widget.liveId,
+                                  service: _service,
+                                  hostId: (live?['hostId'] ??
+                                          widget.data['hostId'] ??
+                                          '')
+                                      .toString(),
+                                  hostName: (live?['hostName'] ??
+                                          widget.data['hostName'] ??
+                                          'WorldVoice host')
+                                      .toString(),
+                                  ar: widget.ar,
+                                ),
                                 icon: const Icon(Icons.card_giftcard_rounded),
                               ),
                           ],
