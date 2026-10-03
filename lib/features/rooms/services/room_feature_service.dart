@@ -145,8 +145,14 @@ class RoomFeatureService {
   Stream<QuerySnapshot<Map<String, dynamic>>> watchQuizAnswers() =>
       _quiz.watchQuizAnswers();
 
-  static const String _economyBackend =
+  static const String _explicitEconomyBackend =
       String.fromEnvironment('WORLDVOICE_ECONOMY_ENDPOINT');
+
+  static String get _economyBackend {
+    final explicit = _explicitEconomyBackend.trim();
+    if (explicit.isNotEmpty) return explicit;
+    return RoomBackendConfig.configuredBaseUrl.trim();
+  }
 
   /// Existing room caller: the backend alone calculates catalog price.
   Future<void> sendGift({
