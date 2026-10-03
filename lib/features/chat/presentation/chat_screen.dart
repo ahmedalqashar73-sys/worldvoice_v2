@@ -16,6 +16,7 @@ import '../../rooms/data/classic_gift_catalog.dart';
 import '../../rooms/data/room_feature_models.dart';
 import '../../rooms/services/room_feature_service.dart';
 import '../../profile/presentation/public_profile_screen.dart';
+import 'chat_call_screen.dart';
 
 /// Real authenticated conversations. The economy backend, not Flutter,
 /// establishes mutual-follower membership and writes chat/gift messages.
@@ -1030,6 +1031,28 @@ class _ChatConversationState extends State<_ChatConversation> {
             );
           },
         ),
+        actions: [
+          IconButton(
+            tooltip: ar ? 'اتصال صوتي' : 'Voice call',
+            onPressed: () => ChatCallScreen.startOutgoing(
+              context,
+              peerId: widget.peerId,
+              peerName: widget.peerName,
+              video: false,
+            ),
+            icon: const Icon(Icons.call_rounded),
+          ),
+          IconButton(
+            tooltip: ar ? 'مكالمة فيديو' : 'Video call',
+            onPressed: () => ChatCallScreen.startOutgoing(
+              context,
+              peerId: widget.peerId,
+              peerName: widget.peerName,
+              video: true,
+            ),
+            icon: const Icon(Icons.videocam_rounded),
+          ),
+        ],
       ),
       body: SafeArea(
         child: Column(
