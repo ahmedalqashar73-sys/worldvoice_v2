@@ -1,5 +1,3 @@
-import 'room_backend_config.dart';
-
 class AgoraConfig {
   AgoraConfig._();
 
@@ -17,11 +15,12 @@ class AgoraConfig {
   static const String _explicitTokenEndpoint =
       String.fromEnvironment('AGORA_TOKEN_ENDPOINT');
 
+  static const String _stableAgoraWorker =
+      'https://worldvoice-agora-token.worldvoice.workers.dev/agora/token';
+
   static String get tokenEndpoint {
     final explicit = _explicitTokenEndpoint.trim();
-    return explicit.isNotEmpty
-        ? explicit
-        : RoomBackendConfig.endpoint('/agora/token');
+    return explicit.isNotEmpty ? explicit : _stableAgoraWorker;
   }
 
   static bool get isConfigured => appId.trim().isNotEmpty;
