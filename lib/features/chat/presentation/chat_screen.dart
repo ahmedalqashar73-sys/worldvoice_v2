@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
@@ -8,6 +9,11 @@ import 'package:http/http.dart' as http;
 
 import '../../../core/localization/locale_controller.dart';
 import '../../rooms/presentation/unified_gift_panel.dart';
+import '../../rooms/presentation/classic_gift_visual.dart';
+import '../../rooms/presentation/room_gift_overlay.dart';
+import '../../rooms/data/classic_gift_catalog.dart';
+import '../../rooms/data/room_feature_models.dart';
+import '../../rooms/services/room_feature_service.dart';
 
 /// Real authenticated conversations. The economy backend, not Flutter,
 /// establishes mutual-follower membership and writes chat/gift messages.
@@ -161,11 +167,33 @@ class ChatScreen extends StatelessWidget {
                     ? 'بانتظار نشر سيرفر المحادثة الآمن'
                     : 'Secure chat backend is not deployed yet')
                 : null,
-            trailing: IconButton.filledTonal(
-              tooltip: ar ? 'محادثة جديدة' : 'New chat',
-              onPressed: ready ? () => _startChat(context, ar, uid) : null,
-              icon: const Icon(Icons.edit_rounded),
-            ),
+            trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+              IconButton(
+                tooltip: ar ? 'تجربة الهدايا الثلاثين'
+                    : 'Preview 30 gifts',
+                onPressed: () => showModalBottomSheet<void>(
+                  context: context,
+                  isScrollControlled: true,
+                  useSafeArea: true,
+                  showDragHandle: true,
+                  builder: (sheet) => SizedBox(
+                    height: MediaQuery.sizeOf(sheet).height * .76,
+                    child: const UnifiedGiftPanel(
+                      contextType: 'chat',
+                      contextId: 'preview',
+                      recipients: <String, String>{},
+                    ),
+                  ),
+                ),
+                icon: const Icon(Icons.card_giftcard_outlined,
+                    color: Color(0xFF11835D)),
+              ),
+              IconButton.filledTonal(
+                tooltip: ar ? 'محادثة جديدة' : 'New chat',
+                onPressed: ready ? () => _startChat(context, ar, uid) : null,
+                icon: const Icon(Icons.edit_rounded),
+              ),
+            ]),
           ),
           Expanded(
             child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
@@ -245,6 +273,108 @@ class _ChatConversation extends StatefulWidget {
 
 class _ChatConversationState extends State<_ChatConversation> {
   final _text = TextEditingController();
+  final _knownGiftIds = <String>{};
+  final DateTime _conversationOpenedAt = DateTime.now();
+  bool _giftStreamPrimed = false;
+  OverlayEntry? _giftOverlay;
+  Timer? _giftTimer;
+  StreamSubscription<List<RoomGiftPreview>>? _friendGiftPreviewSub;
+  final Set<String> _seenFriendPreviewEvents = <String>{};
+
+  @override
+  void initState() {
+    super.initState();
+    if (RoomFeatureService.friendPreviewEnabled) {
+      _friendGiftPreviewSub = RoomFeatureService.watchFriendGiftPreviews(
+        context: 'chat', contextId: widget.chatId,
+      ).listen((previews) {
+        final now = DateTime.now();
+        RoomGiftPreview? latest;
+        for (final event in previews) {
+          final sent = event.sentAt;
+          // The initial local Firestore write can contain a pending
+          // serverTimestamp; don't mark it seen before the real ack.
+          if (sent == null) continue;
+          final newEvent = _seenFriendPreviewEvents.add(event.eventKey);
+          if (!newEvent ||
+              sent.isBefore(_conversationOpenedAt.subtract(
+                  const Duration(seconds: 1))) ||
+              now.difference(sent).inSeconds.abs() > 20) {
+            continue;
+          }
+          latest ??= event;
+        }
+        if (latest != null) {
+          final demo = latest;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              _showGiftAnimation(demo.toVisualEvent(), preview: true);
+            }
+          });
+        }
+      }, onError: (Object error, StackTrace trace) {
+        debugPrint('WorldVoice chat gift demos unavailable: $error');
+      });
+    }
+  }
+
+  void _showIncomingGift(
+      QueryDocumentSnapshot<Map<String, dynamic>> message) {
+    if (!mounted) return;
+    final data = message.data();
+    _showGiftAnimation(RoomGiftEvent(
+      id: message.id,
+      senderId: (data['senderId'] ?? '').toString(),
+      senderName: (data['senderName'] ?? '').toString(),
+      recipientId: (data['recipientId'] ?? '').toString(),
+      recipientName: (data['recipientName'] ?? '').toString(),
+      giftId: (data['giftId'] ?? '').toString(),
+      points: (data['points'] as num?)?.toInt() ?? 0,
+      animationUrl: data['animationUrl']?.toString(),
+    ));
+  }
+
+  void _showGiftAnimation(RoomGiftEvent event, {bool preview = false}) {
+    if (!mounted) return;
+    _giftTimer?.cancel();
+    _giftOverlay?.remove();
+    final overlay = OverlayEntry(
+      builder: (_) => RoomGiftOverlay(event: event, preview: preview),
+    );
+    _giftOverlay = overlay;
+    Overlay.of(context).insert(overlay);
+    _giftTimer = Timer(const Duration(seconds: 3), () {
+      if (_giftOverlay == overlay) {
+        overlay.remove();
+        _giftOverlay = null;
+      }
+    });
+  }
+
+  void _observeGiftMessages(
+      List<QueryDocumentSnapshot<Map<String, dynamic>>> messages) {
+    final gifts = messages.where((doc) => doc.data()['type'] == 'gift').toList();
+    if (!_giftStreamPrimed) {
+      _giftStreamPrimed = true;
+      _knownGiftIds.addAll(gifts.map((doc) => doc.id));
+      return;
+    }
+    final incoming = gifts.where(
+      (doc) => _knownGiftIds.add(doc.id)).toList();
+    if (incoming.isEmpty) return;
+    // Firestore can first show cached empty results then load history.
+    // Replayed older gifts belong in the transcript, not a new animation.
+    final latest = incoming.first;
+    final timestamp = latest.data()['createdAt'];
+    if (timestamp is! Timestamp ||
+        timestamp.toDate().isBefore(
+            _conversationOpenedAt.subtract(const Duration(seconds: 2)))) {
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _showIncomingGift(incoming.first);
+    });
+  }
   bool _sending = false;
   String? _pendingText;
   String? _pendingKey;
@@ -298,6 +428,10 @@ class _ChatConversationState extends State<_ChatConversation> {
 
   @override
   void dispose() {
+    _giftTimer?.cancel();
+    _friendGiftPreviewSub?.cancel();
+    _giftOverlay?.remove();
+    _giftOverlay = null;
     _text.dispose();
     super.dispose();
   }
@@ -328,6 +462,7 @@ class _ChatConversationState extends State<_ChatConversation> {
                     return const Center(child: CircularProgressIndicator());
                   }
                   final messages = snapshot.data!.docs;
+                  _observeGiftMessages(messages);
                   return ListView.builder(
                     reverse: true,
                     padding: const EdgeInsets.symmetric(
@@ -337,10 +472,11 @@ class _ChatConversationState extends State<_ChatConversation> {
                       final data = messages[index].data();
                       final mine = data['senderId'] == uid;
                       final isGift = data['type'] == 'gift';
+                      final giftId = (data['giftId'] ?? '').toString();
+                      final classicGift = isGift &&
+                          giftId.startsWith('classic_');
                       final value = isGift
-                          ? (ar
-                              ? '🎁 هدية: ${data['giftId']}'
-                              : '🎁 Gift: ${data['giftId']}')
+                          ? (ar ? '🎁 هدية: $giftId' : '🎁 Gift: $giftId')
                           : (data['text'] ?? '').toString();
                       return Align(
                         alignment: mine ? AlignmentDirectional.centerEnd
@@ -350,18 +486,82 @@ class _ChatConversationState extends State<_ChatConversation> {
                           margin: const EdgeInsets.symmetric(vertical: 4),
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: mine
-                                ? Theme.of(context).colorScheme.primaryContainer
-                                : Theme.of(context).colorScheme.surfaceContainerHighest,
+                            color: classicGift ? null
+                                : mine
+                                    ? Theme.of(context).colorScheme.primaryContainer
+                                    : Theme.of(context).colorScheme.surfaceContainerHighest,
+                            gradient: classicGift ? const LinearGradient(
+                              colors: [Color(0xFF124C37), Color(0xFF1B5942),
+                                       Color(0xFF0A382B)]) : null,
+                            border: classicGift
+                                ? Border.all(color: const Color(0xBBE6C881))
+                                : null,
+                            boxShadow: classicGift ? const [
+                              BoxShadow(color: Color(0x332AAC74),
+                                  blurRadius: 12, offset: Offset(0, 4)),
+                            ] : null,
                             borderRadius: BorderRadius.circular(17),
                           ),
-                          child: isGift
-                              ? Column(mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(Icons.card_giftcard, size: 36),
-                                    Text(value),
-                                  ])
-                              : Text(value),
+                          child: classicGift
+                              ? FutureBuilder<List<RoomGiftCatalogItem>>(
+                                  future: ClassicGiftCatalog.load(),
+                                  builder: (context, giftSnapshot) {
+                                    RoomGiftCatalogItem? gift;
+                                    for (final item in giftSnapshot.data ??
+                                        const <RoomGiftCatalogItem>[]) {
+                                      if (item.id == giftId) {
+                                        gift = item;
+                                        break;
+                                      }
+                                    }
+                                    if (gift == null) return Text(value);
+                                    final sender = (data['senderName'] ??
+                                        (ar ? 'المرسل' : 'Sender')).toString();
+                                    final receiver = (data['recipientName'] ??
+                                        widget.peerName).toString();
+                                    final paidCoins =
+                                        (data['points'] as num?)?.toInt();
+                                    return Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(Icons.auto_awesome_rounded,
+                                          color: Color(0xFFF5D893), size: 15),
+                                        const SizedBox(height: 2),
+                                        Text(ar
+                                          ? '$sender أهدى إلى $receiver'
+                                          : '$sender sent to $receiver',
+                                          maxLines: 2,
+                                          textAlign: TextAlign.center,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            color: Color(0xFFFFE7AC),
+                                            fontWeight: FontWeight.w800,
+                                            fontSize: 12)),
+                                        ClassicGiftVisual(
+                                            gift: gift, size: 115),
+                                        Text(gift.localizedName(ar),
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w900)),
+                                        const SizedBox(height: 3),
+                                        Text('${paidCoins ?? gift.priceCoins} 🪙',
+                                            style: const TextStyle(
+                                              color: Color(0xFFFFD98E),
+                                              fontWeight: FontWeight.w900)),
+                                      ],
+                                    );
+                                  },
+                                )
+                              : isGift
+                                  ? Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                            Icons.card_giftcard, size: 36),
+                                        Text(value),
+                                      ])
+                                  : Text(value),
                         ),
                       );
                     },

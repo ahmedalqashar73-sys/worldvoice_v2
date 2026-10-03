@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 
 import agoraToken from "agora-token";
 import {
@@ -6,7 +6,7 @@ import {
   Environment as AppleEnvironment,
 } from "@apple/app-store-server-library";
 import express from "express";
-import { applicationDefault, getApps, initializeApp } from "firebase-admin/app";
+import { applicationDefault, cert, getApps, initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { FieldValue, Timestamp, getFirestore } from "firebase-admin/firestore";
 import { google } from "googleapis";
@@ -17,6 +17,9 @@ import {registerWalletRoutes} from "./wallet_routes.js";
 import {registerChatRoutes} from "./chat_routes.js";
 import {chatIdFor, assertChatMembership} from "./chat_membership.js";
 import {reverseVerifiedWebPurchase} from "./payment_reversals.js";
+import {validateQuizDraft, quizWinners} from "./quiz_policy.js";
+import {roomTaskSpec, advanceRoomLevel, roomLevelFromXp} from "./room_task_policy.js";
+import {privateWalletRef, requirePrivateWallet} from "./wallet_store.js";
 
 const { RtcRole, RtcTokenBuilder } = agoraToken;
 
@@ -25,20 +28,34 @@ const firebaseProjectId = (
   process.env.GOOGLE_CLOUD_PROJECT ||
   ""
 ).trim();
-if (process.env.NODE_ENV === "production") {
-  for (const key of ["AGORA_APP_ID", "AGORA_APP_CERTIFICATE"]) {
-    if (!(process.env[key] || "").trim()) {
-      throw new Error(`Cannot start production backend: missing ${key}`);
-    }
-  }
-  if (!firebaseProjectId) {
-    throw new Error("Cannot start production backend: missing FIREBASE_PROJECT_ID");
-  }
+if (process.env.NODE_ENV === "production" && !firebaseProjectId) {
+  throw new Error("Cannot start production backend: missing FIREBASE_PROJECT_ID");
 }
+// Agora credentials are required only by /agora/token. Production deployments
+// may intentionally keep the certificate solely in the existing Cloudflare
+// token Worker and use this service for Teacher AI, gifts, wallet and stores.
+
 if (getApps().length === 0) {
+  const rawServiceAccount = String(
+    process.env.FIREBASE_SERVICE_ACCOUNT_JSON || "",
+  ).trim();
+  let credential;
+  if (rawServiceAccount) {
+    let serviceAccount;
+    try {
+      serviceAccount = JSON.parse(rawServiceAccount);
+    } catch {
+      throw new Error(
+        "FIREBASE_SERVICE_ACCOUNT_JSON must contain valid JSON.",
+      );
+    }
+    credential = cert(serviceAccount);
+  } else {
+    credential = applicationDefault();
+  }
   initializeApp({
-    credential: applicationDefault(),
-    ...(firebaseProjectId ? { projectId: firebaseProjectId } : {}),
+    credential,
+    ...(firebaseProjectId ? {projectId: firebaseProjectId} : {}),
   });
 }
 
@@ -136,7 +153,7 @@ const openAiKey = (process.env.OPENAI_API_KEY || "").trim();
 const teacherModel = (process.env.OPENAI_TEACHER_MODEL || "").trim();
 
 const androidPackageName =
-  (process.env.ANDROID_PACKAGE_NAME || "com.worldvoice.worldvoice").trim();
+  (process.env.ANDROID_PACKAGE_NAME || "com.worldvoice.app").trim();
 const iosBundleId =
   (process.env.IOS_BUNDLE_ID || "com.worldvoice.worldvoice").trim();
 
@@ -336,6 +353,7 @@ async function creditVerifiedCoins({
     .update(`${platform}:${receiptId}`).digest("hex");
   const receiptRef = db.collection("iap_receipts").doc(receiptKey);
   const userRef = db.collection("users").doc(userId);
+  const walletRef = privateWalletRef(userRef);
   const configRef = db.doc("economy_config/current");
   const productRef = db.collection("coin_products").doc(catalogId);
   const day = new Date().toISOString().slice(0, 10);
@@ -343,7 +361,7 @@ async function creditVerifiedCoins({
   return db.runTransaction(async tx => {
     // Read all snapshots BEFORE making any transaction write.
     const [receiptSnap, userSnap, configSnap, productSnap, dailySnap] =
-      await Promise.all([receiptRef, userRef, configRef, productRef, dailyRef]
+      await Promise.all([receiptRef, walletRef, configRef, productRef, dailyRef]
         .map(ref => tx.get(ref)));
     if (receiptSnap.exists) {
       const receipt = receiptSnap.data() || {};
@@ -363,6 +381,7 @@ async function creditVerifiedCoins({
       return {alreadyCredited: true, coins: Number(receipt.coins || 0)};
     }
     const policy = requireLiveEconomy(configSnap.data());
+    requirePrivateWallet(userSnap);
     const product = productSnap.data() || {};
     const base = Number(product.coins);
     const priceCents = Math.round(Number(product.priceUsd) * 100);
@@ -403,7 +422,7 @@ async function creditVerifiedCoins({
         !Number.isSafeInteger(balanceAfter)) {
       throw Object.assign(new Error("Coin ledger balance is invalid."), {status: 503});
     }
-    tx.set(userRef, {
+    tx.set(walletRef, {
       coins: balanceAfter,
       purchasedCoins: previousPurchases + reward.totalCoins,
       firstRechargeUsed: true,
@@ -460,26 +479,65 @@ app.post("/agora/token", async (req, res, next) => {
     requireEnv(agoraCertificate, "AGORA_APP_CERTIFICATE");
 
     const roomRef = db.collection("rooms").doc(channelName);
-    const participantRef = roomRef.collection("participants").doc(user.uid);
-
-    const [roomSnap, participantSnap] = await Promise.all([
+    const liveRef = db.collection("live_sessions").doc(channelName);
+    const [roomSnap, liveSnap] = await Promise.all([
       roomRef.get(),
-      participantRef.get(),
+      liveRef.get(),
     ]);
 
-    if (!roomSnap.exists || roomSnap.data()?.isOpen !== true) {
-      return res.status(404).json({ error: "Room is not open." });
-    }
+    if (roomSnap.exists) {
+      if (roomSnap.data()?.isOpen !== true) {
+        return res.status(404).json({error: "Room is not open."});
+      }
+      const participantSnap =
+        await roomRef.collection("participants").doc(user.uid).get();
+      if (!participantSnap.exists) {
+        return res.status(403).json({error: "User is not a room participant."});
+      }
+      const participant = participantSnap.data() || {};
+      if (requestedRole === "publisher" && !isStageRole(participant.role)) {
+        return res.status(403).json({
+          error: "This participant is not allowed to publish room audio.",
+        });
+      }
+    } else if (liveSnap.exists) {
+      const live = liveSnap.data() || {};
+      const heartbeatMs = live.hostHeartbeatAt?.toMillis?.() ?? 0;
+      const fresh = live.isLive === true &&
+        live.channelId === channelName &&
+        heartbeatMs > Date.now() - 60000;
+      if (!fresh) {
+        return res.status(404).json({error: "Live session is not active."});
+      }
 
-    if (!participantSnap.exists) {
-      return res.status(403).json({ error: "User is not a room participant." });
-    }
-
-    const participant = participantSnap.data() || {};
-    if (requestedRole === "publisher" && !isStageRole(participant.role)) {
-      return res.status(403).json({
-        error: "This participant is not allowed to publish room audio.",
-      });
+      if (requestedRole === "publisher") {
+        const isHost = live.hostId === user.uid;
+        let approvedGuest = false;
+        if (!isHost) {
+          const requestSnap = await liveRef.collection("join_requests")
+            .doc(user.uid).get();
+          approvedGuest = requestSnap.data()?.status === "accepted";
+        }
+        if (!isHost && !approvedGuest) {
+          return res.status(403).json({
+            error: "This viewer is not approved to publish Live video.",
+          });
+        }
+      } else if (live.hostId !== user.uid) {
+        const viewerSnap = await liveRef.collection("viewers")
+          .doc(user.uid).get();
+        if (!viewerSnap.exists || viewerSnap.data()?.uid !== user.uid) {
+          return res.status(403).json({
+            error: "Join the Live before subscribing.",
+          });
+        }
+      }
+    } else {
+      // A signed-in user may bootstrap a brand-new Live publisher channel.
+      // It is not discoverable until the client creates live_sessions/{id}.
+      if (!(requestedRole === "publisher" && channelName.startsWith("live_"))) {
+        return res.status(404).json({error: "Room or Live session not found."});
+      }
     }
 
     const uid = agoraUidForFirebaseUid(user.uid);
@@ -514,33 +572,49 @@ app.post("/teacher-ai", async (req, res, next) => {
     requireEnv(openAiKey, "OPENAI_API_KEY");
     requireEnv(teacherModel, "OPENAI_TEACHER_MODEL");
 
+    const context = req.body?.context === "live" ? "live" : "room";
     const roomId = String(req.body?.roomId || "").trim();
     const captionId = String(req.body?.captionId || "").trim();
 
     if (!roomId || !captionId) {
-      return res.status(400).json({ error: "roomId and captionId are required." });
+      return res.status(400).json({error: "roomId and captionId are required."});
     }
 
-    const roomRef = db.collection("rooms").doc(roomId);
-    const participantRef = roomRef.collection("participants").doc(user.uid);
+    const parentCollection = context === "live" ? "live_sessions" : "rooms";
+    const roomRef = db.collection(parentCollection).doc(roomId);
     const captionRef = roomRef.collection("captions").doc(captionId);
     const noteRef = roomRef.collection("teacher_ai_notes").doc(captionId);
+    const roomSnap = await roomRef.get();
 
-    const [roomSnap, participantSnap, captionSnap, existingNote] =
-      await Promise.all([
-        roomRef.get(),
-        participantRef.get(),
-        captionRef.get(),
-        noteRef.get(),
-      ]);
-
-    if (!roomSnap.exists || roomSnap.data()?.isOpen !== true) {
-      return res.status(404).json({ error: "Room is not open." });
+    if (!roomSnap.exists ||
+        (context === "room" && roomSnap.data()?.isOpen !== true) ||
+        (context === "live" && roomSnap.data()?.isLive !== true)) {
+      return res.status(404).json({
+        error: context === "live" ? "Live session is not active." : "Room is not open.",
+      });
     }
 
-    if (!participantSnap.exists) {
-      return res.status(403).json({ error: "User is not in this room." });
+    let memberAllowed = false;
+    if (context === "room") {
+      memberAllowed = (await roomRef.collection("participants").doc(user.uid).get()).exists;
+    } else {
+      const live = roomSnap.data() || {};
+      if (live.hostId === user.uid) {
+        memberAllowed = true;
+      } else {
+        memberAllowed = (await roomRef.collection("viewers").doc(user.uid).get()).exists;
+      }
     }
+    if (!memberAllowed) {
+      return res.status(403).json({
+        error: context === "live" ? "User is not in this Live." : "User is not in this room.",
+      });
+    }
+
+    const [captionSnap, existingNote] = await Promise.all([
+      captionRef.get(),
+      noteRef.get(),
+    ]);
 
     if (!captionSnap.exists) {
       return res.status(404).json({ error: "Caption not found." });
@@ -626,6 +700,7 @@ app.post("/teacher-ai/ask", async (req, res, next) => {
     requireEnv(openAiKey, "OPENAI_API_KEY");
     requireEnv(teacherModel, "OPENAI_TEACHER_MODEL");
 
+    const context = req.body?.context === "live" ? "live" : "room";
     const roomId = String(req.body?.roomId || "").trim();
     const prompt = String(req.body?.prompt || "").trim();
     const requestedRoomLanguage = String(
@@ -644,19 +719,30 @@ app.post("/teacher-ai/ask", async (req, res, next) => {
       });
     }
 
-    const roomRef = db.collection("rooms").doc(roomId);
-    const participantRef = roomRef.collection("participants").doc(user.uid);
-    const [roomSnap, participantSnap] = await Promise.all([
-      roomRef.get(),
-      participantRef.get(),
-    ]);
+    const parentCollection = context === "live" ? "live_sessions" : "rooms";
+    const roomRef = db.collection(parentCollection).doc(roomId);
+    const roomSnap = await roomRef.get();
 
-    if (!roomSnap.exists || roomSnap.data()?.isOpen !== true) {
-      return res.status(404).json({ error: "Room is not open." });
+    if (!roomSnap.exists ||
+        (context === "room" && roomSnap.data()?.isOpen !== true) ||
+        (context === "live" && roomSnap.data()?.isLive !== true)) {
+      return res.status(404).json({
+        error: context === "live" ? "Live session is not active." : "Room is not open.",
+      });
     }
 
-    if (!participantSnap.exists) {
-      return res.status(403).json({ error: "User is not in this room." });
+    let memberAllowed = false;
+    if (context === "room") {
+      memberAllowed = (await roomRef.collection("participants").doc(user.uid).get()).exists;
+    } else {
+      const live = roomSnap.data() || {};
+      memberAllowed = live.hostId === user.uid ||
+        (await roomRef.collection("viewers").doc(user.uid).get()).exists;
+    }
+    if (!memberAllowed) {
+      return res.status(403).json({
+        error: context === "live" ? "User is not in this Live." : "User is not in this room.",
+      });
     }
 
     const roomLanguageCode =
@@ -715,18 +801,20 @@ app.post("/store/purchase", async (req, res, next) => {
     const itemRef = db.collection("store_items").doc(itemId);
     const configRef = db.doc("economy_config/current");
     const payerRef = db.collection("users").doc(sender.uid);
+    const payerWalletRef = privateWalletRef(payerRef);
     const recipientRef = db.collection("users").doc(recipientId);
+    const recipientWalletRef = gifting ? privateWalletRef(recipientRef) : payerWalletRef;
     const inventoryRef = recipientRef.collection("inventory").doc(itemId);
     const friendRef = gifting ? payerRef.collection("following").doc(recipientId)
       : null;
     const day = new Date().toISOString().slice(0, 10);
     const dailyRef = payerRef.collection("economy_daily").doc(day);
     const outcome = await db.runTransaction(async tx => {
-      const refs = [operationRef, itemRef, configRef, payerRef, inventoryRef,
-        dailyRef, ...(gifting ? [recipientRef, friendRef] : [])];
+      const refs = [operationRef, itemRef, configRef, payerRef, payerWalletRef,
+        inventoryRef, dailyRef, ...(gifting ? [recipientRef, recipientWalletRef, friendRef] : [])];
       const snaps = await Promise.all(refs.map(ref => tx.get(ref)));
-      const [existing, itemSnap, configSnap, payerSnap, ownedSnap, dailySnap] =
-        snaps;
+      const [existing, itemSnap, configSnap, payerProfileSnap, payerSnap,
+        ownedSnap, dailySnap] = snaps;
       if (existing.exists) {
         const old = existing.data() || {};
         if (old.senderId !== sender.uid || old.recipientId !== recipientId ||
@@ -736,6 +824,8 @@ app.post("/store/purchase", async (req, res, next) => {
         return {...old.outcome, alreadyProcessed: true};
       }
       const policy = requireLiveEconomy(configSnap.data());
+      requirePrivateWallet(payerSnap);
+      if (gifting) requirePrivateWallet(snaps[8]);
       const item = itemSnap.data() || {};
       if (!itemSnap.exists || item.active !== true ||
           !["background", "frame", "entrance", "vip"].includes(item.type) ||
@@ -755,9 +845,10 @@ app.post("/store/purchase", async (req, res, next) => {
         throw Object.assign(new Error("Store item price or duration is invalid."),
           {status: 503});
       }
-      if (!payerSnap.exists || Number(payerSnap.data()?.giftLevel || 0) <
+      if (!payerProfileSnap.exists ||
+          Number(payerSnap.data()?.giftLevel || 0) <
           Number(item.requiredGiftLevel || 0) ||
-          (gifting && (!snaps[6].exists || !snaps[7].exists))) {
+          (gifting && (!snaps[7].exists || !snaps[9].exists))) {
         throw Object.assign(new Error("User, gift level or friendship requirement failed."),
           {status: 403});
       }
@@ -765,7 +856,7 @@ app.post("/store/purchase", async (req, res, next) => {
           Number(payerSnap.data()?.walletDebtCoins || 0) > 0) {
         throw Object.assign(new Error("Wallet under payment review."), {status: 423});
       }
-      const owner = gifting ? snaps[6].data() || {} : payerSnap.data() || {};
+      const owner = gifting ? snaps[8].data() || {} : payerSnap.data() || {};
       const existingExpiry = item.type === "vip"
         ? owner.vipExpiresAt?.toMillis?.()
         : ownedSnap.data()?.expiresAt?.toMillis?.();
@@ -789,7 +880,7 @@ app.post("/store/purchase", async (req, res, next) => {
           dailyGift + price > policy.giftingDailyCoinLimit)) {
         throw Object.assign(new Error("Gifting daily limit exceeded."), {status: 429});
       }
-      tx.update(payerRef, {
+      tx.update(payerWalletRef, {
         coins: before - price,
         updatedAt: FieldValue.serverTimestamp(),
       });
@@ -812,7 +903,7 @@ app.post("/store/purchase", async (req, res, next) => {
         updatedAt: FieldValue.serverTimestamp(),
       }, {merge: true});
       if (item.type === "vip") {
-        tx.update(recipientRef, {vipExpiresAt: expiresAt});
+        tx.update(recipientWalletRef, {vipExpiresAt: expiresAt});
       }
       if (item.type === "background") {
         // Temporary mirrored legacy read model; remove after all clients
@@ -964,9 +1055,9 @@ app.post("/store/claim-reward", async (req, res, next) => {
 
 
 /**
- * Unified gift contract for room/live/chat. Only room has a deployed, audited
- * membership model currently. Other contexts intentionally fail closed until
- * their permission checks and event streams are implemented.
+ * Unified gift contract for room/live/chat.
+ * Live authorization is based on an active server-timestamped Live session,
+ * atomic viewer membership, and host-approved active camera guests.
  * Idempotency-Key is mandatory; clients reuse it for a checkout retry.
  */
 
@@ -1038,8 +1129,6 @@ app.post("/gift/send", async (req, res, next) => {
         !/^[A-Za-z0-9_-]{12,100}$/.test(requestKey)) {
       return res.status(400).json({error: "Invalid gift request or idempotency key."});
     }
-    // Live uses the existing verified Agora ROOM membership and is
-    // available only when the room itself was created in live mode.
     if (context !== "room" && recipientId === "teacher_ai") {
       return res.status(400).json({error: "AI gift XP is room-only."});
     }
@@ -1047,20 +1136,29 @@ app.post("/gift/send", async (req, res, next) => {
       .update(`${sender.uid}:${requestKey}`).digest("hex");
     const eventRef = db.collection("economy_gift_operations").doc(requestHash);
     const senderRef = db.collection("users").doc(sender.uid);
+    const senderWalletRef = privateWalletRef(senderRef);
     const recipientRef = recipientId === "teacher_ai" ? null
       : db.collection("users").doc(recipientId);
+    const recipientWalletRef = recipientRef ? privateWalletRef(recipientRef) : null;
     const inventoryRef = senderRef.collection("inventory")
       .doc(`gift__${giftId}`);
     const itemRef = db.collection("store_items").doc(`gift__${giftId}`);
     const roomRef = context === "chat"
       ? db.collection("chats").doc(contextId)
-      : db.collection("rooms").doc(contextId);
-    const senderMemberRef = context !== "chat"
-      ? roomRef.collection("participants").doc(sender.uid) : roomRef;
+      : context === "live"
+        ? db.collection("live_sessions").doc(contextId)
+        : db.collection("rooms").doc(contextId);
+    const senderMemberRef = context === "room"
+      ? roomRef.collection("participants").doc(sender.uid)
+      : context === "live"
+        ? roomRef.collection("viewers").doc(sender.uid)
+        : roomRef;
     const recipientMemberRef = recipientRef
-      ? context !== "chat"
+      ? context === "room"
         ? roomRef.collection("participants").doc(recipientId)
-        : roomRef
+        : context === "live"
+          ? roomRef.collection("join_requests").doc(recipientId)
+          : roomRef
       : null;
     const senderFollow = context === "chat"
       ? senderRef.collection("following").doc(recipientId) : null;
@@ -1074,12 +1172,12 @@ app.post("/gift/send", async (req, res, next) => {
     const outcome = await db.runTransaction(async (tx) => {
       // All reads before writes (Firestore transaction requirement).
       const refs = [eventRef, configRef, itemRef, roomRef, senderMemberRef,
-        senderRef, inventoryRef, ...(recipientRef
-          ? [recipientMemberRef, recipientRef] : []),
+        senderRef, senderWalletRef, inventoryRef, ...(recipientRef
+          ? [recipientMemberRef, recipientRef, recipientWalletRef] : []),
         ...(senderFollow ? [senderFollow, recipientFollow] : [])];
       const snapshots = await Promise.all(refs.map(ref => tx.get(ref)));
       const [existing, configSnap, itemSnap, roomSnap, senderMember,
-        senderSnap, freeGiftSnap] = snapshots;
+        senderProfileSnap, senderSnap, freeGiftSnap] = snapshots;
       if (existing.exists) {
         const data = existing.data();
         if (data.userId !== sender.uid || data.context !== context ||
@@ -1090,31 +1188,53 @@ app.post("/gift/send", async (req, res, next) => {
         }
         return {...data.outcome, alreadyProcessed: true};
       }
-      if (context !== "chat") {
+      if (context === "room") {
         if (roomSnap.data()?.isOpen !== true ||
-            (context === "live" && roomSnap.data()?.mode !== "live") ||
             !senderMember.exists ||
-            (recipientMemberRef && !snapshots[7].exists)) {
+            (recipientMemberRef && !snapshots[8].exists)) {
           throw Object.assign(new Error("Room membership is required."),
+            {status: 403});
+        }
+      } else if (context === "live") {
+        const live = roomSnap.data() || {};
+        const heartbeatMs = live.hostHeartbeatAt?.toMillis?.() ?? 0;
+        const liveFresh = roomSnap.exists &&
+          live.isLive === true &&
+          live.channelId === contextId &&
+          heartbeatMs > Date.now() - 60000;
+        const senderIsHost = live.hostId === sender.uid;
+        const senderIsViewer = senderMember.exists &&
+          senderMember.data()?.uid === sender.uid;
+        const recipientIsHost = live.hostId === recipientId;
+        const recipientRequest = snapshots[8]?.data() || {};
+        const recipientIsGuest = snapshots[8]?.exists &&
+          recipientRequest.uid === recipientId &&
+          recipientRequest.status === "accepted";
+        if (!liveFresh || (!senderIsHost && !senderIsViewer) ||
+            (!recipientIsHost && !recipientIsGuest)) {
+          throw Object.assign(new Error("Active Live membership is required."),
             {status: 403});
         }
       } else {
         if (!roomSnap.exists ||
             chatIdFor(sender.uid, recipientId) !== contextId ||
-            !snapshots[9]?.exists || !snapshots[10]?.exists) {
+            !snapshots[11]?.exists || !snapshots[12]?.exists) {
           throw Object.assign(new Error("Mutual following required for chat gifts."),
             {status: 403});
         }
         assertChatMembership(roomSnap.data(), sender.uid, recipientId);
       }
       const config = requireLiveEconomy(configSnap.data());
+      requirePrivateWallet(senderSnap);
+      if (recipientRef) requirePrivateWallet(snapshots[10]);
       const item = itemSnap.data();
       const price = Number(item?.priceCoins);
       if (!itemSnap.exists || item.type !== "gift" || item.active !== true ||
           !Number.isSafeInteger(price) || price <= 0) {
         throw Object.assign(new Error("This gift is unavailable."), {status: 404});
       }
-      if (!senderSnap.exists || (recipientRef && !snapshots[8].exists)) {
+      if (!senderProfileSnap.exists ||
+          (recipientRef && !snapshots[9].exists)) {
         throw Object.assign(new Error("Gift wallet profiles are unavailable."),
           {status: 409});
       }
@@ -1160,7 +1280,8 @@ app.post("/gift/send", async (req, res, next) => {
           spent + amounts.chargedCoins > config.giftingDailyCoinLimit) {
         throw Object.assign(new Error("Daily gift limit reached."), {status: 429});
       }
-      const recipientData = recipientRef ? snapshots[8].data() || {} : null;
+      const recipientData = recipientRef ? snapshots[10].data() || {} : null;
+      const recipientProfile = recipientRef ? snapshots[9].data() || {} : null;
       const recipientBefore = recipientData
         ? Number(recipientData.diamondsPending || 0) : 0;
       const receiverAfter = recipientBefore + amounts.pendingDiamonds;
@@ -1177,7 +1298,7 @@ app.post("/gift/send", async (req, res, next) => {
         pendingDiamonds: recipientRef ? amounts.pendingDiamonds : 0,
         holdUntil: recipientRef ? holdUntil.toDate().toISOString() : null,
       };
-      tx.set(senderRef, {
+      tx.set(senderWalletRef, {
         coins: after,
         giftSentPoints: FieldValue.increment(amounts.chargedCoins),
         giftLevelPoints: FieldValue.increment(amounts.giftLevelPoints),
@@ -1201,7 +1322,7 @@ app.post("/gift/send", async (req, res, next) => {
         createdAt: FieldValue.serverTimestamp(),
       });
       if (recipientRef) {
-        tx.set(recipientRef, {
+        tx.set(recipientWalletRef, {
           diamondsPending: receiverAfter,
           giftReceivedPoints: FieldValue.increment(amounts.chargedCoins),
           updatedAt: FieldValue.serverTimestamp(),
@@ -1230,9 +1351,9 @@ app.post("/gift/send", async (req, res, next) => {
       tx.create(giftEventRef, {
         ...(context === "chat" ? {type: "gift"} : {}),
         senderId: sender.uid,
-        senderName: String(senderData.displayName || "WorldVoice user"),
+        senderName: String(senderProfileSnap.data()?.displayName || "WorldVoice user"),
         recipientId, recipientName: recipientRef
-          ? String(recipientData.displayName || "WorldVoice member")
+          ? String(recipientProfile.displayName || "WorldVoice member")
           : "Teacher AI",
         giftId, points: amounts.chargedCoins, quantity,
         animationUrl: item.animationUrl || null,
@@ -1340,99 +1461,324 @@ app.post("/iap/verify", async (req, res, next) => {
   }
 });
 
+/**
+ * Host-only quiz creation. The correct answer never leaves the trusted
+ * backend and may never be read by another authenticated client.
+ */
+app.post("/quiz/start", async (req, res, next) => {
+  try {
+    const user = await authenticatedUser(req);
+    const roomId = String(req.body?.roomId || "").trim();
+    if (!roomId || roomId.length > 160) {
+      return res.status(400).json({error: "Invalid room ID."});
+    }
+    const draft = validateQuizDraft(req.body || {});
+    const roomRef = db.collection("rooms").doc(roomId);
+    const roomSnap = await roomRef.get();
+    if (!roomSnap.exists || roomSnap.data()?.isOpen !== true) {
+      return res.status(404).json({error: "Room is not open."});
+    }
+    if (roomSnap.data()?.hostId !== user.uid) {
+      return res.status(403).json({error: "Only the host may start a quiz."});
+    }
+    const previous = await roomRef.collection("quiz_answers").get();
+    if (previous.size > 400) {
+      return res.status(409).json({
+        error: "Too many previous quiz answers; finish cleanup first.",
+      });
+    }
+    const roundId = randomUUID();
+    const batch = db.batch();
+    for (const answer of previous.docs) batch.delete(answer.ref);
+    batch.set(roomRef.collection("quiz_private").doc("current"), {
+      correctIndex: draft.correctIndex,
+      startedAt: FieldValue.serverTimestamp(),
+      roundId,
+      status: "open",
+      hostId: user.uid,
+    });
+    batch.update(roomRef, {
+      quiz: {
+        question: draft.question,
+        options: draft.options,
+        roundId,
+        revealed: false,
+        // No client-visible correctIndex. Until a server-side reward ledger
+        // uses owner-only wallets, every result is non-monetary practice.
+        practiceOnly: true,
+        startedAt: FieldValue.serverTimestamp(),
+      },
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+    await batch.commit();
+    return res.json({ok: true, roundId});
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * Legacy client-created quizzes still function as FREE practice using the
+ * on-device fallback. This endpoint refuses to credit a public correctIndex.
+ * Trusted server-created rounds are scored only using quiz_private/current.
+ */
 app.post("/quiz/finish", async (req, res, next) => {
   try {
     const user = await authenticatedUser(req);
     const roomId = String(req.body?.roomId || "").trim();
-
-    if (!roomId) {
-      return res.status(400).json({ error: "roomId is required." });
+    if (!roomId || roomId.length > 160) {
+      return res.status(400).json({error: "Invalid room ID."});
     }
-
     const roomRef = db.collection("rooms").doc(roomId);
-    const roomSnap = await roomRef.get();
-
+    const privateRef = roomRef.collection("quiz_private").doc("current");
+    const [roomSnap, privateSnap] = await Promise.all([
+      roomRef.get(), privateRef.get(),
+    ]);
     if (!roomSnap.exists || roomSnap.data()?.isOpen !== true) {
-      return res.status(404).json({ error: "Room is not open." });
+      return res.status(404).json({error: "Room is not open."});
     }
-
     if (roomSnap.data()?.hostId !== user.uid) {
-      return res.status(403).json({ error: "Only the host can finish the quiz." });
+      return res.status(403).json({error: "Only the host can finish the quiz."});
     }
-
+    const quiz = roomSnap.data()?.quiz || {};
+    const secret = privateSnap.data() || {};
+    if (!privateSnap.exists || !secret.roundId ||
+        quiz.roundId !== secret.roundId ||
+        !Number.isInteger(secret.correctIndex)) {
+      return res.status(409).json({
+        error: "This quiz has no verified private answer; use free practice mode.",
+      });
+    }
+    if (quiz.revealed === true || secret.status === "closed") {
+      return res.json({ok: true, alreadyFinished: true, winners: quiz.winners || []});
+    }
     const answersSnap = await roomRef.collection("quiz_answers").get();
-    const roomData = roomSnap.data() || {};
-    const quiz = roomData.quiz || {};
-    const correctIndex = Number(quiz.correctIndex);
+    const winners = quizWinners({
+      answers: answersSnap.docs.map(doc => ({id: doc.id, ...doc.data()})),
+      correctIndex: secret.correctIndex,
+      startedAt: secret.startedAt,
+      roundId: secret.roundId,
+    });
+    const result = await db.runTransaction(async tx => {
+      const [currentRoom, currentSecret] = await Promise.all([
+        tx.get(roomRef), tx.get(privateRef),
+      ]);
+      const publicQuiz = currentRoom.data()?.quiz || {};
+      const privateQuiz = currentSecret.data() || {};
+      if (currentRoom.data()?.hostId !== user.uid ||
+          publicQuiz.roundId !== secret.roundId ||
+          privateQuiz.roundId !== secret.roundId) {
+        const conflict = new Error("Quiz round changed; retry.");
+        conflict.status = 409;
+        throw conflict;
+      }
+      if (publicQuiz.revealed === true || privateQuiz.status !== "open") {
+        return {alreadyFinished: true, winners: publicQuiz.winners || []};
+      }
+      tx.update(privateRef, {
+        status: "closed",
+        closedAt: FieldValue.serverTimestamp(),
+      });
+      tx.update(roomRef, {
+        "quiz.correctIndex": privateQuiz.correctIndex,
+        "quiz.revealed": true,
+        "quiz.practiceOnly": true,
+        "quiz.winners": winners,
+        "quiz.firstPrizeCoins": 0,
+        "quiz.rewardedAt": FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+      return {alreadyFinished: false, winners};
+    });
+    return res.json({ok: true, practiceOnly: true, ...result});
+  } catch (error) {
+    next(error);
+  }
+});
 
-    if (!Number.isInteger(correctIndex)) {
-      return res.status(409).json({ error: "No active quiz." });
+
+/**
+ * Non-monetary, server-verified room missions. Device buttons cannot grant
+ * XP or level rewards. Config-required missions stay disabled without owner
+ * approved values; no task mints coins, diamonds or cashout inventory.
+ */
+const ROOM_TASK_KEYS = ["ten_minutes", "host_five", "three_gifts", "stay_hours"];
+const roomTaskDay = () => new Date().toISOString().slice(0, 10);
+
+function roomTaskId(key, uid, day) {
+  const period = (key === "ten_minutes" || key === "stay_hours") ? day : "once";
+  return `${key}_${uid}_${period}`;
+}
+function joinedMinutes(participant, nowMs) {
+  const joined = participant?.joinedAt?.toMillis?.();
+  if (!Number.isSafeInteger(joined) || joined > nowMs) return 0;
+  return Math.max(0, Math.floor((nowMs - joined) / 60000));
+}
+
+app.get("/room/tasks/status", async (req, res, next) => {
+  try {
+    const user = await authenticatedUser(req);
+    const roomId = String(req.query.roomId || "").trim();
+    if (!roomId || roomId.length > 160) {
+      return res.status(400).json({error: "Invalid room ID."});
     }
-
-    const correctAnswers = answersSnap.docs
-      .map((doc) => ({ id: doc.id, ...doc.data() }))
-      .filter((answer) => Number(answer.optionIndex) === correctIndex)
-      .sort((a, b) => {
-        const aTime = a.answeredAt?.toMillis?.() || Number.MAX_SAFE_INTEGER;
-        const bTime = b.answeredAt?.toMillis?.() || Number.MAX_SAFE_INTEGER;
-        return aTime - bTime;
-      })
-      .slice(0, 3);
-
-    const winners = correctAnswers.map((answer, index) => ({
-      place: index + 1,
-      userId: String(answer.userId || answer.id),
-      displayName: String(answer.displayName || "WorldVoice user"),
-      prizeCoins: index === 0 ? 5 : 0,
-    }));
-
-    const transactionResult = await db.runTransaction(async (tx) => {
-      const latestRoom = await tx.get(roomRef);
-      const latestQuiz = latestRoom.data()?.quiz || {};
-
-      if (latestQuiz.rewardedAt != null) {
-        return {
-          alreadyFinished: true,
-          winners: Array.isArray(latestQuiz.winners)
-            ? latestQuiz.winners
-            : [],
-        };
+    const roomRef = db.collection("rooms").doc(roomId);
+    const participantRef = roomRef.collection("participants").doc(user.uid);
+    const now = Date.now();
+    const day = roomTaskDay();
+    const [room, participant, members, gifts, config, ...completions] =
+      await Promise.all([
+        roomRef.get(),
+        participantRef.get(),
+        roomRef.collection("participants").get(),
+        roomRef.collection("gifts").where("senderId", "==", user.uid)
+          .limit(3).get(),
+        db.doc("room_task_config/current").get(),
+        ...ROOM_TASK_KEYS.map(key =>
+          roomRef.collection("task_completions")
+            .doc(roomTaskId(key, user.uid, day)).get()),
+      ]);
+    if (!room.exists || room.data()?.isOpen !== true || !participant.exists) {
+      return res.status(403).json({error: "Join an open room to view its tasks."});
+    }
+    const isHost = room.data()?.hostId === user.uid;
+    const guestCount = isHost ?
+      members.docs.filter(doc => doc.id !== user.uid).length : 0;
+    const minutes = joinedMinutes(participant.data(), now);
+    const progress = {minutes, guestCount, giftsSent: gifts.size};
+    const configData = config.data() || {};
+    const missions = ROOM_TASK_KEYS.map((key, index) => {
+      let spec;
+      try {
+        spec = roomTaskSpec(key, configData);
+      } catch (error) {
+        if (error.status !== 503) throw error;
+        return {key, configured: false, claimed: completions[index].exists,
+          requiredMinutes: key === "stay_hours" ? null : undefined,
+          xp: null};
       }
+      const current = key === "ten_minutes" || key === "stay_hours"
+        ? minutes : key === "host_five" ? guestCount : gifts.size;
+      const required = spec.requiredMinutes ?? spec.requiredCount;
+      return {key, configured: true, claimed: completions[index].exists,
+        eligible: current >= required, current, required, xp: spec.xp};
+    });
+    const xp = Number(room.data()?.roomXp || 0);
+    return res.json({ok: true, roomId, xp, level: roomLevelFromXp(xp),
+      maxLevel: 60, progress, missions});
+  } catch (error) {
+    next(error);
+  }
+});
 
-      if (winners.length > 0) {
-        const winnerRef = db.collection("users").doc(winners[0].userId);
-        const winnerSnap = await tx.get(winnerRef);
-        const balance = Number(winnerSnap.data()?.coins || 0);
-        tx.set(
-          winnerRef,
-          {
-            coins: balance + 5,
-            quizCoinsEarned: FieldValue.increment(5),
-            updatedAt: FieldValue.serverTimestamp(),
-          },
-          { merge: true },
-        );
+app.post("/room/tasks/claim", async (req, res, next) => {
+  try {
+    const user = await authenticatedUser(req);
+    const roomId = String(req.body?.roomId || "").trim();
+    const taskKey = String(req.body?.taskKey || "").trim();
+    if (!roomId || roomId.length > 160 || !ROOM_TASK_KEYS.includes(taskKey)) {
+      return res.status(400).json({error: "Invalid room mission."});
+    }
+    const roomRef = db.collection("rooms").doc(roomId);
+    const memberRef = roomRef.collection("participants").doc(user.uid);
+    const configRef = db.doc("room_task_config/current");
+    const day = roomTaskDay();
+    const completionRef = roomRef.collection("task_completions")
+      .doc(roomTaskId(taskKey, user.uid, day));
+    const now = Date.now();
+
+    const outcome = await db.runTransaction(async tx => {
+      // Read all snapshots and evidence BEFORE the first transaction write.
+      const [room, member, config, prior, members, gifts] = await Promise.all([
+        tx.get(roomRef), tx.get(memberRef), tx.get(configRef),
+        tx.get(completionRef),
+        taskKey === "host_five"
+          ? tx.get(roomRef.collection("participants")) : Promise.resolve(null),
+        taskKey === "three_gifts"
+          ? tx.get(roomRef.collection("gifts").where(
+              "senderId", "==", user.uid).limit(3))
+          : Promise.resolve(null),
+      ]);
+      if (!room.exists || room.data()?.isOpen !== true || !member.exists) {
+        throw Object.assign(new Error("Join an open room first."), {status: 403});
       }
-
-      tx.set(
-        roomRef,
-        {
-          "quiz.revealed": true,
-          "quiz.winners": winners,
-          "quiz.firstPrizeCoins": 5,
-          "quiz.rewardedAt": FieldValue.serverTimestamp(),
-          updatedAt: FieldValue.serverTimestamp(),
-        },
-        { merge: true },
-      );
-
-      return {
-        alreadyFinished: false,
-        winners,
-      };
+      if (prior.exists) return {...prior.data().outcome, alreadyProcessed: true};
+      const spec = roomTaskSpec(taskKey, config.data());
+      let count = 0;
+      switch (taskKey) {
+        case "ten_minutes":
+        case "stay_hours":
+          count = joinedMinutes(member.data(), now);
+          break;
+        case "host_five":
+          if (room.data()?.hostId !== user.uid) {
+            throw Object.assign(new Error("Only the host may claim this mission."),
+              {status: 403});
+          }
+          count = members.docs.filter(doc => doc.id !== user.uid).length;
+          break;
+        case "three_gifts":
+          count = gifts.size;
+          break;
+      }
+      const required = spec.requiredMinutes ?? spec.requiredCount;
+      if (count < required) {
+        throw Object.assign(new Error("Mission conditions are not verified yet."),
+          {status: 409});
+      }
+      const previousXp = Number(room.data()?.roomXp || 0);
+      const advancement = advanceRoomLevel(previousXp, spec.xp);
+      const result = {taskKey, awardedXp: advancement.awardedXp,
+        roomXp: advancement.nextXp, roomLevel: advancement.newLevel,
+        unlockedLevels: advancement.unlockedLevels, completedAtMillis: now};
+      tx.create(completionRef, {
+        taskKey, userId: user.uid, points: advancement.awardedXp,
+        periodKey: day, evidence: {observed: count, required},
+        outcome: result, completedAt: FieldValue.serverTimestamp(),
+      });
+      tx.update(roomRef, {
+        roomXp: advancement.nextXp,
+        roomLevel: advancement.newLevel,
+        lastTaskCompletionId: completionRef.id,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+      for (const level of advancement.unlockedLevels) {
+        tx.set(roomRef.collection("rewards").doc(`level_${level}`), {
+          level, type: level === 5 ? "background_month" : "gift_pack",
+          unlockedBy: user.uid, sourceTaskId: completionRef.id,
+          unlockedAt: FieldValue.serverTimestamp(),
+        }, {merge: true});
+      }
+      return {...result, alreadyProcessed: false};
     });
 
-    return res.json({ ok: true, ...transactionResult });
+    // Idempotent retry also retries fanout if a previous response was lost.
+    // These are non-monetary, catalog-dependent reward eligibility documents.
+    if (outcome.unlockedLevels?.length) {
+      const present = await roomRef.collection("participants").get();
+      const levels = outcome.unlockedLevels;
+      const expiration = Timestamp.fromMillis(
+        outcome.completedAtMillis + 30 * 24 * 60 * 60 * 1000);
+      const membersPerBatch = Math.max(1, Math.floor(450 / levels.length));
+      for (let offset = 0; offset < present.size; offset += membersPerBatch) {
+        const batch = db.batch();
+        for (const person of present.docs.slice(offset, offset + membersPerBatch)) {
+          for (const level of levels) {
+            const rewardId = `${roomId}_level_${level}`;
+            batch.set(db.collection("users").doc(person.id)
+              .collection("room_rewards").doc(rewardId), {
+              userId: person.id, roomId, level,
+              type: level === 5 ? "background_month" : "gift_pack",
+              sourceRewardId: `level_${level}`,
+              ...(level === 5 ? {expiresAt: expiration} : {}),
+              grantedAt: FieldValue.serverTimestamp(),
+            }, {merge: true});
+          }
+        }
+        await batch.commit();
+      }
+    }
+    return res.json({ok: true, ...outcome});
   } catch (error) {
     next(error);
   }

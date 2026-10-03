@@ -76,4 +76,50 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
     expect(tester.takeException(), isNull);
   });
+  testWidgets('keyboard docks composer without shifting room stage', (tester) async {
+    final inset = ValueNotifier<double>(0);
+    addTearDown(inset.dispose);
+    await tester.pumpWidget(MaterialApp(
+      home: ValueListenableBuilder<double>(
+        valueListenable: inset,
+        builder: (context, keyboardHeight, _) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            viewInsets: EdgeInsets.only(bottom: keyboardHeight),
+          ),
+          child: Scaffold(
+            resizeToAvoidBottomInset: false,
+            body: Column(children: [
+              const SizedBox(
+                key: ValueKey('fixed-room-stage'),
+                height: 240,
+                width: double.infinity,
+              ),
+              Expanded(child: RoomConversationPanel(
+                messages: const Stream<List<RoomChatMessage>>.empty(),
+                isArabic: true,
+                onSend: (_) async {},
+                onGifts: () {},
+                onShop: () {},
+                onTools: () {},
+                onCaptions: () {},
+                onMic: () {},
+                micIcon: Icons.mic,
+                micLabel: 'مايك',
+              )),
+            ]),
+          ),
+        ),
+      ),
+    ));
+    final stage = find.byKey(const ValueKey('fixed-room-stage'));
+    final beforeStage = tester.getRect(stage);
+    final beforeField = tester.getTopLeft(find.byType(TextField)).dy;
+    inset.value = 300;
+    await tester.pump();
+    expect(tester.getRect(stage), beforeStage);
+    expect(tester.getTopLeft(find.byType(TextField)).dy,
+        lessThan(beforeField));
+    expect(tester.takeException(), isNull);
+  });
+
 }

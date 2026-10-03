@@ -20,6 +20,9 @@ class RoomAdminService {
   CollectionReference<Map<String, dynamic>> get _modLog =>
       _room.collection('mod_log');
 
+  CollectionReference<Map<String, dynamic>> _globalModerators(String ownerId) =>
+      _db.collection('users').doc(ownerId).collection('moderators');
+
   static int maxModeratorsForLevel(int level) {
     if (level < 6) return 3;
     return 4 + ((level - 6) ~/ 3);
@@ -65,7 +68,15 @@ class RoomAdminService {
       }
     }
 
-    await _participants.doc(participant.userId).set(
+    final room = await _room.get();
+    final ownerId = room.data()?['hostId']?.toString() ?? '';
+    if (ownerId.isEmpty || ownerId != actor.uid) {
+      throw StateError('Only the host can manage global moderators.');
+    }
+
+    final batch = _db.batch();
+    batch.set(
+      _participants.doc(participant.userId),
       {
         'isModerator': value,
         'updatedAt': FieldValue.serverTimestamp(),
@@ -73,8 +84,28 @@ class RoomAdminService {
       SetOptions(merge: true),
     );
 
+    final globalRef = _globalModerators(ownerId).doc(participant.userId);
+    if (value) {
+      batch.set(
+        globalRef,
+        {
+          'uid': participant.userId,
+          'displayName': participant.displayName,
+          'photoUrl': participant.photoUrl ?? '',
+          'assignedBy': actor.uid,
+          'assignedAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
+      );
+    } else {
+      batch.delete(globalRef);
+    }
+
+    await batch.commit();
+
     await _writeLog(
-      action: value ? 'moderator_assigned' : 'moderator_removed',
+      action: value ? 'global_moderator_assigned' : 'global_moderator_removed',
       target: participant,
     );
   }

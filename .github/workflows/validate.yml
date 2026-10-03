@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches: [main]
+    branches: [main, fix/finish-room-hub-quiz-gift-20260928]
   workflow_dispatch:
 
 jobs:
@@ -19,7 +19,7 @@ jobs:
       - run: flutter --version
       - run: flutter pub get
       - run: flutter analyze
-      - run: flutter test test/create_room_page_test.dart test/room_conversation_panel_test.dart test/room_board_text_test.dart test/board_media_url_test.dart
+      - run: flutter test test/create_room_page_test.dart test/room_conversation_panel_test.dart test/room_board_text_test.dart test/board_media_url_test.dart test/classic_gift_catalog_test.dart test/classic_gift_visual_test.dart test/luxury_gift_assets_test.dart test/coin_pack_presentation_test.dart test/classic_gift_mesh_test.dart test/friend_gift_preview_test.dart
 
   backend-check:
     runs-on: ubuntu-latest
@@ -35,6 +35,8 @@ jobs:
           cache-dependency-path: backend/package.json
       - run: npm install
       - run: node --check src/server.js
+      - run: node --check scripts/seed-classic-gifts.mjs
+      - run: node --test test/classic_gifts.test.js
 
   firestore-rules:
     runs-on: ubuntu-latest

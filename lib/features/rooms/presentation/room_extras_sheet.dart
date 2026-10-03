@@ -3,29 +3,17 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../data/room_feature_models.dart';
-import '../data/room_moderation_models.dart';
 import '../services/room_feature_service.dart';
-import 'unified_gift_panel.dart';
 
 class RoomExtrasSheet extends StatelessWidget {
   const RoomExtrasSheet({
     required this.roomId,
-    required this.participants,
-    required this.isHost,
-    required this.showTeacherAiSeat,
-    this.onOpenCoinStore,
-    this.contextType = 'room',
     this.initialTab = 0,
     super.key,
   });
 
   final int initialTab;
   final String roomId;
-  final List<RoomParticipant> participants;
-  final bool isHost;
-  final bool showTeacherAiSeat;
-  final VoidCallback? onOpenCoinStore;
-  final String contextType;
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +25,7 @@ class RoomExtrasSheet extends StatelessWidget {
       child: SizedBox(
         height: MediaQuery.sizeOf(context).height * .82,
         child: DefaultTabController(
-          length: 5,
+          length: 3,
           initialIndex: initialTab,
           child: Column(
             children: [
@@ -54,9 +42,7 @@ class RoomExtrasSheet extends StatelessWidget {
               TabBar(
                 isScrollable: true,
                 tabs: [
-                  Tab(text: isArabic ? 'الثيم' : 'Theme'),
                   Tab(text: isArabic ? 'المهام' : 'Tasks'),
-                  Tab(text: isArabic ? 'الهدايا' : 'Gifts'),
                   Tab(text: isArabic ? 'الترتيب' : 'Leaderboard'),
                   Tab(text: isArabic ? 'المكافآت' : 'Rewards'),
                 ],
@@ -64,15 +50,7 @@ class RoomExtrasSheet extends StatelessWidget {
               Expanded(
                 child: TabBarView(
                   children: [
-                    _ThemeTab(service: service, isHost: isHost),
                     _TasksTab(service: service),
-                    _GiftsTab(
-                      service: service,
-                      participants: participants,
-                      showTeacherAiSeat: showTeacherAiSeat,
-                      contextType: contextType,
-                      onOpenCoinStore: onOpenCoinStore,
-                    ),
                     _LeaderboardTab(service: service),
                     _RewardsTab(
                       roomId: roomId,
@@ -89,153 +67,242 @@ class RoomExtrasSheet extends StatelessWidget {
   }
 }
 
-class _ThemeTab extends StatelessWidget {
-  const _ThemeTab({required this.service, required this.isHost});
-  final RoomFeatureService service;
-  final bool isHost;
-
-  @override
-  Widget build(BuildContext context) {
-    const themes = <(String, String, IconData)>[
-      ('royalPurple', 'Royal Purple', Icons.auto_awesome_rounded),
-      ('emerald', 'Emerald', Icons.eco_rounded),
-      ('midnight', 'Midnight', Icons.nights_stay_rounded),
-    ];
-    return StreamBuilder<RoomFeatureState>(
-      stream: service.watchState(),
-      builder: (context, snapshot) {
-        final selected = snapshot.data?.themeId ?? 'royalPurple';
-        return ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            for (final theme in themes)
-              Card(
-                child: ListTile(
-                  enabled: isHost,
-                  onTap: isHost ? () => service.setTheme(theme.$1) : null,
-                  leading: Icon(theme.$3),
-                  title: Text(theme.$2),
-                  trailing: selected == theme.$1
-                      ? const Icon(Icons.check_circle_rounded)
-                      : const Icon(Icons.circle_outlined),
-                ),
-              ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _TasksTab extends StatelessWidget {
+class _TasksTab extends StatefulWidget {
   const _TasksTab({required this.service});
   final RoomFeatureService service;
 
   @override
+  State<_TasksTab> createState() => _TasksTabState();
+}
+
+class _TasksTabState extends State<_TasksTab> {
+  Map<String, dynamic>? _status;
+  bool _loading = false;
+  String? _busyTask;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _refresh();
+  }
+
+  Future<void> _refresh() async {
+    if (_loading) return;
+    setState(() { _loading = true; _error = null; });
+    try {
+      final status = await widget.service.taskStatus();
+      if (mounted) {
+        setState(() => _status = status);
+      }
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _status = null;
+          _error = error.toString().replaceFirst('Bad state: ', '');
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+    }
+  }
+
+  Future<void> _claim(String key) async {
+    if (_busyTask != null) return;
+    setState(() { _busyTask = key; _error = null; });
+    try {
+      final result = await widget.service.claimVerifiedTask(key);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(
+          '+${result['awardedXp']} XP • ${result['roomLevel']}/60',
+        ),
+      ));
+      // No client XP or rewards are created by this widget.
+      final status = await widget.service.taskStatus();
+      if (mounted) {
+        setState(() => _status = status);
+      }
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _error = error.toString().replaceFirst('Bad state: ', '');
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _busyTask = null);
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
-    final day = '${now.year}-${now.month}-${now.day}';
-    final week = '${now.year}-W${((now.difference(DateTime(now.year)).inDays) ~/ 7) + 1}';
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    const taskKeys = ['ten_minutes', 'host_five', 'three_gifts', 'stay_hours'];
+    final rawMissions = _status?['missions'];
+    final missions = rawMissions is List
+        ? rawMissions.whereType<Map>()
+            .map((m) => Map<String, dynamic>.from(m))
+            .toList(growable: false)
+        : <Map<String, dynamic>>[];
+    Map<String, dynamic>? findMission(String key) {
+      for (final mission in missions) {
+        if (mission['key'] == key) return mission;
+      }
+      return null;
+    }
+
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       children: [
-        _TaskTile(
-          title: 'Join the room conversation',
-          points: 10,
-          onComplete: () => service.completeTask(
-            taskKey: 'daily_join',
-            points: 10,
-            periodKey: day,
-          ),
+        StreamBuilder<RoomFeatureState>(
+          stream: widget.service.watchState(),
+          builder: (context, snapshot) {
+            final level = (snapshot.data?.roomLevel ?? 1).clamp(1, 60);
+            final xp = snapshot.data?.roomXp ?? 0;
+            return Card(
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(children: [
+                      const Icon(Icons.castle_rounded,
+                          color: Color(0xFFC4A457)),
+                      const SizedBox(width: 9),
+                      Expanded(
+                        child: Text(
+                          ar ? 'مستوى الغرفة $level من 60'
+                              : 'Room level $level of 60',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ),
+                      Text('${xp.clamp(0, 5900)} XP'),
+                    ]),
+                    const SizedBox(height: 10),
+                    LinearProgressIndicator(
+                      value: level >= 60 ? 1
+                          : ((xp % 100) / 100).clamp(0.0, 1.0),
+                      minHeight: 7,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    ExpansionTile(
+                      tilePadding: EdgeInsets.zero,
+                      title: Text(ar ? 'عرض مستويات 1–60'
+                          : 'Show levels 1–60'),
+                      children: [
+                        Wrap(
+                          spacing: 5,
+                          runSpacing: 5,
+                          children: [
+                            for (var number = 1; number <= 60; number++)
+                              CircleAvatar(
+                                radius: 16,
+                                backgroundColor: number <= level
+                                    ? const Color(0xFF216B4D)
+                                    : Theme.of(context)
+                                        .colorScheme.surfaceContainerHighest,
+                                child: Text('$number',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: number <= level
+                                        ? Colors.white
+                                        : Theme.of(context)
+                                            .colorScheme.onSurface,
+                                  )),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         ),
-        _TaskTile(
-          title: 'Practice speaking',
-          points: 20,
-          onComplete: () => service.completeTask(
-            taskKey: 'daily_speaking',
-            points: 20,
-            periodKey: day,
+        Row(children: [
+          Expanded(child: Text(
+            ar ? 'مهام موثقة من الخادم' : 'Server-verified missions',
+            style: Theme.of(context).textTheme.titleMedium,
+          )),
+          IconButton(
+            onPressed: _loading || _busyTask != null ? null : _refresh,
+            tooltip: ar ? 'تحديث التقدم' : 'Refresh progress',
+            icon: _loading
+                ? const SizedBox.square(dimension: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2))
+                : const Icon(Icons.refresh_rounded),
           ),
-        ),
-        _TaskTile(
-          title: 'Weekly room participation',
-          points: 50,
-          onComplete: () => service.completeTask(
-            taskKey: 'weekly_participation',
-            points: 50,
-            periodKey: week,
+        ]),
+        if (_error != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Text(_error!, style: TextStyle(
+                color: Theme.of(context).colorScheme.error)),
           ),
+        for (final key in taskKeys) ...[
+          Builder(builder: (context) {
+            final mission = findMission(key);
+            final configured = mission?['configured'] == true;
+            final claimed = mission?['claimed'] == true;
+            final eligible = mission?['eligible'] == true;
+            final current = (mission?['current'] as num?)?.toInt();
+            final required = (mission?['required'] as num?)?.toInt();
+            final xp = (mission?['xp'] as num?)?.toInt();
+            final title = switch (key) {
+              'ten_minutes' => ar ? 'البقاء 10 دقائق بالغرفة' : 'Stay 10 minutes',
+              'host_five' => ar ? 'استضف خمسة مشاركين' : 'Host five participants',
+              'three_gifts' => ar ? 'أرسل ثلاث هدايا' : 'Send three gifts',
+              _ => ar ? 'البقاء لساعات' : 'Stay for hours',
+            };
+            final description = configured && required != null && current != null
+                ? '${current.clamp(0, required)}/$required • +$xp XP'
+                : key == 'ten_minutes'
+                    ? (ar ? '10 دقائق • 4 XP'
+                        : '10 minutes • 4 XP')
+                    : key == 'host_five'
+                        ? (ar ? '5 مشاركين • 50 XP'
+                            : '5 participants • 50 XP')
+                        : (ar
+                            ? 'عدد الساعات والنقاط يُحددان في إعدادات الغرفة.'
+                            : 'Hours/reward require approved room mission settings.');
+            return Card(
+              child: ListTile(
+                leading: Icon(switch (key) {
+                  'ten_minutes' => Icons.timer_outlined,
+                  'host_five' => Icons.groups_rounded,
+                  'three_gifts' => Icons.card_giftcard_rounded,
+                  _ => Icons.hourglass_bottom_rounded,
+                }),
+                title: Text(title),
+                subtitle: Text(description),
+                trailing: claimed
+                    ? const Icon(Icons.verified_rounded, color: Color(0xFF237950))
+                    : FilledButton(
+                        onPressed: configured && eligible &&
+                                _busyTask == null && !_loading
+                            ? () => _claim(key) : null,
+                        child: Text(_busyTask == key
+                            ? (ar ? 'جارٍ التحقق' : 'Checking')
+                            : (ar ? 'استلام XP' : 'Claim XP')),
+                      ),
+              ),
+            );
+          }),
+        ],
+        const SizedBox(height: 8),
+        Text(
+          ar
+              ? 'لا تُمنح النقاط إلا بعد أن يتحقق الخادم من البقاء والمشاركين والهدايا. حاليًا تحتاج هذه المهام إلى خادم WorldVoice الكامل.'
+              : 'XP requires server-verified attendance, participants and gift events. The full WorldVoice backend must be deployed.',
+          style: Theme.of(context).textTheme.bodySmall,
+          textAlign: TextAlign.center,
         ),
       ],
-    );
-  }
-}
-
-class _TaskTile extends StatelessWidget {
-  const _TaskTile({
-    required this.title,
-    required this.points,
-    required this.onComplete,
-  });
-  final String title;
-  final int points;
-  final Future<void> Function() onComplete;
-
-  @override
-  Widget build(BuildContext context) => Card(
-        child: ListTile(
-          leading: const Icon(Icons.task_alt_rounded),
-          title: Text(title),
-          subtitle: Text('+$points XP'),
-          trailing: FilledButton(
-            onPressed: () async {
-              try {
-                await onComplete();
-                if (!context.mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Task completed.')),
-                );
-              } catch (error) {
-                if (!context.mounted) return;
-                ScaffoldMessenger.of(context)
-                    .showSnackBar(SnackBar(content: Text(error.toString())));
-              }
-            },
-            child: const Text('Complete'),
-          ),
-        ),
-      );
-}
-
-class _GiftsTab extends StatelessWidget {
-  const _GiftsTab({
-    required this.service,
-    required this.participants,
-    required this.showTeacherAiSeat,
-    required this.contextType,
-    this.onOpenCoinStore,
-  });
-
-  final RoomFeatureService service;
-  final List<RoomParticipant> participants;
-  final bool showTeacherAiSeat;
-  final VoidCallback? onOpenCoinStore;
-  final String contextType;
-
-  @override
-  Widget build(BuildContext context) {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    return UnifiedGiftPanel(
-      contextType: contextType,
-      contextId: service.roomId,
-      recipients: {
-        for (final member in participants.where(
-            (member) => member.isOnStage && member.userId != uid))
-          member.userId: member.displayName,
-        if (showTeacherAiSeat && contextType == 'room')
-          'teacher_ai': 'Teacher AI',
-      },
-      onOpenCoinStore: onOpenCoinStore,
     );
   }
 }
@@ -409,9 +476,11 @@ class _RewardsTab extends StatelessWidget {
                 title: Text(
                   isBackground
                       ? (isArabic
-                          ? 'خلفية مجانية لمدة شهر'
-                          : 'Free background for one month')
-                      : (isArabic ? 'حزمة هدايا مجانية' : 'Free gift pack'),
+                          ? 'استحقاق خلفية لمدة شهر'
+                          : 'One-month background eligibility')
+                      : (isArabic
+                          ? 'استحقاق باقة هدايا (بعد تفعيل الكتالوج)'
+                          : 'Gift pack eligibility (pending catalog activation)'),
                   style: const TextStyle(fontWeight: FontWeight.w800),
                 ),
                 subtitle: Text(
@@ -422,7 +491,9 @@ class _RewardsTab extends StatelessWidget {
                           '${expiry.month.toString().padLeft(2, '0')}-'
                           '${expiry.day.toString().padLeft(2, '0')}',
                 ),
-                trailing: const Icon(Icons.verified_rounded),
+                trailing: Icon(isBackground
+                    ? Icons.redeem_rounded
+                    : Icons.hourglass_bottom_rounded),
               ),
             );
           },

@@ -44,6 +44,17 @@ test("auxiliary features are explicitly unavailable until connected", async () =
   assert.match((await response.json()).error, /not yet enabled/);
 });
 
+test("gift and wallet routes use the auxiliary backend gateway", async () => {
+  for (const path of ["/gift/send", "/wallet/exchange", "/chat/message"]) {
+    const response = await worker.fetch(
+      new Request(`https://test.example${path}`, { method: "POST" }),
+      {},
+    );
+    assert.equal(response.status, 503);
+    assert.match((await response.json()).error, /not yet enabled/);
+  }
+});
+
 test("nonexistent path rejects requests", async () => {
   const response = await worker.fetch(
     new Request("https://test.example/arbitrary", { method: "POST" }),
