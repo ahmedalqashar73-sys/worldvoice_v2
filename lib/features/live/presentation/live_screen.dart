@@ -511,7 +511,6 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     setState(() {
       _starting = true;
       _cameraStartError = null;
-      _seconds = 20;
     });
     try {
       final cameraAllowed = await _requestLiveCameraPermission();
