@@ -405,7 +405,7 @@ class _LiveSetupSheetState extends State<_LiveSetupSheet> {
               },
               icon: const Icon(Icons.videocam_rounded),
               label: Text(
-                widget.ar ? 'ابدأ بالكاميرا' : 'Start camera',
+                widget.ar ? 'ابدأ اللايف' : 'Go Live',
               ),
             ),
           ),
