@@ -730,6 +730,26 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                               ),
                               const SizedBox(width: 8),
                               IconButton.filledTonal(
+                                tooltip: widget.ar ? 'الهدايا' : 'Gifts',
+                                onPressed: _liveId == null
+                                    ? null
+                                    : () => _showLiveGifts(
+                                          context,
+                                          liveId: _liveId!,
+                                          service: _liveService,
+                                          hostId:
+                                              FirebaseAuth.instance.currentUser?.uid ??
+                                                  '',
+                                          hostName:
+                                              FirebaseAuth.instance.currentUser
+                                                      ?.displayName ??
+                                                  'WorldVoice host',
+                                          ar: widget.ar,
+                                        ),
+                                icon: const Icon(Icons.card_giftcard_rounded),
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton.filledTonal(
                                 tooltip: widget.ar ? 'مشاركة اللايف' : 'Share Live',
                                 onPressed:
                                     _liveId == null ? null : _shareHostLive,
