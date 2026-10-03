@@ -481,7 +481,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     if (normalized == 'off') {
       await engine.setBeautyEffectOptions(
         enabled: false,
-        options: const BeautyOptions(),
+        options: BeautyOptions(),
       );
       return;
     }
