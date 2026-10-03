@@ -310,67 +310,6 @@ class _LiveSetupSheetState extends State<_LiveSetupSheet> {
   final TextEditingController _topic = TextEditingController();
   late String _languageCode;
 
-  Future<void> _toggleHostCamera() async {
-    if (!_cameraReady || _controller.engine == null) return;
-    final turnOff = !_cameraPaused;
-    try {
-      await _controller.setCameraPublishing(!turnOff);
-      if (!mounted) return;
-      setState(() => _cameraPaused = turnOff);
-      if (turnOff) {
-        _startCameraOffGracePeriod();
-      } else {
-        _cameraOffTimer?.cancel();
-        _cameraOffSeconds = 0;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              widget.ar
-                  ? 'تم تشغيل الكاميرا من جديد.'
-                  : 'Camera is back on.',
-            ),
-          ),
-        );
-      }
-    } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.toString())),
-      );
-    }
-  }
-
-  void _startCameraOffGracePeriod() {
-    _cameraOffTimer?.cancel();
-    _cameraOffSeconds = 0;
-    _cameraOffTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!mounted || !_cameraPaused || _sessionClosed) {
-        timer.cancel();
-        return;
-      }
-      _cameraOffSeconds += 1;
-      if (_cameraOffSeconds == 20 ||
-          _cameraOffSeconds == 60 ||
-          _cameraOffSeconds == 120) {
-        final remaining = 180 - _cameraOffSeconds;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            duration: const Duration(seconds: 6),
-            content: Text(
-              widget.ar
-                  ? 'الكاميرا مغلقة. شغّلها للاستمرار في اللايف. سيتم إنهاء اللايف بعد $remaining ثانية.'
-                  : 'Your camera is off. Turn it back on to keep the Live running. Live ends in $remaining seconds.',
-            ),
-          ),
-        );
-      }
-      if (_cameraOffSeconds >= 180) {
-        timer.cancel();
-        unawaited(_endLiveAndPop());
-      }
-    });
-  }
-
   @override
   void initState() {
     super.initState();
@@ -648,6 +587,67 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
         return;
       }
       setState(() => _seconds--);
+    });
+  }
+
+  Future<void> _toggleHostCamera() async {
+    if (!_cameraReady || _controller.engine == null) return;
+    final turnOff = !_cameraPaused;
+    try {
+      await _controller.setCameraPublishing(!turnOff);
+      if (!mounted) return;
+      setState(() => _cameraPaused = turnOff);
+      if (turnOff) {
+        _startCameraOffGracePeriod();
+      } else {
+        _cameraOffTimer?.cancel();
+        _cameraOffSeconds = 0;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              widget.ar
+                  ? 'تم تشغيل الكاميرا من جديد.'
+                  : 'Camera is back on.',
+            ),
+          ),
+        );
+      }
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
+    }
+  }
+
+  void _startCameraOffGracePeriod() {
+    _cameraOffTimer?.cancel();
+    _cameraOffSeconds = 0;
+    _cameraOffTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted || !_cameraPaused || _sessionClosed) {
+        timer.cancel();
+        return;
+      }
+      _cameraOffSeconds += 1;
+      if (_cameraOffSeconds == 20 ||
+          _cameraOffSeconds == 60 ||
+          _cameraOffSeconds == 120) {
+        final remaining = 180 - _cameraOffSeconds;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 6),
+            content: Text(
+              widget.ar
+                  ? 'الكاميرا مغلقة. شغّلها للاستمرار في اللايف. سيتم إنهاء اللايف بعد $remaining ثانية.'
+                  : 'Your camera is off. Turn it back on to keep the Live running. Live ends in $remaining seconds.',
+            ),
+          ),
+        );
+      }
+      if (_cameraOffSeconds >= 180) {
+        timer.cancel();
+        unawaited(_endLiveAndPop());
+      }
     });
   }
 
