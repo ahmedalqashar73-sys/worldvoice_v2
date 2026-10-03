@@ -24,9 +24,30 @@ import '../services/live_session_service.dart';
 
 import '../../../core/localization/locale_controller.dart';
 import '../../profile/services/profile_social_service.dart';
+import '../../profile/data/profile_language_catalog.dart';
 
 const MethodChannel _livePermissionChannel =
     MethodChannel('worldvoice/live_permissions');
+const MethodChannel _liveTtsChannel = MethodChannel('worldvoice/live_tts');
+
+Future<void> _speakLiveTeacher(String text, String languageCode) async {
+  final value = text.trim();
+  if (value.isEmpty || kIsWeb) return;
+  if (defaultTargetPlatform != TargetPlatform.android &&
+      defaultTargetPlatform != TargetPlatform.iOS) {
+    return;
+  }
+  try {
+    await _liveTtsChannel.invokeMethod<void>('speak', {
+      'text': value,
+      'languageCode': languageCode,
+    });
+  } on PlatformException {
+    // Voice is optional; Teacher AI text must still work.
+  } on MissingPluginException {
+    // Older builds can continue without spoken Teacher AI.
+  }
+}
 
 Future<bool> _requestLiveCameraPermission() async {
   if (kIsWeb) return true;
@@ -226,102 +247,172 @@ class _LiveSetupResult {
   final String languageCode;
 }
 
+Future<List<String>> _myLearningLanguageCodes(String fallback) async {
+  final uid = FirebaseAuth.instance.currentUser?.uid;
+  if (uid == null) return <String>[fallback];
+  try {
+    final snap =
+        await FirebaseFirestore.instance.collection('users').doc(uid).get();
+    final raw = snap.data()?['learningLanguageCodes'];
+    final codes = raw is List
+        ? raw
+            .map((value) => value.toString().trim())
+            .where((code) =>
+                code.isNotEmpty && ProfileLanguageCatalog.byCode(code) != null)
+            .toSet()
+            .toList(growable: false)
+        : const <String>[];
+    if (codes.isNotEmpty) return codes;
+  } catch (_) {
+    // Keep Live usable if the profile read is temporarily unavailable.
+  }
+  return <String>[fallback];
+}
+
 Future<_LiveSetupResult?> _showLiveSetup(
   BuildContext context, {
   required bool ar,
   required String initialLanguageCode,
-}) {
-  final topic = TextEditingController();
-  var languageCode = const <String>{
-    'ar', 'en', 'es', 'fr', 'zh', 'ko', 'ja', 'ru',
-    'tr', 'ur', 'de', 'pt', 'fa', 'id', 'th',
-  }.contains(initialLanguageCode)
-      ? initialLanguageCode
-      : 'en';
+}) async {
+  final fallback =
+      ProfileLanguageCatalog.byCode(initialLanguageCode) == null
+          ? 'en'
+          : initialLanguageCode;
+  final learningCodes = await _myLearningLanguageCodes(fallback);
+  if (!context.mounted) return null;
+
   return showModalBottomSheet<_LiveSetupResult>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
     showDragHandle: true,
-    builder: (sheetContext) => StatefulBuilder(
-      builder: (context, update) => Padding(
-        padding: EdgeInsets.fromLTRB(
-          20,
-          8,
-          20,
-          20 + MediaQuery.viewInsetsOf(sheetContext).bottom,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              ar ? 'جهّز البث المباشر' : 'Set up your Live',
-              style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w900),
+    builder: (_) => _LiveSetupSheet(
+      ar: ar,
+      learningCodes: learningCodes,
+    ),
+  );
+}
+
+class _LiveSetupSheet extends StatefulWidget {
+  const _LiveSetupSheet({
+    required this.ar,
+    required this.learningCodes,
+  });
+
+  final bool ar;
+  final List<String> learningCodes;
+
+  @override
+  State<_LiveSetupSheet> createState() => _LiveSetupSheetState();
+}
+
+class _LiveSetupSheetState extends State<_LiveSetupSheet> {
+  final TextEditingController _topic = TextEditingController();
+  late String _languageCode;
+
+  @override
+  void initState() {
+    super.initState();
+    _languageCode = widget.learningCodes.first;
+  }
+
+  @override
+  void dispose() {
+    _topic.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(20, 8, 20, 20 + bottomInset),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            widget.ar ? 'جهّز البث المباشر' : 'Set up your Live',
+            style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _topic,
+            maxLength: 80,
+            decoration: InputDecoration(
+              labelText: widget.ar ? 'موضوع البث' : 'Live topic',
+              hintText: widget.ar
+                  ? 'مثال: نتعلم الإنجليزية معًا'
+                  : 'Example: Learn English together',
+              border: const OutlineInputBorder(),
             ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: topic,
-              maxLength: 80,
-              decoration: InputDecoration(
-                labelText: ar ? 'موضوع البث' : 'Live topic',
-                hintText: ar ? 'مثال: نتعلم الإنجليزية معًا' : 'Example: Learn English together',
-                border: const OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 12),
+          ),
+          const SizedBox(height: 12),
+          if (widget.learningCodes.length == 1)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.school_rounded),
+              title: Text(widget.ar ? 'لغة التعلم' : 'Learning language'),
+              subtitle:
+                  Text(ProfileLanguageCatalog.label(_languageCode)),
+            )
+          else
             DropdownButtonFormField<String>(
-              initialValue: languageCode,
+              initialValue: _languageCode,
+              isExpanded: true,
               decoration: InputDecoration(
-                labelText: ar ? 'لغة البث' : 'Live language',
+                labelText:
+                    widget.ar ? 'اختر لغة التعلم' : 'Choose learning language',
                 border: const OutlineInputBorder(),
               ),
-              items: const [
-                'ar', 'en', 'es', 'fr', 'zh', 'ko', 'ja', 'ru',
-                'tr', 'ur', 'de', 'pt', 'fa', 'id', 'th',
-              ]
-                  .map((code) => DropdownMenuItem(
-                        value: code,
-                        child: Text(code.toUpperCase()),
-                      ))
-                  .toList(),
+              items: [
+                for (final code in widget.learningCodes)
+                  DropdownMenuItem(
+                    value: code,
+                    child: Text(
+                      ProfileLanguageCatalog.label(code),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+              ],
               onChanged: (value) {
-                if (value != null) update(() => languageCode = value);
+                if (value != null) setState(() => _languageCode = value);
               },
             ),
-            const SizedBox(height: 18),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: () {
-                  final value = topic.text.trim();
-                  if (value.isEmpty) {
-                    ScaffoldMessenger.of(sheetContext).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          ar
-                              ? 'اكتب موضوعًا للبث أولًا.'
-                              : 'Add a Live topic first.',
-                        ),
+          const SizedBox(height: 18),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: () {
+                final topic = _topic.text.trim();
+                if (topic.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        widget.ar
+                            ? 'اكتب موضوعًا للبث أولًا.'
+                            : 'Add a Live topic first.',
                       ),
-                    );
-                    return;
-                  }
-                  Navigator.of(sheetContext).pop(
-                    _LiveSetupResult(
-                      topic: value,
-                      languageCode: languageCode,
                     ),
                   );
-                },
-                icon: const Icon(Icons.videocam_rounded),
-                label: Text(ar ? 'متابعة للكاميرا' : 'Continue to camera'),
+                  return;
+                }
+                Navigator.of(context).pop(
+                  _LiveSetupResult(
+                    topic: topic,
+                    languageCode: _languageCode,
+                  ),
+                );
+              },
+              icon: const Icon(Icons.videocam_rounded),
+              label: Text(
+                widget.ar ? 'ابدأ بالكاميرا' : 'Start camera',
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-    ),
-  ).whenComplete(topic.dispose);
+    );
+  }
 }
 
 class _LiveCameraGate extends StatefulWidget {
