@@ -1712,6 +1712,140 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
   }
 }
 
+Future<void> _showLiveGifts(
+  BuildContext context, {
+  required String liveId,
+  required LiveSessionService service,
+  required String hostId,
+  required String hostName,
+  required bool ar,
+}) {
+  final myId = FirebaseAuth.instance.currentUser?.uid;
+  return showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    builder: (sheetContext) => SafeArea(
+      child: SizedBox(
+        height: MediaQuery.sizeOf(sheetContext).height * .76,
+        child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+          stream: service.watchActiveGuests(liveId),
+          builder: (context, snapshot) {
+            final guests = snapshot.data?.docs ??
+                const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
+            final recipients = <String, String>{
+              if (hostId.isNotEmpty && hostId != myId)
+                hostId: hostName.trim().isEmpty ? 'WorldVoice host' : hostName,
+              for (final doc in guests)
+                if (doc.id != myId)
+                  doc.id: (doc.data()['displayName'] ?? 'WorldVoice guest')
+                      .toString(),
+            };
+            if (recipients.isEmpty) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(
+                    ar
+                        ? 'لا يوجد شخص آخر على الكاميرا لإرسال هدية له الآن.'
+                        : 'There is no other on-camera person to gift right now.',
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              );
+            }
+            return UnifiedGiftPanel(
+              contextType: 'live',
+              contextId: liveId,
+              recipients: recipients,
+            );
+          },
+        ),
+      ),
+    ),
+  );
+}
+
+class _LiveGiftEffects extends StatefulWidget {
+  const _LiveGiftEffects({required this.liveId});
+  final String liveId;
+
+  @override
+  State<_LiveGiftEffects> createState() => _LiveGiftEffectsState();
+}
+
+class _LiveGiftEffectsState extends State<_LiveGiftEffects> {
+  StreamSubscription<List<RoomGiftEvent>>? _subscription;
+  Timer? _timer;
+  RoomGiftEvent? _event;
+  String? _lastGiftId;
+  bool _primed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _listen();
+  }
+
+  @override
+  void didUpdateWidget(covariant _LiveGiftEffects oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.liveId != widget.liveId) {
+      unawaited(_subscription?.cancel());
+      _timer?.cancel();
+      _event = null;
+      _lastGiftId = null;
+      _primed = false;
+      _listen();
+    }
+  }
+
+  void _listen() {
+    _subscription = RoomFeatureService.watchContextGifts(
+      context: 'live',
+      contextId: widget.liveId,
+    ).listen(
+      (gifts) {
+        if (!mounted || gifts.isEmpty) return;
+        final latest = gifts.first;
+        if (!_primed) {
+          _primed = true;
+          _lastGiftId = latest.id;
+          return;
+        }
+        if (latest.id == _lastGiftId) return;
+        _lastGiftId = latest.id;
+        _timer?.cancel();
+        setState(() => _event = latest);
+        final premium = const {'dragon', 'caraxes', 'vhagar'}
+            .contains(latest.giftId.trim().toLowerCase());
+        _timer = Timer(Duration(seconds: premium ? 5 : 3), () {
+          if (mounted && _event?.id == latest.id) {
+            setState(() => _event = null);
+          }
+        });
+      },
+      onError: (Object _) {
+        // Gift effects are optional and must never interrupt the Live stream.
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    unawaited(_subscription?.cancel());
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final event = _event;
+    if (event == null) return const SizedBox.shrink();
+    return RoomGiftOverlay(event: event);
+  }
+}
+
 class _PinchZoomCameraView extends StatefulWidget {
   const _PinchZoomCameraView({
     required this.controller,
