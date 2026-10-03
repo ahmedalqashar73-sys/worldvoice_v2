@@ -974,9 +974,9 @@ app.post("/store/claim-reward", async (req, res, next) => {
 
 
 /**
- * Unified gift contract for room/live/chat. Only room has a deployed, audited
- * membership model currently. Other contexts intentionally fail closed until
- * their permission checks and event streams are implemented.
+ * Unified gift contract for room/live/chat.
+ * Live authorization is based on an active server-timestamped Live session,
+ * atomic viewer membership, and host-approved active camera guests.
  * Idempotency-Key is mandatory; clients reuse it for a checkout retry.
  */
 
@@ -1048,14 +1048,6 @@ app.post("/gift/send", async (req, res, next) => {
         !/^[A-Za-z0-9_-]{12,100}$/.test(requestKey)) {
       return res.status(400).json({error: "Invalid gift request or idempotency key."});
     }
-    // Firestore room membership is not proof of a server-verified Agora
-    // video broadcast. Paid live gifts remain disabled until a trusted
-    // session ACL and broadcast-event ledger are implemented and tested.
-    if (context === "live") {
-      return res.status(501).json({
-        error: "Paid live gifting requires a verified live broadcast session.",
-      });
-    }
     if (context !== "room" && recipientId === "teacher_ai") {
       return res.status(400).json({error: "AI gift XP is room-only."});
     }
@@ -1072,13 +1064,20 @@ app.post("/gift/send", async (req, res, next) => {
     const itemRef = db.collection("store_items").doc(`gift__${giftId}`);
     const roomRef = context === "chat"
       ? db.collection("chats").doc(contextId)
-      : db.collection("rooms").doc(contextId);
-    const senderMemberRef = context !== "chat"
-      ? roomRef.collection("participants").doc(sender.uid) : roomRef;
+      : context === "live"
+        ? db.collection("live_sessions").doc(contextId)
+        : db.collection("rooms").doc(contextId);
+    const senderMemberRef = context === "room"
+      ? roomRef.collection("participants").doc(sender.uid)
+      : context === "live"
+        ? roomRef.collection("viewers").doc(sender.uid)
+        : roomRef;
     const recipientMemberRef = recipientRef
-      ? context !== "chat"
+      ? context === "room"
         ? roomRef.collection("participants").doc(recipientId)
-        : roomRef
+        : context === "live"
+          ? roomRef.collection("join_requests").doc(recipientId)
+          : roomRef
       : null;
     const senderFollow = context === "chat"
       ? senderRef.collection("following").doc(recipientId) : null;
@@ -1108,12 +1107,31 @@ app.post("/gift/send", async (req, res, next) => {
         }
         return {...data.outcome, alreadyProcessed: true};
       }
-      if (context !== "chat") {
+      if (context === "room") {
         if (roomSnap.data()?.isOpen !== true ||
-            (context === "live" && roomSnap.data()?.mode !== "live") ||
             !senderMember.exists ||
             (recipientMemberRef && !snapshots[8].exists)) {
           throw Object.assign(new Error("Room membership is required."),
+            {status: 403});
+        }
+      } else if (context === "live") {
+        const live = roomSnap.data() || {};
+        const heartbeatMs = live.hostHeartbeatAt?.toMillis?.() ?? 0;
+        const liveFresh = roomSnap.exists &&
+          live.isLive === true &&
+          live.channelId === contextId &&
+          heartbeatMs > Date.now() - 60000;
+        const senderIsHost = live.hostId === sender.uid;
+        const senderIsViewer = senderMember.exists &&
+          senderMember.data()?.uid === sender.uid;
+        const recipientIsHost = live.hostId === recipientId;
+        const recipientRequest = snapshots[8]?.data() || {};
+        const recipientIsGuest = snapshots[8]?.exists &&
+          recipientRequest.uid === recipientId &&
+          recipientRequest.status === "accepted";
+        if (!liveFresh || (!senderIsHost && !senderIsViewer) ||
+            (!recipientIsHost && !recipientIsGuest)) {
+          throw Object.assign(new Error("Active Live membership is required."),
             {status: 403});
         }
       } else {
