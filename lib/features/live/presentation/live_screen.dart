@@ -450,8 +450,15 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   String? _liveId;
   final LiveSessionService _liveService = LiveSessionService();
 
+  void _onControllerChanged() {
+    if (mounted && _starting && !_cameraReady) {
+      setState(() {});
+    }
+  }
+
   @override
   void dispose() {
+    _controller.removeListener(_onControllerChanged);
     _heartbeatTimer?.cancel();
     _cameraOffTimer?.cancel();
     final liveId = _liveId;
@@ -528,6 +535,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
       await _controller.ensureConnected(
         channelId: channel,
         role: AgoraRoomRole.speaker,
+        previewCamera: true,
       );
       final engine = _controller.engine;
       if (engine == null || !_controller.joined) {
@@ -625,6 +633,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   @override
   void initState() {
     super.initState();
+    _controller.addListener(_onControllerChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) unawaited(_startCamera());
     });
@@ -638,61 +647,114 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      _cameraStartError == null
-                          ? Icons.videocam_rounded
-                          : Icons.videocam_off_rounded,
-                      color: Colors.white70,
-                      size: 72,
-                    ),
-                    const SizedBox(height: 18),
-                    Text(
-                      _starting
-                          ? (widget.ar
-                              ? 'جاري تشغيل الكاميرا تلقائيًا...'
-                              : 'Starting camera automatically...')
-                          : (widget.ar
-                              ? 'تعذّر تشغيل الكاميرا'
-                              : 'Could not start camera'),
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 21,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      _starting
-                          ? (widget.ar
-                              ? 'لا تحتاج تضغط أي زر. يبدأ اللايف فور جاهزية الكاميرا.'
-                              : 'No button needed. Live starts as soon as the camera is ready.')
-                          : (widget.ar
-                              ? '${_cameraStartError ?? ''}\nاضغط إعادة المحاولة بعد التأكد من الاتصال.'
-                              : '${_cameraStartError ?? ''}\nCheck your connection, then retry.'),
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.white70),
-                    ),
-                    if (!_starting && !_cameraReady) ...[
-                      const SizedBox(height: 22),
-                      FilledButton.icon(
-                        onPressed: _startCamera,
-                        icon: const Icon(Icons.refresh_rounded),
-                        label: Text(
-                          widget.ar ? 'إعادة المحاولة' : 'Retry',
-                        ),
-                      ),
-                    ],
-                  ],
+            if (!_cameraReady &&
+                _starting &&
+                _controller.engine != null)
+              Positioned.fill(
+                child: AgoraVideoView(
+                  controller: VideoViewController(
+                    rtcEngine: _controller.engine!,
+                    canvas: const VideoCanvas(uid: 0),
+                  ),
                 ),
               ),
-            ),
+            if (!_cameraReady &&
+                (!_starting || _controller.engine == null))
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _cameraStartError == null
+                            ? Icons.videocam_rounded
+                            : Icons.videocam_off_rounded,
+                        color: Colors.white70,
+                        size: 72,
+                      ),
+                      const SizedBox(height: 18),
+                      Text(
+                        _starting
+                            ? (widget.ar
+                                ? 'جاري فتح الكاميرا...'
+                                : 'Opening camera...')
+                            : (widget.ar
+                                ? 'تعذّر الاتصال باللايف'
+                                : 'Could not connect to Live'),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 21,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      if (!_starting) ...[
+                        const SizedBox(height: 10),
+                        Text(
+                          _cameraStartError ?? '',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Colors.white70),
+                        ),
+                        const SizedBox(height: 22),
+                        FilledButton.icon(
+                          onPressed: _startCamera,
+                          icon: const Icon(Icons.refresh_rounded),
+                          label: Text(
+                            widget.ar ? 'إعادة المحاولة' : 'Retry',
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            if (!_cameraReady &&
+                _starting &&
+                _controller.engine != null)
+              PositionedDirectional(
+                start: 20,
+                end: 20,
+                bottom: 32,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: const Color(0x99000000),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox.square(
+                          dimension: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Flexible(
+                          child: Text(
+                            widget.ar
+                                ? 'الكاميرا شغالة — جاري توصيل اللايف...'
+                                : 'Camera is on — connecting Live...',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             PositionedDirectional(
               top: 10,
               start: 10,
@@ -2181,12 +2243,17 @@ Future<void> _showLiveCameraTools(
   await showModalBottomSheet<void>(
     context: context,
     useSafeArea: true,
+    isScrollControlled: true,
     showDragHandle: true,
     builder: (sheetContext) => StatefulBuilder(
       builder: (sheetContext, refresh) => SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
-          child: Column(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.sizeOf(sheetContext).height * .82,
+          ),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
+            child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
             Text(
@@ -2376,6 +2443,7 @@ Future<void> _showLiveCameraTools(
             ],
           ),
         ),
+      ),
       ),
     ),
   );
