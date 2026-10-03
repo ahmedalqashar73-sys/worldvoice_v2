@@ -1607,7 +1607,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                       if (_isModerator &&
                           _moderatorRequestsOpen)
                         PositionedDirectional(
-                          bottom: 78,
+                          bottom: 84,
                           start: 14,
                           end: 14,
                           child: _HostJoinRequests(
@@ -1617,29 +1617,37 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                           ),
                         ),
                       PositionedDirectional(
-                        bottom: 20,
-                        start: 18,
-                        end: 18,
-                        child: Row(
+                        bottom: 16,
+                        start: 12,
+                        end: 12,
+                        child: _LiveControlDock(
                           children: [
-                            if (!_guestPublishing) ...[
-                              Expanded(
-                                child: FilledButton.icon(
-                                  onPressed: _requested ? null : _requestCamera,
-                                  icon: const Icon(Icons.group_add_rounded),
-                                  label: Text(_requested
-                                      ? (widget.ar
-                                          ? 'تم إرسال الطلب'
-                                          : 'Request sent')
-                                      : (widget.ar
-                                          ? 'اطلب الانضمام'
-                                          : 'Request to join')),
+                            if (!_guestPublishing)
+                              FilledButton.icon(
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: _requested
+                                      ? const Color(0x663A8068)
+                                      : const Color(0xFF1EA972),
+                                  foregroundColor: Colors.white,
+                                  minimumSize: const Size(128, 44),
+                                ),
+                                onPressed: _requested ? null : _requestCamera,
+                                icon: Icon(
+                                  _requested
+                                      ? Icons.hourglass_top_rounded
+                                      : Icons.group_add_rounded,
+                                ),
+                                label: Text(
+                                  _requested
+                                      ? (widget.ar ? 'تم الطلب' : 'Requested')
+                                      : (widget.ar ? 'انضمام' : 'Join'),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                  ),
                                 ),
                               ),
-                              const SizedBox(width: 10),
-                            ],
-                            if (_isModerator) ...[
-                              IconButton.filledTonal(
+                            if (_isModerator)
+                              IconButton(
                                 tooltip: widget.ar
                                     ? 'طلبات الانضمام'
                                     : 'Join requests',
@@ -1649,21 +1657,23 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                 ),
                                 icon: const Icon(
                                   Icons.admin_panel_settings_rounded,
+                                  color: Color(0xFFFFD77A),
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                            ],
-                            IconButton.filledTonal(
+                            IconButton(
+                              tooltip: widget.ar ? 'الشات' : 'Chat',
                               onPressed: () => _showLiveChat(
                                 context,
                                 service: _service,
                                 liveId: widget.liveId,
                                 ar: widget.ar,
                               ),
-                              icon: const Icon(Icons.chat_bubble_outline_rounded),
+                              icon: const Icon(
+                                Icons.chat_bubble_outline_rounded,
+                                color: Colors.white,
+                              ),
                             ),
-                            const SizedBox(width: 8),
-                            IconButton.filledTonal(
+                            IconButton(
                               tooltip: widget.ar ? 'السبورة' : 'Board',
                               onPressed: () =>
                                   setState(() => _boardOpen = !_boardOpen),
@@ -1671,11 +1681,11 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                 _boardOpen
                                     ? Icons.dashboard_rounded
                                     : Icons.dashboard_outlined,
+                                color: Colors.white,
                               ),
                             ),
-                            const SizedBox(width: 8),
                             if (_guestPublishing) ...[
-                              IconButton.filledTonal(
+                              IconButton(
                                 tooltip: widget.ar ? 'المايك' : 'Microphone',
                                 onPressed: () async {
                                   final next = !_guestMicMuted;
@@ -1688,13 +1698,13 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                   _guestMicMuted
                                       ? Icons.mic_off_rounded
                                       : Icons.mic_rounded,
+                                  color: Colors.white,
                                 ),
                               ),
-                              const SizedBox(width: 6),
-                              IconButton.filledTonal(
+                              IconButton(
                                 tooltip: widget.ar
-                                    ? 'أدوات الكاميرا'
-                                    : 'Camera tools',
+                                    ? 'الفلاتر والكاميرا'
+                                    : 'Filters & camera',
                                 onPressed: () => _showLiveCameraTools(
                                   context,
                                   controller: _controller,
@@ -1734,19 +1744,23 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                     }
                                   },
                                 ),
-                                icon: const Icon(Icons.auto_fix_high_rounded),
+                                icon: const Icon(
+                                  Icons.auto_fix_high_rounded,
+                                  color: Colors.white,
+                                ),
                               ),
-                              const SizedBox(width: 6),
-                              IconButton.filledTonal(
+                              IconButton(
                                 tooltip: widget.ar
                                     ? 'اخرج من الكاميرا'
                                     : 'Leave camera',
                                 onPressed: _leaveGuestCamera,
-                                icon: const Icon(Icons.videocam_off_rounded),
+                                icon: const Icon(
+                                  Icons.videocam_off_rounded,
+                                  color: Colors.white,
+                                ),
                               ),
-                            ]
-                            else
-                              IconButton.filledTonal(
+                            ] else
+                              IconButton(
                                 tooltip: widget.ar
                                     ? 'هدايا اللايف'
                                     : 'Live gifts',
@@ -1764,7 +1778,10 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                       .toString(),
                                   ar: widget.ar,
                                 ),
-                                icon: const Icon(Icons.card_giftcard_rounded),
+                                icon: const Icon(
+                                  Icons.card_giftcard_rounded,
+                                  color: Color(0xFFFFC857),
+                                ),
                               ),
                           ],
                         ),
