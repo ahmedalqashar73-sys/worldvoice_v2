@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:video_player/video_player.dart';
 
 import '../../../core/localization/locale_controller.dart';
 import '../../rooms/presentation/unified_gift_panel.dart';
@@ -14,6 +15,7 @@ import '../../rooms/presentation/room_gift_overlay.dart';
 import '../../rooms/data/classic_gift_catalog.dart';
 import '../../rooms/data/room_feature_models.dart';
 import '../../rooms/services/room_feature_service.dart';
+import '../../profile/presentation/public_profile_screen.dart';
 
 /// Real authenticated conversations. The economy backend, not Flutter,
 /// establishes mutual-follower membership and writes chat/gift messages.
@@ -124,11 +126,20 @@ class ChatScreen extends StatelessWidget {
                         return FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
                           future: db.collection('users').doc(peerId).get(),
                           builder: (context, profile) {
-                            final displayName = (profile.data?.data()?['displayName'] ??
-                                profile.data?.data()?['name'] ?? peerId).toString();
+                            final profileData =
+                                profile.data?.data() ?? const <String, dynamic>{};
+                            final displayName = (profileData['displayName'] ??
+                                profileData['name'] ?? peerId).toString();
+                            final photo =
+                                (profileData['photoUrl'] ?? '').toString().trim();
                             return ListTile(
-                              leading: const CircleAvatar(
-                                  child: Icon(Icons.person_outline)),
+                              leading: CircleAvatar(
+                                backgroundImage:
+                                    photo.isEmpty ? null : NetworkImage(photo),
+                                child: photo.isEmpty
+                                    ? const Icon(Icons.person_outline)
+                                    : null,
+                              ),
                               title: Text(displayName),
                               onTap: () async {
                                 try {
@@ -230,45 +241,97 @@ class ChatScreen extends StatelessWidget {
                 if (!snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
                 }
+
                 final chats = snapshot.data!.docs.toList()
                   ..sort((a, b) {
                     final one = a.data()['lastMessageAt'];
                     final two = b.data()['lastMessageAt'];
-                    final first = one is Timestamp ? one.millisecondsSinceEpoch : 0;
-                    final second = two is Timestamp ? two.millisecondsSinceEpoch : 0;
+                    final first =
+                        one is Timestamp ? one.millisecondsSinceEpoch : 0;
+                    final second =
+                        two is Timestamp ? two.millisecondsSinceEpoch : 0;
                     return second.compareTo(first);
                   });
-                if (chats.isEmpty) {
-                  return Center(child: Text(ar
-                      ? 'لا توجد محادثات حقيقية بعد'
-                      : 'No conversations yet'));
+
+                final peers = <String>{};
+                for (final chat in chats) {
+                  final ids =
+                      List<String>.from(chat.data()['memberIds'] ?? const []);
+                  final peer = ids.firstWhere(
+                    (value) => value != uid,
+                    orElse: () => '',
+                  );
+                  if (peer.isNotEmpty) peers.add(peer);
                 }
-                return ListView.builder(
-                  itemCount: chats.length,
-                  itemBuilder: (context, index) {
-                    final snap = chats[index];
-                    final data = snap.data();
-                    final ids = List<String>.from(data['memberIds'] ?? []);
-                    final peer = ids.firstWhere((value) => value != uid,
-                        orElse: () => '');
-                    if (peer.isEmpty) return const SizedBox.shrink();
-                    final names = Map<String, dynamic>.from(
-                        data['memberNames'] as Map? ?? <String, dynamic>{});
-                    final name = (names[peer] ?? peer).toString();
-                    return ListTile(
-                      leading: const CircleAvatar(child: Icon(Icons.person)),
-                      title: Text(name),
-                      subtitle: Text((data['latestText'] ?? '').toString(),
-                          maxLines: 1, overflow: TextOverflow.ellipsis),
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => _ChatConversation(
-                            chatId: snap.id, peerId: peer, peerName: name,
-                          ),
-                        ),
-                      ),
-                    );
-                  },
+
+                return Column(
+                  children: [
+                    _ChatStoriesStrip(
+                      peerIds: peers,
+                      ar: ar,
+                    ),
+                    const Divider(height: 1),
+                    Expanded(
+                      child: chats.isEmpty
+                          ? Center(
+                              child: Text(
+                                ar
+                                    ? 'لا توجد محادثات حقيقية بعد'
+                                    : 'No conversations yet',
+                              ),
+                            )
+                          : ListView.separated(
+                              padding: const EdgeInsets.symmetric(vertical: 6),
+                              itemCount: chats.length,
+                              separatorBuilder: (_, _) =>
+                                  const Divider(height: 1, indent: 78),
+                              itemBuilder: (context, index) {
+                                final snap = chats[index];
+                                final data = snap.data();
+                                final ids = List<String>.from(
+                                    data['memberIds'] ?? const []);
+                                final peer = ids.firstWhere(
+                                  (value) => value != uid,
+                                  orElse: () => '',
+                                );
+                                if (peer.isEmpty) {
+                                  return const SizedBox.shrink();
+                                }
+                                final names = Map<String, dynamic>.from(
+                                  data['memberNames'] as Map? ??
+                                      <String, dynamic>{},
+                                );
+                                final name = (names[peer] ?? peer).toString();
+
+                                return _ConversationTile(
+                                  peerId: peer,
+                                  peerName: name,
+                                  latestText:
+                                      (data['latestText'] ?? '').toString(),
+                                  onOpenConversation: () =>
+                                      Navigator.of(context).push(
+                                    MaterialPageRoute<void>(
+                                      builder: (_) => _ChatConversation(
+                                        chatId: snap.id,
+                                        peerId: peer,
+                                        peerName: name,
+                                      ),
+                                    ),
+                                  ),
+                                  onOpenProfile: () =>
+                                      Navigator.of(context).push(
+                                    MaterialPageRoute<void>(
+                                      builder: (_) => PublicProfileScreen(
+                                        userId: peer,
+                                        localeController: localeController,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                    ),
+                  ],
                 );
               },
             ),
@@ -279,7 +342,438 @@ class ChatScreen extends StatelessWidget {
   }
 }
 
-class _ChatConversation extends StatefulWidget {
+class _ChatStoriesStrip extends StatelessWidget {
+  const _ChatStoriesStrip({
+    required this.peerIds,
+    required this.ar,
+  });
+
+  final Set<String> peerIds;
+  final bool ar;
+
+  @override
+  Widget build(BuildContext context) {
+    if (peerIds.isEmpty) return const SizedBox.shrink();
+
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance
+          .collection('stories')
+          .where('active', isEqualTo: true)
+          .limit(100)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || snapshot.hasError) {
+          return const SizedBox.shrink();
+        }
+
+        final now = DateTime.now();
+        final byOwner =
+            <String, List<QueryDocumentSnapshot<Map<String, dynamic>>>>{};
+
+        for (final doc in snapshot.data!.docs) {
+          final data = doc.data();
+          final ownerId = (data['ownerId'] ?? '').toString();
+          if (!peerIds.contains(ownerId)) continue;
+          final expiresAt = data['expiresAt'];
+          if (expiresAt is Timestamp && expiresAt.toDate().isBefore(now)) {
+            continue;
+          }
+          (byOwner[ownerId] ??= []).add(doc);
+        }
+
+        if (byOwner.isEmpty) return const SizedBox.shrink();
+
+        final owners = byOwner.entries.toList()
+          ..sort((a, b) {
+            final aTime = a.value.first.data()['createdAt'];
+            final bTime = b.value.first.data()['createdAt'];
+            final aMs = aTime is Timestamp ? aTime.millisecondsSinceEpoch : 0;
+            final bMs = bTime is Timestamp ? bTime.millisecondsSinceEpoch : 0;
+            return bMs.compareTo(aMs);
+          });
+
+        return SizedBox(
+          height: 102,
+          child: ListView.separated(
+            padding: const EdgeInsets.fromLTRB(12, 6, 12, 8),
+            scrollDirection: Axis.horizontal,
+            itemCount: owners.length,
+            separatorBuilder: (_, _) => const SizedBox(width: 12),
+            itemBuilder: (context, index) {
+              final entry = owners[index];
+              final first = entry.value.first.data();
+              final name = (first['ownerName'] ?? 'WorldVoice').toString();
+              final photo =
+                  (first['ownerPhotoUrl'] ?? '').toString().trim();
+
+              return InkWell(
+                borderRadius: BorderRadius.circular(18),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    fullscreenDialog: true,
+                    builder: (_) => _StoryViewer(
+                      stories: entry.value
+                          .map((doc) => <String, dynamic>{
+                                'id': doc.id,
+                                ...doc.data(),
+                              })
+                          .toList(growable: false),
+                      ar: ar,
+                    ),
+                  ),
+                ),
+                child: SizedBox(
+                  width: 68,
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(2.5),
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [
+                              Color(0xFF13A875),
+                              Color(0xFFFFC857),
+                            ],
+                          ),
+                        ),
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).scaffoldBackgroundColor,
+                            shape: BoxShape.circle,
+                          ),
+                          child: CircleAvatar(
+                            radius: 28,
+                            backgroundImage:
+                                photo.isEmpty ? null : NetworkImage(photo),
+                            child: photo.isEmpty
+                                ? const Icon(Icons.person_rounded)
+                                : null,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _ConversationTile extends StatelessWidget {
+  const _ConversationTile({
+    required this.peerId,
+    required this.peerName,
+    required this.latestText,
+    required this.onOpenConversation,
+    required this.onOpenProfile,
+  });
+
+  final String peerId;
+  final String peerName;
+  final String latestText;
+  final VoidCallback onOpenConversation;
+  final VoidCallback onOpenProfile;
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance
+          .collection('users')
+          .doc(peerId)
+          .snapshots(),
+      builder: (context, snapshot) {
+        final data = snapshot.data?.data() ?? const <String, dynamic>{};
+        final photo = (data['photoUrl'] ?? '').toString().trim();
+        final name = (data['displayName'] ?? data['name'] ?? peerName)
+            .toString()
+            .trim();
+        final online = data['isOnline'] == true;
+
+        return ListTile(
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 5,
+          ),
+          leading: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: onOpenProfile,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                CircleAvatar(
+                  radius: 27,
+                  backgroundImage:
+                      photo.isEmpty ? null : NetworkImage(photo),
+                  child:
+                      photo.isEmpty ? const Icon(Icons.person_rounded) : null,
+                ),
+                if (online)
+                  PositionedDirectional(
+                    end: -1,
+                    bottom: 1,
+                    child: Container(
+                      width: 13,
+                      height: 13,
+                      decoration: BoxDecoration(
+                        color: Colors.green,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Theme.of(context).scaffoldBackgroundColor,
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          title: Text(
+            name.isEmpty ? peerName : name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontWeight: FontWeight.w900),
+          ),
+          subtitle: Text(
+            latestText.isEmpty ? ' ' : latestText,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          trailing: const Icon(Icons.chevron_right_rounded, size: 20),
+          onTap: onOpenConversation,
+        );
+      },
+    );
+  }
+}
+
+class _StoryViewer extends StatefulWidget {
+  const _StoryViewer({
+    required this.stories,
+    required this.ar,
+  });
+
+  final List<Map<String, dynamic>> stories;
+  final bool ar;
+
+  @override
+  State<_StoryViewer> createState() => _StoryViewerState();
+}
+
+class _StoryViewerState extends State<_StoryViewer> {
+  final PageController _pageController = PageController();
+  int _index = 0;
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final stories = widget.stories;
+    if (stories.isEmpty) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(
+          child: Text(
+            widget.ar ? 'انتهت الستوري.' : 'Story unavailable.',
+            style: const TextStyle(color: Colors.white),
+          ),
+        ),
+      );
+    }
+
+    final active = stories[_index.clamp(0, stories.length - 1)];
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            PageView.builder(
+              controller: _pageController,
+              itemCount: stories.length,
+              onPageChanged: (value) => setState(() => _index = value),
+              itemBuilder: (context, index) {
+                final story = stories[index];
+                final url = (story['mediaUrl'] ?? '').toString().trim();
+                final type =
+                    (story['mediaType'] ?? 'image').toString().toLowerCase();
+                if (url.isEmpty) {
+                  return const Center(
+                    child: Icon(
+                      Icons.broken_image_outlined,
+                      color: Colors.white54,
+                      size: 56,
+                    ),
+                  );
+                }
+                if (type == 'video') {
+                  return _StoryVideo(url: url);
+                }
+                return InteractiveViewer(
+                  child: Image.network(
+                    url,
+                    fit: BoxFit.contain,
+                    width: double.infinity,
+                    height: double.infinity,
+                    errorBuilder: (_, _, _) => const Center(
+                      child: Icon(
+                        Icons.broken_image_outlined,
+                        color: Colors.white54,
+                        size: 56,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+            PositionedDirectional(
+              top: 10,
+              start: 12,
+              end: 12,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 18,
+                          backgroundImage: (() {
+                            final photo = (active['ownerPhotoUrl'] ?? '')
+                                .toString()
+                                .trim();
+                            return photo.isEmpty ? null : NetworkImage(photo);
+                          })(),
+                          child: (active['ownerPhotoUrl'] ?? '')
+                                  .toString()
+                                  .trim()
+                                  .isEmpty
+                              ? const Icon(Icons.person_rounded, size: 18)
+                              : null,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            (active['ownerName'] ?? 'WorldVoice').toString(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    style: IconButton.styleFrom(
+                      backgroundColor: const Color(0x66000000),
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.close_rounded),
+                  ),
+                ],
+              ),
+            ),
+            if ((active['caption'] ?? '').toString().trim().isNotEmpty)
+              PositionedDirectional(
+                start: 18,
+                end: 18,
+                bottom: 24,
+                child: Text(
+                  active['caption'].toString(),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    shadows: [
+                      Shadow(color: Colors.black, blurRadius: 8),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StoryVideo extends StatefulWidget {
+  const _StoryVideo({required this.url});
+
+  final String url;
+
+  @override
+  State<_StoryVideo> createState() => _StoryVideoState();
+}
+
+class _StoryVideoState extends State<_StoryVideo> {
+  VideoPlayerController? _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    final uri = Uri.tryParse(widget.url);
+    if (uri == null) return;
+    final controller = VideoPlayerController.networkUrl(uri);
+    _controller = controller;
+    controller.initialize().then((_) {
+      if (!mounted) return;
+      controller
+        ..setLooping(true)
+        ..play();
+      setState(() {});
+    }).catchError((Object _) {});
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = _controller;
+    if (controller == null || !controller.value.isInitialized) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return Center(
+      child: AspectRatio(
+        aspectRatio: controller.value.aspectRatio == 0
+            ? 9 / 16
+            : controller.value.aspectRatio,
+        child: VideoPlayer(controller),
+      ),
+    );
+  }
+}
+
+class _ChatConversationclass _ChatConversation extends StatefulWidget {
   const _ChatConversation({
     required this.chatId, required this.peerId, required this.peerName,
   });
@@ -461,7 +955,82 @@ class _ChatConversationState extends State<_ChatConversation> {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     final ar = Localizations.localeOf(context).languageCode == 'ar';
     return Scaffold(
-      appBar: AppBar(title: Text(widget.peerName)),
+      appBar: AppBar(
+        titleSpacing: 0,
+        title: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+          stream: FirebaseFirestore.instance
+              .collection('users')
+              .doc(widget.peerId)
+              .snapshots(),
+          builder: (context, snapshot) {
+            final data =
+                snapshot.data?.data() ?? const <String, dynamic>{};
+            final photo = (data['photoUrl'] ?? '').toString().trim();
+            final name = (data['displayName'] ??
+                    data['name'] ??
+                    widget.peerName)
+                .toString();
+            final online = data['isOnline'] == true;
+            return InkWell(
+              borderRadius: BorderRadius.circular(18),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => PublicProfileScreen(
+                    userId: widget.peerId,
+                    languageCode:
+                        Localizations.localeOf(context).languageCode,
+                  ),
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(2, 4, 8, 4),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 18,
+                      backgroundImage:
+                          photo.isEmpty ? null : NetworkImage(photo),
+                      child: photo.isEmpty
+                          ? const Icon(Icons.person_rounded, size: 18)
+                          : null,
+                    ),
+                    const SizedBox(width: 9),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          Text(
+                            online
+                                ? (ar ? 'متصل الآن' : 'Online')
+                                : (ar ? 'غير متصل' : 'Offline'),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: online
+                                  ? Colors.green
+                                  : Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ),
       body: SafeArea(
         child: Column(
           children: [
