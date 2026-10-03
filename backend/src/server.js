@@ -153,7 +153,7 @@ const openAiKey = (process.env.OPENAI_API_KEY || "").trim();
 const teacherModel = (process.env.OPENAI_TEACHER_MODEL || "").trim();
 
 const androidPackageName =
-  (process.env.ANDROID_PACKAGE_NAME || "com.worldvoice.worldvoice").trim();
+  (process.env.ANDROID_PACKAGE_NAME || "com.worldvoice.app").trim();
 const iosBundleId =
   (process.env.IOS_BUNDLE_ID || "com.worldvoice.worldvoice").trim();
 
