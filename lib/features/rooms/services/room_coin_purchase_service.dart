@@ -11,6 +11,7 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../data/coin_product_config.dart';
+import '../data/room_backend_config.dart';
 
 class CoinStoreProduct {
   const CoinStoreProduct({
@@ -27,6 +28,15 @@ class RoomCoinPurchaseService extends ChangeNotifier {
 
   static final RoomCoinPurchaseService instance =
       RoomCoinPurchaseService._();
+
+  static const String _explicitEconomyBackend =
+      String.fromEnvironment('WORLDVOICE_ECONOMY_ENDPOINT');
+
+  String get _economyBackend {
+    final explicit = _explicitEconomyBackend.trim();
+    if (explicit.isNotEmpty) return explicit;
+    return RoomBackendConfig.configuredBaseUrl.trim();
+  }
 
   final InAppPurchase _iap = InAppPurchase.instance;
   StreamSubscription<List<PurchaseDetails>>? _purchaseSub;
@@ -263,7 +273,7 @@ class RoomCoinPurchaseService extends ChangeNotifier {
     PurchaseDetails purchase,
   ) async {
     final user = FirebaseAuth.instance.currentUser;
-    const base = String.fromEnvironment('WORLDVOICE_ECONOMY_ENDPOINT');
+    final base = _economyBackend;
     final uri = Uri.tryParse(base);
     final endpoint = uri == null || uri.scheme != 'https' || !uri.hasAuthority
         ? ''
@@ -315,7 +325,7 @@ class RoomCoinPurchaseService extends ChangeNotifier {
   // The backend alone applies diamond conversions and quotes.
   // Failed requests retain the idempotency key so a retry cannot debit twice.
   Uri get _walletBase {
-    const raw = String.fromEnvironment('WORLDVOICE_ECONOMY_ENDPOINT');
+    final raw = _economyBackend;
     final parsed = Uri.tryParse(raw.trim());
     if (parsed == null || parsed.scheme != 'https' || !parsed.hasAuthority ||
         parsed.userInfo.isNotEmpty || parsed.query.isNotEmpty ||
