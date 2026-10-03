@@ -94,33 +94,8 @@ class LiveScreen extends StatefulWidget {
 }
 
 class _LiveScreenState extends State<LiveScreen> {
-  String _selectedLanguage = 'all';
-  List<String> _languages = ['ar', 'en'];
   late final Stream<QuerySnapshot<Map<String, dynamic>>> _sessions =
       LiveSessionService().watchOpen();
-
-  @override
-  void initState() {
-    super.initState();
-    _loadLanguages();
-  }
-
-  Future<void> _loadLanguages() async {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) return;
-    try {
-      final profile = await FirebaseFirestore.instance.collection('users').doc(uid).get();
-      final data = profile.data();
-      final learning = data?['learningLanguageCodes'];
-      final codes = <String>{'ar', 'en',
-        if (data?['nativeLanguageCode'] is String) data!['nativeLanguageCode'] as String,
-        if (learning is List) ...learning.map((value) => value.toString()),
-      }.where((code) => ProfileLanguageCatalog.byCode(code) != null).toList();
-      if (mounted) setState(() => _languages = codes);
-    } catch (_) {
-      // Basic language filters remain available while the profile is offline.
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -136,57 +111,46 @@ class _LiveScreenState extends State<LiveScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(18, 18, 18, 28),
           children: [
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(children: [
-                for (final code in ['all', ..._languages])
-                  Padding(
-                    padding: const EdgeInsetsDirectional.only(end: 8),
-                    child: ChoiceChip(
-                      selected: _selectedLanguage == code,
-                      label: Text(code == 'all' ? 'All' : ProfileLanguageCatalog.label(code)),
-                      onSelected: (_) => setState(() => _selectedLanguage = code),
-                    ),
-                  ),
-              ]),
-            ),
-            const SizedBox(height: 14),
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF0B5D46), Color(0xFF11835D)],
-                ),
-                borderRadius: BorderRadius.circular(28),
+                color: Theme.of(context).colorScheme.surfaceContainer,
+                borderRadius: BorderRadius.circular(22),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  const Icon(Icons.live_tv_rounded,
-                      size: 42, color: Color(0xFFFFD57F)),
-                  const SizedBox(height: 14),
-                  Text(
-                    ar ? 'WorldVoice Live' : 'WorldVoice Live',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 26,
-                      fontWeight: FontWeight.w900,
+                  const CircleAvatar(
+                    radius: 24,
+                    backgroundColor: Color(0xFFDCF4EA),
+                    child: Icon(
+                      Icons.videocam_rounded,
+                      color: Color(0xFF0B7A58),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    ar
-                        ? 'بث فيديو مباشر بدون مقاعد. الضيوف ينضمون بطلب، والأدوات تبقى مخفية حتى تحتاجها.'
-                        : 'Seat-free live video. Guests join by request and tools stay hidden until needed.',
-                    style: const TextStyle(color: Colors.white70, height: 1.45),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          ar ? 'أنشئ بثك المباشر' : 'Create your live',
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          ar
+                              ? 'افتح الكاميرا وابدأ مباشرة.'
+                              : 'Open the camera and go live.',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 20),
-                  FilledButton.icon(
+                  FilledButton(
                     key: const ValueKey('start-live'),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: const Color(0xFF0B5D46),
-                    ),
                     onPressed: () {
                       unawaited(_warmLiveBackend());
                       final fallback =
@@ -203,16 +167,12 @@ class _LiveScreenState extends State<LiveScreen> {
                         ),
                       );
                     },
-                    icon: const Icon(Icons.videocam_rounded),
-                    label: Text(
-                      ar ? 'ابدأ بثًا مباشرًا' : 'Start live',
-                      style: const TextStyle(fontWeight: FontWeight.w800),
-                    ),
+                    child: Text(ar ? 'إنشاء' : 'Create'),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 20),
             Text(
               ar ? 'البثوث المباشرة الآن' : 'Live now',
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
@@ -227,8 +187,7 @@ class _LiveScreenState extends State<LiveScreen> {
                 final rawDocs = snapshot.data?.docs ??
                     const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
                 final docs = rawDocs
-                    .where((doc) => LiveSessionService.isFresh(doc.data()) &&
-                        (_selectedLanguage == 'all' || doc.data()['languageCode'] == _selectedLanguage))
+                    .where((doc) => LiveSessionService.isFresh(doc.data()))
                     .toList(growable: false);
                 if (snapshot.connectionState == ConnectionState.waiting &&
                     !snapshot.hasData) {
@@ -282,21 +241,6 @@ class _LiveScreenState extends State<LiveScreen> {
                   ],
                 );
               },
-            ),
-            const SizedBox(height: 18),
-            _FeatureRow(
-              icon: Icons.groups_2_rounded,
-              title: ar ? 'حتى 4 أشخاص' : 'Up to 4 people',
-              subtitle: ar
-                  ? 'بدون مقاعد فارغة؛ الفيديو يتوزع تلقائيًا عند قبول الضيوف.'
-                  : 'No empty seats; video lays out automatically as guests are accepted.',
-            ),
-            _FeatureRow(
-              icon: Icons.dashboard_customize_rounded,
-              title: ar ? 'أدوات مخفية' : 'Hidden tools',
-              subtitle: ar
-                  ? 'الشات، البورد، Teacher AI، الترجمة والهدايا تظهر من الأزرار فقط.'
-                  : 'Chat, Board, Teacher AI, translation and gifts open only from controls.',
             ),
           ],
         ),
@@ -358,6 +302,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   double _cameraZoom = 1;
   bool _requestsOpen = false;
   bool _boardOpen = false;
+  bool _chatOpen = true;
   bool _sessionClosed = false;
   Timer? _heartbeatTimer;
   Timer? _cameraOffTimer;
@@ -613,6 +558,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: Colors.black,
       body: SafeArea(
         child: Stack(
@@ -628,54 +574,18 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                 ),
               ),
             if (!_cameraReady && _controller.engine == null)
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(32),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.videocam_rounded,
-                        color: Colors.white70,
-                        size: 72,
-                      ),
-                      const SizedBox(height: 18),
-                      Text(
-                        _preparingPreview
-                            ? (widget.ar
-                                ? 'جاري فتح الكاميرا...'
-                                : 'Opening camera...')
-                            : (widget.ar
-                                ? 'تعذّر فتح الكاميرا'
-                                : 'Could not open camera'),
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 21,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                      if (!_preparingPreview) ...[
-                        const SizedBox(height: 10),
-                        Text(
-                          _cameraStartError ?? '',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(color: Colors.white70),
-                        ),
-                        const SizedBox(height: 18),
-                        FilledButton.icon(
-                          onPressed: _preparePreview,
-                          icon: const Icon(Icons.refresh_rounded),
-                          label: Text(
-                            widget.ar ? 'إعادة المحاولة' : 'Retry',
-                          ),
-                        ),
-                      ],
-                    ],
+              const Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Color(0xFF1A211E), Color(0xFF090B0A)],
+                    ),
                   ),
                 ),
               ),
-            if (!_cameraReady && _controller.engine != null)
+            if (!_cameraReady)
               PositionedDirectional(
                 start: 14,
                 end: 14,
@@ -720,7 +630,32 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 14),
+                        const SizedBox(height: 10),
+                        if (_preparingPreview)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: Row(
+                              children: [
+                                const SizedBox.square(
+                                  dimension: 15,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Color(0xFF3CD6A0),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  widget.ar
+                                      ? 'جاري تجهيز الكاميرا...'
+                                      : 'Preparing camera...',
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         TextField(
                           controller: _topicController,
                           enabled: !_starting,
@@ -817,7 +752,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                               tooltip: widget.ar
                                   ? 'الفلاتر'
                                   : 'Filters',
-                              onPressed: _starting
+                              onPressed: (_starting || !_previewReady)
                                   ? null
                                   : () => _showLiveCameraTools(
                                         context,
@@ -866,7 +801,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                               tooltip: widget.ar
                                   ? 'تبديل الكاميرا'
                                   : 'Switch camera',
-                              onPressed: _starting
+                              onPressed: (_starting || !_previewReady)
                                   ? null
                                   : () => _controller.switchCamera(),
                               icon:
@@ -1019,6 +954,23 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                           Positioned.fill(
                             child: _LiveGiftEffects(liveId: _liveId!),
                           ),
+                        if (_chatOpen && _liveId != null)
+                          PositionedDirectional(
+                            start: 10,
+                            end: 68,
+                            bottom: 78 + MediaQuery.viewInsetsOf(context).bottom,
+                            height: 250,
+                            child: _LiveChatOverlay(
+                              service: _liveService,
+                              liveId: _liveId!,
+                              ar: widget.ar,
+                              onClose: () {
+                                if (mounted) {
+                                  setState(() => _chatOpen = false);
+                                }
+                              },
+                            ),
+                          ),
                         PositionedDirectional(
                           top: 12,
                           start: 12,
@@ -1139,14 +1091,13 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                     : 'Live chat',
                                 onPressed: _liveId == null
                                     ? null
-                                    : () => _showLiveChat(
-                                          context,
-                                          service: _liveService,
-                                          liveId: _liveId!,
-                                          ar: widget.ar,
+                                    : () => setState(
+                                          () => _chatOpen = !_chatOpen,
                                         ),
-                                icon: const Icon(
-                                  Icons.chat_bubble_outline_rounded,
+                                icon: Icon(
+                                  _chatOpen
+                                      ? Icons.chat_bubble_rounded
+                                      : Icons.chat_bubble_outline_rounded,
                                   color: Colors.white,
                                 ),
                               ),
@@ -1376,6 +1327,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   bool _guestBackgroundBlurEnabled = false;
   double _guestCameraZoom = 1;
   bool _boardOpen = false;
+  bool _chatOpen = true;
   bool _following = false;
   bool _followBusy = false;
   bool _isModerator = false;
@@ -1514,6 +1466,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
           });
         }
         return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: Colors.black,
       body: SafeArea(
         child: _joining
@@ -1609,6 +1562,23 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                       Positioned.fill(
                         child: _LiveGiftEffects(liveId: widget.liveId),
                       ),
+                      if (_chatOpen)
+                        PositionedDirectional(
+                          start: 10,
+                          end: 68,
+                          bottom: 78 + MediaQuery.viewInsetsOf(context).bottom,
+                          height: 250,
+                          child: _LiveChatOverlay(
+                            service: _service,
+                            liveId: widget.liveId,
+                            ar: widget.ar,
+                            onClose: () {
+                              if (mounted) {
+                                setState(() => _chatOpen = false);
+                              }
+                            },
+                          ),
+                        ),
                       PositionedDirectional(
                         top: 10,
                         start: 10,
@@ -1768,14 +1738,13 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                               ),
                             IconButton(
                               tooltip: widget.ar ? 'الشات' : 'Chat',
-                              onPressed: () => _showLiveChat(
-                                context,
-                                service: _service,
-                                liveId: widget.liveId,
-                                ar: widget.ar,
+                              onPressed: () => setState(
+                                () => _chatOpen = !_chatOpen,
                               ),
-                              icon: const Icon(
-                                Icons.chat_bubble_outline_rounded,
+                              icon: Icon(
+                                _chatOpen
+                                    ? Icons.chat_bubble_rounded
+                                    : Icons.chat_bubble_outline_rounded,
                                 color: Colors.white,
                               ),
                             ),
@@ -3028,207 +2997,215 @@ Future<void> _showLiveShareToChat(
   );
 }
 
-Future<void> _showLiveChat(
-  BuildContext context, {
-  required LiveSessionService service,
-  required String liveId,
-  required bool ar,
-}) {
-  final input = TextEditingController();
-  return showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    useSafeArea: true,
-    backgroundColor: Colors.transparent,
-    barrierColor: Colors.black12,
-    builder: (sheetContext) => Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
+class _LiveChatOverlay extends StatefulWidget {
+  const _LiveChatOverlay({
+    required this.service,
+    required this.liveId,
+    required this.ar,
+    required this.onClose,
+  });
+
+  final LiveSessionService service;
+  final String liveId;
+  final bool ar;
+  final VoidCallback onClose;
+
+  @override
+  State<_LiveChatOverlay> createState() => _LiveChatOverlayState();
+}
+
+class _LiveChatOverlayState extends State<_LiveChatOverlay> {
+  final TextEditingController _input = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
+  bool _sending = false;
+
+  Future<void> _send() async {
+    final value = _input.text.trim();
+    if (value.isEmpty || _sending) return;
+    setState(() => _sending = true);
+    try {
+      await widget.service.sendChat(widget.liveId, value);
+      if (!mounted) return;
+      _input.clear();
+      _focusNode.requestFocus();
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    _input.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.bottomCenter,
+          end: Alignment.topCenter,
+          colors: [
+            Color(0x8A000000),
+            Color(0x38000000),
+            Color(0x00000000),
+          ],
+          stops: [0, .55, 1],
+        ),
       ),
-      child: SizedBox(
-        height: MediaQuery.sizeOf(sheetContext).height * .62,
-        child: DecoratedBox(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Colors.transparent,
-                Color(0x33000000),
-                Color(0x99000000),
-              ],
-              stops: [0, .48, 1],
+      child: Column(
+        children: [
+          Align(
+            alignment: AlignmentDirectional.topEnd,
+            child: IconButton(
+              visualDensity: VisualDensity.compact,
+              style: IconButton.styleFrom(
+                backgroundColor: const Color(0x42000000),
+                foregroundColor: Colors.white,
+              ),
+              tooltip: widget.ar ? 'إخفاء الشات' : 'Hide chat',
+              onPressed: widget.onClose,
+              icon: const Icon(Icons.close_rounded, size: 18),
             ),
           ),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(14, 6, 8, 4),
-                child: Row(
-                  children: [
-                    Text(
-                      ar ? 'دردشة اللايف' : 'Live chat',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 17,
-                        shadows: [
-                          Shadow(color: Colors.black54, blurRadius: 8),
-                        ],
-                      ),
-                    ),
-                    const Spacer(),
-                    IconButton.filledTonal(
-                      onPressed: () => Navigator.pop(sheetContext),
-                      icon: const Icon(Icons.close_rounded),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                  stream: service.watchChat(liveId),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasError) {
-                      return Center(
-                        child: Text(
-                          ar
-                              ? 'تعذر تحميل دردشة اللايف.'
-                              : 'Could not load Live chat.',
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                      );
-                    }
-                    final docs = snapshot.data?.docs ??
-                        const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
-                    if (docs.isEmpty) {
-                      return const SizedBox.shrink();
-                    }
-                    return ListView.builder(
-                      reverse: true,
-                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
-                      itemCount: docs.length,
-                      itemBuilder: (context, index) {
-                        final data = docs[index].data();
-                        final name =
-                            (data['senderName'] ?? 'WorldVoice').toString();
-                        final photo =
-                            (data['senderPhotoUrl'] ?? '').toString().trim();
-                        final message = (data['text'] ?? '').toString();
-
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 5),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              CircleAvatar(
-                                radius: 15,
-                                backgroundColor: const Color(0xAAFFFFFF),
-                                foregroundImage:
-                                    photo.isEmpty ? null : NetworkImage(photo),
-                                child: photo.isEmpty
-                                    ? const Icon(
-                                        Icons.person_rounded,
-                                        size: 17,
-                                        color: Colors.black54,
-                                      )
-                                    : null,
-                              ),
-                              const SizedBox(width: 8),
-                              Flexible(
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 7,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0x26000000),
-                                    borderRadius: BorderRadius.circular(14),
-                                  ),
-                                  child: Text.rich(
-                                    TextSpan(
-                                      children: [
-                                        TextSpan(
-                                          text: '$name  ',
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w900,
-                                          ),
-                                        ),
-                                        TextSpan(
-                                          text: message,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            height: 1.3,
-                                          ),
-                                        ),
-                                      ],
+          Expanded(
+            child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              stream: widget.service.watchChat(widget.liveId),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return const SizedBox.shrink();
+                }
+                final docs = snapshot.data?.docs ??
+                    const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
+                return ListView.builder(
+                  reverse: true,
+                  padding: const EdgeInsets.fromLTRB(4, 0, 4, 6),
+                  itemCount: docs.length,
+                  itemBuilder: (context, index) {
+                    final data = docs[index].data();
+                    final name =
+                        (data['senderName'] ?? 'WorldVoice').toString();
+                    final photo =
+                        (data['senderPhotoUrl'] ?? '').toString().trim();
+                    final message = (data['text'] ?? '').toString();
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 3),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CircleAvatar(
+                            radius: 13,
+                            backgroundColor: const Color(0x88444444),
+                            foregroundImage:
+                                photo.isEmpty ? null : NetworkImage(photo),
+                            child: photo.isEmpty
+                                ? const Icon(
+                                    Icons.person_rounded,
+                                    size: 15,
+                                    color: Colors.white,
+                                  )
+                                : null,
+                          ),
+                          const SizedBox(width: 7),
+                          Expanded(
+                            child: Text.rich(
+                              TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: '$name  ',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w900,
                                     ),
                                   ),
-                                ),
+                                  TextSpan(
+                                    text: message,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      height: 1.28,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
+                              maxLines: 4,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                shadows: [
+                                  Shadow(
+                                    color: Colors.black87,
+                                    blurRadius: 5,
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                        );
-                      },
+                        ],
+                      ),
                     );
                   },
+                );
+              },
+            ),
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _input,
+                  focusNode: _focusNode,
+                  maxLength: 500,
+                  maxLines: 1,
+                  textInputAction: TextInputAction.send,
+                  onSubmitted: (_) => _send(),
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    counterText: '',
+                    hintText: widget.ar ? 'تعليق...' : 'Comment...',
+                    hintStyle: const TextStyle(color: Colors.white60),
+                    filled: true,
+                    fillColor: const Color(0x66000000),
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 11,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(22),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: input,
-                        maxLength: 500,
-                        textInputAction: TextInputAction.send,
-                        onSubmitted: (_) async {
-                          final value = input.text;
-                          input.clear();
-                          await service.sendChat(liveId, value);
-                        },
-                        style: const TextStyle(color: Colors.black87),
-                        decoration: InputDecoration(
-                          counterText: '',
-                          hintText: ar ? 'اكتب تعليقًا...' : 'Add a comment...',
-                          hintStyle: const TextStyle(color: Colors.black45),
-                          filled: true,
-                          fillColor: const Color(0xF5FFFFFF),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 11,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(24),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    IconButton.filled(
-                      style: IconButton.styleFrom(
-                        backgroundColor: const Color(0xFF11835D),
-                        foregroundColor: Colors.white,
-                      ),
-                      onPressed: () async {
-                        final value = input.text;
-                        input.clear();
-                        await service.sendChat(liveId, value);
-                      },
-                      icon: const Icon(Icons.send_rounded),
-                    ),
-                  ],
+              const SizedBox(width: 4),
+              IconButton(
+                style: IconButton.styleFrom(
+                  backgroundColor: const Color(0xCC11835D),
+                  foregroundColor: Colors.white,
                 ),
+                onPressed: _sending ? null : _send,
+                icon: _sending
+                    ? const SizedBox.square(
+                        dimension: 17,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.send_rounded),
               ),
             ],
           ),
-        ),
+        ],
       ),
-    ),
-  ).whenComplete(input.dispose);
+    );
+  }
 }
 
 Future<void> _showLiveModeratorManagement(
@@ -3614,32 +3591,6 @@ class _LiveViewerFaces extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-class _FeatureRow extends StatelessWidget {
-  const _FeatureRow({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(vertical: 4),
-      leading: CircleAvatar(
-        backgroundColor: const Color(0xFFE4F3ED),
-        foregroundColor: const Color(0xFF11835D),
-        child: Icon(icon),
-      ),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
-      subtitle: Text(subtitle),
     );
   }
 }
