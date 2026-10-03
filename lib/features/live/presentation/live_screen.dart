@@ -1241,6 +1241,44 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   }
 }
 
+class _LiveControlDock extends StatelessWidget {
+  const _LiveControlDock({
+    required this.children,
+    this.padding = const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+  });
+
+  final List<Widget> children;
+  final EdgeInsetsGeometry padding;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xB8141816),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withValues(alpha: .10)),
+        boxShadow: const [
+          BoxShadow(
+            blurRadius: 18,
+            offset: Offset(0, 8),
+            color: Color(0x33000000),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: padding,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: children,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _LiveViewerScreen extends StatefulWidget {
   const _LiveViewerScreen({
     required this.liveId,
@@ -2869,7 +2907,7 @@ Future<void> _showLiveModeratorManagement(
                     return ListView.separated(
                       padding: const EdgeInsets.fromLTRB(12, 10, 12, 24),
                       itemCount: entries.length,
-                      separatorBuilder: (_, __) =>
+                      separatorBuilder: (_, _) =>
                           const Divider(height: 1, color: Colors.white10),
                       itemBuilder: (context, index) {
                         final entry = entries[index];
