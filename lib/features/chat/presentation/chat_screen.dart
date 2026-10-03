@@ -64,6 +64,26 @@ class ChatScreen extends StatelessWidget {
     return body;
   }
 
+  /// Reuses the existing authenticated chat backend for cross-feature shares
+  /// such as Live links. This keeps membership and mutual-follow checks in the
+  /// backend instead of writing chat messages directly from Firestore clients.
+  static Future<void> sendTextMessageToConversation({
+    required String chatId,
+    required String text,
+  }) async {
+    final value = text.trim();
+    if (value.isEmpty) return;
+    final random = Random.secure();
+    final requestKey = List<int>.generate(24, (_) => random.nextInt(256))
+        .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+        .join();
+    await _post(
+      '/chat/message',
+      <String, dynamic>{'chatId': chatId, 'text': value},
+      requestKey: requestKey,
+    );
+  }
+
   Future<void> _startChat(BuildContext parentContext, bool ar, String uid) async {
     final db = FirebaseFirestore.instance;
     await showModalBottomSheet<void>(
