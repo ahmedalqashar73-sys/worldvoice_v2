@@ -342,7 +342,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     await SharePlus.instance.share(
       ShareParams(
         title: 'WorldVoice Live',
-        text: 'WorldVoice Live • ${_resolvedTopic} • $host • $liveId',
+        text: 'WorldVoice Live • $_resolvedTopic • $host • $liveId',
       ),
     );
   }
