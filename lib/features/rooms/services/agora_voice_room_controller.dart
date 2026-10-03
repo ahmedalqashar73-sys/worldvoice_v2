@@ -24,6 +24,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
   bool _released = false;
   bool _screenSharing = false;
   bool _cameraPublishing = false;
+  bool _localPreviewPrepared = false;
   String? _error;
   int? _localUid;
   int? _activeSpeakerUid;
@@ -38,6 +39,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
   String? get error => _error;
   bool get screenSharing => _screenSharing;
   bool get cameraPublishing => _cameraPublishing;
+  bool get localPreviewPrepared => _localPreviewPrepared;
   RtcEngine? get engine => _engine;
   int? get localUid => _localUid;
   int? get activeSpeakerUid => _activeSpeakerUid;
@@ -69,6 +71,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       );
       await engine.enableVideo();
       await engine.startPreview();
+      _localPreviewPrepared = true;
       notifyListeners();
     } catch (error) {
       _error = error.toString();
@@ -114,7 +117,13 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       }
       await result.future;
     } on TimeoutException {
-      await leave();
+      if (_localPreviewPrepared && !_joined && _engine != null) {
+        _connecting = false;
+        _error ??= 'Agora connection timed out. Check your network and token configuration.';
+        notifyListeners();
+      } else {
+        await leave();
+      }
       rethrow;
     } finally {
       timer.cancel();
@@ -290,7 +299,25 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       _error = error.toString();
       _connecting = false;
       notifyListeners();
-      await leave();
+
+      if (_localPreviewPrepared && !_joined && _engine != null) {
+        final engine = _engine!;
+        if (_handler != null) {
+          try {
+            engine.unregisterEventHandler(_handler!);
+          } catch (_) {}
+          _handler = null;
+        }
+        _channelId = null;
+        try {
+          await engine.enableVideo();
+          await engine.startPreview();
+        } catch (_) {
+          await leave();
+        }
+      } else {
+        await leave();
+      }
     }
   }
 
@@ -736,6 +763,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       _muted = false;
       _screenSharing = false;
       _cameraPublishing = false;
+      _localPreviewPrepared = false;
       _localUid = null;
       _activeSpeakerUid = null;
       _channelId = null;
