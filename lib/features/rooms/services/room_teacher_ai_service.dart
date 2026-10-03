@@ -39,6 +39,10 @@ class RoomTeacherAiService {
 
   FirebaseFirestore get _db => FirebaseFirestore.instance;
 
+  String get _contextType =>
+      collectionName == 'live_sessions' ? 'live' : 'room';
+
+
   Stream<List<RoomTeacherAiNote>> watchNotes({int limit = 20}) {
     return _db
         .collection(collectionName)
@@ -87,6 +91,7 @@ class RoomTeacherAiService {
             'Authorization': 'Bearer $idToken',
           },
           body: jsonEncode({
+            'context': _contextType,
             'roomId': roomId,
             'prompt': normalized,
             'roomLanguageCode': roomLanguageCode.trim().isEmpty
@@ -139,6 +144,7 @@ class RoomTeacherAiService {
           'Authorization': 'Bearer $idToken',
       },
       body: jsonEncode({
+        'context': _contextType,
         'roomId': roomId,
         'captionId': caption.id,
         'userId': caption.userId,
