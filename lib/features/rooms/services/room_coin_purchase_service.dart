@@ -35,7 +35,7 @@ class RoomCoinPurchaseService extends ChangeNotifier {
   String get _economyBackend {
     final explicit = _explicitEconomyBackend.trim();
     if (explicit.isNotEmpty) return explicit;
-    return RoomBackendConfig.configuredBaseUrl.trim();
+    return RoomBackendConfig.baseUrl.trim();
   }
 
   final InAppPurchase _iap = InAppPurchase.instance;
