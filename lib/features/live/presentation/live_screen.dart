@@ -140,19 +140,19 @@ class LiveScreen extends StatelessWidget {
                     ),
                     onPressed: () async {
                       unawaited(_warmLiveBackend());
-                      final setup = await _showLiveSetup(
-                        context,
-                        ar: ar,
-                        initialLanguageCode: language,
-                      );
-                      if (setup == null || !context.mounted) return;
+                      final fallback =
+                          ProfileLanguageCatalog.byCode(language) == null
+                              ? 'en'
+                              : language;
+                      final learningCodes =
+                          await _myLearningLanguageCodes(fallback);
+                      if (!context.mounted) return;
                       await Navigator.of(context).push<void>(
                         MaterialPageRoute(
                           fullscreenDialog: true,
                           builder: (_) => _LiveCameraGate(
                             ar: ar,
-                            topic: setup.topic,
-                            languageCode: setup.languageCode,
+                            learningCodes: learningCodes,
                           ),
                         ),
                       );
@@ -255,12 +255,6 @@ class LiveScreen extends StatelessWidget {
   }
 }
 
-class _LiveSetupResult {
-  const _LiveSetupResult({required this.topic, required this.languageCode});
-  final String topic;
-  final String languageCode;
-}
-
 Future<List<String>> _myLearningLanguageCodes(String fallback) async {
   final uid = FirebaseAuth.instance.currentUser?.uid;
   if (uid == null) return <String>[fallback];
@@ -283,161 +277,14 @@ Future<List<String>> _myLearningLanguageCodes(String fallback) async {
   return <String>[fallback];
 }
 
-Future<_LiveSetupResult?> _showLiveSetup(
-  BuildContext context, {
-  required bool ar,
-  required String initialLanguageCode,
-}) async {
-  final fallback =
-      ProfileLanguageCatalog.byCode(initialLanguageCode) == null
-          ? 'en'
-          : initialLanguageCode;
-  final learningCodes = await _myLearningLanguageCodes(fallback);
-  if (!context.mounted) return null;
-
-  return showModalBottomSheet<_LiveSetupResult>(
-    context: context,
-    isScrollControlled: true,
-    useSafeArea: true,
-    showDragHandle: true,
-    builder: (_) => _LiveSetupSheet(
-      ar: ar,
-      learningCodes: learningCodes,
-    ),
-  );
-}
-
-class _LiveSetupSheet extends StatefulWidget {
-  const _LiveSetupSheet({
-    required this.ar,
-    required this.learningCodes,
-  });
-
-  final bool ar;
-  final List<String> learningCodes;
-
-  @override
-  State<_LiveSetupSheet> createState() => _LiveSetupSheetState();
-}
-
-class _LiveSetupSheetState extends State<_LiveSetupSheet> {
-  final TextEditingController _topic = TextEditingController();
-  late String _languageCode;
-
-  @override
-  void initState() {
-    super.initState();
-    _languageCode = widget.learningCodes.first;
-  }
-
-  @override
-  void dispose() {
-    _topic.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(20, 8, 20, 20 + bottomInset),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            widget.ar ? 'جهّز البث المباشر' : 'Set up your Live',
-            style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w900),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _topic,
-            maxLength: 80,
-            decoration: InputDecoration(
-              labelText: widget.ar ? 'موضوع البث' : 'Live topic',
-              hintText: widget.ar
-                  ? 'مثال: نتعلم الإنجليزية معًا'
-                  : 'Example: Learn English together',
-              border: const OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 12),
-          if (widget.learningCodes.length == 1)
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.school_rounded),
-              title: Text(widget.ar ? 'لغة التعلم' : 'Learning language'),
-              subtitle:
-                  Text(ProfileLanguageCatalog.label(_languageCode)),
-            )
-          else
-            DropdownButtonFormField<String>(
-              initialValue: _languageCode,
-              isExpanded: true,
-              decoration: InputDecoration(
-                labelText:
-                    widget.ar ? 'اختر لغة التعلم' : 'Choose learning language',
-                border: const OutlineInputBorder(),
-              ),
-              items: [
-                for (final code in widget.learningCodes)
-                  DropdownMenuItem(
-                    value: code,
-                    child: Text(
-                      ProfileLanguageCatalog.label(code),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-              ],
-              onChanged: (value) {
-                if (value != null) setState(() => _languageCode = value);
-              },
-            ),
-          const SizedBox(height: 18),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              onPressed: () {
-                final topic = _topic.text.trim();
-                if (topic.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        widget.ar
-                            ? 'اكتب موضوعًا للبث أولًا.'
-                            : 'Add a Live topic first.',
-                      ),
-                    ),
-                  );
-                  return;
-                }
-                Navigator.of(context).pop(
-                  _LiveSetupResult(
-                    topic: topic,
-                    languageCode: _languageCode,
-                  ),
-                );
-              },
-              icon: const Icon(Icons.videocam_rounded),
-              label: Text(
-                widget.ar ? 'ابدأ اللايف' : 'Go Live',
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _LiveCameraGate extends StatefulWidget {
   const _LiveCameraGate({
     required this.ar,
-    required this.topic,
-    required this.languageCode,
+    required this.learningCodes,
   });
   final bool ar;
-  final String topic;
-  final String languageCode;
+  final List<String> learningCodes;
 
   @override
   State<_LiveCameraGate> createState() => _LiveCameraGateState();
@@ -445,6 +292,10 @@ class _LiveCameraGate extends StatefulWidget {
 
 class _LiveCameraGateState extends State<_LiveCameraGate> {
   final AgoraVoiceRoomController _controller = AgoraVoiceRoomController();
+  final TextEditingController _topicController = TextEditingController();
+  late String _languageCode;
+  bool _previewReady = false;
+  bool _preparingPreview = false;
   bool _cameraReady = false;
   bool _starting = false;
   bool _cameraPaused = false;
@@ -492,7 +343,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     await SharePlus.instance.share(
       ShareParams(
         title: 'WorldVoice Live',
-        text: 'WorldVoice Live • ${widget.topic} • $host • $liveId',
+        text: 'WorldVoice Live • ${_resolvedTopic} • $host • $liveId',
       ),
     );
   }
@@ -527,10 +378,17 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     });
   }
 
-  Future<void> _startCamera() async {
-    if (_starting || _cameraReady) return;
+  String get _resolvedTopic {
+    final typed = _topicController.text.trim();
+    if (typed.isNotEmpty) return typed;
+    final language = ProfileLanguageCatalog.label(_languageCode);
+    return widget.ar ? 'نتعلم $language معًا' : 'Practice $language together';
+  }
+
+  Future<void> _preparePreview() async {
+    if (_previewReady || _preparingPreview) return;
     setState(() {
-      _starting = true;
+      _preparingPreview = true;
       _cameraStartError = null;
     });
     try {
@@ -538,12 +396,36 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
       if (!cameraAllowed) {
         throw StateError(
           widget.ar
-              ? 'اسمح باستخدام الكاميرا لبدء البث المباشر.'
-              : 'Camera permission is required to start Live.',
+              ? 'اسمح باستخدام الكاميرا لفتح معاينة اللايف.'
+              : 'Camera permission is required for the Live preview.',
         );
       }
-      // Use a unique preview channel for now. The Live session document will
-      // provide the persistent channel id when discovery/guest join is wired.
+      await _controller.prepareCameraPreview();
+      if (!mounted) return;
+      setState(() {
+        _previewReady = true;
+        _preparingPreview = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _preparingPreview = false;
+        _cameraStartError = error.toString();
+      });
+    }
+  }
+
+  Future<void> _startCamera() async {
+    if (_starting || _cameraReady) return;
+    if (!_previewReady) {
+      await _preparePreview();
+      if (!_previewReady) return;
+    }
+    setState(() {
+      _starting = true;
+      _cameraStartError = null;
+    });
+    try {
       final channel = 'live_${DateTime.now().millisecondsSinceEpoch}';
       _channelId = channel;
       await _controller.ensureConnected(
@@ -562,9 +444,9 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
       }
       _liveId = await _liveService.create(
         channelId: channel,
-        languageCode: widget.languageCode,
+        languageCode: _languageCode,
         hostAgoraUid: hostAgoraUid,
-        topic: widget.topic,
+        topic: _resolvedTopic,
       );
       _startHeartbeat();
       if (!mounted) return;
@@ -647,9 +529,10 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   @override
   void initState() {
     super.initState();
+    _languageCode = widget.learningCodes.first;
     _controller.addListener(_onControllerChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) unawaited(_startCamera());
+      if (mounted) unawaited(_preparePreview());
     });
   }
 
@@ -661,9 +544,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            if (!_cameraReady &&
-                _controller.engine != null &&
-                _controller.localPreviewPrepared)
+            if (!_cameraReady && _controller.engine != null)
               Positioned.fill(
                 child: AgoraVideoView(
                   controller: VideoViewController(
@@ -679,22 +560,20 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        _cameraStartError == null
-                            ? Icons.videocam_rounded
-                            : Icons.videocam_off_rounded,
+                      const Icon(
+                        Icons.videocam_rounded,
                         color: Colors.white70,
                         size: 72,
                       ),
                       const SizedBox(height: 18),
                       Text(
-                        _starting
+                        _preparingPreview
                             ? (widget.ar
                                 ? 'جاري فتح الكاميرا...'
                                 : 'Opening camera...')
                             : (widget.ar
-                                ? 'تعذّر الاتصال باللايف'
-                                : 'Could not connect to Live'),
+                                ? 'تعذّر فتح الكاميرا'
+                                : 'Could not open camera'),
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           color: Colors.white,
@@ -702,16 +581,16 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                           fontWeight: FontWeight.w900,
                         ),
                       ),
-                      if (!_starting) ...[
+                      if (!_preparingPreview) ...[
                         const SizedBox(height: 10),
                         Text(
                           _cameraStartError ?? '',
                           textAlign: TextAlign.center,
                           style: const TextStyle(color: Colors.white70),
                         ),
-                        const SizedBox(height: 22),
+                        const SizedBox(height: 18),
                         FilledButton.icon(
-                          onPressed: _startCamera,
+                          onPressed: _preparePreview,
                           icon: const Icon(Icons.refresh_rounded),
                           label: Text(
                             widget.ar ? 'إعادة المحاولة' : 'Retry',
@@ -722,65 +601,212 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                   ),
                 ),
               ),
-            if (!_cameraReady &&
-                _controller.engine != null &&
-                _controller.localPreviewPrepared)
+            if (!_cameraReady && _controller.engine != null)
               PositionedDirectional(
-                start: 20,
-                end: 20,
-                bottom: 32,
+                start: 14,
+                end: 14,
+                bottom: 14 + MediaQuery.viewInsetsOf(context).bottom,
                 child: DecoratedBox(
                   decoration: BoxDecoration(
-                    color: const Color(0x99000000),
-                    borderRadius: BorderRadius.circular(999),
+                    color: const Color(0xCC101713),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: Colors.white24),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 10,
-                    ),
-                    child: Row(
+                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+                    child: Column(
                       mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        if (_starting) ...[
-                          const SizedBox.square(
-                            dimension: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
+                        TextField(
+                          controller: _topicController,
+                          enabled: !_starting,
+                          maxLength: 80,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            counterText: '',
+                            labelText:
+                                widget.ar ? 'موضوع اللايف' : 'Live topic',
+                            labelStyle:
+                                const TextStyle(color: Colors.white70),
+                            hintText: widget.ar
+                                ? 'اختياري — سننشئ عنوانًا تلقائيًا'
+                                : 'Optional — we can create one automatically',
+                            hintStyle:
+                                const TextStyle(color: Colors.white54),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide:
+                                  const BorderSide(color: Colors.white30),
+                              borderRadius: BorderRadius.circular(14),
                             ),
-                          ),
-                          const SizedBox(width: 10),
-                        ] else ...[
-                          const Icon(
-                            Icons.cloud_off_rounded,
-                            color: Colors.orangeAccent,
-                            size: 18,
-                          ),
-                          const SizedBox(width: 10),
-                        ],
-                        Flexible(
-                          child: Text(
-                            _starting
-                                ? (widget.ar
-                                    ? 'الكاميرا شغالة — جاري توصيل اللايف...'
-                                    : 'Camera is on — connecting Live...')
-                                : (widget.ar
-                                    ? 'الكاميرا شغالة، لكن اتصال اللايف تعذّر. أعد المحاولة.'
-                                    : 'Camera is on, but Live connection failed. Retry.'),
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w800,
+                            focusedBorder: OutlineInputBorder(
+                              borderSide:
+                                  const BorderSide(color: Color(0xFF3CD6A0)),
+                              borderRadius: BorderRadius.circular(14),
                             ),
                           ),
                         ),
-                        if (!_starting) ...[
-                          const SizedBox(width: 10),
-                          TextButton(
-                            onPressed: _startCamera,
-                            child: Text(widget.ar ? 'إعادة' : 'Retry'),
+                        const SizedBox(height: 10),
+                        if (widget.learningCodes.length > 1)
+                          DropdownButtonFormField<String>(
+                            initialValue: _languageCode,
+                            isExpanded: true,
+                            dropdownColor: const Color(0xFF17211C),
+                            decoration: InputDecoration(
+                              labelText: widget.ar
+                                  ? 'لغة التعلم'
+                                  : 'Learning language',
+                              labelStyle:
+                                  const TextStyle(color: Colors.white70),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide:
+                                    const BorderSide(color: Colors.white30),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide:
+                                    const BorderSide(color: Color(0xFF3CD6A0)),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                            style: const TextStyle(color: Colors.white),
+                            items: [
+                              for (final code in widget.learningCodes)
+                                DropdownMenuItem(
+                                  value: code,
+                                  child: Text(
+                                    ProfileLanguageCatalog.label(code),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                            ],
+                            onChanged: _starting
+                                ? null
+                                : (value) {
+                                    if (value != null) {
+                                      setState(() => _languageCode = value);
+                                    }
+                                  },
+                          )
+                        else
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: const Icon(
+                              Icons.school_rounded,
+                              color: Colors.white70,
+                            ),
+                            title: Text(
+                              widget.ar ? 'لغة التعلم' : 'Learning language',
+                              style: const TextStyle(color: Colors.white70),
+                            ),
+                            subtitle: Text(
+                              ProfileLanguageCatalog.label(_languageCode),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            IconButton.filledTonal(
+                              tooltip: widget.ar
+                                  ? 'الفلاتر'
+                                  : 'Filters',
+                              onPressed: _starting
+                                  ? null
+                                  : () => _showLiveCameraTools(
+                                        context,
+                                        controller: _controller,
+                                        ar: widget.ar,
+                                        beautyEnabled: _beautyEnabled,
+                                        filterPreset: _filterPreset,
+                                        backgroundBlurEnabled:
+                                            _backgroundBlurEnabled,
+                                        zoom: _cameraZoom,
+                                        onBeautyChanged: (value) {
+                                          if (mounted) {
+                                            setState(
+                                              () => _beautyEnabled = value,
+                                            );
+                                          }
+                                        },
+                                        onFilterPresetChanged: (value) {
+                                          if (mounted) {
+                                            setState(
+                                              () => _filterPreset = value,
+                                            );
+                                          }
+                                        },
+                                        onBackgroundBlurChanged: (value) {
+                                          if (mounted) {
+                                            setState(
+                                              () => _backgroundBlurEnabled =
+                                                  value,
+                                            );
+                                          }
+                                        },
+                                        onZoomChanged: (value) {
+                                          if (mounted) {
+                                            setState(
+                                              () => _cameraZoom = value,
+                                            );
+                                          }
+                                        },
+                                      ),
+                              icon:
+                                  const Icon(Icons.auto_fix_high_rounded),
+                            ),
+                            const SizedBox(width: 8),
+                            IconButton.filledTonal(
+                              tooltip: widget.ar
+                                  ? 'تبديل الكاميرا'
+                                  : 'Switch camera',
+                              onPressed: _starting
+                                  ? null
+                                  : () => _controller.switchCamera(),
+                              icon:
+                                  const Icon(Icons.cameraswitch_rounded),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: FilledButton.icon(
+                                onPressed: _starting ? null : _startCamera,
+                                icon: _starting
+                                    ? const SizedBox.square(
+                                        dimension: 18,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : const Icon(Icons.live_tv_rounded),
+                                label: Text(
+                                  _starting
+                                      ? (widget.ar
+                                          ? 'جاري بدء اللايف...'
+                                          : 'Starting Live...')
+                                      : (widget.ar
+                                          ? 'ابدأ اللايف'
+                                          : 'Go LIVE'),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (_cameraStartError?.trim().isNotEmpty == true &&
+                            !_starting) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            _cameraStartError!,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Colors.orangeAccent,
+                              fontSize: 12,
+                            ),
                           ),
                         ],
                       ],
@@ -900,7 +926,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                         Positioned.fill(
                           child: _LiveLanguageToolsOverlay(
                             liveId: _liveId ?? '',
-                            roomLanguageCode: widget.languageCode,
+                            roomLanguageCode: _languageCode,
                             canPublish: !_micMuted,
                             displayName:
                                 FirebaseAuth.instance.currentUser?.displayName ??
