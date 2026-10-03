@@ -648,8 +648,8 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
           fit: StackFit.expand,
           children: [
             if (!_cameraReady &&
-                _starting &&
-                _controller.engine != null)
+                _controller.engine != null &&
+                _controller.localPreviewPrepared)
               Positioned.fill(
                 child: AgoraVideoView(
                   controller: VideoViewController(
@@ -658,8 +658,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                   ),
                 ),
               ),
-            if (!_cameraReady &&
-                (!_starting || _controller.engine == null))
+            if (!_cameraReady && _controller.engine == null)
               Center(
                 child: Padding(
                   padding: const EdgeInsets.all(32),
@@ -710,8 +709,8 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                 ),
               ),
             if (!_cameraReady &&
-                _starting &&
-                _controller.engine != null)
+                _controller.engine != null &&
+                _controller.localPreviewPrepared)
               PositionedDirectional(
                 start: 20,
                 end: 20,
@@ -730,19 +729,32 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                       mainAxisSize: MainAxisSize.min,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const SizedBox.square(
-                          dimension: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
+                        if (_starting) ...[
+                          const SizedBox.square(
+                            dimension: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 10),
+                          const SizedBox(width: 10),
+                        ] else ...[
+                          const Icon(
+                            Icons.cloud_off_rounded,
+                            color: Colors.orangeAccent,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 10),
+                        ],
                         Flexible(
                           child: Text(
-                            widget.ar
-                                ? 'الكاميرا شغالة — جاري توصيل اللايف...'
-                                : 'Camera is on — connecting Live...',
+                            _starting
+                                ? (widget.ar
+                                    ? 'الكاميرا شغالة — جاري توصيل اللايف...'
+                                    : 'Camera is on — connecting Live...')
+                                : (widget.ar
+                                    ? 'الكاميرا شغالة، لكن اتصال اللايف تعذّر. أعد المحاولة.'
+                                    : 'Camera is on, but Live connection failed. Retry.'),
                             textAlign: TextAlign.center,
                             style: const TextStyle(
                               color: Colors.white,
@@ -750,6 +762,13 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                             ),
                           ),
                         ),
+                        if (!_starting) ...[
+                          const SizedBox(width: 10),
+                          TextButton(
+                            onPressed: _startCamera,
+                            child: Text(widget.ar ? 'إعادة' : 'Retry'),
+                          ),
+                        ],
                       ],
                     ),
                   ),
