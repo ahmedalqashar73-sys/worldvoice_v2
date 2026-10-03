@@ -434,14 +434,17 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   int _seconds = 20;
   bool _cameraReady = false;
   bool _starting = false;
+  String? _cameraStartError;
   bool _micMuted = false;
   bool _beautyEnabled = false;
+  String _filterPreset = 'off';
   bool _backgroundBlurEnabled = false;
   double _cameraZoom = 1;
   bool _requestsOpen = false;
   bool _boardOpen = false;
   bool _sessionClosed = false;
   Timer? _heartbeatTimer;
+  Timer? _cameraFailureTimer;
   String? _channelId;
   String? _liveId;
   final LiveSessionService _liveService = LiveSessionService();
@@ -449,6 +452,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   @override
   void dispose() {
     _heartbeatTimer?.cancel();
+    _cameraFailureTimer?.cancel();
     final liveId = _liveId;
     if (liveId != null && !_sessionClosed) {
       unawaited(_liveService.end(liveId).catchError((Object _) {}));
@@ -501,8 +505,13 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   }
 
   Future<void> _startCamera() async {
-    if (_starting) return;
-    setState(() => _starting = true);
+    if (_starting || _cameraReady) return;
+    _cameraFailureTimer?.cancel();
+    setState(() {
+      _starting = true;
+      _cameraStartError = null;
+      _seconds = 20;
+    });
     try {
       final cameraAllowed = await _requestLiveCameraPermission();
       if (!cameraAllowed) {
@@ -537,43 +546,50 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
       );
       _startHeartbeat();
       if (!mounted) return;
+      _cameraFailureTimer?.cancel();
       setState(() {
         _cameraReady = true;
         _starting = false;
+        _cameraStartError = null;
       });
     } catch (error) {
       if (!mounted) return;
-      setState(() => _starting = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.toString())),
-      );
+      setState(() {
+        _starting = false;
+        _cameraStartError = error.toString();
+      });
+      _startFailureCountdown();
     }
+  }
+
+  void _startFailureCountdown() {
+    _cameraFailureTimer?.cancel();
+    _seconds = 20;
+    _cameraFailureTimer =
+        Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted || _cameraReady || _starting) {
+        timer.cancel();
+        return;
+      }
+      if (_seconds <= 1) {
+        timer.cancel();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && !_cameraReady && !_starting) {
+            Navigator.of(context).maybePop();
+          }
+        });
+        return;
+      }
+      setState(() => _seconds--);
+    });
   }
 
   @override
   void initState() {
     super.initState();
-    _tick();
-  }
-
-  Future<void> _tick() async {
-    while (mounted && !_cameraReady && _seconds > 0) {
-      await Future<void>.delayed(const Duration(seconds: 1));
-      if (!mounted || _cameraReady) return;
-      setState(() => _seconds--);
-      if (_seconds == 15) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(widget.ar
-                ? 'شغّل الكاميرا للاستمرار في البث.'
-                : 'Turn on your camera to continue the live.'),
-          ),
-        );
-      }
-    }
-    if (mounted && !_cameraReady && _seconds == 0) {
-      Navigator.of(context).pop();
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) unawaited(_startCamera());
+    });
   }
 
   @override
@@ -590,13 +606,22 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.videocam_off_rounded,
-                        color: Colors.white54, size: 72),
+                    Icon(
+                      _cameraStartError == null
+                          ? Icons.videocam_rounded
+                          : Icons.videocam_off_rounded,
+                      color: Colors.white70,
+                      size: 72,
+                    ),
                     const SizedBox(height: 18),
                     Text(
-                      widget.ar
-                          ? 'شغّل الكاميرا قبل بدء اللايف'
-                          : 'Turn on camera before going live',
+                      _starting
+                          ? (widget.ar
+                              ? 'جاري تشغيل الكاميرا تلقائيًا...'
+                              : 'Starting camera automatically...')
+                          : (widget.ar
+                              ? 'تعذّر تشغيل الكاميرا'
+                              : 'Could not start camera'),
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         color: Colors.white,
@@ -606,20 +631,26 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      widget.ar
-                          ? 'سيتم إغلاق شاشة اللايف تلقائيًا بعد $_seconds ثانية إذا لم تعمل الكاميرا.'
-                          : 'Live closes automatically in $_seconds seconds if the camera is not running.',
+                      _starting
+                          ? (widget.ar
+                              ? 'لا تحتاج تضغط أي زر. يبدأ اللايف فور جاهزية الكاميرا.'
+                              : 'No button needed. Live starts as soon as the camera is ready.')
+                          : (widget.ar
+                              ? '${_cameraStartError ?? ''}\nسيتم إغلاق الشاشة بعد $_seconds ثانية إذا لم تُعِد المحاولة.'
+                              : '${_cameraStartError ?? ''}\nThis screen closes in $_seconds seconds unless you retry.'),
                       textAlign: TextAlign.center,
                       style: const TextStyle(color: Colors.white70),
                     ),
-                    const SizedBox(height: 22),
-                    FilledButton.icon(
-                      onPressed: _starting ? null : _startCamera,
-                      icon: const Icon(Icons.videocam_rounded),
-                      label: Text(_starting
-                          ? (widget.ar ? 'جاري تشغيل الكاميرا...' : 'Starting camera...')
-                          : (widget.ar ? 'تشغيل الكاميرا' : 'Turn on camera')),
-                    ),
+                    if (!_starting && !_cameraReady) ...[
+                      const SizedBox(height: 22),
+                      FilledButton.icon(
+                        onPressed: _startCamera,
+                        icon: const Icon(Icons.refresh_rounded),
+                        label: Text(
+                          widget.ar ? 'إعادة المحاولة' : 'Retry',
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
