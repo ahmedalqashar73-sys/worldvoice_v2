@@ -773,7 +773,7 @@ class _StoryVideoState extends State<_StoryVideo> {
   }
 }
 
-class _ChatConversationclass _ChatConversation extends StatefulWidget {
+class _ChatConversation extends StatefulWidget {
   const _ChatConversation({
     required this.chatId, required this.peerId, required this.peerName,
   });
