@@ -619,6 +619,10 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                             ar: widget.ar,
                           ),
                         ),
+                        if (_liveId != null)
+                          Positioned.fill(
+                            child: _LiveGiftEffects(liveId: _liveId!),
+                          ),
                         PositionedDirectional(
                           top: 12,
                           start: 12,
@@ -1081,6 +1085,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                   'WorldVoice user',
                           ar: widget.ar,
                         ),
+                      ),
+                      Positioned.fill(
+                        child: _LiveGiftEffects(liveId: widget.liveId),
                       ),
                       PositionedDirectional(
                         top: 10,
