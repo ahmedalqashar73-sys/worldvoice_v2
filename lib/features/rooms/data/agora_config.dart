@@ -15,12 +15,20 @@ class AgoraConfig {
   static const String _explicitTokenEndpoint =
       String.fromEnvironment('AGORA_TOKEN_ENDPOINT');
 
-  static const String _stableAgoraWorker =
+  static const String stableTokenEndpoint =
       'https://worldvoice-agora-token.worldvoice.workers.dev/agora/token';
 
   static String get tokenEndpoint {
     final explicit = _explicitTokenEndpoint.trim();
-    return explicit.isNotEmpty ? explicit : _stableAgoraWorker;
+    return explicit.isNotEmpty ? explicit : stableTokenEndpoint;
+  }
+
+  static List<String> get tokenEndpoints {
+    final explicit = _explicitTokenEndpoint.trim();
+    return <String>[
+      stableTokenEndpoint,
+      if (explicit.isNotEmpty && explicit != stableTokenEndpoint) explicit,
+    ];
   }
 
   static bool get isConfigured => appId.trim().isNotEmpty;
