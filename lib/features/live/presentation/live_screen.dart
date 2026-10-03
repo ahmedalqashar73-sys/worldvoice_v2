@@ -1033,14 +1033,41 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                           start: 18,
                           child: Row(
                             children: [
-                              FilledButton.icon(
+                              IconButton(
+                                style: IconButton.styleFrom(
+                                  backgroundColor: const Color(0xB3000000),
+                                  foregroundColor: Colors.white,
+                                ),
+                                tooltip: widget.ar
+                                    ? 'طلبات الانضمام'
+                                    : 'Join requests',
                                 onPressed: () => setState(
                                   () => _requestsOpen = !_requestsOpen,
                                 ),
                                 icon: const Icon(Icons.group_add_rounded),
-                                label: Text(widget.ar ? 'طلبات الانضمام' : 'Join requests'),
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 6),
+                              IconButton(
+                                style: IconButton.styleFrom(
+                                  backgroundColor: const Color(0xB3000000),
+                                  foregroundColor: Colors.white,
+                                ),
+                                tooltip: widget.ar
+                                    ? 'المودريتر'
+                                    : 'Moderators',
+                                onPressed: _liveId == null
+                                    ? null
+                                    : () => _showLiveModeratorManagement(
+                                          context,
+                                          liveId: _liveId!,
+                                          service: _liveService,
+                                          ar: widget.ar,
+                                        ),
+                                icon: const Icon(
+                                  Icons.admin_panel_settings_rounded,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
                               IconButton.filledTonal(
                                 tooltip: widget.ar ? 'دردشة اللايف' : 'Live chat',
                                 onPressed: _liveId == null
@@ -1053,7 +1080,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                         ),
                                 icon: const Icon(Icons.chat_bubble_outline_rounded),
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 6),
                               IconButton.filledTonal(
                                 tooltip: widget.ar ? 'السبورة' : 'Board',
                                 onPressed: _liveId == null
@@ -1065,7 +1092,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                       : Icons.dashboard_outlined,
                                 ),
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 6),
                               IconButton.filledTonal(
                                 tooltip: widget.ar ? 'الهدايا' : 'Gifts',
                                 onPressed: _liveId == null
@@ -1085,7 +1112,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                         ),
                                 icon: const Icon(Icons.card_giftcard_rounded),
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 6),
                               IconButton.filledTonal(
                                 tooltip: widget.ar ? 'مشاركة اللايف' : 'Share Live',
                                 onPressed:
@@ -1111,7 +1138,11 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                           end: 12,
                           child: Row(
                             children: [
-                              IconButton.filled(
+                              IconButton(
+                                style: IconButton.styleFrom(
+                                  backgroundColor: const Color(0xB3000000),
+                                  foregroundColor: Colors.white,
+                                ),
                                 tooltip: _cameraPaused
                                     ? (widget.ar ? 'تشغيل الكاميرا' : 'Turn camera on')
                                     : (widget.ar ? 'إيقاف الكاميرا' : 'Turn camera off'),
@@ -1123,7 +1154,11 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                 ),
                               ),
                               const SizedBox(width: 8),
-                              IconButton.filled(
+                              IconButton(
+                                style: IconButton.styleFrom(
+                                  backgroundColor: const Color(0xB3000000),
+                                  foregroundColor: Colors.white,
+                                ),
                                 tooltip: widget.ar ? 'المايك' : 'Microphone',
                                 onPressed: () async {
                                   final next = !_micMuted;
@@ -1133,7 +1168,11 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                 icon: Icon(_micMuted ? Icons.mic_off_rounded : Icons.mic_rounded),
                               ),
                               const SizedBox(width: 8),
-                              IconButton.filled(
+                              IconButton(
+                                style: IconButton.styleFrom(
+                                  backgroundColor: const Color(0xB3000000),
+                                  foregroundColor: Colors.white,
+                                ),
                                 tooltip: widget.ar ? 'الفلاتر والكاميرا' : 'Filters & camera',
                                 onPressed: _cameraPaused
                                     ? null
@@ -1171,7 +1210,11 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                 icon: const Icon(Icons.auto_fix_high_rounded),
                               ),
                               const SizedBox(width: 8),
-                              IconButton.filled(
+                              IconButton(
+                                style: IconButton.styleFrom(
+                                  backgroundColor: const Color(0xCC8B1E1E),
+                                  foregroundColor: Colors.white,
+                                ),
                                 tooltip: widget.ar ? 'إنهاء اللايف' : 'End live',
                                 onPressed: _endLiveAndPop,
                                 icon: const Icon(Icons.stop_circle_rounded),
@@ -1220,12 +1263,26 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   bool _boardOpen = false;
   bool _following = false;
   bool _followBusy = false;
+  bool _isModerator = false;
+  bool _moderatorRequestsOpen = false;
+  StreamSubscription<bool>? _moderatorSub;
 
   @override
   void initState() {
     super.initState();
     _join();
     _loadFollow();
+    final hostId = widget.data['hostId']?.toString() ?? '';
+    if (hostId.isNotEmpty) {
+      _moderatorSub = _service.watchMyModeratorStatus(hostId).listen((value) {
+        if (mounted && value != _isModerator) {
+          setState(() {
+            _isModerator = value;
+            if (!value) _moderatorRequestsOpen = false;
+          });
+        }
+      });
+    }
   }
 
   Future<void> _loadFollow() async {
@@ -1295,6 +1352,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
 
   @override
   void dispose() {
+    unawaited(_moderatorSub?.cancel());
     unawaited(_service.leaveGuest(widget.liveId).catchError((Object _) {}));
     unawaited(
       _service.cancelPendingRequest(widget.liveId).catchError((Object _) {}),
@@ -1539,6 +1597,18 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                           ),
                         ),
                       ),
+                      if (_isModerator &&
+                          _moderatorRequestsOpen)
+                        PositionedDirectional(
+                          bottom: 78,
+                          start: 14,
+                          end: 14,
+                          child: _HostJoinRequests(
+                            liveId: widget.liveId,
+                            service: _service,
+                            ar: widget.ar,
+                          ),
+                        ),
                       PositionedDirectional(
                         bottom: 20,
                         start: 18,
@@ -1560,6 +1630,21 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                 ),
                               ),
                               const SizedBox(width: 10),
+                            ],
+                            if (_isModerator) ...[
+                              IconButton.filledTonal(
+                                tooltip: widget.ar
+                                    ? 'طلبات الانضمام'
+                                    : 'Join requests',
+                                onPressed: () => setState(
+                                  () => _moderatorRequestsOpen =
+                                      !_moderatorRequestsOpen,
+                                ),
+                                icon: const Icon(
+                                  Icons.admin_panel_settings_rounded,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
                             ],
                             IconButton.filledTonal(
                               onPressed: () => _showLiveChat(
@@ -1598,7 +1683,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                       : Icons.mic_rounded,
                                 ),
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 6),
                               IconButton.filledTonal(
                                 tooltip: widget.ar
                                     ? 'أدوات الكاميرا'
@@ -1644,7 +1729,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                 ),
                                 icon: const Icon(Icons.auto_fix_high_rounded),
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 6),
                               IconButton.filledTonal(
                                 tooltip: widget.ar
                                     ? 'اخرج من الكاميرا'
