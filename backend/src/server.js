@@ -10,7 +10,7 @@ import { applicationDefault, cert, getApps, initializeApp } from "firebase-admin
 import { getAuth } from "firebase-admin/auth";
 import { FieldValue, Timestamp, getFirestore } from "firebase-admin/firestore";
 import { google } from "googleapis";
-import OpenAI from "openai";
+import OpenAI, { toFile } from "openai";
 import Stripe from "stripe";
 import { requireLiveEconomy, calculateGiftSettlement, calculatePurchaseCredit } from "./economy_policy.js";
 import {registerWalletRoutes} from "./wallet_routes.js";
@@ -151,6 +151,9 @@ const agoraAppId = (process.env.AGORA_APP_ID || "").trim();
 const agoraCertificate = (process.env.AGORA_APP_CERTIFICATE || "").trim();
 const openAiKey = (process.env.OPENAI_API_KEY || "").trim();
 const teacherModel = (process.env.OPENAI_TEACHER_MODEL || "").trim();
+const transcribeModel = (
+  process.env.OPENAI_TRANSCRIBE_MODEL || "gpt-4o-mini-transcribe"
+).trim();
 
 const androidPackageName =
   (process.env.ANDROID_PACKAGE_NAME || "com.worldvoice.app").trim();
@@ -565,6 +568,74 @@ app.post("/agora/token", async (req, res, next) => {
   }
 });
 
+app.post(
+  "/speech/transcribe",
+  express.raw({type: ["audio/wav", "application/octet-stream"], limit: "768kb"}),
+  async (req, res, next) => {
+    try {
+      const user = await authenticatedUser(req);
+
+      requireEnv(openAiKey, "OPENAI_API_KEY");
+      requireEnv(transcribeModel, "OPENAI_TRANSCRIBE_MODEL");
+
+      const context = req.query?.context === "live" ? "live" : "room";
+      const roomId = String(req.query?.roomId || "").trim();
+      if (!roomId) {
+        return res.status(400).json({error: "roomId is required."});
+      }
+
+      const parentCollection = context === "live" ? "live_sessions" : "rooms";
+      const roomRef = db.collection(parentCollection).doc(roomId);
+      const roomSnap = await roomRef.get();
+
+      if (!roomSnap.exists ||
+          (context === "room" && roomSnap.data()?.isOpen !== true) ||
+          (context === "live" && roomSnap.data()?.isLive !== true)) {
+        return res.status(404).json({
+          error: context === "live" ?
+            "Live session is not active." : "Room is not open.",
+        });
+      }
+
+      let memberAllowed = false;
+      if (context === "room") {
+        memberAllowed = (
+          await roomRef.collection("participants").doc(user.uid).get()
+        ).exists;
+      } else {
+        const live = roomSnap.data() || {};
+        memberAllowed = live.hostId === user.uid ||
+          (await roomRef.collection("viewers").doc(user.uid).get()).exists;
+      }
+      if (!memberAllowed) {
+        return res.status(403).json({
+          error: context === "live" ?
+            "User is not in this Live." : "User is not in this room.",
+        });
+      }
+
+      if (!Buffer.isBuffer(req.body) || req.body.length < 1024) {
+        return res.json({ok: true, text: ""});
+      }
+
+      const file = await toFile(req.body, "worldvoice-speech.wav", {
+        type: "audio/wav",
+      });
+      const transcription = await openai.audio.transcriptions.create({
+        model: transcribeModel,
+        file,
+      });
+
+      return res.json({
+        ok: true,
+        text: String(transcription.text || "").trim().slice(0, 400),
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
 app.post("/teacher-ai", async (req, res, next) => {
   try {
     const user = await authenticatedUser(req);
@@ -590,70 +661,83 @@ app.post("/teacher-ai", async (req, res, next) => {
         (context === "room" && roomSnap.data()?.isOpen !== true) ||
         (context === "live" && roomSnap.data()?.isLive !== true)) {
       return res.status(404).json({
-        error: context === "live" ? "Live session is not active." : "Room is not open.",
+        error: context === "live" ?
+          "Live session is not active." : "Room is not open.",
       });
     }
 
     let memberAllowed = false;
     if (context === "room") {
-      memberAllowed = (await roomRef.collection("participants").doc(user.uid).get()).exists;
+      memberAllowed = (
+        await roomRef.collection("participants").doc(user.uid).get()
+      ).exists;
     } else {
       const live = roomSnap.data() || {};
-      if (live.hostId === user.uid) {
-        memberAllowed = true;
-      } else {
-        memberAllowed = (await roomRef.collection("viewers").doc(user.uid).get()).exists;
-      }
+      memberAllowed = live.hostId === user.uid ||
+        (await roomRef.collection("viewers").doc(user.uid).get()).exists;
     }
     if (!memberAllowed) {
       return res.status(403).json({
-        error: context === "live" ? "User is not in this Live." : "User is not in this room.",
+        error: context === "live" ?
+          "User is not in this Live." : "User is not in this room.",
       });
     }
 
-    const [captionSnap, existingNote] = await Promise.all([
-      captionRef.get(),
-      noteRef.get(),
-    ]);
-
-    if (!captionSnap.exists) {
-      return res.status(404).json({ error: "Caption not found." });
-    }
-
+    const existingNote = await noteRef.get();
     if (existingNote.exists) {
-      return res.json({ ok: true, cached: true });
+      return res.json({ok: true, cached: true});
     }
 
-    const caption = captionSnap.data() || {};
-    if (caption.userId !== user.uid) {
-      return res.status(403).json({ error: "Caption owner mismatch." });
+    const directText = String(req.body?.text || "").trim();
+    let caption;
+    if (directText) {
+      const requestedUserId = String(req.body?.userId || user.uid);
+      if (requestedUserId !== user.uid) {
+        return res.status(403).json({error: "Caption owner mismatch."});
+      }
+      caption = {
+        userId: user.uid,
+        displayName: String(req.body?.displayName || "WorldVoice user"),
+        text: directText.slice(0, 400),
+        languageCode: String(req.body?.languageCode || "en").trim(),
+      };
+    } else {
+      const captionSnap = await captionRef.get();
+      if (!captionSnap.exists) {
+        return res.status(404).json({error: "Caption not found."});
+      }
+      caption = captionSnap.data() || {};
+      if (caption.userId !== user.uid) {
+        return res.status(403).json({error: "Caption owner mismatch."});
+      }
     }
 
     const text = String(caption.text || "").trim();
     const languageCode = String(caption.languageCode || "en").trim();
     const roomLanguageCode = String(
-      req.body?.roomLanguageCode || roomSnap.data()?.languageCode || languageCode,
+      req.body?.roomLanguageCode ||
+      roomSnap.data()?.languageCode ||
+      languageCode
     ).trim();
 
     if (!text) {
-      return res.status(400).json({ error: "Caption text is empty." });
+      return res.status(400).json({error: "Caption text is empty."});
     }
 
     const response = await openai.responses.create({
       model: teacherModel,
       store: false,
       instructions:
-        "You are WorldVoice Teacher AI inside a live language-learning voice room. " +
-        "Review only the provided transcript text. Do not claim to hear pronunciation audio. " +
-        "The target room language is strict: first determine whether the transcript is meaningfully in that target language. " +
-        "If it is not, set isTargetLanguage to false and leave correction and pronunciationTip empty. " +
-        "If it is in the target language and natural/correct, correction must be empty. " +
-        "If it needs improvement, give one concise corrected sentence in the target language. " +
-        "pronunciationTip may contain one short text-based pronunciation tip in the target language only when useful. " +
-        "Return only valid JSON with exactly these keys: isTargetLanguage, correction, pronunciationTip.",
+        "You are WorldVoice pronunciation and language coach. " +
+        "Review the speaker transcript in the context of the room target language. " +
+        "Never claim that you measured acoustic pronunciation because you received a transcript, not phoneme scores. " +
+        "If the sentence is already natural, correction should be empty. " +
+        "Otherwise provide one concise corrected sentence. " +
+        "Give one short, practical pronunciation tip when useful, focusing on sounds, stress, or rhythm. " +
+        "Return only valid JSON with exactly these keys: correction, pronunciationTip.",
       input:
         `Target room language: ${roomLanguageCode}\n` +
-        `Speaker transcript language: ${languageCode}\n` +
+        `Speaker language hint: ${languageCode}\n` +
         `Transcript: ${text}`,
     });
 
@@ -664,23 +748,10 @@ app.post("/teacher-ai", async (req, res, next) => {
       result = {};
     }
 
-    if (result.isTargetLanguage === false) {
-      return res.json({
-        ok: true,
-        ignored: true,
-        correction: "",
-        pronunciationTip: "",
-      });
-    }
-
-    const correction =
-      typeof result.correction === "string"
-        ? result.correction.trim().slice(0, 400)
-        : "";
-    const pronunciationTip =
-      typeof result.pronunciationTip === "string"
-        ? result.pronunciationTip.trim().slice(0, 240)
-        : "";
+    const correction = typeof result.correction === "string" ?
+      result.correction.trim().slice(0, 400) : "";
+    const pronunciationTip = typeof result.pronunciationTip === "string" ?
+      result.pronunciationTip.trim().slice(0, 240) : "";
 
     await noteRef.set({
       userId: user.uid,
@@ -723,7 +794,6 @@ app.post("/teacher-ai/ask", async (req, res, next) => {
         error: "roomId and prompt are required.",
       });
     }
-
     if (prompt.length > 1200) {
       return res.status(400).json({
         error: "Teacher AI questions are limited to 1200 characters.",
@@ -738,13 +808,16 @@ app.post("/teacher-ai/ask", async (req, res, next) => {
         (context === "room" && roomSnap.data()?.isOpen !== true) ||
         (context === "live" && roomSnap.data()?.isLive !== true)) {
       return res.status(404).json({
-        error: context === "live" ? "Live session is not active." : "Room is not open.",
+        error: context === "live" ?
+          "Live session is not active." : "Room is not open.",
       });
     }
 
     let memberAllowed = false;
     if (context === "room") {
-      memberAllowed = (await roomRef.collection("participants").doc(user.uid).get()).exists;
+      memberAllowed = (
+        await roomRef.collection("participants").doc(user.uid).get()
+      ).exists;
     } else {
       const live = roomSnap.data() || {};
       memberAllowed = live.hostId === user.uid ||
@@ -752,7 +825,8 @@ app.post("/teacher-ai/ask", async (req, res, next) => {
     }
     if (!memberAllowed) {
       return res.status(403).json({
-        error: context === "live" ? "User is not in this Live." : "User is not in this room.",
+        error: context === "live" ?
+          "User is not in this Live." : "User is not in this room.",
       });
     }
 
@@ -767,20 +841,44 @@ app.post("/teacher-ai/ask", async (req, res, next) => {
       });
     }
 
+    const conversationRef = roomRef
+      .collection("_teacher_ai_conversations")
+      .doc(user.uid);
+    const conversationSnap = await conversationRef.get();
+    const rawHistory = Array.isArray(conversationSnap.data()?.history) ?
+      conversationSnap.data().history : [];
+    const history = rawHistory
+      .slice(-10)
+      .filter(item => item && typeof item.text === "string" &&
+        ["user", "assistant"].includes(item.role))
+      .map(item => ({
+        role: item.role,
+        text: String(item.text).slice(0, 1200),
+      }));
+
+    const recentConversation = history.length === 0 ?
+      "(No previous conversation in this room.)" :
+      history.map(item =>
+        `${item.role === "user" ? "Member" : "Teacher"}: ${item.text}`
+      ).join("\n");
+
     const response = await openai.responses.create({
       model: teacherModel,
       store: false,
       instructions:
-        "You are WorldVoice Teacher AI inside a live language-learning room. " +
-        "The target room language is strict. First decide whether the member input is primarily in that target language. " +
-        "If it is not, return shouldRespond=false and an empty answer. Do not translate or reply in another language. " +
-        "If it is, return shouldRespond=true and answer clearly and concisely ONLY in the target room language. " +
-        "When correcting a sentence, show the corrected form and a short explanation in the target room language. " +
-        "Do not claim to hear audio unless transcript text is explicitly provided. " +
-        "Return only valid JSON with exactly these keys: shouldRespond, answer.",
+        "You are WorldVoice Teacher AI, a warm real-time language tutor and conversation partner inside a voice room. " +
+        "Hold a natural conversation about whatever topic the member raises. " +
+        "Understand the member even if they mix languages. " +
+        "Answer primarily in the room target language so they can practice it. " +
+        "If the member asks for a translation or explanation, you may briefly use their language when necessary. " +
+        "Correct mistakes lightly and naturally only when useful; do not turn every reply into a grammar lesson. " +
+        "Keep spoken replies concise, usually two to five sentences, and suitable for text-to-speech. " +
+        "Ask a relevant follow-up question when that keeps the conversation moving. " +
+        "Return only valid JSON with exactly one key: answer.",
       input:
-        `Target room language: ${roomLanguageCode}\n` +
-        `Member input: ${prompt}`,
+        `Room target language: ${roomLanguageCode}\n` +
+        `Recent conversation:\n${recentConversation}\n\n` +
+        `Member says now: ${prompt}`,
     });
 
     let teacherResult;
@@ -790,20 +888,21 @@ app.post("/teacher-ai/ask", async (req, res, next) => {
       teacherResult = {};
     }
 
-    if (teacherResult.shouldRespond !== true) {
-      return res.json({
-        ok: true,
-        ignored: true,
-        answer: "",
-      });
+    const answer = typeof teacherResult.answer === "string" ?
+      teacherResult.answer.trim().slice(0, 2400) : "";
+    if (!answer) {
+      return res.status(502).json({error: "Teacher AI returned no answer."});
     }
 
-    const answer = typeof teacherResult.answer === "string"
-      ? teacherResult.answer.trim().slice(0, 2400)
-      : "";
-    if (!answer) {
-      return res.status(502).json({ error: "Teacher AI returned no answer." });
-    }
+    const nextHistory = [
+      ...history,
+      {role: "user", text: prompt.slice(0, 1200)},
+      {role: "assistant", text: answer.slice(0, 2400)},
+    ].slice(-12);
+    await conversationRef.set({
+      history: nextHistory,
+      updatedAt: FieldValue.serverTimestamp(),
+    }, {merge: true});
 
     const voiceId = roomRef.collection("_voice_ids").doc().id;
     await roomRef.set({
