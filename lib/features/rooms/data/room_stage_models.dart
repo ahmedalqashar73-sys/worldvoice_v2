@@ -33,6 +33,7 @@ class RoomSeatState {
     this.userId,
     this.displayName,
     this.avatarUrl,
+    this.frameId,
     this.agoraUid,
     this.isMuted = false,
     this.isActiveSpeaker = false,
@@ -46,6 +47,7 @@ class RoomSeatState {
   final String? userId;
   final String? displayName;
   final String? avatarUrl;
+  final String? frameId;
   final int? agoraUid;
   final bool isMuted;
   final bool isActiveSpeaker;
@@ -61,6 +63,7 @@ class RoomSeatState {
     String? userId,
     String? displayName,
     String? avatarUrl,
+    String? frameId,
     int? agoraUid,
     bool? isMuted,
     bool? isActiveSpeaker,
@@ -74,6 +77,7 @@ class RoomSeatState {
       userId: userId ?? this.userId,
       displayName: displayName ?? this.displayName,
       avatarUrl: avatarUrl ?? this.avatarUrl,
+      frameId: frameId ?? this.frameId,
       agoraUid: agoraUid ?? this.agoraUid,
       isMuted: isMuted ?? this.isMuted,
       isActiveSpeaker: isActiveSpeaker ?? this.isActiveSpeaker,
