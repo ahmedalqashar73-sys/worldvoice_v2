@@ -5,8 +5,9 @@
  *        node scripts/seed-economy.mjs --project YOUR_FIREBASE_PROJECT --apply
  *
  * --apply never overwrites existing records. Catalog item IDs use a type
- * prefix for safety. Prices and product identifiers MUST be approved before
- * an item can be activated. Do not run against production without a backup.
+ * prefix for safety. Coin packs remain draft-only. The WorldVoice cosmetic
+ * items below are the approved built-in beta catalog and can be activated
+ * without external image assets. Do not run against production without a backup.
  */
 import { initializeApp, applicationDefault } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
@@ -56,6 +57,97 @@ for (const coins of proposedSizes) {
     webPriceId: null,
     active: false,
     priceApprovalRequired: true,
+  }]);
+}
+
+const premiumCosmetics = [
+  {
+    id: "background__golden_vip_glow",
+    type: "background",
+    name: "Golden VIP Glow",
+    themeId: "goldenVipGlow",
+    priceCoins: 180,
+  },
+  {
+    id: "background__royal_emerald_motion",
+    type: "background",
+    name: "Royal Emerald Motion",
+    themeId: "royalEmeraldMotion",
+    priceCoins: 140,
+  },
+  {
+    id: "background__aurora_world",
+    type: "background",
+    name: "Aurora Language World",
+    themeId: "auroraWorld",
+    priceCoins: 220,
+  },
+  {
+    id: "background__galaxy_talk",
+    type: "background",
+    name: "Galaxy Talk",
+    themeId: "galaxyTalk",
+    priceCoins: 260,
+  },
+  {
+    id: "background__crystal_blue_luxury",
+    type: "background",
+    name: "Crystal Blue Luxury",
+    themeId: "crystalBlueLuxury",
+    priceCoins: 320,
+  },
+  {
+    id: "background__velvet_night",
+    type: "background",
+    name: "Premium Velvet Night",
+    themeId: "velvetNight",
+    priceCoins: 240,
+  },
+  {
+    id: "frame__golden_crown",
+    type: "frame",
+    name: "Golden Crown",
+    priceCoins: 220,
+  },
+  {
+    id: "frame__royal_emerald",
+    type: "frame",
+    name: "Royal Emerald",
+    priceCoins: 160,
+  },
+  {
+    id: "frame__diamond_shine",
+    type: "frame",
+    name: "Diamond Shine",
+    priceCoins: 300,
+  },
+  {
+    id: "frame__neon_voice",
+    type: "frame",
+    name: "Neon Voice",
+    priceCoins: 180,
+  },
+  {
+    id: "frame__galaxy_ring",
+    type: "frame",
+    name: "Galaxy Ring",
+    priceCoins: 260,
+  },
+];
+
+for (const item of premiumCosmetics) {
+  batch.push([db.doc(`store_items/${item.id}`), {
+    type: item.type,
+    name: item.name,
+    priceCoins: item.priceCoins,
+    requiredGiftLevel: 0,
+    durationDays: null,
+    animationUrl: null,
+    previewUrl: "",
+    themeId: item.themeId ?? null,
+    active: true,
+    sourceCollection: "worldvoice_builtin_cosmetics",
+    builtInVisual: true,
   }]);
 }
 
@@ -128,4 +220,4 @@ for (const [ref, data] of batch) {
     throw error;
   }
 }
-console.log(`Created ${created} new draft documents (all catalogs inactive).`);
+console.log(`Created ${created} new documents. Coin packs stay inactive; approved built-in cosmetics are active.`);
