@@ -39,6 +39,16 @@ class ProfileSocialService {
     return doc.exists;
   }
 
+  static Future<bool> isMutualFollowing(String targetUid) async {
+    final me = _auth.currentUser?.uid;
+    if (me == null || me == targetUid) return false;
+    final docs = await Future.wait([
+      _sub(me, 'following').doc(targetUid).get(),
+      _sub(targetUid, 'following').doc(me).get(),
+    ]);
+    return docs[0].exists && docs[1].exists;
+  }
+
   static Future<void> toggleFollow(String targetUid) async {
     final me = _auth.currentUser?.uid;
     if (me == null || me == targetUid) return;
