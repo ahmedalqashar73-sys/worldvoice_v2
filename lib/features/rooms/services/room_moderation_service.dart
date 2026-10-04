@@ -37,6 +37,9 @@ class RoomModerationService {
   CollectionReference<Map<String, dynamic>> get _participantsRef =>
       _roomRef.collection('participants');
 
+  CollectionReference<Map<String, dynamic>> get _stageInvitesRef =>
+      _roomRef.collection('stage_invites');
+
   String? get currentUserId => _user?.uid;
 
   Future<void> enter({
@@ -288,6 +291,112 @@ class RoomModerationService {
       },
       SetOptions(merge: true),
     );
+  }
+
+  Stream<DocumentSnapshot<Map<String, dynamic>>> watchMyStageInvite() {
+    final uid = currentUserId;
+    if (uid == null) {
+      return const Stream<DocumentSnapshot<Map<String, dynamic>>>.empty();
+    }
+    return _stageInvitesRef.doc(uid).snapshots();
+  }
+
+  Future<void> sendStageInvite({
+    required String userId,
+    required RoomMemberRole role,
+    required int seatIndex,
+  }) async {
+    final inviter = _user;
+    if (inviter == null) throw StateError('Sign in is required.');
+    if (role != RoomMemberRole.speaker &&
+        role != RoomMemberRole.coHost &&
+        role != RoomMemberRole.vipSeat) {
+      throw StateError('Unsupported stage role.');
+    }
+    if (seatIndex < 2 || seatIndex > 8) {
+      throw StateError('Stage invitation must use seats 2 to 8.');
+    }
+
+    final participant = await _participantsRef.doc(userId).get();
+    if (!participant.exists ||
+        participant.data()?['role']?.toString() != 'listener') {
+      throw StateError('Only current listeners can be invited to the stage.');
+    }
+
+    final occupied = await _participantsRef
+        .where('seatIndex', isEqualTo: seatIndex)
+        .limit(1)
+        .get();
+    if (occupied.docs.isNotEmpty) {
+      throw StateError('That speaker seat is already occupied.');
+    }
+
+    await _stageInvitesRef.doc(userId).set({
+      'recipientId': userId,
+      'invitedBy': inviter.uid,
+      'role': RoomParticipant.roleToString(role),
+      'seatIndex': seatIndex,
+      'status': 'pending',
+      'createdAt': FieldValue.serverTimestamp(),
+      'respondedAt': FieldValue.delete(),
+    });
+  }
+
+  Future<void> respondToStageInvite({required bool accept}) async {
+    final user = _user;
+    if (user == null) throw StateError('Sign in is required.');
+
+    final inviteRef = _stageInvitesRef.doc(user.uid);
+    final participantRef = _participantsRef.doc(user.uid);
+
+    if (!accept) {
+      await inviteRef.update({
+        'status': 'declined',
+        'respondedAt': FieldValue.serverTimestamp(),
+      });
+      return;
+    }
+
+    final invite = await inviteRef.get();
+    final inviteData = invite.data();
+    if (!invite.exists || inviteData?['status']?.toString() != 'pending') {
+      throw StateError('This stage invitation is no longer active.');
+    }
+
+    final seatIndex = (inviteData?['seatIndex'] as num?)?.toInt();
+    final role = RoomParticipant.roleFromString(
+      inviteData?['role']?.toString(),
+    );
+    if (seatIndex == null ||
+        seatIndex < 2 ||
+        seatIndex > 8 ||
+        role == RoomMemberRole.listener ||
+        role == RoomMemberRole.host ||
+        role == RoomMemberRole.teacherAi) {
+      throw StateError('This stage invitation is invalid.');
+    }
+
+    final occupied = await _participantsRef
+        .where('seatIndex', isEqualTo: seatIndex)
+        .limit(1)
+        .get();
+    if (occupied.docs.any((doc) => doc.id != user.uid)) {
+      throw StateError('That speaker seat was taken. Ask for a new invite.');
+    }
+
+    final batch = _db.batch();
+    batch.update(participantRef, {
+      'role': RoomParticipant.roleToString(role),
+      'seatIndex': seatIndex,
+      'handRaised': false,
+      'requestedSeatIndex': FieldValue.delete(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+    batch.update(inviteRef, {
+      'status': 'accepted',
+      'respondedAt': FieldValue.serverTimestamp(),
+    });
+    await batch.commit();
   }
 
   Future<void> setHandRaised(
