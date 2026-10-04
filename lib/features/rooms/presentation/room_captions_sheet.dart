@@ -95,7 +95,7 @@ class RoomCaptionsSheet extends StatelessWidget {
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               value: translationEnabled,
-              onChanged: enabled ? onTranslationChanged : null,
+              onChanged: onTranslationChanged,
               secondary: const Icon(Icons.translate_rounded),
               title: Text(
                 isArabic ? 'الترجمة الفورية' : 'Instant translation',
@@ -109,14 +109,14 @@ class RoomCaptionsSheet extends StatelessWidget {
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               value: pronunciationEnabled,
-              onChanged: enabled ? onPronunciationChanged : null,
+              onChanged: onPronunciationChanged,
               secondary: const Icon(Icons.record_voice_over_rounded),
               title: Text(isArabic ? 'تصحيح النطق' : 'Pronunciation guidance'),
               subtitle: Text(isArabic
                   ? 'يعتمد على الكلام المحوّل إلى نص بواسطة Teacher AI، ولا يقيم الصوت نفسه. يحتاج خادم AI.'
                   : 'Teacher AI gives guidance from captions, not an audio pronunciation score. An AI server is required.'),
             ),
-            if (enabled && pronunciationEnabled && pronunciationNotes != null)
+            if (pronunciationEnabled && pronunciationNotes != null)
               SizedBox(
                 height: 155,
                 child: StreamBuilder<List<RoomTeacherAiNote>>(
@@ -155,7 +155,7 @@ class RoomCaptionsSheet extends StatelessWidget {
                   },
                 ),
               ),
-            if (enabled && translationEnabled)
+            if (translationEnabled)
               if (availableLanguages.length == 1)
                 ListTile(
                   contentPadding: EdgeInsets.zero,
@@ -233,12 +233,14 @@ class RoomCaptionOverlay extends StatelessWidget {
   const RoomCaptionOverlay({
     required this.caption,
     required this.translationEnabled,
+    this.showOriginal = true,
     this.translatedText,
     super.key,
   });
 
   final RoomCaption caption;
   final bool translationEnabled;
+  final bool showOriginal;
   final String? translatedText;
 
   @override
@@ -289,15 +291,16 @@ class RoomCaptionOverlay extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 5),
-          Text(
-            caption.text,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              height: 1.25,
+          if (showOriginal)
+            Text(
+              caption.text,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                height: 1.25,
+              ),
             ),
-          ),
           if (showTranslated) ...[
             const SizedBox(height: 6),
             Text(
