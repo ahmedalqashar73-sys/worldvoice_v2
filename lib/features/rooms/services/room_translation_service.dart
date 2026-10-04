@@ -122,6 +122,27 @@ class RoomTranslationService {
     final normalized = text.trim();
     if (normalized.isEmpty) return normalized;
 
+    Object? localError;
+    final sourceCode = _guessSourceCode(
+      normalized,
+      fallbackSourceCode: fallbackSourceCode,
+      targetCode: targetCode,
+    );
+
+    // Prefer ML Kit on the device whenever we can identify the source.
+    // This keeps normal room/chat translation independent of paid AI quota.
+    if (sourceCode != null) {
+      try {
+        return await translate(
+          text: normalized,
+          sourceCode: sourceCode,
+          targetCode: targetCode,
+        );
+      } catch (error) {
+        localError = error;
+      }
+    }
+
     Object? backendError;
     final user = FirebaseAuth.instance.currentUser;
     final configured = endpoint.trim().isNotEmpty;
@@ -173,26 +194,9 @@ class RoomTranslationService {
       }
     }
 
-    final sourceCode = _guessSourceCode(
-      normalized,
-      fallbackSourceCode: fallbackSourceCode,
-      targetCode: targetCode,
-    );
-
-    if (sourceCode != null) {
-      try {
-        return await translate(
-          text: normalized,
-          sourceCode: sourceCode,
-          targetCode: targetCode,
-        );
-      } catch (error) {
-        backendError ??= error;
-      }
-    }
-
     throw StateError(
       backendError?.toString().replaceFirst('Bad state: ', '') ??
+          localError?.toString().replaceFirst('Bad state: ', '') ??
           'Translation is unavailable for this language right now.',
     );
   }
