@@ -822,6 +822,17 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         _pronunciationTipsEnabled ||
         _teacherAiConversationActive;
 
+    if (_aiServiceUnavailable) {
+      await _captionController.configure(
+        enabled: false,
+        canPublish: false,
+        captureRemote: false,
+        languageCode: widget.roomLanguageCode ?? 'en',
+        displayName: me?.displayName ?? 'WorldVoice user',
+      );
+      return;
+    }
+
     await _captionController.configure(
       enabled: wantsRemoteSpeech || (canPublish && wantsLocalSpeech),
       canPublish: canPublish && wantsLocalSpeech,
@@ -832,6 +843,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   }
 
   Future<void> _setCaptionsEnabled(bool value) async {
+    if (value) {
+      _aiServiceUnavailable = false;
+      _teacherAiOnline.value = true;
+    }
     if (mounted) {
       setState(() {
         _captionsEnabled = value;
@@ -880,6 +895,24 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         _me?.isOnStage == true &&
         !_controller.muted &&
         _me?.forcedMuted != true;
+
+    if (_aiServiceUnavailable) {
+      _teacherAiOnline.value = false;
+      await showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        builder: (_) => RoomTeacherAiSheet(
+          service: _teacherAi,
+          roomLanguageCode: widget.roomLanguageCode ?? 'en',
+          canSpeak: canSpeak,
+          listening: false,
+          online: false,
+          onlineListenable: _teacherAiOnline,
+        ),
+      );
+      return;
+    }
 
     if (!canSpeak) {
       if (!mounted) return;
@@ -961,6 +994,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               refreshSheet();
             },
             onTranslationChanged: (value) {
+              if (value) {
+                _aiServiceUnavailable = false;
+                _teacherAiOnline.value = true;
+              }
               setState(() {
                 _captionTranslationEnabled = value;
                 _latestTranslatedCaption = null;
@@ -974,6 +1011,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               refreshSheet();
             },
             onPronunciationChanged: (value) {
+              if (value) {
+                _aiServiceUnavailable = false;
+                _teacherAiOnline.value = true;
+              }
               setState(() {
                 _pronunciationTipsEnabled = value;
                 _lastTeacherAiCaptionId = null;
