@@ -8,6 +8,18 @@ import '../data/room_backend_config.dart';
 import '../data/room_caption.dart';
 import '../data/room_teacher_ai_note.dart';
 
+class RoomTeacherAiSpokenAnswer {
+  const RoomTeacherAiSpokenAnswer({
+    required this.id,
+    required this.answer,
+    required this.languageCode,
+  });
+
+  final String id;
+  final String answer;
+  final String languageCode;
+}
+
 class RoomTeacherAiService {
   RoomTeacherAiService({required this.roomId, this.collectionName = 'rooms'});
 
@@ -42,6 +54,31 @@ class RoomTeacherAiService {
   String get _contextType =>
       collectionName == 'live_sessions' ? 'live' : 'room';
 
+
+  Stream<List<RoomTeacherAiSpokenAnswer>> watchSpokenAnswers({
+    int limit = 12,
+  }) {
+    return _db
+        .collection(collectionName)
+        .doc(roomId)
+        .collection('teacher_ai_messages')
+        .orderBy('createdAt', descending: true)
+        .limit(limit)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => RoomTeacherAiSpokenAnswer(
+                  id: doc.id,
+                  answer: (doc.data()['answer'] ?? '').toString().trim(),
+                  languageCode:
+                      (doc.data()['languageCode'] ?? 'en').toString().trim(),
+                ),
+              )
+              .where((message) => message.answer.isNotEmpty)
+              .toList(growable: false),
+        );
+  }
 
   Stream<List<RoomTeacherAiNote>> watchNotes({int limit = 20}) {
     return _db
@@ -119,6 +156,9 @@ class RoomTeacherAiService {
       throw StateError('Teacher AI returned an invalid response.');
     }
 
+    if (decoded['ignored'] == true) {
+      return '';
+    }
     final answer = decoded['answer']?.toString().trim() ?? '';
     if (answer.isEmpty) {
       throw StateError('Teacher AI returned an empty response.');
