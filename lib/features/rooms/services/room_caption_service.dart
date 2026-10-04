@@ -1,6 +1,11 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http/http.dart' as http;
 
+import '../data/room_backend_config.dart';
 import '../data/room_caption.dart';
 
 class RoomCaptionService {
@@ -11,6 +16,9 @@ class RoomCaptionService {
 
   FirebaseFirestore get _db => FirebaseFirestore.instance;
   User? get _user => FirebaseAuth.instance.currentUser;
+
+  String get transcriptionEndpoint =>
+      RoomBackendConfig.endpoint('/speech/transcribe');
 
   CollectionReference<Map<String, dynamic>> get _captions =>
       _db.collection(collectionName).doc(roomId).collection('captions');
@@ -26,6 +34,63 @@ class RoomCaptionService {
               .where((caption) => caption.text.trim().isNotEmpty)
               .toList(growable: false),
         );
+  }
+
+  Future<String> transcribeWav(
+    Uint8List wavBytes, {
+    String? languageCode,
+  }) async {
+    final user = _user;
+    if (user == null) {
+      throw StateError('Sign in is required for live transcription.');
+    }
+    final endpoint = transcriptionEndpoint.trim();
+    if (endpoint.isEmpty) {
+      throw StateError('WorldVoice transcription backend is not configured.');
+    }
+    if (wavBytes.length < 1024) return '';
+
+    final token = await user.getIdToken();
+    if (token == null || token.isEmpty) {
+      throw StateError('Could not authorize live transcription.');
+    }
+
+    final uri = Uri.parse(endpoint).replace(
+      queryParameters: {
+        'context': collectionName == 'live_sessions' ? 'live' : 'room',
+        'roomId': roomId,
+        if (languageCode?.trim().isNotEmpty == true)
+          'languageCode': languageCode!.trim().toLowerCase(),
+      },
+    );
+
+    final response = await http
+        .post(
+          uri,
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'audio/wav',
+          },
+          body: wavBytes,
+        )
+        .timeout(const Duration(seconds: 25));
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      var message = 'Live transcription failed.';
+      try {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic>) {
+          message = decoded['error']?.toString() ?? message;
+        }
+      } catch (_) {
+        // Keep the generic message when the server returns non-JSON text.
+      }
+      throw StateError(message);
+    }
+
+    final decoded = jsonDecode(response.body);
+    if (decoded is! Map<String, dynamic>) return '';
+    return decoded['text']?.toString().trim() ?? '';
   }
 
   Future<void> publishFinal({
