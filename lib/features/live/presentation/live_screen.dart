@@ -1462,6 +1462,12 @@ class _LiveViewerScreen extends StatefulWidget {
 class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   final AgoraVoiceRoomController _controller = AgoraVoiceRoomController();
   final LiveSessionService _service = LiveSessionService();
+  final RoomQuotaService _guestQuota = RoomQuotaService();
+  final RoomRewardedAdService _rewardedAds = RoomRewardedAdService();
+  Timer? _guestQuotaTimer;
+  int _guestQuotaLevel = 1;
+  bool _guestQuotaStarted = false;
+  bool _guestQuotaHandling = false;
   bool _joining = true;
   String? _joinError;
   bool _requested = false;
@@ -1648,6 +1654,11 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
 
   @override
   void dispose() {
+    _guestQuotaTimer?.cancel();
+    if (_guestQuotaStarted) {
+      unawaited(_guestQuota.endSession());
+      _guestQuotaStarted = false;
+    }
     unawaited(_moderatorSub?.cancel());
     unawaited(_service.leaveGuest(widget.liveId).catchError((Object _) {}));
     unawaited(
@@ -1657,6 +1668,194 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
     unawaited(_controller.leave());
     _controller.dispose();
     super.dispose();
+  }
+
+  void _startGuestQuotaTimer() {
+    _guestQuotaTimer?.cancel();
+    _guestQuotaTimer = Timer.periodic(
+      const Duration(minutes: 1),
+      (_) => unawaited(_checkGuestQuota()),
+    );
+  }
+
+  Future<bool> _askGuestRewardedAd(RoomQuotaStatus status) async {
+    final next = (status.adsWatched + 1).clamp(1, 3);
+    return await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (dialogContext) => AlertDialog(
+            title: Text(
+              widget.ar ? 'وقت إضافي للايف' : 'Get more Live time',
+            ),
+            content: Text(
+              widget.ar
+                  ? 'شاهد الإعلان $next من 3 كاملًا. بعد 3 إعلانات تحصل على 3 ساعات إضافية اليوم.'
+                  : 'Watch rewarded ad $next of 3 completely. Completing all 3 adds 3 extra hours today.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: Text(widget.ar ? 'البقاء كمشاهد' : 'Stay as viewer'),
+              ),
+              FilledButton.icon(
+                onPressed: () => Navigator.pop(dialogContext, true),
+                icon: const Icon(Icons.ondemand_video_rounded),
+                label: Text(widget.ar ? 'مشاهدة الإعلان' : 'Watch ad'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+  }
+
+  Future<bool> _extendGuestQuotaWithAds() async {
+    var current = await _guestQuota.check(
+      asHost: false,
+      roomLevel: _guestQuotaLevel,
+    );
+    if (current.isUnlimited || current.allowed) return true;
+
+    while (mounted &&
+        current.adsWatched < 3 &&
+        current.adBonusSeconds < 3 * 60 * 60) {
+      final watch = await _askGuestRewardedAd(current);
+      if (!watch || !mounted) return false;
+
+      final earned = await _rewardedAds.show();
+      if (!mounted) return false;
+      if (!earned) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              widget.ar
+                  ? 'لم يكتمل الإعلان، لذلك لم يتم احتسابه.'
+                  : 'The ad was not completed, so it was not counted.',
+            ),
+          ),
+        );
+        continue;
+      }
+      current = await _guestQuota.recordRewardedAdWatched();
+    }
+
+    current = await _guestQuota.check(
+      asHost: false,
+      roomLevel: _guestQuotaLevel,
+    );
+    return current.allowed || current.isUnlimited;
+  }
+
+  Future<void> _checkGuestQuota() async {
+    if (!_guestPublishing ||
+        !_guestQuotaStarted ||
+        _guestQuotaHandling ||
+        !mounted) {
+      return;
+    }
+    final status = await _guestQuota.currentSessionStatus();
+    if (status.allowed || status.isUnlimited || !mounted) return;
+
+    _guestQuotaHandling = true;
+    try {
+      await _controller.setCameraPublishing(false);
+      await _controller.switchRole(AgoraRoomRole.listener);
+      await _guestQuota.endSession();
+      _guestQuotaStarted = false;
+
+      final extended = await _extendGuestQuotaWithAds();
+      if (!extended || !mounted) {
+        await _service.leaveGuest(widget.liveId);
+        if (!mounted) return;
+        setState(() {
+          _guestPublishing = false;
+          _guestMicMuted = false;
+          _requested = false;
+        });
+        return;
+      }
+
+      final restarted = await _guestQuota.startSession(
+        asHost: false,
+        roomLevel: _guestQuotaLevel,
+      );
+      if (!restarted.allowed || !mounted) {
+        await _service.leaveGuest(widget.liveId);
+        if (mounted) {
+          setState(() {
+            _guestPublishing = false;
+            _requested = false;
+          });
+        }
+        return;
+      }
+      _guestQuotaStarted = true;
+      await _controller.switchRole(AgoraRoomRole.speaker);
+      await _controller.setCameraPublishing(true);
+      if (mounted) {
+        setState(() {
+          _guestPublishing = true;
+          _guestMicMuted = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              widget.ar
+                  ? 'تمت إضافة 3 ساعات إضافية للايف اليوم.'
+                  : '3 extra Live hours were added for today.',
+            ),
+          ),
+        );
+      }
+    } finally {
+      _guestQuotaHandling = false;
+    }
+  }
+
+  Future<void> _showGuestQuotaStatus() async {
+    final status = await _guestQuota.currentSessionStatus();
+    if (!mounted) return;
+
+    String formatSeconds(int value) {
+      final hours = value ~/ 3600;
+      final minutes = (value % 3600) ~/ 60;
+      return '${hours}h ${minutes}m';
+    }
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(widget.ar ? 'وقت الضيف اليومي' : 'Daily guest time'),
+        content: status.isUnlimited
+            ? Text(
+                widget.ar
+                    ? 'VIP: وقت الصعود في اللايف غير محدود.'
+                    : 'VIP: Live guest time is unlimited.',
+              )
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.ar
+                        ? 'المتبقي: ${formatSeconds(status.remainingSeconds)}'
+                        : 'Remaining: ${formatSeconds(status.remainingSeconds)}',
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    widget.ar
+                        ? 'الإعلانات المكتملة: ${status.adsWatched}/3'
+                        : 'Rewarded ads completed: ${status.adsWatched}/3',
+                  ),
+                ],
+              ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(widget.ar ? 'إغلاق' : 'Close'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _requestCamera() async {
@@ -1997,6 +2196,16 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                             ),
                             if (_guestPublishing) ...[
                               IconButton(
+                                tooltip: widget.ar
+                                    ? 'وقت الصعود'
+                                    : 'Guest time',
+                                onPressed: _showGuestQuotaStatus,
+                                icon: const Icon(
+                                  Icons.schedule_rounded,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              IconButton(
                                 tooltip: widget.ar ? 'المايك' : 'Microphone',
                                 onPressed: () async {
                                   final next = !_guestMicMuted;
@@ -2112,6 +2321,11 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   Future<void> _leaveGuestCamera() async {
     if (!_guestPublishing || _controller.engine == null) return;
     try {
+      _guestQuotaTimer?.cancel();
+      if (_guestQuotaStarted) {
+        await _guestQuota.endSession();
+        _guestQuotaStarted = false;
+      }
       await _controller.setCameraPublishing(false);
       await _controller.switchRole(AgoraRoomRole.listener);
       await _service.leaveGuest(widget.liveId);
@@ -2133,6 +2347,34 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
     if (_guestPublishing || _controller.engine == null) return;
     _guestPublishing = true;
     try {
+      _guestQuotaLevel = await _currentUserStageLevel();
+      var quotaStatus = await _guestQuota.startSession(
+        asHost: false,
+        roomLevel: _guestQuotaLevel,
+      );
+      if (!quotaStatus.allowed) {
+        final extended = await _extendGuestQuotaWithAds();
+        if (!extended) {
+          throw StateError(
+            widget.ar
+                ? 'انتهى وقت صعودك في اللايف اليوم.'
+                : 'Your Live guest time for today has been used.',
+          );
+        }
+        quotaStatus = await _guestQuota.startSession(
+          asHost: false,
+          roomLevel: _guestQuotaLevel,
+        );
+      }
+      if (!quotaStatus.allowed) {
+        throw StateError(
+          widget.ar
+              ? 'لا يوجد وقت صعود متاح الآن.'
+              : 'No Live guest time is available right now.',
+        );
+      }
+      _guestQuotaStarted = true;
+
       final cameraAllowed = await _requestLiveCameraPermission();
       if (!cameraAllowed) {
         throw StateError(
@@ -2148,11 +2390,17 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
         );
       }
       await _controller.setCameraPublishing(true);
+      _startGuestQuotaTimer();
       if (mounted) {
         setState(() => _guestMicMuted = false);
       }
     } catch (error) {
       _guestPublishing = false;
+      _guestQuotaTimer?.cancel();
+      if (_guestQuotaStarted) {
+        await _guestQuota.endSession().catchError((Object _) {});
+        _guestQuotaStarted = false;
+      }
       await _service.leaveGuest(widget.liveId).catchError((Object _) {});
       if (!mounted) return;
       setState(() => _requested = false);
