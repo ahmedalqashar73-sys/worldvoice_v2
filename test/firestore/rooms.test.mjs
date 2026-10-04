@@ -291,6 +291,45 @@ test('Live host invite requires viewer consent before guest count increases', as
   }));
 });
 
+test('moderator can accept a raised hand but cannot promote without consent', async () => {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const db = ctx.firestore();
+    await setDoc(member(db, 'mod'), {
+      ...participant('mod'),
+      isModerator: true,
+    });
+  });
+
+  const listenerDb = user('listener');
+  const modDb = user('mod');
+
+  await assertSucceeds(updateDoc(member(listenerDb, 'listener'), {
+    handRaised: true,
+    requestedSeatIndex: 2,
+    updatedAt: serverTimestamp(),
+  }));
+
+  await assertSucceeds(updateDoc(member(modDb, 'listener'), {
+    role: 'speaker',
+    seatIndex: 2,
+    handRaised: false,
+    requestedSeatIndex: null,
+    updatedAt: serverTimestamp(),
+  }));
+
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const db = ctx.firestore();
+    await setDoc(member(db, 'other'), participant('other'));
+  });
+
+  await assertFails(updateDoc(member(modDb, 'other'), {
+    role: 'speaker',
+    seatIndex: 3,
+    handRaised: false,
+    updatedAt: serverTimestamp(),
+  }));
+});
+
 test('chat is restricted to members and cannot impersonate another user', async () => {
   const payload = {userId: 'listener', text: 'Hello', createdAt: serverTimestamp()};
   await assertSucceeds(setDoc(doc(user('listener'), 'rooms/r1/messages/m1'), payload));
