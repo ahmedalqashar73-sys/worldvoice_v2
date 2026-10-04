@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { before, beforeEach, after, test } from 'node:test';
 import { strict as assert } from 'node:assert';
 import { initializeTestEnvironment, assertSucceeds, assertFails } from '@firebase/rules-unit-testing';
-import { doc, collection, getDoc, getDocs, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp, increment, query, orderBy, limit } from 'firebase/firestore';
+import { doc, collection, getDoc, getDocs, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp, increment, query, where, orderBy, limit } from 'firebase/firestore';
 
 let env;
 const user = (uid) => env.authenticatedContext(uid).firestore();
@@ -386,10 +386,36 @@ test('verified quiz answers are immutable, round-scoped, and secret stays privat
   await assertFails(deleteDoc(doc(user('host'), 'rooms/r1/quiz_answers/listener')));
 });
 
-test('AI notes are readable by members but only the backend may write', async () => {
-  await assertSucceeds(getDocs(collection(user('listener'), 'rooms/r1/teacher_ai_notes')));
-  await assertFails(getDocs(collection(user('outsider'), 'rooms/r1/teacher_ai_notes')));
-  await assertFails(setDoc(doc(user('host'), 'rooms/r1/teacher_ai_notes/fake'), {text: 'fake'}));
+test('AI corrections are private to their speaker and backend-only', async () => {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const db = ctx.firestore();
+    await setDoc(doc(db, 'rooms/r1/teacher_ai_notes/listener-note'), {
+      userId: 'listener',
+      correction: 'Corrected sentence',
+      pronunciationTip: 'Private tip',
+      createdAt: serverTimestamp(),
+    });
+  });
+
+  const ownQuery = query(
+    collection(user('listener'), 'rooms/r1/teacher_ai_notes'),
+    where('userId', '==', 'listener'),
+    orderBy('createdAt', 'desc'),
+    limit(20),
+  );
+  await assertSucceeds(getDocs(ownQuery));
+
+  const hostReadingListener = query(
+    collection(user('host'), 'rooms/r1/teacher_ai_notes'),
+    where('userId', '==', 'listener'),
+    orderBy('createdAt', 'desc'),
+    limit(20),
+  );
+  await assertFails(getDocs(hostReadingListener));
+  await assertFails(getDoc(doc(user('host'),
+    'rooms/r1/teacher_ai_notes/listener-note')));
+  await assertFails(setDoc(doc(user('host'),
+    'rooms/r1/teacher_ai_notes/fake'), {text: 'fake'}));
 });
 
 test('live captions query allows room members and denies non-members', async () => {
