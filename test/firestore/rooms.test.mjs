@@ -187,6 +187,107 @@ test('host creates room and participant atomically; listener cannot self-promote
   await assertSucceeds(updateDoc(member(user('new'), 'new'), {handRaised: true, requestedSeatIndex: 2}));
 });
 
+test('room stage invite requires host or moderator and listener consent', async () => {
+  const hostDb = user('host');
+  const listenerDb = user('listener');
+  const invitePath = 'rooms/r1/stage_invites/listener';
+
+  await assertSucceeds(setDoc(doc(hostDb, invitePath), {
+    recipientId: 'listener',
+    invitedBy: 'host',
+    role: 'speaker',
+    seatIndex: 2,
+    status: 'pending',
+    createdAt: serverTimestamp(),
+  }));
+
+  await assertFails(updateDoc(member(listenerDb, 'listener'), {
+    role: 'speaker',
+    seatIndex: 2,
+    updatedAt: serverTimestamp(),
+  }));
+
+  const accept = writeBatch(listenerDb);
+  accept.update(doc(listenerDb, invitePath), {
+    status: 'accepted',
+    respondedAt: serverTimestamp(),
+  });
+  accept.update(member(listenerDb, 'listener'), {
+    role: 'speaker',
+    seatIndex: 2,
+    handRaised: false,
+    updatedAt: serverTimestamp(),
+  });
+  await assertSucceeds(accept.commit());
+
+  await assertFails(setDoc(doc(user('outsider'),
+    'rooms/r1/stage_invites/host'), {
+    recipientId: 'host',
+    invitedBy: 'outsider',
+    role: 'speaker',
+    seatIndex: 3,
+    status: 'pending',
+    createdAt: serverTimestamp(),
+  }));
+});
+
+test('Live host invite requires viewer consent before guest count increases', async () => {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const db = ctx.firestore();
+    await setDoc(doc(db, 'live_sessions/l1'), {
+      channelId: 'l1',
+      hostId: 'host',
+      hostAgoraUid: 1,
+      isLive: true,
+      topic: 'Test',
+      viewerCount: 1,
+      guestCount: 0,
+      startedAt: serverTimestamp(),
+      hostHeartbeatAt: serverTimestamp(),
+    });
+    await setDoc(doc(db, 'live_sessions/l1/viewers/listener'), {
+      uid: 'listener',
+      displayName: 'listener',
+      photoUrl: '',
+      joinedAt: serverTimestamp(),
+    });
+  });
+
+  const hostDb = user('host');
+  const listenerDb = user('listener');
+  const requestPath = 'live_sessions/l1/join_requests/listener';
+
+  await assertSucceeds(setDoc(doc(hostDb, requestPath), {
+    uid: 'listener',
+    displayName: 'listener',
+    photoUrl: '',
+    status: 'invited',
+    invitedBy: 'host',
+    invitedAt: serverTimestamp(),
+  }));
+
+  const accept = writeBatch(listenerDb);
+  accept.update(doc(listenerDb, requestPath), {
+    status: 'accepted',
+    decidedAt: serverTimestamp(),
+  });
+  accept.update(doc(listenerDb, 'live_sessions/l1'), {
+    guestCount: 1,
+    updatedAt: serverTimestamp(),
+  });
+  await assertSucceeds(accept.commit());
+
+  await assertFails(setDoc(doc(user('outsider'),
+    'live_sessions/l1/join_requests/fake'), {
+    uid: 'fake',
+    displayName: 'fake',
+    photoUrl: '',
+    status: 'invited',
+    invitedBy: 'outsider',
+    invitedAt: serverTimestamp(),
+  }));
+});
+
 test('chat is restricted to members and cannot impersonate another user', async () => {
   const payload = {userId: 'listener', text: 'Hello', createdAt: serverTimestamp()};
   await assertSucceeds(setDoc(doc(user('listener'), 'rooms/r1/messages/m1'), payload));
