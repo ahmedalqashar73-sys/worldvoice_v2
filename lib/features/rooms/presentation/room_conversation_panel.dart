@@ -27,6 +27,7 @@ class RoomConversationPanel extends StatefulWidget {
 
 class _RoomConversationPanelState extends State<RoomConversationPanel> {
   final _text = TextEditingController();
+  final _focus = FocusNode();
   bool _sending = false;
   // Do not animate historical messages on first entry or move the room when a
   // new chat arrives; only the new message bubble fades in.
@@ -65,7 +66,11 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
   }
 
   @override
-  void dispose() { _text.dispose(); super.dispose(); }
+  void dispose() {
+    _text.dispose();
+    _focus.dispose();
+    super.dispose();
+  }
   Future<void> _send() async {
     final value = _text.text.trim();
     if (value.isEmpty || _sending || !widget.enabled) return;
@@ -271,7 +276,18 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
         child: LayoutBuilder(builder: (context, constraints) {
           final typing = MediaQuery.viewInsetsOf(context).bottom > 0;
           final field = TextField(
-            controller: _text, enabled: widget.enabled && !_sending,
+            key: const ValueKey<String>('worldvoice-room-chat-input'),
+            controller: _text,
+            focusNode: _focus,
+            enabled: widget.enabled && !_sending,
+            readOnly: false,
+            keyboardType: TextInputType.text,
+            autocorrect: true,
+            enableSuggestions: true,
+            showCursor: true,
+            onTap: () {
+              if (!_focus.hasFocus) _focus.requestFocus();
+            },
             style: const TextStyle(color: Colors.white, fontSize: 14),
             maxLength: 500, maxLines: 1, textInputAction: TextInputAction.send,
             onSubmitted: (_) => _send(),
@@ -295,7 +311,8 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
               _action(widget.micIcon, widget.micLabel, widget.onMic),
           ];
           if (typing) return field;
-          if (constraints.maxWidth < 350 || MediaQuery.textScalerOf(context).scale(14) > 20) {
+          if (constraints.maxWidth < 520 ||
+              MediaQuery.textScalerOf(context).scale(14) > 20) {
             return Column(mainAxisSize: MainAxisSize.min, children: [
               field, const SizedBox(height: 6),
               Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: actions),
