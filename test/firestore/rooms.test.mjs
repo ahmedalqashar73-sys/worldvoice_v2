@@ -124,8 +124,11 @@ test('economy reads are permitted but client-side money and gifts cannot be forg
   }
   const profile = doc(db, 'users/listener');
   await assertSucceeds(setDoc(profile, {uid: 'listener', displayName: 'Guest', coins: 0}));
-  for (const field of ['coins', 'diamonds', 'diamondsPending', 'giftLevel']) {
-    await assertFails(updateDoc(profile, {[field]: 1000000}));
+  for (const field of [
+    'coins', 'diamonds', 'diamondsPending', 'giftLevel', 'isVip', 'isAdmin'
+  ]) {
+    await assertFails(updateDoc(profile, {[field]: field === 'isVip' || field === 'isAdmin'
+      ? true : 1000000}));
   }
   await assertSucceeds(updateDoc(profile, {displayName: 'Guest 2'}));
   await assertFails(setDoc(doc(db, 'users/new'), {uid: 'new', coins: 500}));
