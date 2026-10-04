@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:share_plus/share_plus.dart';
@@ -2709,3 +2710,240 @@ class _RaisedHandNotice extends StatelessWidget {
   const _RaisedHandNotice({
     required this.participant,
     required this.total,
+    required this.isArabic,
+    required this.onTap,
+    required this.onAccept,
+    required this.onReject,
+  });
+
+  final RoomParticipant participant;
+  final int total;
+  final bool isArabic;
+  final VoidCallback onTap;
+  final VoidCallback onAccept;
+  final VoidCallback onReject;
+
+  @override
+  Widget build(BuildContext context) {
+    final seat = participant.requestedSeatIndex;
+
+    return Material(
+      color: Colors.black.withValues(alpha: .32),
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 9, 8, 9),
+          child: Row(
+            children: [
+              _ParticipantAvatar(participant: participant),
+              const SizedBox(width: 9),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      participant.displayName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    Text(
+                      seat == null
+                          ? (isArabic ? 'يريد الصعود' : 'Wants to speak')
+                          : (isArabic
+                              ? 'يريد المقعد $seat'
+                              : 'Wants seat $seat'),
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (total > 1)
+                Container(
+                  margin: const EdgeInsetsDirectional.only(end: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF6E55FF),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    '+${total - 1}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              IconButton(
+                onPressed: onReject,
+                icon: const Icon(Icons.close_rounded, color: Colors.white70),
+              ),
+              IconButton.filled(
+                onPressed: onAccept,
+                style: IconButton.styleFrom(
+                  backgroundColor: const Color(0xFF55DFA0),
+                  foregroundColor: const Color(0xFF073B2A),
+                ),
+                icon: const Icon(Icons.check_rounded),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ParticipantAvatar extends StatelessWidget {
+  const _ParticipantAvatar({required this.participant});
+
+  final RoomParticipant participant;
+
+  @override
+  Widget build(BuildContext context) {
+    final photoUrl = participant.photoUrl;
+    return CircleAvatar(
+      backgroundImage:
+          photoUrl?.isNotEmpty == true ? NetworkImage(photoUrl!) : null,
+      child: photoUrl?.isNotEmpty == true
+          ? null
+          : const Icon(Icons.person_rounded),
+    );
+  }
+}
+
+class _RoleOption extends StatelessWidget {
+  const _RoleOption({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: Icon(icon),
+      title: Text(label),
+      onTap: onTap,
+    );
+  }
+}
+
+
+
+class _TeacherAiCompactSeat extends StatelessWidget {
+  const _TeacherAiCompactSeat({
+    required this.configured,
+    this.note,
+    this.onTap,
+  });
+
+  final bool configured;
+  final RoomTeacherAiNote? note;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final correction = note?.correction.trim() ?? '';
+    final pronunciation = note?.pronunciationTip?.trim() ?? '';
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.fromLTRB(10, 8, 12, 8),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: .08),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: const Color(0xFF6DE7C0).withValues(alpha: .50),
+            ),
+          ),
+          child: Row(
+            children: [
+              const CircleAvatar(
+                radius: 23,
+                backgroundColor: Color(0xFF3A2D71),
+                child: Icon(
+                  Icons.smart_toy_rounded,
+                  color: Colors.white,
+                  size: 25,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Teacher AI',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      correction.isNotEmpty
+                          ? correction
+                          : configured
+                              ? 'Tap to ask • listening for corrections…'
+                              : 'AI backend connection required',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: correction.isNotEmpty
+                            ? const Color(0xFF8EEAD0)
+                            : Colors.white60,
+                        fontSize: 10,
+                        height: 1.2,
+                      ),
+                    ),
+                    if (pronunciation.isNotEmpty) ...[
+                      const SizedBox(height: 3),
+                      Text(
+                        pronunciation,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Color(0xFFFFD66B),
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              if (onTap != null)
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  color: Colors.white54,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
