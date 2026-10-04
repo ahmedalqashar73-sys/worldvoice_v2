@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -163,6 +162,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     await engine.setPlaybackAudioFrameBeforeMixingParameters(
       sampleRate: 16000,
       channel: 1,
+      samplesPerCall: 320,
     );
     _audioFrameObserverRegistered = true;
   }
