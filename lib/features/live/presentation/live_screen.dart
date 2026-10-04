@@ -2548,7 +2548,11 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
   }
 
   void _handleTeacherVoice(List<RoomTeacherAiSpokenAnswer> messages) {
-    if (!mounted || messages.isEmpty) return;
+    if (!mounted) return;
+    if (messages.isEmpty) {
+      _teacherVoicePrimed = true;
+      return;
+    }
     final latest = messages.first;
     if (!_teacherVoicePrimed) {
       _teacherVoicePrimed = true;
