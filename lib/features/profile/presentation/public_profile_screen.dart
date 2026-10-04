@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/localization/app_strings.dart';
 import '../../../core/localization/locale_controller.dart';
+import '../../../core/widgets/worldvoice_avatar_frame.dart';
 import '../../chat/presentation/chat_screen.dart';
 import '../services/profile_social_service.dart';
 import 'profile_identity_strip.dart';
@@ -171,6 +172,8 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
             final city = (data['city'] as String?)?.trim();
             final hideCity = data['hideCity'] == true;
             final isVip = data['isVip'] == true;
+            final profileFrameId =
+                (data['profileFrameId'] as String?)?.trim();
             final gender = data['gender'] as String?;
             final nativeLanguage = (data['nativeLanguage'] as String?)?.trim();
             final birthRaw = data['birthDate'];
@@ -205,16 +208,25 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
               children: [
                 Center(
-                  child: CircleAvatar(
-                    radius: 54,
-                    backgroundColor:
-                        Theme.of(context).colorScheme.surfaceContainerHighest,
-                    backgroundImage: photo == null || photo.isEmpty
-                        ? null
-                        : NetworkImage(photo),
-                    child: photo == null || photo.isEmpty
-                        ? const Icon(Icons.person_rounded, size: 52)
-                        : null,
+                  child: WorldVoiceAvatarFrame(
+                    frameId: profileFrameId,
+                    size: 116,
+                    child: ColoredBox(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .surfaceContainerHighest,
+                      child: photo == null || photo.isEmpty
+                          ? const Center(
+                              child: Icon(Icons.person_rounded, size: 52),
+                            )
+                          : Image.network(
+                              photo,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, _, _) => const Center(
+                                child: Icon(Icons.person_rounded, size: 52),
+                              ),
+                            ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 14),
