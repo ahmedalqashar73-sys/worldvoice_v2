@@ -2072,6 +2072,7 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
   late final RoomTranslationService _translationService;
   late final RoomTeacherAiService _teacherAi;
   StreamSubscription<List<RoomCaption>>? _captionSub;
+  StreamSubscription<List<RoomTeacherAiSpokenAnswer>>? _teacherVoiceSub;
 
   bool _enabled = false;
   bool _listening = false;
@@ -2083,6 +2084,9 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
   RoomCaption? _latest;
   String? _translated;
   String? _translatedCaptionId;
+  String? _lastPronunciationCaptionId;
+  bool _teacherVoicePrimed = false;
+  String? _lastTeacherVoiceId;
 
   @override
   void initState() {
@@ -2113,6 +2117,8 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
           if (mounted) setState(() => _error = error.toString());
         },
       );
+      _teacherVoiceSub =
+          _teacherAi.watchSpokenAnswers().listen(_handleTeacherVoice);
     }
   }
 
@@ -2121,7 +2127,13 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
     super.didChangeDependencies();
     if (!_targetInitialized) {
       _targetInitialized = true;
-      _targetLanguage = widget.roomLanguageCode;
+      final uiLanguage =
+          Localizations.localeOf(context).languageCode.toLowerCase();
+      _targetLanguage = roomCaptionLanguages.any(
+        (item) => item.code == uiLanguage,
+      )
+          ? uiLanguage
+          : 'en';
     }
   }
 
@@ -2158,7 +2170,9 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
     }
     if (latest != null &&
         _pronunciationEnabled &&
-        latest.userId == FirebaseAuth.instance.currentUser?.uid) {
+        latest.userId == FirebaseAuth.instance.currentUser?.uid &&
+        latest.id != _lastPronunciationCaptionId) {
+      _lastPronunciationCaptionId = latest.id;
       unawaited(
         _teacherAi.submitCaption(
           caption: latest,
@@ -2166,6 +2180,22 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
         ),
       );
     }
+  }
+
+  void _handleTeacherVoice(List<RoomTeacherAiSpokenAnswer> messages) {
+    if (!mounted || messages.isEmpty) return;
+    final latest = messages.first;
+    if (!_teacherVoicePrimed) {
+      _teacherVoicePrimed = true;
+      _lastTeacherVoiceId = latest.id;
+      return;
+    }
+    if (latest.id == _lastTeacherVoiceId) return;
+    _lastTeacherVoiceId = latest.id;
+    final roomLanguage = widget.roomLanguageCode.trim().toLowerCase();
+    final answerLanguage = latest.languageCode.trim().toLowerCase();
+    if (answerLanguage.isNotEmpty && answerLanguage != roomLanguage) return;
+    unawaited(_speakLiveTeacher(latest.answer, roomLanguage));
   }
 
   Future<void> _translate(RoomCaption caption) async {
@@ -2279,14 +2309,16 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
             enabled: _enabled,
             translationEnabled: _translationEnabled,
             pronunciationEnabled: _pronunciationEnabled,
-            pronunciationNotes: _teacherAi.watchNotes(),
+            pronunciationNotes: _teacherAi.watchNotes().map(
+              (notes) => notes
+                  .where(
+                    (note) =>
+                        note.userId == FirebaseAuth.instance.currentUser?.uid,
+                  )
+                  .toList(growable: false),
+            ),
             targetLanguage: _targetLanguage,
-            targetLanguages: [
-              RoomCaptionLanguage(
-                widget.roomLanguageCode,
-                ProfileLanguageCatalog.label(widget.roomLanguageCode),
-              ),
-            ],
+            targetLanguages: roomCaptionLanguages,
             canPublish: widget.canPublish,
             listening: _listening,
             error: _error,
@@ -2307,8 +2339,21 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
             onPronunciationChanged: (value) {
               setState(() {
                 _pronunciationEnabled = value;
+                _lastPronunciationCaptionId = null;
                 _error = null;
               });
+              final latest = _latest;
+              if (value &&
+                  latest != null &&
+                  latest.userId == FirebaseAuth.instance.currentUser?.uid) {
+                _lastPronunciationCaptionId = latest.id;
+                unawaited(
+                  _teacherAi.submitCaption(
+                    caption: latest,
+                    roomLanguageCode: widget.roomLanguageCode,
+                  ),
+                );
+              }
               refresh(() {});
             },
             onTargetLanguageChanged: (value) {
@@ -2330,6 +2375,7 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
   @override
   void dispose() {
     unawaited(_captionSub?.cancel());
+    unawaited(_teacherVoiceSub?.cancel());
     unawaited(_captionController.dispose());
     unawaited(_translationService.dispose());
     super.dispose();
