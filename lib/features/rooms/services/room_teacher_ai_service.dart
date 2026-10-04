@@ -55,29 +55,29 @@ class RoomTeacherAiService {
       collectionName == 'live_sessions' ? 'live' : 'room';
 
 
-  Stream<List<RoomTeacherAiSpokenAnswer>> watchSpokenAnswers({
-    int limit = 12,
-  }) {
+  Stream<List<RoomTeacherAiSpokenAnswer>> watchSpokenAnswers() {
     return _db
         .collection(collectionName)
         .doc(roomId)
-        .collection('teacher_ai_messages')
-        .orderBy('createdAt', descending: true)
-        .limit(limit)
         .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
-              .map(
-                (doc) => RoomTeacherAiSpokenAnswer(
-                  id: doc.id,
-                  answer: (doc.data()['answer'] ?? '').toString().trim(),
-                  languageCode:
-                      (doc.data()['languageCode'] ?? 'en').toString().trim(),
-                ),
-              )
-              .where((message) => message.answer.isNotEmpty)
-              .toList(growable: false),
-        );
+        .map((snapshot) {
+          final raw = snapshot.data()?['teacherAiVoice'];
+          if (raw is! Map) return const <RoomTeacherAiSpokenAnswer>[];
+          final data = Map<String, dynamic>.from(raw);
+          final id = (data['id'] ?? '').toString().trim();
+          final answer = (data['answer'] ?? '').toString().trim();
+          if (id.isEmpty || answer.isEmpty) {
+            return const <RoomTeacherAiSpokenAnswer>[];
+          }
+          return <RoomTeacherAiSpokenAnswer>[
+            RoomTeacherAiSpokenAnswer(
+              id: id,
+              answer: answer,
+              languageCode:
+                  (data['languageCode'] ?? 'en').toString().trim(),
+            ),
+          ];
+        });
   }
 
   Stream<List<RoomTeacherAiNote>> watchNotes({int limit = 20}) {
