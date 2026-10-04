@@ -386,10 +386,16 @@ test('verified quiz answers are immutable, round-scoped, and secret stays privat
   await assertFails(deleteDoc(doc(user('host'), 'rooms/r1/quiz_answers/listener')));
 });
 
-test('AI notes are readable by members but only the backend may write', async () => {
+test('AI notes and shared voice messages are member-readable and backend-only', async () => {
   await assertSucceeds(getDocs(collection(user('listener'), 'rooms/r1/teacher_ai_notes')));
   await assertFails(getDocs(collection(user('outsider'), 'rooms/r1/teacher_ai_notes')));
   await assertFails(setDoc(doc(user('host'), 'rooms/r1/teacher_ai_notes/fake'), {text: 'fake'}));
+
+  await assertSucceeds(getDocs(collection(user('listener'), 'rooms/r1/teacher_ai_messages')));
+  await assertFails(getDocs(collection(user('outsider'), 'rooms/r1/teacher_ai_messages')));
+  await assertFails(setDoc(doc(user('host'), 'rooms/r1/teacher_ai_messages/fake'), {
+    answer: 'fake', languageCode: 'en', createdAt: serverTimestamp()
+  }));
 });
 
 test('live captions query allows room members and denies non-members', async () => {
