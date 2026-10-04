@@ -645,10 +645,12 @@ app.post("/teacher-ai", async (req, res, next) => {
       instructions:
         "You are WorldVoice Teacher AI inside a live language-learning voice room. " +
         "Review only the provided transcript text. Do not claim to hear pronunciation audio. " +
-        "If the sentence is natural and correct, correction must be an empty string. " +
-        "If it needs improvement, give one concise corrected sentence. " +
-        "pronunciationTip may contain one short text-based pronunciation tip only when useful. " +
-        "Return only valid JSON with exactly these keys: correction, pronunciationTip.",
+        "The target room language is strict: first determine whether the transcript is meaningfully in that target language. " +
+        "If it is not, set isTargetLanguage to false and leave correction and pronunciationTip empty. " +
+        "If it is in the target language and natural/correct, correction must be empty. " +
+        "If it needs improvement, give one concise corrected sentence in the target language. " +
+        "pronunciationTip may contain one short text-based pronunciation tip in the target language only when useful. " +
+        "Return only valid JSON with exactly these keys: isTargetLanguage, correction, pronunciationTip.",
       input:
         `Target room language: ${roomLanguageCode}\n` +
         `Speaker transcript language: ${languageCode}\n` +
@@ -660,6 +662,15 @@ app.post("/teacher-ai", async (req, res, next) => {
       result = JSON.parse(response.output_text || "{}");
     } catch {
       result = {};
+    }
+
+    if (result.isTargetLanguage === false) {
+      return res.json({
+        ok: true,
+        ignored: true,
+        correction: "",
+        pronunciationTip: "",
+      });
     }
 
     const correction =
@@ -750,29 +761,66 @@ app.post("/teacher-ai/ask", async (req, res, next) => {
       String(roomSnap.data()?.languageCode || "en").trim() ||
       "en";
 
+    if (context === "room" && roomSnap.data()?.showTeacherAiSeat !== true) {
+      return res.status(409).json({
+        error: "Teacher AI seat is hidden in this room.",
+      });
+    }
+
     const response = await openai.responses.create({
       model: teacherModel,
       store: false,
       instructions:
         "You are WorldVoice Teacher AI inside a live language-learning room. " +
-        "Answer the member's language-learning question clearly and concisely. " +
-        "The room target language is provided as context. " +
-        "Reply in the same language as the member unless they explicitly ask to practice or receive an answer in another language. " +
-        "When correcting a sentence, show the corrected form and a short explanation. " +
-        "Do not claim to hear audio unless transcript text is explicitly provided.",
+        "The target room language is strict. First decide whether the member input is primarily in that target language. " +
+        "If it is not, return shouldRespond=false and an empty answer. Do not translate or reply in another language. " +
+        "If it is, return shouldRespond=true and answer clearly and concisely ONLY in the target room language. " +
+        "When correcting a sentence, show the corrected form and a short explanation in the target room language. " +
+        "Do not claim to hear audio unless transcript text is explicitly provided. " +
+        "Return only valid JSON with exactly these keys: shouldRespond, answer.",
       input:
         `Target room language: ${roomLanguageCode}\n` +
-        `Member question: ${prompt}`,
+        `Member input: ${prompt}`,
     });
 
-    const answer = String(response.output_text || "").trim().slice(0, 2400);
+    let teacherResult;
+    try {
+      teacherResult = JSON.parse(response.output_text || "{}");
+    } catch {
+      teacherResult = {};
+    }
+
+    if (teacherResult.shouldRespond !== true) {
+      return res.json({
+        ok: true,
+        ignored: true,
+        answer: "",
+      });
+    }
+
+    const answer = typeof teacherResult.answer === "string"
+      ? teacherResult.answer.trim().slice(0, 2400)
+      : "";
     if (!answer) {
       return res.status(502).json({ error: "Teacher AI returned no answer." });
     }
 
+    const voiceId = roomRef.collection("_voice_ids").doc().id;
+    await roomRef.set({
+      teacherAiVoice: {
+        id: voiceId,
+        userId: user.uid,
+        answer,
+        languageCode: roomLanguageCode,
+        model: teacherModel,
+        createdAt: FieldValue.serverTimestamp(),
+      },
+    }, {merge: true});
+
     return res.json({
       ok: true,
       answer,
+      languageCode: roomLanguageCode,
     });
   } catch (error) {
     next(error);
