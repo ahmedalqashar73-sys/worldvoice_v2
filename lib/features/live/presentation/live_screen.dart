@@ -2622,11 +2622,6 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
         service: _teacherAi,
         roomLanguageCode: widget.roomLanguageCode,
         closeAfterAnswer: true,
-        onAnswer: (answer) {
-          unawaited(
-            _speakLiveTeacher(answer, widget.roomLanguageCode),
-          );
-        },
       ),
     );
   }
