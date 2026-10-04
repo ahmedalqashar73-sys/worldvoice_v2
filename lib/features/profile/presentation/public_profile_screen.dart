@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/localization/app_strings.dart';
 import '../../../core/localization/locale_controller.dart';
+import '../../chat/presentation/chat_screen.dart';
 import '../services/profile_social_service.dart';
 import 'profile_identity_strip.dart';
 import 'voice_bio_player.dart';
@@ -26,10 +28,82 @@ class PublicProfileScreen extends StatefulWidget {
 }
 
 class _PublicProfileScreenState extends State<PublicProfileScreen> {
+  bool _following = false;
+  bool _followBusy = false;
+  bool _messageBusy = false;
+
+  String get _myUid => FirebaseAuth.instance.currentUser?.uid ?? '';
+  bool get _isSelf => _myUid == widget.userId;
+
   @override
   void initState() {
     super.initState();
     ProfileSocialService.recordVisit(widget.userId);
+    _loadFollowing();
+  }
+
+  Future<void> _loadFollowing() async {
+    if (_isSelf) return;
+    try {
+      final value = await ProfileSocialService.isFollowing(widget.userId);
+      if (mounted) setState(() => _following = value);
+    } catch (_) {
+      // Keep profile usable if the social read is temporarily unavailable.
+    }
+  }
+
+  Future<void> _toggleFollow(bool ar) async {
+    if (_isSelf || _followBusy) return;
+    setState(() => _followBusy = true);
+    try {
+      await ProfileSocialService.toggleFollow(widget.userId);
+      if (!mounted) return;
+      setState(() => _following = !_following);
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            ar
+                ? 'تعذر تحديث المتابعة الآن.'
+                : 'Could not update follow status.',
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _followBusy = false);
+    }
+  }
+
+  Future<void> _openMessage({
+    required bool ar,
+    required String peerName,
+  }) async {
+    if (_isSelf || _messageBusy) return;
+    setState(() => _messageBusy = true);
+    try {
+      await ChatScreen.openDirectConversation(
+        context: context,
+        peerId: widget.userId,
+        peerName: peerName,
+      );
+    } catch (error) {
+      if (!mounted) return;
+      final raw = error.toString().replaceFirst('Bad state: ', '');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            raw.isEmpty
+                ? (ar
+                    ? 'المحادثة متاحة بعد المتابعة المتبادلة.'
+                    : 'Messaging is available after mutual follow.')
+                : raw,
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _messageBusy = false);
+    }
   }
 
   @override
@@ -86,6 +160,12 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                     .toList() ??
                 const <String>[];
             final profession = (data['profession'] ?? '').toString().trim();
+            final followersCount =
+                (data['followersCount'] as num?)?.toInt() ?? 0;
+            final followingCount =
+                (data['followingCount'] as num?)?.toInt() ?? 0;
+            final peerName =
+                name?.isNotEmpty == true ? name! : 'WorldVoice';
 
             return ListView(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
@@ -148,6 +228,72 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                     child: _CityPill(
                       label: city!,
                     ),
+                  ),
+                ],
+                const SizedBox(height: 18),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _SocialCount(
+                      value: followersCount,
+                      label: code == 'ar' ? 'المتابعون' : 'Followers',
+                    ),
+                    const SizedBox(width: 28),
+                    _SocialCount(
+                      value: followingCount,
+                      label: code == 'ar' ? 'أتابع' : 'Following',
+                    ),
+                  ],
+                ),
+                if (!_isSelf) ...[
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: FilledButton.icon(
+                          onPressed: _followBusy
+                              ? null
+                              : () => _toggleFollow(code == 'ar'),
+                          icon: _followBusy
+                              ? const SizedBox.square(
+                                  dimension: 17,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Icon(
+                                  _following
+                                      ? Icons.person_remove_alt_1_rounded
+                                      : Icons.person_add_alt_1_rounded,
+                                ),
+                          label: Text(
+                            _following
+                                ? (code == 'ar' ? 'إلغاء المتابعة' : 'Unfollow')
+                                : (code == 'ar' ? 'متابعة' : 'Follow'),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _messageBusy
+                              ? null
+                              : () => _openMessage(
+                                    ar: code == 'ar',
+                                    peerName: peerName,
+                                  ),
+                          icon: _messageBusy
+                              ? const SizedBox.square(
+                                  dimension: 17,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Icon(Icons.chat_bubble_outline_rounded),
+                          label: Text(code == 'ar' ? 'رسالة' : 'Message'),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
                 if (bio?.isNotEmpty == true ||
@@ -228,6 +374,39 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
           },
         ),
       ),
+    );
+  }
+}
+
+class _SocialCount extends StatelessWidget {
+  const _SocialCount({
+    required this.value,
+    required this.label,
+  });
+
+  final int value;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          '$value',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w900,
+              ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w700,
+              ),
+        ),
+      ],
     );
   }
 }
