@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -11,6 +12,22 @@ import '../data/agora_config.dart';
 import '../data/room_backend_config.dart';
 
 enum AgoraRoomRole { speaker, listener }
+
+class AgoraRoomAudioFrame {
+  const AgoraRoomAudioFrame({
+    required this.bytes,
+    required this.sampleRate,
+    required this.channels,
+    required this.isLocal,
+    this.agoraUid,
+  });
+
+  final Uint8List bytes;
+  final int sampleRate;
+  final int channels;
+  final bool isLocal;
+  final int? agoraUid;
+}
 
 class AgoraVoiceRoomController extends ChangeNotifier {
   AgoraVoiceRoomController();
@@ -35,6 +52,10 @@ class AgoraVoiceRoomController extends ChangeNotifier {
   String? _channelId;
   bool _renewingToken = false;
   final Set<int> _remoteSpeakers = <int>{};
+  final StreamController<AgoraRoomAudioFrame> _audioFrameController =
+      StreamController<AgoraRoomAudioFrame>.broadcast(sync: true);
+  AudioFrameObserver? _audioFrameObserver;
+  bool _audioFrameObserverRegistered = false;
 
   bool get connecting => _connecting;
   bool get joined => _joined;
@@ -48,6 +69,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
   int? get activeSpeakerUid => _activeSpeakerUid;
   AgoraRoomRole get role => _role;
   List<int> get remoteSpeakers => _remoteSpeakers.toList(growable: false);
+  Stream<AgoraRoomAudioFrame> get audioFrames => _audioFrameController.stream;
 
   /// Starts a local camera preview without waiting for a network token.
   /// Live uses this so the host sees the camera immediately while Agora
@@ -87,6 +109,74 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     } finally {
       _preparingLocalPreview = false;
     }
+  }
+
+  Future<void> _installAudioFrameObserver(RtcEngine engine) async {
+    if (_audioFrameObserverRegistered) return;
+
+    _audioFrameObserver ??= AudioFrameObserver(
+      onRecordAudioFrame: (channelId, frame) {
+        final buffer = frame.buffer;
+        if (_released ||
+            buffer == null ||
+            buffer.isEmpty ||
+            _audioFrameController.isClosed) {
+          return;
+        }
+        _audioFrameController.add(
+          AgoraRoomAudioFrame(
+            bytes: Uint8List.fromList(buffer),
+            sampleRate: frame.samplesPerSec ?? 16000,
+            channels: frame.channels ?? 1,
+            isLocal: true,
+            agoraUid: _localUid,
+          ),
+        );
+      },
+      onPlaybackAudioFrameBeforeMixing: (channelId, uid, frame) {
+        final buffer = frame.buffer;
+        if (_released ||
+            buffer == null ||
+            buffer.isEmpty ||
+            _audioFrameController.isClosed) {
+          return;
+        }
+        _audioFrameController.add(
+          AgoraRoomAudioFrame(
+            bytes: Uint8List.fromList(buffer),
+            sampleRate: frame.samplesPerSec ?? 16000,
+            channels: frame.channels ?? 1,
+            isLocal: false,
+            agoraUid: uid,
+          ),
+        );
+      },
+    );
+
+    engine.getMediaEngine().registerAudioFrameObserver(_audioFrameObserver!);
+    await engine.setRecordingAudioFrameParameters(
+      sampleRate: 16000,
+      channel: 1,
+      mode: RawAudioFrameOpModeType.rawAudioFrameOpModeReadOnly,
+      samplesPerCall: 320,
+    );
+    await engine.setPlaybackAudioFrameBeforeMixingParameters(
+      sampleRate: 16000,
+      channel: 1,
+      samplesPerCall: 320,
+    );
+    _audioFrameObserverRegistered = true;
+  }
+
+  void _uninstallAudioFrameObserver(RtcEngine engine) {
+    final observer = _audioFrameObserver;
+    if (!_audioFrameObserverRegistered || observer == null) return;
+    try {
+      engine.getMediaEngine().unregisterAudioFrameObserver(observer);
+    } catch (_) {
+      // Engine shutdown still continues if raw-audio observer cleanup fails.
+    }
+    _audioFrameObserverRegistered = false;
   }
 
   /// Wait for Agora's join callback, not just the joinChannel request.
@@ -270,6 +360,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
 
       engine.registerEventHandler(_handler!);
       await engine.enableAudio();
+      await _installAudioFrameObserver(engine);
       await engine.enableVideo();
       if (previewCamera &&
           role == AgoraRoomRole.speaker &&
@@ -802,6 +893,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
 
     _released = true;
     try {
+      _uninstallAudioFrameObserver(engine);
       if (_handler != null) {
         engine.unregisterEventHandler(_handler!);
       }
@@ -847,8 +939,9 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     notifyListeners();
     _disposed = true;
     if (!_released) {
-      leave();
+      unawaited(leave());
     }
+    unawaited(_audioFrameController.close());
     super.dispose();
   }
 }
