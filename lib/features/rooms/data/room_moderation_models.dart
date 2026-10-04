@@ -7,6 +7,7 @@ class RoomParticipant {
     required this.role,
     required this.handRaised,
     this.photoUrl,
+    this.frameId,
     this.agoraUid,
     this.seatIndex,
     this.requestedSeatIndex,
@@ -19,6 +20,7 @@ class RoomParticipant {
   final String userId;
   final String displayName;
   final String? photoUrl;
+  final String? frameId;
   final RoomMemberRole role;
   final bool handRaised;
   final int? agoraUid;
