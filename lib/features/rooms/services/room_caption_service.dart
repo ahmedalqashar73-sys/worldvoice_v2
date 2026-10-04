@@ -90,6 +90,13 @@ class RoomCaptionService {
       } catch (_) {
         // Keep the generic message when the server returns non-JSON text.
       }
+      final lower = message.toLowerCase();
+      if (response.statusCode == 429 &&
+          (lower.contains('credit') ||
+              lower.contains('quota') ||
+              lower.contains('billing'))) {
+        throw StateError('AI_SERVICE_UNAVAILABLE');
+      }
       throw StateError(message);
     }
 
