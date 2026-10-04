@@ -60,8 +60,8 @@ class RoomCaptionsSheet extends StatelessWidget {
               ),
               subtitle: Text(
                 isArabic
-                    ? 'مجانية لكل المستخدمين. المتحدث ينشر النص من جهازه.'
-                    : 'Free for everyone. Speakers publish captions from their device.',
+                    ? 'كل خيار هنا خاص بك فقط ولا يغيّر شاشة بقية الموجودين في الغرفة.'
+                    : 'Each option here is private to your screen and does not change what others see.',
               ),
             ),
             SwitchListTile(
@@ -80,16 +80,16 @@ class RoomCaptionsSheet extends StatelessWidget {
                   ? Text(
                       listening
                           ? (isArabic
-                              ? 'يتم تحويل كلامك إلى نص الآن.'
-                              : 'Your speech is being captioned now.')
+                              ? 'يتم تجهيز نص كلامك للذين فعّلوا السبتايتل على أجهزتهم.'
+                              : 'Your speech is being prepared for members who enabled subtitles on their own devices.')
                           : (isArabic
-                              ? 'سيبدأ التعرف عندما يكون المايك متاحًا.'
-                              : 'Recognition starts when your microphone is available.'),
+                              ? 'النص يظهر عندك فقط إذا فعّلت السبتايتل، ولا يُفرض على الآخرين.'
+                              : 'Subtitles appear only on your screen when you enable them; they are not forced on others.'),
                     )
                   : Text(
                       isArabic
-                          ? 'ستشاهد نص المتحدثين الموجودين على الستيج.'
-                          : 'You will see captions from speakers on stage.',
+                          ? 'ستشاهد عندك فقط نص المتحدثين الموجودين على الستيج.'
+                          : 'Only you will see captions from speakers on stage.',
                     ),
             ),
             SwitchListTile(
@@ -102,8 +102,8 @@ class RoomCaptionsSheet extends StatelessWidget {
               ),
               subtitle: Text(
                 isArabic
-                    ? 'الترجمة تتم على الجهاز بعد تنزيل نموذج اللغة.'
-                    : 'Translation runs on-device after its language model downloads.',
+                    ? 'الترجمة تظهر لك أنت فقط، واللغة الافتراضية هي لغتك الأم من البروفايل.'
+                    : 'Translation is shown only to you; your profile native language is the default target.',
               ),
             ),
             SwitchListTile(
@@ -161,7 +161,7 @@ class RoomCaptionsSheet extends StatelessWidget {
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(Icons.school_rounded),
                   title: Text(
-                    isArabic ? 'لغة الترجمة' : 'Translation language',
+                    isArabic ? 'لغة الترجمة (لغتك الأم)' : 'Translation language (native)',
                   ),
                   subtitle: Text(availableLanguages.first.label),
                 )
@@ -175,7 +175,7 @@ class RoomCaptionsSheet extends StatelessWidget {
                   isExpanded: true,
                   decoration: InputDecoration(
                     labelText:
-                        isArabic ? 'لغة الترجمة' : 'Translation language',
+                        isArabic ? 'لغة الترجمة (لغتك الأم)' : 'Translation language (native)',
                   ),
                   items: [
                     for (final item in availableLanguages)

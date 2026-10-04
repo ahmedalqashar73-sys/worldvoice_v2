@@ -7,6 +7,9 @@ class RoomTeacherAiSheet extends StatefulWidget {
     required this.service,
     required this.roomLanguageCode,
     this.onAnswer,
+    this.onVoicePressed,
+    this.canSpeak = false,
+    this.listening = false,
     this.closeAfterAnswer = false,
     super.key,
   });
@@ -14,6 +17,9 @@ class RoomTeacherAiSheet extends StatefulWidget {
   final RoomTeacherAiService service;
   final String roomLanguageCode;
   final ValueChanged<String>? onAnswer;
+  final VoidCallback? onVoicePressed;
+  final bool canSpeak;
+  final bool listening;
   final bool closeAfterAnswer;
 
   @override
@@ -112,6 +118,85 @@ class _RoomTeacherAiSheetState extends State<RoomTeacherAiSheet> {
                 ),
               ),
               const Divider(height: 1),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(4, 14, 4, 8),
+                child: Material(
+                  color: widget.listening
+                      ? const Color(0xFF0E6F52)
+                      : Theme.of(context).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(22),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(22),
+                    onTap: widget.canSpeak ? widget.onVoicePressed : null,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 16,
+                      ),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 28,
+                            backgroundColor: widget.listening
+                                ? const Color(0xFF32D294)
+                                : Theme.of(context).colorScheme.primary,
+                            child: Icon(
+                              widget.listening
+                                  ? Icons.graphic_eq_rounded
+                                  : Icons.mic_rounded,
+                              color: Colors.white,
+                              size: 30,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  widget.canSpeak
+                                      ? (widget.listening
+                                          ? (isArabic
+                                              ? 'تكلم الآن — Teacher AI يسمعك'
+                                              : 'Speak now — Teacher AI is listening')
+                                          : (isArabic
+                                              ? 'اضغط وتكلم مع Teacher AI'
+                                              : 'Tap and speak with Teacher AI'))
+                                      : (isArabic
+                                          ? 'اصعد إلى مقعد متحدث لتتكلم مع Teacher AI'
+                                          : 'Join a speaker seat to talk with Teacher AI'),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w900,
+                                    color: widget.listening
+                                        ? Colors.white
+                                        : Theme.of(context)
+                                            .colorScheme
+                                            .onSurface,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  isArabic
+                                      ? 'الكلام يتحول إلى نص داخليًا، ثم يرد Teacher AI عليك بصوت داخل الغرفة.'
+                                      : 'Your speech is transcribed locally, then Teacher AI answers aloud in the room.',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: widget.listening
+                                        ? Colors.white70
+                                        : Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
               Expanded(
                 child: _messages.isEmpty
                     ? Center(
@@ -181,35 +266,45 @@ class _RoomTeacherAiSheetState extends State<RoomTeacherAiSheet> {
                     ),
                   ),
                 ),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
+              ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                childrenPadding: EdgeInsets.zero,
+                title: Text(
+                  isArabic ? 'اكتب بدلًا من الكلام' : 'Type instead',
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
                 children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _questionController,
-                      minLines: 1,
-                      maxLines: 4,
-                      maxLength: 1200,
-                      textInputAction: TextInputAction.send,
-                      onSubmitted: (_) => _send(),
-                      decoration: InputDecoration(
-                        hintText: isArabic
-                            ? 'اسأل Teacher AI...'
-                            : 'Ask Teacher AI...',
-                        counterText: '',
-                        border: const OutlineInputBorder(),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _questionController,
+                          minLines: 1,
+                          maxLines: 4,
+                          maxLength: 1200,
+                          textInputAction: TextInputAction.send,
+                          onSubmitted: (_) => _send(),
+                          decoration: InputDecoration(
+                            hintText: isArabic
+                                ? 'اسأل Teacher AI...'
+                                : 'Ask Teacher AI...',
+                            counterText: '',
+                            border: const OutlineInputBorder(),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton.filled(
-                    onPressed: _sending ? null : _send,
-                    icon: _sending
-                        ? const SizedBox.square(
-                            dimension: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.send_rounded),
+                      const SizedBox(width: 8),
+                      IconButton.filled(
+                        onPressed: _sending ? null : _send,
+                        icon: _sending
+                            ? const SizedBox.square(
+                                dimension: 18,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.send_rounded),
+                      ),
+                    ],
                   ),
                 ],
               ),

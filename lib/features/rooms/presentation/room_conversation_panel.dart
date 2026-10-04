@@ -8,7 +8,8 @@ class RoomConversationPanel extends StatefulWidget {
     required this.messages, required this.onSend, required this.isArabic,
     required this.onGifts, required this.onShop, required this.onTools,
     required this.onCaptions, required this.onMic, required this.micIcon,
-    required this.micLabel, this.enabled = true, super.key,
+    required this.micLabel, this.onTranslateMessage,
+    this.translationHint, this.enabled = true, super.key,
   });
   final Stream<List<RoomChatMessage>> messages;
   final Future<void> Function(String) onSend;
@@ -18,6 +19,8 @@ class RoomConversationPanel extends StatefulWidget {
   final VoidCallback? onMic;
   final IconData micIcon;
   final String micLabel;
+  final Future<String> Function(String text)? onTranslateMessage;
+  final String? translationHint;
   @override
   State<RoomConversationPanel> createState() => _RoomConversationPanelState();
 }
@@ -30,6 +33,37 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
   final Set<String> _seenMessageIds = <String>{};
   final Set<String> _pendingMessageAnimations = <String>{};
   bool _initialMessagesLoaded = false;
+  final Map<String, String> _translations = <String, String>{};
+  final Set<String> _translating = <String>{};
+
+  Future<void> _translate(RoomChatMessage message) async {
+    final translate = widget.onTranslateMessage;
+    if (translate == null ||
+        _translations.containsKey(message.id) ||
+        _translating.contains(message.id)) {
+      return;
+    }
+    setState(() => _translating.add(message.id));
+    try {
+      final translated = await translate(message.text);
+      if (!mounted) return;
+      setState(() => _translations[message.id] = translated.trim());
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            widget.isArabic
+                ? 'تعذرت الترجمة الآن. حاول مرة أخرى.'
+                : 'Translation is unavailable right now. Please retry.',
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _translating.remove(message.id));
+    }
+  }
+
   @override
   void dispose() { _text.dispose(); super.dispose(); }
   Future<void> _send() async {
@@ -96,24 +130,120 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
             itemBuilder: (context, index) {
               final welcome = index == messages.length;
               final msg = welcome ? null : messages[index];
+              final giftPreview = msg == null
+                  ? null
+                  : RoomGiftPreviewChatCodec.decode(msg.text);
+              final translated = msg == null ? null : _translations[msg.id];
+              final translating =
+                  msg != null && _translating.contains(msg.id);
               final bubble = Align(
                 alignment: AlignmentDirectional.centerStart,
-                child: Container(
-                  margin: const EdgeInsets.only(top: 8),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-                  decoration: BoxDecoration(color: const Color(0xFF102C25).withValues(alpha: .8),
-                    borderRadius: BorderRadius.circular(16)),
-                  child: Text.rich(TextSpan(children: [
-                    TextSpan(text: welcome ? 'WorldVoice  ' : '${msg!.displayName}  ',
-                      style: const TextStyle(color: Color(0xFFE7C56E), fontWeight: FontWeight.w700)),
-                    TextSpan(text: welcome
-                      ? (ar ? 'أهلًا بك! تعلّم وتحدث وشارك باحترام.' : 'Welcome! Learn, talk and share with respect.')
-                      : RoomGiftPreviewChatCodec.decode(msg!.text) != null
-                          ? (ar
-                              ? '🎁 معاينة هدية مجانية لصديق • دون خصم كوينات'
-                              : '🎁 Free gift effect for a friend • no coins')
-                          : msg.text),
-                  ]), style: const TextStyle(color: Colors.white, fontSize: 13, height: 1.5)),
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: msg == null || giftPreview != null ||
+                          widget.onTranslateMessage == null
+                      ? null
+                      : () => _translate(msg),
+                  child: Container(
+                    margin: const EdgeInsets.only(top: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 9,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF102C25).withValues(alpha: .8),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(
+                                text: welcome
+                                    ? 'WorldVoice  '
+                                    : '${msg!.displayName}  ',
+                                style: const TextStyle(
+                                  color: Color(0xFFE7C56E),
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              TextSpan(
+                                text: welcome
+                                    ? (ar
+                                        ? 'أهلًا بك! تعلّم وتحدث وشارك باحترام.'
+                                        : 'Welcome! Learn, talk and share with respect.')
+                                    : giftPreview != null
+                                        ? (ar
+                                            ? '🎁 معاينة هدية مجانية لصديق • دون خصم كوينات'
+                                            : '🎁 Free gift effect for a friend • no coins')
+                                        : msg!.text,
+                              ),
+                            ],
+                          ),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
+                            height: 1.5,
+                          ),
+                        ),
+                        if (translated?.isNotEmpty == true) ...[
+                          const SizedBox(height: 6),
+                          const Divider(
+                            height: 1,
+                            color: Colors.white12,
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            translated!,
+                            style: const TextStyle(
+                              color: Color(0xFF8EEAD0),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              height: 1.4,
+                            ),
+                          ),
+                        ] else if (translating) ...[
+                          const SizedBox(height: 6),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const SizedBox.square(
+                                dimension: 12,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 1.6,
+                                ),
+                              ),
+                              const SizedBox(width: 7),
+                              Text(
+                                ar ? 'جارٍ الترجمة…' : 'Translating…',
+                                style: const TextStyle(
+                                  color: Colors.white60,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ] else if (msg != null &&
+                            giftPreview == null &&
+                            widget.onTranslateMessage != null) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            widget.translationHint ??
+                                (ar
+                                    ? 'اضغط لترجمة الرسالة لك فقط'
+                                    : 'Tap to translate for you only'),
+                            style: const TextStyle(
+                              color: Colors.white38,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
                 ),
               );
               // Fade the words of each NEW message only. The seats, Teacher AI

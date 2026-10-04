@@ -8,6 +8,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import '../core/localization/locale_controller.dart';
 import '../core/localization/supported_language.dart';
 import '../core/theme/app_theme.dart';
+import '../features/auth/services/auth_service.dart';
 import '../features/home/presentation/home_screen.dart';
 import '../features/onboarding/presentation/welcome_screen.dart';
 import '../features/profile/presentation/profile_setup_screen.dart';
@@ -128,7 +129,7 @@ class _StartupGate extends StatelessWidget {
             }
 
             final data = profileSnapshot.data!.data();
-            final completed = data?['profileCompleted'] == true;
+            final completed = AuthService.hasCompletedProfileData(data);
 
             if (completed) {
               return HomeScreen(localeController: localeController);
