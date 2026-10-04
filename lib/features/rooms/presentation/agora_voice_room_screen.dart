@@ -178,6 +178,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   bool _teacherAiAutoCaptionPrimed = false;
   String? _lastTeacherAiAutoCaptionId;
   bool _teacherAiAutoReplyBusy = false;
+  bool _teacherAiConversationActive = false;
   RoomCaption? _queuedTeacherAiCaption;
   DateTime? _teacherAiSpeechSuppressedUntil;
 
@@ -210,6 +211,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     unawaited(_loadViewerLanguagePreferences());
     _captionController = RoomLiveCaptionController(
       service: _captionService,
+      audioFrames: _controller.audioFrames,
+      onTranscript: _handleRawTranscript,
       onState: ({
         required bool listening,
         String? error,
@@ -594,6 +597,41 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     unawaited(_speakRoomTeacher(latest.answer, roomLanguage));
   }
 
+  void _handleRawTranscript({
+    required String text,
+    required bool isLocal,
+    required String languageCode,
+    int? agoraUid,
+  }) {
+    if (!mounted || text.trim().isEmpty) return;
+
+    RoomParticipant? participant;
+    if (isLocal) {
+      participant = _me;
+    } else if (agoraUid != null) {
+      for (final item in _participants) {
+        if (item.agoraUid == agoraUid) {
+          participant = item;
+          break;
+        }
+      }
+    }
+
+    final caption = RoomCaption(
+      id: 'device_${isLocal ? "local" : agoraUid ?? 0}_'
+          '${DateTime.now().microsecondsSinceEpoch}',
+      userId: isLocal
+          ? (_moderation.currentUserId ?? '')
+          : (participant?.userId ?? 'agora:${agoraUid ?? 0}'),
+      displayName: participant?.displayName ??
+          (isLocal ? (_me?.displayName ?? 'You') : 'Speaker'),
+      text: text.trim(),
+      languageCode: languageCode,
+      createdAt: DateTime.now(),
+    );
+    _handleCaptions(<RoomCaption>[caption]);
+  }
+
   void _handleCaptions(List<RoomCaption> captions) {
     if (!mounted) return;
     final latest = captions.isEmpty ? null : captions.first;
@@ -631,9 +669,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   }
 
   bool _shouldAutoAnswerCaption(RoomCaption caption) {
-    if (!_showTeacherAiSeat ||
-        _me?.role != RoomMemberRole.host ||
+    if (!_teacherAiConversationActive ||
+        !_showTeacherAiSeat ||
         !_teacherAi.isAskConfigured ||
+        caption.userId != _moderation.currentUserId ||
         caption.text.trim().isEmpty) {
       return false;
     }
@@ -659,7 +698,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     _teacherAiAutoReplyBusy = true;
     try {
       var current = caption;
-      while (mounted && _showTeacherAiSeat && _me?.role == RoomMemberRole.host) {
+      while (mounted && _showTeacherAiSeat && _teacherAiConversationActive) {
         final prompt = current.text.trim();
         if (prompt.isNotEmpty) {
           try {
@@ -714,9 +753,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   Future<void> _translateLatestCaption(RoomCaption caption) async {
     _lastTranslatedCaptionId = caption.id;
     try {
-      final translated = await _translationService.translate(
+      final translated = await _translationService.translateAuto(
         text: caption.text,
-        sourceCode: caption.languageCode,
         targetCode: _captionTargetLanguage,
       );
       if (!mounted || _latestCaption?.id != caption.id) return;
@@ -738,12 +776,17 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         !_controller.muted &&
         !me.forcedMuted;
 
+    final wantsRemoteSpeech =
+        _captionsEnabled || _captionTranslationEnabled;
+    final wantsLocalSpeech =
+        _captionsEnabled ||
+        _pronunciationTipsEnabled ||
+        _teacherAiConversationActive;
+
     await _captionController.configure(
-      // Every on-stage speaker publishes transcript text from their own
-      // device. Visibility remains local: only users who enable subtitles,
-      // translation or pronunciation UI see those tools on their screen.
-      enabled: canPublish,
-      canPublish: canPublish,
+      enabled: wantsRemoteSpeech || (canPublish && wantsLocalSpeech),
+      canPublish: canPublish && wantsLocalSpeech,
+      captureRemote: wantsRemoteSpeech,
       languageCode: widget.roomLanguageCode ?? 'en',
       displayName: me?.displayName ?? 'WorldVoice user',
     );
@@ -771,8 +814,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         SnackBar(
           content: Text(
             isArabic
-                ? 'فعّل مقعد Teacher AI أولًا حتى يشارك ويتكلم داخل الروم.'
-                : 'Show the Teacher AI seat first so it can join and speak in the room.',
+                ? 'فعّل مقعد Teacher AI أولًا.'
+                : 'Show the Teacher AI seat first.',
           ),
         ),
       );
@@ -786,30 +829,65 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         SnackBar(
           content: Text(
             isArabic
-                ? 'يجب ربط Backend الخاص بـ Teacher AI أولاً.'
-                : 'Teacher AI backend must be connected first.',
+                ? 'Teacher AI غير متصل بالخادم.'
+                : 'Teacher AI backend is offline.',
           ),
         ),
       );
       return;
     }
 
+    final canSpeak = _controller.joined &&
+        _me?.isOnStage == true &&
+        !_controller.muted &&
+        _me?.forcedMuted != true;
+
+    if (!canSpeak) {
+      if (!mounted) return;
+      final isArabic =
+          Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isArabic
+                ? 'يجب أن تكون على مقعد متحدث والمايك مفتوح حتى تتكلم مع Teacher AI.'
+                : 'Join a speaker seat with your microphone open to talk with Teacher AI.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _teacherAiConversationActive = true;
+      _captionError = null;
+    });
     await _syncCaptionPublishing();
     if (!mounted) return;
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (_) => RoomTeacherAiSheet(
-        service: _teacherAi,
-        roomLanguageCode: widget.roomLanguageCode ?? 'en',
-        canSpeak: _me?.isOnStage == true &&
-            !_controller.muted &&
-            _me?.forcedMuted != true,
-        listening: _captionListening,
-        onVoicePressed: () => unawaited(_syncCaptionPublishing()),
-      ),
-    );
+
+    try {
+      await showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        builder: (_) => RoomTeacherAiSheet(
+          service: _teacherAi,
+          roomLanguageCode: widget.roomLanguageCode ?? 'en',
+          canSpeak: canSpeak,
+          listening: true,
+          online: _controller.joined && _teacherAi.isAskConfigured,
+          onVoicePressed: () => unawaited(_syncCaptionPublishing()),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _teacherAiConversationActive = false;
+          _queuedTeacherAiCaption = null;
+        });
+        await _syncCaptionPublishing();
+      }
+    }
   }
 
   Future<void> _showCaptionSettings() async {
@@ -844,6 +922,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                 _latestTranslatedCaption = null;
                 _lastTranslatedCaptionId = null;
               });
+              unawaited(_syncCaptionPublishing());
               final latest = _latestCaption;
               if (value && latest != null) {
                 unawaited(_translateLatestCaption(latest));
