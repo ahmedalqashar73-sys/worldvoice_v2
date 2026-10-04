@@ -81,10 +81,15 @@ class RoomTeacherAiService {
   }
 
   Stream<List<RoomTeacherAiNote>> watchNotes({int limit = 20}) {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) {
+      return const Stream<List<RoomTeacherAiNote>>.empty();
+    }
     return _db
         .collection(collectionName)
         .doc(roomId)
         .collection('teacher_ai_notes')
+        .where('userId', isEqualTo: uid)
         .orderBy('createdAt', descending: true)
         .limit(limit)
         .snapshots()
