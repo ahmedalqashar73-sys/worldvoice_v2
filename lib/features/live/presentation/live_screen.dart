@@ -252,6 +252,23 @@ class _LiveScreenState extends State<LiveScreen> {
   }
 }
 
+Future<int> _currentUserStageLevel() async {
+  final uid = FirebaseAuth.instance.currentUser?.uid;
+  if (uid == null) return 1;
+  try {
+    final snap =
+        await FirebaseFirestore.instance.collection('users').doc(uid).get();
+    final data = snap.data() ?? const <String, dynamic>{};
+    for (final key in const ['liveLevel', 'roomLevel', 'level']) {
+      final value = (data[key] as num?)?.toInt();
+      if (value != null && value > 0) return value.clamp(1, 999);
+    }
+  } catch (_) {
+    // Level bonus is optional; the base daily allowance still works.
+  }
+  return 1;
+}
+
 Future<List<String>> _myLearningLanguageCodes(String fallback) async {
   final uid = FirebaseAuth.instance.currentUser?.uid;
   if (uid == null) return <String>[fallback];
@@ -313,6 +330,10 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   String? _channelId;
   String? _liveId;
   final LiveSessionService _liveService = LiveSessionService();
+  final RoomQuotaService _quota = RoomQuotaService();
+  Timer? _quotaTimer;
+  int _quotaLevel = 1;
+  bool _quotaStarted = false;
 
   void _onControllerChanged() {
     if (mounted && _starting && !_cameraReady) {
@@ -326,6 +347,11 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     _controller.removeListener(_onControllerChanged);
     _heartbeatTimer?.cancel();
     _cameraOffTimer?.cancel();
+    _quotaTimer?.cancel();
+    if (_quotaStarted) {
+      unawaited(_quota.endSession());
+      _quotaStarted = false;
+    }
     final liveId = _liveId;
     if (liveId != null && !_sessionClosed) {
       unawaited(_liveService.end(liveId).catchError((Object _) {}));
@@ -377,6 +403,11 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     _sessionClosed = true;
     _heartbeatTimer?.cancel();
     _cameraOffTimer?.cancel();
+    _quotaTimer?.cancel();
+    if (_quotaStarted) {
+      await _quota.endSession();
+      _quotaStarted = false;
+    }
     final liveId = _liveId;
     if (liveId != null) {
       try {
@@ -389,6 +420,60 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     await _controller.leave();
     if (!mounted) return;
     Navigator.of(context).pop();
+  }
+
+  void _startHostQuotaTimer() {
+    _quotaTimer?.cancel();
+    _quotaTimer = Timer.periodic(
+      const Duration(minutes: 1),
+      (_) => unawaited(_checkHostQuota()),
+    );
+  }
+
+  Future<void> _checkHostQuota() async {
+    if (!_quotaStarted || _sessionClosed) return;
+    final status = await _quota.currentSessionStatus();
+    if (status.allowed || status.isUnlimited || !mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          widget.ar
+              ? 'انتهى وقت استضافة اللايف اليوم.'
+              : 'Your Live hosting time for today has ended.',
+        ),
+      ),
+    );
+    await _endLiveAndPop();
+  }
+
+  Future<void> _showHostQuotaStatus() async {
+    final status = await _quota.currentSessionStatus();
+    if (!mounted) return;
+    String formatSeconds(int value) {
+      final hours = value ~/ 3600;
+      final minutes = (value % 3600) ~/ 60;
+      return '${hours}h ${minutes}m';
+    }
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(widget.ar ? 'وقت اللايف اليومي' : 'Daily Live time'),
+        content: Text(
+          status.isUnlimited
+              ? (widget.ar ? 'VIP: وقت اللايف غير محدود.' : 'VIP: Live time is unlimited.')
+              : (widget.ar
+                  ? 'المتبقي: ${formatSeconds(status.remainingSeconds)}'
+                  : 'Remaining: ${formatSeconds(status.remainingSeconds)}'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(widget.ar ? 'إغلاق' : 'Close'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _startHeartbeat() {
@@ -461,6 +546,20 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
       _cameraStartError = null;
     });
     try {
+      _quotaLevel = await _currentUserStageLevel();
+      final quotaStatus = await _quota.startSession(
+        asHost: true,
+        roomLevel: _quotaLevel,
+      );
+      if (!quotaStatus.allowed) {
+        throw StateError(
+          widget.ar
+              ? 'انتهى وقت استضافة اللايف المتاح لك اليوم.'
+              : 'Your Live hosting time for today has been used.',
+        );
+      }
+      _quotaStarted = true;
+
       final channel = 'live_${DateTime.now().millisecondsSinceEpoch}';
       _channelId = channel;
       await _controller.ensureConnected(
@@ -490,6 +589,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
         return;
       }
       _startHeartbeat();
+      _startHostQuotaTimer();
       setState(() {
         _cameraReady = true;
         _starting = false;
@@ -497,6 +597,10 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
         _cameraStartError = null;
       });
     } catch (error) {
+      if (_quotaStarted) {
+        await _quota.endSession();
+        _quotaStarted = false;
+      }
       await _controller.leave();
       if (!mounted) return;
       setState(() {
@@ -1165,6 +1269,17 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                 icon: const Icon(
                                   Icons.card_giftcard_rounded,
                                   color: Color(0xFFFFC857),
+                                ),
+                              ),
+                              IconButton(
+                                tooltip: widget.ar
+                                    ? 'وقت اللايف'
+                                    : 'Live time',
+                                onPressed:
+                                    _liveId == null ? null : _showHostQuotaStatus,
+                                icon: const Icon(
+                                  Icons.schedule_rounded,
+                                  color: Colors.white,
                                 ),
                               ),
                               IconButton(
