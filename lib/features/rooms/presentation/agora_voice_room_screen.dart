@@ -179,6 +179,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   String? _lastTeacherAiAutoCaptionId;
   bool _teacherAiAutoReplyBusy = false;
   bool _teacherAiConversationActive = false;
+  bool _aiServiceUnavailable = false;
+  final ValueNotifier<bool> _teacherAiOnline = ValueNotifier<bool>(true);
   RoomCaption? _queuedTeacherAiCaption;
   DateTime? _teacherAiSpeechSuppressedUntil;
 
@@ -218,10 +220,24 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         String? error,
       }) {
         if (!mounted) return;
+        final normalizedError = error?.trim() ?? '';
+        final aiUnavailable =
+            normalizedError.contains('AI_SERVICE_UNAVAILABLE');
+        if (aiUnavailable) {
+          _aiServiceUnavailable = true;
+          _teacherAiOnline.value = false;
+        }
         setState(() {
           _captionListening = listening;
-          if (error != null && error.trim().isNotEmpty) {
-            _captionError = error;
+          if (normalizedError.isNotEmpty) {
+            final ar = (widget.localeController?.locale?.languageCode ??
+                    Localizations.localeOf(context).languageCode) ==
+                'ar';
+            _captionError = aiUnavailable
+                ? (ar
+                    ? 'خدمة الذكاء الاصطناعي غير متاحة حاليًا. ترجمة رسائل الشات ستستخدم الترجمة على الجهاز عند الإمكان.'
+                    : 'The AI service is temporarily unavailable. Chat message translation will use on-device translation when possible.')
+                : normalizedError.replaceFirst('Bad state: ', '');
           }
         });
       },
@@ -589,6 +605,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     }
     if (latest.id == _lastTeacherAiVoiceId) return;
     _lastTeacherAiVoiceId = latest.id;
+    _aiServiceUnavailable = false;
+    _teacherAiOnline.value = true;
     final roomLanguage = (widget.roomLanguageCode ?? 'en').trim().toLowerCase();
     final answerLanguage = latest.languageCode.trim().toLowerCase();
     if (answerLanguage.isNotEmpty && answerLanguage != roomLanguage) return;
@@ -604,6 +622,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     int? agoraUid,
   }) {
     if (!mounted || text.trim().isEmpty) return;
+    _aiServiceUnavailable = false;
+    _teacherAiOnline.value = true;
 
     RoomParticipant? participant;
     if (isLocal) {
@@ -711,7 +731,20 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               roomLanguageCode: widget.roomLanguageCode ?? 'en',
             );
           } catch (error) {
-            debugPrint('WorldVoice Teacher AI auto reply failed: $error');
+            final message = error.toString();
+            debugPrint('WorldVoice Teacher AI auto reply failed: $message');
+            if (message.contains('AI_SERVICE_UNAVAILABLE') && mounted) {
+              _aiServiceUnavailable = true;
+              _teacherAiOnline.value = false;
+              final ar = (widget.localeController?.locale?.languageCode ??
+                      Localizations.localeOf(context).languageCode) ==
+                  'ar';
+              setState(() {
+                _captionError = ar
+                    ? 'Teacher AI غير متصل الآن لأن خدمة AI الخارجية غير متاحة.'
+                    : 'Teacher AI is offline because the external AI service is unavailable.';
+              });
+            }
           }
         }
 
@@ -751,14 +784,16 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     return _translationService.translateAuto(
       text: text,
       targetCode: _captionTargetLanguage,
+      fallbackSourceCode: widget.roomLanguageCode,
     );
   }
 
   Future<void> _translateLatestCaption(RoomCaption caption) async {
     _lastTranslatedCaptionId = caption.id;
     try {
-      final translated = await _translationService.translateAuto(
+      final translated = await _translationService.translate(
         text: caption.text,
+        sourceCode: caption.languageCode,
         targetCode: _captionTargetLanguage,
       );
       if (!mounted || _latestCaption?.id != caption.id) return;
@@ -866,6 +901,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       _teacherAiConversationActive = true;
       _captionError = null;
     });
+    _teacherAiOnline.value =
+        _controller.joined && _teacherAi.isAskConfigured && !_aiServiceUnavailable;
     await _syncCaptionPublishing();
     if (!mounted) return;
 
@@ -879,7 +916,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
           roomLanguageCode: widget.roomLanguageCode ?? 'en',
           canSpeak: canSpeak,
           listening: true,
-          online: _controller.joined && _teacherAi.isAskConfigured,
+          online: _controller.joined &&
+              _teacherAi.isAskConfigured &&
+              !_aiServiceUnavailable,
+          onlineListenable: _teacherAiOnline,
           onVoicePressed: () => unawaited(_syncCaptionPublishing()),
         ),
       );
@@ -2650,6 +2690,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     unawaited(_captionController.dispose());
     unawaited(_translationService.dispose());
     unawaited(_stopRoomTeacherVoice());
+    _teacherAiOnline.dispose();
     unawaited(_musicPlayer.dispose());
     unawaited(_finishSessionTracking());
     unawaited(_moderation.leave());
