@@ -2562,6 +2562,60 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
           Color(0xFF111827),
           Color(0xFF090D16),
         ];
+      case 'skyAura':
+        return const [
+          Color(0xFFEAF9FF),
+          Color(0xFF86D8F6),
+          Color(0xFF3E9FD1),
+        ];
+      case 'softGreenFlow':
+        return const [
+          Color(0xFFE7FFF4),
+          Color(0xFF79DAB0),
+          Color(0xFF17845F),
+        ];
+      case 'silverWaves':
+        return const [
+          Color(0xFFF7F9FA),
+          Color(0xFFC9D3D8),
+          Color(0xFF7D929E),
+        ];
+      case 'goldenVipGlow':
+        return const [
+          Color(0xFF3E2C08),
+          Color(0xFFD6A929),
+          Color(0xFFFFECA7),
+        ];
+      case 'royalEmeraldMotion':
+        return const [
+          Color(0xFF052D22),
+          Color(0xFF0E8A60),
+          Color(0xFF63E5B4),
+        ];
+      case 'auroraWorld':
+        return const [
+          Color(0xFF0A3558),
+          Color(0xFF22C7B8),
+          Color(0xFF9B7BFF),
+        ];
+      case 'galaxyTalk':
+        return const [
+          Color(0xFF111225),
+          Color(0xFF4B3A8C),
+          Color(0xFF1D8AA5),
+        ];
+      case 'crystalBlueLuxury':
+        return const [
+          Color(0xFF071D3B),
+          Color(0xFF2A8DD8),
+          Color(0xFFBCEEFF),
+        ];
+      case 'velvetNight':
+        return const [
+          Color(0xFF140C1D),
+          Color(0xFF4A203F),
+          Color(0xFF9B5B7F),
+        ];
       default:
         return const [
           Color(0xFF0D4A38),
@@ -2720,15 +2774,20 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               icon: const Icon(Icons.picture_in_picture_alt_outlined, size: 21)),
           ],
         ),
-        body: DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter,
-              colors: _roomThemeColors(_featureState.themeId)),
-            image: _featureState.backgroundUrl?.trim().isNotEmpty == true
-              ? DecorationImage(image: NetworkImage(_featureState.backgroundUrl!.trim()),
-                  fit: BoxFit.cover, colorFilter: ColorFilter.mode(Colors.black.withValues(alpha: .25), BlendMode.darken))
-              : null,
-          ),
+        body: _AnimatedRoomBackground(
+          colors: _roomThemeColors(_featureState.themeId),
+          backgroundUrl: _featureState.backgroundUrl,
+          animated: const {
+            'skyAura',
+            'softGreenFlow',
+            'silverWaves',
+            'goldenVipGlow',
+            'royalEmeraldMotion',
+            'auroraWorld',
+            'galaxyTalk',
+            'crystalBlueLuxury',
+            'velvetNight',
+          }.contains(_featureState.themeId),
           child: SafeArea(top: false, child: Column(children: [
             if (_controller.connecting) const LinearProgressIndicator(minHeight: 2),
             if ((_controller.error != null || _audioFailure != null) && !_boardVisible) Container(
@@ -2863,6 +2922,113 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
           ])),
         ),
       ),
+    );
+  }
+}
+
+class _AnimatedRoomBackground extends StatefulWidget {
+  const _AnimatedRoomBackground({
+    required this.colors,
+    required this.child,
+    required this.animated,
+    this.backgroundUrl,
+  });
+
+  final List<Color> colors;
+  final Widget child;
+  final bool animated;
+  final String? backgroundUrl;
+
+  @override
+  State<_AnimatedRoomBackground> createState() =>
+      _AnimatedRoomBackgroundState();
+}
+
+class _AnimatedRoomBackgroundState extends State<_AnimatedRoomBackground>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(seconds: 10),
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.animated) _controller.repeat(reverse: true);
+  }
+
+  @override
+  void didUpdateWidget(covariant _AnimatedRoomBackground oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.animated && !_controller.isAnimating) {
+      _controller.repeat(reverse: true);
+    } else if (!widget.animated && _controller.isAnimating) {
+      _controller.stop();
+      _controller.value = 0;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final url = widget.backgroundUrl?.trim() ?? '';
+    return AnimatedBuilder(
+      animation: _controller,
+      child: widget.child,
+      builder: (context, child) {
+        final t = widget.animated ? _controller.value : 0.0;
+        return DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment(-.25 + t * .55, -1),
+              end: Alignment(.55 - t * .35, 1),
+              colors: widget.colors,
+            ),
+            image: url.isEmpty
+                ? null
+                : DecorationImage(
+                    image: NetworkImage(url),
+                    fit: BoxFit.cover,
+                    colorFilter: ColorFilter.mode(
+                      Colors.black.withValues(alpha: .25),
+                      BlendMode.darken,
+                    ),
+                  ),
+          ),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (widget.animated)
+                IgnorePointer(
+                  child: Align(
+                    alignment: Alignment(-.85 + t * 1.7, -.55 + t * .35),
+                    child: Container(
+                      width: 180,
+                      height: 180,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withValues(alpha: .055),
+                        boxShadow: [
+                          BoxShadow(
+                            blurRadius: 55,
+                            spreadRadius: 12,
+                            color: widget.colors.last.withValues(alpha: .16),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              if (child != null) child,
+            ],
+          ),
+        );
+      },
     );
   }
 }
