@@ -2,326 +2,185 @@ import 'package:flutter/material.dart';
 
 import '../services/room_teacher_ai_service.dart';
 
-class RoomTeacherAiSheet extends StatefulWidget {
+class RoomTeacherAiSheet extends StatelessWidget {
   const RoomTeacherAiSheet({
     required this.service,
     required this.roomLanguageCode,
-    this.onAnswer,
     this.onVoicePressed,
     this.canSpeak = false,
     this.listening = false,
-    this.closeAfterAnswer = false,
+    this.online,
     super.key,
   });
 
   final RoomTeacherAiService service;
   final String roomLanguageCode;
-  final ValueChanged<String>? onAnswer;
   final VoidCallback? onVoicePressed;
   final bool canSpeak;
   final bool listening;
-  final bool closeAfterAnswer;
-
-  @override
-  State<RoomTeacherAiSheet> createState() => _RoomTeacherAiSheetState();
-}
-
-class _RoomTeacherAiSheetState extends State<RoomTeacherAiSheet> {
-  final TextEditingController _questionController = TextEditingController();
-  final List<_TeacherMessage> _messages = <_TeacherMessage>[];
-  bool _sending = false;
-  String? _error;
-  String? _notice;
-
-  @override
-  void dispose() {
-    _questionController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _send() async {
-    final question = _questionController.text.trim();
-    if (question.isEmpty || _sending) return;
-
-    setState(() {
-      _messages.add(_TeacherMessage(text: question, fromUser: true));
-      _questionController.clear();
-      _sending = true;
-      _error = null;
-      _notice = null;
-    });
-
-    try {
-      final answer = await widget.service.ask(
-        prompt: question,
-        roomLanguageCode: widget.roomLanguageCode,
-      );
-      if (!mounted) return;
-      if (answer.trim().isEmpty) {
-        final isArabic =
-            Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
-        setState(() {
-          _notice = isArabic
-              ? 'Teacher AI يستجيب فقط بلغة الروم.'
-              : 'Teacher AI responds only in the room language.';
-        });
-        return;
-      }
-      setState(() {
-        _messages.add(_TeacherMessage(text: answer, fromUser: false));
-      });
-      widget.onAnswer?.call(answer);
-      if (widget.closeAfterAnswer && mounted) {
-        Navigator.of(context).pop();
-      }
-    } catch (error) {
-      if (!mounted) return;
-      setState(() => _error = error.toString());
-    } finally {
-      if (mounted) {
-        setState(() => _sending = false);
-      }
-    }
-  }
+  final bool? online;
 
   @override
   Widget build(BuildContext context) {
     final isArabic =
         Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
-    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+    final isOnline = online ?? service.isAskConfigured;
+    final active = isOnline && canSpeak && listening;
 
     return SafeArea(
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(14, 6, 14, 14 + bottomInset),
-        child: SizedBox(
-          height: MediaQuery.sizeOf(context).height * .72,
+      child: SizedBox(
+        height: MediaQuery.sizeOf(context).height * .62,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
           child: Column(
             children: [
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const CircleAvatar(
-                  backgroundColor: Color(0xFF3A2D71),
-                  child: Icon(Icons.smart_toy_rounded, color: Colors.white),
-                ),
-                title: const Text(
-                  'Teacher AI',
-                  style: TextStyle(fontWeight: FontWeight.w900),
-                ),
-                subtitle: Text(
-                  isArabic
-                      ? 'اسأل عن اللغة أو القواعد أو التصحيح داخل الروم.'
-                      : 'Ask about language, grammar, or corrections in the room.',
-                ),
-                trailing: IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close_rounded),
-                ),
-              ),
-              const Divider(height: 1),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(4, 14, 4, 8),
-                child: Material(
-                  color: widget.listening
-                      ? const Color(0xFF0E6F52)
-                      : Theme.of(context).colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(22),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(22),
-                    onTap: widget.canSpeak ? widget.onVoicePressed : null,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 16,
+              Row(
+                children: [
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close_rounded),
+                  ),
+                  const Spacer(),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      const Text(
+                        'Teacher AI',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
-                      child: Row(
+                      const SizedBox(height: 4),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          CircleAvatar(
-                            radius: 28,
-                            backgroundColor: widget.listening
-                                ? const Color(0xFF32D294)
-                                : Theme.of(context).colorScheme.primary,
-                            child: Icon(
-                              widget.listening
-                                  ? Icons.graphic_eq_rounded
-                                  : Icons.mic_rounded,
-                              color: Colors.white,
-                              size: 30,
+                          Container(
+                            width: 9,
+                            height: 9,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: isOnline
+                                  ? const Color(0xFF32D294)
+                                  : Colors.grey,
                             ),
                           ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  widget.canSpeak
-                                      ? (widget.listening
-                                          ? (isArabic
-                                              ? 'تكلم الآن — Teacher AI يسمعك'
-                                              : 'Speak now — Teacher AI is listening')
-                                          : (isArabic
-                                              ? 'اضغط وتكلم مع Teacher AI'
-                                              : 'Tap and speak with Teacher AI'))
-                                      : (isArabic
-                                          ? 'اصعد إلى مقعد متحدث لتتكلم مع Teacher AI'
-                                          : 'Join a speaker seat to talk with Teacher AI'),
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w900,
-                                    color: widget.listening
-                                        ? Colors.white
-                                        : Theme.of(context)
-                                            .colorScheme
-                                            .onSurface,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  isArabic
-                                      ? 'الكلام يتحول إلى نص داخليًا، ثم يرد Teacher AI عليك بصوت داخل الغرفة.'
-                                      : 'Your speech is transcribed locally, then Teacher AI answers aloud in the room.',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: widget.listening
-                                        ? Colors.white70
-                                        : Theme.of(context)
-                                            .colorScheme
-                                            .onSurfaceVariant,
-                                  ),
-                                ),
-                              ],
+                          const SizedBox(width: 7),
+                          Text(
+                            isOnline
+                                ? (isArabic ? 'متصل' : 'Online')
+                                : (isArabic ? 'غير متصل' : 'Offline'),
+                            style: TextStyle(
+                              color: isOnline
+                                  ? const Color(0xFF32D294)
+                                  : Colors.grey,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
                         ],
                       ),
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: _messages.isEmpty
-                    ? Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(28),
-                          child: Text(
-                            isArabic
-                                ? 'اكتب سؤالك لـ Teacher AI.\nمثال: صحح هذه الجملة أو اشرح لي هذه القاعدة.'
-                                : 'Ask Teacher AI a question.\nFor example: correct this sentence or explain this grammar rule.',
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        ),
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        itemCount: _messages.length,
-                        itemBuilder: (context, index) {
-                          final message = _messages[index];
-                          return Align(
-                            alignment: message.fromUser
-                                ? AlignmentDirectional.centerEnd
-                                : AlignmentDirectional.centerStart,
-                            child: Container(
-                              constraints: const BoxConstraints(maxWidth: 340),
-                              margin: const EdgeInsets.only(bottom: 9),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 13,
-                                vertical: 10,
-                              ),
-                              decoration: BoxDecoration(
-                                color: message.fromUser
-                                    ? Theme.of(context)
-                                        .colorScheme
-                                        .primaryContainer
-                                    : Theme.of(context)
-                                        .colorScheme
-                                        .surfaceContainerHighest,
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: SelectableText(message.text),
-                            ),
-                          );
-                        },
-                      ),
-              ),
-              if (_notice?.trim().isNotEmpty == true)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Text(
-                    _notice!,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              if (_error?.trim().isNotEmpty == true)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Text(
-                    _error!,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-              ExpansionTile(
-                tilePadding: EdgeInsets.zero,
-                childrenPadding: EdgeInsets.zero,
-                title: Text(
-                  isArabic ? 'اكتب بدلًا من الكلام' : 'Type instead',
-                  style: const TextStyle(fontWeight: FontWeight.w700),
-                ),
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _questionController,
-                          minLines: 1,
-                          maxLines: 4,
-                          maxLength: 1200,
-                          textInputAction: TextInputAction.send,
-                          onSubmitted: (_) => _send(),
-                          decoration: InputDecoration(
-                            hintText: isArabic
-                                ? 'اسأل Teacher AI...'
-                                : 'Ask Teacher AI...',
-                            counterText: '',
-                            border: const OutlineInputBorder(),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      IconButton.filled(
-                        onPressed: _sending ? null : _send,
-                        icon: _sending
-                            ? const SizedBox.square(
-                                dimension: 18,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : const Icon(Icons.send_rounded),
-                      ),
                     ],
+                  ),
+                  const SizedBox(width: 14),
+                  const CircleAvatar(
+                    radius: 28,
+                    backgroundColor: Color(0xFF3A2D71),
+                    child: Icon(
+                      Icons.smart_toy_rounded,
+                      color: Colors.white,
+                      size: 30,
+                    ),
                   ),
                 ],
               ),
+              const Divider(height: 28),
+              const Spacer(),
+              GestureDetector(
+                onTap: canSpeak && isOnline ? onVoicePressed : null,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  width: active ? 142 : 126,
+                  height: active ? 142 : 126,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: active
+                        ? const Color(0xFF0E9C70)
+                        : const Color(0xFF145D49),
+                    border: Border.all(
+                      color: active
+                          ? const Color(0xFF7FF4C7)
+                          : Colors.white24,
+                      width: 3,
+                    ),
+                    boxShadow: active
+                        ? const [
+                            BoxShadow(
+                              color: Color(0x6632D294),
+                              blurRadius: 30,
+                              spreadRadius: 8,
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: Icon(
+                    active
+                        ? Icons.graphic_eq_rounded
+                        : Icons.mic_rounded,
+                    color: Colors.white,
+                    size: 58,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 30),
+              Text(
+                !isOnline
+                    ? (isArabic
+                        ? 'Teacher AI غير متصل بالخادم الآن.'
+                        : 'Teacher AI is offline right now.')
+                    : !canSpeak
+                        ? (isArabic
+                            ? 'اصعد إلى أحد مقاعد المتحدثين حتى تتكلم مع Teacher AI.'
+                            : 'Join a speaker seat to talk with Teacher AI.')
+                        : active
+                            ? (isArabic
+                                ? 'تكلم طبيعيًا الآن — Teacher AI يسمعك ويرد عليك بصوت.'
+                                : 'Speak naturally now — Teacher AI is listening and will answer aloud.')
+                            : (isArabic
+                                ? 'Teacher AI جاهز. ابدأ الكلام.'
+                                : 'Teacher AI is ready. Start speaking.'),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 19,
+                  height: 1.5,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                isArabic
+                    ? 'ناقش أي موضوع، اسأل، جاوب، وتدرّب على اللغة. لا تحتاج للكتابة.'
+                    : 'Discuss any topic, ask questions, answer, and practice. No typing required.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  height: 1.5,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 14),
+              Chip(
+                avatar: const Icon(Icons.language_rounded, size: 17),
+                label: Text(
+                  isArabic
+                      ? 'لغة الغرفة: ${roomLanguageCode.toUpperCase()}'
+                      : 'Room language: ${roomLanguageCode.toUpperCase()}',
+                ),
+              ),
+              const Spacer(),
             ],
           ),
         ),
       ),
     );
   }
-}
-
-class _TeacherMessage {
-  const _TeacherMessage({
-    required this.text,
-    required this.fromUser,
-  });
-
-  final String text;
-  final bool fromUser;
 }
