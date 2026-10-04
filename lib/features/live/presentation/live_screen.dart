@@ -3482,6 +3482,25 @@ Future<void> _showLiveModeratorManagement(
                                   : Colors.white54,
                             ),
                           ),
+                          onTap: () {
+                            Navigator.of(sheetContext).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => PublicProfileScreen(
+                                  userId: entry.key,
+                                  languageCode: Localizations.localeOf(
+                                    sheetContext,
+                                  ).languageCode.toLowerCase(),
+                                  onInviteToStage: () => service.inviteViewer(
+                                    liveId: liveId,
+                                    userId: entry.key,
+                                  ),
+                                  inviteToStageLabel: ar
+                                      ? 'دعوة للكاميرا'
+                                      : 'Invite to Live stage',
+                                ),
+                              ),
+                            );
+                          },
                           trailing: Switch(
                             value: selected,
                             onChanged: (value) async {
