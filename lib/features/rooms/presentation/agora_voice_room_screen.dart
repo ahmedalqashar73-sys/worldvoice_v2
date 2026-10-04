@@ -103,8 +103,11 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   StreamSubscription<List<RoomChatMessage>>? _freeChatGiftSub;
   StreamSubscription<List<RoomCaption>>? _captionSub;
   StreamSubscription<List<RoomTeacherAiNote>>? _teacherAiSub;
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>?
+      _stageInviteSub;
 
   List<RoomParticipant> _participants = const <RoomParticipant>[];
+  String? _lastStageInviteSignature;
   RoomParticipant? _me;
   int? _lastSyncedAgoraUid;
   late bool _showTeacherAiSeat;
@@ -417,6 +420,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       });
 
       _meSub = _moderation.watchMe().listen(_handleMyParticipant);
+      _stageInviteSub =
+          _moderation.watchMyStageInvite().listen(_handleStageInvite);
 
       entryStage = 'audio-connect';
       // A successful joinChannel() request is not a completed voice
@@ -1069,6 +1074,71 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     unawaited(_synchronizeParticipantAudio());
   }
 
+  void _handleStageInvite(
+    DocumentSnapshot<Map<String, dynamic>> snapshot,
+  ) {
+    if (!mounted || !snapshot.exists || _leaving) return;
+    final data = snapshot.data() ?? const <String, dynamic>{};
+    if (data['status']?.toString() != 'pending') return;
+    final createdAt = data['createdAt'];
+    if (createdAt is! Timestamp) return;
+    final signature =
+        '${data['invitedBy']}|${data['role']}|${data['seatIndex']}|${createdAt.millisecondsSinceEpoch}';
+    if (_lastStageInviteSignature == signature) return;
+    _lastStageInviteSignature = signature;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && !_leaving) {
+        unawaited(_showStageInvitePrompt(data));
+      }
+    });
+  }
+
+  Future<void> _showStageInvitePrompt(Map<String, dynamic> data) async {
+    final ar =
+        Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
+    final seatIndex = (data['seatIndex'] as num?)?.toInt();
+    final role = RoomParticipant.roleFromString(data['role']?.toString());
+    final roleLabel = switch (role) {
+      RoomMemberRole.coHost => ar ? 'مساعد المضيف' : 'Co-host',
+      RoomMemberRole.vipSeat => ar ? 'مقعد VIP' : 'VIP seat',
+      _ => ar ? 'متحدث' : 'Speaker',
+    };
+    final accepted = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(ar ? 'دعوة للصعود' : 'Stage invitation'),
+        content: Text(
+          ar
+              ? 'تمت دعوتك للصعود كـ $roleLabel${seatIndex == null ? '' : ' على المقعد $seatIndex'}. هل تقبل؟'
+              : 'You were invited to join as $roleLabel${seatIndex == null ? '' : ' on seat $seatIndex'}. Accept?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(ar ? 'رفض' : 'Decline'),
+          ),
+          FilledButton.icon(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            icon: const Icon(Icons.keyboard_double_arrow_up_rounded),
+            label: Text(ar ? 'قبول والصعود' : 'Accept & join'),
+          ),
+        ],
+      ),
+    );
+    if (accepted == null) return;
+    try {
+      await _moderation.respondToStageInvite(accept: accepted);
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.toString().replaceFirst('Bad state: ', '')),
+        ),
+      );
+    }
+  }
+
   Future<void> _exitRemovedFromRoom() async {
     if (_leaving) return;
     _leaving = true;
@@ -1346,12 +1416,40 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   }
 
   void _openParticipantProfile(String userId) {
+    RoomParticipant? participant;
+    for (final value in _participants) {
+      if (value.userId == userId) {
+        participant = value;
+        break;
+      }
+    }
+    final target = participant;
+    final canInvite =
+        target != null && target.role == RoomMemberRole.listener && _canModerate;
+
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => PublicProfileScreen(
           userId: userId,
           languageCode:
               Localizations.localeOf(context).languageCode.toLowerCase(),
+          onInviteToStage: !canInvite
+              ? null
+              : () async {
+                  final seatIndex = _firstFreeSeat;
+                  if (seatIndex == null || seatIndex == 1) {
+                    throw StateError('All speaker seats are occupied.');
+                  }
+                  await _moderation.sendStageInvite(
+                    userId: userId,
+                    role: RoomMemberRole.speaker,
+                    seatIndex: seatIndex,
+                  );
+                },
+          inviteToStageLabel:
+              Localizations.localeOf(context).languageCode.toLowerCase() == 'ar'
+                  ? 'دعوة للصعود للروم'
+                  : 'Invite to room stage',
         ),
       ),
     );
@@ -2137,10 +2235,22 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
     if (selectedRole == null) return;
 
-    await _moderation.assignSeat(
+    await _moderation.sendStageInvite(
       userId: participant.userId,
       role: selectedRole,
       seatIndex: seatIndex,
+    );
+    if (!mounted) return;
+    final ar =
+        Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          ar
+              ? 'تم إرسال الدعوة. لن يصعد المستخدم إلا بعد الموافقة.'
+              : 'Invite sent. The member will join only after accepting.',
+        ),
+      ),
     );
   }
 
@@ -2239,6 +2349,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     _freeChatGiftSub?.cancel();
     _captionSub?.cancel();
     _teacherAiSub?.cancel();
+    _stageInviteSub?.cancel();
     _giftOverlayTimer?.cancel();
     _speakingTimer?.cancel();
     _quotaTimer?.cancel();
@@ -2598,240 +2709,3 @@ class _RaisedHandNotice extends StatelessWidget {
   const _RaisedHandNotice({
     required this.participant,
     required this.total,
-    required this.isArabic,
-    required this.onTap,
-    required this.onAccept,
-    required this.onReject,
-  });
-
-  final RoomParticipant participant;
-  final int total;
-  final bool isArabic;
-  final VoidCallback onTap;
-  final VoidCallback onAccept;
-  final VoidCallback onReject;
-
-  @override
-  Widget build(BuildContext context) {
-    final seat = participant.requestedSeatIndex;
-
-    return Material(
-      color: Colors.black.withValues(alpha: .32),
-      borderRadius: BorderRadius.circular(18),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 9, 8, 9),
-          child: Row(
-            children: [
-              _ParticipantAvatar(participant: participant),
-              const SizedBox(width: 9),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      participant.displayName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    Text(
-                      seat == null
-                          ? (isArabic ? 'يريد الصعود' : 'Wants to speak')
-                          : (isArabic
-                              ? 'يريد المقعد $seat'
-                              : 'Wants seat $seat'),
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (total > 1)
-                Container(
-                  margin: const EdgeInsetsDirectional.only(end: 4),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF6E55FF),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    '+${total - 1}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
-              IconButton(
-                onPressed: onReject,
-                icon: const Icon(Icons.close_rounded, color: Colors.white70),
-              ),
-              IconButton.filled(
-                onPressed: onAccept,
-                style: IconButton.styleFrom(
-                  backgroundColor: const Color(0xFF55DFA0),
-                  foregroundColor: const Color(0xFF073B2A),
-                ),
-                icon: const Icon(Icons.check_rounded),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ParticipantAvatar extends StatelessWidget {
-  const _ParticipantAvatar({required this.participant});
-
-  final RoomParticipant participant;
-
-  @override
-  Widget build(BuildContext context) {
-    final photoUrl = participant.photoUrl;
-    return CircleAvatar(
-      backgroundImage:
-          photoUrl?.isNotEmpty == true ? NetworkImage(photoUrl!) : null,
-      child: photoUrl?.isNotEmpty == true
-          ? null
-          : const Icon(Icons.person_rounded),
-    );
-  }
-}
-
-class _RoleOption extends StatelessWidget {
-  const _RoleOption({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(icon),
-      title: Text(label),
-      onTap: onTap,
-    );
-  }
-}
-
-
-
-class _TeacherAiCompactSeat extends StatelessWidget {
-  const _TeacherAiCompactSeat({
-    required this.configured,
-    this.note,
-    this.onTap,
-  });
-
-  final bool configured;
-  final RoomTeacherAiNote? note;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final correction = note?.correction.trim() ?? '';
-    final pronunciation = note?.pronunciationTip?.trim() ?? '';
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: onTap,
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.fromLTRB(10, 8, 12, 8),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: .08),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: const Color(0xFF6DE7C0).withValues(alpha: .50),
-            ),
-          ),
-          child: Row(
-            children: [
-              const CircleAvatar(
-                radius: 23,
-                backgroundColor: Color(0xFF3A2D71),
-                child: Icon(
-                  Icons.smart_toy_rounded,
-                  color: Colors.white,
-                  size: 25,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Teacher AI',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      correction.isNotEmpty
-                          ? correction
-                          : configured
-                              ? 'Tap to ask • listening for corrections…'
-                              : 'AI backend connection required',
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: correction.isNotEmpty
-                            ? const Color(0xFF8EEAD0)
-                            : Colors.white60,
-                        fontSize: 10,
-                        height: 1.2,
-                      ),
-                    ),
-                    if (pronunciation.isNotEmpty) ...[
-                      const SizedBox(height: 3),
-                      Text(
-                        pronunciation,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Color(0xFFFFD66B),
-                          fontSize: 9,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              if (onTap != null)
-                const Icon(
-                  Icons.chevron_right_rounded,
-                  color: Colors.white54,
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
