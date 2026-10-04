@@ -709,6 +709,11 @@ service cloud.firestore {
         allow write: if false;
       }
 
+      match /teacher_ai_messages/{messageId} {
+        allow read: if signedIn();
+        allow write: if false;
+      }
+
       match /captions/{captionId} {
         allow read: if signedIn();
         allow create: if signedIn()
@@ -963,6 +968,11 @@ service cloud.firestore {
 
         // Teacher AI notes are written by the trusted backend through
         // Firebase Admin SDK, which bypasses client security rules.
+        allow create, update, delete: if false;
+      }
+
+      match /teacher_ai_messages/{messageId} {
+        allow read: if isRoomMember(roomId);
         allow create, update, delete: if false;
       }
 
