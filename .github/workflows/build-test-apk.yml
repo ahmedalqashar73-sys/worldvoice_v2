@@ -25,6 +25,10 @@ jobs:
 
       - run: flutter pub get
 
+      - name: Give Gradle more memory in CI
+        shell: bash
+        run: sed -i 's/-Xmx2048m/-Xmx4096m/' android/gradle.properties
+
       - name: Build Android TEST APK
         run: >
           flutter build apk --release
