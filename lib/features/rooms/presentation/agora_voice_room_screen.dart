@@ -321,8 +321,6 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         if (!mounted) return;
         setState(() => _showTeacherAiSeat = isVisible);
         if (!isVisible) {
-          _teacherAiVoicePrimed = false;
-          _lastTeacherAiVoiceId = null;
           unawaited(_stopRoomTeacherVoice());
         }
       });
@@ -539,10 +537,18 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   void _handleTeacherAiVoice(
     List<RoomTeacherAiSpokenAnswer> messages,
   ) {
-    if (!mounted || !_showTeacherAiSeat || messages.isEmpty || _leaving) {
+    if (!mounted || _leaving) return;
+    if (messages.isEmpty) {
+      _teacherAiVoicePrimed = true;
       return;
     }
+
     final latest = messages.first;
+    if (!_showTeacherAiSeat) {
+      _teacherAiVoicePrimed = true;
+      _lastTeacherAiVoiceId = latest.id;
+      return;
+    }
     if (!_teacherAiVoicePrimed) {
       _teacherAiVoicePrimed = true;
       _lastTeacherAiVoiceId = latest.id;
@@ -648,6 +654,21 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   }
 
   Future<void> _showTeacherAiChat() async {
+    if (!_showTeacherAiSeat) {
+      if (!mounted) return;
+      final isArabic =
+          Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isArabic
+                ? 'فعّل مقعد Teacher AI أولًا حتى يشارك ويتكلم داخل الروم.'
+                : 'Show the Teacher AI seat first so it can join and speak in the room.',
+          ),
+        ),
+      );
+      return;
+    }
     if (!_teacherAi.isAskConfigured) {
       if (!mounted) return;
       final isArabic =
