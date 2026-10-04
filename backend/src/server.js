@@ -805,14 +805,17 @@ app.post("/teacher-ai/ask", async (req, res, next) => {
       return res.status(502).json({ error: "Teacher AI returned no answer." });
     }
 
-    await roomRef.collection("teacher_ai_messages").add({
-      userId: user.uid,
-      prompt,
-      answer,
-      languageCode: roomLanguageCode,
-      model: teacherModel,
-      createdAt: FieldValue.serverTimestamp(),
-    });
+    const voiceId = roomRef.collection("_voice_ids").doc().id;
+    await roomRef.set({
+      teacherAiVoice: {
+        id: voiceId,
+        userId: user.uid,
+        answer,
+        languageCode: roomLanguageCode,
+        model: teacherModel,
+        createdAt: FieldValue.serverTimestamp(),
+      },
+    }, {merge: true});
 
     return res.json({
       ok: true,
