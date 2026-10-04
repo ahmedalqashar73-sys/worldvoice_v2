@@ -2131,8 +2131,7 @@ service cloud.firestore {
       }
 
       match /teacher_ai_notes/{noteId} {
-        allow read: if signedIn()
-            && resource.data.userId == request.auth.uid;
+        allow read: if signedIn();
         allow write: if false;
       }
 
@@ -2386,11 +2385,10 @@ service cloud.firestore {
       }
 
       match /teacher_ai_notes/{noteId} {
-        allow read: if isRoomMember(roomId)
-            && resource.data.userId == request.auth.uid;
+        allow read: if isRoomMember(roomId);
 
-        // Corrections are private to the speaker. Teacher AI notes are
-        // written by the trusted backend through Firebase Admin SDK.
+        // Teacher AI notes are written by the trusted backend through
+        // Firebase Admin SDK, which bypasses client security rules.
         allow create, update, delete: if false;
       }
 
