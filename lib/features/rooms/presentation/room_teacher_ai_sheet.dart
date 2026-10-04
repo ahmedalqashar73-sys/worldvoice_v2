@@ -10,6 +10,7 @@ class RoomTeacherAiSheet extends StatelessWidget {
     this.canSpeak = false,
     this.listening = false,
     this.online,
+    this.closeAfterAnswer = false,
     super.key,
   });
 
@@ -19,6 +20,9 @@ class RoomTeacherAiSheet extends StatelessWidget {
   final bool canSpeak;
   final bool listening;
   final bool? online;
+  // Retained for source compatibility with the Live surface. The room
+  // experience is voice-only and closes explicitly with the close button.
+  final bool closeAfterAnswer;
 
   @override
   Widget build(BuildContext context) {
