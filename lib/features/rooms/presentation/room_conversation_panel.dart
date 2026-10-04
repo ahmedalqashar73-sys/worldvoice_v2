@@ -179,7 +179,7 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
                                         ? (ar
                                             ? '🎁 معاينة هدية مجانية لصديق • دون خصم كوينات'
                                             : '🎁 Free gift effect for a friend • no coins')
-                                        : msg.text,
+                                        : msg!.text,
                               ),
                             ],
                           ),
