@@ -420,7 +420,10 @@ class _ConversationTile extends StatelessWidget {
 
 class ChatConversationScreen extends StatefulWidget {
   const ChatConversationScreen({
-    required this.chatId, required this.peerId, required this.peerName,
+    required this.chatId,
+    required this.peerId,
+    required this.peerName,
+    super.key,
   });
   final String chatId;
   final String peerId;
