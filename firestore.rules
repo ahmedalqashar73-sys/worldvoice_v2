@@ -1374,6 +1374,16 @@ service cloud.firestore {
                     request.resource.data.role == 'listener'
                     && !('seatIndex' in request.resource.data)
                   )
+                  ||
+                  (
+                    resource.data.role == 'listener'
+                    && resource.data.handRaised == true
+                    && request.resource.data.role == 'speaker'
+                    && request.resource.data.handRaised == false
+                    && request.resource.data.seatIndex is int
+                    && request.resource.data.seatIndex >= 2
+                    && request.resource.data.seatIndex <= 8
+                  )
                 )
               )
             );
