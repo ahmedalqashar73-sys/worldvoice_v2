@@ -68,6 +68,74 @@ class RoomShopService {
         );
   }
 
+  Stream<Set<String>> watchOwnedItemIds(String type) {
+    final user = _user;
+    if (user == null) return Stream.value(<String>{});
+    return _db
+        .collection('users')
+        .doc(user.uid)
+        .collection('inventory')
+        .where('type', isEqualTo: type)
+        .snapshots()
+        .map((snapshot) {
+      final now = DateTime.now();
+      return snapshot.docs.where((doc) {
+        final raw = doc.data()['expiresAt'];
+        return raw is! Timestamp || raw.toDate().isAfter(now);
+      }).map((doc) => doc.id).toSet();
+    });
+  }
+
+  Stream<String?> watchSelectedProfileFrame() {
+    final user = _user;
+    if (user == null) return Stream.value(null);
+    return _db.collection('users').doc(user.uid).snapshots().map(
+          (snapshot) =>
+              (snapshot.data()?['profileFrameId'] as String?)?.trim(),
+        );
+  }
+
+  Future<void> setProfileFrame(String frameId) async {
+    final user = _user;
+    if (user == null) throw StateError('Sign in is required.');
+
+    const freeFrames = <String>{
+      'free_clean_white',
+      'free_soft_green',
+      'free_sky_blue',
+      'free_silver',
+      'free_minimal_glow',
+    };
+    final normalized = frameId.trim();
+    if (freeFrames.contains(normalized)) {
+      await _db.collection('users').doc(user.uid).update({
+        'profileFrameId': normalized,
+      });
+      return;
+    }
+    if (!normalized.startsWith('frame__')) {
+      throw StateError('Invalid profile frame.');
+    }
+
+    final owned = await _db
+        .collection('users')
+        .doc(user.uid)
+        .collection('inventory')
+        .doc(normalized)
+        .get();
+    final data = owned.data() ?? const <String, dynamic>{};
+    final rawExpires = data['expiresAt'];
+    final active = rawExpires is! Timestamp ||
+        rawExpires.toDate().isAfter(DateTime.now());
+    if (!owned.exists || data['type'] != 'frame' || !active) {
+      throw StateError('This frame is not in your inventory.');
+    }
+
+    await _db.collection('users').doc(user.uid).update({
+      'profileFrameId': normalized,
+    });
+  }
+
   Stream<List<RoomBackgroundReward>> watchBackgroundRewards() {
     final user = _user;
     if (user == null) {
