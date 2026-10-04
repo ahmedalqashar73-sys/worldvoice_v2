@@ -716,6 +716,119 @@ class _BackgroundPlaceholder extends StatelessWidget {
   }
 }
 
+class _FrameStoreCard extends StatelessWidget {
+  const _FrameStoreCard({
+    required this.frameId,
+    required this.name,
+    required this.isArabic,
+    required this.isFree,
+    required this.owned,
+    required this.selected,
+    required this.priceCoins,
+    required this.durationDays,
+    required this.onApply,
+    this.onBuy,
+    this.onGift,
+  });
+
+  final String frameId;
+  final String name;
+  final bool isArabic;
+  final bool isFree;
+  final bool owned;
+  final bool selected;
+  final int priceCoins;
+  final int? durationDays;
+  final VoidCallback? onApply;
+  final VoidCallback? onBuy;
+  final VoidCallback? onGift;
+
+  @override
+  Widget build(BuildContext context) {
+    final subtitle = isFree
+        ? (isArabic ? 'مجاني' : 'Free')
+        : owned
+            ? (isArabic ? 'مملوك' : 'Owned')
+            : '$priceCoins coins • '
+                '${durationDays == null ? (isArabic ? 'دائم' : 'Permanent') : '$durationDays ${isArabic ? 'يوم' : 'days'}'}';
+
+    return Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          Expanded(
+            child: Center(
+              child: WorldVoiceAvatarFrame(
+                frameId: frameId,
+                size: 92,
+                child: const ColoredBox(
+                  color: Color(0xFF183A32),
+                  child: Center(
+                    child: Icon(
+                      Icons.person_rounded,
+                      color: Colors.white,
+                      size: 44,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 7),
+            child: Text(
+              name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.w900),
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            selected
+                ? (isArabic ? 'مستخدم الآن' : 'Equipped')
+                : subtitle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(6, 7, 6, 9),
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 5,
+              runSpacing: 4,
+              children: [
+                if (owned)
+                  FilledButton.tonal(
+                    onPressed: selected ? null : onApply,
+                    child: Text(
+                      selected
+                          ? (isArabic ? 'مستخدم' : 'Equipped')
+                          : (isArabic ? 'استخدام' : 'Apply'),
+                    ),
+                  )
+                else
+                  FilledButton(
+                    onPressed: onBuy,
+                    child: Text(isArabic ? 'شراء' : 'Buy'),
+                  ),
+                if (!isFree && !owned)
+                  OutlinedButton(
+                    onPressed: onGift,
+                    child: Text(isArabic ? 'إهداء' : 'Gift'),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _OtherStoreTab extends StatelessWidget {
   const _OtherStoreTab({
     required this.type, required this.shop, required this.isArabic,
@@ -825,6 +938,94 @@ class _OtherStoreTab extends StatelessWidget {
               return Center(child: Text(
                 isArabic ? 'تعذر تحميل المتجر' : 'Store unavailable',
               ));
+            }
+            if (type == 'frame') {
+              return StreamBuilder<Set<String>>(
+                stream: shop.watchOwnedItemIds('frame'),
+                builder: (context, ownedSnapshot) {
+                  final owned = ownedSnapshot.data ?? <String>{};
+                  return StreamBuilder<String?>(
+                    stream: shop.watchSelectedProfileFrame(),
+                    builder: (context, selectedSnapshot) {
+                      final selected = selectedSnapshot.data;
+                      final freeFrames = WorldVoiceAvatarFrame.freeFrameIds;
+                      return GridView.builder(
+                        padding: const EdgeInsets.all(10),
+                        itemCount: freeFrames.length + items.length,
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: .68,
+                          mainAxisSpacing: 12,
+                          crossAxisSpacing: 10,
+                        ),
+                        itemBuilder: (context, index) {
+                          if (index < freeFrames.length) {
+                            final frameId = freeFrames[index];
+                            return _FrameStoreCard(
+                              frameId: frameId,
+                              name: WorldVoiceAvatarFrame.label(
+                                frameId,
+                                ar: isArabic,
+                              ),
+                              isArabic: isArabic,
+                              isFree: true,
+                              owned: true,
+                              selected: selected == frameId,
+                              priceCoins: 0,
+                              durationDays: null,
+                              onApply: () async {
+                                try {
+                                  await shop.setProfileFrame(frameId);
+                                } catch (error) {
+                                  if (!context.mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(error.toString())),
+                                  );
+                                }
+                              },
+                            );
+                          }
+
+                          final item = items[index - freeFrames.length];
+                          final isOwned = owned.contains(item.id);
+                          return _FrameStoreCard(
+                            frameId: item.id,
+                            name: item.name,
+                            isArabic: isArabic,
+                            isFree: false,
+                            owned: isOwned,
+                            selected: selected == item.id,
+                            priceCoins: item.priceCoins,
+                            durationDays: item.durationDays,
+                            onApply: !isOwned
+                                ? null
+                                : () async {
+                                    try {
+                                      await shop.setProfileFrame(item.id);
+                                    } catch (error) {
+                                      if (!context.mounted) return;
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(error.toString()),
+                                        ),
+                                      );
+                                    }
+                                  },
+                            onBuy: isOwned || !shop.isConfigured
+                                ? null
+                                : () => _pay(context, item),
+                            onGift: !shop.isConfigured
+                                ? null
+                                : () => _gift(context, item),
+                          );
+                        },
+                      );
+                    },
+                  );
+                },
+              );
             }
             if (items.isEmpty) {
               return Center(child: Text(
