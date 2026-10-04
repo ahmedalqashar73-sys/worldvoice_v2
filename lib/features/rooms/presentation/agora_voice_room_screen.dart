@@ -175,6 +175,11 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   RoomTeacherAiNote? _latestTeacherAiNote;
   bool _teacherAiVoicePrimed = false;
   String? _lastTeacherAiVoiceId;
+  bool _teacherAiAutoCaptionPrimed = false;
+  String? _lastTeacherAiAutoCaptionId;
+  bool _teacherAiAutoReplyBusy = false;
+  RoomCaption? _queuedTeacherAiCaption;
+  DateTime? _teacherAiSpeechSuppressedUntil;
 
   RoomFeatureState _featureState = const RoomFeatureState(
     roomLevel: 1,
@@ -321,8 +326,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         if (!mounted) return;
         setState(() => _showTeacherAiSeat = isVisible);
         if (!isVisible) {
+          _queuedTeacherAiCaption = null;
           unawaited(_stopRoomTeacherVoice());
         }
+        unawaited(_syncCaptionPublishing());
       });
 
       _featuresSub = _features.watchState().listen((state) {
@@ -559,6 +566,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     final roomLanguage = (widget.roomLanguageCode ?? 'en').trim().toLowerCase();
     final answerLanguage = latest.languageCode.trim().toLowerCase();
     if (answerLanguage.isNotEmpty && answerLanguage != roomLanguage) return;
+    _teacherAiSpeechSuppressedUntil =
+        DateTime.now().add(const Duration(seconds: 8));
     unawaited(_speakRoomTeacher(latest.answer, roomLanguage));
   }
 
@@ -573,6 +582,16 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       }
     });
 
+    if (!_teacherAiAutoCaptionPrimed) {
+      _teacherAiAutoCaptionPrimed = true;
+      _lastTeacherAiAutoCaptionId = latest?.id;
+    } else if (latest != null && latest.id != _lastTeacherAiAutoCaptionId) {
+      _lastTeacherAiAutoCaptionId = latest.id;
+      if (_shouldAutoAnswerCaption(latest)) {
+        unawaited(_queueTeacherAiAutoReply(latest));
+      }
+    }
+
     if (latest != null &&
         _captionTranslationEnabled &&
         latest.id != _lastTranslatedCaptionId) {
@@ -580,11 +599,68 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     }
 
     if (latest != null &&
-        (_showTeacherAiSeat || _pronunciationTipsEnabled) &&
+        _pronunciationTipsEnabled &&
         latest.userId == _moderation.currentUserId &&
         latest.id != _lastTeacherAiCaptionId) {
       _lastTeacherAiCaptionId = latest.id;
       unawaited(_requestPronunciationGuidance(latest));
+    }
+  }
+
+  bool _shouldAutoAnswerCaption(RoomCaption caption) {
+    if (!_showTeacherAiSeat ||
+        _me?.role != RoomMemberRole.host ||
+        !_teacherAi.isAskConfigured ||
+        caption.text.trim().isEmpty) {
+      return false;
+    }
+    final suppressedUntil = _teacherAiSpeechSuppressedUntil;
+    if (suppressedUntil != null && DateTime.now().isBefore(suppressedUntil)) {
+      return false;
+    }
+    final createdAt = caption.createdAt;
+    if (createdAt != null &&
+        DateTime.now().difference(createdAt).abs() >
+            const Duration(seconds: 20)) {
+      return false;
+    }
+    return true;
+  }
+
+  Future<void> _queueTeacherAiAutoReply(RoomCaption caption) async {
+    if (_teacherAiAutoReplyBusy) {
+      _queuedTeacherAiCaption = caption;
+      return;
+    }
+
+    _teacherAiAutoReplyBusy = true;
+    try {
+      var current = caption;
+      while (mounted && _showTeacherAiSeat && _me?.role == RoomMemberRole.host) {
+        final prompt = current.text.trim();
+        if (prompt.isNotEmpty) {
+          try {
+            await _teacherAi.ask(
+              prompt: prompt,
+              roomLanguageCode: widget.roomLanguageCode ?? 'en',
+            );
+          } catch (error) {
+            debugPrint('WorldVoice Teacher AI auto reply failed: $error');
+          }
+        }
+
+        final next = _queuedTeacherAiCaption;
+        _queuedTeacherAiCaption = null;
+        if (next == null || next.id == current.id) break;
+        final suppressedUntil = _teacherAiSpeechSuppressedUntil;
+        if (suppressedUntil != null &&
+            DateTime.now().isBefore(suppressedUntil)) {
+          break;
+        }
+        current = next;
+      }
+    } finally {
+      _teacherAiAutoReplyBusy = false;
     }
   }
 
@@ -633,7 +709,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         !me.forcedMuted;
 
     await _captionController.configure(
-      enabled: _captionsEnabled,
+      enabled:
+          _captionsEnabled || _pronunciationTipsEnabled || _showTeacherAiSeat,
       canPublish: canPublish,
       languageCode: widget.roomLanguageCode ?? 'en',
       displayName: me?.displayName ?? 'WorldVoice user',
@@ -740,6 +817,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                 _lastTeacherAiCaptionId = null;
                 _captionError = null;
               });
+              unawaited(_syncCaptionPublishing());
               final latest = _latestCaption;
               if (value && latest != null &&
                   latest.userId == _moderation.currentUserId) {
