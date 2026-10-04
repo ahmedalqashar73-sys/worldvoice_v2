@@ -827,6 +827,89 @@ app.post("/teacher-ai/ask", async (req, res, next) => {
   }
 });
 
+app.post("/translate", async (req, res, next) => {
+  try {
+    const user = await authenticatedUser(req);
+
+    requireEnv(openAiKey, "OPENAI_API_KEY");
+    requireEnv(teacherModel, "OPENAI_TEACHER_MODEL");
+
+    const context = req.body?.context === "live" ? "live" : "room";
+    const roomId = String(req.body?.roomId || "").trim();
+    const text = String(req.body?.text || "").trim();
+    const targetLanguageCode = String(
+      req.body?.targetLanguageCode || "",
+    ).trim().toLowerCase();
+
+    if (!roomId || !text || !targetLanguageCode) {
+      return res.status(400).json({
+        error: "roomId, text and targetLanguageCode are required.",
+      });
+    }
+    if (text.length > 500) {
+      return res.status(400).json({
+        error: "Room messages are limited to 500 characters.",
+      });
+    }
+    if (!/^[a-z]{2,3}(?:-[a-z0-9]{2,8})?$/i.test(targetLanguageCode)) {
+      return res.status(400).json({error: "Invalid target language."});
+    }
+
+    const parentCollection = context === "live" ? "live_sessions" : "rooms";
+    const parentRef = db.collection(parentCollection).doc(roomId);
+    const parentSnap = await parentRef.get();
+    if (!parentSnap.exists ||
+        (context === "room" && parentSnap.data()?.isOpen !== true) ||
+        (context === "live" && parentSnap.data()?.isLive !== true)) {
+      return res.status(404).json({
+        error: context === "live" ? "Live session is not active." : "Room is not open.",
+      });
+    }
+
+    let memberAllowed = false;
+    if (context === "room") {
+      memberAllowed = (await parentRef.collection("participants")
+        .doc(user.uid).get()).exists;
+    } else {
+      const live = parentSnap.data() || {};
+      memberAllowed = live.hostId === user.uid ||
+        (await parentRef.collection("viewers").doc(user.uid).get()).exists;
+    }
+    if (!memberAllowed) {
+      return res.status(403).json({
+        error: context === "live" ? "User is not in this Live." : "User is not in this room.",
+      });
+    }
+
+    const response = await openai.responses.create({
+      model: teacherModel,
+      store: false,
+      instructions:
+        "Translate the provided social chat message faithfully into the requested target language. " +
+        "Automatically detect the source language. Preserve names, usernames, emojis, numbers and meaning. " +
+        "Do not explain, annotate, censor, summarize, or answer the message. " +
+        "If the text is already in the requested target language, return it unchanged. " +
+        "Return only the translated message text.",
+      input:
+        `Target language code: ${targetLanguageCode}\n` +
+        `Message: ${text}`,
+    });
+
+    const translation = String(response.output_text || "").trim().slice(0, 1200);
+    if (!translation) {
+      return res.status(502).json({error: "Translation returned no text."});
+    }
+
+    return res.json({
+      ok: true,
+      translation,
+      targetLanguageCode,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 /**
  * Uniform non-currency entitlement purchase/gift. VIP with coins is gifted
  * only; a user's own recurring VIP plan goes through verified store billing.
