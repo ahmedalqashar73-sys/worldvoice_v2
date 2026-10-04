@@ -170,6 +170,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
             final country = data['country'] as String?;
             final city = (data['city'] as String?)?.trim();
             final hideCity = data['hideCity'] == true;
+            final isVip = data['isVip'] == true;
             final gender = data['gender'] as String?;
             final nativeLanguage = (data['nativeLanguage'] as String?)?.trim();
             final birthRaw = data['birthDate'];
@@ -226,16 +227,43 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                 ),
                 if (username?.isNotEmpty == true) ...[
                   const SizedBox(height: 4),
-                  Text(
-                    '@$username',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withValues(alpha: .72),
-                          fontWeight: FontWeight.w700,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '@$username',
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: .72),
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                      if (isVip) ...[
+                        const SizedBox(width: 7),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFD76A),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: const Text(
+                            'VIP',
+                            style: TextStyle(
+                              color: Color(0xFF4B3500),
+                              fontSize: 10,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: .4,
+                            ),
+                          ),
                         ),
+                      ],
+                    ],
                   ),
                 ],
                 const SizedBox(height: 7),
