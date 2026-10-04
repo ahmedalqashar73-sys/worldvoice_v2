@@ -429,7 +429,7 @@ class _PcmSpeechSegment {
   _CompletedPcmSegment? add(Uint8List frame) {
     if (frame.isEmpty) return null;
     final frameMs =
-        ((frame.length / bytesPerSecond) * 1000).round().clamp(1, 200);
+        ((frame.length / bytesPerSecond) * 1000).round().clamp(1, 200).toInt();
     final level = _meanAbsolutePcm16(frame);
     const speechStartLevel = 320;
     const silenceLevel = 190;
