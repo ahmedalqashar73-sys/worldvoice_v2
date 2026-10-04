@@ -27,6 +27,7 @@ import '../services/live_session_service.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../../profile/services/profile_social_service.dart';
 import '../../profile/data/profile_language_catalog.dart';
+import '../../profile/presentation/public_profile_screen.dart';
 import '../../chat/presentation/chat_screen.dart';
 
 const MethodChannel _livePermissionChannel =
@@ -330,6 +331,29 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     unawaited(_controller.leave());
     _controller.dispose();
     super.dispose();
+  }
+
+  void _openViewerProfile({
+    required String userId,
+    required String displayName,
+  }) {
+    final liveId = _liveId;
+    if (liveId == null || userId.isEmpty) return;
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => PublicProfileScreen(
+          userId: userId,
+          languageCode:
+              Localizations.localeOf(context).languageCode.toLowerCase(),
+          onInviteToStage: () => _liveService.inviteViewer(
+            liveId: liveId,
+            userId: userId,
+          ),
+          inviteToStageLabel:
+              widget.ar ? 'دعوة للكاميرا' : 'Invite to Live stage',
+        ),
+      ),
+    );
   }
 
   Future<void> _shareHostLive() async {
@@ -1033,6 +1057,11 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                         _LiveViewerFaces(
                                           service: _liveService,
                                           liveId: _liveId!,
+                                          onViewerTap: (userId, name, photo) =>
+                                              _openViewerProfile(
+                                            userId: userId,
+                                            displayName: name,
+                                          ),
                                         ),
                                         const SizedBox(width: 6),
                                       ],
@@ -1332,6 +1361,8 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   bool _followBusy = false;
   bool _isModerator = false;
   bool _moderatorRequestsOpen = false;
+  bool _invitePromptOpen = false;
+  String? _lastInviteMarker;
   StreamSubscription<bool>? _moderatorSub;
 
   @override
@@ -1382,6 +1413,82 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
       }
     } finally {
       if (mounted) setState(() => _followBusy = false);
+    }
+  }
+
+  void _openViewerProfile({
+    required String userId,
+    required String displayName,
+  }) {
+    if (userId.isEmpty) return;
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => PublicProfileScreen(
+          userId: userId,
+          languageCode:
+              Localizations.localeOf(context).languageCode.toLowerCase(),
+          onInviteToStage: !_isModerator
+              ? null
+              : () => _service.inviteViewer(
+                    liveId: widget.liveId,
+                    userId: userId,
+                  ),
+          inviteToStageLabel:
+              widget.ar ? 'دعوة للكاميرا' : 'Invite to Live stage',
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showLiveInvitePrompt(
+    Map<String, dynamic> requestData,
+  ) async {
+    if (_invitePromptOpen || !mounted) return;
+    final invitedAt = requestData['invitedAt'];
+    final marker = invitedAt is Timestamp
+        ? '${invitedAt.millisecondsSinceEpoch}:${requestData['invitedBy']}'
+        : requestData['invitedBy']?.toString() ?? 'invite';
+    if (_lastInviteMarker == marker) return;
+    _lastInviteMarker = marker;
+    _invitePromptOpen = true;
+    try {
+      final accepted = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => AlertDialog(
+          title: Text(
+            widget.ar ? 'دعوة للصعود في اللايف' : 'Live stage invitation',
+          ),
+          content: Text(
+            widget.ar
+                ? 'المضيف أو المودريتر دعاك للكاميرا. هل تريد الصعود؟'
+                : 'The host or moderator invited you on camera. Join the Live stage?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: Text(widget.ar ? 'رفض' : 'Decline'),
+            ),
+            FilledButton.icon(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              icon: const Icon(Icons.videocam_rounded),
+              label: Text(widget.ar ? 'قبول والصعود' : 'Accept & join'),
+            ),
+          ],
+        ),
+      );
+      if (accepted == null) return;
+      await _service.respondToInvite(
+        liveId: widget.liveId,
+        accept: accepted,
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
+    } finally {
+      _invitePromptOpen = false;
     }
   }
 
@@ -1456,7 +1563,14 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
         return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
       stream: _service.watchMyRequest(widget.liveId),
       builder: (context, requestSnapshot) {
-        final status = requestSnapshot.data?.data()?['status']?.toString();
+        final requestData =
+            requestSnapshot.data?.data() ?? const <String, dynamic>{};
+        final status = requestData['status']?.toString();
+        if (status == 'invited') {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) unawaited(_showLiveInvitePrompt(requestData));
+          });
+        }
         if (status == 'accepted' && !_guestPublishing) {
           WidgetsBinding.instance.addPostFrameCallback((_) => _becomeGuest());
         }
@@ -1646,6 +1760,11 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                 _LiveViewerFaces(
                                   service: _service,
                                   liveId: widget.liveId,
+                                  onViewerTap: (userId, name, photo) =>
+                                      _openViewerProfile(
+                                    userId: userId,
+                                    displayName: name,
+                                  ),
                                 ),
                                 const SizedBox(width: 4),
                                 if ((widget.data['hostId'] ?? '').toString() !=
@@ -3533,10 +3652,13 @@ class _LiveViewerFaces extends StatelessWidget {
   const _LiveViewerFaces({
     required this.service,
     required this.liveId,
+    this.onViewerTap,
   });
 
   final LiveSessionService service;
   final String liveId;
+  final void Function(String userId, String displayName, String photoUrl)?
+      onViewerTap;
 
   @override
   Widget build(BuildContext context) {
@@ -3562,26 +3684,38 @@ class _LiveViewerFaces extends StatelessWidget {
                       final data = viewers[index].data();
                       final photo =
                           (data['photoUrl'] ?? '').toString().trim();
-                      return Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.white,
-                            width: 1.5,
+                      final name =
+                          (data['displayName'] ?? 'WorldVoice user').toString();
+                      return GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: onViewerTap == null
+                            ? null
+                            : () => onViewerTap!(
+                                  viewers[index].id,
+                                  name,
+                                  photo,
+                                ),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Colors.white,
+                              width: 1.5,
+                            ),
                           ),
-                        ),
-                        child: CircleAvatar(
-                          radius: 11,
-                          backgroundColor: const Color(0xFF245A49),
-                          foregroundImage:
-                              photo.isEmpty ? null : NetworkImage(photo),
-                          child: photo.isEmpty
-                              ? const Icon(
-                                  Icons.person_rounded,
-                                  color: Colors.white,
-                                  size: 13,
-                                )
-                              : null,
+                          child: CircleAvatar(
+                            radius: 11,
+                            backgroundColor: const Color(0xFF245A49),
+                            foregroundImage:
+                                photo.isEmpty ? null : NetworkImage(photo),
+                            child: photo.isEmpty
+                                ? const Icon(
+                                    Icons.person_rounded,
+                                    color: Colors.white,
+                                    size: 13,
+                                  )
+                                : null,
+                          ),
                         ),
                       );
                     },
