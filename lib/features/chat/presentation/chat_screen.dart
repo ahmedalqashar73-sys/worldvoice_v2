@@ -85,6 +85,26 @@ class ChatScreen extends StatelessWidget {
     );
   }
 
+  static Future<void> openDirectConversation({
+    required BuildContext context,
+    required String peerId,
+    required String peerName,
+  }) async {
+    final result = await _post('/chat/start', <String, dynamic>{
+      'recipientId': peerId,
+    });
+    if (!context.mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => _ChatConversation(
+          chatId: result['chatId'].toString(),
+          peerId: peerId,
+          peerName: peerName,
+        ),
+      ),
+    );
+  }
+
   Future<void> _startChat(BuildContext parentContext, bool ar, String uid) async {
     final db = FirebaseFirestore.instance;
     await showModalBottomSheet<void>(
