@@ -26,12 +26,16 @@ class RoomLiveCaptionController {
     required RoomCaptionStateCallback onState,
     Stream<AgoraRoomAudioFrame>? audioFrames,
     RoomCaptionTextCallback? onTranscript,
-  })  : _service = service,
-        _onState = onState,
-        _audioFrames = audioFrames,
-        _onTranscript = onTranscript {
+  }) : this._(service, onState, audioFrames, onTranscript);
+
+  RoomLiveCaptionController._(
+    this._service,
+    this._onState,
+    this._audioFrames,
+    this._onTranscript,
+  ) {
     if (_audioFrames != null) {
-      _audioSub = _audioFrames!.listen(
+      _audioSub = _audioFrames.listen(
         _onAgoraFrame,
         onError: (Object error, StackTrace stackTrace) {
           if (_disposed) return;
