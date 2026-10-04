@@ -9,6 +9,34 @@ class AuthService {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
   static bool _googleInitialized = false;
 
+  static bool hasCompletedProfileData(Map<String, dynamic>? data) {
+    if (data == null) return false;
+    if (data['profileCompleted'] == true) return true;
+
+    final displayName = (data['displayName'] ?? data['name'] ?? '')
+        .toString()
+        .trim();
+    final username = (data['username'] ?? '').toString().trim();
+    final nativeLanguage =
+        (data['nativeLanguageCode'] ?? data['nativeLanguage'] ?? '')
+            .toString()
+            .trim();
+    final country = (data['country'] ?? '').toString().trim();
+    final gender = (data['gender'] ?? '').toString().trim();
+    final hasBirthDate = data['birthDate'] != null;
+
+    final identitySignals = <bool>[
+      nativeLanguage.isNotEmpty,
+      country.isNotEmpty,
+      gender.isNotEmpty,
+      hasBirthDate,
+    ].where((value) => value).length;
+
+    // Older WorldVoice profiles may pre-date profileCompleted. Do not force
+    // those users through onboarding again when their identity already exists.
+    return displayName.isNotEmpty && username.isNotEmpty && identitySignals > 0;
+  }
+
   static Future<void> _initializeGoogle() async {
     if (_googleInitialized) return;
 
