@@ -3024,7 +3024,7 @@ class _AnimatedRoomBackgroundState extends State<_AnimatedRoomBackground>
                     ),
                   ),
                 ),
-              if (child != null) child,
+              child?,
             ],
           ),
         );
