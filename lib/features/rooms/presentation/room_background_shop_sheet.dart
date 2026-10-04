@@ -691,31 +691,6 @@ class _BackgroundStoreCard extends StatelessWidget {
   }
 }
 
-class _BackgroundPlaceholder extends StatelessWidget {
-  const _BackgroundPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Color(0xFF30216E),
-            Color(0xFF0D4A38),
-          ],
-        ),
-      ),
-      child: const Center(
-        child: Icon(
-          Icons.wallpaper_rounded,
-          size: 42,
-          color: Colors.white70,
-        ),
-      ),
-    );
-  }
-}
-
 class _FrameStoreCard extends StatelessWidget {
   const _FrameStoreCard({
     required this.frameId,
