@@ -131,6 +131,31 @@ test('economy reads are permitted but client-side money and gifts cannot be forg
       ? true : 1000000}));
   }
   await assertSucceeds(updateDoc(profile, {displayName: 'Guest 2'}));
+
+  // Free frames are available to everyone, while premium frames require
+  // a backend-created active inventory entitlement.
+  await assertSucceeds(updateDoc(profile, {
+    profileFrameId: 'free_soft_green',
+  }));
+  await assertFails(updateDoc(profile, {
+    profileFrameId: 'frame__golden_crown',
+  }));
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const adminDb = ctx.firestore();
+    await setDoc(
+      doc(adminDb, 'users/listener/inventory/frame__golden_crown'),
+      {
+        itemId: 'frame__golden_crown',
+        type: 'frame',
+        quantity: 1,
+        expiresAt: null,
+      },
+    );
+  });
+  await assertSucceeds(updateDoc(profile, {
+    profileFrameId: 'frame__golden_crown',
+  }));
+
   await assertFails(setDoc(doc(db, 'users/new'), {uid: 'new', coins: 500}));
   for (const profile of [
     {uid: 'fresh', coins: 500},
