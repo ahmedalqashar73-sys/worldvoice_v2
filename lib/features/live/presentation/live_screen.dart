@@ -2460,7 +2460,10 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
       roomId: widget.liveId,
       collectionName: 'live_sessions',
     );
-    _translationService = RoomTranslationService();
+    _translationService = RoomTranslationService(
+      roomId: widget.liveId,
+      collectionName: 'live_sessions',
+    );
     _teacherAi = RoomTeacherAiService(
       roomId: widget.liveId,
       collectionName: 'live_sessions',
