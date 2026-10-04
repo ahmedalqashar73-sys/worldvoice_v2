@@ -800,10 +800,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     if (mounted) {
       setState(() {
         _captionsEnabled = value;
-        if (!value) {
+        if (!value && !_captionTranslationEnabled) {
           _latestTranslatedCaption = null;
-          _captionError = null;
         }
+        _captionError = null;
       });
     }
     await _syncCaptionPublishing();
@@ -3005,9 +3005,15 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                       onReject: () => _moderation.rejectHand(_raisedHands.first.userId),
                     ),
                   ),
-                if (_captionsEnabled && _latestCaption != null && !compact)
-                  RoomCaptionOverlay(caption: _latestCaption!, translationEnabled: _captionTranslationEnabled,
-                    translatedText: _latestTranslatedCaption),
+                if ((_captionsEnabled || _captionTranslationEnabled) &&
+                    _latestCaption != null &&
+                    !compact)
+                  RoomCaptionOverlay(
+                    caption: _latestCaption!,
+                    translationEnabled: _captionTranslationEnabled,
+                    showOriginal: _captionsEnabled,
+                    translatedText: _latestTranslatedCaption,
+                  ),
                 if (_featureState.quizQuestion != null && !compact)
                   Align(alignment: AlignmentDirectional.centerEnd, child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
