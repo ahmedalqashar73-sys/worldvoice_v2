@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../../core/widgets/worldvoice_avatar_frame.dart';
 import '../data/room_stage_models.dart';
 
 class RoomStageGrid extends StatelessWidget {
@@ -113,31 +114,55 @@ class _CompactRoomSeatState extends State<_CompactRoomSeat>
                   ? 5 + (7 * math.sin(_pulse.value * math.pi))
                   : 0.0;
 
-              return Container(
-                width: 58,
-                height: 58,
-                padding: const EdgeInsets.all(2.5),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: _frameGradient(seat),
-                  boxShadow: [
-                    if (seat.isActiveSpeaker)
-                      BoxShadow(
-                        blurRadius: glow,
-                        spreadRadius: 2,
-                        color: const Color(0xFF60FFB5).withValues(alpha: .75),
+              return Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    width: 58,
+                    height: 58,
+                    padding: const EdgeInsets.all(2.5),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: _frameGradient(seat),
+                      boxShadow: [
+                        if (seat.isActiveSpeaker)
+                          BoxShadow(
+                            blurRadius: glow,
+                            spreadRadius: 2,
+                            color: const Color(0xFF60FFB5)
+                                .withValues(alpha: .75),
+                          ),
+                        if (WorldVoiceAvatarFrame.isPremium(seat.frameId))
+                          BoxShadow(
+                            blurRadius: 10,
+                            spreadRadius: 1,
+                            color: WorldVoiceAvatarFrame.colorsFor(
+                              seat.frameId,
+                            ).first.withValues(alpha: .38),
+                          ),
+                      ],
+                    ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: seat.isEmpty
+                            ? Colors.white.withValues(alpha: .16)
+                            : const Color(0xFF19152F),
                       ),
-                  ],
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: seat.isEmpty
-                        ? Colors.white.withValues(alpha: .16)
-                        : const Color(0xFF19152F),
+                      child: ClipOval(child: _SeatAvatar(seat: seat)),
+                    ),
                   ),
-                  child: ClipOval(child: _SeatAvatar(seat: seat)),
-                ),
+                  if (seat.frameId == 'frame__golden_crown')
+                    const Positioned(
+                      top: -7,
+                      child: Icon(
+                        Icons.workspace_premium_rounded,
+                        size: 17,
+                        color: Color(0xFFFFD65A),
+                      ),
+                    ),
+                ],
               );
             },
           ),
@@ -179,6 +204,11 @@ class _CompactRoomSeatState extends State<_CompactRoomSeat>
   }
 
   LinearGradient _frameGradient(RoomSeatState seat) {
+    if (seat.frameId?.trim().isNotEmpty == true) {
+      return LinearGradient(
+        colors: WorldVoiceAvatarFrame.colorsFor(seat.frameId),
+      );
+    }
     if (seat.role == RoomMemberRole.teacherAi) {
       return const LinearGradient(
         colors: [Color(0xFF745CFF), Color(0xFF00E2A7)],
