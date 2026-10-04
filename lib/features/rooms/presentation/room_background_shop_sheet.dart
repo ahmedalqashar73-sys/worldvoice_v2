@@ -407,6 +407,192 @@ class RoomBackgroundShopSheet extends StatelessWidget {
   }
 }
 
+class _FreeBackgroundCard extends StatelessWidget {
+  const _FreeBackgroundCard({
+    required this.themeId,
+    required this.isArabic,
+    required this.isHost,
+    required this.onApply,
+  });
+
+  final String themeId;
+  final bool isArabic;
+  final bool isHost;
+  final VoidCallback onApply;
+
+  String get _label => switch (themeId) {
+        'skyAura' => isArabic ? 'هالة سماوية' : 'Sky Blue Aura',
+        'softGreenFlow' => isArabic ? 'تدفق أخضر' : 'Soft Green Flow',
+        'silverWaves' => isArabic ? 'موج فضي' : 'Silver Light Waves',
+        _ => isArabic ? 'خلفية مجانية' : 'Free Background',
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(child: _BuiltInBackgroundPreview(themeId: themeId)),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8, 7, 8, 0),
+            child: Text(
+              _label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.w900),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 3),
+            child: Text(
+              isArabic ? 'مجانية • متحركة' : 'Free • Animated',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(7, 7, 7, 9),
+            child: FilledButton.tonal(
+              onPressed: isHost ? onApply : null,
+              child: Text(isArabic ? 'استخدام مجانًا' : 'Use free'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BuiltInBackgroundPreview extends StatefulWidget {
+  const _BuiltInBackgroundPreview({required this.themeId});
+
+  final String themeId;
+
+  static List<Color> colorsFor(String themeId) => switch (themeId) {
+        'skyAura' => const [
+            Color(0xFFEAF9FF),
+            Color(0xFF86D8F6),
+            Color(0xFF3E9FD1),
+          ],
+        'softGreenFlow' => const [
+            Color(0xFFE7FFF4),
+            Color(0xFF79DAB0),
+            Color(0xFF17845F),
+          ],
+        'silverWaves' => const [
+            Color(0xFFF7F9FA),
+            Color(0xFFC9D3D8),
+            Color(0xFF7D929E),
+          ],
+        'goldenVipGlow' => const [
+            Color(0xFF3E2C08),
+            Color(0xFFD6A929),
+            Color(0xFFFFECA7),
+          ],
+        'royalEmeraldMotion' => const [
+            Color(0xFF052D22),
+            Color(0xFF0E8A60),
+            Color(0xFF63E5B4),
+          ],
+        'auroraWorld' => const [
+            Color(0xFF0A3558),
+            Color(0xFF22C7B8),
+            Color(0xFF9B7BFF),
+          ],
+        'galaxyTalk' => const [
+            Color(0xFF111225),
+            Color(0xFF4B3A8C),
+            Color(0xFF1D8AA5),
+          ],
+        'crystalBlueLuxury' => const [
+            Color(0xFF071D3B),
+            Color(0xFF2A8DD8),
+            Color(0xFFBCEEFF),
+          ],
+        'velvetNight' => const [
+            Color(0xFF140C1D),
+            Color(0xFF4A203F),
+            Color(0xFF9B5B7F),
+          ],
+        _ => const [
+            Color(0xFF0D4A38),
+            Color(0xFF1D9270),
+          ],
+      };
+
+  @override
+  State<_BuiltInBackgroundPreview> createState() =>
+      _BuiltInBackgroundPreviewState();
+}
+
+class _BuiltInBackgroundPreviewState extends State<_BuiltInBackgroundPreview>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(seconds: 8),
+  )..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = _BuiltInBackgroundPreview.colorsFor(widget.themeId);
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        final t = _controller.value;
+        return DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment(-1 + t * .7, -1),
+              end: Alignment(1, .35 + t * .65),
+              colors: colors,
+            ),
+          ),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Align(
+                alignment: Alignment(-.75 + t * 1.4, -.45),
+                child: Container(
+                  width: 86,
+                  height: 86,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: .16),
+                    boxShadow: [
+                      BoxShadow(
+                        blurRadius: 28,
+                        spreadRadius: 8,
+                        color: colors.last.withValues(alpha: .22),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Center(
+                child: Icon(
+                  Icons.graphic_eq_rounded,
+                  size: 46,
+                  color: Colors.white.withValues(alpha: .78),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
 class _BackgroundStoreCard extends StatelessWidget {
   const _BackgroundStoreCard({
     required this.item,
@@ -447,9 +633,10 @@ class _BackgroundStoreCard extends StatelessWidget {
                 ? Image.network(
                     previewUrl,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => const _BackgroundPlaceholder(),
+                    errorBuilder: (_, _, _) =>
+                        _BuiltInBackgroundPreview(themeId: item.themeId),
                   )
-                : const _BackgroundPlaceholder(),
+                : _BuiltInBackgroundPreview(themeId: item.themeId),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(8, 7, 8, 0),
