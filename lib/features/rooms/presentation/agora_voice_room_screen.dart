@@ -643,10 +643,14 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       }
     });
 
-    if (!_teacherAiAutoCaptionPrimed) {
+    final isDeviceTranscript = latest?.id.startsWith('device_') == true;
+    if (!_teacherAiAutoCaptionPrimed && !isDeviceTranscript) {
+      // Ignore the historical Firestore caption present when a room first
+      // opens, but never discard the first phrase captured on this device.
       _teacherAiAutoCaptionPrimed = true;
       _lastTeacherAiAutoCaptionId = latest?.id;
     } else if (latest != null && latest.id != _lastTeacherAiAutoCaptionId) {
+      _teacherAiAutoCaptionPrimed = true;
       _lastTeacherAiAutoCaptionId = latest.id;
       if (_shouldAutoAnswerCaption(latest)) {
         unawaited(_queueTeacherAiAutoReply(latest));
