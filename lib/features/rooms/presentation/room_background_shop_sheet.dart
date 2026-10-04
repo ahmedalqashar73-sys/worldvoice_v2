@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../../core/widgets/worldvoice_avatar_frame.dart';
 import '../data/room_shop_models.dart';
 import '../data/room_feature_models.dart';
 import '../services/room_feature_service.dart';
@@ -190,106 +191,49 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                           final reward =
                               rewards.isEmpty ? null : rewards.first;
 
-                          if (catalogSnapshot.connectionState ==
-                                  ConnectionState.waiting &&
-                              catalog.isEmpty) {
-                            return const Center(
-                              child: CircularProgressIndicator(),
-                            );
-                          }
+                          const freeThemes = <String>[
+                            'skyAura',
+                            'softGreenFlow',
+                            'silverWaves',
+                          ];
 
-                          if (catalog.isEmpty) {
-                            // Keep the room-design shop useful without
-                            // inventing paid catalog items or stock imagery.
-                            const freeThemes = <(String, String, List<Color>)>[
-                              ('emerald', 'Emerald',
-                                [Color(0xFF0D4A38), Color(0xFF1D9270)]),
-                              ('forestGold', 'Green & Gold',
-                                [Color(0xFF124B38), Color(0xFFC0A44D)]),
-                              ('skyBlue', 'Sky Blue',
-                                [Color(0xFF14678F), Color(0xFF8DDBF5)]),
-                              ('midnight', 'Midnight',
-                                [Color(0xFF17223A), Color(0xFF283E6D)]),
-                            ];
-                            return GridView.builder(
-                              padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
-                              itemCount: freeThemes.length,
-                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                childAspectRatio: .76,
-                                mainAxisSpacing: 12,
-                                crossAxisSpacing: 10,
-                              ),
-                              itemBuilder: (context, index) {
-                                final theme = freeThemes[index];
-                                return Card(
-                                  clipBehavior: Clip.antiAlias,
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                                    children: [
-                                      Expanded(
-                                        child: DecoratedBox(
-                                          decoration: BoxDecoration(
-                                            gradient: LinearGradient(
-                                              begin: Alignment.topLeft,
-                                              end: Alignment.bottomRight,
-                                              colors: theme.$3,
-                                            ),
-                                          ),
-                                          child: const Icon(
-                                            Icons.wallpaper_rounded,
-                                            size: 45, color: Colors.white70,
-                                          ),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(6),
-                                        child: Text(
-                                          switch (theme.$1) {
-                                            'emerald' => isArabic ? 'أخضر' : 'Emerald',
-                                            'forestGold' => isArabic ? 'أخضر وذهبي' : 'Green & Gold',
-                                            'skyBlue' => isArabic ? 'سماوي' : 'Sky Blue',
-                                            _ => isArabic ? 'داكن' : 'Midnight',
-                                          },
-                                          textAlign: TextAlign.center,
-                                          style: const TextStyle(fontWeight: FontWeight.w800),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.fromLTRB(7, 0, 7, 9),
-                                        child: OutlinedButton(
-                                          onPressed: !isHost ? null : () async {
-                                            try {
-                                              await roomFeatures.setTheme(theme.$1);
-                                            } catch (error) {
-                                              if (!context.mounted) return;
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(content: Text(error.toString())));
-                                            }
-                                          },
-                                          child: Text(isArabic ? 'استخدام مجانًا' : 'Use free'),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            );
-                          }
-
-                          // Dedicated two-column background cards with the
-                          // user's own catalog previews, not gift inventory.
+                          // Three polished animated backgrounds are always
+                          // free. Paid backgrounds stay server-authoritative.
                           return GridView.builder(
                             padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
-                            itemCount: catalog.length,
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            itemCount: freeThemes.length + catalog.length,
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
                               childAspectRatio: .68,
                               mainAxisSpacing: 12,
                               crossAxisSpacing: 10,
                             ),
                             itemBuilder: (context, index) {
-                              final item = catalog[index];
+                              if (index < freeThemes.length) {
+                                final themeId = freeThemes[index];
+                                return _FreeBackgroundCard(
+                                  themeId: themeId,
+                                  isArabic: isArabic,
+                                  isHost: isHost,
+                                  onApply: () async {
+                                    try {
+                                      await roomFeatures.setTheme(themeId);
+                                    } catch (error) {
+                                      if (!context.mounted) return;
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(error.toString()),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                );
+                              }
+
+                              final item =
+                                  catalog[index - freeThemes.length];
                               final entitlement =
                                   ownedByTheme[item.themeId];
                               final isOwned = entitlement != null;
@@ -307,16 +251,18 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                                           isArabic,
                                         )
                                     : null,
-                                onClaim: reward != null && _shop.isConfigured
-                                    ? () => _claim(
-                                          context,
-                                          reward,
-                                          item,
-                                          isArabic,
-                                        )
-                                    : null,
+                                onClaim:
+                                    reward != null && _shop.isConfigured
+                                        ? () => _claim(
+                                              context,
+                                              reward,
+                                              item,
+                                              isArabic,
+                                            )
+                                        : null,
                                 onApply: isOwned && isHost
-                                    ? () => roomFeatures.setPurchasedBackground(
+                                    ? () =>
+                                        roomFeatures.setPurchasedBackground(
                                           themeId: item.themeId,
                                           backgroundUrl:
                                               entitlement.backgroundUrl,
@@ -324,7 +270,10 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                                     : null,
                                 onGift: _shop.isConfigured
                                     ? () => _giftBackground(
-                                          context, item, isArabic)
+                                          context,
+                                          item,
+                                          isArabic,
+                                        )
                                     : null,
                               );
                             },
