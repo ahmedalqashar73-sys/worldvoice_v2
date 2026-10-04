@@ -10,6 +10,7 @@ class RoomTeacherAiSheet extends StatelessWidget {
     this.canSpeak = false,
     this.listening = false,
     this.online,
+    this.onlineListenable,
     this.closeAfterAnswer = false,
     super.key,
   });
@@ -20,6 +21,7 @@ class RoomTeacherAiSheet extends StatelessWidget {
   final bool canSpeak;
   final bool listening;
   final bool? online;
+  final ValueListenable<bool>? onlineListenable;
   // Retained for source compatibility with the Live surface. The room
   // experience is voice-only and closes explicitly with the close button.
   final bool closeAfterAnswer;
@@ -28,10 +30,10 @@ class RoomTeacherAiSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final isArabic =
         Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
-    final isOnline = online ?? service.isAskConfigured;
-    final active = isOnline && canSpeak && listening;
 
-    return SafeArea(
+    Widget content(bool isOnline) {
+      final active = isOnline && canSpeak && listening;
+      return SafeArea(
       child: SizedBox(
         height: MediaQuery.sizeOf(context).height * .62,
         child: Padding(
