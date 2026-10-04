@@ -197,6 +197,100 @@ class LiveSessionService {
     });
   }
 
+  Future<void> inviteViewer({
+    required String liveId,
+    required String userId,
+  }) async {
+    final currentUser = _user;
+    final session = _sessions.doc(liveId);
+    final viewer = session.collection('viewers').doc(userId);
+    final request = session.collection('join_requests').doc(userId);
+
+    await _db.runTransaction((tx) async {
+      final sessionSnap = await tx.get(session);
+      if (!isFresh(sessionSnap.data())) {
+        throw StateError('LIVE_ENDED');
+      }
+      final hostId = sessionSnap.data()?['hostId']?.toString() ?? '';
+      if (hostId != currentUser.uid) {
+        final moderatorRef = _db
+            .collection('users')
+            .doc(hostId)
+            .collection('moderators')
+            .doc(currentUser.uid);
+        final moderatorSnap = await tx.get(moderatorRef);
+        if (!moderatorSnap.exists) {
+          throw StateError('MODERATOR_ONLY');
+        }
+      }
+
+      final viewerSnap = await tx.get(viewer);
+      if (!viewerSnap.exists) {
+        throw StateError('VIEWER_NOT_AVAILABLE');
+      }
+      final requestSnap = await tx.get(request);
+      if (requestSnap.data()?['status']?.toString() == 'accepted') {
+        throw StateError('ALREADY_ON_STAGE');
+      }
+      final guestCount =
+          (sessionSnap.data()?['guestCount'] as num?)?.toInt() ?? 0;
+      if (guestCount >= 3) {
+        throw StateError('LIVE_GUEST_LIMIT_REACHED');
+      }
+
+      final viewerData = viewerSnap.data() ?? const <String, dynamic>{};
+      tx.set(request, {
+        'uid': userId,
+        'displayName':
+            (viewerData['displayName'] ?? 'WorldVoice user').toString(),
+        'photoUrl': (viewerData['photoUrl'] ?? '').toString(),
+        'status': 'invited',
+        'invitedBy': currentUser.uid,
+        'invitedAt': FieldValue.serverTimestamp(),
+        'requestedAt': FieldValue.delete(),
+        'decidedAt': FieldValue.delete(),
+      }, SetOptions(merge: true));
+    });
+  }
+
+  Future<void> respondToInvite({
+    required String liveId,
+    required bool accept,
+  }) async {
+    final user = _user;
+    final session = _sessions.doc(liveId);
+    final request = session.collection('join_requests').doc(user.uid);
+
+    await _db.runTransaction((tx) async {
+      final sessionSnap = await tx.get(session);
+      final requestSnap = await tx.get(request);
+      if (!isFresh(sessionSnap.data())) {
+        throw StateError('LIVE_ENDED');
+      }
+      if (!requestSnap.exists ||
+          requestSnap.data()?['status']?.toString() != 'invited') {
+        throw StateError('INVITE_NOT_PENDING');
+      }
+
+      final guestCount =
+          (sessionSnap.data()?['guestCount'] as num?)?.toInt() ?? 0;
+      if (accept && guestCount >= 3) {
+        throw StateError('LIVE_GUEST_LIMIT_REACHED');
+      }
+
+      tx.update(request, {
+        'status': accept ? 'accepted' : 'declined',
+        'decidedAt': FieldValue.serverTimestamp(),
+      });
+      if (accept) {
+        tx.update(session, {
+          'guestCount': FieldValue.increment(1),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      }
+    });
+  }
+
   Future<void> requestToJoin(String liveId) async {
     final user = _user;
     await _sessions.doc(liveId).collection('join_requests').doc(user.uid).set({
