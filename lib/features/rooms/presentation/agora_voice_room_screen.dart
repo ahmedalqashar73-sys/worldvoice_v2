@@ -1460,6 +1460,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         userId: participant.userId,
         displayName: participant.displayName,
         avatarUrl: participant.photoUrl,
+        frameId: participant.frameId,
         agoraUid: participant.agoraUid,
         isMuted: participant.userId == _moderation.currentUserId
             ? _controller.muted
