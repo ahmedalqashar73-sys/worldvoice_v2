@@ -80,8 +80,13 @@ class RoomCaptionService {
       try {
         final decoded = jsonDecode(response.body);
         if (decoded is Map<String, dynamic>) {
+          if (decoded['code']?.toString() == 'AI_SERVICE_UNAVAILABLE') {
+            throw StateError('AI_SERVICE_UNAVAILABLE');
+          }
           message = decoded['error']?.toString() ?? message;
         }
+      } on StateError {
+        rethrow;
       } catch (_) {
         // Keep the generic message when the server returns non-JSON text.
       }

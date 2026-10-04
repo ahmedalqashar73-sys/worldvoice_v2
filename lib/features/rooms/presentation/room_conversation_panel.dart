@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../data/room_chat_message.dart';
 import '../data/room_feature_models.dart';
 
@@ -279,14 +280,19 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
             key: const ValueKey<String>('worldvoice-room-chat-input'),
             controller: _text,
             focusNode: _focus,
-            enabled: widget.enabled && !_sending,
+            enabled: widget.enabled,
             readOnly: false,
             keyboardType: TextInputType.text,
             autocorrect: true,
             enableSuggestions: true,
             showCursor: true,
             onTap: () {
-              if (!_focus.hasFocus) _focus.requestFocus();
+              FocusScope.of(context).requestFocus(_focus);
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (_focus.hasFocus) {
+                  SystemChannels.textInput.invokeMethod<void>('TextInput.show');
+                }
+              });
             },
             style: const TextStyle(color: Colors.white, fontSize: 14),
             maxLength: 500, maxLines: 1, textInputAction: TextInputAction.send,
@@ -311,7 +317,7 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
               _action(widget.micIcon, widget.micLabel, widget.onMic),
           ];
           if (typing) return field;
-          if (constraints.maxWidth < 520 ||
+          if (constraints.maxWidth < 350 ||
               MediaQuery.textScalerOf(context).scale(14) > 20) {
             return Column(mainAxisSize: MainAxisSize.min, children: [
               field, const SizedBox(height: 6),

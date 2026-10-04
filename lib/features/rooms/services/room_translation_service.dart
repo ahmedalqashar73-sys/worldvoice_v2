@@ -117,63 +117,133 @@ class RoomTranslationService {
   Future<String> translateAuto({
     required String text,
     required String targetCode,
+    String? fallbackSourceCode,
   }) async {
     final normalized = text.trim();
     if (normalized.isEmpty) return normalized;
 
+    Object? backendError;
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      throw StateError('Sign in is required to translate messages.');
-    }
-    if (endpoint.trim().isEmpty) {
-      throw StateError('WorldVoice translation backend is not configured.');
-    }
+    final configured = endpoint.trim().isNotEmpty;
 
-    final idToken = await user.getIdToken();
-    if (idToken == null || idToken.isEmpty) {
-      throw StateError('Could not authorize translation.');
-    }
-
-    final response = await http
-        .post(
-          Uri.parse(endpoint),
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $idToken',
-          },
-          body: jsonEncode({
-            'context': _contextType,
-            'roomId': roomId,
-            'text': normalized,
-            'targetLanguageCode': targetCode.trim().isEmpty
-                ? 'en'
-                : targetCode.trim().toLowerCase(),
-          }),
-        )
-        .timeout(const Duration(seconds: 20));
-
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      var message = 'Translation failed.';
+    if (user != null && configured) {
       try {
-        final decoded = jsonDecode(response.body);
-        if (decoded is Map<String, dynamic>) {
-          message = decoded['error']?.toString() ?? message;
+        final idToken = await user.getIdToken();
+        if (idToken == null || idToken.isEmpty) {
+          throw StateError('Could not authorize translation.');
         }
-      } catch (_) {
-        // Keep the generic message.
+
+        final response = await http
+            .post(
+              Uri.parse(endpoint),
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer $idToken',
+              },
+              body: jsonEncode({
+                'context': _contextType,
+                'roomId': roomId,
+                'text': normalized,
+                'targetLanguageCode': targetCode.trim().isEmpty
+                    ? 'en'
+                    : targetCode.trim().toLowerCase(),
+              }),
+            )
+            .timeout(const Duration(seconds: 12));
+
+        if (response.statusCode >= 200 && response.statusCode < 300) {
+          final decoded = jsonDecode(response.body);
+          if (decoded is Map<String, dynamic>) {
+            final translation =
+                decoded['translation']?.toString().trim() ?? '';
+            if (translation.isNotEmpty) return translation;
+          }
+        } else {
+          var message = 'Translation backend unavailable.';
+          try {
+            final decoded = jsonDecode(response.body);
+            if (decoded is Map<String, dynamic>) {
+              message = decoded['error']?.toString() ?? message;
+            }
+          } catch (_) {}
+          backendError = StateError(message);
+        }
+      } catch (error) {
+        backendError = error;
       }
-      throw StateError(message);
     }
 
-    final decoded = jsonDecode(response.body);
-    if (decoded is! Map<String, dynamic>) {
-      throw StateError('Translation returned an invalid response.');
+    final sourceCode = _guessSourceCode(
+      normalized,
+      fallbackSourceCode: fallbackSourceCode,
+      targetCode: targetCode,
+    );
+
+    if (sourceCode != null) {
+      try {
+        return await translate(
+          text: normalized,
+          sourceCode: sourceCode,
+          targetCode: targetCode,
+        );
+      } catch (error) {
+        backendError ??= error;
+      }
     }
-    final translation = decoded['translation']?.toString().trim() ?? '';
-    if (translation.isEmpty) {
-      throw StateError('Translation returned an empty response.');
+
+    throw StateError(
+      backendError?.toString().replaceFirst('Bad state: ', '') ??
+          'Translation is unavailable for this language right now.',
+    );
+  }
+
+  String? _guessSourceCode(
+    String text, {
+    required String targetCode,
+    String? fallbackSourceCode,
+  }) {
+    final target =
+        targetCode.toLowerCase().split(RegExp(r'[-_]')).first;
+    final fallback = fallbackSourceCode
+        ?.toLowerCase()
+        .split(RegExp(r'[-_]'))
+        .first;
+
+    bool has(RegExp expression) => expression.hasMatch(text);
+
+    String? detected;
+    if (has(RegExp(r'[ぁ-ゟ゠-ヿ]'))) {
+      detected = 'ja';
+    } else if (has(RegExp(r'[가-힣]'))) {
+      detected = 'ko';
+    } else if (has(RegExp(r'[一-鿿]'))) {
+      detected = 'zh';
+    } else if (has(RegExp(r'[А-Яа-яЁё]'))) {
+      detected = 'ru';
+    } else if (has(RegExp(r'[ऀ-ॿ]'))) {
+      detected = 'hi';
+    } else if (has(RegExp(r'[ก-๿]'))) {
+      detected = 'th';
+    } else if (has(RegExp(r'[پچژگ]'))) {
+      detected = 'fa';
+    } else if (has(RegExp(r'[ٹڈڑںھہۓے]'))) {
+      detected = 'ur';
+    } else if (has(RegExp(r'[؀-ۿ]'))) {
+      detected = 'ar';
     }
-    return translation;
+
+    if (detected != null && detected != target) return detected;
+
+    if (fallback != null &&
+        fallback != target &&
+        _language(fallback) != null) {
+      return fallback;
+    }
+
+    if (target != 'en' && has(RegExp(r'[A-Za-z]'))) {
+      return 'en';
+    }
+    return detected;
   }
 
   Future<void> dispose() async {

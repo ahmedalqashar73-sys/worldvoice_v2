@@ -2019,6 +2019,23 @@ registerWalletRoutes({app, db, authenticatedUser});
 registerChatRoutes({app, db, authenticatedUser});
 
 app.use((error, _req, res, _next) => {
+  const providerMessage = String(error?.message || error || "");
+  const aiQuotaUnavailable =
+    /no credits remaining|insufficient_quota|exceeded.*quota|billing/i
+      .test(providerMessage) &&
+    (
+      Number(error?.status) === 429 ||
+      String(error?.name || "").toLowerCase().includes("ratelimit")
+    );
+
+  if (aiQuotaUnavailable) {
+    console.error("WorldVoice AI provider unavailable:", providerMessage);
+    return res.status(503).json({
+      error: "WorldVoice AI service is temporarily unavailable.",
+      code: "AI_SERVICE_UNAVAILABLE",
+    });
+  }
+
   const status =
     Number.isInteger(error?.status) && error.status >= 400
       ? error.status
@@ -2028,7 +2045,7 @@ app.use((error, _req, res, _next) => {
     console.error(error);
   }
 
-  res.status(status).json({
+  return res.status(status).json({
     error: status >= 500 ? "Server error." : String(error.message || error),
   });
 });
