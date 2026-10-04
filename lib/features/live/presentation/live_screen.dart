@@ -22,6 +22,8 @@ import '../../rooms/services/room_caption_service.dart';
 import '../../rooms/services/room_live_caption_controller.dart';
 import '../../rooms/services/room_teacher_ai_service.dart';
 import '../../rooms/services/room_translation_service.dart';
+import '../../rooms/services/room_quota_service.dart';
+import '../../rooms/services/room_rewarded_ad_service.dart';
 import '../services/live_session_service.dart';
 
 import '../../../core/localization/locale_controller.dart';
