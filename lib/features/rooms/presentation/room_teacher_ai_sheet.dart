@@ -25,6 +25,7 @@ class _RoomTeacherAiSheetState extends State<RoomTeacherAiSheet> {
   final List<_TeacherMessage> _messages = <_TeacherMessage>[];
   bool _sending = false;
   String? _error;
+  String? _notice;
 
   @override
   void dispose() {
@@ -41,6 +42,7 @@ class _RoomTeacherAiSheetState extends State<RoomTeacherAiSheet> {
       _questionController.clear();
       _sending = true;
       _error = null;
+      _notice = null;
     });
 
     try {
@@ -49,6 +51,16 @@ class _RoomTeacherAiSheetState extends State<RoomTeacherAiSheet> {
         roomLanguageCode: widget.roomLanguageCode,
       );
       if (!mounted) return;
+      if (answer.trim().isEmpty) {
+        final isArabic =
+            Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
+        setState(() {
+          _notice = isArabic
+              ? 'Teacher AI يستجيب فقط بلغة الروم.'
+              : 'Teacher AI responds only in the room language.';
+        });
+        return;
+      }
       setState(() {
         _messages.add(_TeacherMessage(text: answer, fromUser: false));
       });
@@ -146,6 +158,18 @@ class _RoomTeacherAiSheetState extends State<RoomTeacherAiSheet> {
                         },
                       ),
               ),
+              if (_notice?.trim().isNotEmpty == true)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    _notice!,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
               if (_error?.trim().isNotEmpty == true)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
