@@ -203,10 +203,11 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     _rewardedAds = RoomRewardedAdService();
     _features = RoomFeatureService(roomId: widget.channelId);
     _captionService = RoomCaptionService(roomId: widget.channelId);
-    _translationService = RoomTranslationService();
+    _translationService = RoomTranslationService(roomId: widget.channelId);
     _teacherAi = RoomTeacherAiService(roomId: widget.channelId);
     _captionTargetLanguage =
         widget.localeController?.locale?.languageCode ?? 'en';
+    unawaited(_loadViewerLanguagePreferences());
     _captionController = RoomLiveCaptionController(
       service: _captionService,
       onState: ({
@@ -251,6 +252,28 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       },
     );
     unawaited(_startRoomSession());
+  }
+
+  Future<void> _loadViewerLanguagePreferences() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+    try {
+      final snapshot =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      final data = snapshot.data();
+      final nativeLanguage =
+          (data?['nativeLanguageCode'] ?? data?['nativeLanguage'] ?? '')
+              .toString()
+              .trim()
+              .toLowerCase();
+      if (!mounted || nativeLanguage.isEmpty) return;
+      final normalized =
+          nativeLanguage.split(RegExp(r'[-_]')).first.toLowerCase();
+      if (normalized.length < 2 || normalized.length > 3) return;
+      setState(() => _captionTargetLanguage = normalized);
+    } catch (error) {
+      debugPrint('WorldVoice viewer language preference unavailable: $error');
+    }
   }
 
   Future<void> _startRoomSession() async {
@@ -681,6 +704,13 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     }
   }
 
+  Future<String> _translateChatMessage(String text) {
+    return _translationService.translateAuto(
+      text: text,
+      targetCode: _captionTargetLanguage,
+    );
+  }
+
   Future<void> _translateLatestCaption(RoomCaption caption) async {
     _lastTranslatedCaptionId = caption.id;
     try {
@@ -709,8 +739,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         !me.forcedMuted;
 
     await _captionController.configure(
-      enabled:
-          _captionsEnabled || _pronunciationTipsEnabled || _showTeacherAiSeat,
+      // Every on-stage speaker publishes transcript text from their own
+      // device. Visibility remains local: only users who enable subtitles,
+      // translation or pronunciation UI see those tools on their screen.
+      enabled: canPublish,
       canPublish: canPublish,
       languageCode: widget.roomLanguageCode ?? 'en',
       displayName: me?.displayName ?? 'WorldVoice user',
@@ -762,6 +794,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       return;
     }
 
+    await _syncCaptionPublishing();
+    if (!mounted) return;
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -769,6 +803,11 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       builder: (_) => RoomTeacherAiSheet(
         service: _teacherAi,
         roomLanguageCode: widget.roomLanguageCode ?? 'en',
+        canSpeak: _me?.isOnStage == true &&
+            !_controller.muted &&
+            _me?.forcedMuted != true,
+        listening: _captionListening,
+        onVoicePressed: () => unawaited(_syncCaptionPublishing()),
       ),
     );
   }
@@ -2894,9 +2933,14 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                 Expanded(child: Stack(children: [
                   Positioned.fill(child: RoomConversationPanel(
                   messages: _chatMessages ?? const Stream<List<RoomChatMessage>>.empty(),
-                  enabled: _chatMessages != null, onSend: _roomChat.send, isArabic: isArabic,
+                  enabled: !_leaving, onSend: _roomChat.send, isArabic: isArabic,
                   onGifts: _showGifts, onShop: _showBackgroundStore,
                   onTools: _showToolsGrid, onCaptions: _showCaptionSettings,
+                  onTranslateMessage: _translateChatMessage,
+                  translationHint: label(
+                    'اضغط لترجمتها إلى لغتك الأم',
+                    'Tap to translate to your native language',
+                  ),
                   micIcon: isPublishing
                     ? (_controller.muted || !_controller.joined ? Icons.mic_off_rounded : Icons.mic_rounded)
                     : Icons.pan_tool_alt_rounded,
