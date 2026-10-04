@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -45,6 +46,37 @@ import 'room_members_sheet.dart';
 import 'room_mod_log_sheet.dart';
 import 'room_stage_grid.dart';
 import 'room_teacher_ai_sheet.dart';
+
+const MethodChannel _roomTeacherTtsChannel =
+    MethodChannel('worldvoice/live_tts');
+
+Future<void> _speakRoomTeacher(
+  String text,
+  String languageCode,
+) async {
+  final value = text.trim();
+  if (value.isEmpty) return;
+  try {
+    await _roomTeacherTtsChannel.invokeMethod<void>('speak', {
+      'text': value,
+      'languageCode': languageCode,
+    });
+  } on PlatformException {
+    // Text remains visible when a device has no matching TTS voice.
+  } on MissingPluginException {
+    // Older builds keep Teacher AI text even without native speech.
+  }
+}
+
+Future<void> _stopRoomTeacherVoice() async {
+  try {
+    await _roomTeacherTtsChannel.invokeMethod<void>('stop');
+  } on PlatformException {
+    // Best-effort stop.
+  } on MissingPluginException {
+    // Older builds may not have the channel.
+  }
+}
 
 class AgoraVoiceRoomScreen extends StatefulWidget {
   const AgoraVoiceRoomScreen({
@@ -104,6 +136,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   StreamSubscription<List<RoomChatMessage>>? _freeChatGiftSub;
   StreamSubscription<List<RoomCaption>>? _captionSub;
   StreamSubscription<List<RoomTeacherAiNote>>? _teacherAiSub;
+  StreamSubscription<List<RoomTeacherAiSpokenAnswer>>? _teacherAiVoiceSub;
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>?
       _stageInviteSub;
 
@@ -140,6 +173,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   String? _lastTranslatedCaptionId;
   String? _lastTeacherAiCaptionId;
   RoomTeacherAiNote? _latestTeacherAiNote;
+  bool _teacherAiVoicePrimed = false;
+  String? _lastTeacherAiVoiceId;
 
   RoomFeatureState _featureState = const RoomFeatureState(
     roomLevel: 1,
@@ -285,6 +320,11 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
           _moderation.watchTeacherAiSeatVisible().listen((isVisible) {
         if (!mounted) return;
         setState(() => _showTeacherAiSeat = isVisible);
+        if (!isVisible) {
+          _teacherAiVoicePrimed = false;
+          _lastTeacherAiVoiceId = null;
+          unawaited(_stopRoomTeacherVoice());
+        }
       });
 
       _featuresSub = _features.watchState().listen((state) {
@@ -414,6 +454,13 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         debugPrint('WorldVoice Teacher AI notes unavailable: $error');
       });
 
+      _teacherAiVoiceSub =
+          _teacherAi.watchSpokenAnswers().listen(_handleTeacherAiVoice,
+        onError: (Object error, StackTrace stackTrace) {
+          debugPrint('WorldVoice Teacher AI voice unavailable: $error');
+        },
+      );
+
       _participantsSub =
           _moderation.watchParticipants().listen((participants) {
         if (!mounted) return;
@@ -487,6 +534,26 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         if (mounted) Navigator.of(context).pop();
       }
     }
+  }
+
+  void _handleTeacherAiVoice(
+    List<RoomTeacherAiSpokenAnswer> messages,
+  ) {
+    if (!mounted || !_showTeacherAiSeat || messages.isEmpty || _leaving) {
+      return;
+    }
+    final latest = messages.first;
+    if (!_teacherAiVoicePrimed) {
+      _teacherAiVoicePrimed = true;
+      _lastTeacherAiVoiceId = latest.id;
+      return;
+    }
+    if (latest.id == _lastTeacherAiVoiceId) return;
+    _lastTeacherAiVoiceId = latest.id;
+    final roomLanguage = (widget.roomLanguageCode ?? 'en').trim().toLowerCase();
+    final answerLanguage = latest.languageCode.trim().toLowerCase();
+    if (answerLanguage.isNotEmpty && answerLanguage != roomLanguage) return;
+    unawaited(_speakRoomTeacher(latest.answer, roomLanguage));
   }
 
   void _handleCaptions(List<RoomCaption> captions) {
@@ -2350,6 +2417,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     _freeChatGiftSub?.cancel();
     _captionSub?.cancel();
     _teacherAiSub?.cancel();
+    _teacherAiVoiceSub?.cancel();
     _stageInviteSub?.cancel();
     _giftOverlayTimer?.cancel();
     _speakingTimer?.cancel();
@@ -2359,6 +2427,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     _controller.removeListener(_refresh);
     unawaited(_captionController.dispose());
     unawaited(_translationService.dispose());
+    unawaited(_stopRoomTeacherVoice());
     unawaited(_musicPlayer.dispose());
     unawaited(_finishSessionTracking());
     unawaited(_moderation.leave());
