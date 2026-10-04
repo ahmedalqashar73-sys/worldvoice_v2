@@ -68,6 +68,14 @@ class ChatScreen extends StatelessWidget {
   /// Reuses the existing authenticated chat backend for cross-feature shares
   /// such as Live links. This keeps membership and mutual-follow checks in the
   /// backend instead of writing chat messages directly from Firestore clients.
+  static Future<Map<String, dynamic>> startConversationWithUser({
+    required String recipientId,
+  }) {
+    return _post('/chat/start', <String, dynamic>{
+      'recipientId': recipientId,
+    });
+  }
+
   static Future<void> sendTextMessageToConversation({
     required String chatId,
     required String text,
@@ -96,7 +104,7 @@ class ChatScreen extends StatelessWidget {
     if (!context.mounted) return;
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => _ChatConversation(
+        builder: (_) => ChatConversationScreen(
           chatId: result['chatId'].toString(),
           peerId: peerId,
           peerName: peerName,
@@ -168,7 +176,7 @@ class ChatScreen extends StatelessWidget {
                                   Navigator.pop(sheetContext);
                                   if (!parentContext.mounted) return;
                                   await Navigator.of(parentContext).push(MaterialPageRoute<void>(
-                                    builder: (_) => _ChatConversation(
+                                    builder: (_) => ChatConversationScreen(
                                       chatId: result['chatId'].toString(),
                                       peerId: peerId, peerName: displayName,
                                     ),
@@ -297,7 +305,7 @@ class ChatScreen extends StatelessWidget {
                       latestText: (data['latestText'] ?? '').toString(),
                       onOpenConversation: () => Navigator.of(context).push(
                         MaterialPageRoute<void>(
-                          builder: (_) => _ChatConversation(
+                          builder: (_) => ChatConversationScreen(
                             chatId: snap.id,
                             peerId: peer,
                             peerName: name,
@@ -410,8 +418,8 @@ class _ConversationTile extends StatelessWidget {
   }
 }
 
-class _ChatConversation extends StatefulWidget {
-  const _ChatConversation({
+class ChatConversationScreen extends StatefulWidget {
+  const ChatConversationScreen({
     required this.chatId, required this.peerId, required this.peerName,
   });
   final String chatId;
@@ -419,10 +427,10 @@ class _ChatConversation extends StatefulWidget {
   final String peerName;
 
   @override
-  State<_ChatConversation> createState() => _ChatConversationState();
+  State<ChatConversationScreen> createState() => _ChatConversationState();
 }
 
-class _ChatConversationState extends State<_ChatConversation> {
+class _ChatConversationState extends State<ChatConversationScreen> {
   final _text = TextEditingController();
   final _knownGiftIds = <String>{};
   final DateTime _conversationOpenedAt = DateTime.now();
