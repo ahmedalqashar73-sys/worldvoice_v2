@@ -16,12 +16,16 @@ class PublicProfileScreen extends StatefulWidget {
     required this.userId,
     this.localeController,
     this.languageCode,
+    this.onInviteToStage,
+    this.inviteToStageLabel,
     super.key,
   });
 
   final String userId;
   final LocaleController? localeController;
   final String? languageCode;
+  final Future<void> Function()? onInviteToStage;
+  final String? inviteToStageLabel;
 
   @override
   State<PublicProfileScreen> createState() => _PublicProfileScreenState();
@@ -31,6 +35,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
   bool _following = false;
   bool _followBusy = false;
   bool _messageBusy = false;
+  bool _inviteBusy = false;
 
   String get _myUid => FirebaseAuth.instance.currentUser?.uid ?? '';
   bool get _isSelf => _myUid == widget.userId;
@@ -103,6 +108,34 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       );
     } finally {
       if (mounted) setState(() => _messageBusy = false);
+    }
+  }
+
+  Future<void> _inviteToStage(bool ar) async {
+    final invite = widget.onInviteToStage;
+    if (invite == null || _inviteBusy || _isSelf) return;
+    setState(() => _inviteBusy = true);
+    try {
+      await invite();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            ar
+                ? 'تم إرسال دعوة الصعود. ينتظر قبول المستخدم.'
+                : 'Stage invite sent. Waiting for the member to accept.',
+          ),
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.toString().replaceFirst('Bad state: ', '')),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _inviteBusy = false);
     }
   }
 
@@ -295,6 +328,31 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                       ),
                     ],
                   ),
+                  if (widget.onInviteToStage != null) ...[
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: _inviteBusy
+                            ? null
+                            : () => _inviteToStage(code == 'ar'),
+                        icon: _inviteBusy
+                            ? const SizedBox.square(
+                                dimension: 17,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.keyboard_double_arrow_up_rounded),
+                        label: Text(
+                          widget.inviteToStageLabel ??
+                              (code == 'ar'
+                                  ? 'دعوة للصعود'
+                                  : 'Invite to stage'),
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
                 if (bio?.isNotEmpty == true ||
                     voiceBioUrl?.isNotEmpty == true) ...[
