@@ -87,9 +87,10 @@ class RoomQuotaService {
     final adsWatched = (data['adsWatched'] as num?)?.toInt() ?? 0;
     final adBonus = (data['adBonusSeconds'] as num?)?.toInt() ?? 0;
 
-    final base = asHost
-        ? (4 * 60 * 60) + ((roomLevel - 1).clamp(0, 999) * 15 * 60)
-        : 2 * 60 * 60;
+    // Free daily stage allowance: host 4h, guest/speaker 3h.
+    // Each room/user level above 1 adds 15 minutes. VIP remains unlimited.
+    final levelBonus = (roomLevel - 1).clamp(0, 999) * 15 * 60;
+    final base = (asHost ? 4 * 60 * 60 : 3 * 60 * 60) + levelBonus;
     final limit = base + (asHost ? 0 : adBonus.clamp(0, 3 * 60 * 60));
 
     return RoomQuotaStatus(
