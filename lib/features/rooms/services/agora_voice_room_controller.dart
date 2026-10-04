@@ -163,7 +163,6 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     await engine.setPlaybackAudioFrameBeforeMixingParameters(
       sampleRate: 16000,
       channel: 1,
-      samplesPerCall: 320,
     );
     _audioFrameObserverRegistered = true;
   }
