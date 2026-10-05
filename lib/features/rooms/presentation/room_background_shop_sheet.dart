@@ -192,21 +192,18 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                               rewards.isEmpty ? null : rewards.first;
 
                           const freeThemes = <String>[
+                            'emerald',
+                            'skyBlue',
+                            'forestGold',
+                            'midnight',
+                            'royalPurple',
                             'skyAura',
                             'softGreenFlow',
                             'silverWaves',
-                            // Beta collection: premium procedural backgrounds
-                            // stay free while WorldVoice is in friend testing.
-                            'royalEmeraldMotion',
-                            'goldenVipGlow',
-                            'auroraWorld',
-                            'crystalBlueLuxury',
-                            'velvetNight',
-                            'galaxyTalk',
                           ];
 
-                          // Three polished animated backgrounds are always
-                          // free. Paid backgrounds stay server-authoritative.
+                          // Eight beta backgrounds use theme IDs already
+                          // accepted by the deployed room rules.
                           return GridView.builder(
                             padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
                             itemCount: freeThemes.length + catalog.length,
@@ -429,21 +426,14 @@ class _FreeBackgroundCard extends StatelessWidget {
   final VoidCallback onApply;
 
   String get _label => switch (themeId) {
+        'emerald' => isArabic ? 'زمرد وورلد فويس' : 'WorldVoice Emerald',
+        'skyBlue' => isArabic ? 'سماء ملكية' : 'Royal Sky',
+        'forestGold' => isArabic ? 'غابة ذهبية' : 'Golden Forest',
+        'midnight' => isArabic ? 'ليل فاخر' : 'Luxury Midnight',
+        'royalPurple' => isArabic ? 'ملكي داكن' : 'Dark Royal',
         'skyAura' => isArabic ? 'هالة سماوية' : 'Sky Blue Aura',
         'softGreenFlow' => isArabic ? 'تدفق أخضر' : 'Soft Green Flow',
         'silverWaves' => isArabic ? 'موج فضي' : 'Silver Light Waves',
-        'royalEmeraldMotion' =>
-          isArabic ? 'الزمرد الملكي' : 'Royal Emerald Motion',
-        'goldenVipGlow' =>
-          isArabic ? 'وهج ذهبي ملكي' : 'Royal Golden Glow',
-        'auroraWorld' =>
-          isArabic ? 'أورورا وورلد' : 'Aurora World',
-        'crystalBlueLuxury' =>
-          isArabic ? 'الكريستال الأزرق' : 'Crystal Blue Luxury',
-        'velvetNight' =>
-          isArabic ? 'ليلة مخملية' : 'Velvet Night',
-        'galaxyTalk' =>
-          isArabic ? 'مجرة وورلد فويس' : 'WorldVoice Galaxy',
         _ => isArabic ? 'خلفية مجانية' : 'Free Background',
       };
 
@@ -493,6 +483,31 @@ class _BuiltInBackgroundPreview extends StatefulWidget {
   final String themeId;
 
   static List<Color> colorsFor(String themeId) => switch (themeId) {
+        'emerald' => const [
+            Color(0xFF062C22),
+            Color(0xFF0D7555),
+            Color(0xFF52D6A4),
+          ],
+        'skyBlue' => const [
+            Color(0xFF08283A),
+            Color(0xFF236F9A),
+            Color(0xFF8DDBF8),
+          ],
+        'forestGold' => const [
+            Color(0xFF102A20),
+            Color(0xFF426C4D),
+            Color(0xFFD4B45C),
+          ],
+        'midnight' => const [
+            Color(0xFF070B14),
+            Color(0xFF17233C),
+            Color(0xFF40577F),
+          ],
+        'royalPurple' => const [
+            Color(0xFF130E22),
+            Color(0xFF382B5C),
+            Color(0xFF8369C6),
+          ],
         'skyAura' => const [
             Color(0xFFEAF9FF),
             Color(0xFF86D8F6),
@@ -507,36 +522,6 @@ class _BuiltInBackgroundPreview extends StatefulWidget {
             Color(0xFFF7F9FA),
             Color(0xFFC9D3D8),
             Color(0xFF7D929E),
-          ],
-        'goldenVipGlow' => const [
-            Color(0xFF3E2C08),
-            Color(0xFFD6A929),
-            Color(0xFFFFECA7),
-          ],
-        'royalEmeraldMotion' => const [
-            Color(0xFF052D22),
-            Color(0xFF0E8A60),
-            Color(0xFF63E5B4),
-          ],
-        'auroraWorld' => const [
-            Color(0xFF0A3558),
-            Color(0xFF22C7B8),
-            Color(0xFF9B7BFF),
-          ],
-        'galaxyTalk' => const [
-            Color(0xFF111225),
-            Color(0xFF4B3A8C),
-            Color(0xFF1D8AA5),
-          ],
-        'crystalBlueLuxury' => const [
-            Color(0xFF071D3B),
-            Color(0xFF2A8DD8),
-            Color(0xFFBCEEFF),
-          ],
-        'velvetNight' => const [
-            Color(0xFF140C1D),
-            Color(0xFF4A203F),
-            Color(0xFF9B5B7F),
           ],
         _ => const [
             Color(0xFF0D4A38),
