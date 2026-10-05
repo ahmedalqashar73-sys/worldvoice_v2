@@ -78,6 +78,8 @@ class RoomLiveCaptionController {
   String? _localLocaleId;
   String _lastPublished = '';
   String _lastLocalPublished = '';
+  String _pendingLocalText = '';
+  Timer? _localResultTimer;
 
   bool get enabled => _enabled;
   bool get listening =>
@@ -350,37 +352,31 @@ class RoomLiveCaptionController {
         onResult: (result) {
           if (_disposed || !_enabled || !_canPublish) return;
           final text = result.recognizedWords.trim();
-          if (!result.finalResult ||
-              text.isEmpty ||
-              text == _lastLocalPublished) {
+          if (text.isEmpty || text == _lastLocalPublished) return;
+
+          _pendingLocalText = text;
+          _localResultTimer?.cancel();
+
+          if (result.finalResult) {
+            _emitLocalTranscript(text);
             return;
           }
-          _lastLocalPublished = text;
-          final callback = _onTranscript;
-          if (callback != null) {
-            callback(
-              text: text,
-              isLocal: true,
-              languageCode: _languageCode,
-              agoraUid: null,
-            );
-          } else {
-            unawaited(
-              _service.publishFinal(
-                displayName: _displayName,
-                text: text,
-                languageCode: _languageCode,
-              ),
-            );
-          }
+
+          // Live speech often does not emit a final result quickly while
+          // the speaker keeps talking. Publish the latest stable partial
+          // result after a short quiet window so subtitles feel live.
+          _localResultTimer = Timer(
+            const Duration(milliseconds: 650),
+            () => _emitLocalTranscript(_pendingLocalText),
+          );
         },
         listenOptions: SpeechListenOptions(
           cancelOnError: false,
           partialResults: true,
           listenMode: ListenMode.dictation,
           autoPunctuation: true,
-          pauseFor: const Duration(seconds: 3),
-          listenFor: const Duration(seconds: 25),
+          pauseFor: const Duration(seconds: 2),
+          listenFor: const Duration(seconds: 60),
           localeId: _localLocaleId,
         ),
       );
@@ -395,6 +391,32 @@ class RoomLiveCaptionController {
     } finally {
       _localStarting = false;
     }
+  }
+
+  void _emitLocalTranscript(String text) {
+    if (_disposed || !_enabled || !_canPublish) return;
+    final normalized = text.trim();
+    if (normalized.isEmpty || normalized == _lastLocalPublished) return;
+
+    _lastLocalPublished = normalized;
+    final callback = _onTranscript;
+    if (callback != null) {
+      callback(
+        text: normalized,
+        isLocal: true,
+        languageCode: _languageCode,
+        agoraUid: null,
+      );
+      return;
+    }
+
+    unawaited(
+      _service.publishFinal(
+        displayName: _displayName,
+        text: normalized,
+        languageCode: _languageCode,
+      ),
+    );
   }
 
   void _scheduleLocalRestart() {
@@ -545,6 +567,7 @@ class RoomLiveCaptionController {
     _disposed = true;
     _generation++;
     _restartTimer?.cancel();
+    _localResultTimer?.cancel();
     await _audioSub?.cancel();
     _segments.clear();
     _pendingByKey.clear();
