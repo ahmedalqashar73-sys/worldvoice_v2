@@ -15,6 +15,7 @@ import Stripe from "stripe";
 import { requireLiveEconomy, calculateGiftSettlement, calculatePurchaseCredit } from "./economy_policy.js";
 import {registerWalletRoutes} from "./wallet_routes.js";
 import {registerChatRoutes} from "./chat_routes.js";
+import {registerStoryRoutes} from "./story_routes.js";
 import {chatIdFor, assertChatMembership} from "./chat_membership.js";
 import {reverseVerifiedWebPurchase} from "./payment_reversals.js";
 import {validateQuizDraft, quizWinners} from "./quiz_policy.js";
@@ -2170,6 +2171,12 @@ app.post("/room/tasks/claim", async (req, res, next) => {
 // Finance routes run only on the separately deployed authenticated backend.
 registerWalletRoutes({app, db, authenticatedUser});
 registerChatRoutes({app, db, authenticatedUser});
+registerStoryRoutes({
+  app,
+  authenticatedUser,
+  db,
+  projectId: firebaseProjectId,
+});
 
 app.use((error, _req, res, _next) => {
   const providerMessage = String(error?.message || error || "");
