@@ -1,0 +1,30 @@
+name: Package WorldVoice Source
+
+on:
+  push:
+    branches:
+      - package/worldvoice-20261005
+  workflow_dispatch:
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build project ZIP
+        run: |
+          git archive --format=zip --output=worldvoice_project_20261005.zip HEAD
+
+      - name: Upload project ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: worldvoice_project_20261005
+          path: worldvoice_project_20261005.zip
+          if-no-files-found: error
+          retention-days: 7
