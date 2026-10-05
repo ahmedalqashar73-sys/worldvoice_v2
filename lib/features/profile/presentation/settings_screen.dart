@@ -62,6 +62,8 @@ class SettingsScreen extends StatelessWidget {
                 final isVip = data['isVip'] == true;
                 final hideVisits = data['hideVisitLog'] == true;
                 final hideCity = data['hideCity'] == true;
+                final messageApprovalRequired =
+                    data['messageApprovalRequired'] == true;
 
                 return Column(
                   children: [
@@ -81,6 +83,31 @@ class SettingsScreen extends StatelessWidget {
                               .doc(uid)
                               .set({
                             'hideCity': value,
+                          }, SetOptions(merge: true));
+                        },
+                      ),
+                    ),
+                    Card(
+                      child: SwitchListTile(
+                        secondary:
+                            const Icon(Icons.mark_email_unread_outlined),
+                        title: Text(
+                          code == 'ar'
+                              ? 'الموافقة قبل الرسائل'
+                              : 'Approve new messages',
+                        ),
+                        subtitle: Text(
+                          code == 'ar'
+                              ? 'أي شخص جديد يرسل لك طلب رسالة أولًا، ولن تبدأ المحادثة إلا بعد موافقتك.'
+                              : 'New people send a message request first. A conversation starts only after you approve it.',
+                        ),
+                        value: messageApprovalRequired,
+                        onChanged: (value) {
+                          FirebaseFirestore.instance
+                              .collection('users')
+                              .doc(uid)
+                              .set({
+                            'messageApprovalRequired': value,
                           }, SetOptions(merge: true));
                         },
                       ),
