@@ -891,6 +891,11 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       return;
     }
 
+    final aiAvailable = await _teacherAi.probeAvailability();
+    if (!mounted) return;
+    _aiServiceUnavailable = !aiAvailable;
+    _teacherAiOnline.value = aiAvailable;
+
     final canSpeak = _controller.joined &&
         _me?.isOnStage == true &&
         !_controller.muted &&

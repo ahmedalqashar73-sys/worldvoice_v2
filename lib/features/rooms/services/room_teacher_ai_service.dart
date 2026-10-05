@@ -46,6 +46,9 @@ class RoomTeacherAiService {
         : RoomBackendConfig.endpoint('/teacher-ai/ask');
   }
 
+  String get statusEndpoint =>
+      RoomBackendConfig.endpoint('/ai/status');
+
   bool get isConfigured => endpoint.trim().isNotEmpty;
   bool get isAskConfigured => askEndpoint.trim().isNotEmpty;
 
@@ -98,6 +101,45 @@ class RoomTeacherAiService {
               .map(RoomTeacherAiNote.fromDoc)
               .toList(growable: false),
         );
+  }
+
+  Future<bool> probeAvailability() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null || statusEndpoint.trim().isEmpty) return false;
+
+    final idToken = await user.getIdToken();
+    if (idToken == null || idToken.isEmpty) return false;
+
+    try {
+      final response = await http
+          .post(
+            Uri.parse(statusEndpoint),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $idToken',
+            },
+            body: jsonEncode({
+              'context': _contextType,
+              'roomId': roomId,
+            }),
+          )
+          .timeout(const Duration(seconds: 12));
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return true;
+      }
+
+      try {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic> &&
+            decoded['code']?.toString() == 'AI_SERVICE_UNAVAILABLE') {
+          return false;
+        }
+      } catch (_) {}
+      return false;
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<String> ask({
