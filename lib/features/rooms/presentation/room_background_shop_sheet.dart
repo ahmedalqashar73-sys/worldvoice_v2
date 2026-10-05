@@ -195,6 +195,14 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                             'skyAura',
                             'softGreenFlow',
                             'silverWaves',
+                            // Beta collection: premium procedural backgrounds
+                            // stay free while WorldVoice is in friend testing.
+                            'royalEmeraldMotion',
+                            'goldenVipGlow',
+                            'auroraWorld',
+                            'crystalBlueLuxury',
+                            'velvetNight',
+                            'galaxyTalk',
                           ];
 
                           // Three polished animated backgrounds are always
@@ -424,6 +432,18 @@ class _FreeBackgroundCard extends StatelessWidget {
         'skyAura' => isArabic ? 'هالة سماوية' : 'Sky Blue Aura',
         'softGreenFlow' => isArabic ? 'تدفق أخضر' : 'Soft Green Flow',
         'silverWaves' => isArabic ? 'موج فضي' : 'Silver Light Waves',
+        'royalEmeraldMotion' =>
+          isArabic ? 'الزمرد الملكي' : 'Royal Emerald Motion',
+        'goldenVipGlow' =>
+          isArabic ? 'وهج ذهبي ملكي' : 'Royal Golden Glow',
+        'auroraWorld' =>
+          isArabic ? 'أورورا وورلد' : 'Aurora World',
+        'crystalBlueLuxury' =>
+          isArabic ? 'الكريستال الأزرق' : 'Crystal Blue Luxury',
+        'velvetNight' =>
+          isArabic ? 'ليلة مخملية' : 'Velvet Night',
+        'galaxyTalk' =>
+          isArabic ? 'مجرة وورلد فويس' : 'WorldVoice Galaxy',
         _ => isArabic ? 'خلفية مجانية' : 'Free Background',
       };
 
