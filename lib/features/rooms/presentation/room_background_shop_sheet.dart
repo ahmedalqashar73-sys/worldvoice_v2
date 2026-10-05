@@ -192,17 +192,14 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                               rewards.isEmpty ? null : rewards.first;
 
                           const freeThemes = <String>[
+                            'emerald',
+                            'skyBlue',
+                            'forestGold',
+                            'midnight',
+                            'royalPurple',
                             'skyAura',
                             'softGreenFlow',
                             'silverWaves',
-                            // Beta collection: premium procedural backgrounds
-                            // stay free while WorldVoice is in friend testing.
-                            'royalEmeraldMotion',
-                            'goldenVipGlow',
-                            'auroraWorld',
-                            'crystalBlueLuxury',
-                            'velvetNight',
-                            'galaxyTalk',
                           ];
 
                           // Three polished animated backgrounds are always
