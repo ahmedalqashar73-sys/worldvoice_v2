@@ -155,6 +155,24 @@ const transcribeModel = (
   process.env.OPENAI_TRANSCRIBE_MODEL || "gpt-4o-mini-transcribe"
 ).trim();
 
+const privilegedAccounts = new Map([
+  ["ahmedabdalkarim19@gmail.com", {
+    role: "super_admin",
+    vipTier: "gold",
+  }],
+]);
+
+const adminPermissions = [
+  "view_visitors",
+  "manage_rooms",
+  "enter_private_rooms",
+  "manage_vip",
+  "manage_store",
+  "manage_moderators",
+  "send_coins",
+  "change_country",
+];
+
 const androidPackageName =
   (process.env.ANDROID_PACKAGE_NAME || "com.worldvoice.app").trim();
 const iosBundleId =
@@ -222,6 +240,66 @@ async function authenticatedUser(req) {
     throw error;
   }
 }
+
+app.post("/account/sync-entitlements", async (req, res, next) => {
+  try {
+    const user = await authenticatedUser(req);
+    const email = String(user.email || "").trim().toLowerCase();
+    const privileged = privilegedAccounts.get(email);
+
+    if (!privileged) {
+      return res.json({ok: true, privileged: false});
+    }
+
+    const vipExpiresAt = Timestamp.fromDate(
+      new Date("2099-12-31T23:59:59.000Z"),
+    );
+    const profileRef = db.collection("users").doc(user.uid);
+    const adminRef = db.collection("admins").doc(user.uid);
+    const batch = db.batch();
+
+    batch.set(profileRef, {
+      isVip: true,
+      vipTier: privileged.vipTier,
+      vipExpiresAt,
+      vipSource: "worldvoice_admin_allowlist",
+      vipUpdatedAt: FieldValue.serverTimestamp(),
+      isAdmin: true,
+      adminRole: privileged.role,
+      adminPermissions,
+      adminSource: "worldvoice_admin_allowlist",
+      adminUpdatedAt: FieldValue.serverTimestamp(),
+      canViewVisitors: true,
+      canManageRooms: true,
+      canEnterPrivateRooms: true,
+      canManageVip: true,
+      canManageStore: true,
+      canManageModerators: true,
+      canSendCoins: true,
+      canChangeCountry: true,
+    }, {merge: true});
+
+    batch.set(adminRef, {
+      uid: user.uid,
+      email,
+      role: privileged.role,
+      permissions: adminPermissions,
+      active: true,
+      updatedAt: FieldValue.serverTimestamp(),
+    }, {merge: true});
+
+    await batch.commit();
+    return res.json({
+      ok: true,
+      privileged: true,
+      isAdmin: true,
+      isVip: true,
+      role: privileged.role,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
 function validChannelName(value) {
   return (
