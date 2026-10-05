@@ -128,8 +128,8 @@ class ChatScreen extends StatelessWidget {
                 title: Text(ar ? 'اختر صديقًا' : 'Choose a friend',
                     style: const TextStyle(fontWeight: FontWeight.w900)),
                 subtitle: Text(ar
-                    ? 'المحادثة متاحة للأصدقاء الذين يتابعون بعضهم.'
-                    : 'Chat requires both people to follow each other.'),
+                    ? 'يمكنك مراسلة أي عضو في WorldVoice، والمتابعة اختيارية.'
+                    : 'Message any WorldVoice member. Follow is optional.'),
               ),
               Expanded(
                 child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
