@@ -1056,7 +1056,12 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                       fit: StackFit.expand,
                       children: [
                         if (!_boardOpen)
-                          _LiveVideoGrid(children: tiles)
+                          Positioned.fill(
+                            bottom: tiles.length >= 3
+                                ? MediaQuery.sizeOf(context).height * .38
+                                : 0,
+                            child: _LiveVideoGrid(children: tiles),
+                          )
                         else
                           const ColoredBox(color: Color(0xFF081A15)),
                         if (_boardOpen)
@@ -1135,7 +1140,9 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                             bottom: 78 + MediaQuery.viewInsetsOf(context).bottom,
                             height: _boardOpen
                                 ? MediaQuery.sizeOf(context).height * .27
-                                : 250,
+                                : (tiles.length >= 3
+                                    ? MediaQuery.sizeOf(context).height * .34
+                                    : 250),
                             child: _LiveChatOverlay(
                               service: _liveService,
                               liveId: _liveId!,
@@ -2004,7 +2011,12 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                     children: [
                       if (!_boardOpen)
                         if (tiles.isNotEmpty)
-                          _LiveVideoGrid(children: tiles)
+                          Positioned.fill(
+                            bottom: tiles.length >= 3
+                                ? MediaQuery.sizeOf(context).height * .38
+                                : 0,
+                            child: _LiveVideoGrid(children: tiles),
+                          )
                         else
                           const Center(
                             child: Icon(
@@ -2104,7 +2116,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                           bottom: 78 + MediaQuery.viewInsetsOf(context).bottom,
                           height: _boardOpen
                               ? MediaQuery.sizeOf(context).height * .27
-                              : 250,
+                              : (tiles.length >= 3
+                                  ? MediaQuery.sizeOf(context).height * .34
+                                  : 250),
                           child: _LiveChatOverlay(
                             service: _service,
                             liveId: widget.liveId,
@@ -3783,182 +3797,173 @@ class _LiveChatOverlayState extends State<_LiveChatOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Align(
-          alignment: AlignmentDirectional.topEnd,
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 4),
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.bottomCenter,
+          end: Alignment.topCenter,
+          colors: [
+            Color(0xB20A1511),
+            Color(0x66101A17),
+            Color(0x00101A17),
+          ],
+          stops: [0, .58, 1],
+        ),
+      ),
+      child: Column(
+        children: [
+          Align(
+            alignment: AlignmentDirectional.topEnd,
             child: IconButton(
               visualDensity: VisualDensity.compact,
               style: IconButton.styleFrom(
-                backgroundColor: const Color(0x72070D0B),
-                foregroundColor: Colors.white70,
-                minimumSize: const Size(30, 30),
+                backgroundColor: const Color(0x42000000),
+                foregroundColor: Colors.white,
               ),
               tooltip: widget.ar ? 'إخفاء الشات' : 'Hide chat',
               onPressed: widget.onClose,
-              icon: const Icon(Icons.close_rounded, size: 16),
+              icon: const Icon(Icons.close_rounded, size: 18),
             ),
           ),
-        ),
-        Expanded(
-          child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-            stream: widget.service.watchChat(widget.liveId),
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return const SizedBox.shrink();
-              }
-              final docs = snapshot.data?.docs ??
-                  const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
-              return ListView.builder(
-                reverse: true,
-                padding: const EdgeInsets.fromLTRB(0, 0, 0, 8),
-                itemCount: docs.length,
-                itemBuilder: (context, index) {
-                  final data = docs[index].data();
-                  final name =
-                      (data['senderName'] ?? 'WorldVoice').toString();
-                  final photo =
-                      (data['senderPhotoUrl'] ?? '').toString().trim();
-                  final message = (data['text'] ?? '').toString();
-
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 3),
-                    child: Align(
-                      alignment: AlignmentDirectional.centerStart,
-                      child: Container(
-                        constraints: const BoxConstraints(maxWidth: 330),
-                        padding: const EdgeInsetsDirectional.fromSTEB(
-                          8,
-                          7,
-                          12,
-                          7,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xA30B100E),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: .06),
+          Expanded(
+            child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              stream: widget.service.watchChat(widget.liveId),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return const SizedBox.shrink();
+                }
+                final docs = snapshot.data?.docs ??
+                    const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
+                return ListView.builder(
+                  reverse: true,
+                  padding: const EdgeInsets.fromLTRB(4, 0, 4, 6),
+                  itemCount: docs.length,
+                  itemBuilder: (context, index) {
+                    final data = docs[index].data();
+                    final name =
+                        (data['senderName'] ?? 'WorldVoice').toString();
+                    final photo =
+                        (data['senderPhotoUrl'] ?? '').toString().trim();
+                    final message = (data['text'] ?? '').toString();
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 3),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          CircleAvatar(
+                            radius: 13,
+                            backgroundColor: const Color(0x88444444),
+                            foregroundImage:
+                                photo.isEmpty ? null : NetworkImage(photo),
+                            child: photo.isEmpty
+                                ? const Icon(
+                                    Icons.person_rounded,
+                                    size: 15,
+                                    color: Colors.white,
+                                  )
+                                : null,
                           ),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x22000000),
-                              blurRadius: 8,
-                              offset: Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            CircleAvatar(
-                              radius: 12,
-                              backgroundColor: const Color(0xFF245A49),
-                              foregroundImage:
-                                  photo.isEmpty ? null : NetworkImage(photo),
-                              child: photo.isEmpty
-                                  ? const Icon(
-                                      Icons.person_rounded,
-                                      size: 13,
-                                      color: Colors.white,
-                                    )
-                                  : null,
-                            ),
-                            const SizedBox(width: 7),
-                            Flexible(
-                              child: Text.rich(
-                                TextSpan(
-                                  children: [
-                                    TextSpan(
-                                      text: '$name  ',
-                                      style: const TextStyle(
-                                        color: Color(0xFFFFD77A),
-                                        fontWeight: FontWeight.w900,
-                                      ),
-                                    ),
-                                    TextSpan(
-                                      text: message,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        height: 1.25,
-                                      ),
-                                    ),
-                                  ],
+                          const SizedBox(width: 7),
+                          Flexible(
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: const Color(0xA61A201E),
+                                borderRadius: BorderRadius.circular(18),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: .07),
                                 ),
-                                maxLines: 4,
-                                overflow: TextOverflow.ellipsis,
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                                child: Text.rich(
+                                  TextSpan(
+                                    children: [
+                                      TextSpan(
+                                        text: '$name  ',
+                                        style: const TextStyle(
+                                          color: Color(0xFFFFD77A),
+                                          fontWeight: FontWeight.w900,
+                                        ),
+                                      ),
+                                      TextSpan(
+                                        text: message,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          height: 1.28,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  maxLines: 4,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              );
-            },
-          ),
-        ),
-        DecoratedBox(
-          decoration: BoxDecoration(
-            color: const Color(0xBF08110E),
-            borderRadius: BorderRadius.circular(28),
-            border: Border.all(
-              color: const Color(0x445FE6B5),
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(12, 2, 4, 2),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _input,
-                    focusNode: _focusNode,
-                    maxLength: 500,
-                    maxLines: 1,
-                    textInputAction: TextInputAction.send,
-                    onSubmitted: (_) => _send(),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                    ),
-                    decoration: InputDecoration(
-                      counterText: '',
-                      hintText: widget.ar ? 'تعليق...' : 'Comment...',
-                      hintStyle: const TextStyle(color: Colors.white54),
-                      border: InputBorder.none,
-                      isDense: true,
-                    ),
-                  ),
-                ),
-                IconButton(
-                  style: IconButton.styleFrom(
-                    backgroundColor: const Color(0xFF11835D),
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size(40, 40),
-                  ),
-                  onPressed: _sending ? null : _send,
-                  icon: _sending
-                      ? const SizedBox.square(
-                          dimension: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
                           ),
-                        )
-                      : const Icon(Icons.arrow_upward_rounded, size: 20),
-                ),
-              ],
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
             ),
           ),
-        ),
-      ],
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _input,
+                  focusNode: _focusNode,
+                  maxLength: 500,
+                  maxLines: 1,
+                  textInputAction: TextInputAction.send,
+                  onSubmitted: (_) => _send(),
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    counterText: '',
+                    hintText: widget.ar ? 'تعليق...' : 'Comment...',
+                    hintStyle: const TextStyle(color: Colors.white60),
+                    filled: true,
+                    fillColor: const Color(0xA6141C19),
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 11,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(22),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
+              IconButton(
+                style: IconButton.styleFrom(
+                  backgroundColor: const Color(0xE0188A63),
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: _sending ? null : _send,
+                icon: _sending
+                    ? const SizedBox.square(
+                        dimension: 17,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.send_rounded),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
-
+}
 
 Future<void> _showLiveModeratorManagement(
   BuildContext context, {
@@ -4283,25 +4288,20 @@ class _LiveVideoGrid extends StatelessWidget {
 
   final List<Widget> children;
 
-  Widget _tile(
-    Widget child, {
-    BorderRadius borderRadius = BorderRadius.zero,
-  }) {
+  Widget _tile(Widget child) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: Colors.black,
-        borderRadius: borderRadius,
+        color: const Color(0xFF071B16),
         border: Border.all(
           color: Colors.white.withValues(alpha: .06),
           width: .8,
         ),
       ),
-      child: ClipRRect(
-        borderRadius: borderRadius,
+      child: ClipRect(
         child: Stack(
           fit: StackFit.expand,
           children: [
-            child,
+            SizedBox.expand(child: child),
             const IgnorePointer(
               child: DecoratedBox(
                 decoration: BoxDecoration(
@@ -4309,9 +4309,9 @@ class _LiveVideoGrid extends StatelessWidget {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Color(0x22000000),
+                      Color(0x20000000),
                       Color(0x00000000),
-                      Color(0x35000000),
+                      Color(0x30000000),
                     ],
                     stops: [0, .62, 1],
                   ),
@@ -4327,14 +4327,15 @@ class _LiveVideoGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = children.take(4).toList(growable: false);
+
     if (items.isEmpty) {
       return const ColoredBox(
-        color: Color(0xFF081A15),
+        color: Color(0xFF071B16),
         child: Center(
           child: Icon(
             Icons.live_tv_rounded,
+            color: Colors.white30,
             size: 64,
-            color: Colors.white38,
           ),
         ),
       );
@@ -4347,45 +4348,24 @@ class _LiveVideoGrid extends StatelessWidget {
     if (items.length == 2) {
       return Row(
         children: [
-          Expanded(
-            child: _tile(
-              items[0],
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(2),
-                bottomLeft: Radius.circular(2),
-              ),
-            ),
-          ),
+          Expanded(child: _tile(items[0])),
           const SizedBox(width: 2),
-          Expanded(
-            child: _tile(
-              items[1],
-              borderRadius: const BorderRadius.only(
-                topRight: Radius.circular(2),
-                bottomRight: Radius.circular(2),
-              ),
-            ),
-          ),
+          Expanded(child: _tile(items[1])),
         ],
       );
     }
 
     if (items.length == 3) {
-      // Premium 3-person composition:
-      // first tile is the main host/presenter, with two guests stacked.
       return Row(
+        textDirection: TextDirection.ltr,
         children: [
           Expanded(
             flex: 44,
             child: Column(
               children: [
-                Expanded(
-                  child: _tile(items[1]),
-                ),
+                Expanded(child: _tile(items[1])),
                 const SizedBox(height: 2),
-                Expanded(
-                  child: _tile(items[2]),
-                ),
+                Expanded(child: _tile(items[2])),
               ],
             ),
           ),
