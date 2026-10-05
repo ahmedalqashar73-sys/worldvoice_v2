@@ -173,6 +173,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   String? _lastTranslatedCaptionId;
   String? _lastTeacherAiCaptionId;
   RoomTeacherAiNote? _latestTeacherAiNote;
+  final ValueNotifier<RoomTeacherAiNote?> _pronunciationNote =
+      ValueNotifier<RoomTeacherAiNote?>(null);
   bool _teacherAiVoicePrimed = false;
   String? _lastTeacherAiVoiceId;
   bool _teacherAiAutoCaptionPrimed = false;
@@ -493,9 +495,13 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
       _teacherAiSub = _teacherAi.watchNotes().listen((notes) {
         if (!mounted) return;
+        final latest = notes.isEmpty ? null : notes.first;
         setState(() {
-          _latestTeacherAiNote = notes.isEmpty ? null : notes.first;
+          _latestTeacherAiNote = latest;
         });
+        if (latest != null) {
+          _pronunciationNote.value = latest;
+        }
       }, onError: (Object error, StackTrace stackTrace) {
         // Teacher AI is optional and must not break seats, chat or audio.
         debugPrint('WorldVoice Teacher AI notes unavailable: $error');
@@ -764,19 +770,30 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   }
 
   Future<void> _requestPronunciationGuidance(RoomCaption caption) async {
+    final localNote = _teacherAi.localPronunciationNote(
+      caption: caption,
+      roomLanguageCode: widget.roomLanguageCode ?? caption.languageCode,
+    );
+
+    if (mounted && _pronunciationTipsEnabled) {
+      setState(() {
+        _latestTeacherAiNote = localNote;
+        _captionError = null;
+      });
+      _pronunciationNote.value = localNote;
+    }
+
+    // The local note is the reliable baseline. A deployed AI backend may
+    // enrich it later, but pronunciation guidance must never stop working
+    // merely because external AI quota is unavailable.
+    if (_aiServiceUnavailable || !_teacherAi.isConfigured) return;
     try {
-      final received = await _teacherAi.submitCaption(
+      await _teacherAi.submitCaption(
         caption: caption,
         roomLanguageCode: widget.roomLanguageCode ?? 'en',
       );
-      if (!received && mounted && _pronunciationTipsEnabled) {
-        setState(() => _captionError =
-            'Pronunciation guidance needs the deployed Teacher AI backend.');
-      }
     } catch (error) {
-      if (mounted && _pronunciationTipsEnabled) {
-        setState(() => _captionError = error.toString());
-      }
+      debugPrint('WorldVoice optional pronunciation enrichment failed: $error');
     }
   }
 
@@ -822,17 +839,6 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         _pronunciationTipsEnabled ||
         _teacherAiConversationActive;
 
-    if (_aiServiceUnavailable) {
-      await _captionController.configure(
-        enabled: false,
-        canPublish: false,
-        captureRemote: false,
-        languageCode: widget.roomLanguageCode ?? 'en',
-        displayName: me?.displayName ?? 'WorldVoice user',
-      );
-      return;
-    }
-
     await _captionController.configure(
       enabled: wantsRemoteSpeech || (canPublish && wantsLocalSpeech),
       canPublish: canPublish && wantsLocalSpeech,
@@ -840,6 +846,26 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       languageCode: widget.roomLanguageCode ?? 'en',
       displayName: me?.displayName ?? 'WorldVoice user',
     );
+  }
+
+  Future<void> _prepareTranslationModels() async {
+    final source = (widget.roomLanguageCode ?? 'en').trim().isEmpty
+        ? 'en'
+        : (widget.roomLanguageCode ?? 'en').trim();
+    try {
+      await _translationService.preparePair(
+        sourceCode: source,
+        targetCode: _captionTargetLanguage,
+      );
+      if (!mounted) return;
+      setState(() => _captionError = null);
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _captionError =
+            error.toString().replaceFirst('Bad state: ', '');
+      });
+    }
   }
 
   Future<void> _setCaptionsEnabled(bool value) async {
@@ -990,6 +1016,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   .where((note) => note.userId == _moderation.currentUserId)
                   .toList(growable: false),
             ),
+            pronunciationNote: _pronunciationNote,
             targetLanguage: _captionTargetLanguage,
             canPublish: _me?.isOnStage == true,
             listening: _captionListening,
@@ -1009,6 +1036,9 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                 _lastTranslatedCaptionId = null;
               });
               unawaited(_syncCaptionPublishing());
+              if (value) {
+                unawaited(_prepareTranslationModels());
+              }
               final latest = _latestCaption;
               if (value && latest != null) {
                 unawaited(_translateLatestCaption(latest));
@@ -1024,7 +1054,13 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                 _pronunciationTipsEnabled = value;
                 _lastTeacherAiCaptionId = null;
                 _captionError = null;
+                if (!value) {
+                  _latestTeacherAiNote = null;
+                }
               });
+              if (!value) {
+                _pronunciationNote.value = null;
+              }
               unawaited(_syncCaptionPublishing());
               final latest = _latestCaption;
               if (value && latest != null &&
@@ -1040,6 +1076,9 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                 _latestTranslatedCaption = null;
                 _lastTranslatedCaptionId = null;
               });
+              if (_captionTranslationEnabled) {
+                unawaited(_prepareTranslationModels());
+              }
               final latest = _latestCaption;
               if (_captionTranslationEnabled && latest != null) {
                 unawaited(_translateLatestCaption(latest));
@@ -2737,6 +2776,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     unawaited(_translationService.dispose());
     unawaited(_stopRoomTeacherVoice());
     _teacherAiOnline.dispose();
+    _pronunciationNote.dispose();
     unawaited(_musicPlayer.dispose());
     unawaited(_finishSessionTracking());
     unawaited(_moderation.leave());
