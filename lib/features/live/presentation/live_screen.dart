@@ -1148,11 +1148,6 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                               liveId: _liveId!,
                               ar: widget.ar,
                               showComposer: false,
-                              onClose: () {
-                                if (mounted) {
-                                  setState(() => _chatOpen = false);
-                                }
-                              },
                             ),
                           ),
                         PositionedDirectional(
@@ -2257,11 +2252,6 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                             liveId: widget.liveId,
                             ar: widget.ar,
                             showComposer: false,
-                            onClose: () {
-                              if (mounted) {
-                                setState(() => _chatOpen = false);
-                              }
-                            },
                           ),
                         ),
                       PositionedDirectional(
@@ -3882,14 +3872,12 @@ class _LiveChatOverlay extends StatefulWidget {
     required this.service,
     required this.liveId,
     required this.ar,
-    required this.onClose,
     this.showComposer = true,
   });
 
   final LiveSessionService service;
   final String liveId;
   final bool ar;
-  final VoidCallback onClose;
   final bool showComposer;
 
   @override
@@ -3929,174 +3917,181 @@ class _LiveChatOverlayState extends State<_LiveChatOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.bottomCenter,
-          end: Alignment.topCenter,
-          colors: [
-            Color(0xB20A1511),
-            Color(0x66101A17),
-            Color(0x00101A17),
-          ],
-          stops: [0, .58, 1],
-        ),
-      ),
-      child: Column(
-        children: [
-          Align(
-            alignment: AlignmentDirectional.topEnd,
-            child: IconButton(
-              visualDensity: VisualDensity.compact,
-              style: IconButton.styleFrom(
-                backgroundColor: const Color(0x42000000),
-                foregroundColor: Colors.white,
-              ),
-              tooltip: widget.ar ? 'إخفاء الشات' : 'Hide chat',
-              onPressed: widget.onClose,
-              icon: const Icon(Icons.close_rounded, size: 18),
-            ),
-          ),
-          Expanded(
-            child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-              stream: widget.service.watchChat(widget.liveId),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return const SizedBox.shrink();
-                }
-                final docs = snapshot.data?.docs ??
-                    const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
-                return ListView.builder(
-                  reverse: true,
-                  padding: const EdgeInsets.fromLTRB(4, 0, 4, 6),
-                  itemCount: docs.length,
-                  itemBuilder: (context, index) {
-                    final data = docs[index].data();
-                    final name =
-                        (data['senderName'] ?? 'WorldVoice').toString();
-                    final photo =
-                        (data['senderPhotoUrl'] ?? '').toString().trim();
-                    final message = (data['text'] ?? '').toString();
+    return Column(
+      children: [
+        Expanded(
+          child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+            stream: widget.service.watchChat(widget.liveId),
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return const SizedBox.shrink();
+              }
+
+              final docs = snapshot.data?.docs ??
+                  const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
+
+              return ListView.builder(
+                reverse: true,
+                padding: const EdgeInsets.fromLTRB(2, 4, 2, 4),
+                itemCount: docs.length,
+                itemBuilder: (context, index) {
+                  final data = docs[index].data();
+                  final type = (data['type'] ?? 'message').toString();
+                  final name =
+                      (data['senderName'] ?? 'WorldVoice').toString();
+                  final photo =
+                      (data['senderPhotoUrl'] ?? '').toString().trim();
+                  final message = (data['text'] ?? '').toString();
+
+                  if (type == 'join') {
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 3),
+                      child: Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: const Color(0x66000000),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
+                            child: Text(
+                              widget.ar
+                                  ? '✨ $name انضم إلى اللايف'
+                                  : '✨ $name joined the Live',
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 3),
+                    child: Align(
+                      alignment: AlignmentDirectional.centerStart,
                       child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           CircleAvatar(
-                            radius: 13,
-                            backgroundColor: const Color(0x88444444),
+                            radius: 12,
+                            backgroundColor: const Color(0x77444444),
                             foregroundImage:
                                 photo.isEmpty ? null : NetworkImage(photo),
                             child: photo.isEmpty
                                 ? const Icon(
                                     Icons.person_rounded,
-                                    size: 15,
+                                    size: 13,
                                     color: Colors.white,
                                   )
                                 : null,
                           ),
-                          const SizedBox(width: 7),
+                          const SizedBox(width: 6),
                           Flexible(
-                            child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                color: const Color(0xA61A201E),
-                                borderRadius: BorderRadius.circular(18),
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: .07),
-                                ),
+                            child: Container(
+                              constraints: const BoxConstraints(maxWidth: 330),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 7,
                               ),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 8,
-                                ),
-                                child: Text.rich(
-                                  TextSpan(
-                                    children: [
-                                      TextSpan(
-                                        text: '$name  ',
-                                        style: const TextStyle(
-                                          color: Color(0xFFFFD77A),
-                                          fontWeight: FontWeight.w900,
-                                        ),
+                              decoration: BoxDecoration(
+                                color: const Color(0x99000000),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Text.rich(
+                                TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text: '$name  ',
+                                      style: const TextStyle(
+                                        color: Color(0xFFFFD77A),
+                                        fontWeight: FontWeight.w900,
                                       ),
-                                      TextSpan(
-                                        text: message,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          height: 1.28,
-                                        ),
+                                    ),
+                                    TextSpan(
+                                      text: message,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        height: 1.25,
                                       ),
-                                    ],
-                                  ),
-                                  maxLines: 4,
-                                  overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
                                 ),
+                                maxLines: 4,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ),
                         ],
                       ),
-                    );
-                  },
-                );
-              },
-            ),
+                    ),
+                  );
+                },
+              );
+            },
           ),
-          if (widget.showComposer)
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _input,
-                    focusNode: _focusNode,
-                    maxLength: 500,
-                    maxLines: 1,
-                    textInputAction: TextInputAction.send,
-                    onSubmitted: (_) => _send(),
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      counterText: '',
-                      hintText: widget.ar ? 'تعليق...' : 'Comment...',
-                      hintStyle: const TextStyle(color: Colors.white60),
-                      filled: true,
-                      fillColor: const Color(0xA6141C19),
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 11,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(22),
-                        borderSide: BorderSide.none,
-                      ),
+        ),
+        if (widget.showComposer)
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _input,
+                  focusNode: _focusNode,
+                  maxLength: 500,
+                  maxLines: 1,
+                  textInputAction: TextInputAction.send,
+                  onSubmitted: (_) => _send(),
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    counterText: '',
+                    hintText: widget.ar ? 'تعليق...' : 'Comment...',
+                    hintStyle: const TextStyle(color: Colors.white60),
+                    filled: true,
+                    fillColor: const Color(0xA6141C19),
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 11,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(22),
+                      borderSide: BorderSide.none,
                     ),
                   ),
                 ),
-                const SizedBox(width: 4),
-                IconButton(
-                  style: IconButton.styleFrom(
-                    backgroundColor: const Color(0xE0188A63),
-                    foregroundColor: Colors.white,
-                  ),
-                  onPressed: _sending ? null : _send,
-                  icon: _sending
-                      ? const SizedBox.square(
-                          dimension: 17,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Icon(Icons.send_rounded),
+              ),
+              const SizedBox(width: 4),
+              IconButton(
+                style: IconButton.styleFrom(
+                  backgroundColor: const Color(0xE0188A63),
+                  foregroundColor: Colors.white,
                 ),
-              ],
-            ),
-        ],
-      ),
+                onPressed: _sending ? null : _send,
+                icon: _sending
+                    ? const SizedBox.square(
+                        dimension: 17,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.send_rounded),
+              ),
+            ],
+          ),
+      ],
     );
-  }
-}
+  }}
 
 Future<void> _showLiveModeratorManagement(
   BuildContext context, {
