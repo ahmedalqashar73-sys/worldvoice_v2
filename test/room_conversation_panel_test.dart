@@ -27,9 +27,14 @@ void main() {
             ))))));
         await tester.pump();
         expect(tester.takeException(), isNull);
-        await tester.enterText(find.byType(TextField), 'مرحبا');
+        await tester.tap(find.byKey(
+          const ValueKey<String>('worldvoice-room-chat-input'),
+        ));
+        await tester.pumpAndSettle();
+        expect(find.byType(TextField), findsNWidgets(2));
+        await tester.enterText(find.byType(TextField).last, 'مرحبا');
         await tester.testTextInput.receiveAction(TextInputAction.send);
-        await tester.pump();
+        await tester.pumpAndSettle();
         expect(sent, ['مرحبا']);
         expect(find.text('مرحبا'), findsNothing);
         expect(tester.takeException(), isNull);
@@ -113,12 +118,14 @@ void main() {
     ));
     final stage = find.byKey(const ValueKey('fixed-room-stage'));
     final beforeStage = tester.getRect(stage);
-    final beforeField = tester.getTopLeft(find.byType(TextField)).dy;
+    final field = find.byKey(
+      const ValueKey<String>('worldvoice-room-chat-input'),
+    );
+    final beforeField = tester.getRect(field);
     inset.value = 300;
     await tester.pump();
     expect(tester.getRect(stage), beforeStage);
-    expect(tester.getTopLeft(find.byType(TextField)).dy,
-        lessThan(beforeField));
+    expect(tester.getRect(field), beforeField);
     expect(tester.takeException(), isNull);
   });
 
