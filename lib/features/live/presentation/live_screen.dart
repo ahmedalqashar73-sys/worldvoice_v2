@@ -1147,6 +1147,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                               service: _liveService,
                               liveId: _liveId!,
                               ar: widget.ar,
+                              showComposer: false,
                               onClose: () {
                                 if (mounted) {
                                   setState(() => _chatOpen = false);
@@ -1243,7 +1244,54 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                           start: 12,
                           end: 12,
                           child: _LiveControlDock(
+                            composer: _liveId == null
+                                ? null
+                                : _LiveInlineComposer(
+                                    service: _liveService,
+                                    liveId: _liveId!,
+                                    ar: widget.ar,
+                                    onOpenChat: () {
+                                      if (mounted && !_chatOpen) {
+                                        setState(() => _chatOpen = true);
+                                      }
+                                    },
+                                  ),
                             children: [
+                              IconButton(
+                                tooltip: widget.ar ? 'الهدايا' : 'Gifts',
+                                onPressed: _liveId == null
+                                    ? null
+                                    : () => _showLiveGifts(
+                                          context,
+                                          liveId: _liveId!,
+                                          service: _liveService,
+                                          hostId: FirebaseAuth
+                                                  .instance.currentUser?.uid ??
+                                              '',
+                                          hostName: FirebaseAuth.instance
+                                                  .currentUser?.displayName ??
+                                              'WorldVoice host',
+                                          ar: widget.ar,
+                                        ),
+                                icon: const Icon(
+                                  Icons.card_giftcard_rounded,
+                                  color: Color(0xFFFFC857),
+                                ),
+                              ),
+                              IconButton(
+                                tooltip: widget.ar ? 'السبورة' : 'Board',
+                                onPressed: _liveId == null
+                                    ? null
+                                    : () => setState(
+                                          () => _boardOpen = !_boardOpen,
+                                        ),
+                                icon: Icon(
+                                  _boardOpen
+                                      ? Icons.dashboard_rounded
+                                      : Icons.dashboard_outlined,
+                                  color: Colors.white,
+                                ),
+                              ),
                               IconButton(
                                 tooltip: widget.ar
                                     ? 'طلبات الانضمام'
@@ -1271,57 +1319,6 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                 icon: const Icon(
                                   Icons.admin_panel_settings_rounded,
                                   color: Color(0xFFFFD77A),
-                                ),
-                              ),
-                              IconButton(
-                                tooltip: widget.ar
-                                    ? 'دردشة اللايف'
-                                    : 'Live chat',
-                                onPressed: _liveId == null
-                                    ? null
-                                    : () => setState(
-                                          () => _chatOpen = !_chatOpen,
-                                        ),
-                                icon: Icon(
-                                  _chatOpen
-                                      ? Icons.chat_bubble_rounded
-                                      : Icons.chat_bubble_outline_rounded,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              IconButton(
-                                tooltip: widget.ar ? 'السبورة' : 'Board',
-                                onPressed: _liveId == null
-                                    ? null
-                                    : () => setState(
-                                          () => _boardOpen = !_boardOpen,
-                                        ),
-                                icon: Icon(
-                                  _boardOpen
-                                      ? Icons.dashboard_rounded
-                                      : Icons.dashboard_outlined,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              IconButton(
-                                tooltip: widget.ar ? 'الهدايا' : 'Gifts',
-                                onPressed: _liveId == null
-                                    ? null
-                                    : () => _showLiveGifts(
-                                          context,
-                                          liveId: _liveId!,
-                                          service: _liveService,
-                                          hostId: FirebaseAuth
-                                                  .instance.currentUser?.uid ??
-                                              '',
-                                          hostName: FirebaseAuth.instance
-                                                  .currentUser?.displayName ??
-                                              'WorldVoice host',
-                                          ar: widget.ar,
-                                        ),
-                                icon: const Icon(
-                                  Icons.card_giftcard_rounded,
-                                  color: Color(0xFFFFC857),
                                 ),
                               ),
                               IconButton(
@@ -1461,13 +1458,135 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   }
 }
 
+class _LiveInlineComposer extends StatefulWidget {
+  const _LiveInlineComposer({
+    required this.service,
+    required this.liveId,
+    required this.ar,
+    required this.onOpenChat,
+  });
+
+  final LiveSessionService service;
+  final String liveId;
+  final bool ar;
+  final VoidCallback onOpenChat;
+
+  @override
+  State<_LiveInlineComposer> createState() => _LiveInlineComposerState();
+}
+
+class _LiveInlineComposerState extends State<_LiveInlineComposer> {
+  final TextEditingController _controller = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
+  bool _sending = false;
+
+  Future<void> _send() async {
+    final value = _controller.text.trim();
+    if (value.isEmpty || _sending) return;
+    setState(() => _sending = true);
+    widget.onOpenChat();
+    try {
+      await widget.service.sendChat(widget.liveId, value);
+      if (!mounted) return;
+      _controller.clear();
+      _focusNode.requestFocus();
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 44,
+      child: TextField(
+        controller: _controller,
+        focusNode: _focusNode,
+        maxLength: 500,
+        maxLines: 1,
+        textInputAction: TextInputAction.send,
+        onTap: widget.onOpenChat,
+        onSubmitted: (_) => _send(),
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 14,
+        ),
+        decoration: InputDecoration(
+          counterText: '',
+          hintText: widget.ar ? 'تعليق...' : 'Comment...',
+          hintStyle: const TextStyle(color: Colors.white54),
+          filled: true,
+          fillColor: const Color(0xB50B1511),
+          isDense: true,
+          contentPadding: const EdgeInsetsDirectional.fromSTEB(
+            14,
+            11,
+            4,
+            11,
+          ),
+          suffixIcon: IconButton(
+            tooltip: widget.ar ? 'إرسال' : 'Send',
+            onPressed: _sending ? null : _send,
+            icon: _sending
+                ? const SizedBox.square(
+                    dimension: 15,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Icon(
+                    Icons.arrow_upward_rounded,
+                    color: Color(0xFF65E3B4),
+                  ),
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(24),
+            borderSide: BorderSide(
+              color: Colors.white.withValues(alpha: .08),
+            ),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(24),
+            borderSide: BorderSide(
+              color: Colors.white.withValues(alpha: .08),
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(24),
+            borderSide: const BorderSide(
+              color: Color(0xFF65E3B4),
+              width: 1.2,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _LiveControlDock extends StatelessWidget {
   const _LiveControlDock({
     required this.children,
+    this.composer,
   });
 
   final List<Widget> children;
-  final EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 10, vertical: 8);
+  final Widget? composer;
+  final EdgeInsetsGeometry padding =
+      const EdgeInsets.symmetric(horizontal: 8, vertical: 7);
 
   @override
   Widget build(BuildContext context) {
@@ -1488,12 +1607,26 @@ class _LiveControlDock extends StatelessWidget {
       ),
       child: Padding(
         padding: padding,
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: children,
-          ),
+        child: Row(
+          children: [
+            if (composer != null) ...[
+              Expanded(
+                flex: 5,
+                child: composer!,
+              ),
+              const SizedBox(width: 7),
+            ],
+            Expanded(
+              flex: composer == null ? 1 : 6,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: children,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -2123,6 +2256,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                             service: _service,
                             liveId: widget.liveId,
                             ar: widget.ar,
+                            showComposer: false,
                             onClose: () {
                               if (mounted) {
                                 setState(() => _chatOpen = false);
@@ -2253,7 +2387,51 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                         start: 12,
                         end: 12,
                         child: _LiveControlDock(
+                          composer: _LiveInlineComposer(
+                            service: _service,
+                            liveId: widget.liveId,
+                            ar: widget.ar,
+                            onOpenChat: () {
+                              if (mounted && !_chatOpen) {
+                                setState(() => _chatOpen = true);
+                              }
+                            },
+                          ),
                           children: [
+                            IconButton(
+                              tooltip: widget.ar ? 'الهدايا' : 'Gifts',
+                              onPressed: () => _showLiveGifts(
+                                context,
+                                liveId: widget.liveId,
+                                service: _service,
+                                hostId: (live?['hostId'] ??
+                                        widget.data['hostId'] ??
+                                        '')
+                                    .toString(),
+                                hostName: (live?['hostName'] ??
+                                        widget.data['hostName'] ??
+                                        'WorldVoice host')
+                                    .toString(),
+                                ar: widget.ar,
+                              ),
+                              icon: const Icon(
+                                Icons.card_giftcard_rounded,
+                                color: Color(0xFFFFC857),
+                              ),
+                            ),
+                            IconButton(
+                              tooltip: widget.ar ? 'السبورة' : 'Board',
+                              onPressed: () => setState(() {
+                                _boardOpen = !_boardOpen;
+                                if (_boardOpen) _chatOpen = true;
+                              }),
+                              icon: Icon(
+                                _boardOpen
+                                    ? Icons.dashboard_rounded
+                                    : Icons.dashboard_outlined,
+                                color: Colors.white,
+                              ),
+                            ),
                             if (!_guestPublishing)
                               FilledButton.icon(
                                 style: FilledButton.styleFrom(
@@ -2292,31 +2470,6 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                   color: Color(0xFFFFD77A),
                                 ),
                               ),
-                            IconButton(
-                              tooltip: widget.ar ? 'الشات' : 'Chat',
-                              onPressed: () => setState(
-                                () => _chatOpen = !_chatOpen,
-                              ),
-                              icon: Icon(
-                                _chatOpen
-                                    ? Icons.chat_bubble_rounded
-                                    : Icons.chat_bubble_outline_rounded,
-                                color: Colors.white,
-                              ),
-                            ),
-                            IconButton(
-                              tooltip: widget.ar ? 'السبورة' : 'Board',
-                              onPressed: () => setState(() {
-                                  _boardOpen = !_boardOpen;
-                                  if (_boardOpen) _chatOpen = true;
-                                }),
-                              icon: Icon(
-                                _boardOpen
-                                    ? Icons.dashboard_rounded
-                                    : Icons.dashboard_outlined,
-                                color: Colors.white,
-                              ),
-                            ),
                             if (_guestPublishing) ...[
                               IconButton(
                                 tooltip: widget.ar
@@ -2402,30 +2555,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                   color: Colors.white,
                                 ),
                               ),
-                            ] else
-                              IconButton(
-                                tooltip: widget.ar
-                                    ? 'هدايا اللايف'
-                                    : 'Live gifts',
-                                onPressed: () => _showLiveGifts(
-                                  context,
-                                  liveId: widget.liveId,
-                                  service: _service,
-                                  hostId: (live?['hostId'] ??
-                                          widget.data['hostId'] ??
-                                          '')
-                                      .toString(),
-                                  hostName: (live?['hostName'] ??
-                                          widget.data['hostName'] ??
-                                          'WorldVoice host')
-                                      .toString(),
-                                  ar: widget.ar,
-                                ),
-                                icon: const Icon(
-                                  Icons.card_giftcard_rounded,
-                                  color: Color(0xFFFFC857),
-                                ),
-                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -3753,12 +3883,14 @@ class _LiveChatOverlay extends StatefulWidget {
     required this.liveId,
     required this.ar,
     required this.onClose,
+    this.showComposer = true,
   });
 
   final LiveSessionService service;
   final String liveId;
   final bool ar;
   final VoidCallback onClose;
+  final bool showComposer;
 
   @override
   State<_LiveChatOverlay> createState() => _LiveChatOverlayState();
@@ -3911,54 +4043,55 @@ class _LiveChatOverlayState extends State<_LiveChatOverlay> {
               },
             ),
           ),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _input,
-                  focusNode: _focusNode,
-                  maxLength: 500,
-                  maxLines: 1,
-                  textInputAction: TextInputAction.send,
-                  onSubmitted: (_) => _send(),
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    counterText: '',
-                    hintText: widget.ar ? 'تعليق...' : 'Comment...',
-                    hintStyle: const TextStyle(color: Colors.white60),
-                    filled: true,
-                    fillColor: const Color(0xA6141C19),
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 11,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(22),
-                      borderSide: BorderSide.none,
+          if (widget.showComposer)
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _input,
+                    focusNode: _focusNode,
+                    maxLength: 500,
+                    maxLines: 1,
+                    textInputAction: TextInputAction.send,
+                    onSubmitted: (_) => _send(),
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      counterText: '',
+                      hintText: widget.ar ? 'تعليق...' : 'Comment...',
+                      hintStyle: const TextStyle(color: Colors.white60),
+                      filled: true,
+                      fillColor: const Color(0xA6141C19),
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 11,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(22),
+                        borderSide: BorderSide.none,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 4),
-              IconButton(
-                style: IconButton.styleFrom(
-                  backgroundColor: const Color(0xE0188A63),
-                  foregroundColor: Colors.white,
+                const SizedBox(width: 4),
+                IconButton(
+                  style: IconButton.styleFrom(
+                    backgroundColor: const Color(0xE0188A63),
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: _sending ? null : _send,
+                  icon: _sending
+                      ? const SizedBox.square(
+                          dimension: 17,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(Icons.send_rounded),
                 ),
-                onPressed: _sending ? null : _send,
-                icon: _sending
-                    ? const SizedBox.square(
-                        dimension: 17,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Icon(Icons.send_rounded),
-              ),
-            ],
-          ),
+              ],
+            ),
         ],
       ),
     );
