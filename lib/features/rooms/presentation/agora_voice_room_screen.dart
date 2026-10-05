@@ -2179,6 +2179,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         participants: _participants,
         isHost: _isHost,
         isModerator: _isModerator,
+        onMemberTap: (userId) {
+          Navigator.of(context).pop();
+          _openParticipantProfile(userId);
+        },
       ),
     );
   }

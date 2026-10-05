@@ -474,6 +474,43 @@ test('private room join requires a matching code grant', async () => {
 });
 
 
+test('app admin can enter a private room without a room code', async () => {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const db = ctx.firestore();
+    await updateDoc(room(db), {isPrivate: true});
+    await setDoc(doc(db, 'users/admin'), {
+      uid: 'admin', displayName: 'Admin', isAdmin: true, isVip: true,
+    });
+  });
+  const db = user('admin');
+  await assertSucceeds(setDoc(member(db, 'admin'), participant('admin')));
+});
+
+test('beta premium room theme and free frame are accepted by rules', async () => {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const db = ctx.firestore();
+    await setDoc(doc(db, 'users/host'), {
+      uid: 'host',
+      displayName: 'Host',
+      username: 'host',
+      profileFrameId: 'free_clean_white',
+    });
+  });
+
+  await assertSucceeds(
+    updateDoc(room(user('host')), {
+      themeId: 'royalEmeraldMotion',
+      backgroundUrl: '',
+    }),
+  );
+  await assertSucceeds(
+    updateDoc(doc(user('host'), 'users/host'), {
+      profileFrameId: 'free_royal_gold',
+    }),
+  );
+});
+
+
 test('verified room members can show rate-limited free gift demos without minting gifts', async () => {
   const host = user('host');
   const receiver = user('listener');

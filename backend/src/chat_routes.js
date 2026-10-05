@@ -11,9 +11,9 @@ const friendPath = (db, owner, peer) =>
   db.collection("users").doc(owner).collection("following").doc(peer);
 
 /**
- * Only verified two-member conversations can be created. This backend is
- * distinct from Cloudflare's free Agora TOKEN Worker; deploy and connect the
- * authenticated economy backend before enabling the chat UI.
+ * Only verified two-member conversations can be created. A signed-in member
+ * may start a direct conversation with another existing WorldVoice member.
+ * Firestore clients still cannot forge memberships or write chat messages.
  */
 export function registerChatRoutes({app, db, authenticatedUser}) {
   app.post("/chat/start", async (req, res, next) => {
@@ -24,14 +24,12 @@ export function registerChatRoutes({app, db, authenticatedUser}) {
       const chatRef = db.collection("chats").doc(id);
       const senderRef = db.collection("users").doc(sender.uid);
       const peerRef = db.collection("users").doc(peer);
-      const senderFollow = friendPath(db, sender.uid, peer);
-      const peerFollow = friendPath(db, peer, sender.uid);
       const result = await db.runTransaction(async tx => {
-        const [old, a, b, followsA, followsB] = await Promise.all(
-          [chatRef, senderRef, peerRef, senderFollow, peerFollow].map(r => tx.get(r)),
+        const [old, a, b] = await Promise.all(
+          [chatRef, senderRef, peerRef].map(r => tx.get(r)),
         );
-        if (!a.exists || !b.exists || !followsA.exists || !followsB.exists) {
-          fail("Both participants must follow each other.", 403);
+        if (!a.exists || !b.exists) {
+          fail("Both WorldVoice profiles must exist.", 404);
         }
         if (old.exists) {
           assertChatMembership(old.data(), sender.uid, peer);
@@ -78,13 +76,6 @@ export function registerChatRoutes({app, db, authenticatedUser}) {
           ? members.find(uid => uid !== sender.uid) : null;
         if (!chat.exists || !peer) fail("Chat unavailable.", 403);
         assertChatMembership(chat.data(), sender.uid, peer);
-        const a = friendPath(db, sender.uid, peer);
-        const b = friendPath(db, peer, sender.uid);
-        const [followsA, followsB] =
-          await Promise.all([tx.get(a), tx.get(b)]);
-        if (!followsA.exists || !followsB.exists) {
-          fail("Messaging requires mutual following.", 403);
-        }
         if (old.exists) {
           const prev = old.data() || {};
           if (prev.senderId !== sender.uid || prev.text !== text ||
