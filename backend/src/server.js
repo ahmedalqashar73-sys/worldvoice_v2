@@ -258,6 +258,9 @@ app.post("/account/sync-entitlements", async (req, res, next) => {
     const adminRef = db.collection("admins").doc(user.uid);
     const batch = db.batch();
 
+    // Keep client-visible privilege fields limited to the fields already
+    // protected by the deployed Firestore rules. Detailed permissions live
+    // only in the server-authored admins document below.
     batch.set(profileRef, {
       isVip: true,
       vipExpiresAt,
@@ -285,6 +288,41 @@ app.post("/account/sync-entitlements", async (req, res, next) => {
       isVip: true,
       role: privileged.role,
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/admin/rooms/grant-access", async (req, res, next) => {
+  try {
+    const user = await authenticatedUser(req);
+    const email = String(user.email || "").trim().toLowerCase();
+    if (!privilegedAccounts.has(email)) {
+      return res.status(403).json({error: "Admin access required."});
+    }
+
+    const roomId = String(req.body?.roomId || "").trim();
+    if (!roomId || roomId.length > 120) {
+      return res.status(400).json({error: "Valid roomId is required."});
+    }
+
+    const roomRef = db.collection("rooms").doc(roomId);
+    const roomSnap = await roomRef.get();
+    const room = roomSnap.data() || {};
+    if (!roomSnap.exists || room.isOpen !== true) {
+      return res.status(404).json({error: "Room is not open."});
+    }
+    if (room.isPrivate !== true) {
+      return res.json({ok: true, granted: false, publicRoom: true});
+    }
+
+    await roomRef.collection("access_grants").doc(user.uid).set({
+      uid: user.uid,
+      source: "worldvoice_admin",
+      grantedAt: FieldValue.serverTimestamp(),
+    }, {merge: true});
+
+    return res.json({ok: true, granted: true});
   } catch (error) {
     next(error);
   }
