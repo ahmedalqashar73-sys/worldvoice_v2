@@ -2,6 +2,9 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http/http.dart' as http;
+
+import '../data/room_backend_config.dart';
 
 import '../data/room_moderation_models.dart';
 import '../data/room_stage_models.dart';
@@ -92,7 +95,9 @@ class RoomModerationService {
         throw StateError('This room is available to VIP members only.');
       }
 
-      if (existingData?['isPrivate'] == true && !isAppAdmin) {
+      if (existingData?['isPrivate'] == true && isAppAdmin) {
+        await _grantAdminPrivateAccess(user);
+      } else if (existingData?['isPrivate'] == true) {
         final code = privateAccessCode?.trim() ?? '';
         if (code.isEmpty) {
           throw StateError('A private room code is required.');
@@ -193,6 +198,33 @@ class RoomModerationService {
     );
 
     await batch.commit();
+  }
+
+  Future<void> _grantAdminPrivateAccess(User user) async {
+    final endpoint = RoomBackendConfig.endpoint('/admin/rooms/grant-access');
+    if (endpoint.isEmpty) {
+      throw StateError('WorldVoice room backend is not configured.');
+    }
+
+    final token = await user.getIdToken();
+    if (token == null || token.isEmpty) {
+      throw StateError('Could not authorize admin room access.');
+    }
+
+    final response = await http
+        .post(
+          Uri.parse(endpoint),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+          },
+          body: '{"roomId":"$channelId"}',
+        )
+        .timeout(const Duration(seconds: 12));
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw StateError('Admin private-room access could not be granted.');
+    }
   }
 
   Future<int> roomLevel() async {
