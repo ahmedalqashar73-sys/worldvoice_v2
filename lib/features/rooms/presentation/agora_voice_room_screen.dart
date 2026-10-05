@@ -656,6 +656,15 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       createdAt: DateTime.now(),
     );
     _handleCaptions(<RoomCaption>[caption]);
+    if (isLocal) {
+      unawaited(
+        _captionService.publishFinal(
+          displayName: caption.displayName,
+          text: caption.text,
+          languageCode: caption.languageCode,
+        ),
+      );
+    }
   }
 
   void _handleCaptions(List<RoomCaption> captions) {
@@ -832,17 +841,13 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         !_controller.muted &&
         !me.forcedMuted;
 
-    final wantsRemoteSpeech =
-        _captionsEnabled || _captionTranslationEnabled;
-    final wantsLocalSpeech =
-        _captionsEnabled ||
-        _pronunciationTipsEnabled ||
-        _teacherAiConversationActive;
-
+    // Every active speaker publishes a hidden transcript from their own
+    // device. Listeners only subscribe to Firestore and choose locally
+    // whether to show subtitles, translation, or pronunciation guidance.
     await _captionController.configure(
-      enabled: wantsRemoteSpeech || (canPublish && wantsLocalSpeech),
-      canPublish: canPublish && wantsLocalSpeech,
-      captureRemote: wantsRemoteSpeech,
+      enabled: canPublish,
+      canPublish: canPublish,
+      captureRemote: false,
       languageCode: widget.roomLanguageCode ?? 'en',
       displayName: me?.displayName ?? 'WorldVoice user',
     );
@@ -882,7 +887,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         _captionError = null;
       });
     }
-    await _syncCaptionPublishing();
+    // Speaker-side transcript publishing remains active independently of
+    // this viewer-only subtitle switch.
   }
 
   Future<void> _showTeacherAiChat() async {

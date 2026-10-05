@@ -15,6 +15,7 @@ import '../../rooms/presentation/room_teacher_ai_sheet.dart';
 import '../../rooms/presentation/unified_gift_panel.dart';
 import '../../rooms/presentation/room_gift_overlay.dart';
 import '../../rooms/data/room_caption.dart';
+import '../../rooms/data/room_teacher_ai_note.dart';
 import '../../rooms/data/room_backend_config.dart';
 import '../../rooms/data/room_feature_models.dart';
 import '../../rooms/services/room_feature_service.dart';
@@ -1054,11 +1055,53 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                     return Stack(
                       fit: StackFit.expand,
                       children: [
-                        _LiveVideoGrid(children: tiles),
+                        if (!_boardOpen)
+                          _LiveVideoGrid(children: tiles)
+                        else
+                          const ColoredBox(color: Color(0xFF081A15)),
+                        if (_boardOpen)
+                          PositionedDirectional(
+                            top: 66,
+                            end: 16,
+                            child: Container(
+                              width: 92,
+                              height: 92,
+                              decoration: BoxDecoration(
+                                color: Colors.black,
+                                borderRadius: BorderRadius.circular(22),
+                                border: Border.all(
+                                  color: const Color(0xFF65E3B4),
+                                  width: 2,
+                                ),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Color(0x55000000),
+                                    blurRadius: 16,
+                                    offset: Offset(0, 6),
+                                  ),
+                                ],
+                              ),
+                              clipBehavior: Clip.antiAlias,
+                              child: _cameraPaused
+                                  ? _LiveBoardAvatar(
+                                      photoUrl: FirebaseAuth
+                                              .instance.currentUser?.photoURL ??
+                                          '',
+                                    )
+                                  : AgoraVideoView(
+                                      controller: VideoViewController(
+                                        rtcEngine: _controller.engine!,
+                                        canvas: const VideoCanvas(uid: 0),
+                                      ),
+                                    ),
+                            ),
+                          ),
                         if (_boardOpen && _liveId != null)
                           Positioned(
-                            left: 12, right: 12, top: 110,
-                            height: MediaQuery.sizeOf(context).height * .5,
+                            left: 12,
+                            right: 12,
+                            top: 170,
+                            height: MediaQuery.sizeOf(context).height * .40,
                             child: RoomBoardScreen(
                               roomId: _liveId!,
                               parentCollection: 'live_sessions',
@@ -1077,6 +1120,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                             displayName:
                                 FirebaseAuth.instance.currentUser?.displayName ??
                                     'WorldVoice host',
+                            audioFrames: _controller.audioFrames,
                             ar: widget.ar,
                           ),
                         ),
@@ -1089,7 +1133,9 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                             start: 10,
                             end: 68,
                             bottom: 78 + MediaQuery.viewInsetsOf(context).bottom,
-                            height: 250,
+                            height: _boardOpen
+                                ? MediaQuery.sizeOf(context).height * .27
+                                : 250,
                             child: _LiveChatOverlay(
                               service: _liveService,
                               liveId: _liveId!,
@@ -1954,17 +2000,73 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                   return Stack(
                     fit: StackFit.expand,
                     children: [
-                      if (tiles.isNotEmpty)
-                        _LiveVideoGrid(children: tiles)
+                      if (!_boardOpen)
+                        if (tiles.isNotEmpty)
+                          _LiveVideoGrid(children: tiles)
+                        else
+                          const Center(
+                            child: Icon(
+                              Icons.live_tv_rounded,
+                              color: Colors.white54,
+                              size: 72,
+                            ),
+                          )
                       else
-                        const Center(
-                          child: Icon(Icons.live_tv_rounded,
-                              color: Colors.white54, size: 72),
+                        const ColoredBox(color: Color(0xFF081A15)),
+                      if (_boardOpen)
+                        PositionedDirectional(
+                          top: 66,
+                          end: 16,
+                          child: Container(
+                            width: 92,
+                            height: 92,
+                            decoration: BoxDecoration(
+                              color: Colors.black,
+                              borderRadius: BorderRadius.circular(22),
+                              border: Border.all(
+                                color: const Color(0xFF65E3B4),
+                                width: 2,
+                              ),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Color(0x55000000),
+                                  blurRadius: 16,
+                                  offset: Offset(0, 6),
+                                ),
+                              ],
+                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: engine != null &&
+                                    (hostAgoraUid != null
+                                        ? remote.contains(hostAgoraUid)
+                                        : remote.isNotEmpty)
+                                ? AgoraVideoView(
+                                    controller: VideoViewController.remote(
+                                      rtcEngine: engine,
+                                      canvas: VideoCanvas(
+                                        uid: hostAgoraUid ??
+                                            remote.first,
+                                      ),
+                                      connection: RtcConnection(
+                                        channelId: widget.liveId,
+                                      ),
+                                    ),
+                                  )
+                                : _LiveBoardAvatar(
+                                    photoUrl:
+                                        (live?['hostPhotoUrl'] ??
+                                                widget.data['hostPhotoUrl'] ??
+                                                '')
+                                            .toString(),
+                                  ),
+                          ),
                         ),
                       if (_boardOpen)
                         Positioned(
-                          left: 12, right: 12, top: 110,
-                          height: MediaQuery.sizeOf(context).height * .5,
+                          left: 12,
+                          right: 12,
+                          top: 170,
+                          height: MediaQuery.sizeOf(context).height * .40,
                           child: RoomBoardScreen(
                             roomId: widget.liveId,
                             parentCollection: 'live_sessions',
@@ -1986,6 +2088,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                           displayName:
                               FirebaseAuth.instance.currentUser?.displayName ??
                                   'WorldVoice user',
+                          audioFrames: _controller.audioFrames,
                           ar: widget.ar,
                         ),
                       ),
@@ -1997,7 +2100,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                           start: 10,
                           end: 68,
                           bottom: 78 + MediaQuery.viewInsetsOf(context).bottom,
-                          height: 250,
+                          height: _boardOpen
+                              ? MediaQuery.sizeOf(context).height * .27
+                              : 250,
                           child: _LiveChatOverlay(
                             service: _service,
                             liveId: widget.liveId,
@@ -2185,8 +2290,10 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                             ),
                             IconButton(
                               tooltip: widget.ar ? 'السبورة' : 'Board',
-                              onPressed: () =>
-                                  setState(() => _boardOpen = !_boardOpen),
+                              onPressed: () => setState(() {
+                                  _boardOpen = !_boardOpen;
+                                  if (_boardOpen) _chatOpen = true;
+                                }),
                               icon: Icon(
                                 _boardOpen
                                     ? Icons.dashboard_rounded
@@ -2411,12 +2518,36 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   }
 }
 
+class _LiveBoardAvatar extends StatelessWidget {
+  const _LiveBoardAvatar({required this.photoUrl});
+
+  final String photoUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    final url = photoUrl.trim();
+    return ColoredBox(
+      color: const Color(0xFF17372D),
+      child: Center(
+        child: CircleAvatar(
+          radius: 32,
+          backgroundImage: url.isEmpty ? null : NetworkImage(url),
+          child: url.isEmpty
+              ? const Icon(Icons.person_rounded, size: 34)
+              : null,
+        ),
+      ),
+    );
+  }
+}
+
 class _LiveLanguageToolsOverlay extends StatefulWidget {
   const _LiveLanguageToolsOverlay({
     required this.liveId,
     required this.roomLanguageCode,
     required this.canPublish,
     required this.displayName,
+    required this.audioFrames,
     required this.ar,
   });
 
@@ -2424,6 +2555,7 @@ class _LiveLanguageToolsOverlay extends StatefulWidget {
   final String roomLanguageCode;
   final bool canPublish;
   final String displayName;
+  final Stream<AgoraRoomAudioFrame> audioFrames;
   final bool ar;
 
   @override
@@ -2450,6 +2582,8 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
   String? _translated;
   String? _translatedCaptionId;
   String? _lastPronunciationCaptionId;
+  final ValueNotifier<RoomTeacherAiNote?> _pronunciationNote =
+      ValueNotifier<RoomTeacherAiNote?>(null);
   bool _teacherVoicePrimed = false;
   String? _lastTeacherVoiceId;
 
@@ -2470,6 +2604,7 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
     );
     _captionController = RoomLiveCaptionController(
       service: _captionService,
+      audioFrames: widget.audioFrames,
       onState: ({required bool listening, String? error}) {
         if (!mounted) return;
         setState(() {
@@ -2478,6 +2613,8 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
         });
       },
     );
+    unawaited(_loadNativeLanguage());
+    unawaited(_syncPublishing());
     if (widget.liveId.isNotEmpty) {
       _captionSub = _captionService.watchLatest().listen(
         _handleCaptions,
@@ -2487,6 +2624,36 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
       );
       _teacherVoiceSub =
           _teacherAi.watchSpokenAnswers().listen(_handleTeacherVoice);
+    }
+  }
+
+  Future<void> _loadNativeLanguage() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+    try {
+      final snapshot =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      final data = snapshot.data();
+      final raw =
+          (data?['nativeLanguageCode'] ?? data?['nativeLanguage'] ?? '')
+              .toString()
+              .trim()
+              .toLowerCase();
+      if (raw.isEmpty) return;
+      final code = raw.split(RegExp(r'[-_]')).first;
+      if (!roomCaptionLanguages.any((item) => item.code == code)) return;
+      if (!mounted) return;
+      setState(() {
+        _targetLanguage = code;
+        _targetInitialized = true;
+        _translated = null;
+        _translatedCaptionId = null;
+      });
+      if (_translationEnabled) {
+        unawaited(_prepareTranslationModels());
+      }
+    } catch (error) {
+      debugPrint('WorldVoice Live native language unavailable: $error');
     }
   }
 
@@ -2513,10 +2680,9 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
       _translated = null;
       _translatedCaptionId = null;
     }
-    if (_enabled &&
-        (oldWidget.canPublish != widget.canPublish ||
-            oldWidget.displayName != widget.displayName ||
-            oldWidget.roomLanguageCode != widget.roomLanguageCode)) {
+    if (oldWidget.canPublish != widget.canPublish ||
+        oldWidget.displayName != widget.displayName ||
+        oldWidget.roomLanguageCode != widget.roomLanguageCode) {
       unawaited(_syncPublishing());
     }
   }
@@ -2541,12 +2707,21 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
         latest.userId == FirebaseAuth.instance.currentUser?.uid &&
         latest.id != _lastPronunciationCaptionId) {
       _lastPronunciationCaptionId = latest.id;
-      unawaited(
-        _teacherAi.submitCaption(
-          caption: latest,
-          roomLanguageCode: widget.roomLanguageCode,
-        ),
+      final note = _teacherAi.localPronunciationNote(
+        caption: latest,
+        roomLanguageCode: widget.roomLanguageCode,
       );
+      _pronunciationNote.value = note;
+      if (_teacherAi.isConfigured) {
+        unawaited(
+          _teacherAi
+              .submitCaption(
+                caption: latest,
+                roomLanguageCode: widget.roomLanguageCode,
+              )
+              .catchError((Object _) => false),
+        );
+      }
     }
   }
 
@@ -2586,11 +2761,28 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
   }
 
   Future<void> _syncPublishing() => _captionController.configure(
-        enabled: _enabled,
+        enabled: widget.canPublish,
         canPublish: widget.canPublish,
+        captureRemote: false,
         languageCode: widget.roomLanguageCode,
         displayName: widget.displayName,
       );
+
+  Future<void> _prepareTranslationModels() async {
+    try {
+      await _translationService.preparePair(
+        sourceCode: widget.roomLanguageCode,
+        targetCode: _targetLanguage,
+      );
+      if (!mounted) return;
+      setState(() => _error = null);
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _error = error.toString().replaceFirst('Bad state: ', '');
+      });
+    }
+  }
 
   Future<void> _setEnabled(bool value) async {
     setState(() {
@@ -2600,7 +2792,8 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
         _error = null;
       }
     });
-    await _syncPublishing();
+    // Caption publishing for speakers is kept active independently of
+    // whether this viewer chose to display subtitles.
   }
 
   Future<void> _showTeacherAi() async {
@@ -2684,6 +2877,7 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
                   )
                   .toList(growable: false),
             ),
+            pronunciationNote: _pronunciationNote,
             targetLanguage: _targetLanguage,
             targetLanguages: roomCaptionLanguages,
             canPublish: widget.canPublish,
@@ -2699,6 +2893,9 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
                 _translated = null;
                 _translatedCaptionId = null;
               });
+              if (value) {
+                unawaited(_prepareTranslationModels());
+              }
               final latest = _latest;
               if (value && latest != null) unawaited(_translate(latest));
               refresh(() {});
@@ -2709,16 +2906,17 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
                 _lastPronunciationCaptionId = null;
                 _error = null;
               });
+              if (!value) {
+                _pronunciationNote.value = null;
+              }
               final latest = _latest;
               if (value &&
                   latest != null &&
                   latest.userId == FirebaseAuth.instance.currentUser?.uid) {
                 _lastPronunciationCaptionId = latest.id;
-                unawaited(
-                  _teacherAi.submitCaption(
-                    caption: latest,
-                    roomLanguageCode: widget.roomLanguageCode,
-                  ),
+                _pronunciationNote.value = _teacherAi.localPronunciationNote(
+                  caption: latest,
+                  roomLanguageCode: widget.roomLanguageCode,
                 );
               }
               refresh(() {});
@@ -2729,6 +2927,9 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
                 _translated = null;
                 _translatedCaptionId = null;
               });
+              if (_translationEnabled) {
+                unawaited(_prepareTranslationModels());
+              }
               final latest = _latest;
               if (_translationEnabled && latest != null) {
                 unawaited(_translate(latest));
@@ -2745,6 +2946,7 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
     unawaited(_teacherVoiceSub?.cancel());
     unawaited(_captionController.dispose());
     unawaited(_translationService.dispose());
+    _pronunciationNote.dispose();
     super.dispose();
   }
 
@@ -2773,7 +2975,7 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
             ],
           ),
         ),
-        if (_enabled && caption != null)
+        if ((_enabled || _translationEnabled) && caption != null)
           PositionedDirectional(
             start: 28,
             end: 28,
