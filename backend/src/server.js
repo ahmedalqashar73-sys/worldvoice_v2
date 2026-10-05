@@ -568,6 +568,54 @@ app.post("/agora/token", async (req, res, next) => {
   }
 });
 
+app.post("/ai/status", async (req, res, next) => {
+  try {
+    const user = await authenticatedUser(req);
+    const context = req.body?.context === "live" ? "live" : "room";
+    const roomId = String(req.body?.roomId || "").trim();
+
+    if (!roomId) {
+      return res.status(400).json({error: "roomId is required."});
+    }
+
+    const parentCollection = context === "live" ? "live_sessions" : "rooms";
+    const parentRef = db.collection(parentCollection).doc(roomId);
+    const parentSnap = await parentRef.get();
+    if (!parentSnap.exists) {
+      return res.status(404).json({error: "Room not found."});
+    }
+
+    let memberAllowed = false;
+    if (context === "room") {
+      memberAllowed = (
+        await parentRef.collection("participants").doc(user.uid).get()
+      ).exists;
+    } else {
+      const live = parentSnap.data() || {};
+      memberAllowed = live.hostId === user.uid ||
+        (await parentRef.collection("viewers").doc(user.uid).get()).exists;
+    }
+    if (!memberAllowed) {
+      return res.status(403).json({error: "User is not in this room."});
+    }
+
+    requireEnv(openAiKey, "OPENAI_API_KEY");
+    requireEnv(teacherModel, "OPENAI_TEACHER_MODEL");
+
+    await openai.responses.create({
+      model: teacherModel,
+      store: false,
+      max_output_tokens: 8,
+      instructions: "Return exactly OK.",
+      input: "OK",
+    });
+
+    return res.json({ok: true, available: true});
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.post(
   "/speech/transcribe",
   express.raw({type: ["audio/wav", "application/octet-stream"], limit: "768kb"}),
