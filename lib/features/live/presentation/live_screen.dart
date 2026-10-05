@@ -1055,11 +1055,53 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                     return Stack(
                       fit: StackFit.expand,
                       children: [
-                        _LiveVideoGrid(children: tiles),
+                        if (!_boardOpen)
+                          _LiveVideoGrid(children: tiles)
+                        else
+                          const ColoredBox(color: Color(0xFF081A15)),
+                        if (_boardOpen)
+                          PositionedDirectional(
+                            top: 66,
+                            end: 16,
+                            child: Container(
+                              width: 92,
+                              height: 92,
+                              decoration: BoxDecoration(
+                                color: Colors.black,
+                                borderRadius: BorderRadius.circular(22),
+                                border: Border.all(
+                                  color: const Color(0xFF65E3B4),
+                                  width: 2,
+                                ),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Color(0x55000000),
+                                    blurRadius: 16,
+                                    offset: Offset(0, 6),
+                                  ),
+                                ],
+                              ),
+                              clipBehavior: Clip.antiAlias,
+                              child: _cameraPaused
+                                  ? _LiveBoardAvatar(
+                                      photoUrl: FirebaseAuth
+                                              .instance.currentUser?.photoURL ??
+                                          '',
+                                    )
+                                  : AgoraVideoView(
+                                      controller: VideoViewController(
+                                        rtcEngine: _controller.engine!,
+                                        canvas: const VideoCanvas(uid: 0),
+                                      ),
+                                    ),
+                            ),
+                          ),
                         if (_boardOpen && _liveId != null)
                           Positioned(
-                            left: 12, right: 12, top: 110,
-                            height: MediaQuery.sizeOf(context).height * .5,
+                            left: 12,
+                            right: 12,
+                            top: 170,
+                            height: MediaQuery.sizeOf(context).height * .40,
                             child: RoomBoardScreen(
                               roomId: _liveId!,
                               parentCollection: 'live_sessions',
@@ -1091,7 +1133,9 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                             start: 10,
                             end: 68,
                             bottom: 78 + MediaQuery.viewInsetsOf(context).bottom,
-                            height: 250,
+                            height: _boardOpen
+                                ? MediaQuery.sizeOf(context).height * .27
+                                : 250,
                             child: _LiveChatOverlay(
                               service: _liveService,
                               liveId: _liveId!,
@@ -1956,17 +2000,73 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                   return Stack(
                     fit: StackFit.expand,
                     children: [
-                      if (tiles.isNotEmpty)
-                        _LiveVideoGrid(children: tiles)
+                      if (!_boardOpen)
+                        if (tiles.isNotEmpty)
+                          _LiveVideoGrid(children: tiles)
+                        else
+                          const Center(
+                            child: Icon(
+                              Icons.live_tv_rounded,
+                              color: Colors.white54,
+                              size: 72,
+                            ),
+                          )
                       else
-                        const Center(
-                          child: Icon(Icons.live_tv_rounded,
-                              color: Colors.white54, size: 72),
+                        const ColoredBox(color: Color(0xFF081A15)),
+                      if (_boardOpen)
+                        PositionedDirectional(
+                          top: 66,
+                          end: 16,
+                          child: Container(
+                            width: 92,
+                            height: 92,
+                            decoration: BoxDecoration(
+                              color: Colors.black,
+                              borderRadius: BorderRadius.circular(22),
+                              border: Border.all(
+                                color: const Color(0xFF65E3B4),
+                                width: 2,
+                              ),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Color(0x55000000),
+                                  blurRadius: 16,
+                                  offset: Offset(0, 6),
+                                ),
+                              ],
+                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: engine != null &&
+                                    (hostAgoraUid != null
+                                        ? remote.contains(hostAgoraUid)
+                                        : remote.isNotEmpty)
+                                ? AgoraVideoView(
+                                    controller: VideoViewController.remote(
+                                      rtcEngine: engine,
+                                      canvas: VideoCanvas(
+                                        uid: hostAgoraUid ??
+                                            remote.first,
+                                      ),
+                                      connection: RtcConnection(
+                                        channelId: widget.liveId,
+                                      ),
+                                    ),
+                                  )
+                                : _LiveBoardAvatar(
+                                    photoUrl:
+                                        (live?['hostPhotoUrl'] ??
+                                                widget.data['hostPhotoUrl'] ??
+                                                '')
+                                            .toString(),
+                                  ),
+                          ),
                         ),
                       if (_boardOpen)
                         Positioned(
-                          left: 12, right: 12, top: 110,
-                          height: MediaQuery.sizeOf(context).height * .5,
+                          left: 12,
+                          right: 12,
+                          top: 170,
+                          height: MediaQuery.sizeOf(context).height * .40,
                           child: RoomBoardScreen(
                             roomId: widget.liveId,
                             parentCollection: 'live_sessions',
@@ -2000,7 +2100,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                           start: 10,
                           end: 68,
                           bottom: 78 + MediaQuery.viewInsetsOf(context).bottom,
-                          height: 250,
+                          height: _boardOpen
+                              ? MediaQuery.sizeOf(context).height * .27
+                              : 250,
                           child: _LiveChatOverlay(
                             service: _service,
                             liveId: widget.liveId,
@@ -2188,8 +2290,10 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                             ),
                             IconButton(
                               tooltip: widget.ar ? 'السبورة' : 'Board',
-                              onPressed: () =>
-                                  setState(() => _boardOpen = !_boardOpen),
+                              onPressed: () => setState(() {
+                                  _boardOpen = !_boardOpen;
+                                  if (_boardOpen) _chatOpen = true;
+                                }),
                               icon: Icon(
                                 _boardOpen
                                     ? Icons.dashboard_rounded
@@ -2411,6 +2515,29 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
         SnackBar(content: Text(error.toString())),
       );
     }
+  }
+}
+
+class _LiveBoardAvatar extends StatelessWidget {
+  const _LiveBoardAvatar({required this.photoUrl});
+
+  final String photoUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    final url = photoUrl.trim();
+    return ColoredBox(
+      color: const Color(0xFF17372D),
+      child: Center(
+        child: CircleAvatar(
+          radius: 32,
+          backgroundImage: url.isEmpty ? null : NetworkImage(url),
+          child: url.isEmpty
+              ? const Icon(Icons.person_rounded, size: 34)
+              : null,
+        ),
+      ),
+    );
   }
 }
 
