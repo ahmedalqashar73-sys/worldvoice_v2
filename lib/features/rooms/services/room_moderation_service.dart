@@ -64,6 +64,7 @@ class RoomModerationService {
             : profileLanguageCode)
         .toLowerCase();
     final country = (data['country'] ?? '').toString().trim();
+    final isAppAdmin = data['isAdmin'] == true;
 
     final existingRoom = await _roomRef.get();
     final existingData = existingRoom.data();
@@ -85,11 +86,13 @@ class RoomModerationService {
         throw StateError('This room is no longer open.');
       }
 
-      if (existingData?['vipOnly'] == true && data['isVip'] != true) {
+      if (existingData?['vipOnly'] == true &&
+          data['isVip'] != true &&
+          !isAppAdmin) {
         throw StateError('This room is available to VIP members only.');
       }
 
-      if (existingData?['isPrivate'] == true) {
+      if (existingData?['isPrivate'] == true && !isAppAdmin) {
         final code = privateAccessCode?.trim() ?? '';
         if (code.isEmpty) {
           throw StateError('A private room code is required.');
@@ -118,7 +121,7 @@ class RoomModerationService {
     if (asHost) {
       if (initialIsPrivate) {
         final giftLevel = (data['giftLevel'] as num?)?.toInt() ?? 0;
-        if (giftLevel < 14) {
+        if (giftLevel < 14 && !isAppAdmin) {
           throw StateError(
             'Gift Level 14 is required to create a private room.',
           );
