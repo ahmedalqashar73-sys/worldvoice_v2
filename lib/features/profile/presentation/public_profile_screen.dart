@@ -8,6 +8,7 @@ import '../../../core/localization/app_strings.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../../../core/widgets/worldvoice_avatar_frame.dart';
 import '../../chat/presentation/chat_screen.dart';
+import '../../stories/presentation/story_strip.dart';
 import '../services/profile_social_service.dart';
 import 'profile_identity_strip.dart';
 import 'voice_bio_player.dart';
@@ -208,7 +209,15 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
               children: [
                 Center(
-                  child: WorldVoiceAvatarFrame(
+                  child: StoryProfileRing(
+                    ownerId: widget.userId,
+                    isArabic: code == 'ar',
+                    onReply: (story) => ChatScreen.openDirectConversation(
+                      context: context,
+                      peerId: story.ownerId,
+                      peerName: story.ownerName,
+                    ),
+                    child: WorldVoiceAvatarFrame(
                     frameId: profileFrameId,
                     size: 116,
                     child: ColoredBox(
@@ -227,6 +236,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                               ),
                             ),
                     ),
+                  ),
                   ),
                 ),
                 const SizedBox(height: 14),

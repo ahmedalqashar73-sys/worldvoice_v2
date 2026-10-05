@@ -11,6 +11,7 @@ import '../../profile/presentation/public_profile_screen.dart';
 import '../../profile/presentation/profile_form_validation.dart';
 import '../../profile/presentation/user_profile_screen.dart';
 import '../../rooms/presentation/rooms_hub_screen.dart';
+import '../../stories/presentation/story_strip.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({required this.localeController, super.key});
@@ -258,7 +259,16 @@ class _HomeLandingState extends State<_HomeLanding> {
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 8),
+          StoryStrip(
+            isArabic: ar,
+            onReply: (story) => ChatScreen.openDirectConversation(
+              context: context,
+              peerId: story.ownerId,
+              peerName: story.ownerName,
+            ),
+          ),
+          const SizedBox(height: 8),
           SearchBar(
             controller: _searchController,
             hintText: ar
