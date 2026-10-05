@@ -51,6 +51,7 @@ class RoomLiveCaptionController {
   final RoomCaptionTextCallback? _onTranscript;
 
   final SpeechToText _speech = SpeechToText();
+  final SpeechToText _localSpeech = SpeechToText();
   final Map<String, _PcmSpeechSegment> _segments =
       <String, _PcmSpeechSegment>{};
   final Set<String> _inFlight = <String>{};
@@ -62,6 +63,9 @@ class RoomLiveCaptionController {
   Timer? _restartTimer;
   bool _initialized = false;
   bool _available = false;
+  bool _localInitialized = false;
+  bool _localAvailable = false;
+  bool _localStarting = false;
   bool _enabled = false;
   bool _canPublish = false;
   bool _captureRemote = false;
@@ -71,7 +75,9 @@ class RoomLiveCaptionController {
   String _languageCode = 'en';
   String _displayName = 'WorldVoice user';
   String? _localeId;
+  String? _localLocaleId;
   String _lastPublished = '';
+  String _lastLocalPublished = '';
 
   bool get enabled => _enabled;
   bool get listening =>
@@ -101,10 +107,22 @@ class RoomLiveCaptionController {
       if (!_enabled || (!_canPublish && !_captureRemote)) {
         _segments.clear();
         _pendingByKey.clear();
+        if (_localSpeech.isListening) {
+          await _localSpeech.stop();
+        }
         _onState(listening: false);
         return;
       }
-      _onState(listening: true);
+
+      // Local speech must not depend on the paid transcription backend.
+      // Android's recognizer handles the host/speaker locally, while Agora
+      // PCM remains available for remote speakers.
+      if (_canPublish) {
+        await _startLocalSpeechIfNeeded();
+      } else if (_localSpeech.isListening) {
+        await _localSpeech.stop();
+      }
+      _onState(listening: _localSpeech.isListening || _captureRemote);
       return;
     }
 
@@ -123,7 +141,9 @@ class RoomLiveCaptionController {
   void _onAgoraFrame(AgoraRoomAudioFrame frame) {
     if (_disposed || !_enabled) return;
     if (frame.isLocal) {
-      if (!_canPublish) return;
+      // Local audio is recognized on-device. Do not upload it to the
+      // transcription backend or consume AI credits.
+      return;
     } else if (!_captureRemote) {
       return;
     }
@@ -267,6 +287,130 @@ class RoomLiveCaptionController {
     return bytes.buffer.asUint8List();
   }
 
+  Future<void> _initializeLocalSpeech() async {
+    if (_localInitialized || _disposed) return;
+    _localInitialized = true;
+
+    _localAvailable = await _localSpeech.initialize(
+      onStatus: (status) {
+        if (_disposed || _audioFrames == null) return;
+        final listening = status == SpeechToText.listeningStatus;
+        _onState(listening: listening || (_enabled && _captureRemote));
+        if (status == SpeechToText.doneStatus ||
+            status == SpeechToText.notListeningStatus) {
+          _scheduleLocalRestart();
+        }
+      },
+      onError: (error) {
+        if (_disposed) return;
+        _onState(
+          listening: _enabled && _captureRemote,
+          error: error.errorMsg,
+        );
+        _scheduleLocalRestart();
+      },
+    );
+
+    if (!_localAvailable) {
+      _onState(
+        listening: _enabled && _captureRemote,
+        error: 'Speech recognition is not available on this device.',
+      );
+      return;
+    }
+
+    final locales = await _localSpeech.locales();
+    final normalized = _languageCode.toLowerCase();
+    for (final locale in locales) {
+      final localeCode =
+          locale.localeId.toLowerCase().split(RegExp('[-_]')).first;
+      if (localeCode == normalized) {
+        _localLocaleId = locale.localeId;
+        break;
+      }
+    }
+  }
+
+  Future<void> _startLocalSpeechIfNeeded() async {
+    if (_disposed ||
+        _audioFrames == null ||
+        !_enabled ||
+        !_canPublish ||
+        _localStarting ||
+        _localSpeech.isListening) {
+      return;
+    }
+
+    _localStarting = true;
+    try {
+      await _initializeLocalSpeech();
+      if (!_localAvailable || _disposed || !_enabled || !_canPublish) return;
+
+      await _localSpeech.listen(
+        onResult: (result) {
+          if (_disposed || !_enabled || !_canPublish) return;
+          final text = result.recognizedWords.trim();
+          if (!result.finalResult ||
+              text.isEmpty ||
+              text == _lastLocalPublished) {
+            return;
+          }
+          _lastLocalPublished = text;
+          final callback = _onTranscript;
+          if (callback != null) {
+            callback(
+              text: text,
+              isLocal: true,
+              languageCode: _languageCode,
+              agoraUid: null,
+            );
+          } else {
+            unawaited(
+              _service.publishFinal(
+                displayName: _displayName,
+                text: text,
+                languageCode: _languageCode,
+              ),
+            );
+          }
+        },
+        listenOptions: SpeechListenOptions(
+          cancelOnError: false,
+          partialResults: true,
+          listenMode: ListenMode.dictation,
+          autoPunctuation: true,
+          pauseFor: const Duration(seconds: 3),
+          listenFor: const Duration(seconds: 25),
+          localeId: _localLocaleId,
+        ),
+      );
+    } catch (error) {
+      if (!_disposed) {
+        _onState(
+          listening: _enabled && _captureRemote,
+          error: error.toString(),
+        );
+        _scheduleLocalRestart();
+      }
+    } finally {
+      _localStarting = false;
+    }
+  }
+
+  void _scheduleLocalRestart() {
+    if (_audioFrames == null ||
+        _disposed ||
+        !_enabled ||
+        !_canPublish) {
+      return;
+    }
+    _restartTimer?.cancel();
+    _restartTimer = Timer(
+      const Duration(milliseconds: 450),
+      () => unawaited(_startLocalSpeechIfNeeded()),
+    );
+  }
+
   Future<void> _initialize() async {
     if (_initialized || _disposed) return;
     _initialized = true;
@@ -406,6 +550,9 @@ class RoomLiveCaptionController {
     _pendingByKey.clear();
     if (_speech.isListening) {
       await _speech.cancel();
+    }
+    if (_localSpeech.isListening) {
+      await _localSpeech.cancel();
     }
   }
 }
