@@ -1461,13 +1461,135 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   }
 }
 
+class _LiveInlineComposer extends StatefulWidget {
+  const _LiveInlineComposer({
+    required this.service,
+    required this.liveId,
+    required this.ar,
+    required this.onOpenChat,
+  });
+
+  final LiveSessionService service;
+  final String liveId;
+  final bool ar;
+  final VoidCallback onOpenChat;
+
+  @override
+  State<_LiveInlineComposer> createState() => _LiveInlineComposerState();
+}
+
+class _LiveInlineComposerState extends State<_LiveInlineComposer> {
+  final TextEditingController _controller = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
+  bool _sending = false;
+
+  Future<void> _send() async {
+    final value = _controller.text.trim();
+    if (value.isEmpty || _sending) return;
+    setState(() => _sending = true);
+    widget.onOpenChat();
+    try {
+      await widget.service.sendChat(widget.liveId, value);
+      if (!mounted) return;
+      _controller.clear();
+      _focusNode.requestFocus();
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 44,
+      child: TextField(
+        controller: _controller,
+        focusNode: _focusNode,
+        maxLength: 500,
+        maxLines: 1,
+        textInputAction: TextInputAction.send,
+        onTap: widget.onOpenChat,
+        onSubmitted: (_) => _send(),
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 14,
+        ),
+        decoration: InputDecoration(
+          counterText: '',
+          hintText: widget.ar ? 'تعليق...' : 'Comment...',
+          hintStyle: const TextStyle(color: Colors.white54),
+          filled: true,
+          fillColor: const Color(0xB50B1511),
+          isDense: true,
+          contentPadding: const EdgeInsetsDirectional.fromSTEB(
+            14,
+            11,
+            4,
+            11,
+          ),
+          suffixIcon: IconButton(
+            tooltip: widget.ar ? 'إرسال' : 'Send',
+            onPressed: _sending ? null : _send,
+            icon: _sending
+                ? const SizedBox.square(
+                    dimension: 15,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Icon(
+                    Icons.arrow_upward_rounded,
+                    color: Color(0xFF65E3B4),
+                  ),
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(24),
+            borderSide: BorderSide(
+              color: Colors.white.withValues(alpha: .08),
+            ),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(24),
+            borderSide: BorderSide(
+              color: Colors.white.withValues(alpha: .08),
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(24),
+            borderSide: const BorderSide(
+              color: Color(0xFF65E3B4),
+              width: 1.2,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _LiveControlDock extends StatelessWidget {
   const _LiveControlDock({
     required this.children,
+    this.composer,
   });
 
   final List<Widget> children;
-  final EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 10, vertical: 8);
+  final Widget? composer;
+  final EdgeInsetsGeometry padding =
+      const EdgeInsets.symmetric(horizontal: 8, vertical: 7);
 
   @override
   Widget build(BuildContext context) {
@@ -1488,12 +1610,26 @@ class _LiveControlDock extends StatelessWidget {
       ),
       child: Padding(
         padding: padding,
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: children,
-          ),
+        child: Row(
+          children: [
+            if (composer != null) ...[
+              Expanded(
+                flex: 5,
+                child: composer!,
+              ),
+              const SizedBox(width: 7),
+            ],
+            Expanded(
+              flex: composer == null ? 1 : 6,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: children,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -3753,12 +3889,14 @@ class _LiveChatOverlay extends StatefulWidget {
     required this.liveId,
     required this.ar,
     required this.onClose,
+    this.showComposer = true,
   });
 
   final LiveSessionService service;
   final String liveId;
   final bool ar;
   final VoidCallback onClose;
+  final bool showComposer;
 
   @override
   State<_LiveChatOverlay> createState() => _LiveChatOverlayState();
@@ -3911,54 +4049,55 @@ class _LiveChatOverlayState extends State<_LiveChatOverlay> {
               },
             ),
           ),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _input,
-                  focusNode: _focusNode,
-                  maxLength: 500,
-                  maxLines: 1,
-                  textInputAction: TextInputAction.send,
-                  onSubmitted: (_) => _send(),
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    counterText: '',
-                    hintText: widget.ar ? 'تعليق...' : 'Comment...',
-                    hintStyle: const TextStyle(color: Colors.white60),
-                    filled: true,
-                    fillColor: const Color(0xA6141C19),
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 11,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(22),
-                      borderSide: BorderSide.none,
+          if (widget.showComposer)
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _input,
+                    focusNode: _focusNode,
+                    maxLength: 500,
+                    maxLines: 1,
+                    textInputAction: TextInputAction.send,
+                    onSubmitted: (_) => _send(),
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      counterText: '',
+                      hintText: widget.ar ? 'تعليق...' : 'Comment...',
+                      hintStyle: const TextStyle(color: Colors.white60),
+                      filled: true,
+                      fillColor: const Color(0xA6141C19),
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 11,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(22),
+                        borderSide: BorderSide.none,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 4),
-              IconButton(
-                style: IconButton.styleFrom(
-                  backgroundColor: const Color(0xE0188A63),
-                  foregroundColor: Colors.white,
+                const SizedBox(width: 4),
+                IconButton(
+                  style: IconButton.styleFrom(
+                    backgroundColor: const Color(0xE0188A63),
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: _sending ? null : _send,
+                  icon: _sending
+                      ? const SizedBox.square(
+                          dimension: 17,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(Icons.send_rounded),
                 ),
-                onPressed: _sending ? null : _send,
-                icon: _sending
-                    ? const SizedBox.square(
-                        dimension: 17,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Icon(Icons.send_rounded),
-              ),
-            ],
-          ),
+              ],
+            ),
         ],
       ),
     );
