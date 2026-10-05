@@ -53,20 +53,22 @@ export function registerChatRoutes({app, db, authenticatedUser}) {
       const snapshot = await db
         .collection("message_requests")
         .where("recipientId", "==", user.uid)
-        .where("status", "==", "pending")
         .limit(100)
         .get();
 
-      const requests = snapshot.docs.map(doc => {
-        const data = doc.data() || {};
-        return {
-          id: doc.id,
-          senderId: String(data.senderId || ""),
-          senderName: String(data.senderName || "WorldVoice member"),
-          senderPhotoUrl: String(data.senderPhotoUrl || ""),
-          createdAtMs: data.createdAt?.toMillis?.() || 0,
-        };
-      }).sort((a, b) => b.createdAtMs - a.createdAtMs);
+      const requests = snapshot.docs
+        .filter(doc => doc.data()?.status === "pending")
+        .map(doc => {
+          const data = doc.data() || {};
+          return {
+            id: doc.id,
+            senderId: String(data.senderId || ""),
+            senderName: String(data.senderName || "WorldVoice member"),
+            senderPhotoUrl: String(data.senderPhotoUrl || ""),
+            createdAtMs: data.createdAt?.toMillis?.() || 0,
+          };
+        })
+        .sort((a, b) => b.createdAtMs - a.createdAtMs);
 
       res.json({ok: true, requests});
     } catch (error) { next(error); }
