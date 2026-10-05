@@ -1473,14 +1473,16 @@ class _LiveControlDock extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: const Color(0xB8141816),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: .10)),
+        color: const Color(0xD9081712),
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(
+          color: const Color(0x335FE6B5),
+        ),
         boxShadow: const [
           BoxShadow(
-            blurRadius: 18,
-            offset: Offset(0, 8),
-            color: Color(0x33000000),
+            blurRadius: 22,
+            offset: Offset(0, 10),
+            color: Color(0x44000000),
           ),
         ],
       ),
@@ -4285,68 +4287,104 @@ class _LiveVideoGrid extends StatelessWidget {
   const _LiveVideoGrid({required this.children});
   final List<Widget> children;
 
-  Widget _tile(Widget child, {BorderRadius? radius}) {
-    return ClipRRect(
-      borderRadius: radius ?? BorderRadius.zero,
-      child: ColoredBox(
+  Widget _tile(Widget child) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
         color: const Color(0xFF071B16),
-        child: SizedBox.expand(child: child),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: .06),
+          width: .8,
+        ),
+      ),
+      child: ClipRect(
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            SizedBox.expand(child: child),
+            const IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Color(0x20000000),
+                      Color(0x00000000),
+                      Color(0x30000000),
+                    ],
+                    stops: [0, .62, 1],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    if (children.isEmpty) {
-      return const ColoredBox(color: Color(0xFF071B16));
+    final items = children.take(4).toList(growable: false);
+
+    if (items.isEmpty) {
+      return const ColoredBox(
+        color: Color(0xFF071B16),
+        child: Center(
+          child: Icon(
+            Icons.live_tv_rounded,
+            color: Colors.white30,
+            size: 64,
+          ),
+        ),
+      );
     }
 
-    if (children.length == 1) {
-      return _tile(children.first);
+    if (items.length == 1) {
+      return _tile(items.first);
     }
 
-    if (children.length == 2) {
+    if (items.length == 2) {
       return Row(
         children: [
-          Expanded(child: _tile(children[0])),
+          Expanded(child: _tile(items[0])),
           const SizedBox(width: 2),
-          Expanded(child: _tile(children[1])),
+          Expanded(child: _tile(items[1])),
         ],
       );
     }
 
-    if (children.length == 3) {
+    if (items.length == 3) {
       return Row(
         textDirection: TextDirection.ltr,
         children: [
           Expanded(
-            flex: 1,
+            flex: 44,
             child: Column(
               children: [
-                Expanded(child: _tile(children[1])),
+                Expanded(child: _tile(items[1])),
                 const SizedBox(height: 2),
-                Expanded(child: _tile(children[2])),
+                Expanded(child: _tile(items[2])),
               ],
             ),
           ),
           const SizedBox(width: 2),
           Expanded(
-            flex: 1,
-            child: _tile(children[0]),
+            flex: 56,
+            child: _tile(items[0]),
           ),
         ],
       );
     }
 
-    final firstFour = children.take(4).toList(growable: false);
     return Column(
       children: [
         Expanded(
           child: Row(
             children: [
-              Expanded(child: _tile(firstFour[0])),
+              Expanded(child: _tile(items[0])),
               const SizedBox(width: 2),
-              Expanded(child: _tile(firstFour[1])),
+              Expanded(child: _tile(items[1])),
             ],
           ),
         ),
@@ -4354,9 +4392,9 @@ class _LiveVideoGrid extends StatelessWidget {
         Expanded(
           child: Row(
             children: [
-              Expanded(child: _tile(firstFour[2])),
+              Expanded(child: _tile(items[2])),
               const SizedBox(width: 2),
-              Expanded(child: _tile(firstFour[3])),
+              Expanded(child: _tile(items[3])),
             ],
           ),
         ),
