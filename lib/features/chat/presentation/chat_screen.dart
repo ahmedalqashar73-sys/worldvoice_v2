@@ -66,6 +66,272 @@ class ChatScreen extends StatelessWidget {
     return body;
   }
 
+  static Future<Map<String, dynamic>> _get(String route) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) throw StateError('Sign in to chat.');
+    final uri = Uri.tryParse(_backend.trim());
+    if (uri == null ||
+        uri.scheme != 'https' ||
+        !uri.hasAuthority ||
+        uri.userInfo.isNotEmpty ||
+        uri.query.isNotEmpty ||
+        uri.fragment.isNotEmpty) {
+      throw StateError('Chat backend is not deployed yet.');
+    }
+    final token = await user.getIdToken(true);
+    if (token == null || token.isEmpty) {
+      throw StateError('Could not authenticate your chat session.');
+    }
+    final path = uri.path.endsWith('/')
+        ? uri.path.substring(0, uri.path.length - 1)
+        : uri.path;
+    final result = await http.get(
+      uri.replace(path: '$path$route'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    Map<String, dynamic> body;
+    try {
+      final raw = jsonDecode(result.body);
+      body = raw is Map<String, dynamic> ? raw : <String, dynamic>{};
+    } catch (_) {
+      throw StateError('The chat server sent an invalid response.');
+    }
+    if (result.statusCode < 200 ||
+        result.statusCode >= 300 ||
+        body['ok'] != true) {
+      throw StateError(body['error']?.toString() ?? 'Chat request failed.');
+    }
+    return body;
+  }
+
+  static Future<bool> _openStartResult({
+    required BuildContext context,
+    required Map<String, dynamic> result,
+    required String peerId,
+    required String peerName,
+  }) async {
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    final status = (result['status'] ?? 'ready').toString();
+    if (status == 'request_pending') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            ar
+                ? 'تم إرسال طلب رسالة. تقدر تراسله بعد ما يوافق.'
+                : 'Message request sent. You can chat after they approve it.',
+          ),
+        ),
+      );
+      return false;
+    }
+    if (status == 'request_declined') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            ar
+                ? 'طلب الرسالة غير مقبول حاليًا.'
+                : 'This message request is not accepted.',
+          ),
+        ),
+      );
+      return false;
+    }
+
+    final chatId = (result['chatId'] ?? '').toString().trim();
+    if (chatId.isEmpty) {
+      throw StateError('Conversation is not ready yet.');
+    }
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ChatConversationScreen(
+          chatId: chatId,
+          peerId: peerId,
+          peerName: peerName,
+        ),
+      ),
+    );
+    return true;
+  }
+
+  static Future<void> _showMessageRequests(
+    BuildContext parentContext,
+    bool ar,
+  ) async {
+    Map<String, dynamic> body;
+    try {
+      body = await _get('/chat/requests');
+    } catch (error) {
+      if (!parentContext.mounted) return;
+      ScaffoldMessenger.of(parentContext).showSnackBar(
+        SnackBar(
+          content: Text(error.toString().replaceFirst('Bad state: ', '')),
+        ),
+      );
+      return;
+    }
+    if (!parentContext.mounted) return;
+
+    final raw = body['requests'];
+    final requests = raw is List
+        ? raw
+            .whereType<Map>()
+            .map((item) => item
+                .map((key, value) => MapEntry(key.toString(), value)))
+            .toList()
+        : <Map<String, dynamic>>[];
+
+    await showModalBottomSheet<void>(
+      context: parentContext,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (context, setSheetState) => SizedBox(
+          height: MediaQuery.sizeOf(context).height * .68,
+          child: Column(
+            children: [
+              ListTile(
+                leading: const CircleAvatar(
+                  child: Icon(Icons.mark_email_unread_outlined),
+                ),
+                title: Text(
+                  ar ? 'طلبات الرسائل' : 'Message Requests',
+                  style: const TextStyle(fontWeight: FontWeight.w900),
+                ),
+                subtitle: Text(
+                  ar
+                      ? 'أنت تختار من يقدر يبدأ محادثة معك.'
+                      : 'You choose who can start a conversation with you.',
+                ),
+              ),
+              const Divider(height: 1),
+              Expanded(
+                child: requests.isEmpty
+                    ? Center(
+                        child: Text(
+                          ar
+                              ? 'ما عندك طلبات رسائل الآن.'
+                              : 'No message requests right now.',
+                        ),
+                      )
+                    : ListView.separated(
+                        itemCount: requests.length,
+                        separatorBuilder: (_, _) => const Divider(height: 1),
+                        itemBuilder: (context, index) {
+                          final request = requests[index];
+                          final id = (request['id'] ?? '').toString();
+                          final senderId =
+                              (request['senderId'] ?? '').toString();
+                          final senderName =
+                              (request['senderName'] ?? 'WorldVoice').toString();
+                          final photo =
+                              (request['senderPhotoUrl'] ?? '').toString().trim();
+                          return ListTile(
+                            leading: CircleAvatar(
+                              backgroundImage:
+                                  photo.isEmpty ? null : NetworkImage(photo),
+                              child: photo.isEmpty
+                                  ? const Icon(Icons.person_rounded)
+                                  : null,
+                            ),
+                            title: Text(
+                              senderName,
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w800),
+                            ),
+                            subtitle: Text(
+                              ar
+                                  ? 'يريد أن يرسل لك رسائل'
+                                  : 'Wants to message you',
+                            ),
+                            trailing: Wrap(
+                              spacing: 5,
+                              children: [
+                                IconButton(
+                                  tooltip: ar ? 'رفض' : 'Decline',
+                                  onPressed: () async {
+                                    try {
+                                      await _post(
+                                        '/chat/request/respond',
+                                        {
+                                          'requestId': id,
+                                          'action': 'decline',
+                                        },
+                                      );
+                                      if (!context.mounted) return;
+                                      setSheetState(
+                                        () => requests.removeAt(index),
+                                      );
+                                    } catch (error) {
+                                      if (!context.mounted) return;
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            error
+                                                .toString()
+                                                .replaceFirst('Bad state: ', ''),
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  icon: const Icon(Icons.close_rounded),
+                                ),
+                                IconButton.filled(
+                                  tooltip: ar ? 'قبول' : 'Accept',
+                                  onPressed: () async {
+                                    try {
+                                      final result = await _post(
+                                        '/chat/request/respond',
+                                        {
+                                          'requestId': id,
+                                          'action': 'accept',
+                                        },
+                                      );
+                                      if (!sheetContext.mounted) return;
+                                      Navigator.pop(sheetContext);
+                                      if (!parentContext.mounted) return;
+                                      final chatId =
+                                          (result['chatId'] ?? '').toString();
+                                      if (chatId.isEmpty) return;
+                                      await Navigator.of(parentContext).push(
+                                        MaterialPageRoute<void>(
+                                          builder: (_) =>
+                                              ChatConversationScreen(
+                                            chatId: chatId,
+                                            peerId: senderId,
+                                            peerName: senderName,
+                                          ),
+                                        ),
+                                      );
+                                    } catch (error) {
+                                      if (!context.mounted) return;
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            error
+                                                .toString()
+                                                .replaceFirst('Bad state: ', ''),
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  icon: const Icon(Icons.check_rounded),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   /// Reuses the existing authenticated chat backend for cross-feature shares
   /// such as Live links. This keeps membership and mutual-follow checks in the
   /// backend instead of writing chat messages directly from Firestore clients.
@@ -103,14 +369,11 @@ class ChatScreen extends StatelessWidget {
       'recipientId': peerId,
     });
     if (!context.mounted) return;
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => ChatConversationScreen(
-          chatId: result['chatId'].toString(),
-          peerId: peerId,
-          peerName: peerName,
-        ),
-      ),
+    await _openStartResult(
+      context: context,
+      result: result,
+      peerId: peerId,
+      peerName: peerName,
     );
   }
 
@@ -171,17 +434,19 @@ class ChatScreen extends StatelessWidget {
                               title: Text(displayName),
                               onTap: () async {
                                 try {
-                                  final result = await _post('/chat/start',
-                                      {'recipientId': peerId});
+                                  final result = await _post(
+                                    '/chat/start',
+                                    {'recipientId': peerId},
+                                  );
                                   if (!sheetContext.mounted) return;
                                   Navigator.pop(sheetContext);
                                   if (!parentContext.mounted) return;
-                                  await Navigator.of(parentContext).push(MaterialPageRoute<void>(
-                                    builder: (_) => ChatConversationScreen(
-                                      chatId: result['chatId'].toString(),
-                                      peerId: peerId, peerName: displayName,
-                                    ),
-                                  ));
+                                  await _openStartResult(
+                                    context: parentContext,
+                                    result: result,
+                                    peerId: peerId,
+                                    peerName: displayName,
+                                  );
                                 } catch (error) {
                                   if (!sheetContext.mounted) return;
                                   ScaffoldMessenger.of(sheetContext).showSnackBar(
@@ -246,6 +511,13 @@ class ChatScreen extends StatelessWidget {
                 ),
                 icon: const Icon(Icons.card_giftcard_outlined,
                     color: Color(0xFF11835D)),
+              ),
+              IconButton(
+                tooltip: ar ? 'طلبات الرسائل' : 'Message requests',
+                onPressed: ready
+                    ? () => _showMessageRequests(context, ar)
+                    : null,
+                icon: const Icon(Icons.mark_email_unread_outlined),
               ),
               IconButton.filledTonal(
                 tooltip: ar ? 'محادثة جديدة' : 'New chat',
