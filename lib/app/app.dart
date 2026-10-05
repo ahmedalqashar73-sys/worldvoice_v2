@@ -36,6 +36,7 @@ class _WorldVoiceAppState extends State<WorldVoiceApp> with WidgetsBindingObserv
     _authSubscription = FirebaseAuth.instance.authStateChanges().listen((user) {
       if (user != null) {
         _presenceSession.start();
+        unawaited(AuthService.syncPrivilegedAccountEntitlements());
         unawaited(RoomCoinPurchaseService.instance.initialize());
       } else {
         _presenceSession.stop();
