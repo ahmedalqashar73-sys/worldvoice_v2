@@ -343,7 +343,6 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
         child: LayoutBuilder(builder: (context, constraints) {
-          const typing = false;
           final field = TextField(
             key: const ValueKey<String>('worldvoice-room-chat-input'),
             controller: _text,
@@ -374,7 +373,6 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
             if (widget.onMic != null)
               _action(widget.micIcon, widget.micLabel, widget.onMic),
           ];
-          if (typing) return field;
           if (constraints.maxWidth < 350 ||
               MediaQuery.textScalerOf(context).scale(14) > 20) {
             return Column(mainAxisSize: MainAxisSize.min, children: [
