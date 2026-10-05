@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:http/http.dart' as http;
 
 import '../../profile/services/user_presence_service.dart';
 
@@ -8,6 +11,8 @@ class AuthService {
 
   static final FirebaseAuth _auth = FirebaseAuth.instance;
   static bool _googleInitialized = false;
+  static const String _backend =
+      String.fromEnvironment('WORLDVOICE_ECONOMY_ENDPOINT');
 
   static bool hasCompletedProfileData(Map<String, dynamic>? data) {
     if (data == null) return false;
@@ -35,6 +40,42 @@ class AuthService {
     // Older WorldVoice profiles may pre-date profileCompleted. Do not force
     // those users through onboarding again when their identity already exists.
     return displayName.isNotEmpty && username.isNotEmpty && identitySignals > 0;
+  }
+
+  static Future<void> syncPrivilegedAccountEntitlements() async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    final root = Uri.tryParse(_backend.trim());
+    if (root == null ||
+        root.scheme != 'https' ||
+        !root.hasAuthority ||
+        root.userInfo.isNotEmpty) {
+      return;
+    }
+
+    try {
+      final token = await user.getIdToken();
+      if (token == null || token.isEmpty) return;
+      final basePath = root.path.endsWith('/')
+          ? root.path.substring(0, root.path.length - 1)
+          : root.path;
+      final response = await http
+          .post(
+            root.replace(path: '$basePath/account/sync-entitlements'),
+            headers: {
+              'Authorization': 'Bearer $token',
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode(const <String, dynamic>{}),
+          )
+          .timeout(const Duration(seconds: 12));
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        return;
+      }
+    } catch (_) {
+      // Entitlement sync is best-effort. It must never block sign-in.
+    }
   }
 
   static Future<void> _initializeGoogle() async {
