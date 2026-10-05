@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -218,7 +219,7 @@ class RoomModerationService {
             'Authorization': 'Bearer $token',
             'Content-Type': 'application/json',
           },
-          body: '{"roomId":"$channelId"}',
+          body: jsonEncode({'roomId': channelId}),
         )
         .timeout(const Duration(seconds: 12));
 
