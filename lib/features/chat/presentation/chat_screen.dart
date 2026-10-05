@@ -106,12 +106,17 @@ class ChatScreen extends StatelessWidget {
 
     if (result['pendingApproval'] == true) {
       final cooldown = result['requestCooldown'] == true;
+      final ar = Localizations.localeOf(context).languageCode == 'ar';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             cooldown
-                ? 'This member has not approved messages from you yet.'
-                : 'Message request sent. You can chat after they approve it.',
+                ? (ar
+                    ? 'هذا الشخص لم يوافق على رسائلك بعد.'
+                    : 'This member has not approved messages from you yet.')
+                : (ar
+                    ? 'تم إرسال طلب رسالة. تبدأ المحادثة بعد الموافقة.'
+                    : 'Message request sent. You can chat after they approve it.'),
           ),
         ),
       );
@@ -258,12 +263,29 @@ class ChatScreen extends StatelessWidget {
     BuildContext context,
     bool ar,
   ) async {
-    await showModalBottomSheet<void>(
+    final accepted = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       showDragHandle: true,
       builder: (_) => _MessageRequestsSheet(isArabic: ar),
+    );
+    if (accepted == null || !context.mounted) return;
+
+    final chatId = (accepted['chatId'] ?? '').toString();
+    final peerId = (accepted['requesterId'] ?? '').toString();
+    final peerName =
+        (accepted['requesterName'] ?? 'WorldVoice member').toString();
+    if (chatId.isEmpty || peerId.isEmpty) return;
+
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ChatConversationScreen(
+          chatId: chatId,
+          peerId: peerId,
+          peerName: peerName,
+        ),
+      ),
     );
   }
 
@@ -467,22 +489,15 @@ class _MessageRequestsSheetState extends State<_MessageRequestsSheet> {
       if (!mounted) return;
 
       if (accept) {
-        final chatId = (result['chatId'] ?? '').toString();
-        final requesterName =
-            (result['requesterName'] ?? request['requesterName'] ?? 'WorldVoice')
-                .toString();
-        Navigator.of(context).pop();
-        if (chatId.isNotEmpty && mounted) {
-          await Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              builder: (_) => ChatConversationScreen(
-                chatId: chatId,
-                peerId: requesterId,
-                peerName: requesterName,
-              ),
-            ),
-          );
-        }
+        Navigator.of(context).pop(<String, dynamic>{
+          'chatId': (result['chatId'] ?? '').toString(),
+          'requesterId': requesterId,
+          'requesterName':
+              (result['requesterName'] ??
+                      request['requesterName'] ??
+                      'WorldVoice')
+                  .toString(),
+        });
         return;
       }
 
