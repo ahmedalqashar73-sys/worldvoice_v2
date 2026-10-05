@@ -1147,6 +1147,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                               service: _liveService,
                               liveId: _liveId!,
                               ar: widget.ar,
+                              showComposer: false,
                               onClose: () {
                                 if (mounted) {
                                   setState(() => _chatOpen = false);
@@ -1243,7 +1244,54 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                           start: 12,
                           end: 12,
                           child: _LiveControlDock(
+                            composer: _liveId == null
+                                ? null
+                                : _LiveInlineComposer(
+                                    service: _liveService,
+                                    liveId: _liveId!,
+                                    ar: widget.ar,
+                                    onOpenChat: () {
+                                      if (mounted && !_chatOpen) {
+                                        setState(() => _chatOpen = true);
+                                      }
+                                    },
+                                  ),
                             children: [
+                              IconButton(
+                                tooltip: widget.ar ? 'الهدايا' : 'Gifts',
+                                onPressed: _liveId == null
+                                    ? null
+                                    : () => _showLiveGifts(
+                                          context,
+                                          liveId: _liveId!,
+                                          service: _liveService,
+                                          hostId: FirebaseAuth
+                                                  .instance.currentUser?.uid ??
+                                              '',
+                                          hostName: FirebaseAuth.instance
+                                                  .currentUser?.displayName ??
+                                              'WorldVoice host',
+                                          ar: widget.ar,
+                                        ),
+                                icon: const Icon(
+                                  Icons.card_giftcard_rounded,
+                                  color: Color(0xFFFFC857),
+                                ),
+                              ),
+                              IconButton(
+                                tooltip: widget.ar ? 'السبورة' : 'Board',
+                                onPressed: _liveId == null
+                                    ? null
+                                    : () => setState(
+                                          () => _boardOpen = !_boardOpen,
+                                        ),
+                                icon: Icon(
+                                  _boardOpen
+                                      ? Icons.dashboard_rounded
+                                      : Icons.dashboard_outlined,
+                                  color: Colors.white,
+                                ),
+                              ),
                               IconButton(
                                 tooltip: widget.ar
                                     ? 'طلبات الانضمام'
@@ -1271,57 +1319,6 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                 icon: const Icon(
                                   Icons.admin_panel_settings_rounded,
                                   color: Color(0xFFFFD77A),
-                                ),
-                              ),
-                              IconButton(
-                                tooltip: widget.ar
-                                    ? 'دردشة اللايف'
-                                    : 'Live chat',
-                                onPressed: _liveId == null
-                                    ? null
-                                    : () => setState(
-                                          () => _chatOpen = !_chatOpen,
-                                        ),
-                                icon: Icon(
-                                  _chatOpen
-                                      ? Icons.chat_bubble_rounded
-                                      : Icons.chat_bubble_outline_rounded,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              IconButton(
-                                tooltip: widget.ar ? 'السبورة' : 'Board',
-                                onPressed: _liveId == null
-                                    ? null
-                                    : () => setState(
-                                          () => _boardOpen = !_boardOpen,
-                                        ),
-                                icon: Icon(
-                                  _boardOpen
-                                      ? Icons.dashboard_rounded
-                                      : Icons.dashboard_outlined,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              IconButton(
-                                tooltip: widget.ar ? 'الهدايا' : 'Gifts',
-                                onPressed: _liveId == null
-                                    ? null
-                                    : () => _showLiveGifts(
-                                          context,
-                                          liveId: _liveId!,
-                                          service: _liveService,
-                                          hostId: FirebaseAuth
-                                                  .instance.currentUser?.uid ??
-                                              '',
-                                          hostName: FirebaseAuth.instance
-                                                  .currentUser?.displayName ??
-                                              'WorldVoice host',
-                                          ar: widget.ar,
-                                        ),
-                                icon: const Icon(
-                                  Icons.card_giftcard_rounded,
-                                  color: Color(0xFFFFC857),
                                 ),
                               ),
                               IconButton(
@@ -2259,6 +2256,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                             service: _service,
                             liveId: widget.liveId,
                             ar: widget.ar,
+                            showComposer: false,
                             onClose: () {
                               if (mounted) {
                                 setState(() => _chatOpen = false);
@@ -2389,7 +2387,51 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                         start: 12,
                         end: 12,
                         child: _LiveControlDock(
+                          composer: _LiveInlineComposer(
+                            service: _service,
+                            liveId: widget.liveId,
+                            ar: widget.ar,
+                            onOpenChat: () {
+                              if (mounted && !_chatOpen) {
+                                setState(() => _chatOpen = true);
+                              }
+                            },
+                          ),
                           children: [
+                            IconButton(
+                              tooltip: widget.ar ? 'الهدايا' : 'Gifts',
+                              onPressed: () => _showLiveGifts(
+                                context,
+                                liveId: widget.liveId,
+                                service: _service,
+                                hostId: (live?['hostId'] ??
+                                        widget.data['hostId'] ??
+                                        '')
+                                    .toString(),
+                                hostName: (live?['hostName'] ??
+                                        widget.data['hostName'] ??
+                                        'WorldVoice host')
+                                    .toString(),
+                                ar: widget.ar,
+                              ),
+                              icon: const Icon(
+                                Icons.card_giftcard_rounded,
+                                color: Color(0xFFFFC857),
+                              ),
+                            ),
+                            IconButton(
+                              tooltip: widget.ar ? 'السبورة' : 'Board',
+                              onPressed: () => setState(() {
+                                _boardOpen = !_boardOpen;
+                                if (_boardOpen) _chatOpen = true;
+                              }),
+                              icon: Icon(
+                                _boardOpen
+                                    ? Icons.dashboard_rounded
+                                    : Icons.dashboard_outlined,
+                                color: Colors.white,
+                              ),
+                            ),
                             if (!_guestPublishing)
                               FilledButton.icon(
                                 style: FilledButton.styleFrom(
@@ -2428,31 +2470,6 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                   color: Color(0xFFFFD77A),
                                 ),
                               ),
-                            IconButton(
-                              tooltip: widget.ar ? 'الشات' : 'Chat',
-                              onPressed: () => setState(
-                                () => _chatOpen = !_chatOpen,
-                              ),
-                              icon: Icon(
-                                _chatOpen
-                                    ? Icons.chat_bubble_rounded
-                                    : Icons.chat_bubble_outline_rounded,
-                                color: Colors.white,
-                              ),
-                            ),
-                            IconButton(
-                              tooltip: widget.ar ? 'السبورة' : 'Board',
-                              onPressed: () => setState(() {
-                                  _boardOpen = !_boardOpen;
-                                  if (_boardOpen) _chatOpen = true;
-                                }),
-                              icon: Icon(
-                                _boardOpen
-                                    ? Icons.dashboard_rounded
-                                    : Icons.dashboard_outlined,
-                                color: Colors.white,
-                              ),
-                            ),
                             if (_guestPublishing) ...[
                               IconButton(
                                 tooltip: widget.ar
@@ -2538,30 +2555,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                   color: Colors.white,
                                 ),
                               ),
-                            ] else
-                              IconButton(
-                                tooltip: widget.ar
-                                    ? 'هدايا اللايف'
-                                    : 'Live gifts',
-                                onPressed: () => _showLiveGifts(
-                                  context,
-                                  liveId: widget.liveId,
-                                  service: _service,
-                                  hostId: (live?['hostId'] ??
-                                          widget.data['hostId'] ??
-                                          '')
-                                      .toString(),
-                                  hostName: (live?['hostName'] ??
-                                          widget.data['hostName'] ??
-                                          'WorldVoice host')
-                                      .toString(),
-                                  ar: widget.ar,
-                                ),
-                                icon: const Icon(
-                                  Icons.card_giftcard_rounded,
-                                  color: Color(0xFFFFC857),
-                                ),
-                              ),
+                            ],
                           ],
                         ),
                       ),
