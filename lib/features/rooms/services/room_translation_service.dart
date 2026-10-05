@@ -31,6 +31,8 @@ class RoomTranslationService {
       OnDeviceTranslatorModelManager();
   final Map<String, OnDeviceTranslator> _translators =
       <String, OnDeviceTranslator>{};
+  final Map<String, Future<void>> _modelDownloads =
+      <String, Future<void>>{};
 
   Future<String> translate({
     required String text,
@@ -58,18 +60,59 @@ class RoomTranslationService {
       ),
     );
 
-    return translator.translateText(normalized);
+    return translator
+        .translateText(normalized)
+        .timeout(const Duration(seconds: 20));
   }
 
   Future<void> _ensureModel(TranslateLanguage language) async {
     final code = language.bcpCode;
     final exists = await _models.isModelDownloaded(code);
-    if (!exists) {
-      await _models.downloadModel(
-        code,
-        isWifiRequired: false,
+    if (exists) return;
+
+    final pending = _modelDownloads[code];
+    if (pending != null) {
+      await pending;
+      return;
+    }
+
+    final download = _downloadModel(code);
+    _modelDownloads[code] = download;
+    try {
+      await download;
+    } finally {
+      if (identical(_modelDownloads[code], download)) {
+        _modelDownloads.remove(code);
+      }
+    }
+  }
+
+  Future<void> _downloadModel(String code) async {
+    await _models
+        .downloadModel(code, isWifiRequired: false)
+        .timeout(const Duration(seconds: 60));
+
+    final ready = await _models
+        .isModelDownloaded(code)
+        .timeout(const Duration(seconds: 10));
+    if (!ready) {
+      throw StateError(
+        'Translation model $code could not be prepared on this device.',
       );
     }
+  }
+
+  Future<void> preparePair({
+    required String sourceCode,
+    required String targetCode,
+  }) async {
+    final source = _language(sourceCode);
+    final target = _language(targetCode);
+    if (source == null || target == null || source == target) return;
+    await Future.wait<void>([
+      _ensureModel(source),
+      _ensureModel(target),
+    ]).timeout(const Duration(seconds: 70));
   }
 
   TranslateLanguage? _language(String rawCode) {
@@ -255,5 +298,6 @@ class RoomTranslationService {
       await translator.close();
     }
     _translators.clear();
+    _modelDownloads.clear();
   }
 }
