@@ -1056,7 +1056,12 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                       fit: StackFit.expand,
                       children: [
                         if (!_boardOpen)
-                          _LiveVideoGrid(children: tiles)
+                          Positioned.fill(
+                            bottom: tiles.length >= 3
+                                ? MediaQuery.sizeOf(context).height * .38
+                                : 0,
+                            child: _LiveVideoGrid(children: tiles),
+                          )
                         else
                           const ColoredBox(color: Color(0xFF081A15)),
                         if (_boardOpen)
@@ -1135,7 +1140,9 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                             bottom: 78 + MediaQuery.viewInsetsOf(context).bottom,
                             height: _boardOpen
                                 ? MediaQuery.sizeOf(context).height * .27
-                                : 250,
+                                : (tiles.length >= 3
+                                    ? MediaQuery.sizeOf(context).height * .34
+                                    : 250),
                             child: _LiveChatOverlay(
                               service: _liveService,
                               liveId: _liveId!,
@@ -2002,7 +2009,12 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                     children: [
                       if (!_boardOpen)
                         if (tiles.isNotEmpty)
-                          _LiveVideoGrid(children: tiles)
+                          Positioned.fill(
+                            bottom: tiles.length >= 3
+                                ? MediaQuery.sizeOf(context).height * .38
+                                : 0,
+                            child: _LiveVideoGrid(children: tiles),
+                          )
                         else
                           const Center(
                             child: Icon(
@@ -2102,7 +2114,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                           bottom: 78 + MediaQuery.viewInsetsOf(context).bottom,
                           height: _boardOpen
                               ? MediaQuery.sizeOf(context).height * .27
-                              : 250,
+                              : (tiles.length >= 3
+                                  ? MediaQuery.sizeOf(context).height * .34
+                                  : 250),
                           child: _LiveChatOverlay(
                             service: _service,
                             liveId: widget.liveId,
@@ -3787,11 +3801,11 @@ class _LiveChatOverlayState extends State<_LiveChatOverlay> {
           begin: Alignment.bottomCenter,
           end: Alignment.topCenter,
           colors: [
-            Color(0x8A000000),
-            Color(0x38000000),
-            Color(0x00000000),
+            Color(0xB20A1511),
+            Color(0x66101A17),
+            Color(0x00101A17),
           ],
-          stops: [0, .55, 1],
+          stops: [0, .58, 1],
         ),
       ),
       child: Column(
@@ -3832,7 +3846,7 @@ class _LiveChatOverlayState extends State<_LiveChatOverlay> {
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 3),
                       child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           CircleAvatar(
                             radius: 13,
@@ -3848,35 +3862,42 @@ class _LiveChatOverlayState extends State<_LiveChatOverlay> {
                                 : null,
                           ),
                           const SizedBox(width: 7),
-                          Expanded(
-                            child: Text.rich(
-                              TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: '$name  ',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w900,
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text: message,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      height: 1.28,
-                                    ),
-                                  ),
-                                ],
+                          Flexible(
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: const Color(0xA61A201E),
+                                borderRadius: BorderRadius.circular(18),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: .07),
+                                ),
                               ),
-                              maxLines: 4,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                shadows: [
-                                  Shadow(
-                                    color: Colors.black87,
-                                    blurRadius: 5,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                                child: Text.rich(
+                                  TextSpan(
+                                    children: [
+                                      TextSpan(
+                                        text: '$name  ',
+                                        style: const TextStyle(
+                                          color: Color(0xFFFFD77A),
+                                          fontWeight: FontWeight.w900,
+                                        ),
+                                      ),
+                                      TextSpan(
+                                        text: message,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          height: 1.28,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ],
+                                  maxLines: 4,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
                             ),
                           ),
@@ -3904,7 +3925,7 @@ class _LiveChatOverlayState extends State<_LiveChatOverlay> {
                     hintText: widget.ar ? 'تعليق...' : 'Comment...',
                     hintStyle: const TextStyle(color: Colors.white60),
                     filled: true,
-                    fillColor: const Color(0x66000000),
+                    fillColor: const Color(0xA6141C19),
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 14,
@@ -3920,7 +3941,7 @@ class _LiveChatOverlayState extends State<_LiveChatOverlay> {
               const SizedBox(width: 4),
               IconButton(
                 style: IconButton.styleFrom(
-                  backgroundColor: const Color(0xCC11835D),
+                  backgroundColor: const Color(0xE0188A63),
                   foregroundColor: Colors.white,
                 ),
                 onPressed: _sending ? null : _send,
@@ -4264,20 +4285,82 @@ class _LiveVideoGrid extends StatelessWidget {
   const _LiveVideoGrid({required this.children});
   final List<Widget> children;
 
+  Widget _tile(Widget child, {BorderRadius? radius}) {
+    return ClipRRect(
+      borderRadius: radius ?? BorderRadius.zero,
+      child: ColoredBox(
+        color: const Color(0xFF071B16),
+        child: SizedBox.expand(child: child),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (children.length == 1) return children.first;
-    if (children.length == 2) {
-      return Column(children: [
-        Expanded(child: children[0]),
-        Expanded(child: children[1]),
-      ]);
+    if (children.isEmpty) {
+      return const ColoredBox(color: Color(0xFF071B16));
     }
-    return GridView.count(
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 2,
-      childAspectRatio: children.length == 3 ? .72 : .58,
-      children: children,
+
+    if (children.length == 1) {
+      return _tile(children.first);
+    }
+
+    if (children.length == 2) {
+      return Row(
+        children: [
+          Expanded(child: _tile(children[0])),
+          const SizedBox(width: 2),
+          Expanded(child: _tile(children[1])),
+        ],
+      );
+    }
+
+    if (children.length == 3) {
+      return Row(
+        textDirection: TextDirection.ltr,
+        children: [
+          Expanded(
+            flex: 1,
+            child: Column(
+              children: [
+                Expanded(child: _tile(children[1])),
+                const SizedBox(height: 2),
+                Expanded(child: _tile(children[2])),
+              ],
+            ),
+          ),
+          const SizedBox(width: 2),
+          Expanded(
+            flex: 1,
+            child: _tile(children[0]),
+          ),
+        ],
+      );
+    }
+
+    final firstFour = children.take(4).toList(growable: false);
+    return Column(
+      children: [
+        Expanded(
+          child: Row(
+            children: [
+              Expanded(child: _tile(firstFour[0])),
+              const SizedBox(width: 2),
+              Expanded(child: _tile(firstFour[1])),
+            ],
+          ),
+        ),
+        const SizedBox(height: 2),
+        Expanded(
+          child: Row(
+            children: [
+              Expanded(child: _tile(firstFour[2])),
+              const SizedBox(width: 2),
+              Expanded(child: _tile(firstFour[3])),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
