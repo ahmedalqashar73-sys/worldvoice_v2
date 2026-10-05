@@ -15,6 +15,7 @@ import '../../rooms/presentation/room_teacher_ai_sheet.dart';
 import '../../rooms/presentation/unified_gift_panel.dart';
 import '../../rooms/presentation/room_gift_overlay.dart';
 import '../../rooms/data/room_caption.dart';
+import '../../rooms/data/room_teacher_ai_note.dart';
 import '../../rooms/data/room_backend_config.dart';
 import '../../rooms/data/room_feature_models.dart';
 import '../../rooms/services/room_feature_service.dart';
@@ -1077,6 +1078,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                             displayName:
                                 FirebaseAuth.instance.currentUser?.displayName ??
                                     'WorldVoice host',
+                            audioFrames: _controller.audioFrames,
                             ar: widget.ar,
                           ),
                         ),
@@ -1986,6 +1988,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                           displayName:
                               FirebaseAuth.instance.currentUser?.displayName ??
                                   'WorldVoice user',
+                          audioFrames: _controller.audioFrames,
                           ar: widget.ar,
                         ),
                       ),
@@ -2417,6 +2420,7 @@ class _LiveLanguageToolsOverlay extends StatefulWidget {
     required this.roomLanguageCode,
     required this.canPublish,
     required this.displayName,
+    required this.audioFrames,
     required this.ar,
   });
 
@@ -2424,6 +2428,7 @@ class _LiveLanguageToolsOverlay extends StatefulWidget {
   final String roomLanguageCode;
   final bool canPublish;
   final String displayName;
+  final Stream<AgoraRoomAudioFrame> audioFrames;
   final bool ar;
 
   @override
@@ -2450,6 +2455,8 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
   String? _translated;
   String? _translatedCaptionId;
   String? _lastPronunciationCaptionId;
+  final ValueNotifier<RoomTeacherAiNote?> _pronunciationNote =
+      ValueNotifier<RoomTeacherAiNote?>(null);
   bool _teacherVoicePrimed = false;
   String? _lastTeacherVoiceId;
 
@@ -2470,6 +2477,7 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
     );
     _captionController = RoomLiveCaptionController(
       service: _captionService,
+      audioFrames: widget.audioFrames,
       onState: ({required bool listening, String? error}) {
         if (!mounted) return;
         setState(() {
@@ -2478,6 +2486,8 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
         });
       },
     );
+    unawaited(_loadNativeLanguage());
+    unawaited(_syncPublishing());
     if (widget.liveId.isNotEmpty) {
       _captionSub = _captionService.watchLatest().listen(
         _handleCaptions,
@@ -2487,6 +2497,36 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
       );
       _teacherVoiceSub =
           _teacherAi.watchSpokenAnswers().listen(_handleTeacherVoice);
+    }
+  }
+
+  Future<void> _loadNativeLanguage() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+    try {
+      final snapshot =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      final data = snapshot.data();
+      final raw =
+          (data?['nativeLanguageCode'] ?? data?['nativeLanguage'] ?? '')
+              .toString()
+              .trim()
+              .toLowerCase();
+      if (raw.isEmpty) return;
+      final code = raw.split(RegExp(r'[-_]')).first;
+      if (!roomCaptionLanguages.any((item) => item.code == code)) return;
+      if (!mounted) return;
+      setState(() {
+        _targetLanguage = code;
+        _targetInitialized = true;
+        _translated = null;
+        _translatedCaptionId = null;
+      });
+      if (_translationEnabled) {
+        unawaited(_prepareTranslationModels());
+      }
+    } catch (error) {
+      debugPrint('WorldVoice Live native language unavailable: $error');
     }
   }
 
@@ -2513,10 +2553,9 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
       _translated = null;
       _translatedCaptionId = null;
     }
-    if (_enabled &&
-        (oldWidget.canPublish != widget.canPublish ||
-            oldWidget.displayName != widget.displayName ||
-            oldWidget.roomLanguageCode != widget.roomLanguageCode)) {
+    if (oldWidget.canPublish != widget.canPublish ||
+        oldWidget.displayName != widget.displayName ||
+        oldWidget.roomLanguageCode != widget.roomLanguageCode) {
       unawaited(_syncPublishing());
     }
   }
@@ -2541,12 +2580,21 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
         latest.userId == FirebaseAuth.instance.currentUser?.uid &&
         latest.id != _lastPronunciationCaptionId) {
       _lastPronunciationCaptionId = latest.id;
-      unawaited(
-        _teacherAi.submitCaption(
-          caption: latest,
-          roomLanguageCode: widget.roomLanguageCode,
-        ),
+      final note = _teacherAi.localPronunciationNote(
+        caption: latest,
+        roomLanguageCode: widget.roomLanguageCode,
       );
+      _pronunciationNote.value = note;
+      if (_teacherAi.isConfigured) {
+        unawaited(
+          _teacherAi
+              .submitCaption(
+                caption: latest,
+                roomLanguageCode: widget.roomLanguageCode,
+              )
+              .catchError((Object _) => false),
+        );
+      }
     }
   }
 
@@ -2586,11 +2634,28 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
   }
 
   Future<void> _syncPublishing() => _captionController.configure(
-        enabled: _enabled,
+        enabled: widget.canPublish,
         canPublish: widget.canPublish,
+        captureRemote: false,
         languageCode: widget.roomLanguageCode,
         displayName: widget.displayName,
       );
+
+  Future<void> _prepareTranslationModels() async {
+    try {
+      await _translationService.preparePair(
+        sourceCode: widget.roomLanguageCode,
+        targetCode: _targetLanguage,
+      );
+      if (!mounted) return;
+      setState(() => _error = null);
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _error = error.toString().replaceFirst('Bad state: ', '');
+      });
+    }
+  }
 
   Future<void> _setEnabled(bool value) async {
     setState(() {
@@ -2600,7 +2665,8 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
         _error = null;
       }
     });
-    await _syncPublishing();
+    // Caption publishing for speakers is kept active independently of
+    // whether this viewer chose to display subtitles.
   }
 
   Future<void> _showTeacherAi() async {
@@ -2684,6 +2750,7 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
                   )
                   .toList(growable: false),
             ),
+            pronunciationNote: _pronunciationNote,
             targetLanguage: _targetLanguage,
             targetLanguages: roomCaptionLanguages,
             canPublish: widget.canPublish,
@@ -2699,6 +2766,9 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
                 _translated = null;
                 _translatedCaptionId = null;
               });
+              if (value) {
+                unawaited(_prepareTranslationModels());
+              }
               final latest = _latest;
               if (value && latest != null) unawaited(_translate(latest));
               refresh(() {});
@@ -2709,16 +2779,17 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
                 _lastPronunciationCaptionId = null;
                 _error = null;
               });
+              if (!value) {
+                _pronunciationNote.value = null;
+              }
               final latest = _latest;
               if (value &&
                   latest != null &&
                   latest.userId == FirebaseAuth.instance.currentUser?.uid) {
                 _lastPronunciationCaptionId = latest.id;
-                unawaited(
-                  _teacherAi.submitCaption(
-                    caption: latest,
-                    roomLanguageCode: widget.roomLanguageCode,
-                  ),
+                _pronunciationNote.value = _teacherAi.localPronunciationNote(
+                  caption: latest,
+                  roomLanguageCode: widget.roomLanguageCode,
                 );
               }
               refresh(() {});
@@ -2729,6 +2800,9 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
                 _translated = null;
                 _translatedCaptionId = null;
               });
+              if (_translationEnabled) {
+                unawaited(_prepareTranslationModels());
+              }
               final latest = _latest;
               if (_translationEnabled && latest != null) {
                 unawaited(_translate(latest));
@@ -2745,6 +2819,7 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
     unawaited(_teacherVoiceSub?.cancel());
     unawaited(_captionController.dispose());
     unawaited(_translationService.dispose());
+    _pronunciationNote.dispose();
     super.dispose();
   }
 
@@ -2773,7 +2848,7 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
             ],
           ),
         ),
-        if (_enabled && caption != null)
+        if ((_enabled || _translationEnabled) && caption != null)
           PositionedDirectional(
             start: 28,
             end: 28,
