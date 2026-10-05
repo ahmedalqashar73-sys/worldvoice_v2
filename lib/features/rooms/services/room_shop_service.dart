@@ -105,6 +105,11 @@ class RoomShopService {
       'free_sky_blue',
       'free_silver',
       'free_minimal_glow',
+      'free_royal_gold',
+      'free_emerald_crown',
+      'free_crystal_blue',
+      'free_rose_luxe',
+      'free_cosmic_voice',
     };
     final normalized = frameId.trim();
     if (freeFrames.contains(normalized)) {
