@@ -2722,6 +2722,12 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
       ValueNotifier<RoomTeacherAiNote?>(null);
   bool _teacherVoicePrimed = false;
   String? _lastTeacherVoiceId;
+  bool _teacherConversationActive = false;
+  bool _teacherAskBusy = false;
+  RoomCaption? _queuedTeacherCaption;
+  String? _lastTeacherPromptCaptionId;
+  final ValueNotifier<bool> _teacherOnline =
+      ValueNotifier<bool>(true);
 
   @override
   void initState() {
@@ -2859,6 +2865,64 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
         );
       }
     }
+
+    if (_teacherConversationActive &&
+        latest != null &&
+        latest.userId == FirebaseAuth.instance.currentUser?.uid &&
+        latest.id != _lastTeacherPromptCaptionId &&
+        latest.text.trim().isNotEmpty) {
+      _lastTeacherPromptCaptionId = latest.id;
+      unawaited(_queueLiveTeacherReply(latest));
+    }
+  }
+
+  Future<void> _queueLiveTeacherReply(RoomCaption caption) async {
+    if (_teacherAskBusy) {
+      _queuedTeacherCaption = caption;
+      return;
+    }
+
+    _teacherAskBusy = true;
+    try {
+      var current = caption;
+      while (mounted && _teacherConversationActive) {
+        final prompt = current.text.trim();
+        if (prompt.isNotEmpty) {
+          try {
+            await _teacherAi.ask(
+              prompt: prompt,
+              roomLanguageCode: widget.roomLanguageCode,
+            );
+            _teacherOnline.value = true;
+          } catch (error) {
+            final message = error.toString();
+            if (message.contains('AI_SERVICE_UNAVAILABLE')) {
+              _teacherOnline.value = false;
+              if (mounted) {
+                setState(() {
+                  _error = widget.ar
+                      ? 'Teacher AI غير متصل الآن بخدمة الذكاء.'
+                      : 'Teacher AI is offline right now.';
+                });
+              }
+              break;
+            }
+            if (mounted) {
+              setState(() {
+                _error = message.replaceFirst('Bad state: ', '');
+              });
+            }
+          }
+        }
+
+        final next = _queuedTeacherCaption;
+        _queuedTeacherCaption = null;
+        if (next == null || next.id == current.id) break;
+        current = next;
+      }
+    } finally {
+      _teacherAskBusy = false;
+    }
   }
 
   void _handleTeacherVoice(List<RoomTeacherAiSpokenAnswer> messages) {
@@ -2946,16 +3010,61 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
       );
       return;
     }
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (_) => RoomTeacherAiSheet(
-        service: _teacherAi,
-        roomLanguageCode: widget.roomLanguageCode,
-        closeAfterAnswer: true,
-      ),
-    );
+
+    final online = await _teacherAi.probeAvailability();
+    if (!mounted) return;
+    _teacherOnline.value = online;
+
+    if (!online) {
+      await showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        builder: (_) => RoomTeacherAiSheet(
+          service: _teacherAi,
+          roomLanguageCode: widget.roomLanguageCode,
+          canSpeak: widget.canPublish,
+          listening: false,
+          online: false,
+          onlineListenable: _teacherOnline,
+          closeAfterAnswer: true,
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _teacherConversationActive = true;
+      _error = null;
+    });
+    await _syncPublishing();
+    if (!mounted) return;
+
+    try {
+      await showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        builder: (_) => RoomTeacherAiSheet(
+          service: _teacherAi,
+          roomLanguageCode: widget.roomLanguageCode,
+          canSpeak: widget.canPublish,
+          listening: widget.canPublish,
+          online: true,
+          onlineListenable: _teacherOnline,
+          closeAfterAnswer: true,
+          onVoicePressed: () => unawaited(_syncPublishing()),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _teacherConversationActive = false;
+          _queuedTeacherCaption = null;
+        });
+        await _syncPublishing();
+      }
+    }
   }
 
   Future<void> _showMoreTools() async {
@@ -3083,6 +3192,7 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
     unawaited(_captionController.dispose());
     unawaited(_translationService.dispose());
     _pronunciationNote.dispose();
+    _teacherOnline.dispose();
     super.dispose();
   }
 
@@ -3125,16 +3235,33 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
                 child: Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  child: Text(
-                    _translationEnabled && _translated?.trim().isNotEmpty == true
-                        ? _translated!
-                        : caption.text,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                    ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (_enabled)
+                        Text(
+                          caption.text,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      if (_translationEnabled &&
+                          _translated?.trim().isNotEmpty == true) ...[
+                        if (_enabled) const SizedBox(height: 5),
+                        Text(
+                          _translated!,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Color(0xFF8EEAD0),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
               ),
