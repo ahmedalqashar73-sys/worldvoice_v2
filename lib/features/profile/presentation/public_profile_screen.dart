@@ -101,8 +101,8 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
           content: Text(
             raw.isEmpty
                 ? (ar
-                    ? 'المحادثة متاحة بعد المتابعة المتبادلة.'
-                    : 'Messaging is available after mutual follow.')
+                    ? 'تعذر فتح المحادثة الآن.'
+                    : 'Could not open the conversation right now.')
                 : raw,
           ),
         ),
