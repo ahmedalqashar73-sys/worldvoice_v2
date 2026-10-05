@@ -260,23 +260,12 @@ app.post("/account/sync-entitlements", async (req, res, next) => {
 
     batch.set(profileRef, {
       isVip: true,
-      vipTier: privileged.vipTier,
       vipExpiresAt,
       vipSource: "worldvoice_admin_allowlist",
       vipUpdatedAt: FieldValue.serverTimestamp(),
       isAdmin: true,
-      adminRole: privileged.role,
-      adminPermissions,
       adminSource: "worldvoice_admin_allowlist",
       adminUpdatedAt: FieldValue.serverTimestamp(),
-      canViewVisitors: true,
-      canManageRooms: true,
-      canEnterPrivateRooms: true,
-      canManageVip: true,
-      canManageStore: true,
-      canManageModerators: true,
-      canSendCoins: true,
-      canChangeCountry: true,
     }, {merge: true});
 
     batch.set(adminRef, {
