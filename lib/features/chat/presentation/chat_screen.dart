@@ -15,6 +15,7 @@ import '../../rooms/data/classic_gift_catalog.dart';
 import '../../rooms/data/room_feature_models.dart';
 import '../../rooms/services/room_feature_service.dart';
 import '../../profile/presentation/public_profile_screen.dart';
+import '../../stories/presentation/story_strip.dart';
 
 /// Real authenticated conversations. The economy backend, not Flutter,
 /// establishes mutual-follower membership and writes chat/gift messages.
@@ -253,6 +254,15 @@ class ChatScreen extends StatelessWidget {
               ),
             ]),
           ),
+          StoryStrip(
+            isArabic: ar,
+            onReply: (story) => ChatScreen.openDirectConversation(
+              context: context,
+              peerId: story.ownerId,
+              peerName: story.ownerName,
+            ),
+          ),
+          const Divider(height: 1),
           Expanded(
             child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
               stream: FirebaseFirestore.instance.collection('chats')
