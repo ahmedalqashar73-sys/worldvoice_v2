@@ -22,11 +22,6 @@ class WorldVoiceAvatarFrame extends StatefulWidget {
     'free_sky_blue',
     'free_silver',
     'free_minimal_glow',
-    'free_royal_gold',
-    'free_emerald_crown',
-    'free_crystal_blue',
-    'free_rose_luxe',
-    'free_cosmic_voice',
   ];
 
   static bool isFree(String? frameId) =>
@@ -38,25 +33,15 @@ class WorldVoiceAvatarFrame extends StatefulWidget {
   static String label(String frameId, {required bool ar}) {
     switch (frameId) {
       case 'free_clean_white':
-        return ar ? 'أبيض نقي' : 'Clean White';
+        return ar ? 'لؤلؤي ملكي' : 'Royal Pearl';
       case 'free_soft_green':
-        return ar ? 'أخضر ناعم' : 'Soft Green';
+        return ar ? 'زمرد ناعم' : 'Emerald Glow';
       case 'free_sky_blue':
-        return ar ? 'سماوي' : 'Sky Blue';
+        return ar ? 'كريستال سماوي' : 'Sky Crystal';
       case 'free_silver':
-        return ar ? 'فضي' : 'Silver';
+        return ar ? 'فضي فاخر' : 'Luxury Silver';
       case 'free_minimal_glow':
-        return ar ? 'وهج بسيط' : 'Minimal Glow';
-      case 'free_royal_gold':
-        return ar ? 'الذهبي الملكي' : 'Royal Gold';
-      case 'free_emerald_crown':
-        return ar ? 'تاج الزمرد' : 'Emerald Crown';
-      case 'free_crystal_blue':
-        return ar ? 'كريستال أزرق' : 'Crystal Blue';
-      case 'free_rose_luxe':
-        return ar ? 'وردة فاخرة' : 'Rose Luxe';
-      case 'free_cosmic_voice':
-        return ar ? 'فويس كوني' : 'Cosmic Voice';
+        return ar ? 'هالة WorldVoice' : 'WorldVoice Aura';
       case 'frame__golden_crown':
         return ar ? 'التاج الذهبي' : 'Golden Crown';
       case 'frame__royal_emerald':
@@ -75,50 +60,15 @@ class WorldVoiceAvatarFrame extends StatefulWidget {
   static List<Color> colorsFor(String? frameId) {
     switch (frameId) {
       case 'free_clean_white':
-        return const [Color(0xFFFFFFFF), Color(0xFFDDE5E8)];
+        return const [Color(0xFFFFFFFF), Color(0xFFFFE4A8), Color(0xFFD6DEE2)];
       case 'free_soft_green':
-        return const [Color(0xFF6BE7B1), Color(0xFF1C8C68)];
+        return const [Color(0xFFBFFFE2), Color(0xFF25C98A), Color(0xFF0E6E50)];
       case 'free_sky_blue':
-        return const [Color(0xFF8EDFFF), Color(0xFF338BC8)];
+        return const [Color(0xFFFFFFFF), Color(0xFF8EDFFF), Color(0xFF398BD4)];
       case 'free_silver':
-        return const [Color(0xFFF3F5F7), Color(0xFF9AA8B1)];
+        return const [Color(0xFFFFFFFF), Color(0xFFD8DDE3), Color(0xFF8897A2)];
       case 'free_minimal_glow':
-        return const [Color(0xFF7CF6C5), Color(0xFF7BBEFF)];
-      case 'free_royal_gold':
-        return const [
-          Color(0xFFFFF1B0),
-          Color(0xFFE4B83D),
-          Color(0xFF8E5D08),
-          Color(0xFFFFD86B),
-        ];
-      case 'free_emerald_crown':
-        return const [
-          Color(0xFFBFFFE2),
-          Color(0xFF1DD68F),
-          Color(0xFF087554),
-          Color(0xFFFFD870),
-        ];
-      case 'free_crystal_blue':
-        return const [
-          Color(0xFFFFFFFF),
-          Color(0xFF99E4FF),
-          Color(0xFF4C9FFF),
-          Color(0xFFD9F7FF),
-        ];
-      case 'free_rose_luxe':
-        return const [
-          Color(0xFFFFE0EF),
-          Color(0xFFFF8FC7),
-          Color(0xFFC84686),
-          Color(0xFFFFD6A6),
-        ];
-      case 'free_cosmic_voice':
-        return const [
-          Color(0xFF8FFFE3),
-          Color(0xFF60B7FF),
-          Color(0xFFB86BFF),
-          Color(0xFFFF73BE),
-        ];
+        return const [Color(0xFF7CF6C5), Color(0xFF7BBEFF), Color(0xFFC48CFF)];
       case 'frame__golden_crown':
         return const [
           Color(0xFFFFE79A),
@@ -171,14 +121,7 @@ class _WorldVoiceAvatarFrameState extends State<WorldVoiceAvatarFrame>
   bool get _animated =>
       widget.animate &&
       (WorldVoiceAvatarFrame.isPremium(widget.frameId) ||
-          const {
-            'free_minimal_glow',
-            'free_royal_gold',
-            'free_emerald_crown',
-            'free_crystal_blue',
-            'free_rose_luxe',
-            'free_cosmic_voice',
-          }.contains(widget.frameId));
+          widget.frameId == 'free_minimal_glow');
 
   @override
   void initState() {
@@ -213,9 +156,7 @@ class _WorldVoiceAvatarFrameState extends State<WorldVoiceAvatarFrame>
     final colors = WorldVoiceAvatarFrame.colorsFor(id);
     final premium = WorldVoiceAvatarFrame.isPremium(id);
     final border = premium ? 4.5 : 3.2;
-    final crown = id == 'frame__golden_crown' ||
-        id == 'free_royal_gold' ||
-        id == 'free_emerald_crown';
+    final crown = id == 'frame__golden_crown';
 
     return AnimatedBuilder(
       animation: _controller,
@@ -271,9 +212,7 @@ class _WorldVoiceAvatarFrameState extends State<WorldVoiceAvatarFrame>
                     ],
                   ),
                 ),
-              if (id == 'frame__diamond_shine' ||
-                  id == 'free_crystal_blue' ||
-                  id == 'free_cosmic_voice')
+              if (id == 'frame__diamond_shine')
                 Positioned(
                   top: widget.size * .04,
                   right: widget.size * .02,

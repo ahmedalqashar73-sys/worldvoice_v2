@@ -22,12 +22,6 @@ service cloud.firestore {
       return /databases/$(database)/documents/users/$(ownerId)/moderators/$(userId);
     }
 
-    function isAppAdmin() {
-      return signedIn()
-          && exists(userPath(request.auth.uid))
-          && get(userPath(request.auth.uid)).data.get('isAdmin', false) == true;
-    }
-
     function isGlobalModerator(ownerId, userId) {
       return signedIn()
           && ownerId is string
@@ -58,12 +52,7 @@ service cloud.firestore {
             'free_soft_green',
             'free_sky_blue',
             'free_silver',
-            'free_minimal_glow',
-            'free_royal_gold',
-            'free_emerald_crown',
-            'free_crystal_blue',
-            'free_rose_luxe',
-            'free_cosmic_voice'
+            'free_minimal_glow'
           ]
           || (
             newFrame is string
@@ -86,12 +75,7 @@ service cloud.firestore {
             'free_soft_green',
             'free_sky_blue',
             'free_silver',
-            'free_minimal_glow',
-            'free_royal_gold',
-            'free_emerald_crown',
-            'free_crystal_blue',
-            'free_rose_luxe',
-            'free_cosmic_voice'
+            'free_minimal_glow'
           ];
     }
 
@@ -106,9 +90,7 @@ service cloud.firestore {
       ) || (
         newTheme in [
           'royalPurple', 'emerald', 'midnight', 'skyBlue', 'forestGold',
-          'skyAura', 'softGreenFlow', 'silverWaves',
-          'royalEmeraldMotion', 'goldenVipGlow', 'auroraWorld',
-          'crystalBlueLuxury', 'velvetNight', 'galaxyTalk'
+          'skyAura', 'softGreenFlow', 'silverWaves'
         ]
         && newUrl == ''
       ) || (
@@ -167,11 +149,7 @@ service cloud.firestore {
             'walletBalance', 'withdrawableDiamonds', 'walletDebtCoins',
             'walletFrozen', 'payoutFrozen', 'diamondsReserved',
             'firstRechargeUsed', 'payoutFreezeReason', 'identityVerified',
-            'isVip', 'isAdmin', 'vipTier', 'vipExpiresAt',
-            'vipSource', 'adminRole', 'adminPermissions', 'adminSource',
-            'canViewVisitors', 'canManageRooms', 'canEnterPrivateRooms',
-            'canManageVip', 'canManageStore', 'canManageModerators',
-            'canSendCoins', 'canChangeCountry',
+            'isVip', 'isAdmin', 'vipExpiresAt', 'vipSource', 'adminSource',
             'vipUpdatedAt', 'adminUpdatedAt'
           ]);
     }
@@ -189,12 +167,8 @@ service cloud.firestore {
           && request.resource.data.get('isVip', false) == false
           && !request.resource.data.keys().hasAny([
             'lastGiftRoomId', 'lastGiftEventId', 'withdrawableDiamonds',
-            'walletBalance', 'vipExpiresAt', 'isAdmin', 'vipTier',
-            'vipSource', 'adminRole', 'adminPermissions', 'adminSource',
-            'canViewVisitors', 'canManageRooms', 'canEnterPrivateRooms',
-            'canManageVip', 'canManageStore', 'canManageModerators',
-            'canSendCoins', 'canChangeCountry',
-            'vipUpdatedAt', 'adminUpdatedAt'
+            'walletBalance', 'vipExpiresAt', 'isAdmin',
+            'vipSource', 'adminSource', 'vipUpdatedAt', 'adminUpdatedAt'
           ]);
     }
 
@@ -328,8 +302,7 @@ service cloud.firestore {
       }
 
       match /profile_visitors/{viewerUserId} {
-        allow read: if signedIn()
-            && (request.auth.uid == userId || isAppAdmin());
+        allow read: if signedIn() && request.auth.uid == userId;
 
         // The visitor records only their own visit on the target profile.
         allow create, update: if signedIn()
@@ -1292,7 +1265,6 @@ service cloud.firestore {
                 && (
                   get(roomPath(roomId)).data.isPrivate != true
                   || exists(accessGrantPath(roomId, userId))
-                  || isAppAdmin()
                 )
               )
               ||
