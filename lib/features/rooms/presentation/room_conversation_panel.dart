@@ -166,7 +166,9 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
     final ar = widget.isArabic;
     // Keep the chat viewport independent of the keyboard. Only the
     // composer floats above it while the room stage remains completely fixed.
-    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+    // The real editor lives in a modal sheet, so the room stage and collapsed
+    // chat controls never react to the keyboard inset.
+    const keyboardInset = 0.0;
     return Stack(clipBehavior: Clip.none, children: [
       Positioned.fill(child: StreamBuilder<List<RoomChatMessage>>(
         stream: widget.messages,
@@ -341,7 +343,7 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
         child: LayoutBuilder(builder: (context, constraints) {
-          final typing = MediaQuery.viewInsetsOf(context).bottom > 0;
+          const typing = false;
           final field = TextField(
             key: const ValueKey<String>('worldvoice-room-chat-input'),
             controller: _text,
