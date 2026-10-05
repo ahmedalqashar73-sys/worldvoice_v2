@@ -202,8 +202,9 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                             'silverWaves',
                           ];
 
-                          // Three polished animated backgrounds are always
-                          // free. Paid backgrounds stay server-authoritative.
+                          // Eight polished beta backgrounds use the already
+                          // deployed safe theme IDs. Paid catalog backgrounds
+                          // remain server-authoritative.
                           return GridView.builder(
                             padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
                             itemCount: freeThemes.length + catalog.length,
@@ -426,6 +427,11 @@ class _FreeBackgroundCard extends StatelessWidget {
   final VoidCallback onApply;
 
   String get _label => switch (themeId) {
+        'emerald' => isArabic ? 'زمرد وورلد فويس' : 'WorldVoice Emerald',
+        'skyBlue' => isArabic ? 'سماء ملكية' : 'Royal Sky',
+        'forestGold' => isArabic ? 'غابة ذهبية' : 'Golden Forest',
+        'midnight' => isArabic ? 'ليل فاخر' : 'Luxury Midnight',
+        'royalPurple' => isArabic ? 'ملكي داكن' : 'Dark Royal',
         'skyAura' => isArabic ? 'هالة سماوية' : 'Sky Blue Aura',
         'softGreenFlow' => isArabic ? 'تدفق أخضر' : 'Soft Green Flow',
         'silverWaves' => isArabic ? 'موج فضي' : 'Silver Light Waves',
@@ -490,6 +496,31 @@ class _BuiltInBackgroundPreview extends StatefulWidget {
   final String themeId;
 
   static List<Color> colorsFor(String themeId) => switch (themeId) {
+        'emerald' => const [
+            Color(0xFF062C22),
+            Color(0xFF0D7555),
+            Color(0xFF52D6A4),
+          ],
+        'skyBlue' => const [
+            Color(0xFF08283A),
+            Color(0xFF236F9A),
+            Color(0xFF8DDBF8),
+          ],
+        'forestGold' => const [
+            Color(0xFF102A20),
+            Color(0xFF426C4D),
+            Color(0xFFD4B45C),
+          ],
+        'midnight' => const [
+            Color(0xFF070B14),
+            Color(0xFF17233C),
+            Color(0xFF40577F),
+          ],
+        'royalPurple' => const [
+            Color(0xFF130E22),
+            Color(0xFF382B5C),
+            Color(0xFF8369C6),
+          ],
         'skyAura' => const [
             Color(0xFFEAF9FF),
             Color(0xFF86D8F6),
