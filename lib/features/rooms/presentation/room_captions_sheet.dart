@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../data/room_caption.dart';
@@ -16,6 +17,7 @@ class RoomCaptionsSheet extends StatelessWidget {
     required this.onPronunciationChanged,
     required this.onTargetLanguageChanged,
     this.pronunciationNotes,
+    this.pronunciationNote,
     this.targetLanguages,
     this.error,
     super.key,
@@ -26,6 +28,7 @@ class RoomCaptionsSheet extends StatelessWidget {
   final bool pronunciationEnabled;
   final String targetLanguage;
   final Stream<List<RoomTeacherAiNote>>? pronunciationNotes;
+  final ValueListenable<RoomTeacherAiNote?>? pronunciationNote;
   final List<RoomCaptionLanguage>? targetLanguages;
   final bool canPublish;
   final bool listening;
@@ -113,47 +116,100 @@ class RoomCaptionsSheet extends StatelessWidget {
               secondary: const Icon(Icons.record_voice_over_rounded),
               title: Text(isArabic ? 'تصحيح النطق' : 'Pronunciation guidance'),
               subtitle: Text(isArabic
-                  ? 'يعتمد على الكلام المحوّل إلى نص بواسطة Teacher AI، ولا يقيم الصوت نفسه. يحتاج خادم AI.'
-                  : 'Teacher AI gives guidance from captions, not an audio pronunciation score. An AI server is required.'),
+                  ? 'يعتمد على الكلام المحوّل إلى نص ويعطيك ملاحظة نطق مباشرة على جهازك. لا يعطي درجة صوتية وهمية.'
+                  : 'Uses the recognized transcript to give immediate on-device pronunciation guidance. It does not invent an acoustic score.'),
             ),
-            if (pronunciationEnabled && pronunciationNotes != null)
+            if (pronunciationEnabled &&
+                (pronunciationNote != null || pronunciationNotes != null))
               SizedBox(
                 height: 155,
-                child: StreamBuilder<List<RoomTeacherAiNote>>(
-                  stream: pronunciationNotes,
-                  builder: (context, notesSnapshot) {
-                    if (notesSnapshot.hasError) {
-                      return Center(child: Text(isArabic
-                          ? 'تعذّر تحميل ملاحظات النطق.'
-                          : 'Could not load pronunciation guidance.'));
-                    }
-                    final notes = notesSnapshot.data ??
-                        const <RoomTeacherAiNote>[];
-                    if (notes.isEmpty) {
-                      return Center(child: Text(isArabic
-                          ? 'تكلّم لتظهر ملاحظات النص والنطق إذا كان خادم AI متاحًا.'
-                          : 'Speak to see transcript-based guidance when AI is available.'));
-                    }
-                    return ListView(
-                      children: [
-                        for (final note in notes.take(4))
-                          Card(
-                            child: ListTile(
-                              title: Text(note.correction.isEmpty
-                                  ? note.originalText : note.correction),
-                              subtitle: Text(
-                                note.pronunciationTip?.trim().isNotEmpty == true
-                                    ? note.pronunciationTip!
-                                    : (isArabic
-                                        ? 'لا توجد ملاحظة نطق لهذه الجملة.'
-                                        : 'No pronunciation note for this sentence.'),
+                child: pronunciationNote != null
+                    ? ValueListenableBuilder<RoomTeacherAiNote?>(
+                        valueListenable: pronunciationNote!,
+                        builder: (context, note, _) {
+                          if (note == null) {
+                            return Center(
+                              child: Text(
+                                isArabic
+                                    ? 'تكلّم الآن لتظهر ملاحظة النطق.'
+                                    : 'Speak now to see pronunciation guidance.',
                               ),
-                            ),
-                          ),
-                      ],
-                    );
-                  },
-                ),
+                            );
+                          }
+                          return ListView(
+                            children: [
+                              Card(
+                                child: ListTile(
+                                  title: Text(
+                                    note.correction.isEmpty
+                                        ? note.originalText
+                                        : note.correction,
+                                  ),
+                                  subtitle: Text(
+                                    note.pronunciationTip
+                                                ?.trim()
+                                                .isNotEmpty ==
+                                            true
+                                        ? note.pronunciationTip!
+                                        : (isArabic
+                                            ? 'لا توجد ملاحظة نطق لهذه الجملة.'
+                                            : 'No pronunciation note for this sentence.'),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      )
+                    : StreamBuilder<List<RoomTeacherAiNote>>(
+                        stream: pronunciationNotes,
+                        builder: (context, notesSnapshot) {
+                          if (notesSnapshot.hasError) {
+                            return Center(
+                              child: Text(
+                                isArabic
+                                    ? 'تعذّر تحميل ملاحظات النطق.'
+                                    : 'Could not load pronunciation guidance.',
+                              ),
+                            );
+                          }
+                          final notes = notesSnapshot.data ??
+                              const <RoomTeacherAiNote>[];
+                          if (notes.isEmpty) {
+                            return Center(
+                              child: Text(
+                                isArabic
+                                    ? 'تكلّم الآن لتظهر ملاحظة النطق.'
+                                    : 'Speak now to see pronunciation guidance.',
+                              ),
+                            );
+                          }
+                          return ListView(
+                            children: [
+                              for (final note in notes.take(4))
+                                Card(
+                                  child: ListTile(
+                                    title: Text(
+                                      note.correction.isEmpty
+                                          ? note.originalText
+                                          : note.correction,
+                                    ),
+                                    subtitle: Text(
+                                      note.pronunciationTip
+                                                  ?.trim()
+                                                  .isNotEmpty ==
+                                              true
+                                          ? note.pronunciationTip!
+                                          : (isArabic
+                                              ? 'لا توجد ملاحظة نطق لهذه الجملة.'
+                                              : 'No pronunciation note for this sentence.'),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          );
+                        },
+                      ),
               ),
             if (translationEnabled)
               if (availableLanguages.length == 1)
