@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../data/room_chat_message.dart';
 import '../data/room_feature_models.dart';
 
@@ -28,7 +27,6 @@ class RoomConversationPanel extends StatefulWidget {
 
 class _RoomConversationPanelState extends State<RoomConversationPanel> {
   final _text = TextEditingController();
-  final _focus = FocusNode();
   bool _sending = false;
   // Do not animate historical messages on first entry or move the room when a
   // new chat arrives; only the new message bubble fades in.
@@ -69,9 +67,77 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
   @override
   void dispose() {
     _text.dispose();
-    _focus.dispose();
     super.dispose();
   }
+  Future<void> _openComposer() async {
+    if (!widget.enabled || !mounted) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: const Color(0xFF0E241E),
+      builder: (sheetContext) {
+        final inset = MediaQuery.viewInsetsOf(sheetContext).bottom;
+        return Padding(
+          padding: EdgeInsets.fromLTRB(12, 12, 12, inset + 12),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _text,
+                  autofocus: true,
+                  enabled: !_sending,
+                  minLines: 1,
+                  maxLines: 4,
+                  maxLength: 500,
+                  textInputAction: TextInputAction.send,
+                  onSubmitted: (_) async {
+                    await _send();
+                    if (sheetContext.mounted && _text.text.trim().isEmpty) {
+                      Navigator.of(sheetContext).pop();
+                    }
+                  },
+                  style: const TextStyle(color: Colors.white, fontSize: 15),
+                  decoration: InputDecoration(
+                    hintText: widget.isArabic ? 'اكتب رسالة…' : 'Write a message…',
+                    counterText: '',
+                    hintStyle: const TextStyle(color: Colors.white54),
+                    filled: true,
+                    fillColor: const Color(0xFF123C30),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 13,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(24),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                tooltip: widget.isArabic ? 'إرسال' : 'Send',
+                onPressed: _sending
+                    ? null
+                    : () async {
+                        await _send();
+                        if (sheetContext.mounted && _text.text.trim().isEmpty) {
+                          Navigator.of(sheetContext).pop();
+                        }
+                      },
+                icon: const Icon(
+                  Icons.send_rounded,
+                  color: Color(0xFFE7C56E),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _send() async {
     final value = _text.text.trim();
     if (value.isEmpty || _sending || !widget.enabled) return;
@@ -279,33 +345,23 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
           final field = TextField(
             key: const ValueKey<String>('worldvoice-room-chat-input'),
             controller: _text,
-            focusNode: _focus,
             enabled: widget.enabled,
-            readOnly: false,
-            keyboardType: TextInputType.text,
-            autocorrect: true,
-            enableSuggestions: true,
-            showCursor: true,
-            onTap: () {
-              FocusScope.of(context).requestFocus(_focus);
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (_focus.hasFocus) {
-                  SystemChannels.textInput.invokeMethod<void>('TextInput.show');
-                }
-              });
-            },
+            readOnly: true,
+            showCursor: false,
+            onTap: _openComposer,
             style: const TextStyle(color: Colors.white, fontSize: 14),
-            maxLength: 500, maxLines: 1, textInputAction: TextInputAction.send,
-            onSubmitted: (_) => _send(),
+            maxLines: 1,
             decoration: InputDecoration(
-              hintText: ar ? 'تعليق…' : 'Message…', counterText: '',
+              hintText: ar ? 'تعليق…' : 'Message…',
               hintStyle: const TextStyle(color: Colors.white54),
-              filled: true, fillColor: const Color(0xFF123C30),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(28), borderSide: BorderSide.none),
-              suffixIcon: typing ? IconButton(
-                tooltip: ar ? 'إرسال' : 'Send', onPressed: _sending ? null : _send,
-                icon: const Icon(Icons.send_rounded, color: Color(0xFFE7C56E), size: 20)) : null,
+              filled: true,
+              fillColor: const Color(0xFF123C30),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(28),
+                borderSide: BorderSide.none,
+              ),
             ),
           );
           final actions = [
