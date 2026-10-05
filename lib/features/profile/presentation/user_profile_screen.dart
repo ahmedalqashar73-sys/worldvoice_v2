@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../core/localization/app_strings.dart';
 
 import '../../../core/localization/locale_controller.dart';
+import '../../../core/widgets/worldvoice_avatar_frame.dart';
 import '../services/profile_social_service.dart';
 import 'profile_connections_screen.dart';
 import 'profile_identity_strip.dart';
@@ -78,6 +79,8 @@ class UserProfileScreen extends StatelessWidget {
             final birthRaw = data['birthDate'];
             final birthDate = birthRaw is Timestamp ? birthRaw.toDate() : null;
             final isVip = data['isVip'] == true;
+            final profileFrameId =
+                (data['profileFrameId'] as String?)?.trim();
             final voiceBioUrl = data['voiceBioUrl'] as String?;
             final learning = (data['learningLanguages'] as List?)
                     ?.map((e) => e.toString())
@@ -112,18 +115,28 @@ class UserProfileScreen extends StatelessWidget {
                       PositionedDirectional(
                         start: 22,
                         bottom: 0,
-                        child: CircleAvatar(
-                          radius: 64,
-                          backgroundColor:
-                              Theme.of(context).colorScheme.surface,
-                          child: CircleAvatar(
-                            radius: 59,
-                            backgroundImage: photo == null || photo.isEmpty
-                                ? null
-                                : NetworkImage(photo),
+                        child: WorldVoiceAvatarFrame(
+                          frameId: profileFrameId,
+                          size: 128,
+                          child: ColoredBox(
+                            color: Theme.of(context).colorScheme.surface,
                             child: photo == null || photo.isEmpty
-                                ? const Icon(Icons.person_rounded, size: 58)
-                                : null,
+                                ? const Center(
+                                    child: Icon(
+                                      Icons.person_rounded,
+                                      size: 58,
+                                    ),
+                                  )
+                                : Image.network(
+                                    photo,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, _, _) => const Center(
+                                      child: Icon(
+                                        Icons.person_rounded,
+                                        size: 58,
+                                      ),
+                                    ),
+                                  ),
                           ),
                         ),
                       ),
@@ -457,4 +470,3 @@ class _Wallet extends StatelessWidget {
         ),
       );
 }
-

@@ -1,10 +1,14 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http/http.dart' as http;
 
+import '../data/room_backend_config.dart';
 import '../data/room_moderation_models.dart';
 import '../data/room_stage_models.dart';
+import '../data/room_mode.dart';
 
 class RoomModerationService {
   RoomModerationService({
@@ -14,6 +18,7 @@ class RoomModerationService {
     this.initialShowTeacherAiSeat = false,
     this.initialIsPrivate = false,
     this.initialVipOnly = false,
+    this.initialMode = RoomMode.chat,
     this.privateAccessCode,
   });
 
@@ -23,6 +28,7 @@ class RoomModerationService {
   final bool initialShowTeacherAiSeat;
   final bool initialIsPrivate;
   final bool initialVipOnly;
+  final RoomMode initialMode;
   final String? privateAccessCode;
 
   FirebaseFirestore get _db => FirebaseFirestore.instance;
@@ -33,6 +39,9 @@ class RoomModerationService {
 
   CollectionReference<Map<String, dynamic>> get _participantsRef =>
       _roomRef.collection('participants');
+
+  CollectionReference<Map<String, dynamic>> get _stageInvitesRef =>
+      _roomRef.collection('stage_invites');
 
   String? get currentUserId => _user?.uid;
 
@@ -50,6 +59,7 @@ class RoomModerationService {
             .toString()
             .trim();
     final photoUrl = (data['photoUrl'] as String?)?.trim();
+    final frameId = (data['profileFrameId'] as String?)?.trim();
     final profileLanguageCode =
         (data['nativeLanguageCode'] ?? 'en').toString().trim();
     final languageCode = (roomLanguageCode?.trim().isNotEmpty == true
@@ -57,19 +67,37 @@ class RoomModerationService {
             : profileLanguageCode)
         .toLowerCase();
     final country = (data['country'] ?? '').toString().trim();
+    final isAppAdmin = data['isAdmin'] == true;
 
     final existingRoom = await _roomRef.get();
     final existingData = existingRoom.data();
+    var isGlobalModerator = false;
+    if (!asHost) {
+      final hostId = existingData?['hostId']?.toString() ?? '';
+      if (hostId.isNotEmpty) {
+        final moderator = await _db
+            .collection('users')
+            .doc(hostId)
+            .collection('moderators')
+            .doc(user.uid)
+            .get();
+        isGlobalModerator = moderator.exists;
+      }
+    }
     if (!asHost) {
       if (!existingRoom.exists || existingData?['isOpen'] != true) {
         throw StateError('This room is no longer open.');
       }
 
-      if (existingData?['vipOnly'] == true && data['isVip'] != true) {
+      if (existingData?['vipOnly'] == true &&
+          data['isVip'] != true &&
+          !isAppAdmin) {
         throw StateError('This room is available to VIP members only.');
       }
 
-      if (existingData?['isPrivate'] == true) {
+      if (existingData?['isPrivate'] == true && isAppAdmin) {
+        await _grantAdminPrivateAccess(user);
+      } else if (existingData?['isPrivate'] == true) {
         final code = privateAccessCode?.trim() ?? '';
         if (code.isEmpty) {
           throw StateError('A private room code is required.');
@@ -98,7 +126,7 @@ class RoomModerationService {
     if (asHost) {
       if (initialIsPrivate) {
         final giftLevel = (data['giftLevel'] as num?)?.toInt() ?? 0;
-        if (giftLevel < 14) {
+        if (giftLevel < 14 && !isAppAdmin) {
           throw StateError(
             'Gift Level 14 is required to create a private room.',
           );
@@ -135,8 +163,9 @@ class RoomModerationService {
           'vipOnly': initialVipOnly,
           'roomLevel': existingData?['roomLevel'] ?? 1,
           'roomXp': existingData?['roomXp'] ?? existingData?['roomPoints'] ?? 0,
-          'themeId': existingData?['themeId'] ?? 'royalPurple',
-          'boardWriteEnabled': existingData?['boardWriteEnabled'] ?? true,
+          'themeId': existingData?['themeId'] ?? 'emerald',
+          'mode': initialMode.name,
+          'boardWriteEnabled': initialMode != RoomMode.lesson,
           'musicPlaying': existingData?['musicPlaying'] ?? false,
           'isOpen': true,
           'createdAt': FieldValue.serverTimestamp(),
@@ -152,12 +181,13 @@ class RoomModerationService {
         'uid': user.uid,
         'displayName': displayName.isEmpty ? 'WorldVoice user' : displayName,
         'photoUrl': photoUrl,
+        'frameId': frameId,
         'role': asHost ? 'host' : 'listener',
         'handRaised': false,
         'seatIndex': asHost ? 1 : FieldValue.delete(),
         'agoraUid': FieldValue.delete(),
         'requestedSeatIndex': FieldValue.delete(),
-        'isModerator': false,
+        'isModerator': asHost ? false : isGlobalModerator,
         'warningCount': 0,
         'forcedMuted': false,
         'kicked': false,
@@ -168,6 +198,40 @@ class RoomModerationService {
     );
 
     await batch.commit();
+  }
+
+  Future<void> _grantAdminPrivateAccess(User user) async {
+    final endpoint = RoomBackendConfig.endpoint('/admin/rooms/grant-access');
+    if (endpoint.isEmpty) {
+      throw StateError('WorldVoice room backend is not configured.');
+    }
+
+    final token = await user.getIdToken();
+    if (token == null || token.isEmpty) {
+      throw StateError('Could not authorize admin room access.');
+    }
+
+    final response = await http
+        .post(
+          Uri.parse(endpoint),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode({'roomId': channelId}),
+        )
+        .timeout(const Duration(seconds: 12));
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      var message = 'Admin private-room access could not be granted.';
+      try {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic>) {
+          message = decoded['error']?.toString() ?? message;
+        }
+      } catch (_) {}
+      throw StateError(message);
+    }
   }
 
   Future<int> roomLevel() async {
@@ -208,6 +272,7 @@ class RoomModerationService {
             displayName:
                 (data['displayName'] ?? 'WorldVoice user').toString(),
             photoUrl: data['photoUrl'] as String?,
+            frameId: data['frameId'] as String?,
             role: RoomParticipant.roleFromString(
               data['role']?.toString(),
             ),
@@ -271,6 +336,112 @@ class RoomModerationService {
       },
       SetOptions(merge: true),
     );
+  }
+
+  Stream<DocumentSnapshot<Map<String, dynamic>>> watchMyStageInvite() {
+    final uid = currentUserId;
+    if (uid == null) {
+      return const Stream<DocumentSnapshot<Map<String, dynamic>>>.empty();
+    }
+    return _stageInvitesRef.doc(uid).snapshots();
+  }
+
+  Future<void> sendStageInvite({
+    required String userId,
+    required RoomMemberRole role,
+    required int seatIndex,
+  }) async {
+    final inviter = _user;
+    if (inviter == null) throw StateError('Sign in is required.');
+    if (role != RoomMemberRole.speaker &&
+        role != RoomMemberRole.coHost &&
+        role != RoomMemberRole.vipSeat) {
+      throw StateError('Unsupported stage role.');
+    }
+    if (seatIndex < 2 || seatIndex > 8) {
+      throw StateError('Stage invitation must use seats 2 to 8.');
+    }
+
+    final participant = await _participantsRef.doc(userId).get();
+    if (!participant.exists ||
+        participant.data()?['role']?.toString() != 'listener') {
+      throw StateError('Only current listeners can be invited to the stage.');
+    }
+
+    final occupied = await _participantsRef
+        .where('seatIndex', isEqualTo: seatIndex)
+        .limit(1)
+        .get();
+    if (occupied.docs.isNotEmpty) {
+      throw StateError('That speaker seat is already occupied.');
+    }
+
+    await _stageInvitesRef.doc(userId).set({
+      'recipientId': userId,
+      'invitedBy': inviter.uid,
+      'role': RoomParticipant.roleToString(role),
+      'seatIndex': seatIndex,
+      'status': 'pending',
+      'createdAt': FieldValue.serverTimestamp(),
+      'respondedAt': FieldValue.delete(),
+    });
+  }
+
+  Future<void> respondToStageInvite({required bool accept}) async {
+    final user = _user;
+    if (user == null) throw StateError('Sign in is required.');
+
+    final inviteRef = _stageInvitesRef.doc(user.uid);
+    final participantRef = _participantsRef.doc(user.uid);
+
+    if (!accept) {
+      await inviteRef.update({
+        'status': 'declined',
+        'respondedAt': FieldValue.serverTimestamp(),
+      });
+      return;
+    }
+
+    final invite = await inviteRef.get();
+    final inviteData = invite.data();
+    if (!invite.exists || inviteData?['status']?.toString() != 'pending') {
+      throw StateError('This stage invitation is no longer active.');
+    }
+
+    final seatIndex = (inviteData?['seatIndex'] as num?)?.toInt();
+    final role = RoomParticipant.roleFromString(
+      inviteData?['role']?.toString(),
+    );
+    if (seatIndex == null ||
+        seatIndex < 2 ||
+        seatIndex > 8 ||
+        role == RoomMemberRole.listener ||
+        role == RoomMemberRole.host ||
+        role == RoomMemberRole.teacherAi) {
+      throw StateError('This stage invitation is invalid.');
+    }
+
+    final occupied = await _participantsRef
+        .where('seatIndex', isEqualTo: seatIndex)
+        .limit(1)
+        .get();
+    if (occupied.docs.any((doc) => doc.id != user.uid)) {
+      throw StateError('That speaker seat was taken. Ask for a new invite.');
+    }
+
+    final batch = _db.batch();
+    batch.update(participantRef, {
+      'role': RoomParticipant.roleToString(role),
+      'seatIndex': seatIndex,
+      'handRaised': false,
+      'requestedSeatIndex': FieldValue.delete(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+    batch.update(inviteRef, {
+      'status': 'accepted',
+      'respondedAt': FieldValue.serverTimestamp(),
+    });
+    await batch.commit();
   }
 
   Future<void> setHandRaised(
