@@ -159,6 +159,8 @@ class LiveSessionService {
     final user = _user;
     final session = _sessions.doc(liveId);
     final viewer = session.collection('viewers').doc(user.uid);
+    var newlyJoined = false;
+
     await _db.runTransaction((tx) async {
       final sessionSnap = await tx.get(session);
       if (!isFresh(sessionSnap.data())) {
@@ -166,6 +168,7 @@ class LiveSessionService {
       }
       final existing = await tx.get(viewer);
       if (!existing.exists) {
+        newlyJoined = true;
         tx.set(viewer, {
           'uid': user.uid,
           'displayName': user.displayName ?? 'WorldVoice user',
@@ -178,6 +181,17 @@ class LiveSessionService {
         });
       }
     });
+
+    if (newlyJoined) {
+      await session.collection('messages').add({
+        'type': 'join',
+        'senderId': user.uid,
+        'senderName': user.displayName ?? 'WorldVoice user',
+        'senderPhotoUrl': user.photoURL ?? '',
+        'text': '',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    }
   }
 
   Future<void> leaveViewer(String liveId) async {
