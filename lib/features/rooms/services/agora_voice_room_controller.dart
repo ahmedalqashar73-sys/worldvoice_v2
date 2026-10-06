@@ -433,10 +433,16 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     required String channelId,
     required AgoraRoomRole role,
   }) async {
+    final backendEndpoint =
+        RoomBackendConfig.configurationError.isEmpty
+            ? RoomBackendConfig.endpoint('/agora/token')
+            : '';
     final endpoints = <String>[
+      if (channelId.startsWith('call_') && backendEndpoint.isNotEmpty)
+        backendEndpoint,
       ...AgoraConfig.tokenEndpoints,
-      if (RoomBackendConfig.configurationError.isEmpty)
-        RoomBackendConfig.endpoint('/agora/token'),
+      if (!channelId.startsWith('call_') && backendEndpoint.isNotEmpty)
+        backendEndpoint,
     ].where((value) => value.trim().isNotEmpty).toSet().toList(growable: false);
     if (endpoints.isEmpty) {
       if (AgoraConfig.tempToken.trim().isNotEmpty) {
