@@ -235,28 +235,33 @@ class _HomeLandingState extends State<_HomeLanding> {
     return SafeArea(
       child: ListView(
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        padding: const EdgeInsets.fromLTRB(18, 14, 18, 28),
+        padding: const EdgeInsets.only(top: 8, bottom: 28),
         children: [
-          Align(
-            alignment: AlignmentDirectional.centerEnd,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  onPressed: () => _feedKey.currentState?.createPost(),
-                  tooltip: t.createPost,
-                  icon: const Icon(Icons.add_box_outlined),
-                ),
-                IconButton(
-                  onPressed: () {},
-                  tooltip: t.notifications,
-                  icon: const Icon(Icons.notifications_none_rounded),
-                ),
-              ],
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    onPressed: () => _feedKey.currentState?.createPost(),
+                    tooltip: t.createPost,
+                    icon: const Icon(Icons.add_box_outlined, size: 27),
+                  ),
+                  IconButton(
+                    onPressed: () {},
+                    tooltip: t.notifications,
+                    icon: const Icon(Icons.notifications_none_rounded, size: 27),
+                  ),
+                ],
+              ),
             ),
           ),
-          const SizedBox(height: 8),
-          SearchBar(
+          const SizedBox(height: 4),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: SearchBar(
             controller: _searchController,
             hintText: ar
                 ? 'ابحث باليوزرنيم @username'
@@ -285,17 +290,21 @@ class _HomeLandingState extends State<_HomeLanding> {
               setState(() {});
               _onSearchChanged(value);
             },
-            onSubmitted: (value) => _searchByUsername(
-              ProfileFormValidation.normalizeUsername(value),
+              onSubmitted: (value) => _searchByUsername(
+                ProfileFormValidation.normalizeUsername(value),
+              ),
             ),
           ),
           if (_searchError != null) ...[
             const SizedBox(height: 8),
-            Text(
-              _searchError!,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.error,
-                fontWeight: FontWeight.w600,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: Text(
+                _searchError!,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.error,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ],
@@ -303,36 +312,40 @@ class _HomeLandingState extends State<_HomeLanding> {
               !_searching &&
               _searchError == null) ...[
             const SizedBox(height: 10),
-            if (_results.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Text(
-                  ar ? 'لا يوجد مستخدم بهذا اليوزرنيم.' : 'No users found.',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              )
-            else
-              Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerLow,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Column(
-                  children: [
-                    for (var index = 0; index < _results.length; index++) ...[
-                      _HomeUserSearchTile(
-                        user: _results[index],
-                        onTap: () => _openProfile(_results[index]),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: _results.isEmpty
+                  ? Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: Text(
+                        ar ? 'لا يوجد مستخدم بهذا اليوزرنيم.' : 'No users found.',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyMedium,
                       ),
-                      if (index != _results.length - 1)
-                        const Divider(height: 1, indent: 70),
-                    ],
-                  ],
-                ),
-              ),
+                    )
+                  : Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surfaceContainerLow,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Column(
+                        children: [
+                          for (var index = 0;
+                              index < _results.length;
+                              index++) ...[
+                            _HomeUserSearchTile(
+                              user: _results[index],
+                              onTap: () => _openProfile(_results[index]),
+                            ),
+                            if (index != _results.length - 1)
+                              const Divider(height: 1, indent: 70),
+                          ],
+                        ],
+                      ),
+                    ),
+            ),
           ],
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           HomeFeedSection(
             key: _feedKey,
             localeController: widget.localeController,
