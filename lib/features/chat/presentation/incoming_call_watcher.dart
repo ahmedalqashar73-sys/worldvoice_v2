@@ -110,8 +110,12 @@ class _IncomingCallWatcherState extends State<IncomingCallWatcher>
 
     try {
       if (action == 'accept') {
-        await _service.respond(callId: call.id, action: 'accept');
+        final response =
+            await _service.respond(callId: call.id, action: 'accept');
         if (!mounted) return;
+        if ((response['status'] ?? '').toString() != 'accepted') {
+          return;
+        }
         await Navigator.of(context).push(
           MaterialPageRoute<void>(
             builder: (_) => ChatCallScreen(
