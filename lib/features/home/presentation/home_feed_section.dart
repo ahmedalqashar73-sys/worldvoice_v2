@@ -442,14 +442,14 @@ class _HomePostCard extends StatelessWidget {
     if (diff < 60000) return isArabic ? 'الآن' : 'now';
     if (diff < 3600000) {
       final m = (diff / 60000).floor();
-      return isArabic ? 'منذ ${m} د' : '${m}m';
+      return isArabic ? 'منذ $m د' : '${m}m';
     }
     final h = (diff / 3600000).floor();
     if (h < 24) {
-      return isArabic ? 'منذ ${h} س' : '${h}h';
+      return isArabic ? 'منذ $h س' : '${h}h';
     }
     final d = (h / 24).floor();
-    return isArabic ? 'منذ ${d} ي' : '${d}d';
+    return isArabic ? 'منذ $d ي' : '${d}d';
   }
 
   @override
