@@ -12,6 +12,7 @@ import '../../profile/presentation/profile_form_validation.dart';
 import '../../profile/presentation/user_profile_screen.dart';
 import '../../rooms/presentation/rooms_hub_screen.dart';
 import '../../stories/presentation/story_strip.dart';
+import 'home_feed_section.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({required this.localeController, super.key});
@@ -345,6 +346,10 @@ class _HomeLandingState extends State<_HomeLanding> {
                 ),
               ),
           ],
+          const SizedBox(height: 18),
+          HomeFeedSection(
+            localeController: widget.localeController,
+          ),
           const SizedBox(height: 18),
           Container(
             padding: const EdgeInsets.all(22),
