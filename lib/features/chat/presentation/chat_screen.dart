@@ -1048,6 +1048,7 @@ class _ChatConversationState extends State<ChatConversationScreen> {
   String? _pendingKey;
   final ImagePicker _picker = ImagePicker();
   final ChatExtendedService _extendedService = ChatExtendedService();
+  final ChatCallService _callService = ChatCallService();
 
   String _newRequestKey() {
     final random = Random.secure();
@@ -1076,6 +1077,48 @@ class _ChatConversationState extends State<ChatConversationScreen> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(error.toString().replaceFirst('Bad state: ', '')),
       ));
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
+  }
+
+  Future<void> _startCall(String type) async {
+    if (_sending) return;
+    setState(() => _sending = true);
+    try {
+      final profile = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.peerId)
+          .get();
+      final data = profile.data() ?? const <String, dynamic>{};
+      final name = (data['displayName'] ?? data['name'] ?? widget.peerName)
+          .toString();
+      final photo = (data['photoUrl'] ?? '').toString();
+      final call = await _callService.startCall(
+        recipientId: widget.peerId,
+        chatId: widget.chatId,
+        type: type,
+      );
+      if (!mounted) return;
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => ChatCallScreen(
+            call: call,
+            peerName: name,
+            peerPhotoUrl: photo,
+            accepted: false,
+          ),
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            error.toString().replaceFirst('Bad state: ', ''),
+          ),
+        ),
+      );
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -1139,6 +1182,7 @@ class _ChatConversationState extends State<ChatConversationScreen> {
     _giftOverlay = null;
     _text.dispose();
     _extendedService.dispose();
+    _callService.dispose();
     super.dispose();
   }
 
