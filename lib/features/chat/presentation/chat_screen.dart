@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 
 import '../../../core/localization/locale_controller.dart';
 import '../../rooms/presentation/unified_gift_panel.dart';
@@ -16,6 +18,9 @@ import '../../rooms/data/room_feature_models.dart';
 import '../../rooms/services/room_feature_service.dart';
 import '../../profile/presentation/public_profile_screen.dart';
 import '../../stories/presentation/story_strip.dart';
+import '../services/chat_extended_service.dart';
+import 'chat_media_bubble.dart';
+import 'group_chat_screen.dart';
 
 /// Real authenticated conversations. The economy backend, not Flutter,
 /// establishes mutual-follower membership and writes chat/gift messages.
