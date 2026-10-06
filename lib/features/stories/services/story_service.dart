@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -167,14 +168,24 @@ class StoryService {
     await request.sink.addStream(file.openRead());
     await request.sink.close();
 
-    final streamed = await _client.send(request);
-    final body = await streamed.stream.bytesToString();
-    final response = http.Response(
-      body,
-      streamed.statusCode,
-      headers: streamed.headers,
-    );
-    await _decode(response);
+    try {
+      final streamed = await _client
+          .send(request)
+          .timeout(const Duration(minutes: 2));
+      final body = await streamed.stream
+          .bytesToString()
+          .timeout(const Duration(seconds: 30));
+      final response = http.Response(
+        body,
+        streamed.statusCode,
+        headers: streamed.headers,
+      );
+      await _decode(response);
+    } on TimeoutException {
+      throw StateError(
+        'Story upload timed out. Check your connection and try again.',
+      );
+    }
   }
 
   String _mimeType(XFile file, String kind) {
