@@ -475,6 +475,175 @@ class ChatScreen extends StatelessWidget {
     );
   }
 
+
+  Future<void> _createGroupChat(
+    BuildContext parentContext,
+    bool ar,
+    String uid,
+  ) async {
+    final db = FirebaseFirestore.instance;
+    final service = ChatExtendedService();
+    final selected = <String>{};
+    final nameController = TextEditingController();
+
+    try {
+      final following = await db
+          .collection('users')
+          .doc(uid)
+          .collection('following')
+          .limit(100)
+          .get();
+      final profiles = await Future.wait(
+        following.docs.map(
+          (doc) => db.collection('users').doc(doc.id).get(),
+        ),
+      );
+      if (!parentContext.mounted) return;
+
+      await showModalBottomSheet<void>(
+        context: parentContext,
+        isScrollControlled: true,
+        useSafeArea: true,
+        showDragHandle: true,
+        builder: (sheetContext) => StatefulBuilder(
+          builder: (context, setSheetState) => SizedBox(
+            height: MediaQuery.sizeOf(context).height * .78,
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+                  child: TextField(
+                    controller: nameController,
+                    maxLength: 80,
+                    decoration: InputDecoration(
+                      labelText: ar ? 'اسم المجموعة' : 'Group name',
+                      prefixIcon: const Icon(Icons.groups_rounded),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Text(
+                      ar
+                          ? 'اختر عضوين على الأقل. للمحافظة على الخصوصية، المجموعة تكون بين المتابعين المتبادلين.'
+                          : 'Choose at least two people. For privacy, groups are limited to mutual followers.',
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: profiles.isEmpty
+                      ? Center(
+                          child: Text(
+                            ar
+                                ? 'لا يوجد أشخاص متاحون للمجموعة.'
+                                : 'No people available for a group yet.',
+                          ),
+                        )
+                      : ListView.builder(
+                          itemCount: profiles.length,
+                          itemBuilder: (context, index) {
+                            final snap = profiles[index];
+                            if (!snap.exists) return const SizedBox.shrink();
+                            final data =
+                                snap.data() ?? const <String, dynamic>{};
+                            final peerId = snap.id;
+                            final displayName = (data['displayName'] ??
+                                    data['name'] ??
+                                    peerId)
+                                .toString();
+                            final photo =
+                                (data['photoUrl'] ?? '').toString().trim();
+                            final checked = selected.contains(peerId);
+                            return CheckboxListTile(
+                              value: checked,
+                              onChanged: (value) {
+                                setSheetState(() {
+                                  if (value == true) {
+                                    selected.add(peerId);
+                                  } else {
+                                    selected.remove(peerId);
+                                  }
+                                });
+                              },
+                              secondary: CircleAvatar(
+                                backgroundImage:
+                                    photo.isEmpty ? null : NetworkImage(photo),
+                                child: photo.isEmpty
+                                    ? const Icon(Icons.person_rounded)
+                                    : null,
+                              ),
+                              title: Text(displayName),
+                            );
+                          },
+                        ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: () async {
+                        final groupName = nameController.text.trim();
+                        if (groupName.isEmpty || selected.length < 2) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                ar
+                                    ? 'اكتب اسم المجموعة واختر عضوين على الأقل.'
+                                    : 'Enter a group name and choose at least two members.',
+                              ),
+                            ),
+                          );
+                          return;
+                        }
+                        try {
+                          final chatId = await service.createGroup(
+                            name: groupName,
+                            memberIds: selected.toList(growable: false),
+                          );
+                          if (!sheetContext.mounted) return;
+                          Navigator.pop(sheetContext);
+                          if (!parentContext.mounted) return;
+                          await Navigator.of(parentContext).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => GroupChatScreen(
+                                chatId: chatId,
+                                groupName: groupName,
+                              ),
+                            ),
+                          );
+                        } catch (error) {
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                error
+                                    .toString()
+                                    .replaceFirst('Bad state: ', ''),
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.group_add_rounded),
+                      label: Text(ar ? 'إنشاء المجموعة' : 'Create group'),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    } finally {
+      nameController.dispose();
+      service.dispose();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
