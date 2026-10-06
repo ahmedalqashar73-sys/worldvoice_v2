@@ -323,25 +323,14 @@ class _DiscoverSection extends StatelessWidget {
                 ),
           ),
           const SizedBox(height: 10),
-          SizedBox(
-            height: 238,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: matches.length,
-              separatorBuilder: (_, _) => const SizedBox(width: 10),
-              itemBuilder: (context, index) {
-                final match = matches[index];
-                return SizedBox(
-                  width: 176,
-                  child: _DiscoverPersonCard(
-                    match: match,
-                    isArabic: isArabic,
-                    onTap: () => onOpen(match.profile),
-                  ),
-                );
-              },
+          for (final match in matches.take(8)) ...[
+            _DiscoverPersonCard(
+              match: match,
+              isArabic: isArabic,
+              onTap: () => onOpen(match.profile),
             ),
-          ),
+            const SizedBox(height: 8),
+          ],
         ],
       ),
     );
@@ -370,39 +359,39 @@ class _DiscoverPersonCard extends StatelessWidget {
       elevation: 0,
       color: Theme.of(context).colorScheme.surfaceContainerLow,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(18),
         side: BorderSide(
           color: Theme.of(context)
               .colorScheme
               .outlineVariant
-              .withValues(alpha: .45),
+              .withValues(alpha: .38),
         ),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 13, 12, 11),
-          child: Column(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+          child: Row(
             children: [
               Stack(
                 clipBehavior: Clip.none,
                 children: [
                   CircleAvatar(
-                    radius: 38,
+                    radius: 29,
                     backgroundImage:
                         photo.isEmpty ? null : NetworkImage(photo),
                     child: photo.isEmpty
-                        ? const Icon(Icons.person_rounded, size: 36)
+                        ? const Icon(Icons.person_rounded, size: 28)
                         : null,
                   ),
                   if (profile.isOnline)
                     PositionedDirectional(
-                      end: 1,
-                      bottom: 2,
+                      end: -1,
+                      bottom: 1,
                       child: Container(
-                        width: 14,
-                        height: 14,
+                        width: 13,
+                        height: 13,
                         decoration: BoxDecoration(
                           color: Colors.green,
                           shape: BoxShape.circle,
@@ -415,60 +404,91 @@ class _DiscoverPersonCard extends StatelessWidget {
                     ),
                 ],
               ),
-              const SizedBox(height: 9),
-              Text(
-                profile.displayName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.w900),
+              const SizedBox(width: 11),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            profile.displayName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                        if (profile.username.isNotEmpty) ...[
+                          const SizedBox(width: 7),
+                          Flexible(
+                            child: Text(
+                              '@${profile.username}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    if (reasons.isNotEmpty)
+                      Text(
+                        reasons.first,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: .72),
+                            ),
+                      ),
+                    if (reasons.length > 1) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        reasons[1],
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: .58),
+                            ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
-              if (profile.username.isNotEmpty) ...[
-                const SizedBox(height: 2),
-                Text(
-                  '@${profile.username}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
-              const SizedBox(height: 7),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  isArabic
-                      ? 'تطابق ${match.matchPercent}%'
-                      : '${match.matchPercent}% match',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w900,
+              const SizedBox(width: 8),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      '${match.matchPercent}%',
+                      style: TextStyle(
+                        color:
+                            Theme.of(context).colorScheme.onPrimaryContainer,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              const SizedBox(height: 7),
-              for (final reason in reasons.take(2))
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 3),
-                  child: Text(
-                    reason,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                ),
-              const Spacer(),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: onTap,
-                  child: Text(isArabic ? 'عرض البروفايل' : 'View profile'),
-                ),
+                  const SizedBox(height: 5),
+                  const Icon(Icons.chevron_right_rounded, size: 20),
+                ],
               ),
             ],
           ),
