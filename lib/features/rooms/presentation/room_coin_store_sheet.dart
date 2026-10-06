@@ -185,8 +185,12 @@ class _RoomCoinStoreSheetState extends State<RoomCoinStoreSheet> {
                                      : 'Choose your coin pack',
                 style: const TextStyle(color: Colors.white,
                     fontWeight: FontWeight.w900, fontSize: 16))),
-              Text(ar ? '7 باقات' : '7 pack sizes',
-                style: const TextStyle(color: _storeGold, fontSize: 12)),
+              Text(
+                ar
+                    ? '${CoinProductConfig.proposedPackSizes.length} باقات'
+                    : '${CoinProductConfig.proposedPackSizes.length} pack sizes',
+                style: const TextStyle(color: _storeGold, fontSize: 12),
+              ),
             ]),
           ),
           Expanded(
