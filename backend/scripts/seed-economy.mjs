@@ -42,21 +42,34 @@ const policy = {
   payoutWindows: [],
 };
 
-// PROPOSED pack sizes; user has NOT approved USD prices or product IDs.
-// Inactive by design, with no redeemable checkout route.
-const proposedSizes = [10, 50, 100, 500, 1000, 5000, 10000];
+// User-approved WorldVoice coin tiers. SAR is the pricing reference agreed
+// for launch planning; native stores still provide the actual localized price
+// shown to buyers in each storefront. Products stay inactive until their real
+// Google Play / App Store / Stripe IDs are configured and verified.
+const proposedPacks = [
+  {coins: 10, priceSar: 5, priceUsd: 1.33},
+  {coins: 50, priceSar: 15, priceUsd: 4.00},
+  {coins: 100, priceSar: 25, priceUsd: 6.67},
+  {coins: 500, priceSar: 50, priceUsd: 13.33},
+  {coins: 1000, priceSar: 85, priceUsd: 22.67},
+  {coins: 2000, priceSar: 150, priceUsd: 40.00},
+  {coins: 3000, priceSar: 200, priceUsd: 53.33},
+  {coins: 5000, priceSar: 300, priceUsd: 80.00},
+  {coins: 10000, priceSar: 500, priceUsd: 133.33},
+];
 const batch = [];
 batch.push([db.doc("economy_config/current"), policy]);
-for (const coins of proposedSizes) {
+for (const {coins, priceSar, priceUsd} of proposedPacks) {
   batch.push([db.doc(`coin_products/coins_${coins}`), {
     id: `coins_${coins}`,
-    priceUsd: null,
+    priceUsd,
+    referencePriceSar: priceSar,
     coins,
     androidProductId: null,
     iosProductId: null,
     webPriceId: null,
     active: false,
-    priceApprovalRequired: true,
+    priceApprovalRequired: false,
   }]);
 }
 
