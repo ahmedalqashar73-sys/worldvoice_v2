@@ -218,6 +218,12 @@ export function registerCallRoutes({app, db, authenticatedUser}) {
           return {status: String(data.status)};
         }
 
+        const chatId = String(data.chatId || "");
+        const chatRef = chatId
+          ? db.collection("chats").doc(chatId)
+          : null;
+        const chatSnap = chatRef ? await tx.get(chatRef) : null;
+
         const now = Timestamp.now();
         const acceptedAt = data.acceptedAt;
         const durationSeconds = acceptedAt?.toMillis
@@ -235,38 +241,33 @@ export function registerCallRoutes({app, db, authenticatedUser}) {
           updatedAt: now,
         });
 
-        const chatId = String(data.chatId || "");
-        if (chatId) {
-          const chatRef = db.collection("chats").doc(chatId);
-          const chatSnap = await tx.get(chatRef);
-          if (chatSnap.exists) {
-            assertDirectChat(
-              chatSnap.data(),
-              String(data.callerId || ""),
-              String(data.recipientId || ""),
-            );
-            const messageRef = chatRef.collection("messages").doc();
-            const label = data.type === "video"
-              ? "Video call"
-              : "Voice call";
-            tx.create(messageRef, {
-              type: "call",
-              callType: String(data.type || "audio"),
-              callId,
-              senderId: String(data.callerId || ""),
-              senderName: String(data.callerName || "WorldVoice"),
-              durationSeconds,
-              callStatus: data.status === "ringing"
-                ? "missed"
-                : "completed",
-              text: label,
-              createdAt: now,
-            });
-            tx.update(chatRef, {
-              latestText: "📞 " + label,
-              lastMessageAt: now,
-            });
-          }
+        if (chatRef && chatSnap?.exists) {
+          assertDirectChat(
+            chatSnap.data(),
+            String(data.callerId || ""),
+            String(data.recipientId || ""),
+          );
+          const messageRef = chatRef.collection("messages").doc();
+          const label = data.type === "video"
+            ? "Video call"
+            : "Voice call";
+          tx.create(messageRef, {
+            type: "call",
+            callType: String(data.type || "audio"),
+            callId,
+            senderId: String(data.callerId || ""),
+            senderName: String(data.callerName || "WorldVoice"),
+            durationSeconds,
+            callStatus: data.status === "ringing"
+              ? "missed"
+              : "completed",
+            text: label,
+            createdAt: now,
+          });
+          tx.update(chatRef, {
+            latestText: "📞 " + label,
+            lastMessageAt: now,
+          });
         }
         return {status: "ended", durationSeconds};
       });
