@@ -1247,7 +1247,12 @@ class _ChatConversationState extends State<ChatConversationScreen> {
                     itemBuilder: (context, index) {
                       final data = messages[index].data();
                       final mine = data['senderId'] == uid;
-                      final isGift = data['type'] == 'gift';
+                      final type = (data['type'] ?? 'text').toString();
+                      final isGift = type == 'gift';
+                      final mediaUrl = (data['mediaUrl'] ?? '').toString();
+                      final isMedia =
+                          (type == 'image' || type == 'video') &&
+                          mediaUrl.isNotEmpty;
                       final giftId = (data['giftId'] ?? '').toString();
                       final classicGift = isGift &&
                           giftId.startsWith('classic_');
@@ -1337,7 +1342,12 @@ class _ChatConversationState extends State<ChatConversationScreen> {
                                             Icons.card_giftcard, size: 36),
                                         Text(value),
                                       ])
-                                  : Text(value),
+                                  : isMedia
+                                      ? ChatMediaBubble(
+                                          type: type,
+                                          url: mediaUrl,
+                                        )
+                                      : Text(value),
                         ),
                       );
                     },
@@ -1352,11 +1362,30 @@ class _ChatConversationState extends State<ChatConversationScreen> {
                   icon: const Icon(Icons.add_circle_outline),
                   onSelected: (value) {
                     if (value == 'gift') _showGifts();
+                    if (value == 'image') _pickMedia('image');
+                    if (value == 'video') _pickMedia('video');
                   },
                   itemBuilder: (_) => [
                     PopupMenuItem(
+                      value: 'image',
+                      child: ListTile(
+                        leading: const Icon(Icons.photo_outlined),
+                        title: Text(ar ? 'إرسال صورة' : 'Send photo'),
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'video',
+                      child: ListTile(
+                        leading: const Icon(Icons.videocam_outlined),
+                        title: Text(ar ? 'إرسال فيديو' : 'Send video'),
+                      ),
+                    ),
+                    PopupMenuItem(
                       value: 'gift',
-                      child: Text(ar ? 'إرسال هدية' : 'Send Gift'),
+                      child: ListTile(
+                        leading: const Icon(Icons.card_giftcard_outlined),
+                        title: Text(ar ? 'إرسال هدية' : 'Send Gift'),
+                      ),
                     ),
                   ],
                 ),
