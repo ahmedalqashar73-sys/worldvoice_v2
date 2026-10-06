@@ -430,12 +430,7 @@ class _HomePostCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final photo = post.authorPhotoUrl.trim();
-    return Card(
-      margin: EdgeInsets.zero,
-      elevation: 0,
-      shape: const RoundedRectangleBorder(),
-      clipBehavior: Clip.hardEdge,
-      child: Column(
+    return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           ListTile(
@@ -497,35 +492,50 @@ class _HomePostCard extends StatelessWidget {
             ),
           if (post.hasVideo) _FeedVideo(url: post.mediaUrl),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+            padding: const EdgeInsets.fromLTRB(10, 4, 10, 8),
             child: Row(
               children: [
-                TextButton.icon(
+                IconButton(
+                  visualDensity: VisualDensity.compact,
                   onPressed: onLike,
                   icon: Icon(
                     post.likedByMe
                         ? Icons.favorite_rounded
                         : Icons.favorite_border_rounded,
                     color: post.likedByMe ? Colors.redAccent : null,
+                    size: 27,
                   ),
-                  label: Text(post.likeCount.toString()),
                 ),
-                TextButton.icon(
+                Text(
+                  post.likeCount.toString(),
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(width: 6),
+                IconButton(
+                  visualDensity: VisualDensity.compact,
                   onPressed: onComments,
-                  icon: const Icon(Icons.chat_bubble_outline_rounded),
-                  label: Text(post.commentCount.toString()),
+                  icon: const Icon(Icons.chat_bubble_outline_rounded, size: 26),
                 ),
-                TextButton.icon(
+                Text(
+                  post.commentCount.toString(),
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(width: 6),
+                IconButton(
+                  visualDensity: VisualDensity.compact,
                   onPressed: onShare,
-                  icon: const Icon(Icons.share_outlined),
-                  label: Text(post.shareCount.toString()),
+                  icon: const Icon(Icons.send_outlined, size: 26),
+                ),
+                Text(
+                  post.shareCount.toString(),
+                  style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
               ],
             ),
           ),
+          const Divider(height: 1),
         ],
-      ),
-    );
+      );
   }
 }
 
