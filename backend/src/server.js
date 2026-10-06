@@ -16,6 +16,8 @@ import { requireLiveEconomy, calculateGiftSettlement, calculatePurchaseCredit } 
 import {registerWalletRoutes} from "./wallet_routes.js";
 import {registerChatRoutes} from "./chat_routes.js";
 import {registerStoryRoutes} from "./story_routes.js";
+import {registerSocialRoutes} from "./social_routes.js";
+import {registerCallRoutes} from "./call_routes.js";
 import {chatIdFor, assertChatMembership} from "./chat_membership.js";
 import {reverseVerifiedWebPurchase} from "./payment_reversals.js";
 import {validateQuizDraft, quizWinners} from "./quiz_policy.js";
@@ -589,12 +591,29 @@ app.post("/agora/token", async (req, res, next) => {
 
     const roomRef = db.collection("rooms").doc(channelName);
     const liveRef = db.collection("live_sessions").doc(channelName);
-    const [roomSnap, liveSnap] = await Promise.all([
+    const callId = channelName.startsWith("call_")
+      ? channelName.slice("call_".length)
+      : "";
+    const callRef = callId ? db.collection("calls").doc(callId) : null;
+    const [roomSnap, liveSnap, callSnap] = await Promise.all([
       roomRef.get(),
       liveRef.get(),
+      callRef ? callRef.get() : Promise.resolve(null),
     ]);
 
-    if (roomSnap.exists) {
+    if (callSnap?.exists) {
+      const call = callSnap.data() || {};
+      const isParticipant =
+        call.callerId === user.uid || call.recipientId === user.uid;
+      const activeCall =
+        call.channelId === channelName &&
+        (call.status === "ringing" || call.status === "accepted");
+      if (!isParticipant || !activeCall || requestedRole !== "publisher") {
+        return res.status(403).json({
+          error: "This user is not allowed to publish to this call.",
+        });
+      }
+    } else if (roomSnap.exists) {
       if (roomSnap.data()?.isOpen !== true) {
         return res.status(404).json({error: "Room is not open."});
       }
@@ -643,7 +662,12 @@ app.post("/agora/token", async (req, res, next) => {
       }
     } else {
       // A signed-in user may bootstrap a brand-new Live publisher channel.
-      // It is not discoverable until the client creates live_sessions/{id}.
+      // Calls must always have a verified calls/{id} document above.
+      if (channelName.startsWith("call_")) {
+        return res.status(404).json({error: "Call session not found."});
+      }
+      // The new Live is not discoverable until the client creates
+      // live_sessions/{id}.
       if (!(requestedRole === "publisher" && channelName.startsWith("live_"))) {
         return res.status(404).json({error: "Room or Live session not found."});
       }
@@ -2177,6 +2201,8 @@ registerStoryRoutes({
   db,
   projectId: firebaseProjectId,
 });
+registerSocialRoutes({app, authenticatedUser, db});
+registerCallRoutes({app, authenticatedUser, db});
 
 app.use((error, _req, res, _next) => {
   const providerMessage = String(error?.message || error || "");
