@@ -6,7 +6,7 @@ class CoinProductConfig {
   /// Display-only roadmap, NEVER purchasable without a server-published
   /// active product with verified platform-specific prices and SKU.
   static const proposedPackSizes = <int>[
-    10, 50, 100, 500, 1000, 5000, 10000,
+    10, 50, 100, 500, 1000, 2000, 3000, 5000, 10000,
   ];
 
   const CoinProductConfig({
