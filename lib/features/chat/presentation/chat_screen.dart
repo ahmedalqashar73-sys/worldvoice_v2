@@ -22,7 +22,6 @@ import '../services/chat_extended_service.dart';
 import '../services/chat_call_service.dart';
 import 'chat_media_bubble.dart';
 import 'chat_call_screen.dart';
-import 'incoming_call_watcher.dart';
 import 'group_chat_screen.dart';
 
 /// Real authenticated conversations. The economy backend, not Flutter,
@@ -656,9 +655,8 @@ class ChatScreen extends StatelessWidget {
       return Center(child: Text(ar ? 'سجّل دخولك أولًا' : 'Sign in to use chat.'));
     }
     final ready = Uri.tryParse(_backend)?.scheme == 'https';
-    return IncomingCallWatcher(
-      child: SafeArea(
-        child: Column(
+    return SafeArea(
+      child: Column(
         children: [
           ListTile(
             title: Text(ar ? 'الدردشة' : 'Messages',
@@ -832,7 +830,6 @@ class ChatScreen extends StatelessWidget {
             ),
           ),
         ],
-        ),
       ),
     );
   }
