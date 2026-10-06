@@ -136,7 +136,7 @@ class HomeFeedService {
         ? root.path.substring(0, root.path.length - 1)
         : root.path;
     return root.replace(
-      path: '\$basePath\$path',
+      path: '$basePath$path',
       queryParameters: query,
       fragment: null,
     );
@@ -161,7 +161,7 @@ class HomeFeedService {
   Future<List<HomePost>> fetchFeed({int limit = 30}) async {
     final token = await _token();
     final response = await _client.get(
-      _uri('/social/feed', {'limit': '\$limit'}),
+      _uri('/social/feed', {'limit': '$limit'}),
       headers: {'Authorization': 'Bearer $token'},
     );
     final body = await _decode(response);
@@ -233,7 +233,7 @@ class HomeFeedService {
   Future<List<HomePostComment>> fetchComments(String postId) async {
     final token = await _token();
     final response = await _client.get(
-      _uri('/social/posts/\$postId/comments'),
+      _uri('/social/posts/$postId/comments'),
       headers: {'Authorization': 'Bearer $token'},
     );
     final body = await _decode(response);
@@ -253,7 +253,7 @@ class HomeFeedService {
   }) async {
     final token = await _token();
     final response = await _client.post(
-      _uri('/social/posts/\$postId/comments'),
+      _uri('/social/posts/$postId/comments'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -266,7 +266,7 @@ class HomeFeedService {
   Future<void> recordShare(String postId) async {
     final token = await _token();
     final response = await _client.post(
-      _uri('/social/posts/\$postId/share'),
+      _uri('/social/posts/$postId/share'),
       headers: {'Authorization': 'Bearer $token'},
     );
     await _decode(response);
@@ -274,7 +274,7 @@ class HomeFeedService {
 
   Future<void> deletePost(String postId) async {
     final token = await _token();
-    final request = http.Request('DELETE', _uri('/social/posts/\$postId'))
+    final request = http.Request('DELETE', _uri('/social/posts/$postId'))
       ..headers['Authorization'] = 'Bearer $token';
     final streamed = await _client.send(request);
     final body = await streamed.stream.bytesToString();
