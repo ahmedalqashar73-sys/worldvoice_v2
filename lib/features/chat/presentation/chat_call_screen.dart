@@ -123,8 +123,7 @@ class _ChatCallScreenState extends State<ChatCallScreen> {
     final elapsed = DateTime.now().difference(start).inSeconds;
     final minutes = elapsed ~/ 60;
     final seconds = elapsed % 60;
-    return minutes.toString().padLeft(2, '0') + ':' +
-        seconds.toString().padLeft(2, '0');
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
   Future<void> _toggleSpeaker() async {
