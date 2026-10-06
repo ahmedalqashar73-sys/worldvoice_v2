@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 
 import '../../../core/localization/locale_controller.dart';
 import '../../rooms/presentation/unified_gift_panel.dart';
@@ -16,6 +18,12 @@ import '../../rooms/data/room_feature_models.dart';
 import '../../rooms/services/room_feature_service.dart';
 import '../../profile/presentation/public_profile_screen.dart';
 import '../../stories/presentation/story_strip.dart';
+import '../services/chat_extended_service.dart';
+import '../services/chat_call_service.dart';
+import 'chat_media_bubble.dart';
+import 'chat_call_screen.dart';
+import 'incoming_call_watcher.dart';
+import 'group_chat_screen.dart';
 
 /// Real authenticated conversations. The economy backend, not Flutter,
 /// establishes mutual-follower membership and writes chat/gift messages.
@@ -470,6 +478,175 @@ class ChatScreen extends StatelessWidget {
     );
   }
 
+
+  Future<void> _createGroupChat(
+    BuildContext parentContext,
+    bool ar,
+    String uid,
+  ) async {
+    final db = FirebaseFirestore.instance;
+    final service = ChatExtendedService();
+    final selected = <String>{};
+    final nameController = TextEditingController();
+
+    try {
+      final following = await db
+          .collection('users')
+          .doc(uid)
+          .collection('following')
+          .limit(100)
+          .get();
+      final profiles = await Future.wait(
+        following.docs.map(
+          (doc) => db.collection('users').doc(doc.id).get(),
+        ),
+      );
+      if (!parentContext.mounted) return;
+
+      await showModalBottomSheet<void>(
+        context: parentContext,
+        isScrollControlled: true,
+        useSafeArea: true,
+        showDragHandle: true,
+        builder: (sheetContext) => StatefulBuilder(
+          builder: (context, setSheetState) => SizedBox(
+            height: MediaQuery.sizeOf(context).height * .78,
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+                  child: TextField(
+                    controller: nameController,
+                    maxLength: 80,
+                    decoration: InputDecoration(
+                      labelText: ar ? 'اسم المجموعة' : 'Group name',
+                      prefixIcon: const Icon(Icons.groups_rounded),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Text(
+                      ar
+                          ? 'اختر عضوين على الأقل. للمحافظة على الخصوصية، المجموعة تكون بين المتابعين المتبادلين.'
+                          : 'Choose at least two people. For privacy, groups are limited to mutual followers.',
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: profiles.isEmpty
+                      ? Center(
+                          child: Text(
+                            ar
+                                ? 'لا يوجد أشخاص متاحون للمجموعة.'
+                                : 'No people available for a group yet.',
+                          ),
+                        )
+                      : ListView.builder(
+                          itemCount: profiles.length,
+                          itemBuilder: (context, index) {
+                            final snap = profiles[index];
+                            if (!snap.exists) return const SizedBox.shrink();
+                            final data =
+                                snap.data() ?? const <String, dynamic>{};
+                            final peerId = snap.id;
+                            final displayName = (data['displayName'] ??
+                                    data['name'] ??
+                                    peerId)
+                                .toString();
+                            final photo =
+                                (data['photoUrl'] ?? '').toString().trim();
+                            final checked = selected.contains(peerId);
+                            return CheckboxListTile(
+                              value: checked,
+                              onChanged: (value) {
+                                setSheetState(() {
+                                  if (value == true) {
+                                    selected.add(peerId);
+                                  } else {
+                                    selected.remove(peerId);
+                                  }
+                                });
+                              },
+                              secondary: CircleAvatar(
+                                backgroundImage:
+                                    photo.isEmpty ? null : NetworkImage(photo),
+                                child: photo.isEmpty
+                                    ? const Icon(Icons.person_rounded)
+                                    : null,
+                              ),
+                              title: Text(displayName),
+                            );
+                          },
+                        ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: () async {
+                        final groupName = nameController.text.trim();
+                        if (groupName.isEmpty || selected.length < 2) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                ar
+                                    ? 'اكتب اسم المجموعة واختر عضوين على الأقل.'
+                                    : 'Enter a group name and choose at least two members.',
+                              ),
+                            ),
+                          );
+                          return;
+                        }
+                        try {
+                          final chatId = await service.createGroup(
+                            name: groupName,
+                            memberIds: selected.toList(growable: false),
+                          );
+                          if (!sheetContext.mounted) return;
+                          Navigator.pop(sheetContext);
+                          if (!parentContext.mounted) return;
+                          await Navigator.of(parentContext).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => GroupChatScreen(
+                                chatId: chatId,
+                                groupName: groupName,
+                              ),
+                            ),
+                          );
+                        } catch (error) {
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                error
+                                    .toString()
+                                    .replaceFirst('Bad state: ', ''),
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.group_add_rounded),
+                      label: Text(ar ? 'إنشاء المجموعة' : 'Create group'),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    } finally {
+      nameController.dispose();
+      service.dispose();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
@@ -479,8 +656,9 @@ class ChatScreen extends StatelessWidget {
       return Center(child: Text(ar ? 'سجّل دخولك أولًا' : 'Sign in to use chat.'));
     }
     final ready = Uri.tryParse(_backend)?.scheme == 'https';
-    return SafeArea(
-      child: Column(
+    return IncomingCallWatcher(
+      child: SafeArea(
+        child: Column(
         children: [
           ListTile(
             title: Text(ar ? 'الدردشة' : 'Messages',
@@ -518,6 +696,13 @@ class ChatScreen extends StatelessWidget {
                     ? () => _showMessageRequests(context, ar)
                     : null,
                 icon: const Icon(Icons.mark_email_unread_outlined),
+              ),
+              IconButton(
+                tooltip: ar ? 'مجموعة جديدة' : 'New group',
+                onPressed: ready
+                    ? () => _createGroupChat(context, ar, uid)
+                    : null,
+                icon: const Icon(Icons.group_add_outlined),
               ),
               IconButton.filledTonal(
                 tooltip: ar ? 'محادثة جديدة' : 'New chat',
@@ -572,6 +757,44 @@ class ChatScreen extends StatelessWidget {
                     final snap = chats[index];
                     final data = snap.data();
                     final ids = List<String>.from(data['memberIds'] ?? []);
+                    final isGroup = data['type'] == 'group';
+                    if (isGroup) {
+                      final groupName = (data['groupName'] ?? 'WorldVoice Group')
+                          .toString();
+                      return ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 5,
+                        ),
+                        leading: const CircleAvatar(
+                          radius: 27,
+                          child: Icon(Icons.groups_rounded),
+                        ),
+                        title: Text(
+                          groupName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontWeight: FontWeight.w900),
+                        ),
+                        subtitle: Text(
+                          (data['latestText'] ?? '').toString().isEmpty
+                              ? (ar
+                                  ? '${ids.length} أعضاء'
+                                  : '${ids.length} members')
+                              : (data['latestText'] ?? '').toString(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => GroupChatScreen(
+                              chatId: snap.id,
+                              groupName: groupName,
+                            ),
+                          ),
+                        ),
+                      );
+                    }
                     final peer = ids.firstWhere(
                       (value) => value != uid,
                       orElse: () => '',
@@ -609,6 +832,7 @@ class ChatScreen extends StatelessWidget {
             ),
           ),
         ],
+        ),
       ),
     );
   }
@@ -822,6 +1046,9 @@ class _ChatConversationState extends State<ChatConversationScreen> {
   bool _sending = false;
   String? _pendingText;
   String? _pendingKey;
+  final ImagePicker _picker = ImagePicker();
+  final ChatExtendedService _extendedService = ChatExtendedService();
+  final ChatCallService _callService = ChatCallService();
 
   String _newRequestKey() {
     final random = Random.secure();
@@ -855,6 +1082,83 @@ class _ChatConversationState extends State<ChatConversationScreen> {
     }
   }
 
+  Future<void> _startCall(String type) async {
+    if (_sending) return;
+    setState(() => _sending = true);
+    try {
+      final profile = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.peerId)
+          .get();
+      final data = profile.data() ?? const <String, dynamic>{};
+      final name = (data['displayName'] ?? data['name'] ?? widget.peerName)
+          .toString();
+      final photo = (data['photoUrl'] ?? '').toString();
+      final call = await _callService.startCall(
+        recipientId: widget.peerId,
+        chatId: widget.chatId,
+        type: type,
+      );
+      if (!mounted) return;
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => ChatCallScreen(
+            call: call,
+            peerName: name,
+            peerPhotoUrl: photo,
+            accepted: false,
+          ),
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            error.toString().replaceFirst('Bad state: ', ''),
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
+  }
+
+  Future<void> _pickMedia(String type) async {
+    if (_sending) return;
+    XFile? file;
+    if (type == 'video') {
+      file = await _picker.pickVideo(source: ImageSource.gallery);
+    } else {
+      file = await _picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 90,
+        maxWidth: 1800,
+      );
+    }
+    if (file == null || !mounted) return;
+
+    setState(() => _sending = true);
+    try {
+      await _extendedService.sendMedia(
+        chatId: widget.chatId,
+        file: File(file.path),
+        mediaType: type,
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            error.toString().replaceFirst('Bad state: ', ''),
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
+  }
+
   void _showGifts() {
     showModalBottomSheet<void>(
       context: context,
@@ -877,6 +1181,8 @@ class _ChatConversationState extends State<ChatConversationScreen> {
     _giftOverlay?.remove();
     _giftOverlay = null;
     _text.dispose();
+    _extendedService.dispose();
+    _callService.dispose();
     super.dispose();
   }
 
@@ -960,6 +1266,18 @@ class _ChatConversationState extends State<ChatConversationScreen> {
             );
           },
         ),
+        actions: [
+          IconButton(
+            tooltip: ar ? 'اتصال صوتي' : 'Voice call',
+            onPressed: _sending ? null : () => _startCall('audio'),
+            icon: const Icon(Icons.call_outlined),
+          ),
+          IconButton(
+            tooltip: ar ? 'اتصال فيديو' : 'Video call',
+            onPressed: _sending ? null : () => _startCall('video'),
+            icon: const Icon(Icons.videocam_outlined),
+          ),
+        ],
       ),
       body: SafeArea(
         child: Column(
@@ -990,7 +1308,12 @@ class _ChatConversationState extends State<ChatConversationScreen> {
                     itemBuilder: (context, index) {
                       final data = messages[index].data();
                       final mine = data['senderId'] == uid;
-                      final isGift = data['type'] == 'gift';
+                      final type = (data['type'] ?? 'text').toString();
+                      final isGift = type == 'gift';
+                      final mediaUrl = (data['mediaUrl'] ?? '').toString();
+                      final isMedia =
+                          (type == 'image' || type == 'video') &&
+                          mediaUrl.isNotEmpty;
                       final giftId = (data['giftId'] ?? '').toString();
                       final classicGift = isGift &&
                           giftId.startsWith('classic_');
@@ -1080,7 +1403,12 @@ class _ChatConversationState extends State<ChatConversationScreen> {
                                             Icons.card_giftcard, size: 36),
                                         Text(value),
                                       ])
-                                  : Text(value),
+                                  : isMedia
+                                      ? ChatMediaBubble(
+                                          type: type,
+                                          url: mediaUrl,
+                                        )
+                                      : Text(value),
                         ),
                       );
                     },
@@ -1095,11 +1423,30 @@ class _ChatConversationState extends State<ChatConversationScreen> {
                   icon: const Icon(Icons.add_circle_outline),
                   onSelected: (value) {
                     if (value == 'gift') _showGifts();
+                    if (value == 'image') _pickMedia('image');
+                    if (value == 'video') _pickMedia('video');
                   },
                   itemBuilder: (_) => [
                     PopupMenuItem(
+                      value: 'image',
+                      child: ListTile(
+                        leading: const Icon(Icons.photo_outlined),
+                        title: Text(ar ? 'إرسال صورة' : 'Send photo'),
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'video',
+                      child: ListTile(
+                        leading: const Icon(Icons.videocam_outlined),
+                        title: Text(ar ? 'إرسال فيديو' : 'Send video'),
+                      ),
+                    ),
+                    PopupMenuItem(
                       value: 'gift',
-                      child: Text(ar ? 'إرسال هدية' : 'Send Gift'),
+                      child: ListTile(
+                        leading: const Icon(Icons.card_giftcard_outlined),
+                        title: Text(ar ? 'إرسال هدية' : 'Send Gift'),
+                      ),
                     ),
                   ],
                 ),
