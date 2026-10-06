@@ -656,8 +656,9 @@ class ChatScreen extends StatelessWidget {
       return Center(child: Text(ar ? 'سجّل دخولك أولًا' : 'Sign in to use chat.'));
     }
     final ready = Uri.tryParse(_backend)?.scheme == 'https';
-    return SafeArea(
-      child: Column(
+    return IncomingCallWatcher(
+      child: SafeArea(
+        child: Column(
         children: [
           ListTile(
             title: Text(ar ? 'الدردشة' : 'Messages',
@@ -831,6 +832,7 @@ class ChatScreen extends StatelessWidget {
             ),
           ),
         ],
+        ),
       ),
     );
   }
