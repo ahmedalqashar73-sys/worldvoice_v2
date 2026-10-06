@@ -1266,6 +1266,18 @@ class _ChatConversationState extends State<ChatConversationScreen> {
             );
           },
         ),
+        actions: [
+          IconButton(
+            tooltip: ar ? 'اتصال صوتي' : 'Voice call',
+            onPressed: _sending ? null : () => _startCall('audio'),
+            icon: const Icon(Icons.call_outlined),
+          ),
+          IconButton(
+            tooltip: ar ? 'اتصال فيديو' : 'Video call',
+            onPressed: _sending ? null : () => _startCall('video'),
+            icon: const Icon(Icons.videocam_outlined),
+          ),
+        ],
       ),
       body: SafeArea(
         child: Column(
