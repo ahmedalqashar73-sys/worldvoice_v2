@@ -1041,6 +1041,8 @@ class _ChatConversationState extends State<ChatConversationScreen> {
   bool _sending = false;
   String? _pendingText;
   String? _pendingKey;
+  final ImagePicker _picker = ImagePicker();
+  final ChatExtendedService _extendedService = ChatExtendedService();
 
   String _newRequestKey() {
     final random = Random.secure();
@@ -1074,6 +1076,41 @@ class _ChatConversationState extends State<ChatConversationScreen> {
     }
   }
 
+  Future<void> _pickMedia(String type) async {
+    if (_sending) return;
+    XFile? file;
+    if (type == 'video') {
+      file = await _picker.pickVideo(source: ImageSource.gallery);
+    } else {
+      file = await _picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 90,
+        maxWidth: 1800,
+      );
+    }
+    if (file == null || !mounted) return;
+
+    setState(() => _sending = true);
+    try {
+      await _extendedService.sendMedia(
+        chatId: widget.chatId,
+        file: File(file.path),
+        mediaType: type,
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            error.toString().replaceFirst('Bad state: ', ''),
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
+  }
+
   void _showGifts() {
     showModalBottomSheet<void>(
       context: context,
@@ -1096,6 +1133,7 @@ class _ChatConversationState extends State<ChatConversationScreen> {
     _giftOverlay?.remove();
     _giftOverlay = null;
     _text.dispose();
+    _extendedService.dispose();
     super.dispose();
   }
 
