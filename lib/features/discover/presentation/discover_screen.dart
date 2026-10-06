@@ -109,9 +109,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
             future: _data,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const ListView(
-                  physics: AlwaysScrollableScrollPhysics(),
-                  children: [
+                return ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: const [
                     SizedBox(height: 220),
                     Center(child: CircularProgressIndicator()),
                   ],
@@ -263,29 +263,19 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 
     if (ar) {
       if (target != null && interests != null) {
-        return 'نرشّح لك أشخاصًا يناسبون تعلم ' +
-            target +
-            ' واهتماماتك مثل ' +
-            interests +
-            '.';
+        return 'نرشّح لك أشخاصًا يناسبون تعلم \$target واهتماماتك مثل \$interests.';
       }
       if (target != null) {
-        return 'نرشّح لك أشخاصًا مناسبين للغات التي تتعلمها: ' + target + '.';
+        return 'نرشّح لك أشخاصًا مناسبين للغات التي تتعلمها: \$target.';
       }
       return 'أكمل لغاتك واهتماماتك في البروفايل لتحصل على اقتراحات أدق.';
     }
 
     if (target != null && interests != null) {
-      return 'People matched to ' +
-          target +
-          ' and interests like ' +
-          interests +
-          '.';
+      return 'People matched to \$target and interests like \$interests.';
     }
     if (target != null) {
-      return 'People matched to the languages you are learning: ' +
-          target +
-          '.';
+      return 'People matched to the languages you are learning: \$target.';
     }
     return 'Add languages and interests to your profile for better matches.';
   }
@@ -435,7 +425,7 @@ class _DiscoverPersonCard extends StatelessWidget {
               if (profile.username.isNotEmpty) ...[
                 const SizedBox(height: 2),
                 Text(
-                  '@' + profile.username,
+                  '@\${profile.username}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.bodySmall,
@@ -451,8 +441,8 @@ class _DiscoverPersonCard extends StatelessWidget {
                 ),
                 child: Text(
                   isArabic
-                      ? 'تطابق ' + match.matchPercent.toString() + '%'
-                      : match.matchPercent.toString() + '% match',
+                      ? 'تطابق \${match.matchPercent}%'
+                      : '\${match.matchPercent}% match',
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.onPrimaryContainer,
                     fontSize: 11,
@@ -697,13 +687,13 @@ class _DiscoverMatch {
     if (sharedInterests.isNotEmpty) {
       final text = sharedInterests.take(2).join(' • ');
       labels.add(
-        ar ? 'اهتمامات مشتركة: ' + text : 'Shared interests: ' + text,
+        ar ? 'اهتمامات مشتركة: \$text' : 'Shared interests: \$text',
       );
     }
 
     if (sharedLearningLanguages.isNotEmpty) {
       final text = sharedLearningLanguages.take(2).join(' • ');
-      labels.add(ar ? 'تتعلمون: ' + text : 'Both learning: ' + text);
+      labels.add(ar ? 'تتعلمون: \$text' : 'Both learning: \$text');
     }
 
     if (profile.isOnline) {
