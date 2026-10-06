@@ -29,6 +29,32 @@ function directChatPayload(sender, peer, senderData, peerData) {
   };
 }
 
+function assertSenderInChat(data, senderId) {
+  if (data?.active !== true ||
+      !Array.isArray(data.memberIds) ||
+      data.memberIds.length < 2 ||
+      data.memberIds.length > 32 ||
+      !data.memberIds.includes(senderId) ||
+      data.memberIds.some(id => typeof id !== "string")) {
+    fail("Verified chat membership required.", 403);
+  }
+}
+
+function validCloudinaryMedia(url) {
+  try {
+    const parsed = new URL(String(url || ""));
+    return parsed.protocol === "https:" &&
+      parsed.hostname === "res.cloudinary.com" &&
+      parsed.pathname.startsWith("/ypmmcyxm/");
+  } catch (_) {
+    return false;
+  }
+}
+
+function normalizedMediaType(value) {
+  return value === "image" || value === "video" ? value : "";
+}
+
 /**
  * Direct messaging is server-authoritative. Users may optionally require
  * approval before a NEW direct conversation can be opened. Existing chats
@@ -272,6 +298,144 @@ export function registerChatRoutes({app, db, authenticatedUser}) {
     } catch (error) { next(error); }
   });
 
+  app.post("/chat/group/create", async (req, res, next) => {
+    try {
+      const creator = await authenticatedUser(req);
+      const name = String(req.body?.name || "").trim();
+      const rawMembers = Array.isArray(req.body?.memberIds)
+        ? req.body.memberIds : [];
+      const memberIds = [...new Set(
+        rawMembers
+          .map(value => String(value || "").trim())
+          .filter(value => value && value !== creator.uid),
+      )];
+
+      if (!name || name.length > 80) {
+        fail("Group name must be between 1 and 80 characters.");
+      }
+      if (memberIds.length < 2 || memberIds.length > 29) {
+        fail("Choose between 2 and 29 other members.");
+      }
+
+      const creatorRef = db.collection("users").doc(creator.uid);
+      const memberRefs = memberIds.map(id => db.collection("users").doc(id));
+      const relationshipRefs = memberIds.flatMap(id => [
+        creatorRef.collection("following").doc(id),
+        db.collection("users").doc(id).collection("following").doc(creator.uid),
+      ]);
+      const [creatorSnap, ...rest] = await db.getAll(
+        creatorRef,
+        ...memberRefs,
+        ...relationshipRefs,
+      );
+      const profileSnaps = rest.slice(0, memberRefs.length);
+      const relationshipSnaps = rest.slice(memberRefs.length);
+
+      if (!creatorSnap.exists || profileSnaps.some(snap => !snap.exists)) {
+        fail("A selected WorldVoice profile is unavailable.", 404);
+      }
+      if (relationshipSnaps.some(snap => !snap.exists)) {
+        fail("Group members must mutually follow the creator.", 403);
+      }
+
+      const allIds = [creator.uid, ...memberIds];
+      const names = {
+        [creator.uid]: String(
+          creatorSnap.data()?.displayName ||
+          creator.name ||
+          "WorldVoice member",
+        ),
+      };
+      for (const snap of profileSnaps) {
+        names[snap.id] = String(
+          snap.data()?.displayName || snap.data()?.name || "WorldVoice member",
+        );
+      }
+
+      const chatRef = db.collection("chats").doc();
+      await chatRef.set({
+        type: "group",
+        groupName: name,
+        ownerId: creator.uid,
+        memberIds: allIds,
+        memberNames: names,
+        active: true,
+        latestText: null,
+        lastMessageAt: FieldValue.serverTimestamp(),
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+
+      res.json({
+        ok: true,
+        chatId: chatRef.id,
+        groupName: name,
+        memberIds: allIds,
+      });
+    } catch (error) { next(error); }
+  });
+
+  app.post("/chat/media", async (req, res, next) => {
+    try {
+      const sender = await authenticatedUser(req);
+      const id = String(req.body?.chatId || "");
+      const type = normalizedMediaType(String(req.body?.mediaType || ""));
+      const mediaUrl = String(req.body?.mediaUrl || "").trim();
+      const mediaPublicId = String(req.body?.mediaPublicId || "").trim();
+      const rawKey = req.headers["idempotency-key"];
+
+      if (!/^[A-Za-z0-9_-]{8,160}$/.test(id) ||
+          !type ||
+          !validCloudinaryMedia(mediaUrl) ||
+          !validKey(rawKey)) {
+        fail("Invalid chat media.", 400);
+      }
+
+      const eventId = createHash("sha256")
+        .update("worldvoice:chat:media:" + sender.uid + ":" + id + ":" + rawKey)
+        .digest("hex");
+      const chatRef = db.collection("chats").doc(id);
+      const messageRef = chatRef.collection("messages").doc(eventId);
+
+      const result = await db.runTransaction(async tx => {
+        const [chatSnap, old] = await Promise.all([
+          tx.get(chatRef),
+          tx.get(messageRef),
+        ]);
+        if (!chatSnap.exists) fail("Chat unavailable.", 403);
+        const chat = chatSnap.data() || {};
+        assertSenderInChat(chat, sender.uid);
+
+        if (old.exists) {
+          const previous = old.data() || {};
+          if (previous.senderId !== sender.uid ||
+              previous.mediaUrl !== mediaUrl ||
+              previous.type !== type) {
+            fail("Idempotency key reused.", 409);
+          }
+          return {messageId: eventId, alreadyProcessed: true};
+        }
+
+        tx.create(messageRef, {
+          type,
+          senderId: sender.uid,
+          senderName: String(chat.memberNames?.[sender.uid] || "Member"),
+          mediaUrl,
+          mediaPublicId,
+          createdAt: FieldValue.serverTimestamp(),
+        });
+        tx.update(chatRef, {
+          latestText: type === "image" ? "📷 Photo" : "🎬 Video",
+          lastMessageAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+        return {messageId: eventId, alreadyProcessed: false};
+      });
+
+      res.json({ok: true, ...result});
+    } catch (error) { next(error); }
+  });
+
   app.post("/chat/message", async (req, res, next) => {
     try {
       const sender = await authenticatedUser(req);
@@ -291,11 +455,17 @@ export function registerChatRoutes({app, db, authenticatedUser}) {
         const [chat, old] = await Promise.all(
           [chatRef, messageRef].map(ref => tx.get(ref)),
         );
-        const members = chat.data()?.memberIds;
+        if (!chat.exists) fail("Chat unavailable.", 403);
+        const chatData = chat.data() || {};
+        const members = chatData.memberIds;
         const peer = Array.isArray(members)
           ? members.find(uid => uid !== sender.uid) : null;
-        if (!chat.exists || !peer) fail("Chat unavailable.", 403);
-        assertChatMembership(chat.data(), sender.uid, peer);
+        if (chatData.type === "group") {
+          assertSenderInChat(chatData, sender.uid);
+        } else {
+          if (!peer) fail("Chat unavailable.", 403);
+          assertChatMembership(chatData, sender.uid, peer);
+        }
         if (old.exists) {
           const prev = old.data() || {};
           if (prev.senderId !== sender.uid || prev.text !== text ||
