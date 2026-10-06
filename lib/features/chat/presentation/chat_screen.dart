@@ -693,6 +693,13 @@ class ChatScreen extends StatelessWidget {
                     : null,
                 icon: const Icon(Icons.mark_email_unread_outlined),
               ),
+              IconButton(
+                tooltip: ar ? 'مجموعة جديدة' : 'New group',
+                onPressed: ready
+                    ? () => _createGroupChat(context, ar, uid)
+                    : null,
+                icon: const Icon(Icons.group_add_outlined),
+              ),
               IconButton.filledTonal(
                 tooltip: ar ? 'محادثة جديدة' : 'New chat',
                 onPressed: ready ? () => _startChat(context, ar, uid) : null,
@@ -746,6 +753,44 @@ class ChatScreen extends StatelessWidget {
                     final snap = chats[index];
                     final data = snap.data();
                     final ids = List<String>.from(data['memberIds'] ?? []);
+                    final isGroup = data['type'] == 'group';
+                    if (isGroup) {
+                      final groupName = (data['groupName'] ?? 'WorldVoice Group')
+                          .toString();
+                      return ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 5,
+                        ),
+                        leading: const CircleAvatar(
+                          radius: 27,
+                          child: Icon(Icons.groups_rounded),
+                        ),
+                        title: Text(
+                          groupName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontWeight: FontWeight.w900),
+                        ),
+                        subtitle: Text(
+                          (data['latestText'] ?? '').toString().isEmpty
+                              ? (ar
+                                  ? '${ids.length} أعضاء'
+                                  : '${ids.length} members')
+                              : (data['latestText'] ?? '').toString(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => GroupChatScreen(
+                              chatId: snap.id,
+                              groupName: groupName,
+                            ),
+                          ),
+                        ),
+                      );
+                    }
                     final peer = ids.firstWhere(
                       (value) => value != uid,
                       orElse: () => '',
