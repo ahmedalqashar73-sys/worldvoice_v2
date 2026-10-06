@@ -29,6 +29,7 @@ class _ChatCallScreenState extends State<ChatCallScreen> {
   final AgoraVoiceRoomController _controller = AgoraVoiceRoomController();
   Timer? _pollTimer;
   Timer? _clockTimer;
+  Timer? _ringTimeout;
   DateTime? _connectedAt;
   bool _accepted = false;
   bool _ending = false;
@@ -47,6 +48,11 @@ class _ChatCallScreenState extends State<ChatCallScreen> {
       unawaited(_connect());
     } else {
       _startPolling();
+      _ringTimeout = Timer(const Duration(seconds: 45), () {
+        if (mounted && !_accepted && !_ending) {
+          unawaited(_end());
+        }
+      });
     }
   }
 
@@ -70,6 +76,7 @@ class _ChatCallScreenState extends State<ChatCallScreen> {
       if (!mounted) return;
       if (status == 'accepted' && !_accepted) {
         _accepted = true;
+        _ringTimeout?.cancel();
         _pollTimer?.cancel();
         await _connect();
         return;
@@ -155,6 +162,7 @@ class _ChatCallScreenState extends State<ChatCallScreen> {
   void dispose() {
     _pollTimer?.cancel();
     _clockTimer?.cancel();
+    _ringTimeout?.cancel();
     _controller.removeListener(_onControllerChanged);
     _controller.dispose();
     _service.dispose();
