@@ -69,8 +69,8 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
     } else {
       selected = await _picker.pickImage(
         source: source,
-        imageQuality: 90,
-        maxWidth: 1600,
+        imageQuality: 82,
+        maxWidth: 1440,
       );
     }
     if (selected == null || !mounted) return;
@@ -144,10 +144,12 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
       candidates = await widget.service.fetchCloseFriendCandidates();
     } catch (error) {
       if (!mounted) return;
+      final raw = error.toString().replaceFirst('Bad state: ', '');
+      final message = ar && raw.contains('Story upload timed out')
+          ? 'رفع الستوري أخذ وقتًا طويلًا. تأكد من الإنترنت وحاول مرة ثانية.'
+          : raw;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(error.toString().replaceFirst('Bad state: ', '')),
-        ),
+        SnackBar(content: Text(message)),
       );
       return;
     }
@@ -270,6 +272,8 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
       return;
     }
 
+    await _video?.pause();
+    if (!mounted) return;
     setState(() => _uploading = true);
     try {
       await widget.service.uploadStory(
