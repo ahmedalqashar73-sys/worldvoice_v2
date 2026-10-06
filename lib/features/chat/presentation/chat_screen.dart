@@ -66,6 +66,272 @@ class ChatScreen extends StatelessWidget {
     return body;
   }
 
+  static Future<Map<String, dynamic>> _get(String route) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) throw StateError('Sign in to chat.');
+    final uri = Uri.tryParse(_backend.trim());
+    if (uri == null ||
+        uri.scheme != 'https' ||
+        !uri.hasAuthority ||
+        uri.userInfo.isNotEmpty ||
+        uri.query.isNotEmpty ||
+        uri.fragment.isNotEmpty) {
+      throw StateError('Chat backend is not deployed yet.');
+    }
+    final token = await user.getIdToken(true);
+    if (token == null || token.isEmpty) {
+      throw StateError('Could not authenticate your chat session.');
+    }
+    final path = uri.path.endsWith('/')
+        ? uri.path.substring(0, uri.path.length - 1)
+        : uri.path;
+    final result = await http.get(
+      uri.replace(path: '$path$route'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    Map<String, dynamic> body;
+    try {
+      final raw = jsonDecode(result.body);
+      body = raw is Map<String, dynamic> ? raw : <String, dynamic>{};
+    } catch (_) {
+      throw StateError('The chat server sent an invalid response.');
+    }
+    if (result.statusCode < 200 ||
+        result.statusCode >= 300 ||
+        body['ok'] != true) {
+      throw StateError(body['error']?.toString() ?? 'Chat request failed.');
+    }
+    return body;
+  }
+
+  static Future<bool> _openStartResult({
+    required BuildContext context,
+    required Map<String, dynamic> result,
+    required String peerId,
+    required String peerName,
+  }) async {
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    final status = (result['status'] ?? 'ready').toString();
+    if (status == 'request_pending') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            ar
+                ? 'تم إرسال طلب رسالة. تقدر تراسله بعد ما يوافق.'
+                : 'Message request sent. You can chat after they approve it.',
+          ),
+        ),
+      );
+      return false;
+    }
+    if (status == 'request_declined') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            ar
+                ? 'طلب الرسالة غير مقبول حاليًا.'
+                : 'This message request is not accepted.',
+          ),
+        ),
+      );
+      return false;
+    }
+
+    final chatId = (result['chatId'] ?? '').toString().trim();
+    if (chatId.isEmpty) {
+      throw StateError('Conversation is not ready yet.');
+    }
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ChatConversationScreen(
+          chatId: chatId,
+          peerId: peerId,
+          peerName: peerName,
+        ),
+      ),
+    );
+    return true;
+  }
+
+  static Future<void> _showMessageRequests(
+    BuildContext parentContext,
+    bool ar,
+  ) async {
+    Map<String, dynamic> body;
+    try {
+      body = await _get('/chat/requests');
+    } catch (error) {
+      if (!parentContext.mounted) return;
+      ScaffoldMessenger.of(parentContext).showSnackBar(
+        SnackBar(
+          content: Text(error.toString().replaceFirst('Bad state: ', '')),
+        ),
+      );
+      return;
+    }
+    if (!parentContext.mounted) return;
+
+    final raw = body['requests'];
+    final requests = raw is List
+        ? raw
+            .whereType<Map>()
+            .map((item) => item
+                .map((key, value) => MapEntry(key.toString(), value)))
+            .toList()
+        : <Map<String, dynamic>>[];
+
+    await showModalBottomSheet<void>(
+      context: parentContext,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (context, setSheetState) => SizedBox(
+          height: MediaQuery.sizeOf(context).height * .68,
+          child: Column(
+            children: [
+              ListTile(
+                leading: const CircleAvatar(
+                  child: Icon(Icons.mark_email_unread_outlined),
+                ),
+                title: Text(
+                  ar ? 'طلبات الرسائل' : 'Message Requests',
+                  style: const TextStyle(fontWeight: FontWeight.w900),
+                ),
+                subtitle: Text(
+                  ar
+                      ? 'أنت تختار من يقدر يبدأ محادثة معك.'
+                      : 'You choose who can start a conversation with you.',
+                ),
+              ),
+              const Divider(height: 1),
+              Expanded(
+                child: requests.isEmpty
+                    ? Center(
+                        child: Text(
+                          ar
+                              ? 'ما عندك طلبات رسائل الآن.'
+                              : 'No message requests right now.',
+                        ),
+                      )
+                    : ListView.separated(
+                        itemCount: requests.length,
+                        separatorBuilder: (_, _) => const Divider(height: 1),
+                        itemBuilder: (context, index) {
+                          final request = requests[index];
+                          final id = (request['id'] ?? '').toString();
+                          final senderId =
+                              (request['senderId'] ?? '').toString();
+                          final senderName =
+                              (request['senderName'] ?? 'WorldVoice').toString();
+                          final photo =
+                              (request['senderPhotoUrl'] ?? '').toString().trim();
+                          return ListTile(
+                            leading: CircleAvatar(
+                              backgroundImage:
+                                  photo.isEmpty ? null : NetworkImage(photo),
+                              child: photo.isEmpty
+                                  ? const Icon(Icons.person_rounded)
+                                  : null,
+                            ),
+                            title: Text(
+                              senderName,
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w800),
+                            ),
+                            subtitle: Text(
+                              ar
+                                  ? 'يريد أن يرسل لك رسائل'
+                                  : 'Wants to message you',
+                            ),
+                            trailing: Wrap(
+                              spacing: 5,
+                              children: [
+                                IconButton(
+                                  tooltip: ar ? 'رفض' : 'Decline',
+                                  onPressed: () async {
+                                    try {
+                                      await _post(
+                                        '/chat/request/respond',
+                                        {
+                                          'requestId': id,
+                                          'action': 'decline',
+                                        },
+                                      );
+                                      if (!context.mounted) return;
+                                      setSheetState(
+                                        () => requests.removeAt(index),
+                                      );
+                                    } catch (error) {
+                                      if (!context.mounted) return;
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            error
+                                                .toString()
+                                                .replaceFirst('Bad state: ', ''),
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  icon: const Icon(Icons.close_rounded),
+                                ),
+                                IconButton.filled(
+                                  tooltip: ar ? 'قبول' : 'Accept',
+                                  onPressed: () async {
+                                    try {
+                                      final result = await _post(
+                                        '/chat/request/respond',
+                                        {
+                                          'requestId': id,
+                                          'action': 'accept',
+                                        },
+                                      );
+                                      if (!sheetContext.mounted) return;
+                                      Navigator.pop(sheetContext);
+                                      if (!parentContext.mounted) return;
+                                      final chatId =
+                                          (result['chatId'] ?? '').toString();
+                                      if (chatId.isEmpty) return;
+                                      await Navigator.of(parentContext).push(
+                                        MaterialPageRoute<void>(
+                                          builder: (_) =>
+                                              ChatConversationScreen(
+                                            chatId: chatId,
+                                            peerId: senderId,
+                                            peerName: senderName,
+                                          ),
+                                        ),
+                                      );
+                                    } catch (error) {
+                                      if (!context.mounted) return;
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            error
+                                                .toString()
+                                                .replaceFirst('Bad state: ', ''),
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  icon: const Icon(Icons.check_rounded),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   /// Reuses the existing authenticated chat backend for cross-feature shares
   /// such as Live links. This keeps membership and mutual-follow checks in the
   /// backend instead of writing chat messages directly from Firestore clients.
@@ -103,39 +369,11 @@ class ChatScreen extends StatelessWidget {
       'recipientId': peerId,
     });
     if (!context.mounted) return;
-
-    if (result['pendingApproval'] == true) {
-      final cooldown = result['requestCooldown'] == true;
-      final ar = Localizations.localeOf(context).languageCode == 'ar';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            cooldown
-                ? (ar
-                    ? 'هذا الشخص لم يوافق على رسائلك بعد.'
-                    : 'This member has not approved messages from you yet.')
-                : (ar
-                    ? 'تم إرسال طلب رسالة. تبدأ المحادثة بعد الموافقة.'
-                    : 'Message request sent. You can chat after they approve it.'),
-          ),
-        ),
-      );
-      return;
-    }
-
-    final chatId = (result['chatId'] ?? '').toString();
-    if (chatId.isEmpty) {
-      throw StateError('Conversation is not available yet.');
-    }
-
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => ChatConversationScreen(
-          chatId: chatId,
-          peerId: peerId,
-          peerName: peerName,
-        ),
-      ),
+    await _openStartResult(
+      context: context,
+      result: result,
+      peerId: peerId,
+      peerName: peerName,
     );
   }
 
@@ -203,38 +441,11 @@ class ChatScreen extends StatelessWidget {
                                   if (!sheetContext.mounted) return;
                                   Navigator.pop(sheetContext);
                                   if (!parentContext.mounted) return;
-
-                                  if (result['pendingApproval'] == true) {
-                                    final cooldown =
-                                        result['requestCooldown'] == true;
-                                    ScaffoldMessenger.of(parentContext)
-                                        .showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          cooldown
-                                              ? (ar
-                                                  ? 'هذا الشخص لم يوافق على رسائلك بعد.'
-                                                  : 'This person has not approved your messages yet.')
-                                              : (ar
-                                                  ? 'تم إرسال طلب رسالة. تبدأ المحادثة بعد الموافقة.'
-                                                  : 'Message request sent. The chat starts after approval.'),
-                                        ),
-                                      ),
-                                    );
-                                    return;
-                                  }
-
-                                  final chatId =
-                                      (result['chatId'] ?? '').toString();
-                                  if (chatId.isEmpty) return;
-                                  await Navigator.of(parentContext).push(
-                                    MaterialPageRoute<void>(
-                                      builder: (_) => ChatConversationScreen(
-                                        chatId: chatId,
-                                        peerId: peerId,
-                                        peerName: displayName,
-                                      ),
-                                    ),
+                                  await _openStartResult(
+                                    context: parentContext,
+                                    result: result,
+                                    peerId: peerId,
+                                    peerName: displayName,
                                   );
                                 } catch (error) {
                                   if (!sheetContext.mounted) return;
@@ -254,36 +465,6 @@ class ChatScreen extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _openMessageRequests(
-    BuildContext context,
-    bool ar,
-  ) async {
-    final accepted = await showModalBottomSheet<Map<String, dynamic>>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      showDragHandle: true,
-      builder: (_) => _MessageRequestsSheet(isArabic: ar),
-    );
-    if (accepted == null || !context.mounted) return;
-
-    final chatId = (accepted['chatId'] ?? '').toString();
-    final peerId = (accepted['requesterId'] ?? '').toString();
-    final peerName =
-        (accepted['requesterName'] ?? 'WorldVoice member').toString();
-    if (chatId.isEmpty || peerId.isEmpty) return;
-
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => ChatConversationScreen(
-          chatId: chatId,
-          peerId: peerId,
-          peerName: peerName,
         ),
       ),
     );
@@ -312,13 +493,6 @@ class ChatScreen extends StatelessWidget {
                 : null,
             trailing: Row(mainAxisSize: MainAxisSize.min, children: [
               IconButton(
-                tooltip: ar ? 'طلبات الرسائل' : 'Message requests',
-                onPressed: ready
-                    ? () => _openMessageRequests(context, ar)
-                    : null,
-                icon: const Icon(Icons.mark_email_unread_outlined),
-              ),
-              IconButton(
                 tooltip: ar ? 'تجربة الهدايا الثلاثين'
                     : 'Preview 30 gifts',
                 onPressed: () => showModalBottomSheet<void>(
@@ -337,6 +511,13 @@ class ChatScreen extends StatelessWidget {
                 ),
                 icon: const Icon(Icons.card_giftcard_outlined,
                     color: Color(0xFF11835D)),
+              ),
+              IconButton(
+                tooltip: ar ? 'طلبات الرسائل' : 'Message requests',
+                onPressed: ready
+                    ? () => _showMessageRequests(context, ar)
+                    : null,
+                icon: const Icon(Icons.mark_email_unread_outlined),
               ),
               IconButton.filledTonal(
                 tooltip: ar ? 'محادثة جديدة' : 'New chat',
@@ -420,212 +601,6 @@ class ChatScreen extends StatelessWidget {
                             localeController: localeController,
                           ),
                         ),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MessageRequestsSheet extends StatefulWidget {
-  const _MessageRequestsSheet({required this.isArabic});
-
-  final bool isArabic;
-
-  @override
-  State<_MessageRequestsSheet> createState() =>
-      _MessageRequestsSheetState();
-}
-
-class _MessageRequestsSheetState extends State<_MessageRequestsSheet> {
-  late Future<List<Map<String, dynamic>>> _requests = _load();
-  final Set<String> _busy = <String>{};
-
-  bool get ar => widget.isArabic;
-
-  Future<List<Map<String, dynamic>>> _load() async {
-    final result = await ChatScreen._post(
-      '/chat/requests/list',
-      const <String, dynamic>{},
-    );
-    final raw = result['requests'];
-    if (raw is! List) return const <Map<String, dynamic>>[];
-    return raw
-        .whereType<Map>()
-        .map((item) => item.map(
-              (key, value) => MapEntry(key.toString(), value),
-            ))
-        .cast<Map<String, dynamic>>()
-        .toList(growable: false);
-  }
-
-  void _reload() {
-    if (!mounted) return;
-    setState(() => _requests = _load());
-  }
-
-  Future<void> _respond(
-    Map<String, dynamic> request, {
-    required bool accept,
-  }) async {
-    final requesterId = (request['requesterId'] ?? '').toString();
-    if (requesterId.isEmpty || _busy.contains(requesterId)) return;
-    setState(() => _busy.add(requesterId));
-
-    try {
-      final result = await ChatScreen._post(
-        '/chat/request/respond',
-        <String, dynamic>{
-          'requesterId': requesterId,
-          'accept': accept,
-        },
-      );
-      if (!mounted) return;
-
-      if (accept) {
-        Navigator.of(context).pop(<String, dynamic>{
-          'chatId': (result['chatId'] ?? '').toString(),
-          'requesterId': requesterId,
-          'requesterName':
-              (result['requesterName'] ??
-                      request['requesterName'] ??
-                      'WorldVoice')
-                  .toString(),
-        });
-        return;
-      }
-
-      _reload();
-    } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            error.toString().replaceFirst('Bad state: ', ''),
-          ),
-        ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() => _busy.remove(requesterId));
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: MediaQuery.sizeOf(context).height * .72,
-      child: Column(
-        children: [
-          ListTile(
-            leading: const CircleAvatar(
-              child: Icon(Icons.mark_email_unread_outlined),
-            ),
-            title: Text(
-              ar ? 'طلبات الرسائل' : 'Message requests',
-              style: const TextStyle(fontWeight: FontWeight.w900),
-            ),
-            subtitle: Text(
-              ar
-                  ? 'وافق على الأشخاص الذين تريد السماح لهم بمراسلتك.'
-                  : 'Approve only the people you want to message you.',
-            ),
-          ),
-          const Divider(height: 1),
-          Expanded(
-            child: FutureBuilder<List<Map<String, dynamic>>>(
-              future: _requests,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }
-                if (snapshot.hasError) {
-                  return Center(
-                    child: Text(
-                      ar
-                          ? 'تعذر تحميل طلبات الرسائل.'
-                          : 'Could not load message requests.',
-                    ),
-                  );
-                }
-
-                final requests =
-                    snapshot.data ?? const <Map<String, dynamic>>[];
-                if (requests.isEmpty) {
-                  return Center(
-                    child: Text(
-                      ar
-                          ? 'لا توجد طلبات رسائل جديدة.'
-                          : 'No new message requests.',
-                    ),
-                  );
-                }
-
-                return ListView.separated(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
-                  itemCount: requests.length,
-                  separatorBuilder: (_, _) =>
-                      const Divider(height: 1, indent: 76),
-                  itemBuilder: (context, index) {
-                    final request = requests[index];
-                    final requesterId =
-                        (request['requesterId'] ?? '').toString();
-                    final name = (request['requesterName'] ??
-                            'WorldVoice member')
-                        .toString();
-                    final photo =
-                        (request['requesterPhotoUrl'] ?? '').toString().trim();
-                    final busy = _busy.contains(requesterId);
-
-                    return ListTile(
-                      leading: CircleAvatar(
-                        backgroundImage:
-                            photo.isEmpty ? null : NetworkImage(photo),
-                        child: photo.isEmpty
-                            ? const Icon(Icons.person_rounded)
-                            : null,
-                      ),
-                      title: Text(
-                        name,
-                        style: const TextStyle(fontWeight: FontWeight.w800),
-                      ),
-                      subtitle: Text(
-                        ar
-                            ? 'يريد أن يبدأ محادثة معك'
-                            : 'Wants to start a conversation with you',
-                      ),
-                      trailing: Wrap(
-                        spacing: 4,
-                        children: [
-                          IconButton(
-                            tooltip: ar ? 'رفض' : 'Decline',
-                            onPressed: busy
-                                ? null
-                                : () => _respond(
-                                      request,
-                                      accept: false,
-                                    ),
-                            icon: const Icon(Icons.close_rounded),
-                          ),
-                          FilledButton(
-                            onPressed: busy
-                                ? null
-                                : () => _respond(
-                                      request,
-                                      accept: true,
-                                    ),
-                            child: Text(ar ? 'قبول' : 'Accept'),
-                          ),
-                        ],
                       ),
                     );
                   },

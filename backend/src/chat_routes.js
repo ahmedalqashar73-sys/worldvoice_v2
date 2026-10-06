@@ -7,121 +7,65 @@ const fail = (msg, status = 400) => {
 };
 const validKey = value => typeof value === "string" &&
   /^[A-Za-z0-9_-]{12,100}$/.test(value);
-const friendPath = (db, owner, peer) =>
-  db.collection("users").doc(owner).collection("following").doc(peer);
+
+const requestIdFor = (senderUid, recipientUid) =>
+  createHash("sha256")
+    .update("worldvoice:message-request:" + senderUid + ":" + recipientUid)
+    .digest("hex");
+
+function directChatPayload(sender, peer, senderData, peerData) {
+  return {
+    memberIds: [sender.uid, peer].sort(),
+    memberNames: {
+      [sender.uid]: String(
+        senderData?.displayName || sender.name || "WorldVoice member",
+      ),
+      [peer]: String(peerData?.displayName || "WorldVoice member"),
+    },
+    active: true,
+    latestText: null,
+    lastMessageAt: FieldValue.serverTimestamp(),
+    createdAt: FieldValue.serverTimestamp(),
+  };
+}
 
 /**
- * Only verified two-member conversations can be created. A signed-in member
- * may start a direct conversation with another existing WorldVoice member.
- * Firestore clients still cannot forge memberships or write chat messages.
+ * Direct messaging is server-authoritative. Users may optionally require
+ * approval before a NEW direct conversation can be opened. Existing chats
+ * continue to work after the privacy switch is enabled.
  */
 export function registerChatRoutes({app, db, authenticatedUser}) {
-  app.post("/chat/start", async (req, res, next) => {
+  app.post("/chat/privacy", async (req, res, next) => {
     try {
-      const sender = await authenticatedUser(req);
-      const peer = String(req.body?.recipientId || "").trim();
-      const id = chatIdFor(sender.uid, peer);
-      const chatRef = db.collection("chats").doc(id);
-      const senderRef = db.collection("users").doc(sender.uid);
-      const peerRef = db.collection("users").doc(peer);
-      const requestRef = peerRef.collection("message_requests").doc(sender.uid);
-
-      const result = await db.runTransaction(async tx => {
-        const [old, a, b, request] = await Promise.all(
-          [chatRef, senderRef, peerRef, requestRef].map(ref => tx.get(ref)),
-        );
-        if (!a.exists || !b.exists) {
-          fail("Both WorldVoice profiles must exist.", 404);
-        }
-        if (old.exists) {
-          assertChatMembership(old.data(), sender.uid, peer);
-          return {chatId: id, alreadyCreated: true};
-        }
-
-        const peerData = b.data() || {};
-        const approvalRequired = peerData.messageApprovalRequired === true;
-        if (approvalRequired) {
-          const requestData = request.data() || {};
-          const declinedUntil = requestData.declinedUntil;
-          const declinedUntilMs =
-            typeof declinedUntil?.toMillis === "function"
-              ? declinedUntil.toMillis()
-              : 0;
-          if (
-            request.exists &&
-            requestData.status === "declined" &&
-            declinedUntilMs > Date.now()
-          ) {
-            return {
-              pendingApproval: true,
-              requestCooldown: true,
-              recipientId: peer,
-            };
-          }
-
-          tx.set(requestRef, {
-            requesterId: sender.uid,
-            requesterName: String(
-              a.data()?.displayName || a.data()?.name || "WorldVoice member",
-            ),
-            requesterPhotoUrl: String(a.data()?.photoUrl || ""),
-            recipientId: peer,
-            status: "pending",
-            createdAt: request.exists
-              ? requestData.createdAt || FieldValue.serverTimestamp()
-              : FieldValue.serverTimestamp(),
-            updatedAt: FieldValue.serverTimestamp(),
-            declinedUntil: null,
-          }, {merge: true});
-
-          return {
-            pendingApproval: true,
-            requestCooldown: false,
-            recipientId: peer,
-          };
-        }
-
-        tx.create(chatRef, {
-          memberIds: [sender.uid, peer].sort(),
-          memberNames: {
-            [sender.uid]: String(a.data()?.displayName || "WorldVoice member"),
-            [peer]: String(b.data()?.displayName || "WorldVoice member"),
-          },
-          active: true,
-          latestText: null,
-          lastMessageAt: FieldValue.serverTimestamp(),
-          createdAt: FieldValue.serverTimestamp(),
-        });
-        return {chatId: id, alreadyCreated: false};
-      });
-      res.json({ok: true, ...result});
+      const user = await authenticatedUser(req);
+      const required = req.body?.messageApprovalRequired === true;
+      await db.collection("users").doc(user.uid).set({
+        messageApprovalRequired: required,
+        messagePrivacyUpdatedAt: FieldValue.serverTimestamp(),
+      }, {merge: true});
+      res.json({ok: true, messageApprovalRequired: required});
     } catch (error) { next(error); }
   });
 
-  app.post("/chat/requests/list", async (req, res, next) => {
+  app.get("/chat/requests", async (req, res, next) => {
     try {
       const user = await authenticatedUser(req);
       const snapshot = await db
-        .collection("users")
-        .doc(user.uid)
         .collection("message_requests")
-        .where("status", "==", "pending")
+        .where("recipientId", "==", user.uid)
         .limit(100)
         .get();
 
       const requests = snapshot.docs
+        .filter(doc => doc.data()?.status === "pending")
         .map(doc => {
           const data = doc.data() || {};
-          const createdAt = data.createdAt;
           return {
-            requesterId: String(data.requesterId || doc.id),
-            requesterName: String(
-              data.requesterName || "WorldVoice member",
-            ),
-            requesterPhotoUrl: String(data.requesterPhotoUrl || ""),
-            createdAtMs: typeof createdAt?.toMillis === "function"
-              ? createdAt.toMillis()
-              : 0,
+            id: doc.id,
+            senderId: String(data.senderId || ""),
+            senderName: String(data.senderName || "WorldVoice member"),
+            senderPhotoUrl: String(data.senderPhotoUrl || ""),
+            createdAtMs: data.createdAt?.toMillis?.() || 0,
           };
         })
         .sort((a, b) => b.createdAtMs - a.createdAtMs);
@@ -133,75 +77,194 @@ export function registerChatRoutes({app, db, authenticatedUser}) {
   app.post("/chat/request/respond", async (req, res, next) => {
     try {
       const recipient = await authenticatedUser(req);
-      const requesterId = String(req.body?.requesterId || "").trim();
-      const accept = req.body?.accept === true;
-      const id = chatIdFor(recipient.uid, requesterId);
-      const chatRef = db.collection("chats").doc(id);
-      const recipientRef = db.collection("users").doc(recipient.uid);
-      const requesterRef = db.collection("users").doc(requesterId);
-      const requestRef = recipientRef
-        .collection("message_requests")
-        .doc(requesterId);
+      const requestId = String(req.body?.requestId || "").trim();
+      const action = String(req.body?.action || "").trim();
+      if (!/^[a-f0-9]{64}$/.test(requestId) ||
+          !["accept", "decline"].includes(action)) {
+        fail("Invalid message request response.", 400);
+      }
 
+      const requestRef = db.collection("message_requests").doc(requestId);
       const result = await db.runTransaction(async tx => {
-        const [request, recipientProfile, requesterProfile, oldChat] =
-          await Promise.all(
-            [requestRef, recipientRef, requesterRef, chatRef]
-              .map(ref => tx.get(ref)),
-          );
-
-        if (!request.exists || request.data()?.status !== "pending") {
-          fail("Message request is no longer available.", 404);
+        const requestSnap = await tx.get(requestRef);
+        if (!requestSnap.exists) fail("Message request not found.", 404);
+        const request = requestSnap.data() || {};
+        if (request.recipientId !== recipient.uid) {
+          fail("This message request belongs to another account.", 403);
         }
-        if (!recipientProfile.exists || !requesterProfile.exists) {
+        if (request.status !== "pending") {
+          return {
+            status: String(request.status || "unknown"),
+            chatId: request.chatId || null,
+            alreadyProcessed: true,
+          };
+        }
+
+        if (action === "decline") {
+          tx.update(requestRef, {
+            status: "declined",
+            respondedAt: FieldValue.serverTimestamp(),
+          });
+          return {
+            status: "declined",
+            chatId: null,
+            alreadyProcessed: false,
+          };
+        }
+
+        const senderId = String(request.senderId || "");
+        if (!senderId) fail("Message request sender is unavailable.", 409);
+        const chatId = chatIdFor(senderId, recipient.uid);
+        const chatRef = db.collection("chats").doc(chatId);
+        const senderRef = db.collection("users").doc(senderId);
+        const recipientRef = db.collection("users").doc(recipient.uid);
+        const [chatSnap, senderSnap, recipientSnap] = await Promise.all([
+          tx.get(chatRef),
+          tx.get(senderRef),
+          tx.get(recipientRef),
+        ]);
+        if (!senderSnap.exists || !recipientSnap.exists) {
           fail("WorldVoice profile is unavailable.", 404);
         }
 
-        if (!accept) {
-          const cooldown = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-          tx.set(requestRef, {
-            status: "declined",
-            respondedAt: FieldValue.serverTimestamp(),
-            updatedAt: FieldValue.serverTimestamp(),
-            declinedUntil: cooldown,
-          }, {merge: true});
-          return {accepted: false};
-        }
-
-        if (!oldChat.exists) {
-          tx.create(chatRef, {
-            memberIds: [recipient.uid, requesterId].sort(),
-            memberNames: {
-              [recipient.uid]: String(
-                recipientProfile.data()?.displayName || "WorldVoice member",
-              ),
-              [requesterId]: String(
-                requesterProfile.data()?.displayName || "WorldVoice member",
-              ),
-            },
-            active: true,
-            latestText: null,
-            lastMessageAt: FieldValue.serverTimestamp(),
-            createdAt: FieldValue.serverTimestamp(),
-          });
+        if (!chatSnap.exists) {
+          tx.create(
+            chatRef,
+            directChatPayload(
+              {uid: senderId},
+              recipient.uid,
+              senderSnap.data(),
+              recipientSnap.data(),
+            ),
+          );
         } else {
-          assertChatMembership(oldChat.data(), recipient.uid, requesterId);
+          assertChatMembership(chatSnap.data(), senderId, recipient.uid);
         }
 
-        tx.set(requestRef, {
+        tx.update(requestRef, {
           status: "accepted",
+          chatId,
           respondedAt: FieldValue.serverTimestamp(),
-          updatedAt: FieldValue.serverTimestamp(),
-          declinedUntil: null,
-        }, {merge: true});
-
+        });
         return {
-          accepted: true,
-          chatId: id,
-          requesterId,
-          requesterName: String(
-            requesterProfile.data()?.displayName || "WorldVoice member",
+          status: "accepted",
+          chatId,
+          alreadyProcessed: false,
+          senderId,
+          senderName: String(
+            senderSnap.data()?.displayName || "WorldVoice member",
           ),
+        };
+      });
+
+      res.json({ok: true, ...result});
+    } catch (error) { next(error); }
+  });
+
+  app.post("/chat/start", async (req, res, next) => {
+    try {
+      const sender = await authenticatedUser(req);
+      const peer = String(req.body?.recipientId || "").trim();
+      if (!peer || peer === sender.uid) {
+        fail("Choose another WorldVoice member.", 400);
+      }
+
+      const id = chatIdFor(sender.uid, peer);
+      const chatRef = db.collection("chats").doc(id);
+      const senderRef = db.collection("users").doc(sender.uid);
+      const peerRef = db.collection("users").doc(peer);
+      const messageRequestId = requestIdFor(sender.uid, peer);
+      const requestRef = db.collection("message_requests").doc(messageRequestId);
+
+      const result = await db.runTransaction(async tx => {
+        const [old, senderSnap, peerSnap] = await Promise.all(
+          [chatRef, senderRef, peerRef].map(ref => tx.get(ref)),
+        );
+        if (!senderSnap.exists || !peerSnap.exists) {
+          fail("Both WorldVoice profiles must exist.", 404);
+        }
+
+        if (old.exists) {
+          assertChatMembership(old.data(), sender.uid, peer);
+          return {
+            chatId: id,
+            alreadyCreated: true,
+            status: "ready",
+          };
+        }
+
+        const approvalRequired =
+          peerSnap.data()?.messageApprovalRequired === true;
+        if (approvalRequired) {
+          const requestSnap = await tx.get(requestRef);
+          if (requestSnap.exists) {
+            const request = requestSnap.data() || {};
+            if (request.status === "accepted") {
+              tx.create(
+                chatRef,
+                directChatPayload(
+                  sender,
+                  peer,
+                  senderSnap.data(),
+                  peerSnap.data(),
+                ),
+              );
+              return {
+                chatId: id,
+                alreadyCreated: false,
+                status: "ready",
+              };
+            }
+            if (request.status === "declined") {
+              return {
+                chatId: null,
+                requestId: messageRequestId,
+                status: "request_declined",
+              };
+            }
+            return {
+              chatId: null,
+              requestId: messageRequestId,
+              status: "request_pending",
+            };
+          }
+
+          tx.create(requestRef, {
+            senderId: sender.uid,
+            senderName: String(
+              senderSnap.data()?.displayName ||
+              sender.name ||
+              "WorldVoice member",
+            ),
+            senderPhotoUrl: String(senderSnap.data()?.photoUrl || ""),
+            recipientId: peer,
+            recipientName: String(
+              peerSnap.data()?.displayName || "WorldVoice member",
+            ),
+            status: "pending",
+            createdAt: FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
+          });
+          return {
+            chatId: null,
+            requestId: messageRequestId,
+            status: "request_pending",
+          };
+        }
+
+        tx.create(
+          chatRef,
+          directChatPayload(
+            sender,
+            peer,
+            senderSnap.data(),
+            peerSnap.data(),
+          ),
+        );
+        return {
+          chatId: id,
+          alreadyCreated: false,
+          status: "ready",
         };
       });
 
