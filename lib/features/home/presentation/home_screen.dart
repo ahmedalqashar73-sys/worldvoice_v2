@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../../core/ads/free_home_banner.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../../chat/presentation/chat_screen.dart';
+import '../../chat/presentation/incoming_call_watcher.dart';
 import '../../discover/presentation/discover_screen.dart';
 import '../../profile/presentation/public_profile_screen.dart';
 import '../../profile/presentation/profile_form_validation.dart';
@@ -47,7 +48,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Directionality(
       textDirection: rtl ? TextDirection.rtl : TextDirection.ltr,
-      child: Scaffold(
+      child: IncomingCallWatcher(
+        child: Scaffold(
         body: IndexedStack(
           index: _index,
           children: pages,
@@ -84,6 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
               label: labels.profile,
             ),
           ],
+        ),
         ),
       ),
     );
