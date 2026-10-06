@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-import '../../../core/ads/free_home_banner.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../../chat/presentation/chat_screen.dart';
 import '../../chat/presentation/incoming_call_watcher.dart';
@@ -36,9 +35,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final pages = <Widget>[
       _HomeLanding(
         localeController: widget.localeController,
-        onOpenRooms: () => setState(() => _index = 2),
-        onOpenDiscover: () => setState(() => _index = 1),
-        onOpenChat: () => setState(() => _index = 3),
       ),
       DiscoverScreen(localeController: widget.localeController),
       RoomsHubScreen(localeController: widget.localeController),
@@ -96,15 +92,9 @@ class _HomeScreenState extends State<HomeScreen> {
 class _HomeLanding extends StatefulWidget {
   const _HomeLanding({
     required this.localeController,
-    required this.onOpenRooms,
-    required this.onOpenDiscover,
-    required this.onOpenChat,
   });
 
   final LocaleController localeController;
-  final VoidCallback onOpenRooms;
-  final VoidCallback onOpenDiscover;
-  final VoidCallback onOpenChat;
 
   @override
   State<_HomeLanding> createState() => _HomeLandingState();
@@ -116,6 +106,8 @@ class _HomeLandingState extends State<_HomeLanding> {
   bool _searching = false;
   String? _searchError;
   List<_HomeUserSearchResult> _results = const [];
+  final GlobalKey<HomeFeedSectionState> _feedKey =
+      GlobalKey<HomeFeedSectionState>();
 
   @override
   void dispose() {
@@ -246,22 +238,23 @@ class _HomeLandingState extends State<_HomeLanding> {
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         padding: const EdgeInsets.fromLTRB(18, 14, 18, 28),
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'WorldVoice',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  onPressed: () => _feedKey.currentState?.createPost(),
+                  tooltip: t.createPost,
+                  icon: const Icon(Icons.add_box_outlined),
                 ),
-              ),
-              IconButton.filledTonal(
-                onPressed: () {},
-                tooltip: t.notifications,
-                icon: const Icon(Icons.notifications_none_rounded),
-              ),
-            ],
+                IconButton(
+                  onPressed: () {},
+                  tooltip: t.notifications,
+                  icon: const Icon(Icons.notifications_none_rounded),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 8),
           StoryStrip(
@@ -349,82 +342,11 @@ class _HomeLandingState extends State<_HomeLanding> {
                 ),
               ),
           ],
-          const SizedBox(height: 18),
+          const SizedBox(height: 12),
           HomeFeedSection(
+            key: _feedKey,
             localeController: widget.localeController,
           ),
-          const SizedBox(height: 18),
-          Container(
-            padding: const EdgeInsets.all(22),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(30),
-              gradient: const LinearGradient(
-                colors: [Color(0xFF0B7656), Color(0xFF5F46CA)],
-              ),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        t.welcome,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 25,
-                          height: 1.15,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        t.subtitle,
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 15,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                const Icon(
-                  Icons.public_rounded,
-                  size: 64,
-                  color: Colors.white,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            t.startHere,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w900,
-                ),
-          ),
-          const SizedBox(height: 12),
-          _HomeShortcut(
-            icon: Icons.mic_rounded,
-            title: t.rooms,
-            subtitle: t.roomsBody,
-            onTap: widget.onOpenRooms,
-          ),
-          _HomeShortcut(
-            icon: Icons.explore_rounded,
-            title: t.discover,
-            subtitle: t.discoverBody,
-            onTap: widget.onOpenDiscover,
-          ),
-          _HomeShortcut(
-            icon: Icons.chat_bubble_rounded,
-            title: t.chat,
-            subtitle: t.chatBody,
-            onTap: widget.onOpenChat,
-          ),
-          const SizedBox(height: 12),
-          const FreeHomeBanner(),
         ],
       ),
     );
@@ -513,44 +435,6 @@ class _HomeUserSearchTile extends StatelessWidget {
   }
 }
 
-class _HomeShortcut extends StatelessWidget {
-  const _HomeShortcut({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(16),
-        leading: CircleAvatar(
-          radius: 27,
-          backgroundColor: colors.primaryContainer,
-          child: Icon(icon, color: colors.primary),
-        ),
-        title: Text(
-          title,
-          style: const TextStyle(fontWeight: FontWeight.w900),
-        ),
-        subtitle: Text(subtitle),
-        trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
-        onTap: onTap,
-      ),
-    );
-  }
-}
-
 class _MainNavLabels {
   _MainNavLabels(String code)
       : home = code == 'ar'
@@ -593,60 +477,12 @@ class _HomeLabels {
             : code == 'es'
                 ? 'Notificaciones'
                 : 'Notifications',
-        welcome = code == 'ar'
-            ? 'تعلّم. تكلّم. تواصل.'
+        createPost = code == 'ar'
+            ? 'إنشاء منشور'
             : code == 'es'
-                ? 'Aprende. Habla. Conecta.'
-                : 'Learn. Speak. Connect.',
-        subtitle = code == 'ar'
-            ? 'كل ما تحتاجه في WorldVoice من واجهة بسيطة ونظيفة.'
-            : code == 'es'
-                ? 'Todo WorldVoice desde una interfaz simple y limpia.'
-                : 'Everything in WorldVoice from one clean home.',
-        startHere = code == 'ar'
-            ? 'ابدأ من هنا'
-            : code == 'es'
-                ? 'Empieza aquí'
-                : 'Start here',
-        rooms = code == 'ar'
-            ? 'Rooms'
-            : code == 'es'
-                ? 'Rooms'
-                : 'Rooms',
-        roomsBody = code == 'ar'
-            ? 'ChatGPT AI، Live، Learn، والغرف الصوتية.'
-            : code == 'es'
-                ? 'ChatGPT AI, Live, Learn y salas de voz.'
-                : 'ChatGPT AI, Live, Learn, and Voice Rooms.',
-        discover = code == 'ar'
-            ? 'اكتشف'
-            : code == 'es'
-                ? 'Descubrir'
-                : 'Discover',
-        discoverBody = code == 'ar'
-            ? 'اكتشف أشخاصًا وقصصًا ومحتوى جديدًا.'
-            : code == 'es'
-                ? 'Descubre personas, historias y contenido.'
-                : 'Discover people, stories, and new content.',
-        chat = code == 'ar'
-            ? 'الدردشة'
-            : code == 'es'
-                ? 'Chat'
-                : 'Chat',
-        chatBody = code == 'ar'
-            ? 'كل رسائلك ومحادثاتك في مكان واحد.'
-            : code == 'es'
-                ? 'Todos tus mensajes en un solo lugar.'
-                : 'All your messages in one place.';
+                ? 'Crear publicación'
+                : 'Create post';
 
   final String notifications;
-  final String welcome;
-  final String subtitle;
-  final String startHere;
-  final String rooms;
-  final String roomsBody;
-  final String discover;
-  final String discoverBody;
-  final String chat;
-  final String chatBody;
+  final String createPost;
 }
