@@ -17,6 +17,7 @@ import {registerWalletRoutes} from "./wallet_routes.js";
 import {registerChatRoutes} from "./chat_routes.js";
 import {registerStoryRoutes} from "./story_routes.js";
 import {registerSocialRoutes} from "./social_routes.js";
+import {registerCallRoutes} from "./call_routes.js";
 import {chatIdFor, assertChatMembership} from "./chat_membership.js";
 import {reverseVerifiedWebPurchase} from "./payment_reversals.js";
 import {validateQuizDraft, quizWinners} from "./quiz_policy.js";
@@ -2179,6 +2180,7 @@ registerStoryRoutes({
   projectId: firebaseProjectId,
 });
 registerSocialRoutes({app, authenticatedUser, db});
+registerCallRoutes({app, authenticatedUser, db});
 
 app.use((error, _req, res, _next) => {
   const providerMessage = String(error?.message || error || "");
