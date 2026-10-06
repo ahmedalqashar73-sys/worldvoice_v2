@@ -11,7 +11,6 @@ import '../../profile/presentation/public_profile_screen.dart';
 import '../../profile/presentation/profile_form_validation.dart';
 import '../../profile/presentation/user_profile_screen.dart';
 import '../../rooms/presentation/rooms_hub_screen.dart';
-import '../../stories/presentation/story_strip.dart';
 import 'home_feed_section.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -254,15 +253,6 @@ class _HomeLandingState extends State<_HomeLanding> {
                   icon: const Icon(Icons.notifications_none_rounded),
                 ),
               ],
-            ),
-          ),
-          const SizedBox(height: 8),
-          StoryStrip(
-            isArabic: ar,
-            onReply: (story) => ChatScreen.openDirectConversation(
-              context: context,
-              peerId: story.ownerId,
-              peerName: story.ownerName,
             ),
           ),
           const SizedBox(height: 8),
