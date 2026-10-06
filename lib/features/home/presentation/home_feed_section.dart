@@ -20,10 +20,10 @@ class HomeFeedSection extends StatefulWidget {
   final LocaleController localeController;
 
   @override
-  State<HomeFeedSection> createState() => _HomeFeedSectionState();
+  State<HomeFeedSection> createState() => HomeFeedSectionState();
 }
 
-class _HomeFeedSectionState extends State<HomeFeedSection> {
+class HomeFeedSectionState extends State<HomeFeedSection> {
   final HomeFeedService _service = HomeFeedService();
   late Future<List<HomePost>> _feed = _service.fetchFeed();
 
@@ -34,10 +34,12 @@ class _HomeFeedSectionState extends State<HomeFeedSection> {
 
   void _reload() {
     if (!mounted) return;
-    setState(() => _feed = _service.fetchFeed());
+    setState(() {
+      _feed = _service.fetchFeed();
+    });
   }
 
-  Future<void> _createPost() async {
+  Future<void> createPost() async {
     final created = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
@@ -91,33 +93,6 @@ class _HomeFeedSectionState extends State<HomeFeedSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Card(
-          elevation: 0,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(18),
-            onTap: _createPost,
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-              child: Row(
-                children: [
-                  const CircleAvatar(child: Icon(Icons.person_rounded)),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      ar
-                          ? 'شارك شيئًا مع العالم...'
-                          : 'Share something with the world...',
-                    ),
-                  ),
-                  const Icon(Icons.add_photo_alternate_outlined),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.videocam_outlined),
-                ],
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 10),
         FutureBuilder<List<HomePost>>(
           future: _feed,
           builder: (context, snapshot) {
@@ -196,7 +171,7 @@ class _HomeFeedSectionState extends State<HomeFeedSection> {
                           }
                         : null,
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 1),
                 ],
               ],
             );
@@ -456,8 +431,10 @@ class _HomePostCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final photo = post.authorPhotoUrl.trim();
     return Card(
+      margin: EdgeInsets.zero,
       elevation: 0,
-      clipBehavior: Clip.antiAlias,
+      shape: const RoundedRectangleBorder(),
+      clipBehavior: Clip.hardEdge,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
