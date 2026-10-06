@@ -35,6 +35,10 @@ jobs:
           cache-dependency-path: backend/package.json
       - run: npm install
       - run: node --check src/server.js
+      - run: node --check src/chat_routes.js
+      - run: node --check src/story_routes.js
+      - run: node --check src/social_routes.js
+      - run: node --check src/call_routes.js
       - run: node --check scripts/seed-classic-gifts.mjs
       - run: node --check scripts/grant-beta-access.mjs
       - run: node --test test/classic_gifts.test.js
