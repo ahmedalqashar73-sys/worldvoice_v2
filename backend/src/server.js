@@ -72,6 +72,61 @@ const stripeSecret = String(process.env.STRIPE_SECRET_KEY || "").trim();
 const stripeWebhookSecret = String(process.env.STRIPE_WEBHOOK_SECRET || "").trim();
 const stripe = stripeSecret ? new Stripe(stripeSecret) : null;
 
+const worldVoiceRoomBackgroundPrices = new Map([
+  ["background__wv_bg_01", 260],
+  ["background__wv_bg_02", 320],
+  ["background__wv_bg_03", 280],
+  ["background__wv_bg_04", 350],
+  ["background__wv_bg_05", 380],
+  ["background__wv_bg_06", 0],
+  ["background__wv_bg_07", 160],
+  ["background__wv_bg_08", 260],
+  ["background__wv_bg_09", 0],
+  ["background__wv_bg_10", 360],
+  ["background__wv_bg_11", 220],
+  ["background__wv_bg_12", 180],
+  ["background__wv_bg_13", 200],
+  ["background__wv_bg_14", 300],
+  ["background__wv_bg_15", 280],
+  ["background__wv_bg_16", 320],
+  ["background__wv_bg_17", 240],
+  ["background__wv_bg_18", 0],
+  ["background__wv_bg_19", 300],
+  ["background__wv_bg_20", 0],
+  ["background__wv_bg_21", 240],
+  ["background__wv_bg_22", 320],
+  ["background__wv_bg_23", 220],
+  ["background__wv_bg_24", 380],
+  ["background__wv_bg_25", 220],
+  ["background__wv_bg_26", 420],
+  ["background__wv_bg_27", 450],
+  ["background__wv_bg_28", 300],
+  ["background__wv_bg_29", 340],
+  ["background__wv_bg_30", 280],
+  ["background__wv_bg_31", 450],
+  ["background__wv_bg_32", 480],
+  ["background__wv_bg_33", 0],
+  ["background__wv_bg_34", 240],
+  ["background__wv_bg_35", 260],
+  ["background__wv_bg_36", 340],
+]);
+
+function builtInRoomBackground(itemId) {
+  if (!worldVoiceRoomBackgroundPrices.has(itemId)) return null;
+  const themeId = itemId.replace(/^background__/, "");
+  return {
+    active: true,
+    type: "background",
+    name: "WorldVoice Background",
+    priceCoins: worldVoiceRoomBackgroundPrices.get(itemId),
+    requiredGiftLevel: 0,
+    durationDays: null,
+    themeId,
+    previewUrl: null,
+    builtInVisual: true,
+  };
+}
+
 /**
  * Web-only card checkout webhook: raw body and Stripe signature are mandatory.
  * No Flutter mobile view or payment UI may expose this route as an alternate
@@ -1234,8 +1289,11 @@ app.post("/store/purchase", async (req, res, next) => {
       const policy = requireLiveEconomy(configSnap.data());
       requirePrivateWallet(payerSnap);
       if (gifting) requirePrivateWallet(snaps[8]);
-      const item = itemSnap.data() || {};
-      if (!itemSnap.exists || item.active !== true ||
+      const item = itemSnap.exists
+        ? itemSnap.data() || {}
+        : builtInRoomBackground(itemId) || {};
+      if ((!itemSnap.exists && !builtInRoomBackground(itemId)) ||
+          item.active !== true ||
           !["background", "frame", "entrance", "vip"].includes(item.type) ||
           !itemId.startsWith(item.type + "__")) {
         throw Object.assign(new Error("Store item unavailable."), {status: 404});
@@ -1367,7 +1425,7 @@ app.post("/store/claim-reward", async (req, res, next) => {
     }
 
     const userRef = db.collection("users").doc(user.uid);
-    const itemRef = db.collection("room_shop_items").doc(itemId);
+    const itemRef = db.collection("store_items").doc(itemId);
     const rewardRef = userRef.collection("room_rewards").doc(rewardId);
 
     const result = await db.runTransaction(async (tx) => {
@@ -1388,10 +1446,13 @@ app.post("/store/claim-reward", async (req, res, next) => {
         throw error;
       }
 
-      const item = itemSnap.data() || {};
+      const item = itemSnap.exists
+        ? itemSnap.data() || {}
+        : builtInRoomBackground(itemId) || {};
       const reward = rewardSnap.data() || {};
 
-      if (item.active !== true || item.type !== "background") {
+      if ((!itemSnap.exists && !builtInRoomBackground(itemId)) ||
+          item.active !== true || item.type !== "background") {
         const error = new Error("This background is not available.");
         error.status = 409;
         throw error;
