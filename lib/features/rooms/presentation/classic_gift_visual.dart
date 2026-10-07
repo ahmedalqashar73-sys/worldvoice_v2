@@ -110,6 +110,14 @@ class _ClassicGiftVisualState extends State<ClassicGiftVisual>
         future: _atlasImage,
         builder: (context, snapshot) {
           final image = snapshot.data;
+          if (image == null && !snapshot.hasError) {
+            return Center(
+              child: SizedBox.square(
+                dimension: widget.size * .18,
+                child: const CircularProgressIndicator(strokeWidth: 2),
+              ),
+            );
+          }
           if (image == null) return _fallback();
           return RepaintBoundary(
             child: CustomPaint(
