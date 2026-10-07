@@ -14,7 +14,8 @@ test("shared catalog has the approved 54 WorldVoice gifts", () => {
   assert.equal(catalog.atlas.columns, 9);
   assert.equal(catalog.atlas.rows, 6);
   assert.equal(catalog.atlas.cellSize, 192);
-  assert.equal(catalog.atlas.partCount, 18);
+  assert.equal(catalog.atlas.source, "remote_original_quality");
+  assert.match(catalog.atlas.url, /^https:\/\//);
 
   assert.deepEqual(
     catalog.gifts.map(g => g.sortOrder),
