@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 
 import '../data/room_feature_models.dart';
 import '../data/classic_gift_catalog.dart';
-import '../data/luxury_gift_catalog.dart';
 import 'classic_gift_visual.dart';
 import 'classic_gift_3d_stage.dart';
 import '../services/room_feature_service.dart';
@@ -41,15 +40,14 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
       ClassicGiftCatalog.load();
   String? _recipient;
   RoomGiftCatalogItem? _gift;
-  int _giftCategory = 0; // 1-50, 51-150, 151-500, premium 501+
+  int _giftCategory = 0; // 1-150, 151-1000, 1001-5000
 
   bool _inSelectedCategory(RoomGiftCatalogItem gift) {
     final price = gift.priceCoins;
     return switch (_giftCategory) {
-      0 => price >= 1 && price <= 50,
-      1 => price > 50 && price <= 150,
-      2 => price > 150 && price <= 500,
-      _ => price > 500,
+      0 => price >= 1 && price <= 150,
+      1 => price >= 151 && price <= 1000,
+      _ => price >= 1001 && price <= 5000,
     };
   }
   bool _busy = false;
@@ -299,21 +297,9 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
         final previews = classicSnapshot.data ?? const <RoomGiftCatalogItem>[];
         final classics = ClassicGiftCatalog.merge(
           previews: previews, published: published);
-        final shownGifts = _giftCategory == 0
-            ? classics
-            : _giftCategory == 3
-                ? <RoomGiftCatalogItem>[
-                    ...LuxuryGiftCatalog.items,
-                    ...published.where((gift) =>
-                      gift.active && gift.priceCoins > 500 &&
-                      !LuxuryGiftCatalog.items.any((local) =>
-                        local.id == gift.id)),
-                  ]
-                : (published.where((gift) =>
-                    gift.active && gift.priceCoins > 0 &&
-                    _inSelectedCategory(gift)).toList(growable: true)
-                      ..sort((a, b) =>
-                        a.priceCoins.compareTo(b.priceCoins)));
+        final shownGifts = classics
+            .where(_inSelectedCategory)
+            .toList(growable: false);
         return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
           stream: FirebaseFirestore.instance.doc('economy_config/current')
               .snapshots(),
@@ -426,7 +412,7 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       children: [
-                        for (var tier = 0; tier < 4; tier++)
+                        for (var tier = 0; tier < 3; tier++)
                           Padding(
                             padding: const EdgeInsetsDirectional.only(end: 6),
                             child: ChoiceChip(
@@ -437,18 +423,18 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                                 color: Colors.white, fontWeight: FontWeight.w800),
                               side: const BorderSide(color: Color(0x6689C8A6)),
                               avatar: Icon(
-                                tier == 3 ? Icons.auto_awesome_rounded
+                                tier == 2 ? Icons.auto_awesome_rounded
                                     : Icons.card_giftcard_rounded,
                                 size: 17,
-                                color: tier == 3
+                                color: tier == 2
                                     ? const Color(0xFFC79730)
                                     : null,
                               ),
                               label: Text(switch (tier) {
-                                0 => ar ? '1–50 كوينز' : '1–50 coins',
-                                1 => ar ? '51–150 كوينز' : '51–150 coins',
-                                2 => ar ? '151–500 كوينز' : '151–500 coins',
-                                _ => ar ? 'الهدايا الفخمة' : 'Luxury gifts',
+                                0 => ar ? '1–150 كوينز' : '1–150 coins',
+                                1 => ar ? '151–1000 كوينز' : '151–1000 coins',
+                                _ => ar ? '1001–5000 • فخمة'
+                                    : '1001–5000 • Luxury',
                               }),
                               onSelected: _busy ? null : (_) => setState(() {
                                 _giftCategory = tier;
@@ -462,29 +448,26 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                       ],
                     ),
                   ),
-                  if (_giftCategory == 0)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 4),
-                      child: Text(ar
-                        ? '30 هدية كلاسيكية فاخرة • اختر هدية لتجربة الحركة'
-                        : '30 classic premium gifts • tap to preview effects',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Color(0xFFEBD49B),
-                          fontWeight: FontWeight.w800,
-                          fontSize: 12)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 4),
+                    child: Text(
+                      ar
+                        ? '${shownGifts.length} هدية • اضغط للمعاينة'
+                        : '${shownGifts.length} gifts • tap to preview',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Color(0xFFEBD49B),
+                        fontWeight: FontWeight.w800,
+                        fontSize: 12),
                     ),
-                  Expanded(child: classicSnapshot.hasError && _giftCategory == 0
+                  ),
+                  Expanded(child: classicSnapshot.hasError
                     ? Center(child: Text(ar
-                        ? 'تعذر تحميل هدايا التجربة'
-                        : 'Gift previews could not be loaded'))
-                    : _giftCategory == 0 && !classicSnapshot.hasData
+                        ? 'تعذر تحميل هدايا وورلد فويس'
+                        : 'WorldVoice gifts could not be loaded'))
+                    : !classicSnapshot.hasData
                         ? const Center(child: CircularProgressIndicator())
-                    : giftSnapshot.hasError && (_giftCategory == 1 || _giftCategory == 2)
-                        ? Center(child: Text(ar
-                            ? 'تعذر تحميل الكتالوج'
-                            : 'Catalog unavailable'))
                     : shownGifts.isEmpty
                         ? Center(child: Text(ar
                             ? 'لا توجد هدايا منشورة في هذه الفئة'
