@@ -3574,3 +3574,4 @@ class _TeacherAiCompactSeat extends StatelessWidget {
       ),
     );
   }
+}
