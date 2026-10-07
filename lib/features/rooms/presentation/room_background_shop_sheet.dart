@@ -377,9 +377,12 @@ class _BackgroundCatalogCard extends StatelessWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                RoomBackgroundAtlas(
-                  themeId: item.themeId,
-                  filterQuality: FilterQuality.medium,
+                RepaintBoundary(
+                  child: RoomBackgroundAtlas(
+                    themeId: item.themeId,
+                    filterQuality: FilterQuality.low,
+                    fit: BoxFit.cover,
+                  ),
                 ),
                 PositionedDirectional(
                   top: 7,
