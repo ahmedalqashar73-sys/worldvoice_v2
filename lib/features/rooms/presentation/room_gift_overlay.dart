@@ -165,9 +165,9 @@ class RoomGiftOverlay extends StatelessWidget {
       );
     }
 
-    // Render the same first-tier effect in a real room and in the chat
-    // conversation. The backend event is proof of an actual sent gift.
-    if (_giftId.startsWith('classic_')) {
+    // Render the same approved WorldVoice gift art in room/live/chat.
+    // The backend event remains proof of an actual paid gift delivery.
+    if (_giftId.startsWith('wv_gift_')) {
       return IgnorePointer(child: Material(
         color: Colors.transparent,
         child: SafeArea(
