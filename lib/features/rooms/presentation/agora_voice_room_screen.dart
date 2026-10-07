@@ -13,6 +13,7 @@ import '../../profile/presentation/public_profile_screen.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../data/room_caption.dart';
 import '../data/room_feature_models.dart';
+import '../data/room_background_catalog.dart';
 import '../data/room_moderation_models.dart';
 import '../data/room_stage_models.dart';
 import '../data/room_teacher_ai_note.dart';
@@ -3036,6 +3037,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         body: _AnimatedRoomBackground(
           colors: _roomThemeColors(_featureState.themeId),
           backgroundUrl: _featureState.backgroundUrl,
+          backgroundAssetPath:
+              RoomBackgroundCatalog.assetForTheme(_featureState.themeId),
           animated: const {
             'skyAura',
             'softGreenFlow',
@@ -3202,12 +3205,14 @@ class _AnimatedRoomBackground extends StatefulWidget {
     required this.child,
     required this.animated,
     this.backgroundUrl,
+    this.backgroundAssetPath,
   });
 
   final List<Color> colors;
   final Widget child;
   final bool animated;
   final String? backgroundUrl;
+  final String? backgroundAssetPath;
 
   @override
   State<_AnimatedRoomBackground> createState() =>
@@ -3259,16 +3264,25 @@ class _AnimatedRoomBackgroundState extends State<_AnimatedRoomBackground>
               end: Alignment(.55 - t * .35, 1),
               colors: widget.colors,
             ),
-            image: url.isEmpty
-                ? null
-                : DecorationImage(
-                    image: NetworkImage(url),
+            image: widget.backgroundAssetPath?.trim().isNotEmpty == true
+                ? DecorationImage(
+                    image: AssetImage(widget.backgroundAssetPath!.trim()),
                     fit: BoxFit.cover,
                     colorFilter: ColorFilter.mode(
-                      Colors.black.withValues(alpha: .25),
+                      Colors.black.withValues(alpha: .22),
                       BlendMode.darken,
                     ),
-                  ),
+                  )
+                : url.isEmpty
+                    ? null
+                    : DecorationImage(
+                        image: NetworkImage(url),
+                        fit: BoxFit.cover,
+                        colorFilter: ColorFilter.mode(
+                          Colors.black.withValues(alpha: .25),
+                          BlendMode.darken,
+                        ),
+                      ),
           ),
           child: Stack(
             fit: StackFit.expand,
