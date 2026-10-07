@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/widgets/worldvoice_avatar_frame.dart';
 import '../data/room_shop_models.dart';
+import '../data/room_background_catalog.dart';
 import '../data/room_feature_models.dart';
 import '../services/room_feature_service.dart';
 import '../services/room_shop_service.dart';
@@ -98,58 +99,6 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                 ],
               ),
             ),
-            StreamBuilder<RoomFeatureState>(
-              stream: roomFeatures.watchState(),
-              builder: (context, snapshot) {
-                final selected = snapshot.data?.themeId ?? 'emerald';
-                const palette = <(String, String, Color)>[
-                  ('emerald', 'Emerald', Color(0xFF197A58)),
-                  ('forestGold', 'Green & Gold', Color(0xFFA78C36)),
-                  ('skyBlue', 'Sky Blue', Color(0xFF3295C0)),
-                  ('midnight', 'Midnight', Color(0xFF273957)),
-                ];
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(isArabic ? 'لون الغرفة (الهوست)' : 'Room color (host)',
-                          style: Theme.of(context).textTheme.labelLarge),
-                      const SizedBox(height: 7),
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(children: [
-                          for (final color in palette)
-                            Padding(
-                              padding: const EdgeInsetsDirectional.only(end: 7),
-                              child: ChoiceChip(
-                                avatar: CircleAvatar(
-                                  radius: 9, backgroundColor: color.$3),
-                                label: Text(switch (color.$1) {
-                                  'emerald' => isArabic ? 'أخضر' : 'Green',
-                                  'forestGold' => isArabic ? 'أخضر وذهبي' : 'Green & Gold',
-                                  'skyBlue' => isArabic ? 'سماوي' : 'Sky Blue',
-                                  _ => isArabic ? 'داكن' : 'Dark',
-                                }),
-                                selected: selected == color.$1,
-                                onSelected: !isHost ? null : (_) async {
-                                  try {
-                                    await roomFeatures.setTheme(color.$1);
-                                  } catch (error) {
-                                    if (!context.mounted) return;
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text(error.toString())));
-                                  }
-                                },
-                              ),
-                            ),
-                        ]),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
             if (!_shop.isConfigured)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
@@ -168,112 +117,80 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                 ),
               ),
             Expanded(
-              child: StreamBuilder<List<RoomShopBackground>>(
-                stream: _shop.watchBackgrounds(),
-                builder: (context, catalogSnapshot) {
-                  final catalog =
-                      catalogSnapshot.data ?? const <RoomShopBackground>[];
+              child: StreamBuilder<List<RoomBackgroundEntitlement>>(
+                stream: _shop.watchOwnedBackgrounds(),
+                builder: (context, ownedSnapshot) {
+                  final owned = ownedSnapshot.data ??
+                      const <RoomBackgroundEntitlement>[];
+                  final ownedByTheme = <String, RoomBackgroundEntitlement>{
+                    for (final item in owned) item.themeId: item,
+                  };
 
-                  return StreamBuilder<List<RoomBackgroundEntitlement>>(
-                    stream: _shop.watchOwnedBackgrounds(),
-                    builder: (context, ownedSnapshot) {
-                      final owned = ownedSnapshot.data ??
-                          const <RoomBackgroundEntitlement>[];
-                      final ownedByTheme = <String, RoomBackgroundEntitlement>{
-                        for (final item in owned) item.themeId: item,
-                      };
+                  return StreamBuilder<List<RoomBackgroundReward>>(
+                    stream: _shop.watchBackgroundRewards(),
+                    builder: (context, rewardSnapshot) {
+                      final rewards = rewardSnapshot.data ??
+                          const <RoomBackgroundReward>[];
+                      final reward = rewards.isEmpty ? null : rewards.first;
 
-                      return StreamBuilder<List<RoomBackgroundReward>>(
-                        stream: _shop.watchBackgroundRewards(),
-                        builder: (context, rewardSnapshot) {
-                          final rewards = rewardSnapshot.data ??
-                              const <RoomBackgroundReward>[];
-                          final reward =
-                              rewards.isEmpty ? null : rewards.first;
+                      return StreamBuilder<RoomFeatureState>(
+                        stream: roomFeatures.watchState(),
+                        builder: (context, roomSnapshot) {
+                          final selectedTheme =
+                              roomSnapshot.data?.themeId ?? 'wv_bg_06';
+                          final backgrounds = RoomBackgroundCatalog.items;
 
-                          const freeThemes = <String>[
-                            'emerald',
-                            'skyBlue',
-                            'forestGold',
-                            'midnight',
-                            'royalPurple',
-                            'skyAura',
-                            'softGreenFlow',
-                            'silverWaves',
-                          ];
-
-                          // Eight beta backgrounds use theme IDs already
-                          // accepted by the deployed room rules.
                           return GridView.builder(
                             padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
-                            itemCount: freeThemes.length + catalog.length,
+                            itemCount: backgrounds.length,
                             gridDelegate:
                                 const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
-                              childAspectRatio: .68,
+                              childAspectRatio: .62,
                               mainAxisSpacing: 12,
                               crossAxisSpacing: 10,
                             ),
                             itemBuilder: (context, index) {
-                              if (index < freeThemes.length) {
-                                final themeId = freeThemes[index];
-                                return _FreeBackgroundCard(
-                                  themeId: themeId,
-                                  isArabic: isArabic,
-                                  isHost: isHost,
-                                  onApply: () async {
-                                    try {
-                                      await roomFeatures.setTheme(themeId);
-                                    } catch (error) {
-                                      if (!context.mounted) return;
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                          content: Text(error.toString()),
-                                        ),
-                                      );
-                                    }
-                                  },
-                                );
-                              }
+                              final item = backgrounds[index];
+                              final entitlement = ownedByTheme[item.themeId];
+                              final ownedBackground =
+                                  item.isFree || entitlement != null;
 
-                              final item =
-                                  catalog[index - freeThemes.length];
-                              final entitlement =
-                                  ownedByTheme[item.themeId];
-                              final isOwned = entitlement != null;
-
-                              return _BackgroundStoreCard(
+                              return _BackgroundCatalogCard(
                                 item: item,
-                                owned: isOwned,
-                                rewardAvailable: reward != null,
+                                owned: ownedBackground,
+                                selected: selectedTheme == item.themeId,
+                                rewardAvailable:
+                                    !item.isFree && reward != null,
                                 isHost: isHost,
                                 isArabic: isArabic,
-                                onBuy: _shop.isConfigured
+                                onApply: ownedBackground && isHost
+                                    ? () => roomFeatures.setPurchasedBackground(
+                                          themeId: item.themeId,
+                                          backgroundUrl: null,
+                                        )
+                                    : null,
+                                onBuy: !item.isFree &&
+                                        !ownedBackground &&
+                                        _shop.isConfigured
                                     ? () => _purchase(
                                           context,
                                           item,
                                           isArabic,
                                         )
                                     : null,
-                                onClaim:
-                                    reward != null && _shop.isConfigured
-                                        ? () => _claim(
-                                              context,
-                                              reward,
-                                              item,
-                                              isArabic,
-                                            )
-                                        : null,
-                                onApply: isOwned && isHost
-                                    ? () =>
-                                        roomFeatures.setPurchasedBackground(
-                                          themeId: item.themeId,
-                                          backgroundUrl:
-                                              entitlement.backgroundUrl,
+                                onClaim: !item.isFree &&
+                                        !ownedBackground &&
+                                        reward != null &&
+                                        _shop.isConfigured
+                                    ? () => _claim(
+                                          context,
+                                          reward,
+                                          item,
+                                          isArabic,
                                         )
                                     : null,
-                                onGift: _shop.isConfigured
+                                onGift: !item.isFree && _shop.isConfigured
                                     ? () => _giftBackground(
                                           context,
                                           item,
@@ -298,7 +215,7 @@ class RoomBackgroundShopSheet extends StatelessWidget {
 
   Future<void> _giftBackground(
     BuildContext context,
-    RoomShopBackground item,
+    RoomBackgroundCatalogItem item,
     bool isArabic,
   ) async {
     final user = FirebaseAuth.instance.currentUser;
@@ -333,7 +250,7 @@ class RoomBackgroundShopSheet extends StatelessWidget {
         context: context,
         builder: (dialog) => AlertDialog(
           title: Text(isArabic ? 'تأكيد الإهداء' : 'Confirm send'),
-          content: Text('${item.name} • ${item.priceCoins} coins'),
+          content: Text('${item.localizedName(isArabic)} • ${item.priceCoins} coins'),
           actions: [
             TextButton(onPressed: () => Navigator.pop(dialog, false),
               child: Text(isArabic ? 'إلغاء' : 'Cancel')),
@@ -361,7 +278,7 @@ class RoomBackgroundShopSheet extends StatelessWidget {
 
   Future<void> _purchase(
     BuildContext context,
-    RoomShopBackground item,
+    RoomBackgroundCatalogItem item,
     bool isArabic,
   ) async {
     try {
@@ -376,8 +293,17 @@ class RoomBackgroundShopSheet extends StatelessWidget {
       );
     } catch (error) {
       if (!context.mounted) return;
+      final message = error.toString();
+      if (message.contains('NOT_ENOUGH_COINS')) {
+        await showModalBottomSheet<void>(
+          context: context,
+          isScrollControlled: true,
+          builder: (_) => const RoomCoinStoreSheet(),
+        );
+        return;
+      }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.toString())),
+        SnackBar(content: Text(message)),
       );
     }
   }
@@ -385,7 +311,7 @@ class RoomBackgroundShopSheet extends StatelessWidget {
   Future<void> _claim(
     BuildContext context,
     RoomBackgroundReward reward,
-    RoomShopBackground item,
+    RoomBackgroundCatalogItem item,
     bool isArabic,
   ) async {
     try {
@@ -412,221 +338,34 @@ class RoomBackgroundShopSheet extends StatelessWidget {
   }
 }
 
-class _FreeBackgroundCard extends StatelessWidget {
-  const _FreeBackgroundCard({
-    required this.themeId,
-    required this.isArabic,
-    required this.isHost,
-    required this.onApply,
-  });
-
-  final String themeId;
-  final bool isArabic;
-  final bool isHost;
-  final VoidCallback onApply;
-
-  String get _label => switch (themeId) {
-        'emerald' => isArabic ? 'زمرد وورلد فويس' : 'WorldVoice Emerald',
-        'skyBlue' => isArabic ? 'سماء ملكية' : 'Royal Sky',
-        'forestGold' => isArabic ? 'غابة ذهبية' : 'Golden Forest',
-        'midnight' => isArabic ? 'ليل فاخر' : 'Luxury Midnight',
-        'royalPurple' => isArabic ? 'ملكي داكن' : 'Dark Royal',
-        'skyAura' => isArabic ? 'هالة سماوية' : 'Sky Blue Aura',
-        'softGreenFlow' => isArabic ? 'تدفق أخضر' : 'Soft Green Flow',
-        'silverWaves' => isArabic ? 'موج فضي' : 'Silver Light Waves',
-        _ => isArabic ? 'خلفية مجانية' : 'Free Background',
-      };
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: EdgeInsets.zero,
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(child: _BuiltInBackgroundPreview(themeId: themeId)),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(8, 7, 8, 0),
-            child: Text(
-              _label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontWeight: FontWeight.w900),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 3),
-            child: Text(
-              isArabic ? 'مجانية • متحركة' : 'Free • Animated',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(7, 7, 7, 9),
-            child: FilledButton.tonal(
-              onPressed: isHost ? onApply : null,
-              child: Text(isArabic ? 'استخدام مجانًا' : 'Use free'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _BuiltInBackgroundPreview extends StatefulWidget {
-  const _BuiltInBackgroundPreview({required this.themeId});
-
-  final String themeId;
-
-  static List<Color> colorsFor(String themeId) => switch (themeId) {
-        'emerald' => const [
-            Color(0xFF062C22),
-            Color(0xFF0D7555),
-            Color(0xFF52D6A4),
-          ],
-        'skyBlue' => const [
-            Color(0xFF08283A),
-            Color(0xFF236F9A),
-            Color(0xFF8DDBF8),
-          ],
-        'forestGold' => const [
-            Color(0xFF102A20),
-            Color(0xFF426C4D),
-            Color(0xFFD4B45C),
-          ],
-        'midnight' => const [
-            Color(0xFF070B14),
-            Color(0xFF17233C),
-            Color(0xFF40577F),
-          ],
-        'royalPurple' => const [
-            Color(0xFF130E22),
-            Color(0xFF382B5C),
-            Color(0xFF8369C6),
-          ],
-        'skyAura' => const [
-            Color(0xFFEAF9FF),
-            Color(0xFF86D8F6),
-            Color(0xFF3E9FD1),
-          ],
-        'softGreenFlow' => const [
-            Color(0xFFE7FFF4),
-            Color(0xFF79DAB0),
-            Color(0xFF17845F),
-          ],
-        'silverWaves' => const [
-            Color(0xFFF7F9FA),
-            Color(0xFFC9D3D8),
-            Color(0xFF7D929E),
-          ],
-        _ => const [
-            Color(0xFF0D4A38),
-            Color(0xFF1D9270),
-          ],
-      };
-
-  @override
-  State<_BuiltInBackgroundPreview> createState() =>
-      _BuiltInBackgroundPreviewState();
-}
-
-class _BuiltInBackgroundPreviewState extends State<_BuiltInBackgroundPreview>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-    duration: const Duration(seconds: 8),
-  )..repeat(reverse: true);
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = _BuiltInBackgroundPreview.colorsFor(widget.themeId);
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, _) {
-        final t = _controller.value;
-        return DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment(-1 + t * .7, -1),
-              end: Alignment(1, .35 + t * .65),
-              colors: colors,
-            ),
-          ),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              Align(
-                alignment: Alignment(-.75 + t * 1.4, -.45),
-                child: Container(
-                  width: 86,
-                  height: 86,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withValues(alpha: .16),
-                    boxShadow: [
-                      BoxShadow(
-                        blurRadius: 28,
-                        spreadRadius: 8,
-                        color: colors.last.withValues(alpha: .22),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Center(
-                child: Icon(
-                  Icons.graphic_eq_rounded,
-                  size: 46,
-                  color: Colors.white.withValues(alpha: .78),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _BackgroundStoreCard extends StatelessWidget {
-  const _BackgroundStoreCard({
+class _BackgroundCatalogCard extends StatelessWidget {
+  const _BackgroundCatalogCard({
     required this.item,
     required this.owned,
+    required this.selected,
     required this.rewardAvailable,
     required this.isHost,
     required this.isArabic,
+    required this.onApply,
     required this.onBuy,
     required this.onClaim,
-    required this.onApply,
     required this.onGift,
   });
 
-  final RoomShopBackground item;
+  final RoomBackgroundCatalogItem item;
   final bool owned;
+  final bool selected;
   final bool rewardAvailable;
   final bool isHost;
   final bool isArabic;
+  final VoidCallback? onApply;
   final VoidCallback? onBuy;
   final VoidCallback? onClaim;
-  final VoidCallback? onApply;
   final VoidCallback? onGift;
 
   @override
   Widget build(BuildContext context) {
-    final previewUrl = item.previewUrl?.trim() ?? '';
-    final subtitle = item.durationDays == null
-        ? (isArabic ? 'دائم' : 'Permanent')
-        : '${item.durationDays} ${isArabic ? 'يوم' : 'days'}';
+    final name = item.localizedName(isArabic);
     return Card(
       margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
@@ -634,59 +373,135 @@ class _BackgroundStoreCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(
-            child: previewUrl.isNotEmpty
-                ? Image.network(
-                    previewUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) =>
-                        _BuiltInBackgroundPreview(themeId: item.themeId),
-                  )
-                : _BuiltInBackgroundPreview(themeId: item.themeId),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(8, 7, 8, 0),
-            child: Text(item.name, maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontWeight: FontWeight.w800)),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 3),
-            child: Text(
-              owned ? (isArabic ? 'مملوكة' : 'Owned')
-                  : '${item.priceCoins} coins • $subtitle',
-              textAlign: TextAlign.center,
-              maxLines: 1, overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodySmall,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Image.asset(
+                  item.assetPath,
+                  fit: BoxFit.cover,
+                  filterQuality: FilterQuality.medium,
+                ),
+                PositionedDirectional(
+                  top: 7,
+                  start: 7,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: item.isFree
+                          ? const Color(0xFF137D59)
+                          : Colors.black.withValues(alpha: .68),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      child: Text(
+                        item.isFree
+                            ? (isArabic ? 'هدية مجانية' : 'Free gift')
+                            : '${item.priceCoins} 🪙',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                if (selected)
+                  PositionedDirectional(
+                    top: 7,
+                    end: 7,
+                    child: Container(
+                      width: 28,
+                      height: 28,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF1F9B6A),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.check_rounded,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(6, 7, 6, 9),
-            child: Wrap(
-              alignment: WrapAlignment.spaceEvenly,
-              runSpacing: 4,
-              spacing: 4,
+            padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+            child: Text(
+              name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontWeight: FontWeight.w900,
+                fontSize: 13,
+              ),
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            selected
+                ? (isArabic ? 'مستخدمة الآن' : 'In use')
+                : item.isFree
+                    ? (isArabic ? 'هدية البداية' : 'Starter gift')
+                    : owned
+                        ? (isArabic ? 'مملوكة' : 'Owned')
+                        : (isArabic ? 'دائمة' : 'Permanent'),
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(6, 6, 6, 8),
+            child: Column(
               children: [
-                if (owned && isHost)
-                  FilledButton.tonal(
-                    onPressed: onApply,
-                    child: Text(isArabic ? 'تطبيق' : 'Apply'),
-                  )
-                else if (!owned && rewardAvailable)
-                  FilledButton.tonal(
-                    onPressed: onClaim,
-                    child: Text(isArabic ? 'مكافأة' : 'Reward'),
-                  )
-                else if (!owned)
-                  FilledButton(
-                    onPressed: onBuy,
-                    child: Text(isArabic ? 'اشتري' : 'Buy'),
+                SizedBox(
+                  width: double.infinity,
+                  child: owned
+                      ? FilledButton.tonal(
+                          onPressed: selected || !isHost ? null : onApply,
+                          child: Text(
+                            selected
+                                ? (isArabic ? 'مستخدمة' : 'Applied')
+                                : (isArabic ? 'استخدام' : 'Apply'),
+                          ),
+                        )
+                      : FilledButton(
+                          onPressed: onBuy,
+                          child: Text(
+                            isArabic
+                                ? 'شراء ${item.priceCoins}'
+                                : 'Buy ${item.priceCoins}',
+                          ),
+                        ),
+                ),
+                if (!owned && rewardAvailable) ...[
+                  const SizedBox(height: 4),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      onPressed: onClaim,
+                      child: Text(
+                        isArabic ? 'استخدام مكافأة مجانية' : 'Use free reward',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                   ),
-                if (!owned)
-                  OutlinedButton(
-                    onPressed: onGift,
-                    child: Text(isArabic ? 'إرسال' : 'Send'),
+                ] else if (!item.isFree && !owned) ...[
+                  const SizedBox(height: 4),
+                  SizedBox(
+                    width: double.infinity,
+                    child: TextButton(
+                      onPressed: onGift,
+                      child: Text(isArabic ? 'إهداء لصديق' : 'Gift to friend'),
+                    ),
                   ),
+                ],
               ],
             ),
           ),
