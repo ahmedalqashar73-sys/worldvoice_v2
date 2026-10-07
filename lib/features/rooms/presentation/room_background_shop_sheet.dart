@@ -8,6 +8,7 @@ import '../data/room_background_catalog.dart';
 import '../data/room_feature_models.dart';
 import '../services/room_feature_service.dart';
 import '../services/room_shop_service.dart';
+import 'room_background_atlas.dart';
 import 'room_coin_store_sheet.dart';
 import '../services/room_coin_purchase_service.dart';
 
@@ -376,9 +377,8 @@ class _BackgroundCatalogCard extends StatelessWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                Image.asset(
-                  item.assetPath,
-                  fit: BoxFit.cover,
+                RoomBackgroundAtlas(
+                  themeId: item.themeId,
                   filterQuality: FilterQuality.medium,
                 ),
                 PositionedDirectional(
