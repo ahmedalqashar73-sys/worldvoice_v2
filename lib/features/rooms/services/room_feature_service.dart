@@ -40,7 +40,7 @@ class RoomFeatureService {
     }
     final data = snapshot.data() ?? const <String, dynamic>{};
     final missing = <String, dynamic>{
-      if (!data.containsKey('themeId')) 'themeId': 'wv_bg_06',
+      if (!data.containsKey('themeId')) 'themeId': 'softGreenFlow',
       if (!data.containsKey('boardWriteEnabled'))
         'boardWriteEnabled': true,
     };
