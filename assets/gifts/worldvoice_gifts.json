@@ -3,13 +3,13 @@
   "title": "WorldVoice Gifts",
   "titleAr": "هدايا وورلد فويس",
   "currency": "coins",
-  "version": 2,
+  "version": 3,
   "atlas": {
     "columns": 9,
     "rows": 6,
     "cellSize": 192,
-    "source": "remote_original_quality",
-    "url": "https://cdn.openart.ai/openart-uploads/production/attachment-transfers/6f680c410317bcf0453269ebd4635a5f800fd3cb290411e1527801ccdc1a46ff.webp"
+    "source": "bundled_original_quality",
+    "partCount": 18
   },
   "tiers": [
     {
