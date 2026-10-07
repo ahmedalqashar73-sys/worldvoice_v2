@@ -3227,21 +3227,34 @@ class _AnimatedRoomBackgroundState extends State<_AnimatedRoomBackground>
     duration: const Duration(seconds: 10),
   );
 
+  bool get _usesImageBackground {
+    final hasAtlas =
+        RoomBackgroundCatalog.atlasIndexForTheme(widget.themeId ?? '') != null;
+    final hasNetworkImage = (widget.backgroundUrl?.trim().isNotEmpty ?? false);
+    return hasAtlas || hasNetworkImage;
+  }
+
+  bool get _shouldAnimate => widget.animated && !_usesImageBackground;
+
+  void _syncAnimation() {
+    if (_shouldAnimate && !_controller.isAnimating) {
+      _controller.repeat(reverse: true);
+    } else if (!_shouldAnimate && _controller.isAnimating) {
+      _controller.stop();
+      _controller.value = 0;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-    if (widget.animated) _controller.repeat(reverse: true);
+    _syncAnimation();
   }
 
   @override
   void didUpdateWidget(covariant _AnimatedRoomBackground oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.animated && !_controller.isAnimating) {
-      _controller.repeat(reverse: true);
-    } else if (!widget.animated && _controller.isAnimating) {
-      _controller.stop();
-      _controller.value = 0;
-    }
+    _syncAnimation();
   }
 
   @override
@@ -3261,7 +3274,7 @@ class _AnimatedRoomBackgroundState extends State<_AnimatedRoomBackground>
       animation: _controller,
       child: widget.child,
       builder: (context, child) {
-        final t = widget.animated ? _controller.value : 0.0;
+        final t = _shouldAnimate ? _controller.value : 0.0;
         return DecoratedBox(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -3286,13 +3299,15 @@ class _AnimatedRoomBackgroundState extends State<_AnimatedRoomBackground>
               if (atlasIndex != null) ...[
                 RoomBackgroundAtlas(
                   themeId: widget.themeId!,
-                  filterQuality: FilterQuality.high,
+                  filterQuality: FilterQuality.medium,
+                  fit: BoxFit.contain,
+                  fillUnderlay: true,
                 ),
                 ColoredBox(
                   color: Colors.black.withValues(alpha: .22),
                 ),
               ],
-              if (widget.animated)
+              if (_shouldAnimate)
                 IgnorePointer(
                   child: Align(
                     alignment: Alignment(-.85 + t * 1.7, -.55 + t * .35),
