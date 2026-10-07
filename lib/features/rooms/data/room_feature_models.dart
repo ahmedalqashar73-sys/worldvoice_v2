@@ -52,7 +52,7 @@ class RoomFeatureState {
     return RoomFeatureState(
       roomLevel: (data['roomLevel'] as num?)?.toInt() ?? 1,
       roomXp: (data['roomXp'] as num?)?.toInt() ?? 0,
-      themeId: (data['themeId'] ?? 'royalPurple').toString(),
+      themeId: (data['themeId'] ?? 'wv_bg_06').toString(),
       backgroundUrl: data['backgroundUrl']?.toString(),
       boardWriteEnabled: data['boardWriteEnabled'] != false,
       isPrivate: data['isPrivate'] == true,
