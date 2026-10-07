@@ -101,14 +101,12 @@ class RoomBackgroundCatalog {
   static const int atlasRows = 6;
 
   static int? atlasIndexForTheme(String themeId) {
-    final match = RegExp(r'^wv_bg_(\\d{2})
-).firstMatch(themeId);
+    final match = RegExp(r'^wv_bg_(\d{2})$').firstMatch(themeId);
     if (match == null) return null;
     final value = int.tryParse(match.group(1) ?? '');
     if (value == null || value < 1 || value > 36) return null;
     return value - 1;
   }
-
   static RoomBackgroundCatalogItem? itemForTheme(String themeId) {
     for (final item in items) {
       if (item.themeId == themeId) return item;
