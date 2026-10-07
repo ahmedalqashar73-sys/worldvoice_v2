@@ -8,7 +8,8 @@
     "columns": 9,
     "rows": 6,
     "cellSize": 192,
-    "partCount": 18
+    "source": "remote_original_quality",
+    "url": "https://cdn.openart.ai/openart-uploads/production/attachment-transfers/6f680c410317bcf0453269ebd4635a5f800fd3cb290411e1527801ccdc1a46ff.webp"
   },
   "tiers": [
     {
