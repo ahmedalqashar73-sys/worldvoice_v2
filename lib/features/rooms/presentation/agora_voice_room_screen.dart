@@ -50,8 +50,7 @@ import 'room_stage_grid.dart';
 import 'room_teacher_ai_sheet.dart';
 
 
-int? _roomAtlasIndexForTheme(String themeId) {
-  final match = RegExp(r'^wv_bg_(\\d{2})
+const MethodChannel _roomTeacherTtsChannel =
     MethodChannel('worldvoice/live_tts');
 
 Future<void> _speakRoomTeacher(
@@ -3266,7 +3265,7 @@ class _AnimatedRoomBackgroundState extends State<_AnimatedRoomBackground>
               end: Alignment(.55 - t * .35, 1),
               colors: widget.colors,
             ),
-            image: _roomAtlasIndexForTheme(
+            image: RoomBackgroundCatalog.atlasIndexForTheme(
                       widget.themeId ?? '',
                     ) !=
                     null
@@ -3285,7 +3284,7 @@ class _AnimatedRoomBackgroundState extends State<_AnimatedRoomBackground>
           child: Stack(
             fit: StackFit.expand,
             children: [
-              if (_roomAtlasIndexForTheme(
+              if (RoomBackgroundCatalog.atlasIndexForTheme(
                     widget.themeId ?? '',
                   ) !=
                   null) ...[
@@ -6796,7 +6795,7 @@ class _AnimatedRoomBackgroundState extends State<_AnimatedRoomBackground>
               end: Alignment(.55 - t * .35, 1),
               colors: widget.colors,
             ),
-            image: _roomAtlasIndexForTheme(
+            image: RoomBackgroundCatalog.atlasIndexForTheme(
                       widget.themeId ?? '',
                     ) !=
                     null
@@ -6815,7 +6814,7 @@ class _AnimatedRoomBackgroundState extends State<_AnimatedRoomBackground>
           child: Stack(
             fit: StackFit.expand,
             children: [
-              if (_roomAtlasIndexForTheme(
+              if (RoomBackgroundCatalog.atlasIndexForTheme(
                     widget.themeId ?? '',
                   ) !=
                   null) ...[
