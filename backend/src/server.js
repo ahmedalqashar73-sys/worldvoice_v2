@@ -22,7 +22,8 @@ import {chatIdFor, assertChatMembership} from "./chat_membership.js";
 import {reverseVerifiedWebPurchase} from "./payment_reversals.js";
 import {validateQuizDraft, quizWinners} from "./quiz_policy.js";
 import {roomTaskSpec, advanceRoomLevel, roomLevelFromXp} from "./room_task_policy.js";
-import {privateWalletRef, requirePrivateWallet} from "./wallet_store.js";\nimport {approvedWorldVoiceGift, syncWorldVoiceGiftStore} from "./gift_catalog.js";
+import {privateWalletRef, requirePrivateWallet} from "./wallet_store.js";
+import {approvedWorldVoiceGift, syncWorldVoiceGiftStore} from "./gift_catalog.js";
 
 const { RtcRole, RtcTokenBuilder } = agoraToken;
 
