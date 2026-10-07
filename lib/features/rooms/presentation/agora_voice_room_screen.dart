@@ -192,7 +192,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   RoomFeatureState _featureState = const RoomFeatureState(
     roomLevel: 1,
     roomXp: 0,
-    themeId: 'royalPurple',
+    themeId: 'softGreenFlow',
     boardWriteEnabled: true,
     isPrivate: false,
     vipOnly: false,
@@ -2121,6 +2121,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: .36),
       builder: (sheetContext) => SafeArea(
         child: SizedBox(
           height: MediaQuery.sizeOf(context).height * .75,
@@ -2992,10 +2994,15 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       child: Scaffold(
         // Only the chat composer moves over the keyboard; seats stay fixed.
         resizeToAvoidBottomInset: false,
+        extendBodyBehindAppBar: true,
         backgroundColor: const Color(0xFF0D4A38),
         appBar: AppBar(
-          toolbarHeight: _boardVisible ? 52 : 68, elevation: 0,
-          backgroundColor: const Color(0xFF0D4A38), foregroundColor: Colors.white,
+          toolbarHeight: _boardVisible ? 52 : 68,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          backgroundColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
+          foregroundColor: Colors.white,
           leading: IconButton(tooltip: label('قائمة الغرفة', 'Room menu'),
             onPressed: _showRoomMenu, icon: const Icon(Icons.more_horiz_rounded)),
           titleSpacing: 0,
@@ -3051,7 +3058,11 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
             'crystalBlueLuxury',
             'velvetNight',
           }.contains(_featureState.themeId),
-          child: SafeArea(top: false, child: Column(children: [
+          child: SafeArea(
+            top: true,
+            child: Padding(
+              padding: EdgeInsets.only(top: _boardVisible ? 52 : 68),
+              child: Column(children: [
             if (_controller.connecting) const LinearProgressIndicator(minHeight: 2),
             if ((_controller.error != null || _audioFailure != null) && !_boardVisible) Container(
               width: double.infinity, margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -3194,6 +3205,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               ]);
             })),
           ])),
+            ),
+          ),
         ),
       ),
     );
@@ -3300,11 +3313,11 @@ class _AnimatedRoomBackgroundState extends State<_AnimatedRoomBackground>
                 RoomBackgroundAtlas(
                   themeId: widget.themeId!,
                   filterQuality: FilterQuality.medium,
-                  fit: BoxFit.contain,
-                  fillUnderlay: true,
+                  fit: BoxFit.cover,
+                  fillUnderlay: false,
                 ),
                 ColoredBox(
-                  color: Colors.black.withValues(alpha: .22),
+                  color: Colors.black.withValues(alpha: .12),
                 ),
               ],
               if (_shouldAnimate)
