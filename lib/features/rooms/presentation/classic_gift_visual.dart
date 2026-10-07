@@ -1,8 +1,9 @@
+import 'dart:convert';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:flutter/services.dart';
 
 import '../data/room_feature_models.dart';
 
@@ -30,10 +31,9 @@ class ClassicGiftVisual extends StatefulWidget {
 
 class _ClassicGiftVisualState extends State<ClassicGiftVisual>
     with SingleTickerProviderStateMixin {
+  static const int _atlasPartCount = 18;
   static const int _atlasColumns = 9;
   static const int _atlasRows = 6;
-  static const String _atlasUrl =
-      'https://cdn.openart.ai/openart-uploads/production/attachment-transfers/6f680c410317bcf0453269ebd4635a5f800fd3cb290411e1527801ccdc1a46ff.webp';
   static final Future<ui.Image> _atlasImage = _loadAtlasImage();
 
   late final AnimationController _motion = AnimationController(
@@ -42,15 +42,18 @@ class _ClassicGiftVisualState extends State<ClassicGiftVisual>
   );
 
   static Future<ui.Image> _loadAtlasImage() async {
-    final response = await http
-        .get(Uri.parse(_atlasUrl))
-        .timeout(const Duration(seconds: 20));
-    if (response.statusCode != 200 || response.bodyBytes.isEmpty) {
-      throw StateError(
-        'WorldVoice gift artwork failed to load: ${response.statusCode}',
-      );
-    }
-    final codec = await ui.instantiateImageCodec(response.bodyBytes);
+    final parts = await Future.wait(
+      List.generate(_atlasPartCount, (index) {
+        final suffix = index.toString().padLeft(2, '0');
+        return rootBundle.loadString(
+          'assets/gifts/catalog/atlas_$suffix.b64',
+          cache: true,
+        );
+      }),
+    );
+    final encoded = parts.map((part) => part.trim()).join();
+    final bytes = base64Decode(encoded);
+    final codec = await ui.instantiateImageCodec(bytes);
     try {
       final frame = await codec.getNextFrame();
       return frame.image;
