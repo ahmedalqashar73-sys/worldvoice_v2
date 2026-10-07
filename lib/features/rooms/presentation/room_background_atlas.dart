@@ -22,7 +22,7 @@ class RoomBackgroundAtlas extends StatelessWidget {
   final String themeId;
   final FilterQuality filterQuality;
 
-  static const _partCount = 20;
+  static const _partCount = 80;
   static final Future<Uint8List> _atlasBytes = _loadAtlasBytes();
 
   static Future<Uint8List> _loadAtlasBytes() async {
