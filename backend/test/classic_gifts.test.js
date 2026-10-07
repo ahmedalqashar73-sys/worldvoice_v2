@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readdirSync, readFileSync} from "node:fs";
 import {fileURLToPath} from "node:url";
 
 const catalog = JSON.parse(readFileSync(fileURLToPath(
@@ -14,8 +14,17 @@ test("shared catalog has the approved 54 WorldVoice gifts", () => {
   assert.equal(catalog.atlas.columns, 9);
   assert.equal(catalog.atlas.rows, 6);
   assert.equal(catalog.atlas.cellSize, 192);
-  assert.equal(catalog.atlas.source, "remote_original_quality");
-  assert.match(catalog.atlas.url, /^https:\/\//);
+  assert.equal(catalog.atlas.source, "bundled_original_quality");
+  assert.equal(catalog.atlas.partCount, 18);
+  const atlasDir = fileURLToPath(
+    new URL("../../assets/gifts/catalog/", import.meta.url),
+  );
+  const atlasParts = readdirSync(atlasDir)
+    .filter(name => /^atlas_[0-9]{2}\.b64$/.test(name))
+    .sort();
+  assert.equal(atlasParts.length, 18);
+  assert.equal(atlasParts[0], "atlas_00.b64");
+  assert.equal(atlasParts.at(-1), "atlas_17.b64");
 
   assert.deepEqual(
     catalog.gifts.map(g => g.sortOrder),
