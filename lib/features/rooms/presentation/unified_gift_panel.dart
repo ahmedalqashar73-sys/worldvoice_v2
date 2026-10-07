@@ -297,10 +297,16 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
     }
     return Container(
       decoration: const BoxDecoration(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
         gradient: LinearGradient(
-          begin: Alignment.topLeft, end: Alignment.bottomRight,
-          colors: [Color(0xFF09271F), Color(0xFF14513A),
-                   Color(0xFF082B25)])),
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xEE09271F),
+            Color(0xE814513A),
+            Color(0xEE082B25),
+          ],
+        )),
       child: FutureBuilder<List<RoomGiftCatalogItem>>(
       future: _classicPreviews,
       builder: (context, classicSnapshot) => StreamBuilder<
