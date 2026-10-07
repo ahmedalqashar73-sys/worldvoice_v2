@@ -22,7 +22,7 @@ import {chatIdFor, assertChatMembership} from "./chat_membership.js";
 import {reverseVerifiedWebPurchase} from "./payment_reversals.js";
 import {validateQuizDraft, quizWinners} from "./quiz_policy.js";
 import {roomTaskSpec, advanceRoomLevel, roomLevelFromXp} from "./room_task_policy.js";
-import {privateWalletRef, requirePrivateWallet} from "./wallet_store.js";
+import {privateWalletRef, requirePrivateWallet} from "./wallet_store.js";\nimport {approvedWorldVoiceGift, syncWorldVoiceGiftStore} from "./gift_catalog.js";
 
 const { RtcRole, RtcTokenBuilder } = agoraToken;
 
@@ -1532,7 +1532,7 @@ app.post("/gift/send", async (req, res, next) => {
         typeof recipientId !== "string" || !recipientId.trim() ||
         recipientId === sender.uid ||
         typeof giftId !== "string" ||
-        !/^[A-Za-z0-9_-]{1,80}$/.test(giftId) ||
+        !/^wv_gift_[0-9]{3}$/.test(giftId) ||
         !Number.isSafeInteger(quantity) || quantity <= 0 ||
         !/^[A-Za-z0-9_-]{12,100}$/.test(requestKey)) {
       return res.status(400).json({error: "Invalid gift request or idempotency key."});
@@ -1637,8 +1637,9 @@ app.post("/gift/send", async (req, res, next) => {
       if (recipientRef) requirePrivateWallet(snapshots[10]);
       const item = itemSnap.data();
       const price = Number(item?.priceCoins);
+      const approvedGift = approvedWorldVoiceGift(giftId, price);
       if (!itemSnap.exists || item.type !== "gift" || item.active !== true ||
-          !Number.isSafeInteger(price) || price <= 0) {
+          !Number.isSafeInteger(price) || price <= 0 || !approvedGift) {
         throw Object.assign(new Error("This gift is unavailable."), {status: 404});
       }
       if (!senderProfileSnap.exists ||
@@ -2235,6 +2236,16 @@ app.use((error, _req, res, _next) => {
     error: status >= 500 ? "Server error." : String(error.message || error),
   });
 });
+
+try {
+  const giftSync = await syncWorldVoiceGiftStore(db);
+  console.log(
+    `WorldVoice gift catalog synced: ${giftSync.approved} approved, ${giftSync.retired} retired.`,
+  );
+} catch (error) {
+  console.error("WorldVoice gift catalog sync failed:", error);
+  process.exit(1);
+}
 
 app.listen(port, "0.0.0.0", () => {
   console.log(`WorldVoice room backend listening on port ${port}`);
