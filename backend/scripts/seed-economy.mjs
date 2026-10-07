@@ -11,6 +11,7 @@
  */
 import { initializeApp, applicationDefault } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
+import {worldVoiceGiftCatalog, worldVoiceGiftStoreDocument} from "../src/gift_catalog.js";
 
 const args = process.argv.slice(2);
 const projectIndex = args.indexOf("--project");
@@ -71,6 +72,15 @@ for (const {coins, priceSar, priceUsd} of proposedPacks) {
     active: false,
     priceApprovalRequired: false,
   }]);
+}
+
+// Approved WorldVoice gift catalog. These 54 records are the only gift IDs
+// the current Flutter client and /gift/send backend accept.
+for (const giftId of worldVoiceGiftCatalog.keys()) {
+  batch.push([
+    db.doc(`store_items/gift__${giftId}`),
+    worldVoiceGiftStoreDocument(giftId),
+  ]);
 }
 
 const roomBackgrounds = [
@@ -234,6 +244,23 @@ if (!apply) {
   console.log("Dry run only. Review the migration and rerun with --apply.");
   process.exit(0);
 }
+// Hide every previous gift catalog entry from the store. Historical documents
+// remain for ledger/audit safety, but they cannot be shown or sent again.
+const approvedGiftStoreIds = new Set(
+  [...worldVoiceGiftCatalog.keys()].map((giftId) => `gift__${giftId}`),
+);
+const currentGiftDocs = await db.collection("store_items")
+  .where("type", "==", "gift").get();
+for (const giftDoc of currentGiftDocs.docs) {
+  if (!approvedGiftStoreIds.has(giftDoc.id)) {
+    await giftDoc.ref.set({
+      active: false,
+      retiredFromCatalog: true,
+      retiredBy: "worldvoice_gifts_v1",
+    }, {merge: true});
+  }
+}
+
 const retiredBackgroundIds = [
   "background__golden_vip_glow",
   "background__royal_emerald_motion",
