@@ -73,49 +73,64 @@ for (const {coins, priceSar, priceUsd} of proposedPacks) {
   }]);
 }
 
+const roomBackgrounds = [
+  {id: "background__wv_bg_06", themeId: "wv_bg_06", name: "Golden Coast", nameAr: "الساحل الذهبي", priceCoins: 0, freeStarterGift: true},
+  {id: "background__wv_bg_09", themeId: "wv_bg_09", name: "Garden Escape", nameAr: "ملاذ الحديقة", priceCoins: 0, freeStarterGift: true},
+  {id: "background__wv_bg_18", themeId: "wv_bg_18", name: "Sunset Terrace", nameAr: "شرفة الغروب", priceCoins: 0, freeStarterGift: true},
+  {id: "background__wv_bg_20", themeId: "wv_bg_20", name: "Alpine Serenity", nameAr: "هدوء الألب", priceCoins: 0, freeStarterGift: true},
+  {id: "background__wv_bg_33", themeId: "wv_bg_33", name: "Crystal Lagoon", nameAr: "البحيرة الكريستالية", priceCoins: 0, freeStarterGift: true},
+  {id: "background__wv_bg_01", themeId: "wv_bg_01", name: "Aurora Wolf", nameAr: "ذئب الشفق القطبي", priceCoins: 260},
+  {id: "background__wv_bg_02", themeId: "wv_bg_02", name: "Moonlit Castle", nameAr: "قلعة ضوء القمر", priceCoins: 320},
+  {id: "background__wv_bg_03", themeId: "wv_bg_03", name: "Celestial Falls", nameAr: "شلالات الفردوس", priceCoins: 280},
+  {id: "background__wv_bg_04", themeId: "wv_bg_04", name: "Sapphire Palace", nameAr: "قصر الياقوت", priceCoins: 350},
+  {id: "background__wv_bg_05", themeId: "wv_bg_05", name: "Golden Royal Hall", nameAr: "القاعة الملكية الذهبية", priceCoins: 380},
+  {id: "background__wv_bg_07", themeId: "wv_bg_07", name: "Midnight Venice", nameAr: "فينيسيا منتصف الليل", priceCoins: 160},
+  {id: "background__wv_bg_08", themeId: "wv_bg_08", name: "Neon Royal Drive", nameAr: "جولة النيون الملكية", priceCoins: 260},
+  {id: "background__wv_bg_10", themeId: "wv_bg_10", name: "Frozen Crystal Palace", nameAr: "قصر الكريستال المتجمد", priceCoins: 360},
+  {id: "background__wv_bg_11", themeId: "wv_bg_11", name: "Panda Paradise", nameAr: "جنة الباندا", priceCoins: 220},
+  {id: "background__wv_bg_12", themeId: "wv_bg_12", name: "Desert Oasis", nameAr: "واحة الغروب", priceCoins: 180},
+  {id: "background__wv_bg_13", themeId: "wv_bg_13", name: "Misty Dynasty", nameAr: "مملكة الضباب", priceCoins: 200},
+  {id: "background__wv_bg_14", themeId: "wv_bg_14", name: "Violet Moon Kingdom", nameAr: "مملكة القمر البنفسجي", priceCoins: 300},
+  {id: "background__wv_bg_15", themeId: "wv_bg_15", name: "Sakura Imperial", nameAr: "ساكورا الإمبراطورية", priceCoins: 280},
+  {id: "background__wv_bg_16", themeId: "wv_bg_16", name: "Royal Peacock Garden", nameAr: "حديقة الطاووس الملكية", priceCoins: 320},
+  {id: "background__wv_bg_17", themeId: "wv_bg_17", name: "Rose Cat Palace", nameAr: "قصر القطة والورود", priceCoins: 240},
+  {id: "background__wv_bg_19", themeId: "wv_bg_19", name: "Pharaoh Sunset", nameAr: "غروب الفراعنة", priceCoins: 300},
+  {id: "background__wv_bg_21", themeId: "wv_bg_21", name: "Tropical Royal Lounge", nameAr: "الواحة الملكية الاستوائية", priceCoins: 240},
+  {id: "background__wv_bg_22", themeId: "wv_bg_22", name: "Emerald Cave", nameAr: "كهف الزمرد", priceCoins: 320},
+  {id: "background__wv_bg_23", themeId: "wv_bg_23", name: "Parisian Twilight", nameAr: "شفق باريس", priceCoins: 220},
+  {id: "background__wv_bg_24", themeId: "wv_bg_24", name: "Starlight Palace", nameAr: "قصر ضوء النجوم", priceCoins: 380},
+  {id: "background__wv_bg_25", themeId: "wv_bg_25", name: "Alpine Royal Retreat", nameAr: "منتجع الألب الملكي", priceCoins: 220},
+  {id: "background__wv_bg_26", themeId: "wv_bg_26", name: "Panther Moon", nameAr: "فهد القمر", priceCoins: 420},
+  {id: "background__wv_bg_27", themeId: "wv_bg_27", name: "Atlantis Luxury Suite", nameAr: "جناح أتلانتس الفاخر", priceCoins: 450},
+  {id: "background__wv_bg_28", themeId: "wv_bg_28", name: "Stadium Glory", nameAr: "مجد الملعب", priceCoins: 300},
+  {id: "background__wv_bg_29", themeId: "wv_bg_29", name: "Number 10 Legend", nameAr: "أسطورة الرقم 10", priceCoins: 340},
+  {id: "background__wv_bg_30", themeId: "wv_bg_30", name: "Panda Falls", nameAr: "شلالات الباندا", priceCoins: 280},
+  {id: "background__wv_bg_31", themeId: "wv_bg_31", name: "Royal Lion Sunset", nameAr: "أسد الغروب الملكي", priceCoins: 450},
+  {id: "background__wv_bg_32", themeId: "wv_bg_32", name: "Tiger Falls", nameAr: "شلالات النمر", priceCoins: 480},
+  {id: "background__wv_bg_34", themeId: "wv_bg_34", name: "Mountain Mirror Retreat", nameAr: "ملاذ مرآة الجبل", priceCoins: 240},
+  {id: "background__wv_bg_35", themeId: "wv_bg_35", name: "Santorini Gold", nameAr: "سانتوريني الذهبية", priceCoins: 260},
+  {id: "background__wv_bg_36", themeId: "wv_bg_36", name: "Castle of Dawn", nameAr: "قلعة الفجر", priceCoins: 340},
+];
+
+for (const item of roomBackgrounds) {
+  batch.push([db.doc(`store_items/${item.id}`), {
+    type: "background",
+    name: item.name,
+    nameAr: item.nameAr,
+    priceCoins: item.priceCoins,
+    requiredGiftLevel: 0,
+    durationDays: null,
+    animationUrl: null,
+    previewUrl: "",
+    themeId: item.themeId,
+    active: true,
+    freeStarterGift: item.freeStarterGift === true,
+    sourceCollection: "worldvoice_room_backgrounds_v2",
+    builtInVisual: true,
+  }]);
+}
+
 const premiumCosmetics = [
-  {
-    id: "background__golden_vip_glow",
-    type: "background",
-    name: "Golden VIP Glow",
-    themeId: "goldenVipGlow",
-    priceCoins: 180,
-  },
-  {
-    id: "background__royal_emerald_motion",
-    type: "background",
-    name: "Royal Emerald Motion",
-    themeId: "royalEmeraldMotion",
-    priceCoins: 140,
-  },
-  {
-    id: "background__aurora_world",
-    type: "background",
-    name: "Aurora Language World",
-    themeId: "auroraWorld",
-    priceCoins: 220,
-  },
-  {
-    id: "background__galaxy_talk",
-    type: "background",
-    name: "Galaxy Talk",
-    themeId: "galaxyTalk",
-    priceCoins: 260,
-  },
-  {
-    id: "background__crystal_blue_luxury",
-    type: "background",
-    name: "Crystal Blue Luxury",
-    themeId: "crystalBlueLuxury",
-    priceCoins: 320,
-  },
-  {
-    id: "background__velvet_night",
-    type: "background",
-    name: "Premium Velvet Night",
-    themeId: "velvetNight",
-    priceCoins: 240,
-  },
   {
     id: "frame__golden_crown",
     type: "frame",
@@ -219,6 +234,23 @@ if (!apply) {
   console.log("Dry run only. Review the migration and rerun with --apply.");
   process.exit(0);
 }
+const retiredBackgroundIds = [
+  "background__golden_vip_glow",
+  "background__royal_emerald_motion",
+  "background__aurora_world",
+  "background__galaxy_talk",
+  "background__crystal_blue_luxury",
+  "background__velvet_night",
+];
+
+for (const id of retiredBackgroundIds) {
+  const ref = db.doc(`store_items/${id}`);
+  const snapshot = await ref.get();
+  if (snapshot.exists) {
+    await ref.set({active: false, retiredFromCatalog: true}, {merge: true});
+  }
+}
+
 let created = 0;
 for (const [ref, data] of batch) {
   // create() is conditional: safe to rerun and never overwrites a live price.
