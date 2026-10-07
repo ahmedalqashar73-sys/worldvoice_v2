@@ -7,7 +7,6 @@ import 'package:http/http.dart' as http;
 
 import '../data/room_feature_models.dart';
 import '../data/classic_gift_catalog.dart';
-import '../data/luxury_gift_catalog.dart';
 import 'room_chat_service.dart';
 import '../data/room_backend_config.dart';
 import 'room_quiz_service.dart';
@@ -241,8 +240,13 @@ class RoomFeatureService {
         contextId.isEmpty || contextId.contains('/')) {
       throw ArgumentError('Invalid test preview destination');
     }
+    final parentName = switch (context) {
+      'chat' => 'chats',
+      'live' => 'live_sessions',
+      _ => 'rooms',
+    };
     final parent = FirebaseFirestore.instance
-        .collection(context == 'chat' ? 'chats' : 'rooms')
+        .collection(parentName)
         .doc(contextId);
     return parent.collection('gift_previews');
   }
@@ -279,8 +283,7 @@ class RoomFeatureService {
       throw StateError('SELECT_A_REAL_FRIEND');
     }
     final approved = await ClassicGiftCatalog.load();
-    final approvedForDemo = approved.any((g) => g.id == giftId) ||
-        LuxuryGiftCatalog.items.any((g) => g.id == giftId);
+    final approvedForDemo = approved.any((g) => g.id == giftId);
     if (!approvedForDemo) {
       throw StateError('INVALID_TEST_GIFT');
     }
@@ -351,11 +354,15 @@ class RoomFeatureService {
         .collection('store_items')
         .where('type', isEqualTo: 'gift')
         .snapshots()
-        .map((snapshot) {
-      final items = snapshot.docs
+        .asyncMap((snapshot) async {
+      final previews = await ClassicGiftCatalog.load();
+      final published = snapshot.docs
           .map(RoomGiftCatalogItem.fromDoc)
-          .where((item) => item.active && item.priceCoins > 0)
-          .toList(growable: false)
+          .toList(growable: false);
+      final items = ClassicGiftCatalog.merge(
+        previews: previews,
+        published: published,
+      ).where((item) => item.active).toList(growable: false)
         ..sort((a, b) => a.priceCoins.compareTo(b.priceCoins));
       return items;
     });
