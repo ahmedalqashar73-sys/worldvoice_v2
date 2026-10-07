@@ -30,7 +30,7 @@ class ClassicGiftVisual extends StatefulWidget {
 
 class _ClassicGiftVisualState extends State<ClassicGiftVisual>
     with SingleTickerProviderStateMixin {
-  static const int _atlasPartCount = 9;
+  static const int _atlasPartCount = 18;
   static const int _atlasColumns = 9;
   static const int _atlasRows = 6;
   static final Future<ui.Image> _atlasImage = _loadAtlasImage();
