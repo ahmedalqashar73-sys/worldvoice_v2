@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import '../data/room_feature_models.dart';
 import '../data/classic_gift_catalog.dart';
 import 'classic_gift_visual.dart';
-import 'classic_gift_3d_stage.dart';
 import '../services/room_feature_service.dart';
 import '../services/room_coin_purchase_service.dart';
 import 'room_coin_store_sheet.dart';
@@ -151,7 +150,7 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
     );
   }
 
-  Future<void> _show3D(RoomGiftCatalogItem gift) async {
+  Future<void> _showGiftArt(RoomGiftCatalogItem gift) async {
     if (!mounted) return;
     final ar = Localizations.localeOf(context).languageCode == 'ar';
     final sender = FirebaseAuth.instance.currentUser?.displayName?.trim();
@@ -170,8 +169,8 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
         child: Padding(
           padding: const EdgeInsets.all(14),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Text(ar ? 'معاينة مجانية • لا تخصم كوينات'
-                    : 'FREE 3D VIEW • NO COINS CHARGED',
+            Text(ar ? 'معاينة الهدية • لا تخصم كوينات'
+                    : 'GIFT PREVIEW • NO COINS CHARGED',
                 style: const TextStyle(color: Color(0xFFEACB8B),
                     fontSize: 11, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
@@ -181,7 +180,16 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                 style: const TextStyle(color: Colors.white,
                     fontWeight: FontWeight.w800)),
             const SizedBox(height: 8),
-            ClassicGift3DStage(gift: gift, height: 217),
+            SizedBox(
+              height: 217,
+              child: Center(
+                child: ClassicGiftVisual(
+                  gift: gift,
+                  size: 205,
+                  animate: false,
+                ),
+              ),
+            ),
             const SizedBox(height: 5),
             Text(gift.localizedName(ar),
                 style: const TextStyle(color: Colors.white,
@@ -251,7 +259,16 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
               ]),
             ),
             const SizedBox(height: 5),
-            ClassicGift3DStage(gift: gift, height: 208),
+            SizedBox(
+              height: 208,
+              child: Center(
+                child: ClassicGiftVisual(
+                  gift: gift,
+                  size: 196,
+                  animate: true,
+                ),
+              ),
+            ),
             Text(gift.localizedName(ar), textAlign: TextAlign.center,
               style: const TextStyle(color: Colors.white, fontSize: 18,
                   fontWeight: FontWeight.w900)),
@@ -492,7 +509,7 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                                   _pendingSignature = null;
                                   _needsRecharge = false;
                                 }),
-                                onLongPress: () => _show3D(gift),
+                                onLongPress: () => _showGiftArt(gift),
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
@@ -555,11 +572,11 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                       runSpacing: 0,
                       children: [
                         TextButton.icon(
-                          key: const ValueKey('gift-3d-preview'),
-                          onPressed: () => _show3D(selected),
-                          icon: const Icon(Icons.view_in_ar_rounded,
+                          key: const ValueKey('gift-art-preview'),
+                          onPressed: () => _showGiftArt(selected),
+                          icon: const Icon(Icons.visibility_rounded,
                               size: 18, color: Color(0xFFFFD88A)),
-                          label: Text(ar ? 'المجسم 3D' : 'View 3D',
+                          label: Text(ar ? 'معاينة الهدية' : 'Gift preview',
                               style: const TextStyle(
                                   color: Color(0xFFFFD88A), fontSize: 12)),
                         ),
@@ -575,7 +592,7 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                       ],
                     ),
                   if (RoomFeatureService.friendPreviewEnabled &&
-                      selected != null && selected.id.startsWith('classic_') &&
+                      selected != null && selected.id.startsWith('wv_gift_') &&
                       widget.recipients.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.fromLTRB(12, 2, 12, 4),
@@ -604,7 +621,6 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                     child: FilledButton.icon(
                       onPressed: !_busy && ready && walletReady &&
                           selected?.active == true &&
-                          widget.contextType != 'live' &&
                           widget.recipients.containsKey(_recipient) &&
                           _recipient != uid && _recipient != 'teacher_ai'
                           ? _send : null,
