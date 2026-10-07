@@ -85,6 +85,7 @@ flutter:
   # Shared gift presentation catalog; no monetary authorization is stored here.
   assets:
     - assets/gifts/worldvoice_gifts.json
+    - assets/gifts/catalog/
     - assets/backgrounds/
 
   # To add assets to your application, add an assets section, like this:
