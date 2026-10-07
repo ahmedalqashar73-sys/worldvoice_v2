@@ -80,8 +80,8 @@ service cloud.firestore {
     }
 
     function validRoomThemeChange() {
-      let oldTheme = resource.data.get('themeId', 'royalPurple');
-      let newTheme = request.resource.data.get('themeId', 'royalPurple');
+      let oldTheme = resource.data.get('themeId', 'wv_bg_06');
+      let newTheme = request.resource.data.get('themeId', 'wv_bg_06');
       let oldUrl = resource.data.get('backgroundUrl', '');
       let newUrl = request.resource.data.get('backgroundUrl', '');
 
@@ -89,8 +89,7 @@ service cloud.firestore {
         oldTheme == newTheme && oldUrl == newUrl
       ) || (
         newTheme in [
-          'royalPurple', 'emerald', 'midnight', 'skyBlue', 'forestGold',
-          'skyAura', 'softGreenFlow', 'silverWaves'
+          'wv_bg_06', 'wv_bg_09', 'wv_bg_18', 'wv_bg_20', 'wv_bg_33'
         ]
         && newUrl == ''
       ) || (
