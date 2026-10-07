@@ -28,6 +28,7 @@ import '../services/room_quota_service.dart';
 import '../services/room_rewarded_ad_service.dart';
 import '../services/room_translation_service.dart';
 import '../services/room_teacher_ai_service.dart';
+import 'room_background_atlas.dart';
 import 'room_background_shop_sheet.dart';
 import 'room_board_screen.dart';
 import '../data/room_mode.dart';
@@ -3037,8 +3038,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         body: _AnimatedRoomBackground(
           colors: _roomThemeColors(_featureState.themeId),
           backgroundUrl: _featureState.backgroundUrl,
-          backgroundAssetPath:
-              RoomBackgroundCatalog.assetForTheme(_featureState.themeId),
+          themeId: _featureState.themeId,
           animated: const {
             'skyAura',
             'softGreenFlow',
@@ -3205,14 +3205,14 @@ class _AnimatedRoomBackground extends StatefulWidget {
     required this.child,
     required this.animated,
     this.backgroundUrl,
-    this.backgroundAssetPath,
+    this.themeId,
   });
 
   final List<Color> colors;
   final Widget child;
   final bool animated;
   final String? backgroundUrl;
-  final String? backgroundAssetPath;
+  final String? themeId;
 
   @override
   State<_AnimatedRoomBackground> createState() =>
@@ -3264,15 +3264,11 @@ class _AnimatedRoomBackgroundState extends State<_AnimatedRoomBackground>
               end: Alignment(.55 - t * .35, 1),
               colors: widget.colors,
             ),
-            image: widget.backgroundAssetPath?.trim().isNotEmpty == true
-                ? DecorationImage(
-                    image: AssetImage(widget.backgroundAssetPath!.trim()),
-                    fit: BoxFit.cover,
-                    colorFilter: ColorFilter.mode(
-                      Colors.black.withValues(alpha: .22),
-                      BlendMode.darken,
-                    ),
-                  )
+            image: RoomBackgroundCatalog.atlasIndexForTheme(
+                      widget.themeId ?? '',
+                    ) !=
+                    null
+                ? null
                 : url.isEmpty
                     ? null
                     : DecorationImage(
@@ -3287,6 +3283,18 @@ class _AnimatedRoomBackgroundState extends State<_AnimatedRoomBackground>
           child: Stack(
             fit: StackFit.expand,
             children: [
+              if (RoomBackgroundCatalog.atlasIndexForTheme(
+                    widget.themeId ?? '',
+                  ) !=
+                  null) ...[
+                RoomBackgroundAtlas(
+                  themeId: widget.themeId!,
+                  filterQuality: FilterQuality.high,
+                ),
+                ColoredBox(
+                  color: Colors.black.withValues(alpha: .22),
+                ),
+              ],
               if (widget.animated)
                 IgnorePointer(
                   child: Align(
