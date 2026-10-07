@@ -13,6 +13,7 @@ import '../../profile/presentation/public_profile_screen.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../data/room_caption.dart';
 import '../data/room_feature_models.dart';
+import '../data/room_background_catalog.dart';
 import '../data/room_moderation_models.dart';
 import '../data/room_stage_models.dart';
 import '../data/room_teacher_ai_note.dart';
