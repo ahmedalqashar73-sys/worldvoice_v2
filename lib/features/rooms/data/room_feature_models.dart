@@ -160,7 +160,7 @@ class RoomGiftCatalogItem {
       nameAr: data['nameAr']?.toString(),
       priceCoins: (data['priceCoins'] as num).toInt(),
       active: false,
-      category: 'classic_1_50',
+      category: data['tier'] == null ? null : 'tier_${data['tier']}',
       emoji: data['emoji']?.toString(),
       effectType: data['effectType']?.toString(),
       previewUrl: data['previewUrl']?.toString(),
@@ -253,8 +253,31 @@ class RoomGiftPreviewChatCodec {
   RoomGiftPreviewChatCodec._();
 
   static final RegExp _pattern = RegExp(
-    r'^WV_FREE_GIFT_PREVIEW:v1:(classic_[a-z_]{1,60}):'
-    r'([A-Za-z0-9_-]{1,128}):([0-9a-f]{24})$',
+    r'^WV_FREE_GIFT_PREVIEW:v1:(wv_gift_[0-9]{3}):'
+    r'([A-Za-z0-9_-]{1,128}):([0-9a-f]{24})
+
+  static String encode({
+    required String giftId,
+    required String recipientId,
+    required String nonce,
+  }) {
+    final value = 'WV_FREE_GIFT_PREVIEW:v1:$giftId:$recipientId:$nonce';
+    if (!_pattern.hasMatch(value)) throw ArgumentError('Invalid demo marker');
+    return value;
+  }
+
+  static ({String giftId, String recipientId, String nonce})?
+      decode(String text) {
+    final match = _pattern.firstMatch(text);
+    if (match == null) return null;
+    return (
+      giftId: match.group(1)!,
+      recipientId: match.group(2)!,
+      nonce: match.group(3)!,
+    );
+  }
+}
+,
   );
 
   static String encode({
