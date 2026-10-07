@@ -97,8 +97,6 @@ class RoomBackgroundCatalog {
     RoomBackgroundCatalogItem(id: 'background__wv_bg_36', themeId: 'wv_bg_36', name: 'Castle of Dawn', nameAr: 'قلعة الفجر', priceCoins: 340, isFree: false),
   ];
 
-  static const String atlasAssetPath =
-      'assets/backgrounds/worldvoice_backgrounds.webp';
   static const int atlasColumns = 6;
   static const int atlasRows = 6;
 
