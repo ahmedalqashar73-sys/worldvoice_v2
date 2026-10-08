@@ -87,7 +87,7 @@ class RoomTranslationService {
     } catch (remoteError) {
       final detail = remoteError.toString().replaceFirst('Bad state: ', '');
       final localDetail =
-          localFailure?.toString().replaceFirst('Bad state: ', '') ?? '';
+          localFailure.toString().replaceFirst('Bad state: ', '');
       throw StateError(
         'Translation unavailable: $detail'
         '${localDetail.isEmpty ? '' : ' (device: $localDetail)'}',
