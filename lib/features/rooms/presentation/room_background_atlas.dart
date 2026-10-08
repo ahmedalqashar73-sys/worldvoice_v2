@@ -58,6 +58,21 @@ class RoomBackgroundAtlas extends StatelessWidget {
     final index = RoomBackgroundCatalog.atlasIndexForTheme(themeId);
     if (index == null) return const SizedBox.expand();
 
+    // Render the original high-resolution Sunset Terrace artwork directly.
+    // The 6x6 atlas is a compressed preview and loses detail on phone screens.
+    if (themeId == 'wv_bg_18') {
+      return RepaintBoundary(
+        child: SizedBox.expand(
+          child: Image.asset(
+            'assets/backgrounds/sunset_terrace_hd.jpg',
+            fit: fit,
+            filterQuality: FilterQuality.high,
+            gaplessPlayback: true,
+          ),
+        ),
+      );
+    }
+
     return RepaintBoundary(
       child: FutureBuilder<ui.Image>(
         future: _atlasImage,
