@@ -107,6 +107,9 @@ class RoomLiveCaptionController {
     if (_audioFrames != null) {
       _generation++;
       if (!_enabled || (!_canPublish && !_captureRemote)) {
+        _lastLocalPublished = '';
+        _pendingLocalText = '';
+        _localResultTimer?.cancel();
         _segments.clear();
         _pendingByKey.clear();
         if (_localSpeech.isListening) {
@@ -410,13 +413,26 @@ class RoomLiveCaptionController {
       return;
     }
 
-    unawaited(
-      _service.publishFinal(
+    unawaited(_publishRecognizedSpeech(normalized));
+  }
+
+  // Firestore permission/network errors must not break the microphone
+  // recognizer or become an unhandled asynchronous exception.
+  Future<void> _publishRecognizedSpeech(String text) async {
+    try {
+      await _service.publishFinal(
         displayName: _displayName,
-        text: normalized,
+        text: text,
         languageCode: _languageCode,
-      ),
-    );
+      );
+    } catch (error) {
+      if (!_disposed) {
+        _onState(
+          listening: _enabled,
+          error: 'Could not publish subtitles: $error',
+        );
+      }
+    }
   }
 
   void _scheduleLocalRestart() {
@@ -531,13 +547,7 @@ class RoomLiveCaptionController {
       return;
     }
 
-    unawaited(
-      _service.publishFinal(
-        displayName: _displayName,
-        text: text,
-        languageCode: _languageCode,
-      ),
-    );
+    unawaited(_publishRecognizedSpeech(text));
   }
 
   void _handleStatus(String status) {

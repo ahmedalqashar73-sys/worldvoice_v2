@@ -107,10 +107,10 @@ class RoomTeacherAiService {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null || statusEndpoint.trim().isEmpty) return false;
 
-    final idToken = await user.getIdToken();
-    if (idToken == null || idToken.isEmpty) return false;
-
     try {
+      final idToken = await user.getIdToken()
+          .timeout(const Duration(seconds: 12));
+      if (idToken == null || idToken.isEmpty) return false;
       final response = await http
           .post(
             Uri.parse(statusEndpoint),
@@ -126,7 +126,9 @@ class RoomTeacherAiService {
           .timeout(const Duration(seconds: 12));
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
-        return true;
+        final decoded = jsonDecode(response.body);
+        return decoded is Map<String, dynamic> &&
+            decoded['available'] == true;
       }
 
       try {
@@ -305,7 +307,9 @@ class RoomTeacherAiService {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null || caption.userId != user.uid) return false;
 
-    final idToken = await user.getIdToken();
+    final idToken = await user.getIdToken()
+        .timeout(const Duration(seconds: 12));
+    if (idToken == null || idToken.isEmpty) return false;
     final response = await http.post(
       Uri.parse(endpoint),
       headers: {
@@ -323,7 +327,7 @@ class RoomTeacherAiService {
         'languageCode': caption.languageCode,
         'roomLanguageCode': roomLanguageCode,
       }),
-    );
+    ).timeout(const Duration(seconds: 20));
 
     return response.statusCode >= 200 && response.statusCode < 300;
   }
