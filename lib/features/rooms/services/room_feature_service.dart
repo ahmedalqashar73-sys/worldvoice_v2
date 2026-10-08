@@ -39,13 +39,16 @@ class RoomFeatureService {
       throw StateError('Create or join the room before initializing tools.');
     }
     final data = snapshot.data() ?? const <String, dynamic>{};
-    final needsBackgroundV2 =
-        (data['backgroundLayoutVersion'] as num?)?.toInt() != 2;
+    final needsBackgroundV3 =
+        (data['backgroundLayoutVersion'] as num?)?.toInt() != 3;
     final missing = <String, dynamic>{
-      if (needsBackgroundV2) ...{
+      if (needsBackgroundV3) ...{
+        // One-time migration: every existing room starts from the clean
+        // WorldVoice solid-green canvas. After this migration the host's
+        // selected background persists normally.
         'themeId': 'softGreenFlow',
         'backgroundUrl': FieldValue.delete(),
-        'backgroundLayoutVersion': 2,
+        'backgroundLayoutVersion': 3,
       } else if (!data.containsKey('themeId'))
         'themeId': 'softGreenFlow',
       if (!data.containsKey('boardWriteEnabled'))
@@ -78,6 +81,7 @@ class RoomFeatureService {
           'backgroundUrl': backgroundUrl?.trim().isNotEmpty == true
               ? backgroundUrl!.trim()
               : FieldValue.delete(),
+          'backgroundLayoutVersion': 3,
           'updatedAt': FieldValue.serverTimestamp(),
         },
         SetOptions(merge: true),
