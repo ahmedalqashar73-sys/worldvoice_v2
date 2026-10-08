@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feat/worldvoice-avatar-frames-20261008
+      - fix/worldvoice-voice-ai-language-tools-20261008
       - fix/free-worker-always-available-agora-20260927
       - fix/green-room-chat-stage-hand-preview-20260927
       - fix/finish-room-hub-quiz-gift-20260928
