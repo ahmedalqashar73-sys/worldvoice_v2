@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -26,6 +27,13 @@ class StoryStrip extends StatefulWidget {
 class _StoryStripState extends State<StoryStrip> {
   late final StoryService _service = StoryService();
   late Future<List<StoryItem>> _feed = _service.fetchFeed();
+  late final Stream<DocumentSnapshot<Map<String, dynamic>>>? _ownProfileStream =
+      FirebaseAuth.instance.currentUser == null
+          ? null
+          : FirebaseFirestore.instance
+              .collection('users')
+              .doc(FirebaseAuth.instance.currentUser!.uid)
+              .snapshots();
 
   String? get _uid => FirebaseAuth.instance.currentUser?.uid;
 
@@ -114,15 +122,26 @@ class _StoryStripState extends State<StoryStrip> {
             separatorBuilder: (_, _) => const SizedBox(width: 10),
             itemBuilder: (context, index) {
               if (index == 0) {
-                return _StoryBubble(
-                  name: widget.isArabic ? 'ستوريك' : 'Your Story',
-                  photoUrl: ownPhoto,
-                  hasStory: mine.isNotEmpty,
-                  closeFriends: mine.any((story) => story.isCloseFriends),
-                  showAdd: true,
-                  onTap: () =>
-                      mine.isEmpty ? _createStory() : _openStories(mine),
-                  onAdd: _createStory,
+                return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                  stream: _ownProfileStream,
+                  builder: (context, profileSnapshot) {
+                    final profilePhoto =
+                        (profileSnapshot.data?.data()?['photoUrl'] ?? '')
+                            .toString()
+                            .trim();
+                    return _StoryBubble(
+                      name: widget.isArabic ? 'ستوريك' : 'Your Story',
+                      photoUrl:
+                          profilePhoto.isNotEmpty ? profilePhoto : ownPhoto,
+                      hasStory: mine.isNotEmpty,
+                      closeFriends:
+                          mine.any((story) => story.isCloseFriends),
+                      showAdd: true,
+                      onTap: () =>
+                          mine.isEmpty ? _createStory() : _openStories(mine),
+                      onAdd: _createStory,
+                    );
+                  },
                 );
               }
 

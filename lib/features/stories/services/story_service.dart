@@ -106,7 +106,12 @@ class StoryService {
   Future<String> _token() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) throw StateError('Sign in to use Stories.');
-    final token = await user.getIdToken();
+    final token = await user.getIdToken().timeout(
+      const Duration(seconds: 20),
+      onTimeout: () => throw StateError(
+        'Story sign-in timed out. Check your connection and retry.',
+      ),
+    );
     if (token == null || token.isEmpty) {
       throw StateError('Could not authenticate Stories.');
     }
@@ -155,6 +160,14 @@ class StoryService {
   }) async {
     final token = await _token();
     final length = await file.length();
+    final maxBytes = kind == 'video' ? 80 * 1024 * 1024 : 12 * 1024 * 1024;
+    if (length == 0 || length > maxBytes) {
+      throw StateError(
+        length == 0
+            ? 'The selected story file is empty.'
+            : 'This story file is too large to upload.',
+      );
+    }
     final mime = _mimeType(file, kind);
     final request = http.StreamedRequest('POST', _uri('/stories/upload'));
     request.headers.addAll({
@@ -165,13 +178,22 @@ class StoryService {
       'X-Story-Duration-Ms': '$durationMs',
     });
     request.contentLength = length;
-    await request.sink.addStream(file.openRead());
-    await request.sink.close();
 
     try {
-      final streamed = await _client
-          .send(request)
+      // Start the transport before streaming bytes into the request sink.
+      // Uploading to an unread sink before calling send() can block forever.
+      final sendFuture = _client.send(request);
+      final writeFuture = () async {
+        try {
+          await request.sink.addStream(file.openRead());
+        } finally {
+          await request.sink.close();
+        }
+        return true;
+      }();
+      final completed = await Future.wait<Object>([sendFuture, writeFuture])
           .timeout(const Duration(minutes: 2));
+      final streamed = completed.first as http.StreamedResponse;
       final body = await streamed.stream
           .bytesToString()
           .timeout(const Duration(seconds: 30));
