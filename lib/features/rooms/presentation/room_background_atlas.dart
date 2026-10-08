@@ -61,10 +61,38 @@ class RoomBackgroundAtlas extends StatelessWidget {
     // This room scene has its own full-resolution source image. Painting
     // the small tile from the 6x6 catalog atlas would blur it on phones.
     if (themeId == 'wv_bg_18') {
+      const originalArtwork = 'assets/backgrounds/sunset_terrace_hd.jpg';
+      // Keep the entire scene visible on tall and narrow devices. A softly
+      // blurred copy fills any spare space without distorting the foreground.
+      if (fit == BoxFit.contain && fillUnderlay) {
+        return RepaintBoundary(
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              ClipRect(
+                child: ImageFiltered(
+                  imageFilter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                  child: Image.asset(
+                    originalArtwork,
+                    fit: BoxFit.cover,
+                    filterQuality: FilterQuality.medium,
+                  ),
+                ),
+              ),
+              Image.asset(
+                originalArtwork,
+                fit: BoxFit.contain,
+                filterQuality: FilterQuality.high,
+                gaplessPlayback: true,
+              ),
+            ],
+          ),
+        );
+      }
       return RepaintBoundary(
         child: SizedBox.expand(
           child: Image.asset(
-            'assets/backgrounds/sunset_terrace_hd.jpg',
+            originalArtwork,
             fit: fit,
             filterQuality: FilterQuality.high,
             gaplessPlayback: true,

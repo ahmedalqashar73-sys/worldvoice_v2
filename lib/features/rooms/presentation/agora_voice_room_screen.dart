@@ -3323,8 +3323,12 @@ class _AnimatedRoomBackgroundState extends State<_AnimatedRoomBackground>
                   // Preserve as much detail as the bundled artwork provides
                   // when it is scaled to a full phone screen.
                   filterQuality: FilterQuality.high,
-                  fit: BoxFit.cover,
-                  fillUnderlay: false,
+                  // Sunset Terrace uses its original portrait artwork:
+                  // show the whole image without stretching or cropping it.
+                  fit: widget.themeId == 'wv_bg_18'
+                      ? BoxFit.contain
+                      : BoxFit.cover,
+                  fillUnderlay: widget.themeId == 'wv_bg_18',
                 ),
                 ColoredBox(
                   color: Colors.black.withValues(alpha: .05),
