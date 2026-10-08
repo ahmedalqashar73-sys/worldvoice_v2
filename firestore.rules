@@ -89,6 +89,7 @@ service cloud.firestore {
         oldTheme == newTheme && oldUrl == newUrl
       ) || (
         newTheme in [
+          'softGreenFlow',
           'wv_bg_06', 'wv_bg_09', 'wv_bg_18', 'wv_bg_20', 'wv_bg_33'
         ]
         && newUrl == ''
@@ -220,7 +221,1250 @@ service cloud.firestore {
           && request.resource.data.nonce is string
           && request.resource.data.nonce.matches('^[0-9a-f]{24}$')
           && request.resource.data.giftId is string
-          && request.resource.data.giftId.matches('^(classic|luxury)_[a-z_]{1,60}$')
+          && request.resource.data.giftId.matches('^wv_gift_[0-9]{3}
+          && request.resource.data.recipientId is string
+          && request.resource.data.recipientId != request.auth.uid
+          && request.resource.data.recipientId != 'teacher_ai'
+          && request.resource.data.senderName is string
+          && request.resource.data.senderName.size() > 0
+          && request.resource.data.senderName.size() <= 100
+          && request.resource.data.recipientName is string
+          && request.resource.data.recipientName.size() > 0
+          && request.resource.data.recipientName.size() <= 100
+          && request.resource.data.sentAt == request.time;
+    }
+
+    function isModerator(roomId) {
+      return isRoomMember(roomId)
+          && get(participantPath(roomId, request.auth.uid)).data.isModerator == true;
+    }
+
+    // -------------------------
+    // USERS / PROFILES
+    // -------------------------
+    match /users/{userId} {
+      allow read: if signedIn();
+
+      allow create: if signedIn()
+          && request.auth.uid == userId
+          && request.resource.data.uid == userId
+          && noInitialClientEconomyCredit()
+          && validInitialProfileFrame()
+          && !request.resource.data.keys().hasAny([
+            'walletDebtCoins', 'walletFrozen', 'payoutFrozen',
+            'diamondsReserved', 'firstRechargeUsed', 'payoutFreezeReason',
+            'identityVerified'
+          ]);
+
+      // Preserve existing non-financial profile/follow operations only.
+      allow update: if signedIn()
+          && (
+            (
+              request.auth.uid == userId
+              && economyFieldsUntouched()
+              && validProfileFrameChange(userId)
+            )
+            ||
+            (
+              request.resource.data.diff(resource.data)
+                .affectedKeys()
+                .hasOnly(['followersCount', 'followingCount'])
+              && request.resource.data.followersCount is int
+              && request.resource.data.followingCount is int
+              && request.resource.data.followersCount >= 0
+              && request.resource.data.followingCount >= 0
+            )
+          );
+
+      // Account deletion must be processed server-side to preserve the ledger.
+      allow delete: if false;
+
+      match /moderators/{moderatorUserId} {
+        allow read: if signedIn();
+        allow create, update: if signedIn()
+            && request.auth.uid == userId
+            && moderatorUserId != userId
+            && request.resource.data.uid == moderatorUserId
+            && request.resource.data.assignedBy == userId;
+        allow delete: if signedIn() && request.auth.uid == userId;
+      }
+
+      match /following/{targetUserId} {
+        allow read: if signedIn();
+        allow create, update, delete: if signedIn()
+            && request.auth.uid == userId;
+      }
+
+      match /followers/{followerUserId} {
+        allow read: if signedIn();
+        allow create, update, delete: if signedIn()
+            && request.auth.uid == followerUserId;
+      }
+
+      match /profile_visitors/{viewerUserId} {
+        allow read: if signedIn() && request.auth.uid == userId;
+
+        // The visitor records only their own visit on the target profile.
+        allow create, update: if signedIn()
+            && request.auth.uid == viewerUserId;
+
+        allow delete: if signedIn()
+            && (
+              request.auth.uid == userId
+              || request.auth.uid == viewerUserId
+            );
+      }
+
+      match /visited_profiles/{targetUserId} {
+        allow read, create, update, delete: if signedIn()
+            && request.auth.uid == userId;
+      }
+
+      match /room_history/{roomId} {
+        allow read, create, update, delete: if signedIn()
+            && request.auth.uid == userId;
+      }
+
+      match /room_usage/{dayKey} {
+        allow read: if signedIn() && request.auth.uid == userId;
+
+        allow create: if signedIn()
+            && request.auth.uid == userId
+            && request.resource.data.get('usedSeconds', 0) >= 0
+            && request.resource.data.get('adsWatched', 0) >= 0
+            && request.resource.data.get('adsWatched', 0) <= 3
+            && (
+              (
+                request.resource.data.get('adsWatched', 0) < 3
+                && request.resource.data.get('adBonusSeconds', 0) == 0
+              )
+              ||
+              (
+                request.resource.data.get('adsWatched', 0) == 3
+                && request.resource.data.get('adBonusSeconds', 0) == 10800
+              )
+            );
+
+        allow update: if signedIn()
+            && request.auth.uid == userId
+            && request.resource.data
+                .diff(resource.data)
+                .affectedKeys()
+                .hasOnly([
+                  'usedSeconds',
+                  'lastSessionWasHost',
+                  'lastRoomLevel',
+                  'adsWatched',
+                  'adBonusSeconds',
+                  'updatedAt'
+                ])
+            && (
+              (
+                request.resource.data.get('adsWatched', 0)
+                    == resource.data.get('adsWatched', 0)
+                && request.resource.data.get('adBonusSeconds', 0)
+                    == resource.data.get('adBonusSeconds', 0)
+                && request.resource.data.get('usedSeconds', 0)
+                    >= resource.data.get('usedSeconds', 0)
+              )
+              ||
+              (
+                request.resource.data.get('usedSeconds', 0)
+                    == resource.data.get('usedSeconds', 0)
+                && request.resource.data.get('adsWatched', 0)
+                    == resource.data.get('adsWatched', 0) + 1
+                && request.resource.data.get('adsWatched', 0) <= 3
+                && (
+                  (
+                    request.resource.data.get('adsWatched', 0) < 3
+                    && request.resource.data.get('adBonusSeconds', 0) == 0
+                  )
+                  ||
+                  (
+                    request.resource.data.get('adsWatched', 0) == 3
+                    && request.resource.data.get('adBonusSeconds', 0) == 10800
+                  )
+                )
+              )
+            );
+
+        allow delete: if false;
+      }
+
+      match /room_rewards/{rewardId} {
+        allow read: if signedIn() && request.auth.uid == userId;
+
+        // Server-only: clients cannot forge new level rewards.
+        allow create, update, delete: if false;
+      }
+
+      match /inventory/{itemId} {
+        allow read: if signedIn() && request.auth.uid == userId;
+        allow write: if false;
+      }
+
+      // Holding lots cannot be forged or prematurely matured by a mobile client.
+      match /diamond_lots/{lotId} {
+        allow read: if signedIn() && request.auth.uid == userId;
+        allow write: if false;
+      }
+
+      // New private wallet documents created by the staging migration.
+      // Owner-only reads, and only the trusted Admin SDK may mutate money.
+      match /private/{documentId} {
+        allow read: if signedIn() && request.auth.uid == userId;
+        allow write: if false;
+      }
+
+      match /wallet_transactions/{transactionId} {
+        allow read: if signedIn() && request.auth.uid == userId;
+        allow write: if false;
+      }
+
+      match /economy_daily/{dayKey} {
+        allow read: if signedIn() && request.auth.uid == userId;
+        allow write: if false;
+      }
+
+      match /room_backgrounds/{themeId} {
+        allow read: if signedIn() && request.auth.uid == userId;
+        allow create, update, delete: if false;
+      }
+    }
+
+    // Sanitized public projection only; clients cannot create or alter it.
+    // Do not switch existing profile readers until the migration is checked.
+    match /public_profiles/{userId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    // -------------------------
+    // USERNAME RESERVATIONS
+    // -------------------------
+    match /usernames/{username} {
+      allow read: if signedIn();
+
+      allow create: if signedIn()
+          && request.resource.data.uid == request.auth.uid;
+
+      allow update: if signedIn()
+          && resource.data.uid == request.auth.uid
+          && request.resource.data.uid == request.auth.uid;
+
+      allow delete: if signedIn()
+          && resource.data.uid == request.auth.uid;
+    }
+
+    // -------------------------
+    // GIFT LEVEL THRESHOLDS
+    // -------------------------
+    match /gift_level_thresholds/{levelId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    match /economy_config/{configId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    match /store_items/{itemId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    match /economy_global_controls/{controlId} {
+      allow read, write: if false;
+    }
+
+    match /economy_exchange_operations/{id} {
+      allow read, write: if false;
+    }
+
+    match /economy_store_operations/{id} {
+      allow read, write: if false;
+    }
+
+    match /economy_refund_operations/{id} {
+      allow read, write: if false;
+    }
+
+    match /economy_gift_operations/{id} {
+      allow read, write: if false;
+    }
+
+    match /withdraw_requests/{requestId} {
+      allow read: if signedIn() && resource.data.userId == request.auth.uid;
+      allow write: if false;
+    }
+
+    match /economy_audit/{id} {
+      allow read, write: if false;
+    }
+
+    match /iap_receipts/{id} {
+      allow read, write: if false;
+    }
+
+    // Verified chat membership is written ONLY by the trusted backend.
+    // The client may read a chat only when a stored participant.
+    match /chats/{chatId} {
+      allow get, list: if signedIn()
+          && resource.data.active == true
+          && request.auth.uid in resource.data.memberIds;
+      allow create, update, delete: if false;
+
+      // Free friend-test animation stream: no paid message is ever created.
+      match /gift_previews/{senderId} {
+        allow read: if signedIn()
+            && get(/databases/$(database)/documents/chats/$(chatId))
+                .data.active == true
+            && request.auth.uid in get(
+                /databases/$(database)/documents/chats/$(chatId)
+              ).data.memberIds;
+        allow create: if validFreeGiftPreview(senderId)
+            && get(/databases/$(database)/documents/chats/$(chatId))
+                .data.active == true
+            && request.auth.uid in get(
+                /databases/$(database)/documents/chats/$(chatId)
+              ).data.memberIds
+            && request.resource.data.recipientId in get(
+                /databases/$(database)/documents/chats/$(chatId)
+              ).data.memberIds
+            && request.resource.data.senderName == get(
+                /databases/$(database)/documents/chats/$(chatId)
+              ).data.memberNames[request.auth.uid]
+            && request.resource.data.recipientName == get(
+                /databases/$(database)/documents/chats/$(chatId)
+              ).data.memberNames[request.resource.data.recipientId];
+        allow update: if resource.data.senderId == request.auth.uid
+            && request.time > resource.data.sentAt + duration.value(3, 's')
+            && validFreeGiftPreview(senderId)
+            && get(/databases/$(database)/documents/chats/$(chatId))
+                .data.active == true
+            && request.auth.uid in get(
+                /databases/$(database)/documents/chats/$(chatId)
+              ).data.memberIds
+            && request.resource.data.recipientId in get(
+                /databases/$(database)/documents/chats/$(chatId)
+              ).data.memberIds
+            && request.resource.data.senderName == get(
+                /databases/$(database)/documents/chats/$(chatId)
+              ).data.memberNames[request.auth.uid]
+            && request.resource.data.recipientName == get(
+                /databases/$(database)/documents/chats/$(chatId)
+              ).data.memberNames[request.resource.data.recipientId];
+        allow delete: if false;
+      }
+
+      match /messages/{messageId} {
+        allow get, list: if signedIn()
+            && exists(/databases/$(database)/documents/chats/$(chatId))
+            && get(/databases/$(database)/documents/chats/$(chatId))
+                .data.active == true
+            && request.auth.uid in get(
+                /databases/$(database)/documents/chats/$(chatId)
+              ).data.memberIds;
+        // Neither text, gift animation nor amount can be forged by a device.
+        allow create, update, delete: if false;
+      }
+    }
+
+    // -------------------------
+    // COIN PRODUCTS
+    // -------------------------
+    match /coin_products/{productId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    // -------------------------
+    // ROOM SHOP CATALOG
+    // -------------------------
+    match /room_shop_items/{itemId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    match /room_gift_catalog/{giftId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    // -------------------------
+    // ROOM PROMOTIONS
+    // -------------------------
+    match /room_promotions/{promoId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    // -------------------------
+    // PRIVATE ROOM CODES
+    // -------------------------
+    match /private_room_codes/{code} {
+      allow get: if signedIn();
+      allow list: if false;
+
+      allow create: if signedIn()
+          && request.resource.data.hostId == request.auth.uid
+          && request.resource.data.roomId is string;
+
+      allow update, delete: if signedIn()
+          && resource.data.hostId == request.auth.uid;
+    }
+
+    // -------------------------
+    // VIDEO LIVE
+    // -------------------------
+    match /live_sessions/{liveId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+          && request.resource.data.hostId == request.auth.uid
+          && request.resource.data.channelId == liveId
+          && request.resource.data.isLive == true
+          && request.resource.data.hostAgoraUid is int
+          && request.resource.data.hostAgoraUid > 0
+          && request.resource.data.topic is string
+          && request.resource.data.topic.size() <= 80
+          && request.resource.data.viewerCount == 0
+          && request.resource.data.guestCount == 0;
+      allow update: if signedIn()
+          && (
+            (
+              resource.data.hostId == request.auth.uid
+              && request.resource.data.hostId == resource.data.hostId
+              && request.resource.data.channelId == resource.data.channelId
+              && request.resource.data.hostAgoraUid == resource.data.hostAgoraUid
+              && request.resource.data.viewerCount == resource.data.viewerCount
+              && request.resource.data.guestCount >= resource.data.guestCount
+              && request.resource.data.guestCount <= 3
+              && request.resource.data.guestCount <= resource.data.guestCount + 1
+            )
+            || (
+              request.resource.data.diff(resource.data).affectedKeys()
+                  .hasOnly(['viewerCount', 'updatedAt'])
+              && request.resource.data.viewerCount >= 0
+              && request.resource.data.guestCount == resource.data.guestCount
+              && (
+                (
+                  request.resource.data.viewerCount == resource.data.viewerCount + 1
+                  && !exists(
+                    /databases/$(database)/documents/live_sessions/$(liveId)/viewers/$(request.auth.uid)
+                  )
+                  && existsAfter(
+                    /databases/$(database)/documents/live_sessions/$(liveId)/viewers/$(request.auth.uid)
+                  )
+                )
+                || (
+                  resource.data.viewerCount > 0
+                  && request.resource.data.viewerCount == resource.data.viewerCount - 1
+                  && exists(
+                    /databases/$(database)/documents/live_sessions/$(liveId)/viewers/$(request.auth.uid)
+                  )
+                  && !existsAfter(
+                    /databases/$(database)/documents/live_sessions/$(liveId)/viewers/$(request.auth.uid)
+                  )
+                )
+              )
+            )
+            || (
+              isGlobalModerator(resource.data.hostId, request.auth.uid)
+              && request.resource.data.diff(resource.data).affectedKeys()
+                  .hasOnly(['guestCount', 'updatedAt'])
+              && request.resource.data.guestCount
+                  == resource.data.guestCount + 1
+              && request.resource.data.guestCount <= 3
+            )
+            || (
+              request.resource.data.diff(resource.data).affectedKeys()
+                  .hasOnly(['guestCount', 'updatedAt'])
+              && request.resource.data.guestCount
+                  == resource.data.guestCount + 1
+              && request.resource.data.guestCount <= 3
+              && get(
+                /databases/$(database)/documents/live_sessions/$(liveId)/join_requests/$(request.auth.uid)
+              ).data.status == 'invited'
+              && getAfter(
+                /databases/$(database)/documents/live_sessions/$(liveId)/join_requests/$(request.auth.uid)
+              ).data.status == 'accepted'
+            )
+            || (
+              request.resource.data.diff(resource.data).affectedKeys()
+                  .hasOnly(['guestCount', 'updatedAt'])
+              && resource.data.guestCount > 0
+              && request.resource.data.guestCount == resource.data.guestCount - 1
+              && getAfter(
+                /databases/$(database)/documents/live_sessions/$(liveId)/join_requests/$(request.auth.uid)
+              ).data.status == 'left'
+            )
+          );
+      allow delete: if false;
+
+      match /viewers/{userId} {
+        allow read: if signedIn();
+        allow create: if signedIn()
+            && userId == request.auth.uid
+            && request.resource.data.uid == request.auth.uid
+            && get(/databases/$(database)/documents/live_sessions/$(liveId))
+                .data.isLive == true
+            && getAfter(
+              /databases/$(database)/documents/live_sessions/$(liveId)
+            ).data.viewerCount
+                == get(
+                  /databases/$(database)/documents/live_sessions/$(liveId)
+                ).data.viewerCount + 1;
+        allow delete: if signedIn()
+            && userId == request.auth.uid
+            && getAfter(
+              /databases/$(database)/documents/live_sessions/$(liveId)
+            ).data.viewerCount
+                == get(
+                  /databases/$(database)/documents/live_sessions/$(liveId)
+                ).data.viewerCount - 1;
+        allow update: if false;
+      }
+
+      match /board_items/{itemId} {
+        allow read: if signedIn();
+        allow create: if signedIn()
+            && (
+              get(/databases/$(database)/documents/live_sessions/$(liveId))
+                  .data.hostId == request.auth.uid
+              || (
+                get(/databases/$(database)/documents/live_sessions/$(liveId))
+                    .data.boardWriteEnabled == true
+                && get(
+                  /databases/$(database)/documents/live_sessions/$(liveId)/join_requests/$(request.auth.uid)
+                ).data.status == 'accepted'
+                && request.resource.data.userId == request.auth.uid
+                && request.resource.data.type in ['stroke', 'text']
+              )
+            );
+        allow update: if signedIn()
+            && get(/databases/$(database)/documents/live_sessions/$(liveId))
+                .data.hostId == request.auth.uid;
+        allow delete: if signedIn()
+            && (
+              get(/databases/$(database)/documents/live_sessions/$(liveId))
+                  .data.hostId == request.auth.uid
+              || (
+                resource.data.userId == request.auth.uid
+                && resource.data.type in ['stroke', 'text']
+                && get(/databases/$(database)/documents/live_sessions/$(liveId))
+                    .data.boardWriteEnabled == true
+                && get(
+                  /databases/$(database)/documents/live_sessions/$(liveId)/join_requests/$(request.auth.uid)
+                ).data.status == 'accepted'
+              )
+            );
+      }
+
+      match /teacher_ai_notes/{noteId} {
+        allow read: if signedIn()
+            && resource.data.userId == request.auth.uid;
+        allow write: if false;
+      }
+
+      match /captions/{captionId} {
+        allow read: if signedIn();
+        allow create: if signedIn()
+            && request.resource.data.userId == request.auth.uid
+            && request.resource.data.text is string
+            && request.resource.data.text.size() > 0
+            && request.resource.data.text.size() <= 400
+            && (
+              get(/databases/$(database)/documents/live_sessions/$(liveId))
+                  .data.hostId == request.auth.uid
+              || get(
+                /databases/$(database)/documents/live_sessions/$(liveId)/join_requests/$(request.auth.uid)
+              ).data.status == 'accepted'
+            );
+        allow update, delete: if false;
+      }
+
+      match /gifts/{giftId} {
+        allow read: if signedIn();
+        allow write: if false;
+      }
+
+      match /messages/{messageId} {
+        allow read: if signedIn();
+        allow create: if signedIn()
+            && request.resource.data.senderId == request.auth.uid
+            && request.resource.data.text is string
+            && request.resource.data.text.size() > 0
+            && request.resource.data.text.size() <= 500
+            && request.resource.data.keys().hasOnly([
+              'senderId', 'senderName', 'senderPhotoUrl', 'text', 'createdAt'
+            ]);
+        allow update, delete: if false;
+      }
+
+      match /join_requests/{userId} {
+        allow read: if signedIn()
+            && (
+              userId == request.auth.uid
+              || get(/databases/$(database)/documents/live_sessions/$(liveId))
+                  .data.hostId == request.auth.uid
+              || isGlobalModerator(
+                get(/databases/$(database)/documents/live_sessions/$(liveId))
+                    .data.hostId,
+                request.auth.uid
+              )
+            );
+        allow create: if signedIn()
+            && request.resource.data.uid == userId
+            && (
+              (
+                userId == request.auth.uid
+                && request.resource.data.status == 'pending'
+              )
+              || (
+                userId != request.auth.uid
+                && request.resource.data.status == 'invited'
+                && request.resource.data.invitedBy == request.auth.uid
+                && request.resource.data.invitedAt == request.time
+                && exists(
+                  /databases/$(database)/documents/live_sessions/$(liveId)/viewers/$(userId)
+                )
+                && (
+                  get(/databases/$(database)/documents/live_sessions/$(liveId))
+                      .data.hostId == request.auth.uid
+                  || isGlobalModerator(
+                    get(/databases/$(database)/documents/live_sessions/$(liveId))
+                        .data.hostId,
+                    request.auth.uid
+                  )
+                )
+              )
+            );
+        allow update: if signedIn()
+            && request.resource.data.uid == resource.data.uid
+            && (
+              (
+                (
+                  get(/databases/$(database)/documents/live_sessions/$(liveId))
+                      .data.hostId == request.auth.uid
+                  || isGlobalModerator(
+                    get(/databases/$(database)/documents/live_sessions/$(liveId))
+                        .data.hostId,
+                    request.auth.uid
+                  )
+                )
+                && resource.data.status == 'pending'
+                && request.resource.data.status in ['accepted', 'declined']
+                && request.resource.data.diff(resource.data).affectedKeys()
+                    .hasOnly(['status', 'decidedAt'])
+              )
+              || (
+                (
+                  get(/databases/$(database)/documents/live_sessions/$(liveId))
+                      .data.hostId == request.auth.uid
+                  || isGlobalModerator(
+                    get(/databases/$(database)/documents/live_sessions/$(liveId))
+                        .data.hostId,
+                    request.auth.uid
+                  )
+                )
+                && request.resource.data.status == 'invited'
+                && request.resource.data.invitedBy == request.auth.uid
+                && request.resource.data.invitedAt == request.time
+                && exists(
+                  /databases/$(database)/documents/live_sessions/$(liveId)/viewers/$(userId)
+                )
+                && request.resource.data.diff(resource.data).affectedKeys()
+                    .hasOnly([
+                      'displayName', 'photoUrl', 'status', 'invitedBy',
+                      'invitedAt', 'requestedAt', 'decidedAt'
+                    ])
+              )
+              || (
+                userId == request.auth.uid
+                && resource.data.status == 'invited'
+                && request.resource.data.status in ['accepted', 'declined']
+                && request.resource.data.diff(resource.data).affectedKeys()
+                    .hasOnly(['status', 'decidedAt'])
+                && (
+                  request.resource.data.status == 'declined'
+                  || getAfter(
+                    /databases/$(database)/documents/live_sessions/$(liveId)
+                  ).data.guestCount
+                      == get(
+                        /databases/$(database)/documents/live_sessions/$(liveId)
+                      ).data.guestCount + 1
+                )
+              )
+              || (
+                userId == request.auth.uid
+                && resource.data.status == 'accepted'
+                && request.resource.data.status == 'left'
+                && request.resource.data.diff(resource.data).affectedKeys()
+                    .hasOnly(['status', 'decidedAt'])
+              )
+              || (
+                userId == request.auth.uid
+                && resource.data.status in ['declined', 'left']
+                && request.resource.data.status == 'pending'
+                && request.resource.data.diff(resource.data).affectedKeys()
+                    .hasOnly([
+                      'displayName', 'photoUrl', 'status',
+                      'requestedAt', 'decidedAt'
+                    ])
+              )
+            );
+        allow delete: if signedIn()
+            && userId == request.auth.uid
+            && resource.data.status == 'pending';
+      }
+    }
+
+    // -------------------------
+    // VOICE ROOMS
+    // -------------------------
+    match /rooms/{roomId} {
+      allow read: if signedIn();
+
+      allow create: if signedIn()
+          && request.resource.data.hostId == request.auth.uid
+          && request.resource.data.channelId == roomId
+          && request.resource.data.get('roomLevel', 1) == 1
+          && request.resource.data.get('roomXp', 0) == 0
+          // A verified quiz must be created by the authenticated backend.
+          && !('quiz' in request.resource.data);
+
+      // Normally only the host updates the room.
+      // If the old host participant is gone, a new authenticated host may
+      // recover that stale room document without changing the channel id.
+      allow update: if signedIn()
+          && request.resource.data.channelId == resource.data.channelId
+          && !request.resource.data.diff(resource.data)
+              .affectedKeys().hasAny([
+                'roomXp', 'roomLevel', 'lastTaskCompletionId'
+              ])
+          && validRoomThemeChange()
+          && validClientQuizChange()
+          && (
+            (
+              request.auth.uid == resource.data.hostId
+              && (
+                request.resource.data.hostId == resource.data.hostId
+                ||
+                (
+                  request.resource.data.hostId is string
+                  && exists(
+                    participantPath(
+                      roomId,
+                      request.resource.data.hostId
+                    )
+                  )
+                  && get(
+                    participantPath(
+                      roomId,
+                      request.resource.data.hostId
+                    )
+                  ).data.isModerator == true
+                )
+              )
+            )
+            ||
+            (
+              !oldHostStillPresent(roomId)
+              && request.resource.data.hostId == request.auth.uid
+            )
+
+          );
+
+      allow delete: if isHost(roomId);
+
+      match /access_grants/{userId} {
+        allow read: if signedIn()
+            && (request.auth.uid == userId || isHost(roomId));
+
+        allow create: if signedIn()
+            && request.auth.uid == userId
+            && request.resource.data.uid == request.auth.uid
+            && request.resource.data.code is string
+            && exists(privateCodePath(request.resource.data.code))
+            && get(privateCodePath(request.resource.data.code)).data.roomId == roomId;
+
+        allow update: if false;
+
+        allow delete: if signedIn()
+            && (request.auth.uid == userId || isHost(roomId));
+      }
+
+      match /captions/{captionId} {
+        allow read: if isRoomMember(roomId);
+
+        allow create: if isRoomMember(roomId)
+            && request.resource.data.userId == request.auth.uid
+            && request.resource.data.text is string
+            && request.resource.data.text.size() > 0
+            && request.resource.data.text.size() <= 400
+            && request.resource.data.displayName is string
+            && request.resource.data.languageCode is string
+            && request.resource.data.createdAt == request.time
+            && get(participantPath(roomId, request.auth.uid)).data.role in [
+              'host',
+              'coHost',
+              'speaker',
+              'vipSeat'
+            ];
+
+        allow update, delete: if false;
+      }
+
+      match /teacher_ai_notes/{noteId} {
+        allow read: if isRoomMember(roomId)
+            && resource.data.userId == request.auth.uid;
+
+        // Corrections are private to the speaker. Teacher AI notes are
+        // written by the trusted backend through Firebase Admin SDK.
+        allow create, update, delete: if false;
+      }
+
+      match /messages/{messageId} {
+        allow read: if signedIn()
+            && exists(participantPath(roomId, request.auth.uid));
+
+        allow create: if signedIn()
+            && exists(participantPath(roomId, request.auth.uid))
+            && request.resource.data.userId == request.auth.uid
+            && request.resource.data.text is string
+            && request.resource.data.text.size() > 0
+            && request.resource.data.text.size() <= 500;
+
+        allow update: if false;
+
+        allow delete: if signedIn()
+            && (
+              resource.data.userId == request.auth.uid
+              || isHost(roomId)
+              || (
+                exists(participantPath(roomId, request.auth.uid))
+                && get(participantPath(roomId, request.auth.uid)).data.isModerator == true
+              )
+            );
+      }
+
+      match /board_items/{itemId} {
+        allow read: if isRoomMember(roomId);
+        allow create: if isRoomMember(roomId)
+            && request.resource.data.userId == request.auth.uid
+            && (
+              isHost(roomId)
+              || get(roomPath(roomId)).data.boardWriteEnabled == true
+            );
+        allow update: if false;
+        allow delete: if isHost(roomId)
+            || (isRoomMember(roomId) && resource.data.userId == request.auth.uid);
+      }
+
+      // Correct answers for server-created rounds are never exposed to
+      // clients, including the room host. Admin SDK alone writes these.
+      match /quiz_private/{quizId} {
+        allow read, write: if false;
+      }
+
+      match /quiz_answers/{userId} {
+        allow read: if isRoomMember(roomId);
+        // Exactly one answer per participant per round, with a trusted
+        // server timestamp and the currently published round identifier.
+        allow create: if isRoomMember(roomId)
+            && userId == request.auth.uid
+            && request.resource.data.keys().hasOnly([
+              'userId', 'roundId', 'displayName', 'optionIndex', 'answeredAt'
+            ])
+            && request.resource.data.userId == request.auth.uid
+            && request.resource.data.displayName is string
+            && request.resource.data.displayName.size() <= 100
+            && request.resource.data.optionIndex is int
+            && request.resource.data.optionIndex >= 0
+            && request.resource.data.optionIndex <
+                get(roomPath(roomId)).data.quiz.options.size()
+            && request.resource.data.answeredAt == request.time
+            && request.resource.data.get('roundId', '') ==
+                get(roomPath(roomId)).data.quiz.get('roundId', '')
+            && get(roomPath(roomId)).data.quiz.revealed == false;
+        allow update: if false;
+        // The host may reset old local-practice votes. For verified rounds,
+        // only the server can clean votes between questions.
+        allow delete: if isHost(roomId)
+            && get(roomPath(roomId)).data.quiz.get('roundId', '') == '';
+      }
+
+      // Voice and live room test effects: REAL /gifts remain backend-only.
+      match /gift_previews/{senderId} {
+        allow read: if isRoomMember(roomId);
+        allow create: if validFreeGiftPreview(senderId)
+            && isRoomMember(roomId)
+            && get(roomPath(roomId)).data.isOpen == true
+            && exists(participantPath(
+                roomId, request.resource.data.recipientId))
+            && request.resource.data.senderName == get(
+                participantPath(roomId, request.auth.uid)
+              ).data.displayName
+            && request.resource.data.recipientName == get(
+                participantPath(roomId, request.resource.data.recipientId)
+              ).data.displayName;
+        allow update: if resource.data.senderId == request.auth.uid
+            && request.time > resource.data.sentAt + duration.value(3, 's')
+            && validFreeGiftPreview(senderId)
+            && isRoomMember(roomId)
+            && get(roomPath(roomId)).data.isOpen == true
+            && exists(participantPath(
+                roomId, request.resource.data.recipientId))
+            && request.resource.data.senderName == get(
+                participantPath(roomId, request.auth.uid)
+              ).data.displayName
+            && request.resource.data.recipientName == get(
+                participantPath(roomId, request.resource.data.recipientId)
+              ).data.displayName;
+        allow delete: if false;
+      }
+
+      match /gifts/{giftId} {
+        allow read: if isRoomMember(roomId);
+        // The trusted backend validates store_items and commits all balances.
+        allow create, update, delete: if false;
+      }
+
+      match /task_completions/{taskId} {
+        allow read: if isRoomMember(roomId);
+        // Mission evidence and XP are validated by the authenticated backend.
+        allow create, update, delete: if false;
+      }
+
+      match /rewards/{rewardId} {
+        allow read: if isRoomMember(roomId);
+
+        // Catalog reward eligibility is minted by verified backend levels.
+        allow create, update, delete: if false;
+      }
+
+      match /speaker_stats/{userId} {
+        allow read: if isRoomMember(roomId);
+
+        allow create: if isRoomMember(roomId)
+            && userId == request.auth.uid
+            && request.resource.data.userId == request.auth.uid
+            && request.resource.data.seconds == 30;
+
+        allow update: if isRoomMember(roomId)
+            && userId == request.auth.uid
+            && request.resource.data.userId == resource.data.userId
+            && request.resource.data
+                .diff(resource.data)
+                .affectedKeys()
+                .hasOnly(['displayName', 'seconds', 'updatedAt'])
+            && request.resource.data.seconds == resource.data.seconds + 30;
+
+        allow delete: if false;
+      }
+
+      match /ratings/{ratingId} {
+        allow read: if isRoomMember(roomId);
+        allow create, update: if isRoomMember(roomId)
+            && request.resource.data.fromUserId == request.auth.uid
+            && request.resource.data.stars is int
+            && request.resource.data.stars >= 1
+            && request.resource.data.stars <= 5;
+        allow delete: if false;
+      }
+
+      match /mod_log/{logId} {
+        allow read: if isHost(roomId) || isModerator(roomId);
+        allow create: if isHost(roomId) || isModerator(roomId);
+        allow update, delete: if false;
+      }
+
+      match /stage_invites/{userId} {
+        allow read: if signedIn()
+            && (
+              userId == request.auth.uid
+              || isHost(roomId)
+              || isModerator(roomId)
+            );
+
+        allow create: if signedIn()
+            && (isHost(roomId) || isModerator(roomId))
+            && request.resource.data.recipientId == userId
+            && request.resource.data.invitedBy == request.auth.uid
+            && request.resource.data.role in ['speaker', 'coHost', 'vipSeat']
+            && request.resource.data.seatIndex is int
+            && request.resource.data.seatIndex >= 2
+            && request.resource.data.seatIndex <= 8
+            && request.resource.data.status == 'pending'
+            && request.resource.data.createdAt == request.time
+            && exists(participantPath(roomId, userId))
+            && get(participantPath(roomId, userId)).data.role == 'listener';
+
+        allow update: if signedIn()
+            && request.resource.data.recipientId == resource.data.recipientId
+            && request.resource.data.recipientId == userId
+            && (
+              (
+                (isHost(roomId) || isModerator(roomId))
+                && request.resource.data.invitedBy == request.auth.uid
+                && request.resource.data.role in ['speaker', 'coHost', 'vipSeat']
+                && request.resource.data.seatIndex is int
+                && request.resource.data.seatIndex >= 2
+                && request.resource.data.seatIndex <= 8
+                && request.resource.data.status == 'pending'
+                && request.resource.data.createdAt == request.time
+                && exists(participantPath(roomId, userId))
+                && get(participantPath(roomId, userId)).data.role == 'listener'
+              )
+              || (
+                userId == request.auth.uid
+                && resource.data.status == 'pending'
+                && request.resource.data.status in ['accepted', 'declined']
+                && request.resource.data.diff(resource.data).affectedKeys()
+                    .hasOnly(['status', 'respondedAt'])
+                && request.resource.data.respondedAt == request.time
+                && (
+                  request.resource.data.status == 'declined'
+                  || (
+                    getAfter(participantPath(roomId, userId)).data.role
+                        == resource.data.role
+                    && getAfter(participantPath(roomId, userId)).data.seatIndex
+                        == resource.data.seatIndex
+                  )
+                )
+              )
+            );
+
+        allow delete: if false;
+      }
+
+      match /participants/{userId} {
+        allow read: if signedIn();
+
+        // Users create only their own participant record.
+        // A normal entrant starts as listener.
+        // Host is valid only when the same atomic write establishes
+        // that authenticated user as the room host.
+        allow create: if signedIn()
+            && userId == request.auth.uid
+            && request.resource.data.uid == request.auth.uid
+            && request.resource.data.handRaised == false
+            && (
+              request.resource.data.isModerator == false
+              || isTrustedRoomModerator(roomId, userId)
+            )
+            && request.resource.data.warningCount == 0
+            && request.resource.data.forcedMuted == false
+            && request.resource.data.kicked == false
+            && request.resource.data.joinedAt == request.time
+            && (
+              (
+                request.resource.data.role == 'listener'
+                && !('seatIndex' in request.resource.data)
+                && (
+                  get(roomPath(roomId)).data.isPrivate != true
+                  || exists(accessGrantPath(roomId, userId))
+                )
+              )
+              ||
+              (
+                request.resource.data.role == 'host'
+                && request.resource.data.seatIndex == 1
+                && isHostAfter(roomId)
+              )
+            );
+
+        // A listener/member may only update transient state on their own doc.
+        // They cannot promote themselves or choose a stage seat.
+        allow update: if signedIn()
+            && (
+              (
+                userId == request.auth.uid
+                && request.resource.data.uid == resource.data.uid
+                && request.resource.data
+                    .diff(resource.data)
+                    .affectedKeys()
+                    .hasOnly(['handRaised', 'requestedSeatIndex', 'agoraUid', 'updatedAt'])
+                && (
+                  !('requestedSeatIndex' in request.resource.data)
+                  ||
+                  (
+                    request.resource.data.requestedSeatIndex is int
+                    && request.resource.data.requestedSeatIndex >= 1
+                    && request.resource.data.requestedSeatIndex <= 8
+                  )
+                )
+              )
+              ||
+              (
+                userId == request.auth.uid
+                && resource.data.role == 'listener'
+                && request.resource.data.uid == resource.data.uid
+                && get(stageInvitePath(roomId, userId)).data.status == 'pending'
+                && getAfter(stageInvitePath(roomId, userId)).data.status == 'accepted'
+                && request.resource.data.role
+                    == getAfter(stageInvitePath(roomId, userId)).data.role
+                && request.resource.data.seatIndex
+                    == getAfter(stageInvitePath(roomId, userId)).data.seatIndex
+                && request.resource.data.handRaised == false
+                && request.resource.data
+                    .diff(resource.data)
+                    .affectedKeys()
+                    .hasOnly([
+                      'role',
+                      'seatIndex',
+                      'handRaised',
+                      'requestedSeatIndex',
+                      'updatedAt'
+                    ])
+              )
+              ||
+              (
+                userId == request.auth.uid
+                && request.resource.data.uid == request.auth.uid
+                && request.resource.data.role == 'listener'
+                && !('seatIndex' in request.resource.data)
+                && request.resource.data.handRaised == false
+                && request.resource.data.joinedAt == request.time
+                && request.resource.data
+                    .diff(resource.data)
+                    .affectedKeys()
+                    .hasOnly([
+                      'displayName',
+                      'photoUrl',
+                      'role',
+                      'handRaised',
+                      'seatIndex',
+                      'requestedSeatIndex',
+                      'agoraUid',
+                      'isModerator',
+                      'warningCount',
+                      'forcedMuted',
+                      'kicked',
+                      'joinedAt',
+                      'updatedAt'
+                    ])
+                && (
+                  request.resource.data.isModerator == false
+                  || isTrustedRoomModerator(roomId, userId)
+                )
+                && request.resource.data.warningCount == 0
+                && request.resource.data.forcedMuted == false
+                && request.resource.data.kicked == false
+              )
+              ||
+              (
+                isHost(roomId)
+                && userId == request.auth.uid
+                && request.resource.data.uid == request.auth.uid
+                && request.resource.data.role == 'host'
+                && request.resource.data.seatIndex == 1
+                && (
+                  request.resource.data.get('joinedAt', null) ==
+                      resource.data.get('joinedAt', null)
+                  || request.resource.data.get('joinedAt', null) == request.time
+                )
+              )
+              ||
+              (
+                isHost(roomId)
+                && request.resource.data.uid == resource.data.uid
+                && request.resource.data
+                    .diff(resource.data)
+                    .affectedKeys()
+                    .hasOnly([
+                      'role',
+                      'seatIndex',
+                      'handRaised',
+                      'requestedSeatIndex',
+                      'isModerator',
+                      'warningCount',
+                      'forcedMuted',
+                      'updatedAt'
+                    ])
+                && (
+                  (
+                    request.resource.data.role == 'listener'
+                    && !('seatIndex' in request.resource.data)
+                  )
+                  ||
+                  (
+                    request.resource.data.role in [
+                      'speaker',
+                      'coHost',
+                      'vipSeat'
+                    ]
+                    && request.resource.data.seatIndex is int
+                    && request.resource.data.seatIndex >= 2
+                    && request.resource.data.seatIndex <= 8
+                  )
+                  ||
+                  (
+                    request.resource.data.role == 'host'
+                    && request.resource.data.seatIndex == 1
+                    && request.resource.data.isModerator == false
+                    && getAfter(roomPath(roomId)).data.hostId == userId
+                  )
+                )
+              )
+              ||
+              (
+                isModerator(roomId)
+                && resource.data.role != 'host'
+                && request.resource.data.uid == resource.data.uid
+                && request.resource.data.isModerator == resource.data.isModerator
+                && request.resource.data
+                    .diff(resource.data)
+                    .affectedKeys()
+                    .hasOnly([
+                      'role',
+                      'seatIndex',
+                      'handRaised',
+                      'requestedSeatIndex',
+                      'warningCount',
+                      'forcedMuted',
+                      'updatedAt'
+                    ])
+                && (
+                  request.resource.data.role == resource.data.role
+                  ||
+                  (
+                    request.resource.data.role == 'listener'
+                    && !('seatIndex' in request.resource.data)
+                  )
+                  ||
+                  (
+                    resource.data.role == 'listener'
+                    && resource.data.handRaised == true
+                    && request.resource.data.role == 'speaker'
+                    && request.resource.data.handRaised == false
+                    && request.resource.data.seatIndex is int
+                    && request.resource.data.seatIndex >= 2
+                    && request.resource.data.seatIndex <= 8
+                  )
+                )
+              )
+            );
+
+        allow delete: if signedIn()
+            && (
+              userId == request.auth.uid
+              || isHost(roomId)
+              || (
+                isModerator(roomId)
+                && resource.data.role != 'host'
+              )
+            );
+      }
+    }
+
+    // Everything not explicitly listed above is denied.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+})
           && request.resource.data.recipientId is string
           && request.resource.data.recipientId != request.auth.uid
           && request.resource.data.recipientId != 'teacher_ai'
