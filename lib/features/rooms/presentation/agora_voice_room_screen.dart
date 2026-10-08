@@ -2995,14 +2995,21 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         // Only the chat composer moves over the keyboard; seats stay fixed.
         resizeToAvoidBottomInset: false,
         extendBodyBehindAppBar: true,
-        backgroundColor: const Color(0xFF0D4A38),
+        backgroundColor: Colors.transparent,
         appBar: AppBar(
           toolbarHeight: _boardVisible ? 52 : 68,
           elevation: 0,
           scrolledUnderElevation: 0,
+          forceMaterialTransparency: true,
           backgroundColor: Colors.transparent,
           surfaceTintColor: Colors.transparent,
           foregroundColor: Colors.white,
+          systemOverlayStyle: const SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: Brightness.light,
+            statusBarBrightness: Brightness.dark,
+            systemStatusBarContrastEnforced: false,
+          ),
           leading: IconButton(tooltip: label('قائمة الغرفة', 'Room menu'),
             onPressed: _showRoomMenu, icon: const Icon(Icons.more_horiz_rounded)),
           titleSpacing: 0,
