@@ -5,6 +5,7 @@ on:
     branches:
       - feat/worldvoice-avatar-frames-20261008
       - fix/worldvoice-voice-ai-language-tools-20261008
+      - fix/room-audio-first-join-teacher-ai-20261009
       - fix/free-worker-always-available-agora-20260927
       - fix/green-room-chat-stage-hand-preview-20260927
       - fix/finish-room-hub-quiz-gift-20260928
@@ -61,7 +62,7 @@ jobs:
         run: flutter analyze
 
       - name: Verify friend-demo safety and bundled premium gift assets
-        run: flutter test test/worldvoice_avatar_frame_test.dart test/friend_gift_preview_test.dart test/luxury_gift_assets_test.dart test/classic_gift_mesh_test.dart
+        run: flutter test test/worldvoice_avatar_frame_test.dart test/agora_connection_deadline_test.dart test/friend_gift_preview_test.dart test/luxury_gift_assets_test.dart test/classic_gift_mesh_test.dart
 
       # The URL and App ID are public; certificate stays solely in Cloudflare.
       # This test APK uses the existing project's temporary DEBUG signing only.
