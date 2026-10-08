@@ -17,12 +17,25 @@ class MainActivity : FlutterActivity() {
     private var pendingCameraResult: MethodChannel.Result? = null
     private var textToSpeech: TextToSpeech? = null
     private var ttsReady = false
+    // Retain only the latest AI sentence while Android initializes TTS.
+    private var pendingTeacherSpeech: Pair<String, String>? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
         textToSpeech = TextToSpeech(this) { status ->
             ttsReady = status == TextToSpeech.SUCCESS
+            if (ttsReady) {
+                runOnUiThread {
+                    val pending = pendingTeacherSpeech
+                    pendingTeacherSpeech = null
+                    if (pending != null) {
+                        speakReadyTeacherText(pending.first, pending.second)
+                    }
+                }
+            } else {
+                pendingTeacherSpeech = null
+            }
         }
 
         MethodChannel(
@@ -47,6 +60,7 @@ class MainActivity : FlutterActivity() {
                     speakTeacherText(text, languageCode, result)
                 }
                 "stop" -> {
+                    pendingTeacherSpeech = null
                     textToSpeech?.stop()
                     result.success(null)
                 }
@@ -64,29 +78,41 @@ class MainActivity : FlutterActivity() {
             result.success(null)
             return
         }
-        val engine = textToSpeech
-        if (engine == null || !ttsReady) {
-            result.error(
-                "TTS_NOT_READY",
-                "Text-to-speech is not ready yet.",
-                null,
-            )
+        if (!ttsReady || textToSpeech == null) {
+            // The first reply can arrive while the Android engine starts.
+            // Queue it rather than dropping the AI voice silently.
+            pendingTeacherSpeech = Pair(text, languageCode)
+            result.success(null)
             return
         }
+        val output = speakReadyTeacherText(text, languageCode)
+        if (output == TextToSpeech.SUCCESS) {
+            result.success(null)
+        } else {
+            result.error("TTS_FAILED", "The device could not speak the AI reply.", null)
+        }
+    }
 
-        val locale = if (languageCode.isBlank()) {
+    private fun speakReadyTeacherText(text: String, languageCode: String): Int {
+        val engine = textToSpeech ?: return TextToSpeech.ERROR
+        val targetLocale = if (languageCode.isBlank()) {
             Locale.getDefault()
         } else {
-            Locale.forLanguageTag(languageCode)
+            Locale.forLanguageTag(languageCode.replace('_', '-'))
         }
-        engine.language = locale
-        engine.speak(
+        val languageResult = engine.setLanguage(targetLocale)
+        if (languageResult == TextToSpeech.LANG_MISSING_DATA ||
+            languageResult == TextToSpeech.LANG_NOT_SUPPORTED
+        ) {
+            // Keep a working voice when the requested language pack is missing.
+            engine.setLanguage(Locale.getDefault())
+        }
+        return engine.speak(
             text,
             TextToSpeech.QUEUE_FLUSH,
             null,
             "worldvoice_teacher_ai",
         )
-        result.success(null)
     }
 
     private fun requestCameraPermission(result: MethodChannel.Result) {
@@ -133,6 +159,7 @@ class MainActivity : FlutterActivity() {
     }
 
     override fun onDestroy() {
+        pendingTeacherSpeech = null
         textToSpeech?.stop()
         textToSpeech?.shutdown()
         textToSpeech = null
