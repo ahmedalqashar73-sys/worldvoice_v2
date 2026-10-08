@@ -34,6 +34,7 @@ class RoomTranslationService {
   final Map<String, Future<void>> _modelDownloads =
       <String, Future<void>>{};
 
+  /// Try on-device ML Kit first; use authenticated translation if unavailable.
   Future<String> translate({
     required String text,
     required String sourceCode,
@@ -41,33 +42,121 @@ class RoomTranslationService {
   }) async {
     final normalized = text.trim();
     if (normalized.isEmpty) return normalized;
-
     final source = _language(sourceCode);
     final target = _language(targetCode);
-    if (source == null || target == null || source == target) {
+    final rawSource = sourceCode.toLowerCase().split(RegExp(r'[-_]')).first;
+    final rawTarget = targetCode.toLowerCase().split(RegExp(r'[-_]')).first;
+    if (rawSource.isNotEmpty && rawSource == rawTarget) return normalized;
+    if (source != null && target != null && source == target) {
       return normalized;
     }
 
-    await _ensureModel(source);
-    await _ensureModel(target);
+    Object? localFailure;
+    if (source != null && target != null) {
+      try {
+        await Future.wait<void>([
+          _ensureModel(source),
+          _ensureModel(target),
+        ]).timeout(const Duration(seconds: 75));
+        final key = '${source.bcpCode}->${target.bcpCode}';
+        final translator = _translators.putIfAbsent(
+          key,
+          () => OnDeviceTranslator(
+            sourceLanguage: source,
+            targetLanguage: target,
+          ),
+        );
+        final translated = (await translator
+                .translateText(normalized)
+                .timeout(const Duration(seconds: 20)))
+            .trim();
+        if (translated.isNotEmpty) return translated;
+        localFailure = StateError('On-device translation returned no text.');
+      } catch (error) {
+        localFailure = error;
+      }
+    } else {
+      localFailure = StateError('On-device language model is unsupported.');
+    }
 
-    final key = '${source.bcpCode}->${target.bcpCode}';
-    final translator = _translators.putIfAbsent(
-      key,
-      () => OnDeviceTranslator(
-        sourceLanguage: source,
-        targetLanguage: target,
-      ),
+    try {
+      return await _translateViaBackend(
+        text: normalized,
+        targetCode: targetCode,
+      );
+    } catch (remoteError) {
+      final detail = remoteError.toString().replaceFirst('Bad state: ', '');
+      final localDetail =
+          localFailure?.toString().replaceFirst('Bad state: ', '') ?? '';
+      throw StateError(
+        'Translation unavailable: $detail'
+        '${localDetail.isEmpty ? '' : ' (device: $localDetail)'}',
+      );
+    }
+  }
+
+  Future<String> _translateViaBackend({
+    required String text,
+    required String targetCode,
+  }) async {
+    final remoteEndpoint = endpoint.trim();
+    if (remoteEndpoint.isEmpty) {
+      throw StateError('WorldVoice translation service is not configured.');
+    }
+    if (text.length > 500) {
+      throw StateError('Translation is limited to 500 characters at a time.');
+    }
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) throw StateError('Sign in to use translation.');
+    final token = await user.getIdToken().timeout(
+      const Duration(seconds: 12),
     );
-
-    return translator
-        .translateText(normalized)
-        .timeout(const Duration(seconds: 20));
+    if (token == null || token.isEmpty) {
+      throw StateError('Could not authorize translation.');
+    }
+    final response = await http
+        .post(
+          Uri.parse(remoteEndpoint),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+          body: jsonEncode({
+            'context': _contextType,
+            'roomId': roomId,
+            'text': text,
+            'targetLanguageCode': targetCode.trim().isEmpty
+                ? 'en'
+                : targetCode.trim().toLowerCase(),
+          }),
+        )
+        .timeout(const Duration(seconds: 18));
+    Map<String, dynamic> decoded = <String, dynamic>{};
+    try {
+      final body = jsonDecode(response.body);
+      if (body is Map<String, dynamic>) decoded = body;
+    } catch (_) {
+      // A non-JSON response is reported with its HTTP status.
+    }
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw StateError(
+        decoded['error']?.toString().trim().isNotEmpty == true
+            ? decoded['error'].toString()
+            : 'Translation server returned HTTP ${response.statusCode}.',
+      );
+    }
+    final result = decoded['translation']?.toString().trim() ?? '';
+    if (result.isEmpty) {
+      throw StateError('Translation server returned no text.');
+    }
+    return result;
   }
 
   Future<void> _ensureModel(TranslateLanguage language) async {
     final code = language.bcpCode;
-    final exists = await _models.isModelDownloaded(code);
+    final exists = await _models
+        .isModelDownloaded(code)
+        .timeout(const Duration(seconds: 10));
     if (exists) return;
 
     final pending = _modelDownloads[code];
@@ -164,83 +253,16 @@ class RoomTranslationService {
   }) async {
     final normalized = text.trim();
     if (normalized.isEmpty) return normalized;
-
-    Object? localError;
-    final sourceCode = _guessSourceCode(
+    final guessed = _guessSourceCode(
       normalized,
       fallbackSourceCode: fallbackSourceCode,
       targetCode: targetCode,
     );
-
-    // Prefer ML Kit on the device whenever we can identify the source.
-    // This keeps normal room/chat translation independent of paid AI quota.
-    if (sourceCode != null) {
-      try {
-        return await translate(
-          text: normalized,
-          sourceCode: sourceCode,
-          targetCode: targetCode,
-        );
-      } catch (error) {
-        localError = error;
-      }
-    }
-
-    Object? backendError;
-    final user = FirebaseAuth.instance.currentUser;
-    final configured = endpoint.trim().isNotEmpty;
-
-    if (user != null && configured) {
-      try {
-        final idToken = await user.getIdToken();
-        if (idToken == null || idToken.isEmpty) {
-          throw StateError('Could not authorize translation.');
-        }
-
-        final response = await http
-            .post(
-              Uri.parse(endpoint),
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer $idToken',
-              },
-              body: jsonEncode({
-                'context': _contextType,
-                'roomId': roomId,
-                'text': normalized,
-                'targetLanguageCode': targetCode.trim().isEmpty
-                    ? 'en'
-                    : targetCode.trim().toLowerCase(),
-              }),
-            )
-            .timeout(const Duration(seconds: 12));
-
-        if (response.statusCode >= 200 && response.statusCode < 300) {
-          final decoded = jsonDecode(response.body);
-          if (decoded is Map<String, dynamic>) {
-            final translation =
-                decoded['translation']?.toString().trim() ?? '';
-            if (translation.isNotEmpty) return translation;
-          }
-        } else {
-          var message = 'Translation backend unavailable.';
-          try {
-            final decoded = jsonDecode(response.body);
-            if (decoded is Map<String, dynamic>) {
-              message = decoded['error']?.toString() ?? message;
-            }
-          } catch (_) {}
-          backendError = StateError(message);
-        }
-      } catch (error) {
-        backendError = error;
-      }
-    }
-
-    throw StateError(
-      backendError?.toString().replaceFirst('Bad state: ', '') ??
-          localError?.toString().replaceFirst('Bad state: ', '') ??
-          'Translation is unavailable for this language right now.',
+    // A single shared device-to-server fallback is used for all surfaces.
+    return translate(
+      text: normalized,
+      sourceCode: guessed ?? '',
+      targetCode: targetCode,
     );
   }
 
