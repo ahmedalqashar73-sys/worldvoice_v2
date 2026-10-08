@@ -3205,7 +3205,6 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               ]);
             })),
           ])),
-            ),
           ),
         ),
       ),
