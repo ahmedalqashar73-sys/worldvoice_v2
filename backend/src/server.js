@@ -396,6 +396,63 @@ function validChannelName(value) {
   );
 }
 
+const freeRoomBackgroundThemes = new Set([
+  "softGreenFlow",
+  "wv_bg_06",
+  "wv_bg_09",
+  "wv_bg_18",
+  "wv_bg_20",
+  "wv_bg_33",
+]);
+
+app.post("/room/background/apply", async (req, res, next) => {
+  try {
+    const user = await authenticatedUser(req);
+    const roomId = String(req.body?.roomId || "").trim();
+    const themeId = String(req.body?.themeId || "").trim();
+
+    const atlasTheme = /^wv_bg_(0[1-9]|[12][0-9]|3[0-6])$/.test(themeId);
+    if (!validChannelName(roomId) ||
+        !(themeId === "softGreenFlow" || atlasTheme)) {
+      return res.status(400).json({error: "Invalid room background request."});
+    }
+
+    const roomRef = db.collection("rooms").doc(roomId);
+    const roomSnap = await roomRef.get();
+    if (!roomSnap.exists || roomSnap.data()?.isOpen !== true) {
+      return res.status(404).json({error: "Room is not open."});
+    }
+    if (roomSnap.data()?.hostId !== user.uid) {
+      return res.status(403).json({error: "Only the room host can change the background."});
+    }
+
+    let backgroundUrl = "";
+    if (!freeRoomBackgroundThemes.has(themeId)) {
+      const entitlement = await db.collection("users").doc(user.uid)
+        .collection("room_backgrounds").doc(themeId).get();
+      const data = entitlement.data() || {};
+      const expiresAt = data.expiresAt?.toMillis?.() ?? null;
+      if (!entitlement.exists ||
+          data.themeId !== themeId ||
+          (expiresAt !== null && expiresAt <= Date.now())) {
+        return res.status(403).json({error: "This background is not owned or has expired."});
+      }
+      backgroundUrl = String(data.backgroundUrl || "").trim();
+    }
+
+    await roomRef.set({
+      themeId,
+      backgroundUrl: backgroundUrl || FieldValue.delete(),
+      backgroundLayoutVersion: 3,
+      updatedAt: FieldValue.serverTimestamp(),
+    }, {merge: true});
+
+    return res.json({ok: true, themeId});
+  } catch (error) {
+    next(error);
+  }
+});
+
 function isStageRole(role) {
   return ["host", "coHost", "speaker", "vipSeat"].includes(role);
 }
