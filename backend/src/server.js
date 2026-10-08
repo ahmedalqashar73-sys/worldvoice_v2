@@ -890,13 +890,34 @@ app.post("/ai/status", async (req, res, next) => {
     requireEnv(openAiKey, "OPENAI_API_KEY");
     requireEnv(teacherModel, "OPENAI_TEACHER_MODEL");
 
-    await openai.responses.create({
-      model: teacherModel,
-      store: false,
-      max_output_tokens: 8,
-      instructions: "Return exactly OK.",
-      input: "OK",
-    });
+    // A very small max_output_tokens value can be rejected by reasoning
+    // models before a response is generated. Use a compatible budget while
+    // keeping this probe short and making real provider failures visible.
+    try {
+      await openai.responses.create({
+        model: teacherModel,
+        store: false,
+        max_output_tokens: 128,
+        instructions: "You are the WorldVoice service health checker.",
+        input: "Reply with OK.",
+      });
+    } catch (providerError) {
+      const status = Number(providerError?.status);
+      const code = String(providerError?.code || "");
+      if (status === 400 || status === 404) {
+        console.error("WorldVoice Teacher AI health configuration:", {
+          status,
+          code,
+          model: teacherModel,
+          // Do not log API keys or user speech.
+        });
+        return res.status(503).json({
+          code: "AI_MODEL_CONFIGURATION",
+          error: "Teacher AI provider rejected its model configuration.",
+        });
+      }
+      throw providerError;
+    }
 
     return res.json({ok: true, available: true});
   } catch (error) {
