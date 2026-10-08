@@ -17,12 +17,30 @@ class MainActivity : FlutterActivity() {
     private var pendingCameraResult: MethodChannel.Result? = null
     private var textToSpeech: TextToSpeech? = null
     private var ttsReady = false
+    private var ttsInitializationFailed = false
+    private var pendingSpeech: Triple<String, String, MethodChannel.Result>? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
         textToSpeech = TextToSpeech(this) { status ->
-            ttsReady = status == TextToSpeech.SUCCESS
+            runOnUiThread {
+                ttsReady = status == TextToSpeech.SUCCESS
+                ttsInitializationFailed = !ttsReady
+                val queued = pendingSpeech
+                pendingSpeech = null
+                if (queued != null) {
+                    if (ttsReady) {
+                        speakTeacherText(queued.first, queued.second, queued.third)
+                    } else {
+                        queued.third.error(
+                            "TTS_NOT_READY",
+                            "Text-to-speech initialization failed.",
+                            null,
+                        )
+                    }
+                }
+            }
         }
 
         MethodChannel(
@@ -47,6 +65,10 @@ class MainActivity : FlutterActivity() {
                     speakTeacherText(text, languageCode, result)
                 }
                 "stop" -> {
+                    pendingSpeech?.third?.error(
+                        "TTS_CANCELED", "Speech was stopped.", null,
+                    )
+                    pendingSpeech = null
                     textToSpeech?.stop()
                     result.success(null)
                 }
@@ -65,12 +87,17 @@ class MainActivity : FlutterActivity() {
             return
         }
         val engine = textToSpeech
-        if (engine == null || !ttsReady) {
-            result.error(
-                "TTS_NOT_READY",
-                "Text-to-speech is not ready yet.",
-                null,
+        if (engine == null || ttsInitializationFailed) {
+            result.error("TTS_NOT_READY", "Text-to-speech is unavailable.", null)
+            return
+        }
+        if (!ttsReady) {
+            // Flutter may request the first answer while Android TTS is
+            // still initializing. Queue the latest reply instead of dropping it.
+            pendingSpeech?.third?.error(
+                "TTS_SUPERSEDED", "A newer Teacher AI reply arrived.", null,
             )
+            pendingSpeech = Triple(text, languageCode, result)
             return
         }
 
@@ -79,14 +106,29 @@ class MainActivity : FlutterActivity() {
         } else {
             Locale.forLanguageTag(languageCode)
         }
-        engine.language = locale
-        engine.speak(
+        val languageStatus = engine.setLanguage(locale)
+        if (
+            languageStatus == TextToSpeech.LANG_MISSING_DATA ||
+            languageStatus == TextToSpeech.LANG_NOT_SUPPORTED
+        ) {
+            result.error(
+                "TTS_LANGUAGE_UNAVAILABLE",
+                "This device does not have a voice for the selected language.",
+                null,
+            )
+            return
+        }
+        val status = engine.speak(
             text,
             TextToSpeech.QUEUE_FLUSH,
             null,
             "worldvoice_teacher_ai",
         )
-        result.success(null)
+        if (status == TextToSpeech.ERROR) {
+            result.error("TTS_PLAY_FAILED", "Could not play speech.", null)
+        } else {
+            result.success(null)
+        }
     }
 
     private fun requestCameraPermission(result: MethodChannel.Result) {
@@ -133,6 +175,10 @@ class MainActivity : FlutterActivity() {
     }
 
     override fun onDestroy() {
+        pendingSpeech?.third?.error(
+            "TTS_CANCELED", "The speech session has ended.", null,
+        )
+        pendingSpeech = null
         textToSpeech?.stop()
         textToSpeech?.shutdown()
         textToSpeech = null
