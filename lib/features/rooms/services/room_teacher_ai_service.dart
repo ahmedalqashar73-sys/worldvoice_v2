@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -52,6 +53,9 @@ class RoomTeacherAiService {
   bool get isConfigured => endpoint.trim().isNotEmpty;
   bool get isAskConfigured => askEndpoint.trim().isNotEmpty;
 
+  /// Safe status label only. Do not expose provider keys or HTTP bodies.
+  String? lastAvailabilityError;
+
   FirebaseFirestore get _db => FirebaseFirestore.instance;
 
   String get _contextType =>
@@ -104,13 +108,26 @@ class RoomTeacherAiService {
   }
 
   Future<bool> probeAvailability() async {
+    lastAvailabilityError = null;
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null || statusEndpoint.trim().isEmpty) return false;
+    if (user == null) {
+      lastAvailabilityError = 'SIGN_IN_REQUIRED';
+      return false;
+    }
+    if (statusEndpoint.trim().isEmpty) {
+      lastAvailabilityError = 'BACKEND_URL_MISSING';
+      return false;
+    }
 
     try {
       final idToken = await user.getIdToken()
-          .timeout(const Duration(seconds: 10));
-      if (idToken == null || idToken.isEmpty) return false;
+          .timeout(const Duration(seconds: 12));
+      if (idToken == null || idToken.isEmpty) {
+        lastAvailabilityError = 'AUTH_TOKEN_UNAVAILABLE';
+        return false;
+      }
+      // Allow a cold Render instance time to wake; 12 seconds previously
+      // mislabeled a slow server as a permanently offline AI provider.
       final response = await http
           .post(
             Uri.parse(statusEndpoint),
@@ -123,21 +140,34 @@ class RoomTeacherAiService {
               'roomId': roomId,
             }),
           )
-          .timeout(const Duration(seconds: 12));
+          .timeout(const Duration(seconds: 30));
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return true;
       }
-
-      try {
-        final decoded = jsonDecode(response.body);
-        if (decoded is Map<String, dynamic> &&
-            decoded['code']?.toString() == 'AI_SERVICE_UNAVAILABLE') {
-          return false;
-        }
-      } catch (_) {}
+      // Public codes are safe to surface. The backend's raw error text
+      // could contain internal details, so never show it to room members.
+      if (response.statusCode == 401) {
+        lastAvailabilityError = 'AUTH_REJECTED';
+      } else if (response.statusCode == 403) {
+        lastAvailabilityError = 'ROOM_ACCESS_DENIED';
+      } else if (response.statusCode == 404) {
+        lastAvailabilityError = 'ROOM_NOT_FOUND';
+      } else if (response.statusCode == 429) {
+        lastAvailabilityError = 'AI_PROVIDER_LIMIT';
+      } else if (response.statusCode == 503) {
+        lastAvailabilityError = 'AI_SERVICE_UNAVAILABLE';
+      } else {
+        lastAvailabilityError = 'SERVER_HTTP_${response.statusCode}';
+      }
       return false;
-    } catch (_) {
+    } on TimeoutException {
+      lastAvailabilityError = 'NETWORK_TIMEOUT';
+      return false;
+    } catch (error) {
+      lastAvailabilityError = error is FormatException
+          ? 'BAD_SERVER_RESPONSE'
+          : 'NETWORK_ERROR';
       return false;
     }
   }

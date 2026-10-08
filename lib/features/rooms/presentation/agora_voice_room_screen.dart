@@ -300,6 +300,53 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     }
   }
 
+  /// Keep a transient token/network failure from leaving a brand-new
+  /// Firestore room permanently silent until the user presses Retry.
+  /// Retry only once; invalid credentials and permission errors are final.
+  bool _canRetryInitialAudio(Object error) {
+    final message = error.toString().toLowerCase();
+    return message.contains('timeout') ||
+        message.contains('timed out') ||
+        message.contains('temporarily unavailable') ||
+        message.contains('connection failed') ||
+        message.contains('disconnected') ||
+        message.contains('socketexception') ||
+        message.contains('http 502') ||
+        message.contains('http 503') ||
+        message.contains('http 504');
+  }
+
+  Future<void> _connectInitialAudio() async {
+    try {
+      await _controller.ensureConnected(
+        channelId: widget.channelId,
+        role: widget.initialRole,
+      );
+    } catch (firstError) {
+      if (!_canRetryInitialAudio(firstError) || !mounted || _leaving) {
+        rethrow;
+      }
+      debugPrint('WorldVoice audio first attempt: $firstError; retrying once');
+      setState(() {
+        _audioRetrying = true;
+        _audioFailure = null;
+      });
+      try {
+        await Future<void>.delayed(const Duration(milliseconds: 900));
+        if (!mounted || _leaving) return;
+        await _controller.ensureConnected(
+          channelId: widget.channelId,
+          role: (_me?.isOnStage ??
+                  (widget.initialRole == AgoraRoomRole.speaker))
+              ? AgoraRoomRole.speaker
+              : AgoraRoomRole.listener,
+        );
+      } finally {
+        if (mounted) setState(() => _audioRetrying = false);
+      }
+    }
+  }
+
   Future<void> _startRoomSession() async {
     var entryStage = 'room-read';
     var membershipEstablished = false;
@@ -532,11 +579,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       // A successful joinChannel() request is not a completed voice
       // connection. Wait for Agora's onJoinChannelSuccess callback.
       try {
-        await _controller.ensureConnected(
-          channelId: widget.channelId,
-          role: widget.initialRole,
-        );
-        if (mounted) setState(() => _audioFailure = null);
+        await _connectInitialAudio();
+        if (mounted && _controller.joined) {
+          setState(() => _audioFailure = null);
+        }
         await _synchronizeParticipantAudio();
       } catch (error) {
         debugPrint('WorldVoice voice join needs attention: $error');
@@ -3036,7 +3082,11 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                 )),
                 Text((widget.roomLanguageCode ?? 'en').toUpperCase(),
                   style: const TextStyle(color: Colors.white70, fontSize: 10)),
-                Text(_controller.joined ? label('• متصل', '• Live') : label('• الصوت غير متصل', '• Audio offline'),
+                Text(_controller.joined
+                      ? label('• متصل', '• Live')
+                      : (_controller.connecting || _audioRetrying)
+                          ? label('• جارٍ الاتصال', '• Connecting')
+                          : label('• الصوت غير متصل', '• Audio offline'),
                   style: TextStyle(color: _controller.joined ? const Color(0xFF88EDBC) : Colors.white60, fontSize: 10)),
               ]),
             ]),

@@ -179,6 +179,20 @@ class RoomTeacherAiSheet extends StatelessWidget {
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
+                if (!isOnline &&
+                    service.lastAvailabilityError?.isNotEmpty == true) ...[
+                  const SizedBox(height: 10),
+                  Text(
+                    isArabic
+                        ? 'سبب تعذر الاتصال: ${service.lastAvailabilityError}'
+                        : 'Connection check: ${service.lastAvailabilityError}',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 14),
                 Chip(
                   avatar: const Icon(Icons.language_rounded, size: 17),
