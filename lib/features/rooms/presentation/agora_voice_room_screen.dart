@@ -2994,7 +2994,21 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     String label(String ar, String en) => isArabic ? ar : en;
     return Directionality(
       textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
-      child: Scaffold(
+      child: _AnimatedRoomBackground(
+        colors: _roomThemeColors(_featureState.themeId),
+        backgroundUrl: _featureState.backgroundUrl,
+        themeId: _featureState.themeId,
+        animated: const {
+          'skyAura',
+          'silverWaves',
+          'goldenVipGlow',
+          'royalEmeraldMotion',
+          'auroraWorld',
+          'galaxyTalk',
+          'crystalBlueLuxury',
+          'velvetNight',
+        }.contains(_featureState.themeId),
+        child: Scaffold(
         // Only the chat composer moves over the keyboard; seats stay fixed.
         resizeToAvoidBottomInset: false,
         extendBodyBehindAppBar: true,
@@ -3053,21 +3067,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               icon: const Icon(Icons.picture_in_picture_alt_outlined, size: 21)),
           ],
         ),
-        body: _AnimatedRoomBackground(
-          colors: _roomThemeColors(_featureState.themeId),
-          backgroundUrl: _featureState.backgroundUrl,
-          themeId: _featureState.themeId,
-          animated: const {
-            'skyAura',
-            'silverWaves',
-            'goldenVipGlow',
-            'royalEmeraldMotion',
-            'auroraWorld',
-            'galaxyTalk',
-            'crystalBlueLuxury',
-            'velvetNight',
-          }.contains(_featureState.themeId),
-          child: SafeArea(
+        body: SafeArea(
             top: true,
             child: Padding(
               padding: EdgeInsets.only(top: _boardVisible ? 52 : 68),
