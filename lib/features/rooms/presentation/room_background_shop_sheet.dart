@@ -138,7 +138,7 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                         stream: roomFeatures.watchState(),
                         builder: (context, roomSnapshot) {
                           final selectedTheme =
-                              roomSnapshot.data?.themeId ?? 'wv_bg_06';
+                              roomSnapshot.data?.themeId ?? 'softGreenFlow';
                           final backgrounds = RoomBackgroundCatalog.items;
 
                           return GridView.builder(
@@ -378,11 +378,25 @@ class _BackgroundCatalogCard extends StatelessWidget {
               fit: StackFit.expand,
               children: [
                 RepaintBoundary(
-                  child: RoomBackgroundAtlas(
-                    themeId: item.themeId,
-                    filterQuality: FilterQuality.low,
-                    fit: BoxFit.cover,
-                  ),
+                  child: item.themeId == 'softGreenFlow'
+                      ? const DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Color(0xFF0D4A38),
+                                Color(0xFF123A32),
+                                Color(0xFF111D1A),
+                              ],
+                            ),
+                          ),
+                        )
+                      : RoomBackgroundAtlas(
+                          themeId: item.themeId,
+                          filterQuality: FilterQuality.low,
+                          fit: BoxFit.cover,
+                        ),
                 ),
                 PositionedDirectional(
                   top: 7,
