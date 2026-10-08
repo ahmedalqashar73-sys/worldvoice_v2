@@ -2726,6 +2726,7 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
   bool _teacherAskBusy = false;
   RoomCaption? _queuedTeacherCaption;
   String? _lastTeacherPromptCaptionId;
+  DateTime? _teacherSpeechSuppressedUntil;
   final ValueNotifier<bool> _teacherOnline =
       ValueNotifier<bool>(true);
 
@@ -2764,8 +2765,12 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
           if (mounted) setState(() => _error = error.toString());
         },
       );
-      _teacherVoiceSub =
-          _teacherAi.watchSpokenAnswers().listen(_handleTeacherVoice);
+      _teacherVoiceSub = _teacherAi.watchSpokenAnswers().listen(
+        _handleTeacherVoice,
+        onError: (Object error, StackTrace stackTrace) {
+          debugPrint('WorldVoice live Teacher AI voice unavailable: $error');
+        },
+      );
     }
   }
 
@@ -2866,11 +2871,18 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
       }
     }
 
+    final suppressedUntil = _teacherSpeechSuppressedUntil;
+    final recentlySpoken = latest?.createdAt == null ||
+        DateTime.now().difference(latest!.createdAt!).abs() <
+            const Duration(seconds: 20);
     if (_teacherConversationActive &&
         latest != null &&
         latest.userId == FirebaseAuth.instance.currentUser?.uid &&
         latest.id != _lastTeacherPromptCaptionId &&
-        latest.text.trim().isNotEmpty) {
+        latest.text.trim().isNotEmpty &&
+        recentlySpoken &&
+        (suppressedUntil == null ||
+            !DateTime.now().isBefore(suppressedUntil))) {
       _lastTeacherPromptCaptionId = latest.id;
       unawaited(_queueLiveTeacherReply(latest));
     }
@@ -2942,6 +2954,10 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
     final roomLanguage = widget.roomLanguageCode.trim().toLowerCase();
     final answerLanguage = latest.languageCode.trim().toLowerCase();
     if (answerLanguage.isNotEmpty && answerLanguage != roomLanguage) return;
+    // Avoid recognizing device playback as a new member question.
+    final seconds = (latest.answer.length / 13).ceil().clamp(8, 22);
+    _teacherSpeechSuppressedUntil =
+        DateTime.now().add(Duration(seconds: seconds));
     unawaited(_speakLiveTeacher(latest.answer, roomLanguage));
   }
 
@@ -2954,9 +2970,17 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
         targetCode: _targetLanguage,
       );
       if (!mounted || _latest?.id != caption.id) return;
-      setState(() => _translated = value);
+      setState(() {
+        _translated = value;
+        _error = null;
+      });
     } catch (error) {
-      if (mounted) setState(() => _error = error.toString());
+      if (mounted && _latest?.id == caption.id) {
+        setState(() {
+          _translated = null;
+          _error = error.toString().replaceFirst('Bad state: ', '');
+        });
+      }
     }
   }
 
