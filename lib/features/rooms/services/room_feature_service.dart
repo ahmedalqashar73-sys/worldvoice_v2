@@ -39,8 +39,15 @@ class RoomFeatureService {
       throw StateError('Create or join the room before initializing tools.');
     }
     final data = snapshot.data() ?? const <String, dynamic>{};
+    final needsBackgroundV2 =
+        (data['backgroundLayoutVersion'] as num?)?.toInt() != 2;
     final missing = <String, dynamic>{
-      if (!data.containsKey('themeId')) 'themeId': 'softGreenFlow',
+      if (needsBackgroundV2) ...{
+        'themeId': 'softGreenFlow',
+        'backgroundUrl': FieldValue.delete(),
+        'backgroundLayoutVersion': 2,
+      } else if (!data.containsKey('themeId'))
+        'themeId': 'softGreenFlow',
       if (!data.containsKey('boardWriteEnabled'))
         'boardWriteEnabled': true,
     };
