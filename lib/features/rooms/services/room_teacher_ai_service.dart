@@ -88,19 +88,31 @@ class RoomTeacherAiService {
     if (uid == null) {
       return const Stream<List<RoomTeacherAiNote>>.empty();
     }
+    // Sort the authenticated user's notes on the device. This query
+    // needs only Firestore's built-in single-field index, so Teacher AI
+    // guidance works immediately without deploying a new composite index.
     return _db
         .collection(collectionName)
         .doc(roomId)
         .collection('teacher_ai_notes')
         .where('userId', isEqualTo: uid)
-        .orderBy('createdAt', descending: true)
-        .limit(limit)
         .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
+        .map((snapshot) {
+          final notes = snapshot.docs
               .map(RoomTeacherAiNote.fromDoc)
-              .toList(growable: false),
-        );
+              .toList(growable: true)
+            ..sort((a, b) {
+              final first = a.createdAt;
+              final second = b.createdAt;
+              if (first == null && second == null) {
+                return b.id.compareTo(a.id);
+              }
+              if (first == null) return 1;
+              if (second == null) return -1;
+              return second.compareTo(first);
+            });
+          return notes.take(limit).toList(growable: false);
+        });
   }
 
   Future<bool> probeAvailability() async {
