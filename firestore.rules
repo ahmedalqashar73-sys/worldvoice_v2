@@ -52,7 +52,11 @@ service cloud.firestore {
             'free_soft_green',
             'free_sky_blue',
             'free_silver',
-            'free_minimal_glow'
+            'free_minimal_glow',
+            'free_art_01',
+            'free_art_02',
+            'free_art_03',
+            'free_art_04'
           ]
           || (
             newFrame is string
@@ -75,7 +79,11 @@ service cloud.firestore {
             'free_soft_green',
             'free_sky_blue',
             'free_silver',
-            'free_minimal_glow'
+            'free_minimal_glow',
+            'free_art_01',
+            'free_art_02',
+            'free_art_03',
+            'free_art_04'
           ];
     }
 

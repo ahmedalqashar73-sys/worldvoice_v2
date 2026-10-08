@@ -771,7 +771,24 @@ class _OtherStoreTab extends StatelessWidget {
           stream: shop.watchStoreItems(type),
           builder: (context, snapshot) {
             final items = snapshot.data ?? const <RoomStoreItem>[];
-            if (snapshot.hasError) {
+            // Four free artwork frames plus 29 purchasable frames. Use live
+            // catalog metadata when available, and bundled previews otherwise.
+            final artFrames = WorldVoiceAvatarFrame.premiumArtworkFrameIds
+                .map((frameId) => items.firstWhere(
+                      (item) => item.id == frameId,
+                      orElse: () => RoomStoreItem(
+                        id: frameId,
+                        type: 'frame',
+                        name: WorldVoiceAvatarFrame.label(
+                            frameId, ar: isArabic),
+                        priceCoins:
+                            WorldVoiceAvatarFrame.artworkPrice(frameId),
+                        requiredGiftLevel: 0,
+                        active: true,
+                      ),
+                    ))
+                .toList(growable: false);
+            if (snapshot.hasError && type != 'frame') {
               return Center(child: Text(
                 isArabic ? 'تعذر تحميل المتجر' : 'Store unavailable',
               ));
@@ -788,7 +805,7 @@ class _OtherStoreTab extends StatelessWidget {
                       final freeFrames = WorldVoiceAvatarFrame.freeFrameIds;
                       return GridView.builder(
                         padding: const EdgeInsets.all(10),
-                        itemCount: freeFrames.length + items.length,
+                        itemCount: freeFrames.length + artFrames.length,
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
@@ -824,7 +841,7 @@ class _OtherStoreTab extends StatelessWidget {
                             );
                           }
 
-                          final item = items[index - freeFrames.length];
+                          final item = artFrames[index - freeFrames.length];
                           final isOwned = owned.contains(item.id);
                           return _FrameStoreCard(
                             frameId: item.id,

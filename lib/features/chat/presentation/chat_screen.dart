@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 
 import '../../../core/localization/locale_controller.dart';
+import '../../../core/widgets/worldvoice_avatar_frame.dart';
 import '../../rooms/presentation/unified_gift_panel.dart';
 import '../../rooms/presentation/classic_gift_visual.dart';
 import '../../rooms/presentation/room_gift_overlay.dart';
@@ -860,6 +861,7 @@ class _ConversationTile extends StatelessWidget {
       builder: (context, snapshot) {
         final data = snapshot.data?.data() ?? const <String, dynamic>{};
         final photo = (data['photoUrl'] ?? '').toString().trim();
+        final frameId = (data['profileFrameId'] ?? '').toString().trim();
         final name = (data['displayName'] ?? data['name'] ?? peerName)
             .toString()
             .trim();
@@ -876,13 +878,28 @@ class _ConversationTile extends StatelessWidget {
             child: Stack(
               clipBehavior: Clip.none,
               children: [
-                CircleAvatar(
-                  radius: 27,
-                  backgroundImage:
-                      photo.isEmpty ? null : NetworkImage(photo),
-                  child:
-                      photo.isEmpty ? const Icon(Icons.person_rounded) : null,
-                ),
+                if (frameId.isEmpty)
+                  CircleAvatar(
+                    radius: 27,
+                    backgroundImage:
+                        photo.isEmpty ? null : NetworkImage(photo),
+                    child: photo.isEmpty
+                        ? const Icon(Icons.person_rounded)
+                        : null,
+                  )
+                else
+                  WorldVoiceAvatarFrame(
+                    frameId: frameId,
+                    size: 54,
+                    animate: false,
+                    child: CircleAvatar(
+                      backgroundImage:
+                          photo.isEmpty ? null : NetworkImage(photo),
+                      child: photo.isEmpty
+                          ? const Icon(Icons.person_rounded)
+                          : null,
+                    ),
+                  ),
                 if (online)
                   PositionedDirectional(
                     end: -1,
@@ -1199,6 +1216,7 @@ class _ChatConversationState extends State<ChatConversationScreen> {
             final data =
                 snapshot.data?.data() ?? const <String, dynamic>{};
             final photo = (data['photoUrl'] ?? '').toString().trim();
+            final frameId = (data['profileFrameId'] ?? '').toString().trim();
             final name = (data['displayName'] ??
                     data['name'] ??
                     widget.peerName)
@@ -1219,14 +1237,28 @@ class _ChatConversationState extends State<ChatConversationScreen> {
                 padding: const EdgeInsetsDirectional.fromSTEB(2, 4, 8, 4),
                 child: Row(
                   children: [
-                    CircleAvatar(
-                      radius: 18,
-                      backgroundImage:
-                          photo.isEmpty ? null : NetworkImage(photo),
-                      child: photo.isEmpty
-                          ? const Icon(Icons.person_rounded, size: 18)
-                          : null,
-                    ),
+                    if (frameId.isEmpty)
+                      CircleAvatar(
+                        radius: 18,
+                        backgroundImage:
+                            photo.isEmpty ? null : NetworkImage(photo),
+                        child: photo.isEmpty
+                            ? const Icon(Icons.person_rounded, size: 18)
+                            : null,
+                      )
+                    else
+                      WorldVoiceAvatarFrame(
+                        frameId: frameId,
+                        size: 36,
+                        animate: false,
+                        child: CircleAvatar(
+                          backgroundImage:
+                              photo.isEmpty ? null : NetworkImage(photo),
+                          child: photo.isEmpty
+                              ? const Icon(Icons.person_rounded, size: 15)
+                              : null,
+                        ),
+                      ),
                     const SizedBox(width: 9),
                     Expanded(
                       child: Column(

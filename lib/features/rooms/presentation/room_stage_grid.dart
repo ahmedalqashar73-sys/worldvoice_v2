@@ -118,41 +118,49 @@ class _CompactRoomSeatState extends State<_CompactRoomSeat>
                 clipBehavior: Clip.none,
                 alignment: Alignment.center,
                 children: [
-                  Container(
-                    width: 58,
-                    height: 58,
-                    padding: const EdgeInsets.all(2.5),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: _frameGradient(seat),
-                      boxShadow: [
-                        if (seat.isActiveSpeaker)
-                          BoxShadow(
-                            blurRadius: glow,
-                            spreadRadius: 2,
-                            color: const Color(0xFF60FFB5)
-                                .withValues(alpha: .75),
-                          ),
-                        if (WorldVoiceAvatarFrame.isPremium(seat.frameId))
-                          BoxShadow(
-                            blurRadius: 10,
-                            spreadRadius: 1,
-                            color: WorldVoiceAvatarFrame.colorsFor(
-                              seat.frameId,
-                            ).first.withValues(alpha: .38),
-                          ),
-                      ],
-                    ),
-                    child: Container(
+                  if (WorldVoiceAvatarFrame.isArtworkFrame(seat.frameId))
+                    WorldVoiceAvatarFrame(
+                      frameId: seat.frameId,
+                      size: 58,
+                      animate: false,
+                      child: _SeatAvatar(seat: seat),
+                    )
+                  else
+                    Container(
+                      width: 58,
+                      height: 58,
+                      padding: const EdgeInsets.all(2.5),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: seat.isEmpty
-                            ? Colors.white.withValues(alpha: .16)
-                            : const Color(0xFF19152F),
+                        gradient: _frameGradient(seat),
+                        boxShadow: [
+                          if (seat.isActiveSpeaker)
+                            BoxShadow(
+                              blurRadius: glow,
+                              spreadRadius: 2,
+                              color: const Color(0xFF60FFB5)
+                                  .withValues(alpha: .75),
+                            ),
+                          if (WorldVoiceAvatarFrame.isPremium(seat.frameId))
+                            BoxShadow(
+                              blurRadius: 10,
+                              spreadRadius: 1,
+                              color: WorldVoiceAvatarFrame.colorsFor(
+                                seat.frameId,
+                              ).first.withValues(alpha: .38),
+                            ),
+                        ],
                       ),
-                      child: ClipOval(child: _SeatAvatar(seat: seat)),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: seat.isEmpty
+                              ? Colors.white.withValues(alpha: .16)
+                              : const Color(0xFF19152F),
+                        ),
+                        child: ClipOval(child: _SeatAvatar(seat: seat)),
+                      ),
                     ),
-                  ),
                   if (seat.frameId == 'frame__golden_crown')
                     const Positioned(
                       top: -7,

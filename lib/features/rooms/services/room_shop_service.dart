@@ -100,6 +100,11 @@ class RoomShopService {
     if (user == null) throw StateError('Sign in is required.');
 
     const freeFrames = <String>{
+      'free_art_01',
+      'free_art_02',
+      'free_art_03',
+      'free_art_04',
+      // Legacy frames remain equipable on accounts that already use them.
       'free_clean_white',
       'free_soft_green',
       'free_sky_blue',

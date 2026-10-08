@@ -112,6 +112,26 @@ const worldVoiceRoomBackgroundPrices = new Map([
   ["background__wv_bg_36", 340],
 ]);
 
+// Server-authoritative catalog of the 29 paid WorldVoice artwork frames.
+const worldVoiceArtworkFramePrices = Object.freeze([
+  180, 220, 240, 260, 260, 300, 350, 280, 340, 320, 360, 360, 420, 440, 420, 450, 480, 500, 520, 540, 480, 540, 580, 600, 650, 680, 700, 750, 850
+]);
+
+function builtInWorldVoiceArtworkFrame(itemId) {
+  const match = /^frame__art_(\d{2})$/.exec(itemId);
+  if (!match) return null;
+  const number = Number(match[1]);
+  if (number < 5 || number > 33) return null;
+  return {
+    active: true,
+    type: "frame",
+    name: `WorldVoice Art Frame ${number}`,
+    priceCoins: worldVoiceArtworkFramePrices[number - 5],
+    requiredGiftLevel: 0,
+    durationDays: null,
+  };
+}
+
 function builtInRoomBackground(itemId) {
   if (!worldVoiceRoomBackgroundPrices.has(itemId)) return null;
   const themeId = itemId.replace(/^background__/, "");
@@ -1349,8 +1369,10 @@ app.post("/store/purchase", async (req, res, next) => {
       if (gifting) requirePrivateWallet(snaps[8]);
       const item = itemSnap.exists
         ? itemSnap.data() || {}
-        : builtInRoomBackground(itemId) || {};
-      if ((!itemSnap.exists && !builtInRoomBackground(itemId)) ||
+        : builtInRoomBackground(itemId) ||
+          builtInWorldVoiceArtworkFrame(itemId) || {};
+      if ((!itemSnap.exists && !builtInRoomBackground(itemId) &&
+          !builtInWorldVoiceArtworkFrame(itemId)) ||
           item.active !== true ||
           !["background", "frame", "entrance", "vip"].includes(item.type) ||
           !itemId.startsWith(item.type + "__")) {
