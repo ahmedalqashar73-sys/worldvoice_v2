@@ -25,6 +25,40 @@ class RoomBackgroundShopSheet extends StatelessWidget {
   final VoidCallback? onOpenWriting;
   final RoomShopService _shop = RoomShopService();
 
+
+  Future<void> _applyBackground(
+    BuildContext context,
+    RoomBackgroundCatalogItem item,
+    bool isArabic,
+  ) async {
+    try {
+      await roomFeatures.setPurchasedBackground(
+        themeId: item.themeId,
+        backgroundUrl: null,
+      );
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isArabic ? 'تم تطبيق الخلفية.' : 'Background applied.',
+          ),
+        ),
+      );
+      Navigator.of(context).pop();
+    } catch (error) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isArabic
+                ? 'تعذر تطبيق الخلفية: $error'
+                : 'Could not apply background: $error',
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isArabic =
@@ -166,9 +200,10 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                                 isHost: isHost,
                                 isArabic: isArabic,
                                 onApply: ownedBackground && isHost
-                                    ? () => roomFeatures.setPurchasedBackground(
-                                          themeId: item.themeId,
-                                          backgroundUrl: null,
+                                    ? () => _applyBackground(
+                                          context,
+                                          item,
+                                          isArabic,
                                         )
                                     : null,
                                 onBuy: !item.isFree &&
@@ -379,22 +414,12 @@ class _BackgroundCatalogCard extends StatelessWidget {
               children: [
                 RepaintBoundary(
                   child: item.themeId == 'softGreenFlow'
-                      ? const DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Color(0xFF0D4A38),
-                                Color(0xFF123A32),
-                                Color(0xFF111D1A),
-                              ],
-                            ),
-                          ),
+                      ? const ColoredBox(
+                          color: Color(0xFF0D4A38),
                         )
                       : RoomBackgroundAtlas(
                           themeId: item.themeId,
-                          filterQuality: FilterQuality.low,
+                          filterQuality: FilterQuality.high,
                           fit: BoxFit.cover,
                         ),
                 ),
