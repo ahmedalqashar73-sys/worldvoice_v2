@@ -221,7 +221,7 @@ service cloud.firestore {
           && request.resource.data.nonce is string
           && request.resource.data.nonce.matches('^[0-9a-f]{24}$')
           && request.resource.data.giftId is string
-          && request.resource.data.giftId.matches('^wv_gift_[0-9]{3}
+          && request.resource.data.giftId.matches('^wv_gift_[0-9]{3}$')
           && request.resource.data.recipientId is string
           && request.resource.data.recipientId != request.auth.uid
           && request.resource.data.recipientId != 'teacher_ai'
