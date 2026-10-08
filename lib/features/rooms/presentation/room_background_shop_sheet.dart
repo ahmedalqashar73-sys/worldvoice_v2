@@ -599,6 +599,7 @@ class _FrameStoreCard extends StatelessWidget {
               child: WorldVoiceAvatarFrame(
                 frameId: frameId,
                 size: 92,
+                animate: false,
                 child: const ColoredBox(
                   color: Color(0xFF183A32),
                   child: Center(
@@ -788,6 +789,14 @@ class _OtherStoreTab extends StatelessWidget {
                       ),
                     ))
                 .toList(growable: false);
+            // Preserve already-published legacy premium frames in addition
+            // to the 33 artwork choices; never hide a purchased frame.
+            final displayedFrames = <RoomStoreItem>[
+              ...artFrames,
+              ...items.where(
+                (item) => !WorldVoiceAvatarFrame.isArtworkFrame(item.id),
+              ),
+            ];
             if (snapshot.hasError && type != 'frame') {
               return Center(child: Text(
                 isArabic ? 'تعذر تحميل المتجر' : 'Store unavailable',
@@ -805,7 +814,7 @@ class _OtherStoreTab extends StatelessWidget {
                       final freeFrames = WorldVoiceAvatarFrame.freeFrameIds;
                       return GridView.builder(
                         padding: const EdgeInsets.all(10),
-                        itemCount: freeFrames.length + artFrames.length,
+                        itemCount: freeFrames.length + displayedFrames.length,
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
@@ -841,7 +850,7 @@ class _OtherStoreTab extends StatelessWidget {
                             );
                           }
 
-                          final item = artFrames[index - freeFrames.length];
+                          final item = displayedFrames[index - freeFrames.length];
                           final isOwned = owned.contains(item.id);
                           return _FrameStoreCard(
                             frameId: item.id,
