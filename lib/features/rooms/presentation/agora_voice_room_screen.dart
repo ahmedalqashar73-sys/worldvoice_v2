@@ -632,9 +632,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     int? agoraUid,
   }) {
     if (!mounted || text.trim().isEmpty) return;
-    _aiServiceUnavailable = false;
-    _teacherAiOnline.value = true;
-
+    // Speech recognition working does not prove the external Teacher AI
+    // provider is online. Its state changes only after a real API probe/reply.
     RoomParticipant? participant;
     if (isLocal) {
       participant = _me;
@@ -661,13 +660,24 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     );
     _handleCaptions(<RoomCaption>[caption]);
     if (isLocal) {
-      unawaited(
-        _captionService.publishFinal(
-          displayName: caption.displayName,
-          text: caption.text,
-          languageCode: caption.languageCode,
-        ),
+      unawaited(_publishOwnCaption(caption));
+    }
+  }
+
+  Future<void> _publishOwnCaption(RoomCaption caption) async {
+    try {
+      await _captionService.publishFinal(
+        displayName: caption.displayName,
+        text: caption.text,
+        languageCode: caption.languageCode,
       );
+    } catch (error) {
+      debugPrint('WorldVoice caption publication failed: $error');
+      if (!mounted || _leaving) return;
+      setState(() {
+        _captionError =
+            'Subtitles could not be shared with other participants: $error';
+      });
     }
   }
 
@@ -827,7 +837,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         targetCode: _captionTargetLanguage,
       );
       if (!mounted || _latestCaption?.id != caption.id) return;
-      setState(() => _latestTranslatedCaption = translated);
+      setState(() {
+        _latestTranslatedCaption = translated;
+        _captionError = null;
+      });
     } catch (error) {
       if (!mounted) return;
       setState(() {
@@ -878,10 +891,6 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   }
 
   Future<void> _setCaptionsEnabled(bool value) async {
-    if (value) {
-      _aiServiceUnavailable = false;
-      _teacherAiOnline.value = true;
-    }
     if (mounted) {
       setState(() {
         _captionsEnabled = value;
@@ -1036,10 +1045,6 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               refreshSheet();
             },
             onTranslationChanged: (value) {
-              if (value) {
-                _aiServiceUnavailable = false;
-                _teacherAiOnline.value = true;
-              }
               setState(() {
                 _captionTranslationEnabled = value;
                 _latestTranslatedCaption = null;
@@ -1056,10 +1061,6 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               refreshSheet();
             },
             onPronunciationChanged: (value) {
-              if (value) {
-                _aiServiceUnavailable = false;
-                _teacherAiOnline.value = true;
-              }
               setState(() {
                 _pronunciationTipsEnabled = value;
                 _lastTeacherAiCaptionId = null;
