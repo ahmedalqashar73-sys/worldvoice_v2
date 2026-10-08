@@ -2834,10 +2834,12 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
           Color(0xFF3E9FD1),
         ];
       case 'softGreenFlow':
+        // The default WorldVoice room is intentionally a flat emerald canvas.
+        // No light gradient or moving glow until the host chooses a background.
         return const [
-          Color(0xFFE7FFF4),
-          Color(0xFF79DAB0),
-          Color(0xFF17845F),
+          Color(0xFF0D4A38),
+          Color(0xFF0D4A38),
+          Color(0xFF0D4A38),
         ];
       case 'silverWaves':
         return const [
@@ -3057,7 +3059,6 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
           themeId: _featureState.themeId,
           animated: const {
             'skyAura',
-            'softGreenFlow',
             'silverWaves',
             'goldenVipGlow',
             'royalEmeraldMotion',
@@ -3308,7 +3309,7 @@ class _AnimatedRoomBackgroundState extends State<_AnimatedRoomBackground>
                     image: NetworkImage(url),
                     fit: BoxFit.cover,
                     colorFilter: ColorFilter.mode(
-                      Colors.black.withValues(alpha: .25),
+                      Colors.black.withValues(alpha: .08),
                       BlendMode.darken,
                     ),
                   ),
@@ -3319,12 +3320,14 @@ class _AnimatedRoomBackgroundState extends State<_AnimatedRoomBackground>
               if (atlasIndex != null) ...[
                 RoomBackgroundAtlas(
                   themeId: widget.themeId!,
-                  filterQuality: FilterQuality.medium,
+                  // Preserve as much detail as the bundled artwork provides
+                  // when it is scaled to a full phone screen.
+                  filterQuality: FilterQuality.high,
                   fit: BoxFit.cover,
                   fillUnderlay: false,
                 ),
                 ColoredBox(
-                  color: Colors.black.withValues(alpha: .12),
+                  color: Colors.black.withValues(alpha: .05),
                 ),
               ],
               if (_shouldAnimate)
