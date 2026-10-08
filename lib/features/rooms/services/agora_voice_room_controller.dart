@@ -23,6 +23,8 @@ class AgoraVoiceRoomController extends ChangeNotifier {
   bool _muted = false;
   bool _released = false;
   bool _screenSharing = false;
+  bool _cameraPublishing = false;
+  bool _localPreviewPrepared = false;
   String? _error;
   int? _localUid;
   int? _activeSpeakerUid;
@@ -36,16 +38,54 @@ class AgoraVoiceRoomController extends ChangeNotifier {
   bool get muted => _muted;
   String? get error => _error;
   bool get screenSharing => _screenSharing;
+  bool get cameraPublishing => _cameraPublishing;
+  bool get localPreviewPrepared => _localPreviewPrepared;
   RtcEngine? get engine => _engine;
   int? get localUid => _localUid;
   int? get activeSpeakerUid => _activeSpeakerUid;
   AgoraRoomRole get role => _role;
   List<int> get remoteSpeakers => _remoteSpeakers.toList(growable: false);
 
+  /// Starts a local camera preview without waiting for a network token.
+  /// Live uses this so the host sees the camera immediately while Agora
+  /// authentication/join happens in the background.
+  Future<void> prepareCameraPreview() async {
+    if (_engine != null) {
+      try {
+        await _engine!.enableVideo();
+        await _engine!.startPreview();
+      } catch (_) {}
+      return;
+    }
+
+    _released = false;
+    _error = null;
+    final engine = createAgoraRtcEngine();
+    _engine = engine;
+    try {
+      await engine.initialize(
+        const RtcEngineContext(
+          appId: AgoraConfig.appId,
+          channelProfile: ChannelProfileType.channelProfileLiveBroadcasting,
+        ),
+      );
+      await engine.enableVideo();
+      await engine.startPreview();
+      _localPreviewPrepared = true;
+      notifyListeners();
+    } catch (error) {
+      _error = error.toString();
+      notifyListeners();
+      await leave();
+      rethrow;
+    }
+  }
+
   /// Wait for Agora's join callback, not just the joinChannel request.
   Future<void> ensureConnected({
     required String channelId,
     required AgoraRoomRole role,
+    bool previewCamera = false,
   }) async {
     if (_joined) return;
     final result = Completer<void>();
@@ -66,10 +106,24 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       }
     });
     try {
-      if (!_connecting) unawaited(connect(channelId: channelId, role: role));
+      if (!_connecting) {
+        unawaited(
+          connect(
+            channelId: channelId,
+            role: role,
+            previewCamera: previewCamera,
+          ),
+        );
+      }
       await result.future;
     } on TimeoutException {
-      await leave();
+      if (_localPreviewPrepared && !_joined && _engine != null) {
+        _connecting = false;
+        _error ??= 'Agora connection timed out. Check your network and token configuration.';
+        notifyListeners();
+      } else {
+        await leave();
+      }
       rethrow;
     } finally {
       timer.cancel();
@@ -80,6 +134,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
   Future<void> connect({
     required String channelId,
     required AgoraRoomRole role,
+    bool previewCamera = false,
   }) async {
     if (_connecting || _joined) return;
 
@@ -90,8 +145,9 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       return;
     }
 
-    // A failed asynchronous join can leave an engine allocated.
-    if (_engine != null) await leave();
+    // Reuse a local preview engine when Live prepared the camera before
+    // requesting a token. A stale joined/failed engine is still released.
+    if (_engine != null && _handler != null) await leave();
     _released = false;
     _connecting = true;
     _channelId = channelId;
@@ -109,18 +165,21 @@ class AgoraVoiceRoomController extends ChangeNotifier {
         }
       }
 
-      final engine = createAgoraRtcEngine();
-      _engine = engine;
-
-      await engine.initialize(
-        const RtcEngineContext(
-          appId: AgoraConfig.appId,
-          channelProfile: ChannelProfileType.channelProfileLiveBroadcasting,
-        ),
-      );
+      var engine = _engine;
+      if (engine == null) {
+        engine = createAgoraRtcEngine();
+        _engine = engine;
+        await engine.initialize(
+          const RtcEngineContext(
+            appId: AgoraConfig.appId,
+            channelProfile: ChannelProfileType.channelProfileLiveBroadcasting,
+          ),
+        );
+      }
 
       _handler = RtcEngineEventHandler(
         onJoinChannelSuccess: (connection, elapsed) {
+          if (_released) return;
           _localUid = connection.localUid;
           _joined = true;
           _connecting = false;
@@ -158,10 +217,24 @@ class AgoraVoiceRoomController extends ChangeNotifier {
           }
         },
         onConnectionStateChanged: (connection, state, reason) {
-          if (state == ConnectionStateType.connectionStateFailed) {
+          if (_released) return;
+          if (state == ConnectionStateType.connectionStateFailed ||
+              (state == ConnectionStateType.connectionStateDisconnected &&
+                  _joined)) {
+            // Preserve the room document and seats, but never pretend audio
+            // is connected after Agora reports an offline transport.
             _joined = false;
-            _error = 'Agora connection failed: $reason';
             _connecting = false;
+            _error ??= state == ConnectionStateType.connectionStateFailed
+                ? 'Agora connection failed: $reason'
+                : 'Audio transport disconnected: $reason. Retry your connection.';
+            notifyListeners();
+          } else if (state == ConnectionStateType.connectionStateConnected &&
+              _localUid != null) {
+            // Agora may automatically recover an existing voice session.
+            _joined = true;
+            _connecting = false;
+            _error = null;
             notifyListeners();
           }
         },
@@ -172,6 +245,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
           unawaited(_renewToken());
         },
         onError: (err, message) {
+          if (_released) return;
           _error = err == ErrorCodeType.errInvalidToken
               ? 'Agora rejected the token. Configure WORLDVOICE_ROOM_BACKEND_URL for this Agora project, or a valid AGORA_TEMP_TOKEN matching this channel: $channelId. App ID alone is not sufficient for a token-secured project.'
               : 'Agora error: $err $message';
@@ -183,6 +257,10 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       engine.registerEventHandler(_handler!);
       await engine.enableAudio();
       await engine.enableVideo();
+      if (previewCamera && role == AgoraRoomRole.speaker) {
+        await engine.startPreview();
+        notifyListeners();
+      }
       await engine.enableAudioVolumeIndication(
         interval: 200,
         smooth: 3,
@@ -197,6 +275,9 @@ class AgoraVoiceRoomController extends ChangeNotifier {
         role: role,
       );
 
+      // A timed-out request or a user retry may release this engine while
+      // an HTTPS token request is still pending. Never join a stale engine.
+      if (_released || !identical(engine, _engine)) return;
       await engine.joinChannel(
         token: credential.token,
         channelId: channelId,
@@ -218,7 +299,25 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       _error = error.toString();
       _connecting = false;
       notifyListeners();
-      await leave();
+
+      if (_localPreviewPrepared && !_joined && _engine != null) {
+        final engine = _engine!;
+        if (_handler != null) {
+          try {
+            engine.unregisterEventHandler(_handler!);
+          } catch (_) {}
+          _handler = null;
+        }
+        _channelId = null;
+        try {
+          await engine.enableVideo();
+          await engine.startPreview();
+        } catch (_) {
+          await leave();
+        }
+      } else {
+        await leave();
+      }
     }
   }
 
@@ -226,23 +325,18 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     required String channelId,
     required AgoraRoomRole role,
   }) async {
-    // Never fall back silently to temporary/local tokens in a published APK.
-    // Without a persistent backend all users would lose audio on app restart.
-    if (RoomBackendConfig.configurationError.isNotEmpty &&
-        AgoraConfig.tokenEndpoint.trim().isEmpty) {
-      throw StateError(RoomBackendConfig.configurationError);
-    }
-    if (AgoraConfig.tokenEndpoint.trim().isEmpty) {
-      return (
-        token: AgoraConfig.tempToken,
-        uid: 0,
-      );
-    }
-    if (kReleaseMode &&
-        Uri.tryParse(AgoraConfig.tokenEndpoint)?.scheme != 'https') {
-      throw StateError(
-        'Published WorldVoice rooms require a persistent HTTPS token endpoint.',
-      );
+    final endpoints = <String>[
+      ...AgoraConfig.tokenEndpoints,
+      if (RoomBackendConfig.configurationError.isEmpty)
+        RoomBackendConfig.endpoint('/agora/token'),
+    ].where((value) => value.trim().isNotEmpty).toSet().toList(growable: false);
+    if (endpoints.isEmpty) {
+      if (AgoraConfig.tempToken.trim().isNotEmpty) {
+        return (token: AgoraConfig.tempToken, uid: 0);
+      }
+      throw StateError(RoomBackendConfig.configurationError.isNotEmpty
+          ? RoomBackendConfig.configurationError
+          : 'Agora token endpoint is missing.');
     }
 
     final user = FirebaseAuth.instance.currentUser;
@@ -255,49 +349,71 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       throw StateError('Could not authorize the Agora token request.');
     }
 
-    final response = await http.post(
-      Uri.parse(AgoraConfig.tokenEndpoint),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $idToken',
-      },
-      body: jsonEncode({
-        'channelName': channelId,
-        'role': role == AgoraRoomRole.speaker ? 'publisher' : 'subscriber',
-      }),
-    );
+    Object? lastError;
+    for (final endpoint in endpoints) {
+      final uri = Uri.tryParse(endpoint);
+      if (uri == null || !uri.hasAuthority) continue;
+      if (kReleaseMode && uri.scheme != 'https') continue;
 
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      String detail = '';
       try {
-        final decoded = jsonDecode(response.body);
-        if (decoded is Map<String, dynamic>) {
-          detail = decoded['error']?.toString() ?? '';
+        final response = await http
+            .post(
+              uri,
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer $idToken',
+              },
+              body: jsonEncode({
+                'channelName': channelId,
+                'role':
+                    role == AgoraRoomRole.speaker ? 'publisher' : 'subscriber',
+              }),
+            )
+            .timeout(
+              endpoint == AgoraConfig.stableTokenEndpoint
+                  ? const Duration(seconds: 10)
+                  : const Duration(seconds: 35),
+            );
+
+        if (response.statusCode < 200 || response.statusCode >= 300) {
+          String detail = '';
+          try {
+            final decoded = jsonDecode(response.body);
+            if (decoded is Map<String, dynamic>) {
+              detail = decoded['error']?.toString() ?? '';
+            }
+          } catch (_) {
+            // Fall back to the HTTP status below.
+          }
+          throw StateError(
+            detail.isEmpty
+                ? 'Token server failed with HTTP ${response.statusCode}.'
+                : detail,
+          );
         }
-      } catch (_) {
-        // Fall back to the HTTP status below.
+
+        final body = jsonDecode(response.body);
+        if (body is! Map<String, dynamic>) {
+          throw StateError('Token server returned an invalid response.');
+        }
+
+        final token = body['token']?.toString() ?? '';
+        final uid = (body['uid'] as num?)?.toInt() ?? 0;
+        if (token.isEmpty || uid <= 0) {
+          throw StateError('Token server did not return a valid token and UID.');
+        }
+        return (token: token, uid: uid);
+      } on TimeoutException catch (error) {
+        lastError = error;
+      } catch (error) {
+        lastError = error;
       }
-      throw StateError(
-        detail.isEmpty
-            ? 'Token server failed with HTTP ${response.statusCode}.'
-            : detail,
-      );
     }
 
-    final body = jsonDecode(response.body);
-    if (body is! Map<String, dynamic>) {
-      throw StateError('Token server returned an invalid response.');
-    }
-
-    final token = body['token']?.toString() ?? '';
-    final uid = (body['uid'] as num?)?.toInt() ?? 0;
-    if (token.isEmpty || uid <= 0) {
-      throw StateError('Token server did not return a valid token and UID.');
-    }
-
-    return (
-      token: token,
-      uid: uid,
+    throw StateError(
+      'Agora token service is temporarily unavailable. '
+      'Tried the fast token worker and the WorldVoice backend fallback. '
+      '${lastError ?? ''}',
     );
   }
 
@@ -336,6 +452,40 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     } finally {
       _renewingToken = false;
     }
+  }
+
+  Future<void> setCameraPublishing(bool value) async {
+    final engine = _engine;
+    if (engine == null || !_joined) return;
+    if (value && _role != AgoraRoomRole.speaker) {
+      throw StateError('Camera publishing requires broadcaster role.');
+    }
+    _cameraPublishing = value;
+    if (value) {
+      await engine.enableVideo();
+      await engine.startPreview();
+    } else {
+      try {
+        await engine.stopPreview();
+      } catch (_) {
+        // Preview may already be stopped.
+      }
+    }
+    if (!_screenSharing) {
+      await engine.updateChannelMediaOptions(
+        ChannelMediaOptions(
+          clientRoleType: _role == AgoraRoomRole.speaker
+              ? ClientRoleType.clientRoleBroadcaster
+              : ClientRoleType.clientRoleAudience,
+          publishMicrophoneTrack: _role == AgoraRoomRole.speaker,
+          publishCameraTrack: value && _role == AgoraRoomRole.speaker,
+          autoSubscribeAudio: true,
+          autoSubscribeVideo: true,
+          enableAudioRecordingOrPlayout: true,
+        ),
+      );
+    }
+    notifyListeners();
   }
 
   Future<void> startScreenShare() async {
@@ -393,7 +543,8 @@ class AgoraVoiceRoomController extends ChangeNotifier {
             ? ClientRoleType.clientRoleBroadcaster
             : ClientRoleType.clientRoleAudience,
         publishMicrophoneTrack: _role == AgoraRoomRole.speaker,
-        publishCameraTrack: false,
+        publishCameraTrack:
+            _role == AgoraRoomRole.speaker && _cameraPublishing,
         publishScreenCaptureVideo: false,
         publishScreenCaptureAudio: false,
         autoSubscribeAudio: true,
@@ -404,6 +555,147 @@ class AgoraVoiceRoomController extends ChangeNotifier {
 
     _screenSharing = false;
     notifyListeners();
+  }
+
+  /// Live-only camera controls. These are additive and do not alter the
+  /// existing Rooms camera/audio flow unless explicitly called.
+  Future<void> setBeautyEnabled(bool enabled) =>
+      setBeautyPreset(enabled ? 'natural' : 'off');
+
+  Future<void> setBeautyPreset(String preset) async {
+    final engine = _engine;
+    final cameraActive =
+        _localPreviewPrepared || (_joined && _cameraPublishing);
+    if (engine == null || !cameraActive) {
+      throw StateError('Camera preview must be active before beauty is changed.');
+    }
+
+    final normalized = preset.trim().toLowerCase();
+    if (normalized == 'off') {
+      await engine.setBeautyEffectOptions(
+        enabled: false,
+        options: BeautyOptions(),
+      );
+      return;
+    }
+
+    final options = switch (normalized) {
+      'soft' => BeautyOptions(
+          lighteningContrastLevel:
+              LighteningContrastLevel.lighteningContrastNormal,
+          lighteningLevel: 0.18,
+          smoothnessLevel: 0.52,
+          rednessLevel: 0.05,
+          sharpnessLevel: 0.06,
+        ),
+      'bright' => BeautyOptions(
+          lighteningContrastLevel:
+              LighteningContrastLevel.lighteningContrastHigh,
+          lighteningLevel: 0.38,
+          smoothnessLevel: 0.28,
+          rednessLevel: 0.05,
+          sharpnessLevel: 0.14,
+        ),
+      'clean' => BeautyOptions(
+          lighteningContrastLevel:
+              LighteningContrastLevel.lighteningContrastNormal,
+          lighteningLevel: 0.24,
+          smoothnessLevel: 0.22,
+          rednessLevel: 0.02,
+          sharpnessLevel: 0.22,
+        ),
+      _ => BeautyOptions(
+          lighteningContrastLevel:
+              LighteningContrastLevel.lighteningContrastNormal,
+          lighteningLevel: 0.22,
+          smoothnessLevel: 0.32,
+          rednessLevel: 0.06,
+          sharpnessLevel: 0.12,
+        ),
+    };
+
+    await engine.setBeautyEffectOptions(
+      enabled: true,
+      options: options,
+    );
+  }
+
+  Future<bool> isBeautyAvailable() async {
+    final engine = _engine;
+    if (engine == null) return false;
+    try {
+      return await engine.isFeatureAvailableOnDevice(
+        FeatureType.videoBeautyEffect,
+      );
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> isVirtualBackgroundAvailable() async {
+    final engine = _engine;
+    if (engine == null) return false;
+    try {
+      return await engine.isFeatureAvailableOnDevice(
+        FeatureType.videoVirtualBackground,
+      );
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> setBackgroundBlurEnabled(bool enabled) async {
+    final engine = _engine;
+    final cameraActive =
+        _localPreviewPrepared || (_joined && _cameraPublishing);
+    if (engine == null || !cameraActive) {
+      throw StateError(
+        'Camera preview must be active before background blur is changed.',
+      );
+    }
+    if (enabled && !await isVirtualBackgroundAvailable()) {
+      throw StateError('Virtual background is not supported on this device.');
+    }
+    await engine.enableVirtualBackground(
+      enabled: enabled,
+      backgroundSource: VirtualBackgroundSource(
+        backgroundSourceType: BackgroundSourceType.backgroundBlur,
+        blurDegree: BackgroundBlurDegree.blurDegreeMedium,
+      ),
+      segproperty: const SegmentationProperty(
+        modelType: SegModelType.segModelAi,
+      ),
+    );
+  }
+
+  Future<double> getCameraMaxZoom() async {
+    final engine = _engine;
+    final cameraActive =
+        _localPreviewPrepared || (_joined && _cameraPublishing);
+    if (engine == null || !cameraActive) return 1;
+    try {
+      final value = await engine.getCameraMaxZoomFactor();
+      if (!value.isFinite || value < 1) return 1;
+      // Keep the Live UI practical even on devices reporting huge ranges.
+      return value.clamp(1.0, 8.0).toDouble();
+    } catch (_) {
+      return 1;
+    }
+  }
+
+  Future<void> setCameraZoom(double factor) async {
+    final engine = _engine;
+    final cameraActive =
+        _localPreviewPrepared || (_joined && _cameraPublishing);
+    if (engine == null || !cameraActive) return;
+    final max = await getCameraMaxZoom();
+    await engine.setCameraZoomFactor(factor.clamp(1.0, max).toDouble());
+  }
+
+  Future<void> switchCamera() async {
+    final engine = _engine;
+    if (engine == null) return;
+    await engine.switchCamera();
   }
 
   Future<void> setMuted(bool value) async {
@@ -434,6 +726,20 @@ class AgoraVoiceRoomController extends ChangeNotifier {
 
     if (AgoraConfig.tokenEndpoint.trim().isNotEmpty) {
       await _renewToken(role: role);
+      if (role == AgoraRoomRole.speaker && _error != null) {
+        // A member must never claim a working microphone before receiving
+        // the publisher privilege for the same channel and UID.
+        throw StateError(_error!);
+      }
+    }
+
+    if (role == AgoraRoomRole.listener && _cameraPublishing) {
+      try {
+        await engine.stopPreview();
+      } catch (_) {
+        // Preview may already be stopped.
+      }
+      _cameraPublishing = false;
     }
 
     await engine.setClientRole(
@@ -478,6 +784,8 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       _connecting = false;
       _muted = false;
       _screenSharing = false;
+      _cameraPublishing = false;
+      _localPreviewPrepared = false;
       _localUid = null;
       _activeSpeakerUid = null;
       _channelId = null;

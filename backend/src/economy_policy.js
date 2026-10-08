@@ -7,7 +7,7 @@ const requiredPositive = [
 ];
 const requiredPercent = [
   "receiverSharePercent", "withdrawalFeePercent", "exchangeBonusPercent",
-  "webCardBonusPercent", "firstRechargeBonusPercent", "firstRechargeBonusPercent",
+  "webCardBonusPercent", "firstRechargeBonusPercent",
 ];
 const requiredNonnegativeIntegers = ["holdDays"];
 const requiredPositiveIntegers = [
@@ -16,6 +16,16 @@ const requiredPositiveIntegers = [
 export function requireLiveEconomy(config) {
   if (!config || config.enabled !== true) {
     throw Object.assign(new Error("Economy not enabled."), {status: 503});
+  }
+  // A database flag cannot prove migration by itself: operators must first
+  // reconcile private wallets, switch all app readers and deploy restricted
+  // public-user rules. Missing attestations fail closed.
+  if (config.privateWalletCutoverVerified !== true ||
+      config.publicProfileRulesVerified !== true) {
+    throw Object.assign(
+      new Error("Wallet privacy cutover has not passed launch checks."),
+      {status: 503},
+    );
   }
   for (const field of requiredPositive) {
     if (typeof config[field] !== "number" ||

@@ -2,9 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class RoomBoardService {
-  RoomBoardService({required this.roomId});
+  RoomBoardService({required this.roomId, this.collectionName = 'rooms'});
 
   final String roomId;
+  final String collectionName;
   final List<Map<String, dynamic>> _redoStrokes = [];
   bool get canRedo => _redoStrokes.isNotEmpty;
   String? get currentUserId => _user?.uid;
@@ -34,7 +35,7 @@ class RoomBoardService {
   User? get _user => FirebaseAuth.instance.currentUser;
 
   DocumentReference<Map<String, dynamic>> get _room =>
-      _db.collection('rooms').doc(roomId);
+      _db.collection(collectionName).doc(roomId);
 
   CollectionReference<Map<String, dynamic>> get _items =>
       _room.collection('board_items');

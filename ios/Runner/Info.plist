@@ -50,7 +50,9 @@
 					<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
 					<key>UISceneStoryboardFile</key>
 					<string>Main</string>
-				</dict>
+				  <key>io.flutter.embedded_views_preview</key>
+  <true/>
+</dict>
 			</array>
 		</dict>
 	</dict>

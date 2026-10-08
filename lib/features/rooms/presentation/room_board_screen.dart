@@ -19,6 +19,7 @@ class RoomBoardScreen extends StatefulWidget {
     required this.canWrite,
     required this.isHost,
     required this.agoraController,
+    this.parentCollection = 'rooms',
     this.embedded = false,
     this.onClose,
     this.onExpand,
@@ -32,6 +33,7 @@ class RoomBoardScreen extends StatefulWidget {
   final bool canWrite;
   final bool isHost;
   final AgoraVoiceRoomController agoraController;
+  final String parentCollection;
 
   @override
   State<RoomBoardScreen> createState() => _RoomBoardScreenState();
@@ -106,8 +108,14 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
   @override
   void initState() {
     super.initState();
-    _service = RoomBoardService(roomId: widget.roomId);
-    _features = RoomFeatureService(roomId: widget.roomId);
+    _service = RoomBoardService(
+      roomId: widget.roomId,
+      collectionName: widget.parentCollection,
+    );
+    _features = RoomFeatureService(
+      roomId: widget.roomId,
+      collectionName: widget.parentCollection,
+    );
     _stateStream = _features.watchState();
     _itemsStream = _service.watchItems();
   }
@@ -194,7 +202,8 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
     setState(() => _uploading = true);
     try {
       final file = File(picked.path!);
-      final folder = 'worldvoice/rooms/${widget.roomId}/board';
+      final folder =
+          'worldvoice/${widget.parentCollection}/${widget.roomId}/board';
       final upload = switch (type) {
         'image' => await CloudinaryImageService.uploadImage(
             file,
@@ -279,6 +288,8 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
           final selected = docs.where((doc) => doc.id == featureState?.boardMediaId).firstOrNull;
           final sharing = featureState?.screenShareActive == true;
           final presenting = sharing || featureState?.boardMediaId != null;
+          final canWrite = widget.isHost ||
+              (widget.canWrite && (featureState?.boardWriteEnabled ?? true));
           _scope = sharing ? 'screen:${featureState?.screenSharerUid}' : (featureState?.boardMediaId ?? 'board');
           final strokes = docs.where((doc) => doc.data()['type'] == 'stroke' &&
             (doc.data()['scope'] ?? 'board') == _scope).toList();
@@ -314,7 +325,7 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
                           onClose: () => setState(() { _editingText = false; }))),
                       IgnorePointer(ignoring: !_drawing || _editingText, child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
-                      onPanStart: widget.canWrite && _drawing && !_boardBusy
+                      onPanStart: canWrite && _drawing && !_boardBusy
                           ? (details) {
                               _draft
                                 ..clear()
@@ -322,13 +333,13 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
                               setState(() {});
                             }
                           : null,
-                      onPanUpdate: widget.canWrite && _drawing && !_boardBusy
+                      onPanUpdate: canWrite && _drawing && !_boardBusy
                           ? (details) {
                               _draft.add(details.localPosition);
                               setState(() {});
                             }
                           : null,
-                      onPanEnd: widget.canWrite && _drawing && !_boardBusy
+                      onPanEnd: canWrite && _drawing && !_boardBusy
                           ? (_) => _boardAction(() => _saveStroke(size))
                           : null,
                       child: CustomPaint(
@@ -365,7 +376,7 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
                   if (widget.isHost) IconButton(tooltip: isArabic ? 'مشاركة الشاشة / إيقاف' : 'Start / stop screen sharing',
                     onPressed: _sharingBusy || _uploading || (presenting && !sharing) ? null : _toggleScreenShare,
                     icon: Icon(widget.agoraController.screenSharing ? Icons.stop_screen_share : Icons.screen_share)),
-                  if (widget.canWrite) ...[
+                  if (canWrite) ...[
                     IconButton(tooltip: isArabic ? 'ألوان القلم والسماكة' : 'Pen colors and width',
                       onPressed: _boardBusy ? null : _penSettings,
                       icon: Icon(Icons.palette, color: _penColor)),
@@ -383,6 +394,21 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
                     IconButton(tooltip: isArabic ? 'فيديو' : 'Video', onPressed: !widget.isHost || _uploading || _sharingBusy || presenting ? null : () => _pickAndUpload('video'), icon: const Icon(Icons.video_file_outlined)),
                     IconButton(tooltip: 'PDF', onPressed: !widget.isHost || _uploading || _sharingBusy || presenting ? null : () => _pickAndUpload('pdf'), icon: const Icon(Icons.folder_open)),
                   ],
+                  if (widget.isHost) IconButton(
+                    tooltip: (featureState?.boardWriteEnabled ?? true)
+                        ? (isArabic ? 'منع الضيوف من الرسم' : 'Lock guest drawing')
+                        : (isArabic ? 'السماح للضيوف بالرسم' : 'Allow guest drawing'),
+                    onPressed: _boardBusy
+                        ? null
+                        : () => _boardAction(() => _features.setBoardWriteEnabled(
+                              !(featureState?.boardWriteEnabled ?? true),
+                            )),
+                    icon: Icon(
+                      (featureState?.boardWriteEnabled ?? true)
+                          ? Icons.draw_rounded
+                          : Icons.lock_outline_rounded,
+                    ),
+                  ),
                   if (widget.isHost) IconButton(tooltip: isArabic ? 'مسح' : 'Clear', onPressed: _boardBusy ? null : () => _boardAction(() => _service.clear(scope: _scope)), icon: const Icon(Icons.delete_outline)),
                 ]),
               )),

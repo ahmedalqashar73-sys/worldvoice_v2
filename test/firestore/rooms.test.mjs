@@ -12,7 +12,8 @@ const participant = (uid, host = false) => ({
   uid, displayName: uid, role: host ? 'host' : 'listener',
   ...(host ? {seatIndex: 1} : {}),
   handRaised: false, isModerator: false, warningCount: 0,
-  forcedMuted: false, kicked: false
+  forcedMuted: false, kicked: false,
+  joinedAt: serverTimestamp(),
 });
 before(async () => {
   env = await initializeTestEnvironment({
@@ -49,6 +50,41 @@ test('quota and history are available only to their owner before joining', async
   await assertFails(setDoc(doc(user('other'), 'users/new/room_history/r1'), {roomId: 'r1'}));
 });
 
+test('room tasks and level XP cannot be forged by host or listener', async () => {
+  const hostDb = user('host');
+  const listenerDb = user('listener');
+  await assertFails(updateDoc(room(hostDb), {
+    roomXp: 5900, roomLevel: 60,
+  }));
+  await assertFails(updateDoc(room(listenerDb), {
+    roomXp: 500, roomLevel: 6,
+  }));
+  await assertFails(setDoc(doc(listenerDb, 'rooms/r1/task_completions/ten_minutes_listener_today'), {
+    userId: 'listener', taskKey: 'ten_minutes', points: 4,
+    periodKey: 'today', completedAt: serverTimestamp(),
+  }));
+  await assertFails(setDoc(doc(hostDb, 'rooms/r1/rewards/level_60'), {
+    level: 60, type: 'gift_pack', unlockedBy: 'host',
+  }));
+  await assertFails(setDoc(doc(listenerDb, 'users/listener/room_rewards/r1_level_60'), {
+    userId: 'listener', roomId: 'r1', level: 60,
+    type: 'gift_pack', sourceRewardId: 'level_60',
+  }));
+});
+
+test('new participant entry must use trusted server time', async () => {
+  const db = user('new');
+  const candidate = participant('new');
+  await assertFails(setDoc(member(db, 'new'), {
+    ...candidate, joinedAt: new Date('2020-01-01T00:00:00Z'),
+    updatedAt: serverTimestamp(),
+  }));
+  await assertSucceeds(setDoc(member(db, 'new'), {
+    ...candidate, joinedAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  }));
+});
+
 test('signed-in room listing works and anonymous access is rejected', async () => {
   await assertSucceeds(getDocs(collection(user('new'), 'rooms')));
   await assertFails(getDocs(collection(env.unauthenticatedContext().firestore(), 'rooms')));
@@ -56,6 +92,28 @@ test('signed-in room listing works and anonymous access is rejected', async () =
     await assertSucceeds(getDocs(collection(user('new'), catalog)));
     await assertFails(setDoc(doc(user('new'), catalog + '/fake'), {active: true}));
   }
+});
+
+test('private wallet balances stay owner-only, even for signed-in strangers', async () => {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const db = ctx.firestore();
+    await setDoc(doc(db, 'users/listener/private/wallet'),
+      {coins: 425, diamonds: 17, walletFrozen: false});
+    await setDoc(doc(db, 'public_profiles/listener'),
+      {uid: 'listener', displayName: 'Visible member'});
+  });
+  const owner = user('listener');
+  const stranger = user('other');
+  const privatePath = 'users/listener/private/wallet';
+  const visible = await assertSucceeds(getDoc(doc(owner, privatePath)));
+  assert.equal(visible.data().coins, 425);
+  await assertFails(getDoc(doc(stranger, privatePath)));
+  await assertFails(getDocs(collection(stranger, 'users/listener/private')));
+  await assertFails(setDoc(doc(owner, privatePath), {coins: 999999}));
+  await assertFails(updateDoc(doc(owner, privatePath), {diamonds: 999999}));
+  await assertSucceeds(getDoc(doc(stranger, 'public_profiles/listener')));
+  await assertFails(setDoc(doc(stranger, 'public_profiles/listener'),
+    {coins: 9000000}));
 });
 
 test('economy reads are permitted but client-side money and gifts cannot be forged', async () => {
@@ -96,6 +154,28 @@ test('economy reads are permitted but client-side money and gifts cannot be forg
   await assertFails(setDoc(doc(db, 'economy_gift_operations/fake'), {coins: 100}));
 });
 
+test('migrated wallets are owner-only and public profile projection is backend-only', async () => {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const db = ctx.firestore();
+    await setDoc(doc(db, 'users/listener/private/wallet'), {
+      coins: 77, diamonds: 9,
+    });
+    await setDoc(doc(db, 'public_profiles/listener'), {
+      uid: 'listener', displayName: 'Public Listener',
+    });
+  });
+  await assertSucceeds(getDoc(doc(user('listener'),
+    'users/listener/private/wallet')));
+  await assertFails(getDoc(doc(user('other'),
+    'users/listener/private/wallet')));
+  await assertFails(setDoc(doc(user('listener'),
+    'users/listener/private/wallet'), {coins: 9999}));
+  await assertSucceeds(getDoc(doc(user('other'),
+    'public_profiles/listener')));
+  await assertFails(setDoc(doc(user('other'),
+    'public_profiles/listener'), {coins: 9999}));
+});
+
 test('host creates room and participant atomically; listener cannot self-promote', async () => {
   const db = user('new');
   const batch = writeBatch(db);
@@ -134,6 +214,35 @@ test('quiz accepts member answers, host reveals, and late answers are denied', a
   await assertSucceeds(deleteDoc(doc(user('host'), 'rooms/r1/quiz_answers/listener')));
 });
 
+test('verified quiz answers are immutable, round-scoped, and secret stays private', async () => {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const db = ctx.firestore();
+    await setDoc(doc(db, 'rooms/r1/quiz_private/current'), {
+      roundId: 'secure-round', correctIndex: 1,
+    });
+    await updateDoc(room(db), {
+      quiz: {question: 'Question?', options: ['No', 'Yes'],
+        roundId: 'secure-round', revealed: false, practiceOnly: true}
+    });
+  });
+  const listenerDb = user('listener');
+  const answerRef = doc(listenerDb, 'rooms/r1/quiz_answers/listener');
+  const payload = {
+    userId: 'listener', displayName: 'Listener', optionIndex: 1,
+    roundId: 'secure-round', answeredAt: serverTimestamp(),
+  };
+  await assertFails(getDoc(doc(listenerDb, 'rooms/r1/quiz_private/current')));
+  await assertFails(getDoc(doc(user('host'), 'rooms/r1/quiz_private/current')));
+  await assertFails(setDoc(doc(user('host'), 'rooms/r1/quiz_private/current'),
+    {roundId: 'hacked', correctIndex: 0}));
+  await assertFails(setDoc(answerRef, {...payload, roundId: 'previous'}));
+  await assertFails(setDoc(answerRef, {...payload, optionIndex: 999}));
+  await assertSucceeds(setDoc(answerRef, payload));
+  await assertFails(updateDoc(answerRef, {optionIndex: 0}));
+  await assertFails(deleteDoc(answerRef));
+  await assertFails(deleteDoc(doc(user('host'), 'rooms/r1/quiz_answers/listener')));
+});
+
 test('AI notes are readable by members but only the backend may write', async () => {
   await assertSucceeds(getDocs(collection(user('listener'), 'rooms/r1/teacher_ai_notes')));
   await assertFails(getDocs(collection(user('outsider'), 'rooms/r1/teacher_ai_notes')));
@@ -168,4 +277,41 @@ test('private room join requires a matching code grant', async () => {
   await assertFails(getDocs(collection(db, 'private_room_codes')));
   await assertSucceeds(setDoc(doc(db, 'rooms/r1/access_grants/new'), {uid: 'new', code: 'ABC123'}));
   await assertSucceeds(setDoc(member(db, 'new'), participant('new')));
+});
+
+
+test('verified room members can show rate-limited free gift demos without minting gifts', async () => {
+  const host = user('host');
+  const receiver = user('listener');
+  const previewPath = 'rooms/r1/gift_previews/host';
+  const payload = {
+    nonce: 'abcdefabcdefabcdefabcdef',
+    senderId: 'host',
+    senderName: 'host',
+    recipientId: 'listener',
+    recipientName: 'listener',
+    giftId: 'classic_royal_rose',
+    sentAt: serverTimestamp(),
+  };
+  await assertSucceeds(setDoc(doc(host, previewPath), payload));
+  await assertSucceeds(getDocs(collection(receiver, 'rooms/r1/gift_previews')));
+  await assertFails(setDoc(doc(host, previewPath), {
+    ...payload, nonce: '123456123456123456123456',
+  })); // server-enforced three-second cooldown
+  await assertFails(setDoc(doc(user('stranger'),
+    'rooms/r1/gift_previews/stranger'), {
+    ...payload, senderId: 'stranger',
+  }));
+  await assertFails(setDoc(doc(receiver,
+    'rooms/r1/gift_previews/listener'), {
+    ...payload, senderId: 'listener', recipientId: 'nobody',
+  }));
+  await assertFails(setDoc(doc(receiver,
+    'rooms/r1/gift_previews/listener'), {
+    ...payload, senderId: 'listener', recipientId: 'host',
+    senderName: 'listener', recipientName: 'host',
+    chargedCoins: 5000000,
+  }));
+  await assertFails(setDoc(doc(host, 'rooms/r1/gifts/fake-gift'),
+    {senderId: 'host', giftId: 'classic_royal_rose', points: 1000}));
 });

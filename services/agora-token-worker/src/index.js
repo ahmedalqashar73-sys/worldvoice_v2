@@ -111,11 +111,11 @@ async function agoraTokenForUser(request, env) {
   }
 
   const roomPath = `rooms/${channelName}`;
-  const participantPath = `rooms/${channelName}/participants/${encodeURIComponent(uid)}`;
+  const livePath = `live_sessions/${channelName}`;
   let room;
-  let participant;
+  let live;
   try {
-    [room, participant] = await Promise.all([
+    [room, live] = await Promise.all([
       firestoreDocument({
         projectId: env.FIREBASE_PROJECT_ID,
         path: roomPath,
@@ -123,7 +123,7 @@ async function agoraTokenForUser(request, env) {
       }),
       firestoreDocument({
         projectId: env.FIREBASE_PROJECT_ID,
-        path: participantPath,
+        path: livePath,
         idToken,
       }),
     ]);
@@ -131,22 +131,75 @@ async function agoraTokenForUser(request, env) {
     return json({
       error: error?.status === 401
         ? "Firebase session is not authorized for Firestore."
-        : "Cannot verify room membership; check deployed Firestore rules.",
+        : "Cannot verify room or Live membership; check deployed Firestore rules.",
     }, error?.status === 401 ? 401 : 503);
   }
-  if (room?.fields?.isOpen?.booleanValue !== true) {
-    return json({ error: "Room is not open." }, 404);
-  }
-  if (!participant?.fields) {
-    return json({ error: "User is not a room participant." }, 403);
-  }
-  if (participant.fields.kicked?.booleanValue === true) {
-    return json({ error: "Participant was removed from the room." }, 403);
-  }
-  const role = participant.fields.role?.stringValue;
-  if (requestedRole === "publisher" &&
-      !["host", "coHost", "speaker", "vipSeat"].includes(role)) {
-    return json({ error: "Only stage members can publish room audio." }, 403);
+
+  if (room?.fields) {
+    if (room.fields.isOpen?.booleanValue !== true) {
+      return json({ error: "Room is not open." }, 404);
+    }
+    const participant = await firestoreDocument({
+      projectId: env.FIREBASE_PROJECT_ID,
+      path: `rooms/${channelName}/participants/${encodeURIComponent(uid)}`,
+      idToken,
+    });
+    if (!participant?.fields) {
+      return json({ error: "User is not a room participant." }, 403);
+    }
+    if (participant.fields.kicked?.booleanValue === true) {
+      return json({ error: "Participant was removed from the room." }, 403);
+    }
+    const role = participant.fields.role?.stringValue;
+    if (requestedRole === "publisher" &&
+        !["host", "coHost", "speaker", "vipSeat"].includes(role)) {
+      return json({ error: "Only stage members can publish room audio." }, 403);
+    }
+  } else if (live?.fields) {
+    const fields = live.fields;
+    const heartbeatMs = Date.parse(
+      fields.hostHeartbeatAt?.timestampValue || "",
+    );
+    const fresh =
+      fields.isLive?.booleanValue === true &&
+      fields.channelId?.stringValue === channelName &&
+      Number.isFinite(heartbeatMs) &&
+      heartbeatMs > Date.now() - 60000;
+    if (!fresh) {
+      return json({ error: "Live session is not active." }, 404);
+    }
+
+    const hostId = fields.hostId?.stringValue || "";
+    if (requestedRole === "publisher") {
+      if (hostId !== uid) {
+        const requestDoc = await firestoreDocument({
+          projectId: env.FIREBASE_PROJECT_ID,
+          path:
+            `live_sessions/${channelName}/join_requests/${encodeURIComponent(uid)}`,
+          idToken,
+        });
+        if (requestDoc?.fields?.status?.stringValue !== "accepted") {
+          return json({
+            error: "This viewer is not approved to publish Live video.",
+          }, 403);
+        }
+      }
+    } else if (hostId !== uid) {
+      const viewerDoc = await firestoreDocument({
+        projectId: env.FIREBASE_PROJECT_ID,
+        path:
+          `live_sessions/${channelName}/viewers/${encodeURIComponent(uid)}`,
+        idToken,
+      });
+      if (viewerDoc?.fields?.uid?.stringValue !== uid) {
+        return json({ error: "Join the Live before subscribing." }, 403);
+      }
+    }
+  } else if (!(requestedRole === "publisher" &&
+      channelName.startsWith("live_"))) {
+    // A signed-in user may bootstrap a new Live publisher channel. The
+    // session remains undiscoverable until the client creates live_sessions.
+    return json({ error: "Room or Live session not found." }, 404);
   }
 
   const agoraUid = agoraUidForFirebaseUid(uid);
@@ -169,10 +222,22 @@ async function agoraTokenForUser(request, env) {
 const auxiliaryRoutes = new Set([
   "/teacher-ai",
   "/teacher-ai/ask",
+  "/quiz/start",
   "/quiz/finish",
+  "/room/tasks/status",
+  "/room/tasks/claim",
   "/store/purchase",
   "/store/claim-reward",
   "/iap/verify",
+  "/gift/send",
+  "/wallet/settle",
+  "/wallet/exchange",
+  "/wallet/withdraw/quote",
+  "/wallet/withdraw",
+  "/web/checkout",
+  "/web/stripe/webhook",
+  "/chat/start",
+  "/chat/message",
 ]);
 
 async function forwardAuxiliaryRequest(request, env) {
@@ -210,7 +275,9 @@ export default {
         service: "worldvoice-agora-token-worker",
       }, ready ? 200 : 503);
     }
-    if (request.method === "POST" && auxiliaryRoutes.has(url.pathname)) {
+    if (auxiliaryRoutes.has(url.pathname) &&
+        (request.method === "POST" ||
+         (request.method === "GET" && url.pathname === "/room/tasks/status"))) {
       return forwardAuxiliaryRequest(request, env);
     }
     if (request.method !== "POST" || url.pathname !== "/agora/token") {

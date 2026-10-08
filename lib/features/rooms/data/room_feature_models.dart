@@ -19,6 +19,7 @@ class RoomFeatureState {
     this.quizOptions = const <String>[],
     this.quizCorrectIndex,
     this.quizRevealed = false,
+    this.quizPracticeOnly = false,
     this.quizWinners = const <Map<String, dynamic>>[],
   });
 
@@ -39,6 +40,7 @@ class RoomFeatureState {
   final List<String> quizOptions;
   final int? quizCorrectIndex;
   final bool quizRevealed;
+  final bool quizPracticeOnly;
   final List<Map<String, dynamic>> quizWinners;
 
   factory RoomFeatureState.fromData(Map<String, dynamic> data) {
@@ -68,6 +70,7 @@ class RoomFeatureState {
           const <String>[],
       quizCorrectIndex: (quizData['correctIndex'] as num?)?.toInt(),
       quizRevealed: quizData['revealed'] == true,
+      quizPracticeOnly: quizData['practiceOnly'] == true,
       quizWinners: (quizData['winners'] as List?)
               ?.whereType<Map>()
               .map((value) => Map<String, dynamic>.from(value))
@@ -129,6 +132,9 @@ class RoomGiftCatalogItem {
     this.category,
     this.emoji,
     this.animationUrl,
+    this.previewUrl,
+    this.nameAr,
+    this.effectType,
   });
 
   final String id;
@@ -138,6 +144,28 @@ class RoomGiftCatalogItem {
   final String? category;
   final String? emoji;
   final String? animationUrl;
+  final String? previewUrl;
+  final String? nameAr;
+  final String? effectType;
+
+  String localizedName(bool ar) =>
+      ar && nameAr?.isNotEmpty == true ? nameAr! : name;
+
+  /// Only a backend-published Firestore item can ever be active.
+  /// Local design previews have no payment authority.
+  factory RoomGiftCatalogItem.preview(Map<String, dynamic> data) {
+    return RoomGiftCatalogItem(
+      id: data['id'].toString(),
+      name: data['name'].toString(),
+      nameAr: data['nameAr']?.toString(),
+      priceCoins: (data['priceCoins'] as num).toInt(),
+      active: false,
+      category: 'classic_1_50',
+      emoji: data['emoji']?.toString(),
+      effectType: data['effectType']?.toString(),
+      previewUrl: data['previewUrl']?.toString(),
+    );
+  }
 
   factory RoomGiftCatalogItem.fromDoc(
     QueryDocumentSnapshot<Map<String, dynamic>> doc,
@@ -155,6 +183,98 @@ class RoomGiftCatalogItem {
       category: data['category']?.toString(),
       emoji: data['emoji']?.toString(),
       animationUrl: data['animationUrl']?.toString(),
+      previewUrl: data['previewUrl']?.toString(),
+      nameAr: data['nameAr']?.toString(),
+      effectType: data['effectType']?.toString(),
+    );
+  }
+}
+
+ 
+/// Free, short-lived tester animation notice. This is NOT a paid gift event;
+/// it never represents coins, diamonds, XP or gift delivery.
+class RoomGiftPreview {
+  const RoomGiftPreview({
+    required this.id,
+    required this.nonce,
+    required this.senderId,
+    required this.senderName,
+    required this.recipientId,
+    required this.recipientName,
+    required this.giftId,
+    required this.sentAt,
+  });
+
+  final String id;
+  final String nonce;
+  final String senderId;
+  final String senderName;
+  final String recipientId;
+  final String recipientName;
+  final String giftId;
+  final DateTime? sentAt;
+
+  String get eventKey => '$id:$nonce';
+
+  factory RoomGiftPreview.fromDoc(
+      QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+    final data = doc.data();
+    final time = data['sentAt'];
+    return RoomGiftPreview(
+      id: doc.id,
+      nonce: (data['nonce'] ?? '').toString(),
+      senderId: (data['senderId'] ?? '').toString(),
+      senderName: (data['senderName'] ?? '').toString(),
+      recipientId: (data['recipientId'] ?? '').toString(),
+      recipientName: (data['recipientName'] ?? '').toString(),
+      giftId: (data['giftId'] ?? '').toString(),
+      sentAt: time is Timestamp ? time.toDate() : null,
+    );
+  }
+
+  RoomGiftEvent toVisualEvent() => RoomGiftEvent(
+    id: eventKey,
+    senderId: senderId,
+    senderName: senderName,
+    recipientId: recipientId,
+    recipientName: recipientName,
+    giftId: giftId,
+    points: 0,
+    createdAt: sentAt,
+  );
+}
+
+
+/// Legacy-rule fallback for voice/Live room friend demos. This is plain room
+/// chat transport only; unlike /gifts it has no financial authority. Explicit
+/// v1 marker and strict parser prevent accidentally treating ordinary chat
+/// messages or fake paid gift claims as a demo.
+class RoomGiftPreviewChatCodec {
+  RoomGiftPreviewChatCodec._();
+
+  static final RegExp _pattern = RegExp(
+    r'^WV_FREE_GIFT_PREVIEW:v1:(classic_[a-z_]{1,60}):'
+    r'([A-Za-z0-9_-]{1,128}):([0-9a-f]{24})$',
+  );
+
+  static String encode({
+    required String giftId,
+    required String recipientId,
+    required String nonce,
+  }) {
+    final value = 'WV_FREE_GIFT_PREVIEW:v1:$giftId:$recipientId:$nonce';
+    if (!_pattern.hasMatch(value)) throw ArgumentError('Invalid demo marker');
+    return value;
+  }
+
+  static ({String giftId, String recipientId, String nonce})?
+      decode(String text) {
+    final match = _pattern.firstMatch(text);
+    if (match == null) return null;
+    return (
+      giftId: match.group(1)!,
+      recipientId: match.group(2)!,
+      nonce: match.group(3)!,
     );
   }
 }
