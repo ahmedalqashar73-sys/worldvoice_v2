@@ -666,6 +666,23 @@ class _FrameStoreCard extends StatelessWidget {
   }
 }
 
+/// Reuses the room's existing frame store from the user's own profile.
+class WorldVoiceFrameShopSheet extends StatelessWidget {
+  const WorldVoiceFrameShopSheet({
+    required this.isArabic,
+    super.key,
+  });
+
+  final bool isArabic;
+
+  @override
+  Widget build(BuildContext context) => _OtherStoreTab(
+        type: 'frame',
+        shop: RoomShopService(),
+        isArabic: isArabic,
+      );
+}
+
 class _OtherStoreTab extends StatelessWidget {
   const _OtherStoreTab({
     required this.type, required this.shop, required this.isArabic,
