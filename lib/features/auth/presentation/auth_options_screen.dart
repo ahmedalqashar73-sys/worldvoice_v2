@@ -69,7 +69,7 @@ class _AuthOptionsScreenState extends State<AuthOptionsScreen> {
     if (user == null) return;
 
     final profile = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-    final completed = profile.data()?['profileCompleted'] == true;
+    final completed = AuthService.hasCompletedProfileData(profile.data());
 
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(

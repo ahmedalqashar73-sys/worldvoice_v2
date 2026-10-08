@@ -10,6 +10,7 @@ class RoomMembersSheet extends StatelessWidget {
     required this.participants,
     required this.isHost,
     required this.isModerator,
+    this.onMemberTap,
     super.key,
   });
 
@@ -17,6 +18,7 @@ class RoomMembersSheet extends StatelessWidget {
   final List<RoomParticipant> participants;
   final bool isHost;
   final bool isModerator;
+  final ValueChanged<String>? onMemberTap;
 
   bool get _canModerate => isHost || isModerator;
 
@@ -53,6 +55,7 @@ class RoomMembersSheet extends StatelessWidget {
                       participant.role == RoomMemberRole.host;
 
                   return ListTile(
+                    onTap: () => onMemberTap?.call(participant.userId),
                     leading: CircleAvatar(
                       backgroundImage:
                           participant.photoUrl?.isNotEmpty == true
@@ -81,6 +84,10 @@ class RoomMembersSheet extends StatelessWidget {
                     ),
                     subtitle: Text(
                       _subtitle(participant, isArabic),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 3,
                     ),
                     trailing: !_canModerate || protected
                         ? null

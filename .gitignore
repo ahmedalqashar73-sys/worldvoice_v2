@@ -43,3 +43,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Large user-owned test GLBs are installed locally, not committed.
+assets/gifts/models/*.glb
