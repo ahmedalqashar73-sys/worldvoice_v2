@@ -7,6 +7,7 @@ class _SlowTokenController extends AgoraVoiceRoomController {
     required String channelId,
     required AgoraRoomRole role,
     bool previewCamera = false,
+    bool preferBackendToken = false,
   }) async {
     await Future<void>.delayed(const Duration(seconds: 35));
     throw StateError('Token service unavailable');
