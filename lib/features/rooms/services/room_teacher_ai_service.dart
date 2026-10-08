@@ -156,7 +156,22 @@ class RoomTeacherAiService {
       } else if (response.statusCode == 429) {
         lastAvailabilityError = 'AI_PROVIDER_LIMIT';
       } else if (response.statusCode == 503) {
-        lastAvailabilityError = 'AI_SERVICE_UNAVAILABLE';
+        // Only display the server's documented public error codes.
+        // Never forward arbitrary provider error messages to the UI.
+        String? safeCode;
+        try {
+          final responseData = jsonDecode(response.body);
+          if (responseData is Map<String, dynamic>) {
+            final code = responseData['code']?.toString();
+            if (code == 'AI_MODEL_CONFIGURATION' ||
+                code == 'AI_SERVICE_UNAVAILABLE') {
+              safeCode = code;
+            }
+          }
+        } catch (_) {
+          // Old servers can return plain-text error responses.
+        }
+        lastAvailabilityError = safeCode ?? 'AI_SERVICE_UNAVAILABLE';
       } else {
         lastAvailabilityError = 'SERVER_HTTP_${response.statusCode}';
       }
