@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/ads/free_home_banner.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../../chat/presentation/chat_screen.dart';
 import '../../discover/presentation/discover_screen.dart';
@@ -191,6 +192,8 @@ class _HomeLanding extends StatelessWidget {
             subtitle: t.chatBody,
             onTap: onOpenChat,
           ),
+          const SizedBox(height: 12),
+          const FreeHomeBanner(),
         ],
       ),
     );

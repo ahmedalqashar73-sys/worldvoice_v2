@@ -1,22 +1,28 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 
-import '../data/room_backend_config.dart';
 import '../data/room_feature_models.dart';
+import '../data/classic_gift_catalog.dart';
+import '../data/luxury_gift_catalog.dart';
+import 'room_chat_service.dart';
+import '../data/room_backend_config.dart';
+import 'room_quiz_service.dart';
 
 class RoomFeatureService {
-  RoomFeatureService({required this.roomId});
+  RoomFeatureService({required this.roomId, this.collectionName = 'rooms'});
 
   final String roomId;
+  final String collectionName;
 
   FirebaseFirestore get _db => FirebaseFirestore.instance;
   User? get _user => FirebaseAuth.instance.currentUser;
 
   DocumentReference<Map<String, dynamic>> get _room =>
-      _db.collection('rooms').doc(roomId);
+      _db.collection(collectionName).doc(roomId);
 
   Stream<RoomFeatureState> watchState() {
     return _room.snapshots().map(
@@ -26,20 +32,25 @@ class RoomFeatureService {
     );
   }
 
+  /// Host-created rooms already contain their level and XP. Never reset
+  /// progress, privacy, live sharing or music when reopening a room.
   Future<void> initializeDefaults() async {
-    await _room.set(
-      {
-        'roomLevel': 1,
-        'roomXp': 0,
-        'themeId': 'royalPurple',
+    final snapshot = await _room.get();
+    if (!snapshot.exists) {
+      throw StateError('Create or join the room before initializing tools.');
+    }
+    final data = snapshot.data() ?? const <String, dynamic>{};
+    final missing = <String, dynamic>{
+      if (!data.containsKey('themeId')) 'themeId': 'emerald',
+      if (!data.containsKey('boardWriteEnabled'))
         'boardWriteEnabled': true,
-        'isPrivate': false,
-        'vipOnly': false,
-        'musicPlaying': false,
-        'screenShareActive': false,
-      },
-      SetOptions(merge: true),
-    );
+    };
+    if (missing.isNotEmpty) {
+      await _room.update({
+        ...missing,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    }
   }
 
   Future<void> setTheme(String themeId) => _room.set(
@@ -87,19 +98,19 @@ class RoomFeatureService {
         SetOptions(merge: true),
       );
 
-  Future<void> setScreenSharing({
-    required bool active,
-    int? sharerUid,
-  }) =>
-      _room.set(
-        {
-          'screenShareActive': active,
-          'screenSharerUid':
-              active && sharerUid != null ? sharerUid : FieldValue.delete(),
-          'updatedAt': FieldValue.serverTimestamp(),
-        },
-        SetOptions(merge: true),
-      );
+  Future<void> setScreenSharing({required bool active, int? sharerUid}) async {
+    await FirebaseFirestore.instance.runTransaction((transaction) async {
+      final room = await transaction.get(_room);
+      if (active && room.data()?['boardMediaId'] != null) {
+        throw StateError('Stop the current media presentation first.');
+      }
+      transaction.update(_room, {
+        'screenShareActive': active,
+        'screenSharerUid': active && sharerUid != null ? sharerUid : FieldValue.delete(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    });
+  }
 
   Future<void> setMusic({
     required String? title,
@@ -116,185 +127,229 @@ class RoomFeatureService {
         SetOptions(merge: true),
       );
 
+  // Preserve existing callers; all quiz work is owned by RoomQuizService.
+  RoomQuizService get _quiz => RoomQuizService(roomId: roomId);
+
   Future<void> startQuiz({
     required String question,
     required List<String> options,
     required int correctIndex,
-  }) async {
-    if (question.trim().isEmpty ||
-        options.length < 2 ||
-        correctIndex < 0 ||
-        correctIndex >= options.length) {
-      throw StateError('Invalid quiz');
-    }
-
-    await _room.set(
-      {
-        'quiz': {
-          'question': question.trim(),
-          'options': options,
-          'correctIndex': correctIndex,
-          'revealed': false,
-          'startedAt': FieldValue.serverTimestamp(),
-        },
-        'updatedAt': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
-
-    final answers = await _room.collection('quiz_answers').get();
-    final batch = _db.batch();
-    for (final doc in answers.docs) {
-      batch.delete(doc.reference);
-    }
-    await batch.commit();
-  }
-
-  Future<void> answerQuiz(int optionIndex) async {
-    final user = _user;
-    if (user == null) return;
-    final profile = await _db.collection('users').doc(user.uid).get();
-    final data = profile.data() ?? const <String, dynamic>{};
-
-    await _room.collection('quiz_answers').doc(user.uid).set({
-      'userId': user.uid,
-      'displayName':
-          (data['displayName'] ?? user.displayName ?? 'WorldVoice user')
-              .toString(),
-      'optionIndex': optionIndex,
-      'answeredAt': FieldValue.serverTimestamp(),
-    });
-  }
-
-  Future<void> revealQuiz() => _room.set(
-        {
-          'quiz.revealed': true,
-          'updatedAt': FieldValue.serverTimestamp(),
-        },
-        SetOptions(merge: true),
+  }) => _quiz.startQuiz(
+        question: question, options: options, correctIndex: correctIndex,
       );
 
-  Future<void> finishQuiz() async {
-    final user = _user;
-    if (user == null) {
-      throw StateError('Sign in is required.');
-    }
-
-    final endpoint = RoomBackendConfig.endpoint('/quiz/finish');
-    if (endpoint.isEmpty) {
-      await revealQuiz();
-      return;
-    }
-
-    final idToken = await user.getIdToken();
-    if (idToken == null || idToken.isEmpty) {
-      throw StateError('Could not authorize quiz finalization.');
-    }
-
-    final response = await http.post(
-      Uri.parse(endpoint),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $idToken',
-      },
-      body: jsonEncode({'roomId': roomId}),
-    );
-
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      String message = 'Could not finish quiz.';
-      try {
-        final decoded = jsonDecode(response.body);
-        if (decoded is Map<String, dynamic>) {
-          message = decoded['error']?.toString() ?? message;
-        }
-      } catch (_) {
-        // Keep the generic message.
-      }
-      throw StateError(message);
-    }
-  }
+  Future<void> answerQuiz(int optionIndex) => _quiz.answerQuiz(optionIndex);
+  Future<void> revealQuiz() => _quiz.revealQuiz();
+  Future<void> finishQuiz() => _quiz.finishQuiz();
 
   Stream<QuerySnapshot<Map<String, dynamic>>> watchQuizAnswers() =>
-      _room.collection('quiz_answers').snapshots();
+      _quiz.watchQuizAnswers();
 
+  static const String _explicitEconomyBackend =
+      String.fromEnvironment('WORLDVOICE_ECONOMY_ENDPOINT');
+
+  static String get _economyBackend {
+    final explicit = _explicitEconomyBackend.trim();
+    if (explicit.isNotEmpty) return explicit;
+    return RoomBackendConfig.baseUrl.trim();
+  }
+
+  /// Existing room caller: the backend alone calculates catalog price.
   Future<void> sendGift({
     required String recipientId,
     required String recipientName,
     required String giftId,
     required int points,
+    int quantity = 1,
+    String? requestKey,
+  }) {
+    // Keep legacy UI callers compatible while refusing client-controlled price.
+    assert(points >= 0 && recipientName.isNotEmpty);
+    return sendContextGift(
+      context: 'room', contextId: roomId, recipientId: recipientId,
+      giftId: giftId, quantity: quantity, requestKey: requestKey,
+    );
+  }
+
+  /// Shared by room, real live sessions and real conversations only.
+  /// Unsupported contexts receive a 501 from the backend until membership
+  /// checks and message event streams exist (never simulate a paid success).
+  static Future<void> sendContextGift({
+    required String context,
+    required String contextId,
+    required String recipientId,
+    required String giftId,
+    int quantity = 1,
+    String? requestKey,
   }) async {
-    final user = _user;
-    if (user == null || points <= 0) return;
-    if (recipientId == user.uid) {
-      throw StateError('CANNOT_GIFT_SELF');
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) throw StateError('SIGN_IN_REQUIRED');
+    if (recipientId == user.uid) throw StateError('CANNOT_GIFT_SELF');
+    if (!const {'room', 'live', 'chat'}.contains(context) ||
+        quantity <= 0 || giftId.trim().isEmpty || contextId.trim().isEmpty) {
+      throw StateError('INVALID_GIFT');
     }
+    final uri = Uri.tryParse(_economyBackend.trim().replaceFirst(RegExp(r'/$'), ''));
+    if (uri == null || !uri.hasAuthority || uri.scheme != 'https') {
+      throw StateError('Economy backend unavailable. Gifts are disabled.');
+    }
+    final token = await user.getIdToken();
+    if (token == null || token.isEmpty) {
+      throw StateError('Could not authorize gift request.');
+    }
+    final secureRandom = Random.secure();
+    final key = requestKey ?? List<int>.generate(
+      24, (_) => secureRandom.nextInt(256),
+    ).map((v) => v.toRadixString(16).padLeft(2, '0')).join();
 
-    final visual = await _db.collection('room_gift_catalog').doc(giftId).get();
-    final animationUrl =
-        (visual.data()?['animationUrl'] as String?)?.trim();
+    // Keep the caller's idempotency key when retrying after a timeout;
+    // never claim delivery when the backend has not acknowledged settlement.
+    final response = await http.post(
+      uri.replace(path: '${uri.path.replaceFirst(RegExp(r"/$"), "")}/gift/send'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+        'Idempotency-Key': key,
+      },
+      body: jsonEncode({
+        'context': context, 'contextId': contextId,
+        'recipientId': recipientId, 'giftId': giftId, 'quantity': quantity,
+      }),
+    ).timeout(const Duration(seconds: 20));
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      String reason = 'Gift could not be sent.';
+      try {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic>) {
+          reason = decoded['error']?.toString() ?? reason;
+        }
+      } catch (_) { /* Keep stable error. */ }
+      throw StateError(reason);
+    }
+  }
 
-    final senderRef = _db.collection('users').doc(user.uid);
-    final recipientRef = recipientId == 'teacher_ai'
-        ? null
-        : _db.collection('users').doc(recipientId);
-    final giftRef = _room.collection('gifts').doc();
+  /// Opt-in TEST APK mode only. Never enabled in the production default.
+  /// These notices are separate from /gifts, balances and paid chat messages.
+  static const bool friendPreviewEnabled = bool.fromEnvironment(
+      'WORLDVOICE_FRIEND_GIFT_PREVIEW', defaultValue: false);
 
-    await _db.runTransaction((tx) async {
-      final sender = await tx.get(senderRef);
-      final senderData = sender.data() ?? const <String, dynamic>{};
-      final balance = (senderData['coins'] as num?)?.toInt() ?? 0;
+  static CollectionReference<Map<String, dynamic>> _previewCollection({
+    required String context,
+    required String contextId,
+  }) {
+    if (!const {'room', 'live', 'chat'}.contains(context) ||
+        contextId.isEmpty || contextId.contains('/')) {
+      throw ArgumentError('Invalid test preview destination');
+    }
+    final parent = FirebaseFirestore.instance
+        .collection(context == 'chat' ? 'chats' : 'rooms')
+        .doc(contextId);
+    return parent.collection('gift_previews');
+  }
 
-      if (balance < points) {
-        throw StateError('NOT_ENOUGH_COINS');
+  /// Read only explicitly free demonstration notices. The Firebase rules
+  /// verify both parties' room/chat membership and throttle each sender.
+  static Stream<List<RoomGiftPreview>> watchFriendGiftPreviews({
+    required String context,
+    required String contextId,
+  }) {
+    if (!friendPreviewEnabled) {
+      return const Stream<List<RoomGiftPreview>>.empty();
+    }
+    return _previewCollection(context: context, contextId: contextId)
+        .orderBy('sentAt', descending: true).limit(20).snapshots()
+        .map((snap) =>
+            snap.docs.map(RoomGiftPreview.fromDoc).toList(growable: false));
+  }
+
+  /// A TEST ANIMATION sent across two devices. It never touches an economy
+  /// endpoint, paid gift events, room XP or private-wallet balances.
+  static Future<void> sendFriendGiftPreview({
+    required String context,
+    required String contextId,
+    required String recipientId,
+    required String recipientName,
+    required String giftId,
+  }) async {
+    if (!friendPreviewEnabled) throw StateError('TEST_PREVIEWS_DISABLED');
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) throw StateError('SIGN_IN_REQUIRED');
+    if (recipientId.isEmpty || recipientId == user.uid ||
+        recipientId == 'teacher_ai') {
+      throw StateError('SELECT_A_REAL_FRIEND');
+    }
+    final approved = await ClassicGiftCatalog.load();
+    final approvedForDemo = approved.any((g) => g.id == giftId) ||
+        LuxuryGiftCatalog.items.any((g) => g.id == giftId);
+    if (!approvedForDemo) {
+      throw StateError('INVALID_TEST_GIFT');
+    }
+    // Always resolve names from existing authorized membership documents.
+    // Never trust arbitrary sender/receiver labels from the device.
+    final db = FirebaseFirestore.instance;
+    late final String sender;
+    late final String receiver;
+    if (context == 'chat') {
+      final chat = await db.collection('chats').doc(contextId).get();
+      final members = chat.data()?['memberIds'];
+      final names = chat.data()?['memberNames'];
+      if (chat.data()?['active'] != true || members is! List ||
+          !members.contains(user.uid) || !members.contains(recipientId) ||
+          names is! Map) {
+        throw StateError('TEST_CHAT_MEMBERSHIP_REQUIRED');
       }
-
-      final senderName =
-          (senderData['displayName'] ?? user.displayName ?? 'WorldVoice user')
-              .toString();
-
-      tx.set(
-        senderRef,
-        {
-          'coins': balance - points,
-          'giftSentPoints': FieldValue.increment(points),
-          'giftLevelPoints': FieldValue.increment(points),
-          'lastGiftRoomId': roomId,
-          'lastGiftEventId': giftRef.id,
-          'updatedAt': FieldValue.serverTimestamp(),
-        },
-        SetOptions(merge: true),
-      );
-
-      if (recipientRef != null && recipientId != user.uid) {
-        tx.set(
-          recipientRef,
-          {
-            'giftReceivedPoints': FieldValue.increment(points),
-            'giftLevelPoints': FieldValue.increment(points),
-            'lastGiftRoomId': roomId,
-            'lastGiftEventId': giftRef.id,
-          },
-          SetOptions(merge: true),
-        );
+      sender = (names[user.uid] ?? '').toString();
+      receiver = (names[recipientId] ?? '').toString();
+    } else {
+      final participants = db.collection('rooms').doc(contextId)
+          .collection('participants');
+      final docs = await Future.wait([
+        participants.doc(user.uid).get(),
+        participants.doc(recipientId).get(),
+      ]);
+      if (docs.any((doc) => !doc.exists)) {
+        throw StateError('TEST_ROOM_MEMBERSHIP_REQUIRED');
       }
-
-      tx.set(giftRef, {
+      sender = (docs[0].data()?['displayName'] ?? '').toString();
+      receiver = (docs[1].data()?['displayName'] ?? '').toString();
+    }
+    // The argument is used only to select the recipient id; Firestore is the
+    // authority for the display name on the cross-device preview.
+    assert(recipientName.isNotEmpty);
+    if (sender.trim().isEmpty || sender.length > 100 ||
+        receiver.trim().isEmpty || receiver.length > 100) {
+      throw StateError('INVALID_TEST_RECIPIENT');
+    }
+    final random = Random.secure();
+    final nonce = List<int>.generate(12, (_) => random.nextInt(256))
+        .map((v) => v.toRadixString(16).padLeft(2, '0')).join();
+    try {
+      await _previewCollection(context: context, contextId: contextId)
+          .doc(user.uid).set({
+        'nonce': nonce,
         'senderId': user.uid,
-        'senderName': senderName,
+        'senderName': sender,
         'recipientId': recipientId,
-        'recipientName': recipientName,
+        'recipientName': receiver,
         'giftId': giftId,
-        'points': points,
-        if (animationUrl?.isNotEmpty == true)
-          'animationUrl': animationUrl,
-        'createdAt': FieldValue.serverTimestamp(),
+        'sentAt': FieldValue.serverTimestamp(),
       });
-    });
+    } on FirebaseException catch (error) {
+      // Users can test with friends before deploying the NEW isolated
+      // preview rules if their existing voice-room chat is operational.
+      // This fallback is only a marked free chat text; the server-owned
+      // monetary /gifts and wallet records remain untouched.
+      if (error.code != 'permission-denied' || context == 'chat') rethrow;
+      final marker = RoomGiftPreviewChatCodec.encode(
+        giftId: giftId, recipientId: recipientId, nonce: nonce);
+      await RoomChatService(roomId: contextId).send(marker);
+    }
   }
 
   Stream<List<RoomGiftCatalogItem>> watchGiftCatalog() {
     return _db
-        .collection('room_gift_catalog')
+        .collection('store_items')
+        .where('type', isEqualTo: 'gift')
         .snapshots()
         .map((snapshot) {
       final items = snapshot.docs
@@ -318,105 +373,99 @@ class RoomFeatureService {
         );
   }
 
-  Future<void> completeTask({
-    required String taskKey,
-    required int points,
-    required String periodKey,
-  }) async {
-    final user = _user;
-    if (user == null) return;
-
-    final taskRef = _room
-        .collection('task_completions')
-        .doc('${periodKey}_${taskKey}_${user.uid}');
-
-    int? unlockedLevel;
-
-    await _db.runTransaction((tx) async {
-      final task = await tx.get(taskRef);
-      if (task.exists) return;
-
-      final roomSnapshot = await tx.get(_room);
-      final roomData =
-          roomSnapshot.data() ?? const <String, dynamic>{};
-      final oldXp = (roomData['roomXp'] as num?)?.toInt() ?? 0;
-      final newXp = oldXp + points;
-      final newLevel = 1 + (newXp ~/ 100);
-
-      tx.set(taskRef, {
-        'taskKey': taskKey,
-        'userId': user.uid,
-        'points': points,
-        'periodKey': periodKey,
-        'completedAt': FieldValue.serverTimestamp(),
-      });
-      tx.set(
-        _room,
-        {
-          'roomXp': newXp,
-          'roomLevel': newLevel,
-          'lastTaskCompletionId': taskRef.id,
-          'updatedAt': FieldValue.serverTimestamp(),
-        },
-        SetOptions(merge: true),
-      );
-
-      if (newLevel > ((oldXp ~/ 100) + 1)) {
-        unlockedLevel = newLevel;
-        final rewardRef = _room.collection('rewards').doc('level_$newLevel');
-        tx.set(
-          rewardRef,
-          {
-            'level': newLevel,
-            'type': newLevel == 5 ? 'background_month' : 'gift_pack',
-            'unlockedBy': user.uid,
-            'sourceTaskId': taskRef.id,
-            'unlockedAt': FieldValue.serverTimestamp(),
-          },
-          SetOptions(merge: true),
-        );
-      }
-    });
-
-    final level = unlockedLevel;
-    if (level != null) {
-      await _grantLevelRewardToPresentMembers(level);
+  static Stream<List<RoomGiftEvent>> watchContextGifts({
+    required String context,
+    required String contextId,
+  }) {
+    if (!const {'room', 'live', 'chat'}.contains(context) ||
+        contextId.trim().isEmpty ||
+        contextId.contains('/')) {
+      throw ArgumentError('Invalid gift event context');
     }
+    final parent = switch (context) {
+      'live' => 'live_sessions',
+      'chat' => 'chats',
+      _ => 'rooms',
+    };
+    return FirebaseFirestore.instance
+        .collection(parent)
+        .doc(contextId)
+        .collection('gifts')
+        .orderBy('createdAt', descending: true)
+        .limit(100)
+        .snapshots()
+        .map(
+          (snapshot) =>
+              snapshot.docs.map(RoomGiftEvent.fromDoc).toList(growable: false),
+        );
   }
 
-  Future<void> _grantLevelRewardToPresentMembers(int level) async {
-    final participants = await _room.collection('participants').get();
-    if (participants.docs.isEmpty) return;
-
-    final rewardType = level == 5 ? 'background_month' : 'gift_pack';
-    final expiresAt = level == 5
-        ? Timestamp.fromDate(DateTime.now().add(const Duration(days: 30)))
-        : null;
-
-    final batch = _db.batch();
-    for (final participant in participants.docs) {
-      final rewardId = '${roomId}_level_$level';
-      final rewardRef = _db
-          .collection('users')
-          .doc(participant.id)
-          .collection('room_rewards')
-          .doc(rewardId);
-
-      batch.set(
-        rewardRef,
-        {
-          'userId': participant.id,
-          'roomId': roomId,
-          'level': level,
-          'type': rewardType,
-          'sourceRewardId': 'level_$level',
-          'expiresAt': ?expiresAt,
-          'grantedAt': FieldValue.serverTimestamp(),
-        },
-        SetOptions(merge: true),
-      );
+  // Mission credit is now backend-only. Never compute or set XP from a
+  // client-side button; server verifies joinedAt, live guests and gift events.
+  Uri _missionEndpoint(String path) {
+    final configured = _economyBackend.trim();
+    if (configured.isNotEmpty) {
+      final uri = Uri.tryParse(configured);
+      if (uri == null || !uri.hasAuthority || uri.scheme != 'https') {
+        throw StateError('The verified room mission backend URL is invalid.');
+      }
+      final prefix = uri.path.replaceFirst(RegExp(r'/$'), '');
+      return uri.replace(path: '$prefix$path');
     }
-    await batch.commit();
+    final endpoint = RoomBackendConfig.endpoint(path);
+    if (endpoint.isEmpty) {
+      throw StateError('Room mission backend is not configured.');
+    }
+    return Uri.parse(endpoint);
+  }
+
+  Future<Map<String, dynamic>> _missionRequest(
+    String path, {Map<String, dynamic>? payload}
+  ) async {
+    final user = _user;
+    if (user == null) throw StateError('Sign in to view room missions.');
+    final token = await user.getIdToken();
+    if (token == null || token.isEmpty) {
+      throw StateError('Could not authorize room missions.');
+    }
+    final uri = _missionEndpoint(path);
+    final headers = <String, String>{
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    };
+    final response = payload == null
+        ? await http.get(uri.replace(queryParameters: {'roomId': roomId}),
+            headers: headers).timeout(const Duration(seconds: 15))
+        : await http.post(uri, headers: headers, body: jsonEncode(payload))
+            .timeout(const Duration(seconds: 15));
+    Map<String, dynamic>? decoded;
+    try {
+      final parsed = jsonDecode(response.body);
+      if (parsed is Map) decoded = Map<String, dynamic>.from(parsed);
+    } catch (_) {
+      // The deployed free Worker may not include the optional mission routes.
+    }
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw StateError(decoded?['error']?.toString() ??
+          'Verified room missions need the full backend, not the token-only Worker.');
+    }
+    if (decoded?['ok'] != true) {
+      throw StateError('The mission server returned an invalid result.');
+    }
+    return decoded!;
+  }
+
+  Future<Map<String, dynamic>> taskStatus() =>
+      _missionRequest('/room/tasks/status');
+
+  Future<Map<String, dynamic>> claimVerifiedTask(String taskKey) {
+    if (!const {
+      'ten_minutes', 'host_five', 'three_gifts', 'stay_hours',
+    }.contains(taskKey)) {
+      throw ArgumentError.value(taskKey, 'taskKey', 'Unknown room mission');
+    }
+    return _missionRequest('/room/tasks/claim',
+        payload: {'roomId': roomId, 'taskKey': taskKey});
   }
 
   Future<void> recordSpeakerActivity({

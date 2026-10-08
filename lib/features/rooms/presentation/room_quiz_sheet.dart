@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../data/room_feature_models.dart';
-import '../services/room_feature_service.dart';
+import '../services/room_quiz_service.dart';
 
 class RoomQuizSheet extends StatefulWidget {
   const RoomQuizSheet({
@@ -20,12 +20,40 @@ class RoomQuizSheet extends StatefulWidget {
 }
 
 class _RoomQuizSheetState extends State<RoomQuizSheet> {
-  late final RoomFeatureService _service;
+  late final RoomQuizService _service;
 
   @override
   void initState() {
     super.initState();
-    _service = RoomFeatureService(roomId: widget.roomId);
+    _service = RoomQuizService(roomId: widget.roomId);
+  }
+
+  void _reportQuizError(Object error) {
+    if (!mounted) return;
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          ar ? 'تعذر إكمال العملية: $error' : 'Quiz action failed: $error',
+        ),
+      ),
+    );
+  }
+
+  Future<void> _answerQuiz(int index) async {
+    try {
+      await _service.answerQuiz(index);
+    } catch (error) {
+      _reportQuizError(error);
+    }
+  }
+
+  Future<void> _finishQuiz() async {
+    try {
+      await _service.finishQuiz();
+    } catch (error) {
+      _reportQuizError(error);
+    }
   }
 
   Future<void> _createQuiz() async {
@@ -99,16 +127,35 @@ class _RoomQuizSheetState extends State<RoomQuizSheet> {
     );
 
     if (result == true) {
-      final options = [a.text.trim(), b.text.trim(), c.text.trim(), d.text.trim()]
-          .where((value) => value.isNotEmpty)
-          .toList(growable: false);
+      final rawOptions = [a.text.trim(), b.text.trim(), c.text.trim(), d.text.trim()];
+      final options = rawOptions.where((value) => value.isNotEmpty).toList(growable: false);
       if (question.text.trim().isNotEmpty && options.length >= 2) {
-        final safeCorrect = correctIndex.clamp(0, options.length - 1);
-        await _service.startQuiz(
-          question: question.text.trim(),
-          options: options,
-          correctIndex: safeCorrect,
-        );
+        if (rawOptions[correctIndex].isEmpty) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(Localizations.localeOf(context).languageCode == 'ar'
+                  ? 'يجب ألا تكون الإجابة الصحيحة فارغة.'
+                  : 'The correct answer cannot be empty.'),
+            ));
+          }
+          question.dispose();
+          a.dispose();
+          b.dispose();
+          c.dispose();
+          d.dispose();
+          return;
+        }
+        final safeCorrect =
+            RoomQuizService.normalizedCorrectIndex(rawOptions, correctIndex);
+        try {
+          await _service.startQuiz(
+            question: question.text.trim(),
+            options: options,
+            correctIndex: safeCorrect,
+          );
+        } catch (error) {
+          _reportQuizError(error);
+        }
       }
     }
 
@@ -230,16 +277,26 @@ class _RoomQuizSheetState extends State<RoomQuizSheet> {
                                   : null,
                           onTap: state.quizRevealed || myAnswer != null
                               ? null
-                              : () => _service.answerQuiz(i),
+                              : () => _answerQuiz(i),
                         ),
                       ),
                     const SizedBox(height: 12),
                     if (widget.isHost && !state.quizRevealed)
                       FilledButton.icon(
-                        onPressed: _service.finishQuiz,
+                        onPressed: _finishQuiz,
                         icon: const Icon(Icons.visibility_rounded),
                         label: Text(
                           isArabic ? 'إظهار النتيجة' : 'Reveal result',
+                        ),
+                      ),
+                    if (state.quizRevealed && state.quizPracticeOnly)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Text(
+                          isArabic
+                              ? 'وضع التدريب: لا تُمنح عملات دون خدمة المكافآت الآمنة.'
+                              : 'Practice mode: coins are not awarded without the secure reward service.',
+                          style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ),
                     if (state.quizRevealed &&

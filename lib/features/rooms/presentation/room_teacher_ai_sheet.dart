@@ -6,11 +6,15 @@ class RoomTeacherAiSheet extends StatefulWidget {
   const RoomTeacherAiSheet({
     required this.service,
     required this.roomLanguageCode,
+    this.onAnswer,
+    this.closeAfterAnswer = false,
     super.key,
   });
 
   final RoomTeacherAiService service;
   final String roomLanguageCode;
+  final ValueChanged<String>? onAnswer;
+  final bool closeAfterAnswer;
 
   @override
   State<RoomTeacherAiSheet> createState() => _RoomTeacherAiSheetState();
@@ -48,6 +52,10 @@ class _RoomTeacherAiSheetState extends State<RoomTeacherAiSheet> {
       setState(() {
         _messages.add(_TeacherMessage(text: answer, fromUser: false));
       });
+      widget.onAnswer?.call(answer);
+      if (widget.closeAfterAnswer && mounted) {
+        Navigator.of(context).pop();
+      }
     } catch (error) {
       if (!mounted) return;
       setState(() => _error = error.toString());

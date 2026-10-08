@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: worldvoice-aux-free
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: FIREBASE_PROJECT_ID
+        value: worldvoice-37896
+      - key: AGORA_APP_ID
+        value: fa41476c6813471eb45c059bcb4a0e19
+      - key: GOOGLE_APPLICATION_CREDENTIALS
+        value: /etc/secrets/firebase-admin.json
+      - key: AGORA_APP_CERTIFICATE
+        sync: false

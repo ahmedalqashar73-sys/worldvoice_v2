@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../data/room_moderation_models.dart';
 import '../data/room_stage_models.dart';
+import '../data/room_mode.dart';
 
 class RoomModerationService {
   RoomModerationService({
@@ -14,6 +15,7 @@ class RoomModerationService {
     this.initialShowTeacherAiSeat = false,
     this.initialIsPrivate = false,
     this.initialVipOnly = false,
+    this.initialMode = RoomMode.chat,
     this.privateAccessCode,
   });
 
@@ -23,6 +25,7 @@ class RoomModerationService {
   final bool initialShowTeacherAiSeat;
   final bool initialIsPrivate;
   final bool initialVipOnly;
+  final RoomMode initialMode;
   final String? privateAccessCode;
 
   FirebaseFirestore get _db => FirebaseFirestore.instance;
@@ -60,6 +63,19 @@ class RoomModerationService {
 
     final existingRoom = await _roomRef.get();
     final existingData = existingRoom.data();
+    var isGlobalModerator = false;
+    if (!asHost) {
+      final hostId = existingData?['hostId']?.toString() ?? '';
+      if (hostId.isNotEmpty) {
+        final moderator = await _db
+            .collection('users')
+            .doc(hostId)
+            .collection('moderators')
+            .doc(user.uid)
+            .get();
+        isGlobalModerator = moderator.exists;
+      }
+    }
     if (!asHost) {
       if (!existingRoom.exists || existingData?['isOpen'] != true) {
         throw StateError('This room is no longer open.');
@@ -135,8 +151,9 @@ class RoomModerationService {
           'vipOnly': initialVipOnly,
           'roomLevel': existingData?['roomLevel'] ?? 1,
           'roomXp': existingData?['roomXp'] ?? existingData?['roomPoints'] ?? 0,
-          'themeId': existingData?['themeId'] ?? 'royalPurple',
-          'boardWriteEnabled': existingData?['boardWriteEnabled'] ?? true,
+          'themeId': existingData?['themeId'] ?? 'emerald',
+          'mode': initialMode.name,
+          'boardWriteEnabled': initialMode != RoomMode.lesson,
           'musicPlaying': existingData?['musicPlaying'] ?? false,
           'isOpen': true,
           'createdAt': FieldValue.serverTimestamp(),
@@ -157,7 +174,7 @@ class RoomModerationService {
         'seatIndex': asHost ? 1 : FieldValue.delete(),
         'agoraUid': FieldValue.delete(),
         'requestedSeatIndex': FieldValue.delete(),
-        'isModerator': false,
+        'isModerator': asHost ? false : isGlobalModerator,
         'warningCount': 0,
         'forcedMuted': false,
         'kicked': false,

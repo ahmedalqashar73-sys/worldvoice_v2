@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:just_audio/just_audio.dart';
 
@@ -18,19 +20,26 @@ import '../services/room_feature_service.dart';
 import '../services/room_history_service.dart';
 import '../services/room_live_caption_controller.dart';
 import '../services/room_moderation_service.dart';
+import '../services/room_admin_service.dart';
 import '../services/room_quota_service.dart';
 import '../services/room_rewarded_ad_service.dart';
 import '../services/room_translation_service.dart';
 import '../services/room_teacher_ai_service.dart';
 import 'room_background_shop_sheet.dart';
 import 'room_board_screen.dart';
+import '../data/room_mode.dart';
 import 'room_chat_sheet.dart';
+import 'room_conversation_panel.dart';
+import '../services/room_chat_service.dart';
+import '../data/room_chat_message.dart';
 import 'room_captions_sheet.dart';
 import 'room_coin_store_sheet.dart';
 import 'room_music_sheet.dart';
 import 'room_quiz_sheet.dart';
 import 'room_rating_sheet.dart';
 import 'room_extras_sheet.dart';
+import 'room_gift_overlay.dart';
+import 'unified_gift_panel.dart';
 import 'room_members_sheet.dart';
 import 'room_mod_log_sheet.dart';
 import 'room_stage_grid.dart';
@@ -44,8 +53,10 @@ class AgoraVoiceRoomScreen extends StatefulWidget {
     this.localeController,
     this.roomLanguageCode,
     this.initialShowTeacherAiSeat = false,
+    this.openTeacherAiOnJoin = false,
     this.initialIsPrivate = false,
     this.initialVipOnly = false,
+    this.initialMode = RoomMode.chat,
     this.privateAccessCode,
     super.key,
   });
@@ -56,8 +67,10 @@ class AgoraVoiceRoomScreen extends StatefulWidget {
   final LocaleController? localeController;
   final String? roomLanguageCode;
   final bool initialShowTeacherAiSeat;
+  final bool openTeacherAiOnJoin;
   final bool initialIsPrivate;
   final bool initialVipOnly;
+  final RoomMode initialMode;
   final String? privateAccessCode;
 
   @override
@@ -66,6 +79,8 @@ class AgoraVoiceRoomScreen extends StatefulWidget {
 
 class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   late final AgoraVoiceRoomController _controller;
+  late final RoomChatService _roomChat;
+  Stream<List<RoomChatMessage>>? _chatMessages;
   late final RoomModerationService _moderation;
   late final RoomHistoryService _history;
   late final RoomQuotaService _quota;
@@ -84,6 +99,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   StreamSubscription<bool>? _teacherAiSeatSub;
   StreamSubscription<RoomFeatureState>? _featuresSub;
   StreamSubscription<List<RoomGiftEvent>>? _giftSub;
+  StreamSubscription<List<RoomGiftPreview>>? _freeGiftPreviewSub;
+  StreamSubscription<List<RoomChatMessage>>? _freeChatGiftSub;
   StreamSubscription<List<RoomCaption>>? _captionSub;
   StreamSubscription<List<RoomTeacherAiNote>>? _teacherAiSub;
 
@@ -92,11 +109,17 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   int? _lastSyncedAgoraUid;
   late bool _showTeacherAiSeat;
   bool _leaving = false;
+  bool _roleUpdateInProgress = false;
+  bool _micBusy = false;
+  String? _audioFailure;
+  bool _audioRetrying = false;
   bool _participantWasReady = false;
   bool _trackingEnded = false;
   bool _minimized = false;
   String? _lastGiftId;
   bool _giftStreamPrimed = false;
+  final DateTime _friendPreviewOpenedAt = DateTime.now();
+  final Set<String> _seenFriendPreviewEvents = <String>{};
   OverlayEntry? _giftOverlay;
   Timer? _giftOverlayTimer;
   Timer? _speakingTimer;
@@ -105,6 +128,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   bool _captionsEnabled = false;
   bool _captionListening = false;
   bool _captionTranslationEnabled = false;
+  bool _pronunciationTipsEnabled = false;
   String _captionTargetLanguage = 'en';
   String? _captionError;
   RoomCaption? _latestCaption;
@@ -127,6 +151,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   @override
   void initState() {
     super.initState();
+    _roomChat = RoomChatService(roomId: widget.channelId);
     _showTeacherAiSeat = widget.initialShowTeacherAiSeat;
     _controller = AgoraVoiceRoomController()..addListener(_refresh);
     _history = RoomHistoryService();
@@ -161,6 +186,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       initialShowTeacherAiSeat: widget.initialShowTeacherAiSeat,
       initialIsPrivate: widget.initialIsPrivate,
       initialVipOnly: widget.initialVipOnly,
+      initialMode: widget.initialMode,
       privateAccessCode: widget.privateAccessCode,
     );
     _speakingTimer = Timer.periodic(
@@ -184,9 +210,12 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   }
 
   Future<void> _startRoomSession() async {
+    var entryStage = 'room-read';
+    var membershipEstablished = false;
     try {
       final asHost = widget.initialRole == AgoraRoomRole.speaker;
       final level = await _moderation.roomLevel();
+      entryStage = 'quota-check';
       final quotaStatus = await _quota.startSession(
         asHost: asHost,
         roomLevel: level,
@@ -215,15 +244,32 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         (_) => unawaited(_checkLiveQuota()),
       );
 
+      entryStage = 'room-membership';
       await _moderation.enter(
         asHost: asHost,
       );
+      membershipEstablished = true;
+      if (mounted) setState(() => _chatMessages = _roomChat.watchMessages());
 
-      await _history.recordEnter(
-        roomId: widget.channelId,
-        roomName: widget.roomName,
-        languageCode: widget.roomLanguageCode,
-      );
+      // History is optional; a denied history write must not close a room
+      // whose membership was successfully established.
+      try {
+        await _history.recordEnter(
+          roomId: widget.channelId,
+          roomName: widget.roomName,
+          languageCode: widget.roomLanguageCode,
+        ).timeout(const Duration(seconds: 8));
+      } catch (error) {
+        debugPrint('WorldVoice room-history: $error');
+        if (mounted) {
+          final isArabic = Localizations.localeOf(context).languageCode == 'ar';
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(isArabic
+                ? 'تم الدخول، لكن تعذر حفظ سجل الغرفة.'
+                : 'Joined the room, but room history could not be saved.'),
+          ));
+        }
+      }
 
       _roomOpenSub = _moderation.watchRoomOpen().listen((isOpen) {
         if (!isOpen && !_leaving) {
@@ -256,15 +302,112 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         if (latest.id == _lastGiftId) return;
         _lastGiftId = latest.id;
         _showGiftOverlay(latest);
+      }, onError: (Object error, StackTrace stackTrace) {
+        // An optional gift stream must not disconnect the voice session.
+        debugPrint('WorldVoice gift effects unavailable: $error');
       });
 
-      _captionSub = _captionService.watchLatest().listen(_handleCaptions);
+      if (RoomFeatureService.friendPreviewEnabled) {
+        _freeGiftPreviewSub = RoomFeatureService.watchFriendGiftPreviews(
+          context: widget.initialMode == RoomMode.live ? 'live' : 'room',
+          contextId: widget.channelId,
+        ).listen((previews) {
+          if (!mounted || previews.isEmpty) return;
+          final now = DateTime.now();
+          RoomGiftPreview? latest;
+          for (final event in previews) {
+          final sent = event.sentAt;
+          // The initial local Firestore write can contain a pending
+          // serverTimestamp; don't mark it seen before the real ack.
+          if (sent == null) continue;
+          final newEvent = _seenFriendPreviewEvents.add(event.eventKey);
+          if (!newEvent ||
+                sent.isBefore(_friendPreviewOpenedAt.subtract(
+                    const Duration(seconds: 1))) ||
+                now.difference(sent).inSeconds.abs() > 20) {
+              continue;
+            }
+            latest ??= event;
+          }
+          if (latest != null) {
+            _showGiftOverlay(latest.toVisualEvent(), preview: true);
+          }
+        }, onError: (Object error, StackTrace stack) {
+          // Existing Agora audio always survives missing or older Firebase
+          // rules. New preview rule deployment is a separate testing step.
+          debugPrint('WorldVoice friend gift demo unavailable: $error');
+        });
+      }
+
+
+      if (RoomFeatureService.friendPreviewEnabled) {
+        _freeChatGiftSub = _roomChat.watchMessages().listen((messages) {
+          if (!mounted) return;
+          final now = DateTime.now();
+          RoomChatMessage? latest;
+          ({String giftId, String recipientId, String nonce})? detail;
+          for (final message in messages) {
+            final payload = RoomGiftPreviewChatCodec.decode(message.text);
+            final timestamp = message.createdAt;
+            if (payload == null || timestamp == null ||
+                timestamp.isBefore(_friendPreviewOpenedAt.subtract(
+                    const Duration(seconds: 1))) ||
+                now.difference(timestamp).inSeconds.abs() > 20 ||
+                !_seenFriendPreviewEvents.add('chat:${message.id}')) {
+              continue;
+            }
+            latest ??= message;
+            detail ??= payload;
+          }
+          if (latest == null || detail == null) return;
+          final recipient = _participants.where(
+            (p) => p.userId == detail!.recipientId);
+          final sender = _participants.where(
+            (p) => p.userId == latest!.userId);
+          _showGiftOverlay(RoomGiftEvent(
+            id: 'free-chat:${latest.id}',
+            senderId: latest.userId,
+            senderName: sender.isNotEmpty
+                ? sender.first.displayName : latest.displayName,
+            recipientId: detail.recipientId,
+            recipientName: recipient.isNotEmpty
+                ? recipient.first.displayName : 'Friend',
+            giftId: detail.giftId,
+            points: 0,
+            createdAt: latest.createdAt,
+          ), preview: true);
+        }, onError: (Object error, StackTrace stack) {
+          debugPrint('WorldVoice room demo chat transport unavailable: $error');
+        });
+      }
+
+      // Captions are optional. Missing/out-of-date deployed Firestore rules
+      // must not cause an unhandled stream exception or disconnect Agora.
+      _captionSub = _captionService.watchLatest().listen(
+        _handleCaptions,
+        onError: (Object error, StackTrace stackTrace) {
+          debugPrint('WorldVoice room captions unavailable: $error');
+          if (!mounted || _leaving) return;
+          final isArabic =
+              Localizations.localeOf(context).languageCode == 'ar';
+          setState(() {
+            _captionError = isArabic
+                ? 'الترجمة المباشرة غير متاحة حاليًا. تحقّق من أذونات الغرفة في Firebase.'
+                : 'Live captions are unavailable. Check room permissions in Firebase.';
+            _captionsEnabled = false;
+          });
+          // Other streams, room seats, mic and Agora remain connected.
+        },
+      );
 
       _teacherAiSub = _teacherAi.watchNotes().listen((notes) {
         if (!mounted) return;
         setState(() {
           _latestTeacherAiNote = notes.isEmpty ? null : notes.first;
         });
+      }, onError: (Object error, StackTrace stackTrace) {
+        // Teacher AI is optional and must not break seats, chat or audio.
+        debugPrint('WorldVoice Teacher AI notes unavailable: $error');
       });
 
       _participantsSub =
@@ -275,18 +418,68 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
       _meSub = _moderation.watchMe().listen(_handleMyParticipant);
 
-      await _controller.connect(
-        channelId: widget.channelId,
-        role: widget.initialRole,
-      );
+      entryStage = 'audio-connect';
+      // A successful joinChannel() request is not a completed voice
+      // connection. Wait for Agora's onJoinChannelSuccess callback.
+      try {
+        await _controller.ensureConnected(
+          channelId: widget.channelId,
+          role: widget.initialRole,
+        );
+        if (mounted) setState(() => _audioFailure = null);
+        await _synchronizeParticipantAudio();
+      } catch (error) {
+        debugPrint('WorldVoice voice join needs attention: $error');
+        // A token/network problem must not kick the user out of an otherwise
+        // valid Firestore room. Show the exact error and offer a real retry.
+        if (mounted && !_leaving) {
+          setState(() => _audioFailure = error.toString());
+        }
+        return;
+      }
+      if (!mounted || _leaving || !_controller.joined) return;
+      // From the hub, open Teacher AI only AFTER actual room membership
+      // and the Agora join have completed. Normal room entry is unchanged.
+      if (widget.openTeacherAiOnJoin) {
+        unawaited(_showTeacherAiChat());
+      }
+      if (!asHost) return;
+      // Open the selected tool after room membership and the audio join request.
+      if (widget.initialMode == RoomMode.board ||
+          widget.initialMode == RoomMode.lesson) {
+        unawaited(_showBoard());
+      } else if (widget.initialMode == RoomMode.quiz) {
+        unawaited(_showQuiz());
+      }
     } catch (error) {
+      debugPrint('WorldVoice entry [$entryStage] '
+          'project=${Firebase.app().options.projectId}: $error');
       if (!mounted) return;
+      _leaving = true;
+      _quotaTimer?.cancel();
+      final isArabic = Localizations.localeOf(context).languageCode == 'ar';
+      final denied = error is FirebaseException &&
+          error.code == 'permission-denied';
+      final message = denied
+          ? (isArabic
+              ? 'رفضت Firebase صلاحية الدخول ($entryStage). تأكد من نشر قواعد الغرف الجديدة.'
+              : 'Firebase denied room access ($entryStage). Check the published room rules.')
+          : error.toString();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.toString())),
+        SnackBar(content: Text(message), duration: const Duration(seconds: 10)),
       );
-      await _moderation.leave();
-      await _controller.leave();
-      if (mounted) Navigator.of(context).pop();
+      if (membershipEstablished) {
+        try {
+          await _moderation.leave();
+        } catch (cleanupError) {
+          debugPrint('WorldVoice entry cleanup: $cleanupError');
+        }
+      }
+      try {
+        await _controller.leave();
+      } finally {
+        if (mounted) Navigator.of(context).pop();
+      }
     }
   }
 
@@ -308,16 +501,28 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     }
 
     if (latest != null &&
-        _showTeacherAiSeat &&
+        (_showTeacherAiSeat || _pronunciationTipsEnabled) &&
         latest.userId == _moderation.currentUserId &&
         latest.id != _lastTeacherAiCaptionId) {
       _lastTeacherAiCaptionId = latest.id;
-      unawaited(
-        _teacherAi.submitCaption(
-          caption: latest,
-          roomLanguageCode: widget.roomLanguageCode ?? 'en',
-        ),
+      unawaited(_requestPronunciationGuidance(latest));
+    }
+  }
+
+  Future<void> _requestPronunciationGuidance(RoomCaption caption) async {
+    try {
+      final received = await _teacherAi.submitCaption(
+        caption: caption,
+        roomLanguageCode: widget.roomLanguageCode ?? 'en',
       );
+      if (!received && mounted && _pronunciationTipsEnabled) {
+        setState(() => _captionError =
+            'Pronunciation guidance needs the deployed Teacher AI backend.');
+      }
+    } catch (error) {
+      if (mounted && _pronunciationTipsEnabled) {
+        setState(() => _captionError = error.toString());
+      }
     }
   }
 
@@ -409,6 +614,12 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
           return RoomCaptionsSheet(
             enabled: _captionsEnabled,
             translationEnabled: _captionTranslationEnabled,
+            pronunciationEnabled: _pronunciationTipsEnabled,
+            pronunciationNotes: _teacherAi.watchNotes().map(
+              (notes) => notes
+                  .where((note) => note.userId == _moderation.currentUserId)
+                  .toList(growable: false),
+            ),
             targetLanguage: _captionTargetLanguage,
             canPublish: _me?.isOnStage == true,
             listening: _captionListening,
@@ -426,6 +637,20 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               final latest = _latestCaption;
               if (value && latest != null) {
                 unawaited(_translateLatestCaption(latest));
+              }
+              refreshSheet();
+            },
+            onPronunciationChanged: (value) {
+              setState(() {
+                _pronunciationTipsEnabled = value;
+                _lastTeacherAiCaptionId = null;
+                _captionError = null;
+              });
+              final latest = _latestCaption;
+              if (value && latest != null &&
+                  latest.userId == _moderation.currentUserId) {
+                _lastTeacherAiCaptionId = latest.id;
+                unawaited(_requestPronunciationGuidance(latest));
               }
               refreshSheet();
             },
@@ -660,7 +885,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     );
   }
 
-  void _showGiftOverlay(RoomGiftEvent gift) {
+  void _showGiftOverlay(RoomGiftEvent gift, {
+    bool preview = false,
+    RoomGiftCatalogItem? previewGift,
+  }) {
     if (!mounted) return;
 
     _giftOverlayTimer?.cancel();
@@ -668,7 +896,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
     final overlay = Overlay.of(context);
     final entry = OverlayEntry(
-      builder: (_) => _RoomGiftOverlay(event: gift),
+      builder: (_) => RoomGiftOverlay(
+        event: gift, preview: preview, previewGift: previewGift),
     );
     _giftOverlay = entry;
     overlay.insert(entry);
@@ -736,36 +965,108 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     Navigator.of(context).pop();
   }
 
+  Future<void> _synchronizeParticipantAudio() async {
+    if (_roleUpdateInProgress || !_controller.joined || _me == null ||
+        _leaving) {
+      return;
+    }
+    _roleUpdateInProgress = true;
+    try {
+      final participant = _me!;
+      final role = participant.isOnStage
+          ? AgoraRoomRole.speaker
+          : AgoraRoomRole.listener;
+      if (_controller.role != role) {
+        await _controller.switchRole(role);
+      }
+      // Only the host can set forcedMuted. Never unmute on the member's
+      // behalf when moderation lifts it: the member chooses when to speak.
+      if (_me?.isOnStage == true && _me?.forcedMuted == true &&
+          _controller.role == AgoraRoomRole.speaker &&
+          !_controller.muted) {
+        await _controller.setMuted(true);
+      }
+      await _syncCaptionPublishing();
+    } catch (error) {
+      debugPrint('WorldVoice audio-role synchronization: $error');
+      if (mounted && !_leaving) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.toString())),
+        );
+      }
+    } finally {
+      _roleUpdateInProgress = false;
+    }
+  }
+
+  Future<void> _retryAudioConnection() async {
+    if (_audioRetrying || _leaving) return;
+    setState(() {
+      _audioRetrying = true;
+      _audioFailure = null;
+    });
+    try {
+      await _controller.ensureConnected(
+        channelId: widget.channelId,
+        role: (_me?.isOnStage ?? (widget.initialRole == AgoraRoomRole.speaker))
+            ? AgoraRoomRole.speaker : AgoraRoomRole.listener,
+      );
+      await _synchronizeParticipantAudio();
+      if (mounted) setState(() => _audioFailure = null);
+    } catch (error) {
+      if (mounted) setState(() => _audioFailure = error.toString());
+    } finally {
+      if (mounted) setState(() => _audioRetrying = false);
+    }
+  }
+
+  Future<void> _toggleMicSafely() async {
+    if (_micBusy || _leaving || !_controller.joined ||
+        _me?.isOnStage != true) {
+      return;
+    }
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    if (_me?.forcedMuted == true || _roleUpdateInProgress) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(ar
+            ? 'الميكروفون مقفل من المضيف أو جاري تحديث المقعد.'
+            : 'The host muted you, or your speaking seat is still updating.'),
+      ));
+      return;
+    }
+    setState(() => _micBusy = true);
+    try {
+      if (_controller.role != AgoraRoomRole.speaker) {
+        await _controller.switchRole(AgoraRoomRole.speaker);
+      }
+      if (_controller.role != AgoraRoomRole.speaker) {
+        throw StateError(_controller.error ??
+            'Microphone is not available. Check audio permissions.');
+      }
+      await _controller.setMuted(!_controller.muted);
+      await _syncCaptionPublishing();
+    } catch (error) {
+      if (mounted && !_leaving) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(error.toString()),
+        ));
+      }
+    } finally {
+      if (mounted) setState(() => _micBusy = false);
+    }
+  }
+
   void _handleMyParticipant(RoomParticipant? participant) {
     if (!mounted) return;
-
     if (participant == null) {
       if (_participantWasReady && !_leaving) {
         unawaited(_exitRemovedFromRoom());
       }
       return;
     }
-
     _participantWasReady = true;
     setState(() => _me = participant);
-
-    if (!_controller.joined) return;
-
-    final desiredAgoraRole = participant.isOnStage
-        ? AgoraRoomRole.speaker
-        : AgoraRoomRole.listener;
-
-    if (_controller.role != desiredAgoraRole) {
-      unawaited(_controller.switchRole(desiredAgoraRole));
-    }
-
-    if (participant.forcedMuted &&
-        desiredAgoraRole == AgoraRoomRole.speaker &&
-        !_controller.muted) {
-      unawaited(_controller.setMuted(true));
-    }
-
-    unawaited(_syncCaptionPublishing());
+    unawaited(_synchronizeParticipantAudio());
   }
 
   Future<void> _exitRemovedFromRoom() async {
@@ -789,17 +1090,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       unawaited(_moderation.syncAgoraUid(agoraUid));
     }
 
-    final participant = _me;
-    if (_controller.joined && participant != null) {
-      final desiredAgoraRole = participant.isOnStage
-          ? AgoraRoomRole.speaker
-          : AgoraRoomRole.listener;
-      if (_controller.role != desiredAgoraRole) {
-        unawaited(_controller.switchRole(desiredAgoraRole));
-      }
-    }
-
-    unawaited(_syncCaptionPublishing());
+    unawaited(_synchronizeParticipantAudio());
     if (mounted) setState(() {});
   }
 
@@ -838,6 +1129,78 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       if (!occupied.contains(index)) return index;
     }
     return null;
+  }
+
+  // A compact emerald hand button stays separate from chat actions.
+  Widget _buildHandControl(bool isArabic, bool isPublishing) {
+    // Request management is backed by Firestore. Keep the button visible
+    // while the user retries a failed Agora audio connection.
+    if (_me == null) return const SizedBox.shrink();
+    if (_canModerate) {
+      return Badge(
+        isLabelVisible: _raisedHands.isNotEmpty,
+        label: Text('${_raisedHands.length}'),
+        backgroundColor: const Color(0xFFFFD57F),
+        textColor: const Color(0xFF164434),
+        child: Material(
+          elevation: 4,
+          color: const Color(0xFF087951),
+          shape: const CircleBorder(
+            side: BorderSide(color: Color(0xFF75E0AB), width: 1.2)),
+          child: IconButton(
+            constraints: const BoxConstraints.tightFor(width: 38, height: 38),
+            padding: EdgeInsets.zero,
+            tooltip: isArabic ? 'طلبات رفع اليد' : 'Raise hand requests',
+            icon: const Icon(Icons.pan_tool_alt_rounded,
+              size: 19, color: Colors.white),
+            onPressed: _showRaisedHandsSheet,
+          ),
+        ),
+      );
+    }
+    if (isPublishing) return const SizedBox.shrink();
+    return Stack(clipBehavior: Clip.none, children: [
+      Material(
+        elevation: 4,
+        color: _handRaised
+            ? const Color(0xFF18A66D) : const Color(0xFF087951),
+        shape: const CircleBorder(
+          side: BorderSide(color: Color(0xFF75E0AB), width: 1.2)),
+        child: IconButton(
+          constraints: const BoxConstraints.tightFor(width: 38, height: 38),
+          padding: EdgeInsets.zero,
+          tooltip: _handRaised
+              ? (isArabic ? 'إلغاء رفع اليد' : 'Cancel hand request')
+              : (isArabic ? 'رفع اليد' : 'Raise hand'),
+          icon: const Icon(Icons.pan_tool_alt_rounded,
+              color: Colors.white, size: 19),
+          onPressed: () async {
+            try {
+              if (_handRaised) {
+                await _moderation.setHandRaised(false);
+              } else {
+                await _requestSeat();
+              }
+            } catch (error) {
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(isArabic
+                    ? 'تعذر إرسال طلب رفع اليد: $error'
+                    : 'Could not update hand request: $error'),
+              ));
+            }
+          },
+        ),
+      ),
+      if (_handRaised)
+        const Positioned(
+          top: -2, right: -2,
+          child: CircleAvatar(radius: 6,
+            backgroundColor: Color(0xFFEAC16B),
+            child: Icon(Icons.check_rounded,
+              size: 9, color: Color(0xFF0D4A38))),
+        ),
+    ]);
   }
 
   List<RoomSeatState> _buildSeats() {
@@ -1025,62 +1388,98 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     await showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
+      isScrollControlled: true,
       builder: (sheetContext) => SafeArea(
-        child: ListView(
-          shrinkWrap: true,
-          padding: const EdgeInsets.only(bottom: 16),
-          children: [
-            ListTile(
-              leading: const Icon(Icons.pan_tool_alt_rounded),
-              title: Text(
-                isArabic ? 'طلبات رفع اليد' : 'Raise hand requests',
-                style: const TextStyle(fontWeight: FontWeight.w900),
-              ),
-              subtitle: Text(
-                isArabic
-                    ? '${_raisedHands.length} طلب'
-                    : '${_raisedHands.length} request(s)',
-              ),
-            ),
-            for (final participant in _raisedHands)
-              ListTile(
-                leading: _ParticipantAvatar(participant: participant),
-                title: Text(participant.displayName),
-                subtitle: participant.requestedSeatIndex == null
-                    ? Text(isArabic ? 'يريد الصعود' : 'Wants to speak')
-                    : Text(
-                        isArabic
-                            ? 'طلب المقعد ${participant.requestedSeatIndex}'
-                            : 'Requested seat ${participant.requestedSeatIndex}',
-                      ),
-                trailing: Wrap(
-                  spacing: 6,
-                  children: [
-                    IconButton(
-                      tooltip: isArabic ? 'رفض' : 'Reject',
-                      onPressed: () async {
-                        await _moderation.rejectHand(participant.userId);
-                        if (sheetContext.mounted &&
-                            _raisedHands.length <= 1) {
-                          Navigator.pop(sheetContext);
-                        }
-                      },
-                      icon: const Icon(Icons.close_rounded),
-                    ),
-                    IconButton.filled(
-                      tooltip: isArabic ? 'موافقة' : 'Accept',
-                      onPressed: () async {
-                        await _acceptHand(participant);
-                        if (sheetContext.mounted) {
-                          Navigator.pop(sheetContext);
-                        }
-                      },
-                      icon: const Icon(Icons.check_rounded),
-                    ),
-                  ],
+        child: StreamBuilder<List<RoomParticipant>>(
+          // Live request list: no need to close/reopen to see another member
+          // raise or withdraw their hand.
+          stream: _moderation.watchParticipants(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const SizedBox(
+                height: 170,
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+            final hands = snapshot.data!
+                .where((member) =>
+                    member.role == RoomMemberRole.listener &&
+                    member.handRaised)
+                .toList(growable: false);
+            return ListView(
+              shrinkWrap: true,
+              padding: const EdgeInsets.only(bottom: 16),
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.pan_tool_alt_rounded),
+                  title: Text(
+                    isArabic ? 'طلبات رفع اليد' : 'Raise hand requests',
+                    style: const TextStyle(fontWeight: FontWeight.w900),
+                  ),
+                  subtitle: Text(isArabic
+                      ? '${hands.length} طلب'
+                      : '${hands.length} request(s)'),
                 ),
-              ),
-          ],
+                if (hands.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Center(
+                      child: Text(isArabic
+                          ? 'لا توجد طلبات حاليًا'
+                          : 'No pending requests'),
+                    ),
+                  ),
+                for (final participant in hands)
+                  ListTile(
+                    leading: _ParticipantAvatar(participant: participant),
+                    title: Text(participant.displayName),
+                    subtitle: participant.requestedSeatIndex == null
+                        ? Text(isArabic ? 'يريد الصعود' : 'Wants to speak')
+                        : Text(isArabic
+                            ? 'طلب المقعد ${participant.requestedSeatIndex}'
+                            : 'Requested seat ${participant.requestedSeatIndex}'),
+                    trailing: Wrap(
+                      spacing: 6,
+                      children: [
+                        IconButton(
+                          tooltip: isArabic ? 'رفض' : 'Reject',
+                          onPressed: () async {
+                            try {
+                              await _moderation.rejectHand(participant.userId);
+                            } catch (_) {
+                              if (!sheetContext.mounted) return;
+                              ScaffoldMessenger.of(sheetContext).showSnackBar(
+                                SnackBar(content: Text(isArabic
+                                    ? 'تعذر رفض الطلب'
+                                    : 'Could not reject the request')),
+                              );
+                            }
+                          },
+                          icon: const Icon(Icons.close_rounded),
+                        ),
+                        IconButton.filled(
+                          tooltip: isArabic ? 'موافقة' : 'Accept',
+                          onPressed: () async {
+                            try {
+                              await _acceptHand(participant);
+                              if (sheetContext.mounted) Navigator.pop(sheetContext);
+                            } catch (_) {
+                              if (!sheetContext.mounted) return;
+                              ScaffoldMessenger.of(sheetContext).showSnackBar(
+                                SnackBar(content: Text(isArabic
+                                    ? 'تعذر قبول الطلب. تحقق من المقاعد.'
+                                    : 'Could not accept request. Check seats.')),
+                              );
+                            }
+                          },
+                          icon: const Icon(Icons.check_rounded),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -1103,6 +1502,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       builder: (_) => RoomBackgroundShopSheet(
         roomFeatures: _features,
         isHost: _isHost,
+        // The shared board already supports text and a multi-color palette.
+        onOpenWriting: _isHost || _featureState.boardWriteEnabled
+            ? _expandBoard
+            : null,
       ),
     );
   }
@@ -1119,7 +1522,12 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     );
   }
 
+  bool _boardVisible = false;
   Future<void> _showBoard() async {
+    setState(() => _boardVisible = true);
+  }
+
+  Future<void> _expandBoard() async {
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => RoomBoardScreen(
@@ -1172,17 +1580,72 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     );
   }
 
-  Future<void> _showRoomExtras() async {
+  Future<void> _showRoomExtras({int initialTab = 0}) async {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       builder: (_) => RoomExtrasSheet(
+        initialTab: initialTab,
         roomId: widget.channelId,
-        participants: _participants,
-        isHost: _isHost,
-        showTeacherAiSeat: _showTeacherAiSeat,
-        onOpenCoinStore: _showCoinStore,
+      ),
+    );
+  }
+
+  // Gifts are a self-contained tool, never a tab inside themes or tasks.
+  Future<void> _showGifts() async {
+    final myId = FirebaseAuth.instance.currentUser?.uid;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (sheetContext) => SafeArea(
+        child: SizedBox(
+          height: MediaQuery.sizeOf(context).height * .75,
+          child: UnifiedGiftPanel(
+            contextType: widget.initialMode == RoomMode.live ? 'live' : 'room',
+            contextId: widget.channelId,
+            recipients: {
+              for (final member in _participants.where(
+                  (member) => member.userId != myId &&
+                      (member.isOnStage ||
+                          RoomFeatureService.friendPreviewEnabled)))
+                member.userId: member.displayName,
+              if (_showTeacherAiSeat && widget.initialMode != RoomMode.live)
+                'teacher_ai': 'Teacher AI',
+            },
+            onOpenCoinStore: _showCoinStore,
+            onPreview: (gift, recipientId) {
+              // Local effect test over the real seats: never write a gift
+              // document, debit coins or display a sent-gift receipt.
+              Navigator.pop(sheetContext);
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!mounted) return;
+                _showGiftOverlay(RoomGiftEvent(
+                  id: 'preview',
+                  senderId: myId ?? '',
+                  senderName: _me?.displayName ??
+                      FirebaseAuth.instance.currentUser?.displayName ??
+                      'WorldVoice',
+                  recipientId: recipientId ?? '',
+                  recipientName: widget.initialMode != RoomMode.live &&
+                          recipientId == 'teacher_ai'
+                      ? 'Teacher AI'
+                      : _participants.where(
+                          (p) => p.userId == recipientId).isNotEmpty
+                        ? _participants.firstWhere(
+                            (p) => p.userId == recipientId).displayName
+                        : (recipientId == null
+                            ? (Localizations.localeOf(context).languageCode == 'ar'
+                                ? 'اختر المستلم' : 'Select recipient')
+                            : 'Member'),
+                  giftId: gift.id,
+                  points: gift.priceCoins,
+                ), preview: true, previewGift: gift);
+              });
+            },
+          ),
+        ),
       ),
     );
   }
@@ -1251,200 +1714,336 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     }
   }
 
-  Future<void> _showRoomControls() async {
-    final isArabic =
-        Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
+  Future<void> _showRoomMenu() async {
+    final ar = (widget.localeController?.locale?.languageCode ?? Localizations.localeOf(context).languageCode) == 'ar';
+    await showModalBottomSheet<void>(
+      context: context, showDragHandle: true, useSafeArea: true,
+      builder: (ctx) => Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          ListTile(leading: const Icon(Icons.share_outlined), title: Text(ar ? 'مشاركة الغرفة' : 'Share room'),
+            onTap: () { Navigator.pop(ctx); _shareRoom(); }),
+          if (widget.localeController != null)
+            ListTile(leading: const Icon(Icons.picture_in_picture_alt_outlined), title: Text(ar ? 'تصغير نافذة الغرفة' : 'Minimize room'),
+              onTap: () { Navigator.pop(ctx); _minimizeRoom(); }),
+          ListTile(leading: const Icon(Icons.logout_rounded), title: Text(ar ? 'مغادرة' : 'Leave'),
+            onTap: () { Navigator.pop(ctx); _leave(); }),
+          if (_isHost) ListTile(leading: const Icon(Icons.power_settings_new_rounded, color: Colors.redAccent),
+            title: Text(ar ? 'إغلاق الغرفة للجميع' : 'Close room for everyone', style: const TextStyle(color: Colors.redAccent)),
+            onTap: () { Navigator.pop(ctx); _confirmCloseRoom(); }),
+          const SizedBox(height: 8),
+          SizedBox(width: double.infinity, child: FilledButton(onPressed: () => Navigator.pop(ctx), child: Text(ar ? 'إلغاء' : 'Cancel'))),
+        ])),
+    );
+  }
 
+  // Tapping the room title opens only the five working room controls.
+  // Host/moderation controls remain role-gated.
+  Future<void> _showTitleActions() async {
+    final ar = (widget.localeController?.locale?.languageCode ??
+        Localizations.localeOf(context).languageCode) == 'ar';
+    final items = <(IconData, String, VoidCallback)>[
+      if (_canModerate)
+        (Icons.admin_panel_settings_rounded,
+          ar ? 'المدير' : 'Moderator', _showRoomControls),
+      (Icons.chat_bubble_outline_rounded,
+        ar ? 'الشات' : 'Chat', _showRoomChat),
+      (Icons.music_note_rounded,
+        ar ? 'الموسيقى' : 'Music', _showMusic),
+      (Icons.draw_rounded,
+        ar ? 'السبورة' : 'Whiteboard', _showBoard),
+      (Icons.quiz_outlined,
+        ar ? 'الكويز' : 'Quiz', _showQuiz),
+    ];
     await showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
-      isScrollControlled: true,
-      builder: (sheetContext) => SafeArea(
+      useSafeArea: true,
+      builder: (sheet) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 18),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text(
-                  widget.roomName,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                subtitle: Text(
-                  isArabic ? 'أدوات الغرفة' : 'Room tools',
-                ),
-              ),
-              if (_isHost)
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  secondary: const Icon(Icons.smart_toy_rounded),
-                  title: const Text('Teacher AI'),
-                  subtitle: Text(
-                    isArabic
-                        ? 'إظهار أو إخفاء مقعد Teacher AI خارج المقاعد الثمانية.'
-                        : 'Show or hide the Teacher AI seat outside the 8 seats.',
-                  ),
-                  value: _showTeacherAiSeat,
-                  onChanged: (value) async {
-                    await _moderation.setTeacherAiSeatVisible(value);
-                    if (sheetContext.mounted) {
-                      Navigator.pop(sheetContext);
-                    }
-                  },
-                ),
-              if (_isHost)
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  secondary: const Icon(Icons.edit_rounded),
-                  title: Text(
-                    isArabic
-                        ? 'السماح للأعضاء بالكتابة والرسم'
-                        : 'Allow members to write and draw',
-                  ),
-                  value: _featureState.boardWriteEnabled,
-                  onChanged: (value) async {
-                    await _features.setBoardWriteEnabled(value);
-                    if (sheetContext.mounted) {
-                      Navigator.pop(sheetContext);
-                    }
-                  },
-                ),
-              const Divider(),
-              _RoomToolTile(
-                icon: Icons.timer_outlined,
-                label: isArabic ? 'وقت الغرف اليومي' : 'Daily room time',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showQuotaStatus();
-                },
-              ),
-              _RoomToolTile(
-                icon: Icons.groups_rounded,
-                label: isArabic ? 'أعضاء الغرفة' : 'Room members',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showMembers();
-                },
-              ),
-              if (_canModerate)
-                _RoomToolTile(
-                  icon: Icons.receipt_long_rounded,
-                  label: isArabic ? 'سجل المودريتور' : 'Moderator log',
+              Text(ar ? 'التحكم بالغرفة' : 'Room controls',
+                style: Theme.of(sheet).textTheme.titleLarge),
+              const SizedBox(height: 12),
+              for (final item in items)
+                ListTile(
+                  leading: Icon(item.$1),
+                  title: Text(item.$2),
+                  trailing: const Icon(Icons.chevron_right_rounded),
                   onTap: () {
-                    Navigator.pop(sheetContext);
-                    _showModLog();
-                  },
-                ),
-              _RoomToolTile(
-                icon: Icons.closed_caption_rounded,
-                label: isArabic
-                    ? 'الترجمة المباشرة'
-                    : 'Live captions & translation',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showCaptionSettings();
-                },
-              ),
-              _RoomToolTile(
-                icon: Icons.monetization_on_rounded,
-                label: isArabic ? 'شراء Coins' : 'Buy coins',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showCoinStore();
-                },
-              ),
-              _RoomToolTile(
-                icon: Icons.storefront_rounded,
-                label: isArabic ? 'متجر الخلفيات' : 'Background store',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showBackgroundStore();
-                },
-              ),
-              _RoomToolTile(
-                icon: Icons.chat_bubble_rounded,
-                label: isArabic ? 'دردشة الغرفة' : 'Room chat',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showRoomChat();
-                },
-              ),
-              _RoomToolTile(
-                icon: Icons.draw_rounded,
-                label: isArabic ? 'السبورة' : 'Board',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showBoard();
-                },
-              ),
-              _RoomToolTile(
-                icon: Icons.quiz_rounded,
-                label: isArabic ? 'الكويز' : 'Quiz',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showQuiz();
-                },
-              ),
-              _RoomToolTile(
-                icon: Icons.music_note_rounded,
-                label: isArabic ? 'الموسيقى' : 'Music',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showMusic();
-                },
-              ),
-              _RoomToolTile(
-                icon: Icons.share_rounded,
-                label: isArabic ? 'مشاركة الغرفة' : 'Share room',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _shareRoom();
-                },
-              ),
-              _RoomToolTile(
-                icon: Icons.auto_awesome_rounded,
-                label: isArabic
-                    ? 'الثيم والمهام والهدايا والترتيب'
-                    : 'Theme, tasks, gifts & leaderboard',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showRoomExtras();
-                },
-              ),
-              const Divider(),
-              if (widget.localeController != null)
-                _RoomToolTile(
-                  icon: Icons.picture_in_picture_alt_rounded,
-                  label: isArabic ? 'تصغير الروم' : 'Minimize room',
-                  onTap: () {
-                    Navigator.pop(sheetContext);
-                    _minimizeRoom();
-                  },
-                ),
-              _RoomToolTile(
-                icon: Icons.logout_rounded,
-                label: isArabic ? 'الخروج من الروم' : 'Leave room',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _leave();
-                },
-              ),
-              if (_isHost)
-                _RoomToolTile(
-                  icon: Icons.stop_circle_rounded,
-                  label: isArabic ? 'إغلاق الروم للجميع' : 'Close room for everyone',
-                  destructive: true,
-                  onTap: () {
-                    Navigator.pop(sheetContext);
-                    _confirmCloseRoom();
+                    Navigator.pop(sheet);
+                    item.$3();
                   },
                 ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  // The four squares in the bottom toolbar open these four tools only.
+  Future<void> _showToolsGrid() async {
+    final ar = (widget.localeController?.locale?.languageCode ??
+        Localizations.localeOf(context).languageCode) == 'ar';
+    final items = <(IconData, String, VoidCallback)>[
+      (Icons.castle_outlined, ar ? 'مهام الغرفة' : 'Room tasks',
+        () => _showRoomExtras(initialTab: 0)),
+      (Icons.card_giftcard_rounded, ar ? 'الهدايا' : 'Gifts', _showGifts),
+      (Icons.timer_outlined, ar ? 'الوقت المتبقي' : 'Remaining time',
+        _showQuotaStatus),
+      (Icons.groups_outlined,
+        ar ? 'الأعضاء: ${_participants.length}' : 'Members: ${_participants.length}',
+        _showMembers),
+    ];
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      useSafeArea: true,
+      builder: (sheet) => Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(ar ? 'مركز الغرفة' : 'Room center',
+              style: Theme.of(sheet).textTheme.titleLarge),
+            const SizedBox(height: 16),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: items.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisExtent: 104,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+              ),
+              itemBuilder: (ctx, index) {
+                final item = items[index];
+                return Material(
+                  color: Theme.of(ctx).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(16),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () {
+                      Navigator.pop(sheet);
+                      item.$3();
+                    },
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(item.$1, size: 29),
+                        const SizedBox(height: 8),
+                        Text(item.$2, textAlign: TextAlign.center),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Host-only live moderator management; use the existing admin service
+  // instead of creating a second roles or permissions implementation.
+  Future<void> _showModeratorManagement() async {
+    if (!_isHost) return;
+    final ar = (widget.localeController?.locale?.languageCode ??
+        Localizations.localeOf(context).languageCode) == 'ar';
+    final admin = RoomAdminService(roomId: widget.channelId);
+    final membersStream = _moderation.watchParticipants();
+    String? savingUser;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setSheetState) => SafeArea(
+          child: SizedBox(
+            height: MediaQuery.sizeOf(sheetContext).height * .7,
+            child: Column(children: [
+              ListTile(
+                leading: const Icon(Icons.admin_panel_settings_rounded,
+                    color: Color(0xFF11835D)),
+                title: Text(ar ? 'إدارة المشرفين' : 'Manage moderators',
+                    style: const TextStyle(fontWeight: FontWeight.w800)),
+                subtitle: Text(ar
+                    ? 'عيّن مشرفاً من أعضاء الغرفة أو أزل صلاحياته'
+                    : 'Add or remove moderators among current room members'),
+              ),
+              const Divider(height: 1),
+              Expanded(child: StreamBuilder<List<RoomParticipant>>(
+                stream: membersStream,
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return Center(child: Text(ar
+                        ? 'تعذر تحميل أعضاء الغرفة'
+                        : 'Could not load room members'));
+                  }
+                  if (!snapshot.hasData) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  final eligible = snapshot.data!
+                      .where((person) => person.role != RoomMemberRole.host)
+                      .toList()
+                    ..sort((a, b) {
+                      if (a.isModerator != b.isModerator) {
+                        return a.isModerator ? -1 : 1;
+                      }
+                      return a.displayName.toLowerCase()
+                          .compareTo(b.displayName.toLowerCase());
+                    });
+                  if (eligible.isEmpty) {
+                    return Center(child: Text(ar
+                        ? 'لا يوجد أعضاء آخرون في الغرفة بعد'
+                        : 'No other members are in this room yet'));
+                  }
+                  return ListView.builder(
+                    itemCount: eligible.length,
+                    itemBuilder: (context, index) {
+                      final person = eligible[index];
+                      return ListTile(
+                        leading: _ParticipantAvatar(participant: person),
+                        title: Text(person.displayName,
+                            maxLines: 1, overflow: TextOverflow.ellipsis),
+                        subtitle: Text(person.isModerator
+                            ? (ar ? 'مشرف حالي' : 'Current moderator')
+                            : (ar ? 'عضو' : 'Member')),
+                        trailing: FilledButton.tonal(
+                          onPressed: savingUser != null ? null : () async {
+                            setSheetState(() => savingUser = person.userId);
+                            try {
+                              await admin.setModerator(
+                                participant: person,
+                                value: !person.isModerator,
+                              );
+                            } catch (error) {
+                              if (sheetContext.mounted) {
+                                ScaffoldMessenger.of(sheetContext)
+                                    .showSnackBar(SnackBar(
+                                      content: Text(error.toString())));
+                              }
+                            } finally {
+                              if (sheetContext.mounted) {
+                                setSheetState(() => savingUser = null);
+                              }
+                            }
+                          },
+                          child: savingUser == person.userId
+                              ? const SizedBox.square(dimension: 16,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2))
+                              : Text(person.isModerator
+                                  ? (ar ? 'إزالة' : 'Remove')
+                                  : (ar ? 'تعيين' : 'Add')),
+                        ),
+                      );
+                    },
+                  );
+                },
+              )),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Moderator panel, never used as the gift/theme/task menu.
+  Future<void> _showRoomControls() async {
+    if (!_canModerate) return;
+    final ar = (widget.localeController?.locale?.languageCode ??
+        Localizations.localeOf(context).languageCode) == 'ar';
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      useSafeArea: true,
+      isScrollControlled: true,
+      builder: (sheet) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 22),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            ListTile(
+              title: Text(ar ? 'إدارة الغرفة' : 'Room moderation',
+                style: const TextStyle(fontWeight: FontWeight.w800)),
+            ),
+            if (_isHost) SwitchListTile(
+              title: const Text('Teacher AI'),
+              subtitle: Text(ar ? 'إظهار المقعد التاسع'
+                  : 'Show the ninth AI seat'),
+              value: _showTeacherAiSeat,
+              onChanged: (value) async {
+                try {
+                  await _moderation.setTeacherAiSeatVisible(value);
+                  if (sheet.mounted) Navigator.pop(sheet);
+                } catch (error) {
+                  if (sheet.mounted) {
+                    ScaffoldMessenger.of(sheet).showSnackBar(
+                      SnackBar(content: Text(error.toString())));
+                  }
+                }
+              },
+            ),
+            if (_isHost) SwitchListTile(
+              title: Text(ar ? 'السماح بالكتابة والرسم'
+                  : 'Allow writing and drawing'),
+              value: _featureState.boardWriteEnabled,
+              onChanged: (value) async {
+                try {
+                  await _features.setBoardWriteEnabled(value);
+                  if (sheet.mounted) Navigator.pop(sheet);
+                } catch (error) {
+                  if (sheet.mounted) {
+                    ScaffoldMessenger.of(sheet).showSnackBar(
+                      SnackBar(content: Text(error.toString())));
+                  }
+                }
+              },
+            ),
+            if (_isHost) ListTile(
+              leading: const Icon(Icons.admin_panel_settings_rounded,
+                  color: Color(0xFF11835D)),
+              title: Text(ar ? 'إضافة أو إزالة المشرفين' : 'Manage moderators'),
+              onTap: () {
+                Navigator.pop(sheet);
+                _showModeratorManagement();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.pan_tool_alt_rounded),
+              title: Text(ar ? 'طلبات رفع اليد' : 'Raise hand requests'),
+              trailing: Badge(label: Text('${_raisedHands.length}'),
+                child: const Icon(Icons.chevron_right_rounded)),
+              onTap: () {
+                Navigator.pop(sheet);
+                _showRaisedHandsSheet();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.receipt_long_rounded),
+              title: Text(ar ? 'سجل المودريتور' : 'Moderator log'),
+              onTap: () {
+                Navigator.pop(sheet);
+                _showModLog();
+              },
+            ),
+            if (_isHost) ListTile(
+              leading: const Icon(Icons.stop_circle_outlined,
+                color: Colors.redAccent),
+              title: Text(ar ? 'إغلاق الغرفة للجميع'
+                  : 'Close room for everyone'),
+              onTap: () {
+                Navigator.pop(sheet);
+                _confirmCloseRoom();
+              },
+            ),
+          ]),
         ),
       ),
     );
@@ -1636,6 +2235,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     _teacherAiSeatSub?.cancel();
     _featuresSub?.cancel();
     _giftSub?.cancel();
+    _freeGiftPreviewSub?.cancel();
+    _freeChatGiftSub?.cancel();
     _captionSub?.cancel();
     _teacherAiSub?.cancel();
     _giftOverlayTimer?.cancel();
@@ -1662,6 +2263,18 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
           Color(0xFF123A32),
           Color(0xFF111D1A),
         ];
+      case 'skyBlue':
+        return const [
+          Color(0xFF145C76),
+          Color(0xFF123B56),
+          Color(0xFF0B2535),
+        ];
+      case 'forestGold':
+        return const [
+          Color(0xFF265338),
+          Color(0xFF284A39),
+          Color(0xFF17322A),
+        ];
       case 'midnight':
         return const [
           Color(0xFF17223A),
@@ -1670,9 +2283,9 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         ];
       default:
         return const [
-          Color(0xFF30216E),
-          Color(0xFF21194F),
-          Color(0xFF17122F),
+          Color(0xFF0D4A38),
+          Color(0xFF123A32),
+          Color(0xFF111D1A),
         ];
     }
   }
@@ -1772,532 +2385,201 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_minimized) {
-      return _buildMinimizedRoom(context);
-    }
-
-    final colors = Theme.of(context).colorScheme;
-    final isPublishing = _controller.role == AgoraRoomRole.speaker;
-    final myRole = _me?.role ??
-        (widget.initialRole == AgoraRoomRole.speaker
-            ? RoomMemberRole.host
-            : RoomMemberRole.listener);
-    final isArabic =
-        Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
-
-    return Scaffold(
-      backgroundColor: const Color(0xFF17122F),
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.white,
-        leading: IconButton(
-          onPressed: _leave,
-          icon: const Icon(Icons.close_rounded),
+    if (_minimized) return _buildMinimizedRoom(context);
+    final isArabic = (widget.localeController?.locale?.languageCode ??
+        Localizations.localeOf(context).languageCode) == 'ar';
+    final isPublishing = _me?.isOnStage ?? (widget.initialRole == AgoraRoomRole.speaker);
+    String label(String ar, String en) => isArabic ? ar : en;
+    return Directionality(
+      textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+      child: Scaffold(
+        // Only the chat composer moves over the keyboard; seats stay fixed.
+        resizeToAvoidBottomInset: false,
+        backgroundColor: const Color(0xFF0D4A38),
+        appBar: AppBar(
+          toolbarHeight: _boardVisible ? 52 : 68, elevation: 0,
+          backgroundColor: const Color(0xFF0D4A38), foregroundColor: Colors.white,
+          leading: IconButton(tooltip: label('قائمة الغرفة', 'Room menu'),
+            onPressed: _showRoomMenu, icon: const Icon(Icons.more_horiz_rounded)),
+          titleSpacing: 0,
+          title: InkWell(
+            onTap: _showTitleActions,
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(widget.roomName, maxLines: 1, overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 4),
+              Wrap(spacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
+                InkWell(onTap: () => _showRoomExtras(initialTab: 0), child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                  decoration: BoxDecoration(color: const Color(0xFFFFCE79),
+                    borderRadius: BorderRadius.circular(12)),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    const Icon(Icons.castle_rounded, size: 13, color: Color(0xFF603D15)),
+                    Text(' Lv.${_featureState.roomLevel}', style: const TextStyle(
+                      color: Color(0xFF603D15), fontSize: 10, fontWeight: FontWeight.w800)),
+                  ]),
+                )),
+                Text((widget.roomLanguageCode ?? 'en').toUpperCase(),
+                  style: const TextStyle(color: Colors.white70, fontSize: 10)),
+                Text(_controller.joined ? label('• متصل', '• Live') : label('• الصوت غير متصل', '• Audio offline'),
+                  style: TextStyle(color: _controller.joined ? const Color(0xFF88EDBC) : Colors.white60, fontSize: 10)),
+              ]),
+            ]),
+          ),
+          actions: [
+            if (_boardVisible && _controller.error != null) IconButton(
+              tooltip: label('خطأ اتصال الصوت', 'Audio connection error'),
+              icon: const Icon(Icons.warning_amber_rounded, color: Color(0xFFFFD68A)),
+              onPressed: () => showDialog<void>(context: context, builder: (ctx) => AlertDialog(
+                content: SelectableText(_controller.error!),
+                actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: Text(label('إغلاق', 'Close')))]))),
+            IconButton(tooltip: label('الأعضاء', 'Members'), onPressed: _showMembers,
+              icon: Badge(label: Text('${_participants.length}'), child: const Icon(Icons.people_outline_rounded))),
+            IconButton(tooltip: label('تصغير', 'Minimize'), onPressed: widget.localeController == null ? null : _minimizeRoom,
+              icon: const Icon(Icons.picture_in_picture_alt_outlined, size: 21)),
+          ],
         ),
-        title: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: _showRoomControls,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        widget.roomName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    const Icon(Icons.expand_more_rounded, size: 20),
-                  ],
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 7,
-                      height: 7,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: _controller.joined
-                            ? const Color(0xFF5BFF91)
-                            : Colors.white38,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      '${_participants.length} members • LIVE',
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 11,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          if (widget.localeController != null)
-            IconButton(
-              tooltip: isArabic ? 'تصغير الغرفة' : 'Minimize room',
-              onPressed: _minimizeRoom,
-              icon: const Icon(Icons.picture_in_picture_alt_rounded),
-            ),
-          IconButton(
-            tooltip: isArabic ? 'الأعضاء' : 'Members',
-            onPressed: _showMembers,
-            icon: Badge(
-              label: Text('${_participants.length}'),
-              child: const Icon(Icons.groups_rounded),
-            ),
-          ),
-          if (_canModerate)
-            IconButton(
-              tooltip: isArabic ? 'أدوات الغرفة' : 'Room tools',
-              onPressed: _showRoomControls,
-              icon: const Icon(Icons.more_horiz_rounded),
-            ),
-        ],
-      ),
-      body: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: _roomThemeColors(_featureState.themeId),
-          ),
-          image: _featureState.backgroundUrl?.trim().isNotEmpty == true
-              ? DecorationImage(
-                  image: NetworkImage(_featureState.backgroundUrl!.trim()),
-                  fit: BoxFit.cover,
-                  colorFilter: ColorFilter.mode(
-                    Colors.black.withValues(alpha: .28),
-                    BlendMode.darken,
-                  ),
-                )
+        body: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter,
+              colors: _roomThemeColors(_featureState.themeId)),
+            image: _featureState.backgroundUrl?.trim().isNotEmpty == true
+              ? DecorationImage(image: NetworkImage(_featureState.backgroundUrl!.trim()),
+                  fit: BoxFit.cover, colorFilter: ColorFilter.mode(Colors.black.withValues(alpha: .25), BlendMode.darken))
               : null,
-        ),
-        child: SafeArea(
-          top: false,
-          child: Column(
-            children: [
-              if (_controller.connecting)
-                const LinearProgressIndicator(minHeight: 2),
-              if (_controller.error != null)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 8, 14, 0),
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: colors.errorContainer,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.error_outline_rounded,
-                          color: colors.onErrorContainer,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            _controller.error!,
-                            style: TextStyle(
-                              color: colors.onErrorContainer,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 20),
+          ),
+          child: SafeArea(top: false, child: Column(children: [
+            if (_controller.connecting) const LinearProgressIndicator(minHeight: 2),
+            if ((_controller.error != null || _audioFailure != null) && !_boardVisible) Container(
+              width: double.infinity, margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(color: const Color(0xFF4D344E), borderRadius: BorderRadius.circular(12)),
+              child: Row(children: [
+                const Icon(Icons.info_outline_rounded, color: Color(0xFFFFD3A4), size: 18),
+                const SizedBox(width: 8),
+                Expanded(child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    RoomStageGrid(
-                      seats: _buildSeats(),
+                    Text(label('الصوت غير متصل. افتح التفاصيل أو أعد المحاولة.',
+                        'Audio offline. Check details or retry.'),
+                      style: const TextStyle(color: Colors.white, fontSize: 12)),
+                    if (MediaQuery.viewInsetsOf(context).bottom == 0)
+                      Text(_audioFailure ?? _controller.error ?? '',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: Color(0xFFFFE3BE),
+                            fontSize: 10)),
+                  ],
+                )),
+                IconButton(tooltip: label('تفاصيل الاتصال', 'Connection details'),
+                  onPressed: () => showDialog<void>(context: context, builder: (ctx) => AlertDialog(
+                    title: Text(label('اتصال الصوت', 'Audio connection')),
+                    content: SingleChildScrollView(child: SelectableText(_audioFailure ?? _controller.error ?? 'Unknown Agora error')),
+                    actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: Text(label('إغلاق', 'Close')))],
+                  )), icon: const Icon(Icons.chevron_right_rounded, color: Colors.white70, size: 18)),
+                IconButton(
+                  tooltip: label('إعادة اتصال الصوت', 'Retry audio'),
+                  onPressed: _audioRetrying ? null : _retryAudioConnection,
+                  icon: _audioRetrying
+                    ? const SizedBox.square(dimension: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Icon(Icons.refresh_rounded,
+                        color: Colors.white, size: 20),
+                ),
+              ]),
+            ),
+            Expanded(child: LayoutBuilder(builder: (context, constraints) {
+              // Reserve actual two-row seat height instead of letting a short
+              // viewport scroll or clip the stage. Chat is the only vertical
+              // message scroller; tiny/keyboard viewports use compact mode.
+              final stageHeight =
+                  2 * (82 + MediaQuery.textScalerOf(context).scale(30)) + 24;
+              final contentHeight = _boardVisible
+                  ? (constraints.maxHeight * .55).clamp(110.0, 320.0) + 106
+                  : stageHeight + (_showTeacherAiSeat ? 88 : 0);
+              final neededHeight = contentHeight +
+                  (_controller.joined ? 42 : 0) +
+                  (_canModerate && _raisedHands.isNotEmpty ? 84 : 0) +
+                  130;
+              final compact = constraints.maxHeight < neededHeight;
+              return Column(children: [
+                if (_boardVisible) SizedBox(
+                  height: (constraints.maxHeight * .55).clamp(110.0, 320.0),
+                  child: RoomBoardScreen(roomId: widget.channelId,
+                    canWrite: _isHost || _featureState.boardWriteEnabled,
+                    isHost: _isHost, agoraController: _controller, embedded: true,
+                    onExpand: _expandBoard, onClose: () => setState(() => _boardVisible = false))),
+                if (_boardVisible && !compact) SizedBox(height: 106,
+                  child: RoomStageStrip(seats: _buildSeats(), onSeatTap: _handleSeatTap)),
+                // Stage is a separate fixed viewport. Teacher AI and hand
+                // requests stay pinned; new chat messages never scroll them.
+                if (!_boardVisible && !compact) SizedBox(
+                  height: stageHeight,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+                    child: RoomStageGrid(seats: _buildSeats(),
                       onSeatTap: _handleSeatTap,
-                      onSeatLongPress: _handleSeatLongPress,
-                    ),
-                    if (_showTeacherAiSeat) ...[
-                      const SizedBox(height: 8),
-                      _TeacherAiCompactSeat(
-                        note: _latestTeacherAiNote,
-                        configured:
-                            _teacherAi.isConfigured || _teacherAi.isAskConfigured,
-                        onTap: _showTeacherAiChat,
-                      ),
-                    ],
-                    const SizedBox(height: 12),
-                    if (_isHost && _raisedHands.isNotEmpty)
-                      _RaisedHandNotice(
-                        participant: _raisedHands.first,
-                        total: _raisedHands.length,
-                        isArabic: isArabic,
-                        onTap: _showRaisedHandsSheet,
-                        onAccept: () => _acceptHand(_raisedHands.first),
-                        onReject: () =>
-                            _moderation.rejectHand(_raisedHands.first.userId),
-                      ),
-                    const SizedBox(height: 12),
-                    Container(
-                      constraints: const BoxConstraints(minHeight: 180),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: .10),
-                        borderRadius: BorderRadius.circular(22),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: .06),
-                        ),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: _captionsEnabled && _latestCaption != null
-                            ? Align(
-                                alignment: Alignment.bottomCenter,
-                                child: RoomCaptionOverlay(
-                                  caption: _latestCaption!,
-                                  translationEnabled:
-                                      _captionTranslationEnabled,
-                                  translatedText:
-                                      _latestTranslatedCaption,
-                                ),
-                              )
-                            : Center(
-                                child: Text(
-                                  myRole == RoomMemberRole.listener
-                                      ? (_handRaised
-                                          ? (isArabic
-                                              ? 'طلب الصعود مُرسل'
-                                              : 'Seat request sent')
-                                          : (isArabic
-                                              ? 'اضغط مقعدًا فارغًا أو ارفع يدك'
-                                              : 'Tap an empty seat or raise your hand'))
-                                      : (isArabic
-                                          ? 'أنت على الستيج'
-                                          : 'You are on stage'),
-                                  style: TextStyle(
-                                    color:
-                                        Colors.white.withValues(alpha: .58),
-                                    fontSize: 13,
-                                  ),
-                                ),
-                              ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF110E24).withValues(alpha: .96),
-                  border: Border(
-                    top: BorderSide(
-                      color: Colors.white.withValues(alpha: .08),
-                    ),
+                      onSeatLongPress: _handleSeatLongPress),
                   ),
                 ),
-                child: Row(
-                  children: [
-                    _RoomBottomAction(
-                      icon: Icons.call_end_rounded,
-                      background: const Color(0xFFFF9B9B),
-                      foreground: const Color(0xFF5B0000),
-                      onPressed: _leave,
+                if (!_boardVisible && !compact && _showTeacherAiSeat)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    child: _TeacherAiCompactSeat(
+                      note: _latestTeacherAiNote,
+                      configured: _teacherAi.isConfigured || _teacherAi.isAskConfigured,
+                      onTap: _showTeacherAiChat,
                     ),
-                    const SizedBox(width: 8),
-                    _RoomBottomAction(
-                      icon: Icons.closed_caption_rounded,
-                      highlighted: _captionsEnabled,
-                      onPressed: _showCaptionSettings,
+                  ),
+                if (!compact && _canModerate && _raisedHands.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: _RaisedHandNotice(
+                      participant: _raisedHands.first, total: _raisedHands.length,
+                      isArabic: isArabic,
+                      onTap: _showRaisedHandsSheet,
+                      onAccept: () => _acceptHand(_raisedHands.first),
+                      onReject: () => _moderation.rejectHand(_raisedHands.first.userId),
                     ),
-                    const Spacer(),
-                    if (isPublishing)
-                      _RoomBottomAction(
-                        icon: _controller.muted
-                            ? Icons.mic_off_rounded
-                            : Icons.mic_rounded,
-                        label: _me?.forcedMuted == true
-                            ? (isArabic ? 'مكتوم من المودريتور' : 'Moderator mute')
-                            : _controller.muted
-                                ? (isArabic ? 'تشغيل' : 'Unmute')
-                                : (isArabic ? 'كتم' : 'Mute'),
-                        onPressed: _controller.joined &&
-                                _me?.forcedMuted != true
-                            ? () => _controller.setMuted(!_controller.muted)
-                            : null,
-                      )
-                    else
-                      _RoomBottomAction(
-                        icon: _handRaised
-                            ? Icons.pan_tool_rounded
-                            : Icons.pan_tool_alt_rounded,
-                        label: _handRaised
-                            ? (isArabic ? 'إلغاء الطلب' : 'Cancel')
-                            : (isArabic ? 'رفع اليد' : 'Raise hand'),
-                        highlighted: _handRaised,
-                        onPressed: _controller.joined
-                            ? () => _handRaised
-                                ? _moderation.setHandRaised(false)
-                                : _requestSeat()
-                            : null,
-                      ),
-                    const SizedBox(width: 8),
-                    _RoomBottomAction(
-                      icon: Icons.chat_bubble_outline_rounded,
-                      label: isArabic ? 'الدردشة' : 'Chat',
-                      onPressed: _showRoomChat,
-                    ),
-                    const SizedBox(width: 8),
-                    _RoomBottomAction(
-                      icon: Icons.more_horiz_rounded,
-                      label: isArabic ? 'المزيد' : 'More',
-                      onPressed: _showRoomControls,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _RoomGiftOverlay extends StatelessWidget {
-  const _RoomGiftOverlay({required this.event});
-
-  final RoomGiftEvent event;
-
-  String get _giftId => event.giftId.trim().toLowerCase();
-
-  bool get _isPremiumDragon => const <String>{
-        'dragon',
-        'caraxes',
-        'vhagar',
-      }.contains(_giftId);
-
-  String get _premiumTitle {
-    switch (_giftId) {
-      case 'vhagar':
-        return 'VHAGAR';
-      case 'caraxes':
-      case 'dragon':
-        return 'CARAXES';
-      default:
-        return event.giftId.toUpperCase();
-    }
-  }
-
-  String get _fallbackEmoji => _giftId == 'vhagar' ? '🐲' : '🐉';
-
-  Widget _catalogVisual({
-    required double width,
-    required double height,
-    double fallbackSize = 110,
-  }) {
-    final url = event.animationUrl?.trim();
-    if (url?.isNotEmpty == true) {
-      return SizedBox(
-        width: width,
-        height: height,
-        child: Image.network(
-          url!,
-          fit: BoxFit.contain,
-          gaplessPlayback: true,
-          errorBuilder: (_, _, _) => Center(
-            child: Text(
-              _fallbackEmoji,
-              style: TextStyle(fontSize: fallbackSize),
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Text(
-      _fallbackEmoji,
-      style: TextStyle(fontSize: fallbackSize),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_isPremiumDragon) {
-      return IgnorePointer(
-        child: Material(
-          color: Colors.black.withValues(alpha: .34),
-          child: SafeArea(
-            child: TweenAnimationBuilder<double>(
-              tween: Tween(begin: -1.15, end: 1.15),
-              duration: const Duration(milliseconds: 4200),
-              curve: Curves.easeInOutCubic,
-              builder: (context, value, child) {
-                final width = MediaQuery.sizeOf(context).width;
-                final progress = ((value + 1.15) / 2.30).clamp(0.0, 1.0);
-                final flightWave =
-                    26 * (1 - (2 * progress - 1).abs()).clamp(0.0, 1.0);
-                final fireOpacity = progress > .54 && progress < .90
-                    ? ((progress - .54) / .20).clamp(0.0, 1.0) *
-                        ((.90 - progress) / .16).clamp(0.0, 1.0)
-                    : 0.0;
-
-                return Stack(
-                  children: [
-                    Positioned.fill(
-                      child: IgnorePointer(
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: RadialGradient(
-                              center: Alignment(
-                                value.clamp(-1.0, 1.0),
-                                -.15,
-                              ),
-                              radius: .75,
-                              colors: [
-                                const Color(0xFFFF5A1F).withValues(
-                                  alpha: .12 + (.18 * fireOpacity),
-                                ),
-                                Colors.transparent,
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+                  ),
+                if (_captionsEnabled && _latestCaption != null && !compact)
+                  RoomCaptionOverlay(caption: _latestCaption!, translationEnabled: _captionTranslationEnabled,
+                    translatedText: _latestTranslatedCaption),
+                if (_featureState.quizQuestion != null && !compact)
+                  Align(alignment: AlignmentDirectional.centerEnd, child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: ActionChip(avatar: const Icon(Icons.quiz_outlined, size: 16),
+                      label: Text(label('مسابقة الغرفة', 'Room quiz')), onPressed: _showQuiz))),
+                Expanded(child: Stack(children: [
+                  Positioned.fill(child: RoomConversationPanel(
+                  messages: _chatMessages ?? const Stream<List<RoomChatMessage>>.empty(),
+                  enabled: _chatMessages != null, onSend: _roomChat.send, isArabic: isArabic,
+                  onGifts: _showGifts, onShop: _showBackgroundStore,
+                  onTools: _showToolsGrid, onCaptions: _showCaptionSettings,
+                  micIcon: isPublishing
+                    ? (_controller.muted || !_controller.joined ? Icons.mic_off_rounded : Icons.mic_rounded)
+                    : Icons.pan_tool_alt_rounded,
+                  micLabel: isPublishing
+                      ? (_me?.forcedMuted == true
+                          ? label('كتم المضيف', 'Muted by host')
+                          : label('الميكروفون', 'Microphone'))
+                      : label('رفع اليد', 'Raise hand'),
+                  onMic: !_controller.joined || _micBusy ||
+                          _me?.forcedMuted == true || !isPublishing
+                      ? null : _toggleMicSafely,
+                  )),
+                  if (MediaQuery.viewInsetsOf(context).bottom == 0 &&
+                      _me != null && (_canModerate || !isPublishing))
                     Positioned(
-                      left: (width * .5) + (value * width * .45) - 95,
-                      top: 95 + flightWave,
-                      child: Transform.rotate(
-                        angle: value * .18,
-                        child: _catalogVisual(
-                          width: 190,
-                          height: 190,
-                          fallbackSize: 126,
-                        ),
-                      ),
+                      left: 10,
+                      bottom: 79,
+                      child: _buildHandControl(isArabic, isPublishing),
                     ),
-                    if (fireOpacity > 0)
-                      Positioned(
-                        right: 28,
-                        top: 245,
-                        child: Opacity(
-                          opacity: fireOpacity,
-                          child: const Text(
-                            '🔥🔥🔥',
-                            style: TextStyle(fontSize: 58),
-                          ),
-                        ),
-                      ),
-                    Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 108),
-                        child: Opacity(
-                          opacity: (1 - (progress - .76).clamp(0.0, .24) / .24)
-                              .clamp(0.0, 1.0),
-                          child: _GiftCaption(
-                            event: event,
-                            titleOverride: _premiumTitle,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ),
-        ),
-      );
-    }
-
-    final hasCatalogAnimation = event.animationUrl?.trim().isNotEmpty == true;
-    return IgnorePointer(
-      child: Material(
-        color: Colors.transparent,
-        child: SafeArea(
-          child: Align(
-            alignment: Alignment.topCenter,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 78),
-              child: TweenAnimationBuilder<double>(
-                tween: Tween(begin: .72, end: 1),
-                duration: const Duration(milliseconds: 520),
-                curve: Curves.easeOutBack,
-                builder: (context, scale, child) => Transform.scale(
-                  scale: scale,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (hasCatalogAnimation)
-                        _catalogVisual(
-                          width: 150,
-                          height: 150,
-                          fallbackSize: 86,
-                        ),
-                      if (hasCatalogAnimation) const SizedBox(height: 8),
-                      _GiftCaption(event: event),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _GiftCaption extends StatelessWidget {
-  const _GiftCaption({
-    required this.event,
-    this.titleOverride,
-  });
-
-  final RoomGiftEvent event;
-  final String? titleOverride;
-
-  @override
-  Widget build(BuildContext context) {
-    final icon = switch (event.giftId) {
-      'dragon' => '🐉',
-      'star' => '⭐',
-      _ => '🌹',
-    };
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24),
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF17122F).withValues(alpha: .94),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white24),
-        boxShadow: const [
-          BoxShadow(blurRadius: 22, color: Colors.black45),
-        ],
-      ),
-      child: Text(
-        '$icon  ${event.senderName} → ${event.recipientName}  •  ${event.points}',
-        textAlign: TextAlign.center,
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w900,
+                ])),
+              ]);
+            })),
+          ])),
         ),
       ),
     );
@@ -2310,45 +2592,6 @@ enum _StageAction {
   coHost,
   vipSeat,
   listener,
-}
-
-class _RoomToolTile extends StatelessWidget {
-  const _RoomToolTile({
-    required this.icon,
-    required this.label,
-    this.onTap,
-    this.destructive = false,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback? onTap;
-  final bool destructive;
-
-  @override
-  Widget build(BuildContext context) {
-    final errorColor = Theme.of(context).colorScheme.error;
-
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: Icon(
-        icon,
-        color: destructive ? errorColor : null,
-      ),
-      title: Text(
-        label,
-        style: TextStyle(
-          fontWeight: FontWeight.w800,
-          color: destructive ? errorColor : null,
-        ),
-      ),
-      trailing: Icon(
-        Icons.chevron_right_rounded,
-        color: destructive ? errorColor : null,
-      ),
-      onTap: onTap ?? () => Navigator.pop(context),
-    );
-  }
 }
 
 class _RaisedHandNotice extends StatelessWidget {
@@ -2445,56 +2688,6 @@ class _RaisedHandNotice extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _RoomBottomAction extends StatelessWidget {
-  const _RoomBottomAction({
-    required this.icon,
-    required this.onPressed,
-    this.label,
-    this.highlighted = false,
-    this.background,
-    this.foreground,
-  });
-
-  final IconData icon;
-  final VoidCallback? onPressed;
-  final String? label;
-  final bool highlighted;
-  final Color? background;
-  final Color? foreground;
-
-  @override
-  Widget build(BuildContext context) {
-    final bg = background ??
-        (highlighted
-            ? const Color(0xFF5B49C9)
-            : Colors.white.withValues(alpha: .10));
-    final fg = foreground ?? Colors.white;
-
-    if (label == null) {
-      return IconButton.filled(
-        onPressed: onPressed,
-        style: IconButton.styleFrom(
-          backgroundColor: bg,
-          foregroundColor: fg,
-          minimumSize: const Size(48, 48),
-        ),
-        icon: Icon(icon),
-      );
-    }
-
-    return FilledButton.icon(
-      onPressed: onPressed,
-      style: FilledButton.styleFrom(
-        backgroundColor: bg,
-        foregroundColor: fg,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      ),
-      icon: Icon(icon, size: 19),
-      label: Text(label!),
     );
   }
 }
