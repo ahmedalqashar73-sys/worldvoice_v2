@@ -67,7 +67,7 @@ test('chat member demos cannot impersonate others, charge coins or write message
     senderName: 'Alice',
     recipientId: 'bob',
     recipientName: 'Bob',
-    giftId: 'classic_luminous_butterfly',
+    giftId: 'wv_gift_002',
     sentAt: serverTimestamp(),
   };
   await assertSucceeds(setDoc(preview, notice));
@@ -88,7 +88,7 @@ test('chat member demos cannot impersonate others, charge coins or write message
     recipientId: 'alice', recipientName: 'Alice', diamonds: 10000,
   }));
   await assertFails(addDoc(messages(alice), {
-    type: 'gift', senderId: 'alice', giftId: 'classic_royal_rose',
+    type: 'gift', senderId: 'alice', giftId: 'wv_gift_001',
     points: 99999,
   }));
 });

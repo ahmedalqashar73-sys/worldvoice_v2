@@ -137,6 +137,13 @@ test('economy reads are permitted but client-side money and gifts cannot be forg
   await assertSucceeds(updateDoc(profile, {
     profileFrameId: 'free_soft_green',
   }));
+  for (const frameId of [
+    'free_art_01', 'free_art_02', 'free_art_03', 'free_art_04'
+  ]) {
+    await assertSucceeds(updateDoc(profile, {profileFrameId: frameId}));
+  }
+  await assertFails(updateDoc(profile, {profileFrameId: 'frame__art_05'}));
+  await assertFails(updateDoc(profile, {profileFrameId: 'free_art_05'}));
   await assertFails(updateDoc(profile, {
     profileFrameId: 'frame__golden_crown',
   }));
@@ -155,6 +162,15 @@ test('economy reads are permitted but client-side money and gifts cannot be forg
   await assertSucceeds(updateDoc(profile, {
     profileFrameId: 'frame__golden_crown',
   }));
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    await setDoc(doc(ctx.firestore(), 'users/listener/inventory/frame__art_05'), {
+      itemId: 'frame__art_05',
+      type: 'frame',
+      quantity: 1,
+      expiresAt: null,
+    });
+  });
+  await assertSucceeds(updateDoc(profile, {profileFrameId: 'frame__art_05'}));
 
   await assertFails(setDoc(doc(db, 'users/new'), {uid: 'new', coins: 500}));
   for (const profile of [
@@ -484,7 +500,7 @@ test('verified room members can show rate-limited free gift demos without mintin
     senderName: 'host',
     recipientId: 'listener',
     recipientName: 'listener',
-    giftId: 'classic_royal_rose',
+    giftId: 'wv_gift_001',
     sentAt: serverTimestamp(),
   };
   await assertSucceeds(setDoc(doc(host, previewPath), payload));
@@ -507,5 +523,5 @@ test('verified room members can show rate-limited free gift demos without mintin
     chargedCoins: 5000000,
   }));
   await assertFails(setDoc(doc(host, 'rooms/r1/gifts/fake-gift'),
-    {senderId: 'host', giftId: 'classic_royal_rose', points: 1000}));
+    {senderId: 'host', giftId: 'wv_gift_001', points: 1000}));
 });
