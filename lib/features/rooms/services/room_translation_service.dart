@@ -253,7 +253,7 @@ class RoomTranslationService {
   }) async {
     final normalized = text.trim();
     if (normalized.isEmpty) return normalized;
-    final guessed = _guessSourceCode(
+    final guessed = guessSourceCode(
       normalized,
       fallbackSourceCode: fallbackSourceCode,
       targetCode: targetCode,
@@ -266,7 +266,7 @@ class RoomTranslationService {
     );
   }
 
-  String? _guessSourceCode(
+  String? guessSourceCode(
     String text, {
     required String targetCode,
     String? fallbackSourceCode,
@@ -301,7 +301,9 @@ class RoomTranslationService {
       detected = 'ar';
     }
 
-    if (detected != null && detected != target) return detected;
+    // A detected source that matches the target is already translated.
+    // Never override an Arabic transcript with a Latin fallback hint.
+    if (detected != null) return detected;
 
     if (fallback != null &&
         fallback != target &&
