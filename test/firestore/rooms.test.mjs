@@ -525,3 +525,44 @@ test('verified room members can show rate-limited free gift demos without mintin
   await assertFails(setDoc(doc(host, 'rooms/r1/gifts/fake-gift'),
     {senderId: 'host', giftId: 'wv_gift_001', points: 1000}));
 });
+
+test('room subtitles are member-readable and private corrections stay private', async () => {
+  const host = user('host');
+  const listener = user('listener');
+  const stranger = user('stranger');
+  const captionRef = doc(host, 'rooms/r1/captions/test-caption');
+
+  await assertSucceeds(setDoc(captionRef, {
+    userId: 'host',
+    displayName: 'Host',
+    text: 'Hello, welcome to WorldVoice.',
+    languageCode: 'en',
+    createdAt: serverTimestamp(),
+  }));
+  await assertSucceeds(getDoc(doc(listener, 'rooms/r1/captions/test-caption')));
+  await assertFails(getDoc(doc(stranger, 'rooms/r1/captions/test-caption')));
+  await assertFails(setDoc(doc(listener, 'rooms/r1/captions/listener-forgery'), {
+    userId: 'listener',
+    displayName: 'Listener',
+    text: 'I am not on a speaker seat',
+    languageCode: 'en',
+    createdAt: serverTimestamp(),
+  }));
+
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    await setDoc(doc(ctx.firestore(), 'rooms/r1/teacher_ai_notes/host-note'), {
+      userId: 'host',
+      originalText: 'Hello',
+      correction: '',
+      pronunciationTip: 'Try a steady rhythm.',
+      createdAt: serverTimestamp(),
+    });
+  });
+  const note = 'rooms/r1/teacher_ai_notes/host-note';
+  await assertSucceeds(getDoc(doc(host, note)));
+  await assertFails(getDoc(doc(listener, note)));
+  await assertFails(getDoc(doc(stranger, note)));
+  await assertFails(setDoc(doc(host, 'rooms/r1/teacher_ai_notes/forged'), {
+    userId: 'host', correction: 'Forged private feedback',
+  }));
+});
