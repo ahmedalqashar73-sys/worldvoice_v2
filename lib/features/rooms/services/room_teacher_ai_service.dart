@@ -314,8 +314,7 @@ class RoomTeacherAiService {
       Uri.parse(endpoint),
       headers: {
         'Content-Type': 'application/json',
-        if (idToken != null && idToken.isNotEmpty)
-          'Authorization': 'Bearer $idToken',
+        'Authorization': 'Bearer $idToken',
       },
       body: jsonEncode({
         'context': _contextType,
