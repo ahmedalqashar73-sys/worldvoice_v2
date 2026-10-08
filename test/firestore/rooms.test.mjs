@@ -1,0 +1,568 @@
+import { readFile } from 'node:fs/promises';
+import { before, beforeEach, after, test } from 'node:test';
+import { strict as assert } from 'node:assert';
+import { initializeTestEnvironment, assertSucceeds, assertFails } from '@firebase/rules-unit-testing';
+import { doc, collection, getDoc, getDocs, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp, increment, query, where, orderBy, limit } from 'firebase/firestore';
+
+let env;
+const user = (uid) => env.authenticatedContext(uid).firestore();
+const room = (db) => doc(db, 'rooms/r1');
+const member = (db, uid) => doc(db, 'rooms/r1/participants/' + uid);
+const participant = (uid, host = false) => ({
+  uid, displayName: uid, role: host ? 'host' : 'listener',
+  ...(host ? {seatIndex: 1} : {}),
+  handRaised: false, isModerator: false, warningCount: 0,
+  forcedMuted: false, kicked: false,
+  joinedAt: serverTimestamp(),
+});
+before(async () => {
+  env = await initializeTestEnvironment({
+    projectId: 'demo-worldvoice-rules',
+    firestore: {rules: await readFile(new URL('../../firestore.rules', import.meta.url), 'utf8')}
+  });
+});
+beforeEach(async () => {
+  await env.clearFirestore();
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const db = ctx.firestore();
+    await setDoc(room(db), {
+      channelId: 'r1', hostId: 'host', isOpen: true, isPrivate: false,
+      boardWriteEnabled: true, themeId: 'royalPurple',
+      quiz: {question: '2 + 2?', options: ['3', '4'], correctIndex: 1, revealed: false}
+    });
+    await setDoc(member(db, 'host'), participant('host', true));
+    await setDoc(member(db, 'listener'), participant('listener'));
+  });
+});
+after(async () => { await env?.cleanup(); });
+
+test('quota and history are available only to their owner before joining', async () => {
+  const db = user('new');
+  const usage = doc(db, 'users/new/room_usage/20260924');
+  await assertSucceeds(getDoc(usage));
+  await assertSucceeds(setDoc(usage, {usedSeconds: 60, updatedAt: serverTimestamp()}));
+  await assertSucceeds(updateDoc(usage, {usedSeconds: increment(60)}));
+  await assertFails(updateDoc(usage, {usedSeconds: 0}));
+  const history = doc(db, 'users/new/room_history/r1');
+  await assertSucceeds(setDoc(history, {roomId: 'r1', visitCount: 1}));
+  await assertSucceeds(getDocs(collection(db, 'users/new/room_history')));
+  await assertFails(getDoc(doc(user('other'), 'users/new/room_usage/20260924')));
+  await assertFails(setDoc(doc(user('other'), 'users/new/room_history/r1'), {roomId: 'r1'}));
+});
+
+test('room tasks and level XP cannot be forged by host or listener', async () => {
+  const hostDb = user('host');
+  const listenerDb = user('listener');
+  await assertFails(updateDoc(room(hostDb), {
+    roomXp: 5900, roomLevel: 60,
+  }));
+  await assertFails(updateDoc(room(listenerDb), {
+    roomXp: 500, roomLevel: 6,
+  }));
+  await assertFails(setDoc(doc(listenerDb, 'rooms/r1/task_completions/ten_minutes_listener_today'), {
+    userId: 'listener', taskKey: 'ten_minutes', points: 4,
+    periodKey: 'today', completedAt: serverTimestamp(),
+  }));
+  await assertFails(setDoc(doc(hostDb, 'rooms/r1/rewards/level_60'), {
+    level: 60, type: 'gift_pack', unlockedBy: 'host',
+  }));
+  await assertFails(setDoc(doc(listenerDb, 'users/listener/room_rewards/r1_level_60'), {
+    userId: 'listener', roomId: 'r1', level: 60,
+    type: 'gift_pack', sourceRewardId: 'level_60',
+  }));
+});
+
+test('new participant entry must use trusted server time', async () => {
+  const db = user('new');
+  const candidate = participant('new');
+  await assertFails(setDoc(member(db, 'new'), {
+    ...candidate, joinedAt: new Date('2020-01-01T00:00:00Z'),
+    updatedAt: serverTimestamp(),
+  }));
+  await assertSucceeds(setDoc(member(db, 'new'), {
+    ...candidate, joinedAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  }));
+});
+
+test('signed-in room listing works and anonymous access is rejected', async () => {
+  await assertSucceeds(getDocs(collection(user('new'), 'rooms')));
+  await assertFails(getDocs(collection(env.unauthenticatedContext().firestore(), 'rooms')));
+  for (const catalog of ['room_promotions', 'gift_level_thresholds', 'room_shop_items', 'room_gift_catalog']) {
+    await assertSucceeds(getDocs(collection(user('new'), catalog)));
+    await assertFails(setDoc(doc(user('new'), catalog + '/fake'), {active: true}));
+  }
+});
+
+test('private wallet balances stay owner-only, even for signed-in strangers', async () => {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const db = ctx.firestore();
+    await setDoc(doc(db, 'users/listener/private/wallet'),
+      {coins: 425, diamonds: 17, walletFrozen: false});
+    await setDoc(doc(db, 'public_profiles/listener'),
+      {uid: 'listener', displayName: 'Visible member'});
+  });
+  const owner = user('listener');
+  const stranger = user('other');
+  const privatePath = 'users/listener/private/wallet';
+  const visible = await assertSucceeds(getDoc(doc(owner, privatePath)));
+  assert.equal(visible.data().coins, 425);
+  await assertFails(getDoc(doc(stranger, privatePath)));
+  await assertFails(getDocs(collection(stranger, 'users/listener/private')));
+  await assertFails(setDoc(doc(owner, privatePath), {coins: 999999}));
+  await assertFails(updateDoc(doc(owner, privatePath), {diamonds: 999999}));
+  await assertSucceeds(getDoc(doc(stranger, 'public_profiles/listener')));
+  await assertFails(setDoc(doc(stranger, 'public_profiles/listener'),
+    {coins: 9000000}));
+});
+
+test('economy reads are permitted but client-side money and gifts cannot be forged', async () => {
+  const db = user('listener');
+  for (const name of ['coin_products', 'economy_config', 'store_items']) {
+    await assertSucceeds(getDocs(collection(db, name)));
+    await assertFails(setDoc(doc(db, name + '/fake'), {active: true}));
+  }
+  const profile = doc(db, 'users/listener');
+  await assertSucceeds(setDoc(profile, {uid: 'listener', displayName: 'Guest', coins: 0}));
+  for (const field of [
+    'coins', 'diamonds', 'diamondsPending', 'giftLevel', 'isVip', 'isAdmin'
+  ]) {
+    await assertFails(updateDoc(profile, {[field]: field === 'isVip' || field === 'isAdmin'
+      ? true : 1000000}));
+  }
+  await assertSucceeds(updateDoc(profile, {displayName: 'Guest 2'}));
+
+  // Free frames are available to everyone, while premium frames require
+  // a backend-created active inventory entitlement.
+  await assertSucceeds(updateDoc(profile, {
+    profileFrameId: 'free_soft_green',
+  }));
+  for (const frameId of [
+    'free_clean_white', 'free_soft_green', 'free_sky_blue', 'free_silver'
+  ]) {
+    await assertSucceeds(updateDoc(profile, {profileFrameId: frameId}));
+  }
+  await assertFails(updateDoc(profile, {profileFrameId: 'frame__wv_frame_02'}));
+  await assertFails(updateDoc(profile, {profileFrameId: 'frame__wv_frame_09'}));
+  await assertFails(updateDoc(profile, {
+    profileFrameId: 'frame__golden_crown',
+  }));
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const adminDb = ctx.firestore();
+    await setDoc(
+      doc(adminDb, 'users/listener/inventory/frame__golden_crown'),
+      {
+        itemId: 'frame__golden_crown',
+        type: 'frame',
+        quantity: 1,
+        expiresAt: null,
+      },
+    );
+  });
+  await assertSucceeds(updateDoc(profile, {
+    profileFrameId: 'frame__golden_crown',
+  }));
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    await setDoc(doc(ctx.firestore(), 'users/listener/inventory/frame__wv_frame_02'), {
+      itemId: 'frame__wv_frame_02',
+      type: 'frame',
+      quantity: 1,
+      expiresAt: null,
+    });
+  });
+  await assertSucceeds(updateDoc(profile, {profileFrameId: 'frame__wv_frame_02'}));
+
+  await assertFails(setDoc(doc(db, 'users/new'), {uid: 'new', coins: 500}));
+  for (const profile of [
+    {uid: 'fresh', coins: 500},
+    {uid: 'fresh', diamonds: 1},
+    {uid: 'fresh', walletFrozen: false},
+    {uid: 'fresh', identityVerified: true},
+    {uid: 'fresh', giftLevel: 99}
+  ]) {
+    await assertFails(setDoc(doc(user('fresh'), 'users/fresh'), profile));
+  }
+  await assertSucceeds(setDoc(doc(user('fresh'), 'users/fresh'),
+    {uid: 'fresh', displayName: 'Fresh', coins: 0}));
+  for (const field of ['walletFrozen', 'payoutFrozen', 'walletDebtCoins', 'identityVerified']) {
+    await assertFails(updateDoc(doc(user('fresh'), 'users/fresh'), {[field]: 1}));
+  }
+
+  for (const name of ['inventory', 'wallet_transactions', 'diamond_lots', 'economy_daily']) {
+    await assertFails(setDoc(doc(db, 'users/listener/' + name + '/fake'), {value: 100}));
+  }
+  await assertFails(setDoc(doc(db, 'rooms/r1/gifts/fake'), {
+    senderId: 'listener', recipientId: 'host', giftId: 'rose',
+    points: 10, createdAt: serverTimestamp()
+  }));
+  await assertFails(setDoc(doc(db, 'economy_gift_operations/fake'), {coins: 100}));
+});
+
+test('migrated wallets are owner-only and public profile projection is backend-only', async () => {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const db = ctx.firestore();
+    await setDoc(doc(db, 'users/listener/private/wallet'), {
+      coins: 77, diamonds: 9,
+    });
+    await setDoc(doc(db, 'public_profiles/listener'), {
+      uid: 'listener', displayName: 'Public Listener',
+    });
+  });
+  await assertSucceeds(getDoc(doc(user('listener'),
+    'users/listener/private/wallet')));
+  await assertFails(getDoc(doc(user('other'),
+    'users/listener/private/wallet')));
+  await assertFails(setDoc(doc(user('listener'),
+    'users/listener/private/wallet'), {coins: 9999}));
+  await assertSucceeds(getDoc(doc(user('other'),
+    'public_profiles/listener')));
+  await assertFails(setDoc(doc(user('other'),
+    'public_profiles/listener'), {coins: 9999}));
+});
+
+test('host creates room and participant atomically; listener cannot self-promote', async () => {
+  const db = user('new');
+  const batch = writeBatch(db);
+  batch.set(doc(db, 'rooms/newroom'), {channelId: 'newroom', hostId: 'new', isOpen: true, isPrivate: false});
+  batch.set(doc(db, 'rooms/newroom/participants/new'), participant('new', true));
+  await assertSucceeds(batch.commit());
+  await assertSucceeds(setDoc(member(user('new'), 'new'), participant('new')));
+  await assertFails(updateDoc(member(user('new'), 'new'), {role: 'host', seatIndex: 1}));
+  await assertSucceeds(updateDoc(member(user('new'), 'new'), {handRaised: true, requestedSeatIndex: 2}));
+});
+
+test('room stage invite requires host or moderator and listener consent', async () => {
+  const hostDb = user('host');
+  const listenerDb = user('listener');
+  const invitePath = 'rooms/r1/stage_invites/listener';
+
+  await assertSucceeds(setDoc(doc(hostDb, invitePath), {
+    recipientId: 'listener',
+    invitedBy: 'host',
+    role: 'speaker',
+    seatIndex: 2,
+    status: 'pending',
+    createdAt: serverTimestamp(),
+  }));
+
+  await assertFails(updateDoc(member(listenerDb, 'listener'), {
+    role: 'speaker',
+    seatIndex: 2,
+    updatedAt: serverTimestamp(),
+  }));
+
+  const accept = writeBatch(listenerDb);
+  accept.update(doc(listenerDb, invitePath), {
+    status: 'accepted',
+    respondedAt: serverTimestamp(),
+  });
+  accept.update(member(listenerDb, 'listener'), {
+    role: 'speaker',
+    seatIndex: 2,
+    handRaised: false,
+    updatedAt: serverTimestamp(),
+  });
+  await assertSucceeds(accept.commit());
+
+  await assertFails(setDoc(doc(user('outsider'),
+    'rooms/r1/stage_invites/host'), {
+    recipientId: 'host',
+    invitedBy: 'outsider',
+    role: 'speaker',
+    seatIndex: 3,
+    status: 'pending',
+    createdAt: serverTimestamp(),
+  }));
+});
+
+test('Live host invite requires viewer consent before guest count increases', async () => {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const db = ctx.firestore();
+    await setDoc(doc(db, 'live_sessions/l1'), {
+      channelId: 'l1',
+      hostId: 'host',
+      hostAgoraUid: 1,
+      isLive: true,
+      topic: 'Test',
+      viewerCount: 1,
+      guestCount: 0,
+      startedAt: serverTimestamp(),
+      hostHeartbeatAt: serverTimestamp(),
+    });
+    await setDoc(doc(db, 'live_sessions/l1/viewers/listener'), {
+      uid: 'listener',
+      displayName: 'listener',
+      photoUrl: '',
+      joinedAt: serverTimestamp(),
+    });
+  });
+
+  const hostDb = user('host');
+  const listenerDb = user('listener');
+  const requestPath = 'live_sessions/l1/join_requests/listener';
+
+  await assertSucceeds(setDoc(doc(hostDb, requestPath), {
+    uid: 'listener',
+    displayName: 'listener',
+    photoUrl: '',
+    status: 'invited',
+    invitedBy: 'host',
+    invitedAt: serverTimestamp(),
+  }));
+
+  const accept = writeBatch(listenerDb);
+  accept.update(doc(listenerDb, requestPath), {
+    status: 'accepted',
+    decidedAt: serverTimestamp(),
+  });
+  accept.update(doc(listenerDb, 'live_sessions/l1'), {
+    guestCount: 1,
+    updatedAt: serverTimestamp(),
+  });
+  await assertSucceeds(accept.commit());
+
+  await assertFails(setDoc(doc(user('outsider'),
+    'live_sessions/l1/join_requests/fake'), {
+    uid: 'fake',
+    displayName: 'fake',
+    photoUrl: '',
+    status: 'invited',
+    invitedBy: 'outsider',
+    invitedAt: serverTimestamp(),
+  }));
+});
+
+test('moderator can accept a raised hand but cannot promote without consent', async () => {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const db = ctx.firestore();
+    await setDoc(member(db, 'mod'), {
+      ...participant('mod'),
+      isModerator: true,
+    });
+  });
+
+  const listenerDb = user('listener');
+  const modDb = user('mod');
+
+  await assertSucceeds(updateDoc(member(listenerDb, 'listener'), {
+    handRaised: true,
+    requestedSeatIndex: 2,
+    updatedAt: serverTimestamp(),
+  }));
+
+  await assertSucceeds(updateDoc(member(modDb, 'listener'), {
+    role: 'speaker',
+    seatIndex: 2,
+    handRaised: false,
+    requestedSeatIndex: null,
+    updatedAt: serverTimestamp(),
+  }));
+
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const db = ctx.firestore();
+    await setDoc(member(db, 'other'), participant('other'));
+  });
+
+  await assertFails(updateDoc(member(modDb, 'other'), {
+    role: 'speaker',
+    seatIndex: 3,
+    handRaised: false,
+    updatedAt: serverTimestamp(),
+  }));
+});
+
+test('chat is restricted to members and cannot impersonate another user', async () => {
+  const payload = {userId: 'listener', text: 'Hello', createdAt: serverTimestamp()};
+  await assertSucceeds(setDoc(doc(user('listener'), 'rooms/r1/messages/m1'), payload));
+  await assertFails(setDoc(doc(user('listener'), 'rooms/r1/messages/m2'), {...payload, userId: 'host'}));
+  await assertFails(getDocs(collection(user('outsider'), 'rooms/r1/messages')));
+});
+
+test('lesson board is writable by host; participants can write when enabled', async () => {
+  const text = {userId: 'listener', type: 'text', text: 'Hello', createdAt: serverTimestamp()};
+  await assertSucceeds(setDoc(doc(user('listener'), 'rooms/r1/board_items/a'), text));
+  await assertSucceeds(updateDoc(room(user('host')), {boardWriteEnabled: false}));
+  await assertFails(setDoc(doc(user('listener'), 'rooms/r1/board_items/b'), text));
+  await assertSucceeds(setDoc(doc(user('host'), 'rooms/r1/board_items/c'), {...text, userId: 'host'}));
+  await assertFails(getDocs(collection(user('outsider'), 'rooms/r1/board_items')));
+});
+
+test('quiz accepts member answers, host reveals, and late answers are denied', async () => {
+  const answer = {userId: 'listener', optionIndex: 1, displayName: 'Listener', answeredAt: serverTimestamp()};
+  await assertSucceeds(setDoc(doc(user('listener'), 'rooms/r1/quiz_answers/listener'), answer));
+  await assertFails(setDoc(doc(user('outsider'), 'rooms/r1/quiz_answers/outsider'), {...answer, userId: 'outsider'}));
+  await assertFails(updateDoc(room(user('listener')), {'quiz.revealed': true}));
+  await assertSucceeds(updateDoc(room(user('host')), {'quiz.revealed': true}));
+  assert.equal((await getDoc(room(user('host')))).data().quiz.revealed, true);
+  await assertFails(setDoc(doc(user('listener'), 'rooms/r1/quiz_answers/listener'), answer));
+  await assertSucceeds(deleteDoc(doc(user('host'), 'rooms/r1/quiz_answers/listener')));
+});
+
+test('verified quiz answers are immutable, round-scoped, and secret stays private', async () => {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const db = ctx.firestore();
+    await setDoc(doc(db, 'rooms/r1/quiz_private/current'), {
+      roundId: 'secure-round', correctIndex: 1,
+    });
+    await updateDoc(room(db), {
+      quiz: {question: 'Question?', options: ['No', 'Yes'],
+        roundId: 'secure-round', revealed: false, practiceOnly: true}
+    });
+  });
+  const listenerDb = user('listener');
+  const answerRef = doc(listenerDb, 'rooms/r1/quiz_answers/listener');
+  const payload = {
+    userId: 'listener', displayName: 'Listener', optionIndex: 1,
+    roundId: 'secure-round', answeredAt: serverTimestamp(),
+  };
+  await assertFails(getDoc(doc(listenerDb, 'rooms/r1/quiz_private/current')));
+  await assertFails(getDoc(doc(user('host'), 'rooms/r1/quiz_private/current')));
+  await assertFails(setDoc(doc(user('host'), 'rooms/r1/quiz_private/current'),
+    {roundId: 'hacked', correctIndex: 0}));
+  await assertFails(setDoc(answerRef, {...payload, roundId: 'previous'}));
+  await assertFails(setDoc(answerRef, {...payload, optionIndex: 999}));
+  await assertSucceeds(setDoc(answerRef, payload));
+  await assertFails(updateDoc(answerRef, {optionIndex: 0}));
+  await assertFails(deleteDoc(answerRef));
+  await assertFails(deleteDoc(doc(user('host'), 'rooms/r1/quiz_answers/listener')));
+});
+
+test('AI corrections are private to their speaker and backend-only', async () => {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const db = ctx.firestore();
+    await setDoc(doc(db, 'rooms/r1/teacher_ai_notes/listener-note'), {
+      userId: 'listener',
+      correction: 'Corrected sentence',
+      pronunciationTip: 'Private tip',
+      createdAt: serverTimestamp(),
+    });
+  });
+
+  const ownQuery = query(
+    collection(user('listener'), 'rooms/r1/teacher_ai_notes'),
+    where('userId', '==', 'listener'),
+    orderBy('createdAt', 'desc'),
+    limit(20),
+  );
+  await assertSucceeds(getDocs(ownQuery));
+
+  const hostReadingListener = query(
+    collection(user('host'), 'rooms/r1/teacher_ai_notes'),
+    where('userId', '==', 'listener'),
+    orderBy('createdAt', 'desc'),
+    limit(20),
+  );
+  await assertFails(getDocs(hostReadingListener));
+  await assertFails(getDoc(doc(user('host'),
+    'rooms/r1/teacher_ai_notes/listener-note')));
+  await assertFails(setDoc(doc(user('host'),
+    'rooms/r1/teacher_ai_notes/fake'), {text: 'fake'}));
+});
+
+test('live captions query allows room members and denies non-members', async () => {
+  const captions = 'rooms/r1/captions';
+  const payload = {
+    userId: 'host', displayName: 'Host', text: 'Testing captions',
+    languageCode: 'en', createdAt: serverTimestamp()
+  };
+  // A room's host can publish while a listener can read, as the Flutter
+  // UI queries captions ordered by createdAt descending with a limit.
+  await assertSucceeds(setDoc(doc(user('host'), captions + '/c1'), payload));
+  const watchQuery = (uid) =>
+    query(collection(user(uid), captions), orderBy('createdAt', 'desc'), limit(30));
+  const listenerRead = await assertSucceeds(getDocs(watchQuery('listener')));
+  assert.equal(listenerRead.size, 1);
+  await assertFails(getDocs(watchQuery('outsider')));
+  await assertFails(setDoc(doc(user('outsider'), captions + '/c2'),
+    {...payload, userId: 'outsider'}));
+  await assertFails(setDoc(doc(user('listener'), captions + '/c3'),
+    {...payload, userId: 'listener'}));
+});
+
+test('private room join requires a matching code grant', async () => {
+  await assertSucceeds(updateDoc(room(user('host')), {isPrivate: true}));
+  const db = user('new');
+  await assertFails(setDoc(member(db, 'new'), participant('new')));
+  await assertSucceeds(setDoc(doc(user('host'), 'private_room_codes/ABC123'), {hostId: 'host', roomId: 'r1'}));
+  await assertFails(getDocs(collection(db, 'private_room_codes')));
+  await assertSucceeds(setDoc(doc(db, 'rooms/r1/access_grants/new'), {uid: 'new', code: 'ABC123'}));
+  await assertSucceeds(setDoc(member(db, 'new'), participant('new')));
+});
+
+
+test('verified room members can show rate-limited free gift demos without minting gifts', async () => {
+  const host = user('host');
+  const receiver = user('listener');
+  const previewPath = 'rooms/r1/gift_previews/host';
+  const payload = {
+    nonce: 'abcdefabcdefabcdefabcdef',
+    senderId: 'host',
+    senderName: 'host',
+    recipientId: 'listener',
+    recipientName: 'listener',
+    giftId: 'wv_gift_001',
+    sentAt: serverTimestamp(),
+  };
+  await assertSucceeds(setDoc(doc(host, previewPath), payload));
+  await assertSucceeds(getDocs(collection(receiver, 'rooms/r1/gift_previews')));
+  await assertFails(setDoc(doc(host, previewPath), {
+    ...payload, nonce: '123456123456123456123456',
+  })); // server-enforced three-second cooldown
+  await assertFails(setDoc(doc(user('stranger'),
+    'rooms/r1/gift_previews/stranger'), {
+    ...payload, senderId: 'stranger',
+  }));
+  await assertFails(setDoc(doc(receiver,
+    'rooms/r1/gift_previews/listener'), {
+    ...payload, senderId: 'listener', recipientId: 'nobody',
+  }));
+  await assertFails(setDoc(doc(receiver,
+    'rooms/r1/gift_previews/listener'), {
+    ...payload, senderId: 'listener', recipientId: 'host',
+    senderName: 'listener', recipientName: 'host',
+    chargedCoins: 5000000,
+  }));
+  await assertFails(setDoc(doc(host, 'rooms/r1/gifts/fake-gift'),
+    {senderId: 'host', giftId: 'wv_gift_001', points: 1000}));
+});
+
+test('room subtitles are member-readable and private corrections stay private', async () => {
+  const host = user('host');
+  const listener = user('listener');
+  const stranger = user('stranger');
+  const captionRef = doc(host, 'rooms/r1/captions/test-caption');
+
+  await assertSucceeds(setDoc(captionRef, {
+    userId: 'host',
+    displayName: 'Host',
+    text: 'Hello, welcome to WorldVoice.',
+    languageCode: 'en',
+    createdAt: serverTimestamp(),
+  }));
+  await assertSucceeds(getDoc(doc(listener, 'rooms/r1/captions/test-caption')));
+  await assertFails(getDoc(doc(stranger, 'rooms/r1/captions/test-caption')));
+  await assertFails(setDoc(doc(listener, 'rooms/r1/captions/listener-forgery'), {
+    userId: 'listener',
+    displayName: 'Listener',
+    text: 'I am not on a speaker seat',
+    languageCode: 'en',
+    createdAt: serverTimestamp(),
+  }));
+
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    await setDoc(doc(ctx.firestore(), 'rooms/r1/teacher_ai_notes/host-note'), {
+      userId: 'host',
+      originalText: 'Hello',
+      correction: '',
+      pronunciationTip: 'Try a steady rhythm.',
+      createdAt: serverTimestamp(),
+    });
+  });
+  const note = 'rooms/r1/teacher_ai_notes/host-note';
+  await assertSucceeds(getDoc(doc(host, note)));
+  await assertFails(getDoc(doc(listener, note)));
+  await assertFails(getDoc(doc(stranger, note)));
+  await assertFails(setDoc(doc(host, 'rooms/r1/teacher_ai_notes/forged'), {
+    userId: 'host', correction: 'Forged private feedback',
+  }));
+});

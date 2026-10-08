@@ -1,8 +1,10 @@
 name: Validate WorldVoice
 
 on:
-  push:
+  pull_request:
     branches: [main]
+  push:
+    branches: [main, fix/finish-room-hub-quiz-gift-20260928, feat/chat-social-foundation-20261004]
   workflow_dispatch:
 
 jobs:
@@ -17,6 +19,7 @@ jobs:
       - run: flutter --version
       - run: flutter pub get
       - run: flutter analyze
+      - run: flutter test test/room_translation_service_test.dart test/worldvoice_avatar_frame_test.dart test/create_room_page_test.dart test/room_conversation_panel_test.dart test/room_board_text_test.dart test/board_media_url_test.dart test/classic_gift_catalog_test.dart test/classic_gift_visual_test.dart test/luxury_gift_assets_test.dart test/coin_pack_presentation_test.dart test/classic_gift_mesh_test.dart test/friend_gift_preview_test.dart
 
   backend-check:
     runs-on: ubuntu-latest
@@ -32,3 +35,27 @@ jobs:
           cache-dependency-path: backend/package.json
       - run: npm install
       - run: node --check src/server.js
+      - run: node --check src/chat_routes.js
+      - run: node --check src/story_routes.js
+      - run: node --check src/social_routes.js
+      - run: node --check src/call_routes.js
+      - run: node --check scripts/seed-classic-gifts.mjs
+      - run: node --check scripts/grant-beta-access.mjs
+      - run: node --test test/classic_gifts.test.js
+
+  firestore-rules:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - run: npm install --no-audit --no-fund
+        working-directory: test/firestore
+      - name: Test Firestore room access in isolated emulator
+        working-directory: test/firestore
+        run: npx firebase emulators:exec --config ../../firebase.rules-test.json --only firestore --project demo-worldvoice-rules "npm test"

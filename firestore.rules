@@ -18,29 +18,97 @@ service cloud.firestore {
       return /databases/$(database)/documents/users/$(userId);
     }
 
+    function globalModeratorPath(ownerId, userId) {
+      return /databases/$(database)/documents/users/$(ownerId)/moderators/$(userId);
+    }
+
+    function isGlobalModerator(ownerId, userId) {
+      return signedIn()
+          && ownerId is string
+          && ownerId.size() > 0
+          && exists(globalModeratorPath(ownerId, userId));
+    }
+
+    function isTrustedRoomModerator(roomId, userId) {
+      let hostId = getAfter(roomPath(roomId)).data.hostId;
+      return isGlobalModerator(hostId, userId);
+    }
+
     function backgroundEntitlementPath(userId, themeId) {
       return /databases/$(database)/documents/users/$(userId)/room_backgrounds/$(themeId);
     }
 
+    function inventoryPath(userId, itemId) {
+      return /databases/$(database)/documents/users/$(userId)/inventory/$(itemId);
+    }
+
+    function validProfileFrameChange(userId) {
+      let oldFrame = resource.data.get('profileFrameId', '');
+      let newFrame = request.resource.data.get('profileFrameId', '');
+      return oldFrame == newFrame
+          || newFrame == ''
+          || newFrame in [
+            'free_clean_white',
+            'free_soft_green',
+            'free_sky_blue',
+            'free_silver',
+            'free_minimal_glow',
+                                                          ]
+          || (
+            newFrame is string
+            && newFrame.matches('frame__[A-Za-z0-9_-]+')
+            && exists(inventoryPath(userId, newFrame))
+            && get(inventoryPath(userId, newFrame)).data.type == 'frame'
+            && (
+              !('expiresAt' in get(inventoryPath(userId, newFrame)).data)
+              || get(inventoryPath(userId, newFrame)).data.expiresAt == null
+              || get(inventoryPath(userId, newFrame)).data.expiresAt > request.time
+            )
+          );
+    }
+
+    function validInitialProfileFrame() {
+      let frame = request.resource.data.get('profileFrameId', '');
+      return frame == ''
+          || frame in [
+            'free_clean_white',
+            'free_soft_green',
+            'free_sky_blue',
+            'free_silver',
+            'free_minimal_glow',
+                                                          ];
+    }
+
     function validRoomThemeChange() {
-      let oldTheme = resource.data.get('themeId', 'royalPurple');
-      let newTheme = request.resource.data.get('themeId', 'royalPurple');
+      let oldTheme = resource.data.get('themeId', 'wv_bg_06');
+      let newTheme = request.resource.data.get('themeId', 'wv_bg_06');
       let oldUrl = resource.data.get('backgroundUrl', '');
       let newUrl = request.resource.data.get('backgroundUrl', '');
 
       return (
         oldTheme == newTheme && oldUrl == newUrl
       ) || (
-        newTheme in ['royalPurple', 'emerald', 'midnight']
+        newTheme in [
+          'softGreenFlow',
+          'wv_bg_06', 'wv_bg_09', 'wv_bg_18', 'wv_bg_20', 'wv_bg_33'
+        ]
         && newUrl == ''
       ) || (
         exists(backgroundEntitlementPath(request.auth.uid, newTheme))
         && get(
           backgroundEntitlementPath(request.auth.uid, newTheme)
         ).data.themeId == newTheme
-        && newUrl == get(
-          backgroundEntitlementPath(request.auth.uid, newTheme)
-        ).data.get('backgroundUrl', '')
+        && (
+          newUrl == get(
+            backgroundEntitlementPath(request.auth.uid, newTheme)
+          ).data.get('backgroundUrl', '')
+          || (
+            newUrl == ''
+            && get(
+              backgroundEntitlementPath(request.auth.uid, newTheme)
+            ).data.get('backgroundUrl', '') == null
+          )
+        )
         && (
           !('expiresAt' in get(
             backgroundEntitlementPath(request.auth.uid, newTheme)
@@ -52,244 +120,68 @@ service cloud.firestore {
       );
     }
 
-    function giftEventPath(roomId, giftId) {
-      return /databases/$(database)/documents/rooms/$(roomId)/gifts/$(giftId);
-    }
-
-    function giftCatalogPath(giftId) {
-      return /databases/$(database)/documents/room_gift_catalog/$(giftId);
-    }
-
-    function validGiftPrice(data) {
-      return (
-        exists(giftCatalogPath(data.giftId))
-        && get(giftCatalogPath(data.giftId)).data.active == true
-        && get(giftCatalogPath(data.giftId)).data.priceCoins == data.points
-      ) || (
-        data.giftId == 'rose' && data.points == 10
-      ) || (
-        data.giftId == 'star' && data.points == 50
-      ) || (
-        data.giftId == 'dragon' && data.points == 500
+    // A device may run non-monetary legacy/practice quizzes. Verified quiz
+    // rounds have a private server answer and cannot be edited or revealed
+    // by a client while they are open. Admin SDK bypasses client rules.
+    function validClientQuizChange() {
+      let previous = resource.data.get('quiz', {});
+      let requested = request.resource.data.get('quiz', {});
+      return previous == requested || (
+        previous.get('roundId', '') == ''
+        && requested.get('roundId', '') == ''
+        && requested.get('firstPrizeCoins', 0) == 0
+        && !('rewardedAt' in requested)
       );
     }
 
+    // Economic state is backend-authoritative. No Firestore client-side gift
+    // transaction is allowed, even if a client presents a catalog price.
     function economyFieldsUntouched() {
       return !request.resource.data
           .diff(resource.data)
           .affectedKeys()
           .hasAny([
-            'coins',
-            'giftSentPoints',
-            'giftReceivedPoints',
-            'giftLevelPoints',
-            'giftLevel',
-            'purchasedCoins',
-            'quizCoinsEarned',
-            'lastGiftRoomId',
-            'lastGiftEventId'
+            'coins', 'diamonds', 'diamondsPending', 'diamondsOnHold',
+            'giftSentPoints', 'giftReceivedPoints',
+            'giftLevelPoints', 'giftLevel',
+            'purchasedCoins', 'quizCoinsEarned',
+            'lastGiftRoomId', 'lastGiftEventId',
+            'walletBalance', 'withdrawableDiamonds', 'walletDebtCoins',
+            'walletFrozen', 'payoutFrozen', 'diamondsReserved',
+            'firstRechargeUsed', 'payoutFreezeReason', 'identityVerified',
+            'isVip', 'isAdmin', 'vipExpiresAt', 'vipSource', 'adminSource',
+            'vipUpdatedAt', 'adminUpdatedAt'
           ]);
     }
 
-    function validGiftSenderUpdate(userId) {
-      return request.auth.uid == userId
-          && request.resource.data.lastGiftRoomId is string
-          && request.resource.data.lastGiftEventId is string
-          && existsAfter(
-            giftEventPath(
-              request.resource.data.lastGiftRoomId,
-              request.resource.data.lastGiftEventId
-            )
-          )
-          && getAfter(
-            giftEventPath(
-              request.resource.data.lastGiftRoomId,
-              request.resource.data.lastGiftEventId
-            )
-          ).data.senderId == request.auth.uid
-          && validGiftPrice(
-            getAfter(
-              giftEventPath(
-                request.resource.data.lastGiftRoomId,
-                request.resource.data.lastGiftEventId
-              )
-            ).data
-          )
-          && request.resource.data
-              .diff(resource.data)
-              .affectedKeys()
-              .hasOnly([
-                'coins',
-                'giftSentPoints',
-                'giftLevelPoints',
-                'lastGiftRoomId',
-                'lastGiftEventId',
-                'updatedAt'
-              ])
-          && request.resource.data.coins
-              == resource.data.get('coins', 0)
-                  - getAfter(
-                      giftEventPath(
-                        request.resource.data.lastGiftRoomId,
-                        request.resource.data.lastGiftEventId
-                      )
-                    ).data.points
-          && request.resource.data.giftSentPoints
-              == resource.data.get('giftSentPoints', 0)
-                  + getAfter(
-                      giftEventPath(
-                        request.resource.data.lastGiftRoomId,
-                        request.resource.data.lastGiftEventId
-                      )
-                    ).data.points
-          && request.resource.data.giftLevelPoints
-              == resource.data.get('giftLevelPoints', 0)
-                  + getAfter(
-                      giftEventPath(
-                        request.resource.data.lastGiftRoomId,
-                        request.resource.data.lastGiftEventId
-                      )
-                    ).data.points;
-    }
-
-    function validGiftRecipientUpdate(userId) {
-      return request.resource.data.lastGiftRoomId is string
-          && request.resource.data.lastGiftEventId is string
-          && existsAfter(
-            giftEventPath(
-              request.resource.data.lastGiftRoomId,
-              request.resource.data.lastGiftEventId
-            )
-          )
-          && getAfter(
-            giftEventPath(
-              request.resource.data.lastGiftRoomId,
-              request.resource.data.lastGiftEventId
-            )
-          ).data.senderId == request.auth.uid
-          && getAfter(
-            giftEventPath(
-              request.resource.data.lastGiftRoomId,
-              request.resource.data.lastGiftEventId
-            )
-          ).data.recipientId == userId
-          && validGiftPrice(
-            getAfter(
-              giftEventPath(
-                request.resource.data.lastGiftRoomId,
-                request.resource.data.lastGiftEventId
-              )
-            ).data
-          )
-          && request.resource.data
-              .diff(resource.data)
-              .affectedKeys()
-              .hasOnly([
-                'giftReceivedPoints',
-                'giftLevelPoints',
-                'lastGiftRoomId',
-                'lastGiftEventId'
-              ])
-          && request.resource.data.giftReceivedPoints
-              == resource.data.get('giftReceivedPoints', 0)
-                  + getAfter(
-                      giftEventPath(
-                        request.resource.data.lastGiftRoomId,
-                        request.resource.data.lastGiftEventId
-                      )
-                    ).data.points
-          && request.resource.data.giftLevelPoints
-              == resource.data.get('giftLevelPoints', 0)
-                  + getAfter(
-                      giftEventPath(
-                        request.resource.data.lastGiftRoomId,
-                        request.resource.data.lastGiftEventId
-                      )
-                    ).data.points;
+    function noInitialClientEconomyCredit() {
+      return request.resource.data.get('coins', 0) == 0
+          && request.resource.data.get('diamonds', 0) == 0
+          && request.resource.data.get('diamondsPending', 0) == 0
+          && request.resource.data.get('diamondsOnHold', 0) == 0
+          && request.resource.data.get('giftLevel', 0) == 0
+          && request.resource.data.get('giftLevelPoints', 0) == 0
+          && request.resource.data.get('purchasedCoins', 0) == 0
+          && request.resource.data.get('giftReceivedPoints', 0) == 0
+          && request.resource.data.get('giftSentPoints', 0) == 0
+          && request.resource.data.get('isVip', false) == false
+          && !request.resource.data.keys().hasAny([
+            'lastGiftRoomId', 'lastGiftEventId', 'withdrawableDiamonds',
+            'walletBalance', 'vipExpiresAt', 'isAdmin',
+            'vipSource', 'adminSource', 'vipUpdatedAt', 'adminUpdatedAt'
+          ]);
     }
 
     function accessGrantPath(roomId, userId) {
       return /databases/$(database)/documents/rooms/$(roomId)/access_grants/$(userId);
     }
 
+    function stageInvitePath(roomId, userId) {
+      return /databases/$(database)/documents/rooms/$(roomId)/stage_invites/$(userId);
+    }
+
     function privateCodePath(code) {
       return /databases/$(database)/documents/private_room_codes/$(code);
-    }
-
-    function taskCompletionPath(roomId, taskId) {
-      return /databases/$(database)/documents/rooms/$(roomId)/task_completions/$(taskId);
-    }
-
-    function roomRewardPath(roomId, rewardId) {
-      return /databases/$(database)/documents/rooms/$(roomId)/rewards/$(rewardId);
-    }
-
-    function validRoomTask(data) {
-      return (
-        data.taskKey == 'daily_join' && data.points == 10
-      ) || (
-        data.taskKey == 'daily_speaking' && data.points == 20
-      ) || (
-        data.taskKey == 'weekly_participation' && data.points == 50
-      );
-    }
-
-    function validTaskRoomProgress(roomId) {
-      return request.resource.data.lastTaskCompletionId is string
-          && existsAfter(
-            taskCompletionPath(
-              roomId,
-              request.resource.data.lastTaskCompletionId
-            )
-          )
-          && getAfter(
-            taskCompletionPath(
-              roomId,
-              request.resource.data.lastTaskCompletionId
-            )
-          ).data.userId == request.auth.uid
-          && validRoomTask(
-            getAfter(
-              taskCompletionPath(
-                roomId,
-                request.resource.data.lastTaskCompletionId
-              )
-            ).data
-          )
-          && request.resource.data
-              .diff(resource.data)
-              .affectedKeys()
-              .hasOnly([
-                'roomXp',
-                'roomLevel',
-                'lastTaskCompletionId',
-                'updatedAt'
-              ])
-          && request.resource.data.roomXp
-              == resource.data.get('roomXp', 0)
-                  + getAfter(
-                      taskCompletionPath(
-                        roomId,
-                        request.resource.data.lastTaskCompletionId
-                      )
-                    ).data.points
-          && (
-            (
-              request.resource.data.roomLevel
-                  == resource.data.get('roomLevel', 1)
-              && request.resource.data.roomXp
-                  < resource.data.get('roomLevel', 1) * 100
-            )
-            ||
-            (
-              request.resource.data.roomLevel
-                  == resource.data.get('roomLevel', 1) + 1
-              && request.resource.data.roomXp
-                  >= resource.data.get('roomLevel', 1) * 100
-              && request.resource.data.roomXp
-                  < (resource.data.get('roomLevel', 1) + 1) * 100
-            )
-          );
     }
 
     function isHost(roomId) {
@@ -313,6 +205,35 @@ service cloud.firestore {
           && exists(participantPath(roomId, request.auth.uid));
     }
 
+    // TEST-only preview events have no fields for economy, rewards or XP.
+    function validFreeGiftPreview(senderId) {
+      return signedIn()
+          && senderId == request.auth.uid
+          && request.resource.data.keys().hasOnly([
+            'nonce', 'senderId', 'senderName', 'recipientId',
+            'recipientName', 'giftId', 'sentAt'
+          ])
+          && request.resource.data.keys().hasAll([
+            'nonce', 'senderId', 'senderName', 'recipientId',
+            'recipientName', 'giftId', 'sentAt'
+          ])
+          && request.resource.data.senderId == request.auth.uid
+          && request.resource.data.nonce is string
+          && request.resource.data.nonce.matches('^[0-9a-f]{24}$')
+          && request.resource.data.giftId is string
+          && request.resource.data.giftId.matches('^wv_gift_[0-9]{3}$')
+          && request.resource.data.recipientId is string
+          && request.resource.data.recipientId != request.auth.uid
+          && request.resource.data.recipientId != 'teacher_ai'
+          && request.resource.data.senderName is string
+          && request.resource.data.senderName.size() > 0
+          && request.resource.data.senderName.size() <= 100
+          && request.resource.data.recipientName is string
+          && request.resource.data.recipientName.size() > 0
+          && request.resource.data.recipientName.size() <= 100
+          && request.resource.data.sentAt == request.time;
+    }
+
     function isModerator(roomId) {
       return isRoomMember(roomId)
           && get(participantPath(roomId, request.auth.uid)).data.isModerator == true;
@@ -326,27 +247,28 @@ service cloud.firestore {
 
       allow create: if signedIn()
           && request.auth.uid == userId
-          && request.resource.data.uid == userId;
+          && request.resource.data.uid == userId
+          && noInitialClientEconomyCredit()
+          && validInitialProfileFrame()
+          && !request.resource.data.keys().hasAny([
+            'walletDebtCoins', 'walletFrozen', 'payoutFrozen',
+            'diamondsReserved', 'firstRechargeUsed', 'payoutFreezeReason',
+            'identityVerified'
+          ]);
 
-      // Users manage their own normal profile fields, but economy fields are
-      // protected. Coin/gift counters may only change through an atomic,
-      // validated room-gift transaction.
+      // Preserve existing non-financial profile/follow operations only.
       allow update: if signedIn()
           && (
             (
               request.auth.uid == userId
               && economyFieldsUntouched()
+              && validProfileFrameChange(userId)
             )
             ||
-            validGiftSenderUpdate(userId)
-            ||
-            validGiftRecipientUpdate(userId)
-            ||
             (
-              request.resource.data
-                  .diff(resource.data)
-                  .affectedKeys()
-                  .hasOnly(['followersCount', 'followingCount'])
+              request.resource.data.diff(resource.data)
+                .affectedKeys()
+                .hasOnly(['followersCount', 'followingCount'])
               && request.resource.data.followersCount is int
               && request.resource.data.followingCount is int
               && request.resource.data.followersCount >= 0
@@ -354,7 +276,18 @@ service cloud.firestore {
             )
           );
 
-      allow delete: if signedIn() && request.auth.uid == userId;
+      // Account deletion must be processed server-side to preserve the ledger.
+      allow delete: if false;
+
+      match /moderators/{moderatorUserId} {
+        allow read: if signedIn();
+        allow create, update: if signedIn()
+            && request.auth.uid == userId
+            && moderatorUserId != userId
+            && request.resource.data.uid == moderatorUserId
+            && request.resource.data.assignedBy == userId;
+        allow delete: if signedIn() && request.auth.uid == userId;
+      }
 
       match /following/{targetUserId} {
         allow read: if signedIn();
@@ -461,41 +394,49 @@ service cloud.firestore {
       match /room_rewards/{rewardId} {
         allow read: if signedIn() && request.auth.uid == userId;
 
-        allow create: if signedIn()
-            && request.resource.data.userId == userId
-            && request.resource.data.roomId is string
-            && request.resource.data.level is int
-            && request.resource.data.type is string
-            && request.resource.data.sourceRewardId is string
-            && exists(
-              /databases/$(database)/documents/rooms/$(request.resource.data.roomId)/participants/$(userId)
-            )
-            && exists(
-              roomRewardPath(
-                request.resource.data.roomId,
-                request.resource.data.sourceRewardId
-              )
-            )
-            && get(
-              roomRewardPath(
-                request.resource.data.roomId,
-                request.resource.data.sourceRewardId
-              )
-            ).data.level == request.resource.data.level
-            && get(
-              roomRewardPath(
-                request.resource.data.roomId,
-                request.resource.data.sourceRewardId
-              )
-            ).data.type == request.resource.data.type;
+        // Server-only: clients cannot forge new level rewards.
+        allow create, update, delete: if false;
+      }
 
-        allow update, delete: if false;
+      match /inventory/{itemId} {
+        allow read: if signedIn() && request.auth.uid == userId;
+        allow write: if false;
+      }
+
+      // Holding lots cannot be forged or prematurely matured by a mobile client.
+      match /diamond_lots/{lotId} {
+        allow read: if signedIn() && request.auth.uid == userId;
+        allow write: if false;
+      }
+
+      // New private wallet documents created by the staging migration.
+      // Owner-only reads, and only the trusted Admin SDK may mutate money.
+      match /private/{documentId} {
+        allow read: if signedIn() && request.auth.uid == userId;
+        allow write: if false;
+      }
+
+      match /wallet_transactions/{transactionId} {
+        allow read: if signedIn() && request.auth.uid == userId;
+        allow write: if false;
+      }
+
+      match /economy_daily/{dayKey} {
+        allow read: if signedIn() && request.auth.uid == userId;
+        allow write: if false;
       }
 
       match /room_backgrounds/{themeId} {
         allow read: if signedIn() && request.auth.uid == userId;
         allow create, update, delete: if false;
       }
+    }
+
+    // Sanitized public projection only; clients cannot create or alter it.
+    // Do not switch existing profile readers until the migration is checked.
+    match /public_profiles/{userId} {
+      allow read: if signedIn();
+      allow write: if false;
     }
 
     // -------------------------
@@ -521,6 +462,113 @@ service cloud.firestore {
     match /gift_level_thresholds/{levelId} {
       allow read: if signedIn();
       allow write: if false;
+    }
+
+    match /economy_config/{configId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    match /store_items/{itemId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    match /economy_global_controls/{controlId} {
+      allow read, write: if false;
+    }
+
+    match /economy_exchange_operations/{id} {
+      allow read, write: if false;
+    }
+
+    match /economy_store_operations/{id} {
+      allow read, write: if false;
+    }
+
+    match /economy_refund_operations/{id} {
+      allow read, write: if false;
+    }
+
+    match /economy_gift_operations/{id} {
+      allow read, write: if false;
+    }
+
+    match /withdraw_requests/{requestId} {
+      allow read: if signedIn() && resource.data.userId == request.auth.uid;
+      allow write: if false;
+    }
+
+    match /economy_audit/{id} {
+      allow read, write: if false;
+    }
+
+    match /iap_receipts/{id} {
+      allow read, write: if false;
+    }
+
+    // Verified chat membership is written ONLY by the trusted backend.
+    // The client may read a chat only when a stored participant.
+    match /chats/{chatId} {
+      allow get, list: if signedIn()
+          && resource.data.active == true
+          && request.auth.uid in resource.data.memberIds;
+      allow create, update, delete: if false;
+
+      // Free friend-test animation stream: no paid message is ever created.
+      match /gift_previews/{senderId} {
+        allow read: if signedIn()
+            && get(/databases/$(database)/documents/chats/$(chatId))
+                .data.active == true
+            && request.auth.uid in get(
+                /databases/$(database)/documents/chats/$(chatId)
+              ).data.memberIds;
+        allow create: if validFreeGiftPreview(senderId)
+            && get(/databases/$(database)/documents/chats/$(chatId))
+                .data.active == true
+            && request.auth.uid in get(
+                /databases/$(database)/documents/chats/$(chatId)
+              ).data.memberIds
+            && request.resource.data.recipientId in get(
+                /databases/$(database)/documents/chats/$(chatId)
+              ).data.memberIds
+            && request.resource.data.senderName == get(
+                /databases/$(database)/documents/chats/$(chatId)
+              ).data.memberNames[request.auth.uid]
+            && request.resource.data.recipientName == get(
+                /databases/$(database)/documents/chats/$(chatId)
+              ).data.memberNames[request.resource.data.recipientId];
+        allow update: if resource.data.senderId == request.auth.uid
+            && request.time > resource.data.sentAt + duration.value(3, 's')
+            && validFreeGiftPreview(senderId)
+            && get(/databases/$(database)/documents/chats/$(chatId))
+                .data.active == true
+            && request.auth.uid in get(
+                /databases/$(database)/documents/chats/$(chatId)
+              ).data.memberIds
+            && request.resource.data.recipientId in get(
+                /databases/$(database)/documents/chats/$(chatId)
+              ).data.memberIds
+            && request.resource.data.senderName == get(
+                /databases/$(database)/documents/chats/$(chatId)
+              ).data.memberNames[request.auth.uid]
+            && request.resource.data.recipientName == get(
+                /databases/$(database)/documents/chats/$(chatId)
+              ).data.memberNames[request.resource.data.recipientId];
+        allow delete: if false;
+      }
+
+      match /messages/{messageId} {
+        allow get, list: if signedIn()
+            && exists(/databases/$(database)/documents/chats/$(chatId))
+            && get(/databases/$(database)/documents/chats/$(chatId))
+                .data.active == true
+            && request.auth.uid in get(
+                /databases/$(database)/documents/chats/$(chatId)
+              ).data.memberIds;
+        // Neither text, gift animation nor amount can be forged by a device.
+        allow create, update, delete: if false;
+      }
     }
 
     // -------------------------
@@ -568,6 +616,311 @@ service cloud.firestore {
     }
 
     // -------------------------
+    // VIDEO LIVE
+    // -------------------------
+    match /live_sessions/{liveId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+          && request.resource.data.hostId == request.auth.uid
+          && request.resource.data.channelId == liveId
+          && request.resource.data.isLive == true
+          && request.resource.data.hostAgoraUid is int
+          && request.resource.data.hostAgoraUid > 0
+          && request.resource.data.topic is string
+          && request.resource.data.topic.size() <= 80
+          && request.resource.data.viewerCount == 0
+          && request.resource.data.guestCount == 0;
+      allow update: if signedIn()
+          && (
+            (
+              resource.data.hostId == request.auth.uid
+              && request.resource.data.hostId == resource.data.hostId
+              && request.resource.data.channelId == resource.data.channelId
+              && request.resource.data.hostAgoraUid == resource.data.hostAgoraUid
+              && request.resource.data.viewerCount == resource.data.viewerCount
+              && request.resource.data.guestCount >= resource.data.guestCount
+              && request.resource.data.guestCount <= 3
+              && request.resource.data.guestCount <= resource.data.guestCount + 1
+            )
+            || (
+              request.resource.data.diff(resource.data).affectedKeys()
+                  .hasOnly(['viewerCount', 'updatedAt'])
+              && request.resource.data.viewerCount >= 0
+              && request.resource.data.guestCount == resource.data.guestCount
+              && (
+                (
+                  request.resource.data.viewerCount == resource.data.viewerCount + 1
+                  && !exists(
+                    /databases/$(database)/documents/live_sessions/$(liveId)/viewers/$(request.auth.uid)
+                  )
+                  && existsAfter(
+                    /databases/$(database)/documents/live_sessions/$(liveId)/viewers/$(request.auth.uid)
+                  )
+                )
+                || (
+                  resource.data.viewerCount > 0
+                  && request.resource.data.viewerCount == resource.data.viewerCount - 1
+                  && exists(
+                    /databases/$(database)/documents/live_sessions/$(liveId)/viewers/$(request.auth.uid)
+                  )
+                  && !existsAfter(
+                    /databases/$(database)/documents/live_sessions/$(liveId)/viewers/$(request.auth.uid)
+                  )
+                )
+              )
+            )
+            || (
+              isGlobalModerator(resource.data.hostId, request.auth.uid)
+              && request.resource.data.diff(resource.data).affectedKeys()
+                  .hasOnly(['guestCount', 'updatedAt'])
+              && request.resource.data.guestCount
+                  == resource.data.guestCount + 1
+              && request.resource.data.guestCount <= 3
+            )
+            || (
+              request.resource.data.diff(resource.data).affectedKeys()
+                  .hasOnly(['guestCount', 'updatedAt'])
+              && request.resource.data.guestCount
+                  == resource.data.guestCount + 1
+              && request.resource.data.guestCount <= 3
+              && get(
+                /databases/$(database)/documents/live_sessions/$(liveId)/join_requests/$(request.auth.uid)
+              ).data.status == 'invited'
+              && getAfter(
+                /databases/$(database)/documents/live_sessions/$(liveId)/join_requests/$(request.auth.uid)
+              ).data.status == 'accepted'
+            )
+            || (
+              request.resource.data.diff(resource.data).affectedKeys()
+                  .hasOnly(['guestCount', 'updatedAt'])
+              && resource.data.guestCount > 0
+              && request.resource.data.guestCount == resource.data.guestCount - 1
+              && getAfter(
+                /databases/$(database)/documents/live_sessions/$(liveId)/join_requests/$(request.auth.uid)
+              ).data.status == 'left'
+            )
+          );
+      allow delete: if false;
+
+      match /viewers/{userId} {
+        allow read: if signedIn();
+        allow create: if signedIn()
+            && userId == request.auth.uid
+            && request.resource.data.uid == request.auth.uid
+            && get(/databases/$(database)/documents/live_sessions/$(liveId))
+                .data.isLive == true
+            && getAfter(
+              /databases/$(database)/documents/live_sessions/$(liveId)
+            ).data.viewerCount
+                == get(
+                  /databases/$(database)/documents/live_sessions/$(liveId)
+                ).data.viewerCount + 1;
+        allow delete: if signedIn()
+            && userId == request.auth.uid
+            && getAfter(
+              /databases/$(database)/documents/live_sessions/$(liveId)
+            ).data.viewerCount
+                == get(
+                  /databases/$(database)/documents/live_sessions/$(liveId)
+                ).data.viewerCount - 1;
+        allow update: if false;
+      }
+
+      match /board_items/{itemId} {
+        allow read: if signedIn();
+        allow create: if signedIn()
+            && (
+              get(/databases/$(database)/documents/live_sessions/$(liveId))
+                  .data.hostId == request.auth.uid
+              || (
+                get(/databases/$(database)/documents/live_sessions/$(liveId))
+                    .data.boardWriteEnabled == true
+                && get(
+                  /databases/$(database)/documents/live_sessions/$(liveId)/join_requests/$(request.auth.uid)
+                ).data.status == 'accepted'
+                && request.resource.data.userId == request.auth.uid
+                && request.resource.data.type in ['stroke', 'text']
+              )
+            );
+        allow update: if signedIn()
+            && get(/databases/$(database)/documents/live_sessions/$(liveId))
+                .data.hostId == request.auth.uid;
+        allow delete: if signedIn()
+            && (
+              get(/databases/$(database)/documents/live_sessions/$(liveId))
+                  .data.hostId == request.auth.uid
+              || (
+                resource.data.userId == request.auth.uid
+                && resource.data.type in ['stroke', 'text']
+                && get(/databases/$(database)/documents/live_sessions/$(liveId))
+                    .data.boardWriteEnabled == true
+                && get(
+                  /databases/$(database)/documents/live_sessions/$(liveId)/join_requests/$(request.auth.uid)
+                ).data.status == 'accepted'
+              )
+            );
+      }
+
+      match /teacher_ai_notes/{noteId} {
+        allow read: if signedIn()
+            && resource.data.userId == request.auth.uid;
+        allow write: if false;
+      }
+
+      match /captions/{captionId} {
+        allow read: if signedIn();
+        allow create: if signedIn()
+            && request.resource.data.userId == request.auth.uid
+            && request.resource.data.text is string
+            && request.resource.data.text.size() > 0
+            && request.resource.data.text.size() <= 400
+            && (
+              get(/databases/$(database)/documents/live_sessions/$(liveId))
+                  .data.hostId == request.auth.uid
+              || get(
+                /databases/$(database)/documents/live_sessions/$(liveId)/join_requests/$(request.auth.uid)
+              ).data.status == 'accepted'
+            );
+        allow update, delete: if false;
+      }
+
+      match /gifts/{giftId} {
+        allow read: if signedIn();
+        allow write: if false;
+      }
+
+      match /messages/{messageId} {
+        allow read: if signedIn();
+        allow create: if signedIn()
+            && request.resource.data.senderId == request.auth.uid
+            && request.resource.data.text is string
+            && request.resource.data.text.size() > 0
+            && request.resource.data.text.size() <= 500
+            && request.resource.data.keys().hasOnly([
+              'senderId', 'senderName', 'senderPhotoUrl', 'text', 'createdAt'
+            ]);
+        allow update, delete: if false;
+      }
+
+      match /join_requests/{userId} {
+        allow read: if signedIn()
+            && (
+              userId == request.auth.uid
+              || get(/databases/$(database)/documents/live_sessions/$(liveId))
+                  .data.hostId == request.auth.uid
+              || isGlobalModerator(
+                get(/databases/$(database)/documents/live_sessions/$(liveId))
+                    .data.hostId,
+                request.auth.uid
+              )
+            );
+        allow create: if signedIn()
+            && request.resource.data.uid == userId
+            && (
+              (
+                userId == request.auth.uid
+                && request.resource.data.status == 'pending'
+              )
+              || (
+                userId != request.auth.uid
+                && request.resource.data.status == 'invited'
+                && request.resource.data.invitedBy == request.auth.uid
+                && request.resource.data.invitedAt == request.time
+                && exists(
+                  /databases/$(database)/documents/live_sessions/$(liveId)/viewers/$(userId)
+                )
+                && (
+                  get(/databases/$(database)/documents/live_sessions/$(liveId))
+                      .data.hostId == request.auth.uid
+                  || isGlobalModerator(
+                    get(/databases/$(database)/documents/live_sessions/$(liveId))
+                        .data.hostId,
+                    request.auth.uid
+                  )
+                )
+              )
+            );
+        allow update: if signedIn()
+            && request.resource.data.uid == resource.data.uid
+            && (
+              (
+                (
+                  get(/databases/$(database)/documents/live_sessions/$(liveId))
+                      .data.hostId == request.auth.uid
+                  || isGlobalModerator(
+                    get(/databases/$(database)/documents/live_sessions/$(liveId))
+                        .data.hostId,
+                    request.auth.uid
+                  )
+                )
+                && resource.data.status == 'pending'
+                && request.resource.data.status in ['accepted', 'declined']
+                && request.resource.data.diff(resource.data).affectedKeys()
+                    .hasOnly(['status', 'decidedAt'])
+              )
+              || (
+                (
+                  get(/databases/$(database)/documents/live_sessions/$(liveId))
+                      .data.hostId == request.auth.uid
+                  || isGlobalModerator(
+                    get(/databases/$(database)/documents/live_sessions/$(liveId))
+                        .data.hostId,
+                    request.auth.uid
+                  )
+                )
+                && request.resource.data.status == 'invited'
+                && request.resource.data.invitedBy == request.auth.uid
+                && request.resource.data.invitedAt == request.time
+                && exists(
+                  /databases/$(database)/documents/live_sessions/$(liveId)/viewers/$(userId)
+                )
+                && request.resource.data.diff(resource.data).affectedKeys()
+                    .hasOnly([
+                      'displayName', 'photoUrl', 'status', 'invitedBy',
+                      'invitedAt', 'requestedAt', 'decidedAt'
+                    ])
+              )
+              || (
+                userId == request.auth.uid
+                && resource.data.status == 'invited'
+                && request.resource.data.status in ['accepted', 'declined']
+                && request.resource.data.diff(resource.data).affectedKeys()
+                    .hasOnly(['status', 'decidedAt'])
+                && (
+                  request.resource.data.status == 'declined'
+                  || getAfter(
+                    /databases/$(database)/documents/live_sessions/$(liveId)
+                  ).data.guestCount
+                      == get(
+                        /databases/$(database)/documents/live_sessions/$(liveId)
+                      ).data.guestCount + 1
+                )
+              )
+              || (
+                userId == request.auth.uid
+                && resource.data.status == 'accepted'
+                && request.resource.data.status == 'left'
+                && request.resource.data.diff(resource.data).affectedKeys()
+                    .hasOnly(['status', 'decidedAt'])
+              )
+              || (
+                userId == request.auth.uid
+                && resource.data.status in ['declined', 'left']
+                && request.resource.data.status == 'pending'
+                && request.resource.data.diff(resource.data).affectedKeys()
+                    .hasOnly([
+                      'displayName', 'photoUrl', 'status',
+                      'requestedAt', 'decidedAt'
+                    ])
+              )
+            );
+        allow delete: if signedIn()
+            && userId == request.auth.uid
+            && resource.data.status == 'pending';
+      }
+    }
+
+    // -------------------------
     // VOICE ROOMS
     // -------------------------
     match /rooms/{roomId} {
@@ -575,14 +928,23 @@ service cloud.firestore {
 
       allow create: if signedIn()
           && request.resource.data.hostId == request.auth.uid
-          && request.resource.data.channelId == roomId;
+          && request.resource.data.channelId == roomId
+          && request.resource.data.get('roomLevel', 1) == 1
+          && request.resource.data.get('roomXp', 0) == 0
+          // A verified quiz must be created by the authenticated backend.
+          && !('quiz' in request.resource.data);
 
       // Normally only the host updates the room.
       // If the old host participant is gone, a new authenticated host may
       // recover that stale room document without changing the channel id.
       allow update: if signedIn()
           && request.resource.data.channelId == resource.data.channelId
+          && !request.resource.data.diff(resource.data)
+              .affectedKeys().hasAny([
+                'roomXp', 'roomLevel', 'lastTaskCompletionId'
+              ])
           && validRoomThemeChange()
+          && validClientQuizChange()
           && (
             (
               request.auth.uid == resource.data.hostId
@@ -611,12 +973,7 @@ service cloud.firestore {
               !oldHostStillPresent(roomId)
               && request.resource.data.hostId == request.auth.uid
             )
-            ||
-            (
-              isRoomMember(roomId)
-              && request.resource.data.hostId == resource.data.hostId
-              && validTaskRoomProgress(roomId)
-            )
+
           );
 
       allow delete: if isHost(roomId);
@@ -660,10 +1017,11 @@ service cloud.firestore {
       }
 
       match /teacher_ai_notes/{noteId} {
-        allow read: if isRoomMember(roomId);
+        allow read: if isRoomMember(roomId)
+            && resource.data.userId == request.auth.uid;
 
-        // Teacher AI notes are written by the trusted backend through
-        // Firebase Admin SDK, which bypasses client security rules.
+        // Corrections are private to the speaker. Teacher AI notes are
+        // written by the trusted backend through Firebase Admin SDK.
         allow create, update, delete: if false;
       }
 
@@ -704,94 +1062,86 @@ service cloud.firestore {
             || (isRoomMember(roomId) && resource.data.userId == request.auth.uid);
       }
 
+      // Correct answers for server-created rounds are never exposed to
+      // clients, including the room host. Admin SDK alone writes these.
+      match /quiz_private/{quizId} {
+        allow read, write: if false;
+      }
+
       match /quiz_answers/{userId} {
         allow read: if isRoomMember(roomId);
-        allow create, update: if isRoomMember(roomId)
+        // Exactly one answer per participant per round, with a trusted
+        // server timestamp and the currently published round identifier.
+        allow create: if isRoomMember(roomId)
             && userId == request.auth.uid
+            && request.resource.data.keys().hasOnly([
+              'userId', 'roundId', 'displayName', 'optionIndex', 'answeredAt'
+            ])
             && request.resource.data.userId == request.auth.uid
-            && get(roomPath(roomId)).data.quiz.revealed != true;
+            && request.resource.data.displayName is string
+            && request.resource.data.displayName.size() <= 100
+            && request.resource.data.optionIndex is int
+            && request.resource.data.optionIndex >= 0
+            && request.resource.data.optionIndex <
+                get(roomPath(roomId)).data.quiz.options.size()
+            && request.resource.data.answeredAt == request.time
+            && request.resource.data.get('roundId', '') ==
+                get(roomPath(roomId)).data.quiz.get('roundId', '')
+            && get(roomPath(roomId)).data.quiz.revealed == false;
+        allow update: if false;
+        // The host may reset old local-practice votes. For verified rounds,
+        // only the server can clean votes between questions.
         allow delete: if isHost(roomId)
-            || (isRoomMember(roomId) && userId == request.auth.uid);
+            && get(roomPath(roomId)).data.quiz.get('roundId', '') == '';
+      }
+
+      // Voice and live room test effects: REAL /gifts remain backend-only.
+      match /gift_previews/{senderId} {
+        allow read: if isRoomMember(roomId);
+        allow create: if validFreeGiftPreview(senderId)
+            && isRoomMember(roomId)
+            && get(roomPath(roomId)).data.isOpen == true
+            && exists(participantPath(
+                roomId, request.resource.data.recipientId))
+            && request.resource.data.senderName == get(
+                participantPath(roomId, request.auth.uid)
+              ).data.displayName
+            && request.resource.data.recipientName == get(
+                participantPath(roomId, request.resource.data.recipientId)
+              ).data.displayName;
+        allow update: if resource.data.senderId == request.auth.uid
+            && request.time > resource.data.sentAt + duration.value(3, 's')
+            && validFreeGiftPreview(senderId)
+            && isRoomMember(roomId)
+            && get(roomPath(roomId)).data.isOpen == true
+            && exists(participantPath(
+                roomId, request.resource.data.recipientId))
+            && request.resource.data.senderName == get(
+                participantPath(roomId, request.auth.uid)
+              ).data.displayName
+            && request.resource.data.recipientName == get(
+                participantPath(roomId, request.resource.data.recipientId)
+              ).data.displayName;
+        allow delete: if false;
       }
 
       match /gifts/{giftId} {
         allow read: if isRoomMember(roomId);
-
-        allow create: if isRoomMember(roomId)
-            && request.resource.data.senderId == request.auth.uid
-            && request.resource.data.recipientId != request.auth.uid
-            && validGiftPrice(request.resource.data)
-            && (
-              !('animationUrl' in request.resource.data)
-              ||
-              (
-                exists(
-                  /databases/$(database)/documents/room_gift_catalog/$(request.resource.data.giftId)
-                )
-                && request.resource.data.animationUrl
-                    == get(
-                      /databases/$(database)/documents/room_gift_catalog/$(request.resource.data.giftId)
-                    ).data.animationUrl
-              )
-            )
-            && (
-              request.resource.data.recipientId == 'teacher_ai'
-              ||
-              exists(
-                participantPath(
-                  roomId,
-                  request.resource.data.recipientId
-                )
-              )
-            )
-            && getAfter(userPath(request.auth.uid)).data.lastGiftRoomId
-                == roomId
-            && getAfter(userPath(request.auth.uid)).data.lastGiftEventId
-                == giftId;
-
-        allow update, delete: if false;
+        // The trusted backend validates store_items and commits all balances.
+        allow create, update, delete: if false;
       }
 
       match /task_completions/{taskId} {
         allow read: if isRoomMember(roomId);
-
-        allow create: if isRoomMember(roomId)
-            && request.resource.data.userId == request.auth.uid
-            && request.resource.data.periodKey is string
-            && validRoomTask(request.resource.data)
-            && request.resource.data.completedAt == request.time
-            && getAfter(roomPath(roomId)).data.lastTaskCompletionId
-                == taskId;
-
-        allow update, delete: if false;
+        // Mission evidence and XP are validated by the authenticated backend.
+        allow create, update, delete: if false;
       }
 
       match /rewards/{rewardId} {
         allow read: if isRoomMember(roomId);
 
-        allow create: if isHost(roomId)
-            || (
-              isRoomMember(roomId)
-              && request.resource.data.level
-                  == getAfter(roomPath(roomId)).data.roomLevel
-              && request.resource.data.unlockedBy == request.auth.uid
-              && request.resource.data.sourceTaskId
-                  == getAfter(roomPath(roomId)).data.lastTaskCompletionId
-              && (
-                (
-                  request.resource.data.level == 5
-                  && request.resource.data.type == 'background_month'
-                )
-                ||
-                (
-                  request.resource.data.level != 5
-                  && request.resource.data.type == 'gift_pack'
-                )
-              )
-            );
-
-        allow update: if isHost(roomId);
-        allow delete: if false;
+        // Catalog reward eligibility is minted by verified backend levels.
+        allow create, update, delete: if false;
       }
 
       match /speaker_stats/{userId} {
@@ -830,6 +1180,65 @@ service cloud.firestore {
         allow update, delete: if false;
       }
 
+      match /stage_invites/{userId} {
+        allow read: if signedIn()
+            && (
+              userId == request.auth.uid
+              || isHost(roomId)
+              || isModerator(roomId)
+            );
+
+        allow create: if signedIn()
+            && (isHost(roomId) || isModerator(roomId))
+            && request.resource.data.recipientId == userId
+            && request.resource.data.invitedBy == request.auth.uid
+            && request.resource.data.role in ['speaker', 'coHost', 'vipSeat']
+            && request.resource.data.seatIndex is int
+            && request.resource.data.seatIndex >= 2
+            && request.resource.data.seatIndex <= 8
+            && request.resource.data.status == 'pending'
+            && request.resource.data.createdAt == request.time
+            && exists(participantPath(roomId, userId))
+            && get(participantPath(roomId, userId)).data.role == 'listener';
+
+        allow update: if signedIn()
+            && request.resource.data.recipientId == resource.data.recipientId
+            && request.resource.data.recipientId == userId
+            && (
+              (
+                (isHost(roomId) || isModerator(roomId))
+                && request.resource.data.invitedBy == request.auth.uid
+                && request.resource.data.role in ['speaker', 'coHost', 'vipSeat']
+                && request.resource.data.seatIndex is int
+                && request.resource.data.seatIndex >= 2
+                && request.resource.data.seatIndex <= 8
+                && request.resource.data.status == 'pending'
+                && request.resource.data.createdAt == request.time
+                && exists(participantPath(roomId, userId))
+                && get(participantPath(roomId, userId)).data.role == 'listener'
+              )
+              || (
+                userId == request.auth.uid
+                && resource.data.status == 'pending'
+                && request.resource.data.status in ['accepted', 'declined']
+                && request.resource.data.diff(resource.data).affectedKeys()
+                    .hasOnly(['status', 'respondedAt'])
+                && request.resource.data.respondedAt == request.time
+                && (
+                  request.resource.data.status == 'declined'
+                  || (
+                    getAfter(participantPath(roomId, userId)).data.role
+                        == resource.data.role
+                    && getAfter(participantPath(roomId, userId)).data.seatIndex
+                        == resource.data.seatIndex
+                  )
+                )
+              )
+            );
+
+        allow delete: if false;
+      }
+
       match /participants/{userId} {
         allow read: if signedIn();
 
@@ -841,10 +1250,14 @@ service cloud.firestore {
             && userId == request.auth.uid
             && request.resource.data.uid == request.auth.uid
             && request.resource.data.handRaised == false
-            && request.resource.data.isModerator == false
+            && (
+              request.resource.data.isModerator == false
+              || isTrustedRoomModerator(roomId, userId)
+            )
             && request.resource.data.warningCount == 0
             && request.resource.data.forcedMuted == false
             && request.resource.data.kicked == false
+            && request.resource.data.joinedAt == request.time
             && (
               (
                 request.resource.data.role == 'listener'
@@ -886,10 +1299,34 @@ service cloud.firestore {
               ||
               (
                 userId == request.auth.uid
+                && resource.data.role == 'listener'
+                && request.resource.data.uid == resource.data.uid
+                && get(stageInvitePath(roomId, userId)).data.status == 'pending'
+                && getAfter(stageInvitePath(roomId, userId)).data.status == 'accepted'
+                && request.resource.data.role
+                    == getAfter(stageInvitePath(roomId, userId)).data.role
+                && request.resource.data.seatIndex
+                    == getAfter(stageInvitePath(roomId, userId)).data.seatIndex
+                && request.resource.data.handRaised == false
+                && request.resource.data
+                    .diff(resource.data)
+                    .affectedKeys()
+                    .hasOnly([
+                      'role',
+                      'seatIndex',
+                      'handRaised',
+                      'requestedSeatIndex',
+                      'updatedAt'
+                    ])
+              )
+              ||
+              (
+                userId == request.auth.uid
                 && request.resource.data.uid == request.auth.uid
                 && request.resource.data.role == 'listener'
                 && !('seatIndex' in request.resource.data)
                 && request.resource.data.handRaised == false
+                && request.resource.data.joinedAt == request.time
                 && request.resource.data
                     .diff(resource.data)
                     .affectedKeys()
@@ -908,7 +1345,10 @@ service cloud.firestore {
                       'joinedAt',
                       'updatedAt'
                     ])
-                && request.resource.data.isModerator == false
+                && (
+                  request.resource.data.isModerator == false
+                  || isTrustedRoomModerator(roomId, userId)
+                )
                 && request.resource.data.warningCount == 0
                 && request.resource.data.forcedMuted == false
                 && request.resource.data.kicked == false
@@ -920,6 +1360,11 @@ service cloud.firestore {
                 && request.resource.data.uid == request.auth.uid
                 && request.resource.data.role == 'host'
                 && request.resource.data.seatIndex == 1
+                && (
+                  request.resource.data.get('joinedAt', null) ==
+                      resource.data.get('joinedAt', null)
+                  || request.resource.data.get('joinedAt', null) == request.time
+                )
               )
               ||
               (
@@ -987,6 +1432,16 @@ service cloud.firestore {
                   (
                     request.resource.data.role == 'listener'
                     && !('seatIndex' in request.resource.data)
+                  )
+                  ||
+                  (
+                    resource.data.role == 'listener'
+                    && resource.data.handRaised == true
+                    && request.resource.data.role == 'speaker'
+                    && request.resource.data.handRaised == false
+                    && request.resource.data.seatIndex is int
+                    && request.resource.data.seatIndex >= 2
+                    && request.resource.data.seatIndex <= 8
                   )
                 )
               )
