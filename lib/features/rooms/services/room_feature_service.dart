@@ -39,24 +39,24 @@ class RoomFeatureService {
       throw StateError('Create or join the room before initializing tools.');
     }
     final data = snapshot.data() ?? const <String, dynamic>{};
+    final isHost = data['hostId'] == _user?.uid;
+    if (!isHost) return;
+
     final needsBackgroundV3 =
-        (data['backgroundLayoutVersion'] as num?)?.toInt() != 3;
-    final missing = <String, dynamic>{
-      if (needsBackgroundV3) ...{
-        // One-time migration: every existing room starts from the clean
-        // WorldVoice solid-green canvas. After this migration the host's
-        // selected background persists normally.
-        'themeId': 'softGreenFlow',
-        'backgroundUrl': FieldValue.delete(),
-        'backgroundLayoutVersion': 3,
-      } else if (!data.containsKey('themeId'))
-        'themeId': 'softGreenFlow',
-      if (!data.containsKey('boardWriteEnabled'))
-        'boardWriteEnabled': true,
-    };
-    if (missing.isNotEmpty) {
+        (data['backgroundLayoutVersion'] as num?)?.toInt() != 3 ||
+        !data.containsKey('themeId');
+    if (needsBackgroundV3) {
+      // Background changes are server-authorized so a stale client Firestore
+      // rule cannot block the host from restoring the clean default canvas.
+      await setPurchasedBackground(
+        themeId: 'softGreenFlow',
+        backgroundUrl: null,
+      );
+    }
+
+    if (!data.containsKey('boardWriteEnabled')) {
       await _room.update({
-        ...missing,
+        'boardWriteEnabled': true,
         'updatedAt': FieldValue.serverTimestamp(),
       });
     }
@@ -74,18 +74,53 @@ class RoomFeatureService {
   Future<void> setPurchasedBackground({
     required String themeId,
     required String? backgroundUrl,
-  }) =>
-      _room.set(
-        {
-          'themeId': themeId,
-          'backgroundUrl': backgroundUrl?.trim().isNotEmpty == true
-              ? backgroundUrl!.trim()
-              : FieldValue.delete(),
-          'backgroundLayoutVersion': 3,
-          'updatedAt': FieldValue.serverTimestamp(),
-        },
-        SetOptions(merge: true),
-      );
+  }) async {
+    // The server validates host ownership and paid background entitlements.
+    // Do not trust a client-provided URL; it is retained in the signature only
+    // for compatibility with existing callers.
+    assert(backgroundUrl == null || backgroundUrl.isEmpty ||
+        Uri.tryParse(backgroundUrl)?.hasScheme == true);
+
+    final user = _user;
+    if (user == null) throw StateError('SIGN_IN_REQUIRED');
+    final uri = Uri.tryParse(
+      _economyBackend.trim().replaceFirst(RegExp(r'/$'), ''),
+    );
+    if (uri == null || !uri.hasAuthority || uri.scheme != 'https') {
+      throw StateError('Room backend unavailable.');
+    }
+    final token = await user.getIdToken();
+    if (token == null || token.isEmpty) {
+      throw StateError('Could not authorize background change.');
+    }
+
+    final response = await http.post(
+      uri.replace(
+        path: '${uri.path.replaceFirst(RegExp(r"/$"), "")}/room/background/apply',
+      ),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({
+        'roomId': roomId,
+        'themeId': themeId,
+      }),
+    ).timeout(const Duration(seconds: 15));
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      String reason = 'Could not apply background.';
+      try {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic>) {
+          reason = decoded['error']?.toString() ?? reason;
+        }
+      } catch (_) {
+        // Keep the stable user-facing failure.
+      }
+      throw StateError(reason);
+    }
+  }
 
   Future<void> setBoardWriteEnabled(bool value) => _room.set(
         {
