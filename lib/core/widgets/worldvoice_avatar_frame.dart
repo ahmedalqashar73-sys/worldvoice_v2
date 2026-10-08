@@ -20,134 +20,119 @@ class WorldVoiceAvatarFrame extends StatefulWidget {
   final bool animate;
 
   static const List<String> freeFrameIds = <String>[
-    'free_art_01', 'free_art_02', 'free_art_03', 'free_art_04',
+    'free_clean_white', 'free_soft_green', 'free_sky_blue', 'free_silver',
   ];
 
   /// 33 artwork frames, packed as a transparent 6x6 WebP atlas.
   static const String artworkAsset = 'assets/frames/frames_192.webp';
   static const List<int> artworkPricesCoins = <int>[
-    0,
-    0,
-    0,
-    0,
-    180,
-    220,
-    240,
-    260,
-    260,
-    300,
-    350,
-    280,
-    340,
-    320,
-    360,
-    360,
-    420,
-    440,
-    420,
-    450,
-    480,
-    500,
-    520,
-    540,
-    480,
-    540,
-    580,
-    600,
-    650,
-    680,
-    700,
-    750,
-    850
+    0, 360, 280, 300, 240, 520, 280, 310, 0, 420, 560, 250, 420, 380, 0, 320, 460, 370, 490, 370, 400, 480, 440, 360, 0, 520, 580, 450, 620, 420, 520, 640, 590
   ];
   static const List<String> _artNamesEn = <String>[
-    'Golden Tide',
+    'Royal Crescent',
     'Solar Crown',
     'Cosmic Orbit',
-    'Moonlit Roses',
+    'Moonlight Roses',
     'Neon Melody',
-    'Ice Dragon',
-    'Koi Garden',
-    'Crystal Pulse',
-    'Sakura Kitten',
-    'Mecha Titan',
+    'Frozen Dragon',
+    'Koi Paradise',
+    'Cyber Knight',
+    'Pink Kitten',
+    'Royal Engine',
     'Azure Dragon',
-    'Pink Blossom',
-    'Royal Wings',
-    'Ruby Roses',
-    'Panda Paradise',
-    'Royal Kitten',
+    'Sakura Princess',
+    'Royal Eagle',
+    'Ruby Thorns',
+    'Panda Garden',
+    'Pearl Kitty',
     'Emerald Crown',
     'Midnight Roses',
-    'Ice Queen',
-    'Golden Clock',
-    'Prism Star',
-    'Peacock Jewel',
-    'Heart of Roses',
-    'Butterfly Gold',
-    'Ocean Pearl',
-    'White Tiger',
-    'Phoenix Flame',
-    'Emerald Dream',
-    'Fire Dragon',
-    'Violet Crown',
-    'Crystal Princess',
+    'Crystal Queen',
+    'Clockwork Gold',
+    'Prism Future',
+    'Peacock Majesty',
+    'Ruby Romance',
+    'Butterfly Dream',
+    'Ocean Pearls',
+    'Arctic Wolf',
+    'Golden Phoenix',
+    'Emerald Bloom',
+    'Lava King',
+    'Violet Shadow',
+    'Opal Kingdom',
     'Jungle Panther',
-    'Pharaoh Gold'
+    'Pharaoh Gold',
   ];
   static const List<String> _artNamesAr = <String>[
-    'المد الذهبي',
-    'التاج الشمسي',
+    'هلال ملكي',
+    'تاج الشمس',
     'مدار المجرة',
     'ورود القمر',
-    'لحن النيون',
-    'تنين الجليد',
-    'حديقة الكوي',
-    'نبض الكريستال',
-    'قطة الساكورا',
-    'العملاق الآلي',
+    'نغمات النيون',
+    'التنين الجليدي',
+    'جنة أسماك الكوي',
+    'الفارس الإلكتروني',
+    'القطة الوردية',
+    'المحرك الملكي',
     'التنين الأزرق',
-    'الزهرة الوردية',
-    'أجنحة ملكية',
-    'الورود الياقوتية',
-    'جنة الباندا',
-    'القطة الملكية',
-    'التاج الزمردي',
-    'ورود الليل',
-    'ملكة الجليد',
+    'أميرة الساكورا',
+    'النسر الملكي',
+    'أشواك الياقوت',
+    'حديقة الباندا',
+    'القطة اللؤلؤية',
+    'تاج الزمرد',
+    'ورود منتصف الليل',
+    'ملكة الكريستال',
     'الساعة الذهبية',
-    'نجمة البلور',
-    'جوهرة الطاووس',
-    'قلب الورود',
-    'الفراشة الذهبية',
-    'لؤلؤة المحيط',
-    'النمر الأبيض',
-    'لهيب العنقاء',
-    'الحلم الزمردي',
-    'تنين النار',
-    'التاج البنفسجي',
-    'أميرة الكريستال',
-    'نمر الغابة',
-    'ذهب الفراعنة'
+    'كريستال المستقبل',
+    'الطاووس الملكي',
+    'ورود الحب الحمراء',
+    'حلم الفراشات',
+    'لآلئ المحيط',
+    'الذئب القطبي',
+    'العنقاء الذهبية',
+    'أزهار الزمرد',
+    'ملك الحمم',
+    'الظل البنفسجي',
+    'مملكة الأوبال',
+    'نمر الأدغال',
+    'ذهب الفراعنة',
   ];
 
+  static const Map<int, String> _freeArtwork = <int, String>{
+    0: 'free_clean_white',
+    8: 'free_soft_green',
+    14: 'free_sky_blue',
+    24: 'free_silver',
+  };
+
   static String artworkId(int index) {
+    if (index < 0 || index >= 33) throw RangeError.range(index, 0, 32);
+    final freeId = _freeArtwork[index];
+    if (freeId != null) return freeId;
     final code = (index + 1).toString().padLeft(2, '0');
-    return index < 4 ? 'free_art_$code' : 'frame__art_$code';
+    return 'frame__wv_frame_$code';
   }
 
   static final List<String> premiumArtworkFrameIds =
       List<String>.unmodifiable(
-        List<String>.generate(29, (index) => artworkId(index + 4)),
+        <String>[
+          for (var index = 0; index < 33; index++)
+            if (!_freeArtwork.containsKey(index)) artworkId(index),
+        ],
       );
 
   static int? artworkIndex(String? id) {
     final value = id?.trim() ?? '';
-    final match = RegExp(r'^(free_art_|frame__art_)(\d{2})$')
-        .firstMatch(value);
+    for (final entry in _freeArtwork.entries) {
+      if (entry.value == value) return entry.key;
+    }
+    final match = RegExp(r'^frame__wv_frame_(\d{2})$').firstMatch(value);
     if (match == null) return null;
-    final i = int.parse(match.group(2)!) - 1;
-    return i >= 0 && i < 33 && artworkId(i) == value ? i : null;
+    final index = int.parse(match.group(1)!) - 1;
+    return index >= 0 && index < 33 && !_freeArtwork.containsKey(index)
+        ? index
+        : null;
   }
 
   static bool isArtworkFrame(String? id) => artworkIndex(id) != null;

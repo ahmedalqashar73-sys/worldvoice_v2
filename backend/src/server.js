@@ -112,25 +112,50 @@ const worldVoiceRoomBackgroundPrices = new Map([
   ["background__wv_bg_36", 340],
 ]);
 
-// Server-authoritative catalog of the 29 paid WorldVoice artwork frames.
-const worldVoiceArtworkFramePrices = Object.freeze([
-  180, 220, 240, 260, 260, 300, 350, 280, 340, 320, 360, 360, 420, 440, 420, 450, 480, 500, 520, 540, 480, 540, 580, 600, 650, 680, 700, 750, 850
+const worldVoiceFramePrices = new Map([
+  ["frame__wv_frame_02", 360],
+  ["frame__wv_frame_03", 280],
+  ["frame__wv_frame_04", 300],
+  ["frame__wv_frame_05", 240],
+  ["frame__wv_frame_06", 520],
+  ["frame__wv_frame_07", 280],
+  ["frame__wv_frame_08", 310],
+  ["frame__wv_frame_10", 420],
+  ["frame__wv_frame_11", 560],
+  ["frame__wv_frame_12", 250],
+  ["frame__wv_frame_13", 420],
+  ["frame__wv_frame_14", 380],
+  ["frame__wv_frame_16", 320],
+  ["frame__wv_frame_17", 460],
+  ["frame__wv_frame_18", 370],
+  ["frame__wv_frame_19", 490],
+  ["frame__wv_frame_20", 370],
+  ["frame__wv_frame_21", 400],
+  ["frame__wv_frame_22", 480],
+  ["frame__wv_frame_23", 440],
+  ["frame__wv_frame_24", 360],
+  ["frame__wv_frame_26", 520],
+  ["frame__wv_frame_27", 580],
+  ["frame__wv_frame_28", 450],
+  ["frame__wv_frame_29", 620],
+  ["frame__wv_frame_30", 420],
+  ["frame__wv_frame_31", 520],
+  ["frame__wv_frame_32", 640],
+  ["frame__wv_frame_33", 590],
 ]);
 
-function builtInWorldVoiceArtworkFrame(itemId) {
-  const match = /^frame__art_(\d{2})$/.exec(itemId);
-  if (!match) return null;
-  const number = Number(match[1]);
-  if (number < 5 || number > 33) return null;
+function builtInWorldVoiceFrame(itemId) {
+  if (!worldVoiceFramePrices.has(itemId)) return null;
   return {
     active: true,
     type: "frame",
-    name: `WorldVoice Art Frame ${number}`,
-    priceCoins: worldVoiceArtworkFramePrices[number - 5],
+    name: "WorldVoice Avatar Frame",
+    priceCoins: worldVoiceFramePrices.get(itemId),
     requiredGiftLevel: 0,
     durationDays: null,
   };
 }
+
 
 function builtInRoomBackground(itemId) {
   if (!worldVoiceRoomBackgroundPrices.has(itemId)) return null;
@@ -1370,9 +1395,9 @@ app.post("/store/purchase", async (req, res, next) => {
       const item = itemSnap.exists
         ? itemSnap.data() || {}
         : builtInRoomBackground(itemId) ||
-          builtInWorldVoiceArtworkFrame(itemId) || {};
+          builtInWorldVoiceFrame(itemId) || {};
       if ((!itemSnap.exists && !builtInRoomBackground(itemId) &&
-          !builtInWorldVoiceArtworkFrame(itemId)) ||
+          !builtInWorldVoiceFrame(itemId)) ||
           item.active !== true ||
           !["background", "frame", "entrance", "vip"].includes(item.type) ||
           !itemId.startsWith(item.type + "__")) {

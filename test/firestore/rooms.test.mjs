@@ -138,12 +138,12 @@ test('economy reads are permitted but client-side money and gifts cannot be forg
     profileFrameId: 'free_soft_green',
   }));
   for (const frameId of [
-    'free_art_01', 'free_art_02', 'free_art_03', 'free_art_04'
+    'free_clean_white', 'free_soft_green', 'free_sky_blue', 'free_silver'
   ]) {
     await assertSucceeds(updateDoc(profile, {profileFrameId: frameId}));
   }
-  await assertFails(updateDoc(profile, {profileFrameId: 'frame__art_05'}));
-  await assertFails(updateDoc(profile, {profileFrameId: 'free_art_05'}));
+  await assertFails(updateDoc(profile, {profileFrameId: 'frame__wv_frame_02'}));
+  await assertFails(updateDoc(profile, {profileFrameId: 'frame__wv_frame_09'}));
   await assertFails(updateDoc(profile, {
     profileFrameId: 'frame__golden_crown',
   }));
@@ -163,14 +163,14 @@ test('economy reads are permitted but client-side money and gifts cannot be forg
     profileFrameId: 'frame__golden_crown',
   }));
   await env.withSecurityRulesDisabled(async (ctx) => {
-    await setDoc(doc(ctx.firestore(), 'users/listener/inventory/frame__art_05'), {
-      itemId: 'frame__art_05',
+    await setDoc(doc(ctx.firestore(), 'users/listener/inventory/frame__wv_frame_02'), {
+      itemId: 'frame__wv_frame_02',
       type: 'frame',
       quantity: 1,
       expiresAt: null,
     });
   });
-  await assertSucceeds(updateDoc(profile, {profileFrameId: 'frame__art_05'}));
+  await assertSucceeds(updateDoc(profile, {profileFrameId: 'frame__wv_frame_02'}));
 
   await assertFails(setDoc(doc(db, 'users/new'), {uid: 'new', coins: 500}));
   for (const profile of [
