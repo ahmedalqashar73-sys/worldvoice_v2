@@ -340,6 +340,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         asHost: asHost,
       );
       membershipEstablished = true;
+      await _features.initializeDefaults();
       if (mounted) setState(() => _chatMessages = _roomChat.watchMessages());
 
       // History is optional; a denied history write must not close a room
