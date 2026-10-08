@@ -58,6 +58,21 @@ class RoomBackgroundAtlas extends StatelessWidget {
     final index = RoomBackgroundCatalog.atlasIndexForTheme(themeId);
     if (index == null) return const SizedBox.expand();
 
+    // This room scene has its own full-resolution source image. Painting
+    // the small tile from the 6x6 catalog atlas would blur it on phones.
+    if (themeId == 'wv_bg_18') {
+      return RepaintBoundary(
+        child: SizedBox.expand(
+          child: Image.asset(
+            'assets/backgrounds/sunset_terrace_hd.jpg',
+            fit: fit,
+            filterQuality: FilterQuality.high,
+            gaplessPlayback: true,
+          ),
+        ),
+      );
+    }
+
     return RepaintBoundary(
       child: FutureBuilder<ui.Image>(
         future: _atlasImage,
