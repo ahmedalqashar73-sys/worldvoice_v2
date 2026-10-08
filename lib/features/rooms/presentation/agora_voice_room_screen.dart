@@ -311,6 +311,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         message.contains('connection failed') ||
         message.contains('disconnected') ||
         message.contains('socketexception') ||
+        message.contains('rejected the token') ||
+        message.contains('invalid token') ||
         message.contains('http 502') ||
         message.contains('http 503') ||
         message.contains('http 504');
@@ -340,6 +342,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   (widget.initialRole == AgoraRoomRole.speaker))
               ? AgoraRoomRole.speaker
               : AgoraRoomRole.listener,
+          preferBackendToken: true,
         );
       } finally {
         if (mounted) setState(() => _audioRetrying = false);
@@ -1472,6 +1475,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         channelId: widget.channelId,
         role: (_me?.isOnStage ?? (widget.initialRole == AgoraRoomRole.speaker))
             ? AgoraRoomRole.speaker : AgoraRoomRole.listener,
+        preferBackendToken: true,
       );
       await _synchronizeParticipantAudio();
       if (mounted) setState(() => _audioFailure = null);

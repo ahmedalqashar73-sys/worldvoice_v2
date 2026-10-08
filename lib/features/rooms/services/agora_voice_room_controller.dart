@@ -50,6 +50,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
   AgoraRoomRole _role = AgoraRoomRole.listener;
   String? _channelId;
   bool _renewingToken = false;
+  bool _preferBackendToken = false;
   final Set<int> _remoteSpeakers = <int>{};
   final StreamController<AgoraRoomAudioFrame> _audioFrameController =
       StreamController<AgoraRoomAudioFrame>.broadcast(sync: true);
@@ -183,6 +184,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     required String channelId,
     required AgoraRoomRole role,
     bool previewCamera = false,
+    bool preferBackendToken = false,
   }) async {
     if (_joined) return;
     final result = Completer<void>();
@@ -204,7 +206,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     Future<void> begin() async {
       try {
         if (!_connecting) {
-          await connect(channelId: channelId, role: role, previewCamera: previewCamera);
+          await connect(channelId: channelId, role: role, previewCamera: previewCamera, preferBackendToken: preferBackendToken);
         }
         changed();
         if (!result.isCompleted) {
@@ -234,6 +236,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     required String channelId,
     required AgoraRoomRole role,
     bool previewCamera = false,
+    bool preferBackendToken = false,
   }) async {
     if (_disposed || _connecting || _joined) return;
 
@@ -380,6 +383,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       final credential = await _resolveCredential(
         channelId: channelId,
         role: role,
+        preferBackendToken: preferBackendToken,
       );
 
       // A timed-out request or a user retry may release this engine while
@@ -432,16 +436,19 @@ class AgoraVoiceRoomController extends ChangeNotifier {
   Future<({String token, int uid})> _resolveCredential({
     required String channelId,
     required AgoraRoomRole role,
+    bool preferBackendToken = false,
   }) async {
     final backendEndpoint =
         RoomBackendConfig.configurationError.isEmpty
             ? RoomBackendConfig.endpoint('/agora/token')
             : '';
+    final backendFirst =
+        channelId.startsWith('call_') || preferBackendToken;
     final endpoints = <String>[
-      if (channelId.startsWith('call_') && backendEndpoint.isNotEmpty)
+      if (backendFirst && backendEndpoint.isNotEmpty)
         backendEndpoint,
       ...AgoraConfig.tokenEndpoints,
-      if (!channelId.startsWith('call_') && backendEndpoint.isNotEmpty)
+      if (!backendFirst && backendEndpoint.isNotEmpty)
         backendEndpoint,
     ].where((value) => value.trim().isNotEmpty).toSet().toList(growable: false);
     if (endpoints.isEmpty) {
@@ -516,6 +523,10 @@ class AgoraVoiceRoomController extends ChangeNotifier {
         if (token.isEmpty || uid <= 0) {
           throw StateError('Token server did not return a valid token and UID.');
         }
+        // Preserve the successful issuer for renewToken(). A worker token
+        // for an older Agora project must not replace a valid backend token.
+        _preferBackendToken =
+            backendEndpoint.isNotEmpty && endpoint == backendEndpoint;
         return (token: token, uid: uid);
       } on TimeoutException catch (error) {
         lastError = error;
@@ -549,6 +560,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       final credential = await _resolveCredential(
         channelId: channelId,
         role: role ?? _role,
+        preferBackendToken: _preferBackendToken,
       );
 
       final currentUid = _localUid;
@@ -927,6 +939,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       _activeSpeakerUid = null;
       _channelId = null;
       _renewingToken = false;
+      _preferBackendToken = false;
       _remoteSpeakers.clear();
     }
   }
