@@ -22,6 +22,14 @@ class RoomBackgroundCatalog {
   const RoomBackgroundCatalog._();
 
   static const items = <RoomBackgroundCatalogItem>[
+    RoomBackgroundCatalogItem(
+      id: 'background__softGreenFlow',
+      themeId: 'softGreenFlow',
+      name: 'WorldVoice Green',
+      nameAr: 'وورلد فويس الأخضر',
+      priceCoins: 0,
+      isFree: true,
+    ),
     // Five starter gifts: immediately available to every WorldVoice user.
     RoomBackgroundCatalogItem(
       id: 'background__wv_bg_06',
