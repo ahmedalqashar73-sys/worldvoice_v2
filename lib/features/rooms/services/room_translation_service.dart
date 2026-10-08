@@ -165,6 +165,12 @@ class RoomTranslationService {
     final normalized = text.trim();
     if (normalized.isEmpty) return normalized;
 
+    // A detected sentence already in the viewer's target language must
+    // never be mistranslated using the room's language as a fallback hint.
+    final target = targetCode.toLowerCase().split(RegExp(r'[-_]')).first;
+    final explicitScriptLanguage = _scriptLanguage(normalized);
+    if (explicitScriptLanguage == target) return normalized;
+
     Object? localError;
     final sourceCode = _guessSourceCode(
       normalized,
@@ -242,6 +248,19 @@ class RoomTranslationService {
           localError?.toString().replaceFirst('Bad state: ', '') ??
           'Translation is unavailable for this language right now.',
     );
+  }
+
+  String? _scriptLanguage(String text) {
+    if (RegExp(r'[ぁ-ゟ゠-ヿ]').hasMatch(text)) return 'ja';
+    if (RegExp(r'[가-힣]').hasMatch(text)) return 'ko';
+    if (RegExp(r'[一-鿿]').hasMatch(text)) return 'zh';
+    if (RegExp(r'[А-Яа-яЁё]').hasMatch(text)) return 'ru';
+    if (RegExp(r'[ऀ-ॿ]').hasMatch(text)) return 'hi';
+    if (RegExp(r'[ก-๿]').hasMatch(text)) return 'th';
+    if (RegExp(r'[پچژگ]').hasMatch(text)) return 'fa';
+    if (RegExp(r'[ٹڈڑںھہۓے]').hasMatch(text)) return 'ur';
+    if (RegExp(r'[؀-ۿ]').hasMatch(text)) return 'ar';
+    return null;
   }
 
   String? _guessSourceCode(

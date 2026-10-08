@@ -185,7 +185,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   bool _teacherAiAutoReplyBusy = false;
   bool _teacherAiConversationActive = false;
   bool _aiServiceUnavailable = false;
-  final ValueNotifier<bool> _teacherAiOnline = ValueNotifier<bool>(true);
+  final ValueNotifier<bool> _teacherAiOnline = ValueNotifier<bool>(false);
   RoomCaption? _queuedTeacherAiCaption;
   DateTime? _teacherAiSpeechSuppressedUntil;
 
@@ -632,9 +632,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     int? agoraUid,
   }) {
     if (!mounted || text.trim().isEmpty) return;
-    _aiServiceUnavailable = false;
-    _teacherAiOnline.value = true;
-
+    // Speech recognition is local: it cannot prove that the external
+    // Teacher AI service is online. Preserve the last verified AI status.
     RoomParticipant? participant;
     if (isLocal) {
       participant = _me;
@@ -821,10 +820,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   Future<void> _translateLatestCaption(RoomCaption caption) async {
     _lastTranslatedCaptionId = caption.id;
     try {
-      final translated = await _translationService.translate(
+      final translated = await _translationService.translateAuto(
         text: caption.text,
-        sourceCode: caption.languageCode,
         targetCode: _captionTargetLanguage,
+        fallbackSourceCode: caption.languageCode,
       );
       if (!mounted || _latestCaption?.id != caption.id) return;
       setState(() => _latestTranslatedCaption = translated);
@@ -878,10 +877,6 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   }
 
   Future<void> _setCaptionsEnabled(bool value) async {
-    if (value) {
-      _aiServiceUnavailable = false;
-      _teacherAiOnline.value = true;
-    }
     if (mounted) {
       setState(() {
         _captionsEnabled = value;
@@ -1036,10 +1031,6 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               refreshSheet();
             },
             onTranslationChanged: (value) {
-              if (value) {
-                _aiServiceUnavailable = false;
-                _teacherAiOnline.value = true;
-              }
               setState(() {
                 _captionTranslationEnabled = value;
                 _latestTranslatedCaption = null;
@@ -1056,10 +1047,6 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               refreshSheet();
             },
             onPronunciationChanged: (value) {
-              if (value) {
-                _aiServiceUnavailable = false;
-                _teacherAiOnline.value = true;
-              }
               setState(() {
                 _pronunciationTipsEnabled = value;
                 _lastTeacherAiCaptionId = null;

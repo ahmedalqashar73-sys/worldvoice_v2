@@ -2727,7 +2727,7 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
   RoomCaption? _queuedTeacherCaption;
   String? _lastTeacherPromptCaptionId;
   final ValueNotifier<bool> _teacherOnline =
-      ValueNotifier<bool>(true);
+      ValueNotifier<bool>(false);
 
   @override
   void initState() {
@@ -2948,10 +2948,10 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
   Future<void> _translate(RoomCaption caption) async {
     _translatedCaptionId = caption.id;
     try {
-      final value = await _translationService.translate(
+      final value = await _translationService.translateAuto(
         text: caption.text,
-        sourceCode: caption.languageCode,
         targetCode: _targetLanguage,
+        fallbackSourceCode: caption.languageCode,
       );
       if (!mounted || _latest?.id != caption.id) return;
       setState(() => _translated = value);

@@ -84,7 +84,7 @@ class RoomLiveCaptionController {
   bool get enabled => _enabled;
   bool get listening =>
       _audioFrames != null
-          ? _enabled && (_canPublish || _captureRemote)
+          ? _enabled && (_localSpeech.isListening || _captureRemote)
           : _speech.isListening;
   bool get available => _audioFrames != null ? true : _available;
 
@@ -98,8 +98,26 @@ class RoomLiveCaptionController {
     _enabled = enabled;
     _canPublish = canPublish;
     _captureRemote = captureRemote;
-    _languageCode =
+    final nextLanguage =
         languageCode.trim().isEmpty ? 'en' : languageCode.toLowerCase();
+    final languageChanged = _languageCode != nextLanguage;
+    _languageCode = nextLanguage;
+    if (languageChanged) {
+      _lastLocalPublished = '';
+      _lastPublished = '';
+      _lastTranscriptByKey.clear();
+      _pendingLocalText = '';
+      _localResultTimer?.cancel();
+      // Language changes must update the device recognizer locale too.
+      if (_localInitialized && _localAvailable) {
+        _localLocaleId = await _findSpeechLocale(_localSpeech, _languageCode);
+        if (_localSpeech.isListening) await _localSpeech.stop();
+      }
+      if (_initialized && _available) {
+        _localeId = await _findSpeechLocale(_speech, _languageCode);
+        if (_speech.isListening) await _speech.stop();
+      }
+    }
     _displayName = displayName.trim().isEmpty
         ? 'WorldVoice user'
         : displayName.trim();
@@ -289,6 +307,20 @@ class RoomLiveCaptionController {
     return bytes.buffer.asUint8List();
   }
 
+  Future<String?> _findSpeechLocale(
+    SpeechToText recognizer,
+    String language,
+  ) async {
+    final locales = await recognizer.locales();
+    final normalized = language.toLowerCase().split(RegExp(r'[-_]')).first;
+    for (final locale in locales) {
+      final code = locale.localeId.toLowerCase().split(RegExp(r'[-_]')).first;
+      if (code == normalized) return locale.localeId;
+    }
+    // Let the engine choose its default when the target is unsupported.
+    return null;
+  }
+
   Future<void> _initializeLocalSpeech() async {
     if (_localInitialized || _disposed) return;
     _localInitialized = true;
@@ -321,16 +353,7 @@ class RoomLiveCaptionController {
       return;
     }
 
-    final locales = await _localSpeech.locales();
-    final normalized = _languageCode.toLowerCase();
-    for (final locale in locales) {
-      final localeCode =
-          locale.localeId.toLowerCase().split(RegExp('[-_]')).first;
-      if (localeCode == normalized) {
-        _localLocaleId = locale.localeId;
-        break;
-      }
-    }
+    _localLocaleId = await _findSpeechLocale(_localSpeech, _languageCode);
   }
 
   Future<void> _startLocalSpeechIfNeeded() async {
@@ -457,16 +480,7 @@ class RoomLiveCaptionController {
       return;
     }
 
-    final locales = await _speech.locales();
-    final normalized = _languageCode.toLowerCase();
-    for (final locale in locales) {
-      final localeCode =
-          locale.localeId.toLowerCase().split(RegExp('[-_]')).first;
-      if (localeCode == normalized) {
-        _localeId = locale.localeId;
-        break;
-      }
-    }
+    _localeId = await _findSpeechLocale(_speech, _languageCode);
   }
 
   Future<void> _startIfNeeded() async {

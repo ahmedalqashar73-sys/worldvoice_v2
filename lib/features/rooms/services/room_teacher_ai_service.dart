@@ -107,10 +107,10 @@ class RoomTeacherAiService {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null || statusEndpoint.trim().isEmpty) return false;
 
-    final idToken = await user.getIdToken();
-    if (idToken == null || idToken.isEmpty) return false;
-
     try {
+      final idToken = await user.getIdToken()
+          .timeout(const Duration(seconds: 10));
+      if (idToken == null || idToken.isEmpty) return false;
       final response = await http
           .post(
             Uri.parse(statusEndpoint),
