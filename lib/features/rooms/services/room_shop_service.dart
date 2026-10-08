@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 
 import '../data/room_shop_models.dart';
+import '../../../core/widgets/worldvoice_avatar_frame.dart';
 
 class RoomShopService {
   final Map<String,String> _pendingKeys = <String,String>{};
@@ -99,15 +100,8 @@ class RoomShopService {
     final user = _user;
     if (user == null) throw StateError('Sign in is required.');
 
-    const freeFrames = <String>{
-      'free_clean_white',
-      'free_soft_green',
-      'free_sky_blue',
-      'free_silver',
-      'free_minimal_glow',
-    };
     final normalized = frameId.trim();
-    if (freeFrames.contains(normalized)) {
+    if (WorldVoiceAvatarFrame.isFree(normalized)) {
       await _db.collection('users').doc(user.uid).update({
         'profileFrameId': normalized,
       });

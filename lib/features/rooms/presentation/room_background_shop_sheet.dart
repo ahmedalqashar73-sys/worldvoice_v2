@@ -786,9 +786,29 @@ class _OtherStoreTab extends StatelessWidget {
                     builder: (context, selectedSnapshot) {
                       final selected = selectedSnapshot.data;
                       final freeFrames = WorldVoiceAvatarFrame.freeFrameIds;
+                      // Bundled frames are visible even if store_items has not
+                      // been seeded yet; the backend still authorizes purchases.
+                      final bundledPaid = WorldVoiceAvatarFrame.bundledFrames
+                          .where((frame) => !frame.isFree)
+                          .map((frame) => RoomStoreItem(
+                                id: frame.id,
+                                type: 'frame',
+                                name: WorldVoiceAvatarFrame.label(
+                                  frame.id,
+                                  ar: isArabic,
+                                ),
+                                priceCoins: frame.priceCoins,
+                                requiredGiftLevel: 0,
+                                active: true,
+                              ));
+                      final paidItems = <RoomStoreItem>[
+                        ...bundledPaid,
+                        ...items.where((item) =>
+                            WorldVoiceAvatarFrame.atlasIndex(item.id) == null),
+                      ];
                       return GridView.builder(
                         padding: const EdgeInsets.all(10),
-                        itemCount: freeFrames.length + items.length,
+                        itemCount: freeFrames.length + paidItems.length,
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
@@ -824,7 +844,7 @@ class _OtherStoreTab extends StatelessWidget {
                             );
                           }
 
-                          final item = items[index - freeFrames.length];
+                          final item = paidItems[index - freeFrames.length];
                           final isOwned = owned.contains(item.id);
                           return _FrameStoreCard(
                             frameId: item.id,

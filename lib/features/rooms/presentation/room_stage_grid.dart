@@ -118,6 +118,31 @@ class _CompactRoomSeatState extends State<_CompactRoomSeat>
                 clipBehavior: Clip.none,
                 alignment: Alignment.center,
                 children: [
+                  if (WorldVoiceAvatarFrame.atlasIndex(seat.frameId) != null)
+                    Container(
+                      width: 58,
+                      height: 58,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        boxShadow: seat.isActiveSpeaker
+                            ? [
+                                BoxShadow(
+                                  blurRadius: glow,
+                                  spreadRadius: 2,
+                                  color: const Color(0xFF60FFB5)
+                                      .withValues(alpha: .75),
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: WorldVoiceAvatarFrame(
+                        frameId: seat.frameId,
+                        size: 58,
+                        animate: false,
+                        child: _SeatAvatar(seat: seat),
+                      ),
+                    )
+                  else
                   Container(
                     width: 58,
                     height: 58,

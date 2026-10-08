@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../../core/widgets/worldvoice_avatar_frame.dart';
+
 import '../services/story_service.dart';
 import 'create_story_sheet.dart';
 import 'story_viewer_screen.dart';
@@ -133,6 +135,9 @@ class _StoryStripState extends State<StoryStrip> {
                       name: widget.isArabic ? 'ستوريك' : 'Your Story',
                       photoUrl:
                           profilePhoto.isNotEmpty ? profilePhoto : ownPhoto,
+                      frameId: (profileSnapshot.data?.data()?['profileFrameId']
+                                  ?? '')
+                              .toString(),
                       hasStory: mine.isNotEmpty,
                       closeFriends:
                           mine.any((story) => story.isCloseFriends),
@@ -263,6 +268,7 @@ class _StoryBubble extends StatelessWidget {
     required this.photoUrl,
     required this.hasStory,
     required this.closeFriends,
+    this.frameId,
     required this.onTap,
     this.showAdd = false,
     this.onAdd,
@@ -270,6 +276,7 @@ class _StoryBubble extends StatelessWidget {
 
   final String name;
   final String photoUrl;
+  final String? frameId;
   final bool hasStory;
   final bool closeFriends;
   final VoidCallback onTap;
@@ -317,13 +324,18 @@ class _StoryBubble extends StatelessWidget {
                       color: Theme.of(context).scaffoldBackgroundColor,
                       shape: BoxShape.circle,
                     ),
-                    child: CircleAvatar(
-                      backgroundImage: photo.isEmpty
-                          ? null
-                          : NetworkImage(photo),
-                      child: photo.isEmpty
-                          ? const Icon(Icons.person_rounded, size: 30)
-                          : null,
+                    child: WorldVoiceAvatarFrame(
+                      frameId: frameId,
+                      size: 60,
+                      animate: false,
+                      child: CircleAvatar(
+                        backgroundImage: photo.isEmpty
+                            ? null
+                            : NetworkImage(photo),
+                        child: photo.isEmpty
+                            ? const Icon(Icons.person_rounded, size: 30)
+                            : null,
+                      ),
                     ),
                   ),
                 ),

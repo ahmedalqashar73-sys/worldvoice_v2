@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 
 import '../../../core/localization/locale_controller.dart';
+import '../../../core/widgets/worldvoice_avatar_frame.dart';
 import '../../rooms/presentation/unified_gift_panel.dart';
 import '../../rooms/presentation/classic_gift_visual.dart';
 import '../../rooms/presentation/room_gift_overlay.dart';
@@ -431,12 +432,19 @@ class ChatScreen extends StatelessWidget {
                             final photo =
                                 (profileData['photoUrl'] ?? '').toString().trim();
                             return ListTile(
-                              leading: CircleAvatar(
-                                backgroundImage:
-                                    photo.isEmpty ? null : NetworkImage(photo),
-                                child: photo.isEmpty
-                                    ? const Icon(Icons.person_outline)
-                                    : null,
+                              leading: WorldVoiceAvatarFrame(
+                                frameId: (profileData['profileFrameId'] ?? '')
+                                    .toString(),
+                                size: 40,
+                                animate: false,
+                                child: CircleAvatar(
+                                  backgroundImage: photo.isEmpty
+                                      ? null
+                                      : NetworkImage(photo),
+                                  child: photo.isEmpty
+                                      ? const Icon(Icons.person_outline)
+                                      : null,
+                                ),
                               ),
                               title: Text(displayName),
                               onTap: () async {
@@ -570,12 +578,19 @@ class ChatScreen extends StatelessWidget {
                                   }
                                 });
                               },
-                              secondary: CircleAvatar(
-                                backgroundImage:
-                                    photo.isEmpty ? null : NetworkImage(photo),
-                                child: photo.isEmpty
-                                    ? const Icon(Icons.person_rounded)
-                                    : null,
+                              secondary: WorldVoiceAvatarFrame(
+                                frameId: (data['profileFrameId'] ?? '')
+                                    .toString(),
+                                size: 40,
+                                animate: false,
+                                child: CircleAvatar(
+                                  backgroundImage: photo.isEmpty
+                                      ? null
+                                      : NetworkImage(photo),
+                                  child: photo.isEmpty
+                                      ? const Icon(Icons.person_rounded)
+                                      : null,
+                                ),
                               ),
                               title: Text(displayName),
                             );
@@ -876,12 +891,18 @@ class _ConversationTile extends StatelessWidget {
             child: Stack(
               clipBehavior: Clip.none,
               children: [
-                CircleAvatar(
-                  radius: 27,
-                  backgroundImage:
-                      photo.isEmpty ? null : NetworkImage(photo),
-                  child:
-                      photo.isEmpty ? const Icon(Icons.person_rounded) : null,
+                WorldVoiceAvatarFrame(
+                  frameId: (data['profileFrameId'] ?? '').toString(),
+                  size: 54,
+                  animate: false,
+                  child: CircleAvatar(
+                    radius: 27,
+                    backgroundImage:
+                        photo.isEmpty ? null : NetworkImage(photo),
+                    child: photo.isEmpty
+                        ? const Icon(Icons.person_rounded)
+                        : null,
+                  ),
                 ),
                 if (online)
                   PositionedDirectional(
@@ -1219,13 +1240,18 @@ class _ChatConversationState extends State<ChatConversationScreen> {
                 padding: const EdgeInsetsDirectional.fromSTEB(2, 4, 8, 4),
                 child: Row(
                   children: [
-                    CircleAvatar(
-                      radius: 18,
-                      backgroundImage:
-                          photo.isEmpty ? null : NetworkImage(photo),
-                      child: photo.isEmpty
-                          ? const Icon(Icons.person_rounded, size: 18)
-                          : null,
+                    WorldVoiceAvatarFrame(
+                      frameId: (data['profileFrameId'] ?? '').toString(),
+                      size: 36,
+                      animate: false,
+                      child: CircleAvatar(
+                        radius: 18,
+                        backgroundImage:
+                            photo.isEmpty ? null : NetworkImage(photo),
+                        child: photo.isEmpty
+                            ? const Icon(Icons.person_rounded, size: 18)
+                            : null,
+                      ),
                     ),
                     const SizedBox(width: 9),
                     Expanded(
