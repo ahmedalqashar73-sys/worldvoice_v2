@@ -18,7 +18,7 @@ class RoomCaptionService {
   User? get _user => FirebaseAuth.instance.currentUser;
 
   String get transcriptionEndpoint =>
-      RoomBackendConfig.endpoint('/speech/transcribe');
+      RoomBackendConfig.aiEndpoint('/speech/transcribe');
 
   CollectionReference<Map<String, dynamic>> get _captions =>
       _db.collection(collectionName).doc(roomId).collection('captions');
