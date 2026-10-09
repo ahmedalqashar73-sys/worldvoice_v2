@@ -37,18 +37,18 @@ class RoomTeacherAiService {
     final explicit = _explicitEndpoint.trim();
     return explicit.isNotEmpty
         ? explicit
-        : RoomBackendConfig.endpoint('/teacher-ai');
+        : RoomBackendConfig.aiEndpoint('/teacher-ai');
   }
 
   String get askEndpoint {
     final explicit = _explicitAskEndpoint.trim();
     return explicit.isNotEmpty
         ? explicit
-        : RoomBackendConfig.endpoint('/teacher-ai/ask');
+        : RoomBackendConfig.aiEndpoint('/teacher-ai/ask');
   }
 
   String get statusEndpoint =>
-      RoomBackendConfig.endpoint('/ai/status');
+      RoomBackendConfig.aiEndpoint('/ai/status');
 
   bool get isConfigured => endpoint.trim().isNotEmpty;
   bool get isAskConfigured => askEndpoint.trim().isNotEmpty;
