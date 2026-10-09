@@ -62,7 +62,8 @@ Future<void> _speakRoomTeacher(
   await _roomTeacherTtsChannel.invokeMethod<void>('speak', {
     'text': value,
     'languageCode': languageCode,
-  }).timeout(const Duration(seconds: 20));
+    'awaitCompletion': true,
+  }).timeout(const Duration(seconds: 130));
 }
 
 Future<void> _stopRoomTeacherVoice() async {
@@ -694,6 +695,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   }
 
   Future<void> _playTeacherVoice(String text, String language) async {
+    _captionController.pauseForPlayback(true);
     try {
       await _speakRoomTeacher(text, language);
     } catch (error) {
@@ -707,6 +709,11 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
           : 'Teacher AI voice failed. Check the device speech engine and media volume. $detail';
       _teacherAiFeedback.value = message;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    } finally {
+      if (mounted && !_leaving) {
+        _teacherAiSpeechSuppressedUntil = DateTime.now().add(const Duration(milliseconds: 500));
+        _captionController.pauseForPlayback(false);
+      }
     }
   }
 
@@ -960,6 +967,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       enabled: canPublish,
       canPublish: canPublish,
       captureRemote: false,
+      useAgoraLocal: _teacherAiConversationActive,
       languageCode: widget.roomLanguageCode ?? 'en',
       displayName: me?.displayName ?? 'WorldVoice user',
     );
@@ -1080,6 +1088,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
           _teacherAiConversationActive = false;
           _queuedTeacherAiCaption = null;
         });
+        await _stopRoomTeacherVoice();
+        await _syncCaptionPublishing();
       }
     }
   }

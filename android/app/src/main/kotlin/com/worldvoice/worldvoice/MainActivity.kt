@@ -25,6 +25,7 @@ class MainActivity : FlutterActivity() {
     private val speechHandler = Handler(Looper.getMainLooper())
     private var speechResult: MethodChannel.Result? = null
     private var speechId = 0
+    private var awaitSpeechCompletion = false
     private val speechTimeout = Runnable {
         pendingTeacherSpeech = null
         textToSpeech?.stop()
@@ -54,10 +55,19 @@ class MainActivity : FlutterActivity() {
                     textToSpeech?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
                         override fun onStart(utteranceId: String?) {
                             runOnUiThread {
+                                if (utteranceId == "worldvoice_teacher_ai_$speechId") {
+                                    if (awaitSpeechCompletion) {
+                                        speechHandler.removeCallbacks(speechTimeout)
+                                        speechHandler.postDelayed(speechTimeout, 120000)
+                                    } else finishSpeech()
+                                }
+                            }
+                        }
+                        override fun onDone(utteranceId: String?) {
+                            runOnUiThread {
                                 if (utteranceId == "worldvoice_teacher_ai_$speechId") finishSpeech()
                             }
                         }
-                        override fun onDone(utteranceId: String?) {}
                         @Deprecated("Android legacy error callback")
                         override fun onError(utteranceId: String?) {
                             runOnUiThread {
@@ -98,6 +108,7 @@ class MainActivity : FlutterActivity() {
                     val text = call.argument<String>("text")?.trim().orEmpty()
                     val languageCode =
                         call.argument<String>("languageCode")?.trim().orEmpty()
+                    awaitSpeechCompletion = call.argument<Boolean>("awaitCompletion") == true
                     speakTeacherText(text, languageCode, result)
                 }
                 "stop" -> {

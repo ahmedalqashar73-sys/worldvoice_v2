@@ -69,6 +69,17 @@ class RoomLiveCaptionController {
   bool _enabled = false;
   bool _canPublish = false;
   bool _captureRemote = false;
+  bool _useAgoraLocal = false;
+  bool _playbackPaused = false;
+  bool _receivedLocalFrame = false;
+
+  void pauseForPlayback(bool paused) {
+    _playbackPaused = paused;
+    _generation++;
+    _segments.clear();
+    _pendingByKey.clear();
+    if (_useAgoraLocal) _onState(listening: !paused && _enabled && _receivedLocalFrame);
+  }
   bool _starting = false;
   bool _disposed = false;
   int _generation = 0;
@@ -84,7 +95,7 @@ class RoomLiveCaptionController {
   bool get enabled => _enabled;
   bool get listening =>
       _audioFrames != null
-          ? _enabled && (_localSpeech.isListening || _captureRemote)
+          ? _enabled && ((_useAgoraLocal && _receivedLocalFrame && !_playbackPaused) || _localSpeech.isListening || _captureRemote)
           : _speech.isListening;
   bool get available => _audioFrames != null ? true : _available;
 
@@ -94,7 +105,16 @@ class RoomLiveCaptionController {
     required String languageCode,
     required String displayName,
     bool captureRemote = false,
+    bool useAgoraLocal = false,
   }) async {
+    final nextAgoraLocal = useAgoraLocal && _audioFrames != null;
+    if (nextAgoraLocal != _useAgoraLocal) {
+      _receivedLocalFrame = false;
+      _segments.clear();
+      _pendingByKey.clear();
+      _lastTranscriptByKey.clear();
+    }
+    _useAgoraLocal = nextAgoraLocal;
     _enabled = enabled;
     _canPublish = canPublish;
     _captureRemote = captureRemote;
@@ -134,6 +154,17 @@ class RoomLiveCaptionController {
         return;
       }
 
+      if (_useAgoraLocal) {
+        _restartTimer?.cancel();
+        _localResultTimer?.cancel();
+        _pendingLocalText = '';
+        // Reuse Agora's microphone. Android's second recorder can receive
+        // silence while Agora owns the active communication microphone.
+        if (_localSpeech.isListening) await _localSpeech.cancel();
+        _onState(listening: _receivedLocalFrame && !_playbackPaused);
+        return;
+      }
+
       // Local speech must not depend on the paid transcription backend.
       // Android's recognizer handles the host/speaker locally, while Agora
       // PCM remains available for remote speakers.
@@ -161,9 +192,11 @@ class RoomLiveCaptionController {
   void _onAgoraFrame(AgoraRoomAudioFrame frame) {
     if (_disposed || !_enabled) return;
     if (frame.isLocal) {
-      // Local audio is recognized on-device. Do not upload it to the
-      // transcription backend or consume AI credits.
-      return;
+      if (!_useAgoraLocal || !_canPublish || _playbackPaused) return;
+      if (!_receivedLocalFrame) {
+        _receivedLocalFrame = true;
+        _onState(listening: true);
+      }
     } else if (!_captureRemote) {
       return;
     }
@@ -228,7 +261,7 @@ class RoomLiveCaptionController {
         sampleRate: pending.sampleRate,
         channels: pending.channels,
       );
-      final text = await _service.transcribeWav(wav);
+      final text = await _service.transcribeWav(wav, languageCode: _languageCode);
       if (_disposed ||
           pending.generation != _generation ||
           text.trim().isEmpty) {
@@ -236,7 +269,7 @@ class RoomLiveCaptionController {
       }
 
       final normalized = text.trim();
-      if (_lastTranscriptByKey[key] == normalized) return;
+      if (!_useAgoraLocal && _lastTranscriptByKey[key] == normalized) return;
       _lastTranscriptByKey[key] = normalized;
 
       final callback = _onTranscript;
@@ -327,7 +360,7 @@ class RoomLiveCaptionController {
 
     _localAvailable = await _localSpeech.initialize(
       onStatus: (status) {
-        if (_disposed || _audioFrames == null) return;
+        if (_disposed || _audioFrames == null || _useAgoraLocal) return;
         final listening = status == SpeechToText.listeningStatus;
         _onState(listening: listening || (_enabled && _captureRemote));
         if (status == SpeechToText.doneStatus ||
@@ -336,7 +369,7 @@ class RoomLiveCaptionController {
         }
       },
       onError: (error) {
-        if (_disposed) return;
+        if (_disposed || _useAgoraLocal) return;
         _onState(
           listening: _enabled && _captureRemote,
           error: error.errorMsg,
@@ -359,6 +392,7 @@ class RoomLiveCaptionController {
   Future<void> _startLocalSpeechIfNeeded() async {
     if (_disposed ||
         _audioFrames == null ||
+        _useAgoraLocal ||
         !_enabled ||
         !_canPublish ||
         _localStarting ||
@@ -369,11 +403,11 @@ class RoomLiveCaptionController {
     _localStarting = true;
     try {
       await _initializeLocalSpeech();
-      if (!_localAvailable || _disposed || !_enabled || !_canPublish) return;
+      if (!_localAvailable || _disposed || _useAgoraLocal || !_enabled || !_canPublish) return;
 
       await _localSpeech.listen(
         onResult: (result) {
-          if (_disposed || !_enabled || !_canPublish) return;
+          if (_disposed || _useAgoraLocal || !_enabled || !_canPublish) return;
           final text = result.recognizedWords.trim();
           if (text.isEmpty || text == _lastLocalPublished) return;
 
@@ -417,7 +451,7 @@ class RoomLiveCaptionController {
   }
 
   void _emitLocalTranscript(String text) {
-    if (_disposed || !_enabled || !_canPublish) return;
+    if (_disposed || _useAgoraLocal || !_enabled || !_canPublish) return;
     final normalized = text.trim();
     if (normalized.isEmpty || normalized == _lastLocalPublished) return;
 
@@ -444,6 +478,7 @@ class RoomLiveCaptionController {
 
   void _scheduleLocalRestart() {
     if (_audioFrames == null ||
+        _useAgoraLocal ||
         _disposed ||
         !_enabled ||
         !_canPublish) {
@@ -527,7 +562,7 @@ class RoomLiveCaptionController {
   }
 
   void _onSpeechResult(SpeechRecognitionResult result) {
-    if (_disposed || !_enabled || !_canPublish) return;
+    if (_disposed || _useAgoraLocal || !_enabled || !_canPublish) return;
     final text = result.recognizedWords.trim();
     if (!result.finalResult || text.isEmpty || text == _lastPublished) {
       return;
