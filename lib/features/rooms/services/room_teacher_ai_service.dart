@@ -97,14 +97,17 @@ class RoomTeacherAiService {
         .doc(roomId)
         .collection('teacher_ai_notes')
         .where('userId', isEqualTo: uid)
-        .orderBy('createdAt', descending: true)
-        .limit(limit)
         .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
+        .map((snapshot) {
+          // Avoid a composite Firestore index requirement; only read the
+          // current user's corrections, then sort in memory.
+          final notes = snapshot.docs
               .map(RoomTeacherAiNote.fromDoc)
-              .toList(growable: false),
-        );
+              .toList(growable: false)
+            ..sort((a, b) => (b.createdAt?.millisecondsSinceEpoch ?? 0)
+                .compareTo(a.createdAt?.millisecondsSinceEpoch ?? 0));
+          return notes.take(limit).toList(growable: false);
+        });
   }
 
   Future<bool> probeAvailability() async {
