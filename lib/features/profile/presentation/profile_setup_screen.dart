@@ -325,7 +325,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           'coverPublicId':coverPublicId,
           'learningLanguageCodes':learningLanguages.where((v)=>v!=nativeLanguage).toList(),
           'learningLanguages':learningLanguages.where((v)=>v!=nativeLanguage)
-              .map(ProfileLanguageCatalog.englishName).toList()
+              .map(ProfileLanguageCatalog.englishName).toList(),
           'languageLevel':languageLevel,
           'professionKey':professionKey,
           'profession':profession.text.trim(),
@@ -373,7 +373,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               'nativeLanguage':ProfileLanguageCatalog.englishName(nativeLanguage),
             'learningLanguageCodes':learningLanguages.where((v)=>v!=nativeLanguage).toList(),
             'learningLanguages':learningLanguages.where((v)=>v!=nativeLanguage)
-                .map(ProfileLanguageCatalog.englishName).toList()
+                .map(ProfileLanguageCatalog.englishName).toList(),
             'languageLevel':languageLevel,
             'professionKey':professionKey,
             'profession':profession.text.trim(),
