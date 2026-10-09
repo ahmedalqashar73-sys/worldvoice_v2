@@ -51,7 +51,8 @@ class ProfileIdentityStrip extends StatelessWidget {
           icon: isFemale
               ? Icons.female_rounded
               : Icons.male_rounded,
-          text: genderLabel,
+          // The gender symbol is enough: no Male/Female text.
+          text: '',
           backgroundColor: isFemale
               ? const Color(0xFFFF4F9A).withValues(alpha: .16)
               : const Color(0xFF27B9F3).withValues(alpha: .16),
@@ -120,12 +121,12 @@ class _IdentityChip extends StatelessWidget {
           if (icon != null) ...[
             Icon(
               icon,
-              size: 17,
+              size: text.isEmpty ? 20 : 17,
               color: foregroundColor ?? colors.primary,
             ),
-            const SizedBox(width: 5),
+            if (text.isNotEmpty) const SizedBox(width: 5),
           ],
-          Text(
+          if (text.isNotEmpty) Text(
             text,
             style: TextStyle(
               fontSize: 13,
