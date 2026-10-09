@@ -113,8 +113,8 @@ class _RoomTeacherAiSheetState extends State<RoomTeacherAiSheet> {
         }
       }
       await _speech.listen(
-        localeId: localeId,
         listenOptions: SpeechListenOptions(
+          localeId: localeId,
           listenMode: ListenMode.dictation,
           partialResults: true,
           cancelOnError: false,
