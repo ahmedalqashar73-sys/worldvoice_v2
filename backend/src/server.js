@@ -254,10 +254,23 @@ const port = Number(process.env.PORT || 8080);
 const agoraAppId = (process.env.AGORA_APP_ID || "").trim();
 const agoraCertificate = (process.env.AGORA_APP_CERTIFICATE || "").trim();
 const openAiKey = (process.env.OPENAI_API_KEY || "").trim();
-const teacherModel = (process.env.OPENAI_TEACHER_MODEL || "").trim();
-const transcribeModel = (
-  process.env.OPENAI_TRANSCRIBE_MODEL || "gpt-4o-mini-transcribe"
+const groqApiKey = (process.env.GROQ_API_KEY || "").trim();
+const useGroq = groqApiKey.length > 0;
+const teacherModel = (
+  useGroq ?
+    (process.env.GROQ_TEACHER_MODEL || "openai/gpt-oss-20b") :
+    (process.env.OPENAI_TEACHER_MODEL || "")
 ).trim();
+const transcribeModel = (
+  useGroq ?
+    (process.env.GROQ_TRANSCRIBE_MODEL || "whisper-large-v3-turbo") :
+    (process.env.OPENAI_TRANSCRIBE_MODEL || "gpt-4o-mini-transcribe")
+).trim();
+const aiKeyName = useGroq ? "GROQ_API_KEY" : "OPENAI_API_KEY";
+const aiModelName = useGroq ? "GROQ_TEACHER_MODEL" : "OPENAI_TEACHER_MODEL";
+const transcriptionModelName = useGroq ?
+  "GROQ_TRANSCRIBE_MODEL" : "OPENAI_TRANSCRIBE_MODEL";
+const aiKey = useGroq ? groqApiKey : openAiKey;
 
 const privilegedAccounts = new Map([
   ["ahmedabdalkarim19@gmail.com", {
@@ -289,6 +302,37 @@ const appleIapPrivateKey = (process.env.APPLE_IAP_PRIVATE_KEY || "")
   .trim();
 
 const openai = openAiKey ? new OpenAI({ apiKey: openAiKey }) : null;
+// Groq offers OpenAI-compatible chat completions and Whisper, not Responses.
+// Reuse the existing authenticated room/live routes through one adapter.
+const aiClient = useGroq
+  ? new OpenAI({
+      apiKey: groqApiKey,
+      baseURL: "https://api.groq.com/openai/v1",
+      timeout: 25000,
+      maxRetries: 1,
+    })
+  : openai;
+
+async function worldVoiceAiResponse({
+  model, instructions, input, store, max_output_tokens,
+}) {
+  if (!useGroq) {
+    return openai.responses.create({
+      model, instructions, input, store: store ?? false,
+      ...(max_output_tokens ? {max_output_tokens} : {}),
+    });
+  }
+  const result = await aiClient.chat.completions.create({
+    model,
+    messages: [
+      {role: "system", content: String(instructions || "")},
+      {role: "user", content: String(input || "")},
+    ],
+    // Allow time for reasoning tokens and concise spoken answers.
+    max_completion_tokens: Math.max(1024, Number(max_output_tokens) || 0),
+  });
+  return {output_text: String(result.choices?.[0]?.message?.content || "")};
+}
 
 const googlePlayAuth = new google.auth.GoogleAuth({
   scopes: ["https://www.googleapis.com/auth/androidpublisher"],
@@ -887,14 +931,14 @@ app.post("/ai/status", async (req, res, next) => {
       return res.status(403).json({error: "User is not in this room."});
     }
 
-    requireEnv(openAiKey, "OPENAI_API_KEY");
-    requireEnv(teacherModel, "OPENAI_TEACHER_MODEL");
+    requireEnv(aiKey, aiKeyName);
+    requireEnv(teacherModel, aiModelName);
 
     // A very small max_output_tokens value can be rejected by reasoning
     // models before a response is generated. Use a compatible budget while
     // keeping this probe short and making real provider failures visible.
     try {
-      await openai.responses.create({
+      await worldVoiceAiResponse({
         model: teacherModel,
         store: false,
         max_output_tokens: 128,
@@ -932,8 +976,8 @@ app.post(
     try {
       const user = await authenticatedUser(req);
 
-      requireEnv(openAiKey, "OPENAI_API_KEY");
-      requireEnv(transcribeModel, "OPENAI_TRANSCRIBE_MODEL");
+      requireEnv(aiKey, aiKeyName);
+      requireEnv(transcribeModel, transcriptionModelName);
 
       const context = req.query?.context === "live" ? "live" : "room";
       const roomId = String(req.query?.roomId || "").trim();
@@ -978,7 +1022,7 @@ app.post(
       const file = await toFile(req.body, "worldvoice-speech.wav", {
         type: "audio/wav",
       });
-      const transcription = await openai.audio.transcriptions.create({
+      const transcription = await aiClient.audio.transcriptions.create({
         model: transcribeModel,
         file,
       });
@@ -997,8 +1041,8 @@ app.post("/teacher-ai", async (req, res, next) => {
   try {
     const user = await authenticatedUser(req);
 
-    requireEnv(openAiKey, "OPENAI_API_KEY");
-    requireEnv(teacherModel, "OPENAI_TEACHER_MODEL");
+    requireEnv(aiKey, aiKeyName);
+    requireEnv(teacherModel, aiModelName);
 
     const context = req.body?.context === "live" ? "live" : "room";
     const roomId = String(req.body?.roomId || "").trim();
@@ -1081,7 +1125,7 @@ app.post("/teacher-ai", async (req, res, next) => {
       return res.status(400).json({error: "Caption text is empty."});
     }
 
-    const response = await openai.responses.create({
+    const response = await worldVoiceAiResponse({
       model: teacherModel,
       store: false,
       instructions:
@@ -1136,8 +1180,8 @@ app.post("/teacher-ai/ask", async (req, res, next) => {
   try {
     const user = await authenticatedUser(req);
 
-    requireEnv(openAiKey, "OPENAI_API_KEY");
-    requireEnv(teacherModel, "OPENAI_TEACHER_MODEL");
+    requireEnv(aiKey, aiKeyName);
+    requireEnv(teacherModel, aiModelName);
 
     const context = req.body?.context === "live" ? "live" : "room";
     const roomId = String(req.body?.roomId || "").trim();
@@ -1219,7 +1263,7 @@ app.post("/teacher-ai/ask", async (req, res, next) => {
         `${item.role === "user" ? "Member" : "Teacher"}: ${item.text}`
       ).join("\n");
 
-    const response = await openai.responses.create({
+    const response = await worldVoiceAiResponse({
       model: teacherModel,
       store: false,
       instructions:
@@ -1287,8 +1331,8 @@ app.post("/translate", async (req, res, next) => {
   try {
     const user = await authenticatedUser(req);
 
-    requireEnv(openAiKey, "OPENAI_API_KEY");
-    requireEnv(teacherModel, "OPENAI_TEACHER_MODEL");
+    requireEnv(aiKey, aiKeyName);
+    requireEnv(teacherModel, aiModelName);
 
     const context = req.body?.context === "live" ? "live" : "room";
     const roomId = String(req.body?.roomId || "").trim();
@@ -1337,7 +1381,7 @@ app.post("/translate", async (req, res, next) => {
       });
     }
 
-    const response = await openai.responses.create({
+    const response = await worldVoiceAiResponse({
       model: teacherModel,
       store: false,
       instructions:
