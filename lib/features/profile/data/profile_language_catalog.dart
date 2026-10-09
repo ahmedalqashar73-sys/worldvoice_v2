@@ -2523,6 +2523,22 @@ class ProfileLanguageCatalog {
     return byCode(code)?.displayName ?? code;
   }
 
+  // Existing profiles may still store legacy English/native labels instead of
+  // ISO codes. Convert them for display without changing Firestore data.
+  static String localizedStoredName(String? saved, String uiLocale) {
+    final raw = saved?.trim() ?? '';
+    if (raw.isEmpty) return '';
+    final byId = byCode(raw);
+    if (byId != null) return localizedName(byId.code, uiLocale);
+    for (final item in languages) {
+      if (item.englishName.toLowerCase() == raw.toLowerCase() ||
+          item.nativeName?.toLowerCase() == raw.toLowerCase()) {
+        return localizedName(item.code, uiLocale);
+      }
+    }
+    return raw;
+  }
+
   static String englishName(String? code) {
     if (code == null) return '';
     if (code.startsWith(customPrefix)) return code.substring(customPrefix.length);
