@@ -222,6 +222,11 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       service: _captionService,
       audioFrames: _controller.audioFrames,
       onTranscript: _handleRawTranscript,
+      onProgress: (message) {
+        if (mounted && !_leaving && _teacherAiConversationActive) {
+          _teacherAiFeedback.value = message;
+        }
+      },
       onState: ({
         required bool listening,
         String? error,
@@ -241,6 +246,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         }
         setState(() {
           _captionListening = listening;
+          if (normalizedError.isEmpty && listening) _captionError = null;
           if (normalizedError.isNotEmpty) {
             final ar = (widget.localeController?.locale?.languageCode ??
                     Localizations.localeOf(context).languageCode) ==
@@ -717,14 +723,6 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     }
   }
 
-  void _testTeacherVoice() {
-    final ar = (widget.roomLanguageCode ?? 'en').startsWith('ar');
-    unawaited(_playTeacherVoice(
-      ar ? 'مرحباً، هذا اختبار صوت المعلم.' : 'Hello. This is the teacher voice test.',
-      ar ? 'ar' : 'en',
-    ));
-  }
-
   void _handleRawTranscript({
     required String text,
     required bool isLocal,
@@ -967,7 +965,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       enabled: canPublish,
       canPublish: canPublish,
       captureRemote: false,
-      useAgoraLocal: _teacherAiConversationActive,
+      useAgoraLocal: true,
       languageCode: widget.roomLanguageCode ?? 'en',
       displayName: me?.displayName ?? 'WorldVoice user',
     );
@@ -1070,7 +1068,6 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         useSafeArea: true,
         builder: (_) => RoomTeacherAiSheet(
           service: _teacherAi,
-          onTestVoice: _testTeacherVoice,
           roomLanguageCode: widget.roomLanguageCode ?? 'en',
           canSpeak: canSpeak,
           listening: _captionListening,

@@ -26,13 +26,15 @@ class RoomLiveCaptionController {
     required RoomCaptionStateCallback onState,
     Stream<AgoraRoomAudioFrame>? audioFrames,
     RoomCaptionTextCallback? onTranscript,
-  }) : this._(service, onState, audioFrames, onTranscript);
+    void Function(String)? onProgress,
+  }) : this._(service, onState, audioFrames, onTranscript, onProgress);
 
   RoomLiveCaptionController._(
     this._service,
     this._onState,
     this._audioFrames,
     this._onTranscript,
+    this._onProgress,
   ) {
     if (_audioFrames != null) {
       _audioSub = _audioFrames.listen(
@@ -49,6 +51,7 @@ class RoomLiveCaptionController {
   final RoomCaptionStateCallback _onState;
   final Stream<AgoraRoomAudioFrame>? _audioFrames;
   final RoomCaptionTextCallback? _onTranscript;
+  final void Function(String)? _onProgress;
 
   final SpeechToText _speech = SpeechToText();
   final SpeechToText _localSpeech = SpeechToText();
@@ -107,7 +110,17 @@ class RoomLiveCaptionController {
     bool captureRemote = false,
     bool useAgoraLocal = false,
   }) async {
+    if (_disposed) return;
+    final nextLanguage = languageCode.trim().isEmpty ? 'en' : languageCode.toLowerCase();
     final nextAgoraLocal = useAgoraLocal && _audioFrames != null;
+    final changed = enabled != _enabled || canPublish != _canPublish ||
+        captureRemote != _captureRemote || nextAgoraLocal != _useAgoraLocal ||
+        nextLanguage != _languageCode;
+    if (changed) {
+      _generation++;
+      _segments.clear();
+      _pendingByKey.clear();
+    }
     if (nextAgoraLocal != _useAgoraLocal) {
       _receivedLocalFrame = false;
       _segments.clear();
@@ -118,8 +131,6 @@ class RoomLiveCaptionController {
     _enabled = enabled;
     _canPublish = canPublish;
     _captureRemote = captureRemote;
-    final nextLanguage =
-        languageCode.trim().isEmpty ? 'en' : languageCode.toLowerCase();
     final languageChanged = _languageCode != nextLanguage;
     _languageCode = nextLanguage;
     if (languageChanged) {
@@ -143,7 +154,6 @@ class RoomLiveCaptionController {
         : displayName.trim();
 
     if (_audioFrames != null) {
-      _generation++;
       if (!_enabled || (!_canPublish && !_captureRemote)) {
         _segments.clear();
         _pendingByKey.clear();
@@ -261,10 +271,11 @@ class RoomLiveCaptionController {
         sampleRate: pending.sampleRate,
         channels: pending.channels,
       );
+      _onProgress?.call('Recognizing your speech…');
       final text = await _service.transcribeWav(wav, languageCode: _languageCode);
-      if (_disposed ||
-          pending.generation != _generation ||
-          text.trim().isEmpty) {
+      if (_disposed || pending.generation != _generation) return;
+      if (text.trim().isEmpty) {
+        _onProgress?.call('No words recognized. Please speak again.');
         return;
       }
 

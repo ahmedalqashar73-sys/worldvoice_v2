@@ -8,12 +8,13 @@ import 'package:worldvoice/features/rooms/services/room_live_caption_controller.
 class _Transcriber extends RoomCaptionService {
   _Transcriber() : super(roomId: 'test');
   int calls = 0;
+  Completer<String>? pending;
   @override
   Future<String> transcribeWav(Uint8List bytes, {String? languageCode}) async {
     expect(String.fromCharCodes(bytes.take(4)), 'RIFF');
     expect(languageCode, 'en');
     calls++;
-    return 'Hello teacher';
+    return pending == null ? 'Hello teacher' : await pending!.future;
   }
 }
 
@@ -42,8 +43,15 @@ void main() {
           sampleRate: 16000, channels: 1, isLocal: true));
       }
     }
+    service.pending = Completer<String>();
     phrase();
+    // Participant snapshots can reapply identical capture settings while
+    // transcription is in flight; they must not discard the response.
+    await controller.configure(enabled: true, canPublish: true,
+      languageCode: 'en', displayName: 'Updated name', useAgoraLocal: true);
+    service.pending!.complete('Hello teacher');
     await Future<void>.delayed(Duration.zero);
+    service.pending = null;
     expect(words, ['Hello teacher']);
     controller.pauseForPlayback(true);
     phrase();

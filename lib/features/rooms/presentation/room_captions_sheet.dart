@@ -43,11 +43,6 @@ class RoomCaptionsSheet extends StatelessWidget {
     final isArabic =
         Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
 
-    final availableLanguages =
-        targetLanguages == null || targetLanguages!.isEmpty
-            ? roomCaptionLanguages
-            : targetLanguages!;
-
     return SafeArea(
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 18),
@@ -211,42 +206,6 @@ class RoomCaptionsSheet extends StatelessWidget {
                         },
                       ),
               ),
-            if (translationEnabled)
-              if (availableLanguages.length == 1)
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.school_rounded),
-                  title: Text(
-                    isArabic ? 'لغة الترجمة (لغتك الأم)' : 'Translation language (native)',
-                  ),
-                  subtitle: Text(availableLanguages.first.label),
-                )
-              else
-                DropdownButtonFormField<String>(
-                  initialValue: availableLanguages.any(
-                    (item) => item.code == targetLanguage,
-                  )
-                      ? targetLanguage
-                      : availableLanguages.first.code,
-                  isExpanded: true,
-                  decoration: InputDecoration(
-                    labelText:
-                        isArabic ? 'لغة الترجمة (لغتك الأم)' : 'Translation language (native)',
-                  ),
-                  items: [
-                    for (final item in availableLanguages)
-                      DropdownMenuItem(
-                        value: item.code,
-                        child: Text(
-                          item.label,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                  ],
-                  onChanged: (value) {
-                    if (value != null) onTargetLanguageChanged(value);
-                  },
-                ),
             if (error?.trim().isNotEmpty == true) ...[
               const SizedBox(height: 10),
               Material(
