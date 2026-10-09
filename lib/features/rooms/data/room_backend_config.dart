@@ -14,6 +14,28 @@ class RoomBackendConfig {
 
   static String get baseUrl => configuredBaseUrl.trim();
 
+  // AI and speech may be deployed separately from the legacy rooms/economy
+  // backend. Keep Agora, gifts, and purchases on their existing endpoint.
+  static const String configuredAiBaseUrl = String.fromEnvironment(
+    'WORLDVOICE_AI_BACKEND_URL',
+    defaultValue: 'https://worldvoice-teacher-ai.onrender.com',
+  );
+
+  static String aiEndpoint(String path) {
+    final base = configuredAiBaseUrl.trim();
+    if (base.isEmpty) return endpoint(path);
+    final uri = Uri.tryParse(base);
+    if (uri == null || !uri.hasAuthority ||
+        uri.scheme != 'https' || uri.userInfo.isNotEmpty ||
+        uri.hasQuery || uri.hasFragment) {
+      return '';
+    }
+    final normalized = base.endsWith('/')
+        ? base.substring(0, base.length - 1)
+        : base;
+    return '$normalized${path.startsWith('/') ? path : '/$path'}';
+  }
+
   static String get configurationError {
     final base = baseUrl.trim();
     if (base.isEmpty) {
