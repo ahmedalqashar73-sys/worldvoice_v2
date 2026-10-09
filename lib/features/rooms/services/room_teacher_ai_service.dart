@@ -39,18 +39,23 @@ class RoomTeacherAiService {
   FirebaseFirestore get _db => FirebaseFirestore.instance;
 
   Stream<List<RoomTeacherAiNote>> watchNotes({int limit = 20}) {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return Stream.value(const <RoomTeacherAiNote>[]);
     return _db
         .collection('rooms')
         .doc(roomId)
         .collection('teacher_ai_notes')
-        .orderBy('createdAt', descending: true)
-        .limit(limit)
+        .where('userId', isEqualTo: user.uid)
         .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
-              .map(RoomTeacherAiNote.fromDoc)
-              .toList(growable: false),
-        );
+        .map((snapshot) {
+          final notes = snapshot.docs.map(RoomTeacherAiNote.fromDoc).toList();
+          notes.sort((a, b) {
+            final left = a.createdAt?.millisecondsSinceEpoch ?? 0;
+            final right = b.createdAt?.millisecondsSinceEpoch ?? 0;
+            return right.compareTo(left);
+          });
+          return notes.take(limit).toList(growable: false);
+        });
   }
 
   Future<String> ask({
