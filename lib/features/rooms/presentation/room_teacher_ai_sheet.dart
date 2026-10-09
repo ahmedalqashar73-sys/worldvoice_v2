@@ -8,6 +8,7 @@ class RoomTeacherAiSheet extends StatelessWidget {
     required this.service,
     required this.roomLanguageCode,
     this.onVoicePressed,
+    this.onTestVoice,
     this.canSpeak = false,
     this.listening = false,
     this.speechListeningListenable,
@@ -21,6 +22,7 @@ class RoomTeacherAiSheet extends StatelessWidget {
   final RoomTeacherAiService service;
   final String roomLanguageCode;
   final VoidCallback? onVoicePressed;
+  final VoidCallback? onTestVoice;
   final bool canSpeak;
   final bool listening;
   final bool? online;
@@ -38,6 +40,7 @@ class RoomTeacherAiSheet extends StatelessWidget {
         Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
 
     Widget content(bool isOnline, bool isListening, String feedback) {
+      final checking = feedback == 'Checking Teacher AI connection…';
       final active = isOnline && canSpeak && isListening;
       return SafeArea(
         child: SizedBox(
@@ -52,6 +55,12 @@ class RoomTeacherAiSheet extends StatelessWidget {
                       onPressed: () => Navigator.pop(context),
                       icon: const Icon(Icons.close_rounded),
                     ),
+                    if (onTestVoice != null)
+                      IconButton(
+                        tooltip: isArabic ? 'اختبار الصوت' : 'Test voice',
+                        onPressed: onTestVoice,
+                        icon: const Icon(Icons.volume_up_rounded),
+                      ),
                     const Spacer(),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
@@ -79,7 +88,9 @@ class RoomTeacherAiSheet extends StatelessWidget {
                             ),
                             const SizedBox(width: 7),
                             Text(
-                              isOnline
+                              checking
+                                  ? (isArabic ? 'جارٍ الاتصال' : 'Connecting')
+                                  : isOnline
                                   ? (isArabic ? 'متصل' : 'Online')
                                   : (isArabic ? 'غير متصل' : 'Offline'),
                               style: TextStyle(
@@ -145,7 +156,9 @@ class RoomTeacherAiSheet extends StatelessWidget {
                 ),
                 const SizedBox(height: 30),
                 Text(
-                  !isOnline
+                  checking
+                      ? (isArabic ? 'جارٍ الاتصال بالمعلم… يمكنك إغلاق النافذة والعودة للروم.' : 'Connecting to Teacher AI… You can close this panel and return to the room.')
+                      : !isOnline
                       ? (isArabic
                           ? 'Teacher AI غير متصل بخدمة الذكاء الآن.'
                           : 'Teacher AI is offline right now.')
@@ -169,7 +182,9 @@ class RoomTeacherAiSheet extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  isOnline
+                  checking
+                      ? ''
+                      : isOnline
                       ? (isArabic
                           ? 'ناقش أي موضوع، اسأل، جاوب، وتدرّب على اللغة. لا تحتاج للكتابة.'
                           : 'Discuss any topic, ask questions, answer, and practice. No typing required.')
@@ -183,7 +198,7 @@ class RoomTeacherAiSheet extends StatelessWidget {
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
-                if (!isOnline &&
+                if (!checking && !isOnline &&
                     service.lastAvailabilityError?.isNotEmpty == true) ...[
                   const SizedBox(height: 10),
                   Text(

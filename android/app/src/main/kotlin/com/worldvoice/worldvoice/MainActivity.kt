@@ -3,6 +3,10 @@ package com.worldvoice.worldvoice
 import android.Manifest
 import android.content.pm.PackageManager
 import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
+import android.media.AudioAttributes
+import android.os.Handler
+import android.os.Looper
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import io.flutter.embedding.android.FlutterActivity
@@ -17,6 +21,22 @@ class MainActivity : FlutterActivity() {
     private var pendingCameraResult: MethodChannel.Result? = null
     private var textToSpeech: TextToSpeech? = null
     private var ttsReady = false
+    private var ttsFailed = false
+    private val speechHandler = Handler(Looper.getMainLooper())
+    private var speechResult: MethodChannel.Result? = null
+    private var speechId = 0
+    private val speechTimeout = Runnable {
+        pendingTeacherSpeech = null
+        textToSpeech?.stop()
+        finishSpeech("TTS_TIMEOUT", "Speech did not start. Check the device speech engine and language pack.")
+    }
+
+    private fun finishSpeech(code: String? = null, message: String? = null) {
+        speechHandler.removeCallbacks(speechTimeout)
+        val result = speechResult
+        speechResult = null
+        if (code == null) result?.success(null) else result?.error(code, message, null)
+    }
     // Retain only the latest AI sentence while Android initializes TTS.
     private var pendingTeacherSpeech: Pair<String, String>? = null
 
@@ -24,17 +44,38 @@ class MainActivity : FlutterActivity() {
         super.configureFlutterEngine(flutterEngine)
 
         textToSpeech = TextToSpeech(this) { status ->
-            ttsReady = status == TextToSpeech.SUCCESS
-            if (ttsReady) {
-                runOnUiThread {
+            runOnUiThread {
+                ttsReady = status == TextToSpeech.SUCCESS
+                ttsFailed = !ttsReady
+                if (ttsReady) {
+                    textToSpeech?.setAudioAttributes(AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build())
+                    textToSpeech?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+                        override fun onStart(utteranceId: String?) {
+                            runOnUiThread {
+                                if (utteranceId == "worldvoice_teacher_ai_$speechId") finishSpeech()
+                            }
+                        }
+                        override fun onDone(utteranceId: String?) {}
+                        @Deprecated("Android legacy error callback")
+                        override fun onError(utteranceId: String?) {
+                            runOnUiThread {
+                                if (utteranceId == "worldvoice_teacher_ai_$speechId") {
+                                    finishSpeech("TTS_FAILED", "The device could not play the AI voice.")
+                                }
+                            }
+                        }
+                    })
                     val pending = pendingTeacherSpeech
                     pendingTeacherSpeech = null
-                    if (pending != null) {
-                        speakReadyTeacherText(pending.first, pending.second)
+                    if (pending != null && speakReadyTeacherText(pending.first, pending.second) != TextToSpeech.SUCCESS) {
+                        finishSpeech("TTS_FAILED", "Install the speech voice for the room language in Android settings.")
                     }
+                } else {
+                    pendingTeacherSpeech = null
+                    finishSpeech("TTS_UNAVAILABLE", "The Android speech engine could not initialize.")
                 }
-            } else {
-                pendingTeacherSpeech = null
             }
         }
 
@@ -61,6 +102,7 @@ class MainActivity : FlutterActivity() {
                 }
                 "stop" -> {
                     pendingTeacherSpeech = null
+                    finishSpeech("TTS_CANCELLED", "Speech was stopped.")
                     textToSpeech?.stop()
                     result.success(null)
                 }
@@ -78,18 +120,20 @@ class MainActivity : FlutterActivity() {
             result.success(null)
             return
         }
-        if (!ttsReady || textToSpeech == null) {
-            // The first reply can arrive while the Android engine starts.
-            // Queue it rather than dropping the AI voice silently.
-            pendingTeacherSpeech = Pair(text, languageCode)
-            result.success(null)
+        if (ttsFailed) {
+            result.error("TTS_UNAVAILABLE", "Enable a text-to-speech engine in Android settings and restart the app.", null)
             return
         }
-        val output = speakReadyTeacherText(text, languageCode)
-        if (output == TextToSpeech.SUCCESS) {
-            result.success(null)
-        } else {
-            result.error("TTS_FAILED", "The device could not speak the AI reply.", null)
+        finishSpeech("TTS_CANCELLED", "A newer reply replaced this speech.")
+        speechResult = result
+        speechId++
+        speechHandler.postDelayed(speechTimeout, 15000)
+        if (!ttsReady || textToSpeech == null) {
+            pendingTeacherSpeech = Pair(text, languageCode)
+            return
+        }
+        if (speakReadyTeacherText(text, languageCode) != TextToSpeech.SUCCESS) {
+            finishSpeech("TTS_FAILED", "Install the speech voice for the room language in Android settings.")
         }
     }
 
@@ -104,14 +148,13 @@ class MainActivity : FlutterActivity() {
         if (languageResult == TextToSpeech.LANG_MISSING_DATA ||
             languageResult == TextToSpeech.LANG_NOT_SUPPORTED
         ) {
-            // Keep a working voice when the requested language pack is missing.
-            engine.setLanguage(Locale.getDefault())
+            return TextToSpeech.ERROR
         }
         return engine.speak(
             text,
             TextToSpeech.QUEUE_FLUSH,
             null,
-            "worldvoice_teacher_ai",
+            "worldvoice_teacher_ai_$speechId",
         )
     }
 
@@ -159,6 +202,7 @@ class MainActivity : FlutterActivity() {
     }
 
     override fun onDestroy() {
+        finishSpeech("TTS_CANCELLED", "The activity closed.")
         pendingTeacherSpeech = null
         textToSpeech?.stop()
         textToSpeech?.shutdown()

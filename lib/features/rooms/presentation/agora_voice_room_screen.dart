@@ -59,16 +59,10 @@ Future<void> _speakRoomTeacher(
 ) async {
   final value = text.trim();
   if (value.isEmpty) return;
-  try {
-    await _roomTeacherTtsChannel.invokeMethod<void>('speak', {
-      'text': value,
-      'languageCode': languageCode,
-    });
-  } on PlatformException {
-    // Text remains visible when a device has no matching TTS voice.
-  } on MissingPluginException {
-    // Older builds keep Teacher AI text even without native speech.
-  }
+  await _roomTeacherTtsChannel.invokeMethod<void>('speak', {
+    'text': value,
+    'languageCode': languageCode,
+  }).timeout(const Duration(seconds: 20));
 }
 
 Future<void> _stopRoomTeacherVoice() async {
@@ -184,6 +178,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   String? _lastTeacherAiAutoCaptionId;
   bool _teacherAiAutoReplyBusy = false;
   bool _teacherAiConversationActive = false;
+  bool _teacherAiSheetOpen = false;
+  int _teacherAiSession = 0;
   bool _aiServiceUnavailable = false;
   final ValueNotifier<bool> _teacherAiOnline = ValueNotifier<bool>(false);
   final ValueNotifier<bool> _teacherAiMicListening =
@@ -360,6 +356,26 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     }
   }
 
+  Future<void> _initializeOptionalRoomTools() async {
+    try {
+      await _features.initializeDefaults();
+    } catch (error) {
+      debugPrint('WorldVoice optional room tools: $error');
+    }
+  }
+
+  Future<void> _recordRoomEntry() async {
+    try {
+      await _history.recordEnter(
+        roomId: widget.channelId,
+        roomName: widget.roomName,
+        languageCode: widget.roomLanguageCode,
+      ).timeout(const Duration(seconds: 8));
+    } catch (error) {
+      debugPrint('WorldVoice room-history: $error');
+    }
+  }
+
   Future<void> _startRoomSession() async {
     var entryStage = 'room-read';
     var membershipEstablished = false;
@@ -400,28 +416,11 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         asHost: asHost,
       );
       membershipEstablished = true;
-      await _features.initializeDefaults();
+      // Optional background/tool setup must never gate audio or eject members.
+      unawaited(_initializeOptionalRoomTools());
       if (mounted) setState(() => _chatMessages = _roomChat.watchMessages());
 
-      // History is optional; a denied history write must not close a room
-      // whose membership was successfully established.
-      try {
-        await _history.recordEnter(
-          roomId: widget.channelId,
-          roomName: widget.roomName,
-          languageCode: widget.roomLanguageCode,
-        ).timeout(const Duration(seconds: 8));
-      } catch (error) {
-        debugPrint('WorldVoice room-history: $error');
-        if (mounted) {
-          final isArabic = Localizations.localeOf(context).languageCode == 'ar';
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(isArabic
-                ? 'تم الدخول، لكن تعذر حفظ سجل الغرفة.'
-                : 'Joined the room, but room history could not be saved.'),
-          ));
-        }
-      }
+      unawaited(_recordRoomEntry());
 
       _roomOpenSub = _moderation.watchRoomOpen().listen((isOpen) {
         if (!isOpen && !_leaving) {
@@ -691,7 +690,32 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     if (_teacherAiConversationActive) {
       _teacherAiFeedback.value = 'Teacher AI: $normalized';
     }
-    unawaited(_speakRoomTeacher(normalized, language));
+    unawaited(_playTeacherVoice(normalized, language));
+  }
+
+  Future<void> _playTeacherVoice(String text, String language) async {
+    try {
+      await _speakRoomTeacher(text, language);
+    } catch (error) {
+      if (!mounted || _leaving) return;
+      if (error is PlatformException && error.code == 'TTS_CANCELLED') return;
+      _lastTeacherAiSpokenAnswer = null;
+      final ar = Localizations.localeOf(context).languageCode == 'ar';
+      final detail = error is PlatformException ? error.message : error.toString();
+      final message = ar
+          ? 'تعذر تشغيل صوت Teacher AI. تحقق من محرك النطق وصوت الوسائط في إعدادات الجهاز. $detail'
+          : 'Teacher AI voice failed. Check the device speech engine and media volume. $detail';
+      _teacherAiFeedback.value = message;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    }
+  }
+
+  void _testTeacherVoice() {
+    final ar = (widget.roomLanguageCode ?? 'en').startsWith('ar');
+    unawaited(_playTeacherVoice(
+      ar ? 'مرحباً، هذا اختبار صوت المعلم.' : 'Hello. This is the teacher voice test.',
+      ar ? 'ar' : 'en',
+    ));
   }
 
   void _handleRawTranscript({
@@ -1007,66 +1031,30 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       return;
     }
 
-    final aiAvailable = await _teacherAi.probeAvailability();
-    if (!mounted) return;
-    _aiServiceUnavailable = !aiAvailable;
-    _teacherAiOnline.value = aiAvailable;
-
+    if (_teacherAiSheetOpen || _leaving) return;
     final canSpeak = _controller.joined &&
         _me?.isOnStage == true &&
         !_controller.muted &&
         _me?.forcedMuted != true;
-
-    if (_aiServiceUnavailable) {
-      _teacherAiOnline.value = false;
-      await showModalBottomSheet<void>(
-        context: context,
-        isScrollControlled: true,
-        useSafeArea: true,
-        builder: (_) => RoomTeacherAiSheet(
-          service: _teacherAi,
-          roomLanguageCode: widget.roomLanguageCode ?? 'en',
-          canSpeak: canSpeak,
-          listening: false,
-          online: false,
-          onlineListenable: _teacherAiOnline,
-        ),
-      );
-      return;
-    }
-
     if (!canSpeak) {
-      if (!mounted) return;
-      final isArabic =
-          Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            isArabic
-                ? 'يجب أن تكون على مقعد متحدث والمايك مفتوح حتى تتكلم مع Teacher AI.'
-                : 'Join a speaker seat with your microphone open to talk with Teacher AI.',
-          ),
-        ),
-      );
+      final ar = Localizations.localeOf(context).languageCode == 'ar';
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(
+        !_controller.joined
+            ? (ar ? 'صوت الروم لم يتصل بعد. أعد محاولة الاتصال بالصوت أولًا.'
+                : 'Room audio is not connected. Retry the audio connection first.')
+            : (ar ? 'اصعد إلى مقعد وافتح المايك للتحدث مع المعلم.'
+                : 'Join a speaker seat and unmute to talk with Teacher AI.'),
+      )));
       return;
     }
 
-    setState(() {
-      _teacherAiConversationActive = true;
-      _captionError = null;
-    });
-    _teacherAiFeedback.value = '';
+    _teacherAiSheetOpen = true;
+    final session = ++_teacherAiSession;
+    _teacherAiOnline.value = false;
+    _teacherAiFeedback.value = 'Checking Teacher AI connection…';
     _teacherAiMicListening.value = _captionListening;
-    // Health probe above is authoritative; speaking state is independent
-    // of the teacher's network availability.
-    _teacherAiOnline.value = aiAvailable;
-    await _syncCaptionPublishing();
-    if (!mounted) return;
-    if (!_captionListening) {
-      _teacherAiFeedback.value =
-          'Speech recognition has not started. Tap the microphone to retry.';
-    }
-
+    // Show the sheet before waiting for network or speech initialization.
+    unawaited(_prepareTeacherConversation(session));
     try {
       await showModalBottomSheet<void>(
         context: context,
@@ -1074,12 +1062,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         useSafeArea: true,
         builder: (_) => RoomTeacherAiSheet(
           service: _teacherAi,
+          onTestVoice: _testTeacherVoice,
           roomLanguageCode: widget.roomLanguageCode ?? 'en',
           canSpeak: canSpeak,
           listening: _captionListening,
-          online: _controller.joined &&
-              _teacherAi.isAskConfigured &&
-              !_aiServiceUnavailable,
           onlineListenable: _teacherAiOnline,
           speechListeningListenable: _teacherAiMicListening,
           feedbackListenable: _teacherAiFeedback,
@@ -1087,13 +1073,43 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         ),
       );
     } finally {
+      _teacherAiSheetOpen = false;
+      _teacherAiSession++;
       if (mounted) {
         setState(() {
           _teacherAiConversationActive = false;
           _queuedTeacherAiCaption = null;
         });
-        await _syncCaptionPublishing();
       }
+    }
+  }
+
+  Future<void> _prepareTeacherConversation(int session) async {
+    try {
+      final available = await _teacherAi.probeAvailability();
+      if (!mounted || _leaving || !_teacherAiSheetOpen ||
+          session != _teacherAiSession) {
+        return;
+      }
+      _aiServiceUnavailable = !available;
+      _teacherAiOnline.value = available;
+      if (!available) {
+        _teacherAiFeedback.value = 'Teacher AI connection failed. Please retry.';
+        return;
+      }
+      _teacherAiConversationActive = true;
+      _teacherAiFeedback.value = 'Starting speech recognition…';
+      await _syncCaptionPublishing();
+      if (!mounted || _leaving || session != _teacherAiSession) return;
+      _teacherAiFeedback.value = _captionListening
+          ? 'Listening. Ask your question aloud.'
+          : 'Microphone is not listening. Tap it to retry.';
+    } catch (error) {
+      if (!mounted || _leaving || session != _teacherAiSession) return;
+      _teacherAiConversationActive = false;
+      _teacherAiOnline.value = false;
+      _teacherAiFeedback.value = 'Teacher AI could not start. Please retry.';
+      debugPrint('WorldVoice Teacher AI startup: $error');
     }
   }
 
