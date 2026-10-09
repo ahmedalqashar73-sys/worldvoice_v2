@@ -253,24 +253,17 @@ app.use(express.json({ limit: "32kb" }));
 const port = Number(process.env.PORT || 8080);
 const agoraAppId = (process.env.AGORA_APP_ID || "").trim();
 const agoraCertificate = (process.env.AGORA_APP_CERTIFICATE || "").trim();
-const openAiKey = (process.env.OPENAI_API_KEY || "").trim();
+// WorldVoice AI uses Groq exclusively. Never fall back to paid OpenAI when
+// the Groq environment variable is absent: fail with a safe configuration error.
 const groqApiKey = (process.env.GROQ_API_KEY || "").trim();
-const useGroq = groqApiKey.length > 0;
-const teacherModel = (
-  useGroq ?
-    (process.env.GROQ_TEACHER_MODEL || "openai/gpt-oss-20b") :
-    (process.env.OPENAI_TEACHER_MODEL || "")
-).trim();
+const teacherModel = (process.env.GROQ_TEACHER_MODEL || "openai/gpt-oss-20b").trim();
 const transcribeModel = (
-  useGroq ?
-    (process.env.GROQ_TRANSCRIBE_MODEL || "whisper-large-v3-turbo") :
-    (process.env.OPENAI_TRANSCRIBE_MODEL || "gpt-4o-mini-transcribe")
+  process.env.GROQ_TRANSCRIBE_MODEL || "whisper-large-v3-turbo"
 ).trim();
-const aiKeyName = useGroq ? "GROQ_API_KEY" : "OPENAI_API_KEY";
-const aiModelName = useGroq ? "GROQ_TEACHER_MODEL" : "OPENAI_TEACHER_MODEL";
-const transcriptionModelName = useGroq ?
-  "GROQ_TRANSCRIBE_MODEL" : "OPENAI_TRANSCRIBE_MODEL";
-const aiKey = useGroq ? groqApiKey : openAiKey;
+const aiKeyName = "GROQ_API_KEY";
+const aiModelName = "GROQ_TEACHER_MODEL";
+const transcriptionModelName = "GROQ_TRANSCRIBE_MODEL";
+const aiKey = groqApiKey;
 
 const privilegedAccounts = new Map([
   ["ahmedabdalkarim19@gmail.com", {
@@ -301,35 +294,30 @@ const appleIapPrivateKey = (process.env.APPLE_IAP_PRIVATE_KEY || "")
   .replace(/\\n/g, "\n")
   .trim();
 
-const openai = openAiKey ? new OpenAI({ apiKey: openAiKey }) : null;
-// Groq offers OpenAI-compatible chat completions and Whisper, not Responses.
-// Reuse the existing authenticated room/live routes through one adapter.
-const aiClient = useGroq
-  ? new OpenAI({
-      apiKey: groqApiKey,
-      baseURL: "https://api.groq.com/openai/v1",
-      timeout: 25000,
-      maxRetries: 1,
-    })
-  : openai;
+// The OpenAI-compatible SDK is used only as a transport to Groq's endpoint;
+// it does not call OpenAI or require an OPENAI_API_KEY.
+const aiClient = groqApiKey ? new OpenAI({
+  apiKey: groqApiKey,
+  baseURL: "https://api.groq.com/openai/v1",
+  timeout: 25000,
+  maxRetries: 1,
+}) : null;
 
-async function worldVoiceAiResponse({
-  model, instructions, input, store, max_output_tokens,
-}) {
-  if (!useGroq) {
-    return openai.responses.create({
-      model, instructions, input, store: store ?? false,
-      ...(max_output_tokens ? {max_output_tokens} : {}),
-    });
-  }
+async function worldVoiceAiResponse({model, instructions, input, max_output_tokens}) {
+  requireEnv(groqApiKey, aiKeyName);
+  const wantsJson = /return only valid json/i.test(String(instructions || ""));
+  const isGptOss = model.startsWith("openai/gpt-oss-");
   const result = await aiClient.chat.completions.create({
     model,
     messages: [
       {role: "system", content: String(instructions || "")},
       {role: "user", content: String(input || "")},
     ],
-    // Allow time for reasoning tokens and concise spoken answers.
-    max_completion_tokens: Math.max(1024, Number(max_output_tokens) || 0),
+    // Keep the answer in message.content rather than consuming the short
+    // response budget on hidden reasoning (especially for GPT-OSS).
+    ...(isGptOss ? {reasoning_effort: "low", reasoning_format: "hidden"} : {}),
+    ...(wantsJson ? {response_format: {type: "json_object"}} : {}),
+    max_completion_tokens: Math.max(1536, Number(max_output_tokens) || 0),
   });
   return {output_text: String(result.choices?.[0]?.message?.content || "")};
 }
@@ -774,6 +762,8 @@ app.get("/health", (_req, res) => {
   res.json({
     ok: true,
     service: "worldvoice-room-backend",
+    aiProvider: "groq",
+    aiConfigured: Boolean(groqApiKey),
   });
 });
 
@@ -900,6 +890,8 @@ app.post("/agora/token", async (req, res, next) => {
   }
 });
 
+let groqModelCheckValidUntil = 0;
+
 app.post("/ai/status", async (req, res, next) => {
   try {
     const user = await authenticatedUser(req);
@@ -934,17 +926,13 @@ app.post("/ai/status", async (req, res, next) => {
     requireEnv(aiKey, aiKeyName);
     requireEnv(teacherModel, aiModelName);
 
-    // A very small max_output_tokens value can be rejected by reasoning
-    // models before a response is generated. Use a compatible budget while
-    // keeping this probe short and making real provider failures visible.
+    // Validate Groq credentials and model availability without generating
+    // tokens or spending the user's free request allowance each status poll.
     try {
-      await worldVoiceAiResponse({
-        model: teacherModel,
-        store: false,
-        max_output_tokens: 128,
-        instructions: "You are the WorldVoice service health checker.",
-        input: "Reply with OK.",
-      });
+      if (Date.now() >= groqModelCheckValidUntil) {
+        await aiClient.models.retrieve(teacherModel);
+        groqModelCheckValidUntil = Date.now() + 120000;
+      }
     } catch (providerError) {
       const status = Number(providerError?.status);
       const code = String(providerError?.code || "");
@@ -2471,4 +2459,5 @@ app.use((error, _req, res, _next) => {
 app.listen(port, "0.0.0.0", () => {
   console.log(`WorldVoice room backend listening on port ${port}`);
   console.log(`Firebase project: ${firebaseProjectId || "auto"}`);
+  console.log(`WorldVoice AI provider: Groq; configured: ${Boolean(groqApiKey)}`);
 });
