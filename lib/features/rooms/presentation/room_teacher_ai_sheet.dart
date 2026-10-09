@@ -119,7 +119,8 @@ class RoomTeacherAiSheet extends StatelessWidget {
                 const Divider(height: 28),
                 const Spacer(),
                 GestureDetector(
-                  onTap: canSpeak && isOnline ? onVoicePressed : null,
+                  // Allow a retry even after the health check goes offline.
+                  onTap: canSpeak && !checking ? onVoicePressed : null,
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 250),
                     width: active ? 142 : 126,
@@ -161,7 +162,7 @@ class RoomTeacherAiSheet extends StatelessWidget {
                       : !isOnline
                       ? (isArabic
                           ? 'Teacher AI غير متصل بخدمة الذكاء الآن.'
-                          : 'Teacher AI is offline right now.')
+                          : 'Teacher AI is offline right now. Tap the microphone to retry.')
                       : !canSpeak
                           ? (isArabic
                               ? 'اصعد إلى أحد مقاعد المتحدثين حتى تتكلم مع Teacher AI.'
