@@ -31,7 +31,13 @@ const port = Number(process.env.PORT || 8080);
 const agoraAppId = (process.env.AGORA_APP_ID || "").trim();
 const agoraCertificate = (process.env.AGORA_APP_CERTIFICATE || "").trim();
 const openAiKey = (process.env.OPENAI_API_KEY || "").trim();
-const teacherModel = (process.env.OPENAI_TEACHER_MODEL || "").trim();
+const openAiTeacherModel = (process.env.OPENAI_TEACHER_MODEL || "").trim();
+// Prefer Groq when its key is available on the server.
+const groqKey = (process.env.GROQ_API_KEY || "").trim();
+const usingGroq = groqKey.length > 0;
+const teacherModel = usingGroq
+  ? (process.env.GROQ_TEACHER_MODEL || "openai/gpt-oss-20b").trim()
+  : openAiTeacherModel;
 
 const androidPackageName =
   (process.env.ANDROID_PACKAGE_NAME || "com.worldvoice.worldvoice").trim();
@@ -44,7 +50,37 @@ const appleIapPrivateKey = (process.env.APPLE_IAP_PRIVATE_KEY || "")
   .replace(/\\n/g, "\n")
   .trim();
 
-const openai = openAiKey ? new OpenAI({ apiKey: openAiKey }) : null;
+const openai = usingGroq
+  ? new OpenAI({
+      apiKey: groqKey,
+      baseURL: "https://api.groq.com/openai/v1",
+    })
+  : openAiKey
+    ? new OpenAI({ apiKey: openAiKey })
+    : null;
+
+// Groq offers Chat Completions. Existing OpenAI deployments keep Responses.
+async function teacherText({ instructions, input, jsonOutput = false }) {
+  if (usingGroq) {
+    const completion = await openai.chat.completions.create({
+      model: teacherModel,
+      messages: [
+        { role: "system", content: instructions },
+        { role: "user", content: input },
+      ],
+      ...(jsonOutput ? { response_format: { type: "json_object" } } : {}),
+    });
+    return String(completion.choices?.[0]?.message?.content || "").trim();
+  }
+
+  const response = await openai.responses.create({
+    model: teacherModel,
+    store: false,
+    instructions,
+    input,
+  });
+  return String(response.output_text || "").trim();
+}
 
 const googlePlayAuth = new google.auth.GoogleAuth({
   scopes: ["https://www.googleapis.com/auth/androidpublisher"],
@@ -344,8 +380,14 @@ app.post("/teacher-ai", async (req, res, next) => {
   try {
     const user = await authenticatedUser(req);
 
-    requireEnv(openAiKey, "OPENAI_API_KEY");
-    requireEnv(teacherModel, "OPENAI_TEACHER_MODEL");
+    requireEnv(
+      usingGroq ? groqKey : openAiKey,
+      usingGroq ? "GROQ_API_KEY" : "OPENAI_API_KEY",
+    );
+    requireEnv(
+      teacherModel,
+      usingGroq ? "GROQ_TEACHER_MODEL" : "OPENAI_TEACHER_MODEL",
+    );
 
     const roomId = String(req.body?.roomId || "").trim();
     const captionId = String(req.body?.captionId || "").trim();
@@ -398,9 +440,8 @@ app.post("/teacher-ai", async (req, res, next) => {
       return res.status(400).json({ error: "Caption text is empty." });
     }
 
-    const response = await openai.responses.create({
-      model: teacherModel,
-      store: false,
+    const correctionText = await teacherText({
+      jsonOutput: true,
       instructions:
         "You are WorldVoice Teacher AI inside a live language-learning voice room. " +
         "Review only the provided transcript text. Do not claim to hear pronunciation audio. " +
@@ -416,7 +457,7 @@ app.post("/teacher-ai", async (req, res, next) => {
 
     let result;
     try {
-      result = JSON.parse(response.output_text || "{}");
+      result = JSON.parse(correctionText || "{}");
     } catch {
       result = {};
     }
@@ -456,8 +497,14 @@ app.post("/teacher-ai/ask", async (req, res, next) => {
   try {
     const user = await authenticatedUser(req);
 
-    requireEnv(openAiKey, "OPENAI_API_KEY");
-    requireEnv(teacherModel, "OPENAI_TEACHER_MODEL");
+    requireEnv(
+      usingGroq ? groqKey : openAiKey,
+      usingGroq ? "GROQ_API_KEY" : "OPENAI_API_KEY",
+    );
+    requireEnv(
+      teacherModel,
+      usingGroq ? "GROQ_TEACHER_MODEL" : "OPENAI_TEACHER_MODEL",
+    );
 
     const roomId = String(req.body?.roomId || "").trim();
     const prompt = String(req.body?.prompt || "").trim();
@@ -497,14 +544,12 @@ app.post("/teacher-ai/ask", async (req, res, next) => {
       String(roomSnap.data()?.languageCode || "en").trim() ||
       "en";
 
-    const response = await openai.responses.create({
-      model: teacherModel,
-      store: false,
+    const answerText = await teacherText({
       instructions:
         "You are WorldVoice Teacher AI inside a live language-learning room. " +
         "Answer the member's language-learning question clearly and concisely. " +
         "The room target language is provided as context. " +
-        "Reply in the same language as the member unless they explicitly ask to practice or receive an answer in another language. " +
+        "Always reply in the target room language. Keep answers short and easy to speak aloud. " +
         "When correcting a sentence, show the corrected form and a short explanation. " +
         "Do not claim to hear audio unless transcript text is explicitly provided.",
       input:
@@ -512,7 +557,7 @@ app.post("/teacher-ai/ask", async (req, res, next) => {
         `Member question: ${prompt}`,
     });
 
-    const answer = String(response.output_text || "").trim().slice(0, 2400);
+    const answer = answerText.slice(0, 2400);
     if (!answer) {
       return res.status(502).json({ error: "Teacher AI returned no answer." });
     }
