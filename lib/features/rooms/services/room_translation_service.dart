@@ -22,7 +22,7 @@ class RoomTranslationService {
     final explicit = _explicitEndpoint.trim();
     return explicit.isNotEmpty
         ? explicit
-        : RoomBackendConfig.endpoint('/translate');
+        : RoomBackendConfig.aiEndpoint('/translate');
   }
 
   String get _contextType =>
