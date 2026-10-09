@@ -35,7 +35,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   final ImagePicker _imagePicker=ImagePicker();
   File? profileImage, coverImage;
   String? photoUrl, photoPublicId, coverUrl, coverPublicId, voiceBioUrl;
-  String? country, gender, nativeLanguage, learningLanguage, professionKey;
+  String? country, gender, nativeLanguage, professionKey;
+  final List<String> learningLanguages = <String>[];
+  bool vipLearningEnabled = false;
   String languageLevel='beginner'; DateTime? birthDate;
   final Set<String> selectedHobbies={};
 
@@ -77,8 +79,12 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       country = data['country'] as String?;
       gender = data['gender'] as String?;
       nativeLanguage = data['nativeLanguageCode'] as String?;
-      learningLanguage =
-          learningCodes.isEmpty ? null : learningCodes.first;
+      learningLanguages
+        ..clear()
+        ..addAll(learningCodes);
+      vipLearningEnabled = data['isVip'] == true ||
+          (data['vipTier']?.toString().isNotEmpty == true &&
+           data['vipTier']?.toString() != 'none');
       professionKey = data['professionKey'] as String?;
       languageLevel =
           (data['languageLevel'] as String?)?.isNotEmpty == true
@@ -118,12 +124,17 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       builder:(ctx)=>StatefulBuilder(
         builder:(ctx,setSheet){
           final q=query.trim().toLowerCase();
+          final localeCode=widget.localeController.locale?.languageCode??'en';
           final filtered=ProfileLanguageCatalog.languages.where((item){
             if(q.isEmpty)return true;
             return item.code.toLowerCase().contains(q) ||
                 item.englishName.toLowerCase().contains(q) ||
+                ProfileLanguageCatalog.localizedName(item.code,localeCode).toLowerCase().contains(q) ||
                 (item.nativeName??'').toLowerCase().contains(q);
-          }).toList();
+          }).toList()
+            ..sort((a,b)=>ProfileLanguageCatalog.localizedName(a.code,localeCode)
+                .toLowerCase().compareTo(
+                    ProfileLanguageCatalog.localizedName(b.code,localeCode).toLowerCase()));
 
           return FractionallySizedBox(
             heightFactor:.90,
@@ -180,11 +191,12 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                           ),
                         ),
                         title:Text(
-                          item.nativeName??item.englishName,
+                          ProfileLanguageCatalog.localizedName(item.code,localeCode),
                           style:const TextStyle(fontWeight:FontWeight.w700),
                         ),
-                        subtitle:item.nativeName!=null&&item.nativeName!=item.englishName
-                            ?Text(item.englishName)
+                        subtitle:item.nativeName!=null&&
+                                item.nativeName!=ProfileLanguageCatalog.localizedName(item.code,localeCode)
+                            ?Text(item.nativeName!)
                             :null,
                         onTap:()=>Navigator.pop(ctx,item.code),
                       );
@@ -311,12 +323,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           'photoPublicId':photoPublicId,
           'coverUrl':coverUrl,
           'coverPublicId':coverPublicId,
-          'learningLanguageCodes':learningLanguage==null
-              ?<String>[]
-              :[learningLanguage!],
-          'learningLanguages':learningLanguage==null
-              ?<String>[]
-              :[ProfileLanguageCatalog.englishName(learningLanguage)],
+          'learningLanguageCodes':learningLanguages.where((v)=>v!=nativeLanguage).toList(),
+          'learningLanguages':learningLanguages.where((v)=>v!=nativeLanguage)
+              .map(ProfileLanguageCatalog.englishName).toList()
           'languageLevel':languageLevel,
           'professionKey':professionKey,
           'profession':profession.text.trim(),
@@ -362,12 +371,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             if(!widget.editMode) 'nativeLanguageCode':nativeLanguage,
             if(!widget.editMode)
               'nativeLanguage':ProfileLanguageCatalog.englishName(nativeLanguage),
-            'learningLanguageCodes':learningLanguage==null
-                ?<String>[]
-                :[learningLanguage!],
-            'learningLanguages':learningLanguage==null
-                ?<String>[]
-                :[ProfileLanguageCatalog.englishName(learningLanguage)],
+            'learningLanguageCodes':learningLanguages.where((v)=>v!=nativeLanguage).toList(),
+            'learningLanguages':learningLanguages.where((v)=>v!=nativeLanguage)
+                .map(ProfileLanguageCatalog.englishName).toList()
             'languageLevel':languageLevel,
             'professionKey':professionKey,
             'profession':profession.text.trim(),
@@ -475,10 +481,54 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           preferNotToSayLabel:_extraText(code,'prefer'),
           onChanged:(v)=>setState(()=>gender=v),
         ),
-        ProfilePickerTile(Icons.translate_rounded,t('native'),nativeLanguage==null?t('chooseLanguage'):ProfileLanguageCatalog.label(nativeLanguage),()async{final v=await chooseProfileLanguage(t('native'));if(v!=null)setState(()=>nativeLanguage=v);}),
+        ProfilePickerTile(Icons.translate_rounded,t('native'),nativeLanguage==null?t('chooseLanguage'):ProfileLanguageCatalog.localizedName(nativeLanguage,code),()async{final v=await chooseProfileLanguage(t('native'));if(v!=null)setState(()=>nativeLanguage=v);}),
       ],
       ProfileTextField(city,t('city'),Icons.location_city_outlined),const SizedBox(height:10),
-      ProfilePickerTile(Icons.language_rounded,t('learning'),learningLanguage==null?t('chooseLanguage'):ProfileLanguageCatalog.label(learningLanguage),()async{final v=await chooseProfileLanguage(t('learning'));if(v!=null)setState(()=>learningLanguage=v);}),
+      ProfilePickerTile(
+        Icons.language_rounded,
+        t('learning'),
+        learningLanguages.isEmpty?t('chooseLanguage'):
+          learningLanguages.map((v)=>ProfileLanguageCatalog.localizedName(v,code)).join(' • '),
+        ()async{
+          final v=await chooseProfileLanguage(t('learning'));
+          if(v==null || !mounted)return;
+          if(v==nativeLanguage){
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(
+              code=='ar'?'لغة التعلم يجب أن تختلف عن اللغة الأم.':
+              code=='es'?'El idioma de aprendizaje debe ser diferente de tu lengua materna.':
+              'The learning language must differ from your native language.',
+            )));
+            return;
+          }
+          if(learningLanguages.contains(v))return;
+          if(vipLearningEnabled && learningLanguages.length>=10){
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content:Text('VIP permits up to 10 learning languages.')));
+            return;
+          }
+          setState((){
+            if(!vipLearningEnabled)learningLanguages.clear();
+            learningLanguages.add(v);
+          });
+        },
+      ),
+      if(vipLearningEnabled && learningLanguages.isNotEmpty)
+        Padding(
+          padding:const EdgeInsets.symmetric(vertical:8),
+          child:Wrap(
+            spacing:8,
+            runSpacing:6,
+            children:[
+              for(final language in learningLanguages)
+                InputChip(
+                  label:Text(ProfileLanguageCatalog.localizedName(language,code)),
+                  onDeleted:()=>setState(()=>learningLanguages.remove(language)),
+                ),
+              Text('${learningLanguages.length}/10 VIP',
+                style:const TextStyle(fontSize:12)),
+            ],
+          ),
+        ),
       ProfilePickerTile(Icons.trending_up_rounded,t('level'),_profileText(code,languageLevel),()async{final v=await choose(t('level'),['beginner','intermediate','advanced'],label:(v)=>_profileText(code,v));if(v!=null)setState(()=>languageLevel=v);}),
       ProfilePickerTile(Icons.favorite_outline_rounded,t('hobbies'),selectedHobbies.isEmpty?t('chooseHobbies'):selectedHobbies.map((e)=>'${profileHobbyEmoji(e)} ${_profileText(code,e)}').join(' • '),()async{await pickProfileHobbies(context,selectedHobbies,labelFor:(key)=>_profileText(code,key));if(mounted)setState(()=>interests.text=selectedHobbies.join(','));}),
       ProfileTextField(goals,t('goals'),Icons.track_changes_rounded,lines:2),const SizedBox(height:10),
