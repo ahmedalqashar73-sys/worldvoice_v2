@@ -143,7 +143,7 @@ class RoomTeacherAiService {
               'roomId': roomId,
             }),
           )
-          .timeout(const Duration(seconds: 30));
+          .timeout(const Duration(seconds: 45));
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return true;
@@ -231,7 +231,7 @@ class RoomTeacherAiService {
                 : roomLanguageCode.trim(),
           }),
         )
-        .timeout(const Duration(seconds: 30));
+        .timeout(const Duration(seconds: 45));
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
       var message = 'Teacher AI request failed.';
