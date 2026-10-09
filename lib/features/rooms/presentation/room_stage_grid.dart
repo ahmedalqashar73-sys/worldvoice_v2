@@ -29,7 +29,7 @@ class RoomStageGrid extends StatelessWidget {
         crossAxisCount: 4,
         mainAxisSpacing: 12,
         crossAxisSpacing: 8,
-        mainAxisExtent: 82 + MediaQuery.textScalerOf(context).scale(30),
+        mainAxisExtent: 93 + MediaQuery.textScalerOf(context).scale(30),
       ),
       itemBuilder: (context, index) {
         final seat = stageSeats[index];
@@ -121,14 +121,14 @@ class _CompactRoomSeatState extends State<_CompactRoomSeat>
                   if (WorldVoiceAvatarFrame.isArtworkFrame(seat.frameId))
                     WorldVoiceAvatarFrame(
                       frameId: seat.frameId,
-                      size: 58,
+                      size: 70,
                       animate: false,
                       child: _SeatAvatar(seat: seat),
                     )
                   else
                     Container(
-                      width: 58,
-                      height: 58,
+                      width: 70,
+                      height: 70,
                       padding: const EdgeInsets.all(2.5),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,

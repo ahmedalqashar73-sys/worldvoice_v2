@@ -95,7 +95,7 @@ class UserProfileScreen extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 30),
               children: [
                 SizedBox(
-                  height: 235,
+                  height: 224,
                   child: Stack(
                     children: [
                       Container(
@@ -114,10 +114,10 @@ class UserProfileScreen extends StatelessWidget {
                       ),
                       PositionedDirectional(
                         start: 22,
-                        bottom: 0,
+                        bottom: 4,
                         child: WorldVoiceAvatarFrame(
                           frameId: profileFrameId,
-                          size: 128,
+                          size: 112,
                           child: ColoredBox(
                             color: Theme.of(context).colorScheme.surface,
                             child: photo == null || photo.isEmpty

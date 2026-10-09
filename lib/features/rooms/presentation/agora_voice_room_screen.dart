@@ -186,6 +186,11 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   bool _teacherAiConversationActive = false;
   bool _aiServiceUnavailable = false;
   final ValueNotifier<bool> _teacherAiOnline = ValueNotifier<bool>(false);
+  final ValueNotifier<bool> _teacherAiMicListening =
+      ValueNotifier<bool>(false);
+  final ValueNotifier<String> _teacherAiFeedback =
+      ValueNotifier<String>('');
+  String? _lastTeacherAiSpokenAnswer;
   RoomCaption? _queuedTeacherAiCaption;
   DateTime? _teacherAiSpeechSuppressedUntil;
 
@@ -231,6 +236,11 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         if (aiUnavailable) {
           _aiServiceUnavailable = true;
           _teacherAiOnline.value = false;
+        }
+        _teacherAiMicListening.value = listening;
+        if (_teacherAiConversationActive && normalizedError.isNotEmpty) {
+          _teacherAiFeedback.value =
+              'Microphone error: ${normalizedError.replaceFirst('Bad state: ', '')}';
         }
         setState(() {
           _captionListening = listening;
@@ -669,9 +679,19 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     final roomLanguage = (widget.roomLanguageCode ?? 'en').trim().toLowerCase();
     final answerLanguage = latest.languageCode.trim().toLowerCase();
     if (answerLanguage.isNotEmpty && answerLanguage != roomLanguage) return;
+    _deliverTeacherAiVoice(latest.answer, roomLanguage);
+  }
+
+  void _deliverTeacherAiVoice(String answer, String language) {
+    final normalized = answer.trim();
+    if (normalized.isEmpty || normalized == _lastTeacherAiSpokenAnswer) return;
+    _lastTeacherAiSpokenAnswer = normalized;
     _teacherAiSpeechSuppressedUntil =
         DateTime.now().add(const Duration(seconds: 8));
-    unawaited(_speakRoomTeacher(latest.answer, roomLanguage));
+    if (_teacherAiConversationActive) {
+      _teacherAiFeedback.value = 'Teacher AI: $normalized';
+    }
+    unawaited(_speakRoomTeacher(normalized, language));
   }
 
   void _handleRawTranscript({
@@ -681,6 +701,9 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     int? agoraUid,
   }) {
     if (!mounted || text.trim().isEmpty) return;
+    if (isLocal && _teacherAiConversationActive) {
+      _teacherAiFeedback.value = 'Heard: ${text.trim()}';
+    }
     // Speech recognition is local: it cannot prove that the external
     // Teacher AI service is online. Preserve the last verified AI status.
     RoomParticipant? participant;
@@ -793,13 +816,26 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         final prompt = current.text.trim();
         if (prompt.isNotEmpty) {
           try {
-            await _teacherAi.ask(
+            _teacherAiFeedback.value = 'Teacher AI is thinking…';
+            final answer = await _teacherAi.ask(
               prompt: prompt,
               roomLanguageCode: widget.roomLanguageCode ?? 'en',
             );
+            // The Firestore broadcast can arrive after the HTTP response.
+            // Speak immediately on the asking device, but never twice.
+            if (mounted && _teacherAiConversationActive) {
+              _deliverTeacherAiVoice(
+                answer,
+                widget.roomLanguageCode ?? 'en',
+              );
+            }
           } catch (error) {
             final message = error.toString();
             debugPrint('WorldVoice Teacher AI auto reply failed: $message');
+            if (mounted && _teacherAiConversationActive) {
+              _teacherAiFeedback.value =
+                  'Teacher AI could not answer. Check the service and try again.';
+            }
             if (message.contains('AI_SERVICE_UNAVAILABLE') && mounted) {
               _aiServiceUnavailable = true;
               _teacherAiOnline.value = false;
@@ -1019,10 +1055,17 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       _teacherAiConversationActive = true;
       _captionError = null;
     });
-    _teacherAiOnline.value =
-        _controller.joined && _teacherAi.isAskConfigured && !_aiServiceUnavailable;
+    _teacherAiFeedback.value = '';
+    _teacherAiMicListening.value = _captionListening;
+    // Health probe above is authoritative; speaking state is independent
+    // of the teacher's network availability.
+    _teacherAiOnline.value = aiAvailable;
     await _syncCaptionPublishing();
     if (!mounted) return;
+    if (!_captionListening) {
+      _teacherAiFeedback.value =
+          'Speech recognition has not started. Tap the microphone to retry.';
+    }
 
     try {
       await showModalBottomSheet<void>(
@@ -1033,12 +1076,14 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
           service: _teacherAi,
           roomLanguageCode: widget.roomLanguageCode ?? 'en',
           canSpeak: canSpeak,
-          listening: true,
+          listening: _captionListening,
           online: _controller.joined &&
               _teacherAi.isAskConfigured &&
               !_aiServiceUnavailable,
           onlineListenable: _teacherAiOnline,
-          onVoicePressed: () => unawaited(_syncCaptionPublishing()),
+          speechListeningListenable: _teacherAiMicListening,
+          feedbackListenable: _teacherAiFeedback,
+          onVoicePressed: () => unawaited(_retryTeacherAiMic()),
         ),
       );
     } finally {
@@ -1050,6 +1095,15 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         await _syncCaptionPublishing();
       }
     }
+  }
+
+  Future<void> _retryTeacherAiMic() async {
+    _teacherAiFeedback.value = 'Starting speech recognition…';
+    await _syncCaptionPublishing();
+    if (!mounted || !_teacherAiConversationActive) return;
+    _teacherAiFeedback.value = _captionListening
+        ? 'Listening. Ask your question aloud.'
+        : 'Microphone is not listening. Check microphone permission.';
   }
 
   Future<void> _showCaptionSettings() async {
@@ -2829,6 +2883,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     unawaited(_translationService.dispose());
     unawaited(_stopRoomTeacherVoice());
     _teacherAiOnline.dispose();
+    _teacherAiMicListening.dispose();
+    _teacherAiFeedback.dispose();
     _pronunciationNote.dispose();
     unawaited(_musicPlayer.dispose());
     unawaited(_finishSessionTracking());
@@ -3158,7 +3214,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               // viewport scroll or clip the stage. Chat is the only vertical
               // message scroller; tiny/keyboard viewports use compact mode.
               final stageHeight =
-                  2 * (82 + MediaQuery.textScalerOf(context).scale(30)) + 12;
+                  2 * (93 + MediaQuery.textScalerOf(context).scale(30)) + 12;
               final contentHeight = _boardVisible
                   ? (constraints.maxHeight * .55).clamp(110.0, 320.0) + 106
                   : stageHeight + (_showTeacherAiSeat ? 88 : 0);
@@ -3366,10 +3422,8 @@ class _AnimatedRoomBackgroundState extends State<_AnimatedRoomBackground>
                   filterQuality: FilterQuality.high,
                   // Sunset Terrace uses its original portrait artwork:
                   // show the whole image without stretching or cropping it.
-                  fit: widget.themeId == 'wv_bg_18'
-                      ? BoxFit.contain
-                      : BoxFit.cover,
-                  fillUnderlay: widget.themeId == 'wv_bg_18',
+                  fit: BoxFit.cover,
+                  fillUnderlay: false,
                 ),
                 ColoredBox(
                   color: Colors.black.withValues(alpha: .05),

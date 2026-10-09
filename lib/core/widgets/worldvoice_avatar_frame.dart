@@ -307,7 +307,7 @@ class _WorldVoiceAvatarFrameState extends State<WorldVoiceAvatarFrame>
             fit: StackFit.expand,
             children: [
               Padding(
-                padding: EdgeInsets.all(widget.size * .22),
+                padding: EdgeInsets.all(widget.size * .19),
                 child: ClipOval(child: widget.child),
               ),
               if (artIndex >= 4 && _animated)

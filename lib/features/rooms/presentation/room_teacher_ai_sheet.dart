@@ -10,6 +10,8 @@ class RoomTeacherAiSheet extends StatelessWidget {
     this.onVoicePressed,
     this.canSpeak = false,
     this.listening = false,
+    this.speechListeningListenable,
+    this.feedbackListenable,
     this.online,
     this.onlineListenable,
     this.closeAfterAnswer = false,
@@ -23,6 +25,8 @@ class RoomTeacherAiSheet extends StatelessWidget {
   final bool listening;
   final bool? online;
   final ValueListenable<bool>? onlineListenable;
+  final ValueListenable<bool>? speechListeningListenable;
+  final ValueListenable<String>? feedbackListenable;
 
   // Retained for source compatibility with the Live surface. The room
   // experience is voice-only and closes explicitly with the close button.
@@ -33,8 +37,8 @@ class RoomTeacherAiSheet extends StatelessWidget {
     final isArabic =
         Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
 
-    Widget content(bool isOnline) {
-      final active = isOnline && canSpeak && listening;
+    Widget content(bool isOnline, bool isListening, String feedback) {
+      final active = isOnline && canSpeak && isListening;
       return SafeArea(
         child: SizedBox(
           height: MediaQuery.sizeOf(context).height * .62,
@@ -151,11 +155,11 @@ class RoomTeacherAiSheet extends StatelessWidget {
                               : 'Join a speaker seat to talk with Teacher AI.')
                           : active
                               ? (isArabic
-                                  ? 'تكلم طبيعيًا الآن — Teacher AI يسمعك ويرد عليك بصوت.'
-                                  : 'Speak naturally now — Teacher AI is listening and will answer aloud.')
+                                  ? 'المايك يسمع الآن. اسأل Teacher AI بصوتك.'
+                                  : 'Microphone is listening. Ask your question aloud.')
                               : (isArabic
-                                  ? 'Teacher AI جاهز. ابدأ الكلام.'
-                                  : 'Teacher AI is ready. Start speaking.'),
+                                  ? 'المايك لا يسمع الآن. اضغط عليه لإعادة المحاولة.'
+                                  : 'Microphone is not listening. Tap it to retry.'),
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 19,
@@ -193,6 +197,19 @@ class RoomTeacherAiSheet extends StatelessWidget {
                     ),
                   ),
                 ],
+                if (feedback.trim().isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 76),
+                    child: SingleChildScrollView(
+                      child: Text(
+                        feedback,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 14),
                 Chip(
                   avatar: const Icon(Icons.language_rounded, size: 17),
@@ -210,13 +227,30 @@ class RoomTeacherAiSheet extends StatelessWidget {
       );
     }
 
-    final listenable = onlineListenable;
-    if (listenable != null) {
+    Widget withSpeech(bool networkOnline) {
+      final speech = speechListeningListenable;
+      final feedback = feedbackListenable;
+      if (speech == null || feedback == null) {
+        return content(networkOnline, listening, '');
+      }
       return ValueListenableBuilder<bool>(
-        valueListenable: listenable,
-        builder: (context, value, _) => content(value),
+        valueListenable: speech,
+        builder: (context, micActive, _) =>
+            ValueListenableBuilder<String>(
+          valueListenable: feedback,
+          builder: (context, message, _) =>
+              content(networkOnline, micActive, message),
+        ),
       );
     }
-    return content(online ?? service.isAskConfigured);
+
+    final network = onlineListenable;
+    if (network != null) {
+      return ValueListenableBuilder<bool>(
+        valueListenable: network,
+        builder: (context, value, _) => withSpeech(value),
+      );
+    }
+    return withSpeech(online ?? service.isAskConfigured);
   }
 }
