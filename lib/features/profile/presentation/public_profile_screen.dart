@@ -10,6 +10,7 @@ import '../../../core/widgets/worldvoice_avatar_frame.dart';
 import '../../chat/presentation/chat_screen.dart';
 import '../../stories/presentation/story_strip.dart';
 import '../services/profile_social_service.dart';
+import '../data/profile_language_catalog.dart';
 import 'profile_identity_strip.dart';
 import 'voice_bio_player.dart';
 
@@ -176,7 +177,8 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
             final profileFrameId =
                 (data['profileFrameId'] as String?)?.trim();
             final gender = data['gender'] as String?;
-            final nativeLanguage = (data['nativeLanguage'] as String?)?.trim();
+            final nativeLanguage = ProfileLanguageCatalog.localizedStoredName(
+                (data['nativeLanguageCode'] ?? data['nativeLanguage'])?.toString(), code);
             final birthRaw = data['birthDate'];
             final birthDate = birthRaw is Timestamp ? birthRaw.toDate() : null;
             final isOnline = data['isOnline'] == true;
@@ -187,11 +189,13 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
             final lastSeenAt =
                 lastSeenRaw is Timestamp ? lastSeenRaw.toDate() : null;
 
-            final learning = (data['learningLanguages'] as List?)
-                    ?.map((item) => item.toString())
-                    .where((item) => item.trim().isNotEmpty)
-                    .toList() ??
-                const <String>[];
+            final savedLearning = (data['learningLanguageCodes'] as List?)?.isNotEmpty == true
+                ? (data['learningLanguageCodes'] as List)
+                : (data['learningLanguages'] as List?) ?? const [];
+            final learning = savedLearning
+                .map((item) => ProfileLanguageCatalog.localizedStoredName(item.toString(), code))
+                .where((item) => item.trim().isNotEmpty)
+                .toList();
             final interests = (data['interests'] as List?)
                     ?.map((item) => item.toString())
                     .where((item) => item.trim().isNotEmpty)
