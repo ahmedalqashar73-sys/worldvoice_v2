@@ -660,7 +660,9 @@ service cloud.firestore {
       }
 
       match /teacher_ai_notes/{noteId} {
-        allow read: if isRoomMember(roomId);
+        // Corrections are private to the speaker, not visible to the room.
+        allow read: if isRoomMember(roomId)
+            && resource.data.userId == request.auth.uid;
 
         // Teacher AI notes are written by the trusted backend through
         // Firebase Admin SDK, which bypasses client security rules.
