@@ -17,8 +17,11 @@ This service keeps privileged room credentials out of the Flutter APK.
 
 - `AGORA_APP_ID`
 - `AGORA_APP_CERTIFICATE` — server only; never put this in Flutter or Git.
-- `OPENAI_API_KEY` — server only.
-- `OPENAI_TEACHER_MODEL` — the model you explicitly choose for Teacher AI.
+- `GROQ_API_KEY` — server only; when present, Teacher AI uses Groq instead of OpenAI.
+- `GROQ_TEACHER_MODEL` — optional; defaults to `openai/gpt-oss-20b` on Groq.
+- `OPENAI_API_KEY` / `OPENAI_TEACHER_MODEL` — optional legacy fallback when Groq is not configured.
+
+Groq uses `https://api.groq.com/openai/v1` on the backend. **Never add API keys to Flutter `--dart-define`, git, or a downloadable APK.** Groq free-plan requests are rate-limited and production usage may incur charges; review your Groq billing limits before external distribution.
 
 The server uses Firebase Application Default Credentials. On Google Cloud Run, attach a service account with the Firebase permissions required for Auth verification and Firestore access. For local development, use `GOOGLE_APPLICATION_CREDENTIALS`.
 
