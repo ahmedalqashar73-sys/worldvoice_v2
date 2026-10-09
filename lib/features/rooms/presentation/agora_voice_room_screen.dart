@@ -1121,6 +1121,12 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   }
 
   Future<void> _retryTeacherAiMic() async {
+    // A transient provider/Render wake-up failure should be recoverable
+    // without closing and reopening the room or Teacher AI sheet.
+    if (!_teacherAiOnline.value) {
+      await _prepareTeacherConversation(_teacherAiSession);
+      return;
+    }
     _teacherAiFeedback.value = 'Starting speech recognition…';
     await _syncCaptionPublishing();
     if (!mounted || !_teacherAiConversationActive) return;
