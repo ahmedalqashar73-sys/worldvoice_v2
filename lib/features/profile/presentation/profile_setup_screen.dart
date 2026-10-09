@@ -58,10 +58,23 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     final data = snap.data();
     if (data == null || !mounted) return;
 
-    final learningCodes = (data['learningLanguageCodes'] as List?)
+    final storedCodes = (data['learningLanguageCodes'] as List?)
             ?.map((e) => e.toString())
-            .toList() ??
-        const <String>[];
+            .toList() ?? const <String>[];
+    // Preserve profiles created before ISO language codes were stored.
+    final learningCodes = storedCodes.isNotEmpty
+        ? storedCodes
+        : ((data['learningLanguages'] as List?) ?? const [])
+            .map((entry) {
+              final saved = entry.toString();
+              for (final language in ProfileLanguageCatalog.languages) {
+                if (language.englishName.toLowerCase() == saved.toLowerCase() ||
+                    language.nativeName?.toLowerCase() == saved.toLowerCase()) {
+                  return language.code;
+                }
+              }
+              return saved;
+            }).toList();
     final hobbies = (data['interests'] as List?)
             ?.map((e) => e.toString())
             .toList() ??
