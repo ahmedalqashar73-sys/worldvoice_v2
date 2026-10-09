@@ -7,6 +7,7 @@ import '../../../core/localization/app_strings.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../../../core/widgets/worldvoice_avatar_frame.dart';
 import '../services/profile_social_service.dart';
+import '../data/profile_language_catalog.dart';
 import 'profile_connections_screen.dart';
 import 'profile_identity_strip.dart';
 import 'profile_setup_screen.dart';
@@ -75,17 +76,20 @@ class UserProfileScreen extends StatelessWidget {
             final cover = data['coverUrl'] as String?;
             final country = data['country'] as String?;
             final gender = data['gender'] as String?;
-            final nativeLanguage = data['nativeLanguage'] as String?;
+            final nativeLanguage = ProfileLanguageCatalog.localizedStoredName(
+                (data['nativeLanguageCode'] ?? data['nativeLanguage'])?.toString(), code);
             final birthRaw = data['birthDate'];
             final birthDate = birthRaw is Timestamp ? birthRaw.toDate() : null;
             final isVip = data['isVip'] == true;
             final profileFrameId =
                 (data['profileFrameId'] as String?)?.trim();
             final voiceBioUrl = data['voiceBioUrl'] as String?;
-            final learning = (data['learningLanguages'] as List?)
-                    ?.map((e) => e.toString())
-                    .toList() ??
-                const <String>[];
+            final savedLearning = (data['learningLanguageCodes'] as List?)?.isNotEmpty == true
+                ? (data['learningLanguageCodes'] as List)
+                : (data['learningLanguages'] as List?) ?? const [];
+            final learning = savedLearning
+                .map((e) => ProfileLanguageCatalog.localizedStoredName(e.toString(), code))
+                .toList();
             final hobbies = (data['interests'] as List?)
                     ?.map((e) => e.toString())
                     .toList() ??
