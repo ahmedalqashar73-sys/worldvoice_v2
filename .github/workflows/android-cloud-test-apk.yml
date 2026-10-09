@@ -1,0 +1,101 @@
+name: Android Cloud Test APK
+
+on:
+  push:
+    branches:
+      - feat/worldvoice-avatar-frames-20261008
+      - fix/worldvoice-voice-ai-language-tools-20261008
+      - fix/room-audio-first-join-teacher-ai-20261009
+      - fix/free-worker-always-available-agora-20260927
+      - fix/green-room-chat-stage-hand-preview-20260927
+      - fix/finish-room-hub-quiz-gift-20260928
+    paths:
+      - ".github/workflows/android-cloud-test-apk.yml"
+      - "lib/features/rooms/**"
+      - "lib/features/live/**"
+      - "lib/features/chat/**"
+      - "lib/core/widgets/**"
+      - "lib/features/profile/**"
+      - "assets/frames/**"
+      - "assets/gifts/**"
+      - "test/friend_gift_preview_test.dart"
+      - "pubspec.yaml"
+      - "android/app/src/main/AndroidManifest.xml"
+      - "android/app/src/main/kotlin/**"
+      - "android/app/src/main/res/xml/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.44.8"
+          channel: stable
+          cache: true
+
+      - name: Check Flutter and Android build environment
+        run: |
+          flutter --version
+          flutter doctor -v
+          df -h
+          java -version
+
+      - name: Resolve Flutter dependencies
+        run: flutter pub get
+
+      - name: Analyze project
+        run: flutter analyze
+
+      - name: Verify friend-demo safety and bundled premium gift assets
+        run: flutter test test/worldvoice_avatar_frame_test.dart test/agora_connection_deadline_test.dart test/friend_gift_preview_test.dart test/luxury_gift_assets_test.dart test/classic_gift_mesh_test.dart
+
+      # The URL and App ID are public; certificate stays solely in Cloudflare.
+      # This test APK uses the existing project's temporary DEBUG signing only.
+      - name: Build Android release-mode TEST APK
+        id: android_build
+        shell: bash
+        run: |
+          set -o pipefail
+          # CI uses a larger heap than 2 GB Windows laptops. The previous
+          # build failed at :app:packageRelease with Java heap OOM.
+          sed -i 's/-Xmx2048m/-Xmx4096m/' android/gradle.properties
+          flutter build apk --release --split-per-abi \
+            --dart-define=WORLDVOICE_FRIEND_GIFT_PREVIEW=true \
+            --dart-define=AGORA_APP_ID=fa41476c6813471eb45c059bcb4a0e19 \
+            --dart-define=WORLDVOICE_ROOM_BACKEND_URL=https://worldvoice-v2.onrender.com \
+            --dart-define=AGORA_TOKEN_ENDPOINT=https://worldvoice-agora-token.worldvoice.workers.dev/agora/token \
+            --dart-define=WORLDVOICE_ECONOMY_ENDPOINT=https://worldvoice-v2.onrender.com \
+            -v 2>&1 | tee android-build.log
+
+      - name: Upload build log on success or failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-build-log
+          path: android-build.log
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload Android TEST APK
+        if: steps.android_build.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: WorldVoice-3d-gifts-friends-test-apks
+          path: build/app/outputs/flutter-apk/app-*-release.apk
+          if-no-files-found: error
+          retention-days: 14

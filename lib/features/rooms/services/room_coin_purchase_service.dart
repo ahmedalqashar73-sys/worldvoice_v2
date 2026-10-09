@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../data/coin_product_config.dart';
 import '../data/room_backend_config.dart';
@@ -27,8 +29,20 @@ class RoomCoinPurchaseService extends ChangeNotifier {
   static final RoomCoinPurchaseService instance =
       RoomCoinPurchaseService._();
 
+  static const String _explicitEconomyBackend =
+      String.fromEnvironment('WORLDVOICE_ECONOMY_ENDPOINT');
+
+  String get _economyBackend {
+    final explicit = _explicitEconomyBackend.trim();
+    if (explicit.isNotEmpty) return explicit;
+    return RoomBackendConfig.baseUrl.trim();
+  }
+
   final InAppPurchase _iap = InAppPurchase.instance;
   StreamSubscription<List<PurchaseDetails>>? _purchaseSub;
+  String? _pendingExchangeKey;
+  int? _pendingExchangeDiamonds;
+
 
   bool _initialized = false;
   bool _loading = false;
@@ -40,6 +54,24 @@ class RoomCoinPurchaseService extends ChangeNotifier {
   bool get storeAvailable => _storeAvailable;
   String? get message => _message;
   List<CoinStoreProduct> get products => _products;
+
+  /// This stream is always scoped to the signed-in user's owner-only wallet.
+  /// Do not fall back to users/{uid}, which exposes legacy finance publicly.
+  Stream<DocumentSnapshot<Map<String, dynamic>>> watchMyWallet() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return Stream<DocumentSnapshot<Map<String, dynamic>>>.error(
+        StateError('Sign in is required to view your wallet.'),
+      );
+    }
+    return FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('private')
+        .doc('wallet')
+        .snapshots();
+  }
+
 
   Future<void> initialize() async {
     if (_initialized) return;
@@ -69,6 +101,20 @@ class RoomCoinPurchaseService extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // Do not offer a real-money checkout while the private-wallet and
+      // public-profile security migration has not been verified.
+      final policy = (await FirebaseFirestore.instance
+              .doc('economy_config/current')
+              .get())
+          .data();
+      if (policy?['enabled'] != true ||
+          policy?['privateWalletCutoverVerified'] != true ||
+          policy?['publicProfileRulesVerified'] != true) {
+        _storeAvailable = false;
+        _products = const <CoinStoreProduct>[];
+        _message = 'Coin purchases are disabled until wallet security is verified.';
+        return;
+      }
       _storeAvailable = await _iap.isAvailable();
       if (!_storeAvailable) {
         _products = const <CoinStoreProduct>[];
@@ -133,6 +179,39 @@ class RoomCoinPurchaseService extends ChangeNotifier {
   Future<void> buy(CoinStoreProduct item) async {
     _message = null;
     notifyListeners();
+    // Re-check at purchase time: a product or the economy can be disabled
+    // while the store sheet remains open.
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      throw StateError('Sign in is required before purchasing coins.');
+    }
+    final db = FirebaseFirestore.instance;
+    final responses = await Future.wait([
+      db.doc('economy_config/current').get(),
+      db.collection('coin_products').doc(item.config.id).get(),
+      db.collection('users').doc(user.uid)
+          .collection('private').doc('wallet').get(),
+    ]);
+    final policy = responses[0].data();
+    final catalog = responses[1].data();
+    final approvedPrice = catalog?['priceUsd'];
+    String? expectedStoreSku;
+    if (catalog != null) {
+      expectedStoreSku = (Platform.isAndroid
+              ? catalog['androidProductId']
+              : catalog['iosProductId'])
+          ?.toString();
+    }
+    if (policy?['enabled'] != true ||
+        policy?['privateWalletCutoverVerified'] != true ||
+        policy?['publicProfileRulesVerified'] != true ||
+        responses[2].exists != true ||
+        catalog?['active'] != true ||
+        approvedPrice is! num || approvedPrice <= 0 ||
+        catalog?['coins'] != item.config.coins ||
+        expectedStoreSku != item.product.id) {
+      throw StateError('Purchase is not approved or your private wallet is unavailable.');
+    }
 
     final parameter = PurchaseParam(
       productDetails: item.product,
@@ -194,7 +273,11 @@ class RoomCoinPurchaseService extends ChangeNotifier {
     PurchaseDetails purchase,
   ) async {
     final user = FirebaseAuth.instance.currentUser;
-    final endpoint = RoomBackendConfig.endpoint('/iap/verify');
+    final base = _economyBackend;
+    final uri = Uri.tryParse(base);
+    final endpoint = uri == null || uri.scheme != 'https' || !uri.hasAuthority
+        ? ''
+        : '${base.endsWith('/') ? base.substring(0, base.length - 1) : base}/iap/verify';
 
     if (user == null || endpoint.isEmpty) {
       throw StateError(
@@ -237,6 +320,104 @@ class RoomCoinPurchaseService extends ChangeNotifier {
 
     final body = jsonDecode(response.body);
     return body is Map<String, dynamic> && body['ok'] == true;
+  }
+
+  // The backend alone applies diamond conversions and quotes.
+  // Failed requests retain the idempotency key so a retry cannot debit twice.
+  Uri get _walletBase {
+    final raw = _economyBackend;
+    final parsed = Uri.tryParse(raw.trim());
+    if (parsed == null || parsed.scheme != 'https' || !parsed.hasAuthority ||
+        parsed.userInfo.isNotEmpty || parsed.query.isNotEmpty ||
+        parsed.fragment.isNotEmpty) {
+      throw StateError('Economy server is not configured for the wallet.');
+    }
+    final path = parsed.path.endsWith('/')
+        ? parsed.path.substring(0, parsed.path.length - 1)
+        : parsed.path;
+    return parsed.replace(path: path);
+  }
+
+  Future<Map<String, dynamic>> _walletPost(
+    String path,
+    Map<String, dynamic> body, {
+    String? idempotencyKey,
+  }) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) throw StateError('Sign in to use the wallet.');
+    final token = await user.getIdToken(true);
+    if (token == null || token.isEmpty) {
+      throw StateError('Your login could not be verified.');
+    }
+    final base = _walletBase;
+    final response = await http.post(
+      base.replace(path: '${base.path}$path'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+        ...(idempotencyKey == null ? <String, String>{} :
+          <String, String>{'Idempotency-Key': idempotencyKey}),
+      },
+      body: jsonEncode(body),
+    );
+    Map<String, dynamic> decoded;
+    try {
+      final raw = jsonDecode(response.body);
+      decoded = raw is Map<String, dynamic> ? raw : <String, dynamic>{};
+    } catch (_) {
+      throw StateError('The wallet server returned an invalid response.');
+    }
+    if (response.statusCode < 200 || response.statusCode >= 300 ||
+        decoded['ok'] != true) {
+      throw StateError(decoded['error']?.toString() ??
+          'The wallet request was not completed.');
+    }
+    return decoded;
+  }
+
+  Future<Map<String, dynamic>> exchangeDiamonds(int amount) async {
+    if (amount <= 0) throw StateError('Enter a positive diamond amount.');
+    if (_pendingExchangeDiamonds != amount || _pendingExchangeKey == null) {
+      final random = Random.secure();
+      _pendingExchangeKey = List<int>.generate(
+        24, (_) => random.nextInt(256),
+      ).map((value) => value.toRadixString(16).padLeft(2, '0')).join();
+      _pendingExchangeDiamonds = amount;
+    }
+    final result = await _walletPost(
+      '/wallet/exchange', {'diamonds': amount},
+      idempotencyKey: _pendingExchangeKey,
+    );
+    _pendingExchangeKey = null;
+    _pendingExchangeDiamonds = null;
+    return result;
+  }
+
+  /// Card checkout is WEB-ONLY. Native Android/iOS must use their respective
+  /// in-app billing systems unless independently approved by store policy.
+  Future<void> startWebCheckout(CoinProductConfig item) async {
+    if (!kIsWeb || !item.hasApprovedWebPrice) {
+      throw StateError('Web checkout is not available for this product.');
+    }
+    final result = await _walletPost('/web/checkout', {'catalogId': item.id});
+    final url = Uri.tryParse((result['checkoutUrl'] ?? '').toString());
+    if (url == null || url.scheme != 'https' || !url.hasAuthority) {
+      throw StateError('The card checkout URL was invalid.');
+    }
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication,
+        webOnlyWindowName: '_self')) {
+      throw StateError('Could not open the secure card checkout.');
+    }
+  }
+
+  Future<Map<String, dynamic>> getWithdrawalQuote(int amount) async {
+    if (amount <= 0) throw StateError('Enter a positive diamond amount.');
+    return _walletPost('/wallet/withdraw/quote', {'diamonds': amount});
+  }
+
+  Future<int> releaseMaturedDiamonds() async {
+    final result = await _walletPost('/wallet/settle', <String, dynamic>{});
+    return (result['diamondsReleased'] as num?)?.toInt() ?? 0;
   }
 
   @override

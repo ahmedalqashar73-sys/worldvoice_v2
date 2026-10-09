@@ -1,200 +1,256 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../services/room_teacher_ai_service.dart';
 
-class RoomTeacherAiSheet extends StatefulWidget {
+class RoomTeacherAiSheet extends StatelessWidget {
   const RoomTeacherAiSheet({
     required this.service,
     required this.roomLanguageCode,
+    this.onVoicePressed,
+    this.canSpeak = false,
+    this.listening = false,
+    this.speechListeningListenable,
+    this.feedbackListenable,
+    this.online,
+    this.onlineListenable,
+    this.closeAfterAnswer = false,
     super.key,
   });
 
   final RoomTeacherAiService service;
   final String roomLanguageCode;
+  final VoidCallback? onVoicePressed;
+  final bool canSpeak;
+  final bool listening;
+  final bool? online;
+  final ValueListenable<bool>? onlineListenable;
+  final ValueListenable<bool>? speechListeningListenable;
+  final ValueListenable<String>? feedbackListenable;
 
-  @override
-  State<RoomTeacherAiSheet> createState() => _RoomTeacherAiSheetState();
-}
-
-class _RoomTeacherAiSheetState extends State<RoomTeacherAiSheet> {
-  final TextEditingController _questionController = TextEditingController();
-  final List<_TeacherMessage> _messages = <_TeacherMessage>[];
-  bool _sending = false;
-  String? _error;
-
-  @override
-  void dispose() {
-    _questionController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _send() async {
-    final question = _questionController.text.trim();
-    if (question.isEmpty || _sending) return;
-
-    setState(() {
-      _messages.add(_TeacherMessage(text: question, fromUser: true));
-      _questionController.clear();
-      _sending = true;
-      _error = null;
-    });
-
-    try {
-      final answer = await widget.service.ask(
-        prompt: question,
-        roomLanguageCode: widget.roomLanguageCode,
-      );
-      if (!mounted) return;
-      setState(() {
-        _messages.add(_TeacherMessage(text: answer, fromUser: false));
-      });
-    } catch (error) {
-      if (!mounted) return;
-      setState(() => _error = error.toString());
-    } finally {
-      if (mounted) {
-        setState(() => _sending = false);
-      }
-    }
-  }
+  // Retained for source compatibility with the Live surface. The room
+  // experience is voice-only and closes explicitly with the close button.
+  final bool closeAfterAnswer;
 
   @override
   Widget build(BuildContext context) {
     final isArabic =
         Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
-    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
 
-    return SafeArea(
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(14, 6, 14, 14 + bottomInset),
+    Widget content(bool isOnline, bool isListening, String feedback) {
+      final active = isOnline && canSpeak && isListening;
+      return SafeArea(
         child: SizedBox(
-          height: MediaQuery.sizeOf(context).height * .72,
-          child: Column(
-            children: [
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const CircleAvatar(
-                  backgroundColor: Color(0xFF3A2D71),
-                  child: Icon(Icons.smart_toy_rounded, color: Colors.white),
-                ),
-                title: const Text(
-                  'Teacher AI',
-                  style: TextStyle(fontWeight: FontWeight.w900),
-                ),
-                subtitle: Text(
-                  isArabic
-                      ? 'اسأل عن اللغة أو القواعد أو التصحيح داخل الروم.'
-                      : 'Ask about language, grammar, or corrections in the room.',
-                ),
-                trailing: IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close_rounded),
-                ),
-              ),
-              const Divider(height: 1),
-              Expanded(
-                child: _messages.isEmpty
-                    ? Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(28),
-                          child: Text(
-                            isArabic
-                                ? 'اكتب سؤالك لـ Teacher AI.\nمثال: صحح هذه الجملة أو اشرح لي هذه القاعدة.'
-                                : 'Ask Teacher AI a question.\nFor example: correct this sentence or explain this grammar rule.',
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.bodyMedium,
+          height: MediaQuery.sizeOf(context).height * .62,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close_rounded),
+                    ),
+                    const Spacer(),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        const Text(
+                          'Teacher AI',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w900,
                           ),
                         ),
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        itemCount: _messages.length,
-                        itemBuilder: (context, index) {
-                          final message = _messages[index];
-                          return Align(
-                            alignment: message.fromUser
-                                ? AlignmentDirectional.centerEnd
-                                : AlignmentDirectional.centerStart,
-                            child: Container(
-                              constraints: const BoxConstraints(maxWidth: 340),
-                              margin: const EdgeInsets.only(bottom: 9),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 13,
-                                vertical: 10,
-                              ),
+                        const SizedBox(height: 4),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 9,
+                              height: 9,
                               decoration: BoxDecoration(
-                                color: message.fromUser
-                                    ? Theme.of(context)
-                                        .colorScheme
-                                        .primaryContainer
-                                    : Theme.of(context)
-                                        .colorScheme
-                                        .surfaceContainerHighest,
-                                borderRadius: BorderRadius.circular(16),
+                                shape: BoxShape.circle,
+                                color: isOnline
+                                    ? const Color(0xFF32D294)
+                                    : Colors.grey,
                               ),
-                              child: SelectableText(message.text),
                             ),
-                          );
-                        },
+                            const SizedBox(width: 7),
+                            Text(
+                              isOnline
+                                  ? (isArabic ? 'متصل' : 'Online')
+                                  : (isArabic ? 'غير متصل' : 'Offline'),
+                              style: TextStyle(
+                                color: isOnline
+                                    ? const Color(0xFF32D294)
+                                    : Colors.grey,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(width: 14),
+                    const CircleAvatar(
+                      radius: 28,
+                      backgroundColor: Color(0xFF3A2D71),
+                      child: Icon(
+                        Icons.smart_toy_rounded,
+                        color: Colors.white,
+                        size: 30,
                       ),
-              ),
-              if (_error?.trim().isNotEmpty == true)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Text(
-                    _error!,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
-                      fontSize: 12,
+                    ),
+                  ],
+                ),
+                const Divider(height: 28),
+                const Spacer(),
+                GestureDetector(
+                  onTap: canSpeak && isOnline ? onVoicePressed : null,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
+                    width: active ? 142 : 126,
+                    height: active ? 142 : 126,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: active
+                          ? const Color(0xFF0E9C70)
+                          : const Color(0xFF145D49),
+                      border: Border.all(
+                        color: active
+                            ? const Color(0xFF7FF4C7)
+                            : Colors.white24,
+                        width: 3,
+                      ),
+                      boxShadow: active
+                          ? const [
+                              BoxShadow(
+                                color: Color(0x6632D294),
+                                blurRadius: 30,
+                                spreadRadius: 8,
+                              ),
+                            ]
+                          : null,
+                    ),
+                    child: Icon(
+                      active
+                          ? Icons.graphic_eq_rounded
+                          : Icons.mic_rounded,
+                      color: Colors.white,
+                      size: 58,
                     ),
                   ),
                 ),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _questionController,
-                      minLines: 1,
-                      maxLines: 4,
-                      maxLength: 1200,
-                      textInputAction: TextInputAction.send,
-                      onSubmitted: (_) => _send(),
-                      decoration: InputDecoration(
-                        hintText: isArabic
-                            ? 'اسأل Teacher AI...'
-                            : 'Ask Teacher AI...',
-                        counterText: '',
-                        border: const OutlineInputBorder(),
+                const SizedBox(height: 30),
+                Text(
+                  !isOnline
+                      ? (isArabic
+                          ? 'Teacher AI غير متصل بخدمة الذكاء الآن.'
+                          : 'Teacher AI is offline right now.')
+                      : !canSpeak
+                          ? (isArabic
+                              ? 'اصعد إلى أحد مقاعد المتحدثين حتى تتكلم مع Teacher AI.'
+                              : 'Join a speaker seat to talk with Teacher AI.')
+                          : active
+                              ? (isArabic
+                                  ? 'المايك يسمع الآن. اسأل Teacher AI بصوتك.'
+                                  : 'Microphone is listening. Ask your question aloud.')
+                              : (isArabic
+                                  ? 'المايك لا يسمع الآن. اضغط عليه لإعادة المحاولة.'
+                                  : 'Microphone is not listening. Tap it to retry.'),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 19,
+                    height: 1.5,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  isOnline
+                      ? (isArabic
+                          ? 'ناقش أي موضوع، اسأل، جاوب، وتدرّب على اللغة. لا تحتاج للكتابة.'
+                          : 'Discuss any topic, ask questions, answer, and practice. No typing required.')
+                      : (isArabic
+                          ? 'الروم والصوت يعملان، لكن خدمة AI الخارجية غير متاحة حاليًا.'
+                          : 'The room and audio still work, but the external AI service is unavailable.'),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    height: 1.5,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                if (!isOnline &&
+                    service.lastAvailabilityError?.isNotEmpty == true) ...[
+                  const SizedBox(height: 10),
+                  Text(
+                    isArabic
+                        ? 'سبب تعذر الاتصال: ${service.lastAvailabilityError}'
+                        : 'Connection check: ${service.lastAvailabilityError}',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+                if (feedback.trim().isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 76),
+                    child: SingleChildScrollView(
+                      child: Text(
+                        feedback,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 12),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  IconButton.filled(
-                    onPressed: _sending ? null : _send,
-                    icon: _sending
-                        ? const SizedBox.square(
-                            dimension: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.send_rounded),
-                  ),
                 ],
-              ),
-            ],
+                const SizedBox(height: 14),
+                Chip(
+                  avatar: const Icon(Icons.language_rounded, size: 17),
+                  label: Text(
+                    isArabic
+                        ? 'لغة الغرفة: ${roomLanguageCode.toUpperCase()}'
+                        : 'Room language: ${roomLanguageCode.toUpperCase()}',
+                  ),
+                ),
+                const Spacer(),
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
+    }
+
+    Widget withSpeech(bool networkOnline) {
+      final speech = speechListeningListenable;
+      final feedback = feedbackListenable;
+      if (speech == null || feedback == null) {
+        return content(networkOnline, listening, '');
+      }
+      return ValueListenableBuilder<bool>(
+        valueListenable: speech,
+        builder: (context, micActive, _) =>
+            ValueListenableBuilder<String>(
+          valueListenable: feedback,
+          builder: (context, message, _) =>
+              content(networkOnline, micActive, message),
+        ),
+      );
+    }
+
+    final network = onlineListenable;
+    if (network != null) {
+      return ValueListenableBuilder<bool>(
+        valueListenable: network,
+        builder: (context, value, _) => withSpeech(value),
+      );
+    }
+    return withSpeech(online ?? service.isAskConfigured);
   }
-}
-
-class _TeacherMessage {
-  const _TeacherMessage({
-    required this.text,
-    required this.fromUser,
-  });
-
-  final String text;
-  final bool fromUser;
 }

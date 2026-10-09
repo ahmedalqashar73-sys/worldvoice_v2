@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../../core/widgets/worldvoice_avatar_frame.dart';
 import '../data/room_stage_models.dart';
 
 class RoomStageGrid extends StatelessWidget {
@@ -24,11 +25,11 @@ class RoomStageGrid extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: stageSeats.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 4,
         mainAxisSpacing: 12,
         crossAxisSpacing: 8,
-        childAspectRatio: .76,
+        mainAxisExtent: 93 + MediaQuery.textScalerOf(context).scale(30),
       ),
       itemBuilder: (context, index) {
         final seat = stageSeats[index];
@@ -113,31 +114,63 @@ class _CompactRoomSeatState extends State<_CompactRoomSeat>
                   ? 5 + (7 * math.sin(_pulse.value * math.pi))
                   : 0.0;
 
-              return Container(
-                width: 58,
-                height: 58,
-                padding: const EdgeInsets.all(2.5),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: _frameGradient(seat),
-                  boxShadow: [
-                    if (seat.isActiveSpeaker)
-                      BoxShadow(
-                        blurRadius: glow,
-                        spreadRadius: 2,
-                        color: const Color(0xFF60FFB5).withValues(alpha: .75),
+              return Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.center,
+                children: [
+                  if (WorldVoiceAvatarFrame.isArtworkFrame(seat.frameId))
+                    WorldVoiceAvatarFrame(
+                      frameId: seat.frameId,
+                      size: 70,
+                      animate: false,
+                      child: _SeatAvatar(seat: seat),
+                    )
+                  else
+                    Container(
+                      width: 70,
+                      height: 70,
+                      padding: const EdgeInsets.all(2.5),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: _frameGradient(seat),
+                        boxShadow: [
+                          if (seat.isActiveSpeaker)
+                            BoxShadow(
+                              blurRadius: glow,
+                              spreadRadius: 2,
+                              color: const Color(0xFF60FFB5)
+                                  .withValues(alpha: .75),
+                            ),
+                          if (WorldVoiceAvatarFrame.isPremium(seat.frameId))
+                            BoxShadow(
+                              blurRadius: 10,
+                              spreadRadius: 1,
+                              color: WorldVoiceAvatarFrame.colorsFor(
+                                seat.frameId,
+                              ).first.withValues(alpha: .38),
+                            ),
+                        ],
                       ),
-                  ],
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: seat.isEmpty
-                        ? Colors.white.withValues(alpha: .16)
-                        : const Color(0xFF19152F),
-                  ),
-                  child: ClipOval(child: _SeatAvatar(seat: seat)),
-                ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: seat.isEmpty
+                              ? Colors.white.withValues(alpha: .16)
+                              : const Color(0xFF19152F),
+                        ),
+                        child: ClipOval(child: _SeatAvatar(seat: seat)),
+                      ),
+                    ),
+                  if (seat.frameId == 'frame__golden_crown')
+                    const Positioned(
+                      top: -7,
+                      child: Icon(
+                        Icons.workspace_premium_rounded,
+                        size: 17,
+                        color: Color(0xFFFFD65A),
+                      ),
+                    ),
+                ],
               );
             },
           ),
@@ -169,7 +202,7 @@ class _CompactRoomSeatState extends State<_CompactRoomSeat>
                         : const Color(0xFF7FFFC3),
                   ),
                 if (!isAi) const SizedBox(width: 3),
-                _TinyRoleBadge(role: seat.role),
+                Flexible(child: _TinyRoleBadge(role: seat.role)),
               ],
             ),
           ],
@@ -179,6 +212,11 @@ class _CompactRoomSeatState extends State<_CompactRoomSeat>
   }
 
   LinearGradient _frameGradient(RoomSeatState seat) {
+    if (seat.frameId?.trim().isNotEmpty == true) {
+      return LinearGradient(
+        colors: WorldVoiceAvatarFrame.colorsFor(seat.frameId),
+      );
+    }
     if (seat.role == RoomMemberRole.teacherAi) {
       return const LinearGradient(
         colors: [Color(0xFF745CFF), Color(0xFF00E2A7)],
@@ -250,7 +288,7 @@ class _SeatAvatar extends StatelessWidget {
 
     if (seat.isEmpty) {
       return Icon(
-        Icons.pan_tool_alt_rounded,
+        Icons.event_seat_rounded,
         size: 23,
         color: Colors.white.withValues(alpha: .78),
       );
@@ -330,4 +368,20 @@ class _TinyRoleBadge extends StatelessWidget {
       ),
     );
   }
+}
+
+class RoomStageStrip extends StatelessWidget {
+  const RoomStageStrip({required this.seats, required this.onSeatTap, super.key});
+  final List<RoomSeatState> seats;
+  final ValueChanged<RoomSeatState> onSeatTap;
+  @override
+  Widget build(BuildContext context) => ListView.separated(
+    scrollDirection: Axis.horizontal, padding: const EdgeInsets.all(8),
+    itemCount: seats.take(8).length,
+    separatorBuilder: (_, _) => const SizedBox(width: 8),
+    itemBuilder: (context, index) => SizedBox(width: 66, child: FittedBox(
+      fit: BoxFit.scaleDown, alignment: Alignment.topCenter,
+      child: SizedBox(width: 66, height: 82 + MediaQuery.textScalerOf(context).scale(30),
+        child: _CompactRoomSeat(seat: seats[index], onTap: () => onSeatTap(seats[index]))))),
+  );
 }

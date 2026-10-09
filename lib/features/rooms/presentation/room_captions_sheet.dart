@@ -1,29 +1,41 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../data/room_caption.dart';
+import '../data/room_teacher_ai_note.dart';
 
 class RoomCaptionsSheet extends StatelessWidget {
   const RoomCaptionsSheet({
     required this.enabled,
     required this.translationEnabled,
+    required this.pronunciationEnabled,
     required this.targetLanguage,
     required this.canPublish,
     required this.listening,
     required this.onEnabledChanged,
     required this.onTranslationChanged,
+    required this.onPronunciationChanged,
     required this.onTargetLanguageChanged,
+    this.pronunciationNotes,
+    this.pronunciationNote,
+    this.targetLanguages,
     this.error,
     super.key,
   });
 
   final bool enabled;
   final bool translationEnabled;
+  final bool pronunciationEnabled;
   final String targetLanguage;
+  final Stream<List<RoomTeacherAiNote>>? pronunciationNotes;
+  final ValueListenable<RoomTeacherAiNote?>? pronunciationNote;
+  final List<RoomCaptionLanguage>? targetLanguages;
   final bool canPublish;
   final bool listening;
   final String? error;
   final ValueChanged<bool> onEnabledChanged;
   final ValueChanged<bool> onTranslationChanged;
+  final ValueChanged<bool> onPronunciationChanged;
   final ValueChanged<String> onTargetLanguageChanged;
 
   @override
@@ -31,8 +43,13 @@ class RoomCaptionsSheet extends StatelessWidget {
     final isArabic =
         Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
 
+    final availableLanguages =
+        targetLanguages == null || targetLanguages!.isEmpty
+            ? roomCaptionLanguages
+            : targetLanguages!;
+
     return SafeArea(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 18),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -41,13 +58,13 @@ class RoomCaptionsSheet extends StatelessWidget {
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.closed_caption_rounded),
               title: Text(
-                isArabic ? 'الترجمة المباشرة' : 'Live captions',
+                isArabic ? 'أدوات اللغة' : 'Language tools',
                 style: const TextStyle(fontWeight: FontWeight.w900),
               ),
               subtitle: Text(
                 isArabic
-                    ? 'مجانية لكل المستخدمين. المتحدث ينشر النص من جهازه.'
-                    : 'Free for everyone. Speakers publish captions from their device.',
+                    ? 'كل خيار هنا خاص بك فقط ولا يغيّر شاشة بقية الموجودين في الغرفة.'
+                    : 'Each option here is private to your screen and does not change what others see.',
               ),
             ),
             SwitchListTile(
@@ -60,56 +77,176 @@ class RoomCaptionsSheet extends StatelessWidget {
                     : Icons.subtitles_rounded,
               ),
               title: Text(
-                isArabic ? 'تشغيل Live Captions' : 'Enable live captions',
+                isArabic ? 'السبتايتل المباشر' : 'Live subtitles',
               ),
               subtitle: canPublish
                   ? Text(
                       listening
                           ? (isArabic
-                              ? 'يتم تحويل كلامك إلى نص الآن.'
-                              : 'Your speech is being captioned now.')
+                              ? 'يتم تجهيز نص كلامك للذين فعّلوا السبتايتل على أجهزتهم.'
+                              : 'Your speech is being prepared for members who enabled subtitles on their own devices.')
                           : (isArabic
-                              ? 'سيبدأ التعرف عندما يكون المايك متاحًا.'
-                              : 'Recognition starts when your microphone is available.'),
+                              ? 'النص يظهر عندك فقط إذا فعّلت السبتايتل، ولا يُفرض على الآخرين.'
+                              : 'Subtitles appear only on your screen when you enable them; they are not forced on others.'),
                     )
                   : Text(
                       isArabic
-                          ? 'ستشاهد نص المتحدثين الموجودين على الستيج.'
-                          : 'You will see captions from speakers on stage.',
+                          ? 'ستشاهد عندك فقط نص المتحدثين الموجودين على الستيج.'
+                          : 'Only you will see captions from speakers on stage.',
                     ),
             ),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               value: translationEnabled,
-              onChanged: enabled ? onTranslationChanged : null,
+              onChanged: onTranslationChanged,
               secondary: const Icon(Icons.translate_rounded),
               title: Text(
-                isArabic ? 'ترجمة النص' : 'Translate captions',
+                isArabic ? 'الترجمة الفورية' : 'Instant translation',
               ),
               subtitle: Text(
                 isArabic
-                    ? 'الترجمة تتم على الجهاز بعد تنزيل نموذج اللغة.'
-                    : 'Translation runs on-device after its language model downloads.',
+                    ? 'الترجمة تظهر لك أنت فقط، واللغة الافتراضية هي لغتك الأم من البروفايل.'
+                    : 'Translation is shown only to you; your profile native language is the default target.',
               ),
             ),
-            if (enabled && translationEnabled)
-              DropdownButtonFormField<String>(
-                initialValue: targetLanguage,
-                decoration: InputDecoration(
-                  labelText:
-                      isArabic ? 'لغة الترجمة' : 'Translation language',
-                ),
-                items: [
-                  for (final item in roomCaptionLanguages)
-                    DropdownMenuItem(
-                      value: item.code,
-                      child: Text(item.label),
-                    ),
-                ],
-                onChanged: (value) {
-                  if (value != null) onTargetLanguageChanged(value);
-                },
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              value: pronunciationEnabled,
+              onChanged: onPronunciationChanged,
+              secondary: const Icon(Icons.record_voice_over_rounded),
+              title: Text(isArabic ? 'تصحيح النطق' : 'Pronunciation guidance'),
+              subtitle: Text(isArabic
+                  ? 'يعتمد على الكلام المحوّل إلى نص ويعطيك ملاحظة نطق مباشرة على جهازك. لا يعطي درجة صوتية وهمية.'
+                  : 'Uses the recognized transcript to give immediate on-device pronunciation guidance. It does not invent an acoustic score.'),
+            ),
+            if (pronunciationEnabled &&
+                (pronunciationNote != null || pronunciationNotes != null))
+              SizedBox(
+                height: 155,
+                child: pronunciationNote != null
+                    ? ValueListenableBuilder<RoomTeacherAiNote?>(
+                        valueListenable: pronunciationNote!,
+                        builder: (context, note, _) {
+                          if (note == null) {
+                            return Center(
+                              child: Text(
+                                isArabic
+                                    ? 'تكلّم الآن لتظهر ملاحظة النطق.'
+                                    : 'Speak now to see pronunciation guidance.',
+                              ),
+                            );
+                          }
+                          return ListView(
+                            children: [
+                              Card(
+                                child: ListTile(
+                                  title: Text(
+                                    note.correction.isEmpty
+                                        ? note.originalText
+                                        : note.correction,
+                                  ),
+                                  subtitle: Text(
+                                    note.pronunciationTip
+                                                ?.trim()
+                                                .isNotEmpty ==
+                                            true
+                                        ? note.pronunciationTip!
+                                        : (isArabic
+                                            ? 'لا توجد ملاحظة نطق لهذه الجملة.'
+                                            : 'No pronunciation note for this sentence.'),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      )
+                    : StreamBuilder<List<RoomTeacherAiNote>>(
+                        stream: pronunciationNotes,
+                        builder: (context, notesSnapshot) {
+                          if (notesSnapshot.hasError) {
+                            return Center(
+                              child: Text(
+                                isArabic
+                                    ? 'تعذّر تحميل ملاحظات النطق.'
+                                    : 'Could not load pronunciation guidance.',
+                              ),
+                            );
+                          }
+                          final notes = notesSnapshot.data ??
+                              const <RoomTeacherAiNote>[];
+                          if (notes.isEmpty) {
+                            return Center(
+                              child: Text(
+                                isArabic
+                                    ? 'تكلّم الآن لتظهر ملاحظة النطق.'
+                                    : 'Speak now to see pronunciation guidance.',
+                              ),
+                            );
+                          }
+                          return ListView(
+                            children: [
+                              for (final note in notes.take(4))
+                                Card(
+                                  child: ListTile(
+                                    title: Text(
+                                      note.correction.isEmpty
+                                          ? note.originalText
+                                          : note.correction,
+                                    ),
+                                    subtitle: Text(
+                                      note.pronunciationTip
+                                                  ?.trim()
+                                                  .isNotEmpty ==
+                                              true
+                                          ? note.pronunciationTip!
+                                          : (isArabic
+                                              ? 'لا توجد ملاحظة نطق لهذه الجملة.'
+                                              : 'No pronunciation note for this sentence.'),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          );
+                        },
+                      ),
               ),
+            if (translationEnabled)
+              if (availableLanguages.length == 1)
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.school_rounded),
+                  title: Text(
+                    isArabic ? 'لغة الترجمة (لغتك الأم)' : 'Translation language (native)',
+                  ),
+                  subtitle: Text(availableLanguages.first.label),
+                )
+              else
+                DropdownButtonFormField<String>(
+                  initialValue: availableLanguages.any(
+                    (item) => item.code == targetLanguage,
+                  )
+                      ? targetLanguage
+                      : availableLanguages.first.code,
+                  isExpanded: true,
+                  decoration: InputDecoration(
+                    labelText:
+                        isArabic ? 'لغة الترجمة (لغتك الأم)' : 'Translation language (native)',
+                  ),
+                  items: [
+                    for (final item in availableLanguages)
+                      DropdownMenuItem(
+                        value: item.code,
+                        child: Text(
+                          item.label,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) onTargetLanguageChanged(value);
+                  },
+                ),
             if (error?.trim().isNotEmpty == true) ...[
               const SizedBox(height: 10),
               Material(
@@ -152,12 +289,14 @@ class RoomCaptionOverlay extends StatelessWidget {
   const RoomCaptionOverlay({
     required this.caption,
     required this.translationEnabled,
+    this.showOriginal = true,
     this.translatedText,
     super.key,
   });
 
   final RoomCaption caption;
   final bool translationEnabled;
+  final bool showOriginal;
   final String? translatedText;
 
   @override
@@ -208,15 +347,16 @@ class RoomCaptionOverlay extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 5),
-          Text(
-            caption.text,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              height: 1.25,
+          if (showOriginal)
+            Text(
+              caption.text,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                height: 1.25,
+              ),
             ),
-          ),
           if (showTranslated) ...[
             const SizedBox(height: 6),
             Text(
