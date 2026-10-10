@@ -23,7 +23,6 @@ class ProfileIdentityStrip extends StatelessWidget {
   Widget build(BuildContext context) {
     final strings = AppStrings.of(code);
     final age = profileAge(birthDate);
-    final genderLabel = profileGenderLabel(gender, strings);
     final items = <Widget>[];
 
     if (country?.isNotEmpty == true) {
@@ -44,7 +43,7 @@ class ProfileIdentityStrip extends StatelessWidget {
       );
     }
 
-    if (genderLabel != null) {
+    if (gender == 'male' || gender == 'female') {
       final isFemale = gender == 'female';
       items.add(
         _IdentityChip(
