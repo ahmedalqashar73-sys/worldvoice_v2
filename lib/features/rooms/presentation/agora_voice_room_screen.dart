@@ -170,6 +170,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   String? _latestTranslatedCaption;
   String? _lastTranslatedCaptionId;
   String? _lastTeacherAiCaptionId;
+  String? _lastPronunciationText;
+  DateTime? _lastPronunciationAt;
   RoomTeacherAiNote? _latestTeacherAiNote;
   final ValueNotifier<RoomTeacherAiNote?> _pronunciationNote =
       ValueNotifier<RoomTeacherAiNote?>(null);
@@ -838,7 +840,17 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         latest.userId == _moderation.currentUserId &&
         latest.id != _lastTeacherAiCaptionId) {
       _lastTeacherAiCaptionId = latest.id;
-      unawaited(_requestPronunciationGuidance(latest));
+      // A local caption is immediately mirrored to Firestore with another ID.
+      // Correct it once, not twice; avoid unnecessary Groq requests.
+      final sameRecentPhrase = latest.text.trim() == _lastPronunciationText &&
+          _lastPronunciationAt != null &&
+          DateTime.now().difference(_lastPronunciationAt!) <
+              const Duration(seconds: 12);
+      if (!sameRecentPhrase) {
+        _lastPronunciationText = latest.text.trim();
+        _lastPronunciationAt = DateTime.now();
+        unawaited(_requestPronunciationGuidance(latest));
+      }
     }
   }
 
