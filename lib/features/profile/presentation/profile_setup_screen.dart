@@ -498,7 +498,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       ],
       ProfileTextField(city,t('city'),Icons.location_city_outlined),const SizedBox(height:10),
       ProfilePickerTile(
-        Icons.language_rounded,
+        vipLearningEnabled && learningLanguages.isNotEmpty
+            ? Icons.add_circle_outline_rounded
+            : Icons.language_rounded,
         t('learning'),
         learningLanguages.isEmpty?t('chooseLanguage'):
           learningLanguages.map((v)=>ProfileLanguageCatalog.localizedName(v,code)).join(' • '),
