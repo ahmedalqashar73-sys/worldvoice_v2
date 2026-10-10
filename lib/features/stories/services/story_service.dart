@@ -166,8 +166,8 @@ class StoryService {
     required int durationMs,
   }) async {
     final token = await _token();
-    // Check bucket readiness before spending time transferring video bytes.
-    // Missing Firebase Storage used to fail only after the full upload.
+    // Check the configured media storage provider before transferring video.
+    // Missing storage used to fail only after a costly upload attempt.
     try {
       final readiness = await _client.get(
         _uri('/stories/storage-status'),
