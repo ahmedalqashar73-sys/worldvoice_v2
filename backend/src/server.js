@@ -315,7 +315,7 @@ async function worldVoiceAiResponse({model, instructions, input, max_output_toke
     ],
     // Keep the answer in message.content rather than consuming the short
     // response budget on hidden reasoning (especially for GPT-OSS).
-    ...(isGptOss ? {reasoning_effort: "low", reasoning_format: "hidden"} : {}),
+    ...(isGptOss ? {reasoning_effort: "low", include_reasoning: false} : {}),
     ...(wantsJson ? {response_format: {type: "json_object"}} : {}),
     max_completion_tokens: Math.max(1536, Number(max_output_tokens) || 0),
   });
@@ -890,8 +890,6 @@ app.post("/agora/token", async (req, res, next) => {
   }
 });
 
-let groqModelCheckValidUntil = 0;
-
 app.post("/ai/status", async (req, res, next) => {
   try {
     const user = await authenticatedUser(req);
@@ -926,32 +924,10 @@ app.post("/ai/status", async (req, res, next) => {
     requireEnv(aiKey, aiKeyName);
     requireEnv(teacherModel, aiModelName);
 
-    // Validate Groq credentials and model availability without generating
-    // tokens or spending the user's free request allowance each status poll.
-    try {
-      if (Date.now() >= groqModelCheckValidUntil) {
-        await aiClient.models.retrieve(teacherModel);
-        groqModelCheckValidUntil = Date.now() + 120000;
-      }
-    } catch (providerError) {
-      const status = Number(providerError?.status);
-      const code = String(providerError?.code || "");
-      if (status === 400 || status === 404) {
-        console.error("WorldVoice Teacher AI health configuration:", {
-          status,
-          code,
-          model: teacherModel,
-          // Do not log API keys or user speech.
-        });
-        return res.status(503).json({
-          code: "AI_MODEL_CONFIGURATION",
-          error: "Teacher AI provider rejected its model configuration.",
-        });
-      }
-      throw providerError;
-    }
-
-    return res.json({ok: true, available: true});
+    // This is an authenticated readiness check, not a charged model call.
+    // Cold provider checks previously blocked voice capture until timeout.
+    // The actual /teacher-ai/ask request reports provider failures.
+    return res.json({ok: true, available: true, provider: "groq"});
   } catch (error) {
     next(error);
   }
