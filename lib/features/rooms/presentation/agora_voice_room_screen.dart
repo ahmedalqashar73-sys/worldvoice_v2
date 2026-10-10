@@ -3336,6 +3336,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                     child: _TeacherAiCompactSeat(
                       note: _latestTeacherAiNote,
                       configured: _teacherAi.isConfigured || _teacherAi.isAskConfigured,
+                      onlineListenable: _teacherAiOnline,
                       onTap: _showTeacherAiChat,
                     ),
                   ),
@@ -3696,11 +3697,13 @@ class _RoleOption extends StatelessWidget {
 class _TeacherAiCompactSeat extends StatelessWidget {
   const _TeacherAiCompactSeat({
     required this.configured,
+    required this.onlineListenable,
     this.note,
     this.onTap,
   });
 
   final bool configured;
+  final ValueListenable<bool> onlineListenable;
   final RoomTeacherAiNote? note;
   final VoidCallback? onTap;
 
@@ -3751,22 +3754,53 @@ class _TeacherAiCompactSeat extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 2),
-                    Text(
-                      correction.isNotEmpty
-                          ? correction
-                          : configured
-                              ? 'Tap to ask • listening for corrections…'
-                              : 'AI backend connection required',
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: correction.isNotEmpty
-                            ? const Color(0xFF8EEAD0)
-                            : Colors.white60,
-                        fontSize: 10,
-                        height: 1.2,
+                    ValueListenableBuilder<bool>(
+                      valueListenable: onlineListenable,
+                      builder: (context, online, _) => Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 7, height: 7,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: online
+                                  ? const Color(0xFF32D294)
+                                  : Colors.white54,
+                            ),
+                          ),
+                          const SizedBox(width: 5),
+                          Flexible(
+                            child: Text(
+                              online ? 'Online • Listening automatically'
+                                  : configured ? 'Connecting / Offline'
+                                  : 'AI backend unavailable',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: online
+                                    ? const Color(0xFF8EEAD0)
+                                    : Colors.white60,
+                                fontSize: 10,
+                                height: 1.2,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
+                    if (correction.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        correction,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Color(0xFF8EEAD0),
+                          fontSize: 10,
+                          height: 1.2,
+                        ),
+                      ),
+                    ],
                     if (pronunciation.isNotEmpty) ...[
                       const SizedBox(height: 3),
                       Text(
