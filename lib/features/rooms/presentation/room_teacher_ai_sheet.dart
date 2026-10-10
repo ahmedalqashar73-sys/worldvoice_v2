@@ -46,7 +46,9 @@ class RoomTeacherAiSheet extends StatelessWidget {
       return SafeArea(
         child: SizedBox(
           height: MediaQuery.sizeOf(context).height * .62,
-          child: Padding(
+          // Long AI responses, translated labels, or Android font scaling
+          // must scroll instead of overflowing the bottom of the sheet.
+          child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
             child: Column(
               children: [
@@ -118,7 +120,7 @@ class RoomTeacherAiSheet extends StatelessWidget {
                   ],
                 ),
                 const Divider(height: 28),
-                const Spacer(),
+                const SizedBox(height: 12),
                 GestureDetector(
                   // Allow a retry even after the health check goes offline.
                   onTap: canSpeak && !checking ? onVoicePressed : null,
@@ -236,7 +238,7 @@ class RoomTeacherAiSheet extends StatelessWidget {
                         : 'Room language: ${ProfileLanguageCatalog.localizedName(roomLanguageCode, Localizations.localeOf(context).languageCode)}',
                   ),
                 ),
-                const Spacer(),
+                const SizedBox(height: 12),
               ],
             ),
           ),
