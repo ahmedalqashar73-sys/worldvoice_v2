@@ -88,11 +88,63 @@ export function registerStoryRoutes({
   db,
   projectId,
 }) {
-  const bucketName = (
-    process.env.FIREBASE_STORAGE_BUCKET ||
-    (projectId ? `${projectId}.firebasestorage.app` : "")
-  ).trim();
-  const bucket = bucketName ? getStorage().bucket(bucketName) : null;
+  // A Firebase project can use either the newer .firebasestorage.app bucket
+  // or a legacy .appspot.com bucket. Do not assume one has been provisioned:
+  // a nonexistent bucket currently causes a slow, opaque 404 after uploading.
+  const bucketNames = [...new Set([
+    process.env.FIREBASE_STORAGE_BUCKET?.trim(),
+    projectId ? `${projectId}.firebasestorage.app` : "",
+    projectId ? `${projectId}.appspot.com` : "",
+  ].filter(Boolean))];
+  let activeBucket = null;
+  let bucketCheckedUntil = 0;
+  let bucketCheckPromise = null;
+
+  async function requireStoryBucket() {
+    if (activeBucket && Date.now() < bucketCheckedUntil) {
+      return activeBucket;
+    }
+    if (bucketCheckPromise) return bucketCheckPromise;
+    bucketCheckPromise = (async () => {
+      for (const name of bucketNames) {
+        try {
+          const candidate = getStorage().bucket(name);
+          const [exists] = await candidate.exists();
+          if (exists) {
+            activeBucket = candidate;
+            bucketCheckedUntil = Date.now() + 180000;
+            return candidate;
+          }
+        } catch (error) {
+          console.warn("Story storage bucket check failed:", error?.code || error?.message);
+        }
+      }
+      activeBucket = null;
+      const unavailable = new Error(
+        "Story storage is not ready. Open Firebase Console > Storage, " +
+        "create the default bucket, then retry."
+      );
+      unavailable.status = 503;
+      unavailable.code = "STORY_STORAGE_NOT_READY";
+      throw unavailable;
+    })();
+    try {
+      return await bucketCheckPromise;
+    } finally {
+      bucketCheckPromise = null;
+    }
+  }
+
+  // Validate the bucket BEFORE the client streams a potentially large video.
+  app.get("/stories/storage-status", async (req, res, next) => {
+    try {
+      await authenticatedUser(req);
+      await requireStoryBucket();
+      res.json({ok: true, ready: true});
+    } catch (error) {
+      next(error);
+    }
+  });
 
   app.post(
     "/stories/upload",
@@ -100,7 +152,7 @@ export function registerStoryRoutes({
     async (req, res, next) => {
       try {
         const user = await authenticatedUser(req);
-        if (!bucket) fail("Story media storage is not configured.", 503);
+        const bucket = await requireStoryBucket();
 
         const kind = storyKind(String(req.headers["x-story-kind"] || ""));
         const audience = storyAudience(
@@ -175,6 +227,7 @@ export function registerStoryRoutes({
           audience,
           durationMs: kind === "video" ? Math.round(durationMs) : 7000,
           storagePath,
+          storageBucket: bucket.name,
           createdAt: Timestamp.fromMillis(now),
           expiresAt,
         });
@@ -193,7 +246,7 @@ export function registerStoryRoutes({
   app.get("/stories/feed", async (req, res, next) => {
     try {
       const user = await authenticatedUser(req);
-      if (!bucket) fail("Story media storage is not configured.", 503);
+      const bucket = await requireStoryBucket();
 
       const snapshot = await db
         .collection("stories")
@@ -245,7 +298,14 @@ export function registerStoryRoutes({
         timestampMillis(a.data()?.createdAt));
 
       const stories = (
-        await Promise.all(visible.map(doc => signedStory({bucket, doc})))
+        await Promise.all(visible.map(doc =>
+          signedStory({
+            bucket: doc.data()?.storageBucket
+              ? getStorage().bucket(String(doc.data().storageBucket))
+              : bucket,
+            doc,
+          })
+        ))
       ).filter(Boolean);
 
       return res.json({ok: true, stories});
@@ -305,7 +365,10 @@ export function registerStoryRoutes({
       }
 
       const storagePath = String(story.storagePath || "");
-      if (bucket && storagePath) {
+      if (storagePath) {
+        const bucket = story.storageBucket
+          ? getStorage().bucket(String(story.storageBucket))
+          : await requireStoryBucket();
         await bucket.file(storagePath).delete({ignoreNotFound: true});
       }
       await storyRef.delete();
