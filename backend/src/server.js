@@ -2429,6 +2429,14 @@ registerSocialRoutes({app, authenticatedUser, db});
 registerCallRoutes({app, authenticatedUser, db});
 
 app.use((error, _req, res, _next) => {
+  if (error?.code === "STORY_STORAGE_NOT_READY") {
+    console.warn("WorldVoice Stories: Firebase Storage bucket is missing or unavailable.");
+    return res.status(503).json({
+      ok: false,
+      code: "STORY_STORAGE_NOT_READY",
+      error: "Story storage has not been created or is unavailable. Set up Firebase Storage in the project console before publishing stories.",
+    });
+  }
   const providerMessage = String(error?.message || error || "");
   const aiQuotaUnavailable =
     /no credits remaining|insufficient_quota|exceeded.*quota|billing/i
