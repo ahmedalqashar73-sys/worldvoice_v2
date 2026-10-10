@@ -110,10 +110,25 @@ class RoomTeacherAiService {
         });
   }
 
+  /// Wake the sleeping free-tier Groq backend when the room opens, before
+  /// the user opens the Teacher AI panel. The public health endpoint uses
+  /// no Firebase credentials, consumes no model tokens, and does not block
+  /// audio room entry if the network is slow or down.
+  Future<void> warmUpBackend() async {
+    final url = RoomBackendConfig.aiEndpoint('/health');
+    if (url.isEmpty) return;
+    try {
+      await http.get(Uri.parse(url))
+          .timeout(const Duration(seconds: 75));
+    } catch (_) {
+      // The authenticated probe still reports the real failure later.
+    }
+  }
+
   /// Render's free instances can take time to wake after inactivity. Retry
   /// only transient connectivity failures; do not mask missing permissions,
   /// authentication problems or provider configuration errors.
-  Future<bool> probeAvailability() async {
+  Future<bool> probeAvailability({void Function(int attempt)? onRetry}) async {
     for (var attempt = 0; attempt < 3; attempt++) {
       final available = await _probeAvailabilityOnce();
       if (available) return true;
@@ -124,6 +139,7 @@ class RoomTeacherAiService {
           code == 'SERVER_HTTP_503' ||
           code == 'SERVER_HTTP_504';
       if (!transient || attempt == 2) return false;
+      onRetry?.call(attempt + 2);
       await Future<void>.delayed(Duration(seconds: attempt == 0 ? 3 : 6));
     }
     return false;
