@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../data/room_caption.dart';
+import '../../profile/data/profile_language_catalog.dart';
 import '../data/room_teacher_ai_note.dart';
 
 class RoomCaptionsSheet extends StatelessWidget {
@@ -40,8 +41,11 @@ class RoomCaptionsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isArabic =
-        Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
+    final appLanguage = Localizations.localeOf(context).languageCode.toLowerCase();
+    final isArabic = appLanguage == 'ar';
+    final choices = targetLanguages ?? roomCaptionLanguages;
+    final selectedTarget = choices.any((item) => item.code == targetLanguage)
+        ? targetLanguage : (choices.isNotEmpty ? choices.first.code : 'en');
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -104,6 +108,38 @@ class RoomCaptionsSheet extends StatelessWidget {
                     : 'Translation is shown only to you; your profile native language is the default target.',
               ),
             ),
+            if (translationEnabled && choices.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isArabic ? 'الترجمة إلى' :
+                      appLanguage == 'es' ? 'Traducir a' :
+                      appLanguage == 'fr' ? 'Traduire en' : 'Translate to',
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 6),
+                    DropdownButton<String>(
+                      isExpanded: true,
+                      value: selectedTarget,
+                      onChanged: (code) {
+                        if (code != null) onTargetLanguageChanged(code);
+                      },
+                      items: [
+                        for (final language in choices)
+                          DropdownMenuItem<String>(
+                            value: language.code,
+                            child: Text(ProfileLanguageCatalog.localizedName(
+                              language.code, appLanguage,
+                            )),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               value: pronunciationEnabled,
