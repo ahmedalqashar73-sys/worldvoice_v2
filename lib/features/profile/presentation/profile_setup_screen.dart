@@ -16,14 +16,25 @@ import 'profile_form_validation.dart';
 import 'profile_form_widgets.dart';
 import 'profile_hobbies_picker.dart';
 
+// Short action label shown beside the learning languages in the user's UI.
+String profileAddLearningLabel(String localeCode) => const <String, String>{
+  'ar': 'إضافة', 'en': 'Add', 'es': 'Añadir', 'fr': 'Ajouter',
+  'zh': '添加', 'ko': '추가', 'ja': '追加', 'ru': 'Добавить',
+  'tr': 'Ekle', 'ur': 'شامل کریں', 'de': 'Hinzufügen',
+  'pt': 'Adicionar', 'fa': 'افزودن', 'id': 'Tambah', 'th': 'เพิ่ม',
+  'hi': 'जोड़ें', 'it': 'Aggiungi',
+}[localeCode.toLowerCase()] ?? 'Add';
+
 class ProfileSetupScreen extends StatefulWidget {
   const ProfileSetupScreen({
     required this.localeController,
     this.editMode = false,
+    this.openLearningPickerOnLaunch = false,
     super.key,
   });
   final LocaleController localeController;
   final bool editMode;
+  final bool openLearningPickerOnLaunch;
   @override State<ProfileSetupScreen> createState()=>_ProfileSetupScreenState();
 }
 
@@ -114,6 +125,11 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         ..addAll(hobbies);
       usernameAvailable = true;
     });
+    if (widget.openLearningPickerOnLaunch && mounted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _pickLearningLanguage();
+      });
+    }
   }
 
   static const countries = <String>[
@@ -262,6 +278,35 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   Future<void> pickCoverImage() async {
     final picked=await _imagePicker.pickImage(source:ImageSource.gallery,imageQuality:88,maxWidth:2200);
     if(picked!=null&&mounted)setState(()=>coverImage=File(picked.path));
+  }
+
+  Future<void> _pickLearningLanguage() async {
+    final code = widget.localeController.locale?.languageCode ??
+        Localizations.localeOf(context).languageCode;
+    final value = await chooseProfileLanguage(_profileText(code, 'learning'));
+    if (value == null || !mounted) return;
+    if (value == nativeLanguage) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(
+        code == 'ar' ? 'لغة التعلّم يجب أن تختلف عن اللغة الأم.' :
+        code == 'es' ? 'La lengua aprendida debe ser distinta de la materna.' :
+        code == 'fr' ? 'La langue apprise doit différer de la langue maternelle.' :
+        'The learning language must be different from your native language.',
+      )));
+      return;
+    }
+    if (learningLanguages.contains(value)) return;
+    if (vipLearningEnabled && learningLanguages.length >= 10) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(
+        code == 'ar' ? 'يمكن لأعضاء VIP إضافة 10 لغات تعلّم كحد أقصى.' :
+        code == 'es' ? 'VIP permite hasta 10 idiomas de aprendizaje.' :
+        'VIP permits up to 10 learning languages.',
+      )));
+      return;
+    }
+    setState(() {
+      if (!vipLearningEnabled) learningLanguages.clear();
+      learningLanguages.add(value);
+    });
   }
 
   Future<void> saveProfile() async {
@@ -494,38 +539,32 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           preferNotToSayLabel:_extraText(code,'prefer'),
           onChanged:(v)=>setState(()=>gender=v),
         ),
-        ProfilePickerTile(Icons.translate_rounded,t('native'),nativeLanguage==null?t('chooseLanguage'):ProfileLanguageCatalog.localizedName(nativeLanguage,code),()async{final v=await chooseProfileLanguage(t('native'));if(v!=null)setState(()=>nativeLanguage=v);}),
+        ProfilePickerTile(Icons.translate_rounded,t('native'),nativeLanguage==null?t('chooseLanguage'):ProfileLanguageCatalog.localizedName(nativeLanguage,code),()async{final v=await chooseProfileLanguage(t('native'));if(v!=null&&mounted)setState((){nativeLanguage=v;learningLanguages.remove(v);});}),
       ],
       ProfileTextField(city,t('city'),Icons.location_city_outlined),const SizedBox(height:10),
-      ProfilePickerTile(
-        vipLearningEnabled && learningLanguages.isNotEmpty
-            ? Icons.add_circle_outline_rounded
-            : Icons.language_rounded,
-        t('learning'),
-        learningLanguages.isEmpty?t('chooseLanguage'):
-          learningLanguages.map((v)=>ProfileLanguageCatalog.localizedName(v,code)).join(' • '),
-        ()async{
-          final v=await chooseProfileLanguage(t('learning'));
-          if(v==null || !mounted)return;
-          if(v==nativeLanguage){
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(
-              code=='ar'?'لغة التعلم يجب أن تختلف عن اللغة الأم.':
-              code=='es'?'El idioma de aprendizaje debe ser diferente de tu lengua materna.':
-              'The learning language must differ from your native language.',
-            )));
-            return;
-          }
-          if(learningLanguages.contains(v))return;
-          if(vipLearningEnabled && learningLanguages.length>=10){
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              content:Text('VIP permits up to 10 learning languages.')));
-            return;
-          }
-          setState((){
-            if(!vipLearningEnabled)learningLanguages.clear();
-            learningLanguages.add(v);
-          });
-        },
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(child: ProfilePickerTile(
+            Icons.language_rounded,
+            t('learning'),
+            learningLanguages.isEmpty
+                ? t('chooseLanguage')
+                : learningLanguages
+                    .map((v) => ProfileLanguageCatalog.localizedName(v,code))
+                    .join(' • '),
+            _pickLearningLanguage,
+          )),
+          const SizedBox(width: 5),
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: IconButton.filledTonal(
+              tooltip: profileAddLearningLabel(code),
+              onPressed: _pickLearningLanguage,
+              icon: const Icon(Icons.add_rounded),
+            ),
+          ),
+        ],
       ),
       if(vipLearningEnabled && learningLanguages.isNotEmpty)
         Padding(
