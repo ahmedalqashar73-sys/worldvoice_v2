@@ -2434,7 +2434,7 @@ app.use((error, _req, res, _next) => {
     return res.status(503).json({
       ok: false,
       code: "STORY_STORAGE_NOT_READY",
-      error: "Story storage has not been created or is unavailable. Set up Firebase Storage in the project console before publishing stories.",
+      error: "Story media storage is unavailable. Configure CLOUDINARY_URL on the Render server or create a Firebase Storage bucket.",
     });
   }
   const providerMessage = String(error?.message || error || "");
