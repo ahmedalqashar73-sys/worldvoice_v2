@@ -5,11 +5,11 @@ import 'package:flutter/foundation.dart';
 class RoomBackendConfig {
   RoomBackendConfig._();
 
-  // The deployed unified WorldVoice backend is now the default for plain
-  // `flutter run`. A dart-define can still override it per environment.
+  // The Groq-enabled unified backend is the single default for new builds.
+  // Other deployed URLs can still be selected explicitly during migration.
   static const String configuredBaseUrl = String.fromEnvironment(
     'WORLDVOICE_ROOM_BACKEND_URL',
-    defaultValue: 'https://worldvoice-v2.onrender.com',
+    defaultValue: 'https://worldvoice-teacher-ai.onrender.com',
   );
 
   static String get baseUrl => configuredBaseUrl.trim();
