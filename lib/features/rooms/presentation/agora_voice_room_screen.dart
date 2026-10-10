@@ -684,7 +684,9 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   void _ensureTeacherAiActive() {
     if (!mounted || _leaving || !_showTeacherAiSeat ||
         !_controller.joined || !_teacherAi.isAskConfigured ||
-        _teacherAiProbeInProgress) return;
+        _teacherAiProbeInProgress) {
+      return;
+    }
     if (_teacherAiOnline.value) {
       _teacherAiConversationActive = true;
       return;
