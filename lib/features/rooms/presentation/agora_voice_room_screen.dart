@@ -864,7 +864,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
             if (mounted && _teacherAiConversationActive) {
               final safeCode = message.contains('AI_SERVICE_UNAVAILABLE')
                   ? 'AI_SERVICE_UNAVAILABLE'
-                  : RegExp(r'AI_HTTP_\\d+').firstMatch(message)?.group(0)
+                  : RegExp(r'AI_HTTP_\d+').firstMatch(message)?.group(0)
                       ?? 'AI_REQUEST_FAILED';
               _teacherAiFeedback.value =
                   'Teacher AI could not answer ($safeCode). Please retry.';
