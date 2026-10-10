@@ -3783,7 +3783,7 @@ class _TeacherAiCompactSeat extends StatelessWidget {
                           const SizedBox(width: 5),
                           Flexible(
                             child: Text(
-                              online ? 'Online • Listening automatically'
+                              online ? 'Online'
                                   : configured ? 'Connecting / Offline'
                                   : 'AI backend unavailable',
                               maxLines: 1,
