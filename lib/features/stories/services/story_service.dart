@@ -85,8 +85,15 @@ class StoryCloseFriendState {
 class StoryService {
   StoryService({http.Client? client}) : _client = client ?? http.Client();
 
-  static const String _endpoint =
-      String.fromEnvironment('WORLDVOICE_ECONOMY_ENDPOINT');
+  // The story upload API lives on the current main backend, not the older
+  // economy deployment. Keep a dedicated override for future migrations.
+  static const String _endpoint = String.fromEnvironment(
+    'WORLDVOICE_STORY_BACKEND_URL',
+    defaultValue: String.fromEnvironment(
+      'WORLDVOICE_AI_BACKEND_URL',
+      defaultValue: String.fromEnvironment('WORLDVOICE_ECONOMY_ENDPOINT'),
+    ),
+  );
   final http.Client _client;
 
   Uri _uri(String path) {
@@ -159,6 +166,19 @@ class StoryService {
     required int durationMs,
   }) async {
     final token = await _token();
+    // Check bucket readiness before spending time transferring video bytes.
+    // Missing Firebase Storage used to fail only after the full upload.
+    try {
+      final readiness = await _client.get(
+        _uri('/stories/storage-status'),
+        headers: {'Authorization': 'Bearer $token'},
+      ).timeout(const Duration(seconds: 75));
+      await _decode(readiness);
+    } on TimeoutException {
+      throw StateError(
+        'Story storage check timed out. Please try again.',
+      );
+    }
     final length = await file.length();
     final maxBytes = kind == 'video' ? 80 * 1024 * 1024 : 12 * 1024 * 1024;
     if (length == 0 || length > maxBytes) {
