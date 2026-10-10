@@ -1107,7 +1107,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     _teacherAiConversationActive = true;
     _teacherAiFeedback.value = 'Checking Teacher AI connection…';
     unawaited(_syncCaptionPublishing().catchError((Object error) {
-      if (mounted && session == _teacherAiSession) {
+      if (mounted && session == _teacherAiSession &&
+          !_teacherAiProbeInProgress) {
         _teacherAiFeedback.value =
             'Speech recognition could not start: ${error.toString()}';
       }
