@@ -301,10 +301,10 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
         // visible beside Share Story so users know publication did not work.
         _publishError = unavailable
             ? (ar
-                ? 'لا يمكن نشر الستوري: مساحة Firebase Storage لم تُنشأ بعد. '
-                    'افتح Firebase Console > Storage وجهّز التخزين ثم حاول مجددًا.'
-                : 'Stories cannot be published until Firebase Storage is set up '
-                    'in the Firebase Console.')
+                ? 'لا يمكن نشر الستوري: خدمة تخزين الوسائط غير مهيأة. '
+                    'اربط حساب Cloudinary بخادم WorldVoice على Render ثم حاول مجددًا.'
+                : 'Stories cannot be published until Cloudinary is configured '
+                    'on the WorldVoice backend (or Firebase Storage is enabled).')
             : raw;
       });
       await _video?.play();
