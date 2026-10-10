@@ -193,7 +193,7 @@ class RoomTeacherAiService {
         } catch (_) {
           // Old servers can return plain-text error responses.
         }
-        lastAvailabilityError = safeCode ?? 'AI_SERVICE_UNAVAILABLE';
+        lastAvailabilityError = safeCode ?? 'SERVER_HTTP_503';
       } else {
         lastAvailabilityError = 'SERVER_HTTP_${response.statusCode}';
       }
