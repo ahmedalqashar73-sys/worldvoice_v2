@@ -2500,6 +2500,32 @@ class ProfileLanguageCatalog {
     },
   };
 
+  // Field names follow the selected WorldVoice interface language, just as
+  // the language names themselves do. Store only language codes in Firestore.
+  static String localizedFieldTitle(String field, String uiLocale) {
+    final locale = uiLocale.toLowerCase().split(RegExp(r'[-_]')).first;
+    const labels = <String, Map<String, String>>{
+      'ar': {'native': 'اللغة الأم', 'learning': 'لغات التعلم', 'languages': 'اللغات'},
+      'en': {'native': 'Native language', 'learning': 'Learning languages', 'languages': 'Languages'},
+      'es': {'native': 'Idioma nativo', 'learning': 'Idiomas que aprendes', 'languages': 'Idiomas'},
+      'fr': {'native': 'Langue maternelle', 'learning': 'Langues apprises', 'languages': 'Langues'},
+      'zh': {'native': '母语', 'learning': '学习语言', 'languages': '语言'},
+      'ko': {'native': '모국어', 'learning': '학습 언어', 'languages': '언어'},
+      'ja': {'native': '母語', 'learning': '学習言語', 'languages': '言語'},
+      'ru': {'native': 'Родной язык', 'learning': 'Изучаемые языки', 'languages': 'Языки'},
+      'tr': {'native': 'Ana dil', 'learning': 'Öğrenilen diller', 'languages': 'Diller'},
+      'ur': {'native': 'مادری زبان', 'learning': 'سیکھی جانے والی زبانیں', 'languages': 'زبانیں'},
+      'de': {'native': 'Muttersprache', 'learning': 'Lernsprachen', 'languages': 'Sprachen'},
+      'pt': {'native': 'Idioma nativo', 'learning': 'Idiomas estudados', 'languages': 'Idiomas'},
+      'fa': {'native': 'زبان مادری', 'learning': 'زبان‌های در حال یادگیری', 'languages': 'زبان‌ها'},
+      'id': {'native': 'Bahasa ibu', 'learning': 'Bahasa yang dipelajari', 'languages': 'Bahasa'},
+      'th': {'native': 'ภาษาแม่', 'learning': 'ภาษาที่เรียน', 'languages': 'ภาษา'},
+      'hi': {'native': 'मातृभाषा', 'learning': 'सीखी जा रही भाषाएँ', 'languages': 'भाषाएँ'},
+      'it': {'native': 'Lingua madre', 'learning': 'Lingue studiate', 'languages': 'Lingue'},
+    };
+    return labels[locale]?[field] ?? labels['en']?[field] ?? field;
+  }
+
   static String localizedName(String? code, String uiLocale) {
     if (code == null || code.isEmpty) return '';
     if (code.startsWith(customPrefix)) return code.substring(customPrefix.length);
