@@ -676,6 +676,9 @@ const _hobbyLabels=<String,Map<String,String>>{
 String _profileText(String code,String key){
   final hobby=_hobbyLabels[code]?[key]??_hobbyLabels['en']?[key];
   if(hobby!=null)return hobby;
+  if (key == 'native' || key == 'learning') {
+    return ProfileLanguageCatalog.localizedFieldTitle(key, code);
+  }
   final i=_pk.indexOf(key);
   final a=_pt[code]??_pt['en']!;
   return i<0?key:a[i];
