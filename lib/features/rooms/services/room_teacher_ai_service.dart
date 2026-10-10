@@ -110,7 +110,26 @@ class RoomTeacherAiService {
         });
   }
 
+  /// Render's free instances can take time to wake after inactivity. Retry
+  /// only transient connectivity failures; do not mask missing permissions,
+  /// authentication problems or provider configuration errors.
   Future<bool> probeAvailability() async {
+    for (var attempt = 0; attempt < 3; attempt++) {
+      final available = await _probeAvailabilityOnce();
+      if (available) return true;
+      final code = lastAvailabilityError ?? '';
+      final transient = code == 'NETWORK_TIMEOUT' ||
+          code == 'NETWORK_ERROR' ||
+          code == 'SERVER_HTTP_502' ||
+          code == 'SERVER_HTTP_503' ||
+          code == 'SERVER_HTTP_504';
+      if (!transient || attempt == 2) return false;
+      await Future<void>.delayed(Duration(seconds: attempt == 0 ? 3 : 6));
+    }
+    return false;
+  }
+
+  Future<bool> _probeAvailabilityOnce() async {
     lastAvailabilityError = null;
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
@@ -143,7 +162,7 @@ class RoomTeacherAiService {
               'roomId': roomId,
             }),
           )
-          .timeout(const Duration(seconds: 45));
+          .timeout(const Duration(seconds: 35));
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return true;
