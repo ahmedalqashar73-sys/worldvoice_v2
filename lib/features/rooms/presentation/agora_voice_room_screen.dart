@@ -183,6 +183,9 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   int _teacherAiSession = 0;
   bool _aiServiceUnavailable = false;
   bool _teacherAiProbeInProgress = false;
+  Timer? _teacherAiReconnectTimer;
+  String? _lastTeacherAiPrompt;
+  DateTime? _lastTeacherAiPromptAt;
   final ValueNotifier<bool> _teacherAiOnline = ValueNotifier<bool>(false);
   final ValueNotifier<bool> _teacherAiMicListening =
       ValueNotifier<bool>(false);
@@ -219,6 +222,12 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     // Warm the free Render instance while the user enters the room, rather
     // than waiting for the Teacher AI panel to request its first response.
     unawaited(_teacherAi.warmUpBackend());
+    // The AI seat is a room participant: connection runs independently
+    // of whether its optional details sheet is open.
+    _teacherAiReconnectTimer = Timer.periodic(
+      const Duration(seconds: 45),
+      (_) => _ensureTeacherAiActive(),
+    );
     _captionTargetLanguage =
         widget.localeController?.locale?.languageCode ?? 'en';
     unawaited(_loadViewerLanguagePreferences());
@@ -447,8 +456,14 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         if (!mounted) return;
         setState(() => _showTeacherAiSeat = isVisible);
         if (!isVisible) {
+          _teacherAiSession++;
+          _teacherAiConversationActive = false;
+          _teacherAiProbeInProgress = false;
+          _teacherAiOnline.value = false;
           _queuedTeacherAiCaption = null;
           unawaited(_stopRoomTeacherVoice());
+        } else {
+          _ensureTeacherAiActive();
         }
         unawaited(_syncCaptionPublishing());
       });
@@ -620,11 +635,9 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         return;
       }
       if (!mounted || _leaving || !_controller.joined) return;
-      // From the hub, open Teacher AI only AFTER actual room membership
-      // and the Agora join have completed. Normal room entry is unchanged.
-      if (widget.openTeacherAiOnJoin) {
-        unawaited(_showTeacherAiChat());
-      }
+      // Start the Teacher AI conversation automatically after joining Agora.
+      // Never require opening a modal to make the ninth seat respond.
+      _ensureTeacherAiActive();
       if (!asHost) return;
       // Open the selected tool after room membership and the audio join request.
       if (widget.initialMode == RoomMode.board ||
@@ -663,6 +676,17 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         if (mounted) Navigator.of(context).pop();
       }
     }
+  }
+
+  void _ensureTeacherAiActive() {
+    if (!mounted || _leaving || !_showTeacherAiSeat ||
+        !_controller.joined || !_teacherAi.isAskConfigured ||
+        _teacherAiProbeInProgress) return;
+    if (_teacherAiOnline.value) {
+      _teacherAiConversationActive = true;
+      return;
+    }
+    unawaited(_prepareTeacherConversation(++_teacherAiSession));
   }
 
   void _handleTeacherAiVoice(
@@ -820,6 +844,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
   bool _shouldAutoAnswerCaption(RoomCaption caption) {
     if (!_teacherAiConversationActive ||
+        !_teacherAiOnline.value ||
         !_showTeacherAiSeat ||
         !_teacherAi.isAskConfigured ||
         caption.userId != _moderation.currentUserId ||
@@ -830,6 +855,12 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     if (suppressedUntil != null && DateTime.now().isBefore(suppressedUntil)) {
       return false;
     }
+    // The device's instant caption is later published to Firestore with a
+    // different ID. Prevent a second billed answer to the same sentence.
+    if (_lastTeacherAiPrompt == caption.text.trim() &&
+        _lastTeacherAiPromptAt != null &&
+        DateTime.now().difference(_lastTeacherAiPromptAt!) <
+            const Duration(seconds: 12)) return false;
     final createdAt = caption.createdAt;
     if (createdAt != null &&
         DateTime.now().difference(createdAt).abs() >
@@ -851,6 +882,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       while (mounted && _showTeacherAiSeat && _teacherAiConversationActive) {
         final prompt = current.text.trim();
         if (prompt.isNotEmpty) {
+          _lastTeacherAiPrompt = prompt;
+          _lastTeacherAiPromptAt = DateTime.now();
           try {
             _teacherAiFeedback.value = 'Teacher AI is thinking…';
             final answer = await _teacherAi.ask(
@@ -1066,12 +1099,9 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     }
 
     _teacherAiSheetOpen = true;
-    final session = ++_teacherAiSession;
-    _teacherAiOnline.value = false;
-    _teacherAiFeedback.value = 'Checking Teacher AI connection…';
     _teacherAiMicListening.value = _captionListening;
-    // Show the sheet before waiting for network or speech initialization.
-    unawaited(_prepareTeacherConversation(session));
+    // Opening the optional details sheet never restarts an active session.
+    _ensureTeacherAiActive();
     try {
       await showModalBottomSheet<void>(
         context: context,
@@ -1089,17 +1119,9 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         ),
       );
     } finally {
+      // Speech capture and voice replies continue in the room after closing
+      // the details sheet. Only disabling the AI seat or leaving stops them.
       _teacherAiSheetOpen = false;
-      _teacherAiSession++;
-      if (mounted) {
-        setState(() {
-          _teacherAiConversationActive = false;
-          _queuedTeacherAiCaption = null;
-        });
-        _teacherAiProbeInProgress = false;
-        await _stopRoomTeacherVoice();
-        await _syncCaptionPublishing();
-      }
     }
   }
 
@@ -1120,14 +1142,14 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     try {
       final available = await _teacherAi.probeAvailability(
         onRetry: (attempt) {
-          if (mounted && !_leaving && _teacherAiSheetOpen &&
+          if (mounted && !_leaving && _showTeacherAiSeat &&
               session == _teacherAiSession) {
             _teacherAiFeedback.value =
                 'Checking Teacher AI connection… (attempt $attempt/3)';
           }
         },
       );
-      if (!mounted || _leaving || !_teacherAiSheetOpen ||
+      if (!mounted || _leaving || !_showTeacherAiSeat ||
           session != _teacherAiSession) {
         return;
       }
@@ -1159,7 +1181,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     // A transient provider/Render wake-up failure should be recoverable
     // without closing and reopening the room or Teacher AI sheet.
     if (!_teacherAiOnline.value) {
-      await _prepareTeacherConversation(_teacherAiSession);
+      _ensureTeacherAiActive();
       return;
     }
     _teacherAiFeedback.value = 'Starting speech recognition…';
@@ -2940,6 +2962,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     _giftOverlayTimer?.cancel();
     _speakingTimer?.cancel();
     _quotaTimer?.cancel();
+    _teacherAiReconnectTimer?.cancel();
     _giftOverlay?.remove();
     _giftOverlay = null;
     _controller.removeListener(_refresh);
