@@ -3,6 +3,7 @@ import {randomUUID} from "node:crypto";
 import express from "express";
 import {Timestamp} from "firebase-admin/firestore";
 import {getStorage} from "firebase-admin/storage";
+import {v2 as cloudinary} from "cloudinary";
 
 const MAX_IMAGE_BYTES = 12 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 80 * 1024 * 1024;
@@ -55,15 +56,40 @@ async function canViewStory({db, story, viewerId}) {
   return closeFriend.exists;
 }
 
-async function signedStory({bucket, doc}) {
+async function signedStory({bucketForLegacy, doc}) {
   const data = doc.data() || {};
+  const publicId = String(data.cloudinaryPublicId || "");
   const storagePath = String(data.storagePath || "");
-  if (!storagePath) return null;
+  if (!publicId && !storagePath) return null;
   try {
-    const [mediaUrl] = await bucket.file(storagePath).getSignedUrl({
-      action: "read",
-      expires: Date.now() + SIGNED_URL_LIFETIME_MS,
-    });
+    let mediaUrl = "";
+    if (publicId) {
+      if (data.audience === "close_friends") {
+        // A normal authenticated URL signature never expires. Instead issue a
+        // 15-minute private-download link *only* to authorized story viewers.
+        // Cloudinary does not CDN-cache this URL (higher free-plan bandwidth).
+        mediaUrl = cloudinary.utils.private_download_url(
+          publicId,
+          String(data.cloudinaryFormat || "jpg"),
+          {
+            resource_type: data.kind === "video" ? "video" : "image",
+            type: "authenticated",
+            attachment: false,
+            expires_at: Math.floor(Date.now() / 1000) + 15 * 60,
+          },
+        );
+      } else {
+        mediaUrl = String(data.cloudinarySecureUrl || "");
+      }
+    } else {
+      const bucket = await bucketForLegacy(data);
+      const [signedUrl] = await bucket.file(storagePath).getSignedUrl({
+        action: "read",
+        expires: Date.now() + SIGNED_URL_LIFETIME_MS,
+      });
+      mediaUrl = signedUrl;
+    }
+    if (!mediaUrl) return null;
     return {
       id: doc.id,
       ownerId: String(data.ownerId || ""),
@@ -88,6 +114,58 @@ export function registerStoryRoutes({
   db,
   projectId,
 }) {
+  // Credentials live exclusively in Render environment variables, never
+  // in Flutter, the Firestore story document, or source control.
+  const cloudinaryConfigured = (() => {
+    try {
+      const uri = String(process.env.CLOUDINARY_URL || "").trim();
+      if (uri) {
+        const parsed = new URL(uri);
+        if (parsed.protocol !== "cloudinary:" || !parsed.hostname ||
+            !parsed.username || !parsed.password) return false;
+        cloudinary.config({
+          cloud_name: parsed.hostname,
+          api_key: decodeURIComponent(parsed.username),
+          api_secret: decodeURIComponent(parsed.password),
+          secure: true,
+        });
+      } else {
+        cloudinary.config({
+          cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+          api_key: process.env.CLOUDINARY_API_KEY,
+          api_secret: process.env.CLOUDINARY_API_SECRET,
+          secure: true,
+        });
+      }
+      const cfg = cloudinary.config();
+      return Boolean(cfg.cloud_name && cfg.api_key && cfg.api_secret);
+    } catch {
+      return false;
+    }
+  })();
+
+  async function uploadCloudinaryStory({payload, kind, audience, uid, id}) {
+    const publicId = `worldvoice/stories/${uid}/${id}`;
+    return await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        {
+          resource_type: kind,
+          public_id: publicId,
+          type: audience === "close_friends" ? "authenticated" : "upload",
+          overwrite: false,
+          unique_filename: false,
+          timeout: 120000,
+        },
+        (error, result) => {
+          if (error || !result) return reject(error || new Error("Upload failed."));
+          resolve(result);
+        },
+      );
+      stream.on("error", reject);
+      stream.end(payload);
+    });
+  }
+
   // A Firebase project can use either the newer .firebasestorage.app bucket
   // or a legacy .appspot.com bucket. Do not assume one has been provisioned:
   // a nonexistent bucket currently causes a slow, opaque 404 after uploading.
@@ -121,8 +199,8 @@ export function registerStoryRoutes({
       }
       activeBucket = null;
       const unavailable = new Error(
-        "Story storage is not ready. Open Firebase Console > Storage, " +
-        "create the default bucket, then retry."
+        "Story media storage is not ready. Configure Cloudinary on Render, " +
+        "or create a Firebase Storage bucket, then retry."
       );
       unavailable.status = 503;
       unavailable.code = "STORY_STORAGE_NOT_READY";
@@ -135,12 +213,16 @@ export function registerStoryRoutes({
     }
   }
 
-  // Validate the bucket BEFORE the client streams a potentially large video.
+  // Check readiness BEFORE the client streams a potentially large video.
+  // Cloudinary is preferred when present; legacy Firebase stories stay readable.
   app.get("/stories/storage-status", async (req, res, next) => {
     try {
       await authenticatedUser(req);
+      if (cloudinaryConfigured) {
+        return res.json({ok: true, ready: true, provider: "cloudinary"});
+      }
       await requireStoryBucket();
-      res.json({ok: true, ready: true});
+      return res.json({ok: true, ready: true, provider: "firebase"});
     } catch (error) {
       next(error);
     }
@@ -152,7 +234,8 @@ export function registerStoryRoutes({
     async (req, res, next) => {
       try {
         const user = await authenticatedUser(req);
-        const bucket = await requireStoryBucket();
+        // Validate the provider before processing the request body.
+        const bucket = cloudinaryConfigured ? null : await requireStoryBucket();
 
         const kind = storyKind(String(req.headers["x-story-kind"] || ""));
         const audience = storyAudience(
@@ -204,33 +287,55 @@ export function registerStoryRoutes({
         const now = Date.now();
         const expiresAt = Timestamp.fromMillis(now + STORY_LIFETIME_MS);
 
-        await bucket.file(storagePath).save(payload, {
-          resumable: false,
-          contentType,
-          metadata: {
-            cacheControl: "private,max-age=900",
+        let uploaded = null;
+        if (cloudinaryConfigured) {
+          uploaded = await uploadCloudinaryStory({
+            payload, kind, audience, uid: user.uid, id,
+          });
+        } else {
+          await bucket.file(storagePath).save(payload, {
+            resumable: false,
+            contentType,
             metadata: {
-              ownerId: user.uid,
-              storyId: id,
+              cacheControl: "private,max-age=900",
+              metadata: {ownerId: user.uid, storyId: id},
             },
-          },
-        });
+          });
+        }
 
         const storyRef = db.collection("stories").doc(id);
-        await storyRef.set({
-          ownerId: user.uid,
-          ownerName: String(
-            profile.displayName || user.name || "WorldVoice",
-          ).slice(0, 100),
-          ownerPhotoUrl: String(profile.photoUrl || user.picture || ""),
-          kind,
-          audience,
-          durationMs: kind === "video" ? Math.round(durationMs) : 7000,
-          storagePath,
-          storageBucket: bucket.name,
-          createdAt: Timestamp.fromMillis(now),
-          expiresAt,
-        });
+        try {
+          await storyRef.set({
+            ownerId: user.uid,
+            ownerName: String(
+              profile.displayName || user.name || "WorldVoice",
+            ).slice(0, 100),
+            ownerPhotoUrl: String(profile.photoUrl || user.picture || ""),
+            kind,
+            audience,
+            durationMs: kind === "video" ? Math.round(durationMs) : 7000,
+            ...(uploaded ? {
+              cloudinaryPublicId: String(uploaded.public_id),
+              cloudinaryFormat: String(uploaded.format || ext),
+              cloudinarySecureUrl: audience === "everyone"
+                ? String(uploaded.secure_url || "") : "",
+            } : {
+              storagePath,
+              storageBucket: bucket.name,
+            }),
+            createdAt: Timestamp.fromMillis(now),
+            expiresAt,
+          });
+        } catch (error) {
+          // Avoid consuming free storage if saving the Firestore post fails.
+          if (uploaded) {
+            await cloudinary.uploader.destroy(uploaded.public_id, {
+              resource_type: kind,
+              type: audience === "close_friends" ? "authenticated" : "upload",
+            }).catch(() => {});
+          }
+          throw error;
+        }
 
         return res.json({
           ok: true,
@@ -246,7 +351,6 @@ export function registerStoryRoutes({
   app.get("/stories/feed", async (req, res, next) => {
     try {
       const user = await authenticatedUser(req);
-      const bucket = await requireStoryBucket();
 
       const snapshot = await db
         .collection("stories")
@@ -300,9 +404,9 @@ export function registerStoryRoutes({
       const stories = (
         await Promise.all(visible.map(doc =>
           signedStory({
-            bucket: doc.data()?.storageBucket
-              ? getStorage().bucket(String(doc.data().storageBucket))
-              : bucket,
+            bucketForLegacy: async data => data.storageBucket
+              ? getStorage().bucket(String(data.storageBucket))
+              : await requireStoryBucket(),
             doc,
           })
         ))
@@ -364,12 +468,21 @@ export function registerStoryRoutes({
         fail("Only the story owner can delete it.", 403);
       }
 
-      const storagePath = String(story.storagePath || "");
-      if (storagePath) {
-        const bucket = story.storageBucket
-          ? getStorage().bucket(String(story.storageBucket))
-          : await requireStoryBucket();
-        await bucket.file(storagePath).delete({ignoreNotFound: true});
+      const publicId = String(story.cloudinaryPublicId || "");
+      if (publicId) {
+        await cloudinary.uploader.destroy(publicId, {
+          resource_type: story.kind === "video" ? "video" : "image",
+          type: story.audience === "close_friends" ? "authenticated" : "upload",
+          invalidate: true,
+        });
+      } else {
+        const storagePath = String(story.storagePath || "");
+        if (storagePath) {
+          const bucket = story.storageBucket
+            ? getStorage().bucket(String(story.storageBucket))
+            : await requireStoryBucket();
+          await bucket.file(storagePath).delete({ignoreNotFound: true});
+        }
       }
       await storyRef.delete();
       return res.json({ok: true});
