@@ -216,6 +216,9 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     _captionService = RoomCaptionService(roomId: widget.channelId);
     _translationService = RoomTranslationService(roomId: widget.channelId);
     _teacherAi = RoomTeacherAiService(roomId: widget.channelId);
+    // Warm the free Render instance while the user enters the room, rather
+    // than waiting for the Teacher AI panel to request its first response.
+    unawaited(_teacherAi.warmUpBackend());
     _captionTargetLanguage =
         widget.localeController?.locale?.languageCode ?? 'en';
     unawaited(_loadViewerLanguagePreferences());
@@ -1115,7 +1118,15 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     }));
 
     try {
-      final available = await _teacherAi.probeAvailability();
+      final available = await _teacherAi.probeAvailability(
+        onRetry: (attempt) {
+          if (mounted && !_leaving && _teacherAiSheetOpen &&
+              session == _teacherAiSession) {
+            _teacherAiFeedback.value =
+                'Checking Teacher AI connection… (attempt $attempt/3)';
+          }
+        },
+      );
       if (!mounted || _leaving || !_teacherAiSheetOpen ||
           session != _teacherAiSession) {
         return;
