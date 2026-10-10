@@ -69,6 +69,34 @@ const db = getFirestore();
 const app = express();
 app.disable("x-powered-by");
 
+// Log only the route, HTTP status, and duration of AI requests. Never log
+// authorization headers, room IDs, transcripts, or provider API keys.
+// This makes free-instance cold starts distinguishable from 401/403/429/503.
+app.use((req, res, next) => {
+  const aiPaths = new Set([
+    "/ai/status", "/speech/transcribe", "/teacher-ai", "/teacher-ai/ask",
+  ]);
+  if (!aiPaths.has(req.path)) return next();
+  const startedAt = Date.now();
+  let finished = false;
+  res.once("finish", () => {
+    finished = true;
+    console.info(
+      `WorldVoice AI request: ${req.method} ${req.path} ` +
+      `HTTP ${res.statusCode} in ${Date.now() - startedAt}ms`,
+    );
+  });
+  res.once("close", () => {
+    if (!finished) {
+      console.warn(
+        `WorldVoice AI connection closed: ${req.method} ${req.path} ` +
+        `after ${Date.now() - startedAt}ms`,
+      );
+    }
+  });
+  next();
+});
+
 const stripeSecret = String(process.env.STRIPE_SECRET_KEY || "").trim();
 const stripeWebhookSecret = String(process.env.STRIPE_WEBHOOK_SECRET || "").trim();
 const stripe = stripeSecret ? new Stripe(stripeSecret) : null;
