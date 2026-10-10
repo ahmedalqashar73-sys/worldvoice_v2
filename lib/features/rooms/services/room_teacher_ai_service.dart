@@ -255,7 +255,8 @@ class RoomTeacherAiService {
               lower.contains('billing'))) {
         throw StateError('AI_SERVICE_UNAVAILABLE');
       }
-      throw StateError(message);
+      // Surface a safe status code for diagnostics, not raw provider text.
+      throw StateError('AI_HTTP_${response.statusCode}');
     }
 
     final decoded = jsonDecode(response.body);
