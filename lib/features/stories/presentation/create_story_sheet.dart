@@ -27,6 +27,7 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
   String _audience = 'everyone';
   int _durationMs = 7000;
   bool _uploading = false;
+  String? _publishError;
   bool _loadingEntitlements = true;
   bool _isVip = false;
   Set<String> _closeFriends = <String>{};
@@ -122,6 +123,7 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
     setState(() {
       _media = selected;
       _kind = kind;
+      _publishError = null;
     });
   }
 
@@ -274,7 +276,10 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
 
     await _video?.pause();
     if (!mounted) return;
-    setState(() => _uploading = true);
+    setState(() {
+      _uploading = true;
+      _publishError = null;
+    });
     try {
       await widget.service.uploadStory(
         file: media,
@@ -286,12 +291,23 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
       Navigator.pop(context, true);
     } catch (error) {
       if (!mounted) return;
-      setState(() => _uploading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(error.toString().replaceFirst('Bad state: ', '')),
-        ),
-      );
+      final raw = error.toString().replaceFirst('Bad state: ', '');
+      final unavailable = raw.contains('Story storage') ||
+          raw.contains('storage bucket') ||
+          raw.contains('STORY_STORAGE_NOT_READY');
+      setState(() {
+        _uploading = false;
+        // A snackbar appears behind an open bottom sheet. Keep the failure
+        // visible beside Share Story so users know publication did not work.
+        _publishError = unavailable
+            ? (ar
+                ? 'لا يمكن نشر الستوري: مساحة Firebase Storage لم تُنشأ بعد. '
+                    'افتح Firebase Console > Storage وجهّز التخزين ثم حاول مجددًا.'
+                : 'Stories cannot be published until Firebase Storage is set up '
+                    'in the Firebase Console.')
+            : raw;
+      });
+      await _video?.play();
     }
   }
 
@@ -467,6 +483,19 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
                 ),
               ],
               const SizedBox(height: 10),
+              if (_publishError != null) ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    _publishError!,
+                    textAlign: TextAlign.start,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
               SizedBox(
                 width: double.infinity,
                 child: FilledButton.icon(
