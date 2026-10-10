@@ -26,7 +26,8 @@ class UserProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
-    final code = localeController.locale?.languageCode ?? 'en';
+    final code = localeController.locale?.languageCode ??
+        Localizations.localeOf(context).languageCode;
     final rtl = const {'ar', 'ur', 'fa'}.contains(code);
 
     if (uid == null) {
@@ -260,11 +261,21 @@ class UserProfileScreen extends StatelessWidget {
                       ),
                       _InfoCard(
                         icon: Icons.translate_rounded,
-                        title:
-                            AppStrings.of(code).profile('languages'),
-                        value: learning.isEmpty
-                            ? '—'
-                            : '${AppStrings.of(code).profile('learning')}: ${learning.join(', ')}',
+                        title: AppStrings.of(code).profile('learning'),
+                        value: learning.isEmpty ? '—' : learning.join(' • '),
+                        trailing: IconButton.filledTonal(
+                          tooltip: profileAddLearningLabel(code),
+                          onPressed: () {
+                            Navigator.of(context).push(MaterialPageRoute(
+                              builder: (_) => ProfileSetupScreen(
+                                localeController: localeController,
+                                editMode: true,
+                                openLearningPickerOnLaunch: true,
+                              ),
+                            ));
+                          },
+                          icon: const Icon(Icons.add_rounded),
+                        ),
                       ),
                       _InfoCard(
                         icon: Icons.favorite_outline_rounded,
@@ -423,11 +434,13 @@ class _InfoCard extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.value,
+    this.trailing,
   });
 
   final IconData icon;
   final String title;
   final String value;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) => Card(
@@ -438,6 +451,7 @@ class _InfoCard extends StatelessWidget {
           title:
               Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
           subtitle: Text(value),
+          trailing: trailing,
         ),
       );
 }
