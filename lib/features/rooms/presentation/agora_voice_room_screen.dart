@@ -1092,6 +1092,17 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   }
 
   Future<void> _prepareTeacherConversation(int session) async {
+    // Start local speech/captions independently of the server readiness
+    // check: slow or sleeping Render instances must not block the microphone.
+    _teacherAiConversationActive = true;
+    _teacherAiFeedback.value = 'Starting speech recognition…';
+    unawaited(_syncCaptionPublishing().catchError((Object error) {
+      if (mounted && session == _teacherAiSession) {
+        _teacherAiFeedback.value =
+            'Speech recognition could not start: ${error.toString()}';
+      }
+    }));
+
     try {
       final available = await _teacherAi.probeAvailability();
       if (!mounted || _leaving || !_teacherAiSheetOpen ||
@@ -1101,21 +1112,21 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       _aiServiceUnavailable = !available;
       _teacherAiOnline.value = available;
       if (!available) {
-        _teacherAiFeedback.value = 'Teacher AI connection failed. Please retry.';
+        _teacherAiConversationActive = false;
+        _teacherAiFeedback.value =
+            'AI connection failed: ${_teacherAi.lastAvailabilityError ?? "UNKNOWN"}. Tap the microphone to retry.';
         return;
       }
       _teacherAiConversationActive = true;
-      _teacherAiFeedback.value = 'Starting speech recognition…';
-      await _syncCaptionPublishing();
-      if (!mounted || _leaving || session != _teacherAiSession) return;
       _teacherAiFeedback.value = _captionListening
           ? 'Listening. Ask your question aloud.'
-          : 'Microphone is not listening. Tap it to retry.';
+          : 'AI ready. Waiting for your microphone audio.';
     } catch (error) {
       if (!mounted || _leaving || session != _teacherAiSession) return;
       _teacherAiConversationActive = false;
       _teacherAiOnline.value = false;
-      _teacherAiFeedback.value = 'Teacher AI could not start. Please retry.';
+      _teacherAiFeedback.value =
+          'AI startup failed. Tap the microphone to retry.';
       debugPrint('WorldVoice Teacher AI startup: $error');
     }
   }
