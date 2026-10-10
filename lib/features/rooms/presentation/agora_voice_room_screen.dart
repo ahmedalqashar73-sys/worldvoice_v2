@@ -182,6 +182,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   bool _teacherAiSheetOpen = false;
   int _teacherAiSession = 0;
   bool _aiServiceUnavailable = false;
+  bool _teacherAiProbeInProgress = false;
   final ValueNotifier<bool> _teacherAiOnline = ValueNotifier<bool>(false);
   final ValueNotifier<bool> _teacherAiMicListening =
       ValueNotifier<bool>(false);
@@ -223,7 +224,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       audioFrames: _controller.audioFrames,
       onTranscript: _handleRawTranscript,
       onProgress: (message) {
-        if (mounted && !_leaving && _teacherAiConversationActive) {
+        if (mounted && !_leaving && _teacherAiConversationActive &&
+            !_teacherAiProbeInProgress) {
           _teacherAiFeedback.value = message;
         }
       },
@@ -235,14 +237,16 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         final normalizedError = error?.trim() ?? '';
         final aiUnavailable =
             normalizedError.contains('AI_SERVICE_UNAVAILABLE');
-        if (aiUnavailable) {
-          _aiServiceUnavailable = true;
-          _teacherAiOnline.value = false;
-        }
-        _teacherAiMicListening.value = listening;
-        if (_teacherAiConversationActive && normalizedError.isNotEmpty) {
-          _teacherAiFeedback.value =
-              'Microphone error: ${normalizedError.replaceFirst('Bad state: ', '')}';
+        // Whisper transcription and Teacher AI chat use separate requests.
+        // A temporary speech failure must not mark an otherwise reachable
+        // Groq teacher as offline or cancel the conversation.
+        _teacherAiMicListening.value = listening && !aiUnavailable;
+        if (_teacherAiConversationActive && normalizedError.isNotEmpty &&
+            !_teacherAiProbeInProgress) {
+          _teacherAiFeedback.value = aiUnavailable
+              ? 'Speech transcription is unavailable. Teacher AI may still '
+                  'be connected; retry the microphone.'
+              : 'Microphone error: ${normalizedError.replaceFirst('Bad state: ', '')}';
         }
         setState(() {
           _captionListening = listening;
@@ -1089,6 +1093,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
           _teacherAiConversationActive = false;
           _queuedTeacherAiCaption = null;
         });
+        _teacherAiProbeInProgress = false;
         await _stopRoomTeacherVoice();
         await _syncCaptionPublishing();
       }
@@ -1096,10 +1101,11 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   }
 
   Future<void> _prepareTeacherConversation(int session) async {
-    // Start local speech/captions independently of the server readiness
-    // check: slow or sleeping Render instances must not block the microphone.
+    // Keep the UI in Connecting until the authenticated backend readiness
+    // check completes; the microphone's progress must not hide the result.
+    _teacherAiProbeInProgress = true;
     _teacherAiConversationActive = true;
-    _teacherAiFeedback.value = 'Starting speech recognition…';
+    _teacherAiFeedback.value = 'Checking Teacher AI connection…';
     unawaited(_syncCaptionPublishing().catchError((Object error) {
       if (mounted && session == _teacherAiSession) {
         _teacherAiFeedback.value =
@@ -1113,6 +1119,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
           session != _teacherAiSession) {
         return;
       }
+      _teacherAiProbeInProgress = false;
       _aiServiceUnavailable = !available;
       _teacherAiOnline.value = available;
       if (!available) {
@@ -1127,6 +1134,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
           : 'AI ready. Waiting for your microphone audio.';
     } catch (error) {
       if (!mounted || _leaving || session != _teacherAiSession) return;
+      _teacherAiProbeInProgress = false;
       _teacherAiConversationActive = false;
       _teacherAiOnline.value = false;
       _teacherAiFeedback.value =
