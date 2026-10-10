@@ -91,7 +91,7 @@ class StoryService {
     'WORLDVOICE_STORY_BACKEND_URL',
     defaultValue: String.fromEnvironment(
       'WORLDVOICE_AI_BACKEND_URL',
-      defaultValue: String.fromEnvironment('WORLDVOICE_ECONOMY_ENDPOINT'),
+      defaultValue: 'https://worldvoice-teacher-ai.onrender.com',
     ),
   );
   final http.Client _client;
