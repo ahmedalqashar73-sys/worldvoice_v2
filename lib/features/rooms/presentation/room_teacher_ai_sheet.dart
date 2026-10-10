@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../services/room_teacher_ai_service.dart';
+import '../../profile/data/profile_language_catalog.dart';
 
 class RoomTeacherAiSheet extends StatelessWidget {
   const RoomTeacherAiSheet({
@@ -231,8 +232,8 @@ class RoomTeacherAiSheet extends StatelessWidget {
                   avatar: const Icon(Icons.language_rounded, size: 17),
                   label: Text(
                     isArabic
-                        ? 'لغة الغرفة: ${roomLanguageCode.toUpperCase()}'
-                        : 'Room language: ${roomLanguageCode.toUpperCase()}',
+                        ? 'لغة الغرفة: ${ProfileLanguageCatalog.localizedName(roomLanguageCode, Localizations.localeOf(context).languageCode)}'
+                        : 'Room language: ${ProfileLanguageCatalog.localizedName(roomLanguageCode, Localizations.localeOf(context).languageCode)}',
                   ),
                 ),
                 const Spacer(),
