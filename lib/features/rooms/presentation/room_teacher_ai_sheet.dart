@@ -41,7 +41,7 @@ class RoomTeacherAiSheet extends StatelessWidget {
         Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
 
     Widget content(bool isOnline, bool isListening, String feedback) {
-      final checking = feedback == 'Checking Teacher AI connection…';
+      final checking = feedback.startsWith('Checking Teacher AI connection');
       final active = isOnline && canSpeak && isListening;
       return SafeArea(
         child: SizedBox(
