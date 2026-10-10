@@ -261,7 +261,7 @@ class UserProfileScreen extends StatelessWidget {
                       ),
                       _InfoCard(
                         icon: Icons.translate_rounded,
-                        title: AppStrings.of(code).profile('learning'),
+                        title: ProfileLanguageCatalog.localizedFieldTitle('learning', code),
                         value: learning.isEmpty ? '—' : learning.join(' • '),
                         trailing: IconButton.filledTonal(
                           tooltip: profileAddLearningLabel(code),
