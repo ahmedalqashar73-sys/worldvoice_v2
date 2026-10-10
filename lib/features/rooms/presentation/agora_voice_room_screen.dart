@@ -862,8 +862,12 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
             final message = error.toString();
             debugPrint('WorldVoice Teacher AI auto reply failed: $message');
             if (mounted && _teacherAiConversationActive) {
+              final safeCode = message.contains('AI_SERVICE_UNAVAILABLE')
+                  ? 'AI_SERVICE_UNAVAILABLE'
+                  : RegExp(r'AI_HTTP_\\d+').firstMatch(message)?.group(0)
+                      ?? 'AI_REQUEST_FAILED';
               _teacherAiFeedback.value =
-                  'Teacher AI could not answer. Check the service and try again.';
+                  'Teacher AI could not answer ($safeCode). Please retry.';
             }
             if (message.contains('AI_SERVICE_UNAVAILABLE') && mounted) {
               _aiServiceUnavailable = true;
