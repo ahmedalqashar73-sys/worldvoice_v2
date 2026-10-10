@@ -3349,6 +3349,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                       note: _latestTeacherAiNote,
                       configured: _teacherAi.isConfigured || _teacherAi.isAskConfigured,
                       onlineListenable: _teacherAiOnline,
+                      feedbackListenable: _teacherAiFeedback,
                       onTap: _showTeacherAiChat,
                     ),
                   ),
@@ -3710,12 +3711,14 @@ class _TeacherAiCompactSeat extends StatelessWidget {
   const _TeacherAiCompactSeat({
     required this.configured,
     required this.onlineListenable,
+    required this.feedbackListenable,
     this.note,
     this.onTap,
   });
 
   final bool configured;
   final ValueListenable<bool> onlineListenable;
+  final ValueListenable<String> feedbackListenable;
   final RoomTeacherAiNote? note;
   final VoidCallback? onTap;
 
@@ -3768,36 +3771,46 @@ class _TeacherAiCompactSeat extends StatelessWidget {
                     const SizedBox(height: 2),
                     ValueListenableBuilder<bool>(
                       valueListenable: onlineListenable,
-                      builder: (context, online, _) => Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 7, height: 7,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: online
-                                  ? const Color(0xFF32D294)
-                                  : Colors.white54,
-                            ),
-                          ),
-                          const SizedBox(width: 5),
-                          Flexible(
-                            child: Text(
-                              online ? 'Online'
-                                  : configured ? 'Connecting / Offline'
-                                  : 'AI backend unavailable',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: online
-                                    ? const Color(0xFF8EEAD0)
-                                    : Colors.white60,
-                                fontSize: 10,
-                                height: 1.2,
+                      builder: (context, online, _) =>
+                          ValueListenableBuilder<String>(
+                        valueListenable: feedbackListenable,
+                        builder: (context, feedback, _) {
+                          final connecting = !online &&
+                              feedback.startsWith('Checking Teacher AI connection');
+                          return Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 7,
+                                height: 7,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: online
+                                      ? const Color(0xFF32D294)
+                                      : Colors.white54,
+                                ),
                               ),
-                            ),
-                          ),
-                        ],
+                              const SizedBox(width: 5),
+                              Flexible(
+                                child: Text(
+                                  online ? 'Online'
+                                      : connecting ? 'Connecting'
+                                      : configured ? 'Offline'
+                                      : 'AI backend unavailable',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: online
+                                        ? const Color(0xFF8EEAD0)
+                                        : Colors.white60,
+                                    fontSize: 10,
+                                    height: 1.2,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
                       ),
                     ),
                     if (correction.isNotEmpty) ...[
