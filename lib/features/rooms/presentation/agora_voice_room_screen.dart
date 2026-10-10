@@ -873,7 +873,9 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     if (_lastTeacherAiPrompt == caption.text.trim() &&
         _lastTeacherAiPromptAt != null &&
         DateTime.now().difference(_lastTeacherAiPromptAt!) <
-            const Duration(seconds: 12)) return false;
+            const Duration(seconds: 12)) {
+      return false;
+    }
     final createdAt = caption.createdAt;
     if (createdAt != null &&
         DateTime.now().difference(createdAt).abs() >
