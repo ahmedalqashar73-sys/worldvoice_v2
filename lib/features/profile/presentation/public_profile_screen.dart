@@ -438,9 +438,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                   children: [
                     _LanguageRow(
                       label: ProfileLanguageCatalog.localizedFieldTitle('native', code),
-                      value: nativeLanguage?.isNotEmpty == true
-                          ? nativeLanguage!
-                          : '—',
+                      value: nativeLanguage.isNotEmpty ? nativeLanguage : '—',
                     ),
                     const SizedBox(height: 10),
                     _LanguageRow(
