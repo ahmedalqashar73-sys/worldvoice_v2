@@ -434,17 +434,17 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                 const SizedBox(height: 14),
                 _SectionCard(
                   icon: Icons.translate_rounded,
-                  title: strings.profile('languages'),
+                  title: ProfileLanguageCatalog.localizedFieldTitle('languages', code),
                   children: [
                     _LanguageRow(
-                      label: strings.profile('native'),
+                      label: ProfileLanguageCatalog.localizedFieldTitle('native', code),
                       value: nativeLanguage?.isNotEmpty == true
                           ? nativeLanguage!
                           : '—',
                     ),
                     const SizedBox(height: 10),
                     _LanguageRow(
-                      label: strings.profile('learning'),
+                      label: ProfileLanguageCatalog.localizedFieldTitle('learning', code),
                       value: learning.isEmpty ? '—' : learning.join(', '),
                     ),
                   ],
