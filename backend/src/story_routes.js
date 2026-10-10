@@ -213,6 +213,52 @@ export function registerStoryRoutes({
     }
   }
 
+  // Opportunistic cleanup avoids accumulating 24-hour Story media on the
+  // free Cloudinary plan. It runs on feed requests, no paid cron required.
+  let cleanupInProgress = false;
+  let lastCleanupAt = 0;
+  async function cleanupExpiredStories() {
+    if (cleanupInProgress || Date.now() - lastCleanupAt < 15 * 60 * 1000) {
+      return;
+    }
+    lastCleanupAt = Date.now();
+    cleanupInProgress = true;
+    try {
+      const expired = await db.collection("stories")
+        .where("expiresAt", "<=", Timestamp.now()).limit(20).get();
+      for (const doc of expired.docs) {
+        const data = doc.data() || {};
+        try {
+          const publicId = String(data.cloudinaryPublicId || "");
+          const storagePath = String(data.storagePath || "");
+          if (publicId) {
+            if (!cloudinaryConfigured ||
+                !publicId.startsWith("worldvoice/stories/")) continue;
+            await cloudinary.uploader.destroy(publicId, {
+              resource_type: data.kind === "video" ? "video" : "image",
+              type: data.audience === "close_friends"
+                ? "authenticated" : "upload",
+              invalidate: true,
+            });
+          } else if (storagePath) {
+            const bucket = data.storageBucket
+              ? getStorage().bucket(String(data.storageBucket))
+              : await requireStoryBucket();
+            await bucket.file(storagePath).delete({ignoreNotFound: true});
+          }
+          await doc.ref.delete();
+        } catch (error) {
+          console.warn("Expired story cleanup postponed:", doc.id,
+            error?.code || error?.message);
+        }
+      }
+    } catch (error) {
+      console.warn("Expired story cleanup failed:", error?.code || error?.message);
+    } finally {
+      cleanupInProgress = false;
+    }
+  }
+
   // Check readiness BEFORE the client streams a potentially large video.
   // Cloudinary is preferred when present; legacy Firebase stories stay readable.
   app.get("/stories/storage-status", async (req, res, next) => {
@@ -412,6 +458,8 @@ export function registerStoryRoutes({
         ))
       ).filter(Boolean);
 
+      // Return the feed immediately; cleanup never blocks story viewing.
+      void cleanupExpiredStories();
       return res.json({ok: true, stories});
     } catch (error) {
       next(error);
