@@ -53,7 +53,20 @@ class _StoryStripState extends State<StoryStrip> {
         isArabic: widget.isArabic,
       ),
     );
-    if (created == true) _refresh();
+    if (created == true) {
+      _refresh();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              widget.isArabic
+                  ? 'تم نشر الستوري بنجاح.'
+                  : 'Story published successfully.',
+            ),
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _openStories(List<StoryItem> stories) async {
