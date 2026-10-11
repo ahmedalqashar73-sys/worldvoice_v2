@@ -85,6 +85,7 @@ class AgoraVoiceRoomScreen extends StatefulWidget {
     required this.initialRole,
     this.localeController,
     this.roomLanguageCode,
+    this.secondaryRoomLanguageCode,
     this.initialShowTeacherAiSeat = false,
     this.openTeacherAiOnJoin = false,
     this.initialIsPrivate = false,
@@ -99,6 +100,7 @@ class AgoraVoiceRoomScreen extends StatefulWidget {
   final AgoraRoomRole initialRole;
   final LocaleController? localeController;
   final String? roomLanguageCode;
+  final String? secondaryRoomLanguageCode;
   final bool initialShowTeacherAiSeat;
   final bool openTeacherAiOnJoin;
   final bool initialIsPrivate;
@@ -285,6 +287,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       channelId: widget.channelId,
       roomName: widget.roomName,
       roomLanguageCode: widget.roomLanguageCode,
+      secondaryRoomLanguageCode: widget.secondaryRoomLanguageCode,
       initialShowTeacherAiSeat: widget.initialShowTeacherAiSeat,
       initialIsPrivate: widget.initialIsPrivate,
       initialVipOnly: widget.initialVipOnly,
