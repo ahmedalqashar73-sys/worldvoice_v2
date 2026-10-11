@@ -127,7 +127,9 @@ class _CreateRoomPageState extends State<CreateRoomPage> {
                       onChanged: (value) {
                         if (value != null) setState(() {
                           _language = value;
-                          if (_secondLanguage == value) _secondLanguage = '';
+                          if (_secondLanguage == value) {
+                            _secondLanguage = '';
+                          }
                         });
                       },
                     ),
