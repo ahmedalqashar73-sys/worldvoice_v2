@@ -12,6 +12,13 @@ class RoomBackendConfig {
     defaultValue: 'https://worldvoice-teacher-ai.onrender.com',
   );
 
+  // Public API address used by Chat, Home, calls and account sync.
+  // This does NOT deploy the backend or expose server credentials.
+  static const String economyBaseUrl = String.fromEnvironment(
+    'WORLDVOICE_ECONOMY_ENDPOINT',
+    defaultValue: 'https://worldvoice-v2.onrender.com',
+  );
+
   static String get baseUrl => configuredBaseUrl.trim();
 
   // AI and speech may be deployed separately from the legacy rooms/economy
