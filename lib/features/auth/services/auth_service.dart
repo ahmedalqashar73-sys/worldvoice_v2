@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
@@ -40,6 +41,27 @@ class AuthService {
     // Older WorldVoice profiles may pre-date profileCompleted. Do not force
     // those users through onboarding again when their identity already exists.
     return displayName.isNotEmpty && username.isNotEmpty && identitySignals > 0;
+  }
+
+  // Read-only detection: the signed-in account may have a *different* UID
+  // than an older account using the same verified email. Never take ownership
+  // of that document or copy private wallet/VIP data from the mobile client.
+  // A backend-verified account-linking flow is required for migration.
+  static Future<bool> hasLegacyProfileForVerifiedEmail(User user) async {
+    final email = user.email?.trim();
+    if (email == null || email.isEmpty || !user.emailVerified) return false;
+
+    final result = await FirebaseFirestore.instance
+        .collection('users')
+        .where('email', isEqualTo: email)
+        .limit(10)
+        .get(const GetOptions(source: Source.server));
+    for (final doc in result.docs) {
+      if (doc.id != user.uid && hasCompletedProfileData(doc.data())) {
+        return true;
+      }
+    }
+    return false;
   }
 
   static Future<void> syncPrivilegedAccountEntitlements() async {
