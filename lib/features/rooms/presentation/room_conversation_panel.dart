@@ -9,7 +9,7 @@ class RoomConversationPanel extends StatefulWidget {
     required this.onGifts, required this.onShop, required this.onTools,
     required this.onCaptions, required this.onMic, required this.micIcon,
     required this.micLabel, this.onTranslateMessage,
-    this.translationHint, this.enabled = true, super.key,
+    this.onReportMessage, this.translationHint, this.enabled = true, super.key,
   });
   final Stream<List<RoomChatMessage>> messages;
   final Future<void> Function(String) onSend;
@@ -20,6 +20,7 @@ class RoomConversationPanel extends StatefulWidget {
   final IconData micIcon;
   final String micLabel;
   final Future<String> Function(String text)? onTranslateMessage;
+  final Future<void> Function(RoomChatMessage message)? onReportMessage;
   final String? translationHint;
   @override
   State<RoomConversationPanel> createState() => _RoomConversationPanelState();
@@ -218,6 +219,11 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
                           widget.onTranslateMessage == null
                       ? null
                       : () => _translate(msg),
+                  // Report the author and this exact message; never report a
+                  // system greeting or free gift preview as user text.
+                  onLongPress: msg == null || giftPreview != null ||
+                          widget.onReportMessage == null
+                      ? null : () => widget.onReportMessage!(msg),
                   child: Container(
                     margin: const EdgeInsets.only(top: 8),
                     padding: const EdgeInsets.symmetric(
