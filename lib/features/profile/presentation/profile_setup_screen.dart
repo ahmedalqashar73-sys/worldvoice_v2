@@ -394,6 +394,13 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         },SetOptions(merge:true));
       }else{
         await db.runTransaction((tx)async{
+        // Reads must happen before writes in a Firestore transaction.
+        final existingProfileRef = db.collection('users').doc(user.uid);
+        final existingProfile = await tx.get(existingProfileRef);
+        if (existingProfile.exists &&
+            existingProfile.data()?['profileCompleted'] == true) {
+          throw StateError('profile-already-completed');
+        }
         if(!widget.editMode){
           final handle=db.collection('usernames').doc(normalizedUsername);
           final existingNewHandle=await tx.get(handle);
@@ -439,19 +446,11 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             'learningGoals':goals.text.trim(),
             'interests':selectedHobbies.toList(),
             'profileCompleted':true,
-            if(!widget.editMode) 'followersCount':0,
-            if(!widget.editMode) 'followingCount':0,
-            if(!widget.editMode) 'isVip':false,
-            if(!widget.editMode) 'coins':0,
-            if(!widget.editMode) 'diamonds':0,
-            if(!widget.editMode) 'giftLevel':0,
-            if(!widget.editMode) 'giftLevelPoints':0,
-            if(!widget.editMode) 'giftSentPoints':0,
-            if(!widget.editMode) 'giftReceivedPoints':0,
-            if(!widget.editMode) 'isPartner':false,
-            if(!widget.editMode) 'isVerified':false,
+            // Preserve any existing VIP status, balances, and follower counts.
+            // New profiles default to no credits or privileges in the backend.
             'updatedAt':FieldValue.serverTimestamp(),
-            if(!widget.editMode) 'createdAt':FieldValue.serverTimestamp(),
+            if(!widget.editMode && !existingProfile.exists)
+              'createdAt':FieldValue.serverTimestamp(),
           },
           SetOptions(merge:true),
         );
@@ -484,6 +483,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       }
     }catch(e){
       if(mounted){
+        if(e.toString().contains('profile-already-completed')){
+          Navigator.of(context).popUntil((route)=>route.isFirst);
+          return;
+        }
         final message=e.toString().contains('username-taken')
             ?_profileFlowText(code,'usernameTaken')
             :e.toString();
