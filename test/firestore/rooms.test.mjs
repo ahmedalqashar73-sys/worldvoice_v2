@@ -525,3 +525,42 @@ test('verified room members can show rate-limited free gift demos without mintin
   await assertFails(setDoc(doc(host, 'rooms/r1/gifts/fake-gift'),
     {senderId: 'host', giftId: 'wv_gift_001', points: 1000}));
 });
+
+test('room abuse reports are write-once, private and bound to actual chat authors', async () => {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    await setDoc(doc(ctx.firestore(), 'rooms/r1/messages/abusive-message'), {
+      userId: 'host', displayName: 'host', text: 'sample bad message',
+      createdAt: serverTimestamp(),
+    });
+  });
+  const db = user('listener');
+  const reportRef = doc(db, 'rooms/r1/reports/report-1');
+  const report = {
+    reporterId: 'listener', targetUserId: 'host',
+    reason: 'offensive', detail: 'Offensive chat comment',
+    messageId: 'abusive-message', status: 'pending',
+    createdAt: serverTimestamp(),
+  };
+  await assertSucceeds(setDoc(reportRef, report));
+  await assertFails(getDoc(reportRef));
+  await assertFails(getDoc(doc(user('host'), 'rooms/r1/reports/report-1')));
+  await assertFails(getDocs(collection(db, 'rooms/r1/reports')));
+  await assertFails(updateDoc(reportRef, {status: 'resolved'}));
+  await assertFails(deleteDoc(reportRef));
+  await assertFails(setDoc(doc(user('outsider'), 'rooms/r1/reports/outside'), {
+    ...report, reporterId: 'outsider',
+  }));
+  await assertFails(setDoc(doc(db, 'rooms/r1/reports/spoofed'), {
+    ...report, reporterId: 'host',
+  }));
+  await assertFails(setDoc(doc(db, 'rooms/r1/reports/forged-author'), {
+    ...report, targetUserId: 'different-user',
+  }));
+  await assertFails(setDoc(doc(db, 'rooms/r1/reports/forged-time'), {
+    ...report, createdAt: new Date('2020-01-01T00:00:00Z'),
+  }));
+  await assertSucceeds(setDoc(doc(db, 'rooms/r1/reports/profile-report'), {
+    ...report, messageId: '', reason: 'harassment',
+  }));
+});
+
