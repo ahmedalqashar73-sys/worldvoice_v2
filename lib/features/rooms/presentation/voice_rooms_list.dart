@@ -207,6 +207,7 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
     required String roomName,
     required String roomLanguageCode,
     String? secondaryRoomLanguageCode,
+    required String ownerId,
     required bool showTeacherAiSeat,
     bool isPrivate = false,
     bool vipOnly = false,
@@ -230,7 +231,9 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
           initialVipOnly: vipOnly,
           privateAccessCode: privateAccessCode,
           localeController: widget.localeController,
-          initialRole: AgoraRoomRole.listener,
+          // A returning creator is always the owner, never a listener.
+          initialRole: FirebaseAuth.instance.currentUser?.uid == ownerId
+              ? AgoraRoomRole.speaker : AgoraRoomRole.listener,
         ),
       ),
     );
@@ -504,6 +507,7 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
                                 roomName: name,
                                 roomLanguageCode: roomLanguage,
                                 secondaryRoomLanguageCode: secondaryLanguage,
+                                ownerId: (data['hostId'] ?? '').toString(),
                                 showTeacherAiSeat: showTeacherAiSeat,
                                 roomModeName: data['mode']?.toString(),
                                 vipOnly: vipOnly,
