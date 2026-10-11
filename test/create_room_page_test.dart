@@ -151,12 +151,9 @@ void main() {
 
     expect(find.text('English'), findsOneWidget);
     await tester.enterText(find.byType(TextFormField), 'تعلم عربي وإنجليزي');
-    await tester.scrollUntilVisible(
-      find.text('بدء الغرفة الصوتية'), 180,
-      scrollable: find.byType(Scrollable).first,
-    );
+    await tester.ensureVisible(find.text('بدء الغرفة الصوتية'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('بدء الغرفة الصوتية'));
+    await tester.tap(find.text('بدء الغرفة الصوتية').hitTestable());
     await tester.pumpAndSettle();
 
     expect(result?.name, 'تعلم عربي وإنجليزي');
