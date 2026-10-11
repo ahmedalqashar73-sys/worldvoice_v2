@@ -108,4 +108,60 @@ void main() {
     expect(find.text('Enter a room name'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('one selector supports Arabic and English in the same room', (
+    tester,
+  ) async {
+    CreateRoomResult? result;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: TextButton(
+              child: const Text('Open'),
+              onPressed: () async {
+                result = await Navigator.of(context).push<CreateRoomResult>(
+                  MaterialPageRoute(
+                    builder: (_) => const CreateRoomPage(
+                      isArabic: true,
+                      languageOptions: ['ar', 'en', 'es'],
+                      initialLanguage: 'ar',
+                      giftLevel: 0,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('room-languages-picker')), findsOneWidget);
+    expect(find.text('لغة ثانية (اختياري)'), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('room-languages-picker')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('room-language-en')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('تأكيد اللغات'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('English'), findsOneWidget);
+    await tester.enterText(find.byType(TextFormField), 'تعلم عربي وإنجليزي');
+    await tester.scrollUntilVisible(
+      find.text('بدء الغرفة الصوتية'), 180,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('بدء الغرفة الصوتية'));
+    await tester.pumpAndSettle();
+
+    expect(result?.name, 'تعلم عربي وإنجليزي');
+    expect(result?.languageCode, 'ar');
+    expect(result?.secondaryLanguageCode, 'en');
+    expect(tester.takeException(), isNull);
+  });
 }
