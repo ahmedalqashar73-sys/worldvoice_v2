@@ -808,6 +808,55 @@ app.post("/agora/token", async (req, res, next) => {
       return res.status(400).json({ error: "Invalid channelName." });
     }
 
+    // On the free backend the certificate may be held only by Cloudflare.
+    // Delegate Room/Live token issuance to the existing membership-checking
+    // Worker, never copying the secret into the mobile APK or the repo.
+    if (!agoraAppId || !agoraCertificate) {
+      if (channelName.startsWith("call_")) {
+        // The Worker does not implement call membership checks. Never
+        // mint an unverified call token or bypass server authorization.
+        return res.status(503).json({
+          error: "Private call tokens require the backend Agora certificate.",
+        });
+      }
+      try {
+        const result = await fetch(
+          "https://worldvoice-agora-token.worldvoice.workers.dev/agora/token",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: req.headers.authorization || "",
+            },
+            body: JSON.stringify({channelName, role: requestedRole}),
+            signal: AbortSignal.timeout(13000),
+          },
+        );
+        const payload = await result.json().catch(() => null);
+        if (!result.ok) {
+          const status = result.status >= 400 && result.status <= 503
+            ? result.status : 503;
+          const message = typeof payload?.error === "string"
+            ? payload.error.slice(0, 200)
+            : "Agora token Worker rejected the request.";
+          return res.status(status).json({error: message});
+        }
+        if (typeof payload?.token !== "string" || !payload.token ||
+            !Number.isSafeInteger(payload.uid) || payload.uid <= 0) {
+          return res.status(502).json({error: "Invalid token gateway response."});
+        }
+        return res.json({
+          token: payload.token,
+          uid: payload.uid,
+          expiresIn: payload.expiresIn || 3600,
+        });
+      } catch (_) {
+        return res.status(503).json({
+          error: "Agora token Worker is unavailable. Try again later.",
+        });
+      }
+    }
+
     requireEnv(agoraAppId, "AGORA_APP_ID");
     requireEnv(agoraCertificate, "AGORA_APP_CERTIFICATE");
 
