@@ -3653,7 +3653,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               final stageHeight =
                   2 * (93 + MediaQuery.textScalerOf(context).scale(30)) + 12;
               final contentHeight = _boardVisible
-                  ? (constraints.maxHeight * .55).clamp(110.0, 320.0) + 106
+                  ? (constraints.maxHeight * .55).clamp(110.0, 320.0) + 106 +
+                      (_listeners.isNotEmpty ? 70 : 0)
                   : stageHeight + (_listeners.isNotEmpty ? 70 : 0) +
                       (_showTeacherAiSeat ? 88 : 0);
               final neededHeight = contentHeight +
@@ -3670,6 +3671,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                     onExpand: _expandBoard, onClose: _closeBoard)),
                 if (_boardVisible && !compact) SizedBox(height: 106,
                   child: RoomStageStrip(seats: _buildSeats(), onSeatTap: _handleSeatTap)),
+                if (_boardVisible && !compact && _listeners.isNotEmpty)
+                  _buildListenerStrip(isArabic),
                 // Stage is a separate fixed viewport. Teacher AI and hand
                 // requests stay pinned; new chat messages never scroll them.
                 if (!_boardVisible && !compact) SizedBox(
