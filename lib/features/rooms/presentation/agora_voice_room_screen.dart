@@ -165,6 +165,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   OverlayEntry? _giftOverlay;
   Timer? _giftOverlayTimer;
   Timer? _speakingTimer;
+  Timer? _presenceTimer;
   Timer? _quotaTimer;
   bool _quotaEnding = false;
   bool _captionsEnabled = false;
@@ -397,6 +398,15 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     }
   }
 
+  Future<void> _refreshRoomPresence() async {
+    if (!mounted || _leaving) return;
+    try {
+      await _moderation.refreshPresence();
+    } catch (error) {
+      debugPrint('WorldVoice room presence refresh unavailable: $error');
+    }
+  }
+
   Future<void> _recordRoomEntry() async {
     try {
       await _history.recordEnter(
@@ -449,6 +459,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         asHost: asHost,
       );
       membershipEstablished = true;
+      _presenceTimer ??= Timer.periodic(
+        const Duration(seconds: 30),
+        (_) => unawaited(_refreshRoomPresence()),
+      );
       // Optional background/tool setup must never gate audio or eject members.
       unawaited(_initializeOptionalRoomTools());
       if (mounted) setState(() => _chatMessages = _roomChat.watchMessages());
@@ -3383,6 +3397,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     _giftOverlayTimer?.cancel();
     _speakingTimer?.cancel();
     _quotaTimer?.cancel();
+    _presenceTimer?.cancel();
     _teacherAiReconnectTimer?.cancel();
     _giftOverlay?.remove();
     _giftOverlay = null;
