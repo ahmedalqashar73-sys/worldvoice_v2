@@ -67,8 +67,8 @@ class _CreateRoomPageState extends State<CreateRoomPage> {
           padding: EdgeInsets.only(
             bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
           ),
-          child: SizedBox(
-            height: MediaQuery.sizeOf(sheetContext).height * .65,
+          child: FractionallySizedBox(
+            heightFactor: .65,
             child: Column(
               children: [
                 Padding(
