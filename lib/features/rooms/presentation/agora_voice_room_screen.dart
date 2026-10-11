@@ -1823,7 +1823,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 6),
             itemCount: listeners.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            separatorBuilder: (context, index) => const SizedBox(width: 10),
             itemBuilder: (context, index) {
               final person = listeners[index];
               return InkWell(
