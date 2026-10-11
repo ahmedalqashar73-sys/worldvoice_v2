@@ -7,6 +7,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+
+import '../../rooms/data/room_backend_config.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../core/localization/locale_controller.dart';
@@ -31,7 +33,7 @@ class ChatScreen extends StatelessWidget {
   const ChatScreen({required this.localeController, super.key});
   final LocaleController localeController;
 
-  static const _backend = String.fromEnvironment('WORLDVOICE_ECONOMY_ENDPOINT');
+  static const _backend = RoomBackendConfig.economyBaseUrl;
 
   static Future<Map<String, dynamic>> _post(
     String route, Map<String, dynamic> payload, {String? requestKey,}
