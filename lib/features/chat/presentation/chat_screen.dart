@@ -33,7 +33,7 @@ class ChatScreen extends StatelessWidget {
   const ChatScreen({required this.localeController, super.key});
   final LocaleController localeController;
 
-  static const _backend = RoomBackendConfig.economyBaseUrl;
+  static const _backend = RoomBackendConfig.socialBaseUrl;
 
   static Future<Map<String, dynamic>> _post(
     String route, Map<String, dynamic> payload, {String? requestKey,}
