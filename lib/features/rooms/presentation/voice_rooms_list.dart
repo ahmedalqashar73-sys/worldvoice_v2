@@ -730,7 +730,7 @@ class _RoomCardState extends State<_RoomCard> {
                               foreground: colors.onPrimaryContainer,
                             ),
                             _SmallBadge(
-                              text: _languageLabel(widget.languageCode),
+                              text: widget.languageCode.split(' / ').map(_languageLabel).join(' • '),
                               background: colors.secondaryContainer,
                               foreground: colors.onSecondaryContainer,
                             ),
