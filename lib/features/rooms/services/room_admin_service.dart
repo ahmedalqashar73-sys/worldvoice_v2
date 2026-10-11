@@ -1,4 +1,9 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:http/http.dart' as http;
+
+import '../data/room_backend_config.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../data/room_moderation_models.dart';
@@ -74,15 +79,38 @@ class RoomAdminService {
     if (explanation.length > 500 || messageId.length > 150) {
       throw StateError('Report details are too long.');
     }
-    await _room.collection('reports').add({
-      'reporterId': reporter.uid,
-      'targetUserId': targetUserId,
-      'reason': reason,
-      'detail': explanation,
-      'messageId': messageId,
-      'status': 'pending',
-      'createdAt': FieldValue.serverTimestamp(),
-    });
+    final endpoint = RoomBackendConfig.endpoint('/room/report');
+    if (endpoint.isEmpty) {
+      throw StateError('WorldVoice report service is not configured.');
+    }
+    final token = await reporter.getIdToken();
+    if (token == null || token.isEmpty) {
+      throw StateError('Sign in again before reporting.');
+    }
+    final response = await http.post(
+      Uri.parse(endpoint),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'roomId': roomId,
+        'targetUserId': targetUserId,
+        'reason': reason,
+        'detail': explanation,
+        'messageId': messageId,
+      }),
+    ).timeout(const Duration(seconds: 110));
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      String errorMessage = 'Could not submit report.';
+      try {
+        final body = jsonDecode(response.body);
+        if (body is Map && body['error'] is String) {
+          errorMessage = body['error'] as String;
+        }
+      } catch (_) {}
+      throw StateError(errorMessage);
+    }
   }
 
   Future<void> setModerator({
