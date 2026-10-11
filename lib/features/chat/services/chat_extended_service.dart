@@ -70,7 +70,8 @@ class ChatExtendedService {
         'Content-Type': 'application/json',
       },
       body: jsonEncode({'name': name.trim(), 'memberIds': memberIds}),
-    );
+    ).timeout(RoomBackendConfig.socialRequestTimeout,
+        onTimeout: () => throw StateError('The chat server is waking up or unavailable. Check whether the message arrived before retrying.'));
     final body = await _decode(response);
     final chatId = (body['chatId'] ?? '').toString();
     if (chatId.isEmpty) throw StateError('Group was not created.');
@@ -92,7 +93,8 @@ class ChatExtendedService {
         'Idempotency-Key': _requestKey(),
       },
       body: jsonEncode({'chatId': chatId, 'text': value}),
-    );
+    ).timeout(RoomBackendConfig.socialRequestTimeout,
+        onTimeout: () => throw StateError('The chat server is waking up or unavailable. Check whether the message arrived before retrying.'));
     await _decode(response);
   }
 
@@ -119,7 +121,8 @@ class ChatExtendedService {
         'mediaUrl': upload.url,
         'mediaPublicId': upload.publicId,
       }),
-    );
+    ).timeout(RoomBackendConfig.socialRequestTimeout,
+        onTimeout: () => throw StateError('The chat server is waking up or unavailable. Check whether the message arrived before retrying.'));
     await _decode(response);
   }
 
