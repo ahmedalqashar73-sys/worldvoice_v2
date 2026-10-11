@@ -792,6 +792,8 @@ app.get("/health", (_req, res) => {
     service: "worldvoice-room-backend",
     aiProvider: "groq",
     aiConfigured: Boolean(groqApiKey),
+    // Public readiness indicator; never return the App Certificate or keys.
+    agoraTokenConfigured: Boolean(agoraAppId && agoraCertificate),
   });
 });
 

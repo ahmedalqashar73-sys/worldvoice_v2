@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 
+import '../../rooms/data/room_backend_config.dart';
+
 import '../../../core/media/cloudinary_image_service.dart';
 
 class HomePost {
@@ -111,7 +113,7 @@ class HomeFeedService {
   HomeFeedService({http.Client? client}) : _client = client ?? http.Client();
 
   static const String _backend =
-      String.fromEnvironment('WORLDVOICE_ECONOMY_ENDPOINT');
+      RoomBackendConfig.socialBaseUrl;
   final http.Client _client;
 
   Future<String> _token() async {
@@ -163,7 +165,8 @@ class HomeFeedService {
     final response = await _client.get(
       _uri('/social/feed', {'limit': '$limit'}),
       headers: {'Authorization': 'Bearer $token'},
-    );
+    ).timeout(RoomBackendConfig.socialRequestTimeout,
+        onTimeout: () => throw StateError('The WorldVoice feed server took too long. Please try again.'));
     final body = await _decode(response);
     final raw = body['posts'];
     if (raw is! List) return const <HomePost>[];
@@ -213,7 +216,8 @@ class HomeFeedService {
         'mediaUrl': mediaUrl,
         'mediaPublicId': mediaPublicId,
       }),
-    );
+    ).timeout(RoomBackendConfig.socialRequestTimeout,
+        onTimeout: () => throw StateError('The WorldVoice feed server took too long. Please try again.'));
     await _decode(response);
   }
 
@@ -222,7 +226,8 @@ class HomeFeedService {
     final response = await _client.post(
       _uri('/social/posts/${post.id}/like'),
       headers: {'Authorization': 'Bearer $token'},
-    );
+    ).timeout(RoomBackendConfig.socialRequestTimeout,
+        onTimeout: () => throw StateError('The WorldVoice feed server took too long. Please try again.'));
     final body = await _decode(response);
     return (
       liked: body['liked'] == true,
@@ -235,7 +240,8 @@ class HomeFeedService {
     final response = await _client.get(
       _uri('/social/posts/$postId/comments'),
       headers: {'Authorization': 'Bearer $token'},
-    );
+    ).timeout(RoomBackendConfig.socialRequestTimeout,
+        onTimeout: () => throw StateError('The WorldVoice feed server took too long. Please try again.'));
     final body = await _decode(response);
     final raw = body['comments'];
     if (raw is! List) return const <HomePostComment>[];
@@ -259,7 +265,8 @@ class HomeFeedService {
         'Content-Type': 'application/json',
       },
       body: jsonEncode({'text': text.trim()}),
-    );
+    ).timeout(RoomBackendConfig.socialRequestTimeout,
+        onTimeout: () => throw StateError('The WorldVoice feed server took too long. Please try again.'));
     await _decode(response);
   }
 
@@ -268,7 +275,8 @@ class HomeFeedService {
     final response = await _client.post(
       _uri('/social/posts/$postId/share'),
       headers: {'Authorization': 'Bearer $token'},
-    );
+    ).timeout(RoomBackendConfig.socialRequestTimeout,
+        onTimeout: () => throw StateError('The WorldVoice feed server took too long. Please try again.'));
     await _decode(response);
   }
 

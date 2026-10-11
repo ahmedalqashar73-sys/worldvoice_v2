@@ -43,6 +43,28 @@ jobs:
       - run: node --check scripts/grant-beta-access.mjs
       - run: node --test test/classic_gifts.test.js
 
+      - name: Diagnose published API and Agora worker (public checks only)
+        continue-on-error: true
+        run: |
+          node --input-type=module <<'JS'
+          const checks = [
+            ['Social + AI', 'https://worldvoice-teacher-ai.onrender.com/health'],
+            ['Economy + accounts', 'https://worldvoice-v2.onrender.com/health'],
+            ['Agora Worker', 'https://worldvoice-agora-token.worldvoice.workers.dev/health'],
+          ];
+          await Promise.all(checks.map(async ([label, url]) => {
+            try {
+              const response = await fetch(url, {signal: AbortSignal.timeout(65000)});
+              const body = (await response.text()).slice(0, 400);
+              console.log(JSON.stringify({label, status: response.status, body}));
+              if (!response.ok) process.exitCode = 1;
+            } catch (error) {
+              console.error(JSON.stringify({label, error: error?.message || String(error)}));
+              process.exitCode = 1;
+            }
+          }));
+          JS
+
   firestore-rules:
     runs-on: ubuntu-latest
     steps:

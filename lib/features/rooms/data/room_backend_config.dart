@@ -12,6 +12,22 @@ class RoomBackendConfig {
     defaultValue: 'https://worldvoice-teacher-ai.onrender.com',
   );
 
+  // Economy/account sync keep using the established backend deployment.
+  // Public URL only: no secrets in the Flutter application.
+  static const String economyBaseUrl = String.fromEnvironment(
+    'WORLDVOICE_ECONOMY_ENDPOINT',
+    defaultValue: 'https://worldvoice-v2.onrender.com',
+  );
+
+  // Chat, calls, posts and social APIs run on the same up-to-date backend
+  // as Teacher AI. Keep legacy economy actions on their existing endpoint.
+  static const String socialBaseUrl = String.fromEnvironment(
+    'WORLDVOICE_SOCIAL_BACKEND_URL',
+    defaultValue: 'https://worldvoice-v2.onrender.com',
+  );
+
+  static const Duration socialRequestTimeout = Duration(seconds: 110);
+
   static String get baseUrl => configuredBaseUrl.trim();
 
   // AI and speech may be deployed separately from the legacy rooms/economy

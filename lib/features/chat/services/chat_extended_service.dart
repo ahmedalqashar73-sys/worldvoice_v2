@@ -5,13 +5,15 @@ import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 
+import '../../rooms/data/room_backend_config.dart';
+
 import '../../../core/media/cloudinary_image_service.dart';
 
 class ChatExtendedService {
   ChatExtendedService({http.Client? client}) : _client = client ?? http.Client();
 
   static const String _backend =
-      String.fromEnvironment('WORLDVOICE_ECONOMY_ENDPOINT');
+      RoomBackendConfig.socialBaseUrl;
   final http.Client _client;
 
   Uri _uri(String path) {
@@ -68,7 +70,8 @@ class ChatExtendedService {
         'Content-Type': 'application/json',
       },
       body: jsonEncode({'name': name.trim(), 'memberIds': memberIds}),
-    );
+    ).timeout(RoomBackendConfig.socialRequestTimeout,
+        onTimeout: () => throw StateError('The chat server is waking up or unavailable. Check whether the message arrived before retrying.'));
     final body = await _decode(response);
     final chatId = (body['chatId'] ?? '').toString();
     if (chatId.isEmpty) throw StateError('Group was not created.');
@@ -90,7 +93,8 @@ class ChatExtendedService {
         'Idempotency-Key': _requestKey(),
       },
       body: jsonEncode({'chatId': chatId, 'text': value}),
-    );
+    ).timeout(RoomBackendConfig.socialRequestTimeout,
+        onTimeout: () => throw StateError('The chat server is waking up or unavailable. Check whether the message arrived before retrying.'));
     await _decode(response);
   }
 
@@ -117,7 +121,8 @@ class ChatExtendedService {
         'mediaUrl': upload.url,
         'mediaPublicId': upload.publicId,
       }),
-    );
+    ).timeout(RoomBackendConfig.socialRequestTimeout,
+        onTimeout: () => throw StateError('The chat server is waking up or unavailable. Check whether the message arrived before retrying.'));
     await _decode(response);
   }
 

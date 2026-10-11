@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 
+import '../../rooms/data/room_backend_config.dart';
+
 class ChatCallInfo {
   const ChatCallInfo({
     required this.id,
@@ -47,7 +49,7 @@ class ChatCallService {
   ChatCallService({http.Client? client}) : _client = client ?? http.Client();
 
   static const String _backend =
-      String.fromEnvironment('WORLDVOICE_ECONOMY_ENDPOINT');
+      RoomBackendConfig.socialBaseUrl;
   final http.Client _client;
 
   Uri _uri(String path) {
@@ -102,7 +104,8 @@ class ChatCallService {
         'chatId': chatId,
         'type': type,
       }),
-    );
+    ).timeout(RoomBackendConfig.socialRequestTimeout,
+        onTimeout: () => throw StateError('The WorldVoice call server took too long. Please check the call status.'));
     final body = await _decode(response);
     return ChatCallInfo.fromJson({
       ...body,
@@ -117,7 +120,8 @@ class ChatCallService {
     final response = await _client.get(
       _uri('/calls/incoming'),
       headers: {'Authorization': 'Bearer $token'},
-    );
+    ).timeout(RoomBackendConfig.socialRequestTimeout,
+        onTimeout: () => throw StateError('The WorldVoice call server took too long. Please check the call status.'));
     final body = await _decode(response);
     final raw = body['call'];
     if (raw is! Map) return null;
@@ -131,7 +135,8 @@ class ChatCallService {
     final response = await _client.get(
       _uri('/calls/$callId/status'),
       headers: {'Authorization': 'Bearer $token'},
-    );
+    ).timeout(RoomBackendConfig.socialRequestTimeout,
+        onTimeout: () => throw StateError('The WorldVoice call server took too long. Please check the call status.'));
     final body = await _decode(response);
     return (body['status'] ?? 'ended').toString();
   }
@@ -148,7 +153,8 @@ class ChatCallService {
         'Content-Type': 'application/json',
       },
       body: jsonEncode({'action': action}),
-    );
+    ).timeout(RoomBackendConfig.socialRequestTimeout,
+        onTimeout: () => throw StateError('The WorldVoice call server took too long. Please check the call status.'));
     return _decode(response);
   }
 
@@ -157,7 +163,8 @@ class ChatCallService {
     final response = await _client.post(
       _uri('/calls/$callId/end'),
       headers: {'Authorization': 'Bearer $token'},
-    );
+    ).timeout(RoomBackendConfig.socialRequestTimeout,
+        onTimeout: () => throw StateError('The WorldVoice call server took too long. Please check the call status.'));
     await _decode(response);
   }
 
