@@ -2462,11 +2462,16 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   // Tapping the room title opens only the five working room controls.
   // Host/moderation controls remain role-gated.
   Future<void> _showTitleActions() async {
+    // The room title must never show host content controls to listeners.
+    // Moderators get only participant controls; content remains host-owned.
+    if (!_isHost) {
+      if (_isModerator) await _showRoomControls();
+      return;
+    }
     final ar = (widget.localeController?.locale?.languageCode ??
         Localizations.localeOf(context).languageCode) == 'ar';
     final items = <(IconData, String, VoidCallback)>[
-      if (_canModerate)
-        (Icons.admin_panel_settings_rounded,
+      (Icons.admin_panel_settings_rounded,
           ar ? 'المدير' : 'Moderator', _showRoomControls),
       (Icons.chat_bubble_outline_rounded,
         ar ? 'الشات' : 'Chat', _showRoomChat),
