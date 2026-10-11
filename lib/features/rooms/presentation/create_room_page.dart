@@ -25,6 +25,7 @@ class CreateRoomPage extends StatefulWidget {
 class _CreateRoomPageState extends State<CreateRoomPage> {
   final TextEditingController _nameController = TextEditingController();
   late String _language;
+  String _secondLanguage = '';
   bool _showTeacherAiSeat = false;
   bool _isPrivate = false;
   bool _vipOnly = false;
@@ -124,8 +125,32 @@ class _CreateRoomPageState extends State<CreateRoomPage> {
                           ),
                       ],
                       onChanged: (value) {
-                        if (value != null) setState(() => _language = value);
+                        if (value != null) {
+                          setState(() {
+                            _language = value;
+                            if (_secondLanguage == value) {
+                              _secondLanguage = '';
+                            }
+                          });
+                        }
                       },
+                    ),
+                    DropdownButtonFormField<String>(
+                      key: ValueKey('second-language-$_language'),
+                      initialValue: '',
+                      isExpanded: true,
+                      decoration: InputDecoration(
+                        labelText: label('لغة ثانية (اختياري)', 'Second language (optional)'),
+                        prefixIcon: const Icon(Icons.translate_rounded),
+                        border: const OutlineInputBorder(),
+                      ),
+                      items: [
+                        DropdownMenuItem(value: '', child: Text(label('بدون لغة ثانية', 'No second language'))),
+                        for (final code in widget.languageOptions)
+                          if (code != _language)
+                            DropdownMenuItem(value: code, child: Text(_languageLabel(code))),
+                      ],
+                      onChanged: (value) => setState(() => _secondLanguage = value ?? ''),
                     ),
                     const SizedBox(height: 24),
                     Text(
@@ -278,6 +303,8 @@ class _CreateRoomPageState extends State<CreateRoomPage> {
                           CreateRoomResult(
                             name: _nameController.text.trim(),
                             languageCode: _language,
+                            secondaryLanguageCode: _secondLanguage.isEmpty || _secondLanguage == _language
+                                ? null : _secondLanguage,
                             mode: _mode,
                             showTeacherAiSeat: _showTeacherAiSeat,
                             isPrivate: _isPrivate,
@@ -304,6 +331,7 @@ class CreateRoomResult {
     required this.mode,
     required this.name,
     required this.languageCode,
+    this.secondaryLanguageCode,
     required this.showTeacherAiSeat,
     required this.isPrivate,
     required this.vipOnly,
@@ -311,6 +339,7 @@ class CreateRoomResult {
 
   final String name;
   final String languageCode;
+  final String? secondaryLanguageCode;
   final bool showTeacherAiSeat;
   final bool isPrivate;
   final bool vipOnly;

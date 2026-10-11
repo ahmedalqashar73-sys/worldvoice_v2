@@ -7,6 +7,7 @@ class RoomFeatureState {
     required this.themeId,
     this.backgroundUrl,
     required this.boardWriteEnabled,
+    this.boardPresentationActive = false,
     required this.isPrivate,
     required this.vipOnly,
     required this.musicPlaying,
@@ -28,6 +29,7 @@ class RoomFeatureState {
   final String themeId;
   final String? backgroundUrl;
   final bool boardWriteEnabled;
+  final bool boardPresentationActive;
   final bool isPrivate;
   final bool vipOnly;
   final bool musicPlaying;
@@ -55,6 +57,7 @@ class RoomFeatureState {
       themeId: (data['themeId'] ?? 'softGreenFlow').toString(),
       backgroundUrl: data['backgroundUrl']?.toString(),
       boardWriteEnabled: data['boardWriteEnabled'] != false,
+      boardPresentationActive: data['boardPresentationActive'] == true,
       isPrivate: data['isPrivate'] == true,
       vipOnly: data['vipOnly'] == true,
       musicPlaying: data['musicPlaying'] == true,

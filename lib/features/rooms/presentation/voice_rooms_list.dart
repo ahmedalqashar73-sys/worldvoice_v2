@@ -188,6 +188,7 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
           roomName: result.name,
           openTeacherAiOnJoin: widget.openTeacherAiOnJoin,
           roomLanguageCode: result.languageCode,
+          secondaryRoomLanguageCode: result.secondaryLanguageCode,
           initialShowTeacherAiSeat: result.showTeacherAiSeat,
           initialMode: result.mode,
           initialIsPrivate: result.isPrivate,
@@ -205,6 +206,8 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
     required String channelId,
     required String roomName,
     required String roomLanguageCode,
+    String? secondaryRoomLanguageCode,
+    required String ownerId,
     required bool showTeacherAiSeat,
     bool isPrivate = false,
     bool vipOnly = false,
@@ -218,6 +221,7 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
           roomName: roomName,
           openTeacherAiOnJoin: widget.openTeacherAiOnJoin,
           roomLanguageCode: roomLanguageCode,
+          secondaryRoomLanguageCode: secondaryRoomLanguageCode,
           initialShowTeacherAiSeat: showTeacherAiSeat,
           initialMode: RoomMode.values.firstWhere(
             (mode) => mode.name == roomModeName,
@@ -227,7 +231,9 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
           initialVipOnly: vipOnly,
           privateAccessCode: privateAccessCode,
           localeController: widget.localeController,
-          initialRole: AgoraRoomRole.listener,
+          // A returning creator is always the owner, never a listener.
+          initialRole: FirebaseAuth.instance.currentUser?.uid == ownerId
+              ? AgoraRoomRole.speaker : AgoraRoomRole.listener,
         ),
       ),
     );
@@ -415,9 +421,9 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
                           .where(
                             (doc) =>
                                 (doc.data()['languageCode'] ?? 'en')
-                                    .toString()
-                                    .toLowerCase() ==
-                                selected,
+                                    .toString().toLowerCase() == selected ||
+                                ((doc.data()['languageCodes'] as List?) ?? const [])
+                                    .any((code) => code.toString().toLowerCase() == selected),
                           )
                           .toList(growable: false);
                   final query = widget.searchQuery.trim().toLowerCase();
@@ -473,6 +479,11 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
                                 (data['languageCode'] ?? 'en')
                                     .toString()
                                     .toLowerCase();
+                            final languageCodes = (data['languageCodes'] as List?)
+                                    ?.map((e) => e.toString().toLowerCase()).toList() ??
+                                <String>[roomLanguage];
+                            final secondaryLanguage = languageCodes
+                                .where((code) => code != roomLanguage).firstOrNull;
                             final hostPhotoUrl =
                                 (data['hostPhotoUrl'] as String?)?.trim();
                             final hostCountry =
@@ -487,13 +498,16 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
                               hostName: hostName,
                               hostPhotoUrl: hostPhotoUrl,
                               hostCountry: hostCountry,
-                              languageCode: roomLanguage,
+                              languageCode: secondaryLanguage == null
+                                  ? roomLanguage : '$roomLanguage / $secondaryLanguage',
                               vipOnly: vipOnly,
                               onTap: () => _joinRoom(
                                 context,
                                 channelId: doc.id,
                                 roomName: name,
                                 roomLanguageCode: roomLanguage,
+                                secondaryRoomLanguageCode: secondaryLanguage,
+                                ownerId: (data['hostId'] ?? '').toString(),
                                 showTeacherAiSeat: showTeacherAiSeat,
                                 roomModeName: data['mode']?.toString(),
                                 vipOnly: vipOnly,
@@ -999,8 +1013,8 @@ class _RoomLanguagePrefs {
   }
 
   List<String> get filterLanguages => <String>[
-        ...roomLanguages,
         'all',
+        ...roomLanguages,
       ];
 }
 

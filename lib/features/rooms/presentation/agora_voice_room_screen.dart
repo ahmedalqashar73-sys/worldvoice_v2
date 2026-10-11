@@ -11,6 +11,7 @@ import 'package:just_audio/just_audio.dart';
 
 import '../../home/presentation/home_screen.dart';
 import '../../profile/presentation/public_profile_screen.dart';
+import '../../profile/services/profile_social_service.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../data/room_caption.dart';
 import '../data/room_feature_models.dart';
@@ -84,6 +85,7 @@ class AgoraVoiceRoomScreen extends StatefulWidget {
     required this.initialRole,
     this.localeController,
     this.roomLanguageCode,
+    this.secondaryRoomLanguageCode,
     this.initialShowTeacherAiSeat = false,
     this.openTeacherAiOnJoin = false,
     this.initialIsPrivate = false,
@@ -98,6 +100,7 @@ class AgoraVoiceRoomScreen extends StatefulWidget {
   final AgoraRoomRole initialRole;
   final LocaleController? localeController;
   final String? roomLanguageCode;
+  final String? secondaryRoomLanguageCode;
   final bool initialShowTeacherAiSeat;
   final bool openTeacherAiOnJoin;
   final bool initialIsPrivate;
@@ -127,6 +130,9 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
   StreamSubscription<List<RoomParticipant>>? _participantsSub;
   StreamSubscription<RoomParticipant?>? _meSub;
+  StreamSubscription<Map<String, dynamic>?>? _moderatorInviteSub;
+  String? _lastModeratorInviteSignature;
+  bool _showingModeratorInvite = false;
   StreamSubscription<bool>? _roomOpenSub;
   StreamSubscription<bool>? _teacherAiSeatSub;
   StreamSubscription<RoomFeatureState>? _featuresSub;
@@ -284,6 +290,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       channelId: widget.channelId,
       roomName: widget.roomName,
       roomLanguageCode: widget.roomLanguageCode,
+      secondaryRoomLanguageCode: widget.secondaryRoomLanguageCode,
       initialShowTeacherAiSeat: widget.initialShowTeacherAiSeat,
       initialIsPrivate: widget.initialIsPrivate,
       initialVipOnly: widget.initialVipOnly,
@@ -473,7 +480,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
       _featuresSub = _features.watchState().listen((state) {
         if (!mounted) return;
-        setState(() => _featureState = state);
+        setState(() {
+          _featureState = state;
+          _boardVisible = state.boardPresentationActive;
+        });
         unawaited(_syncRoomMusic(state));
       });
 
@@ -616,6 +626,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       });
 
       _meSub = _moderation.watchMe().listen(_handleMyParticipant);
+      _moderatorInviteSub = _moderation.watchMyModeratorInvite()
+          .listen(_handleModeratorInvite, onError: (Object error) {
+        debugPrint('Room moderator invitation unavailable: $error');
+      });
       _stageInviteSub =
           _moderation.watchMyStageInvite().listen(_handleStageInvite);
 
@@ -1804,6 +1818,50 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       .where((participant) => participant.role == RoomMemberRole.listener)
       .toList(growable: false);
 
+  // Audience is visible beneath the eight fixed speaker seats.
+  // Only current Firestore participants are shown; empty listeners disappear.
+  Widget _buildListenerStrip(bool ar) {
+    final listeners = _listeners;
+    if (listeners.isEmpty) return const SizedBox.shrink();
+    return SizedBox(
+      height: 70,
+      child: Row(children: [
+        Padding(
+          padding: const EdgeInsetsDirectional.only(start: 12, end: 6),
+          child: Text(ar ? 'المستمعون (${listeners.length})' : 'Listeners (${listeners.length})',
+            style: const TextStyle(color: Colors.white70, fontSize: 11)),
+        ),
+        Expanded(
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            itemCount: listeners.length,
+            separatorBuilder: (context, index) => const SizedBox(width: 10),
+            itemBuilder: (context, index) {
+              final person = listeners[index];
+              return InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () => _showParticipantCard(person),
+                child: SizedBox(
+                  width: 56,
+                  child: Column(mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(width: 35, height: 35,
+                        child: _ParticipantAvatar(participant: person)),
+                      const SizedBox(height: 3),
+                      Text(person.displayName, maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 10, color: Colors.white)),
+                    ]),
+                ),
+              );
+            },
+          ),
+        ),
+      ]),
+    );
+  }
+
   Set<int> get _occupiedSeatIndexes => _participants
       .where((participant) => participant.isOnStage)
       .map((participant) => participant.seatIndex)
@@ -2011,7 +2069,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
     final userId = seat.userId;
     if (userId == null || userId.isEmpty) return;
-    _openParticipantProfile(userId);
+    final member = _participants.where((p) => p.userId == userId).firstOrNull;
+    if (member != null) _showParticipantCard(member);
   }
 
   void _handleSeatLongPress(RoomSeatState seat) {
@@ -2031,7 +2090,321 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       return;
     }
 
-    _showStageMemberActions(participant);
+    if (_isHost) {
+      _showStageMemberActions(participant);
+    } else {
+      _showParticipantCard(participant);
+    }
+  }
+
+
+  // The same compact member card is used by speaker seats and listeners.
+  // Full profile data (languages, age, bio, hobbies) is opened by tapping
+  // View profile; private fields are never copied into this room widget.
+  Future<void> _showParticipantCard(RoomParticipant person) async {
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    final self = person.userId == _moderation.currentUserId;
+    final canManage = _canModerate && !self &&
+        person.role != RoomMemberRole.host;
+    final followFuture = self
+        ? Future<bool>.value(false)
+        : ProfileSocialService.isFollowing(person.userId);
+    final profileFuture = FirebaseFirestore.instance
+        .collection('users').doc(person.userId).get();
+    bool? changedFollow;
+    bool followBusy = false;
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      useSafeArea: true,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, update) => SafeArea(
+          child: SingleChildScrollView(
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              ListTile(
+                leading: _ParticipantAvatar(participant: person),
+                title: Text(person.displayName,
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: Text(person.role.label +
+                    (person.isModerator ? (ar ? ' • مشرف' : ' • Moderator') : '')),
+              ),
+              FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                future: profileFuture,
+                builder: (context, snapshot) {
+                  final data = snapshot.data?.data();
+                  if (data == null) return const SizedBox.shrink();
+                  final user = (data['username'] ?? '').toString().trim();
+                  final country = (data['country'] ?? '').toString().trim();
+                  final native = (data['nativeLanguageCode'] ?? '').toString().trim();
+                  final subtitle = [
+                    if (user.isNotEmpty) '@$user',
+                    if (country.isNotEmpty) country,
+                    if (native.isNotEmpty) native.toUpperCase(),
+                  ].join(' • ');
+                  return subtitle.isEmpty ? const SizedBox.shrink()
+                      : Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 18),
+                          child: Text(subtitle, textAlign: TextAlign.center,
+                              style: const TextStyle(color: Colors.white70)),
+                        );
+                },
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.person_outline_rounded),
+                title: Text(ar ? 'الملف الشخصي الكامل' : 'View full profile'),
+                onTap: () => Navigator.pop(sheetContext, 'profile'),
+              ),
+              if (!self)
+                FutureBuilder<bool>(
+                  future: followFuture,
+                  builder: (context, snapshot) {
+                    final following = changedFollow ?? snapshot.data;
+                    return ListTile(
+                      leading: Icon(following == true
+                          ? Icons.person_remove_outlined
+                          : Icons.person_add_alt_rounded),
+                      title: Text(followBusy
+                          ? (ar ? 'جارٍ التحديث…' : 'Updating…')
+                          : following == true
+                              ? (ar ? 'إلغاء المتابعة' : 'Unfollow')
+                              : (ar ? 'متابعة' : 'Follow')),
+                      enabled: !followBusy && following != null,
+                      onTap: followBusy || following == null ? null : () async {
+                        update(() => followBusy = true);
+                        try {
+                          await ProfileSocialService.toggleFollow(person.userId);
+                          if (sheetContext.mounted) {
+                            update(() => changedFollow = !following);
+                          }
+                        } catch (error) {
+                          if (sheetContext.mounted) {
+                            ScaffoldMessenger.of(sheetContext).showSnackBar(
+                              SnackBar(content: Text(
+                                ar ? 'تعذر تحديث المتابعة' : 'Could not update follow')),
+                            );
+                          }
+                        } finally {
+                          if (sheetContext.mounted) update(() => followBusy = false);
+                        }
+                      },
+                    );
+                  },
+                ),
+              if (!self)
+                ListTile(
+                  leading: const Icon(Icons.flag_outlined, color: Colors.orangeAccent),
+                  title: Text(ar ? 'إبلاغ عن المستخدم' : 'Report this user'),
+                  onTap: () => Navigator.pop(sheetContext, 'report'),
+                ),
+              if (canManage) ...[
+                const Divider(),
+                ListTile(
+                  leading: Icon(person.forcedMuted
+                      ? Icons.mic_rounded : Icons.mic_off_rounded),
+                  title: Text(person.forcedMuted
+                      ? (ar ? 'إلغاء الكتم' : 'Unmute')
+                      : (ar ? 'كتم الميكروفون' : 'Mute microphone')),
+                  onTap: () => Navigator.pop(sheetContext, 'mute'),
+                ),
+                if (person.isOnStage)
+                  ListTile(
+                    leading: const Icon(Icons.keyboard_arrow_down_rounded),
+                    title: Text(ar ? 'إنزال إلى المستمعين' : 'Move to listeners'),
+                    onTap: () => Navigator.pop(sheetContext, 'down'),
+                  ),
+                ListTile(
+                  leading: const Icon(Icons.person_remove_rounded,
+                      color: Colors.redAccent),
+                  title: Text(ar ? 'طرد من الغرفة' : 'Remove from room'),
+                  onTap: () => Navigator.pop(sheetContext, 'kick'),
+                ),
+              ],
+              const SizedBox(height: 14),
+            ]),
+          ),
+        ),
+      ),
+    );
+    if (action == null || !mounted) return;
+    try {
+      switch (action) {
+        case 'profile':
+          _openParticipantProfile(person.userId);
+          break;
+        case 'report':
+          await _reportParticipant(
+            targetUserId: person.userId,
+            targetName: person.displayName,
+          );
+          break;
+        case 'mute':
+          if (canManage) {
+            await RoomAdminService(roomId: widget.channelId)
+                .setForcedMute(participant: person, value: !person.forcedMuted);
+          }
+          break;
+        case 'down':
+          if (canManage && person.isOnStage) {
+            await _moderation.moveToListener(person.userId);
+          }
+          break;
+        case 'kick':
+          if (canManage) {
+            await RoomAdminService(roomId: widget.channelId).kick(person);
+          }
+          break;
+      }
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
+    }
+  }
+
+  Future<void> _reportParticipant({
+    required String targetUserId,
+    required String targetName,
+    String messageId = '',
+  }) async {
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    String reason = 'harassment';
+    final notes = TextEditingController();
+    try {
+      final submitted = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => StatefulBuilder(
+          builder: (dialogContext, update) => AlertDialog(
+            title: Text(ar ? 'إبلاغ عن $targetName' : 'Report $targetName'),
+            content: SingleChildScrollView(
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                DropdownButtonFormField<String>(
+                  initialValue: reason,
+                  isExpanded: true,
+                  decoration: InputDecoration(
+                    labelText: ar ? 'سبب الإبلاغ' : 'Reason'),
+                  items: [
+                    ('harassment', ar ? 'مضايقة أو تهديد' : 'Harassment'),
+                    ('offensive', ar ? 'كلام مسيء' : 'Offensive language'),
+                    ('spam', ar ? 'إزعاج أو رسائل متكررة' : 'Spam'),
+                    ('impersonation', ar ? 'انتحال شخصية' : 'Impersonation'),
+                    ('other', ar ? 'سبب آخر' : 'Other'),
+                  ].map((option) => DropdownMenuItem(
+                    value: option.$1, child: Text(option.$2),
+                  )).toList(),
+                  onChanged: (value) {
+                    if (value != null) update(() => reason = value);
+                  },
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: notes,
+                  maxLength: 500,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    labelText: ar ? 'التفاصيل (اختياري)' : 'Details (optional)'),
+                ),
+              ]),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(dialogContext, false),
+                child: Text(ar ? 'إلغاء' : 'Cancel')),
+              FilledButton(
+                onPressed: () => Navigator.pop(dialogContext, true),
+                child: Text(ar ? 'إرسال البلاغ' : 'Submit report')),
+            ],
+          ),
+        ),
+      );
+      if (submitted != true) return;
+      await RoomAdminService(roomId: widget.channelId).reportMember(
+        targetUserId: targetUserId,
+        reason: reason,
+        detail: notes.text,
+        messageId: messageId,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(ar
+              ? 'تم استلام البلاغ للمراجعة، ولم يُطرَد الشخص تلقائيًا.'
+              : 'Report submitted for review; the user was not removed automatically.'),
+        ));
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(ar ? 'تعذر إرسال البلاغ: $error'
+              : 'Could not submit report: $error'),
+        ));
+      }
+    } finally {
+      notes.dispose();
+    }
+  }
+
+  void _handleModeratorInvite(Map<String, dynamic>? invite) {
+    if (invite == null || invite['status'] != 'pending' ||
+        !mounted || _leaving || _showingModeratorInvite) {
+      return;
+    }
+    final timestamp = invite['assignedAt'];
+    final signature = '${invite['assignedBy']}|${timestamp is Timestamp ? timestamp.millisecondsSinceEpoch : timestamp}';
+    if (signature == _lastModeratorInviteSignature) {
+      return;
+    }
+    _lastModeratorInviteSignature = signature;
+    _showingModeratorInvite = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _leaving) {
+        _showingModeratorInvite = false;
+        return;
+      }
+      unawaited(_promptModeratorInvite());
+    });
+  }
+
+  Future<void> _promptModeratorInvite() async {
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    try {
+      final response = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => AlertDialog(
+          title: Text(ar ? 'دعوة للإشراف' : 'Moderator invitation'),
+          content: Text(ar
+              ? 'دعاك صاحب الغرفة لتصبح مشرفًا على المشاركين. يمكنك الموافقة أو الرفض.'
+              : 'The room owner invited you to moderate participants. Accept or decline.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: Text(ar ? 'رفض' : 'Decline'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: Text(ar ? 'قبول' : 'Accept'),
+            ),
+          ],
+        ),
+      );
+      if (response == null || !mounted) return;
+      await _moderation.answerModeratorInvite(response);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(response
+              ? (ar ? 'تم قبول الإشراف' : 'Moderator invitation accepted')
+              : (ar ? 'تم رفض الدعوة' : 'Moderator invitation declined')),
+        ));
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Moderator invitation failed: $error')));
+      }
+    } finally {
+      _showingModeratorInvite = false;
+    }
   }
 
   void _openParticipantProfile(String userId) {
@@ -2241,7 +2614,31 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
   bool _boardVisible = false;
   Future<void> _showBoard() async {
-    setState(() => _boardVisible = true);
+    if (!_isHost) return;
+    try {
+      await _features.setBoardPresentationActive(true);
+      if (mounted) setState(() => _boardVisible = true);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not share whiteboard: $error')));
+      }
+    }
+  }
+
+  Future<void> _closeBoard() async {
+    if (_isHost) {
+      try {
+        await _features.setBoardPresentationActive(false);
+      } catch (error) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Could not stop whiteboard: $error')));
+        }
+        return;
+      }
+    }
+    if (mounted) setState(() => _boardVisible = false);
   }
 
   Future<void> _expandBoard() async {
@@ -2381,7 +2778,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         isModerator: _isModerator,
         onMemberTap: (userId) {
           Navigator.of(context).pop();
-          _openParticipantProfile(userId);
+          final person = _participants.where((item) => item.userId == userId).firstOrNull;
+          if (person != null) _showParticipantCard(person);
         },
       ),
     );
@@ -2462,11 +2860,16 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   // Tapping the room title opens only the five working room controls.
   // Host/moderation controls remain role-gated.
   Future<void> _showTitleActions() async {
+    // The room title must never show host content controls to listeners.
+    // Moderators get only participant controls; content remains host-owned.
+    if (!_isHost) {
+      if (_isModerator) await _showRoomControls();
+      return;
+    }
     final ar = (widget.localeController?.locale?.languageCode ??
         Localizations.localeOf(context).languageCode) == 'ar';
     final items = <(IconData, String, VoidCallback)>[
-      if (_canModerate)
-        (Icons.admin_panel_settings_rounded,
+      (Icons.admin_panel_settings_rounded,
           ar ? 'المدير' : 'Moderator', _showRoomControls),
       (Icons.chat_bubble_outline_rounded,
         ar ? 'الشات' : 'Chat', _showRoomChat),
@@ -2903,19 +3306,19 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               onTap: () =>
                   Navigator.pop(sheetContext, _StageAction.profile),
             ),
-            _RoleOption(
+            if (_isHost) _RoleOption(
               icon: Icons.mic_rounded,
               label: 'Set as Speaker',
               onTap: () =>
                   Navigator.pop(sheetContext, _StageAction.speaker),
             ),
-            _RoleOption(
+            if (_isHost) _RoleOption(
               icon: Icons.group_work_rounded,
               label: 'Set as Co-host',
               onTap: () =>
                   Navigator.pop(sheetContext, _StageAction.coHost),
             ),
-            _RoleOption(
+            if (_isHost) _RoleOption(
               icon: Icons.workspace_premium_rounded,
               label: 'Set as VIP seat',
               onTap: () =>
@@ -2966,6 +3369,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   void dispose() {
     _participantsSub?.cancel();
     _meSub?.cancel();
+    _moderatorInviteSub?.cancel();
     _roomOpenSub?.cancel();
     _teacherAiSeatSub?.cancel();
     _featuresSub?.cancel();
@@ -3228,7 +3632,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
             onPressed: _showRoomMenu, icon: const Icon(Icons.more_horiz_rounded)),
           titleSpacing: 0,
           title: InkWell(
-            onTap: _showTitleActions,
+            onTap: _isHost || _isModerator ? _showTitleActions : null,
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(widget.roomName, maxLines: 1, overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
@@ -3320,8 +3724,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               final stageHeight =
                   2 * (93 + MediaQuery.textScalerOf(context).scale(30)) + 12;
               final contentHeight = _boardVisible
-                  ? (constraints.maxHeight * .55).clamp(110.0, 320.0) + 106
-                  : stageHeight + (_showTeacherAiSeat ? 88 : 0);
+                  ? (constraints.maxHeight * .55).clamp(110.0, 320.0) + 106 +
+                      (_listeners.isNotEmpty ? 70 : 0)
+                  : stageHeight + (_listeners.isNotEmpty ? 70 : 0) +
+                      (_showTeacherAiSeat ? 88 : 0);
               final neededHeight = contentHeight +
                   (_controller.joined ? 42 : 0) +
                   (_canModerate && _raisedHands.isNotEmpty ? 84 : 0) +
@@ -3333,9 +3739,11 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   child: RoomBoardScreen(roomId: widget.channelId,
                     canWrite: _isHost || _featureState.boardWriteEnabled,
                     isHost: _isHost, agoraController: _controller, embedded: true,
-                    onExpand: _expandBoard, onClose: () => setState(() => _boardVisible = false))),
+                    onExpand: _expandBoard, onClose: _closeBoard)),
                 if (_boardVisible && !compact) SizedBox(height: 106,
                   child: RoomStageStrip(seats: _buildSeats(), onSeatTap: _handleSeatTap)),
+                if (_boardVisible && !compact && _listeners.isNotEmpty)
+                  _buildListenerStrip(isArabic),
                 // Stage is a separate fixed viewport. Teacher AI and hand
                 // requests stay pinned; new chat messages never scroll them.
                 if (!_boardVisible && !compact) SizedBox(
@@ -3347,6 +3755,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                       onSeatLongPress: _handleSeatLongPress),
                   ),
                 ),
+                if (!_boardVisible && !compact && _listeners.isNotEmpty)
+                  _buildListenerStrip(isArabic),
                 if (!_boardVisible && !compact && _showTeacherAiSeat)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -3390,6 +3800,11 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   onGifts: _showGifts, onShop: _showBackgroundStore,
                   onTools: _showToolsGrid, onCaptions: _showCaptionSettings,
                   onTranslateMessage: _translateChatMessage,
+                  onReportMessage: (message) => _reportParticipant(
+                    targetUserId: message.userId,
+                    targetName: message.displayName,
+                    messageId: message.id,
+                  ),
                   translationHint: label(
                     'اضغط لترجمتها إلى لغتك الأم',
                     'Tap to translate to your native language',
@@ -3406,12 +3821,37 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                           _me?.forcedMuted == true || !isPublishing
                       ? null : _toggleMicSafely,
                   )),
-                  if (MediaQuery.viewInsetsOf(context).bottom == 0 &&
-                      _me != null && (_canModerate || !isPublishing))
+                  if (MediaQuery.viewInsetsOf(context).bottom == 0 && _me != null)
                     Positioned(
                       left: 10,
                       bottom: 79,
-                      child: _buildHandControl(isArabic, isPublishing),
+                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                        if (_canModerate || !isPublishing)
+                          _buildHandControl(isArabic, isPublishing),
+                        if (isPublishing) ...[
+                          const SizedBox(width: 7),
+                          Material(
+                            elevation: 4,
+                            color: _controller.muted
+                                ? const Color(0xFF9E3F41) : const Color(0xFF087951),
+                            shape: const CircleBorder(),
+                            child: IconButton(
+                              constraints: const BoxConstraints.tightFor(
+                                  width: 38, height: 38),
+                              padding: EdgeInsets.zero,
+                              tooltip: _controller.muted
+                                  ? label('فتح الميكروفون', 'Unmute my microphone')
+                                  : label('كتم ميكروفوني', 'Mute my microphone'),
+                              icon: Icon(_controller.muted
+                                  ? Icons.mic_off_rounded : Icons.mic_rounded,
+                                  size: 20, color: Colors.white),
+                              onPressed: !_controller.joined || _micBusy ||
+                                      _me?.forcedMuted == true
+                                  ? null : _toggleMicSafely,
+                            ),
+                          ),
+                        ],
+                      ]),
                     ),
                 ])),
               ]);

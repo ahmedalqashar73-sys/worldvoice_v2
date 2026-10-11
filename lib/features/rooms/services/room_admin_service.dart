@@ -1,4 +1,9 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:http/http.dart' as http;
+
+import '../data/room_backend_config.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../data/room_moderation_models.dart';
@@ -48,6 +53,66 @@ class RoomAdminService {
     return (snap.data()?['roomLevel'] as num?)?.toInt() ?? 1;
   }
 
+  // Reports are available to every signed-in room member, including
+  // listeners. The collection is write-once and not readable by clients.
+  // A trusted moderation backend can review these records later.
+  Future<void> reportMember({
+    required String targetUserId,
+    required String reason,
+    String detail = '',
+    String messageId = '',
+  }) async {
+    final reporter = _user;
+    if (reporter == null) {
+      throw StateError('Sign in to report inappropriate behavior.');
+    }
+    if (targetUserId.isEmpty || targetUserId == reporter.uid) {
+      throw StateError('Choose another participant to report.');
+    }
+    const validReasons = <String>{
+      'harassment', 'offensive', 'spam', 'impersonation', 'other',
+    };
+    if (!validReasons.contains(reason)) {
+      throw StateError('Invalid report reason.');
+    }
+    final explanation = detail.trim();
+    if (explanation.length > 500 || messageId.length > 150) {
+      throw StateError('Report details are too long.');
+    }
+    final endpoint = RoomBackendConfig.endpoint('/room/report');
+    if (endpoint.isEmpty) {
+      throw StateError('WorldVoice report service is not configured.');
+    }
+    final token = await reporter.getIdToken();
+    if (token == null || token.isEmpty) {
+      throw StateError('Sign in again before reporting.');
+    }
+    final response = await http.post(
+      Uri.parse(endpoint),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'roomId': roomId,
+        'targetUserId': targetUserId,
+        'reason': reason,
+        'detail': explanation,
+        'messageId': messageId,
+      }),
+    ).timeout(const Duration(seconds: 110));
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      String errorMessage = 'Could not submit report.';
+      try {
+        final body = jsonDecode(response.body);
+        if (body is Map && body['error'] is String) {
+          errorMessage = body['error'] as String;
+        }
+      } catch (_) {}
+      throw StateError(errorMessage);
+    }
+  }
+
   Future<void> setModerator({
     required RoomParticipant participant,
     required bool value,
@@ -75,37 +140,30 @@ class RoomAdminService {
     }
 
     final batch = _db.batch();
-    batch.set(
-      _participants.doc(participant.userId),
-      {
-        'isModerator': value,
-        'updatedAt': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
-
     final globalRef = _globalModerators(ownerId).doc(participant.userId);
     if (value) {
-      batch.set(
-        globalRef,
-        {
-          'uid': participant.userId,
-          'displayName': participant.displayName,
-          'photoUrl': participant.photoUrl ?? '',
-          'assignedBy': actor.uid,
-          'assignedAt': FieldValue.serverTimestamp(),
-          'updatedAt': FieldValue.serverTimestamp(),
-        },
-        SetOptions(merge: true),
-      );
+      // Invitation is pending until the recipient explicitly accepts.
+      // Never grant moderator power by merely sending an invite.
+      batch.set(globalRef, {
+        'uid': participant.userId,
+        'displayName': participant.displayName,
+        'photoUrl': participant.photoUrl ?? '',
+        'assignedBy': actor.uid,
+        'assignedAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+        'status': 'pending',
+      });
     } else {
+      batch.set(_participants.doc(participant.userId), {
+        'isModerator': false,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
       batch.delete(globalRef);
     }
-
     await batch.commit();
 
     await _writeLog(
-      action: value ? 'global_moderator_assigned' : 'global_moderator_removed',
+      action: value ? 'global_moderator_invited' : 'global_moderator_removed',
       target: participant,
     );
   }

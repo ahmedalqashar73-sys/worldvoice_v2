@@ -15,6 +15,7 @@ class RoomModerationService {
     required this.channelId,
     required this.roomName,
     this.roomLanguageCode,
+    this.secondaryRoomLanguageCode,
     this.initialShowTeacherAiSeat = false,
     this.initialIsPrivate = false,
     this.initialVipOnly = false,
@@ -25,6 +26,7 @@ class RoomModerationService {
   final String channelId;
   final String roomName;
   final String? roomLanguageCode;
+  final String? secondaryRoomLanguageCode;
   final bool initialShowTeacherAiSeat;
   final bool initialIsPrivate;
   final bool initialVipOnly;
@@ -81,7 +83,9 @@ class RoomModerationService {
             .collection('moderators')
             .doc(user.uid)
             .get();
-        isGlobalModerator = moderator.exists;
+        isGlobalModerator = moderator.exists &&
+            (moderator.data()?['status'] == null ||
+             moderator.data()?['status'] == 'accepted');
       }
     }
     if (!asHost) {
@@ -158,6 +162,13 @@ class RoomModerationService {
           'hostPhotoUrl': photoUrl,
           'hostCountry': country,
           'languageCode': languageCode.isEmpty ? 'en' : languageCode,
+          'languageCodes': [
+            languageCode.isEmpty ? 'en' : languageCode,
+            if (secondaryRoomLanguageCode != null &&
+                secondaryRoomLanguageCode!.isNotEmpty &&
+                secondaryRoomLanguageCode!.toLowerCase() != languageCode)
+              secondaryRoomLanguageCode!.toLowerCase(),
+          ],
           'showTeacherAiSeat': initialShowTeacherAiSeat,
           'isPrivate': initialIsPrivate,
           'vipOnly': initialVipOnly,
@@ -259,6 +270,47 @@ class RoomModerationService {
       },
       SetOptions(merge: true),
     );
+  }
+
+  // The host's global moderation invite follows this room owner.
+  // A user is not promoted until they explicitly accept.
+  Stream<Map<String, dynamic>?> watchMyModeratorInvite() async* {
+    final uid = currentUserId;
+    if (uid == null) return;
+    final room = await _roomRef.get();
+    final ownerId = room.data()?['hostId']?.toString() ?? '';
+    if (ownerId.isEmpty || ownerId == uid) return;
+    yield* _db.collection('users').doc(ownerId)
+        .collection('moderators').doc(uid).snapshots()
+        .map((snapshot) => snapshot.data());
+  }
+
+  Future<void> answerModeratorInvite(bool accepted) async {
+    final user = _user;
+    if (user == null) throw StateError('Sign in is required.');
+    final room = await _roomRef.get();
+    final ownerId = room.data()?['hostId']?.toString() ?? '';
+    if (ownerId.isEmpty || ownerId == user.uid) {
+      throw StateError('Moderator invitation is not available.');
+    }
+    final inviteRef = _db.collection('users').doc(ownerId)
+        .collection('moderators').doc(user.uid);
+    final invite = await inviteRef.get();
+    if (!invite.exists || invite.data()?['status'] != 'pending') {
+      throw StateError('This moderator invitation is no longer pending.');
+    }
+    final batch = _db.batch();
+    batch.update(inviteRef, {
+      'status': accepted ? 'accepted' : 'declined',
+      'respondedAt': FieldValue.serverTimestamp(),
+    });
+    if (accepted) {
+      batch.set(_participantsRef.doc(user.uid), {
+        'isModerator': true,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    }
+    await batch.commit();
   }
 
   Stream<List<RoomParticipant>> watchParticipants() {
@@ -595,81 +647,21 @@ class RoomModerationService {
       return;
     }
 
+    // Keep permanent ownership bound to the original Firebase UID.
+    // Leaving a room must not promote a moderator into the host account.
     final participants = await _participantsRef.get();
-    QueryDocumentSnapshot<Map<String, dynamic>>? nextHostDoc;
-
-    for (final doc in participants.docs) {
-      if (doc.id == uid) continue;
-      final data = doc.data();
-      if (data['isModerator'] != true) continue;
-
-      if (nextHostDoc == null) {
-        nextHostDoc = doc;
-        continue;
-      }
-
-      final currentJoined = nextHostDoc.data()['joinedAt'];
-      final candidateJoined = data['joinedAt'];
-      if (candidateJoined is Timestamp &&
-          currentJoined is Timestamp &&
-          candidateJoined.compareTo(currentJoined) < 0) {
-        nextHostDoc = doc;
-      }
-    }
-
+    final hasActiveModerator = participants.docs.any((doc) =>
+        doc.id != uid && doc.data()['isModerator'] == true);
     final batch = _db.batch();
     batch.delete(_participantsRef.doc(uid));
 
-    if (nextHostDoc != null) {
-      final nextHostId = nextHostDoc.id;
-      final nextData = nextHostDoc.data();
-      final nextProfile =
-          await _db.collection('users').doc(nextHostId).get();
-      final nextCountry =
-          (nextProfile.data()?['country'] ?? '').toString().trim();
-
-      batch.set(
-        nextHostDoc.reference,
-        {
-          'role': 'host',
-          'seatIndex': 1,
-          'isModerator': false,
-          'handRaised': false,
-          'requestedSeatIndex': FieldValue.delete(),
-          'forcedMuted': false,
-          'updatedAt': FieldValue.serverTimestamp(),
-        },
-        SetOptions(merge: true),
-      );
-
-      batch.set(
-        _roomRef,
-        {
-          'hostId': nextHostId,
-          'hostName':
-              (nextData['displayName'] ?? 'WorldVoice host').toString(),
-          'hostPhotoUrl': nextData['photoUrl'],
-          'hostCountry': nextCountry,
-          'isOpen': true,
-          'updatedAt': FieldValue.serverTimestamp(),
-        },
-        SetOptions(merge: true),
-      );
-
-      if (roomData['isPrivate'] == true) {
-        final code = privateAccessCode?.trim() ?? '';
-        if (code.isNotEmpty) {
-          batch.set(
-            _db.collection('private_room_codes').doc(code),
-            {
-              'hostId': nextHostId,
-              'isOpen': true,
-              'updatedAt': FieldValue.serverTimestamp(),
-            },
-            SetOptions(merge: true),
-          );
-        }
-      }
+    if (hasActiveModerator) {
+      // The room remains open; moderators keep their own role and seats.
+      // Its hostId stays unchanged so the true owner reclaims seat 1
+      // automatically when they return.
+      batch.set(_roomRef, {
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
     } else {
       if (roomData['isPrivate'] == true) {
         final code = privateAccessCode?.trim() ?? '';
@@ -684,7 +676,6 @@ class RoomModerationService {
           );
         }
       }
-
       batch.set(
         _roomRef,
         {

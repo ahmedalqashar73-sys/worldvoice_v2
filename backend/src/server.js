@@ -501,6 +501,70 @@ function validChannelName(value) {
   );
 }
 
+// Community safety: submit an immutable report through the authenticated
+// backend. Firebase client rules never grant access to the private reports.
+app.post("/room/report", async (req, res, next) => {
+  try {
+    const reporter = await authenticatedUser(req);
+    const roomId = String(req.body?.roomId || "").trim();
+    const targetUserId = String(req.body?.targetUserId || "").trim();
+    const reason = String(req.body?.reason || "").trim();
+    const detail = String(req.body?.detail || "").trim();
+    const messageId = String(req.body?.messageId || "").trim();
+    const reasons = new Set([
+      "harassment", "offensive", "spam", "impersonation", "other",
+    ]);
+    if (!validChannelName(roomId) ||
+        (targetUserId.length === 0 || targetUserId.length > 128 ||
+          targetUserId.includes("/") || /\s/.test(targetUserId)) ||
+        targetUserId === reporter.uid ||
+        !reasons.has(reason) ||
+        detail.length > 500 ||
+        !/^[a-zA-Z0-9_-]{0,150}$/.test(messageId)) {
+      return res.status(400).json({error: "Invalid report details."});
+    }
+    const roomRef = db.collection("rooms").doc(roomId);
+    const [room, reporterSeat] = await Promise.all([
+      roomRef.get(), roomRef.collection("participants").doc(reporter.uid).get(),
+    ]);
+    if (!room.exists || !reporterSeat.exists) {
+      return res.status(403).json({error: "Join this room to report an incident."});
+    }
+    if (messageId) {
+      const message = await roomRef.collection("messages").doc(messageId).get();
+      if (!message.exists || message.data()?.userId !== targetUserId) {
+        return res.status(400).json({error: "The message author could not be verified."});
+      }
+    }
+    // One report per author/subject/message per UTC day, idempotent on retries.
+    const day = new Date().toISOString().slice(0, 10);
+    const dedupKey = createHash("sha256")
+      .update([reporter.uid, targetUserId, messageId, day].join("\u0000"))
+      .digest("hex").slice(0, 40);
+    const reportRef = roomRef.collection("reports").doc(dedupKey);
+    try {
+      await reportRef.create({
+        reporterId: reporter.uid,
+        targetUserId,
+        reason,
+        detail,
+        messageId,
+        status: "pending",
+        createdAt: FieldValue.serverTimestamp(),
+      });
+    } catch (error) {
+      if (Number(error?.code) !== 6 &&
+          String(error?.code || "") !== "already-exists") {
+        throw error;
+      }
+      return res.json({ok: true, alreadySubmitted: true});
+    }
+    return res.json({ok: true, alreadySubmitted: false});
+  } catch (error) {
+    next(error);
+  }
+});
+
 const freeRoomBackgroundThemes = new Set([
   "softGreenFlow",
   "wv_bg_06",
