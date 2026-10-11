@@ -13,7 +13,7 @@ class ChatExtendedService {
   ChatExtendedService({http.Client? client}) : _client = client ?? http.Client();
 
   static const String _backend =
-      RoomBackendConfig.economyBaseUrl;
+      RoomBackendConfig.socialBaseUrl;
   final http.Client _client;
 
   Uri _uri(String path) {
