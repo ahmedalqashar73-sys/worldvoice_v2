@@ -2674,7 +2674,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         isModerator: _isModerator,
         onMemberTap: (userId) {
           Navigator.of(context).pop();
-          _openParticipantProfile(userId);
+          final person = _participants.where((item) => item.userId == userId).firstOrNull;
+          if (person != null) _showParticipantCard(person);
         },
       ),
     );
@@ -3526,7 +3527,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
             onPressed: _showRoomMenu, icon: const Icon(Icons.more_horiz_rounded)),
           titleSpacing: 0,
           title: InkWell(
-            onTap: _showTitleActions,
+            onTap: _isHost || _isModerator ? _showTitleActions : null,
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(widget.roomName, maxLines: 1, overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
@@ -3691,6 +3692,11 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   onGifts: _showGifts, onShop: _showBackgroundStore,
                   onTools: _showToolsGrid, onCaptions: _showCaptionSettings,
                   onTranslateMessage: _translateChatMessage,
+                  onReportMessage: (message) => _reportParticipant(
+                    targetUserId: message.userId,
+                    targetName: message.displayName,
+                    messageId: message.id,
+                  ),
                   translationHint: label(
                     'اضغط لترجمتها إلى لغتك الأم',
                     'Tap to translate to your native language',
