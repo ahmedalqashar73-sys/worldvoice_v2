@@ -47,6 +47,119 @@ class _CreateRoomPageState extends State<CreateRoomPage> {
     super.dispose();
   }
 
+  Future<void> _pickRoomLanguages() async {
+    final selected = <String>[
+      _language,
+      if (_secondLanguage.isNotEmpty && _secondLanguage != _language)
+        _secondLanguage,
+    ];
+    final searchController = TextEditingController();
+    var search = '';
+    final ar = widget.isArabic;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, updateSheet) => Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
+          ),
+          child: SizedBox(
+            height: MediaQuery.sizeOf(sheetContext).height * .65,
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        ar ? 'لغات الغرفة' : 'Room languages',
+                        style: Theme.of(sheetContext).textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        ar
+                            ? 'اختر لغة أو لغتين للتحدث بهما في نفس الغرفة'
+                            : 'Choose one or two languages for the same room',
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: searchController,
+                        decoration: InputDecoration(
+                          hintText: ar ? 'ابحث عن لغة' : 'Search languages',
+                          prefixIcon: const Icon(Icons.search_rounded),
+                          border: const OutlineInputBorder(),
+                        ),
+                        onChanged: (value) => updateSheet(
+                          () => search = value.trim().toLowerCase(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: ListView(
+                    children: [
+                      for (final code in widget.languageOptions)
+                        if (_languageLabel(code).toLowerCase().contains(search) ||
+                            code.toLowerCase().contains(search))
+                          CheckboxListTile(
+                            key: ValueKey('room-language-$code'),
+                            title: Text(_languageLabel(code)),
+                            value: selected.contains(code),
+                            onChanged: (checked) {
+                              if (checked == true && !selected.contains(code)) {
+                                if (selected.length >= 2) {
+                                  ScaffoldMessenger.of(sheetContext).showSnackBar(
+                                    SnackBar(
+                                      content: Text(ar
+                                          ? 'يمكنك اختيار لغتين كحد أقصى'
+                                          : 'Choose up to two languages'),
+                                    ),
+                                  );
+                                  return;
+                                }
+                                updateSheet(() => selected.add(code));
+                              } else if (checked == false &&
+                                  selected.length > 1) {
+                                updateSheet(() => selected.remove(code));
+                              }
+                            },
+                          ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: () {
+                        setState(() {
+                          _language = selected.first;
+                          _secondLanguage =
+                              selected.length == 2 ? selected.last : '';
+                        });
+                        Navigator.of(sheetContext).pop();
+                      },
+                      child: Text(ar ? 'تأكيد اللغات' : 'Confirm languages'),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    searchController.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
@@ -109,48 +222,39 @@ class _CreateRoomPageState extends State<CreateRoomPage> {
                           : null,
                     ),
                     const SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
-                      initialValue: _language,
-                      isExpanded: true,
-                      decoration: InputDecoration(
-                        labelText: label('لغة الغرفة', 'Room language'),
-                        prefixIcon: const Icon(Icons.language_rounded),
-                        border: const OutlineInputBorder(),
-                      ),
-                      items: [
-                        for (final code in widget.languageOptions)
-                          DropdownMenuItem(
-                            value: code,
-                            child: Text(_languageLabel(code)),
+                    InkWell(
+                      key: const ValueKey('room-languages-picker'),
+                      borderRadius: BorderRadius.circular(8),
+                      onTap: _pickRoomLanguages,
+                      child: InputDecorator(
+                        decoration: InputDecoration(
+                          labelText: label('لغات الغرفة', 'Room languages'),
+                          prefixIcon: const Icon(Icons.language_rounded),
+                          suffixIcon: const Icon(Icons.arrow_drop_down_rounded),
+                          border: const OutlineInputBorder(),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 18,
                           ),
-                      ],
-                      onChanged: (value) {
-                        if (value != null) {
-                          setState(() {
-                            _language = value;
-                            if (_secondLanguage == value) {
-                              _secondLanguage = '';
-                            }
-                          });
-                        }
-                      },
-                    ),
-                    DropdownButtonFormField<String>(
-                      key: ValueKey('second-language-$_language'),
-                      initialValue: '',
-                      isExpanded: true,
-                      decoration: InputDecoration(
-                        labelText: label('لغة ثانية (اختياري)', 'Second language (optional)'),
-                        prefixIcon: const Icon(Icons.translate_rounded),
-                        border: const OutlineInputBorder(),
+                        ),
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 6,
+                          children: [
+                            Chip(label: Text(_languageLabel(_language))),
+                            if (_secondLanguage.isNotEmpty)
+                              Chip(label: Text(_languageLabel(_secondLanguage))),
+                          ],
+                        ),
                       ),
-                      items: [
-                        DropdownMenuItem(value: '', child: Text(label('بدون لغة ثانية', 'No second language'))),
-                        for (final code in widget.languageOptions)
-                          if (code != _language)
-                            DropdownMenuItem(value: code, child: Text(_languageLabel(code))),
-                      ],
-                      onChanged: (value) => setState(() => _secondLanguage = value ?? ''),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      label(
+                        'اختر لغة واحدة أو لغتين، مثل العربية وEnglish',
+                        'Choose one or two languages, e.g. Arabic and English',
+                      ),
+                      style: Theme.of(context).textTheme.bodySmall,
                     ),
                     const SizedBox(height: 24),
                     Text(
