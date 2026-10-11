@@ -48,6 +48,43 @@ class RoomAdminService {
     return (snap.data()?['roomLevel'] as num?)?.toInt() ?? 1;
   }
 
+  // Reports are available to every signed-in room member, including
+  // listeners. The collection is write-once and not readable by clients.
+  // A trusted moderation backend can review these records later.
+  Future<void> reportMember({
+    required String targetUserId,
+    required String reason,
+    String detail = '',
+    String messageId = '',
+  }) async {
+    final reporter = _user;
+    if (reporter == null) {
+      throw StateError('Sign in to report inappropriate behavior.');
+    }
+    if (targetUserId.isEmpty || targetUserId == reporter.uid) {
+      throw StateError('Choose another participant to report.');
+    }
+    const validReasons = <String>{
+      'harassment', 'offensive', 'spam', 'impersonation', 'other',
+    };
+    if (!validReasons.contains(reason)) {
+      throw StateError('Invalid report reason.');
+    }
+    final explanation = detail.trim();
+    if (explanation.length > 500 || messageId.length > 150) {
+      throw StateError('Report details are too long.');
+    }
+    await _room.collection('reports').add({
+      'reporterId': reporter.uid,
+      'targetUserId': targetUserId,
+      'reason': reason,
+      'detail': explanation,
+      'messageId': messageId,
+      'status': 'pending',
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+  }
+
   Future<void> setModerator({
     required RoomParticipant participant,
     required bool value,
