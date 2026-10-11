@@ -130,6 +130,9 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
   StreamSubscription<List<RoomParticipant>>? _participantsSub;
   StreamSubscription<RoomParticipant?>? _meSub;
+  StreamSubscription<Map<String, dynamic>?>? _moderatorInviteSub;
+  String? _lastModeratorInviteSignature;
+  bool _showingModeratorInvite = false;
   StreamSubscription<bool>? _roomOpenSub;
   StreamSubscription<bool>? _teacherAiSeatSub;
   StreamSubscription<RoomFeatureState>? _featuresSub;
@@ -623,6 +626,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       });
 
       _meSub = _moderation.watchMe().listen(_handleMyParticipant);
+      _moderatorInviteSub = _moderation.watchMyModeratorInvite()
+          .listen(_handleModeratorInvite, onError: (Object error) {
+        debugPrint('Room moderator invitation unavailable: $error');
+      });
       _stageInviteSub =
           _moderation.watchMyStageInvite().listen(_handleStageInvite);
 
@@ -2337,6 +2344,65 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     }
   }
 
+  void _handleModeratorInvite(Map<String, dynamic>? invite) {
+    if (invite == null || invite['status'] != 'pending' ||
+        !mounted || _leaving || _showingModeratorInvite) return;
+    final timestamp = invite['assignedAt'];
+    final signature = '${invite['assignedBy']}|${timestamp is Timestamp ? timestamp.millisecondsSinceEpoch : timestamp}';
+    if (signature == _lastModeratorInviteSignature) return;
+    _lastModeratorInviteSignature = signature;
+    _showingModeratorInvite = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _leaving) {
+        _showingModeratorInvite = false;
+        return;
+      }
+      unawaited(_promptModeratorInvite());
+    });
+  }
+
+  Future<void> _promptModeratorInvite() async {
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    try {
+      final response = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => AlertDialog(
+          title: Text(ar ? 'دعوة للإشراف' : 'Moderator invitation'),
+          content: Text(ar
+              ? 'دعاك صاحب الغرفة لتصبح مشرفًا على المشاركين. يمكنك الموافقة أو الرفض.'
+              : 'The room owner invited you to moderate participants. Accept or decline.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: Text(ar ? 'رفض' : 'Decline'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: Text(ar ? 'قبول' : 'Accept'),
+            ),
+          ],
+        ),
+      );
+      if (response == null || !mounted) return;
+      await _moderation.answerModeratorInvite(response);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(response
+              ? (ar ? 'تم قبول الإشراف' : 'Moderator invitation accepted')
+              : (ar ? 'تم رفض الدعوة' : 'Moderator invitation declined')),
+        ));
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Moderator invitation failed: $error')));
+      }
+    } finally {
+      _showingModeratorInvite = false;
+    }
+  }
+
   void _openParticipantProfile(String userId) {
     RoomParticipant? participant;
     for (final value in _participants) {
@@ -3299,6 +3365,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   void dispose() {
     _participantsSub?.cancel();
     _meSub?.cancel();
+    _moderatorInviteSub?.cancel();
     _roomOpenSub?.cancel();
     _teacherAiSeatSub?.cancel();
     _featuresSub?.cancel();
