@@ -149,7 +149,6 @@ class _StartupGate extends StatelessWidget {
               key: ValueKey(user.uid),
               user: user,
               localeController: localeController,
-              hasPartialProfile: data != null && data.isNotEmpty,
             );
           },
         );
@@ -163,13 +162,11 @@ class _MissingProfileGate extends StatefulWidget {
   const _MissingProfileGate({
     required this.user,
     required this.localeController,
-    required this.hasPartialProfile,
     super.key,
   });
 
   final User user;
   final LocaleController localeController;
-  final bool hasPartialProfile;
 
   @override
   State<_MissingProfileGate> createState() => _MissingProfileGateState();
