@@ -5,6 +5,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 
+import '../../rooms/data/room_backend_config.dart';
+
 import '../../profile/services/user_presence_service.dart';
 
 class AuthService {
@@ -13,7 +15,7 @@ class AuthService {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
   static bool _googleInitialized = false;
   static const String _backend =
-      String.fromEnvironment('WORLDVOICE_ECONOMY_ENDPOINT');
+      RoomBackendConfig.economyBaseUrl;
 
   static bool hasCompletedProfileData(Map<String, dynamic>? data) {
     if (data == null) return false;
