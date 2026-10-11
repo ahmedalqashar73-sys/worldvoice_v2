@@ -113,7 +113,7 @@ class HomeFeedService {
   HomeFeedService({http.Client? client}) : _client = client ?? http.Client();
 
   static const String _backend =
-      RoomBackendConfig.economyBaseUrl;
+      RoomBackendConfig.socialBaseUrl;
   final http.Client _client;
 
   Future<String> _token() async {
