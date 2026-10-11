@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 
 class UserPresenceService {
   UserPresenceService._();
@@ -9,28 +10,37 @@ class UserPresenceService {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
   static final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  static Future<void> markOnline() async {
+  // Presence must NEVER create a user profile. On a fresh login the onboarding
+  // flow owns that document; a presence-only document makes a completed profile
+  // appear missing and fails the strict Firestore users/create rules.
+  static Future<void> _updateExistingProfile(Map<String, Object?> fields) async {
     final user = _auth.currentUser;
     if (user == null) return;
-
-    await _db.collection('users').doc(user.uid).set({
-      'isOnline': true,
-      'lastActiveAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    try {
+      await _db.collection('users').doc(user.uid).update(fields);
+    } on FirebaseException catch (error) {
+      // An absent profile or an outdated deployed rule should not crash login
+      // or show an unrelated PERMISSION_DENIED message on the profile screen.
+      if (error.code != 'not-found' && error.code != 'permission-denied') {
+        debugPrint('WorldVoice presence update failed: ${error.code}');
+      }
+    } catch (error) {
+      debugPrint('WorldVoice presence update failed: $error');
+    }
   }
+
+  static Future<void> markOnline() => _updateExistingProfile({
+        'isOnline': true,
+        'lastActiveAt': FieldValue.serverTimestamp(),
+      });
 
   static Future<void> heartbeat() => markOnline();
 
-  static Future<void> markOffline() async {
-    final user = _auth.currentUser;
-    if (user == null) return;
-
-    await _db.collection('users').doc(user.uid).set({
-      'isOnline': false,
-      'lastActiveAt': FieldValue.serverTimestamp(),
-      'lastSeenAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
-  }
+  static Future<void> markOffline() => _updateExistingProfile({
+        'isOnline': false,
+        'lastActiveAt': FieldValue.serverTimestamp(),
+        'lastSeenAt': FieldValue.serverTimestamp(),
+      });
 }
 
 class PresenceSession {
