@@ -23,8 +23,10 @@ class RoomBackendConfig {
   // as Teacher AI. Keep legacy economy actions on their existing endpoint.
   static const String socialBaseUrl = String.fromEnvironment(
     'WORLDVOICE_SOCIAL_BACKEND_URL',
-    defaultValue: 'https://worldvoice-teacher-ai.onrender.com',
+    defaultValue: 'https://worldvoice-v2.onrender.com',
   );
+
+  static const Duration socialRequestTimeout = Duration(seconds: 110);
 
   static String get baseUrl => configuredBaseUrl.trim();
 
