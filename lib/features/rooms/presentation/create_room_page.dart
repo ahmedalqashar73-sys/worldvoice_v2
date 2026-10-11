@@ -132,6 +132,7 @@ class _CreateRoomPageState extends State<CreateRoomPage> {
                       },
                     ),
                     DropdownButtonFormField<String>(
+                      key: ValueKey('second-language-$_language'),
                       initialValue: '',
                       isExpanded: true,
                       decoration: InputDecoration(
