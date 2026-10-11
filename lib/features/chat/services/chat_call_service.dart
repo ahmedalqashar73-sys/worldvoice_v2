@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 
+import '../../rooms/data/room_backend_config.dart';
+
 class ChatCallInfo {
   const ChatCallInfo({
     required this.id,
@@ -47,7 +49,7 @@ class ChatCallService {
   ChatCallService({http.Client? client}) : _client = client ?? http.Client();
 
   static const String _backend =
-      String.fromEnvironment('WORLDVOICE_ECONOMY_ENDPOINT');
+      RoomBackendConfig.economyBaseUrl;
   final http.Client _client;
 
   Uri _uri(String path) {
