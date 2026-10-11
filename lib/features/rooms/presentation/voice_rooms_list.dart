@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -459,12 +461,10 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
                           languageCode: selected,
                         )
                       else
-                        ListView.separated(
+                        ListView.builder(
                           padding:
                               const EdgeInsets.fromLTRB(18, 14, 18, 96),
                           itemCount: docs.length,
-                          separatorBuilder: (_, _) =>
-                              const SizedBox(height: 12),
                           itemBuilder: (context, index) {
                             final doc = docs[index];
                             final data = doc.data();
@@ -618,7 +618,7 @@ class _RoomPromotionBanner extends StatelessWidget {
   }
 }
 
-class _RoomCard extends StatelessWidget {
+class _RoomCard extends StatefulWidget {
   const _RoomCard({
     required this.channelId,
     required this.name,
@@ -640,31 +640,69 @@ class _RoomCard extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
+  State<_RoomCard> createState() => _RoomCardState();
+}
+
+class _RoomCardState extends State<_RoomCard> {
+  late final Stream<QuerySnapshot<Map<String, dynamic>>>
+      _participantsStream;
+  Timer? _refreshTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _participantsStream = FirebaseFirestore.instance
+        .collection('rooms')
+        .doc(widget.channelId)
+        .collection('participants')
+        .snapshots();
+    // A sudden disconnect leaves no new Firestore event. Refresh locally so
+    // old participant presence expires even if the room document stays open.
+    _refreshTimer = Timer.periodic(
+      const Duration(seconds: 30),
+      (_) {
+        if (mounted) setState(() {});
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
 
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: FirebaseFirestore.instance
-          .collection('rooms')
-          .doc(channelId)
-          .collection('participants')
-          .snapshots(),
+      stream: _participantsStream,
       builder: (context, snapshot) {
         final participants = snapshot.data?.docs ??
             const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
-        final preview = participants.take(3).toList(growable: false);
+        final activeParticipants = participants.where((doc) {
+          final activity = doc.data()['updatedAt'] ?? doc.data()['joinedAt'];
+          return activity is Timestamp &&
+              !activity.toDate().isBefore(
+                DateTime.now().subtract(const Duration(minutes: 3)),
+              );
+        }).toList(growable: false);
+        if (activeParticipants.isEmpty) return const SizedBox.shrink();
+        final preview = activeParticipants.take(3).toList(growable: false);
 
         return Card(
+          margin: const EdgeInsets.only(bottom: 12),
           clipBehavior: Clip.antiAlias,
           child: InkWell(
-            onTap: onTap,
+            onTap: widget.onTap,
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _AvatarStack(
-                    hostPhotoUrl: hostPhotoUrl,
+                    hostPhotoUrl: widget.hostPhotoUrl,
                     participants: preview,
                   ),
                   const SizedBox(width: 14),
@@ -673,7 +711,7 @@ class _RoomCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          name,
+                          widget.name,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
@@ -692,11 +730,11 @@ class _RoomCard extends StatelessWidget {
                               foreground: colors.onPrimaryContainer,
                             ),
                             _SmallBadge(
-                              text: _languageLabel(languageCode),
+                              text: _languageLabel(widget.languageCode),
                               background: colors.secondaryContainer,
                               foreground: colors.onSecondaryContainer,
                             ),
-                            if (vipOnly)
+                            if (widget.vipOnly)
                               _SmallBadge(
                                 text: 'VIP',
                                 background: const Color(0xFFFFD978),
@@ -708,13 +746,13 @@ class _RoomCard extends StatelessWidget {
                         Row(
                           children: [
                             Text(
-                              profileCountryFlag(hostCountry),
+                              profileCountryFlag(widget.hostCountry),
                               style: const TextStyle(fontSize: 17),
                             ),
                             const SizedBox(width: 6),
                             Expanded(
                               child: Text(
-                                hostName,
+                                widget.hostName,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
@@ -740,7 +778,7 @@ class _RoomCard extends StatelessWidget {
                             const Icon(Icons.people_alt_rounded, size: 16),
                             const SizedBox(width: 4),
                             Text(
-                              '${participants.length}',
+                              '${activeParticipants.length}',
                               style: const TextStyle(
                                 fontWeight: FontWeight.w800,
                               ),
