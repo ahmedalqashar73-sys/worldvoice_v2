@@ -1025,6 +1025,43 @@ service cloud.firestore {
         allow create, update, delete: if false;
       }
 
+      // Immutable safety reports. Reported users cannot read the reporter's
+      // identity. Only trusted server credentials can review or close cases.
+      match /reports/{reportId} {
+        allow read, update, delete: if false;
+        allow create: if isRoomMember(roomId)
+            && request.resource.data.keys().hasOnly([
+              'reporterId', 'targetUserId', 'reason',
+              'detail', 'messageId', 'status', 'createdAt'
+            ])
+            && request.resource.data.keys().hasAll([
+              'reporterId', 'targetUserId', 'reason',
+              'detail', 'messageId', 'status', 'createdAt'
+            ])
+            && request.resource.data.reporterId == request.auth.uid
+            && request.resource.data.targetUserId is string
+            && request.resource.data.targetUserId.size() > 0
+            && request.resource.data.targetUserId.size() <= 128
+            && request.resource.data.targetUserId != request.auth.uid
+            && request.resource.data.reason in [
+              'harassment', 'offensive', 'spam', 'impersonation', 'other'
+            ]
+            && request.resource.data.detail is string
+            && request.resource.data.detail.size() <= 500
+            && request.resource.data.messageId is string
+            && request.resource.data.messageId.size() <= 150
+            && request.resource.data.status == 'pending'
+            && request.resource.data.createdAt == request.time
+            && (
+              request.resource.data.messageId == ''
+              || (
+                exists(/databases/$(database)/documents/rooms/$(roomId)/messages/$(request.resource.data.messageId))
+                && get(/databases/$(database)/documents/rooms/$(roomId)/messages/$(request.resource.data.messageId))
+                    .data.userId == request.resource.data.targetUserId
+              )
+            );
+      }
+
       match /messages/{messageId} {
         allow read: if signedIn()
             && exists(participantPath(roomId, request.auth.uid));
