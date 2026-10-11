@@ -15,6 +15,7 @@ class RoomModerationService {
     required this.channelId,
     required this.roomName,
     this.roomLanguageCode,
+    this.secondaryRoomLanguageCode,
     this.initialShowTeacherAiSeat = false,
     this.initialIsPrivate = false,
     this.initialVipOnly = false,
@@ -25,6 +26,7 @@ class RoomModerationService {
   final String channelId;
   final String roomName;
   final String? roomLanguageCode;
+  final String? secondaryRoomLanguageCode;
   final bool initialShowTeacherAiSeat;
   final bool initialIsPrivate;
   final bool initialVipOnly;
@@ -158,6 +160,13 @@ class RoomModerationService {
           'hostPhotoUrl': photoUrl,
           'hostCountry': country,
           'languageCode': languageCode.isEmpty ? 'en' : languageCode,
+          'languageCodes': [
+            languageCode.isEmpty ? 'en' : languageCode,
+            if (secondaryRoomLanguageCode != null &&
+                secondaryRoomLanguageCode!.isNotEmpty &&
+                secondaryRoomLanguageCode!.toLowerCase() != languageCode)
+              secondaryRoomLanguageCode!.toLowerCase(),
+          ],
           'showTeacherAiSeat': initialShowTeacherAiSeat,
           'isPrivate': initialIsPrivate,
           'vipOnly': initialVipOnly,
