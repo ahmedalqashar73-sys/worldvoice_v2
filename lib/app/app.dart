@@ -125,21 +125,185 @@ class _StartupGate extends StatelessWidget {
         return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
           stream: FirebaseFirestore.instance.collection('users').doc(user.uid).snapshots(),
           builder: (context, profileSnapshot) {
+            if (profileSnapshot.hasError) {
+              return _ProfileAccessError(
+                localeController: localeController,
+                isPermissionError: profileSnapshot.error
+                    is FirebaseException &&
+                    (profileSnapshot.error as FirebaseException).code ==
+                        'permission-denied',
+              );
+            }
             if (!profileSnapshot.hasData) {
               return const _StartupLoading();
             }
 
             final data = profileSnapshot.data!.data();
-            final completed = AuthService.hasCompletedProfileData(data);
-
-            if (completed) {
+            if (AuthService.hasCompletedProfileData(data)) {
               return HomeScreen(localeController: localeController);
             }
-
-            return ProfileSetupScreen(localeController: localeController);
+            // Do not create a duplicate profile from a missing local cache.
+            // Check the server for legacy profiles with this verified email.
+            return _MissingProfileGate(
+              key: ValueKey(user.uid),
+              user: user,
+              localeController: localeController,
+              hasPartialProfile: data != null && data.isNotEmpty,
+            );
           },
         );
       },
+    );
+  }
+}
+
+
+class _MissingProfileGate extends StatefulWidget {
+  const _MissingProfileGate({
+    required this.user,
+    required this.localeController,
+    required this.hasPartialProfile,
+    super.key,
+  });
+
+  final User user;
+  final LocaleController localeController;
+  final bool hasPartialProfile;
+
+  @override
+  State<_MissingProfileGate> createState() => _MissingProfileGateState();
+}
+
+class _MissingProfileGateState extends State<_MissingProfileGate> {
+  late Future<bool> _legacyLookup;
+
+  @override
+  void initState() {
+    super.initState();
+    _legacyLookup = AuthService.hasLegacyProfileForVerifiedEmail(widget.user);
+  }
+
+  @override
+  void didUpdateWidget(covariant _MissingProfileGate oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.user.uid != widget.user.uid) {
+      _legacyLookup = AuthService.hasLegacyProfileForVerifiedEmail(widget.user);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<bool>(
+      future: _legacyLookup,
+      builder: (context, result) {
+        if (result.hasError) {
+          return _ProfileAccessError(
+            localeController: widget.localeController,
+            isPermissionError: result.error is FirebaseException &&
+                (result.error as FirebaseException).code == 'permission-denied',
+          );
+        }
+        if (!result.hasData) return const _StartupLoading();
+        if (result.data == true) {
+          return _LegacyProfileNotice(
+            localeController: widget.localeController,
+          );
+        }
+        // A partial document from an older version needs completing, not
+        // accidental recreation of a fresh account with a new user ID.
+        return ProfileSetupScreen(
+          localeController: widget.localeController,
+        );
+      },
+    );
+  }
+}
+
+class _ProfileAccessError extends StatelessWidget {
+  const _ProfileAccessError({
+    required this.localeController,
+    required this.isPermissionError,
+  });
+
+  final LocaleController localeController;
+  final bool isPermissionError;
+
+  @override
+  Widget build(BuildContext context) {
+    final ar = localeController.locale?.languageCode == 'ar';
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(28),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              const Icon(Icons.cloud_off_rounded, size: 52),
+              const SizedBox(height: 20),
+              Text(
+                ar ? 'تعذر تحميل بروفايلك المحفوظ' :
+                    'Your saved profile could not be loaded',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                isPermissionError
+                    ? (ar ? 'قواعد Firebase تمنع الوصول إلى الملف. بياناتك لم تُحذف. لا تنشئ بروفايلًا جديدًا.' :
+                        'Firebase rules denied access. Your data was not deleted. Do not create a new profile.')
+                    : (ar ? 'تحقق من الإنترنت ثم أعد فتح التطبيق. بيانات البروفايل لن تُستبدل.' :
+                        'Check your connection and reopen the app. Your profile will not be overwritten.'),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              OutlinedButton(
+                onPressed: () async => AuthService.signOut(),
+                child: Text(ar ? 'تسجيل الخروج لاختيار الحساب الصحيح' :
+                    'Sign out to choose the correct account'),
+              ),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LegacyProfileNotice extends StatelessWidget {
+  const _LegacyProfileNotice({required this.localeController});
+  final LocaleController localeController;
+
+  @override
+  Widget build(BuildContext context) {
+    final ar = localeController.locale?.languageCode == 'ar';
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(28),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              const Icon(Icons.manage_accounts_outlined, size: 54),
+              const SizedBox(height: 18),
+              Text(
+                ar ? 'وجدنا بروفايلًا قديمًا مرتبطًا ببريدك' :
+                    'A previous profile was found for your email',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                ar ? 'هذا الدخول يستخدم معرّف حساب مختلفًا. حفاظًا على بياناتك، لم ننشئ بروفايلًا جديدًا ولم ننسخ رصيدك. سجّل بنفس طريقة الدخول القديمة، أو اطلب ربط الحسابين بشكل آمن.' :
+                    'This login has a different account ID. We did not create a duplicate profile or copy wallet data. Sign in using your original method or request secure account linking.',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              FilledButton(
+                onPressed: () async => AuthService.signOut(),
+                child: Text(ar ? 'العودة إلى تسجيل الدخول' : 'Return to sign in'),
+              ),
+            ]),
+          ),
+        ),
+      ),
     );
   }
 }
