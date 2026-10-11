@@ -2077,7 +2077,11 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       return;
     }
 
-    _showStageMemberActions(participant);
+    if (_isHost) {
+      _showStageMemberActions(participant);
+    } else {
+      _showParticipantCard(participant);
+    }
   }
 
 
@@ -3202,19 +3206,19 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               onTap: () =>
                   Navigator.pop(sheetContext, _StageAction.profile),
             ),
-            _RoleOption(
+            if (_isHost) _RoleOption(
               icon: Icons.mic_rounded,
               label: 'Set as Speaker',
               onTap: () =>
                   Navigator.pop(sheetContext, _StageAction.speaker),
             ),
-            _RoleOption(
+            if (_isHost) _RoleOption(
               icon: Icons.group_work_rounded,
               label: 'Set as Co-host',
               onTap: () =>
                   Navigator.pop(sheetContext, _StageAction.coHost),
             ),
-            _RoleOption(
+            if (_isHost) _RoleOption(
               icon: Icons.workspace_premium_rounded,
               label: 'Set as VIP seat',
               onTap: () =>
