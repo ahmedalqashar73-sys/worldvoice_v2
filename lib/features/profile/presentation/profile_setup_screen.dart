@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -55,9 +56,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   @override
   void initState() {
     super.initState();
-    if (widget.editMode) {
-      _loadExistingProfile();
-    }
+    // Prefill legacy partial profiles as well as ordinary edit sessions.
+    // A newly-created account has no users/{uid} record and remains blank.
+    _loadExistingProfile();
   }
 
   Future<void> _loadExistingProfile() async {
@@ -487,9 +488,13 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           Navigator.of(context).popUntil((route)=>route.isFirst);
           return;
         }
-        final message=e.toString().contains('username-taken')
-            ?_profileFlowText(code,'usernameTaken')
-            :e.toString();
+        final message = e.toString().contains('username-taken')
+            ? _profileFlowText(code, 'usernameTaken')
+            : e is FirebaseException && e.code == 'permission-denied'
+                ? (code == 'ar'
+                    ? 'رفضت قواعد Firebase حفظ البروفايل. لم نحذف بياناتك؛ تحقق من قواعد users وusernames.'
+                    : 'Firebase denied the profile update. Your saved profile was not deleted; check users and usernames rules.')
+                : e.toString();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content:Text(message)),
         );
