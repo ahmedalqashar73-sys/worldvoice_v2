@@ -1,12 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/localization/app_strings.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../services/auth_service.dart';
-import '../../home/presentation/home_screen.dart';
-import '../../profile/presentation/profile_setup_screen.dart';
 
 enum AuthFlowMode { signIn, createAccount }
 
@@ -63,23 +60,12 @@ class _AuthOptionsScreenState extends State<AuthOptionsScreen> {
   }
 
   Future<void> _openAfterAuth() async {
-    if (!mounted) return;
+    if (!mounted || FirebaseAuth.instance.currentUser == null) return;
 
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-
-    final profile = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-    final completed = AuthService.hasCompletedProfileData(profile.data());
-
-    if (!mounted) return;
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(
-        builder: (_) => completed
-            ? HomeScreen(localeController: widget.localeController)
-            : ProfileSetupScreen(localeController: widget.localeController),
-      ),
-      (route) => false,
-    );
+    // Let the application's single startup gate resolve the saved profile.
+    // The old second read raced with auth-state updates and could launch a
+    // blank setup form even when an existing account was being restored.
+    Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
   Future<void> _google() async {
