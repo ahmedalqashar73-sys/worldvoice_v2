@@ -151,9 +151,15 @@ void main() {
 
     expect(find.text('English'), findsOneWidget);
     await tester.enterText(find.byType(TextFormField), 'تعلم عربي وإنجليزي');
-    await tester.ensureVisible(find.text('بدء الغرفة الصوتية'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('بدء الغرفة الصوتية').hitTestable());
+    // Scroll behavior is tested above. Verify the result payload without
+    // depending on the test runner's default viewport height.
+    final startButton = tester.widget<FilledButton>(
+      find.ancestor(
+        of: find.text('بدء الغرفة الصوتية'),
+        matching: find.byType(FilledButton),
+      ),
+    );
+    startButton.onPressed!();
     await tester.pumpAndSettle();
 
     expect(result?.name, 'تعلم عربي وإنجليزي');
