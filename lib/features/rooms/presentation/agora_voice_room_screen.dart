@@ -3743,12 +3743,37 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                           _me?.forcedMuted == true || !isPublishing
                       ? null : _toggleMicSafely,
                   )),
-                  if (MediaQuery.viewInsetsOf(context).bottom == 0 &&
-                      _me != null && (_canModerate || !isPublishing))
+                  if (MediaQuery.viewInsetsOf(context).bottom == 0 && _me != null)
                     Positioned(
                       left: 10,
                       bottom: 79,
-                      child: _buildHandControl(isArabic, isPublishing),
+                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                        if (_canModerate || !isPublishing)
+                          _buildHandControl(isArabic, isPublishing),
+                        if (isPublishing) ...[
+                          const SizedBox(width: 7),
+                          Material(
+                            elevation: 4,
+                            color: _controller.muted
+                                ? const Color(0xFF9E3F41) : const Color(0xFF087951),
+                            shape: const CircleBorder(),
+                            child: IconButton(
+                              constraints: const BoxConstraints.tightFor(
+                                  width: 38, height: 38),
+                              padding: EdgeInsets.zero,
+                              tooltip: _controller.muted
+                                  ? label('فتح الميكروفون', 'Unmute my microphone')
+                                  : label('كتم ميكروفوني', 'Mute my microphone'),
+                              icon: Icon(_controller.muted
+                                  ? Icons.mic_off_rounded : Icons.mic_rounded,
+                                  size: 20, color: Colors.white),
+                              onPressed: !_controller.joined || _micBusy ||
+                                      _me?.forcedMuted == true
+                                  ? null : _toggleMicSafely,
+                            ),
+                          ),
+                        ],
+                      ]),
                     ),
                 ])),
               ]);
