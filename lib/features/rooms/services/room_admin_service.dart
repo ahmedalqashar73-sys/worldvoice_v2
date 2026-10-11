@@ -140,37 +140,30 @@ class RoomAdminService {
     }
 
     final batch = _db.batch();
-    batch.set(
-      _participants.doc(participant.userId),
-      {
-        'isModerator': value,
-        'updatedAt': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
-
     final globalRef = _globalModerators(ownerId).doc(participant.userId);
     if (value) {
-      batch.set(
-        globalRef,
-        {
-          'uid': participant.userId,
-          'displayName': participant.displayName,
-          'photoUrl': participant.photoUrl ?? '',
-          'assignedBy': actor.uid,
-          'assignedAt': FieldValue.serverTimestamp(),
-          'updatedAt': FieldValue.serverTimestamp(),
-        },
-        SetOptions(merge: true),
-      );
+      // Invitation is pending until the recipient explicitly accepts.
+      // Never grant moderator power by merely sending an invite.
+      batch.set(globalRef, {
+        'uid': participant.userId,
+        'displayName': participant.displayName,
+        'photoUrl': participant.photoUrl ?? '',
+        'assignedBy': actor.uid,
+        'assignedAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+        'status': 'pending',
+      });
     } else {
+      batch.set(_participants.doc(participant.userId), {
+        'isModerator': false,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
       batch.delete(globalRef);
     }
-
     await batch.commit();
 
     await _writeLog(
-      action: value ? 'global_moderator_assigned' : 'global_moderator_removed',
+      action: value ? 'global_moderator_invited' : 'global_moderator_removed',
       target: participant,
     );
   }
