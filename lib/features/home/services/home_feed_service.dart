@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 
+import '../../rooms/data/room_backend_config.dart';
+
 import '../../../core/media/cloudinary_image_service.dart';
 
 class HomePost {
@@ -111,7 +113,7 @@ class HomeFeedService {
   HomeFeedService({http.Client? client}) : _client = client ?? http.Client();
 
   static const String _backend =
-      String.fromEnvironment('WORLDVOICE_ECONOMY_ENDPOINT');
+      RoomBackendConfig.economyBaseUrl;
   final http.Client _client;
 
   Future<String> _token() async {
