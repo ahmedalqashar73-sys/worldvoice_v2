@@ -26,7 +26,9 @@ service cloud.firestore {
       return signedIn()
           && ownerId is string
           && ownerId.size() > 0
-          && exists(globalModeratorPath(ownerId, userId));
+          && exists(globalModeratorPath(ownerId, userId))
+          && getAfter(globalModeratorPath(ownerId, userId))
+              .data.get('status', 'accepted') == 'accepted';
     }
 
     function isTrustedRoomModerator(roomId, userId) {
@@ -281,11 +283,31 @@ service cloud.firestore {
 
       match /moderators/{moderatorUserId} {
         allow read: if signedIn();
-        allow create, update: if signedIn()
+        allow create: if signedIn()
             && request.auth.uid == userId
             && moderatorUserId != userId
             && request.resource.data.uid == moderatorUserId
-            && request.resource.data.assignedBy == userId;
+            && request.resource.data.assignedBy == userId
+            && request.resource.data.status == 'pending';
+        allow update: if signedIn()
+            && (
+              (
+                request.auth.uid == userId
+                && moderatorUserId != userId
+                && request.resource.data.uid == moderatorUserId
+                && request.resource.data.assignedBy == userId
+                && request.resource.data.status == 'pending'
+              )
+              ||
+              (
+                request.auth.uid == moderatorUserId
+                && resource.data.status == 'pending'
+                && request.resource.data.status in ['accepted', 'declined']
+                && request.resource.data.diff(resource.data)
+                  .affectedKeys().hasOnly(['status', 'respondedAt'])
+                && request.resource.data.respondedAt == request.time
+              )
+            );
         allow delete: if signedIn() && request.auth.uid == userId;
       }
 
@@ -1389,6 +1411,16 @@ service cloud.firestore {
                 && request.resource.data.warningCount == 0
                 && request.resource.data.forcedMuted == false
                 && request.resource.data.kicked == false
+              )
+              ||
+              (
+                userId == request.auth.uid
+                && request.resource.data.uid == resource.data.uid
+                && resource.data.isModerator == false
+                && request.resource.data.isModerator == true
+                && request.resource.data.diff(resource.data)
+                    .affectedKeys().hasOnly(['isModerator', 'updatedAt'])
+                && isTrustedRoomModerator(roomId, userId)
               )
               ||
               (
