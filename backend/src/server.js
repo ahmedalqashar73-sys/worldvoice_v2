@@ -515,7 +515,8 @@ app.post("/room/report", async (req, res, next) => {
       "harassment", "offensive", "spam", "impersonation", "other",
     ]);
     if (!validChannelName(roomId) ||
-        !/^[^\s/]{1,128}$/.test(targetUserId) ||
+        (targetUserId.length === 0 || targetUserId.length > 128 ||
+          targetUserId.includes("/") || /\s/.test(targetUserId)) ||
         targetUserId === reporter.uid ||
         !reasons.has(reason) ||
         detail.length > 500 ||
