@@ -8,7 +8,6 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../core/localization/locale_controller.dart';
 import '../../../core/media/cloudinary_image_service.dart';
-import '../../home/presentation/home_screen.dart';
 import '../data/profile_language_catalog.dart';
 import '../data/profession_catalog.dart';
 import '../data/profile_identity_utils.dart';
@@ -254,15 +253,27 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       if(mounted)setState(()=>usernameAvailable=false);
       return;
     }
-    final d=await FirebaseFirestore.instance
-        .collection('usernames')
-        .doc(normalizedUsername)
-        .get();
-    if(mounted){
-      setState(
-        ()=>usernameAvailable=!d.exists||
-            d.data()?['uid']==FirebaseAuth.instance.currentUser?.uid,
-      );
+    try {
+      final d=await FirebaseFirestore.instance
+          .collection('usernames')
+          .doc(normalizedUsername)
+          .get();
+      if(mounted){
+        setState(
+          ()=>usernameAvailable=!d.exists||
+              d.data()?['uid']==FirebaseAuth.instance.currentUser?.uid,
+        );
+      }
+    } on FirebaseException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(
+            error.code == 'permission-denied'
+                ? 'Firebase denied username lookup. Check Firestore rules.'
+                : 'Could not check the username. Try again.',
+          )),
+        );
+      }
     }
   }
 
@@ -475,12 +486,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       if(widget.editMode){
         Navigator.of(context).pop();
       }else{
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder:(_)=>HomeScreen(localeController:widget.localeController),
-          ),
-          (route)=>false,
-        );
+        // The root startup gate owns the decision to show Home after the
+        // committed user profile becomes visible; avoid duplicate home routes.
+        Navigator.of(context).popUntil((route)=>route.isFirst);
       }
     }catch(e){
       if(mounted){
