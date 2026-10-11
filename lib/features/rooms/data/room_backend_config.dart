@@ -19,7 +19,14 @@ class RoomBackendConfig {
     defaultValue: 'https://worldvoice-v2.onrender.com',
   );
 
-  // Chat, calls, posts and social APIs run on the same up-to-date backend\n  // as Teacher AI. Keep legacy economy actions on their existing endpoint.\n  static const String socialBaseUrl = String.fromEnvironment(\n    'WORLDVOICE_SOCIAL_BACKEND_URL',\n    defaultValue: 'https://worldvoice-teacher-ai.onrender.com',\n  );\n\n  static String get baseUrl => configuredBaseUrl.trim();
+  // Chat, calls, posts and social APIs run on the same up-to-date backend
+  // as Teacher AI. Keep legacy economy actions on their existing endpoint.
+  static const String socialBaseUrl = String.fromEnvironment(
+    'WORLDVOICE_SOCIAL_BACKEND_URL',
+    defaultValue: 'https://worldvoice-teacher-ai.onrender.com',
+  );
+
+  static String get baseUrl => configuredBaseUrl.trim();
 
   // AI and speech may be deployed separately from the legacy rooms/economy
   // backend. Keep Agora, gifts, and purchases on their existing endpoint.
