@@ -474,7 +474,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
       _featuresSub = _features.watchState().listen((state) {
         if (!mounted) return;
-        setState(() => _featureState = state);
+        setState(() {
+          _featureState = state;
+          _boardVisible = state.boardPresentationActive;
+        });
         unawaited(_syncRoomMusic(state));
       });
 
@@ -2538,7 +2541,27 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
   bool _boardVisible = false;
   Future<void> _showBoard() async {
-    setState(() => _boardVisible = true);
+    if (!_isHost) return;
+    try {
+      await _features.setBoardPresentationActive(true);
+      if (mounted) setState(() => _boardVisible = true);
+    } catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not share whiteboard: $error')));
+    }
+  }
+
+  Future<void> _closeBoard() async {
+    if (_isHost) {
+      try {
+        await _features.setBoardPresentationActive(false);
+      } catch (error) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not stop whiteboard: $error')));
+        return;
+      }
+    }
+    if (mounted) setState(() => _boardVisible = false);
   }
 
   Future<void> _expandBoard() async {
@@ -3637,7 +3660,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   child: RoomBoardScreen(roomId: widget.channelId,
                     canWrite: _isHost || _featureState.boardWriteEnabled,
                     isHost: _isHost, agoraController: _controller, embedded: true,
-                    onExpand: _expandBoard, onClose: () => setState(() => _boardVisible = false))),
+                    onExpand: _expandBoard, onClose: _closeBoard)),
                 if (_boardVisible && !compact) SizedBox(height: 106,
                   child: RoomStageStrip(seats: _buildSeats(), onSeatTap: _handleSeatTap)),
                 // Stage is a separate fixed viewport. Teacher AI and hand
