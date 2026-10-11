@@ -1804,6 +1804,50 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       .where((participant) => participant.role == RoomMemberRole.listener)
       .toList(growable: false);
 
+  // Audience is visible beneath the eight fixed speaker seats.
+  // Only current Firestore participants are shown; empty listeners disappear.
+  Widget _buildListenerStrip(bool ar) {
+    final listeners = _listeners;
+    if (listeners.isEmpty) return const SizedBox.shrink();
+    return SizedBox(
+      height: 70,
+      child: Row(children: [
+        Padding(
+          padding: const EdgeInsetsDirectional.only(start: 12, end: 6),
+          child: Text(ar ? 'المستمعون (${listeners.length})' : 'Listeners (${listeners.length})',
+            style: const TextStyle(color: Colors.white70, fontSize: 11)),
+        ),
+        Expanded(
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            itemCount: listeners.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            itemBuilder: (context, index) {
+              final person = listeners[index];
+              return InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () => _showParticipantCard(person),
+                child: SizedBox(
+                  width: 56,
+                  child: Column(mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(width: 35, height: 35,
+                        child: _ParticipantAvatar(participant: person)),
+                      const SizedBox(height: 3),
+                      Text(person.displayName, maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 10, color: Colors.white)),
+                    ]),
+                ),
+              );
+            },
+          ),
+        ),
+      ]),
+    );
+  }
+
   Set<int> get _occupiedSeatIndexes => _participants
       .where((participant) => participant.isOnStage)
       .map((participant) => participant.seatIndex)
@@ -3326,7 +3370,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   2 * (93 + MediaQuery.textScalerOf(context).scale(30)) + 12;
               final contentHeight = _boardVisible
                   ? (constraints.maxHeight * .55).clamp(110.0, 320.0) + 106
-                  : stageHeight + (_showTeacherAiSeat ? 88 : 0);
+                  : stageHeight + (_listeners.isNotEmpty ? 70 : 0) +
+                      (_showTeacherAiSeat ? 88 : 0);
               final neededHeight = contentHeight +
                   (_controller.joined ? 42 : 0) +
                   (_canModerate && _raisedHands.isNotEmpty ? 84 : 0) +
@@ -3352,6 +3397,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                       onSeatLongPress: _handleSeatLongPress),
                   ),
                 ),
+                if (!_boardVisible && !compact && _listeners.isNotEmpty)
+                  _buildListenerStrip(isArabic),
                 if (!_boardVisible && !compact && _showTeacherAiSeat)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
