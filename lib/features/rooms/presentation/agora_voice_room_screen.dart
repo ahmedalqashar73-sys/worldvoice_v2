@@ -11,6 +11,7 @@ import 'package:just_audio/just_audio.dart';
 
 import '../../home/presentation/home_screen.dart';
 import '../../profile/presentation/public_profile_screen.dart';
+import '../../profile/services/profile_social_service.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../data/room_caption.dart';
 import '../data/room_feature_models.dart';
@@ -2055,7 +2056,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
     final userId = seat.userId;
     if (userId == null || userId.isEmpty) return;
-    _openParticipantProfile(userId);
+    final member = _participants.where((p) => p.userId == userId).firstOrNull;
+    if (member != null) _showParticipantCard(member);
   }
 
   void _handleSeatLongPress(RoomSeatState seat) {
@@ -2076,6 +2078,253 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     }
 
     _showStageMemberActions(participant);
+  }
+
+
+  // The same compact member card is used by speaker seats and listeners.
+  // Full profile data (languages, age, bio, hobbies) is opened by tapping
+  // View profile; private fields are never copied into this room widget.
+  Future<void> _showParticipantCard(RoomParticipant person) async {
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    final self = person.userId == _moderation.currentUserId;
+    final canManage = _canModerate && !self &&
+        person.role != RoomMemberRole.host;
+    final followFuture = self
+        ? Future<bool>.value(false)
+        : ProfileSocialService.isFollowing(person.userId);
+    final profileFuture = FirebaseFirestore.instance
+        .collection('users').doc(person.userId).get();
+    bool? changedFollow;
+    bool followBusy = false;
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      useSafeArea: true,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, update) => SafeArea(
+          child: SingleChildScrollView(
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              ListTile(
+                leading: _ParticipantAvatar(participant: person),
+                title: Text(person.displayName,
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: Text(person.role.label +
+                    (person.isModerator ? (ar ? ' • مشرف' : ' • Moderator') : '')),
+              ),
+              FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                future: profileFuture,
+                builder: (context, snapshot) {
+                  final data = snapshot.data?.data();
+                  if (data == null) return const SizedBox.shrink();
+                  final user = (data['username'] ?? '').toString().trim();
+                  final country = (data['country'] ?? '').toString().trim();
+                  final native = (data['nativeLanguageCode'] ?? '').toString().trim();
+                  final subtitle = [
+                    if (user.isNotEmpty) '@$user',
+                    if (country.isNotEmpty) country,
+                    if (native.isNotEmpty) native.toUpperCase(),
+                  ].join(' • ');
+                  return subtitle.isEmpty ? const SizedBox.shrink()
+                      : Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 18),
+                          child: Text(subtitle, textAlign: TextAlign.center,
+                              style: const TextStyle(color: Colors.white70)),
+                        );
+                },
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.person_outline_rounded),
+                title: Text(ar ? 'الملف الشخصي الكامل' : 'View full profile'),
+                onTap: () => Navigator.pop(sheetContext, 'profile'),
+              ),
+              if (!self)
+                FutureBuilder<bool>(
+                  future: followFuture,
+                  builder: (context, snapshot) {
+                    final following = changedFollow ?? snapshot.data;
+                    return ListTile(
+                      leading: Icon(following == true
+                          ? Icons.person_remove_outlined
+                          : Icons.person_add_alt_rounded),
+                      title: Text(followBusy
+                          ? (ar ? 'جارٍ التحديث…' : 'Updating…')
+                          : following == true
+                              ? (ar ? 'إلغاء المتابعة' : 'Unfollow')
+                              : (ar ? 'متابعة' : 'Follow')),
+                      enabled: !followBusy && following != null,
+                      onTap: followBusy || following == null ? null : () async {
+                        update(() => followBusy = true);
+                        try {
+                          await ProfileSocialService.toggleFollow(person.userId);
+                          if (sheetContext.mounted) {
+                            update(() => changedFollow = !following);
+                          }
+                        } catch (error) {
+                          if (sheetContext.mounted) {
+                            ScaffoldMessenger.of(sheetContext).showSnackBar(
+                              SnackBar(content: Text(
+                                ar ? 'تعذر تحديث المتابعة' : 'Could not update follow')),
+                            );
+                          }
+                        } finally {
+                          if (sheetContext.mounted) update(() => followBusy = false);
+                        }
+                      },
+                    );
+                  },
+                ),
+              if (!self)
+                ListTile(
+                  leading: const Icon(Icons.flag_outlined, color: Colors.orangeAccent),
+                  title: Text(ar ? 'إبلاغ عن المستخدم' : 'Report this user'),
+                  onTap: () => Navigator.pop(sheetContext, 'report'),
+                ),
+              if (canManage) ...[
+                const Divider(),
+                ListTile(
+                  leading: Icon(person.forcedMuted
+                      ? Icons.mic_rounded : Icons.mic_off_rounded),
+                  title: Text(person.forcedMuted
+                      ? (ar ? 'إلغاء الكتم' : 'Unmute')
+                      : (ar ? 'كتم الميكروفون' : 'Mute microphone')),
+                  onTap: () => Navigator.pop(sheetContext, 'mute'),
+                ),
+                if (person.isOnStage)
+                  ListTile(
+                    leading: const Icon(Icons.keyboard_arrow_down_rounded),
+                    title: Text(ar ? 'إنزال إلى المستمعين' : 'Move to listeners'),
+                    onTap: () => Navigator.pop(sheetContext, 'down'),
+                  ),
+                ListTile(
+                  leading: const Icon(Icons.person_remove_rounded,
+                      color: Colors.redAccent),
+                  title: Text(ar ? 'طرد من الغرفة' : 'Remove from room'),
+                  onTap: () => Navigator.pop(sheetContext, 'kick'),
+                ),
+              ],
+              const SizedBox(height: 14),
+            ]),
+          ),
+        ),
+      ),
+    );
+    if (action == null || !mounted) return;
+    try {
+      switch (action) {
+        case 'profile':
+          _openParticipantProfile(person.userId);
+          break;
+        case 'report':
+          await _reportParticipant(
+            targetUserId: person.userId,
+            targetName: person.displayName,
+          );
+          break;
+        case 'mute':
+          if (canManage) {
+            await RoomAdminService(roomId: widget.channelId)
+                .setForcedMute(participant: person, value: !person.forcedMuted);
+          }
+          break;
+        case 'down':
+          if (canManage && person.isOnStage) {
+            await _moderation.moveToListener(person.userId);
+          }
+          break;
+        case 'kick':
+          if (canManage) {
+            await RoomAdminService(roomId: widget.channelId).kick(person);
+          }
+          break;
+      }
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
+    }
+  }
+
+  Future<void> _reportParticipant({
+    required String targetUserId,
+    required String targetName,
+    String messageId = '',
+  }) async {
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    String reason = 'harassment';
+    final notes = TextEditingController();
+    try {
+      final submitted = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => StatefulBuilder(
+          builder: (dialogContext, update) => AlertDialog(
+            title: Text(ar ? 'إبلاغ عن $targetName' : 'Report $targetName'),
+            content: SingleChildScrollView(
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                DropdownButtonFormField<String>(
+                  initialValue: reason,
+                  isExpanded: true,
+                  decoration: InputDecoration(
+                    labelText: ar ? 'سبب الإبلاغ' : 'Reason'),
+                  items: [
+                    ('harassment', ar ? 'مضايقة أو تهديد' : 'Harassment'),
+                    ('offensive', ar ? 'كلام مسيء' : 'Offensive language'),
+                    ('spam', ar ? 'إزعاج أو رسائل متكررة' : 'Spam'),
+                    ('impersonation', ar ? 'انتحال شخصية' : 'Impersonation'),
+                    ('other', ar ? 'سبب آخر' : 'Other'),
+                  ].map((option) => DropdownMenuItem(
+                    value: option.$1, child: Text(option.$2),
+                  )).toList(),
+                  onChanged: (value) {
+                    if (value != null) update(() => reason = value);
+                  },
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: notes,
+                  maxLength: 500,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    labelText: ar ? 'التفاصيل (اختياري)' : 'Details (optional)'),
+                ),
+              ]),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(dialogContext, false),
+                child: Text(ar ? 'إلغاء' : 'Cancel')),
+              FilledButton(
+                onPressed: () => Navigator.pop(dialogContext, true),
+                child: Text(ar ? 'إرسال البلاغ' : 'Submit report')),
+            ],
+          ),
+        ),
+      );
+      if (submitted != true) return;
+      await RoomAdminService(roomId: widget.channelId).reportMember(
+        targetUserId: targetUserId,
+        reason: reason,
+        detail: notes.text,
+        messageId: messageId,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(ar
+              ? 'تم استلام البلاغ للمراجعة، ولم يُطرَد الشخص تلقائيًا.'
+              : 'Report submitted for review; the user was not removed automatically.'),
+        ));
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(ar ? 'تعذر إرسال البلاغ: $error'
+              : 'Could not submit report: $error'),
+        ));
+      }
+    } finally {
+      notes.dispose();
+    }
   }
 
   void _openParticipantProfile(String userId) {
