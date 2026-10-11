@@ -122,6 +122,12 @@ class RoomFeatureService {
     }
   }
 
+  /// Host-only shared presentation, watched by all room members.
+  Future<void> setBoardPresentationActive(bool active) => _room.update({
+    'boardPresentationActive': active,
+    'updatedAt': FieldValue.serverTimestamp(),
+  });
+
   Future<void> setBoardWriteEnabled(bool value) => _room.set(
         {
           'boardWriteEnabled': value,
