@@ -2346,10 +2346,14 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
   void _handleModeratorInvite(Map<String, dynamic>? invite) {
     if (invite == null || invite['status'] != 'pending' ||
-        !mounted || _leaving || _showingModeratorInvite) return;
+        !mounted || _leaving || _showingModeratorInvite) {
+      return;
+    }
     final timestamp = invite['assignedAt'];
     final signature = '${invite['assignedBy']}|${timestamp is Timestamp ? timestamp.millisecondsSinceEpoch : timestamp}';
-    if (signature == _lastModeratorInviteSignature) return;
+    if (signature == _lastModeratorInviteSignature) {
+      return;
+    }
     _lastModeratorInviteSignature = signature;
     _showingModeratorInvite = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
