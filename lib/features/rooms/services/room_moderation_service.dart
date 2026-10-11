@@ -211,6 +211,16 @@ class RoomModerationService {
     await batch.commit();
   }
 
+  /// Update only this user's room presence. A missed heartbeat means a room
+  /// can disappear from discovery without letting a viewer close it.
+  Future<void> refreshPresence() async {
+    final uid = currentUserId;
+    if (uid == null) return;
+    await _participantsRef.doc(uid).update({
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
   Future<void> _grantAdminPrivateAccess(User user) async {
     final endpoint = RoomBackendConfig.endpoint('/admin/rooms/grant-access');
     if (endpoint.isEmpty) {
