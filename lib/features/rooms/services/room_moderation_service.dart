@@ -83,7 +83,9 @@ class RoomModerationService {
             .collection('moderators')
             .doc(user.uid)
             .get();
-        isGlobalModerator = moderator.exists;
+        isGlobalModerator = moderator.exists &&
+            (moderator.data()?['status'] == null ||
+             moderator.data()?['status'] == 'accepted');
       }
     }
     if (!asHost) {
@@ -268,6 +270,47 @@ class RoomModerationService {
       },
       SetOptions(merge: true),
     );
+  }
+
+  // The host's global moderation invite follows this room owner.
+  // A user is not promoted until they explicitly accept.
+  Stream<Map<String, dynamic>?> watchMyModeratorInvite() async* {
+    final uid = currentUserId;
+    if (uid == null) return;
+    final room = await _roomRef.get();
+    final ownerId = room.data()?['hostId']?.toString() ?? '';
+    if (ownerId.isEmpty || ownerId == uid) return;
+    yield* _db.collection('users').doc(ownerId)
+        .collection('moderators').doc(uid).snapshots()
+        .map((snapshot) => snapshot.data());
+  }
+
+  Future<void> answerModeratorInvite(bool accepted) async {
+    final user = _user;
+    if (user == null) throw StateError('Sign in is required.');
+    final room = await _roomRef.get();
+    final ownerId = room.data()?['hostId']?.toString() ?? '';
+    if (ownerId.isEmpty || ownerId == user.uid) {
+      throw StateError('Moderator invitation is not available.');
+    }
+    final inviteRef = _db.collection('users').doc(ownerId)
+        .collection('moderators').doc(user.uid);
+    final invite = await inviteRef.get();
+    if (!invite.exists || invite.data()?['status'] != 'pending') {
+      throw StateError('This moderator invitation is no longer pending.');
+    }
+    final batch = _db.batch();
+    batch.update(inviteRef, {
+      'status': accepted ? 'accepted' : 'declined',
+      'respondedAt': FieldValue.serverTimestamp(),
+    });
+    if (accepted) {
+      batch.set(_participantsRef.doc(user.uid), {
+        'isModerator': true,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    }
+    await batch.commit();
   }
 
   Stream<List<RoomParticipant>> watchParticipants() {
