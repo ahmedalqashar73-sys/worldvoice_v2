@@ -10,7 +10,7 @@ if (-not (Test-Path $apk)) {
 }
 # This is a non-secret Firebase app ID from firebase.json. If you change
 # the Android Firebase app, update the ID for the matching package.
-$appId = "1:149108991969:android:f9000a8165a8a38166d4a0"
+$appId = "1:149108991969:android:b09d15308f8f5d9266d4a0"
 firebase appdistribution:distribute $apk `
   --project "worldvoice-37896" `
   --app $appId `
