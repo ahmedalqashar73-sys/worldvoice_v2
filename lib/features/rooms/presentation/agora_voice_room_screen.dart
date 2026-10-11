@@ -2549,8 +2549,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       await _features.setBoardPresentationActive(true);
       if (mounted) setState(() => _boardVisible = true);
     } catch (error) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not share whiteboard: $error')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not share whiteboard: $error')));
+      }
     }
   }
 
@@ -2559,8 +2561,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       try {
         await _features.setBoardPresentationActive(false);
       } catch (error) {
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not stop whiteboard: $error')));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Could not stop whiteboard: $error')));
+        }
         return;
       }
     }
