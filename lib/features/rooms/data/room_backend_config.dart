@@ -12,8 +12,8 @@ class RoomBackendConfig {
     defaultValue: 'https://worldvoice-teacher-ai.onrender.com',
   );
 
-  // Public API address used by Chat, Home, calls and account sync.
-  // This does NOT deploy the backend or expose server credentials.
+  // Economy/account sync keep using the established backend deployment.
+  // Public URL only: no secrets in the Flutter application.
   static const String economyBaseUrl = String.fromEnvironment(
     'WORLDVOICE_ECONOMY_ENDPOINT',
     defaultValue: 'https://worldvoice-v2.onrender.com',
