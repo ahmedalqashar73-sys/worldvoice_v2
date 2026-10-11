@@ -61,7 +61,8 @@ class ChatScreen extends StatelessWidget {
           <String, String>{'Idempotency-Key': requestKey}),
       },
       body: jsonEncode(payload),
-    );
+    ).timeout(RoomBackendConfig.socialRequestTimeout,
+        onTimeout: () => throw StateError('The WorldVoice chat server took too long. Check the conversation before retrying.'));
     Map<String, dynamic> body;
     try {
       final raw = jsonDecode(result.body);
@@ -98,7 +99,8 @@ class ChatScreen extends StatelessWidget {
     final result = await http.get(
       uri.replace(path: '$path$route'),
       headers: {'Authorization': 'Bearer $token'},
-    );
+    ).timeout(RoomBackendConfig.socialRequestTimeout,
+        onTimeout: () => throw StateError('The WorldVoice chat server took too long. Check the conversation before retrying.'));
     Map<String, dynamic> body;
     try {
       final raw = jsonDecode(result.body);
