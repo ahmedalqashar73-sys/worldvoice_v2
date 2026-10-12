@@ -1677,6 +1677,13 @@ app.post("/store/claim-reward", async (req, res, next) => {
         error: "itemId and rewardId are required.",
       });
     }
+    // This collection is sold for coins only; legacy free-background
+    // rewards must not grant ownership of these eight paid designs.
+    if (worldVoiceRoomBackgroundPrices.has(itemId)) {
+      return res.status(409).json({
+        error: "This background must be purchased with coins.",
+      });
+    }
 
     const userRef = db.collection("users").doc(user.uid);
     const itemRef = db.collection("store_items").doc(itemId);
