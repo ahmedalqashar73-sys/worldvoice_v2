@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:worldvoice/features/rooms/data/room_mode.dart';
 import 'package:worldvoice/features/rooms/presentation/create_room_page.dart';
+import 'package:worldvoice/features/rooms/presentation/voice_rooms_list.dart';
 
 void main() {
   testWidgets('Arabic creation scrolls with keyboard on a small display', (
@@ -166,5 +167,22 @@ void main() {
     expect(result?.languageCode, 'ar');
     expect(result?.secondaryLanguageCode, 'en');
     expect(tester.takeException(), isNull);
+  });
+
+  test('Arabic–English rooms match All, Arabic and English', () {
+    const bilingual = <String, dynamic>{
+      'languageCode': 'ar',
+      'languageCodes': ['ar', 'en'],
+    };
+    expect(roomMatchesSelectedLanguage(bilingual, 'all'), isTrue);
+    expect(roomMatchesSelectedLanguage(bilingual, 'ar'), isTrue);
+    expect(roomMatchesSelectedLanguage(bilingual, 'en'), isTrue);
+    expect(roomMatchesSelectedLanguage(bilingual, 'EN'), isTrue);
+    expect(roomMatchesSelectedLanguage(bilingual, 'es'), isFalse);
+
+    const legacyEnglish = <String, dynamic>{'languageCode': 'en'};
+    expect(roomMatchesSelectedLanguage(legacyEnglish, 'en'), isTrue);
+    expect(roomMatchesSelectedLanguage(legacyEnglish, 'ar'), isFalse);
+    expect(roomMatchesSelectedLanguage(legacyEnglish, 'all'), isTrue);
   });
 }
