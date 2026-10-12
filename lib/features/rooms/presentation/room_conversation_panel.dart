@@ -8,7 +8,7 @@ class RoomConversationPanel extends StatefulWidget {
     required this.messages, required this.onSend, required this.isArabic,
     required this.onGifts, required this.onShop, required this.onTools,
     required this.onCaptions, required this.onMic, required this.micIcon,
-    required this.micLabel, this.onTranslateMessage,
+    required this.micLabel, this.handControl, this.onTranslateMessage,
     this.onReportMessage, this.translationHint, this.enabled = true, super.key,
   });
   final Stream<List<RoomChatMessage>> messages;
@@ -19,6 +19,8 @@ class RoomConversationPanel extends StatefulWidget {
   final VoidCallback? onMic;
   final IconData micIcon;
   final String micLabel;
+  /// An optional fixed control beside the chat composer (e.g. raise hand).
+  final Widget? handControl;
   final Future<String> Function(String text)? onTranslateMessage;
   final Future<void> Function(RoomChatMessage message)? onReportMessage;
   final String? translationHint;
@@ -378,6 +380,7 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
             _action(Icons.closed_caption_outlined, ar ? 'الترجمة' : 'Captions', widget.onCaptions),
             if (widget.onMic != null)
               _action(widget.micIcon, widget.micLabel, widget.onMic),
+            if (widget.handControl != null) widget.handControl!,
           ];
           if (constraints.maxWidth < 350 ||
               MediaQuery.textScalerOf(context).scale(14) > 20) {
