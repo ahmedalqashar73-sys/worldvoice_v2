@@ -101,43 +101,17 @@ const stripeSecret = String(process.env.STRIPE_SECRET_KEY || "").trim();
 const stripeWebhookSecret = String(process.env.STRIPE_WEBHOOK_SECRET || "").trim();
 const stripe = stripeSecret ? new Stripe(stripeSecret) : null;
 
+// The active collection contains exactly eight new paid room backgrounds.
+// Retired backgrounds stay only in historical purchase records.
 const worldVoiceRoomBackgroundPrices = new Map([
-  ["background__wv_bg_01", 260],
-  ["background__wv_bg_02", 320],
-  ["background__wv_bg_03", 280],
-  ["background__wv_bg_04", 350],
-  ["background__wv_bg_05", 380],
-  ["background__wv_bg_06", 0],
-  ["background__wv_bg_07", 160],
-  ["background__wv_bg_08", 260],
-  ["background__wv_bg_09", 0],
-  ["background__wv_bg_10", 360],
-  ["background__wv_bg_11", 220],
-  ["background__wv_bg_12", 180],
-  ["background__wv_bg_13", 200],
-  ["background__wv_bg_14", 300],
-  ["background__wv_bg_15", 280],
-  ["background__wv_bg_16", 320],
-  ["background__wv_bg_17", 240],
-  ["background__wv_bg_18", 0],
-  ["background__wv_bg_19", 300],
-  ["background__wv_bg_20", 0],
-  ["background__wv_bg_21", 240],
-  ["background__wv_bg_22", 320],
-  ["background__wv_bg_23", 220],
-  ["background__wv_bg_24", 380],
-  ["background__wv_bg_25", 220],
-  ["background__wv_bg_26", 420],
-  ["background__wv_bg_27", 450],
-  ["background__wv_bg_28", 300],
-  ["background__wv_bg_29", 340],
-  ["background__wv_bg_30", 280],
-  ["background__wv_bg_31", 450],
-  ["background__wv_bg_32", 480],
-  ["background__wv_bg_33", 0],
-  ["background__wv_bg_34", 240],
-  ["background__wv_bg_35", 260],
-  ["background__wv_bg_36", 340],
+  ["background__wv_premium_01", 150],
+  ["background__wv_premium_02", 200],
+  ["background__wv_premium_03", 250],
+  ["background__wv_premium_04", 180],
+  ["background__wv_premium_05", 220],
+  ["background__wv_premium_06", 230],
+  ["background__wv_premium_07", 120],
+  ["background__wv_premium_08", 300],
 ]);
 
 const worldVoiceFramePrices = new Map([
@@ -565,14 +539,7 @@ app.post("/room/report", async (req, res, next) => {
   }
 });
 
-const freeRoomBackgroundThemes = new Set([
-  "softGreenFlow",
-  "wv_bg_06",
-  "wv_bg_09",
-  "wv_bg_18",
-  "wv_bg_20",
-  "wv_bg_33",
-]);
+const freeRoomBackgroundThemes = new Set(["softGreenFlow"]);
 
 app.post("/room/background/apply", async (req, res, next) => {
   try {
@@ -580,9 +547,10 @@ app.post("/room/background/apply", async (req, res, next) => {
     const roomId = String(req.body?.roomId || "").trim();
     const themeId = String(req.body?.themeId || "").trim();
 
-    const atlasTheme = /^wv_bg_(0[1-9]|[12][0-9]|3[0-6])$/.test(themeId);
+    const purchasableTheme =
+      worldVoiceRoomBackgroundPrices.has(`background__${themeId}`);
     if (!validChannelName(roomId) ||
-        !(themeId === "softGreenFlow" || atlasTheme)) {
+        !(themeId === "softGreenFlow" || purchasableTheme)) {
       return res.status(400).json({error: "Invalid room background request."});
     }
 
@@ -612,7 +580,7 @@ app.post("/room/background/apply", async (req, res, next) => {
     await roomRef.set({
       themeId,
       backgroundUrl: backgroundUrl || FieldValue.delete(),
-      backgroundLayoutVersion: 3,
+      backgroundLayoutVersion: 4,
       updatedAt: FieldValue.serverTimestamp(),
     }, {merge: true});
 
@@ -1575,6 +1543,15 @@ app.post("/store/purchase", async (req, res, next) => {
           !itemId.startsWith(item.type + "__")) {
         throw Object.assign(new Error("Store item unavailable."), {status: 404});
       }
+      // Retire legacy backgrounds even if a stale Firestore document is active.
+      // The canonical server price is authoritative, never a client price.
+      if (item.type === "background" &&
+          (!worldVoiceRoomBackgroundPrices.has(itemId) ||
+           Number(item.priceCoins) !== worldVoiceRoomBackgroundPrices.get(itemId) ||
+           String(item.themeId || "") !== itemId.replace(/^background__/, ""))) {
+        throw Object.assign(new Error("This room background was retired."),
+          {status: 409});
+      }
       if (item.type === "vip" && !gifting) {
         throw Object.assign(new Error("Use verified store billing for personal VIP."),
           {status: 400});
@@ -1729,7 +1706,8 @@ app.post("/store/claim-reward", async (req, res, next) => {
       const reward = rewardSnap.data() || {};
 
       if ((!itemSnap.exists && !builtInRoomBackground(itemId)) ||
-          item.active !== true || item.type !== "background") {
+          item.active !== true || item.type !== "background" ||
+          !worldVoiceRoomBackgroundPrices.has(itemId)) {
         const error = new Error("This background is not available.");
         error.status = 409;
         throw error;
