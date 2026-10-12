@@ -1891,7 +1891,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     return null;
   }
 
-  // A compact emerald hand button stays separate from chat actions.
+  // The fixed white-hand control stays with the seats, outside chat.
   Widget _buildHandControl(bool isArabic, bool isPublishing) {
     // Request management is backed by Firestore. Keep the button visible
     // while the user retries a failed Agora audio connection.
@@ -1908,11 +1908,11 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
           shape: const CircleBorder(
             side: BorderSide(color: Color(0xFF75E0AB), width: 1.2)),
           child: IconButton(
-            constraints: const BoxConstraints.tightFor(width: 38, height: 38),
+            constraints: const BoxConstraints.tightFor(width: 54, height: 54),
             padding: EdgeInsets.zero,
             tooltip: isArabic ? 'طلبات رفع اليد' : 'Raise hand requests',
-            icon: const Icon(Icons.pan_tool_alt_rounded,
-              size: 19, color: Colors.white),
+            icon: const Icon(Icons.back_hand_rounded,
+              size: 28, color: Colors.white),
             onPressed: _showRaisedHandsSheet,
           ),
         ),
@@ -1927,13 +1927,13 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         shape: const CircleBorder(
           side: BorderSide(color: Color(0xFF75E0AB), width: 1.2)),
         child: IconButton(
-          constraints: const BoxConstraints.tightFor(width: 38, height: 38),
+          constraints: const BoxConstraints.tightFor(width: 54, height: 54),
           padding: EdgeInsets.zero,
           tooltip: _handRaised
               ? (isArabic ? 'إلغاء رفع اليد' : 'Cancel hand request')
               : (isArabic ? 'رفع اليد' : 'Raise hand'),
-          icon: const Icon(Icons.pan_tool_alt_rounded,
-              color: Colors.white, size: 19),
+          icon: const Icon(Icons.back_hand_rounded,
+              color: Colors.white, size: 28),
           onPressed: () async {
             try {
               if (_handRaised) {
@@ -3746,6 +3746,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               final neededHeight = contentHeight +
                   (_controller.joined ? 42 : 0) +
                   (_canModerate && _raisedHands.isNotEmpty ? 84 : 0) +
+                  (_me != null && (_canModerate || !isPublishing) ? 66 : 0) +
                   130;
               final compact = constraints.maxHeight < neededHeight;
               return Column(children: [
@@ -3772,6 +3773,20 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                 ),
                 if (!_boardVisible && !compact && _listeners.isNotEmpty)
                   _buildListenerStrip(isArabic),
+                // The hand stays pinned to the room stage, not the chat.
+                // Incoming messages never displace it.
+                if (_me != null && (_canModerate || !isPublishing))
+                  SizedBox(
+                    key: const ValueKey('fixed-room-hand-control'),
+                    height: 66,
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 16),
+                        child: _buildHandControl(isArabic, isPublishing),
+                      ),
+                    ),
+                  ),
                 if (!_boardVisible && !compact && _showTeacherAiSeat)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -3836,38 +3851,6 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                           _me?.forcedMuted == true || !isPublishing
                       ? null : _toggleMicSafely,
                   )),
-                  if (MediaQuery.viewInsetsOf(context).bottom == 0 && _me != null)
-                    Positioned(
-                      left: 10,
-                      bottom: 79,
-                      child: Row(mainAxisSize: MainAxisSize.min, children: [
-                        if (_canModerate || !isPublishing)
-                          _buildHandControl(isArabic, isPublishing),
-                        if (isPublishing) ...[
-                          const SizedBox(width: 7),
-                          Material(
-                            elevation: 4,
-                            color: _controller.muted
-                                ? const Color(0xFF9E3F41) : const Color(0xFF087951),
-                            shape: const CircleBorder(),
-                            child: IconButton(
-                              constraints: const BoxConstraints.tightFor(
-                                  width: 38, height: 38),
-                              padding: EdgeInsets.zero,
-                              tooltip: _controller.muted
-                                  ? label('فتح الميكروفون', 'Unmute my microphone')
-                                  : label('كتم ميكروفوني', 'Mute my microphone'),
-                              icon: Icon(_controller.muted
-                                  ? Icons.mic_off_rounded : Icons.mic_rounded,
-                                  size: 20, color: Colors.white),
-                              onPressed: !_controller.joined || _micBusy ||
-                                      _me?.forcedMuted == true
-                                  ? null : _toggleMicSafely,
-                            ),
-                          ),
-                        ],
-                      ]),
-                    ),
                 ])),
               ]);
             })),
