@@ -41,6 +41,7 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
 
   String? _selectedLanguage;
   Future<_RoomLanguagePrefs>? _prefsFuture;
+  late Stream<QuerySnapshot<Map<String, dynamic>>> _activeRoomsStream;
 
   bool get _usesTemporaryToken =>
       AgoraConfig.tempToken.trim().isNotEmpty &&
@@ -52,6 +53,15 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
   void initState() {
     super.initState();
     _prefsFuture = _loadLanguagePrefs();
+    _activeRoomsStream = _roomsStream();
+  }
+
+  @override
+  void didUpdateWidget(covariant VoiceRoomsList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.onlyLive != widget.onlyLive) {
+      _activeRoomsStream = _roomsStream();
+    }
   }
 
   Future<_RoomLanguagePrefs> _loadLanguagePrefs() async {
@@ -407,7 +417,7 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
             ),
             Expanded(
               child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                stream: _roomsStream(),
+                stream: _activeRoomsStream,
                 builder: (context, snapshot) {
                   final allDocs = snapshot.data?.docs ??
                       const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
@@ -417,17 +427,10 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
                               ? doc.data()['mode'] == RoomMode.live.name
                               : doc.data()['mode'] != RoomMode.live.name))
                       .toList(growable: false);
-                  final languageDocs = selected == 'all'
-                      ? publicDocs
-                      : publicDocs
-                          .where(
-                            (doc) =>
-                                (doc.data()['languageCode'] ?? 'en')
-                                    .toString().toLowerCase() == selected ||
-                                ((doc.data()['languageCodes'] as List?) ?? const [])
-                                    .any((code) => code.toString().toLowerCase() == selected),
-                          )
-                          .toList(growable: false);
+                  final languageDocs = publicDocs
+                      .where((doc) =>
+                          roomMatchesSelectedLanguage(doc.data(), selected))
+                      .toList(growable: false);
                   final query = widget.searchQuery.trim().toLowerCase();
                   final docs = query.isEmpty
                       ? languageDocs
@@ -437,6 +440,8 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
                             data['name'],
                             data['hostName'],
                             data['languageCode'],
+                            ...?((data['languageCodes'] as List?)
+                                ?.map((value) => value.toString())),
                           ].any((value) =>
                               value?.toString().toLowerCase().contains(query) ==
                               true);
@@ -616,6 +621,23 @@ class _RoomPromotionBanner extends StatelessWidget {
       },
     );
   }
+}
+
+/// A bilingual room is discoverable under All and each of its languages.
+/// Firestore records from earlier builds may contain only languageCode.
+bool roomMatchesSelectedLanguage(
+  Map<String, dynamic> room,
+  String selectedLanguage,
+) {
+  final selected = selectedLanguage.trim().toLowerCase();
+  if (selected == 'all' || selected.isEmpty) return true;
+  final primary = (room['languageCode'] ?? 'en').toString().trim().toLowerCase();
+  if (primary == selected) return true;
+  final languages = room['languageCodes'];
+  if (languages is! List) return false;
+  return languages.any(
+    (code) => code.toString().trim().toLowerCase() == selected,
+  );
 }
 
 class _RoomCard extends StatefulWidget {
