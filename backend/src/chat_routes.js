@@ -52,7 +52,7 @@ function validCloudinaryMedia(url) {
 }
 
 function normalizedMediaType(value) {
-  return value === "image" || value === "video" ? value : "";
+  return ["image", "video", "audio", "pdf"].includes(value) ? value : "";
 }
 
 /**
@@ -382,11 +382,20 @@ export function registerChatRoutes({app, db, authenticatedUser}) {
       const type = normalizedMediaType(String(req.body?.mediaType || ""));
       const mediaUrl = String(req.body?.mediaUrl || "").trim();
       const mediaPublicId = String(req.body?.mediaPublicId || "").trim();
+      const safeName = String(req.body?.fileName || "").trim();
+      const fileName = safeName.split(/[\\/]/).pop().slice(0, 120);
+      const fileSize = Number(req.body?.fileSize || 0);
       const rawKey = req.headers["idempotency-key"];
 
       if (!/^[A-Za-z0-9_-]{8,160}$/.test(id) ||
           !type ||
           !validCloudinaryMedia(mediaUrl) ||
+          (type === "audio" && !mediaUrl.includes("/video/upload/")) ||
+          (type === "pdf" && !mediaUrl.includes("/raw/upload/")) ||
+          ((type === "audio" || type === "pdf") &&
+            (!fileName || !Number.isSafeInteger(fileSize) ||
+              fileSize < 1 || fileSize > 20 * 1024 * 1024)) ||
+          (type === "pdf" && !fileName.toLowerCase().endsWith(".pdf")) ||
           !validKey(rawKey)) {
         fail("Invalid chat media.", 400);
       }
@@ -422,10 +431,15 @@ export function registerChatRoutes({app, db, authenticatedUser}) {
           senderName: String(chat.memberNames?.[sender.uid] || "Member"),
           mediaUrl,
           mediaPublicId,
+          ...(type === "audio" || type === "pdf"
+            ? {fileName, fileSize} : {}),
           createdAt: FieldValue.serverTimestamp(),
         });
         tx.update(chatRef, {
-          latestText: type === "image" ? "📷 Photo" : "🎬 Video",
+          latestText: ({
+            image: "📷 Photo", video: "🎬 Video",
+            audio: "🎙 Voice message", pdf: "📄 PDF",
+          })[type],
           lastMessageAt: FieldValue.serverTimestamp(),
           updatedAt: FieldValue.serverTimestamp(),
         });
