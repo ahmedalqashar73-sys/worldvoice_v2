@@ -3730,7 +3730,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               // viewport scroll or clip the stage. Chat is the only vertical
               // message scroller; tiny/keyboard viewports use compact mode.
               final stageHeight =
-                  2 * (93 + MediaQuery.textScalerOf(context).scale(30)) + 12;
+                  2 * (111 + MediaQuery.textScalerOf(context).scale(30)) + 12;
               final contentHeight = _boardVisible
                   ? (constraints.maxHeight * .55).clamp(110.0, 320.0) + 106 +
                       (_listeners.isNotEmpty ? 70 : 0)

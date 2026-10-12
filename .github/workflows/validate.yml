@@ -43,7 +43,7 @@ jobs:
       - run: node --check src/call_routes.js
       - run: node --check scripts/seed-classic-gifts.mjs
       - run: node --check scripts/grant-beta-access.mjs
-      - run: node --test test/classic_gifts.test.js
+      - run: node --test test/classic_gifts.test.js test/admin_cosmetic_access.test.js test/economy_policy.test.js
 
       - name: Diagnose published API and Agora worker (public checks only)
         continue-on-error: true
