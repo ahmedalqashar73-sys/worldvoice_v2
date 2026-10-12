@@ -1184,11 +1184,11 @@ class _ChatConversationState extends State<ChatConversationScreen> {
 
   Future<void> _pickPdf() async {
     if (_sending || _recordingVoice) return;
-    final result = await FilePicker.platform.pickFiles(
+    final selected = await FilePicker.pickFile(
       type: FileType.custom, allowedExtensions: const ['pdf'],
     );
-    if (result == null || result.files.isEmpty || !mounted) return;
-    final path = result.files.single.path;
+    if (selected == null || !mounted) return;
+    final path = selected.path;
     if (path == null || path.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Could not access the selected PDF.')),
