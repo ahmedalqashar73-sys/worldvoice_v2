@@ -53,7 +53,6 @@ class _CreateRoomPageState extends State<CreateRoomPage> {
       if (_secondLanguage.isNotEmpty && _secondLanguage != _language)
         _secondLanguage,
     ];
-    final searchController = TextEditingController();
     var search = '';
     final ar = widget.isArabic;
 
@@ -88,7 +87,6 @@ class _CreateRoomPageState extends State<CreateRoomPage> {
                       ),
                       const SizedBox(height: 12),
                       TextField(
-                        controller: searchController,
                         decoration: InputDecoration(
                           hintText: ar ? 'ابحث عن لغة' : 'Search languages',
                           prefixIcon: const Icon(Icons.search_rounded),
@@ -157,7 +155,6 @@ class _CreateRoomPageState extends State<CreateRoomPage> {
       ),
     );
 
-    searchController.dispose();
   }
 
   @override
