@@ -28,8 +28,8 @@ class RoomStageGrid extends StatelessWidget {
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 4,
         mainAxisSpacing: 12,
-        crossAxisSpacing: 8,
-        mainAxisExtent: 93 + MediaQuery.textScalerOf(context).scale(30),
+        crossAxisSpacing: 4,
+        mainAxisExtent: 111 + MediaQuery.textScalerOf(context).scale(30),
       ),
       itemBuilder: (context, index) {
         final seat = stageSeats[index];
@@ -100,7 +100,9 @@ class _CompactRoomSeatState extends State<_CompactRoomSeat>
     final seat = widget.seat;
     final isAi = seat.role == RoomMemberRole.teacherAi;
 
-    return InkWell(
+    return LayoutBuilder(builder: (context, constraints) {
+      final avatarSize = constraints.maxWidth.clamp(60.0, 90.0);
+      return InkWell(
       borderRadius: BorderRadius.circular(18),
       onTap: widget.onTap,
       onLongPress: widget.onLongPress,
@@ -118,17 +120,28 @@ class _CompactRoomSeatState extends State<_CompactRoomSeat>
                 clipBehavior: Clip.none,
                 alignment: Alignment.center,
                 children: [
+                  if (seat.isActiveSpeaker)
+                    Container(
+                      width: avatarSize * .82,
+                      height: avatarSize * .82,
+                      decoration: BoxDecoration(shape: BoxShape.circle,
+                        boxShadow: [BoxShadow(
+                          color: const Color(0xFF60FFB5).withValues(alpha: .65),
+                          blurRadius: glow, spreadRadius: 2,
+                        )],
+                      ),
+                    ),
                   if (WorldVoiceAvatarFrame.isArtworkFrame(seat.frameId))
                     WorldVoiceAvatarFrame(
                       frameId: seat.frameId,
-                      size: 70,
+                      size: avatarSize,
                       animate: false,
                       child: _SeatAvatar(seat: seat),
                     )
                   else
                     Container(
-                      width: 70,
-                      height: 70,
+                      width: avatarSize,
+                      height: avatarSize,
                       padding: const EdgeInsets.all(2.5),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
@@ -209,6 +222,7 @@ class _CompactRoomSeatState extends State<_CompactRoomSeat>
         ],
       ),
     );
+    });
   }
 
   LinearGradient _frameGradient(RoomSeatState seat) {

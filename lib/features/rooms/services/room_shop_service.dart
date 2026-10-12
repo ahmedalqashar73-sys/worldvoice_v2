@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 
 import '../data/room_shop_models.dart';
+import '../data/room_backend_config.dart';
 
 class RoomShopService {
   final Map<String,String> _pendingKeys = <String,String>{};
@@ -20,18 +21,37 @@ class RoomShopService {
   User? get _user => FirebaseAuth.instance.currentUser;
 
   static const String _explicitEndpoint =
-      String.fromEnvironment('WORLDVOICE_ECONOMY_ENDPOINT');
+      RoomBackendConfig.economyBaseUrl;
 
   String get endpoint {
     final explicit = _explicitEndpoint.trim();
     final url = explicit.endsWith('/')
         ? explicit.substring(0, explicit.length - 1) : explicit;
     final parsed = Uri.tryParse(url);
-    if (parsed == null || parsed.scheme != 'https' || !parsed.hasAuthority) {
+    if (parsed == null || parsed.scheme != 'https' || !parsed.hasAuthority ||
+        parsed.userInfo.isNotEmpty || parsed.hasQuery || parsed.hasFragment) {
       return '';
     }
     return '$url/store';
   }
+
+  late final Future<bool> adminAccess = _loadAdminAccess();
+
+  Future<bool> _loadAdminAccess() async {
+    try {
+      final token = await _user?.getIdToken();
+      if (token == null || !isConfigured) return false;
+      final response = await http.get(Uri.parse('$endpoint/access'), headers: {
+        'Authorization': 'Bearer $token',
+      }).timeout(const Duration(seconds: 30));
+      return response.statusCode == 200 &&
+          (jsonDecode(response.body) as Map)['canManageStore'] == true;
+    } catch (_) { return false; }
+  }
+
+  Future<void> grantItem(String itemId) => _post(
+    action: 'admin-grant', body: {'itemId': itemId},
+  );
 
   bool get isConfigured => endpoint.trim().isNotEmpty;
 
@@ -183,8 +203,9 @@ class RoomShopService {
   Future<void> giftItem({
     required String itemId,
     required String recipientId,
+    bool adminGrant = false,
   }) => _post(
-    action: 'purchase',
+    action: adminGrant ? 'admin-grant' : 'purchase',
     body: {'itemId': itemId, 'recipientId': recipientId},
   );
 
@@ -221,7 +242,7 @@ class RoomShopService {
     final base = endpoint.endsWith('/')
         ? endpoint.substring(0, endpoint.length - 1)
         : endpoint;
-    final keyId = '$action:${body['itemId'] ?? ''}:${body['recipientId'] ?? ''}:${body['rewardId'] ?? ''}';
+    final keyId = '${body['adminGrant'] == true}:$action:${body['itemId'] ?? ''}:${body['recipientId'] ?? ''}:${body['rewardId'] ?? ''}';
     final requestKey = _pendingKeys.putIfAbsent(keyId, _newRequestKey);
     final response = await http.post(
       Uri.parse('$base/$action'),
@@ -231,7 +252,7 @@ class RoomShopService {
         'Idempotency-Key': requestKey,
       },
       body: jsonEncode(body),
-    );
+    ).timeout(const Duration(seconds: 110));
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
       String message = 'Store request failed.';

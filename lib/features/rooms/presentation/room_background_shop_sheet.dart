@@ -30,8 +30,10 @@ class RoomBackgroundShopSheet extends StatelessWidget {
     BuildContext context,
     RoomBackgroundCatalogItem item,
     bool isArabic,
+    {bool adminGrant = false}
   ) async {
     try {
+      if (adminGrant && !item.isFree) await _shop.grantItem(item.id);
       await roomFeatures.setPurchasedBackground(
         themeId: item.themeId,
         backgroundUrl: null,
@@ -60,7 +62,12 @@ class RoomBackgroundShopSheet extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => FutureBuilder<bool>(
+    future: _shop.adminAccess,
+    builder: (context, access) => _buildShop(context, access.data == true),
+  );
+
+  Widget _buildShop(BuildContext context, bool isAdmin) {
     final isArabic =
         Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
     final user = FirebaseAuth.instance.currentUser;
@@ -182,7 +189,7 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                               final item = backgrounds[index];
                               final entitlement = ownedByTheme[item.themeId];
                               final ownedBackground =
-                                  item.isFree || entitlement != null;
+                                  item.isFree || entitlement != null || isAdmin;
 
                               return _BackgroundCatalogCard(
                                 item: item,
@@ -196,6 +203,7 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                                           context,
                                           item,
                                           isArabic,
+                                          adminGrant: isAdmin,
                                         )
                                     : null,
                                 onBuy: !item.isFree &&
@@ -236,6 +244,7 @@ class RoomBackgroundShopSheet extends StatelessWidget {
   ) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
+    final adminGrant = await _shop.adminAccess;
     try {
       final contacts = await FirebaseFirestore.instance
           .collection('users').doc(user.uid)
@@ -266,7 +275,9 @@ class RoomBackgroundShopSheet extends StatelessWidget {
         context: context,
         builder: (dialog) => AlertDialog(
           title: Text(isArabic ? 'تأكيد الإهداء' : 'Confirm send'),
-          content: Text('${item.localizedName(isArabic)} • ${item.priceCoins} coins'),
+          content: Text(adminGrant
+              ? (isArabic ? 'إهداء إداري دون خصم عملات' : 'Admin gift — no coins charged')
+              : '${item.localizedName(isArabic)} • ${item.priceCoins} coins'),
           actions: [
             TextButton(onPressed: () => Navigator.pop(dialog, false),
               child: Text(isArabic ? 'إلغاء' : 'Cancel')),
@@ -276,7 +287,7 @@ class RoomBackgroundShopSheet extends StatelessWidget {
         ),
       );
       if (confirmed != true) return;
-      await _shop.giftItem(itemId: item.id, recipientId: recipient);
+      await _shop.giftItem(itemId: item.id, recipientId: recipient, adminGrant: adminGrant);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(isArabic ? 'تم إرسال الخلفية'
@@ -517,10 +528,12 @@ class _FrameStoreCard extends StatelessWidget {
     required this.priceCoins,
     required this.durationDays,
     required this.onApply,
+    this.photoUrl,
     this.onBuy,
     this.onGift,
   });
 
+  final String? photoUrl;
   final String frameId;
   final String name;
   final bool isArabic;
@@ -549,21 +562,26 @@ class _FrameStoreCard extends StatelessWidget {
         children: [
           Expanded(
             child: Center(
-              child: WorldVoiceAvatarFrame(
+              child: LayoutBuilder(builder: (context, constraints) => WorldVoiceAvatarFrame(
                 frameId: frameId,
-                size: 92,
+                size: (constraints.maxWidth * .86)
+                    .clamp(0.0, constraints.maxHeight.clamp(0.0, 150.0)),
                 animate: false,
-                child: const ColoredBox(
+                child: photoUrl?.isNotEmpty == true
+                    ? Image.network(photoUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => const Icon(Icons.person_rounded, size: 54))
+                    : const ColoredBox(
                   color: Color(0xFF183A32),
                   child: Center(
                     child: Icon(
                       Icons.person_rounded,
                       color: Colors.white,
-                      size: 44,
+                      size: 54,
                     ),
                   ),
                 ),
-              ),
+              )),
             ),
           ),
           Padding(
@@ -606,7 +624,7 @@ class _FrameStoreCard extends StatelessWidget {
                     onPressed: onBuy,
                     child: Text(isArabic ? 'شراء' : 'Buy'),
                   ),
-                if (!isFree && !owned)
+                if (!isFree)
                   OutlinedButton(
                     onPressed: onGift,
                     child: Text(isArabic ? 'إهداء' : 'Gift'),
@@ -652,6 +670,8 @@ class _OtherStoreTab extends StatelessWidget {
   }
 
   Future<void> _gift(BuildContext context, RoomStoreItem item) async {
+    final adminGrant = type == 'frame' && await shop.adminAccess;
+    if (!context.mounted) return;
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
     final contacts = await FirebaseFirestore.instance.collection('users')
@@ -676,7 +696,9 @@ class _OtherStoreTab extends StatelessWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(isArabic ? 'تأكيد الإهداء' : 'Confirm gift'),
-        content: Text('${item.name} • ${item.priceCoins} Coins'),
+        content: Text(adminGrant
+            ? (isArabic ? 'إهداء إداري دون خصم عملات' : 'Admin gift — no coins charged')
+            : '${item.name} • ${item.priceCoins} Coins'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(dialogContext, false),
             child: Text(isArabic ? 'إلغاء' : 'Cancel')),
@@ -687,7 +709,7 @@ class _OtherStoreTab extends StatelessWidget {
     );
     if (confirmed != true || !context.mounted) return;
     try {
-      await shop.giftItem(itemId: item.id, recipientId: toId);
+      await shop.giftItem(itemId: item.id, recipientId: toId, adminGrant: adminGrant);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(isArabic ? 'تم إرسال الإهداء' : 'Gift delivered')),
@@ -709,7 +731,17 @@ class _OtherStoreTab extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => FutureBuilder<bool>(
+    future: shop.adminAccess,
+    builder: (context, access) => StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: FirebaseAuth.instance.currentUser == null ? null : FirebaseFirestore.instance
+          .collection('users').doc(FirebaseAuth.instance.currentUser!.uid).snapshots(),
+      builder: (context, profile) => _buildStore(context, access.data == true,
+          profile.data?.data()?['photoUrl'] as String? ?? FirebaseAuth.instance.currentUser?.photoURL),
+    ),
+  );
+
+  Widget _buildStore(BuildContext context, bool isAdmin, String? photoUrl) {
     return SafeArea(child: SizedBox(
       height: MediaQuery.sizeOf(context).height * .72,
       child: Column(children: [
@@ -779,6 +811,7 @@ class _OtherStoreTab extends StatelessWidget {
                           if (index < freeFrames.length) {
                             final frameId = freeFrames[index];
                             return _FrameStoreCard(
+                              photoUrl: photoUrl,
                               frameId: frameId,
                               name: WorldVoiceAvatarFrame.label(
                                 frameId,
@@ -804,8 +837,9 @@ class _OtherStoreTab extends StatelessWidget {
                           }
 
                           final item = displayedFrames[index - freeFrames.length];
-                          final isOwned = owned.contains(item.id);
+                          final isOwned = owned.contains(item.id) || isAdmin;
                           return _FrameStoreCard(
+                              photoUrl: photoUrl,
                             frameId: item.id,
                             name: item.name,
                             isArabic: isArabic,
@@ -818,6 +852,7 @@ class _OtherStoreTab extends StatelessWidget {
                                 ? null
                                 : () async {
                                     try {
+                                      if (isAdmin) await shop.grantItem(item.id);
                                       await shop.setProfileFrame(item.id);
                                     } catch (error) {
                                       if (!context.mounted) return;
