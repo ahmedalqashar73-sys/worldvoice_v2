@@ -447,6 +447,7 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
                               true);
                         }).toList(growable: false);
 
+                  final visibleRoomIds = docs.map((doc) => doc.id).toSet();
                   return Stack(
                     children: [
                       if (snapshot.hasError)
@@ -460,18 +461,18 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
                               ConnectionState.waiting &&
                           !snapshot.hasData)
                         const Center(child: CircularProgressIndicator())
-                      else if (docs.isEmpty)
-                        _EmptyRooms(
-                          isArabic: _isArabic,
-                          languageCode: selected,
-                        )
                       else
+                        Stack(
+                          children: [
+                        // Keep all room cards mounted while changing the
+                        // filter. Their Firestore participant subscriptions
+                        // must not restart every time Arabic/English is tapped.
                         ListView.builder(
                           padding:
                               const EdgeInsets.fromLTRB(18, 14, 18, 96),
-                          itemCount: docs.length,
+                          itemCount: publicDocs.length,
                           itemBuilder: (context, index) {
-                            final doc = docs[index];
+                            final doc = publicDocs[index];
                             final data = doc.data();
                             final name =
                                 (data['name'] ?? 'WorldVoice Room').toString();
@@ -497,7 +498,11 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
                                 data['showTeacherAiSeat'] == true;
                             final vipOnly = data['vipOnly'] == true;
 
-                            return _RoomCard(
+                            return Visibility(
+                              visible: visibleRoomIds.contains(doc.id),
+                              maintainState: true,
+                              child: _RoomCard(
+                              key: ValueKey<String>('room-card-${doc.id}'),
                               channelId: doc.id,
                               name: name,
                               hostName: hostName,
@@ -517,8 +522,16 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
                                 roomModeName: data['mode']?.toString(),
                                 vipOnly: vipOnly,
                               ),
+                              ),
                             );
                           },
+                        ),
+                        if (docs.isEmpty)
+                          _EmptyRooms(
+                            isArabic: _isArabic,
+                            languageCode: selected,
+                          ),
+                          ],
                         ),
                       PositionedDirectional(
                         end: 18,
@@ -650,6 +663,7 @@ class _RoomCard extends StatefulWidget {
     required this.languageCode,
     required this.vipOnly,
     required this.onTap,
+    super.key,
   });
 
   final String channelId;
