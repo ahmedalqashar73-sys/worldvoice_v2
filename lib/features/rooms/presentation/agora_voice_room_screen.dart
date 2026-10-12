@@ -3758,8 +3758,6 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                     onExpand: _expandBoard, onClose: _closeBoard)),
                 if (_boardVisible && !compact) SizedBox(height: 106,
                   child: RoomStageStrip(seats: _buildSeats(), onSeatTap: _handleSeatTap)),
-                if (_boardVisible && !compact && _listeners.isNotEmpty)
-                  _buildListenerStrip(isArabic),
                 // Stage is a separate fixed viewport. Teacher AI and hand
                 // requests stay pinned; new chat messages never scroll them.
                 if (!_boardVisible && !compact) SizedBox(
@@ -3771,8 +3769,6 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                       onSeatLongPress: _handleSeatLongPress),
                   ),
                 ),
-                if (!_boardVisible && !compact && _listeners.isNotEmpty)
-                  _buildListenerStrip(isArabic),
                 // The hand stays pinned to the room stage, not the chat.
                 // Incoming messages never displace it.
                 if (_me != null && (_canModerate || !isPublishing))
@@ -3787,6 +3783,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                       ),
                     ),
                   ),
+                if (_boardVisible && !compact && _listeners.isNotEmpty)
+                  _buildListenerStrip(isArabic),
+                if (!_boardVisible && !compact && _listeners.isNotEmpty)
+                  _buildListenerStrip(isArabic),
                 if (!_boardVisible && !compact && _showTeacherAiSeat)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
