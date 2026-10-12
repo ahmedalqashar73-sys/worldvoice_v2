@@ -72,7 +72,7 @@ class RoomBackgroundShopSheet extends StatelessWidget {
           children: [
             ListTile(
               title: Text(
-                isArabic ? 'تصميم الغرفة: الخلفيات والإطارات' : 'Room look: backgrounds and frames',
+                isArabic ? 'الخلفيات' : 'Backgrounds',
                 style: const TextStyle(fontWeight: FontWeight.w900),
               ),
               subtitle: user == null
@@ -163,10 +163,7 @@ class RoomBackgroundShopSheet extends StatelessWidget {
 
                   return StreamBuilder<List<RoomBackgroundReward>>(
                     stream: _shop.watchBackgroundRewards(),
-                    builder: (context, rewardSnapshot) {
-                      final rewards = rewardSnapshot.data ??
-                          const <RoomBackgroundReward>[];
-                      final reward = rewards.isEmpty ? null : rewards.first;
+                    builder: (context, _) {
 
                       return StreamBuilder<RoomFeatureState>(
                         stream: roomFeatures.watchState(),
@@ -195,8 +192,7 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                                 item: item,
                                 owned: ownedBackground,
                                 selected: selectedTheme == item.themeId,
-                                rewardAvailable:
-                                    !item.isFree && reward != null,
+                                rewardAvailable: false,
                                 isHost: isHost,
                                 isArabic: isArabic,
                                 onApply: ownedBackground && isHost
@@ -215,17 +211,7 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                                           isArabic,
                                         )
                                     : null,
-                                onClaim: !item.isFree &&
-                                        !ownedBackground &&
-                                        reward != null &&
-                                        _shop.isConfigured
-                                    ? () => _claim(
-                                          context,
-                                          reward,
-                                          item,
-                                          isArabic,
-                                        )
-                                    : null,
+                                onClaim: null,
                                 onGift: !item.isFree && _shop.isConfigured
                                     ? () => _giftBackground(
                                           context,
@@ -344,34 +330,7 @@ class RoomBackgroundShopSheet extends StatelessWidget {
     }
   }
 
-  Future<void> _claim(
-    BuildContext context,
-    RoomBackgroundReward reward,
-    RoomBackgroundCatalogItem item,
-    bool isArabic,
-  ) async {
-    try {
-      await _shop.claimReward(
-        rewardId: reward.id,
-        itemId: item.id,
-      );
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            isArabic
-                ? 'تم استخدام مكافأة الخلفية المجانية لمدة شهر.'
-                : 'Your one-month free background reward was claimed.',
-          ),
-        ),
-      );
-    } catch (error) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.toString())),
-      );
-    }
-  }
+
 }
 
 class _BackgroundCatalogCard extends StatelessWidget {
