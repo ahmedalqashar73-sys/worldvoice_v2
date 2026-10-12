@@ -169,7 +169,12 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                                 ),
                               if ((type == 'image' || type == 'video') &&
                                   mediaUrl.isNotEmpty)
-                                ChatMediaBubble(type: type, url: mediaUrl)
+                                ChatMediaBubble(
+                                  type: type,
+                                  url: mediaUrl,
+                                  fileName: data['fileName']?.toString(),
+                                  cacheScope: 'chat_${FirebaseAuth.instance.currentUser?.uid ?? 'anonymous'}',
+                                )
                               else
                                 Text((data['text'] ?? '').toString()),
                             ],
