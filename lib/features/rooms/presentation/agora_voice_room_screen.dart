@@ -3878,7 +3878,7 @@ class _AnimatedRoomBackgroundState extends State<_AnimatedRoomBackground>
 
   bool get _usesImageBackground {
     final hasAtlas =
-        RoomBackgroundCatalog.atlasIndexForTheme(widget.themeId ?? '') != null;
+        RoomBackgroundCatalog.assetPathForTheme(widget.themeId ?? '') != null;
     final hasNetworkImage = (widget.backgroundUrl?.trim().isNotEmpty ?? false);
     return hasAtlas || hasNetworkImage;
   }
@@ -3915,9 +3915,8 @@ class _AnimatedRoomBackgroundState extends State<_AnimatedRoomBackground>
   @override
   Widget build(BuildContext context) {
     final url = widget.backgroundUrl?.trim() ?? '';
-    final atlasIndex = RoomBackgroundCatalog.atlasIndexForTheme(
-      widget.themeId ?? '',
-    );
+    final hasBundledBackground =
+        RoomBackgroundCatalog.assetPathForTheme(widget.themeId ?? '') != null;
 
     return AnimatedBuilder(
       animation: _controller,
@@ -3931,7 +3930,7 @@ class _AnimatedRoomBackgroundState extends State<_AnimatedRoomBackground>
               end: Alignment(.55 - t * .35, 1),
               colors: widget.colors,
             ),
-            image: atlasIndex != null || url.isEmpty
+            image: hasBundledBackground || url.isEmpty
                 ? null
                 : DecorationImage(
                     image: NetworkImage(url),
@@ -3945,14 +3944,10 @@ class _AnimatedRoomBackgroundState extends State<_AnimatedRoomBackground>
           child: Stack(
             fit: StackFit.expand,
             children: [
-              if (atlasIndex != null) ...[
+              if (hasBundledBackground) ...[
                 RoomBackgroundAtlas(
                   themeId: widget.themeId!,
-                  // Preserve as much detail as the bundled artwork provides
-                  // when it is scaled to a full phone screen.
                   filterQuality: FilterQuality.high,
-                  // Sunset Terrace uses its original portrait artwork:
-                  // show the whole image without stretching or cropping it.
                   fit: BoxFit.cover,
                   fillUnderlay: false,
                 ),
