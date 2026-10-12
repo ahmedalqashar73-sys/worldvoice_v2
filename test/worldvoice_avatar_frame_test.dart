@@ -1,8 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:worldvoice/core/widgets/worldvoice_avatar_frame.dart';
+import 'package:worldvoice/features/rooms/presentation/room_stage_grid.dart';
+import 'package:worldvoice/features/rooms/data/room_stage_models.dart';
 
 void main() {
+  testWidgets('larger room frames fit narrow and wide stages', (tester) async {
+    for (final width in [296.0, 404.0]) {
+      await tester.pumpWidget(MaterialApp(home: Scaffold(body: Center(
+        child: SizedBox(width: width, height: 294, child: RoomStageGrid(
+          seats: List.generate(8, (i) => RoomSeatState(index: i,
+            role: RoomMemberRole.speaker, displayName: 'Speaker $i',
+            frameId: 'free_clean_white', isActiveSpeaker: i == 0)),
+          onSeatTap: (_) {},
+        )),
+      ))));
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(tester.takeException(), isNull);
+      expect(find.byType(WorldVoiceAvatarFrame), findsNWidgets(8));
+    }
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
   test('four bundled frames are free and the remaining 29 require coins', () {
     expect(WorldVoiceAvatarFrame.freeFrameIds, hasLength(4));
     expect(WorldVoiceAvatarFrame.premiumArtworkFrameIds, hasLength(29));
