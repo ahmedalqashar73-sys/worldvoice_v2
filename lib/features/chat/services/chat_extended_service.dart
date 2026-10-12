@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import '../../rooms/data/room_backend_config.dart';
 
 import '../../../core/media/cloudinary_image_service.dart';
+import '../../rooms/services/board_media_cache.dart';
 
 class ChatExtendedService {
   ChatExtendedService({http.Client? client}) : _client = client ?? http.Client();
@@ -103,10 +104,32 @@ class ChatExtendedService {
     required File file,
     required String mediaType,
   }) async {
-    final type = mediaType == 'video' ? 'video' : 'image';
-    final upload = type == 'video'
-        ? await CloudinaryImageService.uploadVideo(file, folder: 'worldvoice/chat')
-        : await CloudinaryImageService.uploadImage(file, folder: 'worldvoice/chat');
+    final type = mediaType.trim().toLowerCase();
+    if (!const <String>['image', 'video', 'audio', 'pdf'].contains(type)) {
+      throw StateError('Unsupported chat attachment type.');
+    }
+    if (!await file.exists()) throw StateError('The attachment is unavailable.');
+    final fileSize = await file.length();
+    final maximum = (type == 'pdf' || type == 'audio')
+        ? 20 * 1024 * 1024 : 80 * 1024 * 1024;
+    if (fileSize <= 0 || fileSize > maximum) {
+      throw StateError('The attachment is empty or exceeds the allowed size.');
+    }
+    final fileName = file.uri.pathSegments.last;
+    if (type == 'pdf' && !fileName.toLowerCase().endsWith('.pdf')) {
+      throw StateError('Choose a PDF document.');
+    }
+
+    final upload = switch (type) {
+      'video' => await CloudinaryImageService.uploadVideo(
+          file, folder: 'worldvoice/chat'),
+      'audio' => await CloudinaryImageService.uploadAudio(
+          file, folder: 'worldvoice/chat'),
+      'pdf' => await CloudinaryImageService.uploadRaw(
+          file, folder: 'worldvoice/chat'),
+      _ => await CloudinaryImageService.uploadImage(
+          file, folder: 'worldvoice/chat'),
+    };
     final token = await _token();
     final response = await _client.post(
       _uri('/chat/media'),
@@ -120,10 +143,27 @@ class ChatExtendedService {
         'mediaType': type,
         'mediaUrl': upload.url,
         'mediaPublicId': upload.publicId,
+        'fileName': fileName,
+        'fileSize': fileSize,
       }),
     ).timeout(RoomBackendConfig.socialRequestTimeout,
-        onTimeout: () => throw StateError('The chat server is waking up or unavailable. Check whether the message arrived before retrying.'));
+        onTimeout: () => throw StateError(
+            'The chat server is unavailable. Check before retrying.'));
     await _decode(response);
+    // A successfully sent file remains on this phone. Recipients download
+    // into their own bounded app-private cache when they open the message.
+    try {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid != null) {
+        await BoardMediaCache.rememberLocalCopy(
+          url: upload.url, type: type, source: file,
+          cacheScope: 'chat_$uid',
+        );
+      }
+    } catch (_) {
+      // Delivery succeeded; an optional local cache failure must not
+      // mark the message as unsent or cause duplicate retries.
+    }
   }
 
   void dispose() => _client.close();
