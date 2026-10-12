@@ -161,11 +161,7 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                     for (final item in owned) item.themeId: item,
                   };
 
-                  return StreamBuilder<List<RoomBackgroundReward>>(
-                    stream: _shop.watchBackgroundRewards(),
-                    builder: (context, _) {
-
-                      return StreamBuilder<RoomFeatureState>(
+                  return StreamBuilder<RoomFeatureState>(
                         stream: roomFeatures.watchState(),
                         builder: (context, roomSnapshot) {
                           final selectedTheme =
@@ -224,8 +220,6 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                           );
                         },
                       );
-                    },
-                  );
                 },
               ),
             ),
@@ -399,7 +393,7 @@ class _BackgroundCatalogCard extends StatelessWidget {
                       ),
                       child: Text(
                         item.isFree
-                            ? (isArabic ? 'هدية مجانية' : 'Free gift')
+                            ? (isArabic ? 'مجانية' : 'Free')
                             : '${item.priceCoins} 🪙',
                         style: const TextStyle(
                           color: Colors.white,
