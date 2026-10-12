@@ -43,7 +43,7 @@ class RoomFeatureService {
     if (!isHost) return;
 
     final needsBackgroundV3 =
-        (data['backgroundLayoutVersion'] as num?)?.toInt() != 3 ||
+        (data['backgroundLayoutVersion'] as num?)?.toInt() != 4 ||
         !data.containsKey('themeId');
     if (needsBackgroundV3) {
       // Background changes are server-authorized so a stale client Firestore
