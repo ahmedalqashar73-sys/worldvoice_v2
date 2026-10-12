@@ -10,6 +10,9 @@ import 'package:http/http.dart' as http;
 
 import '../../rooms/data/room_backend_config.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:record/record.dart';
 
 import '../../../core/localization/locale_controller.dart';
 import '../../../core/widgets/worldvoice_avatar_frame.dart';
@@ -1065,6 +1068,8 @@ class _ChatConversationState extends State<ChatConversationScreen> {
   String? _pendingText;
   String? _pendingKey;
   final ImagePicker _picker = ImagePicker();
+  final AudioRecorder _voiceRecorder = AudioRecorder();
+  bool _recordingVoice = false;
   final ChatExtendedService _extendedService = ChatExtendedService();
   final ChatCallService _callService = ChatCallService();
 
@@ -1177,6 +1182,87 @@ class _ChatConversationState extends State<ChatConversationScreen> {
     }
   }
 
+  Future<void> _pickPdf() async {
+    if (_sending || _recordingVoice) return;
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom, allowedExtensions: const ['pdf'],
+    );
+    if (result == null || result.files.isEmpty || !mounted) return;
+    final path = result.files.single.path;
+    if (path == null || path.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not access the selected PDF.')),
+      );
+      return;
+    }
+    setState(() => _sending = true);
+    try {
+      await _extendedService.sendMedia(
+        chatId: widget.chatId, file: File(path), mediaType: 'pdf',
+      );
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(error.toString().replaceFirst('Bad state: ', '')),
+        ));
+      }
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
+  }
+
+  Future<void> _toggleVoiceRecording() async {
+    if (_sending) return;
+    if (_recordingVoice) {
+      setState(() {
+        _recordingVoice = false;
+        _sending = true;
+      });
+      String? path;
+      try {
+        path = await _voiceRecorder.stop();
+        if (path == null || path.isEmpty) {
+          throw StateError('Voice recording was not saved.');
+        }
+        await _extendedService.sendMedia(
+          chatId: widget.chatId,
+          file: File(path),
+          mediaType: 'audio',
+        );
+      } catch (error) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(error.toString().replaceFirst('Bad state: ', '')),
+          ));
+        }
+      } finally {
+        if (path != null) {
+          try { await File(path).delete(); } catch (_) {}
+        }
+        if (mounted) setState(() => _sending = false);
+      }
+      return;
+    }
+    try {
+      if (!await _voiceRecorder.hasPermission()) {
+        throw StateError('Microphone permission is required.');
+      }
+      final directory = await getTemporaryDirectory();
+      final path = '${directory.path}/wv_voice_${DateTime.now().microsecondsSinceEpoch}.m4a';
+      await _voiceRecorder.start(
+        const RecordConfig(encoder: AudioEncoder.aacLc, bitRate: 64000),
+        path: path,
+      );
+      if (mounted) setState(() => _recordingVoice = true);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.toString().replaceFirst('Bad state: ', ''))),
+        );
+      }
+    }
+  }
+
   void _showGifts() {
     showModalBottomSheet<void>(
       context: context,
@@ -1200,6 +1286,7 @@ class _ChatConversationState extends State<ChatConversationScreen> {
     _giftOverlay = null;
     _text.dispose();
     _extendedService.dispose();
+    unawaited(_voiceRecorder.dispose());
     _callService.dispose();
     super.dispose();
   }
@@ -1345,7 +1432,7 @@ class _ChatConversationState extends State<ChatConversationScreen> {
                       final isGift = type == 'gift';
                       final mediaUrl = (data['mediaUrl'] ?? '').toString();
                       final isMedia =
-                          (type == 'image' || type == 'video') &&
+                          const ['image', 'video', 'audio', 'pdf'].contains(type) &&
                           mediaUrl.isNotEmpty;
                       final giftId = (data['giftId'] ?? '').toString();
                       final classicGift = isGift &&
@@ -1440,6 +1527,8 @@ class _ChatConversationState extends State<ChatConversationScreen> {
                                       ? ChatMediaBubble(
                                           type: type,
                                           url: mediaUrl,
+                                          fileName: data['fileName']?.toString(),
+                                          cacheScope: 'chat_${uid ?? 'anonymous'}',
                                         )
                                       : Text(value),
                         ),
@@ -1458,6 +1547,7 @@ class _ChatConversationState extends State<ChatConversationScreen> {
                     if (value == 'gift') _showGifts();
                     if (value == 'image') _pickMedia('image');
                     if (value == 'video') _pickMedia('video');
+                    if (value == 'pdf') _pickPdf();
                   },
                   itemBuilder: (_) => [
                     PopupMenuItem(
@@ -1472,6 +1562,13 @@ class _ChatConversationState extends State<ChatConversationScreen> {
                       child: ListTile(
                         leading: const Icon(Icons.videocam_outlined),
                         title: Text(ar ? 'إرسال فيديو' : 'Send video'),
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'pdf',
+                      child: ListTile(
+                        leading: const Icon(Icons.picture_as_pdf_outlined),
+                        title: Text(ar ? 'إرسال ملف PDF' : 'Send PDF'),
                       ),
                     ),
                     PopupMenuItem(
@@ -1498,6 +1595,17 @@ class _ChatConversationState extends State<ChatConversationScreen> {
                       hintText: ar ? 'اكتب رسالة...' : 'Message...',
                       border: InputBorder.none,
                     ),
+                  ),
+                ),
+                IconButton(
+                  tooltip: _recordingVoice
+                      ? (ar ? 'إيقاف وإرسال التسجيل' : 'Stop and send voice')
+                      : (ar ? 'تسجيل رسالة صوتية' : 'Record voice message'),
+                  onPressed: _sending ? null : _toggleVoiceRecording,
+                  icon: Icon(
+                    _recordingVoice
+                        ? Icons.stop_circle_rounded : Icons.mic_rounded,
+                    color: _recordingVoice ? Colors.redAccent : null,
                   ),
                 ),
                 IconButton.filledTonal(
