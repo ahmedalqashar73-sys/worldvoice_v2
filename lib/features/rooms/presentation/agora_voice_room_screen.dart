@@ -3589,14 +3589,21 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_minimized) return _buildMinimizedRoom(context);
     final isArabic = (widget.localeController?.locale?.languageCode ??
         Localizations.localeOf(context).languageCode) == 'ar';
     final isPublishing = _me?.isOnStage ?? (widget.initialRole == AgoraRoomRole.speaker);
     String label(String ar, String en) => isArabic ? ar : en;
     return Directionality(
       textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
-      child: _AnimatedRoomBackground(
+      // Preserve the live room widget tree and its inherited dependencies
+      // when minimized. Replacing the entire route with HomeScreen could
+      // unmount a Scaffold while descendants were still registered.
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Offstage(
+            offstage: _minimized,
+            child: _AnimatedRoomBackground(
         colors: _roomThemeColors(_featureState.themeId),
         backgroundUrl: _featureState.backgroundUrl,
         themeId: _featureState.themeId,
@@ -3830,6 +3837,13 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
           ])),
           ),
         ),
+            ),
+          ),
+          if (_minimized)
+            Positioned.fill(
+              child: _buildMinimizedRoom(context),
+            ),
+        ],
       ),
     );
   }
