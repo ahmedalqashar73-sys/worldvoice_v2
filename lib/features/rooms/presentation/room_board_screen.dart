@@ -213,12 +213,16 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
             file,
             folder: folder,
           ),
-        'pdf' => await CloudinaryImageService.uploadRaw(
+        'pdf' => await CloudinaryImageService.uploadPdf(
             file,
             folder: folder,
           ),
         _ => throw StateError('Unsupported board media'),
       };
+
+      // Never show a local-only success when the CDN rejects guest access.
+      // This also detects Cloudinary's PDF/ZIP security restriction (401).
+      await CloudinaryImageService.ensurePublicDelivery(upload.url);
 
       // Owner keeps a private device-local copy of the uploaded file.
       // Firestore stores only the shared link for other room members.
@@ -237,10 +241,16 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
         name: picked.name,
       );
       if (mounted) setState(() { _drawing = false; });
-    } catch (_) {
+    } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(
-          Localizations.localeOf(context).languageCode == 'ar' ? 'تعذر رفع الملف، حاول مجددًا' : 'Upload failed. Please retry.')));
+        final ar = Localizations.localeOf(context).languageCode == 'ar';
+        final detail = error.toString().replaceFirst('Bad state: ', '');
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          duration: const Duration(seconds: 8),
+          content: Text(ar
+              ? 'تعذر مشاركة الملف مع الضيوف: $detail'
+              : 'Could not share media with guests: $detail'),
+        ));
       }
     } finally {
       if (mounted) setState(() => _uploading = false);
