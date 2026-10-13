@@ -306,21 +306,28 @@ class RoomModerationService {
     final inviteRef = _db.collection('users').doc(ownerId)
         .collection('moderators').doc(user.uid);
     final invite = await inviteRef.get();
-    if (!invite.exists || invite.data()?['status'] != 'pending') {
+    final status = invite.data()?['status'];
+    if (!invite.exists ||
+        (status != 'pending' && !(accepted && status == 'accepted'))) {
       throw StateError('This moderator invitation is no longer pending.');
     }
-    final batch = _db.batch();
-    batch.update(inviteRef, {
-      'status': accepted ? 'accepted' : 'declined',
-      'respondedAt': FieldValue.serverTimestamp(),
-    });
+
+    // First accept the owner's invitation. Firestore rules only permit the
+    // invited user to promote their participant after the global invitation
+    // is accepted. Separate writes also allow a safe retry if connectivity
+    // drops between these operations.
+    if (status == 'pending') {
+      await inviteRef.update({
+        'status': accepted ? 'accepted' : 'declined',
+        'respondedAt': FieldValue.serverTimestamp(),
+      });
+    }
     if (accepted) {
-      batch.set(_participantsRef.doc(user.uid), {
+      await _participantsRef.doc(user.uid).update({
         'isModerator': true,
         'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+      });
     }
-    await batch.commit();
   }
 
   Stream<List<RoomParticipant>> watchParticipants() {

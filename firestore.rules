@@ -1116,7 +1116,19 @@ service cloud.firestore {
               isHost(roomId)
               || get(roomPath(roomId)).data.boardWriteEnabled == true
             );
-        allow update: if false;
+        // The host can control only the video currently presented. No
+        // listener may overwrite the media URL, author or presentation type.
+        allow update: if isHost(roomId)
+            && resource.data.type == 'video'
+            && get(roomPath(roomId)).data.boardMediaId == itemId
+            && request.resource.data.diff(resource.data)
+                .affectedKeys().hasOnly([
+                  'playing', 'positionMs', 'playbackChangedAt'
+                ])
+            && request.resource.data.playing is bool
+            && request.resource.data.positionMs is int
+            && request.resource.data.positionMs >= 0
+            && request.resource.data.playbackChangedAt == request.time;
         allow delete: if isHost(roomId)
             || (isRoomMember(roomId) && resource.data.userId == request.auth.uid);
       }
