@@ -136,3 +136,10 @@ export function calculatePurchaseCredit({config, baseCoins, platform, firstRecha
   }
   return {baseCoins, bonusCoins, totalCoins};
 }
+
+// Only server-owned admin records authorize free cosmetic grants.
+export function canManageStore(admin) {
+  return admin?.active === true &&
+    (admin.role === "super_admin" ||
+      (Array.isArray(admin.permissions) && admin.permissions.includes("manage_store")));
+}

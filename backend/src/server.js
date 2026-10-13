@@ -12,7 +12,7 @@ import { FieldValue, Timestamp, getFirestore } from "firebase-admin/firestore";
 import { google } from "googleapis";
 import OpenAI, { toFile } from "openai";
 import Stripe from "stripe";
-import { requireLiveEconomy, calculateGiftSettlement, calculatePurchaseCredit } from "./economy_policy.js";
+import { requireLiveEconomy, calculateGiftSettlement, calculatePurchaseCredit, canManageStore } from "./economy_policy.js";
 import {registerWalletRoutes} from "./wallet_routes.js";
 import {registerChatRoutes} from "./chat_routes.js";
 import {registerStoryRoutes} from "./story_routes.js";
@@ -75,6 +75,17 @@ const stripe = stripeSecret ? new Stripe(stripeSecret) : null;
 
 // Server-authorized prices for the 29 purchased avatar frames.
 // Four other frames are free and never enter the coin ledger.
+const worldVoiceRoomBackgroundPrices = new Map([
+  ["background__wv_premium_01", 150],
+  ["background__wv_premium_02", 200],
+  ["background__wv_premium_03", 250],
+  ["background__wv_premium_04", 180],
+  ["background__wv_premium_05", 220],
+  ["background__wv_premium_06", 230],
+  ["background__wv_premium_07", 120],
+  ["background__wv_premium_08", 300],
+]);
+
 const worldVoiceFramePrices = new Map([
   ["frame__wv_frame_02", 360],
   ["frame__wv_frame_03", 280],
@@ -106,6 +117,22 @@ const worldVoiceFramePrices = new Map([
   ["frame__wv_frame_32", 640],
   ["frame__wv_frame_33", 590],
 ]);
+
+function builtInRoomBackground(itemId) {
+  if (!worldVoiceRoomBackgroundPrices.has(itemId)) return null;
+  const themeId = itemId.replace(/^background__/, "");
+  return {
+    active: true,
+    type: "background",
+    name: "WorldVoice Background",
+    priceCoins: worldVoiceRoomBackgroundPrices.get(itemId),
+    requiredGiftLevel: 0,
+    durationDays: null,
+    themeId,
+    previewUrl: null,
+    builtInVisual: true,
+  };
+}
 
 function builtInWorldVoiceFrame(itemId) {
   if (!worldVoiceFramePrices.has(itemId)) return null;
@@ -1313,7 +1340,15 @@ app.post("/translate", async (req, res, next) => {
  * Uniform non-currency entitlement purchase/gift. VIP with coins is gifted
  * only; a user's own recurring VIP plan goes through verified store billing.
  */
-app.post("/store/purchase", async (req, res, next) => {
+app.get("/store/access", async (req, res, next) => {
+  try {
+    const user = await authenticatedUser(req);
+    const admin = await db.collection("admins").doc(user.uid).get();
+    res.json({ok: true, canManageStore: canManageStore(admin.data())});
+  } catch (error) { next(error); }
+});
+
+app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
   try {
     const sender = await authenticatedUser(req);
     const itemId = String(req.body?.itemId || "").trim();
@@ -1326,7 +1361,7 @@ app.post("/store/purchase", async (req, res, next) => {
       return res.status(400).json({error: "Invalid item or idempotency key."});
     }
     const refKey = createHash("sha256")
-      .update(`${sender.uid}:store:${key}`).digest("hex");
+      .update(`${sender.uid}:${req.path === "/store/admin-grant" ? "admin-store" : "store"}:${key}`).digest("hex");
     const operationRef = db.collection("economy_store_operations").doc(refKey);
     const itemRef = db.collection("store_items").doc(itemId);
     const configRef = db.doc("economy_config/current");
@@ -1341,7 +1376,8 @@ app.post("/store/purchase", async (req, res, next) => {
     const dailyRef = payerRef.collection("economy_daily").doc(day);
     const outcome = await db.runTransaction(async tx => {
       const refs = [operationRef, itemRef, configRef, payerRef, payerWalletRef,
-        inventoryRef, dailyRef, ...(gifting ? [recipientRef, recipientWalletRef, friendRef] : [])];
+        inventoryRef, dailyRef, ...(gifting ? [recipientRef, recipientWalletRef, friendRef] : []),
+        db.collection("admins").doc(sender.uid)];
       const snaps = await Promise.all(refs.map(ref => tx.get(ref)));
       const [existing, itemSnap, configSnap, payerProfileSnap, payerSnap,
         ownedSnap, dailySnap] = snaps;
@@ -1353,15 +1389,25 @@ app.post("/store/purchase", async (req, res, next) => {
         }
         return {...old.outcome, alreadyProcessed: true};
       }
-      const policy = requireLiveEconomy(configSnap.data());
-      requirePrivateWallet(payerSnap);
-      if (gifting) requirePrivateWallet(snaps[8]);
-      const bundledFrame = builtInWorldVoiceFrame(itemId);
-      const item = itemSnap.exists ? itemSnap.data() || {} : bundledFrame || {};
-      if ((!itemSnap.exists && !bundledFrame) || item.active !== true ||
+      const item = itemSnap.exists
+        ? itemSnap.data() || {}
+        : builtInRoomBackground(itemId) ||
+          builtInWorldVoiceFrame(itemId) || {};
+      if ((!itemSnap.exists && !builtInRoomBackground(itemId) &&
+          !builtInWorldVoiceFrame(itemId)) ||
+          item.active !== true ||
           !["background", "frame", "entrance", "vip"].includes(item.type) ||
           !itemId.startsWith(item.type + "__")) {
         throw Object.assign(new Error("Store item unavailable."), {status: 404});
+      }
+      // Retire legacy backgrounds even if a stale Firestore document is active.
+      // The canonical server price is authoritative, never a client price.
+      if (item.type === "background" &&
+          (!worldVoiceRoomBackgroundPrices.has(itemId) ||
+           Number(item.priceCoins) !== worldVoiceRoomBackgroundPrices.get(itemId) ||
+           String(item.themeId || "") !== itemId.replace(/^background__/, ""))) {
+        throw Object.assign(new Error("This room background was retired."),
+          {status: 409});
       }
       if (item.type === "vip" && !gifting) {
         throw Object.assign(new Error("Use verified store billing for personal VIP."),
@@ -1376,6 +1422,46 @@ app.post("/store/purchase", async (req, res, next) => {
         throw Object.assign(new Error("Store item price or duration is invalid."),
           {status: 503});
       }
+      if (req.path === "/store/admin-grant") {
+        if (!canManageStore(snaps[snaps.length - 1].data()) ||
+            !["background", "frame"].includes(item.type)) {
+          throw Object.assign(new Error("Store administrator access required."), {status: 403});
+        }
+        if (!payerProfileSnap.exists || (gifting && (!snaps[7].exists || !snaps[9].exists))) {
+          throw Object.assign(new Error("Choose an existing followed friend."), {status: 403});
+        }
+        const expiresAt = duration == null ? null : Timestamp.fromMillis(
+          Date.now() + duration * 24 * 60 * 60 * 1000);
+        const entitlement = {
+          itemId, type: item.type, source: "admin_grant", grantedBy: sender.uid,
+          giftedBy: gifting ? sender.uid : null, quantity: 1, freeGiftBalance: 0,
+          name: String(item.name || itemId), expiresAt,
+          updatedAt: FieldValue.serverTimestamp(),
+          ...(item.type === "background" ? {
+            themeId: String(item.themeId), backgroundUrl: item.previewUrl || null,
+          } : {}),
+        };
+        // Existing permanent ownership must never become temporary.
+        if (ownedSnap.exists && ownedSnap.data()?.expiresAt == null) entitlement.expiresAt = null;
+        else if (ownedSnap.data()?.expiresAt?.toMillis?.() > expiresAt?.toMillis?.()) {
+          entitlement.expiresAt = ownedSnap.data().expiresAt;
+        }
+        tx.set(inventoryRef, entitlement, {merge: true});
+        if (item.type === "background") tx.set(
+          recipientRef.collection("room_backgrounds").doc(String(item.themeId)),
+          entitlement, {merge: true});
+        const response = {itemId, recipientId, adminGrant: true, paidCoins: 0};
+        tx.create(operationRef, {senderId: sender.uid, recipientId, itemId,
+          outcome: response, createdAt: FieldValue.serverTimestamp()});
+        tx.create(db.collection("economy_audit").doc(refKey), {
+          type: "admin_cosmetic_grant", senderId: sender.uid, recipientId, itemId,
+          paidCoins: 0, createdAt: FieldValue.serverTimestamp(),
+        });
+        return response;
+      }
+      const policy = requireLiveEconomy(configSnap.data());
+      requirePrivateWallet(payerSnap);
+      if (gifting) requirePrivateWallet(snaps[8]);
       if (!payerProfileSnap.exists ||
           Number(payerSnap.data()?.giftLevel || 0) <
           Number(item.requiredGiftLevel || 0) ||
