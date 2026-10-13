@@ -415,14 +415,7 @@ function validChannelName(value) {
   );
 }
 
-const freeRoomBackgroundThemes = new Set([
-  "softGreenFlow",
-  "wv_bg_06",
-  "wv_bg_09",
-  "wv_bg_18",
-  "wv_bg_20",
-  "wv_bg_33",
-]);
+const freeRoomBackgroundThemes = new Set(["softGreenFlow"]);
 
 app.post("/room/background/apply", async (req, res, next) => {
   try {
@@ -430,9 +423,10 @@ app.post("/room/background/apply", async (req, res, next) => {
     const roomId = String(req.body?.roomId || "").trim();
     const themeId = String(req.body?.themeId || "").trim();
 
-    const atlasTheme = /^wv_bg_(0[1-9]|[12][0-9]|3[0-6])$/.test(themeId);
+    const purchasableTheme =
+      worldVoiceRoomBackgroundPrices.has(`background__${themeId}`);
     if (!validChannelName(roomId) ||
-        !(themeId === "softGreenFlow" || atlasTheme)) {
+        !(themeId === "softGreenFlow" || purchasableTheme)) {
       return res.status(400).json({error: "Invalid room background request."});
     }
 
@@ -462,7 +456,7 @@ app.post("/room/background/apply", async (req, res, next) => {
     await roomRef.set({
       themeId,
       backgroundUrl: backgroundUrl || FieldValue.delete(),
-      backgroundLayoutVersion: 3,
+      backgroundLayoutVersion: 4,
       updatedAt: FieldValue.serverTimestamp(),
     }, {merge: true});
 

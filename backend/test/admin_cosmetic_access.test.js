@@ -70,3 +70,50 @@ test('ordinary purchase keeps economy gates even with an adminGrant body flag', 
   assert.match(r.error.message, /Economy required/);
   assert.equal(r.writes.length, 0);
 });
+
+
+const backgroundRoute = source.slice(source.indexOf('app.post("/room/background/apply"'),
+  source.indexOf('function isStageRole'));
+async function applyBackground({themeId = 'wv_premium_01', owned = true,
+  hostId = 'sender', expired = false} = {}) {
+  let handler, status = 200, body;
+  const writes = [];
+  const ref = path => ({path, collection: name => ref(`${path}/${name}`),
+    doc: id => ref(`${path}/${id}`),
+    get: async () => path.startsWith('rooms/')
+      ? {exists: true, data: () => ({isOpen: true, hostId})}
+      : {exists: owned, data: () => ({themeId,
+        expiresAt: expired ? {toMillis: () => 1} : null})},
+    set: async value => {writes.push(value);}});
+  vm.runInNewContext(backgroundRoute, {
+    app: {post: (_, fn) => {handler = fn;}},
+    authenticatedUser: async () => ({uid: 'sender'}),
+    validChannelName: value => value === 'room1',
+    worldVoiceRoomBackgroundPrices: new Map(Array.from({length: 8}, (_, i) =>
+      [`background__wv_premium_0${i + 1}`, 150])),
+    freeRoomBackgroundThemes: new Set(['softGreenFlow']),
+    db: {collection: name => ref(name)},
+    FieldValue: {delete: () => 'deleted', serverTimestamp: () => 'now'},
+  });
+  const res = {status: value => {status = value; return res;}, json: value => {body = value;}};
+  await handler({body: {roomId: 'room1', themeId}}, res, error => {throw error;});
+  return {status, body, writes};
+}
+test('all eight owned backgrounds apply with the current layout version', async () => {
+  for (let i = 1; i <= 8; i++) {
+    const themeId = `wv_premium_0${i}`;
+    const result = await applyBackground({themeId});
+    assert.equal(result.status, 200);
+    assert.equal(result.writes[0].themeId, themeId);
+    assert.equal(result.writes[0].backgroundLayoutVersion, 4);
+  }
+});
+test('background application preserves host and ownership restrictions', async () => {
+  for (const args of [{owned: false}, {expired: true}, {hostId: 'other'}]) {
+    const result = await applyBackground(args);
+    assert.equal(result.status, 403);
+    assert.equal(result.writes.length, 0);
+  }
+  assert.equal((await applyBackground({themeId: 'wv_bg_06'})).status, 400);
+  assert.equal((await applyBackground({themeId: 'softGreenFlow', owned: false})).status, 200);
+});
