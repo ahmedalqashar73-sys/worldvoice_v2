@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:pdfrx/pdfrx.dart';
 import 'package:video_player/video_player.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../services/board_media_cache.dart';
 import 'board_media_error.dart';
@@ -49,27 +50,58 @@ class _BoardTextInputState extends State<BoardTextInput> {
 }
 
 class BoardVideo extends StatefulWidget {
-  const BoardVideo({required this.url, super.key});
+  const BoardVideo({
+    required this.url,
+    required this.isHost,
+    required this.playing,
+    required this.positionMs,
+    required this.onPlaybackChange,
+    this.playbackChangedAt,
+    super.key,
+  });
+
   final String url;
+  final bool isHost;
+  final bool playing;
+  final int positionMs;
+  final Timestamp? playbackChangedAt;
+  final Future<void> Function(bool playing, int positionMs) onPlaybackChange;
+
   @override
   State<BoardVideo> createState() => _BoardVideoState();
 }
+
 class _BoardVideoState extends State<BoardVideo> {
   late VideoPlayerController _player;
   bool _disposed = false;
+  bool _ready = false;
+  int _syncVersion = 0;
   String? _error;
+
   @override
   void initState() {
     super.initState();
     _player = VideoPlayerController.networkUrl(Uri.parse(widget.url));
-    _initialize();
+    unawaited(_initialize());
   }
+
+  @override
+  void didUpdateWidget(covariant BoardVideo oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!widget.isHost &&
+        (oldWidget.playing != widget.playing ||
+         oldWidget.positionMs != widget.positionMs ||
+         oldWidget.playbackChangedAt != widget.playbackChangedAt)) {
+      unawaited(_applyPlaybackState());
+    }
+  }
+
   Future<void> _initialize() async {
     File? cached;
     try {
       cached = await BoardMediaCache.cachedFileIfPresent(widget.url, 'video');
     } catch (_) {
-      // A cache miss or an unavailable storage directory is not fatal.
+      // A local cache miss must not prevent a shared video from opening.
     }
     if (_disposed) return;
     if (cached != null) {
@@ -80,16 +112,11 @@ class _BoardVideoState extends State<BoardVideo> {
     try {
       await _player.initialize();
       if (cached == null && !_disposed) {
-        // Stream immediately, then keep a bounded local copy for the next
-        // opening. Never block the video player on a full-file download.
-        unawaited(
-          BoardMediaCache.getFile(widget.url, 'video')
-              .then((_) {})
-              .catchError((Object _) {}),
-        );
+        unawaited(BoardMediaCache.getFile(widget.url, 'video')
+            .then((_) {})
+            .catchError((Object _) {}));
       }
     } catch (error) {
-      // Retain the old Cloudinary-compatible streaming fallback.
       final fallback = compatibleBoardVideoUrl(widget.url) ?? widget.url;
       if (_disposed) return;
       await _player.dispose();
@@ -101,42 +128,165 @@ class _BoardVideoState extends State<BoardVideo> {
         _error = '$error\n$fallbackError';
       }
     }
+    if (_disposed) return;
+    if (_error == null) {
+      _ready = true;
+      await _applyPlaybackState();
+    }
     if (mounted) setState(() {});
   }
+
+  // Each device derives the current playback position from the latest
+  // server-timestamped host command, so late joiners see the active video.
+  Future<void> _applyPlaybackState() async {
+    if (_disposed || !_ready) return;
+    final version = ++_syncVersion;
+    try {
+      if (!widget.isHost) {
+        final elapsedMs = widget.playing && widget.playbackChangedAt != null
+            ? DateTime.now()
+                .difference(widget.playbackChangedAt!.toDate())
+                .inMilliseconds
+            : 0;
+        final durationMs = _player.value.duration.inMilliseconds;
+        final requestedMs = widget.positionMs +
+            (elapsedMs > 0 ? elapsedMs : 0);
+        final targetMs = durationMs > 0
+            ? requestedMs.clamp(0, durationMs).toInt()
+            : requestedMs.clamp(0, 2147483647).toInt();
+        final drift = (_player.value.position.inMilliseconds - targetMs).abs();
+        if (drift > 1200) {
+          await _player.seekTo(Duration(milliseconds: targetMs));
+        }
+      }
+      if (_disposed || version != _syncVersion) return;
+      if (widget.playing) {
+        await _player.play();
+      } else {
+        await _player.pause();
+      }
+    } catch (error) {
+      if (mounted) setState(() => _error = error.toString());
+    }
+  }
+
+  Future<void> _publishPlayback({
+    required bool playing,
+    required int positionMs,
+  }) async {
+    if (!widget.isHost || _disposed || !_ready) return;
+    try {
+      if (playing) {
+        await _player.play();
+      } else {
+        await _player.pause();
+      }
+      await widget.onPlaybackChange(playing, positionMs);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Could not synchronize video: $error'),
+        ));
+      }
+    }
+  }
+
   @override
-  void dispose() { _disposed = true; _player.dispose(); super.dispose(); }
+  void dispose() {
+    _disposed = true;
+    _syncVersion++;
+    _player.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final ar = Localizations.localeOf(context).languageCode == 'ar';
-    if (_error != null) return BoardMediaError(url: widget.url, error: _error!);
-    return ValueListenableBuilder<VideoPlayerValue>(valueListenable: _player,
+    if (_error != null) {
+      return BoardMediaError(url: widget.url, error: _error!);
+    }
+    return ValueListenableBuilder<VideoPlayerValue>(
+      valueListenable: _player,
       builder: (context, value, _) {
-        if (value.hasError) return BoardMediaError(url: widget.url, error: value.errorDescription ?? 'Video playback failed');
-        if (!value.isInitialized) return const Center(child: CircularProgressIndicator());
+        if (value.hasError) {
+          return BoardMediaError(
+            url: widget.url,
+            error: value.errorDescription ?? 'Video playback failed',
+          );
+        }
+        if (!value.isInitialized) {
+          return const Center(child: CircularProgressIndicator());
+        }
         return LayoutBuilder(builder: (context, constraints) {
           if (constraints.maxHeight < 80) {
-            return Center(child: IconButton(
-              onPressed: () => value.isPlaying ? _player.pause() : _player.play(),
-              icon: Icon(value.isPlaying ? Icons.pause : Icons.play_arrow)));
+            return Center(
+              child: IconButton(
+                onPressed: widget.isHost
+                    ? () => _publishPlayback(
+                        playing: !value.isPlaying,
+                        positionMs: value.position.inMilliseconds,
+                      )
+                    : null,
+                icon: Icon(value.isPlaying ? Icons.pause : Icons.play_arrow),
+              ),
+            );
           }
+          final durationMs = value.duration.inMilliseconds;
+          final positionMs = value.position.inMilliseconds;
           return Column(children: [
-          Expanded(child: Center(child: AspectRatio(aspectRatio: value.aspectRatio, child: VideoPlayer(_player)))),
-          SizedBox(height: 40, child: Row(children: [
-            IconButton(tooltip: ar ? 'تشغيل / إيقاف' : 'Play / pause',
-              onPressed: () async {
-                try {
-                  if (value.isPlaying) { await _player.pause(); }
-                  else { await _player.play(); }
-                } catch (_) { if (mounted) setState(() => _error = 'Video playback failed'); }
-              }, icon: Icon(value.isPlaying ? Icons.pause : Icons.play_arrow)),
-            Expanded(child: VideoProgressIndicator(_player, allowScrubbing: true)),
-            IconButton(tooltip: ar ? 'صوت الفيديو' : 'Video sound',
-              onPressed: () => _player.setVolume(value.volume == 0 ? 1 : 0),
-              icon: Icon(value.volume == 0 ? Icons.volume_off : Icons.volume_up)),
-          ])),
-        ]);
+            Expanded(
+              child: Center(
+                child: AspectRatio(
+                  aspectRatio: value.aspectRatio,
+                  child: VideoPlayer(_player),
+                ),
+              ),
+            ),
+            SizedBox(
+              height: 44,
+              child: Row(children: [
+                IconButton(
+                  tooltip: ar ? 'تشغيل / إيقاف' : 'Play / pause',
+                  onPressed: widget.isHost
+                      ? () => _publishPlayback(
+                          playing: !value.isPlaying,
+                          positionMs: positionMs,
+                        )
+                      : null,
+                  icon: Icon(value.isPlaying ? Icons.pause : Icons.play_arrow),
+                ),
+                Expanded(
+                  child: Slider(
+                    min: 0,
+                    max: durationMs > 0 ? durationMs.toDouble() : 1,
+                    value: durationMs > 0
+                        ? positionMs.clamp(0, durationMs).toDouble()
+                        : 0,
+                    onChanged: widget.isHost && durationMs > 0
+                        ? (next) => _player.seekTo(
+                            Duration(milliseconds: next.round()))
+                        : null,
+                    onChangeEnd: widget.isHost && durationMs > 0
+                        ? (next) => _publishPlayback(
+                            playing: _player.value.isPlaying,
+                            positionMs: next.round(),
+                          )
+                        : null,
+                  ),
+                ),
+                IconButton(
+                  tooltip: ar ? 'صوت الفيديو' : 'Video sound',
+                  onPressed: () =>
+                      _player.setVolume(value.volume == 0 ? 1 : 0),
+                  icon: Icon(value.volume == 0
+                      ? Icons.volume_off : Icons.volume_up),
+                ),
+              ]),
+            ),
+          ]);
         });
-      });
+      },
+    );
   }
 }
 
