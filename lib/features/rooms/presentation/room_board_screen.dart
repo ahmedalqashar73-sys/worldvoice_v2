@@ -313,7 +313,17 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
                       child: Stack(fit: StackFit.expand, children: [
                       if (sharing) _LiveScreenShare(roomId: widget.roomId,
                         sharerUid: featureState?.screenSharerUid, controller: widget.agoraController),
-                      if (selected != null) _BoardContentCard(key: ValueKey(selected.id), data: selected.data()),
+                      if (selected != null) _BoardContentCard(
+                        key: ValueKey(selected.id),
+                        data: selected.data(),
+                        isHost: widget.isHost,
+                        onVideoPlayback: (playing, positionMs) =>
+                            _service.setVideoPlayback(
+                          mediaId: selected.id,
+                          playing: playing,
+                          positionMs: positionMs,
+                        ),
+                      ),
                       if (texts.isNotEmpty) IgnorePointer(child: Align(alignment: Alignment.topLeft,
                         child: Padding(padding: const EdgeInsets.all(12), child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min,
@@ -577,8 +587,15 @@ class _BoardPainter extends CustomPainter {
 }
 
 class _BoardContentCard extends StatelessWidget {
-  const _BoardContentCard({required this.data, super.key});
+  const _BoardContentCard({
+    required this.data,
+    required this.isHost,
+    required this.onVideoPlayback,
+    super.key,
+  });
   final Map<String, dynamic> data;
+  final bool isHost;
+  final Future<void> Function(bool playing, int positionMs) onVideoPlayback;
   @override
   Widget build(BuildContext context) {
     final type = data['type'];
@@ -587,7 +604,15 @@ class _BoardContentCard extends StatelessWidget {
       return CachedBoardImage(key: ValueKey(url), url: url);
     }
     if (type == 'video' && url.isNotEmpty) {
-      return BoardVideo(key: ValueKey(url), url: url);
+      return BoardVideo(
+        key: ValueKey(url),
+        url: url,
+        isHost: isHost,
+        playing: data['playing'] != false,
+        positionMs: (data['positionMs'] as num?)?.toInt() ?? 0,
+        playbackChangedAt: data['playbackChangedAt'] as Timestamp?,
+        onPlaybackChange: onVideoPlayback,
+      );
     }
     if (type == 'pdf' && url.isNotEmpty) {
       return CachedBoardPdf(key: ValueKey(url), url: url);
