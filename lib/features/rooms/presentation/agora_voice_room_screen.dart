@@ -10,6 +10,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:just_audio/just_audio.dart';
 
 import '../../home/presentation/home_screen.dart';
+import '../../chat/presentation/chat_screen.dart';
 import '../../profile/presentation/public_profile_screen.dart';
 import '../../profile/services/profile_social_service.dart';
 import '../../../core/localization/locale_controller.dart';
@@ -2106,6 +2107,9 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     final self = person.userId == _moderation.currentUserId;
     final canManage = _canModerate && !self &&
         person.role != RoomMemberRole.host;
+    final canInvite = canManage && person.role == RoomMemberRole.listener;
+    final canManageModerator = _isHost && !self &&
+        person.role != RoomMemberRole.host;
     final followFuture = self
         ? Future<bool>.value(false)
         : ProfileSocialService.isFollowing(person.userId);
@@ -2122,12 +2126,50 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         builder: (sheetContext, update) => SafeArea(
           child: SingleChildScrollView(
             child: Column(mainAxisSize: MainAxisSize.min, children: [
-              ListTile(
-                leading: _ParticipantAvatar(participant: person),
-                title: Text(person.displayName,
-                  style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Text(person.role.label +
-                    (person.isModerator ? (ar ? ' • مشرف' : ' • Moderator') : '')),
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF124A38), Color(0xFF082A24)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(color: const Color(0x66DBBB70)),
+                ),
+                child: Row(children: [
+                  SizedBox.square(
+                    dimension: 76,
+                    child: _ParticipantAvatar(participant: person),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(person.displayName, maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white, fontSize: 20,
+                          fontWeight: FontWeight.w800)),
+                      const SizedBox(height: 5),
+                      Row(children: [
+                        if (person.isModerator) ...[
+                          const Icon(Icons.shield_rounded,
+                              color: Color(0xFF67BEFF), size: 18),
+                          const SizedBox(width: 5),
+                        ],
+                        Flexible(child: Text(
+                          person.role.label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: Color(0xFFE8D5A0)),
+                        )),
+                      ]),
+                    ],
+                  )),
+                ]),
               ),
               FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
                 future: profileFuture,
@@ -2194,6 +2236,42 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                 ),
               if (!self)
                 ListTile(
+                  leading: const Icon(Icons.chat_bubble_outline_rounded),
+                  title: Text(ar ? 'رسالة' : 'Message'),
+                  onTap: () => Navigator.pop(sheetContext, 'message'),
+                ),
+              if (canInvite)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Card(
+                    color: const Color(0xFF14563F),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                    child: ListTile(
+                      leading: const Icon(Icons.person_add_alt_1_rounded,
+                        color: Color(0xFFFFDC8A)),
+                      title: Text(ar ? 'دعوة للمقعد' : 'Invite to seat',
+                        style: const TextStyle(fontWeight: FontWeight.w700)),
+                      subtitle: Text(ar
+                        ? 'يرسل دعوة للضيف ليقبلها قبل الصعود'
+                        : 'The listener can accept before joining the stage'),
+                      trailing: const Icon(Icons.arrow_forward_ios_rounded,
+                        size: 16),
+                      onTap: () => Navigator.pop(sheetContext, 'invite'),
+                    ),
+                  ),
+                ),
+              if (canManageModerator)
+                ListTile(
+                  leading: const Icon(Icons.shield_outlined,
+                    color: Color(0xFF67BEFF)),
+                  title: Text(person.isModerator
+                    ? (ar ? 'إزالة الإشراف' : 'Remove moderator')
+                    : (ar ? 'دعوة للإشراف' : 'Invite as moderator')),
+                  onTap: () => Navigator.pop(sheetContext, 'moderator'),
+                ),
+              if (!self)
+                ListTile(
                   leading: const Icon(Icons.flag_outlined, color: Colors.orangeAccent),
                   title: Text(ar ? 'إبلاغ عن المستخدم' : 'Report this user'),
                   onTap: () => Navigator.pop(sheetContext, 'report'),
@@ -2232,6 +2310,53 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       switch (action) {
         case 'profile':
           _openParticipantProfile(person.userId);
+          break;
+        case 'message':
+          if (!self) {
+            await ChatScreen.openDirectConversation(
+              context: context,
+              peerId: person.userId,
+              peerName: person.displayName,
+            );
+          }
+          break;
+        case 'invite':
+          if (canInvite) {
+            final seatIndex = _firstFreeSeat;
+            if (seatIndex == null || seatIndex < 2) {
+              throw StateError(ar
+                  ? 'لا توجد مقاعد متاحة الآن'
+                  : 'No speaker seats are available.');
+            }
+            await _moderation.sendStageInvite(
+              userId: person.userId,
+              role: RoomMemberRole.speaker,
+              seatIndex: seatIndex,
+            );
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(ar
+                  ? 'تم إرسال دعوة المقعد'
+                  : 'Seat invitation sent'),
+              ));
+            }
+          }
+          break;
+        case 'moderator':
+          if (canManageModerator) {
+            await RoomAdminService(roomId: widget.channelId).setModerator(
+              participant: person,
+              value: !person.isModerator,
+            );
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(person.isModerator
+                  ? (ar ? 'تم إلغاء الإشراف' : 'Moderator removed')
+                  : (ar ? 'تم إرسال دعوة الإشراف'
+                        : 'Moderator invitation sent')),
+              ));
+            }
+          }
           break;
         case 'report':
           await _reportParticipant(
