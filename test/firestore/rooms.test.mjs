@@ -387,6 +387,77 @@ test('lesson board is writable by host; participants can write when enabled', as
   await assertFails(getDocs(collection(user('outsider'), 'rooms/r1/board_items')));
 });
 
+test('moderator must accept invitation before receiving room permissions', async () => {
+  const hostDb = user('host');
+  const listenerDb = user('listener');
+  const moderatorPath = 'users/host/moderators/listener';
+
+  await assertSucceeds(setDoc(doc(hostDb, moderatorPath), {
+    uid: 'listener',
+    displayName: 'Listener',
+    photoUrl: '',
+    assignedBy: 'host',
+    assignedAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+    status: 'pending',
+  }));
+  await assertFails(updateDoc(member(listenerDb, 'listener'), {
+    isModerator: true,
+    updatedAt: serverTimestamp(),
+  }));
+  await assertFails(updateDoc(doc(user('outsider'), moderatorPath), {
+    status: 'accepted',
+    respondedAt: serverTimestamp(),
+  }));
+  await assertSucceeds(updateDoc(doc(listenerDb, moderatorPath), {
+    status: 'accepted',
+    respondedAt: serverTimestamp(),
+  }));
+  await assertSucceeds(updateDoc(member(listenerDb, 'listener'), {
+    isModerator: true,
+    updatedAt: serverTimestamp(),
+  }));
+  await assertFails(updateDoc(member(user('outsider'), 'listener'), {
+    isModerator: false,
+    updatedAt: serverTimestamp(),
+  }));
+});
+
+test('only the host can synchronize the currently presented board video', async () => {
+  const hostDb = user('host');
+  const listenerDb = user('listener');
+  const item = doc(hostDb, 'rooms/r1/board_items/video-1');
+  await assertSucceeds(setDoc(item, {
+    type: 'video',
+    url: 'https://res.cloudinary.com/example/video/upload/v1/clip.mp4',
+    name: 'clip.mp4',
+    userId: 'host',
+    createdAt: serverTimestamp(),
+    playing: true,
+    positionMs: 0,
+    playbackChangedAt: serverTimestamp(),
+  }));
+  await assertSucceeds(updateDoc(room(hostDb), {
+    boardMediaId: 'video-1',
+  }));
+  const update = {
+    playing: false,
+    positionMs: 2500,
+    playbackChangedAt: serverTimestamp(),
+  };
+  await assertSucceeds(updateDoc(item, update));
+  await assertFails(updateDoc(
+    doc(listenerDb, 'rooms/r1/board_items/video-1'), update));
+  await assertFails(updateDoc(item, {
+    url: 'https://invalid.example/other.mp4',
+    playbackChangedAt: serverTimestamp(),
+  }));
+  await assertSucceeds(updateDoc(room(hostDb), {
+    boardMediaId: null,
+  }));
+  await assertFails(updateDoc(item, update));
+});
+
 test('quiz accepts member answers, host reveals, and late answers are denied', async () => {
   const answer = {userId: 'listener', optionIndex: 1, displayName: 'Listener', answeredAt: serverTimestamp()};
   await assertSucceeds(setDoc(doc(user('listener'), 'rooms/r1/quiz_answers/listener'), answer));
