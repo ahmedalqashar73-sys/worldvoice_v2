@@ -22,14 +22,15 @@ class RoomStageGrid extends StatelessWidget {
     final stageSeats = seats.take(8).toList(growable: false);
 
     return GridView.builder(
+      padding: EdgeInsets.zero,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: stageSeats.length,
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 4,
         mainAxisSpacing: 12,
-        crossAxisSpacing: 4,
-        mainAxisExtent: 111 + MediaQuery.textScalerOf(context).scale(30),
+        crossAxisSpacing: 8,
+        mainAxisExtent: 93 + MediaQuery.textScalerOf(context).scale(30),
       ),
       itemBuilder: (context, index) {
         final seat = stageSeats[index];
@@ -101,7 +102,7 @@ class _CompactRoomSeatState extends State<_CompactRoomSeat>
     final isAi = seat.role == RoomMemberRole.teacherAi;
 
     return LayoutBuilder(builder: (context, constraints) {
-      final avatarSize = constraints.maxWidth.clamp(60.0, 90.0);
+      final avatarSize = math.min(constraints.maxWidth, 70.0);
       return InkWell(
       borderRadius: BorderRadius.circular(18),
       onTap: widget.onTap,

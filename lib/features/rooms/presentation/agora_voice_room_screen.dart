@@ -3683,7 +3683,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         body: SafeArea(
             top: true,
             child: Padding(
-              padding: EdgeInsets.only(top: _boardVisible ? 52 : 54),
+              padding: EdgeInsets.only(top: _boardVisible ? 52 : 8),
               child: Column(children: [
             if (_controller.connecting) const LinearProgressIndicator(minHeight: 2),
             if ((_controller.error != null || _audioFailure != null) && !_boardVisible) Container(
@@ -3730,7 +3730,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               // viewport scroll or clip the stage. Chat is the only vertical
               // message scroller; tiny/keyboard viewports use compact mode.
               final stageHeight =
-                  2 * (111 + MediaQuery.textScalerOf(context).scale(30)) + 12;
+                  2 * (93 + MediaQuery.textScalerOf(context).scale(30)) + 12;
               final contentHeight = _boardVisible
                   ? (constraints.maxHeight * .55).clamp(110.0, 320.0) + 106 +
                       (_listeners.isNotEmpty ? 70 : 0)
