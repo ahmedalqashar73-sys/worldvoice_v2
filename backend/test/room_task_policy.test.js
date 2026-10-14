@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {
   roomTaskSpec, roomLevelFromXp, advanceRoomLevel, castleTierForLevel,
   roomProgressAfterGift, roomXpRequiredForLevel, roomXpThresholdForLevel,
-  roomCastleProgressSnapshot, ROOM_MAX_XP,
+  roomCastleProgressSnapshot, castleMilestoneLevels, ROOM_MAX_XP,
 } from "../src/room_task_policy.js";
 
 test("explicit mission XP values are not silently invented", () => {
@@ -123,4 +123,14 @@ test("castle tiers have five levels each, including both boundaries", () => {
   for (let level = 1; level <= 50; level++) {
     assert.equal(castleTierForLevel(level), Math.ceil(level / 5));
   }
+});
+
+test("only ten five-level castle milestones generate fanout rewards", () => {
+  assert.deepEqual(castleMilestoneLevels([2, 3, 4]), []);
+  assert.deepEqual(castleMilestoneLevels([4, 5, 6]), [5]);
+  assert.deepEqual(castleMilestoneLevels([24, 25, 26, 29, 30]), [25, 30]);
+  assert.deepEqual(castleMilestoneLevels([49, 50, 51, 60]), [50]);
+  assert.deepEqual(castleMilestoneLevels(
+    Array.from({length: 50}, (_, index) => index + 1)),
+    [5, 10, 15, 20, 25, 30, 35, 40, 45, 50]);
 });
