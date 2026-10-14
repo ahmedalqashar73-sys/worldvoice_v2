@@ -33,6 +33,26 @@ int roomXpRequiredForLevel(int level) {
   return safe == 1 ? 300 : safe == 2 ? 400 : 700 + (safe - 3) * 300;
 }
 
+// Read-only migration view for rooms saved with the older 100-XP/level curve.
+// No client writes XP. The trusted backend persists a version-2 value after
+// the first verified mission/gift, preserving legacyRoomXp for reconciliation.
+const int roomCastleXpVersion = 2;
+
+int roomCastleDisplayXp(Map<String, dynamic> data) {
+  final raw = (data['roomXp'] as num?)?.toInt() ?? 0;
+  if (raw <= 0) return 0;
+  if ((data['roomCastleXpVersion'] as num?)?.toInt() == roomCastleXpVersion) {
+    return raw;
+  }
+  final oldLevel = (raw ~/ 100 + 1).clamp(1, roomCastleMaxLevel);
+  if (oldLevel >= roomCastleMaxLevel) {
+    return roomXpThresholdForLevel(roomCastleMaxLevel);
+  }
+  final oldRemainder = raw % 100;
+  return roomXpThresholdForLevel(oldLevel) +
+      (roomXpRequiredForLevel(oldLevel) * oldRemainder ~/ 100);
+}
+
 String roomCastleWebpAssetForLevel(int level) {
   final tier = roomCastleTierForLevel(level);
   final from = ((tier - 1) * 5 + 1).toString().padLeft(2, '0');
@@ -96,9 +116,10 @@ class RoomFeatureState {
         ? Map<String, dynamic>.from(quiz)
         : const <String, dynamic>{};
 
+    final displayXp = roomCastleDisplayXp(data);
     return RoomFeatureState(
-      roomLevel: (data['roomLevel'] as num?)?.toInt() ?? 1,
-      roomXp: (data['roomXp'] as num?)?.toInt() ?? 0,
+      roomLevel: roomLevelFromXp(displayXp),
+      roomXp: displayXp,
       themeId: (data['themeId'] ?? 'softGreenFlow').toString(),
       backgroundUrl: data['backgroundUrl']?.toString(),
       boardWriteEnabled: data['boardWriteEnabled'] != false,
