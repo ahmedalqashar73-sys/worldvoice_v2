@@ -9,8 +9,24 @@ export function castleTierForLevel(level) {
   }
   return Math.min(10, Math.ceil(Math.min(level, ROOM_MAX_LEVEL) / CASTLE_LEVEL_INTERVAL));
 }
-export const ROOM_XP_PER_LEVEL = 100;
-export const ROOM_MAX_XP = (ROOM_MAX_LEVEL - 1) * ROOM_XP_PER_LEVEL;
+// The requirement is XP to reach the NEXT level, not cumulative XP.
+// Lv1:100, Lv2:300, Lv3:400, Lv4:500; each later step grows by 100.
+export function roomXpRequiredForLevel(level) {
+  if (!Number.isSafeInteger(level) || level < 1 || level >= ROOM_MAX_LEVEL) {
+    throw Object.assign(new Error("Invalid room XP level."), {status: 409});
+  }
+  return level === 1 ? 100 : (level + 1) * 100;
+}
+
+export function roomXpThresholdForLevel(level) {
+  if (!Number.isSafeInteger(level) || level < 1 || level > ROOM_MAX_LEVEL) {
+    throw Object.assign(new Error("Invalid room level."), {status: 409});
+  }
+  // Sum: first 100, then 300, 400, ... up to the prior level.
+  return level === 1 ? 0 : 100 + (level * (level + 1) / 2 - 3) * 100;
+}
+
+export const ROOM_MAX_XP = roomXpThresholdForLevel(ROOM_MAX_LEVEL);
 
 function configuredPoints(raw, label) {
   if (!Number.isSafeInteger(raw) || raw < 1 || raw > 500) {
@@ -50,7 +66,14 @@ export function roomLevelFromXp(roomXp) {
   if (!Number.isSafeInteger(roomXp) || roomXp < 0) {
     throw Object.assign(new Error("Room XP requires reconciliation."), {status: 409});
   }
-  return Math.min(ROOM_MAX_LEVEL, 1 + Math.floor(roomXp / ROOM_XP_PER_LEVEL));
+  let low = 1;
+  let high = ROOM_MAX_LEVEL;
+  while (low < high) {
+    const mid = Math.ceil((low + high) / 2);
+    if (roomXp >= roomXpThresholdForLevel(mid)) low = mid;
+    else high = mid - 1;
+  }
+  return low;
 }
 
 // A paid gift to Teacher AI can contribute to the room castle, but must
