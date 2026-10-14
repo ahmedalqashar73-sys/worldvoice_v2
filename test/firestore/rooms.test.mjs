@@ -59,6 +59,19 @@ test('room tasks and level XP cannot be forged by host or listener', async () =>
   await assertFails(updateDoc(room(listenerDb), {
     roomXp: 500, roomLevel: 6,
   }));
+  await assertFails(updateDoc(room(hostDb), {
+    roomCastleXpVersion: 2,
+  }));
+  await assertFails(updateDoc(room(listenerDb), {
+    legacyRoomXp: 5900,
+  }));
+  await assertFails(setDoc(doc(user('new'), 'rooms/forged-castle'), {
+    channelId: 'forged-castle',
+    hostId: 'new',
+    roomLevel: 1,
+    roomXp: 0,
+    roomCastleXpVersion: 2,
+  }));
   await assertFails(setDoc(doc(listenerDb, 'rooms/r1/task_completions/ten_minutes_listener_today'), {
     userId: 'listener', taskKey: 'ten_minutes', points: 4,
     periodKey: 'today', completedAt: serverTimestamp(),
