@@ -2545,7 +2545,7 @@ app.post("/room/tasks/claim", async (req, res, next) => {
       });
       for (const level of rewardLevels) {
         tx.set(roomRef.collection("rewards").doc(`level_${level}`), {
-          level, type: level === 5 ? "background_month" : "gift_pack",
+          level, type: level === 5 ? "background_month" : "castle_milestone",
           ...(level % CASTLE_LEVEL_INTERVAL === 0 ? {
             castleMilestone: true, castleTier: castleTierForLevel(level),
           } : {}),
@@ -2573,7 +2573,9 @@ app.post("/room/tasks/claim", async (req, res, next) => {
             batch.set(db.collection("users").doc(person.id)
               .collection("room_rewards").doc(rewardId), {
               userId: person.id, roomId, level,
-              type: level === 5 ? "background_month" : "gift_pack",
+              type: level === 5 ? "background_month" : "castle_milestone",
+              castleMilestone: true,
+              castleTier: castleTierForLevel(level),
               sourceRewardId: `level_${level}`,
               ...(level === 5 ? {expiresAt: expiration} : {}),
               grantedAt: FieldValue.serverTimestamp(),
