@@ -71,6 +71,20 @@ export function roomCastleProgressSnapshot(data) {
 }
 
 
+// A task must not credit time or guests from abandoned room memberships.
+// The Flutter room refreshes its server-timestamped presence every 30 seconds.
+// This is a short-lived presence check, not proof of active learning or speech.
+export function isRecentRoomParticipant(participant, nowMs) {
+  if (!Number.isSafeInteger(nowMs) || nowMs < 0) return false;
+  const joined = participant?.joinedAt?.toMillis?.();
+  const seen = participant?.updatedAt?.toMillis?.();
+  if (!Number.isSafeInteger(joined) || !Number.isSafeInteger(seen)) {
+    return false;
+  }
+  return joined <= nowMs + 5000 && seen >= joined &&
+    seen <= nowMs + 5000 && nowMs - seen <= 90000;
+}
+
 // Non-monetary beta mission defaults keep all four tasks usable even when a
 // new room has not been assigned an optional owner-specific mission config.
 // These values award castle XP only; never coins or inventory.
