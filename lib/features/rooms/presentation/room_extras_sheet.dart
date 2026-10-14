@@ -214,10 +214,7 @@ class _TasksTabState extends State<_TasksTab> {
                           ),
                           child: Padding(
                             padding: const EdgeInsets.all(2),
-                            child: SvgPicture.asset(
-                              roomCastleAssetForLevel(level),
-                              fit: BoxFit.contain,
-                            ),
+                            child: _CastleArtwork(level: level),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -282,10 +279,7 @@ class _TasksTabState extends State<_TasksTab> {
                                   : const Color(0xFFE6EEE9),
                               child: Padding(
                                 padding: const EdgeInsets.all(3),
-                                child: SvgPicture.asset(
-                                  roomCastleAssetForLevel(index * 5 + 1),
-                                  fit: BoxFit.contain,
-                                ),
+                                child: _CastleArtwork(level: index * 5 + 1),
                               ),
                             ),
                             title: Text(ar ? castleNamesAr[index]
@@ -601,6 +595,27 @@ class _RewardsTab extends StatelessWidget {
           },
         );
       },
+    );
+  }
+}
+
+
+// Premium WebP castle artwork with the existing SVG as a safe fallback.
+// Missing optional assets must never break the room or its task controls.
+class _CastleArtwork extends StatelessWidget {
+  const _CastleArtwork({required this.level});
+  final int level;
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.asset(
+      roomCastleWebpAssetForLevel(level),
+      fit: BoxFit.contain,
+      filterQuality: FilterQuality.medium,
+      errorBuilder: (context, error, stackTrace) => SvgPicture.asset(
+        roomCastleAssetForLevel(level),
+        fit: BoxFit.contain,
+      ),
     );
   }
 }
