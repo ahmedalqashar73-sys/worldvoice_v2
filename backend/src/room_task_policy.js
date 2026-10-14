@@ -53,7 +53,16 @@ export const ROOM_MAX_XP = roomXpThresholdForLevel(ROOM_MAX_LEVEL);
 // This projection is pure so both reads and transactional writes agree.
 export const ROOM_CASTLE_XP_VERSION = 2;
 export function roomCastleProgressSnapshot(data) {
+  // roomPoints was client-writable historically; never mint authoritative XP
+  // from it without a separately reviewed reconciliation.
+  if (data?.roomXp == null && data?.roomPoints != null && data.roomPoints !== 0) {
+    throw Object.assign(new Error("Legacy roomPoints requires reconciliation."), {status: 409});
+  }
   const rawXp = data?.roomXp ?? 0;
+  if (data?.roomCastleXpVersion != null &&
+      ![1, ROOM_CASTLE_XP_VERSION].includes(data.roomCastleXpVersion)) {
+    throw Object.assign(new Error("Unknown room XP version; reconcile before writing."), {status: 409});
+  }
   if (!Number.isSafeInteger(rawXp) || rawXp < 0) {
     throw Object.assign(new Error("Room XP requires reconciliation."), {status: 409});
   }
@@ -172,4 +181,35 @@ export function advanceRoomLevel(currentXp, earnedXp) {
       (_, index) => oldLevel + index + 1,
     ),
   };
+}
+
+// Server-observed attendance, scoped to the UTC mission day. An absent
+// heartbeat never earns offline time. Retries cannot credit the same interval.
+export function advanceRoomAttendance(prior, joinedAtMs, nowMs) {
+  if (!Number.isSafeInteger(nowMs) || !Number.isSafeInteger(joinedAtMs) ||
+      joinedAtMs > nowMs || joinedAtMs < 0) {
+    throw Object.assign(new Error("Invalid room session."), {status: 409});
+  }
+  const day = new Date(nowMs).toISOString().slice(0, 10);
+  const sameDay = prior?.day === day;
+  const previous = prior?.lastSeenMs;
+  const gap = Number.isSafeInteger(previous) ? nowMs - previous : -1;
+  const sameSession = prior?.joinedAtMs === joinedAtMs;
+  const dayStart = Date.parse(day + "T00:00:00Z");
+  const creditedMs = sameSession && gap >= 0 && gap <= 90000
+    ? nowMs - Math.max(previous, dayStart) : 0;
+  const saved = sameDay && Number.isSafeInteger(prior?.activeMs)
+    && prior.activeMs >= 0 ? prior.activeMs : 0;
+  return {day, joinedAtMs, lastSeenMs: nowMs,
+    activeMs: Math.min(86400000, saved + creditedMs)};
+}
+
+export function verifiedRoomMinutes(attendance, nowMs) {
+  const seen = attendance?.lastSeenMs;
+  if (!Number.isSafeInteger(seen) || seen > nowMs || nowMs - seen > 90000 ||
+      attendance?.day !== new Date(nowMs).toISOString().slice(0, 10) ||
+      !Number.isSafeInteger(attendance?.activeMs) || attendance.activeMs < 0) {
+    return null;
+  }
+  return Math.floor(attendance.activeMs / 60000);
 }

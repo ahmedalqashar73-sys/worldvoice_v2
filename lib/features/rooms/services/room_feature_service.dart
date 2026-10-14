@@ -514,6 +514,9 @@ class RoomFeatureService {
     return decoded!;
   }
 
+  Future<Map<String, dynamic>> recordTaskPresence() =>
+      _missionRequest('/room/tasks/heartbeat', payload: {'roomId': roomId});
+
   Future<Map<String, dynamic>> taskStatus() =>
       _missionRequest('/room/tasks/status');
 

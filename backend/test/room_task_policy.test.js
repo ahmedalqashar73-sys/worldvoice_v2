@@ -156,3 +156,30 @@ test("stale room members cannot earn attendance or host guest credit", () => {
   assert.equal(isRecentRoomParticipant({joinedAt: timestamp(now)}, now), false);
   assert.equal(isRecentRoomParticipant({}, now), false);
 });
+
+test('server attendance never credits disconnects, duplicate pulses or previous days', async () => {
+  const {advanceRoomAttendance, verifiedRoomMinutes} = await import('../src/room_task_policy.js');
+  const start = Date.parse('2026-10-14T12:00:00Z');
+  let state = advanceRoomAttendance(null, start, start);
+  for (let n = 1; n <= 20; n++) state = advanceRoomAttendance(state, start, start + n * 30000);
+  assert.equal(verifiedRoomMinutes(state, start + 600000), 10);
+  state = advanceRoomAttendance(state, start, start + 600000);
+  assert.equal(state.activeMs, 600000);
+  state = advanceRoomAttendance(state, start, start + 900000);
+  assert.equal(state.activeMs, 600000);
+  assert.equal(verifiedRoomMinutes(state, start + 1000000), null);
+  state = advanceRoomAttendance(state, start + 910000, start + 920000);
+  assert.equal(state.activeMs, 600000); // rejoin adds no offline interval
+  const midnight = Date.parse('2026-10-15T00:00:00Z');
+  state = advanceRoomAttendance({day: '2026-10-14', joinedAtMs: start,
+    lastSeenMs: midnight - 10000, activeMs: 7200000}, start, midnight + 10000);
+  assert.equal(state.activeMs, 10000);
+  assert.equal(state.day, '2026-10-15');
+});
+
+test('untrusted legacy points and unknown schema versions cannot be overwritten', () => {
+  assert.throws(() => roomCastleProgressSnapshot({roomPoints: 100}), {status: 409});
+  assert.throws(() => roomCastleProgressSnapshot({roomXp: 100, roomCastleXpVersion: 3}), {status: 409});
+  assert.equal(roomCastleProgressSnapshot({roomXp: ROOM_MAX_XP + 1000,
+    roomCastleXpVersion: 2}).xp, ROOM_MAX_XP + 1000);
+});

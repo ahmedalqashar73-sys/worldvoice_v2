@@ -53,6 +53,11 @@ test('quota and history are available only to their owner before joining', async
 test('room tasks and level XP cannot be forged by host or listener', async () => {
   const hostDb = user('host');
   const listenerDb = user('listener');
+  for (const db of [hostDb, listenerDb]) {
+    await assertFails(setDoc(doc(db, 'rooms/r1/task_attendance/listener'), {
+      day: '2026-10-14', lastSeenMs: Date.now(), activeMs: 7200000,
+    }));
+  }
   await assertFails(updateDoc(room(hostDb), {
     roomXp: 5900, roomLevel: 60,
   }));

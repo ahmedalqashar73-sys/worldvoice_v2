@@ -39,7 +39,7 @@ int roomXpRequiredForLevel(int level) {
 const int roomCastleXpVersion = 2;
 
 int roomCastleDisplayXp(Map<String, dynamic> data) {
-  final raw = (data['roomXp'] as num?)?.toInt() ?? 0;
+  final raw = ((data['roomXp'] ?? data['roomPoints']) as num?)?.toInt() ?? 0;
   if (raw <= 0) return 0;
   if ((data['roomCastleXpVersion'] as num?)?.toInt() == roomCastleXpVersion) {
     return raw;

@@ -20,6 +20,7 @@ jobs:
       - run: flutter pub get
       - name: Verify eight background assets before publishing
         run: python3 scripts/verify_room_background_assets.py
+      - run: python3 scripts/verify_castle_assets.py --require-webp
       - run: flutter analyze
       - run: flutter test test/room_background_catalog_test.dart test/worldvoice_avatar_frame_test.dart test/create_room_page_test.dart test/room_conversation_panel_test.dart test/room_board_text_test.dart test/board_media_url_test.dart test/classic_gift_catalog_test.dart test/classic_gift_visual_test.dart test/luxury_gift_assets_test.dart test/coin_pack_presentation_test.dart test/classic_gift_mesh_test.dart test/friend_gift_preview_test.dart test/room_castle_progression_test.dart
 
@@ -44,7 +45,7 @@ jobs:
       - run: node --check src/call_routes.js
       - run: node --check scripts/seed-classic-gifts.mjs
       - run: node --check scripts/grant-beta-access.mjs
-      - run: node --test test/classic_gifts.test.js test/admin_cosmetic_access.test.js test/economy_policy.test.js test/room_task_policy.test.js
+      - run: npm test
 
       - name: Diagnose published API and Agora worker (public checks only)
         continue-on-error: true
@@ -81,6 +82,42 @@ jobs:
           java-version: "21"
       - run: npm install --no-audit --no-fund
         working-directory: test/firestore
+      - run: npm install --no-audit --no-fund
+        working-directory: backend
       - name: Test Firestore room access in isolated emulator
         working-directory: test/firestore
-        run: npx firebase emulators:exec --config ../../firebase.rules-test.json --only firestore --project demo-worldvoice-rules "npm test"
+        run: npx firebase emulators:exec --config ../../firebase.rules-test.json --only firestore --project demo-worldvoice-rules "npm test && cd ../../backend && node --test test/room_task_routes.test.js"
+
+  castle-test-apk:
+    if: github.event_name == 'pull_request' && github.head_ref == 'feature/scalable-progress-foundation'
+    needs: [flutter-analyze, backend-check, firestore-rules]
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: python3 scripts/verify_castle_assets.py --require-webp
+      - run: sed -i 's/-Xmx2048m/-Xmx4096m/' android/gradle.properties
+      - name: Build test artifact only (no deployment or distribution)
+        run: >
+          flutter build apk --debug
+          --dart-define=AGORA_APP_ID=fa41476c6813471eb45c059bcb4a0e19
+          --dart-define=WORLDVOICE_ROOM_BACKEND_URL=https://worldvoice-v2.onrender.com
+          --dart-define=AGORA_TOKEN_ENDPOINT=https://worldvoice-agora-token.worldvoice.workers.dev/agora/token
+          --dart-define=WORLDVOICE_ECONOMY_ENDPOINT=https://worldvoice-v2.onrender.com
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WorldVoice-castles-development-apk
+          path: build/app/outputs/flutter-apk/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14

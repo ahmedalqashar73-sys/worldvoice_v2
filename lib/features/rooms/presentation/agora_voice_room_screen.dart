@@ -403,6 +403,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     if (!mounted || _leaving) return;
     try {
       await _moderation.refreshPresence();
+      await _features.recordTaskPresence();
     } catch (error) {
       debugPrint('WorldVoice room presence refresh unavailable: $error');
     }
@@ -460,6 +461,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         asHost: asHost,
       );
       membershipEstablished = true;
+      unawaited(_refreshRoomPresence());
       _presenceTimer ??= Timer.periodic(
         const Duration(seconds: 30),
         (_) => unawaited(_refreshRoomPresence()),
@@ -3654,6 +3656,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
                     Image.asset(
                       roomCastleWebpAssetForLevel(_featureState.roomLevel),
+                      cacheWidth: 128,
                       width: 22, height: 22,
                       fit: BoxFit.contain,
                       filterQuality: FilterQuality.medium,

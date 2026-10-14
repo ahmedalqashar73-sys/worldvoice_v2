@@ -214,7 +214,7 @@ class _TasksTabState extends State<_TasksTab> {
                           ),
                           child: Padding(
                             padding: const EdgeInsets.all(2),
-                            child: _CastleArtwork(level: level),
+                            child: RoomCastleArtwork(level: level),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -298,7 +298,7 @@ class _TasksTabState extends State<_TasksTab> {
                                   : const Color(0xFFE6EEE9),
                               child: Padding(
                                 padding: const EdgeInsets.all(3),
-                                child: _CastleArtwork(level: index * 5 + 1),
+                                child: RoomCastleArtwork(level: index * 5 + 1),
                               ),
                             ),
                             title: Text(ar ? castleNamesAr[index]
@@ -419,8 +419,8 @@ class _TasksTabState extends State<_TasksTab> {
         const SizedBox(height: 8),
         Text(
           ar
-              ? 'لا تُمنح النقاط إلا بعد أن يتحقق الخادم من البقاء والمشاركين والهدايا. حاليًا تحتاج هذه المهام إلى خادم WorldVoice الكامل.'
-              : 'XP requires server-verified attendance, participants and gift events. The full WorldVoice backend must be deployed.',
+              ? 'ابقَ متصلًا لاحتساب مدة الحضور. تتجدد المهام اليومية الساعة 03:00 بتوقيت السعودية (00:00 UTC).'
+              : 'Stay connected to record attendance. Daily missions reset at 00:00 UTC.',
           style: Theme.of(context).textTheme.bodySmall,
           textAlign: TextAlign.center,
         ),
@@ -429,17 +429,26 @@ class _TasksTabState extends State<_TasksTab> {
   }
 }
 
-class _LeaderboardTab extends StatelessWidget {
+class _LeaderboardTab extends StatefulWidget {
   const _LeaderboardTab({required this.service});
   final RoomFeatureService service;
 
   @override
+  State<_LeaderboardTab> createState() => _LeaderboardTabState();
+}
+
+class _LeaderboardTabState extends State<_LeaderboardTab> {
+  late final _speakers = widget.service.watchSpeakerStats();
+  late final _gifts = widget.service.watchGifts();
+
+  @override
   Widget build(BuildContext context) {
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: service.watchSpeakerStats(),
+      stream: _speakers,
       builder: (context, speakerSnapshot) {
         return StreamBuilder<List<RoomGiftEvent>>(
-          stream: service.watchGifts(),
+          stream: _gifts,
           builder: (context, giftSnapshot) {
             final giftTotals = <String, int>{};
             final giftNames = <String, String>{};
@@ -458,7 +467,7 @@ class _LeaderboardTab extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               children: [
                 Text(
-                  'Most active speakers',
+                  ar ? 'نشاط التحدث المُبلّغ عنه' : 'Reported speaking activity',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w900,
                       ),
@@ -488,7 +497,7 @@ class _LeaderboardTab extends StatelessWidget {
                     ),
                 const Divider(height: 28),
                 Text(
-                  'Top gifts received',
+                  ar ? 'الهدايا المستلمة مؤخرًا' : 'Recent gifts received',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w900,
                       ),
@@ -595,7 +604,7 @@ class _RewardsTab extends StatelessWidget {
                     ? SizedBox(
                         width: 58,
                         height: 58,
-                        child: _CastleArtwork(level: level),
+                        child: RoomCastleArtwork(level: level),
                       )
                     : CircleAvatar(
                         child: Icon(isBackground
@@ -643,12 +652,13 @@ class _RewardsTab extends StatelessWidget {
 // Missing optional assets must never break the room or its task controls.
 // Tap any castle icon to inspect the full artwork without increasing the
 // footprint of the room seats or covering the room background.
-class _CastleArtwork extends StatelessWidget {
-  const _CastleArtwork({required this.level});
+class RoomCastleArtwork extends StatelessWidget {
+  const RoomCastleArtwork({required this.level, super.key});
   final int level;
 
-  Widget _image() => Image.asset(
+  Widget _image({int cacheWidth = 256}) => Image.asset(
     roomCastleWebpAssetForLevel(level),
+    cacheWidth: cacheWidth,
     fit: BoxFit.contain,
     filterQuality: FilterQuality.high,
     errorBuilder: (context, error, stackTrace) => SvgPicture.asset(
@@ -691,7 +701,7 @@ class _CastleArtwork extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  SizedBox(height: 300, width: 300, child: _image()),
+                  SizedBox(height: 300, width: 300, child: _image(cacheWidth: 512)),
                   const SizedBox(height: 8),
                   Text(
                     'Lv. $first–$last',

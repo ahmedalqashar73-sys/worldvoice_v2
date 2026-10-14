@@ -1,8 +1,10 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:worldvoice/features/rooms/data/room_feature_models.dart';
+import 'package:worldvoice/features/rooms/presentation/room_extras_sheet.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -86,4 +88,51 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
   });
+  test('all ten WebP assets decode at the approved size', () async {
+    final paths = <String>{};
+    for (var level = 1; level <= 50; level++) {
+      final path = roomCastleWebpAssetForLevel(level);
+      expect(path, roomCastleWebpAssetForLevel(((level - 1) ~/ 5) * 5 + 1));
+      paths.add(path);
+    }
+    expect(paths, hasLength(10));
+    for (final path in paths) {
+      final bytes = await rootBundle.load(path);
+      final codec = await ui.instantiateImageCodec(bytes.buffer.asUint8List(
+        bytes.offsetInBytes, bytes.lengthInBytes));
+      final frame = await codec.getNextFrame();
+      expect(frame.image.width, 512);
+      expect(frame.image.height, 512);
+      frame.image.dispose();
+      codec.dispose();
+    }
+  });
+
+  testWidgets('actual castle widget opens and closes enlarged preview', (tester) async {
+    await tester.pumpWidget(const MaterialApp(home: Scaffold(body:
+      SizedBox(width: 100, height: 110, child: RoomCastleArtwork(level: 50)))));
+    await tester.pumpAndSettle();
+    expect(find.byType(Image), findsOneWidget);
+    await tester.tap(find.byType(RoomCastleArtwork));
+    await tester.pumpAndSettle();
+    expect(find.text('Lv. 46–50'), findsOneWidget);
+    expect(find.byType(Dialog), findsOneWidget);
+    await tester.tap(find.text('Close'));
+    await tester.pumpAndSettle();
+    expect(find.byType(Dialog), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  test('every XP threshold and legacy roomPoints use the same curve', () {
+    for (var level = 1; level <= 50; level++) {
+      final start = roomXpThresholdForLevel(level);
+      expect(roomLevelFromXp(start), level);
+      if (level < 50) {
+        expect(roomLevelFromXp(start + roomXpRequiredForLevel(level) - 1), level);
+        expect(roomLevelFromXp(start + roomXpRequiredForLevel(level)), level + 1);
+      }
+    }
+    expect(roomCastleDisplayXp({'roomPoints': 100}), 300);
+  });
+
 }
