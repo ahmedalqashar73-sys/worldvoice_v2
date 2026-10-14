@@ -32,6 +32,30 @@ export function roomXpThresholdForLevel(level) {
 
 export const ROOM_MAX_XP = roomXpThresholdForLevel(ROOM_MAX_LEVEL);
 
+// Version 1: historical castles gained one level per 100 XP (up to 60).
+// Version 2: the approved graduated 300, 400, 700, 1000... curve to level 50.
+// Keep the original XP in legacyRoomXp on first write for auditability.
+// This projection is pure so both reads and transactional writes agree.
+export const ROOM_CASTLE_XP_VERSION = 2;
+export function roomCastleProgressSnapshot(data) {
+  const rawXp = data?.roomXp ?? 0;
+  if (!Number.isSafeInteger(rawXp) || rawXp < 0) {
+    throw Object.assign(new Error("Room XP requires reconciliation."), {status: 409});
+  }
+  if (data?.roomCastleXpVersion === ROOM_CASTLE_XP_VERSION) {
+    return {xp: rawXp, level: roomLevelFromXp(rawXp), legacy: false};
+  }
+  const priorLevel = Math.min(ROOM_MAX_LEVEL, Math.floor(rawXp / 100) + 1);
+  if (priorLevel >= ROOM_MAX_LEVEL) {
+    return {xp: ROOM_MAX_XP, level: ROOM_MAX_LEVEL, legacy: true};
+  }
+  const withinOldLevel = rawXp % 100;
+  const xp = roomXpThresholdForLevel(priorLevel) +
+    Math.floor(roomXpRequiredForLevel(priorLevel) * withinOldLevel / 100);
+  return {xp, level: priorLevel, legacy: true};
+}
+
+
 function configuredPoints(raw, label) {
   if (!Number.isSafeInteger(raw) || raw < 1 || raw > 500) {
     throw Object.assign(
