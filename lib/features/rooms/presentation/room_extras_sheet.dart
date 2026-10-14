@@ -277,11 +277,13 @@ class _TasksTabState extends State<_TasksTab> {
                               backgroundColor: index + 1 <= tier
                                   ? const Color(0xFF1D7956)
                                   : const Color(0xFFE6EEE9),
-                              child: Icon(Icons.castle_rounded,
-                                size: 20,
-                                color: index + 1 <= tier
-                                    ? const Color(0xFFFFD788)
-                                    : const Color(0xFF7C9185)),
+                              child: Padding(
+                                padding: const EdgeInsets.all(3),
+                                child: SvgPicture.asset(
+                                  roomCastleAssetForLevel(index * 5 + 1),
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
                             ),
                             title: Text(ar ? castleNamesAr[index]
                                 : castleNamesEn[index]),
