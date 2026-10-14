@@ -953,6 +953,9 @@ service cloud.firestore {
           && request.resource.data.channelId == roomId
           && request.resource.data.get('roomLevel', 1) == 1
           && request.resource.data.get('roomXp', 0) == 0
+          && !request.resource.data.keys().hasAny([
+            'roomCastleXpVersion', 'legacyRoomXp'
+          ])
           // A verified quiz must be created by the authenticated backend.
           && !('quiz' in request.resource.data);
 
@@ -963,7 +966,8 @@ service cloud.firestore {
           && request.resource.data.channelId == resource.data.channelId
           && !request.resource.data.diff(resource.data)
               .affectedKeys().hasAny([
-                'roomXp', 'roomLevel', 'lastTaskCompletionId'
+                'roomXp', 'roomLevel', 'lastTaskCompletionId',
+                'roomCastleXpVersion', 'legacyRoomXp'
               ])
           && validRoomThemeChange()
           && validClientQuizChange()
