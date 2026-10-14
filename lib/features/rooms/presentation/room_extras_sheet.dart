@@ -206,7 +206,7 @@ class _TasksTabState extends State<_TasksTab> {
                       ),
                       child: Row(children: [
                         Container(
-                          height: 54, width: 54,
+                          height: 110, width: 100,
                           decoration: BoxDecoration(
                             color: const Color(0x24FFE5A4),
                             borderRadius: BorderRadius.circular(13),
@@ -249,10 +249,18 @@ class _TasksTabState extends State<_TasksTab> {
                             : 'Room level $level of 50',
                         style: Theme.of(context).textTheme.titleMedium,
                       )),
-                      Text(level >= roomCastleMaxLevel ? 'MAX LEVEL' : '$currentLevelXp / $requiredXp XP',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF236B4B)),
+                      Directionality(
+                        textDirection: TextDirection.ltr,
+                        child: Text(
+                          level >= roomCastleMaxLevel
+                              ? 'MAX LEVEL'
+                              : '$currentLevelXp / $requiredXp XP',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF236B4B),
+                            fontSize: 13,
+                          ),
+                        ),
                       ),
                     ]),
                     const SizedBox(height: 9),
@@ -602,19 +610,77 @@ class _RewardsTab extends StatelessWidget {
 
 // Premium WebP castle artwork with the existing SVG as a safe fallback.
 // Missing optional assets must never break the room or its task controls.
+// Tap any castle icon to inspect the full artwork without increasing the
+// footprint of the room seats or covering the room background.
 class _CastleArtwork extends StatelessWidget {
   const _CastleArtwork({required this.level});
   final int level;
 
+  Widget _image() => Image.asset(
+    roomCastleWebpAssetForLevel(level),
+    fit: BoxFit.contain,
+    filterQuality: FilterQuality.high,
+    errorBuilder: (context, error, stackTrace) => SvgPicture.asset(
+      roomCastleAssetForLevel(level),
+      fit: BoxFit.contain,
+    ),
+  );
+
   @override
   Widget build(BuildContext context) {
-    return Image.asset(
-      roomCastleWebpAssetForLevel(level),
-      fit: BoxFit.contain,
-      filterQuality: FilterQuality.medium,
-      errorBuilder: (context, error, stackTrace) => SvgPicture.asset(
-        roomCastleAssetForLevel(level),
-        fit: BoxFit.contain,
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    final tier = roomCastleTierForLevel(level);
+    final first = (tier - 1) * 5 + 1;
+    final last = tier * 5;
+    return Semantics(
+      button: true,
+      label: ar
+          ? 'معاينة قلعة المستويات $first إلى $last'
+          : 'Preview castle levels $first to $last',
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => showDialog<void>(
+          context: context,
+          builder: (dialogContext) => Dialog(
+            backgroundColor: const Color(0xFF103D2E),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(22),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    ar ? 'قلعة الغرفة' : 'Room Castle',
+                    style: const TextStyle(
+                      color: Color(0xFFFFD98C),
+                      fontWeight: FontWeight.w900,
+                      fontSize: 19,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(height: 300, width: 300, child: _image()),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Lv. $first–$last',
+                    textDirection: TextDirection.ltr,
+                    style: const TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: () => Navigator.of(dialogContext).pop(),
+                    child: Text(ar ? 'إغلاق' : 'Close',
+                      style: const TextStyle(color: Color(0xFFFFD98C))),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        child: _image(),
       ),
     );
   }
