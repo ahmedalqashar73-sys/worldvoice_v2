@@ -53,6 +53,19 @@ export function roomLevelFromXp(roomXp) {
   return Math.min(ROOM_MAX_LEVEL, 1 + Math.floor(roomXp / ROOM_XP_PER_LEVEL));
 }
 
+// A paid gift to Teacher AI can contribute to the room castle, but must
+// never mint coins or erase historic XP from older 60-level rooms.
+export function roomProgressAfterGift(currentXp, giftXp) {
+  if (!Number.isSafeInteger(currentXp) || currentXp < 0 ||
+      !Number.isSafeInteger(giftXp) || giftXp < 0 ||
+      !Number.isSafeInteger(currentXp + giftXp)) {
+    throw Object.assign(new Error("Invalid room gift contribution."), {status: 409});
+  }
+  const nextXp = currentXp >= ROOM_MAX_XP ? currentXp :
+    Math.min(ROOM_MAX_XP, currentXp + giftXp);
+  return {nextXp, newLevel: roomLevelFromXp(nextXp)};
+}
+
 export function advanceRoomLevel(currentXp, earnedXp) {
   const oldLevel = roomLevelFromXp(currentXp);
   if (!Number.isSafeInteger(earnedXp) || earnedXp < 1 || earnedXp > 500) {
