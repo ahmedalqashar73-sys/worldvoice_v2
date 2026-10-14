@@ -4,6 +4,7 @@ import {
   roomTaskSpec, roomLevelFromXp, advanceRoomLevel, castleTierForLevel,
   roomProgressAfterGift, roomXpRequiredForLevel, roomXpThresholdForLevel,
   roomCastleProgressSnapshot, castleMilestoneLevels, ROOM_MAX_XP,
+  isRecentRoomParticipant,
 } from "../src/room_task_policy.js";
 
 test("explicit mission XP values are not silently invented", () => {
@@ -133,4 +134,25 @@ test("only ten five-level castle milestones generate fanout rewards", () => {
   assert.deepEqual(castleMilestoneLevels(
     Array.from({length: 50}, (_, index) => index + 1)),
     [5, 10, 15, 20, 25, 30, 35, 40, 45, 50]);
+});
+
+test("stale room members cannot earn attendance or host guest credit", () => {
+  const now = 1_800_000_000_000;
+  const timestamp = ms => ({toMillis: () => ms});
+  const present = {
+    joinedAt: timestamp(now - 10 * 60_000),
+    updatedAt: timestamp(now - 30_000),
+  };
+  const stale = {
+    joinedAt: timestamp(now - 10 * 60_000),
+    updatedAt: timestamp(now - 4 * 60_000),
+  };
+  assert.equal(isRecentRoomParticipant(present, now), true);
+  assert.equal(isRecentRoomParticipant(stale, now), false);
+  assert.equal(isRecentRoomParticipant({
+    joinedAt: timestamp(now - 20_000),
+    updatedAt: timestamp(now + 10_000),
+  }, now), false);
+  assert.equal(isRecentRoomParticipant({joinedAt: timestamp(now)}, now), false);
+  assert.equal(isRecentRoomParticipant({}, now), false);
 });
