@@ -22,7 +22,8 @@ import {chatIdFor, assertChatMembership} from "./chat_membership.js";
 import {reverseVerifiedWebPurchase} from "./payment_reversals.js";
 import {validateQuizDraft, quizWinners} from "./quiz_policy.js";
 import {roomTaskSpec, advanceRoomLevel, roomLevelFromXp,
-  ROOM_MAX_LEVEL, ROOM_MAX_XP, CASTLE_LEVEL_INTERVAL, castleTierForLevel} from "./room_task_policy.js";
+  roomProgressAfterGift, ROOM_MAX_LEVEL, CASTLE_LEVEL_INTERVAL,
+  castleTierForLevel} from "./room_task_policy.js";
 import {privateWalletRef, requirePrivateWallet} from "./wallet_store.js";
 import {approvedWorldVoiceGift} from "./gift_catalog.js";
 
@@ -2126,11 +2127,11 @@ app.post("/gift/send", async (req, res, next) => {
       } else {
         // Teacher-AI gifts may support the room castle, but not exceed the
         // 50-level progression cap or erase XP from pre-existing level-60 rooms.
-        const nextXp = roomXp >= ROOM_MAX_XP ? roomXp :
-          Math.min(ROOM_MAX_XP, roomXp + amounts.giftLevelPoints);
+        const progress = roomProgressAfterGift(roomXp,
+          amounts.giftLevelPoints);
         tx.update(roomRef, {
-          roomXp: nextXp,
-          roomLevel: roomLevelFromXp(nextXp),
+          roomXp: progress.nextXp,
+          roomLevel: progress.newLevel,
         });
       }
       tx.create(giftEventRef, {
