@@ -23,6 +23,7 @@ import {reverseVerifiedWebPurchase} from "./payment_reversals.js";
 import {validateQuizDraft, quizWinners} from "./quiz_policy.js";
 import {roomTaskSpec, advanceRoomLevel, roomLevelFromXp,
   roomProgressAfterGift, roomCastleProgressSnapshot, ROOM_CASTLE_XP_VERSION,
+  castleMilestoneLevels,
   ROOM_MAX_LEVEL, CASTLE_LEVEL_INTERVAL,
   castleTierForLevel} from "./room_task_policy.js";
 import {privateWalletRef, requirePrivateWallet} from "./wallet_store.js";
@@ -2523,10 +2524,12 @@ app.post("/room/tasks/claim", async (req, res, next) => {
       }
       const castle = roomCastleProgressSnapshot(room.data());
       const advancement = advanceRoomLevel(castle.xp, spec.xp);
+      const rewardLevels = castleMilestoneLevels(advancement.unlockedLevels);
       const result = {taskKey, awardedXp: advancement.awardedXp,
         roomXp: advancement.nextXp, roomLevel: advancement.newLevel,
         castleTier: castleTierForLevel(advancement.newLevel),
-        unlockedLevels: advancement.unlockedLevels, completedAtMillis: now};
+        unlockedLevels: advancement.unlockedLevels, rewardLevels,
+        completedAtMillis: now};
       tx.create(completionRef, {
         taskKey, userId: user.uid, points: advancement.awardedXp,
         periodKey: day, evidence: {observed: count, required},
@@ -2540,7 +2543,7 @@ app.post("/room/tasks/claim", async (req, res, next) => {
         lastTaskCompletionId: completionRef.id,
         updatedAt: FieldValue.serverTimestamp(),
       });
-      for (const level of advancement.unlockedLevels) {
+      for (const level of rewardLevels) {
         tx.set(roomRef.collection("rewards").doc(`level_${level}`), {
           level, type: level === 5 ? "background_month" : "gift_pack",
           ...(level % CASTLE_LEVEL_INTERVAL === 0 ? {
@@ -2555,9 +2558,10 @@ app.post("/room/tasks/claim", async (req, res, next) => {
 
     // Idempotent retry also retries fanout if a previous response was lost.
     // These are non-monetary, catalog-dependent reward eligibility documents.
-    if (outcome.unlockedLevels?.length) {
+    const levels = castleMilestoneLevels(
+      outcome.rewardLevels ?? outcome.unlockedLevels ?? []);
+    if (levels.length) {
       const present = await roomRef.collection("participants").get();
-      const levels = outcome.unlockedLevels;
       const expiration = Timestamp.fromMillis(
         outcome.completedAtMillis + 30 * 24 * 60 * 60 * 1000);
       const membersPerBatch = Math.max(1, Math.floor(450 / levels.length));
