@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   roomTaskSpec, roomLevelFromXp, advanceRoomLevel, castleTierForLevel,
+  roomProgressAfterGift,
 } from "../src/room_task_policy.js";
 
 test("explicit mission XP values are not silently invented", () => {
@@ -46,4 +47,13 @@ test("castle visual tier advances every five room levels", () => {
   assert.equal(castleTierForLevel(50), 10);
   assert.equal(castleTierForLevel(60), 10); // legacy room level compatibility
   assert.throws(() => castleTierForLevel(0), {status: 409});
+});
+
+test("Teacher-AI gifts update room level without exceeding the 50-level cap", () => {
+  assert.deepEqual(roomProgressAfterGift(95, 10), {nextXp: 105, newLevel: 2});
+  assert.deepEqual(roomProgressAfterGift(4885, 40), {nextXp: 4900, newLevel: 50});
+  assert.deepEqual(roomProgressAfterGift(4900, 20), {nextXp: 4900, newLevel: 50});
+  assert.deepEqual(roomProgressAfterGift(5900, 20), {nextXp: 5900, newLevel: 50});
+  assert.throws(() => roomProgressAfterGift(-1, 10), {status: 409});
+  assert.throws(() => roomProgressAfterGift(5, -1), {status: 409});
 });
