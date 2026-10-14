@@ -21,23 +21,23 @@ test("explicit mission XP values are not silently invented", () => {
 });
 
 test("increasing room XP thresholds and safe level 50 cap", () => {
-  assert.equal(roomXpRequiredForLevel(1), 100);
-  assert.equal(roomXpRequiredForLevel(2), 300);
-  assert.equal(roomXpRequiredForLevel(3), 400);
-  assert.equal(roomXpRequiredForLevel(4), 500);
-  assert.equal(roomXpThresholdForLevel(2), 100);
-  assert.equal(roomXpThresholdForLevel(3), 400);
-  assert.equal(roomXpThresholdForLevel(4), 800);
+  assert.equal(roomXpRequiredForLevel(1), 300);
+  assert.equal(roomXpRequiredForLevel(2), 400);
+  assert.equal(roomXpRequiredForLevel(3), 700);
+  assert.equal(roomXpRequiredForLevel(4), 1000);
+  assert.equal(roomXpThresholdForLevel(2), 300);
+  assert.equal(roomXpThresholdForLevel(3), 700);
+  assert.equal(roomXpThresholdForLevel(4), 1400);
   assert.equal(roomLevelFromXp(0), 1);
-  assert.equal(roomLevelFromXp(99), 1);
-  assert.equal(roomLevelFromXp(100), 2);
-  assert.equal(roomLevelFromXp(399), 2);
-  assert.equal(roomLevelFromXp(400), 3);
-  assert.equal(roomLevelFromXp(5900), 10);
+  assert.equal(roomLevelFromXp(299), 1);
+  assert.equal(roomLevelFromXp(300), 2);
+  assert.equal(roomLevelFromXp(699), 2);
+  assert.equal(roomLevelFromXp(700), 3);
+  assert.equal(roomLevelFromXp(5900), 7);
   assert.equal(roomLevelFromXp(ROOM_MAX_XP), 50);
   assert.equal(roomLevelFromXp(ROOM_MAX_XP + 1000), 50);
-  assert.deepEqual(advanceRoomLevel(95, 50), {
-    oldLevel: 1, newLevel: 2, nextXp: 145, awardedXp: 50,
+  assert.deepEqual(advanceRoomLevel(295, 50), {
+    oldLevel: 1, newLevel: 2, nextXp: 345, awardedXp: 50,
     unlockedLevels: [2],
   });
   assert.deepEqual(advanceRoomLevel(ROOM_MAX_XP - 2, 4), {
@@ -59,8 +59,8 @@ test("castle visual tier advances every five room levels", () => {
 });
 
 test("Teacher-AI gift contributions follow growing XP thresholds", () => {
-  assert.deepEqual(roomProgressAfterGift(95, 10), {nextXp: 105, newLevel: 2});
-  assert.deepEqual(roomProgressAfterGift(390, 20), {nextXp: 410, newLevel: 3});
+  assert.deepEqual(roomProgressAfterGift(295, 10), {nextXp: 305, newLevel: 2});
+  assert.deepEqual(roomProgressAfterGift(690, 20), {nextXp: 710, newLevel: 3});
   assert.deepEqual(roomProgressAfterGift(ROOM_MAX_XP - 15, 40),
     {nextXp: ROOM_MAX_XP, newLevel: 50});
   assert.deepEqual(roomProgressAfterGift(ROOM_MAX_XP, 20),
