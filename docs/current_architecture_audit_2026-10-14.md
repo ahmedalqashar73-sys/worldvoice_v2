@@ -10,7 +10,7 @@ Scope: repository inspection only. No production Firebase, Render or main change
 - `firestore.rules`: client-side economy field protections; rules must be reviewed in full before modification.
 
 ## Design decisions to preserve compatibility
-1. Keep room level cap at 60 until an explicit migration/versioning decision. Do not silently replace with proposed 50-level castle.
+1. The owner approved reducing room levels to 50. The existing XP field is never reduced in old rooms; the API and UI display a maximum of 50, while historical XP is retained until a separate reviewed migration. Every five levels correspond to one of ten castle tiers.
 2. Reuse existing room task keys and room progression endpoint; add personal XP as a separate, server-authoritative track.
 3. Do not treat gifting as equivalent to language-learning XP. Separate learning XP and support/gift recognition.
 4. Keep the private wallet as the only authoritative balance location. No parallel wallet ledger or PostgreSQL migration yet.
@@ -37,3 +37,11 @@ Scope: repository inspection only. No production Firebase, Render or main change
 - Only then add additive progression APIs on the isolated branch.
 
 This document is an audit note, not a claim of completed implementation or production validation.
+
+## Implementation update (feature branch only)
+- `room_task_policy.js` caps new room task XP at level 50 and maps level spans to ten castle tiers.
+- `server.js` reports maxLevel=50, limits participant reads needed for the 5-guest task, prevents claiming XP once capped, and keeps Teacher-AI-gift room level in sync with XP.
+- Existing Flutter tasks sheet and room header display corresponding illustrated castle asset (SVG) and levels 1..50.
+- `assets/castles/castle_tier_01.svg` .. `castle_tier_10.svg` are lightweight vector illustrations. **These are not rigged 3D GLB models or animations**; final premium 3D assets may replace them later under the same tier contract.
+- Tests cover castle tier boundaries, legacy room XP, Teacher-AI-gift XP capping, and asset loading/rendering.
+- No production deployment, Firebase migration, or spending of coins was performed by these source edits.
