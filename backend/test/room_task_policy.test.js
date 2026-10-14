@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   roomTaskSpec, roomLevelFromXp, advanceRoomLevel, castleTierForLevel,
-  roomProgressAfterGift,
+  roomProgressAfterGift, roomXpRequiredForLevel, roomXpThresholdForLevel, ROOM_MAX_XP,
 } from "../src/room_task_policy.js";
 
 test("explicit mission XP values are not silently invented", () => {
@@ -20,22 +20,31 @@ test("explicit mission XP values are not silently invented", () => {
     {stayHoursMinimum: 2, stayHoursXp: 15}).requiredMinutes, 120);
 });
 
-test("levels progress from 1 to 50 and never overflow", () => {
+test("increasing room XP thresholds and safe level 50 cap", () => {
+  assert.equal(roomXpRequiredForLevel(1), 100);
+  assert.equal(roomXpRequiredForLevel(2), 300);
+  assert.equal(roomXpRequiredForLevel(3), 400);
+  assert.equal(roomXpRequiredForLevel(4), 500);
+  assert.equal(roomXpThresholdForLevel(2), 100);
+  assert.equal(roomXpThresholdForLevel(3), 400);
+  assert.equal(roomXpThresholdForLevel(4), 800);
   assert.equal(roomLevelFromXp(0), 1);
+  assert.equal(roomLevelFromXp(99), 1);
   assert.equal(roomLevelFromXp(100), 2);
-  assert.equal(roomLevelFromXp(4900), 50);
-  assert.equal(roomLevelFromXp(8000), 50);
-  assert.equal(roomLevelFromXp(5900), 50); // preserve legacy XP without level 60
+  assert.equal(roomLevelFromXp(399), 2);
+  assert.equal(roomLevelFromXp(400), 3);
+  assert.equal(roomLevelFromXp(5900), 10);
+  assert.equal(roomLevelFromXp(ROOM_MAX_XP), 50);
+  assert.equal(roomLevelFromXp(ROOM_MAX_XP + 1000), 50);
   assert.deepEqual(advanceRoomLevel(95, 50), {
     oldLevel: 1, newLevel: 2, nextXp: 145, awardedXp: 50,
     unlockedLevels: [2],
   });
-  assert.deepEqual(advanceRoomLevel(4898, 4), {
-    oldLevel: 49, newLevel: 50, nextXp: 4900, awardedXp: 2,
+  assert.deepEqual(advanceRoomLevel(ROOM_MAX_XP - 2, 4), {
+    oldLevel: 49, newLevel: 50, nextXp: ROOM_MAX_XP, awardedXp: 2,
     unlockedLevels: [50],
   });
-  assert.throws(() => advanceRoomLevel(4900, 4), {status: 409});
-  assert.throws(() => advanceRoomLevel(5900, 4), {status: 409});
+  assert.throws(() => advanceRoomLevel(ROOM_MAX_XP, 4), {status: 409});
   assert.throws(() => advanceRoomLevel(-1, 4), {status: 409});
 });
 
@@ -49,11 +58,13 @@ test("castle visual tier advances every five room levels", () => {
   assert.throws(() => castleTierForLevel(0), {status: 409});
 });
 
-test("Teacher-AI gifts update room level without exceeding the 50-level cap", () => {
+test("Teacher-AI gift contributions follow growing XP thresholds", () => {
   assert.deepEqual(roomProgressAfterGift(95, 10), {nextXp: 105, newLevel: 2});
-  assert.deepEqual(roomProgressAfterGift(4885, 40), {nextXp: 4900, newLevel: 50});
-  assert.deepEqual(roomProgressAfterGift(4900, 20), {nextXp: 4900, newLevel: 50});
-  assert.deepEqual(roomProgressAfterGift(5900, 20), {nextXp: 5900, newLevel: 50});
+  assert.deepEqual(roomProgressAfterGift(390, 20), {nextXp: 410, newLevel: 3});
+  assert.deepEqual(roomProgressAfterGift(ROOM_MAX_XP - 15, 40),
+    {nextXp: ROOM_MAX_XP, newLevel: 50});
+  assert.deepEqual(roomProgressAfterGift(ROOM_MAX_XP, 20),
+    {nextXp: ROOM_MAX_XP, newLevel: 50});
   assert.throws(() => roomProgressAfterGift(-1, 10), {status: 409});
   assert.throws(() => roomProgressAfterGift(5, -1), {status: 409});
 });
