@@ -24,6 +24,7 @@ test("levels progress from 1 to 50 and never overflow", () => {
   assert.equal(roomLevelFromXp(100), 2);
   assert.equal(roomLevelFromXp(4900), 50);
   assert.equal(roomLevelFromXp(8000), 50);
+  assert.equal(roomLevelFromXp(5900), 50); // preserve legacy XP without level 60
   assert.deepEqual(advanceRoomLevel(95, 50), {
     oldLevel: 1, newLevel: 2, nextXp: 145, awardedXp: 50,
     unlockedLevels: [2],
@@ -33,6 +34,7 @@ test("levels progress from 1 to 50 and never overflow", () => {
     unlockedLevels: [50],
   });
   assert.throws(() => advanceRoomLevel(4900, 4), {status: 409});
+  assert.throws(() => advanceRoomLevel(5900, 4), {status: 409});
   assert.throws(() => advanceRoomLevel(-1, 4), {status: 409});
 });
 
