@@ -1,5 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+// Shared UI-only representation of the authoritative server castle cap.
+// Never use client calculations to grant XP or rewards.
+const int roomCastleMaxLevel = 50;
+const int roomCastleLevelsPerTier = 5;
+const int roomCastleMaxTier = 10;
+
+int roomCastleTierForLevel(int level) {
+  final visibleLevel = level.clamp(1, roomCastleMaxLevel);
+  return ((visibleLevel - 1) ~/ roomCastleLevelsPerTier) + 1;
+}
+
 class RoomFeatureState {
   const RoomFeatureState({
     required this.roomLevel,
