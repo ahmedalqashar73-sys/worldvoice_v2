@@ -77,6 +77,7 @@ class _TasksTab extends StatefulWidget {
 
 class _TasksTabState extends State<_TasksTab> {
   Map<String, dynamic>? _status;
+  late final Stream<RoomFeatureState> _roomStateStream;
   bool _loading = false;
   String? _busyTask;
   String? _error;
@@ -84,6 +85,7 @@ class _TasksTabState extends State<_TasksTab> {
   @override
   void initState() {
     super.initState();
+    _roomStateStream = widget.service.watchState();
     _refresh();
   }
 
@@ -117,7 +119,7 @@ class _TasksTabState extends State<_TasksTab> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(
-          '+${result['awardedXp']} XP • ${result['roomLevel']}/60',
+          '+${result['awardedXp']} XP • ${result['roomLevel']}/50',
         ),
       ));
       // No client XP or rewards are created by this widget.
@@ -159,63 +161,134 @@ class _TasksTabState extends State<_TasksTab> {
       padding: const EdgeInsets.all(14),
       children: [
         StreamBuilder<RoomFeatureState>(
-          stream: widget.service.watchState(),
+          stream: _roomStateStream,
           builder: (context, snapshot) {
-            final level = (snapshot.data?.roomLevel ?? 1).clamp(1, 60);
+            final level = (snapshot.data?.roomLevel ?? 1)
+                .clamp(1, roomCastleMaxLevel);
             final xp = snapshot.data?.roomXp ?? 0;
+            final tier = roomCastleTierForLevel(level);
+            const castleNamesAr = [
+              'قلعة البداية', 'قلعة البرونز', 'قلعة الفضة',
+              'قلعة الياقوت', 'قلعة الزمرد', 'القلعة الذهبية',
+              'قلعة التنين', 'القلعة السماوية',
+              'القلعة الإمبراطورية', 'قلعة الأساطير',
+            ];
+            const castleNamesEn = [
+              'Starter Castle', 'Bronze Castle', 'Silver Castle',
+              'Sapphire Castle', 'Emerald Castle', 'Golden Castle',
+              'Dragon Castle', 'Sky Castle',
+              'Imperial Castle', 'Legendary Castle',
+            ];
             return Card(
+              clipBehavior: Clip.antiAlias,
+              color: const Color(0xFFF5FAF7),
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                side: const BorderSide(color: Color(0xFFCEE7D8)),
+                borderRadius: BorderRadius.circular(18),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(14),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Row(children: [
-                      const Icon(Icons.castle_rounded,
-                          color: Color(0xFFC4A457)),
-                      const SizedBox(width: 9),
-                      Expanded(
-                        child: Text(
-                          ar ? 'مستوى الغرفة $level من 60'
-                              : 'Room level $level of 60',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(colors: [
+                          Color(0xFF176147), Color(0xFF267A59),
+                        ]),
+                        borderRadius: BorderRadius.circular(14),
                       ),
-                      Text('${xp.clamp(0, 5900)} XP'),
+                      child: Row(children: [
+                        Container(
+                          height: 54, width: 54,
+                          decoration: BoxDecoration(
+                            color: const Color(0x24FFE5A4),
+                            borderRadius: BorderRadius.circular(13),
+                            border: Border.all(color: const Color(0xFFFFD788)),
+                          ),
+                          child: const Icon(Icons.castle_rounded,
+                            size: 34, color: Color(0xFFFFE2A0)),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 280),
+                          child: Column(
+                            key: ValueKey<int>(tier),
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(ar ? 'قلعة الغرفة • المرحلة $tier من 10'
+                                  : 'Room castle • tier $tier of 10',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFFFFE2A0), fontSize: 12),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(ar ? castleNamesAr[tier - 1]
+                                  : castleNamesEn[tier - 1],
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.white, fontSize: 17),
+                              ),
+                            ],
+                          ),
+                        )),
+                      ]),
+                    ),
+                    const SizedBox(height: 14),
+                    Row(children: [
+                      Expanded(child: Text(
+                        ar ? 'مستوى الغرفة $level من 50'
+                            : 'Room level $level of 50',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      )),
+                      Text('${xp.clamp(0, 4900)} / 4900 XP',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF236B4B)),
+                      ),
                     ]),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 9),
                     LinearProgressIndicator(
-                      value: level >= 60 ? 1
+                      value: level >= roomCastleMaxLevel ? 1
                           : ((xp % 100) / 100).clamp(0.0, 1.0),
-                      minHeight: 7,
+                      minHeight: 8,
+                      color: const Color(0xFF249369),
+                      backgroundColor: const Color(0xFFD9EAE0),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     ExpansionTile(
                       tilePadding: EdgeInsets.zero,
-                      title: Text(ar ? 'عرض مستويات 1–60'
-                          : 'Show levels 1–60'),
+                      title: Text(ar ? 'شاهد القلاع العشر'
+                          : 'Explore all 10 castles'),
                       children: [
-                        Wrap(
-                          spacing: 5,
-                          runSpacing: 5,
-                          children: [
-                            for (var number = 1; number <= 60; number++)
-                              CircleAvatar(
-                                radius: 16,
-                                backgroundColor: number <= level
-                                    ? const Color(0xFF216B4D)
-                                    : Theme.of(context)
-                                        .colorScheme.surfaceContainerHighest,
-                                child: Text('$number',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: number <= level
-                                        ? Colors.white
-                                        : Theme.of(context)
-                                            .colorScheme.onSurface,
-                                  )),
-                              ),
-                          ],
-                        ),
+                        for (var index = 0;
+                            index < roomCastleMaxTier; index++)
+                          ListTile(
+                            dense: true,
+                            leading: CircleAvatar(
+                              backgroundColor: index + 1 <= tier
+                                  ? const Color(0xFF1D7956)
+                                  : const Color(0xFFE6EEE9),
+                              child: Icon(Icons.castle_rounded,
+                                size: 20,
+                                color: index + 1 <= tier
+                                    ? const Color(0xFFFFD788)
+                                    : const Color(0xFF7C9185)),
+                            ),
+                            title: Text(ar ? castleNamesAr[index]
+                                : castleNamesEn[index]),
+                            subtitle: Text('Lv. ${index * 5 + 1}–${(index + 1) * 5}'),
+                            trailing: index + 1 < tier
+                                ? const Icon(Icons.check_circle,
+                                    color: Color(0xFF26865D))
+                                : index + 1 == tier
+                                    ? const Icon(Icons.stars_rounded,
+                                        color: Color(0xFFC49B39))
+                                    : const Icon(Icons.lock_outline,
+                                        color: Color(0xFF9DAEA4)),
+                          ),
                       ],
                     ),
                   ],
