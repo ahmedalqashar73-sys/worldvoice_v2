@@ -3,6 +3,21 @@
 export const ROOM_MAX_LEVEL = 50;
 export const CASTLE_LEVEL_INTERVAL = 5;
 
+// Only the ten visible castle upgrades grant a milestone eligibility document.
+// Regular levels still grant progress, but do not spam every participant with
+// placeholder gift-pack documents at every intermediate level.
+export function castleMilestoneLevels(unlockedLevels) {
+  if (!Array.isArray(unlockedLevels)) {
+    throw new TypeError("Expected unlocked room levels.");
+  }
+  return unlockedLevels.filter(level =>
+    Number.isSafeInteger(level) &&
+    level >= CASTLE_LEVEL_INTERVAL &&
+    level <= ROOM_MAX_LEVEL &&
+    level % CASTLE_LEVEL_INTERVAL === 0);
+}
+
+
 export function castleTierForLevel(level) {
   if (!Number.isSafeInteger(level) || level < 1) {
     throw Object.assign(new Error('Invalid castle level.'), {status: 409});
