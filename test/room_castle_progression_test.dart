@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:worldvoice/features/rooms/data/room_feature_models.dart';
 
@@ -33,5 +35,17 @@ void main() {
     }
     expect(roomCastleAssetForLevel(60),
       'assets/castles/castle_tier_10.svg');
+  });
+  testWidgets('castle illustrations decode in the Flutter widget tree',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(body: Column(children: [
+        for (var tier = 1; tier <= roomCastleMaxTier; tier++)
+          SizedBox(width: 48, height: 48,
+            child: SvgPicture.asset(roomCastleAssetForLevel((tier - 1) * 5 + 1))),
+      ])),
+    ));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
   });
 }
