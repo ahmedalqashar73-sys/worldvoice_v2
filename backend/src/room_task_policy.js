@@ -10,20 +10,24 @@ export function castleTierForLevel(level) {
   return Math.min(10, Math.ceil(Math.min(level, ROOM_MAX_LEVEL) / CASTLE_LEVEL_INTERVAL));
 }
 // The requirement is XP to reach the NEXT level, not cumulative XP.
-// Lv1:100, Lv2:300, Lv3:400, Lv4:500; each later step grows by 100.
+// Lv1:300, Lv2:400, Lv3:700, Lv4:1000; thereafter +300 per level.
 export function roomXpRequiredForLevel(level) {
   if (!Number.isSafeInteger(level) || level < 1 || level >= ROOM_MAX_LEVEL) {
     throw Object.assign(new Error("Invalid room XP level."), {status: 409});
   }
-  return level === 1 ? 100 : (level + 1) * 100;
+  return level === 1 ? 300 : level === 2 ? 400 : 700 + (level - 3) * 300;
 }
 
 export function roomXpThresholdForLevel(level) {
   if (!Number.isSafeInteger(level) || level < 1 || level > ROOM_MAX_LEVEL) {
     throw Object.assign(new Error("Invalid room level."), {status: 409});
   }
-  // Sum: first 100, then 300, 400, ... up to the prior level.
-  return level === 1 ? 0 : 100 + (level * (level + 1) / 2 - 3) * 100;
+  // Cumulative XP at the start of this level; progression starts at level 1.
+  let total = 0;
+  for (let previous = 1; previous < level; previous++) {
+    total += roomXpRequiredForLevel(previous);
+  }
+  return total;
 }
 
 export const ROOM_MAX_XP = roomXpThresholdForLevel(ROOM_MAX_LEVEL);
