@@ -13,7 +13,11 @@ int roomCastleTierForLevel(int level) {
 
 int roomXpThresholdForLevel(int level) {
   final safe = level.clamp(1, roomCastleMaxLevel);
-  return safe == 1 ? 0 : 100 + ((safe * (safe + 1) ~/ 2) - 3) * 100;
+  var total = 0;
+  for (var previous = 1; previous < safe; previous++) {
+    total += roomXpRequiredForLevel(previous);
+  }
+  return total;
 }
 
 int roomLevelFromXp(int xp) {
@@ -26,7 +30,7 @@ int roomLevelFromXp(int xp) {
 
 int roomXpRequiredForLevel(int level) {
   final safe = level.clamp(1, roomCastleMaxLevel - 1);
-  return safe == 1 ? 100 : (safe + 1) * 100;
+  return safe == 1 ? 300 : safe == 2 ? 400 : 700 + (safe - 3) * 300;
 }
 
 String roomCastleAssetForLevel(int level) {
