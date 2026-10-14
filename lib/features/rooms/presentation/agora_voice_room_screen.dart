@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -3651,7 +3652,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   decoration: BoxDecoration(color: const Color(0xFFFFCE79),
                     borderRadius: BorderRadius.circular(12)),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    const Icon(Icons.castle_rounded, size: 13, color: Color(0xFF603D15)),
+                    SvgPicture.asset(
+                      roomCastleAssetForLevel(_featureState.roomLevel),
+                      width: 18, height: 18,
+                    ),
                     Text(' Lv.${_featureState.roomLevel.clamp(1, roomCastleMaxLevel)}',
                       style: const TextStyle(
                       color: Color(0xFF603D15), fontSize: 10, fontWeight: FontWeight.w800)),
