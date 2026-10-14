@@ -23,7 +23,7 @@ import {reverseVerifiedWebPurchase} from "./payment_reversals.js";
 import {validateQuizDraft, quizWinners} from "./quiz_policy.js";
 import {roomTaskSpec, advanceRoomLevel, roomLevelFromXp,
   roomProgressAfterGift, roomCastleProgressSnapshot, ROOM_CASTLE_XP_VERSION,
-  castleMilestoneLevels,
+  castleMilestoneLevels, isRecentRoomParticipant,
   ROOM_MAX_LEVEL, CASTLE_LEVEL_INTERVAL,
   castleTierForLevel} from "./room_task_policy.js";
 import {privateWalletRef, requirePrivateWallet} from "./wallet_store.js";
@@ -2401,8 +2401,8 @@ function roomTaskId(key, uid, day) {
   return `${key}_${uid}_${period}`;
 }
 function joinedMinutes(participant, nowMs) {
-  const joined = participant?.joinedAt?.toMillis?.();
-  if (!Number.isSafeInteger(joined) || joined > nowMs) return 0;
+  if (!isRecentRoomParticipant(participant, nowMs)) return 0;
+  const joined = participant.joinedAt.toMillis();
   return Math.max(0, Math.floor((nowMs - joined) / 60000));
 }
 
@@ -2434,7 +2434,8 @@ app.get("/room/tasks/status", async (req, res, next) => {
     }
     const isHost = room.data()?.hostId === user.uid;
     const guestCount = isHost ?
-      members.docs.filter(doc => doc.id !== user.uid).length : 0;
+      members.docs.filter(doc => doc.id !== user.uid &&
+        isRecentRoomParticipant(doc.data(), now)).length : 0;
     const minutes = joinedMinutes(participant.data(), now);
     const progress = {minutes, guestCount, giftsSent: gifts.size};
     const configData = config.data() || {};
@@ -2511,7 +2512,8 @@ app.post("/room/tasks/claim", async (req, res, next) => {
             throw Object.assign(new Error("Only the host may claim this mission."),
               {status: 403});
           }
-          count = members.docs.filter(doc => doc.id !== user.uid).length;
+          count = members.docs.filter(doc => doc.id !== user.uid &&
+            isRecentRoomParticipant(doc.data(), now)).length;
           break;
         case "three_gifts":
           count = gifts.size;
