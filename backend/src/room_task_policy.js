@@ -1,6 +1,14 @@
 // Non-monetary room progression only. No coins, diamonds or cash-equivalent
 // rewards may be minted by tasks or written by an untrusted phone.
-export const ROOM_MAX_LEVEL = 60;
+export const ROOM_MAX_LEVEL = 50;
+export const CASTLE_LEVEL_INTERVAL = 5;
+
+export function castleTierForLevel(level) {
+  if (!Number.isSafeInteger(level) || level < 1) {
+    throw Object.assign(new Error('Invalid castle level.'), {status: 409});
+  }
+  return Math.min(10, Math.ceil(Math.min(level, ROOM_MAX_LEVEL) / CASTLE_LEVEL_INTERVAL));
+}
 export const ROOM_XP_PER_LEVEL = 100;
 export const ROOM_MAX_XP = (ROOM_MAX_LEVEL - 1) * ROOM_XP_PER_LEVEL;
 
@@ -51,7 +59,7 @@ export function advanceRoomLevel(currentXp, earnedXp) {
     throw Object.assign(new Error("Invalid mission XP."), {status: 503});
   }
   if (currentXp >= ROOM_MAX_XP) {
-    throw Object.assign(new Error("Room has reached level 60."), {status: 409});
+    throw Object.assign(new Error("Room has reached level 50."), {status: 409});
   }
   const nextXp = Math.min(ROOM_MAX_XP, currentXp + earnedXp);
   const newLevel = roomLevelFromXp(nextXp);
