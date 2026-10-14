@@ -21,7 +21,8 @@ import {registerCallRoutes} from "./call_routes.js";
 import {chatIdFor, assertChatMembership} from "./chat_membership.js";
 import {reverseVerifiedWebPurchase} from "./payment_reversals.js";
 import {validateQuizDraft, quizWinners} from "./quiz_policy.js";
-import {roomTaskSpec, advanceRoomLevel, roomLevelFromXp} from "./room_task_policy.js";
+import {roomTaskSpec, advanceRoomLevel, roomLevelFromXp,
+  ROOM_MAX_LEVEL, CASTLE_LEVEL_INTERVAL, castleTierForLevel} from "./room_task_policy.js";
 import {privateWalletRef, requirePrivateWallet} from "./wallet_store.js";
 import {approvedWorldVoiceGift} from "./gift_catalog.js";
 
@@ -2408,7 +2409,7 @@ app.get("/room/tasks/status", async (req, res, next) => {
       await Promise.all([
         roomRef.get(),
         participantRef.get(),
-        roomRef.collection("participants").get(),
+        roomRef.collection("participants").limit(6).get(),
         roomRef.collection("gifts").where("senderId", "==", user.uid)
           .limit(3).get(),
         db.doc("room_task_config/current").get(),
@@ -2443,7 +2444,8 @@ app.get("/room/tasks/status", async (req, res, next) => {
     });
     const xp = Number(room.data()?.roomXp || 0);
     return res.json({ok: true, roomId, xp, level: roomLevelFromXp(xp),
-      maxLevel: 60, progress, missions});
+      maxLevel: ROOM_MAX_LEVEL, castleTier: castleTierForLevel(roomLevelFromXp(xp)),
+      progress, missions});
   } catch (error) {
     next(error);
   }
@@ -2471,7 +2473,7 @@ app.post("/room/tasks/claim", async (req, res, next) => {
         tx.get(roomRef), tx.get(memberRef), tx.get(configRef),
         tx.get(completionRef),
         taskKey === "host_five"
-          ? tx.get(roomRef.collection("participants")) : Promise.resolve(null),
+          ? tx.get(roomRef.collection("participants").limit(6)) : Promise.resolve(null),
         taskKey === "three_gifts"
           ? tx.get(roomRef.collection("gifts").where(
               "senderId", "==", user.uid).limit(3))
@@ -2508,6 +2510,7 @@ app.post("/room/tasks/claim", async (req, res, next) => {
       const advancement = advanceRoomLevel(previousXp, spec.xp);
       const result = {taskKey, awardedXp: advancement.awardedXp,
         roomXp: advancement.nextXp, roomLevel: advancement.newLevel,
+        castleTier: castleTierForLevel(advancement.newLevel),
         unlockedLevels: advancement.unlockedLevels, completedAtMillis: now};
       tx.create(completionRef, {
         taskKey, userId: user.uid, points: advancement.awardedXp,
@@ -2523,6 +2526,9 @@ app.post("/room/tasks/claim", async (req, res, next) => {
       for (const level of advancement.unlockedLevels) {
         tx.set(roomRef.collection("rewards").doc(`level_${level}`), {
           level, type: level === 5 ? "background_month" : "gift_pack",
+          ...(level % CASTLE_LEVEL_INTERVAL === 0 ? {
+            castleMilestone: true, castleTier: castleTierForLevel(level),
+          } : {}),
           unlockedBy: user.uid, sourceTaskId: completionRef.id,
           unlockedAt: FieldValue.serverTimestamp(),
         }, {merge: true});
