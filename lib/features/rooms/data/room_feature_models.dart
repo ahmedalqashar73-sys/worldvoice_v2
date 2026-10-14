@@ -33,6 +33,13 @@ int roomXpRequiredForLevel(int level) {
   return safe == 1 ? 300 : safe == 2 ? 400 : 700 + (safe - 3) * 300;
 }
 
+String roomCastleWebpAssetForLevel(int level) {
+  final tier = roomCastleTierForLevel(level);
+  final from = ((tier - 1) * 5 + 1).toString().padLeft(2, '0');
+  final to = (tier * 5).toString().padLeft(2, '0');
+  return 'assets/castles/castle_${tier.toString().padLeft(2, '0')}_lv$from-$to.webp';
+}
+
 String roomCastleAssetForLevel(int level) {
   final tier = roomCastleTierForLevel(level).toString().padLeft(2, '0');
   return 'assets/castles/castle_tier_$tier.svg';
