@@ -305,6 +305,24 @@ class _TasksTabState extends State<_TasksTab> {
             );
           },
         ),
+        if (_status?['maxed'] == true)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: const Color(0xFFE8F5EC),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Text(ar
+                    ? 'اكتملت قلعة المستوى 50! يمكنك متابعة أنشطة الروم، لكن لا توجد نقاط قلعة إضافية.'
+                    : 'Castle level 50 complete! You can keep participating, but castle XP is capped.',
+                  style: const TextStyle(color: Color(0xFF216C48)),
+                ),
+              ),
+            ),
+          ),
         Row(children: [
           Expanded(child: Text(
             ar ? 'مهام موثقة من الخادم' : 'Server-verified missions',
