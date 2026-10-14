@@ -22,7 +22,8 @@ import {chatIdFor, assertChatMembership} from "./chat_membership.js";
 import {reverseVerifiedWebPurchase} from "./payment_reversals.js";
 import {validateQuizDraft, quizWinners} from "./quiz_policy.js";
 import {roomTaskSpec, advanceRoomLevel, roomLevelFromXp,
-  roomProgressAfterGift, ROOM_MAX_LEVEL, CASTLE_LEVEL_INTERVAL,
+  roomProgressAfterGift, roomCastleProgressSnapshot, ROOM_CASTLE_XP_VERSION,
+  ROOM_MAX_LEVEL, CASTLE_LEVEL_INTERVAL,
   castleTierForLevel} from "./room_task_policy.js";
 import {privateWalletRef, requirePrivateWallet} from "./wallet_store.js";
 import {approvedWorldVoiceGift} from "./gift_catalog.js";
@@ -2127,11 +2128,14 @@ app.post("/gift/send", async (req, res, next) => {
       } else {
         // Teacher-AI gifts may support the room castle, but not exceed the
         // 50-level progression cap or erase XP from pre-existing level-60 rooms.
-        const progress = roomProgressAfterGift(roomXp,
+        const startingCastle = roomCastleProgressSnapshot(roomSnap.data());
+        const progress = roomProgressAfterGift(startingCastle.xp,
           amounts.giftLevelPoints);
         tx.update(roomRef, {
           roomXp: progress.nextXp,
           roomLevel: progress.newLevel,
+          roomCastleXpVersion: ROOM_CASTLE_XP_VERSION,
+          ...(startingCastle.legacy ? {legacyRoomXp: roomXp} : {}),
         });
       }
       tx.create(giftEventRef, {
@@ -2433,8 +2437,9 @@ app.get("/room/tasks/status", async (req, res, next) => {
     const minutes = joinedMinutes(participant.data(), now);
     const progress = {minutes, guestCount, giftsSent: gifts.size};
     const configData = config.data() || {};
-    const xp = Number(room.data()?.roomXp || 0);
-    const castleAtMaxLevel = roomLevelFromXp(xp) >= ROOM_MAX_LEVEL;
+    const castle = roomCastleProgressSnapshot(room.data());
+    const xp = castle.xp;
+    const castleAtMaxLevel = castle.level >= ROOM_MAX_LEVEL;
     const missions = ROOM_TASK_KEYS.map((key, index) => {
       let spec;
       try {
@@ -2516,8 +2521,8 @@ app.post("/room/tasks/claim", async (req, res, next) => {
         throw Object.assign(new Error("Mission conditions are not verified yet."),
           {status: 409});
       }
-      const previousXp = Number(room.data()?.roomXp || 0);
-      const advancement = advanceRoomLevel(previousXp, spec.xp);
+      const castle = roomCastleProgressSnapshot(room.data());
+      const advancement = advanceRoomLevel(castle.xp, spec.xp);
       const result = {taskKey, awardedXp: advancement.awardedXp,
         roomXp: advancement.nextXp, roomLevel: advancement.newLevel,
         castleTier: castleTierForLevel(advancement.newLevel),
@@ -2530,6 +2535,8 @@ app.post("/room/tasks/claim", async (req, res, next) => {
       tx.update(roomRef, {
         roomXp: advancement.nextXp,
         roomLevel: advancement.newLevel,
+        roomCastleXpVersion: ROOM_CASTLE_XP_VERSION,
+        ...(castle.legacy ? {legacyRoomXp: room.data()?.roomXp ?? 0} : {}),
         lastTaskCompletionId: completionRef.id,
         updatedAt: FieldValue.serverTimestamp(),
       });
