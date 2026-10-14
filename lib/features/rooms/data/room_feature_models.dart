@@ -11,6 +11,11 @@ int roomCastleTierForLevel(int level) {
   return ((visibleLevel - 1) ~/ roomCastleLevelsPerTier) + 1;
 }
 
+String roomCastleAssetForLevel(int level) {
+  final tier = roomCastleTierForLevel(level).toString().padLeft(2, '0');
+  return 'assets/castles/castle_tier_$tier.svg';
+}
+
 class RoomFeatureState {
   const RoomFeatureState({
     required this.roomLevel,
