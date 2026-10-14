@@ -568,23 +568,34 @@ class _RewardsTab extends StatelessWidget {
                 expiryRaw is Timestamp ? expiryRaw.toDate() : null;
 
             final isBackground = type == 'background_month';
+            final castleTier = (data['castleTier'] as num?)?.toInt() ?? 0;
+            final isCastle = type == 'castle_milestone' ||
+                data['castleMilestone'] == true;
             return Card(
               child: ListTile(
-                leading: CircleAvatar(
-                  child: Icon(
-                    isBackground
-                        ? Icons.wallpaper_rounded
-                        : Icons.card_giftcard_rounded,
-                  ),
-                ),
+                leading: isCastle
+                    ? SizedBox(
+                        width: 58,
+                        height: 58,
+                        child: _CastleArtwork(level: level),
+                      )
+                    : CircleAvatar(
+                        child: Icon(isBackground
+                            ? Icons.wallpaper_rounded
+                            : Icons.card_giftcard_rounded),
+                      ),
                 title: Text(
                   isBackground
                       ? (isArabic
-                          ? 'استحقاق خلفية لمدة شهر'
-                          : 'One-month background eligibility')
-                      : (isArabic
-                          ? 'استحقاق باقة هدايا (بعد تفعيل الكتالوج)'
-                          : 'Gift pack eligibility (pending catalog activation)'),
+                          ? 'استحقاق خلفية لمدة شهر (عند تفعيل الكتالوج)'
+                          : 'One-month background eligibility (catalog pending)')
+                      : type == 'castle_milestone'
+                          ? (isArabic
+                              ? 'إنجاز قلعة الغرفة • المرحلة $castleTier'
+                              : 'Room castle milestone • tier $castleTier')
+                          : (isArabic
+                              ? 'استحقاق باقة هدايا (بعد تفعيل الكتالوج)'
+                              : 'Gift pack eligibility (pending catalog activation)'),
                   style: const TextStyle(fontWeight: FontWeight.w800),
                 ),
                 subtitle: Text(
@@ -596,8 +607,10 @@ class _RewardsTab extends StatelessWidget {
                           '${expiry.day.toString().padLeft(2, '0')}',
                 ),
                 trailing: Icon(isBackground
-                    ? Icons.redeem_rounded
-                    : Icons.hourglass_bottom_rounded),
+                    ? Icons.hourglass_top_rounded
+                    : isCastle
+                        ? Icons.workspace_premium_rounded
+                        : Icons.hourglass_bottom_rounded),
               ),
             );
           },
