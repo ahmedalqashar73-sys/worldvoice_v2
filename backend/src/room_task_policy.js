@@ -56,6 +56,15 @@ export function roomCastleProgressSnapshot(data) {
 }
 
 
+// Non-monetary beta mission defaults keep all four tasks usable even when a
+// new room has not been assigned an optional owner-specific mission config.
+// These values award castle XP only; never coins or inventory.
+export const ROOM_TASK_DEFAULTS = Object.freeze({
+  sendThreeGiftsXp: 20,
+  stayHoursMinimum: 2,
+  stayHoursXp: 15,
+});
+
 function configuredPoints(raw, label) {
   if (!Number.isSafeInteger(raw) || raw < 1 || raw > 500) {
     throw Object.assign(
@@ -73,16 +82,16 @@ export function roomTaskSpec(taskKey, config) {
     case "host_five":
       return {taskKey, xp: 50, requiredCount: 5, period: "once"};
     case "three_gifts":
-      return {taskKey, xp: configuredPoints(config?.sendThreeGiftsXp,
+      return {taskKey, xp: configuredPoints(config?.sendThreeGiftsXp ?? ROOM_TASK_DEFAULTS.sendThreeGiftsXp,
         "Three-gift mission"), requiredCount: 3, period: "once_per_room"};
     case "stay_hours": {
-      const hours = config?.stayHoursMinimum;
+      const hours = config?.stayHoursMinimum ?? ROOM_TASK_DEFAULTS.stayHoursMinimum;
       if (!Number.isSafeInteger(hours) || hours < 1 || hours > 24) {
         throw Object.assign(new Error(
           "Hours mission needs an approved stayHoursMinimum from 1 to 24."),
         {status: 503});
       }
-      return {taskKey, xp: configuredPoints(config?.stayHoursXp,
+      return {taskKey, xp: configuredPoints(config?.stayHoursXp ?? ROOM_TASK_DEFAULTS.stayHoursXp,
         "Hours mission"), requiredMinutes: hours * 60, period: "day"};
     }
     default:
