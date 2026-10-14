@@ -213,3 +213,9 @@ export function verifiedRoomMinutes(attendance, nowMs) {
   }
   return Math.floor(attendance.activeMs / 60000);
 }
+
+export function isCurrentTaskMember(member, attendance, nowMs) {
+  return member != null && member.kicked !== true &&
+    member.joinedAt?.toMillis?.() === attendance?.joinedAtMs &&
+    verifiedRoomMinutes(attendance, nowMs) !== null;
+}

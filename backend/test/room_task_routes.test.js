@@ -95,6 +95,14 @@ test('room mission routes: emulator transactions and replay safety',
       assert.equal((await call('claim', roomId, 'three_gifts')).body.awardedXp, 20);
       assert.equal((await call('claim', roomId, 'three_gifts')).body.alreadyProcessed, true);
     });
+    await t.test('rejoining cannot reuse a previous session heartbeat', async () => {
+      const {room, roomId} = await seed();
+      await room.collection('participants').doc(uid).update({joinedAt: Timestamp.now()});
+      assert.equal((await call('status', roomId)).body.missions[0].eligible, false);
+      assert.equal((await call('claim', roomId, 'ten_minutes')).status, 409);
+      assert.equal((await call('heartbeat', roomId)).status, 200);
+      assert.equal((await call('claim', roomId, 'ten_minutes')).status, 200);
+    });
     await t.test('two-hour mission needs server-observed time', async () => {
       const {room, roomId} = await seed();
       assert.equal((await call('claim', roomId, 'stay_hours')).status, 409);

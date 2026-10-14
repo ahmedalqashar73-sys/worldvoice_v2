@@ -2,7 +2,7 @@ import {FieldValue, Timestamp} from "firebase-admin/firestore";
 import {roomTaskSpec, advanceRoomLevel, roomLevelFromXp,
   roomCastleProgressSnapshot, ROOM_CASTLE_XP_VERSION, castleMilestoneLevels,
   ROOM_MAX_LEVEL, CASTLE_LEVEL_INTERVAL, castleTierForLevel,
-  advanceRoomAttendance, verifiedRoomMinutes} from "./room_task_policy.js";
+  advanceRoomAttendance, verifiedRoomMinutes, isCurrentTaskMember} from "./room_task_policy.js";
 
 export function registerRoomTaskRoutes({app, db, authenticatedUser}) {
 /**
@@ -56,13 +56,14 @@ app.get("/room/tasks/status", async (req, res, next) => {
     const participantRef = roomRef.collection("participants").doc(user.uid);
     const now = Date.now();
     const day = roomTaskDay(now);
-    const [room, participant, attendance, members, gifts, config, ...completions] =
+    const room = await roomRef.get();
+    const [participant, attendance, members, gifts, config, ...completions] =
       await Promise.all([
-        roomRef.get(),
         participantRef.get(),
         roomRef.collection("task_attendance").doc(user.uid).get(),
-        roomRef.collection("task_attendance")
-          .where("lastSeenMs", ">=", now - 90000).limit(1000).get(),
+        room.data()?.hostId === user.uid ? roomRef.collection("task_attendance")
+          .where("lastSeenMs", ">=", now - 90000).limit(1000).get()
+          : Promise.resolve({empty: true, docs: []}),
         roomRef.collection("gifts").where("senderId", "==", user.uid)
           .limit(3).get(),
         db.doc("room_task_config/current").get(),
@@ -75,13 +76,15 @@ app.get("/room/tasks/status", async (req, res, next) => {
     }
     const liveMemberships = members.empty ? [] : await db.getAll(
       ...members.docs.map(doc => roomRef.collection("participants").doc(doc.id)));
-    const activeIds = new Set(liveMemberships.filter(doc => doc.exists &&
-      doc.data()?.kicked !== true).map(doc => doc.id));
+    const observed = new Map(members.docs.map(doc => [doc.id, doc.data()]));
+    const activeIds = new Set(liveMemberships.filter(doc =>
+      isCurrentTaskMember(doc.data(), observed.get(doc.id), now)).map(doc => doc.id));
     const isHost = room.data()?.hostId === user.uid;
     const guestCount = isHost ?
       members.docs.filter(doc => activeIds.has(doc.id) && doc.id !== user.uid &&
         verifiedRoomMinutes(doc.data(), now) !== null).length : 0;
-    const minutes = verifiedRoomMinutes(attendance.data(), now) ?? 0;
+    const currentMember = isCurrentTaskMember(participant.data(), attendance.data(), now);
+    const minutes = currentMember ? verifiedRoomMinutes(attendance.data(), now) : 0;
     const progress = {minutes, guestCount, giftsSent: gifts.size};
     const configData = config.data() || {};
     const castle = roomCastleProgressSnapshot(room.data());
@@ -101,7 +104,7 @@ app.get("/room/tasks/status", async (req, res, next) => {
         ? minutes : key === "host_five" ? guestCount : gifts.size;
       const required = spec.requiredMinutes ?? spec.requiredCount;
       return {key, configured: true, claimed: completions[index].exists,
-        eligible: verifiedRoomMinutes(attendance.data(), now) !== null &&
+        eligible: currentMember &&
           !completions[index].exists && !castleAtMaxLevel && current >= required,
         current, required, xp: spec.xp};
     });
@@ -132,12 +135,10 @@ app.post("/room/tasks/claim", async (req, res, next) => {
 
     const outcome = await db.runTransaction(async tx => {
       // Read all snapshots and evidence BEFORE the first transaction write.
-      const [room, member, attendance, config, prior, members, gifts] = await Promise.all([
+      const [room, member, attendance, config, prior, gifts] = await Promise.all([
         tx.get(roomRef), tx.get(memberRef),
         tx.get(roomRef.collection("task_attendance").doc(user.uid)), tx.get(configRef),
         tx.get(completionRef),
-        tx.get(roomRef.collection("task_attendance")
-          .where("lastSeenMs", ">=", now - 90000).limit(1000)),
         taskKey === "three_gifts"
           ? tx.get(roomRef.collection("gifts").where(
               "senderId", "==", user.uid).limit(3))
@@ -148,15 +149,24 @@ app.post("/room/tasks/claim", async (req, res, next) => {
       }
       if (prior.exists) return {...prior.data().outcome,
         rewardRecipientIds: prior.data().rewardRecipientIds ?? [], alreadyProcessed: true};
-      if (member.data()?.kicked === true ||
-          verifiedRoomMinutes(attendance.data(), now) === null) {
+      if (!isCurrentTaskMember(member.data(), attendance.data(), now)) {
         throw Object.assign(new Error("Refresh verified room presence first."), {status: 409});
+      }
+      const spec = roomTaskSpec(taskKey, config.data());
+      const castle = roomCastleProgressSnapshot(room.data());
+      const advancement = advanceRoomLevel(castle.xp, spec.xp);
+      const rewardLevels = castleMilestoneLevels(advancement.unlockedLevels);
+      const members = taskKey === "host_five" || rewardLevels.length
+        ? await tx.get(roomRef.collection("task_attendance")
+          .where("lastSeenMs", ">=", now - 90000).limit(1001)) : {docs: []};
+      if (rewardLevels.length && members.docs.length > 1000) {
+        throw Object.assign(new Error("Milestone audience needs paginated reconciliation."), {status: 409});
       }
       const liveMemberships = await Promise.all(members.docs.map(doc =>
         tx.get(roomRef.collection("participants").doc(doc.id))));
-      const activeIds = new Set(liveMemberships.filter(doc => doc.exists &&
-        doc.data()?.kicked !== true).map(doc => doc.id));
-      const spec = roomTaskSpec(taskKey, config.data());
+      const observed = new Map(members.docs.map(doc => [doc.id, doc.data()]));
+      const activeIds = new Set(liveMemberships.filter(doc =>
+        isCurrentTaskMember(doc.data(), observed.get(doc.id), now)).map(doc => doc.id));
       let count = 0;
       switch (taskKey) {
         case "ten_minutes":
@@ -180,9 +190,6 @@ app.post("/room/tasks/claim", async (req, res, next) => {
         throw Object.assign(new Error("Mission conditions are not verified yet."),
           {status: 409});
       }
-      const castle = roomCastleProgressSnapshot(room.data());
-      const advancement = advanceRoomLevel(castle.xp, spec.xp);
-      const rewardLevels = castleMilestoneLevels(advancement.unlockedLevels);
       // Freeze the audience at the milestone, never expand it on a retry.
       // Bounded to 1,000 recently verified accounts per room milestone.
       const rewardRecipientIds = rewardLevels.length ? members.docs

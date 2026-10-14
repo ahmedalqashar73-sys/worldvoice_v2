@@ -183,3 +183,14 @@ test('untrusted legacy points and unknown schema versions cannot be overwritten'
   assert.equal(roomCastleProgressSnapshot({roomXp: ROOM_MAX_XP + 1000,
     roomCastleXpVersion: 2}).xp, ROOM_MAX_XP + 1000);
 });
+
+
+test('backend matches the shared Flutter progression contract for all fifty levels', async () => {
+  const {readFile} = await import('node:fs/promises');
+  const rows = JSON.parse(await readFile(new URL('../../test/fixtures/room_castle_progression.json', import.meta.url), 'utf8'));
+  for (const row of rows) {
+    assert.equal(roomXpThresholdForLevel(row.level), row.threshold);
+    assert.equal(castleTierForLevel(row.level), row.tier);
+    if (row.level < 50) assert.equal(roomXpRequiredForLevel(row.level), row.required);
+  }
+});

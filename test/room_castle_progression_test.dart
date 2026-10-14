@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -133,6 +135,16 @@ void main() {
       }
     }
     expect(roomCastleDisplayXp({'roomPoints': 100}), 300);
+  });
+
+  test('Flutter matches the shared backend progression contract', () {
+    final rows = jsonDecode(File('test/fixtures/room_castle_progression.json').readAsStringSync()) as List;
+    for (final row in rows.cast<Map<String, dynamic>>()) {
+      final level = row['level'] as int;
+      expect(roomXpThresholdForLevel(level), row['threshold']);
+      expect(roomCastleTierForLevel(level), row['tier']);
+      if (level < 50) expect(roomXpRequiredForLevel(level), row['required']);
+    }
   });
 
 }
