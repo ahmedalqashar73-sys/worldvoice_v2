@@ -2433,6 +2433,8 @@ app.get("/room/tasks/status", async (req, res, next) => {
     const minutes = joinedMinutes(participant.data(), now);
     const progress = {minutes, guestCount, giftsSent: gifts.size};
     const configData = config.data() || {};
+    const xp = Number(room.data()?.roomXp || 0);
+    const castleAtMaxLevel = roomLevelFromXp(xp) >= ROOM_MAX_LEVEL;
     const missions = ROOM_TASK_KEYS.map((key, index) => {
       let spec;
       try {
@@ -2447,11 +2449,12 @@ app.get("/room/tasks/status", async (req, res, next) => {
         ? minutes : key === "host_five" ? guestCount : gifts.size;
       const required = spec.requiredMinutes ?? spec.requiredCount;
       return {key, configured: true, claimed: completions[index].exists,
-        eligible: current >= required, current, required, xp: spec.xp};
+        eligible: !castleAtMaxLevel && current >= required,
+        current, required, xp: spec.xp};
     });
-    const xp = Number(room.data()?.roomXp || 0);
     return res.json({ok: true, roomId, xp, level: roomLevelFromXp(xp),
-      maxLevel: ROOM_MAX_LEVEL, castleTier: castleTierForLevel(roomLevelFromXp(xp)),
+      maxLevel: ROOM_MAX_LEVEL, maxed: castleAtMaxLevel,
+      castleTier: castleTierForLevel(roomLevelFromXp(xp)),
       progress, missions});
   } catch (error) {
     next(error);
