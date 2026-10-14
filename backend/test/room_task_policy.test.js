@@ -2,7 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   roomTaskSpec, roomLevelFromXp, advanceRoomLevel, castleTierForLevel,
-  roomProgressAfterGift, roomXpRequiredForLevel, roomXpThresholdForLevel, ROOM_MAX_XP,
+  roomProgressAfterGift, roomXpRequiredForLevel, roomXpThresholdForLevel,
+  roomCastleProgressSnapshot, ROOM_MAX_XP,
 } from "../src/room_task_policy.js";
 
 test("explicit mission XP values are not silently invented", () => {
@@ -67,4 +68,26 @@ test("Teacher-AI gift contributions follow growing XP thresholds", () => {
     {nextXp: ROOM_MAX_XP, newLevel: 50});
   assert.throws(() => roomProgressAfterGift(-1, 10), {status: 409});
   assert.throws(() => roomProgressAfterGift(5, -1), {status: 409});
+});
+
+test("legacy rooms retain castle level and convert XP only once", () => {
+  const brandNew = roomCastleProgressSnapshot({roomXp: 0, roomLevel: 1});
+  assert.deepEqual(brandNew, {xp: 0, level: 1, legacy: true});
+
+  const oldTwo = roomCastleProgressSnapshot({roomXp: 100, roomLevel: 2});
+  assert.deepEqual(oldTwo, {xp: 300, level: 2, legacy: true});
+
+  const oldThirty = roomCastleProgressSnapshot({roomXp: 2900, roomLevel: 30});
+  assert.equal(oldThirty.level, 30);
+  assert.equal(oldThirty.xp, roomXpThresholdForLevel(30));
+
+  const oldSixty = roomCastleProgressSnapshot({roomXp: 5900, roomLevel: 60});
+  assert.equal(oldSixty.level, 50);
+  assert.equal(oldSixty.xp, ROOM_MAX_XP);
+
+  const migrated = roomCastleProgressSnapshot({
+    roomXp: 450, roomLevel: 2, roomCastleXpVersion: 2,
+  });
+  assert.deepEqual(migrated, {xp: 450, level: 2, legacy: false});
+  assert.throws(() => roomCastleProgressSnapshot({roomXp: -1}), {status: 409});
 });
