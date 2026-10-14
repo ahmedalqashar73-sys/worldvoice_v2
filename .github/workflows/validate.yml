@@ -21,7 +21,7 @@ jobs:
       - name: Verify eight background assets before publishing
         run: python3 scripts/verify_room_background_assets.py
       - run: flutter analyze
-      - run: flutter test test/room_background_catalog_test.dart test/worldvoice_avatar_frame_test.dart test/create_room_page_test.dart test/room_conversation_panel_test.dart test/room_board_text_test.dart test/board_media_url_test.dart test/classic_gift_catalog_test.dart test/classic_gift_visual_test.dart test/luxury_gift_assets_test.dart test/coin_pack_presentation_test.dart test/classic_gift_mesh_test.dart test/friend_gift_preview_test.dart
+      - run: flutter test test/room_background_catalog_test.dart test/worldvoice_avatar_frame_test.dart test/create_room_page_test.dart test/room_conversation_panel_test.dart test/room_board_text_test.dart test/board_media_url_test.dart test/classic_gift_catalog_test.dart test/classic_gift_visual_test.dart test/luxury_gift_assets_test.dart test/coin_pack_presentation_test.dart test/classic_gift_mesh_test.dart test/friend_gift_preview_test.dart test/room_castle_progression_test.dart
 
   backend-check:
     runs-on: ubuntu-latest
@@ -37,13 +37,14 @@ jobs:
           cache-dependency-path: backend/package.json
       - run: npm install
       - run: node --check src/server.js
+      - run: node --check src/room_task_policy.js
       - run: node --check src/chat_routes.js
       - run: node --check src/story_routes.js
       - run: node --check src/social_routes.js
       - run: node --check src/call_routes.js
       - run: node --check scripts/seed-classic-gifts.mjs
       - run: node --check scripts/grant-beta-access.mjs
-      - run: node --test test/classic_gifts.test.js test/admin_cosmetic_access.test.js test/economy_policy.test.js
+      - run: node --test test/classic_gifts.test.js test/admin_cosmetic_access.test.js test/economy_policy.test.js test/room_task_policy.test.js
 
       - name: Diagnose published API and Agora worker (public checks only)
         continue-on-error: true
