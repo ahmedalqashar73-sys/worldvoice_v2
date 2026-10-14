@@ -3652,9 +3652,16 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   decoration: BoxDecoration(color: const Color(0xFFFFCE79),
                     borderRadius: BorderRadius.circular(12)),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    SvgPicture.asset(
-                      roomCastleAssetForLevel(_featureState.roomLevel),
-                      width: 18, height: 18,
+                    Image.asset(
+                      roomCastleWebpAssetForLevel(_featureState.roomLevel),
+                      width: 22, height: 22,
+                      fit: BoxFit.contain,
+                      filterQuality: FilterQuality.medium,
+                      errorBuilder: (context, error, stackTrace) =>
+                          SvgPicture.asset(
+                        roomCastleAssetForLevel(_featureState.roomLevel),
+                        width: 22, height: 22,
+                      ),
                     ),
                     Text(' Lv.${_featureState.roomLevel.clamp(1, roomCastleMaxLevel)}',
                       style: const TextStyle(
