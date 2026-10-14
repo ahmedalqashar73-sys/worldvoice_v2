@@ -102,3 +102,25 @@ test("config overrides defaults and rejects unsafe values", () => {
   assert.throws(() => roomTaskSpec("three_gifts", {sendThreeGiftsXp: -2}), {status: 503});
   assert.throws(() => roomTaskSpec("stay_hours", {stayHoursMinimum: 0}), {status: 503});
 });
+
+test("castle XP progression remains strictly increasing through level 50", () => {
+  let previousThreshold = -1;
+  for (let level = 1; level <= 50; level++) {
+    const threshold = roomXpThresholdForLevel(level);
+    assert.ok(threshold > previousThreshold);
+    assert.equal(roomLevelFromXp(threshold), level);
+    if (level < 50) {
+      const needed = roomXpRequiredForLevel(level);
+      assert.equal(roomLevelFromXp(threshold + needed - 1), level);
+      assert.equal(roomLevelFromXp(threshold + needed), level + 1);
+    }
+    previousThreshold = threshold;
+  }
+  assert.equal(ROOM_MAX_XP, roomXpThresholdForLevel(50));
+});
+
+test("castle tiers have five levels each, including both boundaries", () => {
+  for (let level = 1; level <= 50; level++) {
+    assert.equal(castleTierForLevel(level), Math.ceil(level / 5));
+  }
+});
