@@ -11,6 +11,24 @@ int roomCastleTierForLevel(int level) {
   return ((visibleLevel - 1) ~/ roomCastleLevelsPerTier) + 1;
 }
 
+int roomXpThresholdForLevel(int level) {
+  final safe = level.clamp(1, roomCastleMaxLevel);
+  return safe == 1 ? 0 : 100 + ((safe * (safe + 1) ~/ 2) - 3) * 100;
+}
+
+int roomLevelFromXp(int xp) {
+  final safeXp = xp < 0 ? 0 : xp;
+  for (var level = roomCastleMaxLevel; level >= 2; level--) {
+    if (safeXp >= roomXpThresholdForLevel(level)) return level;
+  }
+  return 1;
+}
+
+int roomXpRequiredForLevel(int level) {
+  final safe = level.clamp(1, roomCastleMaxLevel - 1);
+  return safe == 1 ? 100 : (safe + 1) * 100;
+}
+
 String roomCastleAssetForLevel(int level) {
   final tier = roomCastleTierForLevel(level).toString().padLeft(2, '0');
   return 'assets/castles/castle_tier_$tier.svg';
