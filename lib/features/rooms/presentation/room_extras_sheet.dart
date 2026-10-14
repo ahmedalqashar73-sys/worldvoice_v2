@@ -209,8 +209,13 @@ class _TasksTabState extends State<_TasksTab> {
                             borderRadius: BorderRadius.circular(13),
                             border: Border.all(color: const Color(0xFFFFD788)),
                           ),
-                          child: const Icon(Icons.castle_rounded,
-                            size: 34, color: Color(0xFFFFE2A0)),
+                          child: Padding(
+                            padding: const EdgeInsets.all(2),
+                            child: SvgPicture.asset(
+                              roomCastleAssetForLevel(level),
+                              fit: BoxFit.contain,
+                            ),
+                          ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(child: AnimatedSwitcher(
