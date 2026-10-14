@@ -3652,7 +3652,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                     borderRadius: BorderRadius.circular(12)),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
                     const Icon(Icons.castle_rounded, size: 13, color: Color(0xFF603D15)),
-                    Text(' Lv.${_featureState.roomLevel}', style: const TextStyle(
+                    Text(' Lv.${_featureState.roomLevel.clamp(1, roomCastleMaxLevel)}',
+                      style: const TextStyle(
                       color: Color(0xFF603D15), fontSize: 10, fontWeight: FontWeight.w800)),
                   ]),
                 )),
