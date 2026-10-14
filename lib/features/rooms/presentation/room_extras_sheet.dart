@@ -247,7 +247,11 @@ class _TasksTabState extends State<_TasksTab> {
                       Expanded(child: Text(
                         ar ? 'مستوى الغرفة $level من 50'
                             : 'Room level $level of 50',
-                        style: Theme.of(context).textTheme.titleMedium,
+                        style: const TextStyle(
+                          color: Color(0xFF174E38),
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                        ),
                       )),
                       Directionality(
                         textDirection: TextDirection.ltr,
@@ -275,7 +279,14 @@ class _TasksTabState extends State<_TasksTab> {
                     ExpansionTile(
                       tilePadding: EdgeInsets.zero,
                       title: Text(ar ? 'شاهد القلاع العشر'
-                          : 'Explore all 10 castles'),
+                          : 'Explore all 10 castles',
+                        style: const TextStyle(
+                          color: Color(0xFF174E38),
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      iconColor: const Color(0xFF1C7553),
+                      collapsedIconColor: const Color(0xFF1C7553),
                       children: [
                         for (var index = 0;
                             index < roomCastleMaxTier; index++)
@@ -291,8 +302,15 @@ class _TasksTabState extends State<_TasksTab> {
                               ),
                             ),
                             title: Text(ar ? castleNamesAr[index]
-                                : castleNamesEn[index]),
-                            subtitle: Text('Lv. ${index * 5 + 1}–${(index + 1) * 5}'),
+                                : castleNamesEn[index],
+                              style: const TextStyle(
+                                color: Color(0xFF174E38),
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            subtitle: Text('Lv. ${index * 5 + 1}–${(index + 1) * 5}',
+                              style: const TextStyle(color: Color(0xFF4F7565)),
+                            ),
                             trailing: index + 1 < tier
                                 ? const Icon(Icons.check_circle,
                                     color: Color(0xFF26865D))
