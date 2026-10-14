@@ -164,9 +164,12 @@ class _TasksTabState extends State<_TasksTab> {
         StreamBuilder<RoomFeatureState>(
           stream: _roomStateStream,
           builder: (context, snapshot) {
-            final level = (snapshot.data?.roomLevel ?? 1)
-                .clamp(1, roomCastleMaxLevel);
             final xp = snapshot.data?.roomXp ?? 0;
+            final level = roomLevelFromXp(xp);
+            final currentLevelXp = (xp - roomXpThresholdForLevel(level))
+                .clamp(0, roomXpRequiredForLevel(level));
+            final requiredXp = level >= roomCastleMaxLevel ? 0
+                : roomXpRequiredForLevel(level);
             final tier = roomCastleTierForLevel(level);
             const castleNamesAr = [
               'قلعة البداية', 'قلعة البرونز', 'قلعة الفضة',
@@ -182,7 +185,7 @@ class _TasksTabState extends State<_TasksTab> {
             ];
             return Card(
               clipBehavior: Clip.antiAlias,
-              color: const Color(0xFFF5FAF7),
+              color: const Color(0xFFEAF5EF),
               elevation: 0,
               shape: RoundedRectangleBorder(
                 side: const BorderSide(color: Color(0xFFCEE7D8)),
@@ -249,7 +252,7 @@ class _TasksTabState extends State<_TasksTab> {
                             : 'Room level $level of 50',
                         style: Theme.of(context).textTheme.titleMedium,
                       )),
-                      Text('${xp.clamp(0, 4900)} / 4900 XP',
+                      Text(level >= roomCastleMaxLevel ? 'MAX LEVEL' : '$currentLevelXp / $requiredXp XP',
                         style: const TextStyle(
                           fontWeight: FontWeight.w700,
                           color: Color(0xFF236B4B)),
@@ -258,7 +261,7 @@ class _TasksTabState extends State<_TasksTab> {
                     const SizedBox(height: 9),
                     LinearProgressIndicator(
                       value: level >= roomCastleMaxLevel ? 1
-                          : ((xp % 100) / 100).clamp(0.0, 1.0),
+                          : (currentLevelXp / requiredXp).clamp(0.0, 1.0),
                       minHeight: 8,
                       color: const Color(0xFF249369),
                       backgroundColor: const Color(0xFFD9EAE0),
