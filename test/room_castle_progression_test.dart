@@ -26,6 +26,44 @@ void main() {
     expect(roomCastleTierForLevel(100), 10);
     expect(roomCastleTierForLevel(0), 1);
   });
+  test('legacy 60-level rooms preserve visible castle levels', () {
+    final oldLevelTwo = RoomFeatureState.fromData(const {
+      'roomXp': 100, 'roomLevel': 2,
+    });
+    expect(oldLevelTwo.roomLevel, 2);
+    expect(oldLevelTwo.roomXp, 300);
+
+    final oldLevelThirty = RoomFeatureState.fromData(const {
+      'roomXp': 2900, 'roomLevel': 30,
+    });
+    expect(oldLevelThirty.roomLevel, 30);
+    expect(oldLevelThirty.roomXp, roomXpThresholdForLevel(30));
+
+    final oldLevelSixty = RoomFeatureState.fromData(const {
+      'roomXp': 5900, 'roomLevel': 60,
+    });
+    expect(oldLevelSixty.roomLevel, 50);
+    expect(oldLevelSixty.roomXp, roomXpThresholdForLevel(50));
+
+    final newRoom = RoomFeatureState.fromData(const {
+      'roomXp': 0, 'roomLevel': 1,
+    });
+    expect(newRoom.roomLevel, 1);
+    expect(newRoom.roomXp, 0);
+  });
+
+  test('versioned castle XP reads approved graduated curve as-is', () {
+    final current = RoomFeatureState.fromData(const {
+      'roomCastleXpVersion': 2, 'roomXp': 450, 'roomLevel': 2,
+    });
+    expect(current.roomLevel, 2);
+    expect(current.roomXp, 450);
+    expect(roomXpRequiredForLevel(1), 300);
+    expect(roomXpRequiredForLevel(2), 400);
+    expect(roomXpRequiredForLevel(3), 700);
+    expect(roomXpRequiredForLevel(4), 1000);
+  });
+
   test('all ten castle SVG assets are bundled and readable', () async {
     for (var level = 1; level <= roomCastleMaxLevel; level += 5) {
       final path = roomCastleAssetForLevel(level);
