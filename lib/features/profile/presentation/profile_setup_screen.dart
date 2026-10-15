@@ -42,6 +42,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       city=TextEditingController(), profession=TextEditingController(), travel=TextEditingController(),
       goals=TextEditingController(), interests=TextEditingController();
   bool? usernameAvailable; bool saving=false;
+  // Never overwrite a saved profile before its existing fields are loaded.
+  bool profileLoading=true; bool profileLoadFailed=false;
   final ImagePicker _imagePicker=ImagePicker();
   File? profileImage, coverImage;
   String? photoUrl, photoPublicId, coverUrl, coverPublicId, voiceBioUrl;
@@ -61,12 +63,29 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   Future<void> _loadExistingProfile() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) return;
+    if (uid == null) {
+      if (mounted) setState(() => profileLoading = false);
+      return;
+    }
 
-    final snap =
-        await FirebaseFirestore.instance.collection('users').doc(uid).get();
-    final data = snap.data();
-    if (data == null || !mounted) return;
+    Map<String, dynamic>? data;
+    try {
+      final snap = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      data = snap.data();
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          profileLoading = false;
+          profileLoadFailed = true;
+        });
+      }
+      return;
+    }
+    if (!mounted) return;
+    if (data == null) {
+      setState(() => profileLoading = false);
+      return;
+    }
 
     final storedCodes = (data['learningLanguageCodes'] as List?)
             ?.map((e) => e.toString())
@@ -123,6 +142,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         ..clear()
         ..addAll(hobbies);
       usernameAvailable = true;
+      profileLoading = false;
+      profileLoadFailed = false;
     });
     if (widget.openLearningPickerOnLaunch && mounted) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -323,7 +344,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   Future<void> saveProfile() async {
     final user=FirebaseAuth.instance.currentUser;
     final code=widget.localeController.locale?.languageCode??'en';
-    if(user==null)return;
+    if(user==null||profileLoading||profileLoadFailed||saving)return;
 
     if(!ProfileFormValidation.hasName(name.text)){
       ScaffoldMessenger.of(context).showSnackBar(
@@ -522,6 +543,30 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       padding:const EdgeInsets.fromLTRB(18,16,18,36),children:[
       if(widget.editMode) Align(alignment:AlignmentDirectional.centerStart,child:IconButton(onPressed:()=>Navigator.of(context).pop(),icon:const Icon(Icons.arrow_back_rounded))),
       Text(widget.editMode ? (code=='ar'?'تعديل البروفايل':code=='es'?'Editar perfil':'Edit profile') : t('title'),style:Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight:FontWeight.w900)),
+      if (profileLoading) const LinearProgressIndicator(),
+      if (profileLoadFailed)
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Column(children: [
+            Text(
+              code == 'ar'
+                  ? 'تعذر تحميل بيانات بروفايلك. لن نسمح بالحفظ حتى تتم استعادتها.'
+                  : 'Your profile could not be loaded. Saving is disabled to protect your existing details.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: cs.error),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  profileLoading = true;
+                  profileLoadFailed = false;
+                });
+                _loadExistingProfile();
+              },
+              child: Text(code == 'ar' ? 'إعادة المحاولة' : 'Retry loading profile'),
+            ),
+          ]),
+        ),
       const SizedBox(height:18),
       Container(height:150,decoration:BoxDecoration(borderRadius:BorderRadius.circular(24),gradient:LinearGradient(colors:[cs.primary.withValues(alpha:.75),cs.tertiary.withValues(alpha:.45)]),image:coverImage!=null?DecorationImage(image:FileImage(coverImage!),fit:BoxFit.cover):(coverUrl!=null&&coverUrl!.isNotEmpty?DecorationImage(image:NetworkImage(coverUrl!),fit:BoxFit.cover):null)),
         child:Stack(children:[if(coverImage==null&&(coverUrl==null||coverUrl!.isEmpty))const Center(child:Icon(Icons.landscape_rounded,size:42)),Positioned(top:8,left:8,child:IconButton.filledTonal(onPressed:pickCoverImage,icon:const Icon(Icons.wallpaper_rounded,size:18)))])),
@@ -624,7 +669,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         const SizedBox(height:10),
       ],
       ProfileTextField(travel,t('travel'),Icons.flight_takeoff_rounded,lines:2),const SizedBox(height:22),
-      SizedBox(height:58,child:FilledButton.icon(onPressed:saving?null:saveProfile,icon:saving?const SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2)):const Icon(Icons.rocket_launch_rounded,size:20),label:Text(widget.editMode?(code=='ar'?'حفظ التعديلات':code=='es'?'Guardar cambios':'Save changes'):t('launch'),style:const TextStyle(fontWeight:FontWeight.w900,fontSize:17))))
+      SizedBox(height:58,child:FilledButton.icon(onPressed:(saving||profileLoading||profileLoadFailed)?null:saveProfile,icon:saving?const SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2)):const Icon(Icons.rocket_launch_rounded,size:20),label:Text(widget.editMode?(code=='ar'?'حفظ التعديلات':code=='es'?'Guardar cambios':'Save changes'):t('launch'),style:const TextStyle(fontWeight:FontWeight.w900,fontSize:17))))
     ]))));
   }
 }
