@@ -121,6 +121,27 @@ test('room mission routes: emulator transactions and replay safety',
       assert.equal((await room.get()).data().roomXp, 50);
       assert.equal((await call('claim', roomId, 'host_five', 'guest-0')).status, 403);
     });
+    await t.test('host task claim pages past stale attendance without milestone fanout', async () => {
+      const {room, roomId} = await seed();
+      const now = Date.now();
+      const batch = db.batch();
+      // Recent-looking attendance rows with no matching live participants
+      // must not conceal five real guests on a later page.
+      for (let i = 0; i < 30; i++) {
+        batch.set(room.collection('task_attendance').doc(`stale-claim-${i}`), {
+          lastSeenMs: now + 5000,
+          day: new Date(now).toISOString().slice(0, 10),
+          joinedAtMs: now - 600000, activeMs: 600000,
+        });
+      }
+      await batch.commit();
+      for (let i = 0; i < 5; i++) await join(room, `paged-claim-guest-${i}`);
+      const outcome = await call('claim', roomId, 'host_five');
+      assert.equal(outcome.status, 200, JSON.stringify(outcome));
+      assert.equal(outcome.body.awardedXp, 50);
+      assert.equal((await room.get()).data().roomXp, 50);
+      assert.equal((await call('claim', roomId, 'host_five')).body.alreadyProcessed, true);
+    });
     await t.test('departed or kicked guests do not qualify', async () => {
       const {room, roomId} = await seed();
       for (let i = 0; i < 5; i++) await join(room, `guest-${i}`);
