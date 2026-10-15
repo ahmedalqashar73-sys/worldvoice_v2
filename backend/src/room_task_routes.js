@@ -235,7 +235,10 @@ app.post("/room/tasks/claim", async (req, res, next) => {
       const castle = roomCastleProgressSnapshot(room.data());
       const advancement = advanceRoomLevel(castle.xp, spec.xp);
       const rewardLevels = castleMilestoneLevels(advancement.unlockedLevels);
-      const members = taskKey === "host_five" || rewardLevels.length
+      // Scan the full audience only when issuing a castle milestone reward.
+      // A normal host-five claim needs five recent verified guests, not a
+      // 1,001-row Firestore query plus 1,001 individual membership reads.
+      const members = rewardLevels.length
         ? await tx.get(roomRef.collection("task_attendance")
           .where("lastSeenMs", ">=", now - 90000).limit(1001)) : {docs: []};
       if (rewardLevels.length && members.docs.length > 1000) {
@@ -246,6 +249,10 @@ app.post("/room/tasks/claim", async (req, res, next) => {
       const observed = new Map(members.docs.map(doc => [doc.id, doc.data()]));
       const activeIds = new Set(liveMemberships.filter(doc =>
         isCurrentTaskMember(doc.data(), observed.get(doc.id), now)).map(doc => doc.id));
+      // Pagination stops once the five required guests are established.
+      // Perform this read before any transaction writes.
+      const hostHasFive = taskKey === "host_five" && !rewardLevels.length
+        ? await hasFiveVerifiedGuests(tx, roomRef, user.uid, now) : false;
       let count = 0;
       switch (taskKey) {
         case "ten_minutes":
@@ -257,8 +264,10 @@ app.post("/room/tasks/claim", async (req, res, next) => {
             throw Object.assign(new Error("Only the host may claim this mission."),
               {status: 403});
           }
-          count = members.docs.filter(doc => activeIds.has(doc.id) && doc.id !== user.uid &&
-            verifiedRoomMinutes(doc.data(), now) !== null).length;
+          count = rewardLevels.length
+            ? members.docs.filter(doc => activeIds.has(doc.id) && doc.id !== user.uid &&
+              verifiedRoomMinutes(doc.data(), now) !== null).length
+            : (hostHasFive ? 5 : 0);
           break;
         case "three_gifts":
           count = gifts.size;
