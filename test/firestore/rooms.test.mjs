@@ -582,3 +582,12 @@ test('room abuse reports are write-once, private and bound to actual chat author
   }));
 });
 
+
+test('cycle state, reward receipts and free gifts cannot be forged by clients', async () => {
+  const db = user('listener');
+  for (const path of ['users/listener/engagement/cycle',
+    'users/listener/engagement_receipts/1_1', 'users/listener/inventory/gift__wv_gift_001']) {
+    await assertFails(setDoc(doc(db, path), {creativeCycles: 99, freeGiftBalance: 999}));
+  }
+  await assertFails(getDoc(doc(db, 'users/host/engagement/cycle')));
+});

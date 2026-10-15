@@ -1,3 +1,4 @@
+import '../../engagement/presentation/creative_badge.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -1866,9 +1867,12 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                       SizedBox(width: 35, height: 35,
                         child: _ParticipantAvatar(participant: person)),
                       const SizedBox(height: 3),
-                      Text(person.displayName, maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 10, color: Colors.white)),
+                      Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                        CreativeBadge(userId: person.userId, compact: true),
+                        Flexible(child: Text(person.displayName, maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 10, color: Colors.white))),
+                      ]),
                     ]),
                 ),
               );
@@ -2132,6 +2136,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                 subtitle: Text(person.role.label +
                     (person.isModerator ? (ar ? ' • مشرف' : ' • Moderator') : '')),
               ),
+              CreativeBadge(userId: person.userId),
               FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
                 future: profileFuture,
                 builder: (context, snapshot) {
@@ -3207,6 +3212,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                     ListTile(
                       leading: _ParticipantAvatar(participant: participant),
                       title: Text(participant.displayName),
+                    subtitle: CreativeBadge(userId: participant.userId),
                       trailing:
                           const Icon(Icons.chevron_right_rounded, size: 18),
                       onTap: () {
@@ -3302,6 +3308,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                 style: const TextStyle(fontWeight: FontWeight.w900),
               ),
               subtitle: Text(participant.role.label),
+              trailing: CreativeBadge(userId: participant.userId, compact: true),
             ),
             _RoleOption(
               icon: Icons.person_outline_rounded,

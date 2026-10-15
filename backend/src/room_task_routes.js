@@ -1,3 +1,5 @@
+import {engagementRef} from './engagement_routes.js';
+import {addCyclePresence, cycleView, creativeAward} from './engagement_policy.js';
 import {FieldValue, Timestamp} from "firebase-admin/firestore";
 import {roomTaskSpec, advanceRoomLevel, roomLevelFromXp,
   roomCastleProgressSnapshot, ROOM_CASTLE_XP_VERSION, castleMilestoneLevels,
@@ -29,8 +31,9 @@ app.post("/room/tasks/heartbeat", async (req, res, next) => {
     const memberRef = roomRef.collection("participants").doc(user.uid);
     const attendanceRef = roomRef.collection("task_attendance").doc(user.uid);
     await db.runTransaction(async tx => {
-      const [room, member, prior] = await Promise.all([
-        tx.get(roomRef), tx.get(memberRef), tx.get(attendanceRef),
+      const cycleRef = engagementRef(db, user.uid);
+      const [room, member, prior, cycle] = await Promise.all([
+        tx.get(roomRef), tx.get(memberRef), tx.get(attendanceRef), tx.get(cycleRef),
       ]);
       if (!room.exists || room.data()?.isOpen !== true ||
           !member.exists || member.data()?.kicked === true) {
@@ -39,7 +42,23 @@ app.post("/room/tasks/heartbeat", async (req, res, next) => {
       const now = Date.now();
       const next = advanceRoomAttendance(prior.data(),
         member.data()?.joinedAt?.toMillis?.(), now);
+      const delta = prior.data()?.day === next.day
+        ? Math.max(0, next.activeMs - (prior.data()?.activeMs ?? 0)) : 0;
+      let cycleState = cycle.data();
+      if (cycle.exists && room.data()?.hostId === user.uid && !cycleState.hostedFive) {
+        const observed = await tx.get(roomRef.collection("task_attendance")
+          .where("lastSeenMs", ">=", now - 90000).limit(1000));
+        const memberships = await Promise.all(observed.docs.map(doc =>
+          tx.get(roomRef.collection("participants").doc(doc.id))));
+        const guests = memberships.filter((doc, i) => doc.id !== user.uid &&
+          isCurrentTaskMember(doc.data(), observed.docs[i].data(), now));
+        const view = cycleView(cycleState, now);
+        if (guests.length >= 5 && cycleState.startDay === view.startDay && view.day <= 3) {
+          cycleState = {...cycleState, hostedFive: true};
+        }
+      }
       tx.set(attendanceRef, next);
+      if (cycle.exists) tx.set(cycleRef, addCyclePresence(cycleState, delta, now));
     });
     return res.json({ok: true});
   } catch (error) { next(error); }
@@ -135,7 +154,8 @@ app.post("/room/tasks/claim", async (req, res, next) => {
 
     const outcome = await db.runTransaction(async tx => {
       // Read all snapshots and evidence BEFORE the first transaction write.
-      const [room, member, attendance, config, prior, gifts] = await Promise.all([
+      const cycleRef = engagementRef(db, user.uid);
+      const [room, member, attendance, config, prior, gifts, cycle] = await Promise.all([
         tx.get(roomRef), tx.get(memberRef),
         tx.get(roomRef.collection("task_attendance").doc(user.uid)), tx.get(configRef),
         tx.get(completionRef),
@@ -143,6 +163,7 @@ app.post("/room/tasks/claim", async (req, res, next) => {
           ? tx.get(roomRef.collection("gifts").where(
               "senderId", "==", user.uid).limit(3))
           : Promise.resolve(null),
+        tx.get(cycleRef),
       ]);
       if (!room.exists || room.data()?.isOpen !== true || !member.exists) {
         throw Object.assign(new Error("Join an open room first."), {status: 403});
@@ -189,6 +210,12 @@ app.post("/room/tasks/claim", async (req, res, next) => {
       if (count < required) {
         throw Object.assign(new Error("Mission conditions are not verified yet."),
           {status: 409});
+      }
+      if (taskKey === "host_five" && cycle.exists) {
+        const state = cycle.data(), view = cycleView(state, now);
+        if (state.startDay === view.startDay && view.day <= 3) {
+          tx.set(cycleRef, creativeAward({...state, hostedFive: true}, now));
+        }
       }
       // Freeze the audience at the milestone, never expand it on a retry.
       // Bounded to 1,000 recently verified accounts per room milestone.

@@ -46,6 +46,24 @@ test('room mission routes: emulator transactions and replay safety',
     return result;
   }
   try {
+    await t.test('heartbeat advances creative evidence without claiming XP again', async () => {
+      const {room, roomId} = await seed();
+      const now = Date.now();
+      const cycle = db.doc(`users/${uid}/engagement/cycle`);
+      await cycle.set({startDay: Math.floor(now / 86400000), claimedDays: 3,
+        activeMs: 3590000, lastPresenceMs: now - 30000});
+      await room.collection('task_attendance').doc(uid).update({lastSeenMs: now - 30000});
+      for (let i = 0; i < 5; i++) await join(room, `creative-guest-${i}`);
+      assert.equal((await call('heartbeat', roomId)).status, 200);
+      const data = (await cycle.get()).data();
+      assert.equal(data.hostedFive, true);
+      assert.equal(data.activeMs, 3600000);
+      assert.equal(data.creativeCycles, 1);
+      await call('heartbeat', roomId);
+      assert.equal((await cycle.get()).data().creativeCycles, 1);
+      assert.equal((await room.get()).data().roomXp, 0);
+      await cycle.delete();
+    });
     await t.test('concurrent requests award XP exactly once', async () => {
       const {room, roomId} = await seed();
       const responses = await Promise.all(Array.from({length: 8}, () =>

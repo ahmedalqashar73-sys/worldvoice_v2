@@ -1,3 +1,4 @@
+import '../../engagement/presentation/reward_journey_card.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -161,6 +162,7 @@ class _TasksTabState extends State<_TasksTab> {
     return ListView(
       padding: const EdgeInsets.all(14),
       children: [
+        const RewardJourneyCard(),
         StreamBuilder<RoomFeatureState>(
           stream: _roomStateStream,
           builder: (context, snapshot) {

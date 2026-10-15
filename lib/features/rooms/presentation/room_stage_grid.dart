@@ -1,3 +1,4 @@
+import '../../engagement/presentation/creative_badge.dart';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -217,6 +218,8 @@ class _CompactRoomSeatState extends State<_CompactRoomSeat>
                   ),
                 if (!isAi) const SizedBox(width: 3),
                 Flexible(child: _TinyRoleBadge(role: seat.role)),
+                if (!isAi && seat.userId != null)
+                  CreativeBadge(userId: seat.userId!, compact: true),
               ],
             ),
           ],

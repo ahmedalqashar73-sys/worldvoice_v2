@@ -1,3 +1,5 @@
+import '../../engagement/presentation/creative_badge.dart';
+import '../../engagement/presentation/reward_journey_card.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -164,6 +166,8 @@ class UserProfileScreen extends StatelessWidget {
                       Text(
                         '@${username?.isNotEmpty == true ? username! : 'user'}',
                       ),
+                      CreativeBadge(userId: uid),
+                      const RewardJourneyCard(),
                       ProfileIdentityStrip(
                         code: code,
                         country: country,
