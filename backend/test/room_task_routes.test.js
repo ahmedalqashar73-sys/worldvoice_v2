@@ -64,6 +64,29 @@ test('room mission routes: emulator transactions and replay safety',
       assert.equal((await room.get()).data().roomXp, 0);
       await cycle.delete();
     });
+    await t.test('host heartbeat finds five guests beyond stale first page', async () => {
+      const {room, roomId} = await seed();
+      const now = Date.now();
+      const startDay = Math.floor(now / 86400000);
+      const cycle = db.doc(`users/${uid}/engagement/cycle`);
+      await cycle.set({startDay, claimedDays: 3, activeMs: 3600000});
+      // Place 30 invalid newer attendance records before five real guests.
+      // The paginated scanner must continue past these records.
+      const batch = db.batch();
+      for (let i = 0; i < 30; i++) {
+        batch.set(room.collection('task_attendance').doc(`stale-${i}`), {
+          lastSeenMs: now + 5000, day: new Date(now).toISOString().slice(0, 10),
+          activeMs: 900000,
+        });
+      }
+      await batch.commit();
+      for (let i = 0; i < 5; i++) await join(room, `late-guest-${i}`);
+      assert.equal((await call('heartbeat', roomId)).status, 200);
+      const result = (await cycle.get()).data();
+      assert.equal(result.hostedFive, true);
+      assert.equal(result.creativeCycles, 1);
+      assert.equal((await room.get()).data().roomXp, 0);
+    });
     await t.test('concurrent requests award XP exactly once', async () => {
       const {room, roomId} = await seed();
       const responses = await Promise.all(Array.from({length: 8}, () =>
