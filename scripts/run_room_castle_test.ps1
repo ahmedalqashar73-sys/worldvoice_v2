@@ -1,6 +1,7 @@
 param(
   [string]$DeviceId = "",
-  [switch]$SkipAnalyze
+  [switch]$SkipAnalyze,
+  [switch]$GiftPreview
 )
 
 $ErrorActionPreference = "Stop"
@@ -30,6 +31,9 @@ if (-not $SkipAnalyze) {
   if ($LASTEXITCODE -ne 0) { throw "flutter analyze failed. Fix this before device testing." }
 }
 
+& flutter test
+if ($LASTEXITCODE -ne 0) { throw "flutter test failed. Fix this before device testing." }
+
 Write-Host "Connected Flutter devices:" -ForegroundColor Cyan
 & flutter devices
 if ($LASTEXITCODE -ne 0) { throw "flutter devices failed." }
@@ -39,9 +43,12 @@ $argsRun = @(
   "--dart-define=AGORA_APP_ID=fa41476c6813471eb45c059bcb4a0e19",
   "--dart-define=WORLDVOICE_ROOM_BACKEND_URL=https://worldvoice-v2.onrender.com",
   "--dart-define=AGORA_TOKEN_ENDPOINT=https://worldvoice-agora-token.worldvoice.workers.dev/agora/token",
-  "--dart-define=WORLDVOICE_ECONOMY_ENDPOINT=https://worldvoice-v2.onrender.com",
-  "--dart-define=WORLDVOICE_FRIEND_GIFT_PREVIEW=true"
+  "--dart-define=WORLDVOICE_ECONOMY_ENDPOINT=https://worldvoice-v2.onrender.com"
 )
+if ($GiftPreview) {
+  $argsRun += "--dart-define=WORLDVOICE_FRIEND_GIFT_PREVIEW=true"
+  Write-Warning "Preview gifts are animations only and do not complete verified gift missions."
+}
 if ($DeviceId.Trim()) { $argsRun += "-d"; $argsRun += $DeviceId.Trim() }
 
 Write-Host "Starting WorldVoice Flutter on your Android device..." -ForegroundColor Green

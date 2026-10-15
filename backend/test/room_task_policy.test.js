@@ -184,6 +184,20 @@ test('untrusted legacy points and unknown schema versions cannot be overwritten'
     roomCastleXpVersion: 2}).xp, ROOM_MAX_XP + 1000);
 });
 
+test('missing or conflicting XP cannot downgrade a stored room level', () => {
+  for (const data of [
+    {roomLevel: 12},
+    {roomXp: 0, roomLevel: 12},
+    {roomXp: 100, roomLevel: 3},
+    {roomXp: 450, roomLevel: 3, roomCastleXpVersion: 2},
+    {roomXp: 100, roomLevel: '2'},
+  ]) {
+    assert.throws(() => roomCastleProgressSnapshot(data), {status: 409});
+  }
+  assert.equal(roomCastleProgressSnapshot({roomXp: 200, roomLevel: 2}).level, 3);
+  assert.equal(roomCastleProgressSnapshot({roomXp: 5900, roomLevel: 60}).level, 50);
+});
+
 
 test('backend matches the shared Flutter progression contract for all fifty levels', async () => {
   const {readFile} = await import('node:fs/promises');

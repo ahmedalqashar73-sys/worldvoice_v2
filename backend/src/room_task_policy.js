@@ -53,6 +53,17 @@ export const ROOM_MAX_XP = roomXpThresholdForLevel(ROOM_MAX_LEVEL);
 // This projection is pure so both reads and transactional writes agree.
 export const ROOM_CASTLE_XP_VERSION = 2;
 export function roomCastleProgressSnapshot(data) {
+  // Never overwrite a higher stored level with an inferred lower one. Older
+  // records may have a level but missing XP, or use an unidentified curve.
+  // Pause writes for reconciliation rather than minting XP or losing progress.
+  const checked = snapshot => {
+    const storedLevel = data?.roomLevel;
+    if (storedLevel != null && (!Number.isSafeInteger(storedLevel) ||
+        storedLevel < 1 || Math.min(storedLevel, ROOM_MAX_LEVEL) > snapshot.level)) {
+      throw Object.assign(new Error("Stored room level requires reconciliation."), {status: 409});
+    }
+    return snapshot;
+  };
   // roomPoints was client-writable historically; never mint authoritative XP
   // from it without a separately reviewed reconciliation.
   if (data?.roomXp == null && data?.roomPoints != null && data.roomPoints !== 0) {
@@ -67,16 +78,16 @@ export function roomCastleProgressSnapshot(data) {
     throw Object.assign(new Error("Room XP requires reconciliation."), {status: 409});
   }
   if (data?.roomCastleXpVersion === ROOM_CASTLE_XP_VERSION) {
-    return {xp: rawXp, level: roomLevelFromXp(rawXp), legacy: false};
+    return checked({xp: rawXp, level: roomLevelFromXp(rawXp), legacy: false});
   }
   const priorLevel = Math.min(ROOM_MAX_LEVEL, Math.floor(rawXp / 100) + 1);
   if (priorLevel >= ROOM_MAX_LEVEL) {
-    return {xp: ROOM_MAX_XP, level: ROOM_MAX_LEVEL, legacy: true};
+    return checked({xp: ROOM_MAX_XP, level: ROOM_MAX_LEVEL, legacy: true});
   }
   const withinOldLevel = rawXp % 100;
   const xp = roomXpThresholdForLevel(priorLevel) +
     Math.floor(roomXpRequiredForLevel(priorLevel) * withinOldLevel / 100);
-  return {xp, level: priorLevel, legacy: true};
+  return checked({xp, level: priorLevel, legacy: true});
 }
 
 

@@ -193,6 +193,14 @@ test('room mission routes: emulator transactions and replay safety',
         assert.equal((await room.collection('task_completions').get()).size, 0);
       }
     });
+    await t.test('inconsistent legacy level leaves XP, level and rewards untouched', async () => {
+      const {room, roomId} = await seed(0, {roomLevel: 12, roomCastleXpVersion: 1});
+      const before = (await room.get()).data();
+      assert.equal((await call('claim', roomId, 'ten_minutes')).status, 409);
+      assert.deepEqual((await room.get()).data(), before);
+      assert.equal((await room.collection('task_completions').get()).size, 0);
+      assert.equal((await room.collection('rewards').get()).size, 0);
+    });
     await t.test('reward retry recovers failed fanout without adding new recipients', async () => {
       const {room, roomId} = await seed(roomXpThresholdForLevel(5) - 4);
       await join(room, 'original-guest');
