@@ -162,7 +162,6 @@ class _TasksTabState extends State<_TasksTab> {
     return ListView(
       padding: const EdgeInsets.all(14),
       children: [
-        const RewardJourneyCard(),
         StreamBuilder<RoomFeatureState>(
           stream: _roomStateStream,
           builder: (context, snapshot) {
@@ -198,50 +197,38 @@ class _TasksTabState extends State<_TasksTab> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
+                    DecoratedBox(
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(colors: [
-                          Color(0xFF176147), Color(0xFF267A59),
-                        ]),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Row(children: [
-                        Container(
-                          height: 110, width: 100,
-                          decoration: BoxDecoration(
-                            color: const Color(0x24FFE5A4),
-                            borderRadius: BorderRadius.circular(13),
-                            border: Border.all(color: const Color(0xFFFFD788)),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(2),
-                            child: RoomCastleArtwork(level: level),
-                          ),
+                        gradient: RadialGradient(
+                          colors: [
+                            Color.lerp(const Color(0xFFBFE9CE),
+                                const Color(0xFFFFE5A4), (tier - 1) / 9)!,
+                            const Color(0xFFEAF5EF),
+                          ],
+                          radius: 0.75,
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(child: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 280),
-                          child: Column(
-                            key: ValueKey<int>(tier),
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(ar ? 'قلعة الغرفة • المرحلة $tier من 10'
-                                  : 'Room castle • tier $tier of 10',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w800,
-                                  color: Color(0xFFFFE2A0), fontSize: 12),
-                              ),
-                              const SizedBox(height: 3),
-                              Text(ar ? castleNamesAr[tier - 1]
-                                  : castleNamesEn[tier - 1],
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w900,
-                                  color: Colors.white, fontSize: 17),
-                              ),
-                            ],
-                          ),
-                        )),
+                      ),
+                      child: Column(children: [
+                        Text(ar ? 'قلعة الغرفة · المرحلة $tier من 10'
+                            : 'Room castle · tier $tier of 10',
+                          style: const TextStyle(color: Color(0xFF52755F),
+                            fontSize: 12, fontWeight: FontWeight.w700)),
+                        SizedBox(height: 200, width: double.infinity,
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 300),
+                            child: SizedBox(key: ValueKey<int>(tier),
+                              width: 240, height: 200,
+                              child: RoomCastleArtwork(level: level)),
+                          )),
+                        Text(ar ? castleNamesAr[tier - 1] : castleNamesEn[tier - 1],
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Color(0xFF174E38),
+                            fontSize: 22, fontWeight: FontWeight.w900)),
+                        const SizedBox(height: 6),
+                        Text('LEVEL $level', textDirection: TextDirection.ltr,
+                          style: const TextStyle(color: Color(0xFF8B6827),
+                            letterSpacing: 2, fontSize: 14,
+                            fontWeight: FontWeight.w900)),
                       ]),
                     ),
                     const SizedBox(height: 14),
@@ -330,6 +317,7 @@ class _TasksTabState extends State<_TasksTab> {
             );
           },
         ),
+        const RewardJourneyCard(),
         if (_status?['maxed'] == true)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
@@ -350,7 +338,7 @@ class _TasksTabState extends State<_TasksTab> {
           ),
         Row(children: [
           Expanded(child: Text(
-            ar ? 'مهام موثقة من الخادم' : 'Server-verified missions',
+            ar ? 'ارتقِ بقلعتك' : 'Grow your castle',
             style: Theme.of(context).textTheme.titleMedium,
           )),
           IconButton(
@@ -723,7 +711,53 @@ class RoomCastleArtwork extends StatelessWidget {
             ),
           ),
         ),
-        child: _image(),
+        child: _image(cacheWidth: 512),
+      ),
+    );
+  }
+}
+
+/// Compact identity under the room title; tier tint follows castle progression.
+class RoomCastleBadge extends StatelessWidget {
+  const RoomCastleBadge({required this.level, required this.onTap, super.key});
+  final int level;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final safeLevel = level.clamp(1, roomCastleMaxLevel);
+    final gold = (roomCastleTierForLevel(safeLevel) - 1) / 9;
+    return Semantics(
+      button: true,
+      label: Localizations.localeOf(context).languageCode == 'ar'
+          ? 'قلعة الغرفة، المستوى $safeLevel، افتح المهام'
+          : 'Room castle, level $safeLevel, open missions',
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          constraints: const BoxConstraints(minWidth: 70, minHeight: 32),
+          padding: const EdgeInsetsDirectional.only(start: 3, end: 9),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(colors: [
+              const Color(0xFF123E30),
+              Color.lerp(const Color(0xFF247B58), const Color(0xFF94732B), gold)!,
+            ]),
+            border: Border.all(color: Color.lerp(
+                const Color(0xFF75BB91), const Color(0xFFF1CF7A), gold)!),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Image.asset(roomCastleWebpAssetForLevel(safeLevel),
+              width: 32, height: 32, cacheWidth: 128, fit: BoxFit.contain,
+              errorBuilder: (_, error, stack) => SvgPicture.asset(
+                roomCastleAssetForLevel(safeLevel), width: 32, height: 32)),
+            const SizedBox(width: 4),
+            Text('Lv.$safeLevel', textDirection: TextDirection.ltr,
+              style: const TextStyle(color: Color(0xFFFFE4A6),
+                fontSize: 11, fontWeight: FontWeight.w900)),
+          ]),
+        ),
       ),
     );
   }

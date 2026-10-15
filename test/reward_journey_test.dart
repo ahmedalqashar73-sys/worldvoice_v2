@@ -46,4 +46,21 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining('60 minutes'), findsOneWidget);
   });
+  testWidgets('unavailable rewards stay compact and retry uses server', (tester) async {
+    var attempts = 0;
+    await tester.pumpWidget(MaterialApp(home: Scaffold(body: SingleChildScrollView(
+      child: RewardJourneyCard(loadStatus: () async {
+        attempts++;
+        throw Exception('offline');
+      }),
+    ))));
+    await tester.pumpAndSettle();
+    expect(find.text('Claim gift'), findsNothing);
+    expect(tester.getSize(find.byType(Card)).height, lessThan(130));
+    await tester.tap(find.byTooltip('Retry'));
+    await tester.pumpAndSettle();
+    expect(attempts, 2);
+    expect(tester.takeException(), isNull);
+  });
+
 }

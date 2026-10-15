@@ -147,4 +147,18 @@ void main() {
     }
   });
 
+  testWidgets('castle badge fits a narrow RTL header and opens missions', (tester) async {
+    var opened = false;
+    await tester.pumpWidget(MaterialApp(home: Scaffold(body: Directionality(
+      textDirection: TextDirection.rtl,
+      child: MediaQuery(data: const MediaQueryData(textScaler: TextScaler.linear(1.5)),
+        child: SizedBox(width: 160, child: Align(alignment: Alignment.topRight,
+          child: RoomCastleBadge(level: 50, onTap: () => opened = true)))),
+    ))));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    await tester.tap(find.text('Lv.50'));
+    expect(opened, isTrue);
+  });
+
 }

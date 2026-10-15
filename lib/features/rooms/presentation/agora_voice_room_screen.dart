@@ -2,7 +2,6 @@ import '../../engagement/presentation/creative_badge.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -3656,28 +3655,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                 style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
               const SizedBox(height: 4),
               Wrap(spacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
-                InkWell(onTap: () => _showRoomExtras(initialTab: 0), child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                  decoration: BoxDecoration(color: const Color(0xFFFFCE79),
-                    borderRadius: BorderRadius.circular(12)),
-                  child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    Image.asset(
-                      roomCastleWebpAssetForLevel(_featureState.roomLevel),
-                      cacheWidth: 128,
-                      width: 22, height: 22,
-                      fit: BoxFit.contain,
-                      filterQuality: FilterQuality.medium,
-                      errorBuilder: (context, error, stackTrace) =>
-                          SvgPicture.asset(
-                        roomCastleAssetForLevel(_featureState.roomLevel),
-                        width: 22, height: 22,
-                      ),
-                    ),
-                    Text(' Lv.${_featureState.roomLevel.clamp(1, roomCastleMaxLevel)}',
-                      style: const TextStyle(
-                      color: Color(0xFF603D15), fontSize: 10, fontWeight: FontWeight.w800)),
-                  ]),
-                )),
+                RoomCastleBadge(level: _featureState.roomLevel,
+                  onTap: () => _showRoomExtras(initialTab: 0)),
                 Text((widget.roomLanguageCode ?? 'en').toUpperCase(),
                   style: const TextStyle(color: Colors.white70, fontSize: 10)),
                 Text(_controller.joined

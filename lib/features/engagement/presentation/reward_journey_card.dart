@@ -78,22 +78,48 @@ class _RewardJourneyCardState extends State<RewardJourneyCard> with WidgetsBindi
     final rest = data?['phase'] == 'rest';
     final remaining = _remaining;
     final countdown = '${remaining.inHours}:${(remaining.inMinutes % 60).toString().padLeft(2, '0')}';
+    if (_failed) {
+      return Card(
+        color: const Color(0xFFEAF6EF), elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        child: Padding(padding: const EdgeInsets.all(12), child: Row(children: [
+          const Icon(Icons.card_giftcard_rounded, color: Color(0xFF98742D)),
+          const SizedBox(width: 10),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(ar ? 'هدايا الحضور' : 'Attendance gifts',
+                style: const TextStyle(color: Color(0xFF145840), fontWeight: FontWeight.w800)),
+              Text(ar ? 'تعذّر تحميل المكافآت. أعد المحاولة.'
+                  : 'Could not load rewards. Try again.',
+                style: const TextStyle(color: Color(0xFF52755F), fontSize: 12)),
+            ])),
+          IconButton(onPressed: _busy ? null : _load,
+            tooltip: ar ? 'إعادة المحاولة' : 'Retry',
+            icon: const Icon(Icons.refresh_rounded, color: Color(0xFF147A50))),
+        ])),
+      );
+    }
     return Card(color: const Color(0xFFEAF6EF), margin: const EdgeInsets.symmetric(vertical: 10),
       child: Padding(padding: const EdgeInsets.all(16), child: Column(
         crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(ar ? 'رحلة المكافآت' : 'Reward journey', style: const TextStyle(
+          Text(ar ? 'هدايا الحضور' : 'Attendance gifts', style: const TextStyle(
             color: Color(0xFF145840), fontSize: 19, fontWeight: FontWeight.w800)),
           const SizedBox(height: 8),
           Text(ar ? '٣ أيام هدايا، ثم يوم راحة' : '3 reward days, then 1 rest day',
             style: const TextStyle(color: Color(0xFF245C49))),
-          if (_failed) ...[
-            Text(ar ? 'المكافآت غير متاحة الآن. حاول لاحقًا.' : 'Rewards are unavailable. Try again later.',
-              style: const TextStyle(color: Color(0xFF245C49))),
-            TextButton(onPressed: _busy ? null : _load, child: Text(ar ? 'إعادة المحاولة' : 'Retry')),
-          ] else if (data == null) const LinearProgressIndicator()
+          if (data == null) const LinearProgressIndicator()
           else ...[
             const SizedBox(height: 12),
-            Row(children: List.generate(4, (index) => Expanded(child: Column(children: [
+            Row(children: List.generate(4, (index) => Expanded(child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 3),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                color: index < claimed ? const Color(0xFFD5EADD) : const Color(0xFFF5F8F1),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: index < claimed
+                  ? const Color(0xFF83B99B) : const Color(0xFFE5DDBF)),
+              ),
+              child: Column(children: [
               Icon(index == 3 ? Icons.nights_stay_outlined
                 : index < claimed ? Icons.check_circle : Icons.card_giftcard,
                 color: index < claimed || (index == 3 && rest)
@@ -101,7 +127,7 @@ class _RewardJourneyCardState extends State<RewardJourneyCard> with WidgetsBindi
               Text(index == 3 ? (ar ? 'راحة' : 'Rest') : (ar ? 'اليوم ${index + 1}' : 'Day ${index + 1}'),
                 style: const TextStyle(color: Color(0xFF245C49))),
               if (index < 3) Text('×${index + 1}', style: const TextStyle(color: Color(0xFF245C49))),
-            ])))),
+            ]))))),
             const SizedBox(height: 12),
             Text(ar ? 'هدايا مجانية في الحقيبة؛ ليست رصيد كوينز.' : 'Free gifts in your bag, not wallet coins.',
               style: const TextStyle(color: Color(0xFF245C49))),
