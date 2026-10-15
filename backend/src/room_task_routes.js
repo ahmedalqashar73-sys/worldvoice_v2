@@ -18,6 +18,41 @@ function roomTaskId(key, uid, day) {
   const period = (key === "ten_minutes" || key === "stay_hours") ? day : "once";
   return `${key}_${uid}_${period}`;
 }
+// Host achievement requires only FIVE verified guests. Read recent attendance
+// in bounded pages, newest first, instead of fetching up to 1,000 membership
+// records on every presence heartbeat. Invalid/kicked accounts are skipped;
+// later pages are checked to avoid false negatives when early rows are stale.
+async function hasFiveVerifiedGuests(tx, roomRef, hostId, now) {
+  const baseQuery = roomRef.collection("task_attendance")
+    .where("lastSeenMs", ">=", now - 90000)
+    .orderBy("lastSeenMs", "desc");
+  const pageLimit = 25;
+  const maxScanned = 1000;
+  let scanned = 0;
+  let cursor = null;
+  let validGuests = 0;
+  while (scanned < maxScanned && validGuests < 5) {
+    const limit = Math.min(pageLimit, maxScanned - scanned);
+    const query = cursor ? baseQuery.startAfter(cursor).limit(limit)
+      : baseQuery.limit(limit);
+    const results = await tx.get(query);
+    if (results.empty) break;
+    const participants = await Promise.all(results.docs.map(doc =>
+      tx.get(roomRef.collection("participants").doc(doc.id))));
+    for (let index = 0; index < results.docs.length; index++) {
+      const entry = results.docs[index];
+      if (entry.id !== hostId && isCurrentTaskMember(
+        participants[index].data(), entry.data(), now)) {
+        validGuests++;
+      }
+    }
+    scanned += results.size;
+    if (results.size < limit) break;
+    cursor = results.docs[results.docs.length - 1];
+  }
+  return validGuests >= 5;
+}
+
 // Only this authenticated endpoint writes attendance; Firestore's existing
 // default-deny rule already protects task_attendance from every client.
 app.post("/room/tasks/heartbeat", async (req, res, next) => {
@@ -48,14 +83,9 @@ app.post("/room/tasks/heartbeat", async (req, res, next) => {
       const activeCycle = cycle.exists && cycleView(cycleState, now).startDay === cycleState.startDay &&
         cycleView(cycleState, now).day <= 3;
       if (activeCycle && room.data()?.hostId === user.uid && !cycleState.hostedFive) {
-        const observed = await tx.get(roomRef.collection("task_attendance")
-          .where("lastSeenMs", ">=", now - 90000).limit(1000));
-        const memberships = await Promise.all(observed.docs.map(doc =>
-          tx.get(roomRef.collection("participants").doc(doc.id))));
-        const guests = memberships.filter((doc, i) => doc.id !== user.uid &&
-          isCurrentTaskMember(doc.data(), observed.docs[i].data(), now));
+        const hasFive = await hasFiveVerifiedGuests(tx, roomRef, user.uid, now);
         const view = cycleView(cycleState, now);
-        if (guests.length >= 5 && cycleState.startDay === view.startDay && view.day <= 3) {
+        if (hasFive && cycleState.startDay === view.startDay && view.day <= 3) {
           cycleState = {...cycleState, hostedFive: true};
         }
       }
