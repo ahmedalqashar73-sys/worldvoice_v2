@@ -83,14 +83,47 @@ Future<bool> _requestLiveCameraPermission() async {
 /// Phase 1 deliberately keeps the existing voice-room implementation isolated:
 /// Live is video-first and has no seats. The camera publishing screen is wired
 /// separately so room audio behavior cannot regress.
-class LiveScreen extends StatelessWidget {
+class LiveScreen extends StatefulWidget {
   const LiveScreen({required this.localeController, super.key});
 
   final LocaleController localeController;
 
   @override
+  State<LiveScreen> createState() => _LiveScreenState();
+}
+
+class _LiveScreenState extends State<LiveScreen> {
+  String _selectedLanguage = 'all';
+  List<String> _languages = ['ar', 'en'];
+  late final Stream<QuerySnapshot<Map<String, dynamic>>> _sessions =
+      LiveSessionService().watchOpen();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLanguages();
+  }
+
+  Future<void> _loadLanguages() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+    try {
+      final profile = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      final data = profile.data();
+      final learning = data?['learningLanguageCodes'];
+      final codes = <String>{'ar', 'en',
+        if (data?['nativeLanguageCode'] is String) data!['nativeLanguageCode'] as String,
+        if (learning is List) ...learning.map((value) => value.toString()),
+      }.where((code) => ProfileLanguageCatalog.byCode(code) != null).toList();
+      if (mounted) setState(() => _languages = codes);
+    } catch (_) {
+      // Basic language filters remain available while the profile is offline.
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final language = localeController.locale?.languageCode ??
+    final language = widget.localeController.locale?.languageCode ??
         Localizations.localeOf(context).languageCode;
     final ar = language == 'ar';
     final rtl = const {'ar', 'ur', 'fa'}.contains(language);
@@ -98,10 +131,25 @@ class LiveScreen extends StatelessWidget {
     return Directionality(
       textDirection: rtl ? TextDirection.rtl : TextDirection.ltr,
       child: ColoredBox(
-        color: const Color(0xFFF6FAF8),
+        color: Theme.of(context).scaffoldBackgroundColor,
         child: ListView(
           padding: const EdgeInsets.fromLTRB(18, 18, 18, 28),
           children: [
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(children: [
+                for (final code in ['all', ..._languages])
+                  Padding(
+                    padding: const EdgeInsetsDirectional.only(end: 8),
+                    child: ChoiceChip(
+                      selected: _selectedLanguage == code,
+                      label: Text(code == 'all' ? 'All' : ProfileLanguageCatalog.label(code)),
+                      onSelected: (_) => setState(() => _selectedLanguage = code),
+                    ),
+                  ),
+              ]),
+            ),
+            const SizedBox(height: 14),
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -170,12 +218,16 @@ class LiveScreen extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-              stream: LiveSessionService().watchOpen(),
+              stream: _sessions,
               builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Text(ar ? 'تعذر تحميل البثوث. تحقق من الاتصال.' : 'Could not load live sessions. Check your connection.');
+                }
                 final rawDocs = snapshot.data?.docs ??
                     const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
                 final docs = rawDocs
-                    .where((doc) => LiveSessionService.isFresh(doc.data()))
+                    .where((doc) => LiveSessionService.isFresh(doc.data()) &&
+                        (_selectedLanguage == 'all' || doc.data()['languageCode'] == _selectedLanguage))
                     .toList(growable: false);
                 if (snapshot.connectionState == ConnectionState.waiting &&
                     !snapshot.hasData) {
@@ -185,7 +237,7 @@ class LiveScreen extends StatelessWidget {
                   return Container(
                     padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.surface,
                       borderRadius: BorderRadius.circular(18),
                     ),
                     child: Text(ar
@@ -443,6 +495,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
         role: AgoraRoomRole.speaker,
         previewCamera: true,
       );
+      if (!mounted) { await _controller.leave(); return; }
       final engine = _controller.engine;
       if (engine == null || !_controller.joined) {
         throw StateError(_controller.error ?? 'Could not start Live.');
@@ -458,8 +511,12 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
         hostAgoraUid: hostAgoraUid,
         topic: _resolvedTopic,
       );
+      if (!mounted) {
+        await _liveService.end(_liveId!);
+        await _controller.leave();
+        return;
+      }
       _startHeartbeat();
-      if (!mounted) return;
       setState(() {
         _cameraReady = true;
         _starting = false;
@@ -467,9 +524,11 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
         _cameraStartError = null;
       });
     } catch (error) {
+      await _controller.leave();
       if (!mounted) return;
       setState(() {
         _starting = false;
+        _previewReady = false;
         _cameraStartError = error.toString();
       });
     }
@@ -904,7 +963,9 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                       children: [
                         _LiveVideoGrid(children: tiles),
                         if (_boardOpen && _liveId != null)
-                          Positioned.fill(
+                          Positioned(
+                            left: 12, right: 12, top: 110,
+                            height: MediaQuery.sizeOf(context).height * .5,
                             child: RoomBoardScreen(
                               roomId: _liveId!,
                               parentCollection: 'live_sessions',
@@ -913,32 +974,6 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                               agoraController: _controller,
                               embedded: true,
                               onClose: () => setState(() => _boardOpen = false),
-                            ),
-                          ),
-                        if (_boardOpen && _controller.engine != null)
-                          PositionedDirectional(
-                            top: 58,
-                            end: 12,
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(16),
-                              child: SizedBox(
-                                width: 110,
-                                height: 150,
-                                child: _cameraPaused
-                                    ? const ColoredBox(
-                                        color: Colors.black,
-                                        child: Icon(
-                                          Icons.videocam_off_rounded,
-                                          color: Colors.white70,
-                                        ),
-                                      )
-                                    : AgoraVideoView(
-                                        controller: VideoViewController(
-                                          rtcEngine: _controller.engine!,
-                                          canvas: const VideoCanvas(uid: 0),
-                                        ),
-                                      ),
-                              ),
                             ),
                           ),
                         Positioned.fill(
@@ -1244,11 +1279,10 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
 class _LiveControlDock extends StatelessWidget {
   const _LiveControlDock({
     required this.children,
-    this.padding = const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
   });
 
   final List<Widget> children;
-  final EdgeInsetsGeometry padding;
+  final EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 10, vertical: 8);
 
   @override
   Widget build(BuildContext context) {
@@ -1297,6 +1331,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   final AgoraVoiceRoomController _controller = AgoraVoiceRoomController();
   final LiveSessionService _service = LiveSessionService();
   bool _joining = true;
+  String? _joinError;
   bool _requested = false;
   bool _guestPublishing = false;
   bool _hostSeen = false;
@@ -1377,19 +1412,25 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   }
 
   Future<void> _join() async {
+    if (mounted) setState(() { _joining = true; _joinError = null; });
     var countedViewer = false;
     try {
       await _service.enterViewer(widget.liveId);
       countedViewer = true;
+      if (!mounted) {
+        await _service.leaveViewer(widget.liveId);
+        return;
+      }
       await _controller.ensureConnected(
         channelId: widget.liveId,
         role: AgoraRoomRole.listener,
       );
-    } catch (_) {
+    } catch (error) {
+      await _controller.leave();
+      if (mounted) _joinError = error.toString();
       if (countedViewer) {
         await _service.leaveViewer(widget.liveId).catchError((Object _) {});
       }
-      rethrow;
     } finally {
       if (mounted) setState(() => _joining = false);
     }
@@ -1443,7 +1484,13 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
       body: SafeArea(
         child: _joining
             ? const Center(child: CircularProgressIndicator())
-            : AnimatedBuilder(
+            : _joinError != null
+                ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    Text(widget.ar ? 'تعذر الاتصال بالبث' : 'Could not connect to Live', style: const TextStyle(color: Colors.white)),
+                    FilledButton(onPressed: _join, child: Text(widget.ar ? 'إعادة المحاولة' : 'Retry')),
+                    TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(widget.ar ? 'رجوع' : 'Back')),
+                  ]))
+                : AnimatedBuilder(
                 animation: _controller,
                 builder: (context, _) {
                   final remote = _controller.remoteSpeakers;
@@ -1498,7 +1545,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                               color: Colors.white54, size: 72),
                         ),
                       if (_boardOpen)
-                        Positioned.fill(
+                        Positioned(
+                          left: 12, right: 12, top: 110,
+                          height: MediaQuery.sizeOf(context).height * .5,
                           child: RoomBoardScreen(
                             roomId: widget.liveId,
                             parentCollection: 'live_sessions',
@@ -1508,26 +1557,6 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                             agoraController: _controller,
                             embedded: true,
                             onClose: () => setState(() => _boardOpen = false),
-                          ),
-                        ),
-                      if (_boardOpen && engine != null && remote.isNotEmpty)
-                        PositionedDirectional(
-                          top: 58,
-                          end: 12,
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: SizedBox(
-                              width: 110,
-                              height: 150,
-                              child: AgoraVideoView(
-                                controller: VideoViewController.remote(
-                                  rtcEngine: engine,
-                                  canvas: VideoCanvas(uid: remote.first),
-                                  connection:
-                                      RtcConnection(channelId: widget.liveId),
-                                ),
-                              ),
-                            ),
                           ),
                         ),
                       Positioned.fill(
@@ -2476,7 +2505,7 @@ Future<void> _showLiveCameraTools(
       builder: (sheetContext, refresh) => SafeArea(
         child: ConstrainedBox(
           constraints: BoxConstraints(
-            maxHeight: MediaQuery.sizeOf(sheetContext).height * .82,
+            maxHeight: MediaQuery.sizeOf(sheetContext).height * .45,
           ),
           child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
