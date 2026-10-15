@@ -45,7 +45,9 @@ app.post("/room/tasks/heartbeat", async (req, res, next) => {
       const delta = prior.data()?.day === next.day
         ? Math.max(0, next.activeMs - (prior.data()?.activeMs ?? 0)) : 0;
       let cycleState = cycle.data();
-      if (cycle.exists && room.data()?.hostId === user.uid && !cycleState.hostedFive) {
+      const activeCycle = cycle.exists && cycleView(cycleState, now).startDay === cycleState.startDay &&
+        cycleView(cycleState, now).day <= 3;
+      if (activeCycle && room.data()?.hostId === user.uid && !cycleState.hostedFive) {
         const observed = await tx.get(roomRef.collection("task_attendance")
           .where("lastSeenMs", ">=", now - 90000).limit(1000));
         const memberships = await Promise.all(observed.docs.map(doc =>
@@ -58,7 +60,7 @@ app.post("/room/tasks/heartbeat", async (req, res, next) => {
         }
       }
       tx.set(attendanceRef, next);
-      if (cycle.exists) tx.set(cycleRef, addCyclePresence(cycleState, delta, now));
+      if (activeCycle) tx.set(cycleRef, addCyclePresence(cycleState, delta, now));
     });
     return res.json({ok: true});
   } catch (error) { next(error); }

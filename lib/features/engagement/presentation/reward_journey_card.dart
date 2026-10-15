@@ -20,7 +20,10 @@ class _RewardJourneyCardState extends State<RewardJourneyCard> with WidgetsBindi
   void initState() {
     super.initState(); WidgetsBinding.instance.addObserver(this); _load();
     _timer = Timer.periodic(const Duration(minutes: 1), (_) {
-      if (!mounted || _data == null) return;
+      if (!mounted || _data == null ||
+          WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {
+        return;
+      }
       if (_remaining.inSeconds <= 0) { _load(); } else { setState(() {}); }
     });
   }
@@ -61,8 +64,10 @@ class _RewardJourneyCardState extends State<RewardJourneyCard> with WidgetsBindi
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(ar
         ? 'هدية الدورة وصلت إلى حقيبتك' : 'Your reward is in your gift bag')));
     } catch (_) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(ar
-        ? 'تعذر الاستلام. حدّث الحالة وحاول مرة أخرى.' : 'Unable to claim. Refresh and try again.')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(ar
+          ? 'تعذر الاستلام. حدّث الحالة وحاول مرة أخرى.' : 'Unable to claim. Refresh and try again.')));
+      }
     } finally { if (mounted) { setState(() => _busy = false); await _load(); } }
   }
   @override
