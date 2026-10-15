@@ -82,6 +82,10 @@ test('room mission routes: emulator transactions and replay safety',
       await batch.commit();
       for (let i = 0; i < 5; i++) await join(room, `late-guest-${i}`);
       assert.equal((await call('heartbeat', roomId)).status, 200);
+      const status = await call('status', roomId);
+      assert.equal(status.status, 200);
+      assert.equal(status.body.progress.guestCount, 5);
+      assert.equal(status.body.missions.find(task => task.key === 'host_five').eligible, true);
       const result = (await cycle.get()).data();
       assert.equal(result.hostedFive, true);
       assert.equal(result.creativeCycles, 1);
