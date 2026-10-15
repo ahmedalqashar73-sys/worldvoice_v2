@@ -1,28 +1,44 @@
-# WorldVoice: 10 castle WebP assets installation
+# WorldVoice — Castle WebP assets: integration status (2026-10-15)
 
-The Flutter feature branch already uses `roomCastleWebpAssetForLevel(level)` in `lib/features/rooms/data/room_feature_models.dart` and `Image.asset(..., errorBuilder: SvgPicture.asset(...))` in `room_extras_sheet.dart`. The existing SVG art is a fallback.
+**The ten original 512×512 transparent WebP castles are already committed to this branch. Do not manually install or reupload the ZIP.** Their checksums and filenames are recorded in `assets/castles/castle_manifest.json`. The previous ZIP-install instructions are obsolete.
 
-**The binary WebP images are supplied separately in `WorldVoice_Castles_Install_10.zip` in the conversation.** This document does not mean those binary assets have been committed to GitHub.
+## Integrated paths and behavior
 
-1. Save local changes before switching branches.
-2. `git fetch origin` then `git switch feature/scalable-progress-foundation`.
-3. Extract the ZIP and run `install_castles.ps1 -ProjectPath <your-local-worldvoice_v2-folder>`.
-4. Check `git status`: the 10 new WebP files should appear under `assets/castles/`.
-5. Run `flutter pub get`, `flutter analyze`, then `flutter run`.
-6. Verify castle tiers 1–5, 6–10, ... 46–50; the UI must use actual WebP, not the SVG fallback.
-7. Commit the ten assets on the feature branch only after visual inspection.
+- `assets/castles/castle_01_lv01-05.webp` through `castle_10_lv46-50.webp`.
+- `pubspec.yaml` includes `assets/castles/`.
+- `roomCastleWebpAssetForLevel(level)` selects the file for every five-level tier.
+- Existing SVG artwork remains a fallback if a WebP fails to load.
+- Room castle artwork is visible in the room header and the task sheet, with an enlarged preview.
+- `scripts/verify_castle_assets.py --require-webp` checks all ten files against the manifest during CI.
 
-## Mission/progression checks
+## Progression and economy
 
-- Room starts at level 1 with `0 / 300 XP` when its authoritative total XP is zero.
-- XP required for levels 1,2,3,4,5 is 300,400,700,1000,1300.
-- Every five levels selects the next castle asset.
-- Claims use the backend `claimVerifiedTask` endpoint; no client-authoritative XP or coins.
-- Old room data and deployed backend must be reviewed for progression migration before rollout.
-- Do not merge, deploy, or grant paid-coin rewards solely because castle visuals display correctly.
+- 50 room levels and ten castle looks; initial room: level 1, 0/300 XP.
+- Per-level XP: 300, 400, 700, 1000, then +300 XP per further level.
+- Firestore documents retain progress and must be versioned; client-side XP and economic rewards are never trusted.
+- Legacy progress requires server-authoritative migration and review of real room records.
+- XP rewards and castle milestones are non-monetary. No coin minting or paid gift grants.
 
-## Runtime and security
+## Current validation and deployment boundary
 
-- No database schema migration is needed to display these WebP assets.
-- No production Firebase, Render, or App Distribution changes are part of asset installation.
-- For future scale, keep task writes server-authoritative, idempotent, and avoid hot room documents.
+- Validate WorldVoice runs Flutter analysis/tests, backend tests, Firestore emulator and APK build.
+- The APK is published to GitHub Actions as `WorldVoice-castles-development-apk`.
+- The APK points at the currently deployed `worldvoice-v2.onrender.com` server. **That production service uses an older Git branch**. The new task/engagement endpoints therefore cannot be considered available in production simply because the APK builds.
+- This branch is not merged into `main`. No Render/Firebase deployment or migration is implied.
+- Before enabling live XP claims, check existing production data, apply a staged deployment/rollback plan, and test with two phones.
+
+## Downloading and testing the APK
+
+Open the successful GitHub Actions run of **Validate WorldVoice**, select **WorldVoice-castles-development-apk** under Artifacts, extract `app-debug.apk`, and install on an Android test device.
+
+For local source tests (optional):
+
+```powershell
+git fetch origin
+git switch feature/scalable-progress-foundation
+flutter pub get
+flutter analyze
+flutter run
+```
+
+Do not run the local branch switch when `git status` reports uncommitted work without saving it first.
