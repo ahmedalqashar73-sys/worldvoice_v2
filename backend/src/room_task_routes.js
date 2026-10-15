@@ -53,6 +53,42 @@ async function hasFiveVerifiedGuests(tx, roomRef, hostId, now) {
   return validGuests >= 5;
 }
 
+// Room task status is frequently refreshed by clients. Stop after finding
+// the five verified guests needed by the host mission rather than reading up
+// to 1,000 membership documents on every refresh. Pagination handles stale
+// attendance entries preceding active guests without trusting client counts.
+async function countVerifiedGuestsForStatus(db, roomRef, hostId, now) {
+  const baseQuery = roomRef.collection("task_attendance")
+    .where("lastSeenMs", ">=", now - 90000)
+    .orderBy("lastSeenMs", "desc");
+  const pageSize = 25;
+  const maxScanned = 1000;
+  let cursor = null;
+  let scanned = 0;
+  let valid = 0;
+  while (valid < 5 && scanned < maxScanned) {
+    const limit = Math.min(pageSize, maxScanned - scanned);
+    const query = cursor ? baseQuery.startAfter(cursor).limit(limit)
+      : baseQuery.limit(limit);
+    const page = await query.get();
+    if (page.empty) break;
+    const members = await db.getAll(...page.docs.map(doc =>
+      roomRef.collection("participants").doc(doc.id)));
+    for (let index = 0; index < page.docs.length; index++) {
+      const attendance = page.docs[index];
+      if (attendance.id !== hostId &&
+          isCurrentTaskMember(members[index].data(), attendance.data(), now)) {
+        valid++;
+        if (valid >= 5) break;
+      }
+    }
+    scanned += page.size;
+    if (page.size < limit) break;
+    cursor = page.docs[page.docs.length - 1];
+  }
+  return Math.min(5, valid);
+}
+
 // Only this authenticated endpoint writes attendance; Firestore's existing
 // default-deny rule already protects task_attendance from every client.
 app.post("/room/tasks/heartbeat", async (req, res, next) => {
@@ -108,13 +144,10 @@ app.get("/room/tasks/status", async (req, res, next) => {
     const now = Date.now();
     const day = roomTaskDay(now);
     const room = await roomRef.get();
-    const [participant, attendance, members, gifts, config, ...completions] =
+    const [participant, attendance, gifts, config, ...completions] =
       await Promise.all([
         participantRef.get(),
         roomRef.collection("task_attendance").doc(user.uid).get(),
-        room.data()?.hostId === user.uid ? roomRef.collection("task_attendance")
-          .where("lastSeenMs", ">=", now - 90000).limit(1000).get()
-          : Promise.resolve({empty: true, docs: []}),
         roomRef.collection("gifts").where("senderId", "==", user.uid)
           .limit(3).get(),
         db.doc("room_task_config/current").get(),
@@ -125,15 +158,8 @@ app.get("/room/tasks/status", async (req, res, next) => {
     if (!room.exists || room.data()?.isOpen !== true || !participant.exists || participant.data()?.kicked === true) {
       return res.status(403).json({error: "Join an open room to view its tasks."});
     }
-    const liveMemberships = members.empty ? [] : await db.getAll(
-      ...members.docs.map(doc => roomRef.collection("participants").doc(doc.id)));
-    const observed = new Map(members.docs.map(doc => [doc.id, doc.data()]));
-    const activeIds = new Set(liveMemberships.filter(doc =>
-      isCurrentTaskMember(doc.data(), observed.get(doc.id), now)).map(doc => doc.id));
-    const isHost = room.data()?.hostId === user.uid;
-    const guestCount = isHost ?
-      members.docs.filter(doc => activeIds.has(doc.id) && doc.id !== user.uid &&
-        verifiedRoomMinutes(doc.data(), now) !== null).length : 0;
+    const guestCount = room.data()?.hostId === user.uid
+      ? await countVerifiedGuestsForStatus(db, roomRef, user.uid, now) : 0;
     const currentMember = isCurrentTaskMember(participant.data(), attendance.data(), now);
     const minutes = currentMember ? verifiedRoomMinutes(attendance.data(), now) : 0;
     const progress = {minutes, guestCount, giftsSent: gifts.size};
