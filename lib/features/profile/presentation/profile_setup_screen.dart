@@ -82,18 +82,20 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       return;
     }
     if (!mounted) return;
-    if (data == null) {
+    // A final local retains Dart null promotion inside the setState callback.
+    final loadedData = data;
+    if (loadedData == null) {
       setState(() => profileLoading = false);
       return;
     }
 
-    final storedCodes = (data['learningLanguageCodes'] as List?)
+    final storedCodes = (loadedData['learningLanguageCodes'] as List?)
             ?.map((e) => e.toString())
             .toList() ?? const <String>[];
     // Preserve profiles created before ISO language codes were stored.
     final learningCodes = storedCodes.isNotEmpty
         ? storedCodes
-        : ((data['learningLanguages'] as List?) ?? const [])
+        : ((loadedData['learningLanguages'] as List?) ?? const [])
             .map((entry) {
               final saved = entry.toString();
               for (final language in ProfileLanguageCatalog.languages) {
@@ -104,40 +106,40 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               }
               return saved;
             }).toList();
-    final hobbies = (data['interests'] as List?)
+    final hobbies = (loadedData['interests'] as List?)
             ?.map((e) => e.toString())
             .toList() ??
         const <String>[];
-    final birth = data['birthDate'];
+    final birth = loadedData['birthDate'];
 
     setState(() {
-      name.text = (data['displayName'] ?? '').toString();
-      username.text = (data['username'] ?? '').toString();
-      bio.text = (data['bio'] ?? '').toString();
-      city.text = (data['city'] ?? '').toString();
-      profession.text = (data['profession'] ?? '').toString();
-      travel.text = (data['travel'] ?? '').toString();
-      goals.text = (data['learningGoals'] ?? '').toString();
-      country = data['country'] as String?;
-      gender = data['gender'] as String?;
-      nativeLanguage = data['nativeLanguageCode'] as String?;
+      name.text = (loadedData['displayName'] ?? '').toString();
+      username.text = (loadedData['username'] ?? '').toString();
+      bio.text = (loadedData['bio'] ?? '').toString();
+      city.text = (loadedData['city'] ?? '').toString();
+      profession.text = (loadedData['profession'] ?? '').toString();
+      travel.text = (loadedData['travel'] ?? '').toString();
+      goals.text = (loadedData['learningGoals'] ?? '').toString();
+      country = loadedData['country'] as String?;
+      gender = loadedData['gender'] as String?;
+      nativeLanguage = loadedData['nativeLanguageCode'] as String?;
       learningLanguages
         ..clear()
         ..addAll(learningCodes);
-      vipLearningEnabled = data['isVip'] == true ||
-          (data['vipTier']?.toString().isNotEmpty == true &&
-           data['vipTier']?.toString() != 'none');
-      professionKey = data['professionKey'] as String?;
+      vipLearningEnabled = loadedData['isVip'] == true ||
+          (loadedData['vipTier']?.toString().isNotEmpty == true &&
+           loadedData['vipTier']?.toString() != 'none');
+      professionKey = loadedData['professionKey'] as String?;
       languageLevel =
-          (data['languageLevel'] as String?)?.isNotEmpty == true
-              ? data['languageLevel'] as String
+          (loadedData['languageLevel'] as String?)?.isNotEmpty == true
+              ? loadedData['languageLevel'] as String
               : 'beginner';
       birthDate = birth is Timestamp ? birth.toDate() : null;
-      photoUrl = data['photoUrl'] as String?;
-      photoPublicId = data['photoPublicId'] as String?;
-      coverUrl = data['coverUrl'] as String?;
-      coverPublicId = data['coverPublicId'] as String?;
-      voiceBioUrl = data['voiceBioUrl'] as String?;
+      photoUrl = loadedData['photoUrl'] as String?;
+      photoPublicId = loadedData['photoPublicId'] as String?;
+      coverUrl = loadedData['coverUrl'] as String?;
+      coverPublicId = loadedData['coverPublicId'] as String?;
+      voiceBioUrl = loadedData['voiceBioUrl'] as String?;
       selectedHobbies
         ..clear()
         ..addAll(hobbies);
