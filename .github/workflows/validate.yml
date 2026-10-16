@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches: [main, fix/finish-room-hub-quiz-gift-20260928, release/room-tasks-v3-render-20261016]
+    branches: [main, fix/finish-room-hub-quiz-gift-20260928, release/room-tasks-v3-render-20261016, release/worldvoice-games-backend-20261017]
   workflow_dispatch:
 
 jobs:

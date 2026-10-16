@@ -315,3 +315,34 @@ test('verified room members can show rate-limited free gift demos without mintin
   await assertFails(setDoc(doc(host, 'rooms/r1/gifts/fake-gift'),
     {senderId: 'host', giftId: 'classic_royal_rose', points: 1000}));
 });
+
+test('language game secrets, answers, game scores and free quotas are backend-only', async () => {
+  const users = [user('host'), user('listener'), user('other')];
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const admin = ctx.firestore();
+    await setDoc(doc(admin, 'rooms/r1/private_games/current'),
+      {sessionId: 'secret-round', endAtMs: 1800000000000});
+    await setDoc(doc(admin, 'rooms/r1/private_games/secret-round'),
+      {questions: [{answer: 'library', clue: 'A place with books'}]});
+    await setDoc(doc(admin,
+      'rooms/r1/private_games/secret-round/answers/listener_0'),
+      {uid: 'listener', correct: true});
+    await setDoc(doc(admin,
+      'rooms/r1/private_games/secret-round/scores/listener'),
+      {points: 10});
+    await setDoc(doc(admin, 'users/host/game_usage/2026-10-17_guess'),
+      {count: 5});
+  });
+  for (const db of users) {
+    for (const path of [
+      'rooms/r1/private_games/current',
+      'rooms/r1/private_games/secret-round',
+      'rooms/r1/private_games/secret-round/answers/listener_0',
+      'rooms/r1/private_games/secret-round/scores/listener',
+      'users/host/game_usage/2026-10-17_guess',
+    ]) {
+      await assertFails(getDoc(doc(db, path)));
+      await assertFails(setDoc(doc(db, path), {points: 999, count: 0}));
+    }
+  }
+});

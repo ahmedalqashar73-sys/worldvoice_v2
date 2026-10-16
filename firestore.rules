@@ -261,6 +261,9 @@ service cloud.firestore {
             && request.auth.uid == userId;
       }
 
+      match /game_usage/{dayAndMode} {
+        allow read, write: if false;
+      }
       match /room_usage/{dayKey} {
         allow read: if signedIn() && request.auth.uid == userId;
 
@@ -925,6 +928,11 @@ service cloud.firestore {
 
       // Correct answers for server-created rounds are never exposed to
       // clients, including the room host. Admin SDK alone writes these.
+      match /private_games/{sessionId} {
+        allow read, write: if false;
+        match /answers/{answerId} { allow read, write: if false; }
+        match /scores/{playerId} { allow read, write: if false; }
+      }
       match /quiz_private/{quizId} {
         allow read, write: if false;
       }
