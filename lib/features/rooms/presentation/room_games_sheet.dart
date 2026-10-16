@@ -6,9 +6,10 @@ import '../services/room_quiz_service.dart';
 /// Five-word language games: host selects one level for everyone.
 /// Server enforces quotas and stage eligibility; listeners can play Vocabulary.
 class RoomGamesSheet extends StatefulWidget {
-  const RoomGamesSheet({required this.roomId, required this.isHost, super.key});
+  const RoomGamesSheet({required this.roomId, required this.isHost, this.service, super.key});
   final String roomId;
   final bool isHost;
+  final RoomGamesService? service;
   @override
   State<RoomGamesSheet> createState() => _RoomGamesSheetState();
 }
@@ -28,9 +29,9 @@ class _RoomGamesSheetState extends State<RoomGamesSheet> {
   @override
   void initState() {
     super.initState();
-    _service = RoomGamesService(roomId: widget.roomId);
+    _service = widget.service ?? RoomGamesService(roomId: widget.roomId);
     unawaited(_load());
-    _poll = Timer.periodic(const Duration(seconds: 3),
+    _poll = Timer.periodic(const Duration(seconds: 5),
       (_) => unawaited(_load(silent: true)));
     _tick = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted && _data?['active'] == true) setState(() {});
