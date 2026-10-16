@@ -85,6 +85,11 @@ class _RoomGamesSheetState extends State<RoomGamesSheet> {
     setState(() { _busy = true; _error = null; });
     try {
       await _service.start(mode: _mode, level: _level, language: _language);
+      // Game questions are shown inside the room, not in this large modal.
+      // Return to the eight seats immediately after starting successfully.
+      if (mounted && Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
     } catch (error) {
       if (mounted) {
         setState(() =>
