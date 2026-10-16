@@ -1,4 +1,3 @@
-import '../../engagement/presentation/reward_journey_card.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -103,7 +102,14 @@ class _TasksTabState extends State<_TasksTab> {
       if (mounted) {
         setState(() {
           _status = null;
-          _error = error.toString().replaceFirst('Bad state: ', '');
+          final raw = error.toString();
+          final ar = Localizations.localeOf(context).languageCode == 'ar';
+          _error = raw.contains('TimeoutException') ||
+                  raw.contains('ROOM_TASK_BACKEND_TIMEOUT')
+              ? (ar
+                  ? 'خادم المهام لا يستجيب الآن. يجب نشر الباك إند الجديد قبل تفعيل المكافآت.'
+                  : 'Mission server unavailable. Deploy the updated backend first.')
+              : raw.replaceFirst('Bad state: ', '').replaceFirst('StateError: ', '');
         });
       }
     } finally {
@@ -145,7 +151,7 @@ class _TasksTabState extends State<_TasksTab> {
   @override
   Widget build(BuildContext context) {
     final ar = Localizations.localeOf(context).languageCode == 'ar';
-    const taskKeys = ['ten_minutes', 'host_five', 'three_gifts', 'stay_hours'];
+    const taskKeys = ['ten_minutes', 'host_five', 'stage_ten', 'stay_hours'];
     final rawMissions = _status?['missions'];
     final missions = rawMissions is List
         ? rawMissions.whereType<Map>()
@@ -165,7 +171,8 @@ class _TasksTabState extends State<_TasksTab> {
         StreamBuilder<RoomFeatureState>(
           stream: _roomStateStream,
           builder: (context, snapshot) {
-            final xp = snapshot.data?.roomXp ?? 0;
+            final xp = (_status?['xp'] as num?)?.toInt() ??
+                snapshot.data?.roomXp ?? 0;
             final level = roomLevelFromXp(xp);
             final currentLevelXp = (xp - roomXpThresholdForLevel(level))
                 .clamp(0, roomXpRequiredForLevel(level));
@@ -184,33 +191,25 @@ class _TasksTabState extends State<_TasksTab> {
               'Dragon Castle', 'Sky Castle',
               'Imperial Castle', 'Legendary Castle',
             ];
-            return Card(
-              clipBehavior: Clip.antiAlias,
-              color: const Color(0xFFEAF5EF),
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                side: const BorderSide(color: Color(0xFFCEE7D8)),
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Column(
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 14),
+              child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     DecoratedBox(
                       decoration: BoxDecoration(
                         gradient: RadialGradient(
                           colors: [
-                            Color.lerp(const Color(0xFFBFE9CE),
-                                const Color(0xFFFFE5A4), (tier - 1) / 9)!,
-                            const Color(0xFFEAF5EF),
+                            Color.lerp(const Color(0xFF11573D),
+                                const Color(0xFF756034), (tier - 1) / 9)!,
+                            Colors.transparent,
                           ],
-                          radius: 0.75,
+                          radius: 0.85,
                         ),
                       ),
                       child: Column(children: [
-                        Text(ar ? 'قلعة الغرفة · المرحلة $tier من 10'
-                            : 'Room castle · tier $tier of 10',
+                        Text(ar ? 'عالم القلاع · القلعة $tier من 10'
+                            : 'Castle journey · castle $tier of 10',
                           style: const TextStyle(color: Color(0xFF52755F),
                             fontSize: 12, fontWeight: FontWeight.w700)),
                         SizedBox(height: 200, width: double.infinity,
@@ -234,8 +233,9 @@ class _TasksTabState extends State<_TasksTab> {
                     const SizedBox(height: 14),
                     Row(children: [
                       Expanded(child: Text(
-                        ar ? 'مستوى الغرفة $level من 50'
-                            : 'Room level $level of 50',
+                        level >= roomCastleMaxLevel
+                            ? (ar ? 'وصلت المستوى 50' : 'Level 50 complete')
+                            : 'Lv.$level  →  Lv.${level + 1}',
                         style: const TextStyle(
                           color: Color(0xFF174E38),
                           fontSize: 15,
@@ -262,8 +262,21 @@ class _TasksTabState extends State<_TasksTab> {
                           : (currentLevelXp / requiredXp).clamp(0.0, 1.0),
                       minHeight: 8,
                       color: const Color(0xFF249369),
-                      backgroundColor: const Color(0xFFD9EAE0),
+                      backgroundColor: const Color(0xFF284B3B),
                       borderRadius: BorderRadius.circular(8),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8, bottom: 3),
+                      child: Text(
+                        ar
+                            ? 'مجموع نقاط القلعة: $xp XP • المستوى التالي عند ${level >= roomCastleMaxLevel ? xp : roomXpThresholdForLevel(level + 1)} XP'
+                            : 'Total castle XP: $xp • Next level at ${level >= roomCastleMaxLevel ? xp : roomXpThresholdForLevel(level + 1)} XP',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Color(0xFFB9D4C0), fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                     ExpansionTile(
                       tilePadding: EdgeInsets.zero,
@@ -284,7 +297,7 @@ class _TasksTabState extends State<_TasksTab> {
                             leading: CircleAvatar(
                               backgroundColor: index + 1 <= tier
                                   ? const Color(0xFF1D7956)
-                                  : const Color(0xFFE6EEE9),
+                                  : const Color(0xFF284B3B),
                               child: Padding(
                                 padding: const EdgeInsets.all(3),
                                 child: RoomCastleArtwork(level: index * 5 + 1),
@@ -312,12 +325,10 @@ class _TasksTabState extends State<_TasksTab> {
                       ],
                     ),
                   ],
-                ),
               ),
             );
           },
         ),
-        const RewardJourneyCard(),
         if (_status?['maxed'] == true)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
@@ -367,9 +378,9 @@ class _TasksTabState extends State<_TasksTab> {
             final xp = (mission?['xp'] as num?)?.toInt();
             final title = switch (key) {
               'ten_minutes' => ar ? 'البقاء 10 دقائق بالغرفة' : 'Stay 10 minutes',
-              'host_five' => ar ? 'استضف خمسة مشاركين' : 'Host five participants',
-              'three_gifts' => ar ? 'أرسل ثلاث هدايا' : 'Send three gifts',
-              _ => ar ? 'البقاء لساعات' : 'Stay for hours',
+              'host_five' => ar ? 'استضف خمسة مستمعين' : 'Host five listeners',
+              'stage_ten' => ar ? 'اصعد عشرة مستمعين إلى المسرح' : 'Bring ten listeners on stage',
+              _ => ar ? 'البقاء 60 دقيقة' : 'Stay 60 minutes',
             };
             final description = configured && required != null && current != null
                 ? '${current.clamp(0, required)}/$required • +$xp XP'
@@ -377,17 +388,24 @@ class _TasksTabState extends State<_TasksTab> {
                     ? (ar ? '10 دقائق • 4 XP'
                         : '10 minutes • 4 XP')
                     : key == 'host_five'
-                        ? (ar ? '5 مشاركين • 50 XP'
-                            : '5 participants • 50 XP')
-                        : (ar
-                            ? 'عدد الساعات والنقاط يُحددان في إعدادات الغرفة.'
-                            : 'Hours/reward require approved room mission settings.');
-            return Card(
+                        ? (ar ? '5 مستمعين • 10 XP'
+                            : '5 listeners • 10 XP')
+                        : key == 'stage_ten'
+                            ? (ar ? '10 مستمعين • 5 XP'
+                                : '10 listeners • 5 XP')
+                            : (ar ? '60 دقيقة • 60 XP'
+                                : '60 minutes • 60 XP');
+            return Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFF19372F),
+                borderRadius: BorderRadius.circular(18),
+              ),
               child: ListTile(
                 leading: Icon(switch (key) {
                   'ten_minutes' => Icons.timer_outlined,
                   'host_five' => Icons.groups_rounded,
-                  'three_gifts' => Icons.card_giftcard_rounded,
+                  'stage_ten' => Icons.airline_seat_recline_extra_rounded,
                   _ => Icons.hourglass_bottom_rounded,
                 }),
                 title: Text(title),

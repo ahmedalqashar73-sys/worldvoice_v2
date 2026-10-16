@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
@@ -492,11 +493,16 @@ class RoomFeatureService {
       'Authorization': 'Bearer $token',
       'Content-Type': 'application/json',
     };
-    final response = payload == null
-        ? await http.get(uri.replace(queryParameters: {'roomId': roomId}),
-            headers: headers).timeout(const Duration(seconds: 15))
-        : await http.post(uri, headers: headers, body: jsonEncode(payload))
-            .timeout(const Duration(seconds: 15));
+    late final http.Response response;
+    try {
+      response = payload == null
+          ? await http.get(uri.replace(queryParameters: {'roomId': roomId}),
+              headers: headers).timeout(const Duration(seconds: 15))
+          : await http.post(uri, headers: headers, body: jsonEncode(payload))
+              .timeout(const Duration(seconds: 15));
+    } on TimeoutException {
+      throw StateError('ROOM_TASK_BACKEND_TIMEOUT');
+    }
     Map<String, dynamic>? decoded;
     try {
       final parsed = jsonDecode(response.body);
@@ -522,7 +528,7 @@ class RoomFeatureService {
 
   Future<Map<String, dynamic>> claimVerifiedTask(String taskKey) {
     if (!const {
-      'ten_minutes', 'host_five', 'three_gifts', 'stay_hours',
+      'ten_minutes', 'host_five', 'stage_ten', 'three_gifts', 'stay_hours',
     }.contains(taskKey)) {
       throw ArgumentError.value(taskKey, 'taskKey', 'Unknown room mission');
     }
