@@ -5,7 +5,9 @@ import '../services/engagement_service.dart';
 import 'creative_badge.dart';
 
 class RewardJourneyCard extends StatefulWidget {
-  const RewardJourneyCard({this.loadStatus, this.claimReward, super.key});
+  const RewardJourneyCard({this.loadStatus, this.claimReward,
+    this.compactProfile = false, super.key});
+  final bool compactProfile;
   final Future<Map<String, dynamic>> Function()? loadStatus;
   final Future<void> Function(Map<String, dynamic>)? claimReward;
   @override
@@ -78,6 +80,63 @@ class _RewardJourneyCardState extends State<RewardJourneyCard> with WidgetsBindi
     final rest = data?['phase'] == 'rest';
     final remaining = _remaining;
     final countdown = '${remaining.inHours}:${(remaining.inMinutes % 60).toString().padLeft(2, '0')}';
+    if (widget.compactProfile) {
+      // Only a compact daily-reward summary appears on the user's profile.
+      // Detailed missions and their date milestones belong to the room sheet.
+      final canClaim = data?['canClaim'] == true;
+      final status = _failed
+          ? (ar ? 'تعذّر تحديث النشاط' : 'Could not refresh activity')
+          : data == null
+              ? (ar ? 'جارٍ تحميل النشاط' : 'Loading activity')
+              : canClaim
+                  ? (ar ? 'هدية اليوم جاهزة' : 'Today\'s gift is available')
+                  : rest
+                      ? (ar ? 'عُد عند تجدد اليوم' : 'Return when the new day begins')
+                      : (ar ? 'تم استلام هدية اليوم' : 'Today\'s gift was claimed');
+      return Container(
+        margin: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF184A38), Color(0xFF12382F)]),
+          borderRadius: BorderRadius.circular(17),
+        ),
+        child: Row(children: [
+          const Icon(Icons.local_fire_department_rounded,
+              color: Color(0xFFEFC46C), size: 29),
+          const SizedBox(width: 10),
+          Expanded(child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(ar ? 'نشاطك اليومي' : 'Daily activity',
+                style: const TextStyle(color: Colors.white,
+                    fontSize: 15, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 3),
+              Text(status, style: const TextStyle(
+                  color: Color(0xFFCBDED4), fontSize: 12)),
+            ],
+          )),
+          const SizedBox(width: 6),
+          if (_failed)
+            IconButton(onPressed: _busy ? null : _load,
+              tooltip: ar ? 'إعادة المحاولة' : 'Retry',
+              icon: const Icon(Icons.refresh_rounded,
+                  color: Color(0xFFEFC46C)))
+          else if (canClaim)
+            FilledButton(
+              onPressed: _busy ? null : _claim,
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                backgroundColor: const Color(0xFFE3BC6E),
+                foregroundColor: const Color(0xFF153C2C)),
+              child: Text(ar ? 'استلم' : 'Claim'),
+            )
+          else if (_busy)
+            const SizedBox.square(dimension: 18,
+              child: CircularProgressIndicator(strokeWidth: 2)),
+        ]),
+      );
+    }
     if (_failed) {
       return Card(
         color: const Color(0xFFEAF6EF), elevation: 0,

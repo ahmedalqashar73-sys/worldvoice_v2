@@ -39,6 +39,36 @@ void main() {
     expect(find.textContaining('Rest day ·'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+  testWidgets('profile summarizes daily Creative activity without room missions',
+      (tester) async {
+    var claims = 0;
+    var claimed = false;
+    await tester.pumpWidget(MaterialApp(home: Scaffold(body:
+      RewardJourneyCard(
+        compactProfile: true,
+        loadStatus: () async => {
+          'startDay': 10, 'day': 1, 'claimedDays': claimed ? 1 : 0,
+          'canClaim': !claimed, 'phase': claimed ? 'claimed' : 'ready',
+          'nextAtMs': 86400000, 'serverNowMs': 0,
+        },
+        claimReward: (body) async {
+          expect(body, {'startDay': 10, 'day': 1});
+          claims++; claimed = true;
+        },
+      ),
+    )));
+    await tester.pumpAndSettle();
+    expect(find.text('Daily activity'), findsOneWidget);
+    expect(find.text('Path to Complete Creative'), findsNothing);
+    expect(find.text('Attendance gifts'), findsNothing);
+    expect(find.text('3 reward days, then 1 rest day'), findsNothing);
+    await tester.tap(find.text('Claim'));
+    await tester.pumpAndSettle();
+    expect(claims, 1);
+    expect(find.text("Today's gift was claimed"), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('earned creative badge describes its evidence', (tester) async {
     await tester.pumpWidget(const MaterialApp(home: Scaffold(body:
       AchievementMark(creativeCycles: 2, completedCycles: 3))));

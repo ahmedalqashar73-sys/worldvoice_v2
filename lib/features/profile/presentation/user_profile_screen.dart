@@ -167,7 +167,7 @@ class UserProfileScreen extends StatelessWidget {
                         '@${username?.isNotEmpty == true ? username! : 'user'}',
                       ),
                       CreativeBadge(userId: uid),
-                      const RewardJourneyCard(),
+                      const RewardJourneyCard(compactProfile: true),
                       ProfileIdentityStrip(
                         code: code,
                         country: country,
