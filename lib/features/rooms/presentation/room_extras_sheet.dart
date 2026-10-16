@@ -814,8 +814,8 @@ class RoomCastleArtwork extends StatelessWidget {
   }
 }
 
-/// Borderless premium level identity directly under the room title.
-/// Preserve the existing task-sheet callback, castle asset and seat layout.
+/// Compact, borderless castle and level directly under the room title.
+/// The identity, tap-to-open action and room stage layout are unchanged.
 class RoomCastleBadge extends StatelessWidget {
   const RoomCastleBadge({required this.level, required this.onTap, super.key});
   final int level;
@@ -824,10 +824,11 @@ class RoomCastleBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final safeLevel = level.clamp(1, roomCastleMaxLevel);
-    final gold = (roomCastleTierForLevel(safeLevel) - 1) / 9;
-    final labelColor = Color.lerp(
-      const Color(0xFFFFE2A3), const Color(0xFFFFCF73), gold)!;
+    final tint = (roomCastleTierForLevel(safeLevel) - 1) / 9;
+    final gold = Color.lerp(
+      const Color(0xFFF6DE9C), const Color(0xFFFFCD72), tint)!;
     final ar = Localizations.localeOf(context).languageCode == 'ar';
+
     return Semantics(
       button: true,
       label: ar
@@ -835,10 +836,9 @@ class RoomCastleBadge extends StatelessWidget {
           : 'Room castle, level $safeLevel, open missions',
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         child: Padding(
-          padding: const EdgeInsetsDirectional.only(start: 4, end: 5,
-              top: 4, bottom: 4),
+          padding: const EdgeInsetsDirectional.fromSTEB(3, 2, 4, 2),
           child: FittedBox(
             fit: BoxFit.scaleDown,
             alignment: AlignmentDirectional.centerStart,
@@ -847,46 +847,30 @@ class RoomCastleBadge extends StatelessWidget {
               children: [
                 Image.asset(
                   roomCastleWebpAssetForLevel(safeLevel),
-                width: 37,
-                height: 41,
-                cacheWidth: 148,
-                fit: BoxFit.contain,
-                filterQuality: FilterQuality.high,
-                errorBuilder: (_, error, stack) => SvgPicture.asset(
-                  roomCastleAssetForLevel(safeLevel),
-                  width: 37,
-                  height: 41,
+                  width: 27,
+                  height: 31,
+                  cacheWidth: 108,
                   fit: BoxFit.contain,
+                  filterQuality: FilterQuality.high,
+                  errorBuilder: (_, error, stack) => SvgPicture.asset(
+                    roomCastleAssetForLevel(safeLevel),
+                    width: 27,
+                    height: 31,
+                    fit: BoxFit.contain,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 7),
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    ar ? 'مستوى الغرفة' : 'ROOM LEVEL',
-                    style: const TextStyle(
-                      color: Color(0xFFB7D9C3),
-                      fontSize: 9,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: .45,
-                    ),
+                const SizedBox(width: 5),
+                Text(
+                  'Level $safeLevel',
+                  textDirection: TextDirection.ltr,
+                  style: TextStyle(
+                    color: gold,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: .25,
+                    height: 1.1,
                   ),
-                  const SizedBox(height: 1),
-                  Text(
-                    'LEVEL $safeLevel',
-                    textDirection: TextDirection.ltr,
-                    style: TextStyle(
-                      color: labelColor,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: .5,
-                      height: 1.15,
-                    ),
-                  ),
-                ],
-              ),
+                ),
               ],
             ),
           ),

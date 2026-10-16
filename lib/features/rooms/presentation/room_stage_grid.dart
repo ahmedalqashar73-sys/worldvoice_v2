@@ -103,7 +103,9 @@ class _CompactRoomSeatState extends State<_CompactRoomSeat>
     final isAi = seat.role == RoomMemberRole.teacherAi;
 
     return LayoutBuilder(builder: (context, constraints) {
-      final avatarSize = math.min(constraints.maxWidth, 70.0);
+      // Shrink only the avatar circles ~11%; the four-column grid,
+      // seat cell centers, labels and both row positions stay unchanged.
+      final avatarSize = math.min(constraints.maxWidth, 62.0);
       return InkWell(
       borderRadius: BorderRadius.circular(18),
       onTap: widget.onTap,
