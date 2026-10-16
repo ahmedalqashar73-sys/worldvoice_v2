@@ -25,6 +25,7 @@ import {roomProgressAfterGift, roomCastleProgressSnapshot,
   ROOM_CASTLE_XP_VERSION} from "./room_task_policy.js";
 import {registerEngagementRoutes} from './engagement_routes.js';
 import {registerRoomTaskRoutes} from "./room_task_routes.js";
+import {registerRoomGameRoutes} from "./room_games_routes.js";
 import {privateWalletRef, requirePrivateWallet} from "./wallet_store.js";
 import {approvedWorldVoiceGift} from "./gift_catalog.js";
 
@@ -2388,6 +2389,7 @@ app.post("/quiz/finish", async (req, res, next) => {
 
 
 registerRoomTaskRoutes({app, db, authenticatedUser});
+registerRoomGameRoutes({app, db, authenticatedUser});
 registerEngagementRoutes({app, db, authenticatedUser});
 
 // Finance routes run only on the separately deployed authenticated backend.
