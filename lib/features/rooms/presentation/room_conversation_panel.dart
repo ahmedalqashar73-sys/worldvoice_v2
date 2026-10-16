@@ -9,10 +9,16 @@ class RoomConversationPanel extends StatefulWidget {
     required this.onGifts, required this.onShop, required this.onTools,
     required this.onCaptions, required this.onMic, required this.micIcon,
     required this.micLabel, this.handControl, this.onTranslateMessage,
-    this.onReportMessage, this.translationHint, this.enabled = true, super.key,
+    this.onReportMessage, this.translationHint, this.enabled = true,
+    this.onGameAnswer, this.gameAnswerEnabled = false,
+    this.gameAnswerSubmitted = false, super.key,
   });
   final Stream<List<RoomChatMessage>> messages;
   final Future<void> Function(String) onSend;
+  /// Sends words to the verified game API, never the public room chat.
+  final Future<void> Function(String)? onGameAnswer;
+  final bool gameAnswerEnabled;
+  final bool gameAnswerSubmitted;
   final bool isArabic;
   final bool enabled;
   final VoidCallback onGifts, onShop, onTools, onCaptions;
@@ -92,7 +98,8 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
                   enabled: !_sending,
                   minLines: 1,
                   maxLines: 4,
-                  maxLength: 500,
+                  maxLength: widget.gameAnswerEnabled &&
+                      !widget.gameAnswerSubmitted ? 80 : 500,
                   textInputAction: TextInputAction.send,
                   onSubmitted: (_) async {
                     await _send();
@@ -102,7 +109,11 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
                   },
                   style: const TextStyle(color: Colors.white, fontSize: 15),
                   decoration: InputDecoration(
-                    hintText: widget.isArabic ? 'اكتب رسالة…' : 'Write a message…',
+                    hintText: widget.gameAnswerEnabled && !widget.gameAnswerSubmitted
+                        ? (widget.isArabic ? 'إجابة اللعبة (خاصة)'
+                            : 'Private game answer…')
+                        : (widget.isArabic ? 'اكتب رسالة…'
+                            : 'Write a message…'),
                     counterText: '',
                     hintStyle: const TextStyle(color: Colors.white54),
                     filled: true,
@@ -146,11 +157,20 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
     if (value.isEmpty || _sending || !widget.enabled) return;
     setState(() => _sending = true);
     try {
-      await widget.onSend(value);
+      if (widget.gameAnswerEnabled && !widget.gameAnswerSubmitted &&
+          widget.onGameAnswer != null) {
+        await widget.onGameAnswer!(value);
+      } else {
+        await widget.onSend(value);
+      }
       if (mounted && _text.text.trim() == value) _text.clear();
     } catch (_) {
       if (mounted) { ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(widget.isArabic ? 'تعذر إرسال الرسالة. حاول مجددًا.' : 'Message not sent. Please retry.'),
+        content: Text(widget.gameAnswerEnabled && !widget.gameAnswerSubmitted
+            ? (widget.isArabic ? 'تعذر إرسال إجابة اللعبة، حاول مجددًا.'
+                : 'Could not submit your game answer. Please retry.')
+            : (widget.isArabic ? 'تعذر إرسال الرسالة. حاول مجددًا.'
+                : 'Message not sent. Please retry.')),
       )); }
     } finally {
       if (mounted) setState(() => _sending = false);
@@ -361,7 +381,12 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
             style: const TextStyle(color: Colors.white, fontSize: 14),
             maxLines: 1,
             decoration: InputDecoration(
-              hintText: ar ? 'تعليق…' : 'Message…',
+              hintText: widget.gameAnswerEnabled && !widget.gameAnswerSubmitted
+                   ? (ar ? 'إجابة اللعبة…' : 'Game answer…')
+                   : widget.gameAnswerSubmitted
+                       ? (ar ? 'تم إرسال الإجابة • تعليق…'
+                           : 'Answer sent • Comment…')
+                       : (ar ? 'تعليق…' : 'Message…'),
               hintStyle: const TextStyle(color: Colors.white54),
               filled: true,
               fillColor: const Color(0xFF123C30),
