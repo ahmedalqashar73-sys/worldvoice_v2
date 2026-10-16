@@ -44,6 +44,8 @@ import 'room_coin_store_sheet.dart';
 import 'room_music_sheet.dart';
 import 'room_quiz_sheet.dart';
 import 'room_games_sheet.dart';
+import 'room_game_inline_board.dart';
+import '../services/room_quiz_service.dart';
 import 'room_rating_sheet.dart';
 import 'room_extras_sheet.dart';
 import 'room_gift_overlay.dart';
@@ -117,6 +119,11 @@ class AgoraVoiceRoomScreen extends StatefulWidget {
 class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   late final AgoraVoiceRoomController _controller;
   late final RoomChatService _roomChat;
+  late final RoomGamesService _roomGames;
+  Timer? _roomGamesTimer;
+  Map<String, dynamic>? _roomGameStatus;
+  bool _roomGamePolling = false;
+  bool _roomGameAnswerBusy = false;
   Stream<List<RoomChatMessage>>? _chatMessages;
   late final RoomModerationService _moderation;
   late final RoomHistoryService _history;
@@ -222,6 +229,11 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   void initState() {
     super.initState();
     _roomChat = RoomChatService(roomId: widget.channelId);
+    _roomGames = RoomGamesService(roomId: widget.channelId);
+    // Refresh for all participants, including those who never open the modal.
+    unawaited(_refreshRoomGames());
+    _roomGamesTimer = Timer.periodic(const Duration(seconds: 4),
+        (_) => unawaited(_refreshRoomGames()));
     _showTeacherAiSeat = widget.initialShowTeacherAiSeat;
     _controller = AgoraVoiceRoomController()..addListener(_refresh);
     _history = RoomHistoryService();
@@ -2674,6 +2686,56 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     );
   }
 
+  Future<void> _refreshRoomGames() async {
+    if (_roomGamePolling || _leaving) return;
+    _roomGamePolling = true;
+    try {
+      final data = await _roomGames.status();
+      if (mounted && !_leaving) {
+        setState(() => _roomGameStatus = data);
+      }
+    } catch (_) {
+      // Room audio and chat stay available during backend/network changes.
+    } finally {
+      _roomGamePolling = false;
+    }
+  }
+
+  Future<void> _submitRoomGameAnswer(String text) async {
+    final data = _roomGameStatus;
+    if (_roomGameAnswerBusy || data?['active'] != true ||
+        data?['canAnswer'] != true || data?['answered'] == true) {
+      throw StateError('No open game question to answer.');
+    }
+    final sessionId = data?['sessionId']?.toString();
+    final index = (data?['questionIndex'] as num?)?.toInt();
+    if (sessionId == null || index == null) {
+      throw StateError('Game is not ready.');
+    }
+    _roomGameAnswerBusy = true;
+    try {
+      final result = await _roomGames.answer(
+        sessionId: sessionId, wordIndex: index, answer: text);
+      if (!mounted) return;
+      final correct = result['correct'] == true;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(correct
+          ? 'إجابة صحيحة! +10 نقاط لعب'
+          : result['alreadySubmitted'] == true
+              ? 'إجابتك مسجلة بالفعل'
+              : 'تم تسجيل الإجابة • انتظر السؤال التالي'),
+        duration: const Duration(seconds: 2),
+      ));
+    } finally {
+      _roomGameAnswerBusy = false;
+      await _refreshRoomGames();
+    }
+  }
+
+  bool get _roomGameVisible =>
+      _roomGameStatus?['active'] == true ||
+      _roomGameStatus?['finished'] == true;
+
   Future<void> _showGames() async {
     await showModalBottomSheet<void>(
       context: context,
@@ -2682,8 +2744,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       builder: (_) => RoomGamesSheet(
         roomId: widget.channelId,
         isHost: _isHost,
+        service: _roomGames,
       ),
     );
+    if (mounted) await _refreshRoomGames();
   }
 
   Future<void> _showQuiz() async {
@@ -3408,6 +3472,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     _speakingTimer?.cancel();
     _quotaTimer?.cancel();
     _presenceTimer?.cancel();
+    _roomGamesTimer?.cancel();
     _teacherAiReconnectTimer?.cancel();
     _giftOverlay?.remove();
     _giftOverlay = null;
@@ -3777,6 +3842,14 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                       onSeatLongPress: _handleSeatLongPress),
                   ),
                 ),
+                // Show the question under the eight fixed seats, above listeners.
+                // Everyone can see the same server-timed clue and podium.
+                if (_roomGameVisible)
+                  RoomGameInlineBoard(
+                    status: _roomGameStatus!,
+                    isArabic: isArabic,
+                    onOpenGames: _isHost ? _showGames : null,
+                  ),
                 if (_boardVisible && !compact && _listeners.isNotEmpty)
                   _buildListenerStrip(isArabic),
                 if (!_boardVisible && !compact && _listeners.isNotEmpty)
@@ -3821,6 +3894,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   Positioned.fill(child: RoomConversationPanel(
                   messages: _chatMessages ?? const Stream<List<RoomChatMessage>>.empty(),
                   enabled: !_leaving, onSend: _roomChat.send, isArabic: isArabic,
+                  onGameAnswer: _submitRoomGameAnswer,
+                  gameAnswerEnabled: _roomGameStatus?['active'] == true &&
+                      _roomGameStatus?['canAnswer'] == true,
+                  gameAnswerSubmitted: _roomGameStatus?['answered'] == true,
                   onGifts: _showGifts, onShop: _showBackgroundStore,
                   onTools: _showToolsGrid, onCaptions: _showCaptionSettings,
                   onTranslateMessage: _translateChatMessage,
