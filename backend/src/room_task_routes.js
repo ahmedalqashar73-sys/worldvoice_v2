@@ -11,7 +11,7 @@ export function registerRoomTaskRoutes({app, db, authenticatedUser}) {
  * Non-monetary, server-verified room missions. Device buttons cannot grant
  * XP or level rewards. Invalid mission overrides fail closed; no task mints coins, diamonds or cashout inventory.
  */
-const ROOM_TASK_KEYS = ["ten_minutes", "host_five", "three_gifts", "stay_hours"];
+const ROOM_TASK_KEYS = ["ten_minutes", "host_five", "stage_ten", "three_gifts", "stay_hours"];
 const roomTaskDay = (now = Date.now()) => new Date(now).toISOString().slice(0, 10);
 
 function roomTaskId(key, uid, day) {
@@ -125,7 +125,22 @@ app.post("/room/tasks/heartbeat", async (req, res, next) => {
           cycleState = {...cycleState, hostedFive: true};
         }
       }
-      tx.set(attendanceRef, next);
+      // A listener must be observed before being promoted to a real seat.
+      // Server-owned receipts accumulate unique promotions beyond the 7 guest seats.
+      const data = member.data() || {};
+      const sameSession = prior.data()?.joinedAtMs === next.joinedAtMs;
+      const seenAsListener = data.role === "listener" ||
+        (sameSession && prior.data()?.seenAsListener === true);
+      const staged = ["speaker", "coHost", "vipSeat"].includes(data.role) &&
+        Number.isSafeInteger(data.seatIndex) && data.seatIndex >= 2 &&
+        data.seatIndex <= 8 && room.data()?.hostId !== user.uid && seenAsListener;
+      const stageRef = roomRef.collection("task_stage").doc(user.uid);
+      const stageReceipt = staged ? await tx.get(stageRef) : null;
+      tx.set(attendanceRef, {...next, seenAsListener});
+      if (staged && !stageReceipt.exists) {
+        tx.create(stageRef, {userId: user.uid, hostId: room.data().hostId,
+          joinedAtMs: next.joinedAtMs, observedAtMs: now});
+      }
       if (activeCycle) tx.set(cycleRef, addCyclePresence(cycleState, delta, now));
     });
     return res.json({ok: true});
@@ -158,11 +173,15 @@ app.get("/room/tasks/status", async (req, res, next) => {
     if (!room.exists || room.data()?.isOpen !== true || !participant.exists || participant.data()?.kicked === true) {
       return res.status(403).json({error: "Join an open room to view its tasks."});
     }
-    const guestCount = room.data()?.hostId === user.uid
-      ? await countVerifiedGuestsForStatus(db, roomRef, user.uid, now) : 0;
+    const host = room.data()?.hostId === user.uid;
+    const [guestCount, stageCount] = await Promise.all([
+      host ? countVerifiedGuestsForStatus(db, roomRef, user.uid, now) : 0,
+      host ? roomRef.collection("task_stage").where("hostId", "==", user.uid)
+        .limit(10).get().then(snapshot => snapshot.size) : 0,
+    ]);
     const currentMember = isCurrentTaskMember(participant.data(), attendance.data(), now);
     const minutes = currentMember ? verifiedRoomMinutes(attendance.data(), now) : 0;
-    const progress = {minutes, guestCount, giftsSent: gifts.size};
+    const progress = {minutes, guestCount, stageCount, giftsSent: gifts.size};
     const configData = config.data() || {};
     const castle = roomCastleProgressSnapshot(room.data());
     const xp = castle.xp;
@@ -178,10 +197,12 @@ app.get("/room/tasks/status", async (req, res, next) => {
           xp: null};
       }
       const current = key === "ten_minutes" || key === "stay_hours"
-        ? minutes : key === "host_five" ? guestCount : gifts.size;
+        ? minutes : key === "host_five" ? guestCount
+          : key === "stage_ten" ? stageCount : gifts.size;
       const required = spec.requiredMinutes ?? spec.requiredCount;
       return {key, configured: true, claimed: completions[index].exists,
         eligible: currentMember &&
+          (!["host_five", "stage_ten"].includes(key) || host) &&
           !completions[index].exists && !castleAtMaxLevel && current >= required,
         current, required, xp: spec.xp};
     });
@@ -213,7 +234,7 @@ app.post("/room/tasks/claim", async (req, res, next) => {
     const outcome = await db.runTransaction(async tx => {
       // Read all snapshots and evidence BEFORE the first transaction write.
       const cycleRef = engagementRef(db, user.uid);
-      const [room, member, attendance, config, prior, gifts, cycle] = await Promise.all([
+      const [room, member, attendance, config, prior, gifts, cycle, staged] = await Promise.all([
         tx.get(roomRef), tx.get(memberRef),
         tx.get(roomRef.collection("task_attendance").doc(user.uid)), tx.get(configRef),
         tx.get(completionRef),
@@ -222,6 +243,10 @@ app.post("/room/tasks/claim", async (req, res, next) => {
               "senderId", "==", user.uid).limit(3))
           : Promise.resolve(null),
         tx.get(cycleRef),
+        taskKey === "stage_ten"
+          ? tx.get(roomRef.collection("task_stage")
+            .where("hostId", "==", user.uid).limit(10))
+          : Promise.resolve(null),
       ]);
       if (!room.exists || room.data()?.isOpen !== true || !member.exists) {
         throw Object.assign(new Error("Join an open room first."), {status: 403});
@@ -268,6 +293,13 @@ app.post("/room/tasks/claim", async (req, res, next) => {
             ? members.docs.filter(doc => activeIds.has(doc.id) && doc.id !== user.uid &&
               verifiedRoomMinutes(doc.data(), now) !== null).length
             : (hostHasFive ? 5 : 0);
+          break;
+        case "stage_ten":
+          if (room.data()?.hostId !== user.uid) {
+            throw Object.assign(new Error("Only the host may claim this mission."),
+              {status: 403});
+          }
+          count = staged.size;
           break;
         case "three_gifts":
           count = gifts.size;

@@ -12,18 +12,21 @@ test("explicit mission XP values are not silently invented", () => {
     taskKey: "ten_minutes", xp: 4, requiredMinutes: 10, period: "day",
   });
   assert.deepEqual(roomTaskSpec("host_five", {}), {
-    taskKey: "host_five", xp: 50, requiredCount: 5, period: "once",
+    taskKey: "host_five", xp: 10, requiredCount: 5, period: "once",
+  });
+  assert.deepEqual(roomTaskSpec("stage_ten", {}), {
+    taskKey: "stage_ten", xp: 5, requiredCount: 10, period: "once",
   });
   assert.deepEqual(roomTaskSpec("three_gifts", {}), {
     taskKey: "three_gifts", xp: 20, requiredCount: 3, period: "once_per_room",
   });
   assert.deepEqual(roomTaskSpec("stay_hours", {}), {
-    taskKey: "stay_hours", xp: 15, requiredMinutes: 120, period: "day",
+    taskKey: "stay_hours", xp: 60, requiredMinutes: 60, period: "day",
   });
   assert.equal(roomTaskSpec("three_gifts",
     {sendThreeGiftsXp: 20}).xp, 20);
   assert.equal(roomTaskSpec("stay_hours",
-    {stayHoursMinimum: 2, stayHoursXp: 15}).requiredMinutes, 120);
+    {stayHoursMinimum: 2, stayHoursXp: 15}).requiredMinutes, 60);
 });
 
 test("increasing room XP thresholds and safe level 50 cap", () => {
@@ -99,7 +102,7 @@ test("legacy rooms retain castle level and convert XP only once", () => {
 
 test("config overrides defaults and rejects unsafe values", () => {
   assert.equal(roomTaskSpec("three_gifts", {sendThreeGiftsXp: 30}).xp, 30);
-  assert.equal(roomTaskSpec("stay_hours", {stayHoursMinimum: 3, stayHoursXp: 40}).requiredMinutes, 180);
+  assert.equal(roomTaskSpec("stay_hours", {stayHoursMinimum: 3, stayHoursXp: 40}).requiredMinutes, 60);
   assert.throws(() => roomTaskSpec("three_gifts", {sendThreeGiftsXp: -2}), {status: 503});
   assert.throws(() => roomTaskSpec("stay_hours", {stayHoursMinimum: 0}), {status: 503});
 });

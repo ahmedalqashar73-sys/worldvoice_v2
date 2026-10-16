@@ -110,8 +110,8 @@ export function isRecentRoomParticipant(participant, nowMs) {
 // These values award castle XP only; never coins or inventory.
 export const ROOM_TASK_DEFAULTS = Object.freeze({
   sendThreeGiftsXp: 20,
-  stayHoursMinimum: 2,
-  stayHoursXp: 15,
+  stayHoursMinimum: 1,
+  stayHoursXp: 60,
 });
 
 function configuredPoints(raw, label) {
@@ -129,20 +129,14 @@ export function roomTaskSpec(taskKey, config) {
     case "ten_minutes":
       return {taskKey, xp: 4, requiredMinutes: 10, period: "day"};
     case "host_five":
-      return {taskKey, xp: 50, requiredCount: 5, period: "once"};
+      return {taskKey, xp: 10, requiredCount: 5, period: "once"};
+    case "stage_ten":
+      return {taskKey, xp: 5, requiredCount: 10, period: "once"};
     case "three_gifts":
       return {taskKey, xp: configuredPoints(config?.sendThreeGiftsXp ?? ROOM_TASK_DEFAULTS.sendThreeGiftsXp,
         "Three-gift mission"), requiredCount: 3, period: "once_per_room"};
-    case "stay_hours": {
-      const hours = config?.stayHoursMinimum ?? ROOM_TASK_DEFAULTS.stayHoursMinimum;
-      if (!Number.isSafeInteger(hours) || hours < 1 || hours > 24) {
-        throw Object.assign(new Error(
-          "Hours mission needs an approved stayHoursMinimum from 1 to 24."),
-        {status: 503});
-      }
-      return {taskKey, xp: configuredPoints(config?.stayHoursXp ?? ROOM_TASK_DEFAULTS.stayHoursXp,
-        "Hours mission"), requiredMinutes: hours * 60, period: "day"};
-    }
+    case "stay_hours":
+      return {taskKey, xp: 60, requiredMinutes: 60, period: "day"};
     default:
       throw Object.assign(new Error("Unknown room task."), {status: 400});
   }
