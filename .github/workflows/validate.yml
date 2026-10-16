@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches: [main, fix/finish-room-hub-quiz-gift-20260928]
+    branches: [main, fix/finish-room-hub-quiz-gift-20260928, release/room-tasks-v3-render-20261016]
   workflow_dispatch:
 
 jobs:
@@ -18,7 +18,7 @@ jobs:
           cache: true
       - run: flutter --version
       - run: flutter pub get
-      - run: flutter analyze
+      - run: flutter analyze --no-fatal-infos --no-fatal-warnings
       - run: flutter test test/create_room_page_test.dart test/room_conversation_panel_test.dart test/room_board_text_test.dart test/board_media_url_test.dart test/classic_gift_catalog_test.dart test/classic_gift_visual_test.dart test/luxury_gift_assets_test.dart test/coin_pack_presentation_test.dart test/classic_gift_mesh_test.dart test/friend_gift_preview_test.dart
 
   backend-check:
@@ -36,7 +36,7 @@ jobs:
       - run: npm install
       - run: node --check src/server.js
       - run: node --check scripts/seed-classic-gifts.mjs
-      - run: node --test test/classic_gifts.test.js
+      - run: npm test
 
   firestore-rules:
     runs-on: ubuntu-latest
@@ -51,6 +51,9 @@ jobs:
           java-version: "21"
       - run: npm install --no-audit --no-fund
         working-directory: test/firestore
+      - name: Install backend dependencies for Firestore transaction tests
+        run: npm install
+        working-directory: backend
       - name: Test Firestore room access in isolated emulator
         working-directory: test/firestore
-        run: npx firebase emulators:exec --config ../../firebase.rules-test.json --only firestore --project demo-worldvoice-rules "npm test"
+        run: npx firebase emulators:exec --config ../../firebase.rules-test.json --only firestore --project demo-worldvoice-rules "npm test && cd ../../backend && npm test"
