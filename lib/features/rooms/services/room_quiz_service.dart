@@ -310,7 +310,7 @@ class RoomGamesService {
     final base = RoomBackendConfig.economyBaseUrl.trim();
     final normalized = base.endsWith('/')
         ? base.substring(0, base.length - 1) : base;
-    final uri = Uri.tryParse('${normalized}/room/games/$action');
+    final uri = Uri.tryParse('$normalized/room/games/$action');
     if (uri == null || uri.scheme != 'https' || !uri.hasAuthority) {
       throw StateError('Invalid room game backend URL.');
     }
