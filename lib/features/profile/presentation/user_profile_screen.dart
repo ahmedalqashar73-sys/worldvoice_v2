@@ -1,5 +1,4 @@
-import '../../engagement/presentation/creative_badge.dart';
-import '../../engagement/presentation/reward_journey_card.dart';
+import '../../engagement/presentation/creative_progress_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -166,8 +165,6 @@ class UserProfileScreen extends StatelessWidget {
                       Text(
                         '@${username?.isNotEmpty == true ? username! : 'user'}',
                       ),
-                      CreativeBadge(userId: uid),
-                      const RewardJourneyCard(compactProfile: true),
                       ProfileIdentityStrip(
                         code: code,
                         country: country,
@@ -257,6 +254,7 @@ class UserProfileScreen extends StatelessWidget {
                           ),
                         ],
                       ),
+                      CreativeProfileLink(userId: uid),
                       const SizedBox(height: 12),
                       VoiceBioCard(
                         userId: uid,
