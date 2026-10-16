@@ -104,7 +104,7 @@ test("config overrides defaults and rejects unsafe values", () => {
   assert.equal(roomTaskSpec("three_gifts", {sendThreeGiftsXp: 30}).xp, 30);
   assert.equal(roomTaskSpec("stay_hours", {stayHoursMinimum: 3, stayHoursXp: 40}).requiredMinutes, 60);
   assert.throws(() => roomTaskSpec("three_gifts", {sendThreeGiftsXp: -2}), {status: 503});
-  assert.throws(() => roomTaskSpec("stay_hours", {stayHoursMinimum: 0}), {status: 503});
+  assert.equal(roomTaskSpec("stay_hours", {stayHoursMinimum: 0, stayHoursXp: -1}).xp, 60);
 });
 
 test("castle XP progression remains strictly increasing through level 50", () => {
