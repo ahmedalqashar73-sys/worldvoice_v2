@@ -83,7 +83,7 @@ class _RoomGameInlineBoardState extends State<RoomGameInlineBoard> {
             style: const TextStyle(color: Color(0xFFF1D58B),
                 fontWeight: FontWeight.w900, fontSize: 13))),
           if (active)
-            Text((index + 1).toString() + '/5 • ' + _remaining.toString() + 's',
+            Text('${index + 1}/5 • ${_remaining}s',
               textDirection: TextDirection.ltr,
               style: const TextStyle(color: Colors.white,
                   fontSize: 12, fontWeight: FontWeight.w800))
@@ -147,8 +147,7 @@ class _RoomGameInlineBoardState extends State<RoomGameInlineBoard> {
                     textAlign: TextAlign.center,
                     style: const TextStyle(color: Colors.white,
                       fontWeight: FontWeight.w800, fontSize: 12)),
-                  Text(((leaderboard[i] as Map)['points'] ?? 0).toString() +
-                      ' pts',
+                  Text("${(leaderboard[i] as Map)['points'] ?? 0} pts",
                     style: const TextStyle(color: Color(0xFFE7C783),
                       fontSize: 11)),
                 ])),
