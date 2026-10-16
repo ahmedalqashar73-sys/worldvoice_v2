@@ -91,6 +91,48 @@ test('room mission routes: emulator transactions and replay safety',
       assert.equal(result.creativeCycles, 1);
       assert.equal((await room.get()).data().roomXp, 0);
     });
+    await t.test('room visits count one UTC day per guest; claim is idempotent', async () => {
+      const {room, roomId} = await seed();
+      await join(room, 'regular-guest');
+      await room.collection('participants').doc('regular-guest').update({role: 'listener'});
+      for (let i = 0; i < 5; i++)
+        assert.equal((await call('heartbeat', roomId, null, 'regular-guest')).status, 200);
+      const visits = room.collection('task_visits').doc('regular-guest');
+      assert.equal((await visits.get()).data().dayCount, 1);
+      const guestStatus = await call('status', roomId, null, 'regular-guest');
+      assert.equal(guestStatus.body.taskPolicyVersion, 3);
+      assert.equal(guestStatus.body.progress.checkedInToday, true);
+      assert.equal(guestStatus.body.progress.dayCount, 1);
+      assert.equal(guestStatus.body.missions.find(m => m.key === 'room_checkin').eligible, true);
+      assert.equal((await call('claim', roomId, 'visit_5', 'regular-guest')).status, 409);
+      const [a, b] = await Promise.all([
+        call('claim', roomId, 'room_checkin', 'regular-guest'),
+        call('claim', roomId, 'room_checkin', 'regular-guest'),
+      ]);
+      assert.ok([a.status, b.status].every(code => code === 200));
+      assert.equal((await room.get()).data().roomXp, 2);
+      assert.equal((await room.collection('task_completions').get()).size, 1);
+      assert.equal((await call('claim', roomId, 'room_checkin', 'regular-guest')).body.alreadyProcessed, true);
+      await room.collection('participants').doc('regular-guest').update({kicked: true});
+      assert.equal((await call('heartbeat', roomId, null, 'regular-guest')).status, 403);
+      assert.equal((await visits.get()).data().dayCount, 1);
+    });
+    await t.test('room loyalty milestones require server-verified unique days', async () => {
+      const {room, roomId} = await seed();
+      const visitRef = room.collection('task_visits').doc(uid);
+      const today = new Date().toISOString().slice(0, 10);
+      for (const [days, mission, xp] of [
+        [4, 'visit_5', 15], [5, 'visit_6', 20],
+        [29, 'visit_30', 100], [59, 'visit_60', 200],
+      ]) {
+        await visitRef.set({userId: uid, lastDay: today, dayCount: days});
+        assert.equal((await call('claim', roomId, mission)).status, 409);
+        await visitRef.update({dayCount: days + 1});
+        assert.equal((await call('claim', roomId, mission)).body.awardedXp, xp);
+        assert.equal((await call('claim', roomId, mission)).body.alreadyProcessed, true);
+      }
+      assert.equal((await room.get()).data().roomXp, 335);
+    });
     await t.test('concurrent requests award XP exactly once', async () => {
       const {room, roomId} = await seed();
       const responses = await Promise.all(Array.from({length: 8}, () =>
@@ -142,10 +184,10 @@ test('room mission routes: emulator transactions and replay safety',
       assert.equal((await room.get()).data().roomXp, 10);
       assert.equal((await call('claim', roomId, 'host_five')).body.alreadyProcessed, true);
     });
-    await t.test('ten verified listener-to-stage promotions count once per guest', async () => {
+    await t.test('five verified listener-to-stage promotions count once per guest', async () => {
       const {room, roomId} = await seed();
-      assert.equal((await call('claim', roomId, 'stage_ten')).status, 409);
-      for (let i = 0; i < 10; i++) {
+      assert.equal((await call('claim', roomId, 'stage_five')).status, 409);
+      for (let i = 0; i < 5; i++) {
         const guest = `promoted-${i}`;
         await join(room, guest);
         const member = room.collection('participants').doc(guest);
@@ -157,13 +199,13 @@ test('room mission routes: emulator transactions and replay safety',
         await member.update({role: 'listener', seatIndex: null});
       }
       const status = await call('status', roomId);
-      assert.equal(status.body.progress.stageCount, 10);
-      assert.equal(status.body.missions.find(m => m.key === 'stage_ten').eligible, true);
-      assert.equal((await room.collection('task_stage').get()).size, 10);
-      assert.equal((await call('claim', roomId, 'stage_ten')).body.awardedXp, 5);
+      assert.equal(status.body.progress.stageCount, 5);
+      assert.equal(status.body.missions.find(m => m.key === 'stage_five').eligible, true);
+      assert.equal((await room.collection('task_stage').get()).size, 5);
+      assert.equal((await call('claim', roomId, 'stage_five')).body.awardedXp, 5);
       assert.equal((await room.get()).data().roomXp, 5);
-      assert.equal((await call('claim', roomId, 'stage_ten')).body.alreadyProcessed, true);
-      assert.equal((await call('claim', roomId, 'stage_ten', 'promoted-0')).status, 403);
+      assert.equal((await call('claim', roomId, 'stage_five')).body.alreadyProcessed, true);
+      assert.equal((await call('claim', roomId, 'stage_five', 'promoted-0')).status, 403);
     });
     await t.test('stage credit requires a preceding listener heartbeat', async () => {
       const {room, roomId} = await seed();

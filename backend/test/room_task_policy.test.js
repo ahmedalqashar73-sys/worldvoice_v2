@@ -14,9 +14,17 @@ test("explicit mission XP values are not silently invented", () => {
   assert.deepEqual(roomTaskSpec("host_five", {}), {
     taskKey: "host_five", xp: 10, requiredCount: 5, period: "once",
   });
-  assert.deepEqual(roomTaskSpec("stage_ten", {}), {
-    taskKey: "stage_ten", xp: 5, requiredCount: 10, period: "once",
+  assert.deepEqual(roomTaskSpec("stage_five", {}), {
+    taskKey: "stage_five", xp: 5, requiredCount: 5, period: "once",
   });
+  for (const [key, xp, count, period] of [
+    ["room_checkin", 2, 1, "day"],
+    ["visit_5", 15, 5, "once"],
+    ["visit_6", 20, 6, "once"],
+    ["visit_30", 100, 30, "once"],
+    ["visit_60", 200, 60, "once"],
+  ]) assert.deepEqual(roomTaskSpec(key, {}),
+    {taskKey: key, xp, requiredCount: count, period});
   assert.deepEqual(roomTaskSpec("three_gifts", {}), {
     taskKey: "three_gifts", xp: 20, requiredCount: 3, period: "once_per_room",
   });

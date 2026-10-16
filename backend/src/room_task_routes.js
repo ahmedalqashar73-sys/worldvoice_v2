@@ -11,11 +11,15 @@ export function registerRoomTaskRoutes({app, db, authenticatedUser}) {
  * Non-monetary, server-verified room missions. Device buttons cannot grant
  * XP or level rewards. Invalid mission overrides fail closed; no task mints coins, diamonds or cashout inventory.
  */
-const ROOM_TASK_KEYS = ["ten_minutes", "host_five", "stage_ten", "three_gifts", "stay_hours"];
+const ROOM_TASK_KEYS = ["ten_minutes", "host_five", "stage_five",
+  "three_gifts", "stay_hours", "room_checkin", "visit_5", "visit_6",
+  "visit_30", "visit_60"];
+const ROOM_TASK_POLICY_VERSION = 3;
 const roomTaskDay = (now = Date.now()) => new Date(now).toISOString().slice(0, 10);
 
 function roomTaskId(key, uid, day) {
-  const period = (key === "ten_minutes" || key === "stay_hours") ? day : "once";
+  const period = ["ten_minutes", "stay_hours", "room_checkin"].includes(key)
+    ? day : "once";
   return `${key}_${uid}_${period}`;
 }
 // Host achievement requires only FIVE verified guests. Read recent attendance
@@ -102,10 +106,12 @@ app.post("/room/tasks/heartbeat", async (req, res, next) => {
     const roomRef = db.collection("rooms").doc(roomId);
     const memberRef = roomRef.collection("participants").doc(user.uid);
     const attendanceRef = roomRef.collection("task_attendance").doc(user.uid);
+    const visitRef = roomRef.collection("task_visits").doc(user.uid);
     await db.runTransaction(async tx => {
       const cycleRef = engagementRef(db, user.uid);
-      const [room, member, prior, cycle] = await Promise.all([
-        tx.get(roomRef), tx.get(memberRef), tx.get(attendanceRef), tx.get(cycleRef),
+      const [room, member, prior, cycle, visits] = await Promise.all([
+        tx.get(roomRef), tx.get(memberRef), tx.get(attendanceRef),
+        tx.get(cycleRef), tx.get(visitRef),
       ]);
       if (!room.exists || room.data()?.isOpen !== true ||
           !member.exists || member.data()?.kicked === true) {
@@ -137,7 +143,20 @@ app.post("/room/tasks/heartbeat", async (req, res, next) => {
         data.seatIndex <= 8 && room.data()?.hostId !== user.uid && seenAsListener;
       const stageRef = roomRef.collection("task_stage").doc(user.uid);
       const stageReceipt = staged ? await tx.get(stageRef) : null;
+      // Count distinct UTC days. Re-entry, multiple devices and retrying the
+      // same day cannot increase days; only this authenticated server writes.
+      const priorVisit = visits.data() || {};
+      const alreadyVisited = priorVisit.lastDay === next.day;
+      const priorDays = priorVisit.dayCount ?? 0;
+      if (!Number.isSafeInteger(priorDays) || priorDays < 0 || priorDays > 50000) {
+        throw Object.assign(new Error("Room visit history needs reconciliation."),
+          {status: 409});
+      }
       tx.set(attendanceRef, {...next, seenAsListener});
+      if (!alreadyVisited) {
+        tx.set(visitRef, {userId: user.uid, lastDay: next.day,
+          dayCount: priorDays + 1, updatedAtMs: now}, {merge: true});
+      }
       if (staged && !stageReceipt.exists) {
         tx.create(stageRef, {userId: user.uid, hostId: room.data().hostId,
           joinedAtMs: next.joinedAtMs, observedAtMs: now});
@@ -160,13 +179,14 @@ app.get("/room/tasks/status", async (req, res, next) => {
     const now = Date.now();
     const day = roomTaskDay(now);
     const room = await roomRef.get();
-    const [participant, attendance, gifts, config, ...completions] =
+    const [participant, attendance, gifts, config, visits, ...completions] =
       await Promise.all([
         participantRef.get(),
         roomRef.collection("task_attendance").doc(user.uid).get(),
         roomRef.collection("gifts").where("senderId", "==", user.uid)
           .limit(3).get(),
         db.doc("room_task_config/current").get(),
+        roomRef.collection("task_visits").doc(user.uid).get(),
         ...ROOM_TASK_KEYS.map(key =>
           roomRef.collection("task_completions")
             .doc(roomTaskId(key, user.uid, day)).get()),
@@ -182,7 +202,12 @@ app.get("/room/tasks/status", async (req, res, next) => {
     ]);
     const currentMember = isCurrentTaskMember(participant.data(), attendance.data(), now);
     const minutes = currentMember ? verifiedRoomMinutes(attendance.data(), now) : 0;
-    const progress = {minutes, guestCount, stageCount, giftsSent: gifts.size};
+    const visitData = visits.data() || {};
+    const dayCount = Number.isSafeInteger(visitData.dayCount) &&
+      visitData.dayCount >= 0 ? visitData.dayCount : 0;
+    const checkedInToday = visitData.lastDay === day;
+    const progress = {minutes, guestCount, stageCount, giftsSent: gifts.size,
+      dayCount, checkedInToday};
     const configData = config.data() || {};
     const castle = roomCastleProgressSnapshot(room.data());
     const xp = castle.xp;
@@ -199,15 +224,18 @@ app.get("/room/tasks/status", async (req, res, next) => {
       }
       const current = key === "ten_minutes" || key === "stay_hours"
         ? minutes : key === "host_five" ? guestCount
-          : key === "stage_ten" ? stageCount : gifts.size;
+          : key === "stage_five" ? stageCount
+            : key === "room_checkin" ? (checkedInToday ? 1 : 0)
+              : key.startsWith("visit_") ? dayCount : gifts.size;
       const required = spec.requiredMinutes ?? spec.requiredCount;
       return {key, configured: true, claimed: completions[index].exists,
         eligible: currentMember &&
-          (!["host_five", "stage_ten"].includes(key) || host) &&
+          (!["host_five", "stage_five"].includes(key) || host) &&
           !completions[index].exists && !castleAtMaxLevel && current >= required,
         current, required, xp: spec.xp};
     });
-    return res.json({ok: true, roomId, xp, level: roomLevelFromXp(xp),
+    return res.json({ok: true, taskPolicyVersion: ROOM_TASK_POLICY_VERSION,
+      roomId, xp, level: roomLevelFromXp(xp),
       maxLevel: ROOM_MAX_LEVEL, maxed: castleAtMaxLevel,
       castleTier: castleTierForLevel(roomLevelFromXp(xp)),
       progress, missions});
@@ -235,7 +263,7 @@ app.post("/room/tasks/claim", async (req, res, next) => {
     const outcome = await db.runTransaction(async tx => {
       // Read all snapshots and evidence BEFORE the first transaction write.
       const cycleRef = engagementRef(db, user.uid);
-      const [room, member, attendance, config, prior, gifts, cycle, staged] = await Promise.all([
+      const [room, member, attendance, config, prior, gifts, cycle, staged, visits] = await Promise.all([
         tx.get(roomRef), tx.get(memberRef),
         tx.get(roomRef.collection("task_attendance").doc(user.uid)), tx.get(configRef),
         tx.get(completionRef),
@@ -244,10 +272,11 @@ app.post("/room/tasks/claim", async (req, res, next) => {
               "senderId", "==", user.uid).limit(3))
           : Promise.resolve(null),
         tx.get(cycleRef),
-        taskKey === "stage_ten"
+        taskKey === "stage_five"
           ? tx.get(roomRef.collection("task_stage")
-            .where("hostId", "==", user.uid).limit(10))
+            .where("hostId", "==", user.uid).limit(5))
           : Promise.resolve(null),
+        tx.get(roomRef.collection("task_visits").doc(user.uid)),
       ]);
       if (!room.exists || room.data()?.isOpen !== true || !member.exists) {
         throw Object.assign(new Error("Join an open room first."), {status: 403});
@@ -296,12 +325,22 @@ app.post("/room/tasks/claim", async (req, res, next) => {
               verifiedRoomMinutes(doc.data(), now) !== null).length
             : (hostHasFive ? 5 : 0);
           break;
-        case "stage_ten":
+        case "stage_five":
           if (room.data()?.hostId !== user.uid) {
             throw Object.assign(new Error("Only the host may claim this mission."),
               {status: 403});
           }
           count = staged.size;
+          break;
+        case "room_checkin":
+          count = visits.data()?.lastDay === day ? 1 : 0;
+          break;
+        case "visit_5":
+        case "visit_6":
+        case "visit_30":
+        case "visit_60":
+          count = Number.isSafeInteger(visits.data()?.dayCount)
+            ? visits.data().dayCount : 0;
           break;
         case "three_gifts":
           count = gifts.size;

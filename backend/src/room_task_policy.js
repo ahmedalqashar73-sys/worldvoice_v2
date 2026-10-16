@@ -130,8 +130,20 @@ export function roomTaskSpec(taskKey, config) {
       return {taskKey, xp: 4, requiredMinutes: 10, period: "day"};
     case "host_five":
       return {taskKey, xp: 10, requiredCount: 5, period: "once"};
-    case "stage_ten":
-      return {taskKey, xp: 5, requiredCount: 10, period: "once"};
+    case "stage_five":
+      return {taskKey, xp: 5, requiredCount: 5, period: "once"};
+    // Eight visible missions include four lifetime visit milestones.
+    // Visit rewards are room-specific, not wallet coins or purchasable goods.
+    case "room_checkin":
+      return {taskKey, xp: 2, requiredCount: 1, period: "day"};
+    case "visit_5":
+      return {taskKey, xp: 15, requiredCount: 5, period: "once"};
+    case "visit_6":
+      return {taskKey, xp: 20, requiredCount: 6, period: "once"};
+    case "visit_30":
+      return {taskKey, xp: 100, requiredCount: 30, period: "once"};
+    case "visit_60":
+      return {taskKey, xp: 200, requiredCount: 60, period: "once"};
     case "three_gifts":
       return {taskKey, xp: configuredPoints(config?.sendThreeGiftsXp ?? ROOM_TASK_DEFAULTS.sendThreeGiftsXp,
         "Three-gift mission"), requiredCount: 3, period: "once_per_room"};
