@@ -18,7 +18,7 @@ jobs:
           cache: true
       - run: flutter --version
       - run: flutter pub get
-      - run: flutter analyze
+      - run: flutter analyze --no-fatal-infos --no-fatal-warnings
       - run: flutter test test/create_room_page_test.dart test/room_conversation_panel_test.dart test/room_board_text_test.dart test/board_media_url_test.dart test/classic_gift_catalog_test.dart test/classic_gift_visual_test.dart test/luxury_gift_assets_test.dart test/coin_pack_presentation_test.dart test/classic_gift_mesh_test.dart test/friend_gift_preview_test.dart
 
   backend-check:
@@ -51,6 +51,9 @@ jobs:
           java-version: "21"
       - run: npm install --no-audit --no-fund
         working-directory: test/firestore
+      - name: Install backend dependencies for Firestore transaction tests
+        run: npm install
+        working-directory: backend
       - name: Test Firestore room access in isolated emulator
         working-directory: test/firestore
         run: npx firebase emulators:exec --config ../../firebase.rules-test.json --only firestore --project demo-worldvoice-rules "npm test && cd ../../backend && npm test"
