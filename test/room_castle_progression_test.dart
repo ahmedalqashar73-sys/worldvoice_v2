@@ -157,7 +157,7 @@ void main() {
     ))));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
-    await tester.tap(find.text('Lv.50'));
+    await tester.tap(find.text('LEVEL 50'));
     expect(opened, isTrue);
   });
 

@@ -839,11 +839,14 @@ class RoomCastleBadge extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsetsDirectional.only(start: 4, end: 5,
               top: 4, bottom: 4),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Image.asset(
-                roomCastleWebpAssetForLevel(safeLevel),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: AlignmentDirectional.centerStart,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset(
+                  roomCastleWebpAssetForLevel(safeLevel),
                 width: 37,
                 height: 41,
                 cacheWidth: 148,
@@ -884,7 +887,8 @@ class RoomCastleBadge extends StatelessWidget {
                   ),
                 ],
               ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
