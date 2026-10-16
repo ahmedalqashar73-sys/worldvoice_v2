@@ -43,6 +43,7 @@ import 'room_captions_sheet.dart';
 import 'room_coin_store_sheet.dart';
 import 'room_music_sheet.dart';
 import 'room_quiz_sheet.dart';
+import 'room_games_sheet.dart';
 import 'room_rating_sheet.dart';
 import 'room_extras_sheet.dart';
 import 'room_gift_overlay.dart';
@@ -2673,6 +2674,18 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     );
   }
 
+  Future<void> _showGames() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => RoomGamesSheet(
+        roomId: widget.channelId,
+        isHost: _isHost,
+      ),
+    );
+  }
+
   Future<void> _showQuiz() async {
     await showModalBottomSheet<void>(
       context: context,
@@ -2927,6 +2940,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       (Icons.card_giftcard_rounded, ar ? 'الهدايا' : 'Gifts', _showGifts),
       (Icons.timer_outlined, ar ? 'الوقت المتبقي' : 'Remaining time',
         _showQuotaStatus),
+      (Icons.sports_esports_rounded,
+        ar ? 'الألعاب اللغوية' : 'Language games', _showGames),
       (Icons.groups_outlined,
         ar ? 'الأعضاء: ${_participants.length}' : 'Members: ${_participants.length}',
         _showMembers),
