@@ -151,8 +151,7 @@ class _TasksTabState extends State<_TasksTab> {
   @override
   Widget build(BuildContext context) {
     final ar = Localizations.localeOf(context).languageCode == 'ar';
-    const taskKeys = <String>['host_five', 'stage_five', 'stay_hours',
-      'room_checkin', 'visit_5', 'visit_6', 'visit_30', 'visit_60'];
+    // Milestones stay server-backed and claimable, but appear in one journey.
     final compatible = _status?['taskPolicyVersion'] == 3;
     final visitDays = ((_status?['progress'] as Map?)?['dayCount'] as num?)
             ?.toInt() ?? 0;
@@ -176,6 +175,109 @@ class _TasksTabState extends State<_TasksTab> {
         if (mission['key'] == key) return mission;
       }
       return null;
+    }
+
+    Widget taskHeading(String text, IconData icon) => Padding(
+      padding: const EdgeInsets.only(top: 14, bottom: 7),
+      child: Row(children: [
+        Icon(icon, color: const Color(0xFFE3BC6E), size: 19),
+        const SizedBox(width: 8),
+        Expanded(child: Text(text, style: const TextStyle(
+          color: Color(0xFFEED79D), fontSize: 15,
+          fontWeight: FontWeight.w900))),
+      ]),
+    );
+
+    // Only the backend may verify progress or grant XP.
+    Widget taskTile(String key) {
+            final mission = findMission(key);
+            final configured = mission?['configured'] == true;
+            final claimed = mission?['claimed'] == true;
+            final eligible = mission?['eligible'] == true;
+            final current = (mission?['current'] as num?)?.toInt();
+            final required = (mission?['required'] as num?)?.toInt();
+            final xp = (mission?['xp'] as num?)?.toInt();
+            final title = switch (key) {
+              'room_checkin' => ar ? 'الحضور اليومي' : 'Daily room check-in',
+              'ten_minutes' => ar ? 'المشاركة في الغرفة 10 دقائق' : 'Stay in the room for 10 minutes',
+              'stay_hours' => ar ? 'المشاركة في الغرفة 60 دقيقة' : 'Stay in the room for 60 minutes',
+              'host_five' => ar ? 'استقبل 5 مستمعين' : 'Welcome 5 listeners',
+              'stage_five' => ar ? 'اصعد 5 مستمعين إلى المسرح' : 'Bring 5 listeners on stage',
+              'three_gifts' => ar ? 'أرسل 3 هدايا موثقة' : 'Send 3 verified gifts',
+              'visit_5' => ar ? 'صديق الغرفة' : 'Room Friend',
+              'visit_6' => ar ? 'مبدع الغرفة' : 'Room Creative',
+              'visit_30' => ar ? 'سفير الغرفة' : 'Room Ambassador',
+              _ => ar ? 'أسطورة الغرفة' : 'Room Legend',
+            };
+            final score = switch (key) {
+              'room_checkin' => 2, 'ten_minutes' => 4,
+              'stay_hours' => 60, 'host_five' => 10,
+              'stage_five' => 5, 'three_gifts' => 0,
+              'visit_5' => 15, 'visit_6' => 20,
+              'visit_30' => 100, _ => 200,
+            };
+            final target = switch (key) {
+              'room_checkin' => 1, 'ten_minutes' => 10,
+              'stay_hours' => 60, 'host_five' => 5,
+              'stage_five' => 5, 'three_gifts' => 3,
+              'visit_5' => 5, 'visit_6' => 6,
+              'visit_30' => 30, _ => 60,
+            };
+            final description = configured && required != null && current != null
+                ? '${current.clamp(0, required)}/$required • +$xp XP'
+                : key == 'three_gifts'
+                    ? (ar ? 'حسب إعدادات الهدايا الموثقة'
+                        : 'Requires verified gift settings')
+                    : (ar ? 'المطلوب $target • +$score XP بعد التحقق'
+                        : 'Target $target • +$score XP after verification');
+            return Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF1B4235), Color(0xFF17322C)],
+                ),
+                border: Border.all(color: const Color(0xFF37694F), width: .7),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: ListTile(
+                leading: Icon(switch (key) {
+                  'room_checkin' => Icons.event_available_rounded,
+                  'ten_minutes' => Icons.timer_outlined,
+                  'stay_hours' => Icons.hourglass_bottom_rounded,
+                  'host_five' => Icons.groups_rounded,
+                  'stage_five' => Icons.airline_seat_recline_extra_rounded,
+                  'three_gifts' => Icons.card_giftcard_rounded,
+                  'visit_5' => Icons.handshake_rounded,
+                  'visit_6' => Icons.auto_awesome_rounded,
+                  'visit_30' => Icons.workspace_premium_rounded,
+                  _ => Icons.military_tech_rounded,
+                }, color: const Color(0xFFECC982)),
+                title: Text(title, style: const TextStyle(
+                  color: Color(0xFFF5EEDB), fontWeight: FontWeight.w800,
+                )),
+                subtitle: Text(description, style: const TextStyle(
+                  color: Color(0xFFBBD2C4), fontSize: 12,
+                )),
+                trailing: claimed
+                    ? const Icon(Icons.verified_rounded, color: Color(0xFFEBC87C))
+                    : FilledButton(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFFD6B665),
+                          foregroundColor: const Color(0xFF123C2B),
+                          disabledBackgroundColor: const Color(0xFF375347),
+                          disabledForegroundColor: const Color(0xFF98B0A5),
+                          minimumSize: const Size(112, 40),
+                        ),
+                        onPressed: compatible && configured && eligible &&
+                                _busyTask == null && !_loading
+                            ? () => _claim(key) : null,
+                        child: Text(_busyTask == key
+                            ? (ar ? 'جارٍ التحقق' : 'Checking')
+                            : (ar ? 'استلام XP' : 'Claim XP')),
+                      ),
+              ),
+            );
+          
     }
 
     return ListView(
@@ -406,103 +508,42 @@ class _TasksTabState extends State<_TasksTab> {
             child: Text(_error!, style: TextStyle(
                 color: Theme.of(context).colorScheme.error)),
           ),
-        for (final key in taskKeys) ...[
-          if (key == 'host_five' || key == 'stay_hours')
-            Padding(
-              padding: const EdgeInsets.only(top: 15, bottom: 10),
-              child: Row(children: [
-                Icon(key == 'host_five'
-                    ? Icons.home_work_rounded : Icons.event_available_rounded,
-                    color: const Color(0xFFE3BC6E), size: 20),
-                const SizedBox(width: 9),
-                Expanded(child: Text(
-                  key == 'host_five'
-                      ? (ar ? 'إنجازات صاحب الغرفة' : 'Room owner achievements')
-                      : (ar ? 'رحلة الحضور والإبداع' : 'Presence and creative journey'),
-                  style: const TextStyle(color: Color(0xFFEED79D),
-                    fontSize: 16, fontWeight: FontWeight.w900),
-                )),
-              ]),
-            ),
-          Builder(builder: (context) {
-            final mission = findMission(key);
-            final configured = mission?['configured'] == true;
-            final claimed = mission?['claimed'] == true;
-            final eligible = mission?['eligible'] == true;
-            final current = (mission?['current'] as num?)?.toInt();
-            final required = (mission?['required'] as num?)?.toInt();
-            final xp = (mission?['xp'] as num?)?.toInt();
-            final title = switch (key) {
-              'host_five' => ar ? 'استقبل 5 مستمعين' : 'Welcome 5 listeners',
-              'stage_five' => ar ? 'اصعد 5 مستمعين إلى المسرح' : 'Bring 5 listeners on stage',
-              'stay_hours' => ar ? 'ابقَ 60 دقيقة في الغرفة' : 'Stay 60 minutes in the room',
-              'room_checkin' => ar ? 'سجّل زيارتك اليومية' : 'Daily room check-in',
-              'visit_5' => ar ? 'صديق الغرفة • 5 أيام' : 'Room Friend • 5 days',
-              'visit_6' => ar ? 'مبدع الغرفة • 6 أيام' : 'Room Creative • 6 days',
-              'visit_30' => ar ? 'سفير الغرفة • 30 يومًا' : 'Room Ambassador • 30 days',
-              _ => ar ? 'أسطورة الغرفة • 60 يومًا' : 'Room Legend • 60 days',
-            };
-            final score = switch (key) {
-              'host_five' => 10, 'stage_five' => 5, 'stay_hours' => 60,
-              'room_checkin' => 2, 'visit_5' => 15, 'visit_6' => 20,
-              'visit_30' => 100, _ => 200,
-            };
-            final target = switch (key) {
-              'host_five' => 5, 'stage_five' => 5, 'stay_hours' => 60,
-              'room_checkin' => 1, 'visit_5' => 5, 'visit_6' => 6,
-              'visit_30' => 30, _ => 60,
-            };
-            final description = configured && required != null && current != null
-                ? '${current.clamp(0, required)}/$required • +$xp XP'
-                : (ar ? 'المطلوب $target • +$score XP بعد التحقق'
-                    : 'Target $target • +$score XP after verification');
-            return Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF1B4235), Color(0xFF17322C)],
-                ),
-                border: Border.all(color: const Color(0xFF37694F), width: .7),
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: ListTile(
-                leading: Icon(switch (key) {
-                  'host_five' => Icons.groups_rounded,
-                  'stage_five' => Icons.airline_seat_recline_extra_rounded,
-                  'stay_hours' => Icons.hourglass_bottom_rounded,
-                  'room_checkin' => Icons.login_rounded,
-                  'visit_5' => Icons.handshake_rounded,
-                  'visit_6' => Icons.auto_awesome_rounded,
-                  'visit_30' => Icons.workspace_premium_rounded,
-                  _ => Icons.military_tech_rounded,
-                }, color: const Color(0xFFECC982)),
-                title: Text(title, style: const TextStyle(
-                  color: Color(0xFFF5EEDB), fontWeight: FontWeight.w800,
-                )),
-                subtitle: Text(description, style: const TextStyle(
-                  color: Color(0xFFBBD2C4), fontSize: 12,
-                )),
-                trailing: claimed
-                    ? const Icon(Icons.verified_rounded, color: Color(0xFF237950))
-                    : FilledButton(
-                        style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFFD6B665),
-                          foregroundColor: const Color(0xFF123C2B),
-                          disabledBackgroundColor: const Color(0xFF375347),
-                          disabledForegroundColor: const Color(0xFF98B0A5),
-                          minimumSize: const Size(112, 40),
-                        ),
-                        onPressed: compatible && configured && eligible &&
-                                _busyTask == null && !_loading
-                            ? () => _claim(key) : null,
-                        child: Text(_busyTask == key
-                            ? (ar ? 'جارٍ التحقق' : 'Checking')
-                            : (ar ? 'استلام XP' : 'Claim XP')),
-                      ),
-              ),
-            );
-          }),
-        ],
+        taskHeading(ar ? 'النشاط اليومي' : 'Daily activity',
+            Icons.today_rounded),
+        taskTile('room_checkin'),
+        taskTile('ten_minutes'),
+        taskTile('stay_hours'),
+        taskHeading(ar ? 'المستمعون والمسرح' : 'Listeners and stage',
+            Icons.groups_rounded),
+        taskTile('host_five'),
+        taskTile('stage_five'),
+        taskHeading(ar ? 'الهدايا' : 'Gifts',
+            Icons.card_giftcard_rounded),
+        taskTile('three_gifts'),
+        const SizedBox(height: 5),
+        // One collapsible journey instead of four competing date missions.
+        Theme(
+          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+          child: ExpansionTile(
+            tilePadding: const EdgeInsets.symmetric(horizontal: 6),
+            childrenPadding: const EdgeInsets.only(top: 4),
+            leading: const Icon(Icons.workspace_premium_rounded,
+                color: Color(0xFFE3BC6E)),
+            title: Text(ar ? 'إنجازات الزيارات' : 'Visit achievements',
+              style: const TextStyle(color: Color(0xFFEED79D),
+                  fontWeight: FontWeight.w800)),
+            subtitle: Text(
+              ar ? '$visitDays يوم زيارة موثّق' :
+                  '$visitDays verified visiting days',
+              style: const TextStyle(color: Color(0xFFB8CDBE),
+                  fontSize: 12)),
+            children: [
+              for (final key in const <String>[
+                'visit_5', 'visit_6', 'visit_30', 'visit_60',
+              ]) taskTile(key),
+            ],
+          ),
+        ),
         const SizedBox(height: 8),
         Text(
           ar
