@@ -310,7 +310,7 @@ class RoomGamesService {
     final base = RoomBackendConfig.economyBaseUrl.trim();
     final normalized = base.endsWith('/')
         ? base.substring(0, base.length - 1) : base;
-    final uri = Uri.tryParse(normalized + '/room/games/' + action);
+    final uri = Uri.tryParse('${normalized}/room/games/$action');
     if (uri == null || uri.scheme != 'https' || !uri.hasAuthority) {
       throw StateError('Invalid room game backend URL.');
     }
@@ -327,7 +327,7 @@ class RoomGamesService {
     if (response.statusCode != 200) {
       var message = response.statusCode == 404
           ? 'WorldVoice Games needs the updated room backend.'
-          : 'Game request failed: ' + response.statusCode.toString();
+          : 'Game request failed: ${response.statusCode}';
       try {
         final data = jsonDecode(response.body);
         if (data is Map) message = data['error']?.toString() ?? message;

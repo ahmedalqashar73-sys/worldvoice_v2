@@ -19,7 +19,7 @@ class _RoomGamesSheetState extends State<RoomGamesSheet> {
   Timer? _poll, _tick;
   Map<String, dynamic>? _data;
   String _mode = 'vocabulary', _level = 'beginner', _language = 'en';
-  String? _error, _notice, _session;
+  String? _error, _notice, _visibleSession;
   int? _index;
   bool _fetching = false, _busy = false;
   DateTime _receivedAt = DateTime.now();
@@ -62,8 +62,8 @@ class _RoomGamesSheetState extends State<RoomGamesSheet> {
         if (langs.isNotEmpty && !langs.contains(_language)) {
           _language = langs.first;
         }
-        if (_session != session || _index != index) {
-          _session = session;
+        if (_visibleSession != session || _index != index) {
+          _visibleSession = session;
           _index = index;
           _answer.clear();
           _notice = null;
@@ -85,8 +85,10 @@ class _RoomGamesSheetState extends State<RoomGamesSheet> {
     try {
       await _service.start(mode: _mode, level: _level, language: _language);
     } catch (error) {
-      if (mounted) setState(() =>
-          _error = error.toString().replaceFirst('Bad state: ', ''));
+      if (mounted) {
+        setState(() =>
+            _error = error.toString().replaceFirst('Bad state: ', ''));
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
       await _load();
@@ -96,7 +98,9 @@ class _RoomGamesSheetState extends State<RoomGamesSheet> {
   Future<void> _send() async {
     final data = _data;
     if (_busy || data?['canAnswer'] != true || data?['answered'] == true ||
-        data?['active'] != true || _answer.text.trim().isEmpty) return;
+        data?['active'] != true || _answer.text.trim().isEmpty) {
+      return;
+    }
     final id = data?['sessionId']?.toString();
     final idx = (data?['questionIndex'] as num?)?.toInt();
     if (id == null || idx == null) return;
@@ -104,13 +108,15 @@ class _RoomGamesSheetState extends State<RoomGamesSheet> {
     try {
       final result = await _service.answer(
         sessionId: id, wordIndex: idx, answer: _answer.text.trim());
-      if (mounted) setState(() {
+      if (mounted) {
+        setState(() {
         _notice = result['alreadySubmitted'] == true
           ? (_ar ? 'تم إرسال الإجابة من قبل' : 'Already submitted')
           : result['correct'] == true
               ? (_ar ? 'صحيح! +10 نقاط لعب' : 'Correct! +10 game points')
               : (_ar ? 'حاول في الكلمة القادمة' : 'Try the next word');
-      });
+        });
+      }
     } catch (error) {
       if (mounted) setState(() =>
           _error = error.toString().replaceFirst('Bad state: ', ''));
@@ -204,14 +210,16 @@ class _RoomGamesSheetState extends State<RoomGamesSheet> {
     );
   }
 
-  Widget _session() {
+  Widget _gameView() {
     final data = _data!;
     final active = data['active'] == true;
     final finished = data['finished'] == true;
-    if (!active && !finished) return Padding(
-      padding: const EdgeInsets.all(25),
-      child: Center(child: Text(_ar ? 'انتظر المضيف ليبدأ الجولة'
-        : 'Waiting for the host to start a round')));
+    if (!active && !finished) {
+      return Padding(
+        padding: const EdgeInsets.all(25),
+        child: Center(child: Text(_ar ? 'انتظر المضيف ليبدأ الجولة'
+          : 'Waiting for the host to start a round')));
+    }
     final mode = data['mode']?.toString() ?? 'vocabulary';
     final idx = (data['questionIndex'] as num?)?.toInt() ?? 0;
     final question = data['question'] as Map?;
@@ -228,9 +236,8 @@ class _RoomGamesSheetState extends State<RoomGamesSheet> {
       const SizedBox(height: 10),
       if (active) ...[
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Text((_ar ? 'الكلمة ' : 'Word ') +
-              (idx + 1).toString() + '/5'),
-          Text(_remaining.toString() + 's',
+          Text('${_ar ? 'الكلمة ' : 'Word '}${idx + 1}/5'),
+          Text('${_remaining}s',
             style: const TextStyle(color: Color(0xFFE5C782),
               fontWeight: FontWeight.w900, fontSize: 18)),
         ]),
@@ -336,7 +343,7 @@ class _RoomGamesSheetState extends State<RoomGamesSheet> {
             const Center(child: CircularProgressIndicator()),
           if (_data != null) ...[
             if (widget.isHost && _data?['active'] != true) _setup(),
-            _session(),
+            _gameView(),
           ],
           if (!widget.isHost)
             Padding(padding: const EdgeInsets.only(top: 12),
