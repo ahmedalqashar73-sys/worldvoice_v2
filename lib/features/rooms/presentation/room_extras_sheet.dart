@@ -407,6 +407,23 @@ class _TasksTabState extends State<_TasksTab> {
                 color: Theme.of(context).colorScheme.error)),
           ),
         for (final key in taskKeys) ...[
+          if (key == 'host_five' || key == 'stay_hours')
+            Padding(
+              padding: const EdgeInsets.only(top: 15, bottom: 10),
+              child: Row(children: [
+                Icon(key == 'host_five'
+                    ? Icons.home_work_rounded : Icons.event_available_rounded,
+                    color: const Color(0xFFE3BC6E), size: 20),
+                const SizedBox(width: 9),
+                Expanded(child: Text(
+                  key == 'host_five'
+                      ? (ar ? 'إنجازات صاحب الغرفة' : 'Room owner achievements')
+                      : (ar ? 'رحلة الحضور والإبداع' : 'Presence and creative journey'),
+                  style: const TextStyle(color: Color(0xFFEED79D),
+                    fontSize: 16, fontWeight: FontWeight.w900),
+                )),
+              ]),
+            ),
           Builder(builder: (context) {
             final mission = findMission(key);
             final configured = mission?['configured'] == true;
