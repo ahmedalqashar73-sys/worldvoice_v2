@@ -29,7 +29,7 @@ test('room mission routes: emulator transactions and replay safety',
     const now = Date.now();
     await room.collection('participants').doc(id).set({
       joinedAt: Timestamp.fromMillis(now - activeMs - 1000),
-      updatedAt: Timestamp.fromMillis(now), kicked: false,
+      updatedAt: Timestamp.fromMillis(now), kicked: false, role: 'listener',
     });
     await room.collection('task_attendance').doc(id).set({
       day: new Date(now).toISOString().slice(0, 10),
@@ -172,6 +172,15 @@ test('room mission routes: emulator transactions and replay safety',
         .update({role: 'speaker', seatIndex: 2});
       assert.equal((await call('heartbeat', roomId, null, 'joined-as-speaker')).status, 200);
       assert.equal((await room.collection('task_stage').get()).size, 0);
+    });
+    await t.test('speakers and host do not count toward five listeners', async () => {
+      const {room, roomId} = await seed();
+      for (let i = 0; i < 5; i++) await join(room, `audience-${i}`);
+      await room.collection('participants').doc('audience-0')
+        .update({role: 'speaker', seatIndex: 2});
+      const status = await call('status', roomId);
+      assert.equal(status.body.progress.guestCount, 4);
+      assert.equal((await call('claim', roomId, 'host_five')).status, 409);
     });
     await t.test('departed or kicked guests do not qualify', async () => {
       const {room, roomId} = await seed();

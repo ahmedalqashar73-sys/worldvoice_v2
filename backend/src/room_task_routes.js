@@ -41,7 +41,7 @@ async function hasFiveVerifiedGuests(tx, roomRef, hostId, now) {
       tx.get(roomRef.collection("participants").doc(doc.id))));
     for (let index = 0; index < results.docs.length; index++) {
       const entry = results.docs[index];
-      if (entry.id !== hostId && isCurrentTaskMember(
+      if (entry.id !== hostId && participants[index].data()?.role === "listener" && isCurrentTaskMember(
         participants[index].data(), entry.data(), now)) {
         validGuests++;
       }
@@ -77,6 +77,7 @@ async function countVerifiedGuestsForStatus(db, roomRef, hostId, now) {
     for (let index = 0; index < page.docs.length; index++) {
       const attendance = page.docs[index];
       if (attendance.id !== hostId &&
+          members[index].data()?.role === "listener" &&
           isCurrentTaskMember(members[index].data(), attendance.data(), now)) {
         valid++;
         if (valid >= 5) break;
@@ -290,7 +291,8 @@ app.post("/room/tasks/claim", async (req, res, next) => {
               {status: 403});
           }
           count = rewardLevels.length
-            ? members.docs.filter(doc => activeIds.has(doc.id) && doc.id !== user.uid &&
+            ? members.docs.filter((doc, index) => activeIds.has(doc.id) && doc.id !== user.uid &&
+              liveMemberships[index]?.data()?.role === "listener" &&
               verifiedRoomMinutes(doc.data(), now) !== null).length
             : (hostHasFive ? 5 : 0);
           break;
