@@ -151,9 +151,22 @@ class _TasksTabState extends State<_TasksTab> {
   @override
   Widget build(BuildContext context) {
     final ar = Localizations.localeOf(context).languageCode == 'ar';
-    const taskKeys = ['ten_minutes', 'host_five', 'stage_ten', 'stay_hours'];
+    const taskKeys = <String>['host_five', 'stage_five', 'stay_hours',
+      'room_checkin', 'visit_5', 'visit_6', 'visit_30', 'visit_60'];
+    final compatible = _status?['taskPolicyVersion'] == 3;
+    final visitDays = ((_status?['progress'] as Map?)?['dayCount'] as num?)
+            ?.toInt() ?? 0;
+    final loyalty = visitDays >= 60
+        ? (ar ? 'أسطورة الغرفة' : 'Room Legend')
+        : visitDays >= 30
+            ? (ar ? 'سفير الغرفة' : 'Room Ambassador')
+            : visitDays >= 6
+                ? (ar ? 'مبدع الغرفة' : 'Room Creative')
+                : visitDays >= 5
+                    ? (ar ? 'صديق الغرفة' : 'Room Friend')
+                    : (ar ? 'زائر الغرفة' : 'Room Visitor');
     final rawMissions = _status?['missions'];
-    final missions = rawMissions is List
+    final missions = compatible && rawMissions is List
         ? rawMissions.whereType<Map>()
             .map((m) => Map<String, dynamic>.from(m))
             .toList(growable: false)
@@ -349,8 +362,11 @@ class _TasksTabState extends State<_TasksTab> {
           ),
         Row(children: [
           Expanded(child: Text(
-            ar ? 'ارتقِ بقلعتك' : 'Grow your castle',
-            style: Theme.of(context).textTheme.titleMedium,
+            ar ? 'مهام بيتك الصوتي' : 'Your voice room journey',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: const Color(0xFFF2D797),
+              fontWeight: FontWeight.w900,
+            ),
           )),
           IconButton(
             onPressed: _loading || _busyTask != null ? null : _refresh,
@@ -361,6 +377,29 @@ class _TasksTabState extends State<_TasksTab> {
                 : const Icon(Icons.refresh_rounded),
           ),
         ]),
+        if (_status != null && !compatible)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Text(ar
+                ? 'هذا الخادم يعمل بنظام نقاط قديم. يلزم تحديث الباك إند لاستلام المكافآت الجديدة.'
+                : 'This server uses an older XP policy. Update the backend before claiming new rewards.',
+              style: const TextStyle(color: Color(0xFFFFCC8B), fontSize: 13)),
+          ),
+        if (compatible)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(children: [
+              const Icon(Icons.auto_awesome_rounded,
+                  color: Color(0xFFF1D48C), size: 19),
+              const SizedBox(width: 8),
+              Expanded(child: Text(
+                ar ? '$loyalty • $visitDays يوم زيارة موثّق'
+                   : '$loyalty • $visitDays verified visiting days',
+                style: const TextStyle(color: Color(0xFFE5DBB9),
+                   fontWeight: FontWeight.w800),
+              )),
+            ]),
+          ),
         if (_error != null)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 6),
@@ -377,43 +416,66 @@ class _TasksTabState extends State<_TasksTab> {
             final required = (mission?['required'] as num?)?.toInt();
             final xp = (mission?['xp'] as num?)?.toInt();
             final title = switch (key) {
-              'ten_minutes' => ar ? 'البقاء 10 دقائق بالغرفة' : 'Stay 10 minutes',
-              'host_five' => ar ? 'استضف خمسة مستمعين' : 'Host five listeners',
-              'stage_ten' => ar ? 'اصعد عشرة مستمعين إلى المسرح' : 'Bring ten listeners on stage',
-              _ => ar ? 'البقاء 60 دقيقة' : 'Stay 60 minutes',
+              'host_five' => ar ? 'استقبل 5 مستمعين' : 'Welcome 5 listeners',
+              'stage_five' => ar ? 'اصعد 5 مستمعين إلى المسرح' : 'Bring 5 listeners on stage',
+              'stay_hours' => ar ? 'ابقَ 60 دقيقة في الغرفة' : 'Stay 60 minutes in the room',
+              'room_checkin' => ar ? 'سجّل زيارتك اليومية' : 'Daily room check-in',
+              'visit_5' => ar ? 'صديق الغرفة • 5 أيام' : 'Room Friend • 5 days',
+              'visit_6' => ar ? 'مبدع الغرفة • 6 أيام' : 'Room Creative • 6 days',
+              'visit_30' => ar ? 'سفير الغرفة • 30 يومًا' : 'Room Ambassador • 30 days',
+              _ => ar ? 'أسطورة الغرفة • 60 يومًا' : 'Room Legend • 60 days',
+            };
+            final score = switch (key) {
+              'host_five' => 10, 'stage_five' => 5, 'stay_hours' => 60,
+              'room_checkin' => 2, 'visit_5' => 15, 'visit_6' => 20,
+              'visit_30' => 100, _ => 200,
+            };
+            final target = switch (key) {
+              'host_five' => 5, 'stage_five' => 5, 'stay_hours' => 60,
+              'room_checkin' => 1, 'visit_5' => 5, 'visit_6' => 6,
+              'visit_30' => 30, _ => 60,
             };
             final description = configured && required != null && current != null
                 ? '${current.clamp(0, required)}/$required • +$xp XP'
-                : key == 'ten_minutes'
-                    ? (ar ? '10 دقائق • 4 XP'
-                        : '10 minutes • 4 XP')
-                    : key == 'host_five'
-                        ? (ar ? '5 مستمعين • 10 XP'
-                            : '5 listeners • 10 XP')
-                        : key == 'stage_ten'
-                            ? (ar ? '10 مستمعين • 5 XP'
-                                : '10 listeners • 5 XP')
-                            : (ar ? '60 دقيقة • 60 XP'
-                                : '60 minutes • 60 XP');
+                : (ar ? 'المطلوب $target • +$score XP بعد التحقق'
+                    : 'Target $target • +$score XP after verification');
             return Container(
               margin: const EdgeInsets.only(bottom: 10),
               decoration: BoxDecoration(
-                color: const Color(0xFF19372F),
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF1B4235), Color(0xFF17322C)],
+                ),
+                border: Border.all(color: const Color(0xFF37694F), width: .7),
                 borderRadius: BorderRadius.circular(18),
               ),
               child: ListTile(
                 leading: Icon(switch (key) {
-                  'ten_minutes' => Icons.timer_outlined,
                   'host_five' => Icons.groups_rounded,
-                  'stage_ten' => Icons.airline_seat_recline_extra_rounded,
-                  _ => Icons.hourglass_bottom_rounded,
-                }),
-                title: Text(title),
-                subtitle: Text(description),
+                  'stage_five' => Icons.airline_seat_recline_extra_rounded,
+                  'stay_hours' => Icons.hourglass_bottom_rounded,
+                  'room_checkin' => Icons.login_rounded,
+                  'visit_5' => Icons.handshake_rounded,
+                  'visit_6' => Icons.auto_awesome_rounded,
+                  'visit_30' => Icons.workspace_premium_rounded,
+                  _ => Icons.military_tech_rounded,
+                }, color: const Color(0xFFECC982)),
+                title: Text(title, style: const TextStyle(
+                  color: Color(0xFFF5EEDB), fontWeight: FontWeight.w800,
+                )),
+                subtitle: Text(description, style: const TextStyle(
+                  color: Color(0xFFBBD2C4), fontSize: 12,
+                )),
                 trailing: claimed
                     ? const Icon(Icons.verified_rounded, color: Color(0xFF237950))
                     : FilledButton(
-                        onPressed: configured && eligible &&
+                        style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFFD6B665),
+                          foregroundColor: const Color(0xFF123C2B),
+                          disabledBackgroundColor: const Color(0xFF375347),
+                          disabledForegroundColor: const Color(0xFF98B0A5),
+                          minimumSize: const Size(112, 40),
+                        ),
+                        onPressed: compatible && configured && eligible &&
                                 _busyTask == null && !_loading
                             ? () => _claim(key) : null,
                         child: Text(_busyTask == key

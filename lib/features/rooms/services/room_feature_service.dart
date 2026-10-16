@@ -528,7 +528,8 @@ class RoomFeatureService {
 
   Future<Map<String, dynamic>> claimVerifiedTask(String taskKey) {
     if (!const {
-      'ten_minutes', 'host_five', 'stage_ten', 'three_gifts', 'stay_hours',
+      'ten_minutes', 'host_five', 'stage_five', 'three_gifts', 'stay_hours',
+        'room_checkin', 'visit_5', 'visit_6', 'visit_30', 'visit_60',
     }.contains(taskKey)) {
       throw ArgumentError.value(taskKey, 'taskKey', 'Unknown room mission');
     }
