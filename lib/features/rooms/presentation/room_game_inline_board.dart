@@ -9,11 +9,13 @@ class RoomGameInlineBoard extends StatefulWidget {
     required this.status,
     required this.isArabic,
     this.onOpenGames,
+    this.onEndGame,
     super.key,
   });
   final Map<String, dynamic> status;
   final bool isArabic;
   final VoidCallback? onOpenGames;
+  final VoidCallback? onEndGame;
 
   @override
   State<RoomGameInlineBoard> createState() => _RoomGameInlineBoardState();
@@ -101,6 +103,17 @@ class _RoomGameInlineBoardState extends State<RoomGameInlineBoard> {
             Text(ar ? 'النتائج النهائية' : 'Final results',
               style: const TextStyle(color: Color(0xFFF1D58B),
                   fontWeight: FontWeight.w700, fontSize: 12)),
+          if (widget.onEndGame != null)
+            IconButton(
+              key: const ValueKey('room-games-exit-button'),
+              tooltip: ar ? 'إنهاء اللعبة والعودة للروم' : 'End game and return',
+              onPressed: widget.onEndGame,
+              visualDensity: VisualDensity.compact,
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 30),
+              padding: EdgeInsets.zero,
+              icon: const Icon(Icons.close_rounded,
+                color: Color(0xFFFFD99A), size: 20),
+            ),
           if (widget.onOpenGames != null)
             InkWell(
               onTap: widget.onOpenGames,
@@ -156,7 +169,20 @@ class _RoomGameInlineBoardState extends State<RoomGameInlineBoard> {
               textAlign: TextAlign.center,
               style: const TextStyle(color: Color(0xFFBBD5C4), fontSize: 11)),
         ] else ...[
-          const SizedBox(height: 8),
+          if (widget.onEndGame != null)
+            TextButton.icon(
+              key: const ValueKey('room-games-return-button'),
+              onPressed: widget.onEndGame,
+              icon: const Icon(Icons.logout_rounded, size: 14),
+              label: Text(ar ? 'إنهاء اللعبة والعودة للوضع العادي'
+                  : 'End game · return to normal room',
+                style: const TextStyle(fontSize: 11)),
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFFFFD99A),
+                visualDensity: VisualDensity.compact,
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1)),
+            ),
+          const SizedBox(height: 4),
           if (leaderboard.isEmpty)
             Text(ar ? 'لم تسجل أي إجابات' : 'No scores yet',
               style: const TextStyle(color: Colors.white70))

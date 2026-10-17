@@ -76,6 +76,31 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('host can leave game mode while listeners cannot',
+      (tester) async {
+    var exitCount = 0;
+    final status = <String, dynamic>{
+      'active': false, 'finished': true, 'mode': 'guess',
+      'questionIndex': 5, 'secondsLeft': 0,
+      'leaderboard': <Map<String, dynamic>>[],
+    };
+    Widget board(bool host) => MaterialApp(home: Scaffold(
+      body: RoomGameInlineBoard(status: status, isArabic: true,
+        onEndGame: host ? () => exitCount++ : null),
+    ));
+    await tester.pumpWidget(board(true));
+    await tester.pump();
+    expect(find.text('إنهاء اللعبة والعودة للوضع العادي'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('room-games-return-button')));
+    await tester.pump();
+    expect(exitCount, 1);
+    await tester.pumpWidget(board(false));
+    await tester.pump();
+    expect(find.byKey(const ValueKey('room-games-return-button')), findsNothing);
+    expect(find.byKey(const ValueKey('room-games-exit-button')), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('fastest correct player locks the question and reveals answer',
       (tester) async {
     final status = <String, dynamic>{

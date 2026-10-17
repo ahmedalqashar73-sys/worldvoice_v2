@@ -138,6 +138,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   Map<String, dynamic>? _roomGameStatus;
   bool _roomGamePolling = false;
   bool _roomGameAnswerBusy = false;
+  bool _roomGameClosing = false;
   bool _roomGameSoundsInitialized = false;
   Stream<List<RoomChatMessage>>? _chatMessages;
   late final RoomModerationService _moderation;
@@ -2773,6 +2774,41 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     }
   }
 
+  Future<void> _endRoomGame() async {
+    final sessionId = _roomGameStatus?['sessionId']?.toString();
+    if (!_isHost || _roomGameClosing || sessionId == null) return;
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(ar ? 'إنهاء اللعبة' : 'End game'),
+        content: Text(ar
+            ? 'إنهاء اللعبة للجميع والعودة إلى الغرفة العادية؟ ستبقى النتائج محفوظة.'
+            : 'End the game for everyone and return to the normal room? Scores stay saved.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(ar ? 'إلغاء' : 'Cancel')),
+          FilledButton(onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(ar ? 'إنهاء اللعبة' : 'End game')),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    _roomGameClosing = true;
+    try {
+      await _roomGames.close(sessionId);
+      if (!mounted) return;
+      setState(() => _roomGameStatus = null);
+      await _refreshRoomGames();
+    } catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(error.toString().replaceFirst('Bad state: ', '')),
+      ));
+    } finally {
+      _roomGameClosing = false;
+    }
+  }
+
   bool get _roomGameVisible =>
       _roomGameStatus?['active'] == true ||
       _roomGameStatus?['finished'] == true;
@@ -3889,7 +3925,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               // message scroller; tiny/keyboard viewports use compact mode.
               // Anchor games between rows 1–4 and 5–8.
               final gameBoardHeight = _roomGameStatus?['finished'] == true
-                  ? 152.0 : 176.0;
+                  ? (_isHost ? 186.0 : 152.0) : 176.0;
               final stageHeight =
                   2 * (93 + MediaQuery.textScalerOf(context).scale(30)) +
                   12 + (!_boardVisible && _roomGameVisible
@@ -3930,6 +3966,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                                 status: _roomGameStatus!,
                                 isArabic: isArabic,
                                 onOpenGames: _isHost ? _showGames : null,
+onEndGame: _isHost ? _endRoomGame : null,
                               ),
                             )
                           : null),
@@ -3944,6 +3981,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                       status: _roomGameStatus!,
                       isArabic: isArabic,
                       onOpenGames: _isHost ? _showGames : null,
+onEndGame: _isHost ? _endRoomGame : null,
                     ),
                   ),
                 if (_boardVisible && !compact && _listeners.isNotEmpty)

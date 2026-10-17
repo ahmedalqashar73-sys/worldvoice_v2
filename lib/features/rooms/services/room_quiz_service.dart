@@ -340,6 +340,9 @@ class RoomGamesService {
   }
 
   Future<Map<String, dynamic>> status() => _request('status');
+  /// Host exits game mode for everyone without deleting historical scores.
+  Future<Map<String, dynamic>> close(String sessionId) =>
+      _request('close', payload: {'sessionId': sessionId});
   Future<Map<String, dynamic>> start({
     required String mode, required String level, required String language,
   }) => _request('start', payload: {
