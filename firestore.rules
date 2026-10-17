@@ -936,6 +936,7 @@ service cloud.firestore {
         allow read, write: if false;
         match /answers/{answerId} { allow read, write: if false; }
         match /scores/{playerId} { allow read, write: if false; }
+        match /public_attempts/{attemptId} { allow read, write: if false; }
       }
 
       match /quiz_private/{quizId} {

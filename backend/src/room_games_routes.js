@@ -21,7 +21,7 @@ function gamePath(db, roomId) {
   return db.collection("rooms").doc(roomId);
 }
 function responseInfo({room, pointer, session, now, uid, member, scores,
-  answered, winner, usage}) {
+  answered, winner, answerEvents = [], usage}) {
   const languages = roomGameLanguageCodes(room.data());
   const remaining = Object.fromEntries(GAME_MODES.map(mode => [
     mode, Math.max(0, GAME_SESSIONS_PER_DAY -
@@ -45,6 +45,17 @@ function responseInfo({room, pointer, session, now, uid, member, scores,
       canPlayGame(data.mode, {uid, hostId: room.data().hostId,
         role: member.data()?.role, seatIndex: member.data()?.seatIndex}),
     answered: Boolean(answered?.exists),
+    // Verified public game chat: all in-room members see sent guesses and
+    // correct/wrong verdicts, without exposing hidden word-bank answers.
+    answerEvents: answerEvents.map(doc => ({
+      id: doc.id,
+      userId: doc.data().userId,
+      name: doc.data().name,
+      answer: doc.data().answer,
+      correct: doc.data().correct === true,
+      wordIndex: doc.data().wordIndex,
+      submittedAtMs: doc.data().submittedAtMs,
+    })),
     roundLocked,
     winner: roundLocked ? {
       userId: winnerData.userId,
@@ -98,7 +109,7 @@ export function registerRoomGameRoutes({app, db, authenticatedUser,
       const session = await sessionRef.get();
       if (!session.exists) throw httpError("Room game requires reconciliation.", 409);
       const index = gameIndex(session.data().startedAtMs, now);
-      const [scoreboard, answered, winner] = await Promise.all([
+      const [scoreboard, answered, winner, eventList] = await Promise.all([
         sessionRef.collection("scores").orderBy("points", "desc").limit(10).get(),
         index < GAME_QUESTIONS_PER_SESSION
           ? sessionRef.collection("answers").doc(user.uid + "_" + index).get()
@@ -106,10 +117,13 @@ export function registerRoomGameRoutes({app, db, authenticatedUser,
         index < GAME_QUESTIONS_PER_SESSION
           ? sessionRef.collection("winners").doc("word_" + index).get()
           : Promise.resolve(null),
+        sessionRef.collection("public_attempts")
+          .orderBy("submittedAtMs", "desc").limit(25).get(),
       ]);
       return res.json(responseInfo({
         room, member, pointer, session, now, uid: user.uid,
         usage, scores: scoreboard.docs, answered, winner,
+        answerEvents: eventList.docs,
       }));
     } catch (error) { next(error); }
   });
@@ -190,6 +204,8 @@ export function registerRoomGameRoutes({app, db, authenticatedUser,
       const pointerRef = roomRef.collection("private_games").doc("current");
       const roundRef = roomRef.collection("private_games").doc(sessionId);
       const attemptRef = roundRef.collection("answers").doc(user.uid + "_" + wordIndex);
+      const publicAttemptRef = roundRef.collection("public_attempts")
+        .doc(user.uid + "_" + wordIndex);
       const scoreRef = roundRef.collection("scores").doc(user.uid);
       const winnerRef = roundRef.collection("winners").doc("word_" + wordIndex);
       const now = clock();
@@ -240,6 +256,13 @@ export function registerRoomGameRoutes({app, db, authenticatedUser,
           .slice(0, 60);
         tx.create(attemptRef, {uid: user.uid, wordIndex, submittedAtMs: now,
           correct, pointsAwarded});
+        // Only a verified submission is shown; losers are not publicly
+        // marked correct. Each answer appears once and can never be edited.
+        tx.create(publicAttemptRef, {
+          userId: user.uid, name, wordIndex,
+          answer: answer.trim().replace(/[\r\n\t]+/g, " ").slice(0, 80),
+          correct, submittedAtMs: now,
+        });
         if (correct) {
           tx.create(winnerRef, {userId: user.uid, name,
             answer: data.questions[wordIndex].answer, wordIndex,
