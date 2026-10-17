@@ -168,6 +168,34 @@ test("games routes: immutable answers, role access and host-only free quota",
       assert.equal((await request("start", "game-host", {
         mode: "vocabulary", level: "advanced", language: "en"})).status, 200);
     });
+    await t.test("only host closes a game, resets room mode and preserves usage", async () => {
+      const current = await request("status", "game-host");
+      assert.ok(current.sessionId);
+      const wrong = await request("close", "game-speaker",
+        {sessionId: current.sessionId});
+      assert.equal(wrong.status, 403);
+      const stale = await request("close", "game-host",
+        {sessionId: "another-round"});
+      assert.equal(stale.status, 409);
+      assert.equal((await request("status", "game-host")).body.sessionId,
+        current.sessionId);
+      const result = await request("close", "game-host",
+        {sessionId: current.sessionId});
+      assert.equal(result.status, 200);
+      assert.equal(result.body.closed, true);
+      const idle = await request("status", "game-listener");
+      assert.equal(idle.body.active, false);
+      assert.equal(idle.body.sessionId, undefined);
+      assert.equal(idle.body.remaining.vocabulary, 5);
+      const usage = await db.collection("users").doc("game-host")
+        .collection("game_usage").doc("2026-10-17_vocabulary").get();
+      assert.equal(usage.data()?.count, 2);
+      const oldRound = await room.collection("private_games")
+        .doc(current.sessionId).get();
+      assert.equal(oldRound.exists, true);
+      assert.equal((await request("close", "game-host",
+        {sessionId: current.sessionId})).body.alreadyClosed, true);
+    });
     await t.test("inactive room or kicked listener cannot play", async () => {
       await room.collection("participants").doc("game-listener").update({kicked: true});
       assert.equal((await request("status", "game-listener")).status, 403);

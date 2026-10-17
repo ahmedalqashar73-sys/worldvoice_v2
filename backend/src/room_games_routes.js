@@ -281,4 +281,38 @@ export function registerRoomGameRoutes({app, db, authenticatedUser,
       return res.json({ok: true, ...result});
     } catch (error) { next(error); }
   });
+  // Host-only exit restores the ordinary room layout for everyone; no
+  // historical scores, answers, reward usage or coins are modified.
+  app.post("/room/games/close", async (req, res, next) => {
+    try {
+      const user = await authenticatedUser(req);
+      const {roomId, sessionId} = req.body ?? {};
+      if (!/^[a-zA-Z0-9_-]{1,128}$/.test(sessionId ?? "")) {
+        throw httpError("Invalid game session.", 400);
+      }
+      const roomRef = gamePath(db, roomId);
+      const pointerRef = roomRef.collection("private_games").doc("current");
+      const now = clock();
+      const outcome = await db.runTransaction(async tx => {
+        const [room, member, pointer] = await Promise.all([
+          tx.get(roomRef),
+          tx.get(roomRef.collection("participants").doc(user.uid)),
+          tx.get(pointerRef),
+        ]);
+        if (!room.exists || room.data()?.hostId !== user.uid ||
+            !memberValid(room, member)) {
+          throw httpError("Only the room host can end the game.", 403);
+        }
+        if (!pointer.data()?.sessionId) return {closed: true, alreadyClosed: true};
+        if (pointer.data().sessionId !== sessionId) {
+          throw httpError("A different game has started. Refresh the room.", 409);
+        }
+        tx.set(pointerRef, {sessionId: null, endAtMs: 0,
+          closedAtMs: now, closedBy: user.uid});
+        return {closed: true, alreadyClosed: false};
+      });
+      return res.json({ok: true, ...outcome});
+    } catch (error) { next(error); }
+  });
+
 }
