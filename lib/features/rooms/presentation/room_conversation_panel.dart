@@ -11,7 +11,8 @@ class RoomConversationPanel extends StatefulWidget {
     required this.micLabel, this.handControl, this.onTranslateMessage,
     this.onReportMessage, this.translationHint, this.enabled = true,
     this.onGameAnswer, this.gameAnswerEnabled = false,
-    this.gameAnswerSubmitted = false, super.key,
+    this.gameAnswerSubmitted = false, this.gameRoundClosed = false,
+    super.key,
   });
   final Stream<List<RoomChatMessage>> messages;
   final Future<void> Function(String) onSend;
@@ -19,6 +20,8 @@ class RoomConversationPanel extends StatefulWidget {
   final Future<void> Function(String)? onGameAnswer;
   final bool gameAnswerEnabled;
   final bool gameAnswerSubmitted;
+  /// A first correct answer closes the word to everyone.
+  final bool gameRoundClosed;
   final bool isArabic;
   final bool enabled;
   final VoidCallback onGifts, onShop, onTools, onCaptions;
@@ -80,6 +83,14 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
   }
   Future<void> _openComposer() async {
     if (!widget.enabled || !mounted) return;
+    if (widget.gameRoundClosed) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(widget.isArabic
+            ? 'سبقك لاعب بالإجابة الصحيحة • انتظر الكلمة التالية'
+            : 'This word has a winner. Wait for the next word.'),
+      ));
+      return;
+    }
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -95,7 +106,7 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
                 child: TextField(
                   controller: _text,
                   autofocus: true,
-                  enabled: !_sending,
+                  enabled: !_sending && !widget.gameRoundClosed,
                   minLines: 1,
                   maxLines: 4,
                   maxLength: widget.gameAnswerEnabled &&
@@ -154,7 +165,8 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
 
   Future<void> _send() async {
     final value = _text.text.trim();
-    if (value.isEmpty || _sending || !widget.enabled) return;
+    if (value.isEmpty || _sending || !widget.enabled ||
+        widget.gameRoundClosed) return;
     setState(() => _sending = true);
     try {
       if (widget.gameAnswerEnabled && !widget.gameAnswerSubmitted &&
@@ -381,7 +393,10 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
             style: const TextStyle(color: Colors.white, fontSize: 14),
             maxLines: 1,
             decoration: InputDecoration(
-              hintText: widget.gameAnswerEnabled && !widget.gameAnswerSubmitted
+              hintText: widget.gameRoundClosed
+                   ? (ar ? 'انتهى السؤال • انتظر التالي'
+                       : 'Word closed • next soon')
+                   : widget.gameAnswerEnabled && !widget.gameAnswerSubmitted
                    ? (ar ? 'إجابة اللعبة…' : 'Game answer…')
                    : widget.gameAnswerSubmitted
                        ? (ar ? 'تم إرسال الإجابة • تعليق…'
