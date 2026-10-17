@@ -124,6 +124,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   Map<String, dynamic>? _roomGameStatus;
   bool _roomGamePolling = false;
   bool _roomGameAnswerBusy = false;
+  bool _roomGameSoundsInitialized = false;
   Stream<List<RoomChatMessage>>? _chatMessages;
   late final RoomModerationService _moderation;
   late final RoomHistoryService _history;
@@ -2692,6 +2693,30 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     try {
       final data = await _roomGames.status();
       if (mounted && !_leaving) {
+        final previous = _roomGameStatus;
+        // Play only on state transitions, never on repeated polling ticks.
+        if (_roomGameSoundsInitialized && previous != null) {
+          final newSession = data['sessionId']?.toString();
+          final oldSession = previous['sessionId']?.toString();
+          final gameStarted = newSession != null &&
+              newSession != oldSession &&
+              data['active'] == true &&
+              data['questionIndex'] == 0;
+          final winner = data['winner'] as Map?;
+          final previousWinner = previous['winner'] as Map?;
+          final newWinner = data['roundLocked'] == true &&
+              winner != null &&
+              (newSession != oldSession ||
+                  data['questionIndex'] != previous['questionIndex'] ||
+                  previous['roundLocked'] != true ||
+                  winner['userId'] != previousWinner?['userId']);
+          if (gameStarted) {
+            unawaited(SystemSound.play(SystemSoundType.click));
+          } else if (newWinner) {
+            unawaited(SystemSound.play(SystemSoundType.alert));
+          }
+        }
+        _roomGameSoundsInitialized = true;
         setState(() => _roomGameStatus = data);
       }
     } catch (_) {
@@ -2997,6 +3022,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   }
 
   // The four squares in the bottom toolbar open these four tools only.
+  // Emerald-and-gold room center; scroll within the safe viewport to avoid
+  // bottom overflow on phones with gesture/system navigation.
   Future<void> _showToolsGrid() async {
     final ar = (widget.localeController?.locale?.languageCode ??
         Localizations.localeOf(context).languageCode) == 'ar';
@@ -3009,20 +3036,32 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       (Icons.sports_esports_rounded,
         ar ? 'الألعاب اللغوية' : 'Language games', _showGames),
       (Icons.groups_outlined,
-        ar ? 'الأعضاء: ${_participants.length}' : 'Members: ${_participants.length}',
+        ar ? 'الأعضاء: ' + _participants.length.toString()
+           : 'Members: ' + _participants.length.toString(),
         _showMembers),
     ];
     await showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
+      isScrollControlled: true,
       useSafeArea: true,
-      builder: (sheet) => Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(ar ? 'مركز الغرفة' : 'Room center',
-              style: Theme.of(sheet).textTheme.titleLarge),
+      backgroundColor: const Color(0xFF0B2A20),
+      builder: (sheet) => ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(sheet).height * .69,
+        ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              const Icon(Icons.hub_rounded,
+                color: Color(0xFFF5CF7C), size: 22),
+              const SizedBox(width: 9),
+              Text(ar ? 'مركز الغرفة' : 'Room center',
+                style: Theme.of(sheet).textTheme.titleLarge?.copyWith(
+                  color: const Color(0xFFF6DFAB),
+                  fontWeight: FontWeight.w900)),
+            ]),
             const SizedBox(height: 16),
             GridView.builder(
               shrinkWrap: true,
@@ -3037,27 +3076,49 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               itemBuilder: (ctx, index) {
                 final item = items[index];
                 return Material(
-                  color: Theme.of(ctx).colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(16),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(16),
-                    onTap: () {
-                      Navigator.pop(sheet);
-                      item.$3();
-                    },
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(item.$1, size: 29),
-                        const SizedBox(height: 8),
-                        Text(item.$2, textAlign: TextAlign.center),
-                      ],
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(18),
+                  child: Ink(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: index == 3
+                            ? const [Color(0xFF247D52), Color(0xFF15513F)]
+                            : const [Color(0xFF1A5641), Color(0xFF103A30)],
+                      ),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: index == 3
+                            ? const Color(0xFFD9BC73)
+                            : const Color(0xFF36775D)),
+                    ),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(18),
+                      onTap: () {
+                        Navigator.pop(sheet);
+                        item.$3();
+                      },
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(item.$1, size: 29,
+                            color: const Color(0xFFF4D288)),
+                          const SizedBox(height: 8),
+                          Text(item.$2, textAlign: TextAlign.center,
+                            maxLines: 2, overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Color(0xFFF6F1DC),
+                              fontWeight: FontWeight.w800,
+                              fontSize: 14)),
+                        ],
+                      ),
                     ),
                   ),
                 );
               },
             ),
-          ],
+          ]),
         ),
       ),
     );
@@ -3921,6 +3982,19 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   gameAnswerSubmitted: _roomGameStatus?['answered'] == true,
                   gameRoundClosed: _roomGameStatus?['active'] == true &&
                       _roomGameStatus?['roundLocked'] == true,
+                  gameAnnouncement: _roomGameStatus?['active'] == true &&
+                          _roomGameStatus?['roundLocked'] == true &&
+                          _roomGameStatus?['winner'] is Map
+                      ? (isArabic
+                          ? '🏆 ' +
+                              ((_roomGameStatus!['winner'] as Map)['name'] ?? 'WorldVoice').toString() +
+                              ' أجاب أولًا! الإجابة: ' +
+                              ((_roomGameStatus!['winner'] as Map)['answer'] ?? '').toString()
+                          : '🏆 ' +
+                              ((_roomGameStatus!['winner'] as Map)['name'] ?? 'WorldVoice').toString() +
+                              ' was first! Answer: ' +
+                              ((_roomGameStatus!['winner'] as Map)['answer'] ?? '').toString())
+                      : null,
                   onGifts: _showGifts, onShop: _showBackgroundStore,
                   onTools: _showToolsGrid, onCaptions: _showCaptionSettings,
                   onTranslateMessage: _translateChatMessage,
