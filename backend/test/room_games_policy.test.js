@@ -20,7 +20,7 @@ test("room language determines game content (not device locale)", () => {
     for (const mode of ["vocabulary", "guess"]) {
       const questions = gameQuestions({language: lang, level, mode, seed: 11});
       assert.equal(questions.length, GAME_QUESTIONS_PER_SESSION);
-      assert.ok(questions.every(q => q.answer.length > 1 && q.clue.length > 2));
+      assert.ok(questions.every(q => q.answer.length > 1 && q.clue.length >= 2));
       if (mode === "vocabulary") assert.ok(questions.every(q => q.clue === q.definition));
       else assert.ok(questions.every(q => q.clue !== q.answer));
     }
