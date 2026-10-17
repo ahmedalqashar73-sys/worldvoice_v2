@@ -3036,8 +3036,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       (Icons.sports_esports_rounded,
         ar ? 'الألعاب اللغوية' : 'Language games', _showGames),
       (Icons.groups_outlined,
-        ar ? 'الأعضاء: ' + _participants.length.toString()
-           : 'Members: ' + _participants.length.toString(),
+        ar ? 'الأعضاء: ${_participants.length}'
+           : 'Members: ${_participants.length}',
         _showMembers),
     ];
     await showModalBottomSheet<void>(
@@ -3986,14 +3986,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                           _roomGameStatus?['roundLocked'] == true &&
                           _roomGameStatus?['winner'] is Map
                       ? (isArabic
-                          ? '🏆 ' +
-                              ((_roomGameStatus!['winner'] as Map)['name'] ?? 'WorldVoice').toString() +
-                              ' أجاب أولًا! الإجابة: ' +
-                              ((_roomGameStatus!['winner'] as Map)['answer'] ?? '').toString()
-                          : '🏆 ' +
-                              ((_roomGameStatus!['winner'] as Map)['name'] ?? 'WorldVoice').toString() +
-                              ' was first! Answer: ' +
-                              ((_roomGameStatus!['winner'] as Map)['answer'] ?? '').toString())
+                          ? '🏆 ${(_roomGameStatus!['winner'] as Map)['name'] ?? 'WorldVoice'} أجاب أولًا! الإجابة: ${(_roomGameStatus!['winner'] as Map)['answer'] ?? ''}'
+                          : '🏆 ${(_roomGameStatus!['winner'] as Map)['name'] ?? 'WorldVoice'} was first! Answer: ${(_roomGameStatus!['winner'] as Map)['answer'] ?? ''}')
                       : null,
                   onGifts: _showGifts, onShop: _showBackgroundStore,
                   onTools: _showToolsGrid, onCaptions: _showCaptionSettings,
