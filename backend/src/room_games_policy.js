@@ -2,7 +2,7 @@
 // Five prompts per session, 30 seconds each, 5 free sessions per mode/day/host.
 export const GAME_MODES = Object.freeze(["vocabulary", "guess"]);
 export const GAME_LEVELS = Object.freeze(["beginner", "intermediate", "advanced"]);
-export const GAME_LANGUAGE_CODES = Object.freeze(["ar", "en", "fr"]);
+export const GAME_LANGUAGE_CODES = Object.freeze(["ar", "en", "es", "zh", "ko", "fr"]);
 export const GAME_QUESTIONS_PER_SESSION = 5;
 export const GAME_SECONDS_PER_QUESTION = 30;
 export const GAME_SESSIONS_PER_DAY = 5;
@@ -1025,6 +1025,674 @@ Object.assign(banks, {
     ]
   }
 });
+
+// Expanded original word lists: 25 locally defined words at each difficulty.
+banks.en.beginner.push(...[
+  [
+    "table",
+    "A piece of furniture with a flat top and legs."
+  ],
+  [
+    "chair",
+    "A piece of furniture made for one person to sit on."
+  ],
+  [
+    "book",
+    "A set of written or printed pages bound together."
+  ],
+  [
+    "shoe",
+    "Something worn to protect a foot when walking."
+  ],
+  [
+    "road",
+    "A route used by people, bicycles and vehicles."
+  ],
+  [
+    "rain",
+    "Drops of water that fall from clouds."
+  ],
+  [
+    "summer",
+    "The warmest season of the year in many places."
+  ],
+  [
+    "winter",
+    "The coldest season of the year in many places."
+  ],
+  [
+    "breakfast",
+    "The first meal eaten in the morning."
+  ],
+  [
+    "kitchen",
+    "The room where food is prepared and cooked."
+  ],
+  [
+    "family",
+    "People related to each other through birth or marriage."
+  ],
+  [
+    "music",
+    "An art made by arranging sounds and rhythms."
+  ],
+  [
+    "mountain",
+    "A large natural rise of land above its surroundings."
+  ],
+  [
+    "city",
+    "A large populated area with streets and buildings."
+  ],
+  [
+    "hospital",
+    "A place where sick people receive medical treatment."
+  ],
+  [
+    "clock",
+    "An object that shows the time."
+  ],
+  [
+    "star",
+    "A luminous object visible in the night sky."
+  ],
+  [
+    "beach",
+    "An area of sand or small stones beside the sea."
+  ]
+]);
+banks.en.intermediate.push(...[
+  [
+    "friendship",
+    "A caring and trusting relationship between people."
+  ],
+  [
+    "challenge",
+    "A difficult task that requires effort to overcome."
+  ],
+  [
+    "proposal",
+    "An idea put forward for other people to consider."
+  ],
+  [
+    "community",
+    "A group of people sharing a location or interests."
+  ],
+  [
+    "opportunity",
+    "A favorable situation that makes an achievement possible."
+  ],
+  [
+    "experience",
+    "Knowledge gained from doing or living through something."
+  ],
+  [
+    "consequence",
+    "A result brought about by an action or event."
+  ],
+  [
+    "balance",
+    "A state in which different forces are in proportion."
+  ],
+  [
+    "progress",
+    "Movement toward a goal or an improved condition."
+  ],
+  [
+    "responsibility",
+    "A duty to answer for one's actions or obligations."
+  ],
+  [
+    "decision",
+    "A choice made after considering possibilities."
+  ],
+  [
+    "benefit",
+    "An advantage or helpful result of an action."
+  ],
+  [
+    "development",
+    "A process of gradual growth or change."
+  ],
+  [
+    "creativity",
+    "The ability to produce original ideas."
+  ],
+  [
+    "comparison",
+    "The act of identifying similarities and differences."
+  ],
+  [
+    "objective",
+    "A result that a person is trying to achieve."
+  ],
+  [
+    "environment",
+    "The conditions surrounding people or living things."
+  ],
+  [
+    "communication",
+    "The exchange of ideas or information."
+  ]
+]);
+banks.en.advanced.push(...[
+  [
+    "sustainability",
+    "The capacity to continue without depleting future resources."
+  ],
+  [
+    "perspective",
+    "A particular standpoint used to interpret a situation."
+  ],
+  [
+    "discernment",
+    "The ability to judge differences with care."
+  ],
+  [
+    "inherent",
+    "Belonging to something as an essential quality."
+  ],
+  [
+    "transparency",
+    "The quality of making information and processes open and clear."
+  ],
+  [
+    "reciprocity",
+    "The mutual exchange of actions or benefits."
+  ],
+  [
+    "heterogeneity",
+    "The presence of different kinds of elements within a group."
+  ],
+  [
+    "convergence",
+    "The process of moving toward a common point or outcome."
+  ],
+  [
+    "divergence",
+    "A movement or difference away from a shared direction."
+  ],
+  [
+    "legitimacy",
+    "Acceptance as being consistent with valid principles or rules."
+  ],
+  [
+    "transcendence",
+    "Importance or existence beyond ordinary limits."
+  ],
+  [
+    "causality",
+    "The relationship between an event and what produces it."
+  ],
+  [
+    "plausibility",
+    "The quality of seeming reasonable or likely to be true."
+  ],
+  [
+    "interdependence",
+    "A condition in which multiple parties rely on each other."
+  ],
+  [
+    "subjectivity",
+    "The influence of personal perceptions on judgment."
+  ],
+  [
+    "objectivity",
+    "The practice of considering facts without personal preference."
+  ],
+  [
+    "methodology",
+    "A systematic set of methods for inquiry or research."
+  ],
+  [
+    "innovation",
+    "The introduction of a useful new idea or approach."
+  ]
+]);
+banks.ar.beginner.push(...[
+  [
+    "طاولة",
+    "قطعة أثاث ذات سطح مستو توضع عليها الأشياء."
+  ],
+  [
+    "كرسي",
+    "قطعة أثاث يجلس عليها شخص واحد."
+  ],
+  [
+    "كتاب",
+    "مجموعة صفحات مكتوبة أو مطبوعة ومجلدة."
+  ],
+  [
+    "حذاء",
+    "شيء نلبسه في القدم لحمايتها أثناء المشي."
+  ],
+  [
+    "طريق",
+    "مسار مخصص لمرور الناس أو المركبات."
+  ],
+  [
+    "مطر",
+    "قطرات ماء تسقط من الغيوم إلى الأرض."
+  ],
+  [
+    "صيف",
+    "الفصل الذي يكون عادة أشد فصول السنة حرارة."
+  ],
+  [
+    "شتاء",
+    "الفصل الذي يكون عادة أبرد فصول السنة."
+  ],
+  [
+    "فطور",
+    "الوجبة الأولى التي نتناولها في الصباح."
+  ],
+  [
+    "مطبخ",
+    "غرفة يُحضّر فيها الطعام ويُطبخ."
+  ],
+  [
+    "أسرة",
+    "مجموعة أشخاص تربط بينهم صلة قرابة."
+  ],
+  [
+    "موسيقى",
+    "فن يجمع الأصوات والإيقاعات بطريقة منظمة."
+  ],
+  [
+    "جبل",
+    "ارتفاع طبيعي كبير في سطح الأرض."
+  ],
+  [
+    "مدينة",
+    "تجمع سكاني كبير فيه مبان وشوارع."
+  ],
+  [
+    "مستشفى",
+    "مكان يتلقى فيه المرضى الرعاية والعلاج."
+  ],
+  [
+    "ساعة",
+    "أداة تساعد على معرفة الوقت."
+  ],
+  [
+    "نجمة",
+    "جسم سماوي مضيء نراه في السماء ليلًا."
+  ],
+  [
+    "شاطئ",
+    "منطقة رملية أو صخرية بمحاذاة البحر."
+  ]
+]);
+banks.ar.intermediate.push(...[
+  [
+    "صداقة",
+    "علاقة تقوم على المودة والثقة بين الأشخاص."
+  ],
+  [
+    "تحدي",
+    "موقف صعب يتطلب جهدًا للتغلب عليه."
+  ],
+  [
+    "اقتراح",
+    "فكرة يقدمها شخص ليدرسها الآخرون."
+  ],
+  [
+    "مجتمع",
+    "مجموعة أفراد يشتركون في بيئة أو مصالح."
+  ],
+  [
+    "فرصة",
+    "ظرف مناسب يساعد على تحقيق هدف."
+  ],
+  [
+    "خبرة",
+    "معرفة يكتسبها الإنسان من الممارسة والتجربة."
+  ],
+  [
+    "نتيجة",
+    "ما يحدث بسبب فعل أو حدث سابق."
+  ],
+  [
+    "توازن",
+    "حالة تتعادل فيها القوى أو الاحتياجات المختلفة."
+  ],
+  [
+    "تقدم",
+    "انتقال تدريجي نحو هدف أو حالة أفضل."
+  ],
+  [
+    "مسؤولية",
+    "واجب تحمل تبعات الأفعال والقرارات."
+  ],
+  [
+    "قرار",
+    "اختيار أحد البدائل بعد التفكير فيها."
+  ],
+  [
+    "فائدة",
+    "أمر نافع نحصل عليه من عمل أو تجربة."
+  ],
+  [
+    "تطور",
+    "عملية نمو أو تغير تحدث بالتدريج."
+  ],
+  [
+    "إبداع",
+    "القدرة على إنتاج أفكار جديدة ومميزة."
+  ],
+  [
+    "مقارنة",
+    "معرفة أوجه الشبه والاختلاف بين أشياء."
+  ],
+  [
+    "هدف",
+    "أمر يسعى الإنسان إلى تحقيقه."
+  ],
+  [
+    "بيئة",
+    "الظروف الطبيعية والاجتماعية المحيطة بالكائنات."
+  ],
+  [
+    "تواصل",
+    "تبادل الأفكار والمعلومات بين الأشخاص."
+  ]
+]);
+banks.ar.advanced.push(...[
+  [
+    "استدامة",
+    "القدرة على الاستمرار مع الحفاظ على موارد المستقبل."
+  ],
+  [
+    "منظور",
+    "زاوية ينظر منها الإنسان إلى قضية أو موقف."
+  ],
+  [
+    "تمييز",
+    "القدرة على إدراك الفروق والحكم بدقة."
+  ],
+  [
+    "جوهري",
+    "وصف لما يعد جزءًا أساسيًا من طبيعة الشيء."
+  ],
+  [
+    "شفافية",
+    "وضوح المعلومات والإجراءات وإتاحتها للمعنيين."
+  ],
+  [
+    "تبادلية",
+    "علاقة تقوم على المنفعة أو المعاملة المتبادلة."
+  ],
+  [
+    "تغاير",
+    "وجود عناصر مختلفة الطبيعة داخل مجموعة واحدة."
+  ],
+  [
+    "تقارب",
+    "انتقال اتجاهات مختلفة نحو نقطة مشتركة."
+  ],
+  [
+    "تباعد",
+    "اختلاف مسارات أو مواقف كانت متقاربة."
+  ],
+  [
+    "مشروعية",
+    "اتفاق التصرف مع قواعد ومبادئ معترف بها."
+  ],
+  [
+    "تجاوز",
+    "تخطي الحدود أو العقبات المعتادة."
+  ],
+  [
+    "سببية",
+    "العلاقة التي تربط السبب بما ينتج عنه."
+  ],
+  [
+    "معقولية",
+    "صفة ما يبدو منطقيًا وقابلًا للتصديق."
+  ],
+  [
+    "ترابط",
+    "اعتماد أجزاء متعددة بعضها على بعض."
+  ],
+  [
+    "ذاتية",
+    "تأثر الحكم بالأفكار والمشاعر الشخصية."
+  ],
+  [
+    "موضوعية",
+    "الاعتماد على الوقائع دون تحيز شخصي."
+  ],
+  [
+    "منهجية",
+    "مجموعة طرق منظمة تُستخدم في البحث أو العمل."
+  ],
+  [
+    "ابتكار",
+    "إدخال فكرة أو أسلوب جديد ذي منفعة."
+  ]
+]);
+banks.fr.beginner.push(...[
+  [
+    "table",
+    "Un meuble avec une surface plate et des pieds."
+  ],
+  [
+    "chaise",
+    "Un meuble destiné à accueillir une personne assise."
+  ],
+  [
+    "livre",
+    "Un ensemble de pages écrites ou imprimées et reliées."
+  ],
+  [
+    "chaussure",
+    "Un objet que l'on porte pour protéger le pied."
+  ],
+  [
+    "route",
+    "Une voie destinée à la circulation des personnes et des véhicules."
+  ],
+  [
+    "pluie",
+    "De l'eau qui tombe des nuages sous forme de gouttes."
+  ],
+  [
+    "été",
+    "La saison généralement la plus chaude de l'année."
+  ],
+  [
+    "hiver",
+    "La saison généralement la plus froide de l'année."
+  ],
+  [
+    "petit-déjeuner",
+    "Le premier repas pris le matin."
+  ],
+  [
+    "cuisine",
+    "La pièce où l'on prépare et fait cuire les aliments."
+  ],
+  [
+    "famille",
+    "Un groupe de personnes unies par des liens de parenté."
+  ],
+  [
+    "musique",
+    "Un art qui organise les sons et les rythmes."
+  ],
+  [
+    "montagne",
+    "Un relief naturel qui s'élève fortement au-dessus du sol."
+  ],
+  [
+    "ville",
+    "Une grande agglomération avec des rues et des bâtiments."
+  ],
+  [
+    "hôpital",
+    "Un établissement où des personnes malades sont soignées."
+  ],
+  [
+    "horloge",
+    "Un objet qui permet de connaître l'heure."
+  ],
+  [
+    "étoile",
+    "Un astre qui produit sa propre lumière."
+  ],
+  [
+    "plage",
+    "Une zone de sable ou de galets au bord de la mer."
+  ]
+]);
+banks.fr.intermediate.push(...[
+  [
+    "amitié",
+    "Un lien d'affection et de confiance entre personnes."
+  ],
+  [
+    "défi",
+    "Une difficulté qu'il faut surmonter avec effort."
+  ],
+  [
+    "proposition",
+    "Une idée soumise à l'examen d'autres personnes."
+  ],
+  [
+    "communauté",
+    "Un groupe de personnes ayant un lieu ou des intérêts communs."
+  ],
+  [
+    "occasion",
+    "Une situation favorable pour réaliser quelque chose."
+  ],
+  [
+    "expérience",
+    "Une connaissance acquise par la pratique ou le vécu."
+  ],
+  [
+    "conséquence",
+    "Le résultat d'un acte ou d'un événement."
+  ],
+  [
+    "équilibre",
+    "Un état où plusieurs forces se compensent."
+  ],
+  [
+    "progrès",
+    "Une avancée vers un objectif ou une amélioration."
+  ],
+  [
+    "responsabilité",
+    "L'obligation d'assumer ses actes et ses devoirs."
+  ],
+  [
+    "décision",
+    "Un choix fait parmi plusieurs possibilités."
+  ],
+  [
+    "avantage",
+    "Un résultat utile ou favorable."
+  ],
+  [
+    "développement",
+    "Un processus de croissance ou de transformation."
+  ],
+  [
+    "créativité",
+    "La capacité à concevoir des idées originales."
+  ],
+  [
+    "comparaison",
+    "L'action de rechercher les ressemblances et les différences."
+  ],
+  [
+    "objectif",
+    "Un résultat que l'on souhaite atteindre."
+  ],
+  [
+    "environnement",
+    "Les conditions qui entourent les êtres vivants."
+  ],
+  [
+    "communication",
+    "L'échange de pensées ou d'informations."
+  ]
+]);
+banks.fr.advanced.push(...[
+  [
+    "durabilité",
+    "La capacité à se maintenir sans épuiser les ressources futures."
+  ],
+  [
+    "perspective",
+    "Un point de vue particulier sur une situation."
+  ],
+  [
+    "discernement",
+    "La capacité à distinguer et à juger avec finesse."
+  ],
+  [
+    "inhérent",
+    "Qui appartient à la nature même d'une chose."
+  ],
+  [
+    "transparence",
+    "La qualité de rendre les informations accessibles et claires."
+  ],
+  [
+    "réciprocité",
+    "Le caractère mutuel d'un échange d'actions ou d'avantages."
+  ],
+  [
+    "hétérogénéité",
+    "La présence d'éléments de natures différentes dans un ensemble."
+  ],
+  [
+    "convergence",
+    "Le fait que plusieurs directions se rapprochent."
+  ],
+  [
+    "divergence",
+    "Une séparation entre des opinions ou des orientations."
+  ],
+  [
+    "légitimité",
+    "La qualité de ce qui est reconnu comme conforme à des principes."
+  ],
+  [
+    "transcendance",
+    "Le fait de dépasser les limites habituelles."
+  ],
+  [
+    "causalité",
+    "Le lien qui unit une cause et son effet."
+  ],
+  [
+    "vraisemblance",
+    "Le caractère de ce qui semble crédible ou probable."
+  ],
+  [
+    "interdépendance",
+    "Une relation où plusieurs éléments dépendent les uns des autres."
+  ],
+  [
+    "subjectivité",
+    "L'influence de jugements personnels sur une appréciation."
+  ],
+  [
+    "objectivité",
+    "La recherche de faits sans préférence personnelle."
+  ],
+  [
+    "méthodologie",
+    "Un ensemble structuré de méthodes utilisées dans une étude."
+  ],
+  [
+    "innovation",
+    "L'introduction d'une idée ou d'une méthode nouvelle et utile."
+  ]
+]);
 
 export function gameDay(now) { return new Date(now).toISOString().slice(0, 10); }
 
