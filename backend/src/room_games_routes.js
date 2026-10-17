@@ -21,7 +21,7 @@ function gamePath(db, roomId) {
   return db.collection("rooms").doc(roomId);
 }
 function responseInfo({room, pointer, session, now, uid, member, scores,
-  answered, usage}) {
+  answered, winner, usage}) {
   const languages = roomGameLanguageCodes(room.data());
   const remaining = Object.fromEntries(GAME_MODES.map(mode => [
     mode, Math.max(0, GAME_SESSIONS_PER_DAY -
@@ -33,22 +33,40 @@ function responseInfo({room, pointer, session, now, uid, member, scores,
   const index = gameIndex(data.startedAtMs, now);
   const finished = index >= GAME_QUESTIONS_PER_SESSION;
   const item = finished ? null : data.questions[index];
+  const winnerData = winner?.data() ?? null;
+  const roundLocked = !finished && winnerData !== null;
   return {
     ok: true, languages, remaining, active: !finished, finished,
     hostId: room.data().hostId, mode: data.mode, level: data.level,
     language: data.language, sessionId: data.sessionId,
     totalWords: GAME_QUESTIONS_PER_SESSION, questionIndex: index,
     secondsLeft: gameTimeLeft(data.startedAtMs, now),
-    canAnswer: !finished && memberValid(room, member) &&
+    canAnswer: !finished && !roundLocked && memberValid(room, member) &&
       canPlayGame(data.mode, {uid, hostId: room.data().hostId,
         role: member.data()?.role, seatIndex: member.data()?.seatIndex}),
     answered: Boolean(answered?.exists),
+    roundLocked,
+    winner: roundLocked ? {
+      userId: winnerData.userId,
+      name: winnerData.name,
+      answer: winnerData.answer,
+      wordIndex: index,
+    } : null,
     question: item ? {clue: item.clue,
       ...(data.mode === "guess" ? {scrambled: item.clue} : {})} : null,
     // Finished games may reveal their words; never reveal during an active round.
     ...(finished ? {solutions: data.questions.map(q => q.answer)} : {}),
-    leaderboard: scores.map(doc => ({userId: doc.id,
-      name: doc.data().name ?? "WorldVoice", points: doc.data().points ?? 0})),
+    leaderboard: scores.map(doc => ({
+      userId: doc.id,
+      name: doc.data().name ?? "WorldVoice",
+      points: doc.data().points ?? 0,
+      correctCount: doc.data().correctCount ?? 0,
+      firstCorrectAtMs: doc.data().firstCorrectAtMs ?? 0,
+    })).filter(player => player.points > 0)
+      .sort((left, right) =>
+      right.points - left.points ||
+      left.firstCorrectAtMs - right.firstCorrectAtMs ||
+      left.userId.localeCompare(right.userId)),
   };
 }
 
@@ -80,15 +98,18 @@ export function registerRoomGameRoutes({app, db, authenticatedUser,
       const session = await sessionRef.get();
       if (!session.exists) throw httpError("Room game requires reconciliation.", 409);
       const index = gameIndex(session.data().startedAtMs, now);
-      const [scoreboard, answered] = await Promise.all([
+      const [scoreboard, answered, winner] = await Promise.all([
         sessionRef.collection("scores").orderBy("points", "desc").limit(10).get(),
         index < GAME_QUESTIONS_PER_SESSION
           ? sessionRef.collection("answers").doc(user.uid + "_" + index).get()
           : Promise.resolve(null),
+        index < GAME_QUESTIONS_PER_SESSION
+          ? sessionRef.collection("winners").doc("word_" + index).get()
+          : Promise.resolve(null),
       ]);
       return res.json(responseInfo({
         room, member, pointer, session, now, uid: user.uid,
-        usage, scores: scoreboard.docs, answered,
+        usage, scores: scoreboard.docs, answered, winner,
       }));
     } catch (error) { next(error); }
   });
@@ -170,13 +191,16 @@ export function registerRoomGameRoutes({app, db, authenticatedUser,
       const roundRef = roomRef.collection("private_games").doc(sessionId);
       const attemptRef = roundRef.collection("answers").doc(user.uid + "_" + wordIndex);
       const scoreRef = roundRef.collection("scores").doc(user.uid);
+      const winnerRef = roundRef.collection("winners").doc("word_" + wordIndex);
       const now = clock();
       const result = await db.runTransaction(async tx => {
-        const [room, member, pointer, round, attempt, score, profile] = await Promise.all([
-          tx.get(roomRef), tx.get(roomRef.collection("participants").doc(user.uid)),
-          tx.get(pointerRef), tx.get(roundRef), tx.get(attemptRef), tx.get(scoreRef),
-          tx.get(db.collection("users").doc(user.uid)),
-        ]);
+        const [room, member, pointer, round, attempt, score, winner, profile] =
+          await Promise.all([
+            tx.get(roomRef), tx.get(roomRef.collection("participants").doc(user.uid)),
+            tx.get(pointerRef), tx.get(roundRef), tx.get(attemptRef),
+            tx.get(scoreRef), tx.get(winnerRef),
+            tx.get(db.collection("users").doc(user.uid)),
+          ]);
         if (!memberValid(room, member)) throw httpError("Join the room first.", 403);
         if (!round.exists || pointer.data()?.sessionId !== sessionId) {
           throw httpError("This round is no longer active.", 409);
@@ -193,6 +217,12 @@ export function registerRoomGameRoutes({app, db, authenticatedUser,
           throw httpError("The 30-second word window has closed.", 409);
         }
         if (attempt.exists) return {alreadySubmitted: true};
+        // The first correct answer wins this word. Every answer submission
+        // reads the same winner document inside one Firestore transaction:
+        // concurrent correct attempts cannot both win, even across servers.
+        if (winner.exists) {
+          return {roundClosed: true, winnerName: winner.data()?.name ?? ""};
+        }
         const correct = normalGameAnswer(answer) ===
           normalGameAnswer(data.questions[wordIndex].answer);
         const priorScore = score.data()?.points ?? 0;
@@ -200,13 +230,29 @@ export function registerRoomGameRoutes({app, db, authenticatedUser,
             priorScore > GAME_QUESTIONS_PER_SESSION * GAME_POINTS_PER_CORRECT) {
           throw httpError("Invalid score requires reconciliation.", 409);
         }
+        const priorCorrectCount = score.data()?.correctCount ?? 0;
+        if (!Number.isSafeInteger(priorCorrectCount) ||
+            priorCorrectCount < 0 || priorCorrectCount > GAME_QUESTIONS_PER_SESSION) {
+          throw httpError("Invalid correct answer count.", 409);
+        }
         const pointsAwarded = correct ? GAME_POINTS_PER_CORRECT : 0;
+        const name = String(profile.data()?.displayName ?? "WorldVoice user")
+          .slice(0, 60);
         tx.create(attemptRef, {uid: user.uid, wordIndex, submittedAtMs: now,
           correct, pointsAwarded});
+        if (correct) {
+          tx.create(winnerRef, {userId: user.uid, name,
+            answer: data.questions[wordIndex].answer, wordIndex,
+            correctAtMs: now});
+        }
         tx.set(scoreRef, {points: priorScore + pointsAwarded,
-          name: String(profile.data()?.displayName ?? "WorldVoice user").slice(0, 60),
-          lastAnsweredAtMs: now});
+          correctCount: priorCorrectCount + (correct ? 1 : 0),
+          firstCorrectAtMs: (score.data()?.firstCorrectAtMs ?? 0) > 0
+            ? score.data().firstCorrectAtMs : (correct ? now : 0),
+          name, lastAnsweredAtMs: now});
         return {alreadySubmitted: false, correct, pointsAwarded,
+          roundClosed: correct, winnerName: correct ? name : null,
+          correctCount: priorCorrectCount + (correct ? 1 : 0),
           totalPoints: priorScore + pointsAwarded};
       });
       return res.json({ok: true, ...result});

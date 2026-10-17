@@ -65,24 +65,60 @@ test("games routes: immutable answers, role access and host-only free quota",
         sessionId: round.sessionId, wordIndex: 0, answer: correct.toUpperCase()});
       assert.equal(result.status, 200);
       assert.equal(result.body.pointsAwarded, 10);
+      assert.equal(result.body.correctCount, 1);
+      assert.equal(result.body.roundClosed, true);
+      const winner = (await request("status", "game-speaker")).body;
+      assert.equal(winner.roundLocked, true);
+      assert.equal(winner.canAnswer, false);
+      assert.equal(winner.winner.name, "game-listener");
+      assert.equal(winner.winner.answer, correct);
       const repeat = await request("answer", "game-listener", {
         sessionId: round.sessionId, wordIndex: 0, answer: correct});
       assert.equal(repeat.body.alreadySubmitted, true);
       assert.equal((await room.collection("private_games").doc(round.sessionId)
         .collection("scores").doc("game-listener").get()).data().points, 10);
-      assert.equal((await request("answer", "game-speaker", {
-        sessionId: round.sessionId, wordIndex: 0, answer: "badanswer"})).status, 200);
+      const blocked = await request("answer", "game-speaker", {
+        sessionId: round.sessionId, wordIndex: 0, answer: "badanswer"});
+      assert.equal(blocked.status, 200);
+      assert.equal(blocked.body.roundClosed, true);
+      assert.equal(blocked.body.pointsAwarded, undefined);
       const board = await request("status", "game-host");
       assert.equal(board.body.leaderboard[0].points, 10);
+      assert.equal(board.body.leaderboard[0].correctCount, 1);
       assert.equal((await db.collection("users").doc("game-listener").get()).data().coins, undefined);
+    });
+    await t.test("two simultaneous correct answers award exactly one winner", async () => {
+      now += 30000;
+      const round = (await request("status", "game-listener")).body;
+      assert.equal(round.questionIndex, 1);
+      assert.equal(round.roundLocked, false);
+      const correct = (await room.collection("private_games")
+        .doc(round.sessionId).get()).data().questions[1].answer;
+      const [first, second] = await Promise.all([
+        request("answer", "game-listener", {
+          sessionId: round.sessionId, wordIndex: 1, answer: correct}),
+        request("answer", "game-speaker", {
+          sessionId: round.sessionId, wordIndex: 1, answer: correct}),
+      ]);
+      assert.equal([first, second].filter(x => x.body.pointsAwarded === 10).length, 1);
+      assert.equal([first, second].filter(x => x.body.roundClosed === true).length, 2);
+      const scoreboard = (await request("status", "game-host")).body;
+      assert.equal(scoreboard.winner.wordIndex, 1);
+      const scores = await room.collection("private_games").doc(round.sessionId)
+        .collection("scores").get();
+      assert.equal(scores.docs.reduce((sum, x) => sum + x.data().points, 0), 20);
+      const winners = await room.collection("private_games").doc(round.sessionId)
+        .collection("winners").get();
+      assert.equal(winners.size, 2);
     });
     await t.test("five words, 30 seconds each; correct words never leak early", async () => {
       const session = (await request("status", "game-listener")).body.sessionId;
+      // Advance beyond the second word won by the prior concurrent test.
       now += 30000;
       assert.equal((await request("answer", "game-listener", {
         sessionId: session, wordIndex: 0, answer: "late"})).status, 409);
-      assert.equal((await request("status", "game-listener")).body.questionIndex, 1);
-      now += 120000;
+      assert.equal((await request("status", "game-listener")).body.questionIndex, 2);
+      now += 90000;
       const finish = await request("status", "game-listener");
       assert.equal(finish.body.finished, true);
       assert.equal(finish.body.solutions.length, 5);
