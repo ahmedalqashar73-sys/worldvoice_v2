@@ -13,6 +13,7 @@ class RoomConversationPanel extends StatefulWidget {
     this.onGameAnswer, this.gameAnswerEnabled = false,
     this.gameAnswerSubmitted = false, this.gameRoundClosed = false,
     this.gameAnnouncement,
+    this.gameAnswerEvents = const <Map<String, dynamic>>[],
     super.key,
   });
   final Stream<List<RoomChatMessage>> messages;
@@ -25,6 +26,9 @@ class RoomConversationPanel extends StatefulWidget {
   final bool gameRoundClosed;
   /// Server-confirmed winner shown as a public chat notice (not a user post).
   final String? gameAnnouncement;
+  /// Most recent server-verified attempts visible to everyone in the room.
+  /// Kept separate from Firestore chat writes; includes right/wrong verdicts.
+  final List<Map<String, dynamic>> gameAnswerEvents;
   final bool isArabic;
   final bool enabled;
   final VoidCallback onGifts, onShop, onTools, onCaptions;
@@ -241,10 +245,60 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
             reverse: true, padding: EdgeInsets.fromLTRB(16, 12, 16,
               keyboardInset > 0 ? keyboardInset + 70 : 92),
             itemCount: messages.length + 1 +
-                (widget.gameAnnouncement == null ? 0 : 1),
+                widget.gameAnswerEvents.length +
+                (widget.gameAnnouncement != null &&
+                        widget.gameAnswerEvents.isEmpty ? 1 : 0),
             itemBuilder: (context, index) {
-              final announcement = widget.gameAnnouncement;
-              if (index == 0 && announcement != null) {
+              final events = widget.gameAnswerEvents;
+              if (index < events.length) {
+                final event = events[index];
+                final correct = event['correct'] == true;
+                final name = event['name']?.toString() ?? 'WorldVoice';
+                final answer = event['answer']?.toString() ?? '';
+                final word = ((event['wordIndex'] as num?)?.toInt() ?? 0) + 1;
+                return Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Container(
+                    key: ValueKey<String>(
+                      'room-chat-game-attempt-${event['id']}'),
+                    margin: const EdgeInsets.only(top: 7, bottom: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: correct
+                          ? const Color(0xFF166342)
+                          : const Color(0xFF332C20),
+                      borderRadius: BorderRadius.circular(15),
+                      border: Border.all(color: correct
+                          ? const Color(0xFFEAD17B)
+                          : const Color(0xFFD4A17D)),
+                    ),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      Icon(correct ? Icons.emoji_events_rounded
+                          : Icons.cancel_outlined,
+                        color: correct
+                            ? const Color(0xFFF2D588)
+                            : const Color(0xFFFFB29C), size: 18),
+                      const SizedBox(width: 7),
+                      Flexible(child: Text(
+                        correct
+                          ? (ar
+                              ? '$name: $answer  ✅ صح • الأسرع • كلمة $word'
+                              : '$name: $answer  ✅ Correct • first! • Word $word')
+                          : (ar
+                              ? '$name: $answer  ❌ خطأ • كلمة $word'
+                              : '$name: $answer  ❌ Incorrect • Word $word'),
+                        style: const TextStyle(color: Colors.white,
+                          fontSize: 13, fontWeight: FontWeight.w800),
+                      )),
+                    ]),
+                  ),
+                );
+              }
+              final announcement = events.isEmpty
+                  ? widget.gameAnnouncement : null;
+              final announcementIndex = index - events.length;
+              if (announcementIndex == 0 && announcement != null) {
                 return Align(
                   alignment: AlignmentDirectional.centerStart,
                   child: Container(
@@ -270,7 +324,7 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
                   ),
                 );
               }
-              final messageIndex = index -
+              final messageIndex = announcementIndex -
                   (announcement == null ? 0 : 1);
               final welcome = messageIndex == messages.length;
               final msg = welcome ? null : messages[messageIndex];
