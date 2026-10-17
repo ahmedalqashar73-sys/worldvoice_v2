@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
-/// Live room game board: always within the room, below the eight seats and
-/// above the listener strip. The chat bar handles private submissions.
+/// Live room game board placed between the two rows of four seats.
+/// The chat bar sends private answers; the server chooses the first winner.
 class RoomGameInlineBoard extends StatefulWidget {
   const RoomGameInlineBoard({
     required this.status,
@@ -58,6 +58,8 @@ class _RoomGameInlineBoardState extends State<RoomGameInlineBoard> {
     final isGuess = data['mode'] == 'guess';
     final question = data['question'] as Map?;
     final index = (data['questionIndex'] as num?)?.toInt() ?? 0;
+    final roundLocked = data['roundLocked'] == true;
+    final winner = data['winner'] as Map?;
     final leaderboard = (data['leaderboard'] as List?) ?? const [];
     if (!active && !finished) return const SizedBox.shrink();
 
@@ -119,17 +121,32 @@ class _RoomGameInlineBoardState extends State<RoomGameInlineBoard> {
             style: const TextStyle(color: Colors.white,
               fontSize: 16, fontWeight: FontWeight.w800, height: 1.35)),
           const SizedBox(height: 7),
-          Text(
-            data['canAnswer'] == true
-                ? data['answered'] == true
-                    ? (ar ? 'تم تسجيل إجابتك • انتظر الكلمة التالية'
-                        : 'Answer submitted • next word soon')
-                    : (ar ? 'اكتب إجابتك في شريط الشات بالأسفل'
-                        : 'Type your answer in the chat bar below')
-                : (ar ? 'يمكنك مشاهدة الجولة • التخمين للمسرح فقط'
-                    : 'Watch the game • stage members can guess'),
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: Color(0xFFBBD5C4), fontSize: 11)),
+          if (roundLocked && winner != null)
+            Column(mainAxisSize: MainAxisSize.min, children: [
+              Text(ar ? "الأسرع: ${winner['name'] ?? 'WorldVoice'}"
+                      : "First correct: ${winner['name'] ?? 'WorldVoice'}",
+                key: const ValueKey('room-game-fastest-winner'),
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Color(0xFFF5D583),
+                    fontSize: 13, fontWeight: FontWeight.w900)),
+              Text(ar ? "الإجابة: ${winner['answer'] ?? ''}"
+                      : "Answer: ${winner['answer'] ?? ''}",
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white,
+                    fontSize: 12, fontWeight: FontWeight.w700)),
+            ])
+          else
+            Text(
+              data['canAnswer'] == true
+                  ? data['answered'] == true
+                      ? (ar ? 'تم تسجيل إجابتك • انتظر الكلمة التالية'
+                          : 'Answer submitted • next word soon')
+                      : (ar ? 'اكتب الإجابة في الشات • أول إجابة صحيحة تفوز'
+                          : 'Answer in chat • first correct answer wins')
+                  : (ar ? 'المفردات للجميع • التخمين للمسرح فقط'
+                      : 'Vocabulary for all • Guess is stage-only'),
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Color(0xFFBBD5C4), fontSize: 11)),
         ] else ...[
           const SizedBox(height: 8),
           if (leaderboard.isEmpty)
@@ -147,9 +164,14 @@ class _RoomGameInlineBoardState extends State<RoomGameInlineBoard> {
                     textAlign: TextAlign.center,
                     style: const TextStyle(color: Colors.white,
                       fontWeight: FontWeight.w800, fontSize: 12)),
-                  Text("${(leaderboard[i] as Map)['points'] ?? 0} pts",
+                  Text(ar
+                      ? "${(leaderboard[i] as Map)['correctCount'] ?? 0} إجابة صحيحة"
+                      : "${(leaderboard[i] as Map)['correctCount'] ?? 0} correct",
                     style: const TextStyle(color: Color(0xFFE7C783),
-                      fontSize: 11)),
+                      fontSize: 11, fontWeight: FontWeight.w700)),
+                  Text("${(leaderboard[i] as Map)['points'] ?? 0} pts",
+                    style: const TextStyle(color: Color(0xFFB8D3C2),
+                      fontSize: 10)),
                 ])),
             ]),
         ],

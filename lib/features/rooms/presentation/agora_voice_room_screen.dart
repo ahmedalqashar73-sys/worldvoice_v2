@@ -2719,11 +2719,13 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       if (!mounted) return;
       final correct = result['correct'] == true;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(correct
-          ? 'إجابة صحيحة! +10 نقاط لعب'
-          : result['alreadySubmitted'] == true
-              ? 'إجابتك مسجلة بالفعل'
-              : 'تم تسجيل الإجابة • انتظر السؤال التالي'),
+        content: Text(result['roundClosed'] == true && !correct
+          ? 'سبقك لاعب بالإجابة الصحيحة • انتظر الكلمة التالية'
+          : correct
+              ? 'أنت الأسرع! +10 نقاط لعب'
+              : result['alreadySubmitted'] == true
+                  ? 'إجابتك مسجلة بالفعل'
+                  : 'تم تسجيل الإجابة • انتظر السؤال التالي'),
         duration: const Duration(seconds: 2),
       ));
     } finally {
@@ -3810,11 +3812,17 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               // Reserve actual two-row seat height instead of letting a short
               // viewport scroll or clip the stage. Chat is the only vertical
               // message scroller; tiny/keyboard viewports use compact mode.
+              // Anchor games between rows 1–4 and 5–8.
+              final gameBoardHeight = _roomGameStatus?['finished'] == true
+                  ? 152.0 : 176.0;
               final stageHeight =
-                  2 * (93 + MediaQuery.textScalerOf(context).scale(30)) + 12;
+                  2 * (93 + MediaQuery.textScalerOf(context).scale(30)) +
+                  12 + (!_boardVisible && _roomGameVisible
+                      ? gameBoardHeight + 12 : 0);
               final contentHeight = _boardVisible
                   ? (constraints.maxHeight * .55).clamp(110.0, 320.0) + 106 +
-                      (_listeners.isNotEmpty ? 70 : 0)
+                      (_listeners.isNotEmpty ? 70 : 0) +
+                      (_roomGameVisible ? gameBoardHeight : 0)
                   : stageHeight + (_listeners.isNotEmpty ? 70 : 0) +
                       (_showTeacherAiSeat ? 88 : 0);
               final neededHeight = contentHeight +
@@ -3839,16 +3847,29 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                     padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
                     child: RoomStageGrid(seats: _buildSeats(),
                       onSeatTap: _handleSeatTap,
-                      onSeatLongPress: _handleSeatLongPress),
+                      onSeatLongPress: _handleSeatLongPress,
+                      betweenRows: _roomGameVisible
+                          ? SizedBox(
+                              height: gameBoardHeight,
+                              child: RoomGameInlineBoard(
+                                status: _roomGameStatus!,
+                                isArabic: isArabic,
+                                onOpenGames: _isHost ? _showGames : null,
+                              ),
+                            )
+                          : null),
                   ),
                 ),
-                // Show the question under the eight fixed seats, above listeners.
-                // Everyone can see the same server-timed clue and podium.
-                if (_roomGameVisible)
-                  RoomGameInlineBoard(
-                    status: _roomGameStatus!,
-                    isArabic: isArabic,
-                    onOpenGames: _isHost ? _showGames : null,
+                // Compact or whiteboard view still displays the synchronized
+                // question above the chat, without moving the keyboard.
+                if (_roomGameVisible && (compact || _boardVisible))
+                  SizedBox(
+                    height: gameBoardHeight,
+                    child: RoomGameInlineBoard(
+                      status: _roomGameStatus!,
+                      isArabic: isArabic,
+                      onOpenGames: _isHost ? _showGames : null,
+                    ),
                   ),
                 if (_boardVisible && !compact && _listeners.isNotEmpty)
                   _buildListenerStrip(isArabic),
@@ -3898,6 +3919,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   gameAnswerEnabled: _roomGameStatus?['active'] == true &&
                       _roomGameStatus?['canAnswer'] == true,
                   gameAnswerSubmitted: _roomGameStatus?['answered'] == true,
+                  gameRoundClosed: _roomGameStatus?['active'] == true &&
+                      _roomGameStatus?['roundLocked'] == true,
                   onGifts: _showGifts, onShop: _showBackgroundStore,
                   onTools: _showToolsGrid, onCaptions: _showCaptionSettings,
                   onTranslateMessage: _translateChatMessage,
