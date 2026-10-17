@@ -72,6 +72,9 @@ test("games routes: immutable answers, role access and host-only free quota",
       assert.equal(winner.canAnswer, false);
       assert.equal(winner.winner.name, "game-listener");
       assert.equal(winner.winner.answer, correct);
+      assert.equal(winner.answerEvents.length, 1);
+      assert.equal(winner.answerEvents[0].answer, correct.toUpperCase());
+      assert.equal(winner.answerEvents[0].correct, true);
       const repeat = await request("answer", "game-listener", {
         sessionId: round.sessionId, wordIndex: 0, answer: correct});
       assert.equal(repeat.body.alreadySubmitted, true);
@@ -82,6 +85,7 @@ test("games routes: immutable answers, role access and host-only free quota",
       assert.equal(blocked.status, 200);
       assert.equal(blocked.body.roundClosed, true);
       assert.equal(blocked.body.pointsAwarded, undefined);
+      assert.equal((await request("status", "game-host")).body.answerEvents.length, 1);
       const board = await request("status", "game-host");
       assert.equal(board.body.leaderboard[0].points, 10);
       assert.equal(board.body.leaderboard[0].correctCount, 1);
@@ -94,6 +98,15 @@ test("games routes: immutable answers, role access and host-only free quota",
       assert.equal(round.roundLocked, false);
       const correct = (await room.collection("private_games")
         .doc(round.sessionId).get()).data().questions[1].answer;
+      const wrong = await request("answer", "game-host", {
+        sessionId: round.sessionId, wordIndex: 1,
+        answer: "   definitely-not-the-answer   "});
+      assert.equal(wrong.body.correct, false);
+      assert.equal(wrong.body.roundClosed, false);
+      const visibleWrong = (await request("status", "game-speaker")).body.answerEvents;
+      assert.equal(visibleWrong[0].name, "game-host");
+      assert.equal(visibleWrong[0].answer, "definitely-not-the-answer");
+      assert.equal(visibleWrong[0].correct, false);
       const [first, second] = await Promise.all([
         request("answer", "game-listener", {
           sessionId: round.sessionId, wordIndex: 1, answer: correct}),
@@ -104,6 +117,10 @@ test("games routes: immutable answers, role access and host-only free quota",
       assert.equal([first, second].filter(x => x.body.roundClosed === true).length, 2);
       const scoreboard = (await request("status", "game-host")).body;
       assert.equal(scoreboard.winner.wordIndex, 1);
+      assert.equal(scoreboard.answerEvents.length, 3);
+      assert.equal(scoreboard.answerEvents.filter(a => a.correct).length, 2);
+      assert.equal(scoreboard.answerEvents.filter(a => !a.correct).length, 1);
+      assert.equal(scoreboard.answerEvents.filter(a => a.wordIndex === 1 && a.correct).length, 1);
       const scores = await room.collection("private_games").doc(round.sessionId)
         .collection("scores").get();
       assert.equal(scores.docs.reduce((sum, x) => sum + x.data().points, 0), 20);
