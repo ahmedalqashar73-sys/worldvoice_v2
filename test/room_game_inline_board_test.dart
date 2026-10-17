@@ -97,6 +97,39 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('first-correct winner appears in chat for everyone, but no answer is posted',
+      (tester) async {
+    final publicPosts = <String>[];
+    Widget chat(String? announcement) => MaterialApp(home: Scaffold(
+      body: RoomConversationPanel(
+        messages: const Stream<List<RoomChatMessage>>.empty(),
+        gameRoundClosed: announcement != null,
+        gameAnnouncement: announcement,
+        isArabic: true,
+        onSend: (value) async => publicPosts.add(value),
+        onGifts: () {}, onShop: () {}, onTools: () {},
+        onCaptions: () {}, onMic: () {},
+        micIcon: Icons.mic, micLabel: 'مايك',
+      ),
+    ));
+    await tester.pumpWidget(chat(null));
+    await tester.pump();
+    expect(find.byKey(const ValueKey(
+        'room-chat-game-winner-announcement')), findsNothing);
+    await tester.pumpWidget(chat('🏆 أحمد أجاب أولًا! الإجابة: مكتبة'));
+    await tester.pump();
+    expect(find.byKey(const ValueKey(
+        'room-chat-game-winner-announcement')), findsOneWidget);
+    expect(find.textContaining('أحمد أجاب أولًا'), findsOneWidget);
+    expect(find.textContaining('مكتبة'), findsOneWidget);
+    expect(publicPosts, isEmpty);
+    await tester.pumpWidget(chat(null));
+    await tester.pump();
+    expect(find.byKey(const ValueKey(
+        'room-chat-game-winner-announcement')), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('locked answer input cannot leak into public chat',
       (tester) async {
     final privateAnswers = <String>[];
