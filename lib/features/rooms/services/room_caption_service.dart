@@ -4,15 +4,16 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../data/room_caption.dart';
 
 class RoomCaptionService {
-  RoomCaptionService({required this.roomId});
+  RoomCaptionService({required this.roomId, this.collectionName = 'rooms'});
 
   final String roomId;
+  final String collectionName;
 
   FirebaseFirestore get _db => FirebaseFirestore.instance;
   User? get _user => FirebaseAuth.instance.currentUser;
 
   CollectionReference<Map<String, dynamic>> get _captions =>
-      _db.collection('rooms').doc(roomId).collection('captions');
+      _db.collection(collectionName).doc(roomId).collection('captions');
 
   Stream<List<RoomCaption>> watchLatest({int limit = 30}) {
     return _captions

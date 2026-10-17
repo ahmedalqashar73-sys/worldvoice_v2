@@ -5,8 +5,14 @@ import 'package:flutter/foundation.dart';
 class RoomBackendConfig {
   RoomBackendConfig._();
 
-  static const String baseUrl =
-      String.fromEnvironment('WORLDVOICE_ROOM_BACKEND_URL');
+  // The deployed unified WorldVoice backend is now the default for plain
+  // `flutter run`. A dart-define can still override it per environment.
+  static const String configuredBaseUrl = String.fromEnvironment(
+    'WORLDVOICE_ROOM_BACKEND_URL',
+    defaultValue: 'https://worldvoice-v2.onrender.com',
+  );
+
+  static String get baseUrl => configuredBaseUrl.trim();
 
   static String get configurationError {
     final base = baseUrl.trim();

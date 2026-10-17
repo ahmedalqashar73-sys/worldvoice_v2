@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:just_audio/just_audio.dart';
 
@@ -19,6 +20,7 @@ import '../services/room_feature_service.dart';
 import '../services/room_history_service.dart';
 import '../services/room_live_caption_controller.dart';
 import '../services/room_moderation_service.dart';
+import '../services/room_admin_service.dart';
 import '../services/room_quota_service.dart';
 import '../services/room_rewarded_ad_service.dart';
 import '../services/room_translation_service.dart';
@@ -36,6 +38,8 @@ import 'room_music_sheet.dart';
 import 'room_quiz_sheet.dart';
 import 'room_rating_sheet.dart';
 import 'room_extras_sheet.dart';
+import 'room_gift_overlay.dart';
+import 'unified_gift_panel.dart';
 import 'room_members_sheet.dart';
 import 'room_mod_log_sheet.dart';
 import 'room_stage_grid.dart';
@@ -49,6 +53,7 @@ class AgoraVoiceRoomScreen extends StatefulWidget {
     this.localeController,
     this.roomLanguageCode,
     this.initialShowTeacherAiSeat = false,
+    this.openTeacherAiOnJoin = false,
     this.initialIsPrivate = false,
     this.initialVipOnly = false,
     this.initialMode = RoomMode.chat,
@@ -62,6 +67,7 @@ class AgoraVoiceRoomScreen extends StatefulWidget {
   final LocaleController? localeController;
   final String? roomLanguageCode;
   final bool initialShowTeacherAiSeat;
+  final bool openTeacherAiOnJoin;
   final bool initialIsPrivate;
   final bool initialVipOnly;
   final RoomMode initialMode;
@@ -93,6 +99,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   StreamSubscription<bool>? _teacherAiSeatSub;
   StreamSubscription<RoomFeatureState>? _featuresSub;
   StreamSubscription<List<RoomGiftEvent>>? _giftSub;
+  StreamSubscription<List<RoomGiftPreview>>? _freeGiftPreviewSub;
+  StreamSubscription<List<RoomChatMessage>>? _freeChatGiftSub;
   StreamSubscription<List<RoomCaption>>? _captionSub;
   StreamSubscription<List<RoomTeacherAiNote>>? _teacherAiSub;
 
@@ -101,11 +109,17 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   int? _lastSyncedAgoraUid;
   late bool _showTeacherAiSeat;
   bool _leaving = false;
+  bool _roleUpdateInProgress = false;
+  bool _micBusy = false;
+  String? _audioFailure;
+  bool _audioRetrying = false;
   bool _participantWasReady = false;
   bool _trackingEnded = false;
   bool _minimized = false;
   String? _lastGiftId;
   bool _giftStreamPrimed = false;
+  final DateTime _friendPreviewOpenedAt = DateTime.now();
+  final Set<String> _seenFriendPreviewEvents = <String>{};
   OverlayEntry? _giftOverlay;
   Timer? _giftOverlayTimer;
   Timer? _speakingTimer;
@@ -114,6 +128,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   bool _captionsEnabled = false;
   bool _captionListening = false;
   bool _captionTranslationEnabled = false;
+  bool _pronunciationTipsEnabled = false;
   String _captionTargetLanguage = 'en';
   String? _captionError;
   RoomCaption? _latestCaption;
@@ -287,7 +302,84 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         if (latest.id == _lastGiftId) return;
         _lastGiftId = latest.id;
         _showGiftOverlay(latest);
+      }, onError: (Object error, StackTrace stackTrace) {
+        // An optional gift stream must not disconnect the voice session.
+        debugPrint('WorldVoice gift effects unavailable: $error');
       });
+
+      if (RoomFeatureService.friendPreviewEnabled) {
+        _freeGiftPreviewSub = RoomFeatureService.watchFriendGiftPreviews(
+          context: widget.initialMode == RoomMode.live ? 'live' : 'room',
+          contextId: widget.channelId,
+        ).listen((previews) {
+          if (!mounted || previews.isEmpty) return;
+          final now = DateTime.now();
+          RoomGiftPreview? latest;
+          for (final event in previews) {
+          final sent = event.sentAt;
+          // The initial local Firestore write can contain a pending
+          // serverTimestamp; don't mark it seen before the real ack.
+          if (sent == null) continue;
+          final newEvent = _seenFriendPreviewEvents.add(event.eventKey);
+          if (!newEvent ||
+                sent.isBefore(_friendPreviewOpenedAt.subtract(
+                    const Duration(seconds: 1))) ||
+                now.difference(sent).inSeconds.abs() > 20) {
+              continue;
+            }
+            latest ??= event;
+          }
+          if (latest != null) {
+            _showGiftOverlay(latest.toVisualEvent(), preview: true);
+          }
+        }, onError: (Object error, StackTrace stack) {
+          // Existing Agora audio always survives missing or older Firebase
+          // rules. New preview rule deployment is a separate testing step.
+          debugPrint('WorldVoice friend gift demo unavailable: $error');
+        });
+      }
+
+
+      if (RoomFeatureService.friendPreviewEnabled) {
+        _freeChatGiftSub = _roomChat.watchMessages().listen((messages) {
+          if (!mounted) return;
+          final now = DateTime.now();
+          RoomChatMessage? latest;
+          ({String giftId, String recipientId, String nonce})? detail;
+          for (final message in messages) {
+            final payload = RoomGiftPreviewChatCodec.decode(message.text);
+            final timestamp = message.createdAt;
+            if (payload == null || timestamp == null ||
+                timestamp.isBefore(_friendPreviewOpenedAt.subtract(
+                    const Duration(seconds: 1))) ||
+                now.difference(timestamp).inSeconds.abs() > 20 ||
+                !_seenFriendPreviewEvents.add('chat:${message.id}')) {
+              continue;
+            }
+            latest ??= message;
+            detail ??= payload;
+          }
+          if (latest == null || detail == null) return;
+          final recipient = _participants.where(
+            (p) => p.userId == detail!.recipientId);
+          final sender = _participants.where(
+            (p) => p.userId == latest!.userId);
+          _showGiftOverlay(RoomGiftEvent(
+            id: 'free-chat:${latest.id}',
+            senderId: latest.userId,
+            senderName: sender.isNotEmpty
+                ? sender.first.displayName : latest.displayName,
+            recipientId: detail.recipientId,
+            recipientName: recipient.isNotEmpty
+                ? recipient.first.displayName : 'Friend',
+            giftId: detail.giftId,
+            points: 0,
+            createdAt: latest.createdAt,
+          ), preview: true);
+        }, onError: (Object error, StackTrace stack) {
+          debugPrint('WorldVoice room demo chat transport unavailable: $error');
+        });
+      }
 
       // Captions are optional. Missing/out-of-date deployed Firestore rules
       // must not cause an unhandled stream exception or disconnect Agora.
@@ -313,6 +405,9 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         setState(() {
           _latestTeacherAiNote = notes.isEmpty ? null : notes.first;
         });
+      }, onError: (Object error, StackTrace stackTrace) {
+        // Teacher AI is optional and must not break seats, chat or audio.
+        debugPrint('WorldVoice Teacher AI notes unavailable: $error');
       });
 
       _participantsSub =
@@ -324,11 +419,31 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       _meSub = _moderation.watchMe().listen(_handleMyParticipant);
 
       entryStage = 'audio-connect';
-      await _controller.connect(
-        channelId: widget.channelId,
-        role: widget.initialRole,
-      );
-      if (!mounted || _leaving || !asHost || _controller.error != null) return;
+      // A successful joinChannel() request is not a completed voice
+      // connection. Wait for Agora's onJoinChannelSuccess callback.
+      try {
+        await _controller.ensureConnected(
+          channelId: widget.channelId,
+          role: widget.initialRole,
+        );
+        if (mounted) setState(() => _audioFailure = null);
+        await _synchronizeParticipantAudio();
+      } catch (error) {
+        debugPrint('WorldVoice voice join needs attention: $error');
+        // A token/network problem must not kick the user out of an otherwise
+        // valid Firestore room. Show the exact error and offer a real retry.
+        if (mounted && !_leaving) {
+          setState(() => _audioFailure = error.toString());
+        }
+        return;
+      }
+      if (!mounted || _leaving || !_controller.joined) return;
+      // From the hub, open Teacher AI only AFTER actual room membership
+      // and the Agora join have completed. Normal room entry is unchanged.
+      if (widget.openTeacherAiOnJoin) {
+        unawaited(_showTeacherAiChat());
+      }
+      if (!asHost) return;
       // Open the selected tool after room membership and the audio join request.
       if (widget.initialMode == RoomMode.board ||
           widget.initialMode == RoomMode.lesson) {
@@ -386,16 +501,28 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     }
 
     if (latest != null &&
-        _showTeacherAiSeat &&
+        (_showTeacherAiSeat || _pronunciationTipsEnabled) &&
         latest.userId == _moderation.currentUserId &&
         latest.id != _lastTeacherAiCaptionId) {
       _lastTeacherAiCaptionId = latest.id;
-      unawaited(
-        _teacherAi.submitCaption(
-          caption: latest,
-          roomLanguageCode: widget.roomLanguageCode ?? 'en',
-        ),
+      unawaited(_requestPronunciationGuidance(latest));
+    }
+  }
+
+  Future<void> _requestPronunciationGuidance(RoomCaption caption) async {
+    try {
+      final received = await _teacherAi.submitCaption(
+        caption: caption,
+        roomLanguageCode: widget.roomLanguageCode ?? 'en',
       );
+      if (!received && mounted && _pronunciationTipsEnabled) {
+        setState(() => _captionError =
+            'Pronunciation guidance needs the deployed Teacher AI backend.');
+      }
+    } catch (error) {
+      if (mounted && _pronunciationTipsEnabled) {
+        setState(() => _captionError = error.toString());
+      }
     }
   }
 
@@ -487,6 +614,12 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
           return RoomCaptionsSheet(
             enabled: _captionsEnabled,
             translationEnabled: _captionTranslationEnabled,
+            pronunciationEnabled: _pronunciationTipsEnabled,
+            pronunciationNotes: _teacherAi.watchNotes().map(
+              (notes) => notes
+                  .where((note) => note.userId == _moderation.currentUserId)
+                  .toList(growable: false),
+            ),
             targetLanguage: _captionTargetLanguage,
             canPublish: _me?.isOnStage == true,
             listening: _captionListening,
@@ -504,6 +637,20 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               final latest = _latestCaption;
               if (value && latest != null) {
                 unawaited(_translateLatestCaption(latest));
+              }
+              refreshSheet();
+            },
+            onPronunciationChanged: (value) {
+              setState(() {
+                _pronunciationTipsEnabled = value;
+                _lastTeacherAiCaptionId = null;
+                _captionError = null;
+              });
+              final latest = _latestCaption;
+              if (value && latest != null &&
+                  latest.userId == _moderation.currentUserId) {
+                _lastTeacherAiCaptionId = latest.id;
+                unawaited(_requestPronunciationGuidance(latest));
               }
               refreshSheet();
             },
@@ -738,7 +885,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     );
   }
 
-  void _showGiftOverlay(RoomGiftEvent gift) {
+  void _showGiftOverlay(RoomGiftEvent gift, {
+    bool preview = false,
+    RoomGiftCatalogItem? previewGift,
+  }) {
     if (!mounted) return;
 
     _giftOverlayTimer?.cancel();
@@ -746,7 +896,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
     final overlay = Overlay.of(context);
     final entry = OverlayEntry(
-      builder: (_) => _RoomGiftOverlay(event: gift),
+      builder: (_) => RoomGiftOverlay(
+        event: gift, preview: preview, previewGift: previewGift),
     );
     _giftOverlay = entry;
     overlay.insert(entry);
@@ -814,36 +965,108 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     Navigator.of(context).pop();
   }
 
+  Future<void> _synchronizeParticipantAudio() async {
+    if (_roleUpdateInProgress || !_controller.joined || _me == null ||
+        _leaving) {
+      return;
+    }
+    _roleUpdateInProgress = true;
+    try {
+      final participant = _me!;
+      final role = participant.isOnStage
+          ? AgoraRoomRole.speaker
+          : AgoraRoomRole.listener;
+      if (_controller.role != role) {
+        await _controller.switchRole(role);
+      }
+      // Only the host can set forcedMuted. Never unmute on the member's
+      // behalf when moderation lifts it: the member chooses when to speak.
+      if (_me?.isOnStage == true && _me?.forcedMuted == true &&
+          _controller.role == AgoraRoomRole.speaker &&
+          !_controller.muted) {
+        await _controller.setMuted(true);
+      }
+      await _syncCaptionPublishing();
+    } catch (error) {
+      debugPrint('WorldVoice audio-role synchronization: $error');
+      if (mounted && !_leaving) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.toString())),
+        );
+      }
+    } finally {
+      _roleUpdateInProgress = false;
+    }
+  }
+
+  Future<void> _retryAudioConnection() async {
+    if (_audioRetrying || _leaving) return;
+    setState(() {
+      _audioRetrying = true;
+      _audioFailure = null;
+    });
+    try {
+      await _controller.ensureConnected(
+        channelId: widget.channelId,
+        role: (_me?.isOnStage ?? (widget.initialRole == AgoraRoomRole.speaker))
+            ? AgoraRoomRole.speaker : AgoraRoomRole.listener,
+      );
+      await _synchronizeParticipantAudio();
+      if (mounted) setState(() => _audioFailure = null);
+    } catch (error) {
+      if (mounted) setState(() => _audioFailure = error.toString());
+    } finally {
+      if (mounted) setState(() => _audioRetrying = false);
+    }
+  }
+
+  Future<void> _toggleMicSafely() async {
+    if (_micBusy || _leaving || !_controller.joined ||
+        _me?.isOnStage != true) {
+      return;
+    }
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    if (_me?.forcedMuted == true || _roleUpdateInProgress) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(ar
+            ? 'الميكروفون مقفل من المضيف أو جاري تحديث المقعد.'
+            : 'The host muted you, or your speaking seat is still updating.'),
+      ));
+      return;
+    }
+    setState(() => _micBusy = true);
+    try {
+      if (_controller.role != AgoraRoomRole.speaker) {
+        await _controller.switchRole(AgoraRoomRole.speaker);
+      }
+      if (_controller.role != AgoraRoomRole.speaker) {
+        throw StateError(_controller.error ??
+            'Microphone is not available. Check audio permissions.');
+      }
+      await _controller.setMuted(!_controller.muted);
+      await _syncCaptionPublishing();
+    } catch (error) {
+      if (mounted && !_leaving) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(error.toString()),
+        ));
+      }
+    } finally {
+      if (mounted) setState(() => _micBusy = false);
+    }
+  }
+
   void _handleMyParticipant(RoomParticipant? participant) {
     if (!mounted) return;
-
     if (participant == null) {
       if (_participantWasReady && !_leaving) {
         unawaited(_exitRemovedFromRoom());
       }
       return;
     }
-
     _participantWasReady = true;
     setState(() => _me = participant);
-
-    if (!_controller.joined) return;
-
-    final desiredAgoraRole = participant.isOnStage
-        ? AgoraRoomRole.speaker
-        : AgoraRoomRole.listener;
-
-    if (_controller.role != desiredAgoraRole) {
-      unawaited(_controller.switchRole(desiredAgoraRole));
-    }
-
-    if (participant.forcedMuted &&
-        desiredAgoraRole == AgoraRoomRole.speaker &&
-        !_controller.muted) {
-      unawaited(_controller.setMuted(true));
-    }
-
-    unawaited(_syncCaptionPublishing());
+    unawaited(_synchronizeParticipantAudio());
   }
 
   Future<void> _exitRemovedFromRoom() async {
@@ -867,17 +1090,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       unawaited(_moderation.syncAgoraUid(agoraUid));
     }
 
-    final participant = _me;
-    if (_controller.joined && participant != null) {
-      final desiredAgoraRole = participant.isOnStage
-          ? AgoraRoomRole.speaker
-          : AgoraRoomRole.listener;
-      if (_controller.role != desiredAgoraRole) {
-        unawaited(_controller.switchRole(desiredAgoraRole));
-      }
-    }
-
-    unawaited(_syncCaptionPublishing());
+    unawaited(_synchronizeParticipantAudio());
     if (mounted) setState(() {});
   }
 
@@ -918,80 +1131,76 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     return null;
   }
 
-  // Dedicated hand control. The host and listeners see the same Firestore
-  // request state; this control must never be embedded inside the chat list.
+  // A compact emerald hand button stays separate from chat actions.
   Widget _buildHandControl(bool isArabic, bool isPublishing) {
-    if (!_controller.joined) return const SizedBox.shrink();
-
+    // Request management is backed by Firestore. Keep the button visible
+    // while the user retries a failed Agora audio connection.
+    if (_me == null) return const SizedBox.shrink();
     if (_canModerate) {
-      return Align(
-        alignment: AlignmentDirectional.centerEnd,
-        child: Badge(
-          isLabelVisible: _raisedHands.isNotEmpty,
-          label: Text('${_raisedHands.length}'),
-          backgroundColor: const Color(0xFFFFD57F),
-          textColor: const Color(0xFF164434),
-          child: ActionChip(
-            tooltip: isArabic ? 'الاطلاع على طلبات رفع اليد' : 'View hand requests',
-            avatar: const Icon(Icons.pan_tool_alt_rounded,
-                size: 17, color: Color(0xFFFFD57F)),
-            label: Text(
-              _raisedHands.isEmpty
-                  ? (isArabic ? 'رفع اليد' : 'Raise hand')
-                  : (isArabic ? 'طلبات الصعود' : 'Seat requests'),
-              style: const TextStyle(color: Colors.white, fontSize: 11),
-            ),
-            backgroundColor: const Color(0xFF173F37),
-            side: const BorderSide(color: Color(0xFF5FC99B)),
-            visualDensity: VisualDensity.compact,
+      return Badge(
+        isLabelVisible: _raisedHands.isNotEmpty,
+        label: Text('${_raisedHands.length}'),
+        backgroundColor: const Color(0xFFFFD57F),
+        textColor: const Color(0xFF164434),
+        child: Material(
+          elevation: 4,
+          color: const Color(0xFF087951),
+          shape: const CircleBorder(
+            side: BorderSide(color: Color(0xFF75E0AB), width: 1.2)),
+          child: IconButton(
+            constraints: const BoxConstraints.tightFor(width: 38, height: 38),
+            padding: EdgeInsets.zero,
+            tooltip: isArabic ? 'طلبات رفع اليد' : 'Raise hand requests',
+            icon: const Icon(Icons.pan_tool_alt_rounded,
+              size: 19, color: Colors.white),
             onPressed: _showRaisedHandsSheet,
           ),
         ),
       );
     }
     if (isPublishing) return const SizedBox.shrink();
-    return Align(
-      alignment: AlignmentDirectional.centerEnd,
-      child: ActionChip(
-        tooltip: _handRaised
-            ? (isArabic ? 'إلغاء الطلب' : 'Cancel hand request')
-            : (isArabic ? 'طلب التحدث' : 'Request to speak'),
-        avatar: Icon(
-          _handRaised ? Icons.pan_tool_rounded : Icons.pan_tool_alt_outlined,
-          size: 17,
-          color: _handRaised ? const Color(0xFF103F30) : const Color(0xFFFFD57F),
-        ),
-        label: Text(
-          _handRaised
-              ? (isArabic ? 'طلبك قيد الانتظار' : 'Request pending')
+    return Stack(clipBehavior: Clip.none, children: [
+      Material(
+        elevation: 4,
+        color: _handRaised
+            ? const Color(0xFF18A66D) : const Color(0xFF087951),
+        shape: const CircleBorder(
+          side: BorderSide(color: Color(0xFF75E0AB), width: 1.2)),
+        child: IconButton(
+          constraints: const BoxConstraints.tightFor(width: 38, height: 38),
+          padding: EdgeInsets.zero,
+          tooltip: _handRaised
+              ? (isArabic ? 'إلغاء رفع اليد' : 'Cancel hand request')
               : (isArabic ? 'رفع اليد' : 'Raise hand'),
-          style: TextStyle(
-            color: _handRaised ? const Color(0xFF103F30) : Colors.white,
-            fontSize: 11,
-          ),
-        ),
-        backgroundColor:
-            _handRaised ? const Color(0xFFFFD57F) : const Color(0xFF173F37),
-        side: const BorderSide(color: Color(0xFFFFD57F)),
-        visualDensity: VisualDensity.compact,
-        onPressed: () async {
-          try {
-            if (_handRaised) {
-              await _moderation.setHandRaised(false);
-            } else {
-              await _requestSeat();
+          icon: const Icon(Icons.pan_tool_alt_rounded,
+              color: Colors.white, size: 19),
+          onPressed: () async {
+            try {
+              if (_handRaised) {
+                await _moderation.setHandRaised(false);
+              } else {
+                await _requestSeat();
+              }
+            } catch (error) {
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(isArabic
+                    ? 'تعذر إرسال طلب رفع اليد: $error'
+                    : 'Could not update hand request: $error'),
+              ));
             }
-          } catch (_) {
-            if (!mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(isArabic
-                  ? 'تعذر إرسال طلب الصعود. حاول مجددًا.'
-                  : 'Could not update your hand request. Retry.'),
-            ));
-          }
-        },
+          },
+        ),
       ),
-    );
+      if (_handRaised)
+        const Positioned(
+          top: -2, right: -2,
+          child: CircleAvatar(radius: 6,
+            backgroundColor: Color(0xFFEAC16B),
+            child: Icon(Icons.check_rounded,
+              size: 9, color: Color(0xFF0D4A38))),
+        ),
+    ]);
   }
 
   List<RoomSeatState> _buildSeats() {
@@ -1293,6 +1502,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       builder: (_) => RoomBackgroundShopSheet(
         roomFeatures: _features,
         isHost: _isHost,
+        // The shared board already supports text and a multi-color palette.
+        onOpenWriting: _isHost || _featureState.boardWriteEnabled
+            ? _expandBoard
+            : null,
       ),
     );
   }
@@ -1373,12 +1586,66 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       isScrollControlled: true,
       useSafeArea: true,
       builder: (_) => RoomExtrasSheet(
-        initialTab: initialTab,        roomId: widget.channelId,
-        participants: _participants,
-        isHost: _isHost,
-        showTeacherAiSeat: _showTeacherAiSeat,
-        contextType: widget.initialMode == RoomMode.live ? 'live' : 'room',
-        onOpenCoinStore: _showCoinStore,
+        initialTab: initialTab,
+        roomId: widget.channelId,
+      ),
+    );
+  }
+
+  // Gifts are a self-contained tool, never a tab inside themes or tasks.
+  Future<void> _showGifts() async {
+    final myId = FirebaseAuth.instance.currentUser?.uid;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (sheetContext) => SafeArea(
+        child: SizedBox(
+          height: MediaQuery.sizeOf(context).height * .75,
+          child: UnifiedGiftPanel(
+            contextType: widget.initialMode == RoomMode.live ? 'live' : 'room',
+            contextId: widget.channelId,
+            recipients: {
+              for (final member in _participants.where(
+                  (member) => member.userId != myId &&
+                      (member.isOnStage ||
+                          RoomFeatureService.friendPreviewEnabled)))
+                member.userId: member.displayName,
+              if (_showTeacherAiSeat && widget.initialMode != RoomMode.live)
+                'teacher_ai': 'Teacher AI',
+            },
+            onOpenCoinStore: _showCoinStore,
+            onPreview: (gift, recipientId) {
+              // Local effect test over the real seats: never write a gift
+              // document, debit coins or display a sent-gift receipt.
+              Navigator.pop(sheetContext);
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!mounted) return;
+                _showGiftOverlay(RoomGiftEvent(
+                  id: 'preview',
+                  senderId: myId ?? '',
+                  senderName: _me?.displayName ??
+                      FirebaseAuth.instance.currentUser?.displayName ??
+                      'WorldVoice',
+                  recipientId: recipientId ?? '',
+                  recipientName: widget.initialMode != RoomMode.live &&
+                          recipientId == 'teacher_ai'
+                      ? 'Teacher AI'
+                      : _participants.where(
+                          (p) => p.userId == recipientId).isNotEmpty
+                        ? _participants.firstWhere(
+                            (p) => p.userId == recipientId).displayName
+                        : (recipientId == null
+                            ? (Localizations.localeOf(context).languageCode == 'ar'
+                                ? 'اختر المستلم' : 'Select recipient')
+                            : 'Member'),
+                  giftId: gift.id,
+                  points: gift.priceCoins,
+                ), preview: true, previewGift: gift);
+              });
+            },
+          ),
+        ),
       ),
     );
   }
@@ -1469,250 +1736,315 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     );
   }
 
-  Future<void> _showToolsGrid() async {
-    final ar = (widget.localeController?.locale?.languageCode ?? Localizations.localeOf(context).languageCode) == 'ar';
+  // Tapping the room title opens only the five working room controls.
+  // Host/moderation controls remain role-gated.
+  Future<void> _showTitleActions() async {
+    final ar = (widget.localeController?.locale?.languageCode ??
+        Localizations.localeOf(context).languageCode) == 'ar';
     final items = <(IconData, String, VoidCallback)>[
-      (Icons.draw_rounded, ar ? 'السبورة' : 'Whiteboard', _showBoard),
-      (Icons.quiz_rounded, ar ? 'مسابقات' : 'Quiz', _showQuiz),
-      (Icons.smart_toy_outlined, ar ? 'أستاذ AI' : 'Teacher AI', _showTeacherAiChat),
-      (Icons.music_note_rounded, ar ? 'موسيقى' : 'Music', _showMusic),
-      (Icons.castle_rounded, ar ? 'مهام الغرفة' : 'Room tasks', () => _showRoomExtras(initialTab: 1)),
-      (Icons.card_giftcard_rounded, ar ? 'الهدايا' : 'Gifts', () => _showRoomExtras(initialTab: 2)),
-      (Icons.emoji_events_rounded, ar ? 'الترتيب' : 'Leaderboard', () => _showRoomExtras(initialTab: 3)),
-      (Icons.redeem_rounded, ar ? 'المكافآت' : 'Rewards', () => _showRoomExtras(initialTab: 4)),
-      (Icons.wallpaper_rounded, ar ? 'الخلفيات' : 'Backgrounds', _showBackgroundStore),
-      (Icons.groups_outlined, ar ? 'الأعضاء' : 'Members', _showMembers),
-      if (_canModerate) (Icons.pan_tool_alt_rounded, ar ? 'طلبات الصعود' : 'Seat requests', _showRaisedHandsSheet),
-      (Icons.settings_outlined, ar ? 'الإعدادات' : 'Settings', _showRoomControls),
+      if (_canModerate)
+        (Icons.admin_panel_settings_rounded,
+          ar ? 'المدير' : 'Moderator', _showRoomControls),
+      (Icons.chat_bubble_outline_rounded,
+        ar ? 'الشات' : 'Chat', _showRoomChat),
+      (Icons.music_note_rounded,
+        ar ? 'الموسيقى' : 'Music', _showMusic),
+      (Icons.draw_rounded,
+        ar ? 'السبورة' : 'Whiteboard', _showBoard),
+      (Icons.quiz_outlined,
+        ar ? 'الكويز' : 'Quiz', _showQuiz),
     ];
-    await showModalBottomSheet<void>(
-      context: context, isScrollControlled: true, showDragHandle: true, useSafeArea: true,
-      builder: (ctx) => SizedBox(height: MediaQuery.sizeOf(ctx).height * .65,
-        child: Directionality(textDirection: ar ? TextDirection.rtl : TextDirection.ltr,
-          child: Column(children: [
-            Padding(padding: const EdgeInsets.all(12), child: Text(ar ? 'أدوات الغرفة' : 'Room tools',
-              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 20))),
-            Expanded(child: LayoutBuilder(builder: (context, constraints) {
-              final columns = constraints.maxWidth < 350 ? 3 : 4;
-              return GridView.builder(
-                padding: const EdgeInsets.all(16), itemCount: items.length,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: columns, mainAxisExtent: MediaQuery.textScalerOf(context).scale(32) + 78,
-                  mainAxisSpacing: 12, crossAxisSpacing: 10),
-                itemBuilder: (context, index) {
-                  final item = items[index];
-                  return InkWell(borderRadius: BorderRadius.circular(18),
-                    onTap: () { Navigator.pop(ctx); item.$3(); },
-                    child: Column(children: [
-                      Container(padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(color: Theme.of(ctx).colorScheme.primaryContainer, shape: BoxShape.circle),
-                        child: Icon(item.$1, size: 26, color: Theme.of(ctx).colorScheme.onPrimaryContainer)),
-                      const SizedBox(height: 8),
-                      Text(item.$2, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                    ]));
-                },
-              );
-            })),
-          ]))),
-    );
-  }
-
-  Future<void> _showRoomControls() async {
-    final isArabic =
-        Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
-
     await showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
-      isScrollControlled: true,
-      builder: (sheetContext) => SafeArea(
-        child: SizedBox(height: MediaQuery.sizeOf(sheetContext).height * .8, child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
-          child: SingleChildScrollView(child: Column(
+      useSafeArea: true,
+      builder: (sheet) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 18),
+          child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text(
-                  widget.roomName,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                subtitle: Text(
-                  isArabic ? 'أدوات الغرفة' : 'Room tools',
-                ),
-              ),
-              if (_isHost)
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  secondary: const Icon(Icons.smart_toy_rounded),
-                  title: const Text('Teacher AI'),
-                  subtitle: Text(
-                    isArabic
-                        ? 'إظهار أو إخفاء مقعد Teacher AI خارج المقاعد الثمانية.'
-                        : 'Show or hide the Teacher AI seat outside the 8 seats.',
-                  ),
-                  value: _showTeacherAiSeat,
-                  onChanged: (value) async {
-                    await _moderation.setTeacherAiSeatVisible(value);
-                    if (sheetContext.mounted) {
-                      Navigator.pop(sheetContext);
-                    }
-                  },
-                ),
-              if (_isHost)
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  secondary: const Icon(Icons.edit_rounded),
-                  title: Text(
-                    isArabic
-                        ? 'السماح للأعضاء بالكتابة والرسم'
-                        : 'Allow members to write and draw',
-                  ),
-                  value: _featureState.boardWriteEnabled,
-                  onChanged: (value) async {
-                    await _features.setBoardWriteEnabled(value);
-                    if (sheetContext.mounted) {
-                      Navigator.pop(sheetContext);
-                    }
-                  },
-                ),
-              const Divider(),
-              _RoomToolTile(
-                icon: Icons.timer_outlined,
-                label: isArabic ? 'وقت الغرف اليومي' : 'Daily room time',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showQuotaStatus();
-                },
-              ),
-              _RoomToolTile(
-                icon: Icons.groups_rounded,
-                label: isArabic ? 'أعضاء الغرفة' : 'Room members',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showMembers();
-                },
-              ),
-              if (_canModerate)
-                _RoomToolTile(
-                  icon: Icons.receipt_long_rounded,
-                  label: isArabic ? 'سجل المودريتور' : 'Moderator log',
+              Text(ar ? 'التحكم بالغرفة' : 'Room controls',
+                style: Theme.of(sheet).textTheme.titleLarge),
+              const SizedBox(height: 12),
+              for (final item in items)
+                ListTile(
+                  leading: Icon(item.$1),
+                  title: Text(item.$2),
+                  trailing: const Icon(Icons.chevron_right_rounded),
                   onTap: () {
-                    Navigator.pop(sheetContext);
-                    _showModLog();
-                  },
-                ),
-              _RoomToolTile(
-                icon: Icons.closed_caption_rounded,
-                label: isArabic
-                    ? 'الترجمة المباشرة'
-                    : 'Live captions & translation',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showCaptionSettings();
-                },
-              ),
-              _RoomToolTile(
-                icon: Icons.monetization_on_rounded,
-                label: isArabic ? 'شراء Coins' : 'Buy coins',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showCoinStore();
-                },
-              ),
-              _RoomToolTile(
-                icon: Icons.storefront_rounded,
-                label: isArabic ? 'متجر الخلفيات' : 'Background store',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showBackgroundStore();
-                },
-              ),
-              _RoomToolTile(
-                icon: Icons.chat_bubble_rounded,
-                label: isArabic ? 'دردشة الغرفة' : 'Room chat',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showRoomChat();
-                },
-              ),
-              _RoomToolTile(
-                icon: Icons.draw_rounded,
-                label: isArabic ? 'السبورة' : 'Board',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showBoard();
-                },
-              ),
-              _RoomToolTile(
-                icon: Icons.quiz_rounded,
-                label: isArabic ? 'الكويز' : 'Quiz',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showQuiz();
-                },
-              ),
-              _RoomToolTile(
-                icon: Icons.music_note_rounded,
-                label: isArabic ? 'الموسيقى' : 'Music',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showMusic();
-                },
-              ),
-              _RoomToolTile(
-                icon: Icons.share_rounded,
-                label: isArabic ? 'مشاركة الغرفة' : 'Share room',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _shareRoom();
-                },
-              ),
-              _RoomToolTile(
-                icon: Icons.auto_awesome_rounded,
-                label: isArabic
-                    ? 'الثيم والمهام والهدايا والترتيب'
-                    : 'Theme, tasks, gifts & leaderboard',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _showRoomExtras();
-                },
-              ),
-              const Divider(),
-              if (widget.localeController != null)
-                _RoomToolTile(
-                  icon: Icons.picture_in_picture_alt_rounded,
-                  label: isArabic ? 'تصغير الروم' : 'Minimize room',
-                  onTap: () {
-                    Navigator.pop(sheetContext);
-                    _minimizeRoom();
-                  },
-                ),
-              _RoomToolTile(
-                icon: Icons.logout_rounded,
-                label: isArabic ? 'الخروج من الروم' : 'Leave room',
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _leave();
-                },
-              ),
-              if (_isHost)
-                _RoomToolTile(
-                  icon: Icons.stop_circle_rounded,
-                  label: isArabic ? 'إغلاق الروم للجميع' : 'Close room for everyone',
-                  destructive: true,
-                  onTap: () {
-                    Navigator.pop(sheetContext);
-                    _confirmCloseRoom();
+                    Navigator.pop(sheet);
+                    item.$3();
                   },
                 ),
             ],
-          )),
-        )),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // The four squares in the bottom toolbar open these four tools only.
+  Future<void> _showToolsGrid() async {
+    final ar = (widget.localeController?.locale?.languageCode ??
+        Localizations.localeOf(context).languageCode) == 'ar';
+    final items = <(IconData, String, VoidCallback)>[
+      (Icons.castle_outlined, ar ? 'مهام الغرفة' : 'Room tasks',
+        () => _showRoomExtras(initialTab: 0)),
+      (Icons.card_giftcard_rounded, ar ? 'الهدايا' : 'Gifts', _showGifts),
+      (Icons.timer_outlined, ar ? 'الوقت المتبقي' : 'Remaining time',
+        _showQuotaStatus),
+      (Icons.groups_outlined,
+        ar ? 'الأعضاء: ${_participants.length}' : 'Members: ${_participants.length}',
+        _showMembers),
+    ];
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      useSafeArea: true,
+      builder: (sheet) => Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(ar ? 'مركز الغرفة' : 'Room center',
+              style: Theme.of(sheet).textTheme.titleLarge),
+            const SizedBox(height: 16),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: items.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisExtent: 104,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+              ),
+              itemBuilder: (ctx, index) {
+                final item = items[index];
+                return Material(
+                  color: Theme.of(ctx).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(16),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () {
+                      Navigator.pop(sheet);
+                      item.$3();
+                    },
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(item.$1, size: 29),
+                        const SizedBox(height: 8),
+                        Text(item.$2, textAlign: TextAlign.center),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Host-only live moderator management; use the existing admin service
+  // instead of creating a second roles or permissions implementation.
+  Future<void> _showModeratorManagement() async {
+    if (!_isHost) return;
+    final ar = (widget.localeController?.locale?.languageCode ??
+        Localizations.localeOf(context).languageCode) == 'ar';
+    final admin = RoomAdminService(roomId: widget.channelId);
+    final membersStream = _moderation.watchParticipants();
+    String? savingUser;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setSheetState) => SafeArea(
+          child: SizedBox(
+            height: MediaQuery.sizeOf(sheetContext).height * .7,
+            child: Column(children: [
+              ListTile(
+                leading: const Icon(Icons.admin_panel_settings_rounded,
+                    color: Color(0xFF11835D)),
+                title: Text(ar ? 'إدارة المشرفين' : 'Manage moderators',
+                    style: const TextStyle(fontWeight: FontWeight.w800)),
+                subtitle: Text(ar
+                    ? 'عيّن مشرفاً من أعضاء الغرفة أو أزل صلاحياته'
+                    : 'Add or remove moderators among current room members'),
+              ),
+              const Divider(height: 1),
+              Expanded(child: StreamBuilder<List<RoomParticipant>>(
+                stream: membersStream,
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return Center(child: Text(ar
+                        ? 'تعذر تحميل أعضاء الغرفة'
+                        : 'Could not load room members'));
+                  }
+                  if (!snapshot.hasData) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  final eligible = snapshot.data!
+                      .where((person) => person.role != RoomMemberRole.host)
+                      .toList()
+                    ..sort((a, b) {
+                      if (a.isModerator != b.isModerator) {
+                        return a.isModerator ? -1 : 1;
+                      }
+                      return a.displayName.toLowerCase()
+                          .compareTo(b.displayName.toLowerCase());
+                    });
+                  if (eligible.isEmpty) {
+                    return Center(child: Text(ar
+                        ? 'لا يوجد أعضاء آخرون في الغرفة بعد'
+                        : 'No other members are in this room yet'));
+                  }
+                  return ListView.builder(
+                    itemCount: eligible.length,
+                    itemBuilder: (context, index) {
+                      final person = eligible[index];
+                      return ListTile(
+                        leading: _ParticipantAvatar(participant: person),
+                        title: Text(person.displayName,
+                            maxLines: 1, overflow: TextOverflow.ellipsis),
+                        subtitle: Text(person.isModerator
+                            ? (ar ? 'مشرف حالي' : 'Current moderator')
+                            : (ar ? 'عضو' : 'Member')),
+                        trailing: FilledButton.tonal(
+                          onPressed: savingUser != null ? null : () async {
+                            setSheetState(() => savingUser = person.userId);
+                            try {
+                              await admin.setModerator(
+                                participant: person,
+                                value: !person.isModerator,
+                              );
+                            } catch (error) {
+                              if (sheetContext.mounted) {
+                                ScaffoldMessenger.of(sheetContext)
+                                    .showSnackBar(SnackBar(
+                                      content: Text(error.toString())));
+                              }
+                            } finally {
+                              if (sheetContext.mounted) {
+                                setSheetState(() => savingUser = null);
+                              }
+                            }
+                          },
+                          child: savingUser == person.userId
+                              ? const SizedBox.square(dimension: 16,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2))
+                              : Text(person.isModerator
+                                  ? (ar ? 'إزالة' : 'Remove')
+                                  : (ar ? 'تعيين' : 'Add')),
+                        ),
+                      );
+                    },
+                  );
+                },
+              )),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Moderator panel, never used as the gift/theme/task menu.
+  Future<void> _showRoomControls() async {
+    if (!_canModerate) return;
+    final ar = (widget.localeController?.locale?.languageCode ??
+        Localizations.localeOf(context).languageCode) == 'ar';
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      useSafeArea: true,
+      isScrollControlled: true,
+      builder: (sheet) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 22),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            ListTile(
+              title: Text(ar ? 'إدارة الغرفة' : 'Room moderation',
+                style: const TextStyle(fontWeight: FontWeight.w800)),
+            ),
+            if (_isHost) SwitchListTile(
+              title: const Text('Teacher AI'),
+              subtitle: Text(ar ? 'إظهار المقعد التاسع'
+                  : 'Show the ninth AI seat'),
+              value: _showTeacherAiSeat,
+              onChanged: (value) async {
+                try {
+                  await _moderation.setTeacherAiSeatVisible(value);
+                  if (sheet.mounted) Navigator.pop(sheet);
+                } catch (error) {
+                  if (sheet.mounted) {
+                    ScaffoldMessenger.of(sheet).showSnackBar(
+                      SnackBar(content: Text(error.toString())));
+                  }
+                }
+              },
+            ),
+            if (_isHost) SwitchListTile(
+              title: Text(ar ? 'السماح بالكتابة والرسم'
+                  : 'Allow writing and drawing'),
+              value: _featureState.boardWriteEnabled,
+              onChanged: (value) async {
+                try {
+                  await _features.setBoardWriteEnabled(value);
+                  if (sheet.mounted) Navigator.pop(sheet);
+                } catch (error) {
+                  if (sheet.mounted) {
+                    ScaffoldMessenger.of(sheet).showSnackBar(
+                      SnackBar(content: Text(error.toString())));
+                  }
+                }
+              },
+            ),
+            if (_isHost) ListTile(
+              leading: const Icon(Icons.admin_panel_settings_rounded,
+                  color: Color(0xFF11835D)),
+              title: Text(ar ? 'إضافة أو إزالة المشرفين' : 'Manage moderators'),
+              onTap: () {
+                Navigator.pop(sheet);
+                _showModeratorManagement();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.pan_tool_alt_rounded),
+              title: Text(ar ? 'طلبات رفع اليد' : 'Raise hand requests'),
+              trailing: Badge(label: Text('${_raisedHands.length}'),
+                child: const Icon(Icons.chevron_right_rounded)),
+              onTap: () {
+                Navigator.pop(sheet);
+                _showRaisedHandsSheet();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.receipt_long_rounded),
+              title: Text(ar ? 'سجل المودريتور' : 'Moderator log'),
+              onTap: () {
+                Navigator.pop(sheet);
+                _showModLog();
+              },
+            ),
+            if (_isHost) ListTile(
+              leading: const Icon(Icons.stop_circle_outlined,
+                color: Colors.redAccent),
+              title: Text(ar ? 'إغلاق الغرفة للجميع'
+                  : 'Close room for everyone'),
+              onTap: () {
+                Navigator.pop(sheet);
+                _confirmCloseRoom();
+              },
+            ),
+          ]),
+        ),
       ),
     );
   }
@@ -1903,6 +2235,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     _teacherAiSeatSub?.cancel();
     _featuresSub?.cancel();
     _giftSub?.cancel();
+    _freeGiftPreviewSub?.cancel();
+    _freeChatGiftSub?.cancel();
     _captionSub?.cancel();
     _teacherAiSub?.cancel();
     _giftOverlayTimer?.cancel();
@@ -1928,6 +2262,18 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
           Color(0xFF0D4A38),
           Color(0xFF123A32),
           Color(0xFF111D1A),
+        ];
+      case 'skyBlue':
+        return const [
+          Color(0xFF145C76),
+          Color(0xFF123B56),
+          Color(0xFF0B2535),
+        ];
+      case 'forestGold':
+        return const [
+          Color(0xFF265338),
+          Color(0xFF284A39),
+          Color(0xFF17322A),
         ];
       case 'midnight':
         return const [
@@ -2047,6 +2393,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     return Directionality(
       textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
       child: Scaffold(
+        // Only the chat composer moves over the keyboard; seats stay fixed.
+        resizeToAvoidBottomInset: false,
         backgroundColor: const Color(0xFF0D4A38),
         appBar: AppBar(
           toolbarHeight: _boardVisible ? 52 : 68, elevation: 0,
@@ -2055,13 +2403,13 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
             onPressed: _showRoomMenu, icon: const Icon(Icons.more_horiz_rounded)),
           titleSpacing: 0,
           title: InkWell(
-            onTap: _showRoomControls,
+            onTap: _showTitleActions,
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(widget.roomName, maxLines: 1, overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
               const SizedBox(height: 4),
               Wrap(spacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
-                InkWell(onTap: () => _showRoomExtras(initialTab: 1), child: Container(
+                InkWell(onTap: () => _showRoomExtras(initialTab: 0), child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                   decoration: BoxDecoration(color: const Color(0xFFFFCE79),
                     borderRadius: BorderRadius.circular(12)),
@@ -2102,21 +2450,43 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
           ),
           child: SafeArea(top: false, child: Column(children: [
             if (_controller.connecting) const LinearProgressIndicator(minHeight: 2),
-            if (_controller.error != null && !_boardVisible) Container(
+            if ((_controller.error != null || _audioFailure != null) && !_boardVisible) Container(
               width: double.infinity, margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(color: const Color(0xFF4D344E), borderRadius: BorderRadius.circular(12)),
               child: Row(children: [
                 const Icon(Icons.info_outline_rounded, color: Color(0xFFFFD3A4), size: 18),
                 const SizedBox(width: 8),
-                Expanded(child: Text(label('الصوت غير متاح الآن. تحقق من إعداد الاتصال.', 'Audio unavailable. Check the connection setup.'),
-                  style: const TextStyle(color: Colors.white, fontSize: 12))),
+                Expanded(child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(label('الصوت غير متصل. افتح التفاصيل أو أعد المحاولة.',
+                        'Audio offline. Check details or retry.'),
+                      style: const TextStyle(color: Colors.white, fontSize: 12)),
+                    if (MediaQuery.viewInsetsOf(context).bottom == 0)
+                      Text(_audioFailure ?? _controller.error ?? '',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: Color(0xFFFFE3BE),
+                            fontSize: 10)),
+                  ],
+                )),
                 IconButton(tooltip: label('تفاصيل الاتصال', 'Connection details'),
                   onPressed: () => showDialog<void>(context: context, builder: (ctx) => AlertDialog(
                     title: Text(label('اتصال الصوت', 'Audio connection')),
-                    content: SingleChildScrollView(child: SelectableText(_controller.error!)),
+                    content: SingleChildScrollView(child: SelectableText(_audioFailure ?? _controller.error ?? 'Unknown Agora error')),
                     actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: Text(label('إغلاق', 'Close')))],
                   )), icon: const Icon(Icons.chevron_right_rounded, color: Colors.white70, size: 18)),
+                IconButton(
+                  tooltip: label('إعادة اتصال الصوت', 'Retry audio'),
+                  onPressed: _audioRetrying ? null : _retryAudioConnection,
+                  icon: _audioRetrying
+                    ? const SizedBox.square(dimension: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Icon(Icons.refresh_rounded,
+                        color: Colors.white, size: 20),
+                ),
               ]),
             ),
             Expanded(child: LayoutBuilder(builder: (context, constraints) {
@@ -2132,8 +2502,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   (_controller.joined ? 42 : 0) +
                   (_canModerate && _raisedHands.isNotEmpty ? 84 : 0) +
                   130;
-              final compact = MediaQuery.viewInsetsOf(context).bottom > 0 ||
-                  constraints.maxHeight < neededHeight;
+              final compact = constraints.maxHeight < neededHeight;
               return Column(children: [
                 if (_boardVisible) SizedBox(
                   height: (constraints.maxHeight * .55).clamp(110.0, 320.0),
@@ -2163,11 +2532,6 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                       onTap: _showTeacherAiChat,
                     ),
                   ),
-                if (!compact && _controller.joined)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
-                    child: _buildHandControl(isArabic, isPublishing),
-                  ),
                 if (!compact && _canModerate && _raisedHands.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -2187,248 +2551,35 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: ActionChip(avatar: const Icon(Icons.quiz_outlined, size: 16),
                       label: Text(label('مسابقة الغرفة', 'Room quiz')), onPressed: _showQuiz))),
-                Expanded(child: RoomConversationPanel(
+                Expanded(child: Stack(children: [
+                  Positioned.fill(child: RoomConversationPanel(
                   messages: _chatMessages ?? const Stream<List<RoomChatMessage>>.empty(),
                   enabled: _chatMessages != null, onSend: _roomChat.send, isArabic: isArabic,
-                  onGifts: () => _showRoomExtras(initialTab: 2), onShop: _showBackgroundStore,
+                  onGifts: _showGifts, onShop: _showBackgroundStore,
                   onTools: _showToolsGrid, onCaptions: _showCaptionSettings,
                   micIcon: isPublishing
                     ? (_controller.muted || !_controller.joined ? Icons.mic_off_rounded : Icons.mic_rounded)
                     : Icons.pan_tool_alt_rounded,
-                  micLabel: isPublishing ? label('الميكروفون', 'Microphone') : label('رفع اليد', 'Raise hand'),
-                  onMic: !_controller.joined || _me?.forcedMuted == true ? null
-                    : isPublishing ? () => _controller.setMuted(!_controller.muted)
-                    : () => _handRaised ? _moderation.setHandRaised(false) : _requestSeat(),
-                )),
+                  micLabel: isPublishing
+                      ? (_me?.forcedMuted == true
+                          ? label('كتم المضيف', 'Muted by host')
+                          : label('الميكروفون', 'Microphone'))
+                      : label('رفع اليد', 'Raise hand'),
+                  onMic: !_controller.joined || _micBusy ||
+                          _me?.forcedMuted == true || !isPublishing
+                      ? null : _toggleMicSafely,
+                  )),
+                  if (MediaQuery.viewInsetsOf(context).bottom == 0 &&
+                      _me != null && (_canModerate || !isPublishing))
+                    Positioned(
+                      left: 10,
+                      bottom: 79,
+                      child: _buildHandControl(isArabic, isPublishing),
+                    ),
+                ])),
               ]);
             })),
           ])),
-        ),
-      ),
-    );
-  }
-}
-
-class _RoomGiftOverlay extends StatelessWidget {
-  const _RoomGiftOverlay({required this.event});
-
-  final RoomGiftEvent event;
-
-  String get _giftId => event.giftId.trim().toLowerCase();
-
-  bool get _isPremiumDragon => const <String>{
-        'dragon',
-        'caraxes',
-        'vhagar',
-      }.contains(_giftId);
-
-  String get _premiumTitle {
-    switch (_giftId) {
-      case 'vhagar':
-        return 'VHAGAR';
-      case 'caraxes':
-      case 'dragon':
-        return 'CARAXES';
-      default:
-        return event.giftId.toUpperCase();
-    }
-  }
-
-  String get _fallbackEmoji => _giftId == 'vhagar' ? '🐲' : '🐉';
-
-  Widget _catalogVisual({
-    required double width,
-    required double height,
-    double fallbackSize = 110,
-  }) {
-    final url = event.animationUrl?.trim();
-    if (url?.isNotEmpty == true) {
-      return SizedBox(
-        width: width,
-        height: height,
-        child: Image.network(
-          url!,
-          fit: BoxFit.contain,
-          gaplessPlayback: true,
-          errorBuilder: (_, _, _) => Center(
-            child: Text(
-              _fallbackEmoji,
-              style: TextStyle(fontSize: fallbackSize),
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Text(
-      _fallbackEmoji,
-      style: TextStyle(fontSize: fallbackSize),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_isPremiumDragon) {
-      return IgnorePointer(
-        child: Material(
-          color: Colors.black.withValues(alpha: .34),
-          child: SafeArea(
-            child: TweenAnimationBuilder<double>(
-              tween: Tween(begin: -1.15, end: 1.15),
-              duration: const Duration(milliseconds: 4200),
-              curve: Curves.easeInOutCubic,
-              builder: (context, value, child) {
-                final width = MediaQuery.sizeOf(context).width;
-                final progress = ((value + 1.15) / 2.30).clamp(0.0, 1.0);
-                final flightWave =
-                    26 * (1 - (2 * progress - 1).abs()).clamp(0.0, 1.0);
-                final fireOpacity = progress > .54 && progress < .90
-                    ? ((progress - .54) / .20).clamp(0.0, 1.0) *
-                        ((.90 - progress) / .16).clamp(0.0, 1.0)
-                    : 0.0;
-
-                return Stack(
-                  children: [
-                    Positioned.fill(
-                      child: IgnorePointer(
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: RadialGradient(
-                              center: Alignment(
-                                value.clamp(-1.0, 1.0),
-                                -.15,
-                              ),
-                              radius: .75,
-                              colors: [
-                                const Color(0xFFFF5A1F).withValues(
-                                  alpha: .12 + (.18 * fireOpacity),
-                                ),
-                                Colors.transparent,
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      left: (width * .5) + (value * width * .45) - 95,
-                      top: 95 + flightWave,
-                      child: Transform.rotate(
-                        angle: value * .18,
-                        child: _catalogVisual(
-                          width: 190,
-                          height: 190,
-                          fallbackSize: 126,
-                        ),
-                      ),
-                    ),
-                    if (fireOpacity > 0)
-                      Positioned(
-                        right: 28,
-                        top: 245,
-                        child: Opacity(
-                          opacity: fireOpacity,
-                          child: const Text(
-                            '🔥🔥🔥',
-                            style: TextStyle(fontSize: 58),
-                          ),
-                        ),
-                      ),
-                    Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 108),
-                        child: Opacity(
-                          opacity: (1 - (progress - .76).clamp(0.0, .24) / .24)
-                              .clamp(0.0, 1.0),
-                          child: _GiftCaption(
-                            event: event,
-                            titleOverride: _premiumTitle,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ),
-        ),
-      );
-    }
-
-    final hasCatalogAnimation = event.animationUrl?.trim().isNotEmpty == true;
-    return IgnorePointer(
-      child: Material(
-        color: Colors.transparent,
-        child: SafeArea(
-          child: Align(
-            alignment: Alignment.topCenter,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 78),
-              child: TweenAnimationBuilder<double>(
-                tween: Tween(begin: .72, end: 1),
-                duration: const Duration(milliseconds: 520),
-                curve: Curves.easeOutBack,
-                builder: (context, scale, child) => Transform.scale(
-                  scale: scale,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (hasCatalogAnimation)
-                        _catalogVisual(
-                          width: 150,
-                          height: 150,
-                          fallbackSize: 86,
-                        ),
-                      if (hasCatalogAnimation) const SizedBox(height: 8),
-                      _GiftCaption(event: event),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _GiftCaption extends StatelessWidget {
-  const _GiftCaption({
-    required this.event,
-    this.titleOverride,
-  });
-
-  final RoomGiftEvent event;
-  final String? titleOverride;
-
-  @override
-  Widget build(BuildContext context) {
-    final icon = switch (event.giftId) {
-      'dragon' => '🐉',
-      'star' => '⭐',
-      _ => '🌹',
-    };
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24),
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF111D1A).withValues(alpha: .94),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white24),
-        boxShadow: const [
-          BoxShadow(blurRadius: 22, color: Colors.black45),
-        ],
-      ),
-      child: Text(
-        '$icon  ${event.senderName} → ${event.recipientName}  •  ${event.points}',
-        textAlign: TextAlign.center,
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w900,
         ),
       ),
     );
@@ -2441,45 +2592,6 @@ enum _StageAction {
   coHost,
   vipSeat,
   listener,
-}
-
-class _RoomToolTile extends StatelessWidget {
-  const _RoomToolTile({
-    required this.icon,
-    required this.label,
-    this.onTap,
-    this.destructive = false,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback? onTap;
-  final bool destructive;
-
-  @override
-  Widget build(BuildContext context) {
-    final errorColor = Theme.of(context).colorScheme.error;
-
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: Icon(
-        icon,
-        color: destructive ? errorColor : null,
-      ),
-      title: Text(
-        label,
-        style: TextStyle(
-          fontWeight: FontWeight.w800,
-          color: destructive ? errorColor : null,
-        ),
-      ),
-      trailing: Icon(
-        Icons.chevron_right_rounded,
-        color: destructive ? errorColor : null,
-      ),
-      onTap: onTap ?? () => Navigator.pop(context),
-    );
-  }
 }
 
 class _RaisedHandNotice extends StatelessWidget {

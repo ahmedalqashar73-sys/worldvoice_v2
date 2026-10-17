@@ -17,5 +17,5 @@ if ($AuxBackendUrl) {
   Write-Warning "Audio + Firestore board test only: Teacher AI/quiz/store backend endpoints need a separately deployed full backend."
 }
 Set-Location (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
-& (Join-Path $PSScriptRoot "build_android_release.ps1") -BackendUrl $backend -TokenEndpoint ($WorkerUrl.TrimEnd("/") + "/agora/token")
+& (Join-Path $PSScriptRoot "build_android_release.ps1") -BackendUrl $backend -TokenEndpoint ($WorkerUrl.TrimEnd("/") + "/agora/token") -FriendPreviewTest
 if (-not $?) { throw "Release build failed" }

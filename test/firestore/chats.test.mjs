@@ -2,8 +2,8 @@ import {readFile} from "node:fs/promises";
 import {before, beforeEach, after, test} from "node:test";
 import {initializeTestEnvironment, assertSucceeds, assertFails} from
   "@firebase/rules-unit-testing";
-import {doc, collection, setDoc, getDoc, getDocs, query, where, addDoc} from
-  "firebase/firestore";
+import {doc, collection, setDoc, getDoc, getDocs, query, where, addDoc,
+  serverTimestamp} from "firebase/firestore";
 
 let env;
 const dbFor = uid => env.authenticatedContext(uid).firestore();
@@ -53,5 +53,42 @@ test("a client cannot mint fake gift, overwrite participants or insert text", as
   }));
   await assertFails(setDoc(chat(dbFor("alice")), {
     memberIds: ["alice", "stranger"], active: true,
+  }));
+});
+
+
+test('chat member demos cannot impersonate others, charge coins or write messages', async () => {
+  const alice = dbFor('alice');
+  const bob = dbFor('bob');
+  const preview = doc(alice, 'chats/chat001/gift_previews/alice');
+  const notice = {
+    nonce: 'abcdefabcdefabcdefabcdef',
+    senderId: 'alice',
+    senderName: 'Alice',
+    recipientId: 'bob',
+    recipientName: 'Bob',
+    giftId: 'classic_luminous_butterfly',
+    sentAt: serverTimestamp(),
+  };
+  await assertSucceeds(setDoc(preview, notice));
+  await assertSucceeds(getDocs(collection(
+    bob, 'chats/chat001/gift_previews')));
+  await assertFails(setDoc(preview, {...notice,
+    nonce: '123456123456123456123456'})); // anti-spam cooldown
+  await assertFails(setDoc(doc(dbFor('stranger'),
+    'chats/chat001/gift_previews/stranger'), {
+    ...notice, senderId: 'stranger', senderName: 'Stranger',
+  }));
+  await assertFails(setDoc(doc(bob, 'chats/chat001/gift_previews/bob'), {
+    ...notice, senderId: 'bob', senderName: 'Alice',
+    recipientId: 'alice', recipientName: 'Alice',
+  }));
+  await assertFails(setDoc(doc(bob, 'chats/chat001/gift_previews/bob'), {
+    ...notice, senderId: 'bob', senderName: 'Bob',
+    recipientId: 'alice', recipientName: 'Alice', diamonds: 10000,
+  }));
+  await assertFails(addDoc(messages(alice), {
+    type: 'gift', senderId: 'alice', giftId: 'classic_royal_rose',
+    points: 99999,
   }));
 });

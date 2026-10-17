@@ -1,6 +1,7 @@
 import {createHash} from "node:crypto";
 import {FieldValue} from "firebase-admin/firestore";
 import {reversalDelta} from "./reversal_policy.js";
+import {privateWalletRef, requirePrivateWallet} from "./wallet_store.js";
 
 const err = (message, status = 409) =>
   Object.assign(new Error(message), {status});
@@ -38,6 +39,7 @@ export async function reverseVerifiedWebPurchase({stripe, db, event}) {
   const receiptRef = db.collection("iap_receipts").doc(receiptKey);
   const operation = db.collection("economy_refund_operations").doc(opKey);
   const userRef = db.collection("users").doc(uid);
+  const userWalletRef = privateWalletRef(userRef);
   const globalRef = db.doc("economy_global_controls/payouts");
   // Freezes every recent gift receiver from the chargeback sender, until
   // finance can trace lots to their funding purchases.
@@ -49,7 +51,7 @@ export async function reverseVerifiedWebPurchase({stripe, db, event}) {
   )];
   const overLimit = gifts.size >= 91 || recipients.length >= 80;
   const recipientRefs = overLimit ? [] : recipients.map(id =>
-    db.collection("users").doc(id));
+    privateWalletRef(db.collection("users").doc(id)));
   const amountRefunded = dispute
     ? session.amount_total
     : Number(charge.amount_refunded);
@@ -57,7 +59,7 @@ export async function reverseVerifiedWebPurchase({stripe, db, event}) {
     throw err("Invalid signed Stripe refund amount.", 503);
   }
   return db.runTransaction(async tx => {
-    const refs = [operation, receiptRef, userRef, globalRef, ...recipientRefs];
+    const refs = [operation, receiptRef, userWalletRef, globalRef, ...recipientRefs];
     const snaps = await Promise.all(refs.map(ref => tx.get(ref)));
     const [old, receiptSnap, userSnap] = snaps;
     if (old.exists) return {...old.data().outcome, alreadyProcessed: true};
@@ -104,6 +106,10 @@ export async function reverseVerifiedWebPurchase({stripe, db, event}) {
       creditedCoins, priceCents, targetRefundCents: requestedTarget,
       alreadyDebitedCoins: Number(existing.debitedCoins || 0),
     });
+    requirePrivateWallet(userSnap);
+    const missingRecipientWallet = recipientRefs.some((_, index) =>
+      !snaps[index + 4].exists);
+    const recipientRiskHold = overLimit || missingRecipientWallet;
     const before = Number(userSnap.data()?.coins || 0);
     const debtBefore = Number(userSnap.data()?.walletDebtCoins || 0);
     const purchased = Number(userSnap.data()?.purchasedCoins || 0);
@@ -117,9 +123,9 @@ export async function reverseVerifiedWebPurchase({stripe, db, event}) {
     const outcome = {
       deductedCoins: availableDebit, debtCoins: debt,
       targetRefundCents: requestedTarget,
-      payoutFrozen: true, recipientsFrozen: overLimit ? "global" : recipients.length,
+      payoutFrozen: true, recipientsFrozen: recipientRiskHold ? "global" : recipients.length,
     };
-    tx.set(userRef, {
+    tx.set(userWalletRef, {
       coins: before - availableDebit,
       purchasedCoins: Math.max(0, purchased - result.deltaCoins),
       walletDebtCoins: debtBefore + debt,
@@ -128,14 +134,15 @@ export async function reverseVerifiedWebPurchase({stripe, db, event}) {
       firstRechargeUsed: true,
       updatedAt: FieldValue.serverTimestamp(),
     }, {merge: true});
-    for (const ref of recipientRefs) {
+    for (const ref of (recipientRiskHold ? [] : recipientRefs)) {
       tx.set(ref, {payoutFrozen: true,
         payoutFreezeReason: "linked_gift_sender_refund",
         updatedAt: FieldValue.serverTimestamp()}, {merge: true});
     }
-    if (overLimit) {
+    if (recipientRiskHold) {
       tx.set(globalRef, {frozen: true,
-        reason: "stripe_refund_history_overflow",
+        reason: missingRecipientWallet ? "stripe_missing_recipient_wallet"
+          : "stripe_refund_history_overflow",
         updatedAt: FieldValue.serverTimestamp()}, {merge: true});
     }
     tx.update(receiptRef, {
