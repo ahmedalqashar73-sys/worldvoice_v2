@@ -1730,7 +1730,16 @@ function scrambledWord(word, offset) {
     [letters[i], letters[j]] = [letters[j], letters[i]];
   }
   const scrambled = letters.join("");
-  return scrambled === word ? letters.reverse().join("") : scrambled;
+  if (scrambled !== word) return scrambled;
+  // Reversing palindromes such as French "été" does not produce a puzzle.
+  // Rotate as a second fallback; reject a word containing only one letter
+  // repeated because no nontrivial anagram can exist.
+  const reversed = letters.reverse().join("");
+  if (reversed !== word) return reversed;
+  const original = [...word];
+  const rotated = [...original.slice(1), original[0]].join("");
+  if (rotated !== word) return rotated;
+  throw new Error("Word bank contains a word with no possible anagram.");
 }
 
 export function gameQuestions({language, level, mode, seed}) {
