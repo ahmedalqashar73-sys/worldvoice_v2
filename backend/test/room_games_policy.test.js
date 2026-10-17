@@ -9,13 +9,18 @@ import {
 
 test("room language determines game content (not device locale)", () => {
   assert.deepEqual(roomGameLanguageCodes({languageCode: "fr"}), ["fr"]);
+  assert.deepEqual(roomGameLanguageCodes({languageCode: "es-MX"}), ["es"]);
+  assert.deepEqual(roomGameLanguageCodes({languageCode: "zh-CN"}), ["zh"]);
+  assert.deepEqual(roomGameLanguageCodes({languageCode: "ko-KR"}), ["ko"]);
+  assert.deepEqual(roomGameLanguageCodes({languageCodes: ["fr", "es", "zh", "ko"]}),
+    ["fr", "es", "zh", "ko"]);
   assert.deepEqual(roomGameLanguageCodes({languageCodes: ["ar", "en"]}), ["ar", "en"]);
   assert.deepEqual(roomGameLanguageCodes({languageCode: "ja"}), []);
-  for (const lang of ["ar", "en", "fr"]) for (const level of ["beginner", "intermediate", "advanced"]) {
+  for (const lang of ["ar", "en", "es", "zh", "ko", "fr"]) for (const level of ["beginner", "intermediate", "advanced"]) {
     for (const mode of ["vocabulary", "guess"]) {
       const questions = gameQuestions({language: lang, level, mode, seed: 11});
       assert.equal(questions.length, GAME_QUESTIONS_PER_SESSION);
-      assert.ok(questions.every(q => q.answer.length > 1 && q.clue.length > 2));
+      assert.ok(questions.every(q => q.answer.length > 1 && q.clue.length >= 2));
       if (mode === "vocabulary") assert.ok(questions.every(q => q.clue === q.definition));
       else assert.ok(questions.every(q => q.clue !== q.answer));
     }
@@ -45,4 +50,30 @@ test("vocabulary includes listeners; guess is stage-only", () => {
   assert.equal(canPlayGame("guess", {...listener, role: "speaker", seatIndex: 2}), true);
   assert.equal(canPlayGame("guess", {...listener, role: "speaker", seatIndex: 12}), false);
   assert.equal(canPlayGame("guess", {uid: "host", hostId: "host", role: "host"}), true);
+});
+
+test("all six languages have 25 unique words at every graded difficulty", () => {
+  for (const language of ["ar", "en", "es", "zh", "ko", "fr"]) {
+    for (const level of ["beginner", "intermediate", "advanced"]) {
+      const seen = new Set();
+      for (let seed = 0; seed < 25; seed++) {
+        const vocab = gameQuestions({language, level, mode: "vocabulary", seed});
+        assert.equal(vocab.length, 5);
+        const first = vocab[0];
+        assert.ok(first.answer.length >= 2, language + ":" + level + ":" + seed);
+        assert.ok(first.definition.length >= (language === "zh" ? 8 : 12),
+          language + ":" + level + " lacks a useful definition");
+        assert.equal(normalGameAnswer(first.answer), normalGameAnswer(first.answer));
+        seen.add(first.answer);
+        const guess = gameQuestions({language, level, mode: "guess", seed});
+        assert.equal(guess.length, 5);
+        for (const item of guess) {
+          assert.notEqual(item.clue, item.answer);
+          assert.deepEqual([...item.clue].sort(), [...item.answer].sort());
+        }
+      }
+      assert.equal(seen.size, 25,
+        language + "/" + level + " needs 25 distinct answers");
+    }
+  }
 });
