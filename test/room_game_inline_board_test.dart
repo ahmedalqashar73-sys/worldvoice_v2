@@ -130,6 +130,45 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('all players see server-verified right and wrong guesses in chat',
+      (tester) async {
+    final publicChat = <String>[];
+    final events = <Map<String, dynamic>>[
+      {'id': 'winner-0', 'name': 'Amira', 'answer': 'market',
+       'correct': true, 'wordIndex': 0},
+      {'id': 'wrong-0', 'name': 'Ahmed', 'answer': 'marcet',
+       'correct': false, 'wordIndex': 0},
+    ];
+    await tester.pumpWidget(MaterialApp(home: Scaffold(
+      body: RoomConversationPanel(
+        messages: const Stream<List<RoomChatMessage>>.empty(),
+        isArabic: true,
+        gameAnswerEvents: events,
+        gameRoundClosed: true,
+        gameAnnouncement: '🏆 Amira أجابت أولًا',
+        onSend: (text) async => publicChat.add(text),
+        onGifts: () {}, onShop: () {}, onTools: () {},
+        onCaptions: () {}, onMic: () {},
+        micIcon: Icons.mic, micLabel: 'Mic',
+      ),
+    )));
+    await tester.pump();
+    expect(find.byKey(const ValueKey('room-chat-game-attempt-winner-0')),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey('room-chat-game-attempt-wrong-0')),
+        findsOneWidget);
+    expect(find.textContaining('Amira: market'), findsOneWidget);
+    expect(find.textContaining('✅ صح'), findsOneWidget);
+    expect(find.textContaining('Ahmed: marcet'), findsOneWidget);
+    expect(find.textContaining('❌ خطأ'), findsOneWidget);
+    // The separate legacy "first winner" announcement should not duplicate
+    // a correctly scored attempt in the verified feed.
+    expect(find.byKey(const ValueKey('room-chat-game-winner-announcement')),
+        findsNothing);
+    expect(publicChat, isEmpty);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('locked answer input cannot leak into public chat',
       (tester) async {
     final privateAnswers = <String>[];
