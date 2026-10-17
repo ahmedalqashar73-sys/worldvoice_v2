@@ -62,7 +62,8 @@ function responseInfo({room, pointer, session, now, uid, member, scores,
       points: doc.data().points ?? 0,
       correctCount: doc.data().correctCount ?? 0,
       firstCorrectAtMs: doc.data().firstCorrectAtMs ?? 0,
-    })).sort((left, right) =>
+    })).filter(player => player.points > 0)
+      .sort((left, right) =>
       right.points - left.points ||
       left.firstCorrectAtMs - right.firstCorrectAtMs ||
       left.userId.localeCompare(right.userId)),
@@ -246,8 +247,8 @@ export function registerRoomGameRoutes({app, db, authenticatedUser,
         }
         tx.set(scoreRef, {points: priorScore + pointsAwarded,
           correctCount: priorCorrectCount + (correct ? 1 : 0),
-          firstCorrectAtMs: score.data()?.firstCorrectAtMs ??
-            (correct ? now : 0),
+          firstCorrectAtMs: (score.data()?.firstCorrectAtMs ?? 0) > 0
+            ? score.data().firstCorrectAtMs : (correct ? now : 0),
           name, lastAnsweredAtMs: now});
         return {alreadySubmitted: false, correct, pointsAwarded,
           roundClosed: correct, winnerName: correct ? name : null,
