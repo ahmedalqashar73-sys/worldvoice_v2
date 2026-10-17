@@ -12,6 +12,7 @@ class RoomConversationPanel extends StatefulWidget {
     this.onReportMessage, this.translationHint, this.enabled = true,
     this.onGameAnswer, this.gameAnswerEnabled = false,
     this.gameAnswerSubmitted = false, this.gameRoundClosed = false,
+    this.gameAnnouncement,
     super.key,
   });
   final Stream<List<RoomChatMessage>> messages;
@@ -22,6 +23,8 @@ class RoomConversationPanel extends StatefulWidget {
   final bool gameAnswerSubmitted;
   /// A first correct answer closes the word to everyone.
   final bool gameRoundClosed;
+  /// Server-confirmed winner shown as a public chat notice (not a user post).
+  final String? gameAnnouncement;
   final bool isArabic;
   final bool enabled;
   final VoidCallback onGifts, onShop, onTools, onCaptions;
@@ -237,10 +240,40 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
             primary: false,
             reverse: true, padding: EdgeInsets.fromLTRB(16, 12, 16,
               keyboardInset > 0 ? keyboardInset + 70 : 92),
-            itemCount: messages.length + 1,
+            itemCount: messages.length + 1 +
+                (widget.gameAnnouncement == null ? 0 : 1),
             itemBuilder: (context, index) {
-              final welcome = index == messages.length;
-              final msg = welcome ? null : messages[index];
+              final announcement = widget.gameAnnouncement;
+              if (index == 0 && announcement != null) {
+                return Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Container(
+                    key: const ValueKey('room-chat-game-winner-announcement'),
+                    margin: const EdgeInsets.only(top: 8, bottom: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 13, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF176344),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFD6B969)),
+                    ),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      const Icon(Icons.emoji_events_rounded,
+                        color: Color(0xFFF2D28B), size: 19),
+                      const SizedBox(width: 7),
+                      Flexible(child: Text(announcement,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800))),
+                    ]),
+                  ),
+                );
+              }
+              final messageIndex = index -
+                  (announcement == null ? 0 : 1);
+              final welcome = messageIndex == messages.length;
+              final msg = welcome ? null : messages[messageIndex];
               final giftPreview = msg == null
                   ? null
                   : RoomGiftPreviewChatCodec.decode(msg.text);

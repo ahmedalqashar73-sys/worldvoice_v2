@@ -72,9 +72,17 @@ class _RoomGameInlineBoardState extends State<RoomGameInlineBoard> {
       margin: const EdgeInsets.fromLTRB(12, 2, 12, 6),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFF123B30).withValues(alpha: .96),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF1B654B), Color(0xFF103D32)],
+        ),
         borderRadius: BorderRadius.circular(17),
-        border: Border.all(color: const Color(0xFF538267), width: .8),
+        border: Border.all(color: const Color(0xFFD5B76C), width: 1),
+        boxShadow: [BoxShadow(
+          color: const Color(0xFF001D14).withValues(alpha: .22),
+          blurRadius: 12, offset: const Offset(0, 3),
+        )],
       ),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         Row(children: [
