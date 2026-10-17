@@ -4,9 +4,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:worldvoice/features/rooms/data/room_chat_message.dart';
 import 'package:worldvoice/features/rooms/presentation/room_conversation_panel.dart';
 import 'package:worldvoice/features/rooms/presentation/room_game_inline_board.dart';
+import 'package:worldvoice/features/rooms/presentation/room_stage_grid.dart';
+import 'package:worldvoice/features/rooms/data/room_stage_models.dart';
 
 void main() {
-  testWidgets('question is visible under stage, above listeners without a modal',
+  testWidgets('question sits between first and second seat row without a modal',
       (tester) async {
     final status = <String, dynamic>{
       'active': true, 'finished': false, 'mode': 'vocabulary',
@@ -17,19 +19,27 @@ void main() {
     };
     await tester.pumpWidget(MaterialApp(home: Scaffold(body:
       Column(children: [
-        const SizedBox(height: 80, child: Text('Eight speaker seats')),
-        RoomGameInlineBoard(status: status, isArabic: true),
+        SizedBox(height: 420, child: RoomStageGrid(
+          seats: [
+            for (var i = 1; i <= 8; i++)
+              RoomSeatState(index: i, role: RoomMemberRole.listener),
+          ],
+          onSeatTap: (_) {},
+          betweenRows: RoomGameInlineBoard(status: status, isArabic: true),
+        )),
         const SizedBox(height: 40, child: Text('Listener avatars')),
         const Expanded(child: SizedBox()),
       ]),
     )));
     await tester.pump();
-    final stage = tester.getTopLeft(find.text('Eight speaker seats'));
+    final firstRow = tester.getTopLeft(find.text('4'));
     final board = tester.getTopLeft(find.byKey(
       const ValueKey<String>('room-inline-games-board')));
+    final secondRow = tester.getTopLeft(find.text('8'));
     final listeners = tester.getTopLeft(find.text('Listener avatars'));
-    expect(stage.dy, lessThan(board.dy));
-    expect(board.dy, lessThan(listeners.dy));
+    expect(firstRow.dy, lessThan(board.dy));
+    expect(board.dy, lessThan(secondRow.dy));
+    expect(secondRow.dy, lessThan(listeners.dy));
     expect(find.text('A place where people borrow books.'), findsOneWidget);
     expect(find.textContaining('24s'), findsOneWidget);
     expect(find.textContaining('library'), findsNothing);
@@ -43,10 +53,10 @@ void main() {
       'active': false, 'finished': true, 'mode': 'guess',
       'questionIndex': 5, 'secondsLeft': 0,
       'leaderboard': [
-        {'name': 'Amira', 'points': 50},
-        {'name': 'Hassan', 'points': 40},
-        {'name': 'Sara', 'points': 30},
-        {'name': 'Fourth user', 'points': 20},
+        {'name': 'Amira', 'points': 50, 'correctCount': 5},
+        {'name': 'Hassan', 'points': 40, 'correctCount': 4},
+        {'name': 'Sara', 'points': 30, 'correctCount': 3},
+        {'name': 'Fourth user', 'points': 20, 'correctCount': 2},
       ],
     };
     await tester.pumpWidget(MaterialApp(home: Scaffold(
@@ -60,7 +70,56 @@ void main() {
     expect(find.text('🥇'), findsOneWidget);
     expect(find.text('🥈'), findsOneWidget);
     expect(find.text('🥉'), findsOneWidget);
+    expect(find.text('5 correct'), findsOneWidget);
+    expect(find.text('4 correct'), findsOneWidget);
+    expect(find.text('3 correct'), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('fastest correct player locks the question and reveals answer',
+      (tester) async {
+    final status = <String, dynamic>{
+      'active': true, 'finished': false, 'mode': 'vocabulary',
+      'language': 'en', 'questionIndex': 0, 'secondsLeft': 16,
+      'canAnswer': false, 'answered': false, 'roundLocked': true,
+      'winner': {'name': 'Amira', 'answer': 'library'},
+      'question': {'clue': 'A place where people borrow books.'},
+      'leaderboard': <Map<String, dynamic>>[],
+    };
+    await tester.pumpWidget(MaterialApp(home: Scaffold(
+      body: RoomGameInlineBoard(status: status, isArabic: false),
+    )));
+    await tester.pump();
+    expect(find.text('First correct: Amira'), findsOneWidget);
+    expect(find.text('Answer: library'), findsOneWidget);
+    expect(find.byKey(const ValueKey('room-game-fastest-winner')),
+        findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('locked answer input cannot leak into public chat',
+      (tester) async {
+    final privateAnswers = <String>[];
+    final publicMessages = <String>[];
+    await tester.pumpWidget(MaterialApp(home: Scaffold(
+      body: RoomConversationPanel(
+        messages: const Stream<List<RoomChatMessage>>.empty(),
+        isArabic: true,
+        onSend: (text) async => publicMessages.add(text),
+        onGameAnswer: (text) async => privateAnswers.add(text),
+        gameRoundClosed: true,
+        gameAnswerEnabled: false,
+        onGifts: () {}, onShop: () {}, onTools: () {},
+        onCaptions: () {}, onMic: () {},
+        micIcon: Icons.mic, micLabel: 'Mic',
+      ),
+    )));
+    await tester.tap(find.byKey(
+      const ValueKey<String>('worldvoice-room-chat-input')));
+    await tester.pump();
+    expect(find.textContaining('سبقك لاعب'), findsOneWidget);
+    expect(privateAnswers, isEmpty);
+    expect(publicMessages, isEmpty);
   });
 
   testWidgets('room chat composer sends game answers privately, not into chat',
