@@ -2801,9 +2801,11 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       setState(() => _roomGameStatus = null);
       await _refreshRoomGames();
     } catch (error) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(error.toString().replaceFirst('Bad state: ', '')),
-      ));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(error.toString().replaceFirst('Bad state: ', '')),
+        ));
+      }
     } finally {
       _roomGameClosing = false;
     }
