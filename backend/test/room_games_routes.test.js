@@ -169,7 +169,14 @@ test("games routes: immutable answers, role access and host-only free quota",
         mode: "vocabulary", level: "advanced", language: "en"})).status, 200);
     });
     await t.test("only host closes a game, resets room mode and preserves usage", async () => {
-      const current = await request("status", "game-host");
+      // Isolate this scenario from prior daily-quota rounds.
+      now += 86400000;
+      const started = await request("start", "game-host", {
+        mode: "vocabulary", level: "beginner", language: "en"});
+      assert.equal(started.status, 200, JSON.stringify(started.body));
+      const currentResponse = await request("status", "game-host");
+      assert.equal(currentResponse.status, 200, JSON.stringify(currentResponse.body));
+      const current = currentResponse.body;
       assert.ok(current.sessionId);
       const wrong = await request("close", "game-speaker",
         {sessionId: current.sessionId});
@@ -187,9 +194,10 @@ test("games routes: immutable answers, role access and host-only free quota",
       assert.equal(idle.body.active, false);
       assert.equal(idle.body.sessionId, undefined);
       assert.equal(idle.body.remaining.vocabulary, 5);
+      const day = new Date(now).toISOString().slice(0, 10);
       const usage = await db.collection("users").doc("game-host")
-        .collection("game_usage").doc("2026-10-17_vocabulary").get();
-      assert.equal(usage.data()?.count, 2);
+        .collection("game_usage").doc(day + "_vocabulary").get();
+      assert.equal(usage.data()?.count, 1);
       const oldRound = await room.collection("private_games")
         .doc(current.sessionId).get();
       assert.equal(oldRound.exists, true);

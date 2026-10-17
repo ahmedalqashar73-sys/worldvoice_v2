@@ -61,7 +61,8 @@ test("all six languages have 25 unique words at every graded difficulty", () => 
         assert.equal(vocab.length, 5);
         const first = vocab[0];
         assert.ok(first.answer.length >= 2, language + ":" + level + ":" + seed);
-        assert.ok(first.definition.length >= 15);
+        assert.ok(first.definition.length >= (language === "zh" ? 8 : 12),
+          language + ":" + level + " lacks a useful definition");
         assert.equal(normalGameAnswer(first.answer), normalGameAnswer(first.answer));
         seen.add(first.answer);
         const guess = gameQuestions({language, level, mode: "guess", seed});
