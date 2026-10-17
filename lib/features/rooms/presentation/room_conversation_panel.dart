@@ -166,7 +166,9 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
   Future<void> _send() async {
     final value = _text.text.trim();
     if (value.isEmpty || _sending || !widget.enabled ||
-        widget.gameRoundClosed) return;
+        widget.gameRoundClosed) {
+      return;
+    }
     setState(() => _sending = true);
     try {
       if (widget.gameAnswerEnabled && !widget.gameAnswerSubmitted &&

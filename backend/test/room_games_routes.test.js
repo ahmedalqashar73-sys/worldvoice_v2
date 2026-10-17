@@ -113,11 +113,12 @@ test("games routes: immutable answers, role access and host-only free quota",
     });
     await t.test("five words, 30 seconds each; correct words never leak early", async () => {
       const session = (await request("status", "game-listener")).body.sessionId;
-      // The previous subtest already moved forward by one 30-second word.
+      // Advance beyond the second word won by the prior concurrent test.
+      now += 30000;
       assert.equal((await request("answer", "game-listener", {
         sessionId: session, wordIndex: 0, answer: "late"})).status, 409);
       assert.equal((await request("status", "game-listener")).body.questionIndex, 2);
-      now += 120000;
+      now += 90000;
       const finish = await request("status", "game-listener");
       assert.equal(finish.body.finished, true);
       assert.equal(finish.body.solutions.length, 5);
