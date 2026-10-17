@@ -53,11 +53,29 @@ test('quota and history are available only to their owner before joining', async
 test('room tasks and level XP cannot be forged by host or listener', async () => {
   const hostDb = user('host');
   const listenerDb = user('listener');
+  for (const db of [hostDb, listenerDb]) {
+    await assertFails(setDoc(doc(db, 'rooms/r1/task_attendance/listener'), {
+      day: '2026-10-14', lastSeenMs: Date.now(), activeMs: 7200000,
+    }));
+  }
   await assertFails(updateDoc(room(hostDb), {
     roomXp: 5900, roomLevel: 60,
   }));
   await assertFails(updateDoc(room(listenerDb), {
     roomXp: 500, roomLevel: 6,
+  }));
+  await assertFails(updateDoc(room(hostDb), {
+    roomCastleXpVersion: 2,
+  }));
+  await assertFails(updateDoc(room(listenerDb), {
+    legacyRoomXp: 5900,
+  }));
+  await assertFails(setDoc(doc(user('new'), 'rooms/forged-castle'), {
+    channelId: 'forged-castle',
+    hostId: 'new',
+    roomLevel: 1,
+    roomXp: 0,
+    roomCastleXpVersion: 2,
   }));
   await assertFails(setDoc(doc(listenerDb, 'rooms/r1/task_completions/ten_minutes_listener_today'), {
     userId: 'listener', taskKey: 'ten_minutes', points: 4,
@@ -635,3 +653,44 @@ test('room abuse reports are write-once, private and bound to actual chat author
   }));
 });
 
+
+test('cycle state, reward receipts and free gifts cannot be forged by clients', async () => {
+  const db = user('listener');
+  for (const path of ['users/listener/engagement/cycle',
+    'users/listener/engagement_receipts/1_1', 'users/listener/inventory/gift__wv_gift_001']) {
+    await assertFails(setDoc(doc(db, path), {creativeCycles: 99, freeGiftBalance: 999}));
+  }
+  await assertFails(getDoc(doc(db, 'users/host/engagement/cycle')));
+});
+
+
+test('language game secrets, answers, game scores and free quotas are backend-only', async () => {
+  const users = [user('host'), user('listener'), user('other')];
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const admin = ctx.firestore();
+    await setDoc(doc(admin, 'rooms/r1/private_games/current'),
+      {sessionId: 'secret-round', endAtMs: 1800000000000});
+    await setDoc(doc(admin, 'rooms/r1/private_games/secret-round'),
+      {questions: [{answer: 'library', clue: 'A place with books'}]});
+    await setDoc(doc(admin,
+      'rooms/r1/private_games/secret-round/answers/listener_0'),
+      {uid: 'listener', correct: true});
+    await setDoc(doc(admin,
+      'rooms/r1/private_games/secret-round/scores/listener'),
+      {points: 10});
+    await setDoc(doc(admin, 'users/host/game_usage/2026-10-17_guess'),
+      {count: 5});
+  });
+  for (const db of users) {
+    for (const path of [
+      'rooms/r1/private_games/current',
+      'rooms/r1/private_games/secret-round',
+      'rooms/r1/private_games/secret-round/answers/listener_0',
+      'rooms/r1/private_games/secret-round/scores/listener',
+      'users/host/game_usage/2026-10-17_guess',
+    ]) {
+      await assertFails(getDoc(doc(db, path)));
+      await assertFails(setDoc(doc(db, path), {points: 999, count: 0}));
+    }
+  }
+});

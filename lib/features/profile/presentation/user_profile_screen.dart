@@ -1,3 +1,4 @@
+import '../../engagement/presentation/creative_progress_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -253,6 +254,7 @@ class UserProfileScreen extends StatelessWidget {
                           ),
                         ],
                       ),
+                      CreativeProfileLink(userId: uid),
                       const SizedBox(height: 12),
                       VoiceBioCard(
                         userId: uid,

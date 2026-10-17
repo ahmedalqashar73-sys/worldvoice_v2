@@ -1,3 +1,4 @@
+import '../../engagement/presentation/creative_badge.dart';
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -292,6 +293,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                     ],
                   ),
                 ],
+                Center(child: CreativeBadge(userId: widget.userId)),
                 const SizedBox(height: 7),
                 Center(
                   child: _PresenceStatus(

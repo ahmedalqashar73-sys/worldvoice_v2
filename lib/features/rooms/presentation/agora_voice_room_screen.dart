@@ -1,3 +1,4 @@
+import '../../engagement/presentation/creative_badge.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -43,6 +44,9 @@ import 'room_captions_sheet.dart';
 import 'room_coin_store_sheet.dart';
 import 'room_music_sheet.dart';
 import 'room_quiz_sheet.dart';
+import 'room_games_sheet.dart';
+import 'room_game_inline_board.dart';
+import '../services/room_quiz_service.dart';
 import 'room_rating_sheet.dart';
 import 'room_extras_sheet.dart';
 import 'room_gift_overlay.dart';
@@ -55,6 +59,20 @@ import 'room_teacher_ai_sheet.dart';
 
 const MethodChannel _roomTeacherTtsChannel =
     MethodChannel('worldvoice/live_tts');
+const MethodChannel _roomGameAudioChannel =
+    MethodChannel('worldvoice/room_games_audio');
+
+Future<void> _playRoomGameCue(String kind) async {
+  try {
+    await _roomGameAudioChannel.invokeMethod<void>(
+      'play', <String, String>{'kind': kind});
+  } on MissingPluginException {
+    // Fallback for iOS or an older Android app install.
+    await SystemSound.play(SystemSoundType.alert);
+  } on PlatformException {
+    await SystemSound.play(SystemSoundType.alert);
+  }
+}
 
 Future<void> _speakRoomTeacher(
   String text,
@@ -116,6 +134,12 @@ class AgoraVoiceRoomScreen extends StatefulWidget {
 class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   late final AgoraVoiceRoomController _controller;
   late final RoomChatService _roomChat;
+  late final RoomGamesService _roomGames;
+  Timer? _roomGamesTimer;
+  Map<String, dynamic>? _roomGameStatus;
+  bool _roomGamePolling = false;
+  bool _roomGameAnswerBusy = false;
+  bool _roomGameSoundsInitialized = false;
   Stream<List<RoomChatMessage>>? _chatMessages;
   late final RoomModerationService _moderation;
   late final RoomHistoryService _history;
@@ -221,6 +245,11 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   void initState() {
     super.initState();
     _roomChat = RoomChatService(roomId: widget.channelId);
+    _roomGames = RoomGamesService(roomId: widget.channelId);
+    // Refresh for all participants, including those who never open the modal.
+    unawaited(_refreshRoomGames());
+    _roomGamesTimer = Timer.periodic(const Duration(seconds: 3),
+        (_) => unawaited(_refreshRoomGames()));
     _showTeacherAiSeat = widget.initialShowTeacherAiSeat;
     _controller = AgoraVoiceRoomController()..addListener(_refresh);
     _history = RoomHistoryService();
@@ -403,6 +432,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     if (!mounted || _leaving) return;
     try {
       await _moderation.refreshPresence();
+      await _features.recordTaskPresence();
     } catch (error) {
       debugPrint('WorldVoice room presence refresh unavailable: $error');
     }
@@ -460,6 +490,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         asHost: asHost,
       );
       membershipEstablished = true;
+      unawaited(_refreshRoomPresence());
       _presenceTimer ??= Timer.periodic(
         const Duration(seconds: 30),
         (_) => unawaited(_refreshRoomPresence()),
@@ -1864,9 +1895,12 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                       SizedBox(width: 35, height: 35,
                         child: _ParticipantAvatar(participant: person)),
                       const SizedBox(height: 3),
-                      Text(person.displayName, maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 10, color: Colors.white)),
+                      Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                        CreativeBadge(userId: person.userId, compact: true),
+                        Flexible(child: Text(person.displayName, maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 10, color: Colors.white))),
+                      ]),
                     ]),
                 ),
               );
@@ -2171,6 +2205,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   )),
                 ]),
               ),
+              CreativeBadge(userId: person.userId),
               FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
                 future: profileFuture,
                 builder: (context, snapshot) {
@@ -2791,6 +2826,96 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     );
   }
 
+  Future<void> _refreshRoomGames() async {
+    if (_roomGamePolling || _leaving) return;
+    _roomGamePolling = true;
+    try {
+      final data = await _roomGames.status();
+      if (mounted && !_leaving) {
+        final previous = _roomGameStatus;
+        // Play only on state transitions, never on repeated polling ticks.
+        if (_roomGameSoundsInitialized && previous != null) {
+          final newSession = data['sessionId']?.toString();
+          final oldSession = previous['sessionId']?.toString();
+          final gameStarted = newSession != null &&
+              newSession != oldSession &&
+              data['active'] == true &&
+              data['questionIndex'] == 0;
+          final winner = data['winner'] as Map?;
+          final previousWinner = previous['winner'] as Map?;
+          final newWinner = data['roundLocked'] == true &&
+              winner != null &&
+              (newSession != oldSession ||
+                  data['questionIndex'] != previous['questionIndex'] ||
+                  previous['roundLocked'] != true ||
+                  winner['userId'] != previousWinner?['userId']);
+          if (gameStarted) {
+            unawaited(_playRoomGameCue('start'));
+          } else if (newWinner) {
+            unawaited(_playRoomGameCue('winner'));
+          }
+        }
+        _roomGameSoundsInitialized = true;
+        setState(() => _roomGameStatus = data);
+      }
+    } catch (_) {
+      // Room audio and chat stay available during backend/network changes.
+    } finally {
+      _roomGamePolling = false;
+    }
+  }
+
+  Future<void> _submitRoomGameAnswer(String text) async {
+    final data = _roomGameStatus;
+    if (_roomGameAnswerBusy || data?['active'] != true ||
+        data?['canAnswer'] != true || data?['answered'] == true) {
+      throw StateError('No open game question to answer.');
+    }
+    final sessionId = data?['sessionId']?.toString();
+    final index = (data?['questionIndex'] as num?)?.toInt();
+    if (sessionId == null || index == null) {
+      throw StateError('Game is not ready.');
+    }
+    _roomGameAnswerBusy = true;
+    try {
+      final result = await _roomGames.answer(
+        sessionId: sessionId, wordIndex: index, answer: text);
+      if (!mounted) return;
+      final correct = result['correct'] == true;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(result['roundClosed'] == true && !correct
+          ? 'سبقك لاعب بالإجابة الصحيحة • انتظر الكلمة التالية'
+          : correct
+              ? 'أنت الأسرع! +10 نقاط لعب'
+              : result['alreadySubmitted'] == true
+                  ? 'إجابتك مسجلة بالفعل'
+                  : 'تم تسجيل الإجابة • انتظر السؤال التالي'),
+        duration: const Duration(seconds: 2),
+      ));
+    } finally {
+      _roomGameAnswerBusy = false;
+      await _refreshRoomGames();
+    }
+  }
+
+  bool get _roomGameVisible =>
+      _roomGameStatus?['active'] == true ||
+      _roomGameStatus?['finished'] == true;
+
+  Future<void> _showGames() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => RoomGamesSheet(
+        roomId: widget.channelId,
+        isHost: _isHost,
+        service: _roomGames,
+      ),
+    );
+    if (mounted) await _refreshRoomGames();
+  }
+
   Future<void> _showQuiz() async {
     await showModalBottomSheet<void>(
       context: context,
@@ -3036,6 +3161,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   }
 
   // The four squares in the bottom toolbar open these four tools only.
+  // Emerald-and-gold room center; scroll within the safe viewport to avoid
+  // bottom overflow on phones with gesture/system navigation.
   Future<void> _showToolsGrid() async {
     final ar = (widget.localeController?.locale?.languageCode ??
         Localizations.localeOf(context).languageCode) == 'ar';
@@ -3045,21 +3172,35 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       (Icons.card_giftcard_rounded, ar ? 'الهدايا' : 'Gifts', _showGifts),
       (Icons.timer_outlined, ar ? 'الوقت المتبقي' : 'Remaining time',
         _showQuotaStatus),
+      (Icons.sports_esports_rounded,
+        ar ? 'الألعاب اللغوية' : 'Language games', _showGames),
       (Icons.groups_outlined,
-        ar ? 'الأعضاء: ${_participants.length}' : 'Members: ${_participants.length}',
+        ar ? 'الأعضاء: ${_participants.length}'
+           : 'Members: ${_participants.length}',
         _showMembers),
     ];
     await showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
+      isScrollControlled: true,
       useSafeArea: true,
-      builder: (sheet) => Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(ar ? 'مركز الغرفة' : 'Room center',
-              style: Theme.of(sheet).textTheme.titleLarge),
+      backgroundColor: const Color(0xFF0B2A20),
+      builder: (sheet) => ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(sheet).height * .69,
+        ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              const Icon(Icons.hub_rounded,
+                color: Color(0xFFF5CF7C), size: 22),
+              const SizedBox(width: 9),
+              Text(ar ? 'مركز الغرفة' : 'Room center',
+                style: Theme.of(sheet).textTheme.titleLarge?.copyWith(
+                  color: const Color(0xFFF6DFAB),
+                  fontWeight: FontWeight.w900)),
+            ]),
             const SizedBox(height: 16),
             GridView.builder(
               shrinkWrap: true,
@@ -3074,27 +3215,49 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               itemBuilder: (ctx, index) {
                 final item = items[index];
                 return Material(
-                  color: Theme.of(ctx).colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(16),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(16),
-                    onTap: () {
-                      Navigator.pop(sheet);
-                      item.$3();
-                    },
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(item.$1, size: 29),
-                        const SizedBox(height: 8),
-                        Text(item.$2, textAlign: TextAlign.center),
-                      ],
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(18),
+                  child: Ink(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: index == 3
+                            ? const [Color(0xFF247D52), Color(0xFF15513F)]
+                            : const [Color(0xFF1A5641), Color(0xFF103A30)],
+                      ),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: index == 3
+                            ? const Color(0xFFD9BC73)
+                            : const Color(0xFF36775D)),
+                    ),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(18),
+                      onTap: () {
+                        Navigator.pop(sheet);
+                        item.$3();
+                      },
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(item.$1, size: 29,
+                            color: const Color(0xFFF4D288)),
+                          const SizedBox(height: 8),
+                          Text(item.$2, textAlign: TextAlign.center,
+                            maxLines: 2, overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Color(0xFFF6F1DC),
+                              fontWeight: FontWeight.w800,
+                              fontSize: 14)),
+                        ],
+                      ),
                     ),
                   ),
                 );
               },
             ),
-          ],
+          ]),
         ),
       ),
     );
@@ -3329,6 +3492,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                     ListTile(
                       leading: _ParticipantAvatar(participant: participant),
                       title: Text(participant.displayName),
+                    subtitle: CreativeBadge(userId: participant.userId),
                       trailing:
                           const Icon(Icons.chevron_right_rounded, size: 18),
                       onTap: () {
@@ -3424,6 +3588,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                 style: const TextStyle(fontWeight: FontWeight.w900),
               ),
               subtitle: Text(participant.role.label),
+              trailing: CreativeBadge(userId: participant.userId, compact: true),
             ),
             _RoleOption(
               icon: Icons.person_outline_rounded,
@@ -3509,6 +3674,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     _speakingTimer?.cancel();
     _quotaTimer?.cancel();
     _presenceTimer?.cancel();
+    _roomGamesTimer?.cancel();
     _teacherAiReconnectTimer?.cancel();
     _giftOverlay?.remove();
     _giftOverlay = null;
@@ -3771,16 +3937,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                 style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
               const SizedBox(height: 4),
               Wrap(spacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
-                InkWell(onTap: () => _showRoomExtras(initialTab: 0), child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                  decoration: BoxDecoration(color: const Color(0xFFFFCE79),
-                    borderRadius: BorderRadius.circular(12)),
-                  child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    const Icon(Icons.castle_rounded, size: 13, color: Color(0xFF603D15)),
-                    Text(' Lv.${_featureState.roomLevel}', style: const TextStyle(
-                      color: Color(0xFF603D15), fontSize: 10, fontWeight: FontWeight.w800)),
-                  ]),
-                )),
+                RoomCastleBadge(level: _featureState.roomLevel,
+                  onTap: () => _showRoomExtras(initialTab: 0)),
                 Text((widget.roomLanguageCode ?? 'en').toUpperCase(),
                   style: const TextStyle(color: Colors.white70, fontSize: 10)),
                 Text(_controller.joined
@@ -3854,11 +4012,17 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               // Reserve actual two-row seat height instead of letting a short
               // viewport scroll or clip the stage. Chat is the only vertical
               // message scroller; tiny/keyboard viewports use compact mode.
+              // Anchor games between rows 1–4 and 5–8.
+              final gameBoardHeight = _roomGameStatus?['finished'] == true
+                  ? 152.0 : 176.0;
               final stageHeight =
-                  2 * (93 + MediaQuery.textScalerOf(context).scale(30)) + 12;
+                  2 * (93 + MediaQuery.textScalerOf(context).scale(30)) +
+                  12 + (!_boardVisible && _roomGameVisible
+                      ? gameBoardHeight + 12 : 0);
               final contentHeight = _boardVisible
                   ? (constraints.maxHeight * .55).clamp(110.0, 320.0) + 106 +
-                      (_listeners.isNotEmpty ? 70 : 0)
+                      (_listeners.isNotEmpty ? 70 : 0) +
+                      (_roomGameVisible ? gameBoardHeight : 0)
                   : stageHeight + (_listeners.isNotEmpty ? 70 : 0) +
                       (_showTeacherAiSeat ? 88 : 0);
               final neededHeight = contentHeight +
@@ -3883,9 +4047,30 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                     padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
                     child: RoomStageGrid(seats: _buildSeats(),
                       onSeatTap: _handleSeatTap,
-                      onSeatLongPress: _handleSeatLongPress),
+                      onSeatLongPress: _handleSeatLongPress,
+                      betweenRows: _roomGameVisible
+                          ? SizedBox(
+                              height: gameBoardHeight,
+                              child: RoomGameInlineBoard(
+                                status: _roomGameStatus!,
+                                isArabic: isArabic,
+                                onOpenGames: _isHost ? _showGames : null,
+                              ),
+                            )
+                          : null),
                   ),
                 ),
+                // Compact or whiteboard view still displays the synchronized
+                // question above the chat, without moving the keyboard.
+                if (_roomGameVisible && (compact || _boardVisible))
+                  SizedBox(
+                    height: gameBoardHeight,
+                    child: RoomGameInlineBoard(
+                      status: _roomGameStatus!,
+                      isArabic: isArabic,
+                      onOpenGames: _isHost ? _showGames : null,
+                    ),
+                  ),
                 if (_boardVisible && !compact && _listeners.isNotEmpty)
                   _buildListenerStrip(isArabic),
                 if (!_boardVisible && !compact && _listeners.isNotEmpty)
@@ -3930,6 +4115,24 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   Positioned.fill(child: RoomConversationPanel(
                   messages: _chatMessages ?? const Stream<List<RoomChatMessage>>.empty(),
                   enabled: !_leaving, onSend: _roomChat.send, isArabic: isArabic,
+                  onGameAnswer: _submitRoomGameAnswer,
+                  gameAnswerEvents: (_roomGameStatus?['answerEvents'] as List?)
+                          ?.whereType<Map>()
+                          .map((item) => Map<String, dynamic>.from(item))
+                          .toList(growable: false) ??
+                      const <Map<String, dynamic>>[],
+                  gameAnswerEnabled: _roomGameStatus?['active'] == true &&
+                      _roomGameStatus?['canAnswer'] == true,
+                  gameAnswerSubmitted: _roomGameStatus?['answered'] == true,
+                  gameRoundClosed: _roomGameStatus?['active'] == true &&
+                      _roomGameStatus?['roundLocked'] == true,
+                  gameAnnouncement: _roomGameStatus?['active'] == true &&
+                          _roomGameStatus?['roundLocked'] == true &&
+                          _roomGameStatus?['winner'] is Map
+                      ? (isArabic
+                          ? '🏆 ${(_roomGameStatus!['winner'] as Map)['name'] ?? 'WorldVoice'} أجاب أولًا! الإجابة: ${(_roomGameStatus!['winner'] as Map)['answer'] ?? ''}'
+                          : '🏆 ${(_roomGameStatus!['winner'] as Map)['name'] ?? 'WorldVoice'} was first! Answer: ${(_roomGameStatus!['winner'] as Map)['answer'] ?? ''}')
+                      : null,
                   onGifts: _showGifts, onShop: _showBackgroundStore,
                   onTools: _showToolsGrid, onCaptions: _showCaptionSettings,
                   onTranslateMessage: _translateChatMessage,

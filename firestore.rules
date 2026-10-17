@@ -347,6 +347,11 @@ service cloud.firestore {
             && request.auth.uid == userId;
       }
 
+      // Five daily free starts are enforced atomically by the backend.
+      match /game_usage/{dayAndMode} {
+        allow read, write: if false;
+      }
+
       match /room_usage/{dayKey} {
         allow read: if signedIn() && request.auth.uid == userId;
 
@@ -953,6 +958,9 @@ service cloud.firestore {
           && request.resource.data.channelId == roomId
           && request.resource.data.get('roomLevel', 1) == 1
           && request.resource.data.get('roomXp', 0) == 0
+          && !request.resource.data.keys().hasAny([
+            'roomCastleXpVersion', 'legacyRoomXp'
+          ])
           // A verified quiz must be created by the authenticated backend.
           && !('quiz' in request.resource.data);
 
@@ -963,7 +971,8 @@ service cloud.firestore {
           && request.resource.data.channelId == resource.data.channelId
           && !request.resource.data.diff(resource.data)
               .affectedKeys().hasAny([
-                'roomXp', 'roomLevel', 'lastTaskCompletionId'
+                'roomXp', 'roomLevel', 'lastTaskCompletionId',
+                'roomCastleXpVersion', 'legacyRoomXp'
               ])
           && validRoomThemeChange()
           && validClientQuizChange()
@@ -1135,6 +1144,16 @@ service cloud.firestore {
 
       // Correct answers for server-created rounds are never exposed to
       // clients, including the room host. Admin SDK alone writes these.
+      // Secret word definitions, solutions, answers, leaderboards and
+      // server-owned game state are inaccessible through client Firestore.
+      // All game reads/writes are authenticated HTTP server routes.
+      match /private_games/{sessionId} {
+        allow read, write: if false;
+        match /answers/{answerId} { allow read, write: if false; }
+        match /scores/{playerId} { allow read, write: if false; }
+        match /public_attempts/{attemptId} { allow read, write: if false; }
+      }
+
       match /quiz_private/{quizId} {
         allow read, write: if false;
       }
