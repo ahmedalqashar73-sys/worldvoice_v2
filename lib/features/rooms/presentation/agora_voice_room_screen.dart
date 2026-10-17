@@ -58,6 +58,20 @@ import 'room_teacher_ai_sheet.dart';
 
 const MethodChannel _roomTeacherTtsChannel =
     MethodChannel('worldvoice/live_tts');
+const MethodChannel _roomGameAudioChannel =
+    MethodChannel('worldvoice/room_games_audio');
+
+Future<void> _playRoomGameCue(String kind) async {
+  try {
+    await _roomGameAudioChannel.invokeMethod<void>(
+      'play', <String, String>{'kind': kind});
+  } on MissingPluginException {
+    // Fallback for iOS or an older Android app install.
+    await SystemSound.play(SystemSoundType.alert);
+  } on PlatformException {
+    await SystemSound.play(SystemSoundType.alert);
+  }
+}
 
 Future<void> _speakRoomTeacher(
   String text,
@@ -233,7 +247,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     _roomGames = RoomGamesService(roomId: widget.channelId);
     // Refresh for all participants, including those who never open the modal.
     unawaited(_refreshRoomGames());
-    _roomGamesTimer = Timer.periodic(const Duration(seconds: 4),
+    _roomGamesTimer = Timer.periodic(const Duration(seconds: 3),
         (_) => unawaited(_refreshRoomGames()));
     _showTeacherAiSeat = widget.initialShowTeacherAiSeat;
     _controller = AgoraVoiceRoomController()..addListener(_refresh);
@@ -2711,9 +2725,9 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   previous['roundLocked'] != true ||
                   winner['userId'] != previousWinner?['userId']);
           if (gameStarted) {
-            unawaited(SystemSound.play(SystemSoundType.click));
+            unawaited(_playRoomGameCue('start'));
           } else if (newWinner) {
-            unawaited(SystemSound.play(SystemSoundType.alert));
+            unawaited(_playRoomGameCue('winner'));
           }
         }
         _roomGameSoundsInitialized = true;
@@ -3977,6 +3991,11 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   messages: _chatMessages ?? const Stream<List<RoomChatMessage>>.empty(),
                   enabled: !_leaving, onSend: _roomChat.send, isArabic: isArabic,
                   onGameAnswer: _submitRoomGameAnswer,
+                  gameAnswerEvents: (_roomGameStatus?['answerEvents'] as List?)
+                          ?.whereType<Map>()
+                          .map((item) => Map<String, dynamic>.from(item))
+                          .toList(growable: false) ??
+                      const <Map<String, dynamic>>[],
                   gameAnswerEnabled: _roomGameStatus?['active'] == true &&
                       _roomGameStatus?['canAnswer'] == true,
                   gameAnswerSubmitted: _roomGameStatus?['answered'] == true,
