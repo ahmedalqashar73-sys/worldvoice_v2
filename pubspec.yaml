@@ -56,6 +56,9 @@ dependencies:
   speech_to_text: ^7.5.0
   google_mlkit_translation: ^0.15.1
   in_app_purchase: ^3.3.1
+  flutter_svg: ^2.2.1
+  model_viewer_plus: ^1.10.0
+  flutter_3d_controller: ^2.3.0
 
 dev_dependencies:
   flutter_test:
@@ -78,6 +81,13 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  # Shared gift presentation catalog; no monetary authorization is stored here.
+  assets:
+    - assets/gifts/classic_premium_1_50.json
+    - assets/gifts/art/
+    - assets/gifts/luxury/
+    - assets/gifts/models/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

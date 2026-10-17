@@ -11,6 +11,7 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../data/coin_product_config.dart';
+import '../data/room_backend_config.dart';
 
 class CoinStoreProduct {
   const CoinStoreProduct({
@@ -28,6 +29,15 @@ class RoomCoinPurchaseService extends ChangeNotifier {
   static final RoomCoinPurchaseService instance =
       RoomCoinPurchaseService._();
 
+  static const String _explicitEconomyBackend =
+      String.fromEnvironment('WORLDVOICE_ECONOMY_ENDPOINT');
+
+  String get _economyBackend {
+    final explicit = _explicitEconomyBackend.trim();
+    if (explicit.isNotEmpty) return explicit;
+    return RoomBackendConfig.baseUrl.trim();
+  }
+
   final InAppPurchase _iap = InAppPurchase.instance;
   StreamSubscription<List<PurchaseDetails>>? _purchaseSub;
   String? _pendingExchangeKey;
@@ -44,6 +54,24 @@ class RoomCoinPurchaseService extends ChangeNotifier {
   bool get storeAvailable => _storeAvailable;
   String? get message => _message;
   List<CoinStoreProduct> get products => _products;
+
+  /// This stream is always scoped to the signed-in user's owner-only wallet.
+  /// Do not fall back to users/{uid}, which exposes legacy finance publicly.
+  Stream<DocumentSnapshot<Map<String, dynamic>>> watchMyWallet() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return Stream<DocumentSnapshot<Map<String, dynamic>>>.error(
+        StateError('Sign in is required to view your wallet.'),
+      );
+    }
+    return FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('private')
+        .doc('wallet')
+        .snapshots();
+  }
+
 
   Future<void> initialize() async {
     if (_initialized) return;
@@ -73,6 +101,20 @@ class RoomCoinPurchaseService extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // Do not offer a real-money checkout while the private-wallet and
+      // public-profile security migration has not been verified.
+      final policy = (await FirebaseFirestore.instance
+              .doc('economy_config/current')
+              .get())
+          .data();
+      if (policy?['enabled'] != true ||
+          policy?['privateWalletCutoverVerified'] != true ||
+          policy?['publicProfileRulesVerified'] != true) {
+        _storeAvailable = false;
+        _products = const <CoinStoreProduct>[];
+        _message = 'Coin purchases are disabled until wallet security is verified.';
+        return;
+      }
       _storeAvailable = await _iap.isAvailable();
       if (!_storeAvailable) {
         _products = const <CoinStoreProduct>[];
@@ -137,6 +179,39 @@ class RoomCoinPurchaseService extends ChangeNotifier {
   Future<void> buy(CoinStoreProduct item) async {
     _message = null;
     notifyListeners();
+    // Re-check at purchase time: a product or the economy can be disabled
+    // while the store sheet remains open.
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      throw StateError('Sign in is required before purchasing coins.');
+    }
+    final db = FirebaseFirestore.instance;
+    final responses = await Future.wait([
+      db.doc('economy_config/current').get(),
+      db.collection('coin_products').doc(item.config.id).get(),
+      db.collection('users').doc(user.uid)
+          .collection('private').doc('wallet').get(),
+    ]);
+    final policy = responses[0].data();
+    final catalog = responses[1].data();
+    final approvedPrice = catalog?['priceUsd'];
+    String? expectedStoreSku;
+    if (catalog != null) {
+      expectedStoreSku = (Platform.isAndroid
+              ? catalog['androidProductId']
+              : catalog['iosProductId'])
+          ?.toString();
+    }
+    if (policy?['enabled'] != true ||
+        policy?['privateWalletCutoverVerified'] != true ||
+        policy?['publicProfileRulesVerified'] != true ||
+        responses[2].exists != true ||
+        catalog?['active'] != true ||
+        approvedPrice is! num || approvedPrice <= 0 ||
+        catalog?['coins'] != item.config.coins ||
+        expectedStoreSku != item.product.id) {
+      throw StateError('Purchase is not approved or your private wallet is unavailable.');
+    }
 
     final parameter = PurchaseParam(
       productDetails: item.product,
@@ -198,7 +273,7 @@ class RoomCoinPurchaseService extends ChangeNotifier {
     PurchaseDetails purchase,
   ) async {
     final user = FirebaseAuth.instance.currentUser;
-    const base = String.fromEnvironment('WORLDVOICE_ECONOMY_ENDPOINT');
+    final base = _economyBackend;
     final uri = Uri.tryParse(base);
     final endpoint = uri == null || uri.scheme != 'https' || !uri.hasAuthority
         ? ''
@@ -250,7 +325,7 @@ class RoomCoinPurchaseService extends ChangeNotifier {
   // The backend alone applies diamond conversions and quotes.
   // Failed requests retain the idempotency key so a retry cannot debit twice.
   Uri get _walletBase {
-    const raw = String.fromEnvironment('WORLDVOICE_ECONOMY_ENDPOINT');
+    final raw = _economyBackend;
     final parsed = Uri.tryParse(raw.trim());
     if (parsed == null || parsed.scheme != 'https' || !parsed.hasAuthority ||
         parsed.userInfo.isNotEmpty || parsed.query.isNotEmpty ||

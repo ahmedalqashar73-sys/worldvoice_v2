@@ -7,6 +7,7 @@ import '../../../core/localization/locale_controller.dart';
 
 import '../../profile/data/profile_identity_utils.dart';
 import '../data/agora_config.dart';
+import '../data/room_mode.dart';
 import 'create_room_page.dart';
 import '../services/agora_voice_room_controller.dart';
 import '../services/gift_level_service.dart';
@@ -18,12 +19,16 @@ class VoiceRoomsList extends StatefulWidget {
     required this.languageCode,
     this.localeController,
     this.onlyLive = false,
+    this.openTeacherAiOnJoin = false,
+    this.searchQuery = '',
     super.key,
   });
 
   final String languageCode;
   final LocaleController? localeController;
   final bool onlyLive;
+  final bool openTeacherAiOnJoin;
+  final String searchQuery;
 
   @override
   State<VoiceRoomsList> createState() => _VoiceRoomsListState();
@@ -181,6 +186,7 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
         builder: (_) => AgoraVoiceRoomScreen(
           channelId: channelId,
           roomName: result.name,
+          openTeacherAiOnJoin: widget.openTeacherAiOnJoin,
           roomLanguageCode: result.languageCode,
           initialShowTeacherAiSeat: result.showTeacherAiSeat,
           initialMode: result.mode,
@@ -210,6 +216,7 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
         builder: (_) => AgoraVoiceRoomScreen(
           channelId: channelId,
           roomName: roomName,
+          openTeacherAiOnJoin: widget.openTeacherAiOnJoin,
           roomLanguageCode: roomLanguageCode,
           initialShowTeacherAiSeat: showTeacherAiSeat,
           initialMode: RoomMode.values.firstWhere(
@@ -231,82 +238,6 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
         .toRadixString(36)
         .toUpperCase();
     return raw.length <= 6 ? raw : raw.substring(raw.length - 6);
-  }
-
-  Future<void> _joinPrivateRoom(BuildContext context) async {
-    final controller = TextEditingController();
-    final code = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(_isArabic ? 'دخول غرفة خاصة' : 'Join private room'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          textCapitalization: TextCapitalization.characters,
-          decoration: InputDecoration(
-            labelText: _isArabic ? 'كود الغرفة' : 'Room code',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text(_isArabic ? 'إلغاء' : 'Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              final value = controller.text.trim().toUpperCase();
-              if (value.isNotEmpty) Navigator.pop(dialogContext, value);
-            },
-            child: Text(_isArabic ? 'دخول' : 'Join'),
-          ),
-        ],
-      ),
-    );
-    controller.dispose();
-
-    if (code == null || !context.mounted) return;
-
-    try {
-      final codeDoc = await FirebaseFirestore.instance
-          .collection('private_room_codes')
-          .doc(code)
-          .get();
-      final roomId = codeDoc.data()?['roomId']?.toString();
-      if (!codeDoc.exists || roomId == null || roomId.isEmpty) {
-        throw StateError(
-          _isArabic ? 'كود الغرفة غير صحيح.' : 'Invalid room code.',
-        );
-      }
-
-      final roomDoc = await FirebaseFirestore.instance
-          .collection('rooms')
-          .doc(roomId)
-          .get();
-      final data = roomDoc.data();
-      if (!roomDoc.exists || data?['isOpen'] != true) {
-        throw StateError(
-          _isArabic ? 'الغرفة غير متاحة الآن.' : 'The room is not open.',
-        );
-      }
-
-      if (!context.mounted) return;
-      _joinRoom(
-        context,
-        channelId: roomId,
-        roomName: (data?['name'] ?? 'WorldVoice Room').toString(),
-        roomLanguageCode: (data?['languageCode'] ?? 'en').toString(),
-        showTeacherAiSeat: data?['showTeacherAiSeat'] == true,
-        isPrivate: true,
-        vipOnly: data?['vipOnly'] == true,
-        privateAccessCode: code,
-        roomModeName: data?['mode']?.toString(),
-      );
-    } catch (error) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.toString())),
-      );
-    }
   }
 
   Future<void> _showHistory(BuildContext context) async {
@@ -438,13 +369,6 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
                       _isArabic ? 'السجل' : 'History',
                     ),
                   ),
-                  TextButton.icon(
-                    onPressed: () => _joinPrivateRoom(context),
-                    icon: const Icon(Icons.lock_outline_rounded),
-                    label: Text(
-                      _isArabic ? 'دخول بكود' : 'Join by code',
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -480,9 +404,12 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
                   final allDocs = snapshot.data?.docs ??
                       const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
                   final publicDocs = allDocs
-                      .where((doc) => doc.data()['isPrivate'] != true)
+                      .where((doc) => doc.data()['isPrivate'] != true &&
+                          (widget.onlyLive
+                              ? doc.data()['mode'] == RoomMode.live.name
+                              : doc.data()['mode'] != RoomMode.live.name))
                       .toList(growable: false);
-                  final docs = selected == 'all'
+                  final languageDocs = selected == 'all'
                       ? publicDocs
                       : publicDocs
                           .where(
@@ -493,6 +420,19 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
                                 selected,
                           )
                           .toList(growable: false);
+                  final query = widget.searchQuery.trim().toLowerCase();
+                  final docs = query.isEmpty
+                      ? languageDocs
+                      : languageDocs.where((doc) {
+                          final data = doc.data();
+                          return [
+                            data['name'],
+                            data['hostName'],
+                            data['languageCode'],
+                          ].any((value) =>
+                              value?.toString().toLowerCase().contains(query) ==
+                              true);
+                        }).toList(growable: false);
 
                   return Stack(
                     children: [

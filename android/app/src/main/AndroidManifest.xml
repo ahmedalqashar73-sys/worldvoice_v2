@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
@@ -10,6 +10,7 @@
     <application
         android:label="worldvoice"
         android:name="${applicationName}"
+        android:networkSecurityConfig="@xml/worldvoice_model_viewer_network"
         android:icon="@mipmap/ic_launcher">
         <!-- Google test AdMob app ID. Replace with WorldVoice production ID before public release. -->
         <meta-data

@@ -3,6 +3,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 /// Read-only catalog data. Billing prices shown in-app always come from the
 /// Google Play / App Store product details, never from a client-supplied value.
 class CoinProductConfig {
+  /// Display-only roadmap, NEVER purchasable without a server-published
+  /// active product with verified platform-specific prices and SKU.
+  static const proposedPackSizes = <int>[
+    10, 50, 100, 500, 1000, 5000, 10000,
+  ];
+
   const CoinProductConfig({
     required this.id,
     required this.priceUsd,

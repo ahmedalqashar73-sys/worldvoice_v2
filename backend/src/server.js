@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 
 import agoraToken from "agora-token";
 import {
@@ -6,17 +6,28 @@ import {
   Environment as AppleEnvironment,
 } from "@apple/app-store-server-library";
 import express from "express";
-import { applicationDefault, getApps, initializeApp } from "firebase-admin/app";
+import { applicationDefault, cert, getApps, initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { FieldValue, Timestamp, getFirestore } from "firebase-admin/firestore";
 import { google } from "googleapis";
-import OpenAI from "openai";
+import OpenAI, { toFile } from "openai";
 import Stripe from "stripe";
-import { requireLiveEconomy, calculateGiftSettlement, calculatePurchaseCredit } from "./economy_policy.js";
+import { requireLiveEconomy, calculateGiftSettlement, calculatePurchaseCredit, canManageStore } from "./economy_policy.js";
 import {registerWalletRoutes} from "./wallet_routes.js";
 import {registerChatRoutes} from "./chat_routes.js";
+import {registerStoryRoutes} from "./story_routes.js";
+import {registerSocialRoutes} from "./social_routes.js";
+import {registerCallRoutes} from "./call_routes.js";
 import {chatIdFor, assertChatMembership} from "./chat_membership.js";
 import {reverseVerifiedWebPurchase} from "./payment_reversals.js";
+import {validateQuizDraft, quizWinners} from "./quiz_policy.js";
+import {roomProgressAfterGift, roomCastleProgressSnapshot,
+  ROOM_CASTLE_XP_VERSION} from "./room_task_policy.js";
+import {registerEngagementRoutes} from "./engagement_routes.js";
+import {registerRoomTaskRoutes} from "./room_task_routes.js";
+import {registerRoomGameRoutes} from "./room_games_routes.js";
+import {privateWalletRef, requirePrivateWallet} from "./wallet_store.js";
+import {approvedWorldVoiceGift, syncWorldVoiceGiftStore} from "./gift_catalog.js";
 
 const { RtcRole, RtcTokenBuilder } = agoraToken;
 
@@ -25,20 +36,34 @@ const firebaseProjectId = (
   process.env.GOOGLE_CLOUD_PROJECT ||
   ""
 ).trim();
-if (process.env.NODE_ENV === "production") {
-  for (const key of ["AGORA_APP_ID", "AGORA_APP_CERTIFICATE"]) {
-    if (!(process.env[key] || "").trim()) {
-      throw new Error(`Cannot start production backend: missing ${key}`);
-    }
-  }
-  if (!firebaseProjectId) {
-    throw new Error("Cannot start production backend: missing FIREBASE_PROJECT_ID");
-  }
+if (process.env.NODE_ENV === "production" && !firebaseProjectId) {
+  throw new Error("Cannot start production backend: missing FIREBASE_PROJECT_ID");
 }
+// Agora credentials are required only by /agora/token. Production deployments
+// may intentionally keep the certificate solely in the existing Cloudflare
+// token Worker and use this service for Teacher AI, gifts, wallet and stores.
+
 if (getApps().length === 0) {
+  const rawServiceAccount = String(
+    process.env.FIREBASE_SERVICE_ACCOUNT_JSON || "",
+  ).trim();
+  let credential;
+  if (rawServiceAccount) {
+    let serviceAccount;
+    try {
+      serviceAccount = JSON.parse(rawServiceAccount);
+    } catch {
+      throw new Error(
+        "FIREBASE_SERVICE_ACCOUNT_JSON must contain valid JSON.",
+      );
+    }
+    credential = cert(serviceAccount);
+  } else {
+    credential = applicationDefault();
+  }
   initializeApp({
-    credential: applicationDefault(),
-    ...(firebaseProjectId ? { projectId: firebaseProjectId } : {}),
+    credential,
+    ...(firebaseProjectId ? {projectId: firebaseProjectId} : {}),
   });
 }
 
@@ -51,6 +76,80 @@ app.disable("x-powered-by");
 const stripeSecret = String(process.env.STRIPE_SECRET_KEY || "").trim();
 const stripeWebhookSecret = String(process.env.STRIPE_WEBHOOK_SECRET || "").trim();
 const stripe = stripeSecret ? new Stripe(stripeSecret) : null;
+
+// Server-authorized prices for the 29 purchased avatar frames.
+// Four other frames are free and never enter the coin ledger.
+const worldVoiceRoomBackgroundPrices = new Map([
+  ["background__wv_premium_01", 150],
+  ["background__wv_premium_02", 200],
+  ["background__wv_premium_03", 250],
+  ["background__wv_premium_04", 180],
+  ["background__wv_premium_05", 220],
+  ["background__wv_premium_06", 230],
+  ["background__wv_premium_07", 120],
+  ["background__wv_premium_08", 300],
+]);
+
+const worldVoiceFramePrices = new Map([
+  ["frame__wv_frame_02", 360],
+  ["frame__wv_frame_03", 280],
+  ["frame__wv_frame_04", 300],
+  ["frame__wv_frame_05", 240],
+  ["frame__wv_frame_06", 520],
+  ["frame__wv_frame_07", 280],
+  ["frame__wv_frame_08", 310],
+  ["frame__wv_frame_10", 420],
+  ["frame__wv_frame_11", 560],
+  ["frame__wv_frame_12", 250],
+  ["frame__wv_frame_13", 420],
+  ["frame__wv_frame_14", 380],
+  ["frame__wv_frame_16", 320],
+  ["frame__wv_frame_17", 460],
+  ["frame__wv_frame_18", 370],
+  ["frame__wv_frame_19", 490],
+  ["frame__wv_frame_20", 370],
+  ["frame__wv_frame_21", 400],
+  ["frame__wv_frame_22", 480],
+  ["frame__wv_frame_23", 440],
+  ["frame__wv_frame_24", 360],
+  ["frame__wv_frame_26", 520],
+  ["frame__wv_frame_27", 580],
+  ["frame__wv_frame_28", 450],
+  ["frame__wv_frame_29", 620],
+  ["frame__wv_frame_30", 420],
+  ["frame__wv_frame_31", 520],
+  ["frame__wv_frame_32", 640],
+  ["frame__wv_frame_33", 590],
+]);
+
+function builtInRoomBackground(itemId) {
+  if (!worldVoiceRoomBackgroundPrices.has(itemId)) return null;
+  const themeId = itemId.replace(/^background__/, "");
+  return {
+    active: true,
+    type: "background",
+    name: "WorldVoice Background",
+    priceCoins: worldVoiceRoomBackgroundPrices.get(itemId),
+    requiredGiftLevel: 0,
+    durationDays: null,
+    themeId,
+    previewUrl: null,
+    builtInVisual: true,
+  };
+}
+
+function builtInWorldVoiceFrame(itemId) {
+  if (!worldVoiceFramePrices.has(itemId)) return null;
+  return {
+    active: true,
+    type: "frame",
+    name: "WorldVoice Avatar Frame",
+    priceCoins: worldVoiceFramePrices.get(itemId),
+    requiredGiftLevel: 0,
+    durationDays: null,
+  };
+}
+
 
 /**
  * Web-only card checkout webhook: raw body and Stripe signature are mandatory.
@@ -134,9 +233,30 @@ const agoraAppId = (process.env.AGORA_APP_ID || "").trim();
 const agoraCertificate = (process.env.AGORA_APP_CERTIFICATE || "").trim();
 const openAiKey = (process.env.OPENAI_API_KEY || "").trim();
 const teacherModel = (process.env.OPENAI_TEACHER_MODEL || "").trim();
+const transcribeModel = (
+  process.env.OPENAI_TRANSCRIBE_MODEL || "gpt-4o-mini-transcribe"
+).trim();
+
+const privilegedAccounts = new Map([
+  ["ahmedabdalkarim19@gmail.com", {
+    role: "super_admin",
+    vipTier: "gold",
+  }],
+]);
+
+const adminPermissions = [
+  "view_visitors",
+  "manage_rooms",
+  "enter_private_rooms",
+  "manage_vip",
+  "manage_store",
+  "manage_moderators",
+  "send_coins",
+  "change_country",
+];
 
 const androidPackageName =
-  (process.env.ANDROID_PACKAGE_NAME || "com.worldvoice.worldvoice").trim();
+  (process.env.ANDROID_PACKAGE_NAME || "com.worldvoice.app").trim();
 const iosBundleId =
   (process.env.IOS_BUNDLE_ID || "com.worldvoice.worldvoice").trim();
 
@@ -203,6 +323,93 @@ async function authenticatedUser(req) {
   }
 }
 
+app.post("/account/sync-entitlements", async (req, res, next) => {
+  try {
+    const user = await authenticatedUser(req);
+    const email = String(user.email || "").trim().toLowerCase();
+    const privileged = privilegedAccounts.get(email);
+
+    if (!privileged) {
+      return res.json({ok: true, privileged: false});
+    }
+
+    const vipExpiresAt = Timestamp.fromDate(
+      new Date("2099-12-31T23:59:59.000Z"),
+    );
+    const profileRef = db.collection("users").doc(user.uid);
+    const adminRef = db.collection("admins").doc(user.uid);
+    const batch = db.batch();
+
+    // Keep client-visible privilege fields limited to the fields already
+    // protected by the deployed Firestore rules. Detailed permissions live
+    // only in the server-authored admins document below.
+    batch.set(profileRef, {
+      isVip: true,
+      vipExpiresAt,
+      vipSource: "worldvoice_admin_allowlist",
+      vipUpdatedAt: FieldValue.serverTimestamp(),
+      isAdmin: true,
+      adminSource: "worldvoice_admin_allowlist",
+      adminUpdatedAt: FieldValue.serverTimestamp(),
+    }, {merge: true});
+
+    batch.set(adminRef, {
+      uid: user.uid,
+      email,
+      role: privileged.role,
+      permissions: adminPermissions,
+      active: true,
+      updatedAt: FieldValue.serverTimestamp(),
+    }, {merge: true});
+
+    await batch.commit();
+    return res.json({
+      ok: true,
+      privileged: true,
+      isAdmin: true,
+      isVip: true,
+      role: privileged.role,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/admin/rooms/grant-access", async (req, res, next) => {
+  try {
+    const user = await authenticatedUser(req);
+    const email = String(user.email || "").trim().toLowerCase();
+    if (!privilegedAccounts.has(email)) {
+      return res.status(403).json({error: "Admin access required."});
+    }
+
+    const roomId = String(req.body?.roomId || "").trim();
+    if (!roomId || roomId.length > 120) {
+      return res.status(400).json({error: "Valid roomId is required."});
+    }
+
+    const roomRef = db.collection("rooms").doc(roomId);
+    const roomSnap = await roomRef.get();
+    const room = roomSnap.data() || {};
+    if (!roomSnap.exists || room.isOpen !== true) {
+      return res.status(404).json({error: "Room is not open."});
+    }
+    if (room.isPrivate !== true) {
+      return res.json({ok: true, granted: false, publicRoom: true});
+    }
+
+    await roomRef.collection("access_grants").doc(user.uid).set({
+      uid: user.uid,
+      source: "worldvoice_admin",
+      grantedAt: FieldValue.serverTimestamp(),
+    }, {merge: true});
+
+    return res.json({ok: true, granted: true});
+  } catch (error) {
+    next(error);
+  }
+});
+
 function validChannelName(value) {
   return (
     typeof value === "string" &&
@@ -211,6 +418,57 @@ function validChannelName(value) {
     /^[A-Za-z0-9_]+$/.test(value)
   );
 }
+
+const freeRoomBackgroundThemes = new Set(["softGreenFlow"]);
+
+app.post("/room/background/apply", async (req, res, next) => {
+  try {
+    const user = await authenticatedUser(req);
+    const roomId = String(req.body?.roomId || "").trim();
+    const themeId = String(req.body?.themeId || "").trim();
+
+    const purchasableTheme =
+      worldVoiceRoomBackgroundPrices.has(`background__${themeId}`);
+    if (!validChannelName(roomId) ||
+        !(themeId === "softGreenFlow" || purchasableTheme)) {
+      return res.status(400).json({error: "Invalid room background request."});
+    }
+
+    const roomRef = db.collection("rooms").doc(roomId);
+    const roomSnap = await roomRef.get();
+    if (!roomSnap.exists || roomSnap.data()?.isOpen !== true) {
+      return res.status(404).json({error: "Room is not open."});
+    }
+    if (roomSnap.data()?.hostId !== user.uid) {
+      return res.status(403).json({error: "Only the room host can change the background."});
+    }
+
+    let backgroundUrl = "";
+    if (!freeRoomBackgroundThemes.has(themeId)) {
+      const entitlement = await db.collection("users").doc(user.uid)
+        .collection("room_backgrounds").doc(themeId).get();
+      const data = entitlement.data() || {};
+      const expiresAt = data.expiresAt?.toMillis?.() ?? null;
+      if (!entitlement.exists ||
+          data.themeId !== themeId ||
+          (expiresAt !== null && expiresAt <= Date.now())) {
+        return res.status(403).json({error: "This background is not owned or has expired."});
+      }
+      backgroundUrl = String(data.backgroundUrl || "").trim();
+    }
+
+    await roomRef.set({
+      themeId,
+      backgroundUrl: backgroundUrl || FieldValue.delete(),
+      backgroundLayoutVersion: 4,
+      updatedAt: FieldValue.serverTimestamp(),
+    }, {merge: true});
+
+    return res.json({ok: true, themeId});
+  } catch (error) {
+    next(error);
+  }
+});
 
 function isStageRole(role) {
   return ["host", "coHost", "speaker", "vipSeat"].includes(role);
@@ -336,6 +594,7 @@ async function creditVerifiedCoins({
     .update(`${platform}:${receiptId}`).digest("hex");
   const receiptRef = db.collection("iap_receipts").doc(receiptKey);
   const userRef = db.collection("users").doc(userId);
+  const walletRef = privateWalletRef(userRef);
   const configRef = db.doc("economy_config/current");
   const productRef = db.collection("coin_products").doc(catalogId);
   const day = new Date().toISOString().slice(0, 10);
@@ -343,7 +602,7 @@ async function creditVerifiedCoins({
   return db.runTransaction(async tx => {
     // Read all snapshots BEFORE making any transaction write.
     const [receiptSnap, userSnap, configSnap, productSnap, dailySnap] =
-      await Promise.all([receiptRef, userRef, configRef, productRef, dailyRef]
+      await Promise.all([receiptRef, walletRef, configRef, productRef, dailyRef]
         .map(ref => tx.get(ref)));
     if (receiptSnap.exists) {
       const receipt = receiptSnap.data() || {};
@@ -363,6 +622,7 @@ async function creditVerifiedCoins({
       return {alreadyCredited: true, coins: Number(receipt.coins || 0)};
     }
     const policy = requireLiveEconomy(configSnap.data());
+    requirePrivateWallet(userSnap);
     const product = productSnap.data() || {};
     const base = Number(product.coins);
     const priceCents = Math.round(Number(product.priceUsd) * 100);
@@ -403,7 +663,7 @@ async function creditVerifiedCoins({
         !Number.isSafeInteger(balanceAfter)) {
       throw Object.assign(new Error("Coin ledger balance is invalid."), {status: 503});
     }
-    tx.set(userRef, {
+    tx.set(walletRef, {
       coins: balanceAfter,
       purchasedCoins: previousPurchases + reward.totalCoins,
       firstRechargeUsed: true,
@@ -460,26 +720,87 @@ app.post("/agora/token", async (req, res, next) => {
     requireEnv(agoraCertificate, "AGORA_APP_CERTIFICATE");
 
     const roomRef = db.collection("rooms").doc(channelName);
-    const participantRef = roomRef.collection("participants").doc(user.uid);
-
-    const [roomSnap, participantSnap] = await Promise.all([
+    const liveRef = db.collection("live_sessions").doc(channelName);
+    const callId = channelName.startsWith("call_")
+      ? channelName.slice("call_".length)
+      : "";
+    const callRef = callId ? db.collection("calls").doc(callId) : null;
+    const [roomSnap, liveSnap, callSnap] = await Promise.all([
       roomRef.get(),
-      participantRef.get(),
+      liveRef.get(),
+      callRef ? callRef.get() : Promise.resolve(null),
     ]);
 
-    if (!roomSnap.exists || roomSnap.data()?.isOpen !== true) {
-      return res.status(404).json({ error: "Room is not open." });
-    }
+    if (callSnap?.exists) {
+      const call = callSnap.data() || {};
+      const isParticipant =
+        call.callerId === user.uid || call.recipientId === user.uid;
+      const activeCall =
+        call.channelId === channelName &&
+        (call.status === "ringing" || call.status === "accepted");
+      if (!isParticipant || !activeCall || requestedRole !== "publisher") {
+        return res.status(403).json({
+          error: "This user is not allowed to publish to this call.",
+        });
+      }
+    } else if (roomSnap.exists) {
+      if (roomSnap.data()?.isOpen !== true) {
+        return res.status(404).json({error: "Room is not open."});
+      }
+      const participantSnap =
+        await roomRef.collection("participants").doc(user.uid).get();
+      if (!participantSnap.exists) {
+        return res.status(403).json({error: "User is not a room participant."});
+      }
+      const participant = participantSnap.data() || {};
+      if (requestedRole === "publisher" && !isStageRole(participant.role)) {
+        return res.status(403).json({
+          error: "This participant is not allowed to publish room audio.",
+        });
+      }
+    } else if (liveSnap.exists) {
+      const live = liveSnap.data() || {};
+      const heartbeatMs = live.hostHeartbeatAt?.toMillis?.() ?? 0;
+      const fresh = live.isLive === true &&
+        live.channelId === channelName &&
+        heartbeatMs > Date.now() - 60000;
+      if (!fresh) {
+        return res.status(404).json({error: "Live session is not active."});
+      }
 
-    if (!participantSnap.exists) {
-      return res.status(403).json({ error: "User is not a room participant." });
-    }
-
-    const participant = participantSnap.data() || {};
-    if (requestedRole === "publisher" && !isStageRole(participant.role)) {
-      return res.status(403).json({
-        error: "This participant is not allowed to publish room audio.",
-      });
+      if (requestedRole === "publisher") {
+        const isHost = live.hostId === user.uid;
+        let approvedGuest = false;
+        if (!isHost) {
+          const requestSnap = await liveRef.collection("join_requests")
+            .doc(user.uid).get();
+          approvedGuest = requestSnap.data()?.status === "accepted";
+        }
+        if (!isHost && !approvedGuest) {
+          return res.status(403).json({
+            error: "This viewer is not approved to publish Live video.",
+          });
+        }
+      } else if (live.hostId !== user.uid) {
+        const viewerSnap = await liveRef.collection("viewers")
+          .doc(user.uid).get();
+        if (!viewerSnap.exists || viewerSnap.data()?.uid !== user.uid) {
+          return res.status(403).json({
+            error: "Join the Live before subscribing.",
+          });
+        }
+      }
+    } else {
+      // A signed-in user may bootstrap a brand-new Live publisher channel.
+      // Calls must always have a verified calls/{id} document above.
+      if (channelName.startsWith("call_")) {
+        return res.status(404).json({error: "Call session not found."});
+      }
+      // The new Live is not discoverable until the client creates
+      // live_sessions/{id}.
+      if (!(requestedRole === "publisher" && channelName.startsWith("live_"))) {
+        return res.status(404).json({error: "Room or Live session not found."});
+      }
     }
 
     const uid = agoraUidForFirebaseUid(user.uid);
@@ -507,6 +828,139 @@ app.post("/agora/token", async (req, res, next) => {
   }
 });
 
+app.post("/ai/status", async (req, res, next) => {
+  try {
+    const user = await authenticatedUser(req);
+    const context = req.body?.context === "live" ? "live" : "room";
+    const roomId = String(req.body?.roomId || "").trim();
+
+    if (!roomId) {
+      return res.status(400).json({error: "roomId is required."});
+    }
+
+    const parentCollection = context === "live" ? "live_sessions" : "rooms";
+    const parentRef = db.collection(parentCollection).doc(roomId);
+    const parentSnap = await parentRef.get();
+    if (!parentSnap.exists) {
+      return res.status(404).json({error: "Room not found."});
+    }
+
+    let memberAllowed = false;
+    if (context === "room") {
+      memberAllowed = (
+        await parentRef.collection("participants").doc(user.uid).get()
+      ).exists;
+    } else {
+      const live = parentSnap.data() || {};
+      memberAllowed = live.hostId === user.uid ||
+        (await parentRef.collection("viewers").doc(user.uid).get()).exists;
+    }
+    if (!memberAllowed) {
+      return res.status(403).json({error: "User is not in this room."});
+    }
+
+    requireEnv(openAiKey, "OPENAI_API_KEY");
+    requireEnv(teacherModel, "OPENAI_TEACHER_MODEL");
+
+    // Use enough output tokens for reasoning models; 8 tokens can
+    // trigger an upstream HTTP 400 before a reply is generated.
+    try {
+      await openai.responses.create({
+        model: teacherModel,
+        store: false,
+        max_output_tokens: 128,
+        instructions: "You are the WorldVoice service health checker.",
+        input: "Reply with OK.",
+      });
+    } catch (providerError) {
+      const status = Number(providerError?.status);
+      const code = String(providerError?.code || "");
+      if (status === 400 || status === 404) {
+        console.error("WorldVoice Teacher AI health configuration:", {
+          status, code, model: teacherModel,
+        });
+        return res.status(503).json({
+          code: "AI_MODEL_CONFIGURATION",
+          error: "Teacher AI provider rejected its model configuration.",
+        });
+      }
+      throw providerError;
+    }
+
+    return res.json({ok: true, available: true});
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post(
+  "/speech/transcribe",
+  express.raw({type: ["audio/wav", "application/octet-stream"], limit: "768kb"}),
+  async (req, res, next) => {
+    try {
+      const user = await authenticatedUser(req);
+
+      requireEnv(openAiKey, "OPENAI_API_KEY");
+      requireEnv(transcribeModel, "OPENAI_TRANSCRIBE_MODEL");
+
+      const context = req.query?.context === "live" ? "live" : "room";
+      const roomId = String(req.query?.roomId || "").trim();
+      if (!roomId) {
+        return res.status(400).json({error: "roomId is required."});
+      }
+
+      const parentCollection = context === "live" ? "live_sessions" : "rooms";
+      const roomRef = db.collection(parentCollection).doc(roomId);
+      const roomSnap = await roomRef.get();
+
+      if (!roomSnap.exists ||
+          (context === "room" && roomSnap.data()?.isOpen !== true) ||
+          (context === "live" && roomSnap.data()?.isLive !== true)) {
+        return res.status(404).json({
+          error: context === "live" ?
+            "Live session is not active." : "Room is not open.",
+        });
+      }
+
+      let memberAllowed = false;
+      if (context === "room") {
+        memberAllowed = (
+          await roomRef.collection("participants").doc(user.uid).get()
+        ).exists;
+      } else {
+        const live = roomSnap.data() || {};
+        memberAllowed = live.hostId === user.uid ||
+          (await roomRef.collection("viewers").doc(user.uid).get()).exists;
+      }
+      if (!memberAllowed) {
+        return res.status(403).json({
+          error: context === "live" ?
+            "User is not in this Live." : "User is not in this room.",
+        });
+      }
+
+      if (!Buffer.isBuffer(req.body) || req.body.length < 1024) {
+        return res.json({ok: true, text: ""});
+      }
+
+      const file = await toFile(req.body, "worldvoice-speech.wav", {
+        type: "audio/wav",
+      });
+      const transcription = await openai.audio.transcriptions.create({
+        model: transcribeModel,
+        file,
+      });
+
+      return res.json({
+        ok: true,
+        text: String(transcription.text || "").trim().slice(0, 400),
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
 app.post("/teacher-ai", async (req, res, next) => {
   try {
     const user = await authenticatedUser(req);
@@ -514,70 +968,101 @@ app.post("/teacher-ai", async (req, res, next) => {
     requireEnv(openAiKey, "OPENAI_API_KEY");
     requireEnv(teacherModel, "OPENAI_TEACHER_MODEL");
 
+    const context = req.body?.context === "live" ? "live" : "room";
     const roomId = String(req.body?.roomId || "").trim();
     const captionId = String(req.body?.captionId || "").trim();
 
     if (!roomId || !captionId) {
-      return res.status(400).json({ error: "roomId and captionId are required." });
+      return res.status(400).json({error: "roomId and captionId are required."});
     }
 
-    const roomRef = db.collection("rooms").doc(roomId);
-    const participantRef = roomRef.collection("participants").doc(user.uid);
+    const parentCollection = context === "live" ? "live_sessions" : "rooms";
+    const roomRef = db.collection(parentCollection).doc(roomId);
     const captionRef = roomRef.collection("captions").doc(captionId);
     const noteRef = roomRef.collection("teacher_ai_notes").doc(captionId);
+    const roomSnap = await roomRef.get();
 
-    const [roomSnap, participantSnap, captionSnap, existingNote] =
-      await Promise.all([
-        roomRef.get(),
-        participantRef.get(),
-        captionRef.get(),
-        noteRef.get(),
-      ]);
-
-    if (!roomSnap.exists || roomSnap.data()?.isOpen !== true) {
-      return res.status(404).json({ error: "Room is not open." });
+    if (!roomSnap.exists ||
+        (context === "room" && roomSnap.data()?.isOpen !== true) ||
+        (context === "live" && roomSnap.data()?.isLive !== true)) {
+      return res.status(404).json({
+        error: context === "live" ?
+          "Live session is not active." : "Room is not open.",
+      });
     }
 
-    if (!participantSnap.exists) {
-      return res.status(403).json({ error: "User is not in this room." });
+    let memberAllowed = false;
+    if (context === "room") {
+      memberAllowed = (
+        await roomRef.collection("participants").doc(user.uid).get()
+      ).exists;
+    } else {
+      const live = roomSnap.data() || {};
+      memberAllowed = live.hostId === user.uid ||
+        (await roomRef.collection("viewers").doc(user.uid).get()).exists;
+    }
+    if (!memberAllowed) {
+      return res.status(403).json({
+        error: context === "live" ?
+          "User is not in this Live." : "User is not in this room.",
+      });
     }
 
-    if (!captionSnap.exists) {
-      return res.status(404).json({ error: "Caption not found." });
-    }
-
+    const existingNote = await noteRef.get();
     if (existingNote.exists) {
-      return res.json({ ok: true, cached: true });
+      return res.json({ok: true, cached: true});
     }
 
-    const caption = captionSnap.data() || {};
-    if (caption.userId !== user.uid) {
-      return res.status(403).json({ error: "Caption owner mismatch." });
+    const directText = String(req.body?.text || "").trim();
+    let caption;
+    if (directText) {
+      const requestedUserId = String(req.body?.userId || user.uid);
+      if (requestedUserId !== user.uid) {
+        return res.status(403).json({error: "Caption owner mismatch."});
+      }
+      caption = {
+        userId: user.uid,
+        displayName: String(req.body?.displayName || "WorldVoice user"),
+        text: directText.slice(0, 400),
+        languageCode: String(req.body?.languageCode || "en").trim(),
+      };
+    } else {
+      const captionSnap = await captionRef.get();
+      if (!captionSnap.exists) {
+        return res.status(404).json({error: "Caption not found."});
+      }
+      caption = captionSnap.data() || {};
+      if (caption.userId !== user.uid) {
+        return res.status(403).json({error: "Caption owner mismatch."});
+      }
     }
 
     const text = String(caption.text || "").trim();
     const languageCode = String(caption.languageCode || "en").trim();
     const roomLanguageCode = String(
-      req.body?.roomLanguageCode || roomSnap.data()?.languageCode || languageCode,
+      req.body?.roomLanguageCode ||
+      roomSnap.data()?.languageCode ||
+      languageCode
     ).trim();
 
     if (!text) {
-      return res.status(400).json({ error: "Caption text is empty." });
+      return res.status(400).json({error: "Caption text is empty."});
     }
 
     const response = await openai.responses.create({
       model: teacherModel,
       store: false,
       instructions:
-        "You are WorldVoice Teacher AI inside a live language-learning voice room. " +
-        "Review only the provided transcript text. Do not claim to hear pronunciation audio. " +
-        "If the sentence is natural and correct, correction must be an empty string. " +
-        "If it needs improvement, give one concise corrected sentence. " +
-        "pronunciationTip may contain one short text-based pronunciation tip only when useful. " +
+        "You are WorldVoice pronunciation and language coach. " +
+        "Review the speaker transcript in the context of the room target language. " +
+        "Never claim that you measured acoustic pronunciation because you received a transcript, not phoneme scores. " +
+        "If the sentence is already natural, correction should be empty. " +
+        "Otherwise provide one concise corrected sentence. " +
+        "Give one short, practical pronunciation tip when useful, focusing on sounds, stress, or rhythm. " +
         "Return only valid JSON with exactly these keys: correction, pronunciationTip.",
       input:
         `Target room language: ${roomLanguageCode}\n` +
-        `Speaker transcript language: ${languageCode}\n` +
+        `Speaker language hint: ${languageCode}\n` +
         `Transcript: ${text}`,
     });
 
@@ -588,14 +1073,10 @@ app.post("/teacher-ai", async (req, res, next) => {
       result = {};
     }
 
-    const correction =
-      typeof result.correction === "string"
-        ? result.correction.trim().slice(0, 400)
-        : "";
-    const pronunciationTip =
-      typeof result.pronunciationTip === "string"
-        ? result.pronunciationTip.trim().slice(0, 240)
-        : "";
+    const correction = typeof result.correction === "string" ?
+      result.correction.trim().slice(0, 400) : "";
+    const pronunciationTip = typeof result.pronunciationTip === "string" ?
+      result.pronunciationTip.trim().slice(0, 240) : "";
 
     await noteRef.set({
       userId: user.uid,
@@ -626,6 +1107,7 @@ app.post("/teacher-ai/ask", async (req, res, next) => {
     requireEnv(openAiKey, "OPENAI_API_KEY");
     requireEnv(teacherModel, "OPENAI_TEACHER_MODEL");
 
+    const context = req.body?.context === "live" ? "live" : "room";
     const roomId = String(req.body?.roomId || "").trim();
     const prompt = String(req.body?.prompt || "").trim();
     const requestedRoomLanguage = String(
@@ -637,26 +1119,40 @@ app.post("/teacher-ai/ask", async (req, res, next) => {
         error: "roomId and prompt are required.",
       });
     }
-
     if (prompt.length > 1200) {
       return res.status(400).json({
         error: "Teacher AI questions are limited to 1200 characters.",
       });
     }
 
-    const roomRef = db.collection("rooms").doc(roomId);
-    const participantRef = roomRef.collection("participants").doc(user.uid);
-    const [roomSnap, participantSnap] = await Promise.all([
-      roomRef.get(),
-      participantRef.get(),
-    ]);
+    const parentCollection = context === "live" ? "live_sessions" : "rooms";
+    const roomRef = db.collection(parentCollection).doc(roomId);
+    const roomSnap = await roomRef.get();
 
-    if (!roomSnap.exists || roomSnap.data()?.isOpen !== true) {
-      return res.status(404).json({ error: "Room is not open." });
+    if (!roomSnap.exists ||
+        (context === "room" && roomSnap.data()?.isOpen !== true) ||
+        (context === "live" && roomSnap.data()?.isLive !== true)) {
+      return res.status(404).json({
+        error: context === "live" ?
+          "Live session is not active." : "Room is not open.",
+      });
     }
 
-    if (!participantSnap.exists) {
-      return res.status(403).json({ error: "User is not in this room." });
+    let memberAllowed = false;
+    if (context === "room") {
+      memberAllowed = (
+        await roomRef.collection("participants").doc(user.uid).get()
+      ).exists;
+    } else {
+      const live = roomSnap.data() || {};
+      memberAllowed = live.hostId === user.uid ||
+        (await roomRef.collection("viewers").doc(user.uid).get()).exists;
+    }
+    if (!memberAllowed) {
+      return res.status(403).json({
+        error: context === "live" ?
+          "User is not in this Live." : "User is not in this room.",
+      });
     }
 
     const roomLanguageCode =
@@ -664,29 +1160,174 @@ app.post("/teacher-ai/ask", async (req, res, next) => {
       String(roomSnap.data()?.languageCode || "en").trim() ||
       "en";
 
+    if (context === "room" && roomSnap.data()?.showTeacherAiSeat !== true) {
+      return res.status(409).json({
+        error: "Teacher AI seat is hidden in this room.",
+      });
+    }
+
+    const conversationRef = roomRef
+      .collection("_teacher_ai_conversations")
+      .doc(user.uid);
+    const conversationSnap = await conversationRef.get();
+    const rawHistory = Array.isArray(conversationSnap.data()?.history) ?
+      conversationSnap.data().history : [];
+    const history = rawHistory
+      .slice(-10)
+      .filter(item => item && typeof item.text === "string" &&
+        ["user", "assistant"].includes(item.role))
+      .map(item => ({
+        role: item.role,
+        text: String(item.text).slice(0, 1200),
+      }));
+
+    const recentConversation = history.length === 0 ?
+      "(No previous conversation in this room.)" :
+      history.map(item =>
+        `${item.role === "user" ? "Member" : "Teacher"}: ${item.text}`
+      ).join("\n");
+
     const response = await openai.responses.create({
       model: teacherModel,
       store: false,
       instructions:
-        "You are WorldVoice Teacher AI inside a live language-learning room. " +
-        "Answer the member's language-learning question clearly and concisely. " +
-        "The room target language is provided as context. " +
-        "Reply in the same language as the member unless they explicitly ask to practice or receive an answer in another language. " +
-        "When correcting a sentence, show the corrected form and a short explanation. " +
-        "Do not claim to hear audio unless transcript text is explicitly provided.",
+        "You are WorldVoice Teacher AI, a warm real-time language tutor and conversation partner inside a voice room. " +
+        "Hold a natural conversation about whatever topic the member raises. " +
+        "Understand the member even if they mix languages. " +
+        "Answer primarily in the room target language so they can practice it. " +
+        "If the member asks for a translation or explanation, you may briefly use their language when necessary. " +
+        "Correct mistakes lightly and naturally only when useful; do not turn every reply into a grammar lesson. " +
+        "Keep spoken replies concise, usually two to five sentences, and suitable for text-to-speech. " +
+        "Ask a relevant follow-up question when that keeps the conversation moving. " +
+        "Return only valid JSON with exactly one key: answer.",
       input:
-        `Target room language: ${roomLanguageCode}\n` +
-        `Member question: ${prompt}`,
+        `Room target language: ${roomLanguageCode}\n` +
+        `Recent conversation:\n${recentConversation}\n\n` +
+        `Member says now: ${prompt}`,
     });
 
-    const answer = String(response.output_text || "").trim().slice(0, 2400);
-    if (!answer) {
-      return res.status(502).json({ error: "Teacher AI returned no answer." });
+    let teacherResult;
+    try {
+      teacherResult = JSON.parse(response.output_text || "{}");
+    } catch {
+      teacherResult = {};
     }
+
+    const answer = typeof teacherResult.answer === "string" ?
+      teacherResult.answer.trim().slice(0, 2400) : "";
+    if (!answer) {
+      return res.status(502).json({error: "Teacher AI returned no answer."});
+    }
+
+    const nextHistory = [
+      ...history,
+      {role: "user", text: prompt.slice(0, 1200)},
+      {role: "assistant", text: answer.slice(0, 2400)},
+    ].slice(-12);
+    await conversationRef.set({
+      history: nextHistory,
+      updatedAt: FieldValue.serverTimestamp(),
+    }, {merge: true});
+
+    const voiceId = roomRef.collection("_voice_ids").doc().id;
+    await roomRef.set({
+      teacherAiVoice: {
+        id: voiceId,
+        userId: user.uid,
+        answer,
+        languageCode: roomLanguageCode,
+        model: teacherModel,
+        createdAt: FieldValue.serverTimestamp(),
+      },
+    }, {merge: true});
 
     return res.json({
       ok: true,
       answer,
+      languageCode: roomLanguageCode,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/translate", async (req, res, next) => {
+  try {
+    const user = await authenticatedUser(req);
+
+    requireEnv(openAiKey, "OPENAI_API_KEY");
+    requireEnv(teacherModel, "OPENAI_TEACHER_MODEL");
+
+    const context = req.body?.context === "live" ? "live" : "room";
+    const roomId = String(req.body?.roomId || "").trim();
+    const text = String(req.body?.text || "").trim();
+    const targetLanguageCode = String(
+      req.body?.targetLanguageCode || "",
+    ).trim().toLowerCase();
+
+    if (!roomId || !text || !targetLanguageCode) {
+      return res.status(400).json({
+        error: "roomId, text and targetLanguageCode are required.",
+      });
+    }
+    if (text.length > 500) {
+      return res.status(400).json({
+        error: "Room messages are limited to 500 characters.",
+      });
+    }
+    if (!/^[a-z]{2,3}(?:-[a-z0-9]{2,8})?$/i.test(targetLanguageCode)) {
+      return res.status(400).json({error: "Invalid target language."});
+    }
+
+    const parentCollection = context === "live" ? "live_sessions" : "rooms";
+    const parentRef = db.collection(parentCollection).doc(roomId);
+    const parentSnap = await parentRef.get();
+    if (!parentSnap.exists ||
+        (context === "room" && parentSnap.data()?.isOpen !== true) ||
+        (context === "live" && parentSnap.data()?.isLive !== true)) {
+      return res.status(404).json({
+        error: context === "live" ? "Live session is not active." : "Room is not open.",
+      });
+    }
+
+    let memberAllowed = false;
+    if (context === "room") {
+      memberAllowed = (await parentRef.collection("participants")
+        .doc(user.uid).get()).exists;
+    } else {
+      const live = parentSnap.data() || {};
+      memberAllowed = live.hostId === user.uid ||
+        (await parentRef.collection("viewers").doc(user.uid).get()).exists;
+    }
+    if (!memberAllowed) {
+      return res.status(403).json({
+        error: context === "live" ? "User is not in this Live." : "User is not in this room.",
+      });
+    }
+
+    const response = await openai.responses.create({
+      model: teacherModel,
+      store: false,
+      instructions:
+        "Translate the provided social chat message faithfully into the requested target language. " +
+        "Automatically detect the source language. Preserve names, usernames, emojis, numbers and meaning. " +
+        "Do not explain, annotate, censor, summarize, or answer the message. " +
+        "If the text is already in the requested target language, return it unchanged. " +
+        "Return only the translated message text.",
+      input:
+        `Target language code: ${targetLanguageCode}\n` +
+        `Message: ${text}`,
+    });
+
+    const translation = String(response.output_text || "").trim().slice(0, 1200);
+    if (!translation) {
+      return res.status(502).json({error: "Translation returned no text."});
+    }
+
+    return res.json({
+      ok: true,
+      translation,
+      targetLanguageCode,
     });
   } catch (error) {
     next(error);
@@ -697,7 +1338,15 @@ app.post("/teacher-ai/ask", async (req, res, next) => {
  * Uniform non-currency entitlement purchase/gift. VIP with coins is gifted
  * only; a user's own recurring VIP plan goes through verified store billing.
  */
-app.post("/store/purchase", async (req, res, next) => {
+app.get("/store/access", async (req, res, next) => {
+  try {
+    const user = await authenticatedUser(req);
+    const admin = await db.collection("admins").doc(user.uid).get();
+    res.json({ok: true, canManageStore: canManageStore(admin.data())});
+  } catch (error) { next(error); }
+});
+
+app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
   try {
     const sender = await authenticatedUser(req);
     const itemId = String(req.body?.itemId || "").trim();
@@ -710,23 +1359,26 @@ app.post("/store/purchase", async (req, res, next) => {
       return res.status(400).json({error: "Invalid item or idempotency key."});
     }
     const refKey = createHash("sha256")
-      .update(`${sender.uid}:store:${key}`).digest("hex");
+      .update(`${sender.uid}:${req.path === "/store/admin-grant" ? "admin-store" : "store"}:${key}`).digest("hex");
     const operationRef = db.collection("economy_store_operations").doc(refKey);
     const itemRef = db.collection("store_items").doc(itemId);
     const configRef = db.doc("economy_config/current");
     const payerRef = db.collection("users").doc(sender.uid);
+    const payerWalletRef = privateWalletRef(payerRef);
     const recipientRef = db.collection("users").doc(recipientId);
+    const recipientWalletRef = gifting ? privateWalletRef(recipientRef) : payerWalletRef;
     const inventoryRef = recipientRef.collection("inventory").doc(itemId);
     const friendRef = gifting ? payerRef.collection("following").doc(recipientId)
       : null;
     const day = new Date().toISOString().slice(0, 10);
     const dailyRef = payerRef.collection("economy_daily").doc(day);
     const outcome = await db.runTransaction(async tx => {
-      const refs = [operationRef, itemRef, configRef, payerRef, inventoryRef,
-        dailyRef, ...(gifting ? [recipientRef, friendRef] : [])];
+      const refs = [operationRef, itemRef, configRef, payerRef, payerWalletRef,
+        inventoryRef, dailyRef, ...(gifting ? [recipientRef, recipientWalletRef, friendRef] : []),
+        db.collection("admins").doc(sender.uid)];
       const snaps = await Promise.all(refs.map(ref => tx.get(ref)));
-      const [existing, itemSnap, configSnap, payerSnap, ownedSnap, dailySnap] =
-        snaps;
+      const [existing, itemSnap, configSnap, payerProfileSnap, payerSnap,
+        ownedSnap, dailySnap] = snaps;
       if (existing.exists) {
         const old = existing.data() || {};
         if (old.senderId !== sender.uid || old.recipientId !== recipientId ||
@@ -735,12 +1387,25 @@ app.post("/store/purchase", async (req, res, next) => {
         }
         return {...old.outcome, alreadyProcessed: true};
       }
-      const policy = requireLiveEconomy(configSnap.data());
-      const item = itemSnap.data() || {};
-      if (!itemSnap.exists || item.active !== true ||
+      const item = itemSnap.exists
+        ? itemSnap.data() || {}
+        : builtInRoomBackground(itemId) ||
+          builtInWorldVoiceFrame(itemId) || {};
+      if ((!itemSnap.exists && !builtInRoomBackground(itemId) &&
+          !builtInWorldVoiceFrame(itemId)) ||
+          item.active !== true ||
           !["background", "frame", "entrance", "vip"].includes(item.type) ||
           !itemId.startsWith(item.type + "__")) {
         throw Object.assign(new Error("Store item unavailable."), {status: 404});
+      }
+      // Retire legacy backgrounds even if a stale Firestore document is active.
+      // The canonical server price is authoritative, never a client price.
+      if (item.type === "background" &&
+          (!worldVoiceRoomBackgroundPrices.has(itemId) ||
+           Number(item.priceCoins) !== worldVoiceRoomBackgroundPrices.get(itemId) ||
+           String(item.themeId || "") !== itemId.replace(/^background__/, ""))) {
+        throw Object.assign(new Error("This room background was retired."),
+          {status: 409});
       }
       if (item.type === "vip" && !gifting) {
         throw Object.assign(new Error("Use verified store billing for personal VIP."),
@@ -755,9 +1420,50 @@ app.post("/store/purchase", async (req, res, next) => {
         throw Object.assign(new Error("Store item price or duration is invalid."),
           {status: 503});
       }
-      if (!payerSnap.exists || Number(payerSnap.data()?.giftLevel || 0) <
+      if (req.path === "/store/admin-grant") {
+        if (!canManageStore(snaps[snaps.length - 1].data()) ||
+            !["background", "frame"].includes(item.type)) {
+          throw Object.assign(new Error("Store administrator access required."), {status: 403});
+        }
+        if (!payerProfileSnap.exists || (gifting && (!snaps[7].exists || !snaps[9].exists))) {
+          throw Object.assign(new Error("Choose an existing followed friend."), {status: 403});
+        }
+        const expiresAt = duration == null ? null : Timestamp.fromMillis(
+          Date.now() + duration * 24 * 60 * 60 * 1000);
+        const entitlement = {
+          itemId, type: item.type, source: "admin_grant", grantedBy: sender.uid,
+          giftedBy: gifting ? sender.uid : null, quantity: 1, freeGiftBalance: 0,
+          name: String(item.name || itemId), expiresAt,
+          updatedAt: FieldValue.serverTimestamp(),
+          ...(item.type === "background" ? {
+            themeId: String(item.themeId), backgroundUrl: item.previewUrl || null,
+          } : {}),
+        };
+        // Existing permanent ownership must never become temporary.
+        if (ownedSnap.exists && ownedSnap.data()?.expiresAt == null) entitlement.expiresAt = null;
+        else if (ownedSnap.data()?.expiresAt?.toMillis?.() > expiresAt?.toMillis?.()) {
+          entitlement.expiresAt = ownedSnap.data().expiresAt;
+        }
+        tx.set(inventoryRef, entitlement, {merge: true});
+        if (item.type === "background") tx.set(
+          recipientRef.collection("room_backgrounds").doc(String(item.themeId)),
+          entitlement, {merge: true});
+        const response = {itemId, recipientId, adminGrant: true, paidCoins: 0};
+        tx.create(operationRef, {senderId: sender.uid, recipientId, itemId,
+          outcome: response, createdAt: FieldValue.serverTimestamp()});
+        tx.create(db.collection("economy_audit").doc(refKey), {
+          type: "admin_cosmetic_grant", senderId: sender.uid, recipientId, itemId,
+          paidCoins: 0, createdAt: FieldValue.serverTimestamp(),
+        });
+        return response;
+      }
+      const policy = requireLiveEconomy(configSnap.data());
+      requirePrivateWallet(payerSnap);
+      if (gifting) requirePrivateWallet(snaps[8]);
+      if (!payerProfileSnap.exists ||
+          Number(payerSnap.data()?.giftLevel || 0) <
           Number(item.requiredGiftLevel || 0) ||
-          (gifting && (!snaps[6].exists || !snaps[7].exists))) {
+          (gifting && (!snaps[7].exists || !snaps[9].exists))) {
         throw Object.assign(new Error("User, gift level or friendship requirement failed."),
           {status: 403});
       }
@@ -765,7 +1471,7 @@ app.post("/store/purchase", async (req, res, next) => {
           Number(payerSnap.data()?.walletDebtCoins || 0) > 0) {
         throw Object.assign(new Error("Wallet under payment review."), {status: 423});
       }
-      const owner = gifting ? snaps[6].data() || {} : payerSnap.data() || {};
+      const owner = gifting ? snaps[8].data() || {} : payerSnap.data() || {};
       const existingExpiry = item.type === "vip"
         ? owner.vipExpiresAt?.toMillis?.()
         : ownedSnap.data()?.expiresAt?.toMillis?.();
@@ -789,7 +1495,7 @@ app.post("/store/purchase", async (req, res, next) => {
           dailyGift + price > policy.giftingDailyCoinLimit)) {
         throw Object.assign(new Error("Gifting daily limit exceeded."), {status: 429});
       }
-      tx.update(payerRef, {
+      tx.update(payerWalletRef, {
         coins: before - price,
         updatedAt: FieldValue.serverTimestamp(),
       });
@@ -812,7 +1518,7 @@ app.post("/store/purchase", async (req, res, next) => {
         updatedAt: FieldValue.serverTimestamp(),
       }, {merge: true});
       if (item.type === "vip") {
-        tx.update(recipientRef, {vipExpiresAt: expiresAt});
+        tx.update(recipientWalletRef, {vipExpiresAt: expiresAt});
       }
       if (item.type === "background") {
         // Temporary mirrored legacy read model; remove after all clients
@@ -964,9 +1670,9 @@ app.post("/store/claim-reward", async (req, res, next) => {
 
 
 /**
- * Unified gift contract for room/live/chat. Only room has a deployed, audited
- * membership model currently. Other contexts intentionally fail closed until
- * their permission checks and event streams are implemented.
+ * Unified gift contract for room/live/chat.
+ * Live authorization is based on an active server-timestamped Live session,
+ * atomic viewer membership, and host-approved active camera guests.
  * Idempotency-Key is mandatory; clients reuse it for a checkout retry.
  */
 
@@ -1033,13 +1739,11 @@ app.post("/gift/send", async (req, res, next) => {
         typeof recipientId !== "string" || !recipientId.trim() ||
         recipientId === sender.uid ||
         typeof giftId !== "string" ||
-        !/^[A-Za-z0-9_-]{1,80}$/.test(giftId) ||
+        !/^wv_gift_[0-9]{3}$/.test(giftId) ||
         !Number.isSafeInteger(quantity) || quantity <= 0 ||
         !/^[A-Za-z0-9_-]{12,100}$/.test(requestKey)) {
       return res.status(400).json({error: "Invalid gift request or idempotency key."});
     }
-    // Live uses the existing verified Agora ROOM membership and is
-    // available only when the room itself was created in live mode.
     if (context !== "room" && recipientId === "teacher_ai") {
       return res.status(400).json({error: "AI gift XP is room-only."});
     }
@@ -1047,20 +1751,29 @@ app.post("/gift/send", async (req, res, next) => {
       .update(`${sender.uid}:${requestKey}`).digest("hex");
     const eventRef = db.collection("economy_gift_operations").doc(requestHash);
     const senderRef = db.collection("users").doc(sender.uid);
+    const senderWalletRef = privateWalletRef(senderRef);
     const recipientRef = recipientId === "teacher_ai" ? null
       : db.collection("users").doc(recipientId);
+    const recipientWalletRef = recipientRef ? privateWalletRef(recipientRef) : null;
     const inventoryRef = senderRef.collection("inventory")
       .doc(`gift__${giftId}`);
     const itemRef = db.collection("store_items").doc(`gift__${giftId}`);
     const roomRef = context === "chat"
       ? db.collection("chats").doc(contextId)
-      : db.collection("rooms").doc(contextId);
-    const senderMemberRef = context !== "chat"
-      ? roomRef.collection("participants").doc(sender.uid) : roomRef;
+      : context === "live"
+        ? db.collection("live_sessions").doc(contextId)
+        : db.collection("rooms").doc(contextId);
+    const senderMemberRef = context === "room"
+      ? roomRef.collection("participants").doc(sender.uid)
+      : context === "live"
+        ? roomRef.collection("viewers").doc(sender.uid)
+        : roomRef;
     const recipientMemberRef = recipientRef
-      ? context !== "chat"
+      ? context === "room"
         ? roomRef.collection("participants").doc(recipientId)
-        : roomRef
+        : context === "live"
+          ? roomRef.collection("join_requests").doc(recipientId)
+          : roomRef
       : null;
     const senderFollow = context === "chat"
       ? senderRef.collection("following").doc(recipientId) : null;
@@ -1074,12 +1787,12 @@ app.post("/gift/send", async (req, res, next) => {
     const outcome = await db.runTransaction(async (tx) => {
       // All reads before writes (Firestore transaction requirement).
       const refs = [eventRef, configRef, itemRef, roomRef, senderMemberRef,
-        senderRef, inventoryRef, ...(recipientRef
-          ? [recipientMemberRef, recipientRef] : []),
+        senderRef, senderWalletRef, inventoryRef, ...(recipientRef
+          ? [recipientMemberRef, recipientRef, recipientWalletRef] : []),
         ...(senderFollow ? [senderFollow, recipientFollow] : [])];
       const snapshots = await Promise.all(refs.map(ref => tx.get(ref)));
       const [existing, configSnap, itemSnap, roomSnap, senderMember,
-        senderSnap, freeGiftSnap] = snapshots;
+        senderProfileSnap, senderSnap, freeGiftSnap] = snapshots;
       if (existing.exists) {
         const data = existing.data();
         if (data.userId !== sender.uid || data.context !== context ||
@@ -1090,31 +1803,54 @@ app.post("/gift/send", async (req, res, next) => {
         }
         return {...data.outcome, alreadyProcessed: true};
       }
-      if (context !== "chat") {
+      if (context === "room") {
         if (roomSnap.data()?.isOpen !== true ||
-            (context === "live" && roomSnap.data()?.mode !== "live") ||
             !senderMember.exists ||
-            (recipientMemberRef && !snapshots[7].exists)) {
+            (recipientMemberRef && !snapshots[8].exists)) {
           throw Object.assign(new Error("Room membership is required."),
+            {status: 403});
+        }
+      } else if (context === "live") {
+        const live = roomSnap.data() || {};
+        const heartbeatMs = live.hostHeartbeatAt?.toMillis?.() ?? 0;
+        const liveFresh = roomSnap.exists &&
+          live.isLive === true &&
+          live.channelId === contextId &&
+          heartbeatMs > Date.now() - 60000;
+        const senderIsHost = live.hostId === sender.uid;
+        const senderIsViewer = senderMember.exists &&
+          senderMember.data()?.uid === sender.uid;
+        const recipientIsHost = live.hostId === recipientId;
+        const recipientRequest = snapshots[8]?.data() || {};
+        const recipientIsGuest = snapshots[8]?.exists &&
+          recipientRequest.uid === recipientId &&
+          recipientRequest.status === "accepted";
+        if (!liveFresh || (!senderIsHost && !senderIsViewer) ||
+            (!recipientIsHost && !recipientIsGuest)) {
+          throw Object.assign(new Error("Active Live membership is required."),
             {status: 403});
         }
       } else {
         if (!roomSnap.exists ||
             chatIdFor(sender.uid, recipientId) !== contextId ||
-            !snapshots[9]?.exists || !snapshots[10]?.exists) {
+            !snapshots[11]?.exists || !snapshots[12]?.exists) {
           throw Object.assign(new Error("Mutual following required for chat gifts."),
             {status: 403});
         }
         assertChatMembership(roomSnap.data(), sender.uid, recipientId);
       }
       const config = requireLiveEconomy(configSnap.data());
+      requirePrivateWallet(senderSnap);
+      if (recipientRef) requirePrivateWallet(snapshots[10]);
       const item = itemSnap.data();
       const price = Number(item?.priceCoins);
+      const approvedGift = approvedWorldVoiceGift(giftId, price);
       if (!itemSnap.exists || item.type !== "gift" || item.active !== true ||
-          !Number.isSafeInteger(price) || price <= 0) {
+          !Number.isSafeInteger(price) || price <= 0 || !approvedGift) {
         throw Object.assign(new Error("This gift is unavailable."), {status: 404});
       }
-      if (!senderSnap.exists || (recipientRef && !snapshots[8].exists)) {
+      if (!senderProfileSnap.exists ||
+          (recipientRef && !snapshots[9].exists)) {
         throw Object.assign(new Error("Gift wallet profiles are unavailable."),
           {status: 409});
       }
@@ -1160,7 +1896,8 @@ app.post("/gift/send", async (req, res, next) => {
           spent + amounts.chargedCoins > config.giftingDailyCoinLimit) {
         throw Object.assign(new Error("Daily gift limit reached."), {status: 429});
       }
-      const recipientData = recipientRef ? snapshots[8].data() || {} : null;
+      const recipientData = recipientRef ? snapshots[10].data() || {} : null;
+      const recipientProfile = recipientRef ? snapshots[9].data() || {} : null;
       const recipientBefore = recipientData
         ? Number(recipientData.diamondsPending || 0) : 0;
       const receiverAfter = recipientBefore + amounts.pendingDiamonds;
@@ -1177,7 +1914,7 @@ app.post("/gift/send", async (req, res, next) => {
         pendingDiamonds: recipientRef ? amounts.pendingDiamonds : 0,
         holdUntil: recipientRef ? holdUntil.toDate().toISOString() : null,
       };
-      tx.set(senderRef, {
+      tx.set(senderWalletRef, {
         coins: after,
         giftSentPoints: FieldValue.increment(amounts.chargedCoins),
         giftLevelPoints: FieldValue.increment(amounts.giftLevelPoints),
@@ -1201,7 +1938,7 @@ app.post("/gift/send", async (req, res, next) => {
         createdAt: FieldValue.serverTimestamp(),
       });
       if (recipientRef) {
-        tx.set(recipientRef, {
+        tx.set(recipientWalletRef, {
           diamondsPending: receiverAfter,
           giftReceivedPoints: FieldValue.increment(amounts.chargedCoins),
           updatedAt: FieldValue.serverTimestamp(),
@@ -1223,16 +1960,23 @@ app.post("/gift/send", async (req, res, next) => {
           operationId: requestHash, createdAt: FieldValue.serverTimestamp(),
         });
       } else {
+        // Migrate legacy castle progression only after server-side validation.
+        // Inconsistent historical XP fails without touching gifts or wallets.
+        const castle = roomCastleProgressSnapshot(roomSnap.data());
+        const progress = roomProgressAfterGift(castle.xp, amounts.giftLevelPoints);
         tx.update(roomRef, {
-          roomXp: roomXp + amounts.giftLevelPoints,
+          roomXp: progress.nextXp,
+          roomLevel: progress.newLevel,
+          roomCastleXpVersion: ROOM_CASTLE_XP_VERSION,
+          ...(castle.legacy ? {legacyRoomXp: roomXp} : {}),
         });
       }
       tx.create(giftEventRef, {
         ...(context === "chat" ? {type: "gift"} : {}),
         senderId: sender.uid,
-        senderName: String(senderData.displayName || "WorldVoice user"),
+        senderName: String(senderProfileSnap.data()?.displayName || "WorldVoice user"),
         recipientId, recipientName: recipientRef
-          ? String(recipientData.displayName || "WorldVoice member")
+          ? String(recipientProfile.displayName || "WorldVoice member")
           : "Teacher AI",
         giftId, points: amounts.chargedCoins, quantity,
         animationUrl: item.animationUrl || null,
@@ -1340,109 +2084,178 @@ app.post("/iap/verify", async (req, res, next) => {
   }
 });
 
-app.post("/quiz/finish", async (req, res, next) => {
+/**
+ * Host-only quiz creation. The correct answer never leaves the trusted
+ * backend and may never be read by another authenticated client.
+ */
+app.post("/quiz/start", async (req, res, next) => {
   try {
     const user = await authenticatedUser(req);
     const roomId = String(req.body?.roomId || "").trim();
-
-    if (!roomId) {
-      return res.status(400).json({ error: "roomId is required." });
+    if (!roomId || roomId.length > 160) {
+      return res.status(400).json({error: "Invalid room ID."});
     }
-
+    const draft = validateQuizDraft(req.body || {});
     const roomRef = db.collection("rooms").doc(roomId);
     const roomSnap = await roomRef.get();
-
     if (!roomSnap.exists || roomSnap.data()?.isOpen !== true) {
-      return res.status(404).json({ error: "Room is not open." });
+      return res.status(404).json({error: "Room is not open."});
     }
-
     if (roomSnap.data()?.hostId !== user.uid) {
-      return res.status(403).json({ error: "Only the host can finish the quiz." });
+      return res.status(403).json({error: "Only the host may start a quiz."});
     }
-
-    const answersSnap = await roomRef.collection("quiz_answers").get();
-    const roomData = roomSnap.data() || {};
-    const quiz = roomData.quiz || {};
-    const correctIndex = Number(quiz.correctIndex);
-
-    if (!Number.isInteger(correctIndex)) {
-      return res.status(409).json({ error: "No active quiz." });
+    const previous = await roomRef.collection("quiz_answers").get();
+    if (previous.size > 400) {
+      return res.status(409).json({
+        error: "Too many previous quiz answers; finish cleanup first.",
+      });
     }
-
-    const correctAnswers = answersSnap.docs
-      .map((doc) => ({ id: doc.id, ...doc.data() }))
-      .filter((answer) => Number(answer.optionIndex) === correctIndex)
-      .sort((a, b) => {
-        const aTime = a.answeredAt?.toMillis?.() || Number.MAX_SAFE_INTEGER;
-        const bTime = b.answeredAt?.toMillis?.() || Number.MAX_SAFE_INTEGER;
-        return aTime - bTime;
-      })
-      .slice(0, 3);
-
-    const winners = correctAnswers.map((answer, index) => ({
-      place: index + 1,
-      userId: String(answer.userId || answer.id),
-      displayName: String(answer.displayName || "WorldVoice user"),
-      prizeCoins: index === 0 ? 5 : 0,
-    }));
-
-    const transactionResult = await db.runTransaction(async (tx) => {
-      const latestRoom = await tx.get(roomRef);
-      const latestQuiz = latestRoom.data()?.quiz || {};
-
-      if (latestQuiz.rewardedAt != null) {
-        return {
-          alreadyFinished: true,
-          winners: Array.isArray(latestQuiz.winners)
-            ? latestQuiz.winners
-            : [],
-        };
-      }
-
-      if (winners.length > 0) {
-        const winnerRef = db.collection("users").doc(winners[0].userId);
-        const winnerSnap = await tx.get(winnerRef);
-        const balance = Number(winnerSnap.data()?.coins || 0);
-        tx.set(
-          winnerRef,
-          {
-            coins: balance + 5,
-            quizCoinsEarned: FieldValue.increment(5),
-            updatedAt: FieldValue.serverTimestamp(),
-          },
-          { merge: true },
-        );
-      }
-
-      tx.set(
-        roomRef,
-        {
-          "quiz.revealed": true,
-          "quiz.winners": winners,
-          "quiz.firstPrizeCoins": 5,
-          "quiz.rewardedAt": FieldValue.serverTimestamp(),
-          updatedAt: FieldValue.serverTimestamp(),
-        },
-        { merge: true },
-      );
-
-      return {
-        alreadyFinished: false,
-        winners,
-      };
+    const roundId = randomUUID();
+    const batch = db.batch();
+    for (const answer of previous.docs) batch.delete(answer.ref);
+    batch.set(roomRef.collection("quiz_private").doc("current"), {
+      correctIndex: draft.correctIndex,
+      startedAt: FieldValue.serverTimestamp(),
+      roundId,
+      status: "open",
+      hostId: user.uid,
     });
-
-    return res.json({ ok: true, ...transactionResult });
+    batch.update(roomRef, {
+      quiz: {
+        question: draft.question,
+        options: draft.options,
+        roundId,
+        revealed: false,
+        // No client-visible correctIndex. Until a server-side reward ledger
+        // uses owner-only wallets, every result is non-monetary practice.
+        practiceOnly: true,
+        startedAt: FieldValue.serverTimestamp(),
+      },
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+    await batch.commit();
+    return res.json({ok: true, roundId});
   } catch (error) {
     next(error);
   }
 });
 
+/**
+ * Legacy client-created quizzes still function as FREE practice using the
+ * on-device fallback. This endpoint refuses to credit a public correctIndex.
+ * Trusted server-created rounds are scored only using quiz_private/current.
+ */
+app.post("/quiz/finish", async (req, res, next) => {
+  try {
+    const user = await authenticatedUser(req);
+    const roomId = String(req.body?.roomId || "").trim();
+    if (!roomId || roomId.length > 160) {
+      return res.status(400).json({error: "Invalid room ID."});
+    }
+    const roomRef = db.collection("rooms").doc(roomId);
+    const privateRef = roomRef.collection("quiz_private").doc("current");
+    const [roomSnap, privateSnap] = await Promise.all([
+      roomRef.get(), privateRef.get(),
+    ]);
+    if (!roomSnap.exists || roomSnap.data()?.isOpen !== true) {
+      return res.status(404).json({error: "Room is not open."});
+    }
+    if (roomSnap.data()?.hostId !== user.uid) {
+      return res.status(403).json({error: "Only the host can finish the quiz."});
+    }
+    const quiz = roomSnap.data()?.quiz || {};
+    const secret = privateSnap.data() || {};
+    if (!privateSnap.exists || !secret.roundId ||
+        quiz.roundId !== secret.roundId ||
+        !Number.isInteger(secret.correctIndex)) {
+      return res.status(409).json({
+        error: "This quiz has no verified private answer; use free practice mode.",
+      });
+    }
+    if (quiz.revealed === true || secret.status === "closed") {
+      return res.json({ok: true, alreadyFinished: true, winners: quiz.winners || []});
+    }
+    const answersSnap = await roomRef.collection("quiz_answers").get();
+    const winners = quizWinners({
+      answers: answersSnap.docs.map(doc => ({id: doc.id, ...doc.data()})),
+      correctIndex: secret.correctIndex,
+      startedAt: secret.startedAt,
+      roundId: secret.roundId,
+    });
+    const result = await db.runTransaction(async tx => {
+      const [currentRoom, currentSecret] = await Promise.all([
+        tx.get(roomRef), tx.get(privateRef),
+      ]);
+      const publicQuiz = currentRoom.data()?.quiz || {};
+      const privateQuiz = currentSecret.data() || {};
+      if (currentRoom.data()?.hostId !== user.uid ||
+          publicQuiz.roundId !== secret.roundId ||
+          privateQuiz.roundId !== secret.roundId) {
+        const conflict = new Error("Quiz round changed; retry.");
+        conflict.status = 409;
+        throw conflict;
+      }
+      if (publicQuiz.revealed === true || privateQuiz.status !== "open") {
+        return {alreadyFinished: true, winners: publicQuiz.winners || []};
+      }
+      tx.update(privateRef, {
+        status: "closed",
+        closedAt: FieldValue.serverTimestamp(),
+      });
+      tx.update(roomRef, {
+        "quiz.correctIndex": privateQuiz.correctIndex,
+        "quiz.revealed": true,
+        "quiz.practiceOnly": true,
+        "quiz.winners": winners,
+        "quiz.firstPrizeCoins": 0,
+        "quiz.rewardedAt": FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+      return {alreadyFinished: false, winners};
+    });
+    return res.json({ok: true, practiceOnly: true, ...result});
+  } catch (error) {
+    next(error);
+  }
+});
+
+
+// Route implementation is server-verified and protected by idempotent
+// Firestore transactions. Do not retain the old client-time task handlers.
+registerRoomTaskRoutes({app, db, authenticatedUser});
+registerRoomGameRoutes({app, db, authenticatedUser});
+registerEngagementRoutes({app, db, authenticatedUser});
+
 // Finance routes run only on the separately deployed authenticated backend.
 registerWalletRoutes({app, db, authenticatedUser});
 registerChatRoutes({app, db, authenticatedUser});
+registerStoryRoutes({
+  app,
+  authenticatedUser,
+  db,
+  projectId: firebaseProjectId,
+});
+registerSocialRoutes({app, authenticatedUser, db});
+registerCallRoutes({app, authenticatedUser, db});
 
 app.use((error, _req, res, _next) => {
+  const providerMessage = String(error?.message || error || "");
+  const aiQuotaUnavailable =
+    /no credits remaining|insufficient_quota|exceeded.*quota|billing/i
+      .test(providerMessage) &&
+    (
+      Number(error?.status) === 429 ||
+      String(error?.name || "").toLowerCase().includes("ratelimit")
+    );
+
+  if (aiQuotaUnavailable) {
+    console.error("WorldVoice AI provider unavailable:", providerMessage);
+    return res.status(503).json({
+      error: "WorldVoice AI service is temporarily unavailable.",
+      code: "AI_SERVICE_UNAVAILABLE",
+    });
+  }
+
   const status =
     Number.isInteger(error?.status) && error.status >= 400
       ? error.status
@@ -1452,10 +2265,20 @@ app.use((error, _req, res, _next) => {
     console.error(error);
   }
 
-  res.status(status).json({
+  return res.status(status).json({
     error: status >= 500 ? "Server error." : String(error.message || error),
   });
 });
+
+try {
+  const giftSync = await syncWorldVoiceGiftStore(db);
+  console.log(
+    `WorldVoice gift catalog synced: ${giftSync.approved} approved, ${giftSync.retired} retired.`,
+  );
+} catch (error) {
+  console.error("WorldVoice gift catalog sync failed:", error);
+  process.exit(1);
+}
 
 app.listen(port, "0.0.0.0", () => {
   console.log(`WorldVoice room backend listening on port ${port}`);
