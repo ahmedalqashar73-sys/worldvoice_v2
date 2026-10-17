@@ -98,6 +98,934 @@ const banks = {
   },
 };
 
+// Reviewed definitions for Spanish, Mandarin Chinese and Korean, all levels.
+Object.assign(banks, {
+  "es": {
+    "beginner": [
+      [
+        "manzana",
+        "Una fruta redonda que puede ser roja o verde."
+      ],
+      [
+        "escuela",
+        "Lugar donde los niños asisten para aprender."
+      ],
+      [
+        "ventana",
+        "Abertura de un edificio que deja pasar luz y aire."
+      ],
+      [
+        "jardín",
+        "Espacio donde se cultivan plantas y flores."
+      ],
+      [
+        "lápiz",
+        "Instrumento para escribir o dibujar que se puede borrar."
+      ],
+      [
+        "puente",
+        "Construcción que permite cruzar un río o una carretera."
+      ],
+      [
+        "mercado",
+        "Lugar donde se compran y venden productos."
+      ],
+      [
+        "mesa",
+        "Mueble con una superficie plana y varias patas."
+      ],
+      [
+        "silla",
+        "Mueble que sirve para sentarse una persona."
+      ],
+      [
+        "libro",
+        "Conjunto de páginas escritas o impresas."
+      ],
+      [
+        "zapato",
+        "Prenda que protege los pies al caminar."
+      ],
+      [
+        "camino",
+        "Vía por la que se puede caminar o viajar."
+      ],
+      [
+        "lluvia",
+        "Agua que cae de las nubes."
+      ],
+      [
+        "verano",
+        "Estación del año que suele ser la más calurosa."
+      ],
+      [
+        "invierno",
+        "Estación del año que suele ser la más fría."
+      ],
+      [
+        "desayuno",
+        "Primera comida que se toma por la mañana."
+      ],
+      [
+        "cocina",
+        "Habitación donde se preparan alimentos."
+      ],
+      [
+        "familia",
+        "Grupo de personas unidas por parentesco."
+      ],
+      [
+        "música",
+        "Arte que combina sonidos y ritmos."
+      ],
+      [
+        "montaña",
+        "Elevación natural grande del terreno."
+      ],
+      [
+        "ciudad",
+        "Población grande con edificios y calles."
+      ],
+      [
+        "hospital",
+        "Lugar donde los médicos atienden a pacientes."
+      ],
+      [
+        "reloj",
+        "Objeto que indica la hora."
+      ],
+      [
+        "estrella",
+        "Cuerpo celeste que emite luz propia."
+      ],
+      [
+        "playa",
+        "Zona de arena situada junto al mar."
+      ]
+    ],
+    "intermediate": [
+      [
+        "biblioteca",
+        "Lugar donde se pueden consultar o pedir prestados libros."
+      ],
+      [
+        "viaje",
+        "Desplazamiento de un lugar a otro."
+      ],
+      [
+        "solución",
+        "Respuesta que permite resolver un problema."
+      ],
+      [
+        "tradición",
+        "Costumbre que pasa de una generación a otra."
+      ],
+      [
+        "investigación",
+        "Estudio cuidadoso para descubrir hechos."
+      ],
+      [
+        "recurso",
+        "Medio disponible que puede ser útil para un propósito."
+      ],
+      [
+        "evidencia",
+        "Información que ayuda a demostrar que algo es cierto."
+      ],
+      [
+        "amistad",
+        "Relación de afecto y confianza entre personas."
+      ],
+      [
+        "desafío",
+        "Situación difícil que requiere esfuerzo para superarla."
+      ],
+      [
+        "propuesta",
+        "Idea presentada para que otros la consideren."
+      ],
+      [
+        "comunidad",
+        "Grupo de personas que comparten un entorno o intereses."
+      ],
+      [
+        "oportunidad",
+        "Circunstancia favorable para conseguir algo."
+      ],
+      [
+        "experiencia",
+        "Conocimiento adquirido al vivir o hacer algo."
+      ],
+      [
+        "consecuencia",
+        "Resultado producido por una acción."
+      ],
+      [
+        "equilibrio",
+        "Estado en el que varias fuerzas se compensan."
+      ],
+      [
+        "progreso",
+        "Avance hacia una meta o una mejora."
+      ],
+      [
+        "responsabilidad",
+        "Obligación de responder por las propias acciones."
+      ],
+      [
+        "decisión",
+        "Elección que se hace entre varias posibilidades."
+      ],
+      [
+        "beneficio",
+        "Ventaja o mejora que se obtiene."
+      ],
+      [
+        "desarrollo",
+        "Proceso de crecimiento o cambio gradual."
+      ],
+      [
+        "creatividad",
+        "Capacidad para producir ideas originales."
+      ],
+      [
+        "comparación",
+        "Acción de observar semejanzas y diferencias."
+      ],
+      [
+        "objetivo",
+        "Resultado que una persona intenta alcanzar."
+      ],
+      [
+        "ambiente",
+        "Condiciones que rodean a un ser vivo o lugar."
+      ],
+      [
+        "comunicación",
+        "Intercambio de información entre personas."
+      ]
+    ],
+    "advanced": [
+      [
+        "resiliencia",
+        "Capacidad de recuperarse después de una dificultad."
+      ],
+      [
+        "ambigüedad",
+        "Cualidad de admitir más de una interpretación."
+      ],
+      [
+        "consenso",
+        "Acuerdo general entre miembros de un grupo."
+      ],
+      [
+        "paradoja",
+        "Idea que parece contradictoria pero puede tener sentido."
+      ],
+      [
+        "integridad",
+        "Cualidad de actuar con honestidad y rectitud."
+      ],
+      [
+        "coherencia",
+        "Relación lógica y consistente entre ideas."
+      ],
+      [
+        "matiz",
+        "Diferencia pequeña pero importante en el significado."
+      ],
+      [
+        "sostenibilidad",
+        "Capacidad de mantenerse sin agotar los recursos."
+      ],
+      [
+        "perspectiva",
+        "Punto de vista desde el que se interpreta algo."
+      ],
+      [
+        "discernimiento",
+        "Capacidad para distinguir y juzgar con cuidado."
+      ],
+      [
+        "inherente",
+        "Que pertenece a algo por su propia naturaleza."
+      ],
+      [
+        "transparencia",
+        "Cualidad de comunicar información de forma clara y abierta."
+      ],
+      [
+        "reciprocidad",
+        "Correspondencia mutua entre acciones o sentimientos."
+      ],
+      [
+        "heterogeneidad",
+        "Presencia de elementos de naturaleza diferente."
+      ],
+      [
+        "convergencia",
+        "Proceso por el que varias cosas se acercan a un mismo punto."
+      ],
+      [
+        "divergencia",
+        "Separación o diferencia entre ideas y caminos."
+      ],
+      [
+        "legitimidad",
+        "Cualidad de ser conforme a normas o principios aceptados."
+      ],
+      [
+        "trascendencia",
+        "Importancia que supera lo inmediato o habitual."
+      ],
+      [
+        "causalidad",
+        "Relación entre una causa y su efecto."
+      ],
+      [
+        "verosimilitud",
+        "Cualidad de algo que parece verdadero o creíble."
+      ],
+      [
+        "interdependencia",
+        "Situación en que varios elementos dependen unos de otros."
+      ],
+      [
+        "subjetividad",
+        "Influencia de opiniones personales en un juicio."
+      ],
+      [
+        "objetividad",
+        "Consideración de hechos sin favoritismo personal."
+      ],
+      [
+        "metodología",
+        "Conjunto organizado de métodos usados en una investigación."
+      ],
+      [
+        "innovación",
+        "Introducción de ideas o métodos nuevos y útiles."
+      ]
+    ]
+  },
+  "zh": {
+    "beginner": [
+      [
+        "苹果",
+        "一种常见的圆形水果，可能是红色或绿色。"
+      ],
+      [
+        "学校",
+        "学生上课和学习知识的地方。"
+      ],
+      [
+        "窗户",
+        "墙上可以透光和通风的开口。"
+      ],
+      [
+        "花园",
+        "种植花草和其他植物的地方。"
+      ],
+      [
+        "铅笔",
+        "一种可以用橡皮擦去字迹的书写工具。"
+      ],
+      [
+        "桥梁",
+        "帮助人们跨过河流或道路的建筑。"
+      ],
+      [
+        "市场",
+        "人们买卖商品的地方。"
+      ],
+      [
+        "桌子",
+        "上面有平面，可以放东西的家具。"
+      ],
+      [
+        "椅子",
+        "供一个人坐下的家具。"
+      ],
+      [
+        "书本",
+        "由许多写着文字的纸页组成的物品。"
+      ],
+      [
+        "鞋子",
+        "穿在脚上保护双脚的东西。"
+      ],
+      [
+        "道路",
+        "供人或车辆通行的路线。"
+      ],
+      [
+        "下雨",
+        "天空中的水滴落到地面的天气现象。"
+      ],
+      [
+        "夏天",
+        "一年中通常最热的季节。"
+      ],
+      [
+        "冬天",
+        "一年中通常最冷的季节。"
+      ],
+      [
+        "早餐",
+        "每天早上吃的第一顿饭。"
+      ],
+      [
+        "厨房",
+        "家里准备和烹饪食物的房间。"
+      ],
+      [
+        "家庭",
+        "由亲属关系联系在一起的人们。"
+      ],
+      [
+        "音乐",
+        "通过旋律和节奏组织声音的艺术。"
+      ],
+      [
+        "高山",
+        "地面上高而大的自然隆起。"
+      ],
+      [
+        "城市",
+        "人口较多并有许多建筑和街道的地方。"
+      ],
+      [
+        "医院",
+        "医生和护士为病人提供治疗的地方。"
+      ],
+      [
+        "时钟",
+        "用来显示时间的装置。"
+      ],
+      [
+        "星星",
+        "夜空中看起来像发光小点的天体。"
+      ],
+      [
+        "海滩",
+        "海边由沙子或小石子覆盖的地带。"
+      ]
+    ],
+    "intermediate": [
+      [
+        "图书馆",
+        "可以阅读或借阅各种书籍的公共场所。"
+      ],
+      [
+        "旅行",
+        "从一个地方前往另一个地方的活动。"
+      ],
+      [
+        "解决方案",
+        "用于处理困难或问题的具体办法。"
+      ],
+      [
+        "传统",
+        "在不同世代之间流传的习俗。"
+      ],
+      [
+        "研究",
+        "为了发现事实而进行的系统性调查。"
+      ],
+      [
+        "资源",
+        "能够被利用来完成目标的条件或材料。"
+      ],
+      [
+        "证据",
+        "用来支持或证明某种说法的材料。"
+      ],
+      [
+        "友谊",
+        "朋友之间建立的信任和感情。"
+      ],
+      [
+        "挑战",
+        "需要努力和能力才能克服的困难。"
+      ],
+      [
+        "建议",
+        "为解决问题而提出的意见。"
+      ],
+      [
+        "社区",
+        "居住在同一区域或具有共同联系的人群。"
+      ],
+      [
+        "机会",
+        "有利于实现某个目标的时机。"
+      ],
+      [
+        "经验",
+        "通过亲身经历或实践获得的知识。"
+      ],
+      [
+        "后果",
+        "某种行为或事件产生的结果。"
+      ],
+      [
+        "平衡",
+        "不同力量或需求处于相对稳定的状态。"
+      ],
+      [
+        "进步",
+        "朝着更好状态或目标向前发展。"
+      ],
+      [
+        "责任",
+        "需要对自己的行为和任务承担的义务。"
+      ],
+      [
+        "决定",
+        "在几个可能选项中作出选择。"
+      ],
+      [
+        "利益",
+        "某种行动带来的好处或价值。"
+      ],
+      [
+        "发展",
+        "事物逐渐成长和变化的过程。"
+      ],
+      [
+        "创造力",
+        "提出新颖想法或方法的能力。"
+      ],
+      [
+        "比较",
+        "找出两个或多个事物之间的异同。"
+      ],
+      [
+        "目标",
+        "努力希望达到的结果。"
+      ],
+      [
+        "环境",
+        "人或生物周围的自然和社会条件。"
+      ],
+      [
+        "沟通",
+        "人与人之间交换想法和信息的过程。"
+      ]
+    ],
+    "advanced": [
+      [
+        "韧性",
+        "面对困难后重新恢复并适应的能力。"
+      ],
+      [
+        "歧义",
+        "一句话或一个表达可以有多种解释的情况。"
+      ],
+      [
+        "共识",
+        "一个群体成员之间形成的普遍一致意见。"
+      ],
+      [
+        "悖论",
+        "表面上相互矛盾却可能包含道理的说法。"
+      ],
+      [
+        "诚信",
+        "遵守承诺并坚持诚实正直的品质。"
+      ],
+      [
+        "连贯性",
+        "思想和表达在逻辑上保持一致的特征。"
+      ],
+      [
+        "细微差别",
+        "意义相近的事物之间不明显但重要的区别。"
+      ],
+      [
+        "可持续性",
+        "在不耗尽未来资源的前提下长期保持的能力。"
+      ],
+      [
+        "视角",
+        "观察和理解某件事情所采取的立场。"
+      ],
+      [
+        "洞察力",
+        "通过表面现象发现深层意义的能力。"
+      ],
+      [
+        "内在性",
+        "某种性质属于事物自身而非外部附加的状态。"
+      ],
+      [
+        "透明度",
+        "信息和过程向相关人员公开清晰的程度。"
+      ],
+      [
+        "互惠",
+        "双方在付出和接受之间相互给予好处。"
+      ],
+      [
+        "异质性",
+        "一个整体由性质各不相同的部分组成的特征。"
+      ],
+      [
+        "趋同",
+        "不同事物逐渐变得相似或接近的过程。"
+      ],
+      [
+        "分歧",
+        "观点或立场之间存在的不一致。"
+      ],
+      [
+        "正当性",
+        "行为或制度符合合理原则而被认可的性质。"
+      ],
+      [
+        "超越性",
+        "突破当前范围或限制而达到更高层次的特征。"
+      ],
+      [
+        "因果关系",
+        "原因与其所产生结果之间的联系。"
+      ],
+      [
+        "可信度",
+        "信息或论述值得相信的程度。"
+      ],
+      [
+        "相互依存",
+        "多个对象彼此依赖才能正常运作的状态。"
+      ],
+      [
+        "主观性",
+        "判断受到个人经历和感受影响的特征。"
+      ],
+      [
+        "客观性",
+        "基于事实而尽量不受个人偏好影响的品质。"
+      ],
+      [
+        "方法论",
+        "研究某个问题时采用的系统方法与原则。"
+      ],
+      [
+        "创新",
+        "引入有价值的新思路或新做法的行为。"
+      ]
+    ]
+  },
+  "ko": {
+    "beginner": [
+      [
+        "사과",
+        "둥글고 빨갛거나 초록색인 과일입니다."
+      ],
+      [
+        "학교",
+        "학생들이 가서 공부하는 장소입니다."
+      ],
+      [
+        "창문",
+        "빛과 바람이 들어오도록 벽에 낸 구멍입니다."
+      ],
+      [
+        "정원",
+        "꽃과 나무를 심어 가꾸는 공간입니다."
+      ],
+      [
+        "연필",
+        "글을 쓰거나 그림을 그린 뒤 지울 수 있는 도구입니다."
+      ],
+      [
+        "다리",
+        "강이나 도로를 건너갈 수 있게 만든 시설입니다."
+      ],
+      [
+        "시장",
+        "물건을 사고파는 사람들이 모이는 장소입니다."
+      ],
+      [
+        "책상",
+        "공부하거나 물건을 올려놓는 평평한 가구입니다."
+      ],
+      [
+        "의자",
+        "한 사람이 앉을 때 사용하는 가구입니다."
+      ],
+      [
+        "책",
+        "글이나 그림을 여러 장의 종이에 담아 묶은 물건입니다."
+      ],
+      [
+        "신발",
+        "걸을 때 발을 보호하기 위해 신는 물건입니다."
+      ],
+      [
+        "길",
+        "사람이나 차가 다니는 통로입니다."
+      ],
+      [
+        "비",
+        "구름에서 물방울이 땅으로 떨어지는 현상입니다."
+      ],
+      [
+        "여름",
+        "일 년 중 보통 가장 더운 계절입니다."
+      ],
+      [
+        "겨울",
+        "일 년 중 보통 가장 추운 계절입니다."
+      ],
+      [
+        "아침식사",
+        "하루를 시작할 때 아침에 먹는 음식입니다."
+      ],
+      [
+        "부엌",
+        "집에서 음식을 만들고 요리하는 공간입니다."
+      ],
+      [
+        "가족",
+        "혈연이나 혼인 등으로 연결된 사람들의 모임입니다."
+      ],
+      [
+        "음악",
+        "소리와 리듬을 조화롭게 구성하는 예술입니다."
+      ],
+      [
+        "산",
+        "주변 땅보다 높게 솟아 있는 자연 지형입니다."
+      ],
+      [
+        "도시",
+        "사람과 건물이 많이 모여 있는 큰 생활 지역입니다."
+      ],
+      [
+        "병원",
+        "아픈 사람들이 진료와 치료를 받는 장소입니다."
+      ],
+      [
+        "시계",
+        "현재 시간을 알려 주는 물건입니다."
+      ],
+      [
+        "별",
+        "밤하늘에서 작게 빛나는 것처럼 보이는 천체입니다."
+      ],
+      [
+        "해변",
+        "바다와 맞닿아 있는 모래나 자갈이 있는 곳입니다."
+      ]
+    ],
+    "intermediate": [
+      [
+        "도서관",
+        "사람들이 책을 읽거나 빌릴 수 있는 곳입니다."
+      ],
+      [
+        "여행",
+        "평소 있던 곳을 떠나 다른 장소를 방문하는 일입니다."
+      ],
+      [
+        "해결책",
+        "문제나 어려움을 처리할 수 있는 방법입니다."
+      ],
+      [
+        "전통",
+        "오랜 시간에 걸쳐 다음 세대로 전해지는 풍습입니다."
+      ],
+      [
+        "연구",
+        "새로운 사실을 알아내기 위해 체계적으로 조사하는 일입니다."
+      ],
+      [
+        "자원",
+        "목표를 이루는 데 활용할 수 있는 재료나 수단입니다."
+      ],
+      [
+        "증거",
+        "어떤 주장이 사실임을 뒷받침하는 자료입니다."
+      ],
+      [
+        "우정",
+        "친구 사이에 형성되는 믿음과 애정입니다."
+      ],
+      [
+        "도전",
+        "노력과 용기를 필요로 하는 어려운 과제입니다."
+      ],
+      [
+        "제안",
+        "다른 사람에게 검토해 보라고 내놓는 생각입니다."
+      ],
+      [
+        "공동체",
+        "생활이나 관심사를 함께 나누는 사람들의 집단입니다."
+      ],
+      [
+        "기회",
+        "원하는 목표를 이루기에 좋은 상황이나 때입니다."
+      ],
+      [
+        "경험",
+        "직접 겪거나 실천하면서 얻은 지식입니다."
+      ],
+      [
+        "결과",
+        "어떤 행동이나 사건 뒤에 생겨나는 일입니다."
+      ],
+      [
+        "균형",
+        "서로 다른 힘이나 요구가 고르게 맞춰진 상태입니다."
+      ],
+      [
+        "발전",
+        "이전보다 더 나은 상태로 성장하거나 변하는 과정입니다."
+      ],
+      [
+        "책임",
+        "자신의 행동과 맡은 일을 감당해야 하는 의무입니다."
+      ],
+      [
+        "결정",
+        "여러 선택지 중에서 하나를 고르는 일입니다."
+      ],
+      [
+        "이익",
+        "어떤 활동으로 얻게 되는 도움이나 혜택입니다."
+      ],
+      [
+        "창의력",
+        "새롭고 독창적인 생각을 만들어 내는 능력입니다."
+      ],
+      [
+        "비교",
+        "둘 이상의 대상이 어떻게 같고 다른지 살펴보는 일입니다."
+      ],
+      [
+        "목표",
+        "노력하여 이루고자 하는 결과입니다."
+      ],
+      [
+        "환경",
+        "사람과 생물을 둘러싸고 영향을 주는 조건입니다."
+      ],
+      [
+        "소통",
+        "사람들이 생각이나 정보를 서로 주고받는 과정입니다."
+      ],
+      [
+        "협력",
+        "공통된 목적을 위해 함께 힘을 합치는 행동입니다."
+      ]
+    ],
+    "advanced": [
+      [
+        "회복탄력성",
+        "어려움을 겪은 뒤 다시 적응하고 회복하는 능력입니다."
+      ],
+      [
+        "모호성",
+        "하나의 표현을 여러 가지 뜻으로 해석할 수 있는 성질입니다."
+      ],
+      [
+        "합의",
+        "여러 사람이 논의를 통해 공통된 의견에 도달한 상태입니다."
+      ],
+      [
+        "역설",
+        "겉으로는 모순처럼 보이지만 의미를 담을 수 있는 주장입니다."
+      ],
+      [
+        "진정성",
+        "겉모습이 아니라 실제 마음과 행동이 일치하는 성질입니다."
+      ],
+      [
+        "일관성",
+        "생각과 행동이 서로 모순되지 않고 이어지는 성질입니다."
+      ],
+      [
+        "미묘함",
+        "쉽게 알아차리기 어렵지만 중요한 차이가 있는 특성입니다."
+      ],
+      [
+        "지속가능성",
+        "미래의 자원을 해치지 않고 오랫동안 유지될 수 있는 성질입니다."
+      ],
+      [
+        "관점",
+        "어떤 대상을 바라보고 해석할 때 취하는 입장입니다."
+      ],
+      [
+        "통찰력",
+        "겉으로 드러난 현상을 넘어 본질을 이해하는 능력입니다."
+      ],
+      [
+        "내재성",
+        "어떤 특징이 외부에서 온 것이 아니라 대상 자체에 속한 성질입니다."
+      ],
+      [
+        "투명성",
+        "정보나 과정이 이해관계자에게 명확하게 공개되는 정도입니다."
+      ],
+      [
+        "호혜성",
+        "서로 도움이나 혜택을 주고받는 관계의 특성입니다."
+      ],
+      [
+        "이질성",
+        "하나의 집단 안에 서로 다른 종류의 요소가 존재하는 성질입니다."
+      ],
+      [
+        "수렴",
+        "서로 다른 생각이나 현상이 점차 한 방향으로 모이는 과정입니다."
+      ],
+      [
+        "발산",
+        "하나의 시작점에서 여러 방향으로 퍼져 나가는 현상입니다."
+      ],
+      [
+        "정당성",
+        "행동이나 제도가 합당한 원칙에 맞아 인정받는 성질입니다."
+      ],
+      [
+        "초월성",
+        "기존의 경계나 한계를 넘어서는 성질입니다."
+      ],
+      [
+        "인과관계",
+        "어떤 원인과 그 때문에 나타나는 결과 사이의 연결입니다."
+      ],
+      [
+        "신뢰성",
+        "어떤 정보나 대상이 믿을 만한 정도입니다."
+      ],
+      [
+        "상호의존성",
+        "둘 이상의 대상이 서로에게 의지하는 관계의 특성입니다."
+      ],
+      [
+        "주관성",
+        "판단이 개인의 경험과 감정에 영향을 받는 성질입니다."
+      ],
+      [
+        "객관성",
+        "개인적인 선호를 배제하고 사실에 따라 판단하는 성질입니다."
+      ],
+      [
+        "방법론",
+        "연구를 수행할 때 사용하는 체계적인 절차와 원칙입니다."
+      ],
+      [
+        "혁신",
+        "기존 방식과 다른 새롭고 유용한 생각이나 방법을 도입하는 일입니다."
+      ]
+    ]
+  }
+});
+
 export function gameDay(now) { return new Date(now).toISOString().slice(0, 10); }
 
 export function roomGameLanguageCodes(roomData = {}) {
