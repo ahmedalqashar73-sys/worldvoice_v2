@@ -141,12 +141,20 @@ class _AcademyFirstConversationState extends State<AcademyFirstConversation> {
     }
   }
 
+  Future<void> _stopAudioSafely() async {
+    try {
+      await _tts.stop();
+    } catch (_) {
+      // Answer selection must not depend on speech-engine availability.
+    }
+  }
+
   void _next() {
     if (_step == _script.length - 1) {
       Navigator.of(context).pop(true);
       return;
     }
-    _tts.stop();
+    _stopAudioSafely();
     setState(() {
       _step++;
       _selected = null;
