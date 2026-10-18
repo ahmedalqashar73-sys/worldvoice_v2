@@ -8,7 +8,7 @@ import 'academy_english_a1_full_lesson.dart';
 const _deepGreen = Color(0xFF145C46);
 const _mint = Color(0xFF99E5BF);
 
-/// Small-step A1 practice: 36 authored learning activities, not CEFR grading.
+/// Each of the 36 cards opens a complete eight-stage lesson, not one exercise.
 /// Completed lessons stay on this device, namespaced to the signed-in account.
 /// Do not attempt Firestore writes against restrictive legacy six-kind rules.
 abstract final class EnglishA1Progress {
@@ -292,8 +292,9 @@ class _EnglishA1UnitScreenState extends State<_EnglishA1UnitScreen> {
                             style: const TextStyle(
                                 fontWeight: FontWeight.w800, fontSize: 16)),
                           Text(
-                            '${_ar ? 'درس' : 'Lesson'} ${i + 1} / 12 · '
-                            '${_label(widget.unit.lessons[i].kind, _ar)}',
+                            _ar
+                                ? 'درس متكامل ${i + 1} / 12 · 20 كلمة · قصة واختبار'
+                                : 'Complete lesson ${i + 1}/12 · 20 words · story & quiz',
                             style: TextStyle(color: scheme.onSurfaceVariant,
                                 fontSize: 12)),
                         ],
