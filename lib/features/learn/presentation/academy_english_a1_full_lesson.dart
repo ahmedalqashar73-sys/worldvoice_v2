@@ -375,8 +375,7 @@ class _AcademyEnglishA1FullLessonState
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       _header(scheme, _ar ? 'حكاية الدرس' : 'Storytime',
         _ar ? 'كل أربع دروس مرتبطة بقصة كاملة. اقرأ فصولها الأربعة ثم اجتز سؤال الفهم.'
-            : 'Every four lessons share a graded four-paragraph story. Read it and answer the comprehension question.',
-        scheme),
+            : 'Every four lessons share a graded four-paragraph story. Read it and answer the comprehension question.'),
       _panel(Column(crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(_ar ? _story.titleAr : _story.title,
