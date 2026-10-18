@@ -59,6 +59,9 @@ void main() {
     expect(find.text('هل فهمت القصة؟'), findsOneWidget);
     expect(find.text('Who finds Sara’s notebook?'), findsOneWidget);
     await tester.tap(find.text('Tom'));
+    await tester.pump();
+    await tester.ensureVisible(find.text('تحقق من الإجابة'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('تحقق من الإجابة'));
     await tester.pump();
     expect(find.textContaining('ممتاز! فهمت القصة'), findsOneWidget);
