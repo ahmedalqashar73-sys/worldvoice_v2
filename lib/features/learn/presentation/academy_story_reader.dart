@@ -63,7 +63,12 @@ class _AcademyStoryReaderState extends State<AcademyStoryReader> {
       }
       if (!mounted) return;
       setState(() => _speaking = true);
+      final supportsLanguage = await _tts.isLanguageAvailable(_locale);
+      if (supportsLanguage == false) {
+        throw StateError('Target language voice is not available');
+      }
       await _tts.setLanguage(_locale);
+      await _tts.setVolume(1.0);
       await _tts.setSpeechRate(slow ? .30 : .50);
       final result = await _tts.speak(text);
       if (result == 0) throw StateError('TTS start failed');
