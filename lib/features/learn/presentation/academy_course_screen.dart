@@ -123,10 +123,12 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
     final englishDone = widget.course.code == 'en'
         ? (await EnglishA1Progress.load(
             _progressUser == 'guest' ? null : _progressUser)).length : 0;
-    if (mounted) setState(() {
-      _pendingCount = pending;
-      _englishDone = englishDone;
-    });
+    if (mounted) {
+      setState(() {
+        _pendingCount = pending;
+        _englishDone = englishDone;
+      });
+    }
   }
 
   Future<void> _sync() async {
