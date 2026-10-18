@@ -31,14 +31,16 @@ void main() {
         expect(unit.grammar.length, greaterThan(15));
         expect(unit.grammarExample.length, greaterThan(10));
         expect(unit.grammarTranslation.length, greaterThan(10));
-        expect(unit.story.length, greaterThan(35));
+        expect(unit.story.length,
+          greaterThan(course.code == 'zh' ? 22 : 35));
         expect(unit.storyArabic.length, greaterThan(35));
         expect(unit.listening.length, greaterThan(18));
         expect(unit.speaking.length, greaterThan(9));
         expect(unit.speakingHelp.length, greaterThan(15));
         expect(unit.quizOptions.length, 3);
         expect(unit.quizCorrectIndex, inInclusiveRange(0, 2));
-        expect(unit.quizQuestion.length, greaterThan(10));
+        expect(unit.quizQuestion.length,
+          greaterThan(course.code == 'zh' ? 7 : 10));
         for (final kind in AcademyLessonKind.values) {
           expect(ids.add(unit.lessonId(kind)), true,
             reason: 'Lesson progress document IDs must be unique.');

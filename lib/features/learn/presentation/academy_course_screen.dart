@@ -176,13 +176,17 @@ class _AcademyLessonScreenState extends State<AcademyLessonScreen> {
         'text': text, 'languageCode': widget.unit.language,
       });
     } on MissingPluginException {
-      if (mounted) _notice(_ar
-          ? 'النطق الصوتي متاح حاليًا على أندرويد. اقرأ النص للمراجعة.'
-          : 'Voice playback is currently available on Android.');
+      if (mounted) {
+        _notice(_ar
+            ? 'النطق الصوتي متاح حاليًا على أندرويد. اقرأ النص للمراجعة.'
+            : 'Voice playback is currently available on Android.');
+      }
     } on PlatformException {
-      if (mounted) _notice(_ar
-          ? 'تأكد من تثبيت صوت هذه اللغة في إعدادات الجهاز.'
-          : 'Install the selected language voice in your device settings.');
+      if (mounted) {
+        _notice(_ar
+            ? 'تأكد من تثبيت صوت هذه اللغة في إعدادات الجهاز.'
+            : 'Install the selected language voice in your device settings.');
+      }
     } finally {
       if (mounted) setState(() => _speaking = false);
     }
@@ -199,9 +203,11 @@ class _AcademyLessonScreenState extends State<AcademyLessonScreen> {
       setState(() => _complete = true);
       _notice(_ar ? 'تم حفظ تقدمك!' : 'Progress saved!');
     } catch (_) {
-      if (mounted) _notice(_ar
-          ? 'تعذّر حفظ التقدم. تأكد من تسجيل الدخول واتصال Firebase.'
-          : 'Could not save progress. Check Firebase and your login.');
+      if (mounted) {
+        _notice(_ar
+            ? 'تعذّر حفظ التقدم. تأكد من تسجيل الدخول واتصال Firebase.'
+            : 'Could not save progress. Check Firebase and your login.');
+      }
     } finally {
       if (mounted) setState(() => _saving = false);
     }
