@@ -90,6 +90,14 @@ void main() {
 
   testWidgets('each lesson begins with conversation and proceeds to 20 vocabulary cards',
       (tester) async {
+    // Use a phone-height viewport so answer buttons are not clipped by the
+    // short 800x600 default test surface.
+    tester.view.physicalSize = const Size(900, 1400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
     final unit = EnglishA1Catalog.units.first;
     await tester.pumpWidget(MaterialApp(
       home: AcademyEnglishA1IntegratedLesson(

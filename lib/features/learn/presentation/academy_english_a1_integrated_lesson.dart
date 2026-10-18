@@ -3,6 +3,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 
 import '../data/academy_english_a1_catalog.dart';
 import '../data/academy_english_a1_lesson_checks.dart';
+import '../data/academy_english_a1_dialogues.dart';
 import '../data/academy_english_a1_long_stories.dart';
 import '../data/academy_english_a1_vocabulary.dart';
 import 'academy_illustrated_story_art.dart';
@@ -37,6 +38,8 @@ class _AcademyEnglishA1IntegratedLessonState
       EnglishA1StorySyllabus.chapterFor(widget.unit.id, widget.lessonNumber);
   late final EnglishA1Grammar _grammar =
       EnglishA1LessonChecks.grammarFor(widget.unit.id, widget.lessonNumber);
+  late final EnglishA1Dialogue _dialogue =
+      EnglishA1DialogueCatalog.forLesson(widget.unit.id, widget.lessonNumber);
   late final FlutterTts _tts = FlutterTts();
 
   int _stage = 0;
@@ -47,6 +50,7 @@ class _AcademyEnglishA1IntegratedLessonState
   bool _readingPassed = false;
   int _practiceNumber = 0;
   bool _speaking = false;
+  bool _showListeningTranscript = false;
 
   bool get _ar => Localizations.localeOf(context).languageCode == 'ar';
   Color get _accent => Theme.of(context).brightness == Brightness.dark
@@ -234,7 +238,7 @@ class _AcademyEnglishA1IntegratedLessonState
             style: TextStyle(color: _accent, fontWeight: FontWeight.w800)),
         ]),
         const SizedBox(height: 13),
-        Text(widget.lesson.teaching,
+        Text(_dialogue.dialogue,
             textDirection: TextDirection.ltr,
             style: TextStyle(color: scheme.onSurface,
                 fontSize: 19, height: 1.5, fontWeight: FontWeight.w600)),
@@ -243,7 +247,7 @@ class _AcademyEnglishA1IntegratedLessonState
             textDirection: TextDirection.rtl,
             style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 15)),
         const SizedBox(height: 14),
-        _audioControls(widget.lesson.spoken),
+        _audioControls(_dialogue.dialogue),
       ])),
       const SizedBox(height: 21),
       _promptOptions(
@@ -353,12 +357,13 @@ class _AcademyEnglishA1IntegratedLessonState
       Text(_ar ? 'تطبيق سريع' : 'Quick application',
         style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
       const SizedBox(height: 7),
-      Text(widget.lesson.teaching, textDirection: TextDirection.ltr,
+      Text(_dialogue.dialogue, textDirection: TextDirection.ltr,
         style: TextStyle(color: scheme.onSurfaceVariant, height: 1.5)),
     ]);
   }
 
   Widget _listening() {
+    final scheme = Theme.of(context).colorScheme;
     final word = _words[12];
     final other1 = _words[13];
     final other2 = _words[14];
@@ -366,18 +371,46 @@ class _AcademyEnglishA1IntegratedLessonState
     final choices = <String>[other1.arabic, other2.arabic];
     choices.insert(correct, word.arabic);
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Text(_ar ? 'هل سمعت الكلمة؟' : 'Can you hear the word?',
+      Text(_ar ? 'استماع وحوار من الحياة اليومية' : 'Listen to a real-life passage',
         style: TextStyle(color: _accent, fontSize: 23,
             fontWeight: FontWeight.w900)),
-      const SizedBox(height: 12),
-      _panel(child: Column(children: [
+      const SizedBox(height: 8),
+      Text(_ar
+          ? 'استمع إلى الفقرة كاملة، ثم اكشف النص إذا احتجت.'
+          : 'Listen to the passage first, and reveal the transcript if needed.',
+        style: TextStyle(color: scheme.onSurfaceVariant, height: 1.5)),
+      const SizedBox(height: 13),
+      _panel(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
         const Icon(Icons.headphones_rounded,
             color: _lessonGreen, size: 52),
+        const SizedBox(height: 11),
+        _audioControls(_dialogue.listening),
         const SizedBox(height: 10),
-        Text(_ar ? 'استمع مرتين ثم اختر المعنى.' :
-            'Listen twice and choose the meaning.',
-            textAlign: TextAlign.center),
-        const SizedBox(height: 13),
+        TextButton.icon(
+          onPressed: () => setState(() =>
+              _showListeningTranscript = !_showListeningTranscript),
+          icon: const Icon(Icons.subject_rounded),
+          label: Text(_ar ? 'إظهار نص الاستماع' : 'Show listening transcript'),
+        ),
+        if (_showListeningTranscript)
+          Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: SelectableText(_dialogue.listening,
+              textDirection: TextDirection.ltr,
+              style: TextStyle(color: scheme.onSurface,
+                  fontSize: 17, height: 1.6)),
+          ),
+      ])),
+      const SizedBox(height: 23),
+      Text(_ar ? 'استمع لكلمة من مفردات الدرس واختر معناها.'
+          : 'Now listen to a lesson word and choose its meaning.',
+        style: TextStyle(color: scheme.onSurfaceVariant)),
+      const SizedBox(height: 12),
+      _panel(child: Column(children: [
+        const Icon(Icons.record_voice_over_rounded,
+            color: _lessonGreen, size: 38),
+        const SizedBox(height: 10),
         _audioControls(word.term),
       ])),
       const SizedBox(height: 23),
