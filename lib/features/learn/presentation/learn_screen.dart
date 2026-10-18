@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 
 import '../../../core/localization/locale_controller.dart';
 import '../data/academy_catalog.dart';
+import '../data/academy_english_a1_catalog.dart';
+import 'academy_english_a1_screen.dart';
 import '../services/academy_progress_service.dart';
 import 'academy_course_screen.dart';
 
@@ -21,6 +23,19 @@ class _LearnScreenState extends State<LearnScreen> {
   final _search = TextEditingController();
   final _progress = AcademyProgressService();
   String _query = '';
+  int _englishDone = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshEnglish();
+  }
+
+  Future<void> _refreshEnglish() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    final done = await EnglishA1Progress.load(uid);
+    if (mounted) setState(() => _englishDone = done.length);
+  }
 
   @override
   void dispose() {
@@ -158,19 +173,26 @@ class _LearnScreenState extends State<LearnScreen> {
                       mainAxisSpacing: 10, mainAxisExtent: 187),
                     itemBuilder: (context, index) {
                       final course = courses[index];
-                      final completed = course.units.fold<int>(0, (n, u) =>
-                        n + AcademyLessonKind.values.where(
-                          (kind) => done.contains(u.lessonId(kind))).length);
+                      final completed = course.code == 'en'
+                          ? _englishDone
+                          : course.units.fold<int>(0, (n, u) =>
+                              n + AcademyLessonKind.values.where(
+                                (kind) => done.contains(u.lessonId(kind))).length);
+                      final total = course.code == 'en'
+                          ? EnglishA1Catalog.lessonCount : course.lessonCount;
                       return Material(
                         color: scheme.surface,
                         borderRadius: BorderRadius.circular(18),
                         child: InkWell(
                           key: ValueKey('academy-course-${course.code}'),
                           borderRadius: BorderRadius.circular(18),
-                          onTap: () => Navigator.push<void>(context,
-                            MaterialPageRoute(builder: (_) =>
-                              AcademyCourseScreen(
-                                course: course, progress: _progress))),
+                          onTap: () async {
+                            await Navigator.push<void>(context,
+                              MaterialPageRoute(builder: (_) =>
+                                AcademyCourseScreen(
+                                  course: course, progress: _progress)));
+                            await _refreshEnglish();
+                          },
                           child: Container(
                             padding: const EdgeInsets.all(13),
                             decoration: BoxDecoration(
@@ -192,21 +214,21 @@ class _LearnScreenState extends State<LearnScreen> {
                                   style: TextStyle(
                                     color: scheme.onSurfaceVariant, fontSize: 11)),
                                 const Spacer(),
-                                Text(ar ? 'Beginner · 12 درسًا'
-                                    : 'Beginner · 12 lessons',
+                                Text(ar ? 'A1 · $total درسًا'
+                                    : 'A1 · $total lessons',
                                   style: TextStyle(
                                     color: accent,
                                     fontSize: 11, fontWeight: FontWeight.w800)),
                                 const SizedBox(height: 7),
                                 LinearProgressIndicator(
-                                  value: completed / course.lessonCount,
+                                  value: total == 0 ? 0 : completed / total,
                                   color: const Color(0xFFD3A954),
                                   minHeight: 5,
                                   borderRadius: BorderRadius.circular(6),
                                   backgroundColor: const Color(0xFFD3EADB)),
                                 const SizedBox(height: 5),
-                                Text(ar ? '$completed / 12 مكتمل'
-                                    : '$completed / 12 completed',
+                                Text(ar ? '$completed / $total مكتمل'
+                                    : '$completed / $total completed',
                                   style: TextStyle(
                                     fontSize: 11, color: scheme.onSurfaceVariant)),
                               ],

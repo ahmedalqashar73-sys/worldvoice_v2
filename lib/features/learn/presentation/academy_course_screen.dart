@@ -5,6 +5,8 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/academy_catalog.dart';
+import '../data/academy_english_a1_catalog.dart';
+import 'academy_english_a1_screen.dart';
 import '../data/academy_journey_catalog.dart';
 import '../data/academy_story_catalog.dart';
 import '../services/academy_progress_service.dart';
@@ -51,6 +53,7 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
   bool _checkingPlacement = true;
   bool _openingPlacement = false;
   int _pendingCount = 0;
+  int _englishDone = 0;
 
   String get _progressUser => FirebaseAuth.instance.currentUser?.uid ?? 'guest';
   String get _placementKey =>
@@ -67,8 +70,12 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
       final prefs = await SharedPreferences.getInstance();
       final saved = prefs.getString(_placementKey);
       final pending = await _progress.pendingCount();
+      final englishDone = widget.course.code == 'en'
+          ? (await EnglishA1Progress.load(
+              _progressUser == 'guest' ? null : _progressUser)).length : 0;
       if (!mounted) return;
       setState(() {
+        _englishDone = englishDone;
         _placementLevel = saved;
         _pendingCount = pending;
         _checkingPlacement = false;
@@ -104,12 +111,24 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
 
   Future<void> _openA1() async {
     await Navigator.of(context).push<void>(
-      MaterialPageRoute(builder: (_) => _AcademyA1Home(
-        course: widget.course, progress: _progress,
-      )),
+      MaterialPageRoute(
+        builder: (_) => widget.course.code == 'en'
+            ? const AcademyEnglishA1Path()
+            : _AcademyA1Home(
+                course: widget.course, progress: _progress,
+              ),
+      ),
     );
     final pending = await _progress.pendingCount();
-    if (mounted) setState(() => _pendingCount = pending);
+    final englishDone = widget.course.code == 'en'
+        ? (await EnglishA1Progress.load(
+            _progressUser == 'guest' ? null : _progressUser)).length : 0;
+    if (mounted) {
+      setState(() {
+        _pendingCount = pending;
+        _englishDone = englishDone;
+      });
+    }
   }
 
   Future<void> _sync() async {
@@ -145,10 +164,13 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
             ? Stream.value(<String>{}) : _progress.completedLessons(uid),
         builder: (context, snapshot) {
           final done = snapshot.data ?? <String>{};
-          final total = widget.course.lessonCount;
-          final count = widget.course.units.fold<int>(0, (n, unit) =>
-              n + AcademyLessonKind.values.where(
-                  (kind) => done.contains(unit.lessonId(kind))).length);
+          final total = widget.course.code == 'en'
+              ? EnglishA1Catalog.lessonCount : widget.course.lessonCount;
+          final count = widget.course.code == 'en'
+              ? _englishDone
+              : widget.course.units.fold<int>(0, (n, unit) =>
+                  n + AcademyLessonKind.values.where(
+                      (kind) => done.contains(unit.lessonId(kind))).length);
           return ListView(
             padding: const EdgeInsets.fromLTRB(18, 16, 18, 30),
             children: [
@@ -256,8 +278,8 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
                               const SizedBox(height: 4),
                               Text(a1
                                   ? (ar
-                                      ? '${widget.course.units.length} وحدات جاهزة للبدء'
-                                      : '${widget.course.units.length} units ready')
+                                      ? '${widget.course.code == 'en' ? 3 : widget.course.units.length} وحدات جاهزة للبدء'
+                                      : '${widget.course.code == 'en' ? 3 : widget.course.units.length} units ready')
                                   : (ar ? 'قيد إعداد الدروس'
                                       : 'Lessons are being prepared'),
                                 style: TextStyle(color: scheme.onSurfaceVariant)),
