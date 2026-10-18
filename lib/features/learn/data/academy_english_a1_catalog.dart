@@ -71,7 +71,7 @@ class EnglishA1Story {
 EnglishA1Lesson _a(
   String id, EnglishA1Kind kind, String title, String titleAr,
   String teaching, String arabic, String spoken,
-  String question, List<String> choices, int answer, {String? storyId},
+  String question, List<String> choices, int answer, {String? storyId}
 ) => EnglishA1Lesson(
   id: id, kind: kind, title: title, titleAr: titleAr, teaching: teaching,
   arabic: arabic, spoken: spoken, question: question, options: choices,
