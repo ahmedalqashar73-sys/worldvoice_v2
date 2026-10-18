@@ -185,7 +185,7 @@ class _LearnScreenState extends State<LearnScreen> {
                                 const SizedBox(height: 4),
                                 Text(ar ? course.arabicName : course.nativeName,
                                   maxLines: 1, overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(fontWeight: FontWeight.w900,
+                                  style: TextStyle(
                                     color: accent, fontSize: 15)),
                                 Text(course.nativeName, maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -207,7 +207,7 @@ class _LearnScreenState extends State<LearnScreen> {
                                 const SizedBox(height: 5),
                                 Text(ar ? '$completed / 12 مكتمل'
                                     : '$completed / 12 completed',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 11, color: scheme.onSurfaceVariant)),
                               ],
                             ),
@@ -230,7 +230,7 @@ class _LearnScreenState extends State<LearnScreen> {
                 Text(ar
                   ? 'دروس المستوى المتوسط والمتقدم ستضاف لاحقًا بعد مراجعة المحتوى. لا توجد عملات أو اشتراكات مرتبطة بإكمال الدروس.'
                   : 'Intermediate and Advanced lessons will follow after content review. Completing lessons does not award coins or paid benefits.',
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: scheme.onSurfaceVariant, fontSize: 12, height: 1.45),
                   textAlign: TextAlign.center),
               ],
