@@ -127,7 +127,12 @@ class _AcademyFirstConversationState extends State<AcademyFirstConversation> {
       await _tts.stop();
       if (!mounted) return;
       setState(() => _speaking = true);
+      final supportsLanguage = await _tts.isLanguageAvailable(_locale);
+      if (supportsLanguage == false) {
+        throw StateError('Target language voice is not available');
+      }
       await _tts.setLanguage(_locale);
+      await _tts.setVolume(1.0);
       await _tts.setSpeechRate(.44);
       final started = await _tts.speak(message);
       if (started == 0) throw StateError('TTS failed');
