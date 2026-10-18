@@ -4,6 +4,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 import '../data/academy_english_a1_catalog.dart';
 import '../data/academy_english_a1_vocabulary.dart';
 import '../data/academy_english_a1_long_stories.dart';
+import '../data/academy_english_a1_teaching.dart';
 import 'academy_english_a1_book_reader.dart';
 
 const _green = Color(0xFF185843);
@@ -46,6 +47,8 @@ class _AcademyEnglishA1FullLessonState
       EnglishA1Vocabulary.forLesson(widget.unit.id, widget.index + 1);
   EnglishA1Story get _story =>
       EnglishA1LongStories.forLesson(widget.unit.id, widget.index + 1);
+  EnglishA1Teaching get _teaching =>
+      EnglishA1TeachingCatalog.forLesson(widget.unit.id, widget.index + 1);
   List<String> get _steps => _ar
       ? ['التمهيد', '20 مفردة', 'محادثة', 'قاعدة', 'نطق',
           'استماع', 'قصة مصورة', 'اختبار']
@@ -117,22 +120,9 @@ class _AcademyEnglishA1FullLessonState
     }
   }
 
-  String get _grammar => switch (widget.unit.id) {
-    1 => 'I am Sara. You are my friend. This is my book. '
-         'That is your notebook. Say “I am”, but “You are”.',
-    2 => 'I wake up at seven. She wakes up at eight. '
-         'We study every day. He studies on Monday. '
-         'Use the simple present to talk about habits.',
-    _ => 'There is one shop. There are two shops. '
-         'Go straight, then turn left. '
-         'Use “there is” for one and “there are” for many.',
-  };
+  String get _grammar => _teaching.grammar;
 
-  String get _grammarArabic => switch (widget.unit.id) {
-    1 => 'استخدم am مع I وare مع you. تشير this إلى القريب وthat إلى البعيد.',
-    2 => 'المضارع البسيط للعادات اليومية. نضيف غالبًا s للفعل مع he وshe.',
-    _ => 'نستخدم there is للمفرد وthere are للجمع. واتبع go straight وturn left للاتجاهات.',
-  };
+  String get _grammarArabic => _teaching.grammarArabic;
 
   List<(String, List<String>, int)> get _questions {
     final terms = _words;
@@ -273,12 +263,12 @@ class _AcademyEnglishA1FullLessonState
               style: const TextStyle(fontWeight: FontWeight.w800)),
         ]),
         const SizedBox(height: 15),
-        Text(widget.lesson.teaching, textDirection: TextDirection.ltr,
+        Text(_teaching.dialogue, textDirection: TextDirection.ltr,
           style: TextStyle(color: scheme.onSurface,
               height: 1.6, fontSize: 21)),
         const SizedBox(height: 14),
         FilledButton.tonalIcon(
-          onPressed: () => _speak(widget.lesson.spoken),
+          onPressed: () => _speak(_teaching.dialogue),
           icon: const Icon(Icons.volume_up_rounded),
           label: Text(_ar ? 'استمع وكرر' : 'Listen and repeat'),
         ),
@@ -335,7 +325,7 @@ class _AcademyEnglishA1FullLessonState
             ),
           ]), scheme)),
       OutlinedButton.icon(
-        onPressed: () => _speak(widget.lesson.spoken, slow: true),
+        onPressed: () => _speak(_teaching.dialogue, slow: true),
         icon: const Icon(Icons.record_voice_over_rounded),
         label: Text(_ar ? 'ردد المثال كاملًا' : 'Shadow the full sentence'),
       ),
@@ -350,7 +340,7 @@ class _AcademyEnglishA1FullLessonState
         Icon(Icons.headphones_rounded, size: 66, color: _accent),
         const SizedBox(height: 14),
         FilledButton.icon(
-          onPressed: () => _speak(widget.lesson.spoken),
+          onPressed: () => _speak(_teaching.listening),
           icon: const Icon(Icons.play_arrow_rounded),
           label: Text(_ar ? 'شغّل الاستماع' : 'Play listening'),
           style: FilledButton.styleFrom(
@@ -364,7 +354,7 @@ class _AcademyEnglishA1FullLessonState
           label: Text(_ar ? 'كشف النص' : 'Show transcript'),
         ),
         if (_showTranscript)
-          Text(widget.lesson.spoken, textDirection: TextDirection.ltr,
+          Text(_teaching.listening, textDirection: TextDirection.ltr,
             style: TextStyle(color: scheme.onSurface,
                 fontSize: 18, height: 1.55)),
       ]), scheme),
