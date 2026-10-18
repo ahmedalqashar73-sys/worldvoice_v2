@@ -1,13 +1,15 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/academy_catalog.dart';
 import '../data/academy_journey_catalog.dart';
 import '../data/academy_story_catalog.dart';
-import 'academy_first_conversation.dart';
-import 'academy_story_reader.dart';
 import '../services/academy_progress_service.dart';
+import 'academy_first_conversation.dart';
+import 'academy_placement_screen.dart';
+import 'academy_story_reader.dart';
 
 const _green = Color(0xFF12523B);
 const _gold = Color(0xFFF0C875);
@@ -17,22 +19,110 @@ String academyKindTitle(AcademyLessonKind kind, bool ar) => switch (kind) {
   AcademyLessonKind.grammar => ar ? 'القواعد' : 'Grammar',
   AcademyLessonKind.story => ar ? 'قصص' : 'Stories',
   AcademyLessonKind.listening => ar ? 'الاستماع' : 'Listening',
-  AcademyLessonKind.speaking => ar ? 'المحادثة' : 'Speaking',
-  AcademyLessonKind.quiz => ar ? 'اختبار الوحدة' : 'Unit quiz',
+  AcademyLessonKind.speaking => ar ? 'النطق' : 'Pronunciation',
+  AcademyLessonKind.quiz => ar ? 'الاختبارات' : 'Quizzes',
 };
+
 IconData academyKindIcon(AcademyLessonKind kind) => switch (kind) {
-  AcademyLessonKind.vocabulary => Icons.book_outlined,
-  AcademyLessonKind.grammar => Icons.auto_stories_outlined,
-  AcademyLessonKind.story => Icons.menu_book_rounded,
+  AcademyLessonKind.vocabulary => Icons.menu_book_outlined,
+  AcademyLessonKind.grammar => Icons.rule_folder_outlined,
+  AcademyLessonKind.story => Icons.auto_stories_rounded,
   AcademyLessonKind.listening => Icons.headphones_rounded,
-  AcademyLessonKind.speaking => Icons.record_voice_over_rounded,
+  AcademyLessonKind.speaking => Icons.mic_rounded,
   AcademyLessonKind.quiz => Icons.fact_check_outlined,
 };
 
-class AcademyCourseScreen extends StatelessWidget {
+/// Course entry: first visit starts diagnostic, then shows levels, not a
+/// 12-card list. All advanced stage tiles are truthful "coming later" cards.
+class AcademyCourseScreen extends StatefulWidget {
   const AcademyCourseScreen({required this.course, this.progress, super.key});
   final AcademyCourse course;
   final AcademyProgressService? progress;
+
+  @override
+  State<AcademyCourseScreen> createState() => _AcademyCourseScreenState();
+}
+
+class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
+  late final AcademyProgressService _progress =
+      widget.progress ?? AcademyProgressService();
+  String? _placementLevel;
+  bool _checkingPlacement = true;
+  bool _openingPlacement = false;
+  int _pendingCount = 0;
+
+  String get _progressUser => FirebaseAuth.instance.currentUser?.uid ?? 'guest';
+  String get _placementKey =>
+      'worldvoice.academy.placement.v1.$_progressUser.${widget.course.code}';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPlacement();
+  }
+
+  Future<void> _loadPlacement() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final saved = prefs.getString(_placementKey);
+      final pending = await _progress.pendingCount();
+      if (!mounted) return;
+      setState(() {
+        _placementLevel = saved;
+        _pendingCount = pending;
+        _checkingPlacement = false;
+      });
+      if (saved == null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _openPlacement();
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _checkingPlacement = false);
+    }
+  }
+
+  Future<void> _openPlacement() async {
+    if (_openingPlacement || !mounted) return;
+    _openingPlacement = true;
+    try {
+      final result = await Navigator.of(context).push<String>(
+        MaterialPageRoute(
+          builder: (_) => AcademyPlacementScreen(course: widget.course),
+        ),
+      );
+      if (!mounted) return;
+      if (result == null) return; // Back does not count as an assessment.
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_placementKey, result);
+      if (mounted) setState(() => _placementLevel = result);
+    } finally {
+      _openingPlacement = false;
+    }
+  }
+
+  Future<void> _openA1() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(builder: (_) => _AcademyA1Home(
+        course: widget.course, progress: _progress,
+      )),
+    );
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _sync() async {
+    final synced = await _progress.synchronizePending();
+    final pending = await _progress.pendingCount();
+    if (!mounted) return;
+    setState(() => _pendingCount = pending);
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(
+      Localizations.localeOf(context).languageCode == 'ar'
+          ? (pending == 0 ? 'تمت مزامنة دروسك!' :
+            'تمت مزامنة $synced درسًا؛ ما زال $pending ينتظر Firebase.')
+          : (pending == 0 ? 'All lessons synchronized!' :
+            'Synced $synced; $pending still waiting for Firebase.'),
+    )));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,203 +131,322 @@ class AcademyCourseScreen extends StatelessWidget {
     final accent = Theme.of(context).brightness == Brightness.dark
         ? const Color(0xFF9DECC4) : _green;
     final uid = FirebaseAuth.instance.currentUser?.uid;
-    final repository = progress ?? AcademyProgressService();
     return Scaffold(
-      appBar: AppBar(title: Text('${course.flag} ${course.nativeName}'),
-        backgroundColor: _green, foregroundColor: Colors.white),
-      body: SafeArea(child: StreamBuilder<Set<String>>(
-        stream: uid == null ? Stream.value(<String>{})
-            : repository.completedLessons(uid),
+      appBar: AppBar(
+        backgroundColor: _green, foregroundColor: Colors.white,
+        title: Text('${widget.course.flag} ${widget.course.nativeName}'),
+      ),
+      body: _checkingPlacement
+          ? const Center(child: CircularProgressIndicator())
+          : StreamBuilder<Set<String>>(
+        stream: uid == null
+            ? Stream.value(<String>{}) : _progress.completedLessons(uid),
         builder: (context, snapshot) {
           final done = snapshot.data ?? <String>{};
-          final lessonsDone = course.units.fold<int>(0, (n, unit) =>
+          final total = widget.course.lessonCount;
+          final count = widget.course.units.fold<int>(0, (n, unit) =>
               n + AcademyLessonKind.values.where(
-                (kind) => done.contains(unit.lessonId(kind))).length);
+                  (kind) => done.contains(unit.lessonId(kind))).length);
           return ListView(
-            padding: const EdgeInsets.fromLTRB(16, 18, 16, 30),
+            padding: const EdgeInsets.fromLTRB(18, 16, 18, 30),
             children: [
               Container(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(21),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(colors: [
-                    Color(0xFF12523B), Color(0xFF27835A)]),
-                  borderRadius: BorderRadius.circular(21)),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(ar ? 'رحلتك في ${course.arabicName}' :
-                      'Your ${course.nativeName} journey',
-                    style: const TextStyle(color: Colors.white,
-                      fontSize: 21, fontWeight: FontWeight.w900)),
-                  const SizedBox(height: 5),
-                  Text(ar ? 'Beginner · وحدتان · 12 درسًا' :
-                      'Beginner · 2 units · 12 lessons',
-                    style: const TextStyle(color: _gold)),
-                  const SizedBox(height: 15),
-                  LinearProgressIndicator(
-                    value: lessonsDone / course.lessonCount,
-                    color: _gold, minHeight: 7,
-                    backgroundColor: const Color(0xFF36795A),
-                    borderRadius: BorderRadius.circular(6)),
-                  Align(alignment: AlignmentDirectional.centerEnd,
-                    child: Text('$lessonsDone / ${course.lessonCount}',
-                      style: const TextStyle(color: Colors.white))),
-                ]),
-              ),
-              if (uid == null)
-                Padding(padding: const EdgeInsets.only(top: 12),
-                  child: Text(ar ? 'سجل الدخول لحفظ التقدم.'
-                      : 'Sign in to save progress.',
-                    style: const TextStyle(color: Color(0xFF9A692C)))),
-              if (snapshot.hasError)
-                Padding(padding: const EdgeInsets.only(top: 12),
-                  child: Text(ar ? 'تعذّر قراءة التقدم من Firebase.'
-                      : 'Unable to load progress from Firebase.',
-                    style: const TextStyle(color: Colors.redAccent))),
-              const SizedBox(height: 17),
-              Material(
-                color: scheme.surface,
-                borderRadius: BorderRadius.circular(22),
-                child: InkWell(
-                  key: const ValueKey('academy-start-dialogue'),
-                  borderRadius: BorderRadius.circular(22),
-                  onTap: () async {
-                    final finished = await Navigator.of(context).push<bool>(
-                      MaterialPageRoute(
-                        builder: (_) => AcademyFirstConversation(course: course),
-                      ),
-                    );
-                    if (finished == true && context.mounted && course.units.isNotEmpty) {
-                      await Navigator.of(context).push<void>(
-                        MaterialPageRoute(
-                          builder: (_) => AcademyLessonScreen(
-                            unit: course.units.first,
-                            kind: AcademyLessonKind.vocabulary,
-                            progress: repository,
-                            completed: done.contains(course.units.first.lessonId(
-                                AcademyLessonKind.vocabulary)),
-                          ),
-                        ),
-                      );
-                    }
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(19),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(22),
-                      border: Border.all(color: scheme.outlineVariant),
+                    Color(0xFF124D38), Color(0xFF268A60),
+                  ]),
+                  borderRadius: BorderRadius.circular(23),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.school_rounded, color: _gold, size: 36),
+                    const SizedBox(height: 10),
+                    Text(ar ? 'رحلتك لتعلم ${widget.course.arabicName}'
+                            : 'Your ${widget.course.nativeName} learning path',
+                      style: const TextStyle(color: Colors.white, fontSize: 22,
+                          fontWeight: FontWeight.w900)),
+                    const SizedBox(height: 9),
+                    Text(ar ? '$count من $total نشاطًا متاحًا أُنجزت'
+                            : '$count of $total available activities completed',
+                      style: const TextStyle(color: Colors.white70)),
+                    const SizedBox(height: 10),
+                    LinearProgressIndicator(
+                      value: total == 0 ? 0 : count / total,
+                      minHeight: 8, color: _gold,
+                      backgroundColor: Colors.white24,
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Row(children: [
-                      Container(
-                        width: 52, height: 52,
-                        decoration: BoxDecoration(
-                          color: scheme.primaryContainer,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Icon(Icons.forum_rounded, color: accent, size: 28),
-                      ),
-                      const SizedBox(width: 13),
-                      Expanded(child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(ar ? 'ابدأ بأول محادثة' : 'Your first conversation',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w900, fontSize: 17)),
-                          const SizedBox(height: 4),
-                          Text(ar
-                              ? 'استمع، اختر الرد الصحيح، ثم تعلّم الكلمات.'
-                              : 'Listen, choose a reply, and learn the words.',
-                            style: TextStyle(color: scheme.onSurfaceVariant,
-                                fontSize: 13)),
-                        ],
-                      )),
-                      Icon(Icons.play_circle_fill_rounded,
-                        color: accent, size: 31),
-                    ]),
-                  ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 21),
-              for (final unit in course.units) ...[
-                Text(ar ? 'الوحدة ${unit.number} · ${unit.title}' :
-                    'Unit ${unit.number} · ${unit.nativeTitle}',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: accent, fontWeight: FontWeight.w900)),
-                const SizedBox(height: 5),
-                Text(unit.nativeTitle,
-                  style: TextStyle(color: scheme.onSurfaceVariant)),
-                const SizedBox(height: 9),
-                for (final kind in AcademyLessonKind.values)
-                  Card(
-                    color: scheme.surface, elevation: 0,
-                    margin: const EdgeInsets.only(bottom: 7),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                      side: BorderSide(color: scheme.outlineVariant)),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: scheme.primaryContainer,
-                        child: Icon(academyKindIcon(kind), color: accent)),
-                      title: Text(academyKindTitle(kind, ar),
-                        style: const TextStyle(fontWeight: FontWeight.w800)),
-                      subtitle: Text(ar ? 'الدرس ${kind.index + 1} من 6'
-                          : 'Lesson ${kind.index + 1} of 6'),
-                      trailing: Icon(done.contains(unit.lessonId(kind))
-                          ? Icons.check_circle_rounded
-                          : Icons.chevron_right_rounded,
-                        color: done.contains(unit.lessonId(kind))
-                            ? accent : scheme.onSurfaceVariant),
-                      onTap: () => Navigator.of(context).push<void>(
-                        MaterialPageRoute(builder: (_) => AcademyLessonScreen(
-                          unit: unit, kind: kind, progress: repository,
-                          completed: done.contains(unit.lessonId(kind))),
-                        )),
+              const SizedBox(height: 14),
+              Card(
+                color: scheme.surface,
+                child: ListTile(
+                  key: const ValueKey('academy-retake-placement'),
+                  onTap: _openPlacement,
+                  leading: Icon(Icons.psychology_alt_rounded, color: accent),
+                  title: Text(ar ? 'اختبار تحديد المستوى' : 'Placement assessment',
+                      style: const TextStyle(fontWeight: FontWeight.w800)),
+                  subtitle: Text(_placementLevel == null
+                      ? (ar ? 'ابدأ الاختبار قبل الدراسة'
+                            : 'Start with a placement assessment')
+                      : (ar ? 'نقطة البداية المقترحة: $_placementLevel · إعادة الاختبار'
+                            : 'Suggested starting point: $_placementLevel · Retake')),
+                  trailing: Icon(Icons.chevron_right_rounded, color: accent),
+                ),
+              ),
+              if (_pendingCount > 0)
+                Card(color: scheme.surface,
+                  child: ListTile(
+                    leading: const Icon(Icons.cloud_upload_outlined),
+                    title: Text(ar ? 'دروس محفوظة محليًا'
+                        : 'Lessons saved on this device'),
+                    subtitle: Text(ar
+                        ? '$_pendingCount تنتظر مزامنة Firebase'
+                        : '$_pendingCount waiting for Firebase sync'),
+                    trailing: TextButton(
+                      onPressed: _sync,
+                      child: Text(ar ? 'مزامنة' : 'Sync'),
                     ),
-                  ),
-                const SizedBox(height: 13),
-              ],
-              Row(children: [
-                Icon(Icons.route_rounded, color: accent),
-                const SizedBox(width: 9),
-                Text(ar ? 'خريطة رحلة التعلم' : 'Your learning journey',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w900, color: accent)),
-              ]),
+                  )),
+              const SizedBox(height: 17),
+              Text(ar ? 'اختر مستوى التعلم' : 'Choose your learning level',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w900, color: accent)),
               const SizedBox(height: 10),
               ...AcademyJourneyCatalog.levels.map((level) {
-                final current = level.id == 'A1';
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  color: scheme.surface,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                    side: BorderSide(color: scheme.outlineVariant),
-                  ),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: current
-                          ? scheme.primaryContainer
-                          : scheme.surfaceContainerHighest,
-                      child: Text(level.id, style: TextStyle(
-                        color: current ? accent : scheme.onSurfaceVariant,
-                        fontSize: 13, fontWeight: FontWeight.w900)),
+                final a1 = level.isBeginner;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Material(
+                    color: scheme.surface,
+                    borderRadius: BorderRadius.circular(19),
+                    child: InkWell(
+                      key: ValueKey('academy-level-${level.id}'),
+                      borderRadius: BorderRadius.circular(19),
+                      onTap: a1 ? _openA1 : null,
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: scheme.outlineVariant),
+                          borderRadius: BorderRadius.circular(19),
+                        ),
+                        child: Row(children: [
+                          CircleAvatar(
+                            radius: 28,
+                            backgroundColor: a1 ? scheme.primaryContainer
+                                : scheme.surfaceContainerHighest,
+                            child: Text(level.id,
+                              style: TextStyle(color: a1 ? accent
+                                  : scheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w900)),
+                          ),
+                          const SizedBox(width: 13),
+                          Expanded(child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(ar ? level.titleArabic : level.titleEnglish,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w800, fontSize: 17)),
+                              const SizedBox(height: 4),
+                              Text(a1
+                                  ? (ar
+                                      ? '${widget.course.units.length} وحدات جاهزة للبدء'
+                                      : '${widget.course.units.length} units ready')
+                                  : (ar ? 'قيد إعداد الدروس'
+                                      : 'Lessons are being prepared'),
+                                style: TextStyle(color: scheme.onSurfaceVariant)),
+                            ],
+                          )),
+                          Icon(a1 ? Icons.play_circle_rounded
+                              : Icons.lock_outline_rounded,
+                              color: a1 ? accent : scheme.onSurfaceVariant),
+                        ]),
+                      ),
                     ),
-                    title: Text(ar ? level.titleArabic : level.titleEnglish,
-                      style: const TextStyle(fontWeight: FontWeight.w800)),
-                    subtitle: Text(current
-                        ? (ar
-                            ? '${course.units.length} وحدات متاحة حاليًا من ${level.plannedUnits} مخططة'
-                            : '${course.units.length} available of ${level.plannedUnits} planned units')
-                        : (ar
-                            ? '${level.plannedUnits} وحدة مخططة · قيد الإعداد'
-                            : '${level.plannedUnits} planned units · Coming later')),
-                    trailing: Icon(current
-                        ? Icons.play_circle_outline_rounded
-                        : Icons.lock_outline_rounded,
-                      color: current ? accent : scheme.onSurfaceVariant),
                   ),
                 );
               }),
-              const SizedBox(height: 20),
+              Text(ar
+                  ? 'اختبار المستوى تمهيدي، والدروس A2–C2 ستفتح بعد إعداد محتواها.'
+                  : 'Placement is preliminary. A2–C2 lessons will open when content is ready.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12,
+                    color: scheme.onSurfaceVariant)),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
 
+class _AcademyA1Home extends StatelessWidget {
+  const _AcademyA1Home({required this.course, required this.progress});
+  final AcademyCourse course;
+  final AcademyProgressService progress;
+
+  @override
+  Widget build(BuildContext context) {
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    final scheme = Theme.of(context).colorScheme;
+    final accent = Theme.of(context).brightness == Brightness.dark
+        ? const Color(0xFF9DECC4) : _green;
+    final kinds = <AcademyLessonKind?>[
+      null, AcademyLessonKind.story, AcademyLessonKind.vocabulary,
+      AcademyLessonKind.grammar, AcademyLessonKind.listening,
+      AcademyLessonKind.speaking, AcademyLessonKind.quiz,
+    ];
+    return Scaffold(
+      appBar: AppBar(title: Text(ar ? 'A1 · المبتدئ' : 'A1 · Beginner'),
+        backgroundColor: _green, foregroundColor: Colors.white),
+      body: SafeArea(child: ListView(
+        padding: const EdgeInsets.all(18),
+        children: [
+          Text(ar ? 'ماذا تريد أن تتعلم اليوم؟' : 'What will you learn today?',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w900, color: accent)),
+          const SizedBox(height: 8),
+          Text(ar ? 'قصص ومحادثات ومفردات ونطق — اختر القسم وابدأ دروسه.'
+              : 'Stories, dialogues, vocabulary and pronunciation — choose a section.',
+            style: TextStyle(color: scheme.onSurfaceVariant)),
+          const SizedBox(height: 18),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: kinds.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12,
+              mainAxisExtent: 135,
+            ),
+            itemBuilder: (context, index) {
+              final kind = kinds[index];
+              final label = kind == null
+                  ? (ar ? 'المحادثات' : 'Conversations')
+                  : academyKindTitle(kind, ar);
+              return Material(
+                color: scheme.surface,
+                borderRadius: BorderRadius.circular(21),
+                child: InkWell(
+                  key: ValueKey('academy-section-${kind?.name ?? 'dialogue'}'),
+                  borderRadius: BorderRadius.circular(21),
+                  onTap: () => Navigator.of(context).push<void>(
+                    MaterialPageRoute(
+                      builder: (_) => kind == null
+                          ? AcademyFirstConversation(course: course)
+                          : _AcademySectionList(
+                              course: course, kind: kind, progress: progress),
+                    ),
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(21),
+                      border: Border.all(color: scheme.outlineVariant),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(kind == null ? Icons.forum_rounded
+                                : academyKindIcon(kind),
+                            size: 34, color: accent),
+                        const SizedBox(height: 10),
+                        Text(label, textAlign: TextAlign.center,
+                            style: const TextStyle(fontWeight: FontWeight.w900,
+                                fontSize: 17)),
+                        const SizedBox(height: 5),
+                        Text(ar ? '${course.units.length} درس' :
+                            '${course.units.length} lessons',
+                          style: TextStyle(color: scheme.onSurfaceVariant,
+                              fontSize: 12)),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+          Text(ar ? 'اختر أي قسم، ويمكنك العودة لإكمال الأقسام الأخرى.'
+              : 'Choose any section; come back to finish the others.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: scheme.onSurfaceVariant)),
+        ],
+      )),
+    );
+  }
+}
+
+class _AcademySectionList extends StatefulWidget {
+  const _AcademySectionList({
+    required this.course, required this.kind, required this.progress});
+  final AcademyCourse course;
+  final AcademyLessonKind kind;
+  final AcademyProgressService progress;
+
+  @override
+  State<_AcademySectionList> createState() => _AcademySectionListState();
+}
+
+class _AcademySectionListState extends State<_AcademySectionList> {
+  @override
+  Widget build(BuildContext context) {
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    final scheme = Theme.of(context).colorScheme;
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    return Scaffold(
+      appBar: AppBar(title: Text(academyKindTitle(widget.kind, ar)),
+          backgroundColor: _green, foregroundColor: Colors.white),
+      body: SafeArea(child: StreamBuilder<Set<String>>(
+        stream: uid == null ? Stream.value(<String>{})
+            : widget.progress.completedLessons(uid),
+        builder: (context, snapshot) {
+          final completed = snapshot.data ?? <String>{};
+          return ListView(
+            padding: const EdgeInsets.all(19),
+            children: [
+              Text(ar ? 'دروس ${academyKindTitle(widget.kind, ar)}'
+                      : '${academyKindTitle(widget.kind, ar)} lessons',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w900)),
+              const SizedBox(height: 14),
+              for (final unit in widget.course.units)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Card(color: scheme.surface, elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(19),
+                      side: BorderSide(color: scheme.outlineVariant)),
+                    child: ListTile(
+                      key: ValueKey('academy-unit-${unit.number}'),
+                      contentPadding: const EdgeInsets.all(14),
+                      leading: CircleAvatar(
+                        backgroundColor: scheme.primaryContainer,
+                        child: Text('${unit.number}',
+                          style: const TextStyle(fontWeight: FontWeight.w900)),
+                      ),
+                      title: Text(ar ? unit.title : unit.nativeTitle,
+                        style: const TextStyle(fontWeight: FontWeight.w800)),
+                      subtitle: Text(unit.nativeTitle),
+                      trailing: Icon(completed.contains(unit.lessonId(widget.kind))
+                          ? Icons.check_circle_rounded
+                          : Icons.chevron_right_rounded),
+                      onTap: () async {
+                        await Navigator.of(context).push<void>(
+                          MaterialPageRoute(builder: (_) => AcademyLessonScreen(
+                            unit: unit, kind: widget.kind,
+                            progress: widget.progress,
+                            completed: completed.contains(unit.lessonId(widget.kind)),
+                          )),
+                        );
+                        if (mounted) setState(() {});
+                      },
+                    ),
+                  ),
+                ),
             ],
           );
         },
