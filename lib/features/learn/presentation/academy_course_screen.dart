@@ -108,7 +108,8 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
         course: widget.course, progress: _progress,
       )),
     );
-    if (mounted) setState(() {});
+    final pending = await _progress.pendingCount();
+    if (mounted) setState(() => _pendingCount = pending);
   }
 
   Future<void> _sync() async {
