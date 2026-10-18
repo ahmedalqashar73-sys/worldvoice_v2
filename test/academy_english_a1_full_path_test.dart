@@ -3,64 +3,75 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:worldvoice/features/learn/data/academy_english_a1_catalog.dart';
+import 'package:worldvoice/features/learn/data/academy_english_a1_vocabulary.dart';
+import 'package:worldvoice/features/learn/data/academy_english_a1_long_stories.dart';
+import 'package:worldvoice/features/learn/data/academy_english_a1_lesson_checks.dart';
 import 'package:worldvoice/features/learn/presentation/academy_english_a1_screen.dart';
+import 'package:worldvoice/features/learn/presentation/academy_english_a1_integrated_lesson.dart';
 import 'package:worldvoice/features/learn/presentation/academy_illustrated_story_art.dart';
 
 void main() {
-  test('English A1 contains three distinct units, 12 genuine lessons each', () {
+  test('A1 has three units and every one of 36 lessons contains full content', () {
     expect(EnglishA1Catalog.units.length, 3);
     expect(EnglishA1Catalog.lessonCount, 36);
-    final allIds = <String>{};
+    final ids = <String>{};
     for (final unit in EnglishA1Catalog.units) {
-      expect(unit.lessons.length, 12, reason: 'Unit ${unit.id}');
+      expect(unit.lessons, hasLength(12));
       expect(unit.goal.trim(), isNotEmpty);
-      expect(unit.titleAr.trim(), isNotEmpty);
-      final storyLessons = unit.lessons.where(
-          (lesson) => lesson.kind == EnglishA1Kind.story).toList();
-      expect(storyLessons.length, 2);
-      final kinds = unit.lessons.map((lesson) => lesson.kind).toSet();
-      expect(kinds.containsAll({
-        EnglishA1Kind.dialogue, EnglishA1Kind.vocabulary,
-        EnglishA1Kind.pronunciation, EnglishA1Kind.grammar,
-        EnglishA1Kind.listening, EnglishA1Kind.story,
-        EnglishA1Kind.practice, EnglishA1Kind.quiz,
-      }), true);
-      for (final lesson in unit.lessons) {
-        expect(allIds.add(lesson.id), true);
-        expect(lesson.title.trim(), isNotEmpty);
-        expect(lesson.titleAr.trim(), isNotEmpty);
-        expect(lesson.teaching.trim().length, greaterThan(15));
-        expect(lesson.arabic.trim(), isNotEmpty);
+      for (var index = 0; index < 12; index++) {
+        final lesson = unit.lessons[index];
+        final num = index + 1;
+        expect(ids.add(lesson.id), isTrue);
+        expect(lesson.titleAr, isNotEmpty);
         expect(lesson.spoken.trim(), isNotEmpty);
-        expect(lesson.question.trim(), isNotEmpty);
-        expect(lesson.options.length, 3);
+        expect(lesson.teaching.trim(), isNotEmpty);
+        expect(lesson.question, isNotEmpty);
+        expect(lesson.options, hasLength(3));
         expect(lesson.answer, inInclusiveRange(0, 2));
-        expect(lesson.options.toSet().length, 3);
-        if (lesson.kind == EnglishA1Kind.story) {
-          expect(EnglishA1Catalog.findStory(lesson.storyId!), isNotNull);
-        } else {
-          expect(lesson.storyId, isNull);
+        final words = EnglishA1Vocabulary.forLesson(unit.id, num);
+        expect(words, hasLength(20));
+        expect(words.map((w) => w.term.toLowerCase()).toSet().length, 20);
+        for (final word in words) {
+          expect(word.term.trim(), isNotEmpty);
+          expect(word.arabic.trim(), isNotEmpty);
+          expect(word.pronunciation.trim(), isNotEmpty);
+        }
+        final grammar = EnglishA1LessonChecks.grammarFor(unit.id, num);
+        expect(grammar.example, isNotEmpty);
+        expect(grammar.helpArabic, isNotEmpty);
+        final chapter = EnglishA1StorySyllabus.chapterFor(unit.id, num);
+        expect(chapter.paragraphs, hasLength(3));
+        final quiz = EnglishA1LessonChecks.storyCheck(unit.id, num);
+        expect(quiz.options, hasLength(3));
+        expect(quiz.answer, inInclusiveRange(0, 2));
+      }
+    }
+    expect(ids, hasLength(36));
+  });
+
+  test('Nine distinct four-chapter stories, exactly three in each unit', () {
+    expect(EnglishA1StorySyllabus.stories, hasLength(9));
+    final ids = <String>{};
+    for (var unit = 1; unit <= 3; unit++) {
+      final books = EnglishA1StorySyllabus.stories.where((s) => s.unit == unit);
+      expect(books.length, 3);
+    }
+    for (final story in EnglishA1StorySyllabus.stories) {
+      expect(ids.add(story.id), isTrue);
+      expect(story.chapters, hasLength(4));
+      expect(story.titleArabic, isNotEmpty);
+      for (final chapter in story.chapters) {
+        expect(chapter.paragraphs, hasLength(3));
+        for (final para in chapter.paragraphs) {
+          expect(para.english.trim().length, greaterThan(30));
+          expect(para.arabic.trim().length, greaterThan(25));
         }
       }
     }
-    expect(allIds.length, 36);
-  });
-
-  test('six original five-page stories cover both slots in all units', () {
-    expect(EnglishA1Catalog.stories.length, 6);
-    final ids = <String>{};
-    for (final story in EnglishA1Catalog.stories) {
-      expect(ids.add(story.id), true);
-      expect(story.pages.length, greaterThanOrEqualTo(5));
-      expect(story.scene, inInclusiveRange(0, 5));
-      expect(story.titleAr.trim(), isNotEmpty);
-      expect(story.options.length, 3);
-      expect(story.answer, inInclusiveRange(0, 2));
-      for (final page in story.pages) {
-        expect(page.text.trim().length, greaterThan(18));
-        expect(page.arabic.trim().length, greaterThan(18));
-      }
-    }
+    expect(EnglishA1StorySyllabus.storyFor(1, 1).id,
+        EnglishA1StorySyllabus.storyFor(1, 4).id);
+    expect(EnglishA1StorySyllabus.storyFor(1, 5).id,
+        isNot(EnglishA1StorySyllabus.storyFor(1, 4).id));
   });
 
   test('device-only completion is account scoped and cannot forge unknown ids',
@@ -77,9 +88,43 @@ void main() {
     expect((await EnglishA1Progress.load('person-a')).length, 1);
   });
 
-  testWidgets('animated story art draws all six scenes without remote images',
+  testWidgets('each lesson begins with conversation and proceeds to 20 vocabulary cards',
       (tester) async {
-    for (var scene = 0; scene < 6; scene++) {
+    final unit = EnglishA1Catalog.units.first;
+    await tester.pumpWidget(MaterialApp(
+      home: AcademyEnglishA1IntegratedLesson(
+        unit: unit, lesson: unit.lessons.first, lessonNumber: 1),
+    ));
+    expect(find.text('Talk with your tutor'), findsOneWidget);
+    expect(find.text('What is a friendly reply to “Hello”?'), findsOneWidget);
+    await tester.ensureVisible(find.text('Hi!'));
+    await tester.tap(find.text('Hi!'));
+    await tester.pump();
+    await tester.ensureVisible(find.byKey(const ValueKey('academy-integrated-answer')));
+    await tester.tap(find.byKey(const ValueKey('academy-integrated-answer')));
+    await tester.pump();
+    await tester.tap(find.text('Continue').first);
+    await tester.pump();
+    expect(find.text('20 words to learn and review'), findsOneWidget);
+    expect(find.text('hello'), findsWidgets);
+  });
+
+  test('old partial activity completion remains intact but not counted as a full lesson',
+      () async {
+    SharedPreferences.setMockInitialValues({
+      'worldvoice.academy.en.a1.v1.person-c.done':
+          <String>['en_a1_1_01', 'en_a1_1_02'],
+    });
+    expect(await EnglishA1Progress.loadLegacy('person-c'), hasLength(2));
+    expect(await EnglishA1Progress.load('person-c'), isEmpty);
+    await EnglishA1Progress.complete('person-c', 'en_a1_1_01');
+    expect(await EnglishA1Progress.load('person-c'), hasLength(1));
+    expect(await EnglishA1Progress.loadLegacy('person-c'), hasLength(2));
+  });
+
+  testWidgets('animated story art draws all nine scenes without remote images',
+      (tester) async {
+    for (var scene = 0; scene < 9; scene++) {
       await tester.pumpWidget(MaterialApp(
         home: Scaffold(body: Center(child: SizedBox(
           width: 360,
