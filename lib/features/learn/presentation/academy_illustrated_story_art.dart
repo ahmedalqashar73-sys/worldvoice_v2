@@ -61,6 +61,9 @@ class _StoryPainter extends CustomPainter {
     [Color(0xFF5C77AD), Color(0xFF9CC9D6), Color(0xFFF5C783)],
     [Color(0xFF76A9B1), Color(0xFFB5D5C1), Color(0xFFF4D48F)],
     [Color(0xFF182C68), Color(0xFF354A82), Color(0xFF95BCB6)],
+    [Color(0xFFDF89A5), Color(0xFFF6C8A5), Color(0xFF83BBA4)],
+    [Color(0xFF1D4E65), Color(0xFF5681A2), Color(0xFFE0B678)],
+    [Color(0xFFF7C183), Color(0xFFFFE4A3), Color(0xFF8DCAA7)],
   ];
 
   void _box(Canvas c, double x, double y, double w, double h, Color color,
@@ -188,6 +191,69 @@ class _StoryPainter extends CustomPainter {
     }
   }
 
+  void _invitation(Canvas c) {
+    _box(c, 0, 172, 360, 38, const Color(0xFF98B49A));
+    for (final x in [19.0, 84.0, 268.0, 339.0]) {
+      _tree(c, x, 111, .8);
+    }
+    _box(c, 110, 60, 145, 121, const Color(0xFFE7B4A3), radius: 17);
+    _box(c, 119, 68, 127, 106, const Color(0xFFFAE9C9), radius: 12);
+    _box(c, 155, 120, 54, 57, const Color(0xFFB57974), radius: 4);
+    _box(c, 124, 78, 115, 27, const Color(0xFF3C9075), radius: 5);
+    _character(c, 72 + math.sin(phase * 2 * math.pi) * 2, 115,
+        const Color(0xFFBD82B1), longHair: true);
+    _character(c, 295, 114, const Color(0xFF6297B8));
+    for (var i = 0; i < 4; i++) {
+      final x = 147.0 + i * 24;
+      _circle(c, x, 124, 4,
+          i.isEven ? const Color(0xFFEC9E8C) : const Color(0xFFEBD274));
+    }
+  }
+
+  void _lanternWalk(Canvas c) {
+    _box(c, 0, 173, 360, 37, const Color(0xFF264B63));
+    _circle(c, 72, 40, 22, const Color(0xFFFFE1AD));
+    _tree(c, 29, 111, 1.1);
+    _tree(c, 319, 109, 1.25);
+    _character(c, 128, 113, const Color(0xFFCB788F), longHair: true);
+    _character(c, 221, 110, const Color(0xFF6583A5), longHair: true);
+    final glow = .55 + .4 * math.sin(phase * 2 * math.pi).abs();
+    _circle(c, 175, 125, 23,
+        const Color(0xFFFFE3A3).withValues(alpha: glow * .34));
+    _box(c, 165, 113, 20, 31, const Color(0xFFA57A53), radius: 5);
+    _box(c, 168, 116, 14, 23, const Color(0xFFFFE9A2), radius: 4);
+    _line(c, const Offset(169, 110), const Offset(181, 110),
+        const Color(0xFF574B4F), 3);
+    _circle(c, 275, 178, 13, const Color(0xFFD7B7A1));
+    _circle(c, 269, 166, 8, const Color(0xFFD7B7A1));
+    _circle(c, 281, 166, 8, const Color(0xFFD7B7A1));
+  }
+
+  void _market(Canvas c) {
+    _box(c, 0, 171, 360, 39, const Color(0xFFD8AF8A));
+    for (var i = 0; i < 3; i++) {
+      final x = 18.0 + 120 * i;
+      _box(c, x, 85, 108, 93, const Color(0xFFFAECCF), radius: 6);
+      _box(c, x, 75, 108, 24, const Color(0xFFE8A7A1), radius: 5);
+      for (var k = 0; k < 4; k++) {
+        _box(c, x + 2 + k * 27, 76, 22, 22,
+          k.isEven ? const Color(0xFFFDF0DC)
+              : const Color(0xFFCF777D), radius: 3);
+      }
+      _box(c, x + 5, 128, 98, 14, const Color(0xFF8B6959), radius: 3);
+      for (var k = 0; k < 4; k++) {
+        _circle(c, x + 18 + k * 22, 123, 9,
+          [const Color(0xFFE5A951), const Color(0xFFD8645D),
+            const Color(0xFF8EB17C), const Color(0xFFD3A85B)][k]);
+      }
+    }
+    _character(c, page.isEven ? 164 : 185, 118,
+        const Color(0xFF629C88), longHair: true);
+    _circle(c, 225, 166, 13, const Color(0xFFE2BD79));
+    _line(c, const Offset(213, 157), const Offset(237, 157),
+        const Color(0xFF8D6A57), 3);
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
     if (size.width <= 0 || size.height <= 0) return;
@@ -227,11 +293,17 @@ class _StoryPainter extends CustomPainter {
     } else if (scene == 4) {
       _city(canvas);
       _character(canvas, 186, 128, const Color(0xFF6B83BC));
-    } else {
+    } else if (scene == 5) {
       _garden(canvas);
       _circle(canvas, 73, 47, 21, const Color(0xFFFFE6B4));
       _character(canvas, 174, 121, const Color(0xFF9E82BF), longHair: true);
       _character(canvas, 220, 116, const Color(0xFF8BA4A9));
+    } else if (scene == 6) {
+      _invitation(canvas);
+    } else if (scene == 7) {
+      _lanternWalk(canvas);
+    } else {
+      _market(canvas);
     }
 
     for (var i = 0; i < 11; i++) {
@@ -239,7 +311,7 @@ class _StoryPainter extends CustomPainter {
           .clamp(5.0, 355.0).toDouble();
       final y = (31.0 + (i * 17 + phase * 33) % 118);
       _circle(canvas, x, y, i.isEven ? 2.4 : 1.4,
-          (scene == 5 ? const Color(0xFFFFE7A3) :
+          ((scene == 5 || scene == 7) ? const Color(0xFFFFE7A3) :
               const Color(0xFFFFFCDF)).withValues(alpha: .7));
     }
     canvas.restore();
