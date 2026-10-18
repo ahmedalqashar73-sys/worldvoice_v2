@@ -1,0 +1,21 @@
+name: Temporary Academy Flutter Verification
+
+on:
+  push:
+    branches:
+      - fix/academy-vocabulary-pronunciation-20261018
+
+jobs:
+  academy:
+    name: Academy Analysis and Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter --version
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test test/academy_catalog_test.dart test/academy_pronunciation_widget_test.dart
