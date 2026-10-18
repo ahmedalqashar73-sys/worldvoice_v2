@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
 import '../data/academy_catalog.dart';
+import '../data/academy_journey_catalog.dart';
+import '../data/academy_story_catalog.dart';
+import 'academy_first_conversation.dart';
+import 'academy_story_reader.dart';
 import '../services/academy_progress_service.dart';
 
 const _green = Color(0xFF12523B);
@@ -88,6 +92,112 @@ class AcademyCourseScreen extends StatelessWidget {
                   child: Text(ar ? 'تعذّر قراءة التقدم من Firebase.'
                       : 'Unable to load progress from Firebase.',
                     style: const TextStyle(color: Colors.redAccent))),
+              const SizedBox(height: 17),
+              Material(
+                color: scheme.surface,
+                borderRadius: BorderRadius.circular(22),
+                child: InkWell(
+                  key: const ValueKey('academy-start-dialogue'),
+                  borderRadius: BorderRadius.circular(22),
+                  onTap: () async {
+                    final finished = await Navigator.of(context).push<bool>(
+                      MaterialPageRoute(
+                        builder: (_) => AcademyFirstConversation(course: course),
+                      ),
+                    );
+                    if (finished == true && context.mounted && course.units.isNotEmpty) {
+                      await Navigator.of(context).push<void>(
+                        MaterialPageRoute(
+                          builder: (_) => AcademyLessonScreen(
+                            unit: course.units.first,
+                            kind: AcademyLessonKind.vocabulary,
+                            progress: repository,
+                            completed: done.contains(course.units.first.lessonId(
+                                AcademyLessonKind.vocabulary)),
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(19),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(22),
+                      border: Border.all(color: scheme.outlineVariant),
+                    ),
+                    child: Row(children: [
+                      Container(
+                        width: 52, height: 52,
+                        decoration: BoxDecoration(
+                          color: scheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Icon(Icons.forum_rounded, color: accent, size: 28),
+                      ),
+                      const SizedBox(width: 13),
+                      Expanded(child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(ar ? 'ابدأ بأول محادثة' : 'Your first conversation',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w900, fontSize: 17)),
+                          const SizedBox(height: 4),
+                          Text(ar
+                              ? 'استمع، اختر الرد الصحيح، ثم تعلّم الكلمات.'
+                              : 'Listen, choose a reply, and learn the words.',
+                            style: TextStyle(color: scheme.onSurfaceVariant,
+                                fontSize: 13)),
+                        ],
+                      )),
+                      Icon(Icons.play_circle_fill_rounded,
+                        color: accent, size: 31),
+                    ]),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 21),
+              Row(children: [
+                Icon(Icons.route_rounded, color: accent),
+                const SizedBox(width: 9),
+                Text(ar ? 'خريطة رحلة التعلم' : 'Your learning journey',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w900, color: accent)),
+              ]),
+              const SizedBox(height: 10),
+              ...AcademyJourneyCatalog.levels.map((level) {
+                final current = level.id == 'A1';
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  color: scheme.surface,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    side: BorderSide(color: scheme.outlineVariant),
+                  ),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: current
+                          ? scheme.primaryContainer
+                          : scheme.surfaceContainerHighest,
+                      child: Text(level.id, style: TextStyle(
+                        color: current ? accent : scheme.onSurfaceVariant,
+                        fontSize: 13, fontWeight: FontWeight.w900)),
+                    ),
+                    title: Text(ar ? level.titleArabic : level.titleEnglish,
+                      style: const TextStyle(fontWeight: FontWeight.w800)),
+                    subtitle: Text(current
+                        ? (ar
+                            ? '${course.units.length} وحدات متاحة حاليًا من ${level.plannedUnits} مخططة'
+                            : '${course.units.length} available of ${level.plannedUnits} planned units')
+                        : (ar
+                            ? '${level.plannedUnits} وحدة مخططة · قيد الإعداد'
+                            : '${level.plannedUnits} planned units · Coming later')),
+                    trailing: Icon(current
+                        ? Icons.play_circle_outline_rounded
+                        : Icons.lock_outline_rounded,
+                      color: current ? accent : scheme.onSurfaceVariant),
+                  ),
+                );
+              }),
               const SizedBox(height: 20),
               for (final unit in course.units) ...[
                 Text(ar ? 'الوحدة ${unit.number} · ${unit.title}' :
@@ -160,6 +270,7 @@ class _AcademyLessonScreenState extends State<AcademyLessonScreen> {
   int? _speakingWord;
   bool _checked = false, _correct = false, _saving = false;
   bool _speaking = false, _slowSpeech = false, _transcript = false;
+  bool _storyPassed = false;
   late bool _complete;
 
   @override
@@ -237,6 +348,7 @@ class _AcademyLessonScreenState extends State<AcademyLessonScreen> {
   Future<void> _save() async {
     if (_saving || _complete) return;
     if (widget.kind == AcademyLessonKind.quiz && !_correct) return;
+    if (widget.kind == AcademyLessonKind.story && !_storyPassed) return;
     setState(() => _saving = true);
     try {
       await (widget.progress ?? AcademyProgressService())
@@ -424,13 +536,70 @@ class _AcademyLessonScreenState extends State<AcademyLessonScreen> {
           _info(_ar ? 'الترجمة' : 'Arabic meaning', u.grammarTranslation),
         ]);
       case AcademyLessonKind.story:
-        return Column(children: [
-          _info(_ar ? 'اقرأ القصة' : 'Read the story', u.story, target: true),
-          const SizedBox(height: 10),
-          _listen(u.story),
-          const SizedBox(height: 10),
-          _info(_ar ? 'الشرح بالعربية' : 'Arabic interpretation', u.storyArabic),
-        ]);
+        final story = AcademyStoryCatalog.forUnit(u);
+        final scheme = Theme.of(context).colorScheme;
+        return Column(crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(23),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF124B3A), Color(0xFF23815B)]),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Column(children: [
+                const Icon(Icons.auto_stories_rounded,
+                  color: _gold, size: 41),
+                const SizedBox(height: 18),
+                Text(story.coverSymbol,
+                  style: const TextStyle(fontSize: 61)),
+                const SizedBox(height: 14),
+                Text(story.title, textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white,
+                    fontSize: 23, fontWeight: FontWeight.w900)),
+                const SizedBox(height: 8),
+                Text(story.titleArabic, textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Color(0xFFE4F2E6), fontSize: 16)),
+                const SizedBox(height: 8),
+                Text(_ar
+                      ? '${story.pages.length} صفحات · قراءة واستماع'
+                      : '${story.pages.length} pages · read and listen',
+                  style: const TextStyle(color: _gold)),
+              ]),
+            ),
+            const SizedBox(height: 17),
+            Text(_ar
+                ? 'افتح الكتاب، وانتقل بين الصفحات، واستمع إلى كل صفحة. اجتز سؤال الفهم لحفظ الدرس.'
+                : 'Turn the pages, listen to the story, and answer the comprehension question to complete the lesson.',
+              style: TextStyle(color: scheme.onSurfaceVariant, height: 1.6)),
+            const SizedBox(height: 15),
+            FilledButton.icon(
+              key: const ValueKey('academy-open-storybook'),
+              onPressed: () async {
+                final result = await Navigator.of(context).push<bool>(
+                  MaterialPageRoute(
+                    builder: (_) => AcademyStoryReader(unit: u),
+                  ),
+                );
+                if (!mounted || result != true) return;
+                setState(() => _storyPassed = true);
+                _notice(_ar
+                    ? 'أحسنت! اجتزت سؤال فهم القصة. احفظ التقدم الآن.'
+                    : 'Excellent! You passed the story question. Save your progress.');
+              },
+              icon: Icon(_storyPassed
+                  ? Icons.check_circle_rounded : Icons.menu_book_rounded),
+              label: Text(_storyPassed
+                  ? (_ar ? 'إعادة قراءة القصة' : 'Read the story again')
+                  : (_ar ? 'افتح القصة واقرأها' : 'Open storybook')),
+              style: FilledButton.styleFrom(
+                backgroundColor: _green,
+                foregroundColor: Colors.white,
+                minimumSize: const Size.fromHeight(55)),
+            ),
+          ],
+        );
       case AcademyLessonKind.listening:
         return Column(children: [
           Text(_ar ? 'استمع وحدد الكلمات التي تعرفها.'
@@ -519,7 +688,8 @@ class _AcademyLessonScreenState extends State<AcademyLessonScreen> {
           const SizedBox(height: 22),
           FilledButton.icon(
             onPressed: _saving || _complete ||
-                (widget.kind == AcademyLessonKind.quiz && !_correct)
+                (widget.kind == AcademyLessonKind.quiz && !_correct) ||
+                (widget.kind == AcademyLessonKind.story && !_storyPassed)
                 ? null : _save,
             icon: Icon(_complete
                 ? Icons.check_circle_rounded : Icons.bookmark_added_rounded),
