@@ -9,12 +9,19 @@ import 'academy_english_a1_integrated_lesson.dart';
 const _deepGreen = Color(0xFF145C46);
 const _mint = Color(0xFF99E5BF);
 
-/// Small-step A1 practice: 36 authored learning activities, not CEFR grading.
+/// Integrated A1: only all-stage completion is saved as a finished lesson.\n/// Older partial-activity completions remain in their untouched v1 key.
 /// Completed lessons stay on this device, namespaced to the signed-in account.
 /// Do not attempt Firestore writes against restrictive legacy six-kind rules.
 abstract final class EnglishA1Progress {
   static String _key(String? uid) =>
-      'worldvoice.academy.en.a1.v1.${uid ?? 'guest'}.done';
+      'worldvoice.academy.en.a1.integrated.v2.${uid ?? 'guest'}.done';
+
+  static Future<Set<String>> loadLegacy(String? uid) async {
+    final p = await SharedPreferences.getInstance();
+    return (p.getStringList(
+        'worldvoice.academy.en.a1.v1.${uid ?? 'guest'}.done') ??
+        <String>[]).toSet();
+  }
 
   static Future<Set<String>> load(String? uid) async {
     final p = await SharedPreferences.getInstance();
@@ -52,6 +59,7 @@ class AcademyEnglishA1Path extends StatefulWidget {
 
 class _AcademyEnglishA1PathState extends State<AcademyEnglishA1Path> {
   Set<String> _completed = <String>{};
+  int _previousActivityCount = 0;
   String? get _uid => FirebaseAuth.instance.currentUser?.uid;
   bool get _ar => Localizations.localeOf(context).languageCode == 'ar';
 
@@ -63,7 +71,11 @@ class _AcademyEnglishA1PathState extends State<AcademyEnglishA1Path> {
 
   Future<void> _reload() async {
     final result = await EnglishA1Progress.load(_uid);
-    if (mounted) setState(() => _completed = result);
+    final previous = await EnglishA1Progress.loadLegacy(_uid);
+    if (mounted) setState(() {
+      _completed = result;
+      _previousActivityCount = previous.length;
+    });
   }
 
   Future<void> _open(EnglishA1Unit unit) async {
@@ -124,6 +136,18 @@ class _AcademyEnglishA1PathState extends State<AcademyEnglishA1Path> {
               : 'This learning path currently stores completion on this device, not in Firebase.',
             textAlign: TextAlign.center, style: TextStyle(
                 color: scheme.onSurfaceVariant, fontSize: 12)),
+          if (_previousActivityCount > 0)
+            Padding(
+              padding: const EdgeInsets.only(top: 9),
+              child: Text(
+                _ar
+                    ? 'تقدم الإصدار السابق ($_previousActivityCount نشاط) ما زال محفوظًا، لكنه لا يُحتسب درسًا كاملًا حتى تُنهي المراحل الجديدة.'
+                    : 'Your $_previousActivityCount previous activities remain saved separately; the new complete lessons are counted only after all stages.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12,
+                    color: scheme.onSurfaceVariant),
+              ),
+            ),
           const SizedBox(height: 19),
           Text(_ar ? 'اختر الوحدة' : 'Choose a unit',
             style: TextStyle(color: accent, fontSize: 21,
