@@ -78,20 +78,23 @@ class _AcademyStoryReaderState extends State<AcademyStoryReader> {
     }
   }
 
-  Future<void> _move(int next) async {
-    if (next < 0 || next >= _total) return;
+  Future<void> _stopAudioSafely() async {
     try {
       await _tts.stop();
     } catch (_) {
-      // Reading must remain available without an installed speech engine.
+      // Page turns never wait for a speech engine.
     }
-    if (!mounted) return;
+  }
+
+  void _move(int next) {
+    if (next < 0 || next >= _total) return;
+    _stopAudioSafely();
     setState(() {
       _page = next;
       _speaking = false;
       _showTranslation = false;
     });
-    await _controller.animateToPage(next,
+    _controller.animateToPage(next,
         duration: const Duration(milliseconds: 280),
         curve: Curves.easeOutCubic);
   }
