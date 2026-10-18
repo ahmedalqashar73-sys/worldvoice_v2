@@ -1,4 +1,6 @@
 // Curated, offline-first beginner material: five languages × two units ×
+// Arabic-script cues for Latin-script courses are approximate learning aids;
+// the real spoken pronunciation is provided by the target-language TTS.
 // six complete lesson activities (vocabulary, grammar, story, listening,
 // speaking practice and knowledge check). No AI request or paid content.
 // Advanced and intermediate courses are not advertised as completed content.
@@ -75,7 +77,7 @@ const academyUnits = <AcademyUnit>[
     speakingHelp: 'عرّف بنفسك، وقل اسمك ثم حيِّ شخصًا جديدًا.',
     quizQuestion: 'What do you say when you meet someone?',
     quizCorrectIndex: 0,
-    words: [AcademyWord('hello', 'مرحبًا', 'hello'), AcademyWord('name', 'اسم', 'name'), AcademyWord('friend', 'صديق', 'friend'), AcademyWord('please', 'من فضلك', 'please'), AcademyWord('thanks', 'شكرًا', 'thanks')],
+    words: [AcademyWord('hello', 'مرحبًا', 'هَلّو'), AcademyWord('name', 'اسم', 'نَيْم'), AcademyWord('friend', 'صديق', 'فْرِند'), AcademyWord('please', 'من فضلك', 'پْليز'), AcademyWord('thanks', 'شكرًا', 'ثانكس')],
     quizOptions: ['Nice to meet you.', 'See you yesterday.', 'I am apple.'],
   ),
   AcademyUnit(
@@ -93,7 +95,7 @@ const academyUnits = <AcademyUnit>[
     speakingHelp: 'صف صباحك في جملتين واذكر متى تدرس.',
     quizQuestion: 'Choose the correct present simple sentence.',
     quizCorrectIndex: 1,
-    words: [AcademyWord('morning', 'صباح', 'morning'), AcademyWord('breakfast', 'فطور', 'breakfast'), AcademyWord('work', 'عمل', 'work'), AcademyWord('study', 'دراسة', 'study'), AcademyWord('evening', 'مساء', 'evening')],
+    words: [AcademyWord('morning', 'صباح', 'مورنينغ'), AcademyWord('breakfast', 'فطور', 'بْرِكفَست'), AcademyWord('work', 'عمل', 'وِرك'), AcademyWord('study', 'دراسة', 'ستَدي'), AcademyWord('evening', 'مساء', 'إيفنِنغ')],
     quizOptions: ['She study English.', 'She studies English.', 'She studying English.'],
   ),
   AcademyUnit(
@@ -111,7 +113,7 @@ const academyUnits = <AcademyUnit>[
     speakingHelp: 'قدّم نفسك بالإسبانية وقل اسمك ثم رحّب بالشخص الآخر.',
     quizQuestion: '¿Cómo dices «شكرًا» en español?',
     quizCorrectIndex: 1,
-    words: [AcademyWord('hola', 'مرحبًا', 'o-la'), AcademyWord('nombre', 'اسم', 'nom-bre'), AcademyWord('amigo', 'صديق', 'a-mi-go'), AcademyWord('gracias', 'شكرًا', 'gra-sias'), AcademyWord('adiós', 'وداعًا', 'a-dios')],
+    words: [AcademyWord('hola', 'مرحبًا', 'أُولا'), AcademyWord('nombre', 'اسم', 'نومبري'), AcademyWord('amigo', 'صديق', 'أميغو'), AcademyWord('gracias', 'شكرًا', 'غْراثياس'), AcademyWord('adiós', 'وداعًا', 'أديوس')],
     quizOptions: ['Adiós', 'Gracias', 'Amigo'],
   ),
   AcademyUnit(
@@ -129,7 +131,7 @@ const academyUnits = <AcademyUnit>[
     speakingHelp: 'احكِ روتينك الصباحي والمساءي بالإسبانية.',
     quizQuestion: 'Completa: «Ella ___ español».',
     quizCorrectIndex: 1,
-    words: [AcademyWord('mañana', 'صباح', 'ma-nya-na'), AcademyWord('desayuno', 'فطور', 'de-sa-yu-no'), AcademyWord('trabajo', 'عمل', 'tra-ba-ho'), AcademyWord('estudio', 'دراسة', 'es-tu-dio'), AcademyWord('noche', 'ليل', 'no-che')],
+    words: [AcademyWord('mañana', 'صباح', 'مانيانا'), AcademyWord('desayuno', 'فطور', 'ديسايونو'), AcademyWord('trabajo', 'عمل', 'تراباخو'), AcademyWord('estudio', 'دراسة', 'إستوديو'), AcademyWord('noche', 'ليل', 'نوتشي')],
     quizOptions: ['estudio', 'estudia', 'estudiar'],
   ),
   AcademyUnit(
@@ -183,7 +185,7 @@ const academyUnits = <AcademyUnit>[
     speakingHelp: 'حيِّ شخصًا بالفرنسية وقل اسمك وعرّف بنفسك.',
     quizQuestion: 'Comment dit-on «شكرًا» en français ?',
     quizCorrectIndex: 0,
-    words: [AcademyWord('bonjour', 'مرحبًا/صباح الخير', 'bon-zhoor'), AcademyWord('prénom', 'الاسم الأول', 'pré-nom'), AcademyWord('ami', 'صديق', 'a-mi'), AcademyWord('merci', 'شكرًا', 'mer-si'), AcademyWord('au revoir', 'إلى اللقاء', 'o-re-vwar')],
+    words: [AcademyWord('bonjour', 'مرحبًا/صباح الخير', 'بونجور'), AcademyWord('prénom', 'الاسم الأول', 'پرينوم'), AcademyWord('ami', 'صديق', 'أمي'), AcademyWord('merci', 'شكرًا', 'ميرسي'), AcademyWord('au revoir', 'إلى اللقاء', 'أوروفوار')],
     quizOptions: ['Merci', 'Bonjour', 'Ami'],
   ),
   AcademyUnit(
@@ -201,7 +203,7 @@ const academyUnits = <AcademyUnit>[
     speakingHelp: 'صف صباحك ثم ما تفعله في المساء بالفرنسية.',
     quizQuestion: 'Choisis la phrase correcte.',
     quizCorrectIndex: 1,
-    words: [AcademyWord('matin', 'صباح', 'ma-tin'), AcademyWord('petit-déjeuner', 'فطور', 'pe-ti-dé-jeu-né'), AcademyWord('travail', 'عمل', 'tra-vai'), AcademyWord('étudier', 'يدرس', 'é-tu-di-é'), AcademyWord('soir', 'مساء', 'swar')],
+    words: [AcademyWord('matin', 'صباح', 'ماتان'), AcademyWord('petit-déjeuner', 'فطور', 'پوتي ديجوني'), AcademyWord('travail', 'عمل', 'ترافاي'), AcademyWord('étudier', 'يدرس', 'إيتوديي'), AcademyWord('soir', 'مساء', 'سوار')],
     quizOptions: ['Nous parle français.', 'Nous parlons français.', 'Nous parler français.'],
   ),
   AcademyUnit(
