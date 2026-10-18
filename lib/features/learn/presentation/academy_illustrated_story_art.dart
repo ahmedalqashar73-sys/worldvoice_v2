@@ -117,8 +117,10 @@ class _StoryPainter extends CustomPainter {
         : const Color(0xFF4385C1), radius: 3);
     _line(c, Offset(x + 7, y + 9), Offset(x + 7, y + 37),
       const Color(0xFFEDC66D), 2);
-    if (open) _line(c, Offset(x + 18, y + 4), Offset(x + 18, y + 39),
-      const Color(0xFF9AB1B1), 1);
+    if (open) {
+      _line(c, Offset(x + 18, y + 4), Offset(x + 18, y + 39),
+        const Color(0xFF9AB1B1), 1);
+    }
   }
 
   void _room(Canvas c) {
@@ -128,7 +130,7 @@ class _StoryPainter extends CustomPainter {
     _line(c, const Offset(63, 37), const Offset(63, 114),
       const Color(0xFFFDF4DE), 5);
     _box(c, 247, 27, 75, 139, const Color(0xFF976A60), radius: 6);
-    for (final y in [54.0, 95, 135]) {
+    for (final y in [54.0, 95.0, 135.0]) {
       _box(c, 256, y, 57, 5, const Color(0xFF563E44), radius: 2);
       for (var i = 0; i < 4; i++) {
         _box(c, 262.0 + i * 13, y - 22, 8, 22,
