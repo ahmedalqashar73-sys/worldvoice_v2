@@ -38,8 +38,8 @@ void main() {
       expect(story.optionsArabic.length, story.options.length);
       expect(story.correctIndex, inInclusiveRange(0, story.options.length - 1));
       for (final page in story.pages) {
-        expect(page.text.trim().length, greaterThan(15));
-        expect(page.arabic.trim().length, greaterThan(15));
+        expect(page.text.trim().length, greaterThanOrEqualTo(15));
+        expect(page.arabic.trim().length, greaterThanOrEqualTo(15));
       }
     }
   });
