@@ -284,6 +284,58 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
   }
 }
 
+String academyVoiceLocale(String code) => switch (code) {
+  'en' => 'en-US',
+  'es' => 'es-ES',
+  'zh' => 'zh-CN',
+  'fr' => 'fr-FR',
+  'ko' => 'ko-KR',
+  _ => code,
+};
+
+Future<void> academyTestVoice(BuildContext context, AcademyCourse course) async {
+  final ar = Localizations.localeOf(context).languageCode == 'ar';
+  final locale = academyVoiceLocale(course.code);
+  final sample = switch (course.code) {
+    'en' => 'Hello! Nice to meet you.',
+    'es' => 'Hola. Mucho gusto.',
+    'zh' => '你好！很高兴认识你。',
+    'fr' => 'Bonjour. Enchanté.',
+    'ko' => '안녕하세요. 만나서 반가워요.',
+    _ => 'Hello.',
+  };
+  final tts = FlutterTts();
+  String message;
+  try {
+    final available = await tts.isLanguageAvailable(locale);
+    final installed = defaultTargetPlatform == TargetPlatform.android
+        ? await tts.isLanguageInstalled(locale) : true;
+    if (available == false || installed == false) {
+      message = ar
+          ? 'صوت $locale غير مثبّت. افتح إعدادات الهاتف ← تحويل النص إلى كلام ← تثبيت بيانات الصوت، ثم اختر اللغة.'
+          : 'Voice $locale is missing. Open device Settings → Text-to-speech → Install voice data.';
+    } else {
+      await tts.setLanguage(locale);
+      await tts.setVolume(1.0);
+      await tts.setSpeechRate(.50);
+      final started = await tts.speak(sample);
+      message = started == 0
+          ? (ar ? 'فشل تشغيل الصوت. راجع إعدادات محرك النطق.'
+                : 'Speech could not start. Check your TTS engine.')
+          : (ar ? 'تم إرسال تجربة النطق. تأكد من رفع صوت الوسائط في هاتفك.'
+                : 'Voice sample started. Check your phone media volume.');
+    }
+  } catch (_) {
+    message = ar
+        ? 'تعذّر فحص الصوت. افتح إعدادات الهاتف ← تحويل النص إلى كلام وثبّت صوت هذه اللغة.'
+        : 'Voice check failed. Install this language in device text-to-speech settings.';
+  }
+  if (context.mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message),
+        duration: const Duration(seconds: 6)));
+  }
+}
+
 class _AcademyA1Home extends StatelessWidget {
   const _AcademyA1Home({required this.course, required this.progress});
   final AcademyCourse course;
@@ -313,6 +365,13 @@ class _AcademyA1Home extends StatelessWidget {
           Text(ar ? 'قصص ومحادثات ومفردات ونطق — اختر القسم وابدأ دروسه.'
               : 'Stories, dialogues, vocabulary and pronunciation — choose a section.',
             style: TextStyle(color: scheme.onSurfaceVariant)),
+          const SizedBox(height: 14),
+          OutlinedButton.icon(
+            key: const ValueKey('academy-test-course-voice'),
+            onPressed: () => academyTestVoice(context, course),
+            icon: const Icon(Icons.volume_up_rounded),
+            label: Text(ar ? 'اختبار صوت اللغة قبل الدرس' : 'Test language voice'),
+          ),
           const SizedBox(height: 18),
           GridView.builder(
             shrinkWrap: true,
