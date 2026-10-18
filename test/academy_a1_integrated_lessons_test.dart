@@ -48,7 +48,7 @@ void main() {
         expect(story.options.length, 3);
         expect(story.answer, inInclusiveRange(0, 2));
         for (final page in story.pages) {
-          expect(page.text.trim().split(RegExp(r'\\s+')).length,
+          expect(page.text.trim().split(RegExp(r'\s+')).length,
             greaterThanOrEqualTo(20), reason: story.id);
           expect(page.arabic.trim(), isNotEmpty);
         }
