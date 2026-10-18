@@ -43,17 +43,6 @@ IconData _lessonIcon(EnglishA1Kind kind) => switch (kind) {
   EnglishA1Kind.quiz => Icons.fact_check_rounded,
 };
 
-String _label(EnglishA1Kind kind, bool ar) => switch (kind) {
-  EnglishA1Kind.dialogue => ar ? 'محادثة' : 'Conversation',
-  EnglishA1Kind.vocabulary => ar ? 'مفردات' : 'Vocabulary',
-  EnglishA1Kind.pronunciation => ar ? 'نطق' : 'Pronunciation',
-  EnglishA1Kind.grammar => ar ? 'قواعد' : 'Grammar',
-  EnglishA1Kind.listening => ar ? 'استماع' : 'Listening',
-  EnglishA1Kind.story => ar ? 'قصة مصورة' : 'Illustrated story',
-  EnglishA1Kind.practice => ar ? 'تدريب' : 'Practice',
-  EnglishA1Kind.quiz => ar ? 'اختبار' : 'Quiz',
-};
-
 class AcademyEnglishA1Path extends StatefulWidget {
   const AcademyEnglishA1Path({super.key});
   @override
