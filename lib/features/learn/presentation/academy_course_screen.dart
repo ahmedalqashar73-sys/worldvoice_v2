@@ -156,6 +156,44 @@ class AcademyCourseScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 21),
+              for (final unit in course.units) ...[
+                Text(ar ? 'الوحدة ${unit.number} · ${unit.title}' :
+                    'Unit ${unit.number} · ${unit.nativeTitle}',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: accent, fontWeight: FontWeight.w900)),
+                const SizedBox(height: 5),
+                Text(unit.nativeTitle,
+                  style: TextStyle(color: scheme.onSurfaceVariant)),
+                const SizedBox(height: 9),
+                for (final kind in AcademyLessonKind.values)
+                  Card(
+                    color: scheme.surface, elevation: 0,
+                    margin: const EdgeInsets.only(bottom: 7),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                      side: BorderSide(color: scheme.outlineVariant)),
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: scheme.primaryContainer,
+                        child: Icon(academyKindIcon(kind), color: accent)),
+                      title: Text(academyKindTitle(kind, ar),
+                        style: const TextStyle(fontWeight: FontWeight.w800)),
+                      subtitle: Text(ar ? 'الدرس ${kind.index + 1} من 6'
+                          : 'Lesson ${kind.index + 1} of 6'),
+                      trailing: Icon(done.contains(unit.lessonId(kind))
+                          ? Icons.check_circle_rounded
+                          : Icons.chevron_right_rounded,
+                        color: done.contains(unit.lessonId(kind))
+                            ? accent : scheme.onSurfaceVariant),
+                      onTap: () => Navigator.of(context).push<void>(
+                        MaterialPageRoute(builder: (_) => AcademyLessonScreen(
+                          unit: unit, kind: kind, progress: repository,
+                          completed: done.contains(unit.lessonId(kind))),
+                        )),
+                    ),
+                  ),
+                const SizedBox(height: 13),
+              ],
               Row(children: [
                 Icon(Icons.route_rounded, color: accent),
                 const SizedBox(width: 9),
@@ -199,50 +237,7 @@ class AcademyCourseScreen extends StatelessWidget {
                 );
               }),
               const SizedBox(height: 20),
-              for (final unit in course.units) ...[
-                Text(ar ? 'الوحدة ${unit.number} · ${unit.title}' :
-                    'Unit ${unit.number} · ${unit.nativeTitle}',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: accent, fontWeight: FontWeight.w900)),
-                const SizedBox(height: 5),
-                Text(unit.nativeTitle,
-                  style: TextStyle(color: scheme.onSurfaceVariant)),
-                const SizedBox(height: 9),
-                for (final kind in AcademyLessonKind.values)
-                  Card(
-                    color: scheme.surface, elevation: 0,
-                    margin: const EdgeInsets.only(bottom: 7),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                      side: BorderSide(color: scheme.outlineVariant)),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: scheme.primaryContainer,
-                        child: Icon(academyKindIcon(kind), color: accent)),
-                      title: Text(academyKindTitle(kind, ar),
-                        style: const TextStyle(fontWeight: FontWeight.w800)),
-                      subtitle: Text(ar ? 'الدرس ${kind.index + 1} من 6'
-                          : 'Lesson ${kind.index + 1} of 6'),
-                      trailing: Icon(done.contains(unit.lessonId(kind))
-                          ? Icons.check_circle_rounded
-                          : Icons.chevron_right_rounded,
-                        color: done.contains(unit.lessonId(kind))
-                            ? accent : scheme.onSurfaceVariant),
-                      onTap: () => Navigator.of(context).push<void>(
-                        MaterialPageRoute(builder: (_) => AcademyLessonScreen(
-                          unit: unit, kind: kind, progress: repository,
-                          completed: done.contains(unit.lessonId(kind))),
-                        )),
-                    ),
-                  ),
-                const SizedBox(height: 13),
-              ],
-              Text(ar
-                ? 'Intermediate وAdvanced قادمان لاحقًا بمحتوى مستقل.'
-                : 'Intermediate and Advanced will follow with their own lessons.',
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Color(0xFF688075),
-                    fontSize: 12)),
+
             ],
           );
         },
