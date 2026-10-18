@@ -72,10 +72,12 @@ class _AcademyEnglishA1PathState extends State<AcademyEnglishA1Path> {
   Future<void> _reload() async {
     final result = await EnglishA1Progress.load(_uid);
     final previous = await EnglishA1Progress.loadLegacy(_uid);
-    if (mounted) setState(() {
-      _completed = result;
-      _previousActivityCount = previous.length;
-    });
+    if (mounted) {
+      setState(() {
+        _completed = result;
+        _previousActivityCount = previous.length;
+      });
+    }
   }
 
   Future<void> _open(EnglishA1Unit unit) async {
