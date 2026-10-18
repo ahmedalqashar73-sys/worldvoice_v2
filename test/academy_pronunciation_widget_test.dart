@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:worldvoice/features/learn/data/academy_catalog.dart';
 import 'package:worldvoice/features/learn/presentation/academy_course_screen.dart';
@@ -31,6 +32,11 @@ void main() {
     await tester.pumpWidget(MaterialApp(
       locale: const Locale('ar'),
       supportedLocales: const [Locale('ar'), Locale('en')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       theme: ThemeData.light(),
       darkTheme: ThemeData.dark(),
       home: AcademyLessonScreen(
