@@ -4,9 +4,29 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:worldvoice/features/learn/data/academy_english_a1_catalog.dart';
 import 'package:worldvoice/features/learn/data/academy_english_a1_vocabulary.dart';
 import 'package:worldvoice/features/learn/data/academy_english_a1_long_stories.dart';
+import 'package:worldvoice/features/learn/data/academy_english_a1_teaching.dart';
 import 'package:worldvoice/features/learn/presentation/academy_english_a1_full_lesson.dart';
 
 void main() {
+  test('every lesson has its own dialogue, grammar rule and listening', () {
+    expect(EnglishA1TeachingCatalog.lessons.length, 3);
+    for (var unit = 1; unit <= 3; unit++) {
+      final material = EnglishA1TeachingCatalog.lessons[unit - 1];
+      expect(material.length, 12);
+      expect(material.map((m) => m.dialogue).toSet().length, 12);
+      expect(material.map((m) => m.listening).toSet().length, 12);
+      for (var lesson = 1; lesson <= 12; lesson++) {
+        final study = EnglishA1TeachingCatalog.forLesson(unit, lesson);
+        expect(study.dialogue.contains(': '), true);
+        expect(study.dialogue.contains('\n'), true);
+        expect(study.grammar.trim().length, greaterThan(30));
+        expect(study.grammarArabic.trim().length, greaterThan(15));
+        expect(study.listening.trim().split(RegExp(r'\s+')).length,
+            greaterThanOrEqualTo(10));
+      }
+    }
+  });
+
   test('A1 contains 36 distinct full lessons with 20 vocabulary items each', () {
     expect(EnglishA1Catalog.units.length, 3);
     expect(EnglishA1Catalog.lessonCount, 36);
