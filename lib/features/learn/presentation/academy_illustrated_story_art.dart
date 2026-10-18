@@ -61,6 +61,9 @@ class _StoryPainter extends CustomPainter {
     [Color(0xFF5C77AD), Color(0xFF9CC9D6), Color(0xFFF5C783)],
     [Color(0xFF76A9B1), Color(0xFFB5D5C1), Color(0xFFF4D48F)],
     [Color(0xFF182C68), Color(0xFF354A82), Color(0xFF95BCB6)],
+    [Color(0xFFF8B5A4), Color(0xFFF7DBBD), Color(0xFFB2D5C3)],
+    [Color(0xFFF3B787), Color(0xFFF8E1B4), Color(0xFFE0AFA0)],
+    [Color(0xFF7AB4B6), Color(0xFFF1DCA2), Color(0xFFBCDAAC)],
   ];
 
   void _box(Canvas c, double x, double y, double w, double h, Color color,
@@ -227,11 +230,63 @@ class _StoryPainter extends CustomPainter {
     } else if (scene == 4) {
       _city(canvas);
       _character(canvas, 186, 128, const Color(0xFF6B83BC));
-    } else {
+    } else if (scene == 5) {
       _garden(canvas);
       _circle(canvas, 73, 47, 21, const Color(0xFFFFE6B4));
       _character(canvas, 174, 121, const Color(0xFF9E82BF), longHair: true);
       _character(canvas, 220, 116, const Color(0xFF8BA4A9));
+    } else if (scene == 6) {
+      // New neighbour's letter: a pastel street, mailbox and orange kitten.
+      _box(canvas, 0, 177, 360, 33, const Color(0xFFD7C8AE));
+      _box(canvas, 23, 39, 139, 139, const Color(0xFFFFF2D8), radius: 8);
+      _box(canvas, 50, 70, 42, 44, const Color(0xFF9EC9CB), radius: 4);
+      _box(canvas, 111, 111, 39, 66, const Color(0xFF89A8BB), radius: 4);
+      _box(canvas, 186, 63, 143, 115, const Color(0xFFE6AC9B), radius: 8);
+      _box(canvas, 210, 86, 54, 53, const Color(0xFFFFE6BC), radius: 4);
+      _box(canvas, 291, 120, 23, 58, const Color(0xFF526F83), radius: 4);
+      _box(canvas, 295, 111, 15, 17, const Color(0xFFF8E3AE), radius: 2);
+      _character(canvas, 99 + phase * 4, 123, const Color(0xFF78A7B9));
+      _character(canvas, 178, 121, const Color(0xFFD3879A), longHair: true);
+      _circle(canvas, 222, 169, 14, const Color(0xFFE5A063));
+      _circle(canvas, 215, 166, 2, const Color(0xFF4F3D39));
+      _circle(canvas, 229, 166, 2, const Color(0xFF4F3D39));
+    } else if (scene == 7) {
+      // Sunday cake: warm kitchen, family silhouettes and a birthday cake.
+      _kitchen(canvas);
+      _box(canvas, 156, 127, 46, 26, const Color(0xFFF8C2C0), radius: 8);
+      _box(canvas, 161, 116, 36, 15, const Color(0xFFFDE8D6), radius: 5);
+      for (final x in [171.0, 182.0, 193.0]) {
+        _line(canvas, Offset(x, 116), Offset(x, 105),
+            const Color(0xFFF8E7AF), 2);
+        _circle(canvas, x, 102 + math.sin(phase * math.pi * 2) * 2, 2,
+            const Color(0xFFFFBE57));
+      }
+      _character(canvas, 75, 109, const Color(0xFF6F9C91));
+      _character(canvas, 277, 103, const Color(0xFFC77F89), longHair: true);
+      _circle(canvas, 230, 137, 8, const Color(0xFFDD7269));
+      _circle(canvas, 244, 139, 8, const Color(0xFFDD7269));
+    } else {
+      // Weekend market treasure map: produce stalls and hidden postcard box.
+      _box(canvas, 0, 171, 360, 39, const Color(0xFFCBBAA0));
+      for (final x in [15.0, 129.0, 243.0]) {
+        _box(canvas, x, 77, 104, 93, const Color(0xFFE7CBB0), radius: 5);
+        _box(canvas, x - 4, 63, 112, 25, const Color(0xFFDA7C6C), radius: 7);
+        for (var n = 0; n < 4; n++) {
+          _box(canvas, x + 8 + n * 23, 68, 11, 19,
+              const Color(0xFFF8E0C3), radius: 2);
+        }
+        _box(canvas, x + 7, 125, 88, 7, const Color(0xFFB98769));
+        for (var j = 0; j < 3; j++) {
+          _circle(canvas, x + 25 + j * 26, 118, 9,
+              j.isEven ? const Color(0xFFF7B65B)
+                  : const Color(0xFFD6716B));
+        }
+      }
+      _character(canvas, 143, 118, const Color(0xFF6C96A0));
+      _character(canvas, 211, 112, const Color(0xFFBE859A), longHair: true);
+      _box(canvas, 177, 148, 31, 18, const Color(0xFF4079B9), radius: 3);
+      _line(canvas, const Offset(192, 151), const Offset(192, 164),
+          const Color(0xFFFFE9BF), 1.5);
     }
 
     for (var i = 0; i < 11; i++) {
