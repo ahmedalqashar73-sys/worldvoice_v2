@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 
 import '../data/academy_catalog.dart';
 import '../services/academy_progress_service.dart';
@@ -152,43 +152,82 @@ class AcademyLessonScreen extends StatefulWidget {
   State<AcademyLessonScreen> createState() => _AcademyLessonScreenState();
 }
 class _AcademyLessonScreenState extends State<AcademyLessonScreen> {
-  static const _tts = MethodChannel('worldvoice/live_tts');
+  late final FlutterTts _tts;
   int? _chosen;
+  int? _speakingWord;
   bool _checked = false, _correct = false, _saving = false;
-  bool _speaking = false, _transcript = false;
+  bool _speaking = false, _slowSpeech = false, _transcript = false;
   late bool _complete;
 
   @override
   void initState() {
     super.initState();
     _complete = widget.completed;
+    _tts = FlutterTts();
+    _tts.setCompletionHandler(_finishSpeech);
+    _tts.setCancelHandler(_finishSpeech);
+    _tts.setErrorHandler((_) => _finishSpeech());
   }
+
+  void _finishSpeech() {
+    if (mounted) {
+      setState(() {
+        _speaking = false;
+        _speakingWord = null;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _tts.stop();
+    super.dispose();
+  }
+
+  String get _speechLocale => switch (widget.unit.language) {
+    'en' => 'en-US',
+    'es' => 'es-ES',
+    'zh' => 'zh-CN',
+    'fr' => 'fr-FR',
+    'ko' => 'ko-KR',
+    _ => widget.unit.language,
+  };
   bool get _ar => Localizations.localeOf(context).languageCode == 'ar';
 
   void _notice(String text) => ScaffoldMessenger.of(context)
     .showSnackBar(SnackBar(content: Text(text)));
 
-  Future<void> _hear(String text) async {
-    if (_speaking) return;
-    setState(() => _speaking = true);
+  Future<void> _hear(String text, {int? wordIndex, bool slow = false}) async {
+    // Tapping the active speed again stops playback. Tapping the other
+    // speed, or another word, starts that pronunciation immediately.
+    if (_speaking && _speakingWord == wordIndex && _slowSpeech == slow) {
+      await _tts.stop();
+      _finishSpeech();
+      return;
+    }
     try {
-      await _tts.invokeMethod<void>('speak', {
-        'text': text, 'languageCode': widget.unit.language,
+      await _tts.stop();
+      if (!mounted) return;
+      setState(() {
+        _speaking = true;
+        _speakingWord = wordIndex;
+        _slowSpeech = slow;
       });
-    } on MissingPluginException {
-      if (mounted) {
-        _notice(_ar
-            ? 'النطق الصوتي متاح حاليًا على أندرويد. اقرأ النص للمراجعة.'
-            : 'Voice playback is currently available on Android.');
+      // Never read aloud the Arabic translation: only the original term.
+      await _tts.setLanguage(_speechLocale);
+      await _tts.setSpeechRate(slow ? 0.30 : 0.50);
+      await _tts.setPitch(1.0);
+      final started = await _tts.speak(text);
+      if (started == 0) {
+        throw StateError('The speech engine refused the selected voice');
       }
-    } on PlatformException {
+    } catch (_) {
       if (mounted) {
+        _finishSpeech();
         _notice(_ar
-            ? 'تأكد من تثبيت صوت هذه اللغة في إعدادات الجهاز.'
-            : 'Install the selected language voice in your device settings.');
+            ? 'تعذّر تشغيل النطق. ثبّت صوت هذه اللغة من إعدادات هاتفك.'
+            : 'Could not speak. Install this language voice in your device settings.');
       }
-    } finally {
-      if (mounted) setState(() => _speaking = false);
     }
   }
 
@@ -239,28 +278,128 @@ class _AcademyLessonScreenState extends State<AcademyLessonScreen> {
       backgroundColor: _green, foregroundColor: Colors.white),
   );
 
+  Widget _wordCard(AcademyWord word, int index) {
+    final scheme = Theme.of(context).colorScheme;
+    final night = Theme.of(context).brightness == Brightness.dark;
+    final emphasis = night ? const Color(0xFF9DECC4) : _green;
+    final rtlTarget = const {'ar', 'fa', 'ur'}.contains(widget.unit.language);
+    final playingHere = _speaking && _speakingWord == index;
+    final guide = switch (widget.unit.language) {
+      'zh' => _ar ? 'النطق (Pinyin)' : 'Pinyin pronunciation',
+      'ko' => _ar ? 'النطق بالحروف اللاتينية' : 'Romanized pronunciation',
+      _ => _ar ? 'النطق التقريبي' : 'Pronunciation guide',
+    };
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 13),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: scheme.surface,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: scheme.outlineVariant.withValues(alpha: .60)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: night ? .05 : .035),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Expanded(
+                child: Text(
+                  word.term,
+                  textDirection: rtlTarget ? TextDirection.rtl : TextDirection.ltr,
+                  style: TextStyle(
+                    fontSize: 27,
+                    height: 1.28,
+                    color: scheme.onSurface,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              IconButton.filledTonal(
+                tooltip: _ar ? 'استمع للنطق' : 'Play pronunciation',
+                onPressed: () => _hear(word.term, wordIndex: index),
+                style: IconButton.styleFrom(
+                  backgroundColor: emphasis.withValues(alpha: .12),
+                  foregroundColor: emphasis,
+                  minimumSize: const Size(49, 49),
+                ),
+                icon: Icon(
+                  playingHere && !_slowSpeech
+                      ? Icons.stop_rounded : Icons.volume_up_rounded,
+                  size: 27,
+                ),
+              ),
+            ]),
+            const SizedBox(height: 11),
+            Text(guide,
+                style: TextStyle(color: scheme.onSurfaceVariant,
+                    fontSize: 12, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 4),
+            SelectableText(
+              word.pronunciation,
+              textDirection: widget.unit.language == 'zh' ||
+                      widget.unit.language == 'ko'
+                  ? TextDirection.ltr : null,
+              style: TextStyle(color: emphasis, fontSize: 19, height: 1.35,
+                  fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              word.arabic,
+              textDirection: TextDirection.rtl,
+              style: TextStyle(color: scheme.onSurface, fontSize: 17,
+                  height: 1.4, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 12),
+            Divider(height: 1, color: scheme.outlineVariant),
+            const SizedBox(height: 5),
+            TextButton.icon(
+              onPressed: () => _hear(word.term, wordIndex: index, slow: true),
+              icon: Icon(playingHere && _slowSpeech
+                  ? Icons.stop_rounded : Icons.slow_motion_video_rounded),
+              label: Text(_ar ? 'استمع ببطء' : 'Listen slowly'),
+              style: TextButton.styleFrom(foregroundColor: emphasis),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _body() {
     final u = widget.unit;
     switch (widget.kind) {
       case AcademyLessonKind.vocabulary:
-        return Column(children: [
-          for (final word in u.words)
-            Card(color: const Color(0xFFF3F8F3), elevation: 0,
-              child: ListTile(
-                title: Text(word.term,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w900, fontSize: 19)),
-                subtitle: Text('${word.arabic} · ${word.pronunciation}'),
-                trailing: IconButton(
-                  onPressed: _speaking ? null : () => _hear(word.term),
-                  tooltip: _ar ? 'استمع' : 'Listen',
-                  icon: const Icon(Icons.volume_up_rounded,
-                    color: _green)),
-              )),
-          const SizedBox(height: 9),
-          Text(_ar ? 'جرّب استخدام كل كلمة في جملة.'
-            : 'Try using each word in a sentence.'),
-        ]);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              _ar
+                  ? 'استمع للكلمة، واقرأ نطقها، ثم تعرّف على معناها.'
+                  : 'Listen, read its pronunciation and learn its meaning.',
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontSize: 14),
+            ),
+            const SizedBox(height: 16),
+            for (var i = 0; i < u.words.length; i++)
+              _wordCard(u.words[i], i),
+            const SizedBox(height: 5),
+            Text(
+              _ar ? 'جرّب استخدام كل كلمة في جملة.'
+                  : 'Try using every word in a sentence.',
+              textAlign: TextAlign.center,
+            ),
+          ],
+        );
       case AcademyLessonKind.grammar:
         return Column(children: [
           _info(_ar ? 'شرح القاعدة' : 'Grammar note', u.grammar),
@@ -358,7 +497,9 @@ class _AcademyLessonScreenState extends State<AcademyLessonScreen> {
             Expanded(child: Text(
               '${widget.unit.nativeTitle} · ${academyKindTitle(widget.kind, ar)}',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: _green, fontWeight: FontWeight.w900))),
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? const Color(0xFF9DECC4) : _green,
+                fontWeight: FontWeight.w900))),
           ]),
           const SizedBox(height: 16),
           _body(),
