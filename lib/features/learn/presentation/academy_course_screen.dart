@@ -333,14 +333,34 @@ class _AcademyA1Home extends StatelessWidget {
                 child: InkWell(
                   key: ValueKey('academy-section-${kind?.name ?? 'dialogue'}'),
                   borderRadius: BorderRadius.circular(21),
-                  onTap: () => Navigator.of(context).push<void>(
-                    MaterialPageRoute(
-                      builder: (_) => kind == null
-                          ? AcademyFirstConversation(course: course)
-                          : _AcademySectionList(
-                              course: course, kind: kind, progress: progress),
-                    ),
-                  ),
+                  onTap: () async {
+                    if (kind == null) {
+                      final finished = await Navigator.of(context).push<bool>(
+                        MaterialPageRoute(
+                          builder: (_) => AcademyFirstConversation(course: course),
+                        ),
+                      );
+                      if (finished == true && context.mounted) {
+                        await Navigator.of(context).push<void>(
+                          MaterialPageRoute(
+                            builder: (_) => _AcademySectionList(
+                              course: course,
+                              kind: AcademyLessonKind.vocabulary,
+                              progress: progress,
+                            ),
+                          ),
+                        );
+                      }
+                    } else {
+                      await Navigator.of(context).push<void>(
+                        MaterialPageRoute(
+                          builder: (_) => _AcademySectionList(
+                            course: course, kind: kind, progress: progress,
+                          ),
+                        ),
+                      );
+                    }
+                  },
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
