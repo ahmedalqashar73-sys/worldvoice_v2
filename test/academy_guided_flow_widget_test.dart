@@ -24,9 +24,14 @@ void main() {
     expect(find.text('¿Cómo te llamas?', findRichText: true), findsNothing);
     expect(find.textContaining('Me llamo Ana'), findsOneWidget);
     await tester.tap(find.text('Me llamo Luis.'));
+    await tester.pump();
+    await tester.scrollUntilVisible(find.text('تحقق من الرد'), 200,
+        scrollable: find.byType(Scrollable).first);
     await tester.tap(find.text('تحقق من الرد'));
     await tester.pump();
     expect(find.textContaining('إجابة صحيحة'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('المحادثة التالية'), 140,
+        scrollable: find.byType(Scrollable).first);
     await tester.tap(find.text('المحادثة التالية'));
     await tester.pumpAndSettle();
     expect(find.textContaining('Mucho gusto'), findsWidgets);
@@ -40,6 +45,7 @@ void main() {
     expect(find.text('The Lost Notebook'), findsOneWidget);
     await tester.tap(find.text('ابدأ القراءة'));
     await tester.pumpAndSettle();
+    expect(find.text('صفحة 1'), findsOneWidget);
     expect(find.textContaining('Sara has a small blue notebook'),
         findsOneWidget);
     await tester.tap(find.byTooltip('إظهار أو إخفاء الترجمة'));
