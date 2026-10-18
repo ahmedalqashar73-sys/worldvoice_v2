@@ -10,7 +10,7 @@ void main() {
     for (final unit in academyUnits) {
       for (final word in unit.words) {
         expect(word.pronunciation.trim(), isNotEmpty,
-            reason: unit.language + ': ' + word.term);
+            reason: '${unit.language}: ${word.term}');
         expect(word.arabic.trim(), isNotEmpty);
       }
     }
