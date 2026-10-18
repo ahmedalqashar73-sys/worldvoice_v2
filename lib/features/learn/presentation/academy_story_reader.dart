@@ -80,7 +80,11 @@ class _AcademyStoryReaderState extends State<AcademyStoryReader> {
 
   Future<void> _move(int next) async {
     if (next < 0 || next >= _total) return;
-    await _tts.stop();
+    try {
+      await _tts.stop();
+    } catch (_) {
+      // Reading must remain available without an installed speech engine.
+    }
     if (!mounted) return;
     setState(() {
       _page = next;
