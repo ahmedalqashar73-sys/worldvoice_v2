@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/localization/locale_controller.dart';
+import 'worldvoice_courses_screen.dart';
 
 class LearnScreen extends StatefulWidget {
   const LearnScreen({required this.localeController, super.key});
@@ -114,7 +115,17 @@ class _LearnScreenState extends State<LearnScreen> {
               child: ListView(
                 scrollDirection: Axis.horizontal,
                 children: [
-                  _Tool(icon: Icons.menu_book_rounded, label: t.courses),
+                  _Tool(
+                    icon: Icons.menu_book_rounded,
+                    label: t.courses,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => WorldVoiceCoursesScreen(
+                          localeController: widget.localeController,
+                        ),
+                      ),
+                    ),
+                  ),
                   _Tool(icon: Icons.auto_awesome_rounded, label: t.practice),
                   _Tool(icon: Icons.translate_rounded, label: t.translate),
                   _Tool(icon: Icons.smart_toy_rounded, label: t.aiTeacher),
@@ -196,14 +207,18 @@ class _LearnScreenState extends State<LearnScreen> {
 }
 
 class _Tool extends StatelessWidget {
-  const _Tool({required this.icon, required this.label});
+  const _Tool({required this.icon, required this.label, this.onTap});
   final IconData icon;
   final String label;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    return SizedBox(
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
+      child: SizedBox(
       width: 94,
       child: Column(
         children: [
