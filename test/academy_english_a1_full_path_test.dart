@@ -7,6 +7,7 @@ import 'package:worldvoice/features/learn/data/academy_english_a1_vocabulary.dar
 import 'package:worldvoice/features/learn/data/academy_english_a1_long_stories.dart';
 import 'package:worldvoice/features/learn/data/academy_english_a1_lesson_checks.dart';
 import 'package:worldvoice/features/learn/presentation/academy_english_a1_screen.dart';
+import 'package:worldvoice/features/learn/presentation/academy_english_a1_integrated_lesson.dart';
 import 'package:worldvoice/features/learn/presentation/academy_illustrated_story_art.dart';
 
 void main() {
@@ -87,9 +88,43 @@ void main() {
     expect((await EnglishA1Progress.load('person-a')).length, 1);
   });
 
-  testWidgets('animated story art draws all six scenes without remote images',
+  testWidgets('each lesson begins with conversation and proceeds to 20 vocabulary cards',
       (tester) async {
-    for (var scene = 0; scene < 6; scene++) {
+    final unit = EnglishA1Catalog.units.first;
+    await tester.pumpWidget(MaterialApp(
+      home: AcademyEnglishA1IntegratedLesson(
+        unit: unit, lesson: unit.lessons.first, lessonNumber: 1),
+    ));
+    expect(find.text('Talk with your tutor'), findsOneWidget);
+    expect(find.text('What is a friendly reply to “Hello”?'), findsOneWidget);
+    await tester.ensureVisible(find.text('Hi!'));
+    await tester.tap(find.text('Hi!'));
+    await tester.pump();
+    await tester.ensureVisible(find.byKey(const ValueKey('academy-integrated-answer')));
+    await tester.tap(find.byKey(const ValueKey('academy-integrated-answer')));
+    await tester.pump();
+    await tester.tap(find.text('Continue').first);
+    await tester.pump();
+    expect(find.text('20 words to learn and review'), findsOneWidget);
+    expect(find.text('hello'), findsWidgets);
+  });
+
+  test('old partial activity completion remains intact but not counted as a full lesson',
+      () async {
+    SharedPreferences.setMockInitialValues({
+      'worldvoice.academy.en.a1.v1.person-c.done':
+          <String>['en_a1_1_01', 'en_a1_1_02'],
+    });
+    expect(await EnglishA1Progress.loadLegacy('person-c'), hasLength(2));
+    expect(await EnglishA1Progress.load('person-c'), isEmpty);
+    await EnglishA1Progress.complete('person-c', 'en_a1_1_01');
+    expect(await EnglishA1Progress.load('person-c'), hasLength(1));
+    expect(await EnglishA1Progress.loadLegacy('person-c'), hasLength(2));
+  });
+
+  testWidgets('animated story art draws all nine scenes without remote images',
+      (tester) async {
+    for (var scene = 0; scene < 9; scene++) {
       await tester.pumpWidget(MaterialApp(
         home: Scaffold(body: Center(child: SizedBox(
           width: 360,
