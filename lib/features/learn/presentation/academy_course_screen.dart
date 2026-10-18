@@ -552,7 +552,12 @@ class _AcademyLessonScreenState extends State<AcademyLessonScreen> {
         _slowSpeech = slow;
       });
       // Never read aloud the Arabic translation: only the original term.
+      final supportsLanguage = await _tts.isLanguageAvailable(_speechLocale);
+      if (supportsLanguage == false) {
+        throw StateError('Target language voice is not available');
+      }
       await _tts.setLanguage(_speechLocale);
+      await _tts.setVolume(1.0);
       await _tts.setSpeechRate(slow ? 0.30 : 0.50);
       await _tts.setPitch(1.0);
       final started = await _tts.speak(text);
@@ -575,11 +580,15 @@ class _AcademyLessonScreenState extends State<AcademyLessonScreen> {
     if (widget.kind == AcademyLessonKind.story && !_storyPassed) return;
     setState(() => _saving = true);
     try {
-      await (widget.progress ?? AcademyProgressService())
+      final synced = await (widget.progress ?? AcademyProgressService())
           .complete(widget.unit, widget.kind);
       if (!mounted) return;
       setState(() => _complete = true);
-      _notice(_ar ? 'تم حفظ تقدمك!' : 'Progress saved!');
+      _notice(synced
+          ? (_ar ? 'تم حفظ التقدم في Firebase!' : 'Progress saved to Firebase!')
+          : (_ar
+              ? 'تم حفظ الدرس على الجهاز. ينتظر مزامنة Firebase.'
+              : 'Saved on this device, pending Firebase sync.'));
     } catch (_) {
       if (mounted) {
         _notice(_ar
