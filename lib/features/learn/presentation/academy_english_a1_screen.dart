@@ -4,6 +4,8 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/academy_english_a1_catalog.dart';
+import '../data/academy_english_a1_long_stories.dart';
+import 'academy_english_a1_integrated_lesson.dart';
 import 'academy_illustrated_story_art.dart';
 
 const _deepGreen = Color(0xFF145C46);
@@ -113,8 +115,8 @@ class _AcademyEnglishA1PathState extends State<AcademyEnglishA1Path> {
                 style: const TextStyle(color: Colors.white,
                     fontSize: 23, fontWeight: FontWeight.w900)),
               const SizedBox(height: 6),
-              Text(_ar ? '3 وحدات · 36 درسًا · 6 قصص مصورة متحركة'
-                         : '3 units · 36 lessons · 6 illustrated animated stories',
+              Text(_ar ? '3 وحدات · 36 درسًا متكاملًا · 9 قصص طويلة مصورة'
+                         : '3 units · 36 complete lessons · 9 illustrated stories',
                 style: const TextStyle(color: Color(0xFFE5F5EF), fontSize: 14)),
               const SizedBox(height: 16),
               LinearProgressIndicator(
@@ -220,12 +222,11 @@ class _EnglishA1UnitScreenState extends State<_EnglishA1UnitScreen> {
   }
 
   Future<void> _open(EnglishA1Lesson lesson) async {
-    final story = lesson.storyId == null
-        ? null : EnglishA1Catalog.findStory(lesson.storyId!);
+    final lessonNumber = widget.unit.lessons.indexOf(lesson) + 1;
     final passed = await Navigator.of(context).push<bool>(MaterialPageRoute(
-      builder: (_) => story == null
-          ? _EnglishA1ExerciseScreen(lesson: lesson)
-          : _EnglishA1IllustratedStoryReader(story: story),
+      builder: (_) => AcademyEnglishA1IntegratedLesson(
+        unit: widget.unit, lesson: lesson, lessonNumber: lessonNumber,
+      ),
     ));
     if (passed == true) {
       try {
@@ -287,13 +288,17 @@ class _EnglishA1UnitScreenState extends State<_EnglishA1UnitScreen> {
                       Expanded(child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(_ar ? widget.unit.lessons[i].titleAr
-                              : widget.unit.lessons[i].title,
+                          Text(_ar
+                              ? EnglishA1StorySyllabus.chapterFor(
+                                  widget.unit.id, i + 1).titleArabic
+                              : EnglishA1StorySyllabus.chapterFor(
+                                  widget.unit.id, i + 1).title,
                             style: const TextStyle(
                                 fontWeight: FontWeight.w800, fontSize: 16)),
                           Text(
-                            '${_ar ? 'درس' : 'Lesson'} ${i + 1} / 12 · '
-                            '${_label(widget.unit.lessons[i].kind, _ar)}',
+                            _ar
+                                ? 'الدرس ${i + 1} من 12 · 20 كلمة · محادثة وقصة واختبار'
+                                : 'Lesson ${i + 1} of 12 · 20 words · story and practice',
                             style: TextStyle(color: scheme.onSurfaceVariant,
                                 fontSize: 12)),
                         ],
