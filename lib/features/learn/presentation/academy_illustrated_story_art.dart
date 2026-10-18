@@ -36,7 +36,7 @@ class _AcademyIllustratedStoryArtState extends State<AcademyIllustratedStoryArt>
       child: RepaintBoundary(
         child: AnimatedBuilder(
           animation: _motion,
-          builder: (_, _) => CustomPaint(
+          builder: (context, child) => CustomPaint(
             painter: _StoryPainter(
               widget.scene, widget.page, _motion.value,
             ),
@@ -156,11 +156,11 @@ class _StoryPainter extends CustomPainter {
       [15.0, 85, 63.0, 83], [90, 44, 83, 128],
       [194, 71, 54, 100], [258, 38, 87, 134],
     ]) {
-      _box(c, b[0], b[1].toDouble(), b[2], b[3].toDouble(),
+      _box(c, b[0].toDouble(), b[1].toDouble(), b[2].toDouble(), b[3].toDouble(),
           const Color(0xFFE9CFB0), radius: 6);
       for (var y = b[1] + 15; y < b[1] + b[3] - 15; y += 22) {
         for (var x = b[0] + 12; x < b[0] + b[2] - 8; x += 20) {
-          _box(c, x, y.toDouble(), 9, 14,
+          _box(c, x.toDouble(), y.toDouble(), 9, 14,
               const Color(0xFF83AEB1), radius: 2);
         }
       }
@@ -234,7 +234,7 @@ class _StoryPainter extends CustomPainter {
 
     for (var i = 0; i < 11; i++) {
       final x = (23.0 + i * 31.7 + math.sin(phase * math.pi * 2 + i) * 6)
-          .clamp(5.0, 355.0);
+          .clamp(5.0, 355.0).toDouble();
       final y = (31.0 + (i * 17 + phase * 33) % 118);
       _circle(canvas, x, y, i.isEven ? 2.4 : 1.4,
           (scene == 5 ? const Color(0xFFFFE7A3) :
