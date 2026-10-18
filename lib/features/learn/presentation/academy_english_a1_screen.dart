@@ -353,7 +353,7 @@ class _EnglishA1ExerciseScreen extends StatefulWidget {
 }
 
 class _EnglishA1ExerciseScreenState extends State<_EnglishA1ExerciseScreen>
-    with _EnglishSpeechSupport {
+    with _EnglishSpeechSupport<_EnglishA1ExerciseScreen> {
   int? _selected;
   bool _checked = false;
   bool get _ar => Localizations.localeOf(context).languageCode == 'ar';
@@ -497,7 +497,8 @@ class _EnglishA1IllustratedStoryReader extends StatefulWidget {
 }
 
 class _EnglishA1IllustratedStoryReaderState
-    extends State<_EnglishA1IllustratedStoryReader> with _EnglishSpeechSupport {
+    extends State<_EnglishA1IllustratedStoryReader>
+    with _EnglishSpeechSupport<_EnglishA1IllustratedStoryReader> {
   int _page = 0;
   int? _answer;
   bool _checked = false;
