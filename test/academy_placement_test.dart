@@ -50,6 +50,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('اختبار تحديد المستوى'), findsOneWidget);
     expect(find.textContaining('¿Cómo se dice'), findsOneWidget);
+    await tester.ensureVisible(find.text('تخطي والبدء من A1'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('تخطي والبدء من A1'));
     await tester.pumpAndSettle();
     expect(completedLevel, 'A1');
