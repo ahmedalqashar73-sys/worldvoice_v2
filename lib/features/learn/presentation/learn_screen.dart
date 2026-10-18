@@ -33,6 +33,9 @@ class _LearnScreenState extends State<LearnScreen> {
     final code = widget.localeController.locale?.languageCode ??
         Localizations.localeOf(context).languageCode;
     final ar = code == 'ar';
+    final scheme = Theme.of(context).colorScheme;
+    final accent = Theme.of(context).brightness == Brightness.dark
+        ? const Color(0xFF9DECC4) : const Color(0xFF164E39);
     final rtl = const {'ar', 'ur', 'fa'}.contains(code);
     final uid = FirebaseAuth.instance.currentUser?.uid;
     final courses = academyCourses.where((course) {
@@ -69,10 +72,10 @@ class _LearnScreenState extends State<LearnScreen> {
                       Text('WorldVoice Academy',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.w900,
-                          color: const Color(0xFF134D36))),
+                          color: accent)),
                       Text(ar ? 'تعلم لغة خطوة بخطوة'
                           : 'Learn a language step by step',
-                        style: const TextStyle(color: Color(0xFF6B8476))),
+                        style: TextStyle(color: scheme.onSurfaceVariant)),
                     ],
                   )),
                 ]),
@@ -116,7 +119,7 @@ class _LearnScreenState extends State<LearnScreen> {
                 Text(ar ? 'اختر اللغة التي تريد تعلمها' :
                   'Choose your learning language',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: const Color(0xFF164E39),
+                    color: accent,
                     fontWeight: FontWeight.w900)),
                 const SizedBox(height: 11),
                 TextField(
@@ -133,7 +136,7 @@ class _LearnScreenState extends State<LearnScreen> {
                       }),
                       icon: const Icon(Icons.close_rounded)),
                     filled: true,
-                    fillColor: const Color(0xFFEFF6F0),
+                    fillColor: scheme.surface,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
                       borderSide: BorderSide.none),
@@ -159,7 +162,7 @@ class _LearnScreenState extends State<LearnScreen> {
                         n + AcademyLessonKind.values.where(
                           (kind) => done.contains(u.lessonId(kind))).length);
                       return Material(
-                        color: const Color(0xFFF3F9F4),
+                        color: scheme.surface,
                         borderRadius: BorderRadius.circular(18),
                         child: InkWell(
                           key: ValueKey('academy-course-${course.code}'),
@@ -173,7 +176,7 @@ class _LearnScreenState extends State<LearnScreen> {
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(18),
                               border: Border.all(
-                                color: const Color(0xFFBBDAC4))),
+                                color: scheme.outlineVariant)),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -183,16 +186,16 @@ class _LearnScreenState extends State<LearnScreen> {
                                 Text(ar ? course.arabicName : course.nativeName,
                                   maxLines: 1, overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(fontWeight: FontWeight.w900,
-                                    color: Color(0xFF164E39), fontSize: 15)),
+                                    color: accent, fontSize: 15)),
                                 Text(course.nativeName, maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    color: Color(0xFF647B6A), fontSize: 11)),
+                                  style: TextStyle(
+                                    color: scheme.onSurfaceVariant, fontSize: 11)),
                                 const Spacer(),
                                 Text(ar ? 'Beginner · 12 درسًا'
                                     : 'Beginner · 12 lessons',
-                                  style: const TextStyle(
-                                    color: Color(0xFF287750),
+                                  style: TextStyle(
+                                    color: accent,
                                     fontSize: 11, fontWeight: FontWeight.w800)),
                                 const SizedBox(height: 7),
                                 LinearProgressIndicator(
@@ -205,7 +208,7 @@ class _LearnScreenState extends State<LearnScreen> {
                                 Text(ar ? '$completed / 12 مكتمل'
                                     : '$completed / 12 completed',
                                   style: const TextStyle(
-                                    fontSize: 11, color: Color(0xFF486C57))),
+                                    fontSize: 11, color: scheme.onSurfaceVariant)),
                               ],
                             ),
                           ),
@@ -228,7 +231,7 @@ class _LearnScreenState extends State<LearnScreen> {
                   ? 'دروس المستوى المتوسط والمتقدم ستضاف لاحقًا بعد مراجعة المحتوى. لا توجد عملات أو اشتراكات مرتبطة بإكمال الدروس.'
                   : 'Intermediate and Advanced lessons will follow after content review. Completing lessons does not award coins or paid benefits.',
                   style: const TextStyle(
-                    color: Color(0xFF657B6B), fontSize: 12, height: 1.45),
+                    color: scheme.onSurfaceVariant, fontSize: 12, height: 1.45),
                   textAlign: TextAlign.center),
               ],
             );
