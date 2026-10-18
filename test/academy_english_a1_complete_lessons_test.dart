@@ -101,7 +101,8 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('english-story-next')));
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.byKey(const ValueKey('storybook-chapter-0')), findsOneWidget);
-    expect(find.byType(AcademyIllustratedStoryArt), findsOneWidget);
+    // AnimatedSwitcher retains the outgoing cover briefly during the fade.
+    expect(find.byType(AcademyIllustratedStoryArt), findsWidgets);
     await tester.pumpWidget(const MaterialApp(home: SizedBox.shrink()));
   });
 
