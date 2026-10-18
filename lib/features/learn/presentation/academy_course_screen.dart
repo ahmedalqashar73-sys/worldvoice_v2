@@ -33,6 +33,9 @@ class AcademyCourseScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ar = Localizations.localeOf(context).languageCode == 'ar';
+    final scheme = Theme.of(context).colorScheme;
+    final accent = Theme.of(context).brightness == Brightness.dark
+        ? const Color(0xFF9DECC4) : _green;
     final uid = FirebaseAuth.instance.currentUser?.uid;
     final repository = progress ?? AcademyProgressService();
     return Scaffold(
@@ -90,22 +93,22 @@ class AcademyCourseScreen extends StatelessWidget {
                 Text(ar ? 'الوحدة ${unit.number} · ${unit.title}' :
                     'Unit ${unit.number} · ${unit.nativeTitle}',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: _green, fontWeight: FontWeight.w900)),
+                    color: accent, fontWeight: FontWeight.w900)),
                 const SizedBox(height: 5),
                 Text(unit.nativeTitle,
-                  style: const TextStyle(color: Color(0xFF688075))),
+                  style: TextStyle(color: scheme.onSurfaceVariant)),
                 const SizedBox(height: 9),
                 for (final kind in AcademyLessonKind.values)
                   Card(
-                    color: const Color(0xFFF4F9F4), elevation: 0,
+                    color: scheme.surface, elevation: 0,
                     margin: const EdgeInsets.only(bottom: 7),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(15),
-                      side: const BorderSide(color: Color(0xFFD7E9DD))),
+                      side: BorderSide(color: scheme.outlineVariant)),
                     child: ListTile(
                       leading: CircleAvatar(
-                        backgroundColor: const Color(0xFFDCEEE2),
-                        child: Icon(academyKindIcon(kind), color: _green)),
+                        backgroundColor: scheme.primaryContainer,
+                        child: Icon(academyKindIcon(kind), color: accent)),
                       title: Text(academyKindTitle(kind, ar),
                         style: const TextStyle(fontWeight: FontWeight.w800)),
                       subtitle: Text(ar ? 'الدرس ${kind.index + 1} من 6'
@@ -114,7 +117,7 @@ class AcademyCourseScreen extends StatelessWidget {
                           ? Icons.check_circle_rounded
                           : Icons.chevron_right_rounded,
                         color: done.contains(unit.lessonId(kind))
-                            ? _green : const Color(0xFF92A499)),
+                            ? accent : scheme.onSurfaceVariant),
                       onTap: () => Navigator.of(context).push<void>(
                         MaterialPageRoute(builder: (_) => AcademyLessonScreen(
                           unit: unit, kind: kind, progress: repository,
@@ -252,22 +255,32 @@ class _AcademyLessonScreenState extends State<AcademyLessonScreen> {
     }
   }
 
-  Widget _info(String title, String text, {bool target = false}) =>
-      Container(
-        width: double.infinity, padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF2F8F4),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFD8E6DA))),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(title, style: const TextStyle(
-            fontSize: 15, fontWeight: FontWeight.w900, color: _green)),
-          const SizedBox(height: 9),
-          Text(text,
-            textDirection: target ? TextDirection.ltr : null,
-            style: const TextStyle(fontSize: 17, height: 1.55)),
-        ]),
-      );
+  Widget _info(String title, String text, {bool target = false}) {
+    final scheme = Theme.of(context).colorScheme;
+    final accent = Theme.of(context).brightness == Brightness.dark
+        ? const Color(0xFF9DECC4) : _green;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(title, style: TextStyle(
+          fontSize: 15, fontWeight: FontWeight.w900, color: accent,
+        )),
+        const SizedBox(height: 9),
+        Text(text,
+          textDirection: target ? TextDirection.ltr : null,
+          style: TextStyle(
+            fontSize: 17, height: 1.55, color: scheme.onSurface,
+          ),
+        ),
+      ]),
+    );
+  }
 
   Widget _listen(String text) => FilledButton.icon(
     onPressed: _speaking ? null : () => _hear(text),
