@@ -76,7 +76,7 @@ void main() {
       tester.view.resetPhysicalSize();
       tester.view.resetDevicePixelRatio();
     });
-    final c2 = EnglishAdvancedSyllabus.forLevel('C2').single;
+    final c2 = EnglishAdvancedSyllabus.forLevel('C2').first;
     await tester.pumpWidget(MaterialApp(
       home: AcademyEnglishAdvancedLessonScreen(lesson: c2),
     ));
