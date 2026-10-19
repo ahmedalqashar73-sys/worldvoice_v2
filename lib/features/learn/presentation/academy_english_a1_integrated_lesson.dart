@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
 import '../data/academy_english_a1_catalog.dart';
+import '../data/academy_a1_tutor_lessons.dart';
+import '../data/academy_english_pronunciation.dart';
 import '../data/academy_english_a1_lesson_checks.dart';
 import '../data/academy_english_a1_dialogues.dart';
 import '../data/academy_english_a1_long_stories.dart';
@@ -53,6 +55,13 @@ class _AcademyEnglishA1IntegratedLessonState
   bool _listeningPassed = false;
   bool _readingPassed = false;
   int _practiceNumber = 0;
+  int _tutorQuestionIndex = 0;
+  int? _tutorChoice;
+  bool _tutorChecked = false;
+  bool _tutorGrammarPassed = false;
+
+  AcademyTutorLesson? get _tutor =>
+      AcademyA1TutorCatalog.forUnitLesson(widget.unit.id, widget.lessonNumber);
   bool _speaking = false;
   bool _showListeningTranscript = false;
 
@@ -305,7 +314,9 @@ class _AcademyEnglishA1IntegratedLessonState
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900,
                         color: scheme.onSurface)),
                 const SizedBox(height: 4),
-                Text(_words[i].pronunciation,
+                Text(AcademyEnglishPronunciation.displayHint(_words[i].term),
+                    key: ValueKey('academy-english-pronunciation-$i'),
+                    textDirection: TextDirection.ltr,
                     style: TextStyle(fontSize: 15,
                         color: _accent, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 3),
@@ -325,6 +336,7 @@ class _AcademyEnglishA1IntegratedLessonState
 
   Widget _pronunciation() {
     final scheme = Theme.of(context).colorScheme;
+    final tutor = _tutor;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Text(_ar ? 'استمع، ثم ردد بصوتك' : 'Listen and repeat',
         style: TextStyle(color: _accent, fontSize: 23,
@@ -340,6 +352,27 @@ class _AcademyEnglishA1IntegratedLessonState
           _audioControls(widget.lesson.spoken),
         ])),
       const SizedBox(height: 16),
+      if (tutor != null) ...[
+        Text(_ar ? 'النطق الإنجليزي · IPA' : 'English pronunciation · IPA',
+          style: TextStyle(color: _accent,
+              fontWeight: FontWeight.w900, fontSize: 19)),
+        const SizedBox(height: 11),
+        _panel(child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (final reading in tutor.pronunciationGuide)
+              Padding(padding: const EdgeInsets.only(bottom: 9),
+                child: Text(reading,
+                  textDirection: TextDirection.ltr,
+                  style: TextStyle(color: scheme.onSurface,
+                      fontSize: 20, fontWeight: FontWeight.w700))),
+            Text(tutor.pronunciationTipArabic,
+              textDirection: TextDirection.rtl,
+              style: TextStyle(color: scheme.onSurface,
+                  fontSize: 15, height: 1.65)),
+          ])),
+        const SizedBox(height: 15),
+      ],
       Text(_ar
           ? 'اسمع الجملة مرتين، مرة عادية ومرة بطيئة. كررها ثلاث مرات.'
           : 'Listen at normal and slow speed, then repeat three times.',
@@ -352,7 +385,231 @@ class _AcademyEnglishA1IntegratedLessonState
     ]);
   }
 
+  Widget _tutorGrammarPage(AcademyTutorLesson tutor) {
+    final scheme = Theme.of(context).colorScheme;
+    final check = tutor.checks[_tutorQuestionIndex];
+    final isCorrect = _tutorChecked && _tutorChoice == check.correctIndex;
+
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Row(children: [
+        const CircleAvatar(radius: 26,
+          backgroundColor: Color(0xFFD6EBDF),
+          child: Icon(Icons.face_3_rounded, color: _lessonGreen, size: 27)),
+        const SizedBox(width: 12),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(_ar ? 'الأستاذة إيما · شرح مباشر' : 'Tutor Emma · Guided lesson',
+              style: TextStyle(color: _accent,
+                fontWeight: FontWeight.w900, fontSize: 18)),
+            Text(_ar ? 'جزء القواعد · نحو 5 دقائق'
+                      : 'Grammar section · about 5 minutes',
+              style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12)),
+          ])),
+      ]),
+      const SizedBox(height: 15),
+      _panel(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(tutor.welcomeArabic,
+              textDirection: TextDirection.rtl,
+              style: TextStyle(color: scheme.onSurface,
+                fontSize: 17, height: 1.8)),
+          const SizedBox(height: 15),
+          Text(_ar ? 'هدفنا اليوم' : 'Today’s goal',
+            style: TextStyle(color: _accent,
+                fontWeight: FontWeight.w900, fontSize: 18)),
+          const SizedBox(height: 5),
+          Text(tutor.goalArabic, textDirection: TextDirection.rtl,
+            style: TextStyle(color: scheme.onSurface, height: 1.7)),
+        ],
+      )),
+      const SizedBox(height: 20),
+      Text(tutor.title, textDirection: TextDirection.ltr,
+        style: TextStyle(color: _accent, fontSize: 25,
+            fontWeight: FontWeight.w900)),
+      const SizedBox(height: 11),
+      Text(tutor.ruleArabic, textDirection: TextDirection.rtl,
+        style: TextStyle(color: scheme.onSurface, fontSize: 17,
+            height: 1.8)),
+      const SizedBox(height: 16),
+      _panel(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(_ar ? 'قاعدة سهلة تتذكرها' : 'Remember the pattern',
+            style: TextStyle(color: _accent,
+                fontSize: 18, fontWeight: FontWeight.w900)),
+          const SizedBox(height: 11),
+          for (final pattern in tutor.patterns)
+            Padding(padding: const EdgeInsets.only(bottom: 9),
+              child: SelectableText(pattern,
+                textDirection: TextDirection.ltr,
+                style: TextStyle(color: scheme.onSurface,
+                    fontSize: 16, height: 1.6,
+                    fontWeight: FontWeight.w600))),
+        ],
+      )),
+      const SizedBox(height: 22),
+      Text(_ar ? 'نطبق معًا: خمس جمل' : 'Let’s practise: five examples',
+        style: TextStyle(color: _accent,
+            fontWeight: FontWeight.w900, fontSize: 20)),
+      const SizedBox(height: 10),
+      for (var i = 0; i < tutor.examples.length; i++)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: _panel(child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              Expanded(child: SelectableText(tutor.examples[i].english,
+                textDirection: TextDirection.ltr,
+                style: TextStyle(color: scheme.onSurface,
+                    fontWeight: FontWeight.w900, fontSize: 19,
+                    height: 1.5))),
+              IconButton.filledTonal(
+                tooltip: _ar ? 'استمع للمثال' : 'Hear example',
+                icon: const Icon(Icons.volume_up_rounded),
+                onPressed: () => _hear(tutor.examples[i].english),
+              ),
+            ]),
+            const SizedBox(height: 7),
+            Text(tutor.examples[i].arabic,
+                textDirection: TextDirection.rtl,
+                style: TextStyle(color: scheme.onSurface, fontSize: 15)),
+            const SizedBox(height: 8),
+            Text(tutor.examples[i].note,
+                textDirection: TextDirection.rtl,
+                style: TextStyle(color: scheme.onSurfaceVariant,
+                    fontSize: 14, height: 1.6)),
+          ])),
+        ),
+      const SizedBox(height: 14),
+      _panel(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            const Icon(Icons.lightbulb_outline_rounded, color: _lessonGold),
+            const SizedBox(width: 7),
+            Text(_ar ? 'خطأ شائع — انتبه' : 'Common mistake',
+              style: TextStyle(color: _accent,
+                  fontWeight: FontWeight.w900, fontSize: 17)),
+          ]),
+          const SizedBox(height: 12),
+          Text(tutor.commonMistake,
+              textDirection: TextDirection.ltr,
+              style: TextStyle(color: scheme.error,
+                  fontSize: 18, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 8),
+          Text(tutor.correctForm,
+              textDirection: TextDirection.ltr,
+              style: TextStyle(color: scheme.onSurface,
+                  fontSize: 18, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 12),
+          Text(tutor.mistakeExplanationArabic,
+              textDirection: TextDirection.rtl,
+              style: TextStyle(color: scheme.onSurface,
+                  height: 1.7)),
+          const SizedBox(height: 13),
+          Text(tutor.teacherTipArabic,
+              textDirection: TextDirection.rtl,
+              style: TextStyle(color: scheme.onSurface,
+                  height: 1.7)),
+        ],
+      )),
+      const SizedBox(height: 22),
+      Text(_ar ? 'اسأل نفسك: هل فهمت القاعدة؟'
+                  : 'Quick understanding check',
+        style: TextStyle(color: _accent,
+            fontWeight: FontWeight.w900, fontSize: 21)),
+      const SizedBox(height: 7),
+      Text(_ar
+          ? 'حل 3 أسئلة مع شرح التصحيح، ثم أكمل إلى المفردات.'
+          : 'Answer 3 questions with feedback, then move to vocabulary.',
+        style: TextStyle(color: scheme.onSurfaceVariant, height: 1.5)),
+      const SizedBox(height: 15),
+      if (_tutorGrammarPassed)
+        _panel(child: Row(children: [
+          const Icon(Icons.check_circle_rounded, color: _lessonGreen),
+          const SizedBox(width: 10),
+          Expanded(child: Text(_ar
+              ? 'أحسنت! أتقنت مراجعة القاعدة. تابع إلى المفردات.'
+              : 'Great work! Now continue to vocabulary.',
+              style: TextStyle(color: scheme.onSurface,
+                  fontWeight: FontWeight.w700))),
+        ]))
+      else
+        _panel(child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Text(_ar ? 'السؤال ${_tutorQuestionIndex + 1} من 3'
+                      : 'Question ${_tutorQuestionIndex + 1} of 3',
+            style: TextStyle(color: _accent,
+                fontWeight: FontWeight.w900)),
+          const SizedBox(height: 10),
+          Text(check.prompt, textDirection: TextDirection.ltr,
+            style: TextStyle(color: scheme.onSurface, fontSize: 19,
+                fontWeight: FontWeight.w800)),
+          const SizedBox(height: 12),
+          for (var i = 0; i < check.options.length; i++)
+            Padding(padding: const EdgeInsets.only(bottom: 9),
+              child: OutlinedButton(
+                onPressed: isCorrect ? null : () => setState(() {
+                  _tutorChoice = i;
+                  _tutorChecked = false;
+                }),
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: _tutorChoice == i
+                      ? scheme.primaryContainer : scheme.surface,
+                  minimumSize: const Size.fromHeight(56),
+                ),
+                child: Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text(check.options[i],
+                    textDirection: TextDirection.ltr,
+                    style: TextStyle(color: scheme.onSurface,
+                        fontSize: 16)),
+                ),
+              ),
+            ),
+          if (_tutorChecked) ...[
+            const SizedBox(height: 8),
+            Text(isCorrect
+                ? (_ar ? 'إجابة صحيحة! ممتاز.' : 'Correct. Well done!')
+                : (_ar ? 'هذه ليست الإجابة الصحيحة. جرّب مرة أخرى.'
+                        : 'Not quite. Try again.'),
+              style: TextStyle(color: isCorrect
+                  ? _accent : scheme.error, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 7),
+            Text(check.explanation,
+              textDirection: TextDirection.ltr,
+              style: TextStyle(color: scheme.onSurface,
+                  fontSize: 14, height: 1.5)),
+          ],
+          const SizedBox(height: 15),
+          FilledButton(
+            key: const ValueKey('academy-tutor-check-answer'),
+            onPressed: _tutorChoice == null ? null : () => setState(() {
+              if (isCorrect) {
+                if (_tutorQuestionIndex == tutor.checks.length - 1) {
+                  _tutorGrammarPassed = true;
+                } else {
+                  _tutorQuestionIndex++;
+                }
+                _tutorChoice = null;
+                _tutorChecked = false;
+              } else {
+                _tutorChecked = true;
+              }
+            }),
+            style: FilledButton.styleFrom(
+              backgroundColor: _lessonGreen,
+              foregroundColor: Colors.white,
+              minimumSize: const Size.fromHeight(52)),
+            child: Text(isCorrect
+                ? (_ar ? 'السؤال التالي' : 'Next question')
+                : (_ar ? 'تحقق من الإجابة' : 'Check answer')),
+          ),
+        ])),
+    ]);
+  }
+
   Widget _grammarPage() {
+    final tutor = _tutor;
+    if (tutor != null) return _tutorGrammarPage(tutor);
     final scheme = Theme.of(context).colorScheme;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Text(_grammar.title,
@@ -678,6 +935,7 @@ class _AcademyEnglishA1IntegratedLessonState
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final canContinue = switch (_stage) {
+      0 => _tutor == null || _tutorGrammarPassed,
       2 => _readingPassed,
       3 => false,
       4 => _conversationPassed,
