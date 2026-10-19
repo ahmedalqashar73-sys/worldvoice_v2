@@ -8,6 +8,8 @@ import '../data/academy_catalog.dart';
 import '../data/academy_multilingual_starters.dart';
 import 'academy_multilingual_starter_screen.dart';
 import '../data/academy_english_a1_catalog.dart';
+import '../data/academy_english_advanced_models.dart';
+import 'academy_english_advanced_screen.dart';
 import 'academy_english_a1_screen.dart';
 import '../data/academy_journey_catalog.dart';
 import '../data/academy_story_catalog.dart';
@@ -133,6 +135,12 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
     }
   }
 
+  Future<void> _openAdvanced(String level) async {
+    await Navigator.of(context).push<void>(MaterialPageRoute(
+      builder: (_) => AcademyEnglishAdvancedPath(level: level),
+    ));
+  }
+
   Future<void> _sync() async {
     final synced = await _progress.synchronizePending();
     final pending = await _progress.pendingCount();
@@ -245,6 +253,9 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
               const SizedBox(height: 10),
               ...AcademyJourneyCatalog.levels.map((level) {
                 final a1 = level.isBeginner;
+                final advancedLessons = widget.course.code == 'en'
+                    ? EnglishAdvancedSyllabus.forLevel(level.id).length : 0;
+                final published = a1 || advancedLessons > 0;
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: Material(
@@ -253,7 +264,8 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
                     child: InkWell(
                       key: ValueKey('academy-level-${level.id}'),
                       borderRadius: BorderRadius.circular(19),
-                      onTap: a1 ? _openA1 : null,
+                      onTap: a1 ? _openA1 : advancedLessons > 0
+                          ? () => _openAdvanced(level.id) : null,
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
@@ -263,10 +275,10 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
                         child: Row(children: [
                           CircleAvatar(
                             radius: 28,
-                            backgroundColor: a1 ? scheme.primaryContainer
+                            backgroundColor: published ? scheme.primaryContainer
                                 : scheme.surfaceContainerHighest,
                             child: Text(level.id,
-                              style: TextStyle(color: a1 ? accent
+                              style: TextStyle(color: published ? accent
                                   : scheme.onSurfaceVariant,
                                 fontWeight: FontWeight.w900)),
                           ),
@@ -282,14 +294,17 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
                                   ? (ar
                                       ? '${widget.course.code == 'en' ? 3 : widget.course.units.length} وحدات جاهزة للبدء'
                                       : '${widget.course.code == 'en' ? 3 : widget.course.units.length} units ready')
-                                  : (ar ? 'قيد إعداد الدروس'
-                                      : 'Lessons are being prepared'),
+                                  : advancedLessons > 0
+                                      ? (ar ? '$advancedLessons درس تجريبي منشور · المزيد قيد التأليف'
+                                          : '$advancedLessons published pilot lesson · more in progress')
+                                      : (ar ? 'قيد إعداد الدروس'
+                                          : 'Lessons are being prepared'),
                                 style: TextStyle(color: scheme.onSurfaceVariant)),
                             ],
                           )),
-                          Icon(a1 ? Icons.play_circle_rounded
+                          Icon(published ? Icons.play_circle_rounded
                               : Icons.lock_outline_rounded,
-                              color: a1 ? accent : scheme.onSurfaceVariant),
+                              color: published ? accent : scheme.onSurfaceVariant),
                         ]),
                       ),
                     ),
@@ -297,8 +312,8 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
                 );
               }),
               Text(ar
-                  ? 'اختبار المستوى تمهيدي، والدروس A2–C2 ستفتح بعد إعداد محتواها.'
-                  : 'Placement is preliminary. A2–C2 lessons will open when content is ready.',
+                  ? 'اختبار المستوى تمهيدي. فتحنا دروسًا تجريبية فعلية في A2–C2، وستُضاف بقية الدروس بعد التأليف والمراجعة.'
+                  : 'Placement is preliminary. Authored A2–C2 pilot lessons are open; further lessons are being reviewed.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 12,
                     color: scheme.onSurfaceVariant)),
