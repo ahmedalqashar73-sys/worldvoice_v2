@@ -150,7 +150,7 @@ void main() {
       final dialogue = EnglishAdvancedDialogues.forLesson(lesson);
       expect(dialogue.lines, hasLength(5));
       expect(dialogue.pronunciation, hasLength(3));
-      expect(lesson.listening.split(RegExp(r'\\s+')).length,
+      expect(lesson.listening.split(RegExp(r'\s+')).length,
           greaterThanOrEqualTo(65));
     }
   });
