@@ -31,6 +31,12 @@ void main() {
         expect(AcademyTutorTranslations.label(code, label).trim(),
           isNotEmpty, reason: '$code label $label');
       }
+      for (var stage = 0; stage < 8; stage++) {
+        expect(AcademyTutorTranslations.section(code, stage).trim(),
+          isNotEmpty, reason: '$code section $stage');
+      }
+      expect(AcademyTutorTranslations.menuIntroduction(code).trim().length,
+          greaterThan(20));
     }
     expect(AcademyTutorTranslations.isRtl('ar'), isTrue);
     expect(AcademyTutorTranslations.isRtl('ur'), isTrue);
