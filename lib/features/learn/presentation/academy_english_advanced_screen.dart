@@ -30,6 +30,59 @@ abstract final class EnglishAdvancedProgress {
   }
 }
 
+/// CEFR level entry: higher levels use the same Level → Unit → Lesson
+/// hierarchy as A1. Only authored and tested units are clickable.
+class AcademyEnglishAdvancedLevelScreen extends StatelessWidget {
+  const AcademyEnglishAdvancedLevelScreen({required this.level, super.key});
+  final String level;
+
+  @override
+  Widget build(BuildContext context) {
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    final scheme = Theme.of(context).colorScheme;
+    final available = EnglishAdvancedSyllabus.forLevel(level);
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('English $level'),
+        backgroundColor: _green,
+        foregroundColor: Colors.white,
+      ),
+      body: SafeArea(child: ListView(
+        padding: const EdgeInsets.all(18),
+        children: [
+          Text(ar ? 'اختر الوحدة' : 'Choose a unit',
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
+          const SizedBox(height: 15),
+          Card(
+            child: ListTile(
+              key: const ValueKey('advanced-unit-1'),
+              contentPadding: const EdgeInsets.all(17),
+              leading: CircleAvatar(
+                backgroundColor: scheme.primaryContainer,
+                child: const Text('1', style: TextStyle(fontWeight: FontWeight.w900)),
+              ),
+              title: Text(ar ? 'الوحدة الأولى' : 'Unit 1',
+                style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w800)),
+              subtitle: Text(ar
+                ? '${available.length} دروس متاحة · قصص ومفردات وقواعد واستماع'
+                : '${available.length} lessons · stories, vocabulary, grammar, listening'),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              onTap: () => Navigator.of(context).push<void>(MaterialPageRoute(
+                builder: (_) => AcademyEnglishAdvancedPath(level: level))),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(ar
+              ? 'تُفتح الوحدات التالية عندما تصبح دروسها مكتوبة ومراجعة بالكامل.'
+              : 'Further units will open after their lessons are authored and reviewed.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13)),
+        ],
+      )),
+    );
+  }
+}
+
 class AcademyEnglishAdvancedPath extends StatefulWidget {
   const AcademyEnglishAdvancedPath({required this.level, super.key});
   final String level;
@@ -118,11 +171,12 @@ class _AcademyEnglishAdvancedPathState
                     child: Text('${lesson.number}',
                       style: const TextStyle(fontWeight: FontWeight.w900)),
                   ),
-                  title: Text(_ar ? lesson.titleArabic : lesson.title,
-                    style: const TextStyle(fontWeight: FontWeight.w800)),
+                  title: Text(_ar ? 'الدرس ${lesson.number}' : 'Lesson ${lesson.number}',
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.w800)),
                   subtitle: Text(_ar
-                    ? '${lesson.paragraphs.length} فقرات · ${lesson.vocabulary.length} كلمة · استماع وكتابة'
-                    : '${lesson.paragraphs.length} paragraphs · ${lesson.vocabulary.length} words · listening and writing'),
+                    ? 'قواعد · ${lesson.vocabulary.length} كلمة · قصة · استماع · اختبارات'
+                    : 'Grammar · ${lesson.vocabulary.length} words · story · listening · quizzes'),
                   trailing: Icon(_done.contains(lesson.id)
                     ? Icons.check_circle_rounded : Icons.chevron_right_rounded,
                     color: _done.contains(lesson.id) ? _green : null),
@@ -171,6 +225,122 @@ class _AcademyEnglishAdvancedLessonScreenState
   bool _sentencePassed = false;
   bool _showTranscript = false;
   String? _message;
+  int? _activeSection;
+  int _highestUnlocked = 0;
+
+  static const _sectionAr = <String>[
+    'شرح القواعد',
+    'المفردات',
+    'القصة المصورة',
+    'الكلمات الجديدة في القصة',
+    'اختبار فهم القصة',
+    'الاستماع',
+    'اختبار الكتابة والنطق',
+    'إكمال الدرس',
+  ];
+  static const _sectionEn = <String>[
+    'Grammar',
+    'Vocabulary',
+    'Illustrated story',
+    'New story words',
+    'Reading comprehension',
+    'Listening',
+    'Writing and pronunciation practice',
+    'Complete lesson',
+  ];
+  static const _sectionIcons = <IconData>[
+    Icons.school_outlined, Icons.translate_rounded,
+    Icons.auto_stories_rounded, Icons.bookmark_add_outlined,
+    Icons.fact_check_rounded, Icons.headphones_rounded,
+    Icons.edit_note_rounded, Icons.emoji_events_rounded,
+  ];
+
+  void _enterSection(int section) {
+    if (section < 0 || section > _highestUnlocked) return;
+    setState(() {
+      _activeSection = section;
+      _message = null;
+    });
+  }
+
+  bool get _readyToAdvance => switch (_activeSection) {
+    4 => _readPassed,
+    5 => _listenPassed,
+    6 => _wordPassed && _sentencePassed,
+    _ => true,
+  };
+
+  void _nextSection() {
+    if (_activeSection == null || !_readyToAdvance) return;
+    _tts.stop();
+    setState(() {
+      _highestUnlocked = _highestUnlocked < _activeSection! + 1
+          ? _activeSection! + 1 : _highestUnlocked;
+      _activeSection = null;
+      _message = null;
+    });
+  }
+
+  Widget _sectionMenu() {
+    final scheme = Theme.of(context).colorScheme;
+    final lesson = widget.lesson;
+    return ListView(
+      key: const ValueKey('advanced-section-menu'),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 26),
+      children: [
+        Text(_ar ? 'الدرس ${lesson.number}' : 'Lesson ${lesson.number}',
+          style: const TextStyle(fontSize: 27, fontWeight: FontWeight.w900)),
+        const SizedBox(height: 5),
+        Text(_ar ? lesson.titleArabic : lesson.title,
+          style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 16)),
+        const SizedBox(height: 12),
+        Text(_ar
+            ? 'اختر القسم المتاح. القصة والقواعد والمفردات والاستماع كلها داخل الدرس.'
+            : 'Choose a section. Story, grammar, vocabulary and listening are all part of this lesson.',
+          style: TextStyle(color: scheme.onSurfaceVariant)),
+        const SizedBox(height: 16),
+        LinearProgressIndicator(
+          value: _highestUnlocked / 7, minHeight: 7,
+          borderRadius: BorderRadius.circular(7),
+          color: _green, backgroundColor: scheme.surfaceContainerHighest),
+        const SizedBox(height: 16),
+        for (var index = 0; index < _sectionAr.length; index++)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Card(
+              elevation: 0,
+              child: ListTile(
+                key: ValueKey('advanced-section-$index'),
+                contentPadding: const EdgeInsets.all(14),
+                onTap: index <= _highestUnlocked
+                    ? () => _enterSection(index) : null,
+                leading: CircleAvatar(
+                  backgroundColor: scheme.primaryContainer,
+                  child: Icon(_sectionIcons[index], color: _green),
+                ),
+                title: Text(_ar ? _sectionAr[index] : _sectionEn[index],
+                  style: const TextStyle(fontWeight: FontWeight.w800)),
+                subtitle: Text(index == 1
+                    ? (_ar ? '${lesson.vocabulary.length} مفردة جديدة'
+                        : '${lesson.vocabulary.length} new words')
+                    : index == 2
+                        ? (_ar ? '${lesson.paragraphs.length} فقرات'
+                            : '${lesson.paragraphs.length} paragraphs')
+                        : (_ar ? 'القسم ${index + 1} من 8'
+                            : 'Section ${index + 1} of 8')),
+                trailing: Icon(index < _highestUnlocked
+                    ? Icons.check_circle_rounded
+                    : index == _highestUnlocked
+                        ? Icons.chevron_right_rounded
+                        : Icons.lock_outline_rounded,
+                  color: index < _highestUnlocked
+                      ? _green : scheme.onSurfaceVariant),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
   bool get _ar => Localizations.localeOf(context).languageCode == 'ar';
 
   @override
@@ -320,8 +490,21 @@ class _AcademyEnglishAdvancedLessonScreenState
       appBar: AppBar(
         backgroundColor: _green, foregroundColor: Colors.white,
         title: Text('English ${lesson.level} · ${_ar ? 'الدرس' : 'Lesson'} ${lesson.number}'),
+        actions: [
+          IconButton(
+            key: const ValueKey('advanced-back-to-sections'),
+            tooltip: _ar ? 'أقسام الدرس' : 'Lesson sections',
+            onPressed: _activeSection == null ? null : () {
+              _tts.stop();
+              setState(() => _activeSection = null);
+            },
+            icon: const Icon(Icons.view_list_rounded),
+          ),
+        ],
       ),
-      body: SafeArea(child: ListView(
+      body: SafeArea(child: _activeSection == null
+          ? _sectionMenu()
+          : ListView(
         key: const ValueKey('advanced-lesson-body'),
         padding: const EdgeInsets.fromLTRB(15, 18, 15, 30),
         children: [
@@ -333,7 +516,7 @@ class _AcademyEnglishAdvancedLessonScreenState
             : '${lesson.paragraphs.length} paragraphs · ${lesson.vocabulary.length} new words · graded listening',
             style: TextStyle(color: scheme.onSurfaceVariant)),
           const SizedBox(height: 17),
-          _section('شرح القاعدة', 'Grammar with examples',
+          if (_activeSection == 0) _section('شرح القاعدة', 'Grammar with examples',
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(lesson.grammarTitle, textDirection: TextDirection.ltr,
                 style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
@@ -351,7 +534,7 @@ class _AcademyEnglishAdvancedLessonScreenState
                     onPressed: () => _play(example)),
                 ),
             ]), icon: Icons.school_outlined),
-          _section('قصة المستوى · ${lesson.paragraphs.length} فقرات',
+          if (_activeSection == 2) _section('قصة المستوى · ${lesson.paragraphs.length} فقرات',
               'Graded story · ${lesson.paragraphs.length} paragraphs',
             Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               Container(
@@ -391,7 +574,7 @@ class _AcademyEnglishAdvancedLessonScreenState
                 ),
               ]),
             ]), icon: Icons.auto_stories_rounded),
-          _section('الكلمات الجديدة داخل القصة', 'New words from this story',
+          if (_activeSection == 3) _section('الكلمات الجديدة داخل القصة', 'New words from this story',
             Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               for (final word in lesson.storyWords)
                 ListTile(
@@ -405,7 +588,7 @@ class _AcademyEnglishAdvancedLessonScreenState
                     onPressed: () => _play(word.term)),
                 ),
             ]), icon: Icons.bookmark_add_outlined),
-          _section('مفردات إضافية للدرس', 'Additional lesson vocabulary',
+          if (_activeSection == 1) _section('مفردات إضافية للدرس', 'Additional lesson vocabulary',
             Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               for (final word in lesson.extraWords)
                 ListTile(
@@ -418,7 +601,7 @@ class _AcademyEnglishAdvancedLessonScreenState
                     onPressed: () => _play(word.term)),
                 ),
             ]), icon: Icons.translate_rounded),
-          _section('اختبار فهم القصة', 'Story comprehension',
+          if (_activeSection == 4) _section('اختبار فهم القصة', 'Story comprehension',
             _quiz(
               keyName: 'advanced-reading',
               question: lesson.readingQuestion, answers: lesson.readingOptions,
@@ -430,7 +613,7 @@ class _AcademyEnglishAdvancedLessonScreenState
                 if (!_readPassed) _message = _ar ? 'راجع القصة وجرب مرة ثانية.' : 'Read again and retry.';
               }),
             ), icon: Icons.fact_check_rounded),
-          _section('استماع أصعب بحسب المستوى', 'Graded listening challenge',
+          if (_activeSection == 5) _section('استماع أصعب بحسب المستوى', 'Graded listening challenge',
             Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               Text(_ar
                 ? 'استمع أولًا دون نص، ثم أجب. سرعة القراءة والمحتوى يتدرجان حسب المستوى.'
@@ -474,7 +657,7 @@ class _AcademyEnglishAdvancedLessonScreenState
                 }),
               ),
             ]), icon: Icons.headphones_rounded),
-          _section('اختبار كتابة كلمات القصة', 'Story spelling challenge',
+          if (_activeSection == 6) _section('اختبار كتابة كلمات القصة', 'Story spelling challenge',
             Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               Text(_ar
                   ? 'اكتب 3 كلمات مختلفة من القصة، واحدة في كل مرة. راجع القائمة الكاملة أعلاه إذا احتجت.'
@@ -536,11 +719,22 @@ class _AcademyEnglishAdvancedLessonScreenState
                 onPressed: _checkSentence,
                 child: Text(_ar ? 'مراجعة تدريب الكتابة' : 'Check writing exercise')),
             ]), icon: Icons.edit_note_rounded),
-          if (_message != null)
+          if (_activeSection == 6 && _message != null)
             Padding(padding: const EdgeInsets.only(bottom: 16),
               child: Text(_message!, style: TextStyle(
                 color: scheme.onSurfaceVariant, fontWeight: FontWeight.w700))),
-          FilledButton.icon(
+          if (_activeSection != null && _activeSection! < 7)
+            FilledButton.icon(
+              key: const ValueKey('advanced-section-next'),
+              onPressed: _readyToAdvance ? _nextSection : null,
+              icon: const Icon(Icons.arrow_forward_rounded),
+              label: Text(_ar ? 'إكمال القسم والعودة للأقسام'
+                  : 'Complete section and return to menu'),
+              style: FilledButton.styleFrom(
+                backgroundColor: _green, foregroundColor: Colors.white,
+                minimumSize: const Size.fromHeight(54)),
+            ),
+          if (_activeSection == 7) FilledButton.icon(
             key: const ValueKey('advanced-finish'),
             onPressed: canFinish ? () => Navigator.of(context).pop(true) : null,
             icon: const Icon(Icons.check_circle_rounded),
