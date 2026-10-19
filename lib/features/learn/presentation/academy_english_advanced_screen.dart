@@ -40,7 +40,7 @@ class AcademyEnglishAdvancedLevelScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final ar = Localizations.localeOf(context).languageCode == 'ar';
     final scheme = Theme.of(context).colorScheme;
-    final available = EnglishAdvancedSyllabus.forLevel(level);
+    final units = EnglishAdvancedSyllabus.unitsForLevel(level);
     return Scaffold(
       appBar: AppBar(
         title: Text('English $level'),
@@ -52,29 +52,41 @@ class AcademyEnglishAdvancedLevelScreen extends StatelessWidget {
         children: [
           Text(ar ? 'اختر الوحدة' : 'Choose a unit',
             style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
-          const SizedBox(height: 15),
-          Card(
-            child: ListTile(
-              key: const ValueKey('advanced-unit-1'),
-              contentPadding: const EdgeInsets.all(17),
-              leading: CircleAvatar(
-                backgroundColor: scheme.primaryContainer,
-                child: const Text('1', style: TextStyle(fontWeight: FontWeight.w900)),
-              ),
-              title: Text(ar ? 'الوحدة الأولى' : 'Unit 1',
-                style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w800)),
-              subtitle: Text(ar
-                ? '${available.length} دروس متاحة · قصص ومفردات وقواعد واستماع'
-                : '${available.length} lessons · stories, vocabulary, grammar, listening'),
-              trailing: const Icon(Icons.chevron_right_rounded),
-              onTap: () => Navigator.of(context).push<void>(MaterialPageRoute(
-                builder: (_) => AcademyEnglishAdvancedPath(level: level))),
-            ),
-          ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
           Text(ar
-              ? 'تُفتح الوحدات التالية عندما تصبح دروسها مكتوبة ومراجعة بالكامل.'
-              : 'Further units will open after their lessons are authored and reviewed.',
+              ? '3 وحدات في كل مستوى · 10 دروس لكل وحدة'
+              : '3 units per level · 10 lessons per unit',
+            style: TextStyle(color: scheme.onSurfaceVariant)),
+          const SizedBox(height: 16),
+          for (final unit in units)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Card(
+                child: ListTile(
+                  key: ValueKey('advanced-unit-${unit.number}'),
+                  contentPadding: const EdgeInsets.all(17),
+                  leading: CircleAvatar(
+                    backgroundColor: scheme.primaryContainer,
+                    child: Text('${unit.number}',
+                      style: const TextStyle(fontWeight: FontWeight.w900)),
+                  ),
+                  title: Text(ar ? 'الوحدة ${unit.number}' : 'Unit ${unit.number}',
+                    style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w800)),
+                  subtitle: Text(ar
+                      ? '${unit.publishedLessons.length} من 10 دروس متاحة · ${unit.titleArabic}'
+                      : '${unit.publishedLessons.length} of 10 lessons available · ${unit.title}'),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: () => Navigator.of(context).push<void>(
+                    MaterialPageRoute(
+                      builder: (_) => AcademyEnglishAdvancedPath(
+                        level: level, unitNumber: unit.number))),
+                ),
+              ),
+            ),
+          const SizedBox(height: 12),
+          Text(ar
+              ? 'المستويات منظمة كـ A1، لكن الدروس غير المؤلّفة تظهر مقفلة حتى يتم إعداد محتواها.'
+              : 'The same layout as A1. Unwritten lessons stay locked until their content is ready.',
             textAlign: TextAlign.center,
             style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13)),
         ],
@@ -84,8 +96,11 @@ class AcademyEnglishAdvancedLevelScreen extends StatelessWidget {
 }
 
 class AcademyEnglishAdvancedPath extends StatefulWidget {
-  const AcademyEnglishAdvancedPath({required this.level, super.key});
+  const AcademyEnglishAdvancedPath({
+    required this.level, this.unitNumber = 1, super.key,
+  });
   final String level;
+  final int unitNumber;
 
   @override
   State<AcademyEnglishAdvancedPath> createState() =>
@@ -131,7 +146,8 @@ class _AcademyEnglishAdvancedPathState
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final available = EnglishAdvancedSyllabus.forLevel(widget.level);
+    final unit = EnglishAdvancedSyllabus.unitsForLevel(widget.level)[widget.unitNumber - 1];
+    final available = unit.publishedLessons;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: _green, foregroundColor: Colors.white,
@@ -165,33 +181,47 @@ class _AcademyEnglishAdvancedPathState
             ]),
           ),
           const SizedBox(height: 18),
-          Text(_ar ? 'الوحدة الأولى · الدروس المنشورة' : 'Unit 1 · Published lessons',
+          Text(_ar ? 'الوحدة ${widget.unitNumber} · 10 دروس'
+              : 'Unit ${widget.unitNumber} · 10 lessons',
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
           const SizedBox(height: 11),
-          for (final lesson in available)
-            Padding(padding: const EdgeInsets.only(bottom: 10),
-              child: Card(elevation: 0, color: scheme.surface,
-                child: ListTile(
-                  key: ValueKey('advanced-lesson-${lesson.level}-${lesson.number}'),
-                  contentPadding: const EdgeInsets.all(14),
-                  leading: CircleAvatar(
-                    backgroundColor: scheme.primaryContainer,
-                    child: Text('${lesson.number}',
-                      style: const TextStyle(fontWeight: FontWeight.w900)),
+          for (var i = 1; i <= 10; i++)
+            Builder(builder: (context) {
+              final lesson = unit.lessonAt(i);
+              final published = lesson != null;
+              return Padding(padding: const EdgeInsets.only(bottom: 10),
+                child: Card(elevation: 0, color: scheme.surface,
+                  child: ListTile(
+                    key: ValueKey('advanced-lesson-${widget.level}-${widget.unitNumber}-$i'),
+                    contentPadding: const EdgeInsets.all(14),
+                    leading: CircleAvatar(
+                      backgroundColor: published
+                          ? scheme.primaryContainer : scheme.surfaceContainerHighest,
+                      child: Text('$i',
+                        style: const TextStyle(fontWeight: FontWeight.w900)),
+                    ),
+                    title: Text(_ar ? 'الدرس $i' : 'Lesson $i',
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.w800)),
+                    subtitle: Text(published
+                        ? (_ar
+                            ? 'قواعد · ${lesson.vocabulary.length} كلمة · قصة · استماع · اختبارات'
+                            : 'Grammar · ${lesson.vocabulary.length} words · story · listening · quizzes')
+                        : (_ar
+                            ? 'قيد الإعداد · ${unit.plannedTopics[i - 1]}'
+                            : 'In preparation · ${unit.plannedTopics[i - 1]}'),
+                      style: TextStyle(color: scheme.onSurfaceVariant)),
+                    trailing: Icon(published && _done.contains(lesson.id)
+                        ? Icons.check_circle_rounded
+                        : published
+                            ? Icons.chevron_right_rounded : Icons.lock_outline_rounded,
+                      color: published && _done.contains(lesson.id)
+                          ? _green : scheme.onSurfaceVariant),
+                    onTap: published ? () => _open(lesson) : null,
                   ),
-                  title: Text(_ar ? 'الدرس ${lesson.number}' : 'Lesson ${lesson.number}',
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.w800)),
-                  subtitle: Text(_ar
-                    ? 'قواعد · ${lesson.vocabulary.length} كلمة · قصة · استماع · اختبارات'
-                    : 'Grammar · ${lesson.vocabulary.length} words · story · listening · quizzes'),
-                  trailing: Icon(_done.contains(lesson.id)
-                    ? Icons.check_circle_rounded : Icons.chevron_right_rounded,
-                    color: _done.contains(lesson.id) ? _green : null),
-                  onTap: () => _open(lesson),
                 ),
-              ),
-            ),
+              );
+            }),
           const SizedBox(height: 15),
           Text(_ar
             ? 'بقية دروس المستوى لا تظهر كمكتملة قبل تأليف قصصها واختباراتها.'
