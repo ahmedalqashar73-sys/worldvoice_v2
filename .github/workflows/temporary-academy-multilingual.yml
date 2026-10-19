@@ -15,4 +15,4 @@ jobs:
           cache: true
       - run: flutter pub get
       - run: flutter analyze
-      - run: flutter test test/academy_a1_tutor_first_three_test.dart test/academy_tutor_multilingual_test.dart test/academy_english_a1_full_path_test.dart test/academy_catalog_test.dart test/academy_placement_test.dart
+      - run: flutter test test/academy_a1_tutor_first_three_test.dart test/academy_tutor_multilingual_test.dart test/academy_multilingual_starters_test.dart test/academy_english_a1_full_path_test.dart test/academy_catalog_test.dart test/academy_placement_test.dart
