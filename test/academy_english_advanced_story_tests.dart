@@ -31,9 +31,9 @@ Future<void> reachAdvancedWriting(
     WidgetTester tester, EnglishAdvancedLesson lesson) async {
   for (var index = 0; index < 6; index++) {
     await openAdvancedSection(tester, index);
-    if (index == 4 || index == 5) {
-      final prefix = index == 4 ? 'advanced-reading' : 'advanced-listening';
-      final correct = index == 4 ? lesson.readingAnswer : lesson.listeningAnswer;
+    if (index == 5) {
+      const prefix = 'advanced-listening';
+      final correct = lesson.listeningAnswer;
       final option = find.byKey(ValueKey('$prefix-option-$correct'));
       await tester.scrollUntilVisible(option, 400,
           scrollable: find.byType(Scrollable).first, maxScrolls: 80);
@@ -99,6 +99,46 @@ void main() {
       }
     }
     expect(EnglishAdvancedSyllabus.forLevel('A1'), isEmpty);
+  });
+
+  test('Every higher level has three A1-style units with ten lesson slots', () {
+    expect(EnglishAdvancedCurriculum.plannedSlotCount, 150);
+    for (final level in EnglishAdvancedSyllabus.levels) {
+      final units = EnglishAdvancedSyllabus.unitsForLevel(level);
+      expect(units, hasLength(3), reason: level);
+      for (var unitIndex = 0; unitIndex < 3; unitIndex++) {
+        final unit = units[unitIndex];
+        expect(unit.number, unitIndex + 1);
+        expect(unit.level, level);
+        expect(unit.title.trim(), isNotEmpty);
+        expect(unit.titleArabic.trim(), isNotEmpty);
+        expect(unit.plannedTopics, hasLength(10));
+        expect(unit.plannedTopics.toSet().length, 10);
+        for (var number = 1; number <= 10; number++) {
+          final lesson = unit.lessonAt(number);
+          if (unit.number == 1 && number <= 2) {
+            expect(lesson, isNotNull);
+            expect(lesson!.number, number);
+            expect(lesson.unitNumber, unit.number);
+            expect(lesson.id, 'worldvoice.en.${level.toLowerCase()}.u1.l${number.toString().padLeft(2, '0')}');
+          } else {
+            expect(lesson, isNull,
+                reason: 'Do not falsely publish an unwritten $level unit ${unit.number} lesson $number');
+          }
+        }
+      }
+    }
+  });
+
+  test('Every published advanced lesson has a distinct guided dialogue and IPA practice', () {
+    for (final lesson in EnglishAdvancedSyllabus.lessons) {
+      final dialogue = EnglishAdvancedDialogues.forLesson(lesson);
+      expect(dialogue.lines.length, greaterThanOrEqualTo(4));
+      expect(dialogue.tipArabic.trim(), isNotEmpty);
+      expect(dialogue.pronunciation, hasLength(3));
+      expect(dialogue.pronunciation.every((cue) =>
+          cue.contains(' /') && cue.endsWith('/')), isTrue);
+    }
   });
 
   test('each level has three different story words to spell', () {
@@ -174,11 +214,20 @@ void main() {
     await tester.pumpWidget(const MaterialApp(
       home: AcademyEnglishAdvancedLevelScreen(level: 'C2'),
     ));
-    expect(find.byKey(const ValueKey('advanced-unit-1')), findsOneWidget);
+    for (var i = 1; i <= 3; i++) {
+      expect(find.byKey(ValueKey('advanced-unit-$i')), findsOneWidget);
+    }
     await tester.tap(find.byKey(const ValueKey('advanced-unit-1')));
     await tester.pumpAndSettle();
     expect(find.text('Lesson 1'), findsOneWidget);
     expect(find.text('Lesson 2'), findsOneWidget);
+    // All ten lesson slots are visible but unpublished content is locked.
+    expect(find.byKey(const ValueKey('advanced-lesson-C2-1-10'),
+        skipOffstage: false), findsOneWidget);
+    final locked = tester.widget<ListTile>(
+      find.byKey(const ValueKey('advanced-lesson-C2-1-10'),
+          skipOffstage: false));
+    expect(locked.onTap, isNull);
   });
 
   testWidgets('C2 story remains six paragraphs inside its own lesson section',
