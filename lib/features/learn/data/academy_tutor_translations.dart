@@ -244,4 +244,49 @@ abstract final class AcademyTutorTranslations {
   static String exampleNote(String code) =>
       _exampleNotes[normalized(code)]!;
 
+  static const _sectionTitles = <String, List<String>>{
+    "ar": ["شرح القواعد", "20 مفردة", "القصة المصورة", "اختبار الكلمات", "المحادثة", "النطق", "الاستماع", "اكتمال الدرس"],
+    "en": ["Grammar", "20 words", "Illustrated story", "Word quiz", "Conversation", "Pronunciation", "Listening", "Complete"],
+    "es": ["Gramática", "20 palabras", "Historia ilustrada", "Prueba de palabras", "Conversación", "Pronunciación", "Comprensión oral", "Completar"],
+    "fr": ["Grammaire", "20 mots", "Histoire illustrée", "Quiz de mots", "Conversation", "Prononciation", "Compréhension orale", "Terminer"],
+    "zh": ["语法讲解", "20个单词", "绘本故事", "单词测验", "会话练习", "发音练习", "听力练习", "完成课程"],
+    "ko": ["문법 설명", "단어 20개", "그림 이야기", "단어 퀴즈", "대화", "발음", "듣기", "완료"],
+    "ja": ["文法の説明", "20語の単語", "イラスト付き物語", "単語クイズ", "会話", "発音", "リスニング", "完了"],
+    "ru": ["Грамматика", "20 слов", "История с иллюстрациями", "Проверка слов", "Разговор", "Произношение", "Аудирование", "Завершить"],
+    "tr": ["Dil bilgisi", "20 kelime", "Resimli hikâye", "Kelime testi", "Konuşma", "Telaffuz", "Dinleme", "Tamamla"],
+    "ur": ["گرامر کی وضاحت", "20 الفاظ", "تصویری کہانی", "الفاظ کا امتحان", "گفتگو", "تلفظ", "سننے کی مشق", "مکمل کریں"],
+    "de": ["Grammatik", "20 Wörter", "Bildergeschichte", "Wörterquiz", "Gespräch", "Aussprache", "Hörverstehen", "Abschließen"],
+    "pt": ["Gramática", "20 palavras", "História ilustrada", "Teste de palavras", "Conversa", "Pronúncia", "Compreensão auditiva", "Concluir"],
+    "fa": ["آموزش دستور زبان", "۲۰ واژه", "داستان تصویری", "آزمون واژگان", "گفت‌وگو", "تلفظ", "شنیداری", "تکمیل"],
+    "id": ["Tata bahasa", "20 kata", "Cerita bergambar", "Kuis kosakata", "Percakapan", "Pelafalan", "Mendengarkan", "Selesai"],
+    "th": ["ไวยากรณ์", "คำศัพท์ 20 คำ", "เรื่องราวภาพประกอบ", "ทดสอบคำศัพท์", "บทสนทนา", "การออกเสียง", "การฟัง", "จบบทเรียน"],
+    "hi": ["व्याकरण", "20 शब्द", "चित्रयुक्त कहानी", "शब्द परीक्षा", "बातचीत", "उच्चारण", "सुनने का अभ्यास", "पूरा करें"],
+    "it": ["Grammatica", "20 parole", "Storia illustrata", "Quiz di parole", "Conversazione", "Pronuncia", "Ascolto", "Completa"],
+  };
+  static const _menuIntro = <String, String>{
+    "ar": "مع الأستاذة إيما · المدة المقترحة 15 دقيقة. ابدأ بالقواعد، ثم الكلمات، وطبّقها في القصة والمحادثة.",
+    "en": "With tutor Emma · Suggested pace: 15 minutes. Start with grammar, then learn words and practise with stories and conversation.",
+    "es": "Con Emma · Duración sugerida: 15 minutos. Empieza por la gramática y luego practica palabras, historias y conversación.",
+    "fr": "Avec Emma · Durée conseillée : 15 minutes. Commencez par la grammaire, puis les mots, les histoires et la conversation.",
+    "zh": "和艾玛老师一起学习 · 建议用时15分钟。先学语法，再学单词，并通过故事和会话练习。",
+    "ko": "엠마 선생님과 함께 · 권장 시간 15분. 문법부터 시작해 단어, 이야기, 대화 순서로 연습해요.",
+    "ja": "エマ先生と学ぶ · 目安は15分。文法から始め、単語、物語、会話で練習しましょう。",
+    "ru": "С преподавателем Эммой · Примерно 15 минут. Начни с грамматики, затем переходи к словам, истории и разговору.",
+    "tr": "Öğretmen Emma ile · Önerilen süre 15 dakika. Önce dil bilgisini öğren, sonra kelimeler, hikâyeler ve konuşmalarla çalış.",
+    "ur": "استاد ایما کے ساتھ · تجویز کردہ وقت 15 منٹ۔ پہلے گرامر، پھر الفاظ، کہانی اور گفتگو کی مشق کریں۔",
+    "de": "Mit Lehrerin Emma · Empfohlene Zeit: 15 Minuten. Beginne mit Grammatik und übe danach Wörter, Geschichten und Gespräche.",
+    "pt": "Com a professora Emma · Tempo sugerido: 15 minutos. Comece pela gramática e pratique palavras, histórias e conversas.",
+    "fa": "با معلم اِما · زمان پیشنهادی ۱۵ دقیقه. از دستور زبان شروع کنید، سپس واژه‌ها، داستان و گفت‌وگو را تمرین کنید.",
+    "id": "Bersama guru Emma · Waktu yang disarankan: 15 menit. Mulailah dengan tata bahasa, lalu kosakata, cerita, dan percakapan.",
+    "th": "เรียนกับครูเอ็มมา · เวลาที่แนะนำ 15 นาที เริ่มจากไวยากรณ์ แล้วฝึกคำศัพท์ เรื่องราว และบทสนทนา",
+    "hi": "शिक्षिका एमा के साथ · सुझाया समय 15 मिनट। व्याकरण से शुरू करें, फिर शब्द, कहानी और बातचीत का अभ्यास करें।",
+    "it": "Con l’insegnante Emma · Tempo consigliato: 15 minuti. Inizia dalla grammatica, poi esercitati con parole, storie e conversazioni.",
+  };
+  static String section(String code, int index) {
+    if (index < 0 || index >= 8) throw RangeError('Unknown section');
+    return _sectionTitles[normalized(code)]![index];
+  }
+  static String menuIntroduction(String code) =>
+      _menuIntro[normalized(code)]!;
+
 }
