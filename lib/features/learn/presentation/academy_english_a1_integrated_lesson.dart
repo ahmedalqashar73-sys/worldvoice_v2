@@ -57,12 +57,12 @@ class _AcademyEnglishA1IntegratedLessonState
       ? const Color(0xFF98E8BC) : _lessonGreen;
 
   static const _stageAr = [
-    'المحادثة', '20 مفردة', 'النطق', 'القواعد', 'الاستماع',
-    'القصة المصورة', 'التدريبات', 'اكتمال الدرس',
+    'شرح القواعد', '20 مفردة', 'القصة المصورة', 'اختبار الكلمات',
+    'المحادثة', 'النطق', 'الاستماع', 'اكتمال الدرس',
   ];
   static const _stageEn = [
-    'Conversation', '20 words', 'Pronunciation', 'Grammar',
-    'Listening', 'Storybook', 'Practice', 'Complete',
+    'Grammar', '20 words', 'Illustrated story', 'Word quiz',
+    'Conversation', 'Pronunciation', 'Listening', 'Complete',
   ];
 
   @override
@@ -436,16 +436,16 @@ class _AcademyEnglishA1IntegratedLessonState
           style: TextStyle(color: _accent,
               fontSize: 22, fontWeight: FontWeight.w900)),
       const SizedBox(height: 7),
-      Text(_ar ? 'الفصل ${(widget.lessonNumber - 1) % 4 + 1} من 4' :
-          'Chapter ${(widget.lessonNumber - 1) % 4 + 1} of 4',
+      Text(_ar ? 'قصة قصيرة · 3 فقرات' :
+          'Short story · 3 paragraphs',
         style: TextStyle(color: scheme.onSurfaceVariant)),
       const SizedBox(height: 10),
       Text(_ar ? _chapter.titleArabic : _chapter.title,
           style: TextStyle(fontSize: 18, color: scheme.onSurface)),
       const SizedBox(height: 12),
       Text(_ar
-          ? 'هذا الفصل يحتوي على ثلاث فقرات مصورة، مع صوت وترجمة وسؤال فهم.'
-          : 'This chapter has three illustrated reading paragraphs, audio, translation and a comprehension question.',
+          ? 'صفحة قراءة واحدة، تحتوي على رسمة وثلاث فقرات وصوت وترجمة وسؤال.'
+          : 'One readable page with an illustration, three paragraphs, audio, translation and a question.',
         style: TextStyle(color: scheme.onSurfaceVariant, height: 1.5)),
       const SizedBox(height: 15),
       FilledButton.icon(
@@ -543,13 +543,13 @@ class _AcademyEnglishA1IntegratedLessonState
   }
 
   Widget _currentStage() => switch (_stage) {
-    0 => _conversation(),
+    0 => _grammarPage(),
     1 => _vocabulary(),
-    2 => _pronunciation(),
-    3 => _grammarPage(),
-    4 => _listening(),
-    5 => _storyStage(),
-    6 => _practice(),
+    2 => _storyStage(),
+    3 => _practice(),
+    4 => _conversation(),
+    5 => _pronunciation(),
+    6 => _listening(),
     _ => _finish(),
   };
 
@@ -557,10 +557,10 @@ class _AcademyEnglishA1IntegratedLessonState
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final canContinue = switch (_stage) {
-      0 => _conversationPassed,
-      4 => _listeningPassed,
-      5 => _readingPassed,
-      6 => false,
+      2 => _readingPassed,
+      3 => false,
+      4 => _conversationPassed,
+      6 => _listeningPassed,
       _ => true,
     };
     return Scaffold(
