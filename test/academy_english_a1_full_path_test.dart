@@ -107,10 +107,7 @@ void main() {
     expect(find.byKey(const ValueKey('academy-section-7')), findsOneWidget);
     // Locked sections must not bypass the lesson stages.
     final locked = tester.widget<InkWell>(
-        find.descendant(
-          of: find.byKey(const ValueKey('academy-section-2')),
-          matching: find.byType(InkWell),
-        ).first);
+        find.byKey(const ValueKey('academy-section-2')));
     expect(locked.onTap, isNull);
     await tester.tap(find.byKey(const ValueKey('academy-section-0')));
     await tester.pumpAndSettle();
