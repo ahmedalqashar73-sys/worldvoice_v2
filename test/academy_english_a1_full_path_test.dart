@@ -123,13 +123,13 @@ void main() {
     ));
     for (var step = 0; step < 2; step++) {
       await tester.tap(find.byKey(const ValueKey('academy-integrated-next')));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 250));
     }
     expect(find.byKey(const ValueKey('academy-integrated-read-story')),
         findsOneWidget);
     await tester.tap(find.byKey(
         const ValueKey('academy-integrated-read-story')));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 250));
     expect(find.byKey(const ValueKey('academy-story-single-page')),
         findsOneWidget);
     for (var i = 0; i < 3; i++) {
