@@ -7,16 +7,20 @@ import 'package:worldvoice/features/learn/presentation/academy_english_advanced_
 
 Future<void> openAdvancedSection(WidgetTester tester, int index) async {
   final target = find.byKey(ValueKey('advanced-section-$index'));
-  await tester.scrollUntilVisible(target, 280,
+  await tester.scrollUntilVisible(target, 220,
       scrollable: find.byType(Scrollable).first, maxScrolls: 15);
+  await tester.ensureVisible(target);
+  await tester.pumpAndSettle();
   await tester.tap(target);
   await tester.pumpAndSettle();
 }
 
 Future<void> finishAdvancedSection(WidgetTester tester) async {
   final next = find.byKey(const ValueKey('advanced-section-next'));
-  await tester.scrollUntilVisible(next, 500,
+  await tester.scrollUntilVisible(next, 260,
       scrollable: find.byType(Scrollable).first, maxScrolls: 80);
+  await tester.ensureVisible(next);
+  await tester.pumpAndSettle();
   final button = tester.widget<FilledButton>(next);
   expect(button.onPressed, isNotNull);
   await tester.tap(next);
