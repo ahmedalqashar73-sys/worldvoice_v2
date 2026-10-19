@@ -650,6 +650,7 @@ class _AcademyEnglishAdvancedLessonScreenState
   Widget build(BuildContext context) {
     final lesson = widget.lesson;
     final dialogue = EnglishAdvancedDialogues.forLesson(lesson);
+    final workshop = AdvancedGrammarWorkshops.forLesson(lesson.level, lesson.number);
     final scheme = Theme.of(context).colorScheme;
     final canFinish = _readPassed && _listenPassed && _wordPassed && _sentencePassed;
     return Scaffold(
@@ -687,9 +688,19 @@ class _AcademyEnglishAdvancedLessonScreenState
               Text(lesson.grammarTitle, textDirection: TextDirection.ltr,
                 style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
               const SizedBox(height: 9),
-              Text(lesson.grammarArabic, textDirection: TextDirection.rtl,
+              Text(_ar ? lesson.grammarArabic : (workshop?.explanationEnglish ?? lesson.grammarTitle),
+                textDirection: _ar ? TextDirection.rtl : TextDirection.ltr,
                 style: const TextStyle(height: 1.65)),
               const SizedBox(height: 12),
+              Row(children: [
+                const CircleAvatar(backgroundColor: Color(0xFFD6EBDF),
+                  child: Icon(Icons.face_3_rounded, color: _green)),
+                const SizedBox(width: 9),
+                Expanded(child: Text(_ar ? 'الأستاذة إيما · شرح وتطبيق'
+                    : 'Tutor Emma · Guided explanation',
+                  style: const TextStyle(fontWeight: FontWeight.w900))),
+              ]),
+              const SizedBox(height: 14),
               for (final example in lesson.grammarExamples)
                 ListTile(
                   contentPadding: EdgeInsets.zero,
@@ -699,6 +710,76 @@ class _AcademyEnglishAdvancedLessonScreenState
                     icon: const Icon(Icons.volume_up_rounded),
                     onPressed: () => _play(example)),
                 ),
+              if (workshop != null) ...[
+                const SizedBox(height: 9),
+                for (var i = 0; i < workshop.examples.length; i++)
+                  Padding(padding: const EdgeInsets.only(bottom: 11),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(children: [
+                          Expanded(child: SelectableText(workshop.examples[i].english,
+                            key: ValueKey('advanced-grammar-example-$i'),
+                            textDirection: TextDirection.ltr,
+                            style: const TextStyle(fontSize: 17,
+                                fontWeight: FontWeight.w700))),
+                          IconButton(
+                            icon: const Icon(Icons.volume_up_rounded),
+                            onPressed: () => _play(workshop.examples[i].english)),
+                        ]),
+                        if (_ar) Text(workshop.examples[i].arabic,
+                          textDirection: TextDirection.rtl,
+                          style: TextStyle(color: scheme.onSurfaceVariant)),
+                      ])),
+                const SizedBox(height: 14),
+                Text(_ar ? 'خطأ شائع وتصحيحه' : 'Common mistake and correction',
+                  style: const TextStyle(fontSize: 17,
+                      fontWeight: FontWeight.w900)),
+                const SizedBox(height: 8),
+                Text(workshop.wrong, textDirection: TextDirection.ltr,
+                  style: TextStyle(color: scheme.error, fontSize: 16)),
+                const SizedBox(height: 7),
+                Text(workshop.correct, textDirection: TextDirection.ltr,
+                  style: const TextStyle(fontWeight: FontWeight.w800)),
+                const SizedBox(height: 18),
+                Text(_ar ? 'اختبر فهمك' : 'Check your understanding',
+                  style: const TextStyle(fontSize: 18,
+                      fontWeight: FontWeight.w900)),
+                const SizedBox(height: 8),
+                Text(workshop.question, textDirection: TextDirection.ltr),
+                const SizedBox(height: 10),
+                for (var i = 0; i < workshop.options.length; i++)
+                  Padding(padding: const EdgeInsets.only(bottom: 7),
+                    child: OutlinedButton(
+                      key: ValueKey('advanced-grammar-option-$i'),
+                      onPressed: _grammarPassed ? null : () => setState(() {
+                        _grammarChoice = i; _grammarChecked = false;
+                      }),
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: _grammarChoice == i
+                            ? scheme.primaryContainer : null,
+                        minimumSize: const Size.fromHeight(50)),
+                      child: Align(alignment: AlignmentDirectional.centerStart,
+                        child: Text(workshop.options[i],
+                          textDirection: TextDirection.ltr)),
+                    )),
+                if (_grammarChecked)
+                  Text(_grammarPassed
+                      ? (_ar ? 'صحيح، يمكنك المتابعة.' : 'Correct. You may continue.')
+                      : (_ar ? 'راجع القاعدة وحاول مجددًا.'
+                          : 'Review the rule and try again.'),
+                    style: TextStyle(color: _grammarPassed
+                        ? _green : scheme.error)),
+                const SizedBox(height: 9),
+                FilledButton(
+                  key: const ValueKey('advanced-grammar-check'),
+                  onPressed: _grammarChoice == null || _grammarPassed
+                      ? null : () => setState(() {
+                          _grammarChecked = true;
+                          if (_grammarChoice == workshop.answer) _grammarPassed = true;
+                        }),
+                  child: Text(_ar ? 'تحقق من الإجابة' : 'Check grammar answer'),
+                ),
+              ],
             ]), icon: Icons.school_outlined),
           if (_activeSection == 2) _section('قصة المستوى · ${lesson.paragraphs.length} فقرات',
               'Graded story · ${lesson.paragraphs.length} paragraphs',
