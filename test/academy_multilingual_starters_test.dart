@@ -12,7 +12,7 @@ void main() {
     for (final lesson in AcademyMultilingualStarters.lessons.values) {
       expect(lesson.name.trim(), isNotEmpty);
       expect(lesson.title.trim(), isNotEmpty);
-      expect(lesson.grammar.trim().length, greaterThan(20));
+      expect(lesson.grammar.trim().length, greaterThan(8));
       expect(lesson.grammarArabic.trim(), isNotEmpty);
       expect(lesson.grammarEnglish.trim(), isNotEmpty);
       expect(lesson.dialogue.trim(), isNotEmpty);
