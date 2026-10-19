@@ -95,7 +95,15 @@ class AcademyEnglishAdvancedPath extends StatefulWidget {
 class _AcademyEnglishAdvancedPathState
     extends State<AcademyEnglishAdvancedPath> {
   Set<String> _done = <String>{};
-  String? get _uid => FirebaseAuth.instance.currentUser?.uid;
+  String? get _uid {
+    try {
+      return FirebaseAuth.instance.currentUser?.uid;
+    } on Exception {
+      // In offline previews / tests without Firebase, use isolated guest
+      // progress rather than crashing before the lesson menu can open.
+      return null;
+    }
+  }
   bool get _ar => Localizations.localeOf(context).languageCode == 'ar';
 
   @override
