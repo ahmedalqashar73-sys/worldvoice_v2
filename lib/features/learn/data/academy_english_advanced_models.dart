@@ -1,6 +1,7 @@
 part 'academy_english_advanced_core.dart';
 part 'academy_english_advanced_mastery.dart';
 part 'academy_english_advanced_second.dart';
+part 'academy_english_advanced_curriculum.dart';
 
 /// Authored English CEFR pilot lessons beyond A1. Each published lesson has
 /// its own complete story, contextual vocabulary, grammar, listening and
@@ -15,6 +16,7 @@ class EnglishAdvancedLesson {
   const EnglishAdvancedLesson({
     required this.level,
     required this.number,
+    this.unitNumber = 1,
     required this.title,
     required this.titleArabic,
     required this.storyTitle,
@@ -37,6 +39,7 @@ class EnglishAdvancedLesson {
   });
   final String level;
   final int number;
+  final int unitNumber;
   final String title;
   final String titleArabic;
   final String storyTitle;
@@ -58,7 +61,7 @@ class EnglishAdvancedLesson {
   final int readingAnswer;
   final String writingCue;
   final String writingAnswer;
-  String get id => 'worldvoice.en.${level.toLowerCase()}.u1.l${number.toString().padLeft(2, '0')}';
+  String get id => 'worldvoice.en.${level.toLowerCase()}.u$unitNumber.l${number.toString().padLeft(2, '0')}';
   List<EnglishAdvancedWord> get vocabulary => [...storyWords, ...extraWords];
 
   /// Three different story words the learner must type correctly.
@@ -112,4 +115,18 @@ abstract final class EnglishAdvancedSyllabus {
 
   static List<EnglishAdvancedLesson> forLevel(String level) =>
       lessons.where((lesson) => lesson.level == level).toList(growable: false);
+
+  static List<EnglishAdvancedLesson> forUnit(String level, int unit) =>
+      lessons.where((lesson) => lesson.level == level && lesson.unitNumber == unit)
+          .toList(growable: false);
+
+  static List<EnglishAdvancedUnitOutline> unitsForLevel(String level) =>
+      EnglishAdvancedCurriculum.unitsFor(level);
+
+  static EnglishAdvancedLesson? findLesson(String level, int unit, int number) {
+    for (final lesson in forUnit(level, unit)) {
+      if (lesson.number == number) return lesson;
+    }
+    return null;
+  }
 }
