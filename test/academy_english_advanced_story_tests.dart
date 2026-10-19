@@ -5,6 +5,47 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:worldvoice/features/learn/data/academy_english_advanced_models.dart';
 import 'package:worldvoice/features/learn/presentation/academy_english_advanced_screen.dart';
 
+Future<void> openAdvancedSection(WidgetTester tester, int index) async {
+  final target = find.byKey(ValueKey('advanced-section-$index'));
+  await tester.scrollUntilVisible(target, 280,
+      scrollable: find.byType(Scrollable).first, maxScrolls: 15);
+  await tester.tap(target);
+  await tester.pumpAndSettle();
+}
+
+Future<void> finishAdvancedSection(WidgetTester tester) async {
+  final next = find.byKey(const ValueKey('advanced-section-next'));
+  await tester.scrollUntilVisible(next, 500,
+      scrollable: find.byType(Scrollable).first, maxScrolls: 80);
+  final button = tester.widget<FilledButton>(next);
+  expect(button.onPressed, isNotNull);
+  await tester.tap(next);
+  await tester.pumpAndSettle();
+}
+
+Future<void> reachAdvancedWriting(
+    WidgetTester tester, EnglishAdvancedLesson lesson) async {
+  for (var index = 0; index < 6; index++) {
+    await openAdvancedSection(tester, index);
+    if (index == 4 || index == 5) {
+      final prefix = index == 4 ? 'advanced-reading' : 'advanced-listening';
+      final correct = index == 4 ? lesson.readingAnswer : lesson.listeningAnswer;
+      final option = find.byKey(ValueKey('$prefix-option-$correct'));
+      await tester.scrollUntilVisible(option, 400,
+          scrollable: find.byType(Scrollable).first, maxScrolls: 80);
+      await tester.tap(option);
+      await tester.pump();
+      final check = find.byKey(ValueKey('$prefix-check'));
+      await tester.scrollUntilVisible(check, 350,
+          scrollable: find.byType(Scrollable).first, maxScrolls: 80);
+      await tester.tap(check);
+      await tester.pump();
+    }
+    await finishAdvancedSection(tester);
+  }
+  await openAdvancedSection(tester, 6);
+}
+
 void main() {
   test('A2-C2 have two original graded stories and unique vocabulary', () {
     expect(EnglishAdvancedSyllabus.levels,
@@ -71,7 +112,7 @@ void main() {
     }
   });
 
-  testWidgets('typing a correct story word unlocks the second word',
+  testWidgets('an A2 student reaches written recall through all lesson sections',
       (tester) async {
     tester.view.physicalSize = const Size(900, 1450);
     tester.view.devicePixelRatio = 1;
@@ -83,19 +124,27 @@ void main() {
     await tester.pumpWidget(MaterialApp(
       home: AcademyEnglishAdvancedLessonScreen(lesson: lesson),
     ));
-    await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('advanced-write-word')),
-      550,
-      scrollable: find.byType(Scrollable).first,
-      maxScrolls: 100,
-    );
+    expect(find.byKey(const ValueKey('advanced-section-menu')), findsOneWidget);
+    final locked = tester.widget<ListTile>(
+      find.byKey(const ValueKey('advanced-section-4'), skipOffstage: false));
+    expect(locked.onTap, isNull);
+    await reachAdvancedWriting(tester, lesson);
+    final input = find.byKey(const ValueKey('advanced-write-word'));
+    await tester.scrollUntilVisible(input, 500,
+        scrollable: find.byType(Scrollable).first, maxScrolls: 80);
     expect(find.text('1 / 3'), findsOneWidget);
-    await tester.enterText(find.byKey(const ValueKey('advanced-write-word')),
-        lesson.spellingChallenge.first.term);
-    await tester.tap(find.byKey(const ValueKey('advanced-check-word')));
+    await tester.enterText(input, lesson.spellingChallenge.first.term);
+    final check = find.byKey(const ValueKey('advanced-check-word'));
+    await tester.ensureVisible(check);
+    await tester.tap(check);
     await tester.pump();
     expect(find.text('2 / 3'), findsOneWidget);
     expect(find.text('Great! Now try the next story word.'), findsOneWidget);
+    final next = find.byKey(const ValueKey('advanced-section-next'));
+    await tester.scrollUntilVisible(next, 550,
+        scrollable: find.byType(Scrollable).first, maxScrolls: 80);
+    expect(tester.widget<FilledButton>(next).onPressed, isNull,
+        reason: 'An unfinished spelling/writing task must lock completion.');
   });
 
   test('advanced progress is account-scoped and cannot mark unwritten lessons', () async {
@@ -110,7 +159,25 @@ void main() {
     expect(await EnglishAdvancedProgress.load(null), isEmpty);
   });
 
-  testWidgets('C2 story shows six paragraphs and gated recall/quiz completion',
+  testWidgets('advanced C2 level opens Unit 1 before the lesson cards',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 1450);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    await tester.pumpWidget(const MaterialApp(
+      home: AcademyEnglishAdvancedLevelScreen(level: 'C2'),
+    ));
+    expect(find.byKey(const ValueKey('advanced-unit-1')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('advanced-unit-1')));
+    await tester.pumpAndSettle();
+    expect(find.text('Lesson 1'), findsOneWidget);
+    expect(find.text('Lesson 2'), findsOneWidget);
+  });
+
+  testWidgets('C2 story remains six paragraphs inside its own lesson section',
       (tester) async {
     tester.view.physicalSize = const Size(900, 1450);
     tester.view.devicePixelRatio = 1;
@@ -122,20 +189,19 @@ void main() {
     await tester.pumpWidget(MaterialApp(
       home: AcademyEnglishAdvancedLessonScreen(lesson: c2),
     ));
-    expect(find.byKey(const ValueKey('advanced-lesson-body')), findsOneWidget);
+    expect(find.byKey(const ValueKey('advanced-section-menu')),
+        findsOneWidget);
+    for (var index = 0; index < 2; index++) {
+      await openAdvancedSection(tester, index);
+      await finishAdvancedSection(tester);
+    }
+    await openAdvancedSection(tester, 2);
     expect(find.byKey(const ValueKey('advanced-story-cover')), findsOneWidget);
     for (var i = 0; i < 6; i++) {
       expect(find.byKey(ValueKey('advanced-paragraph-$i'), skipOffstage: false),
           findsOneWidget);
     }
-    await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('advanced-finish')),
-      550,
-      scrollable: find.byType(Scrollable).first,
-      maxScrolls: 100,
-    );
-    final save = tester.widget<FilledButton>(
-      find.byKey(const ValueKey('advanced-finish')));
-    expect(save.onPressed, isNull, reason: 'Reading alone must not mark completed');
+    expect(find.byKey(const ValueKey('advanced-finish')), findsNothing);
   });
+
 }
