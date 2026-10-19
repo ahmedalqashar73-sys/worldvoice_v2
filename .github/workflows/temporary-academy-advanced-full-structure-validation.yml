@@ -1,0 +1,18 @@
+name: Temporary English Academy Full Structure Validation
+on:
+  push:
+    branches:
+      - feat/academy-advanced-three-units-ten-lessons-20261019
+jobs:
+  academy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test test/academy_english_advanced_story_tests.dart test/academy_english_a1_full_path_test.dart test/academy_a1_tutor_first_three_test.dart test/academy_catalog_test.dart
