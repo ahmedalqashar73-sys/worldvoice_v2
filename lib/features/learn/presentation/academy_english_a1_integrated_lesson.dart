@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
@@ -43,6 +45,8 @@ class _AcademyEnglishA1IntegratedLessonState
   late final FlutterTts _tts = FlutterTts();
 
   int _stage = 0;
+  int _highestUnlocked = 0;
+  bool _showSectionMenu = true;
   int? _chosen;
   bool _checked = false;
   bool _conversationPassed = false;
@@ -111,9 +115,25 @@ class _AcademyEnglishA1IntegratedLessonState
   void _next() {
     _tts.stop();
     setState(() {
-      _stage++;
+      if (_stage < 7) {
+        _highestUnlocked = math.max(_highestUnlocked, _stage + 1);
+        _stage = _highestUnlocked;
+      }
       _chosen = null;
       _checked = false;
+      _showSectionMenu = true;
+    });
+  }
+
+  void _openSection(int index) {
+    if (index > _highestUnlocked || index < 0) return;
+    _tts.stop();
+    setState(() {
+      _stage = index;
+      _showSectionMenu = false;
+      _chosen = null;
+      _checked = false;
+      if (index == 3) _practiceNumber = 0;
     });
   }
 
@@ -543,6 +563,106 @@ class _AcademyEnglishA1IntegratedLessonState
     ]);
   }
 
+  static const _sectionIcons = <IconData>[
+    Icons.menu_book_rounded,
+    Icons.translate_rounded,
+    Icons.auto_stories_rounded,
+    Icons.fact_check_rounded,
+    Icons.forum_rounded,
+    Icons.record_voice_over_rounded,
+    Icons.headphones_rounded,
+    Icons.emoji_events_rounded,
+  ];
+
+  Widget _sectionMenu() {
+    final scheme = Theme.of(context).colorScheme;
+    return ListView(
+      key: const ValueKey('academy-lesson-sections'),
+      padding: const EdgeInsets.fromLTRB(17, 16, 17, 25),
+      children: [
+        Text(_ar
+            ? 'الدرس ${widget.lessonNumber} · الوحدة ${widget.unit.id}'
+            : 'Lesson ${widget.lessonNumber} · Unit ${widget.unit.id}',
+          style: TextStyle(fontSize: 23, fontWeight: FontWeight.w900,
+              color: _accent)),
+        const SizedBox(height: 5),
+        Text(_ar
+            ? 'هذه أقسام الدرس. ابدأ بالقواعد ثم أكمل الأقسام بالترتيب.'
+            : 'These sections belong to one lesson. Start with grammar and complete them in order.',
+          style: TextStyle(color: scheme.onSurfaceVariant, height: 1.5)),
+        const SizedBox(height: 16),
+        LinearProgressIndicator(
+          value: _highestUnlocked / 7,
+          minHeight: 7,
+          borderRadius: BorderRadius.circular(9),
+          color: _accent,
+          backgroundColor: scheme.surfaceContainerHighest,
+        ),
+        const SizedBox(height: 17),
+        for (var i = 0; i < _stageAr.length; i++)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 11),
+            child: Material(
+              color: scheme.surface,
+              borderRadius: BorderRadius.circular(17),
+              child: InkWell(
+                key: ValueKey('academy-section-$i'),
+                onTap: i <= _highestUnlocked
+                    ? () => _openSection(i) : null,
+                borderRadius: BorderRadius.circular(17),
+                child: Container(
+                  padding: const EdgeInsets.all(15),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(17),
+                    border: Border.all(color: i == _highestUnlocked
+                        ? _accent.withValues(alpha: .55)
+                        : scheme.outlineVariant),
+                  ),
+                  child: Row(children: [
+                    CircleAvatar(
+                      backgroundColor: scheme.primaryContainer,
+                      radius: 23,
+                      child: Icon(_sectionIcons[i], color: _accent),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(_ar ? _stageAr[i] : _stageEn[i],
+                            style: const TextStyle(fontSize: 17,
+                                fontWeight: FontWeight.w800)),
+                          const SizedBox(height: 4),
+                          Text(i == 1
+                              ? (_ar ? '20 كلمة بالصوت والمعنى والنطق' :
+                                  '20 words with audio, meaning and pronunciation')
+                              : i == 2
+                                  ? (_ar ? 'قصة قصيرة في صفحة واحدة' :
+                                      'One-page illustrated reading')
+                                  : _ar
+                                      ? 'القسم ${i + 1} من 8'
+                                      : 'Section ${i + 1} of 8',
+                            style: TextStyle(fontSize: 12,
+                                color: scheme.onSurfaceVariant)),
+                        ],
+                      ),
+                    ),
+                    Icon(i < _highestUnlocked
+                        ? Icons.check_circle_rounded
+                        : i == _highestUnlocked
+                            ? Icons.chevron_right_rounded
+                            : Icons.lock_outline_rounded,
+                        color: i < _highestUnlocked
+                            ? _accent : scheme.onSurfaceVariant),
+                  ]),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
   Widget _currentStage() => switch (_stage) {
     0 => _grammarPage(),
     1 => _vocabulary(),
@@ -570,8 +690,21 @@ class _AcademyEnglishA1IntegratedLessonState
             ? 'الوحدة ${widget.unit.id} · الدرس ${widget.lessonNumber}'
             : 'Unit ${widget.unit.id} · Lesson ${widget.lessonNumber}'),
         backgroundColor: _lessonGreen, foregroundColor: Colors.white,
+        actions: [
+          if (!_showSectionMenu)
+            IconButton(
+              tooltip: _ar ? 'أقسام الدرس' : 'Lesson sections',
+              onPressed: () {
+                _tts.stop();
+                setState(() => _showSectionMenu = true);
+              },
+              icon: const Icon(Icons.view_list_rounded),
+            ),
+        ],
       ),
-      body: SafeArea(child: Column(children: [
+      body: SafeArea(child: _showSectionMenu
+          ? _sectionMenu()
+          : Column(children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(17, 14, 17, 10),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch,
