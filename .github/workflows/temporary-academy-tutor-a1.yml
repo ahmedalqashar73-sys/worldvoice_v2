@@ -1,0 +1,18 @@
+name: Temporary Academy Tutor Lesson Validation
+on:
+  push:
+    branches:
+      - feat/academy-a1-tutor-lessons-1-3-english-ipa-20261019
+jobs:
+  academy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test test/academy_a1_tutor_first_three_test.dart test/academy_english_a1_full_path_test.dart test/academy_a1_dialogues_test.dart test/academy_catalog_test.dart test/academy_placement_test.dart test/academy_guided_flow_widget_test.dart
