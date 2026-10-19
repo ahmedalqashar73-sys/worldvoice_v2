@@ -244,6 +244,43 @@ abstract final class AcademyTutorTranslations {
   static String exampleNote(String code) =>
       _exampleNotes[normalized(code)]!;
 
+  /// Specific English teaching feedback: do not repeat one generic line
+  /// under every example, and do not mistake English paraphrase for translation.
+  static const _englishExampleFeedback = <List<String>>[
+    <String>[
+      "Use I am to introduce yourself by name; the verb am cannot be omitted.",
+      "The article a tells us student is one countable role or job.",
+      "You are is correct when speaking directly to another person.",
+      "Move are in front of you to turn the statement into a question.",
+      "A short answer repeats am; do not reply Yes, I are.",
+    ],
+    <String>[
+      "My is a possessive determiner and belongs before the noun name.",
+      "Use your, not you, before the noun in this question.",
+      "This is the near-object pointer; my marks the book as yours.",
+      "His identifies something belonging to a male person.",
+      "Her identifies something belonging to a female person.",
+    ],
+    <String>[
+      "Use this for the pen you are holding or can reach.",
+      "Use that for a bag farther away from the speaker.",
+      "A question with is puts the verb before the pointer this.",
+      "Yes, it is answers the question without repeating the noun.",
+      "Add not after is to make a negative statement.",
+    ],
+  ];
+
+  static String exampleNoteFor(String code, int lesson, int index) {
+    if (lesson < 1 || lesson > 3 || index < 0 || index >= 5) {
+      throw RangeError('Unknown tutor example note');
+    }
+    return normalized(code) == 'en'
+        ? _englishExampleFeedback[lesson - 1][index]
+        : exampleNote(code);
+  }
+
+
+
   static const _sectionTitles = <String, List<String>>{
     "ar": ["شرح القواعد", "20 مفردة", "القصة المصورة", "اختبار الكلمات", "المحادثة", "النطق", "الاستماع", "اكتمال الدرس"],
     "en": ["Grammar", "20 words", "Illustrated story", "Word quiz", "Conversation", "Pronunciation", "Listening", "Complete"],
