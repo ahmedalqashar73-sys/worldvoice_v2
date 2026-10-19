@@ -22,6 +22,33 @@ class AdvancedGrammarWorkshop {
 }
 abstract final class AdvancedGrammarWorkshops {
   static const _workshops = <String, AdvancedGrammarWorkshop>{
+    'A2:5': AdvancedGrammarWorkshop(
+      explanationEnglish: 'Some is common in positive statements and polite offers. Any is common in questions and negatives. Use many with countable nouns and much with uncountable nouns, such as rice or milk.',
+      examples: <AdvancedGrammarExample>[
+        AdvancedGrammarExample('How many carrots do we need?', 'كم جزرة نحتاج؟'),
+        AdvancedGrammarExample('There is not much rice in the cupboard.', 'لا يوجد الكثير من الأرز في الخزانة.'),
+        AdvancedGrammarExample('Would you like some soup?', 'هل ترغب في بعض الحساء؟'),
+      ],
+      wrong: 'How many rice do we need?',
+      correct: 'How much rice do we need?',
+      question: 'Choose the correct quantity question.',
+      options: <String>['How many rice do you want?', 'How much rice do we need?', 'How much carrots are there?'],
+      answer: 1,
+    ),
+    'B1:3': AdvancedGrammarWorkshop(
+      explanationEnglish: 'Must expresses a strong rule or requirement. Have to often describes an obligation imposed by the situation. Should gives advice, while could suggests a possible choice. A modal is followed by the base form of the verb.',
+      examples: <AdvancedGrammarExample>[
+        AdvancedGrammarExample('Every bridge must carry the required weight.', 'يجب أن يتحمل كل جسر الوزن المطلوب.'),
+        AdvancedGrammarExample('We have to record the failed attempt.', 'علينا تسجيل المحاولة الفاشلة.'),
+        AdvancedGrammarExample('We could improve the supports.', 'يمكننا تحسين الدعامات.'),
+      ],
+      wrong: 'We should to test the bridge.',
+      correct: 'We should test the bridge.',
+      question: 'Choose the correct recommendation.',
+      options: <String>['We must to revise it.', 'We should to check it.', 'We should check it.'],
+      answer: 2,
+    ),
+
     'A2:1': AdvancedGrammarWorkshop(
       explanationEnglish: "Use the past simple to tell completed events in chronological order. Regular verbs often end in -ed, while irregular verbs must be learned. Questions use Did + base verb.",
       examples: <AdvancedGrammarExample>[AdvancedGrammarExample("The station clerk checked the receipt.","تحقق موظف المحطة من الإيصال."),AdvancedGrammarExample("Lina found the ticket in her bag.","وجدت لينا التذكرة في حقيبتها."),AdvancedGrammarExample("Did the train leave on time?","هل غادر القطار في الوقت المحدد؟")],
