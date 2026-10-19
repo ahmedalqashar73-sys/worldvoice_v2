@@ -5,13 +5,13 @@ import 'package:worldvoice/features/learn/data/academy_english_a1_catalog.dart';
 import 'package:worldvoice/features/learn/presentation/academy_english_a1_integrated_lesson.dart';
 
 void main() {
-  test('each of the 36 complete A1 lessons has distinct real conversation and listening', () {
+  test('each of the 30 published A1 lessons has distinct real conversation and listening', () {
     expect(EnglishA1DialogueCatalog.lessons.length, 3);
     final allDialogues = <String>{};
     final allListening = <String>{};
     for (var unit = 1; unit <= 3; unit++) {
       expect(EnglishA1DialogueCatalog.lessons[unit - 1], hasLength(12));
-      for (var lesson = 1; lesson <= 12; lesson++) {
+      for (var lesson = 1; lesson <= 10; lesson++) {
         final material = EnglishA1DialogueCatalog.forLesson(unit, lesson);
         expect(material.dialogue.contains(': '), isTrue);
         expect(material.dialogue.contains('\n'), isTrue);
@@ -21,19 +21,19 @@ void main() {
         expect(allListening.add(material.listening), isTrue);
       }
     }
-    expect(allDialogues.length, 36);
-    expect(allListening.length, 36);
+    expect(allDialogues.length, 30);
+    expect(allListening.length, 30);
   });
 
-  testWidgets('lesson begins with an authored tutor conversation', (tester) async {
+  testWidgets('lesson opens with grammar, dialogue remains in later stage', (tester) async {
     final unit = EnglishA1Catalog.units.first;
     await tester.pumpWidget(MaterialApp(
       home: AcademyEnglishA1IntegratedLesson(
         unit: unit, lesson: unit.lessons.first, lessonNumber: 1,
       ),
     ));
-    expect(find.text('Talk with your tutor'), findsOneWidget);
-    expect(find.textContaining('Sara: Hello! My name is Sara.'), findsOneWidget);
+    expect(find.text('I am / You are'), findsOneWidget);
+    expect(find.text('Conversation'), findsNothing);
     expect(find.byType(FilledButton), findsWidgets);
   });
 }
