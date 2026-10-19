@@ -122,13 +122,6 @@ abstract final class AcademyTutorLocales {
     ],
   };
 
-  static const _englishFallback = <String>[
-    "Welcome! Learn English with Tutor Emma.",
-    "Follow the grammar pattern and repeat the English examples.",
-    "Compare the wrong and correct English forms.",
-    "Repeat the examples and answer the questions.",
-  ];
-
   static String label(String locale, int index) {
     if (index < 0 || index > 12) throw RangeError.index(index, _ui['en']!);
     return (_ui[locale] ?? _ui['en']!)[index];
