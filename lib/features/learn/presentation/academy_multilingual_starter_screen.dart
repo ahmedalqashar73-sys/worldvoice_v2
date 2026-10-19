@@ -34,8 +34,16 @@ class _AcademyGuidedStartScreenState extends State<AcademyGuidedStartScreen> {
     'ko' => 'ko-KR',
     _ => 'en-US',
   };
-  String get _progressKey =>
-      'worldvoice.academy.starter.v1.${FirebaseAuth.instance.currentUser?.uid ?? 'guest'}.${widget.lesson.code}';
+  String get _progressKey {
+    // Firebase may not have been initialized yet in preview/widget tests.
+    var uid = 'guest';
+    try {
+      uid = FirebaseAuth.instance.currentUser?.uid ?? 'guest';
+    } catch (_) {
+      // Keep local progress separate from authenticated accounts.
+    }
+    return 'worldvoice.academy.starter.v1.$uid.${widget.lesson.code}';
+  }
 
   @override
   void initState() {
