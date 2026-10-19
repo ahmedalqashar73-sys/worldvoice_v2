@@ -843,9 +843,13 @@ class _AcademyEnglishA1IntegratedLessonState
           style: TextStyle(fontSize: 23, fontWeight: FontWeight.w900,
               color: _accent)),
         const SizedBox(height: 5),
-        Text(_ar
-            ? 'هذه أقسام الدرس. ابدأ بالقواعد ثم أكمل الأقسام بالترتيب.'
-            : 'These sections belong to one lesson. Start with grammar and complete them in order.',
+        Text(_tutor != null
+            ? (_ar
+                ? 'مع الأستاذة إيما · المدة المقترحة 15 دقيقة. ابدأ بالقواعد، ثم تعلّم الكلمات وطبّقها في القصة والمحادثة.'
+                : 'Study with tutor Emma · Suggested pace: 15 minutes. Start with grammar, then practise in stories and conversation.')
+            : (_ar
+                ? 'هذه أقسام الدرس. ابدأ بالقواعد ثم أكمل الأقسام بالترتيب.'
+                : 'These sections belong to one lesson. Start with grammar and complete them in order.'),
           style: TextStyle(color: scheme.onSurfaceVariant, height: 1.5)),
         const SizedBox(height: 16),
         LinearProgressIndicator(
