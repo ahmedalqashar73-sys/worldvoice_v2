@@ -205,19 +205,19 @@ class _AcademyEnglishAdvancedPathState
                           fontSize: 18, fontWeight: FontWeight.w800)),
                     subtitle: Text(published
                         ? (_ar
-                            ? 'قواعد · ${lesson!.vocabulary.length} كلمة · قصة · استماع · اختبارات'
-                            : 'Grammar · ${lesson!.vocabulary.length} words · story · listening · quizzes')
+                            ? 'قواعد · ${lesson.vocabulary.length} كلمة · قصة · استماع · اختبارات'
+                            : 'Grammar · ${lesson.vocabulary.length} words · story · listening · quizzes')
                         : (_ar
                             ? 'قيد الإعداد · ${unit.plannedTopics[i - 1]}'
                             : 'In preparation · ${unit.plannedTopics[i - 1]}'),
                       style: TextStyle(color: scheme.onSurfaceVariant)),
-                    trailing: Icon(published && _done.contains(lesson!.id)
+                    trailing: Icon(published && _done.contains(lesson.id)
                         ? Icons.check_circle_rounded
                         : published
                             ? Icons.chevron_right_rounded : Icons.lock_outline_rounded,
-                      color: published && _done.contains(lesson!.id)
+                      color: published && _done.contains(lesson.id)
                           ? _green : scheme.onSurfaceVariant),
-                    onTap: published ? () => _open(lesson!) : null,
+                    onTap: published ? () => _open(lesson) : null,
                   ),
                 ),
               );
