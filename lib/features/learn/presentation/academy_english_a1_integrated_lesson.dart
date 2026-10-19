@@ -863,9 +863,7 @@ class _AcademyEnglishA1IntegratedLessonState
               color: _accent)),
         const SizedBox(height: 5),
         Text(_tutor != null
-            ? (_ar
-                ? 'مع الأستاذة إيما · المدة المقترحة 15 دقيقة. ابدأ بالقواعد، ثم تعلّم الكلمات وطبّقها في القصة والمحادثة.'
-                : 'Study with tutor Emma · Suggested pace: 15 minutes. Start with grammar, then practise in stories and conversation.')
+            ? AcademyTutorTranslations.menuIntroduction(_uiLanguage)
             : (_ar
                 ? 'هذه أقسام الدرس. ابدأ بالقواعد ثم أكمل الأقسام بالترتيب.'
                 : 'These sections belong to one lesson. Start with grammar and complete them in order.'),
@@ -909,7 +907,9 @@ class _AcademyEnglishA1IntegratedLessonState
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(_ar ? _stageAr[i] : _stageEn[i],
+                          Text(_tutor == null
+                              ? (_ar ? _stageAr[i] : _stageEn[i])
+                              : AcademyTutorTranslations.section(_uiLanguage, i),
                             style: const TextStyle(fontSize: 17,
                                 fontWeight: FontWeight.w800)),
                           const SizedBox(height: 4),
@@ -1000,7 +1000,8 @@ class _AcademyEnglishA1IntegratedLessonState
               const SizedBox(height: 10),
               Row(children: [
                 Expanded(child: Text(
-                  _ar ? _stageAr[_stage] : _stageEn[_stage],
+                  _tutor == null ? (_ar ? _stageAr[_stage] : _stageEn[_stage])
+                      : AcademyTutorTranslations.section(_uiLanguage, _stage),
                   style: TextStyle(color: _accent,
                       fontWeight: FontWeight.w900, fontSize: 17))),
                 Text('${_stage + 1}/8',
