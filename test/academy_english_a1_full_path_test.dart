@@ -17,15 +17,23 @@ Future<void> passFirstTutorGrammar(WidgetTester tester) async {
       of: find.byType(OutlinedButton),
       matching: find.text(answer),
     );
+    // The lesson is a long, lazily built scroll view; advance until the
+    // current question's answer is actually in the rendered viewport.
+    await tester.scrollUntilVisible(option, 220,
+        scrollable: find.byType(Scrollable).first, maxScrolls:35);
     await tester.ensureVisible(option);
     await tester.pumpAndSettle();
     await tester.tap(option);
-    await tester.pump();
+    await tester.pumpAndSettle();
     final check = find.byKey(const ValueKey('academy-tutor-check-answer'));
+    await tester.scrollUntilVisible(check, 150,
+        scrollable: find.byType(Scrollable).first, maxScrolls:35);
     await tester.ensureVisible(check);
     await tester.pumpAndSettle();
     await tester.tap(check);
-    await tester.pump();
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(check);
+    await tester.pumpAndSettle();
     await tester.tap(check);
     await tester.pumpAndSettle();
   }
