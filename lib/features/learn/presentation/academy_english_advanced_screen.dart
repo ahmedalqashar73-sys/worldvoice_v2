@@ -151,73 +151,74 @@ class _AcademyEnglishAdvancedPathState
     return Scaffold(
       appBar: AppBar(
         backgroundColor: _green, foregroundColor: Colors.white,
-        title: Text('English ${widget.level}'),
+        title: Text(_ar ? 'الوحدة ${widget.unitNumber}' : 'Unit ${widget.unitNumber}'),
       ),
       body: SafeArea(child: ListView(
         padding: const EdgeInsets.all(18),
         children: [
-          Container(
-            padding: const EdgeInsets.all(22),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(21),
-              gradient: const LinearGradient(
-                colors: [Color(0xFF11432E), Color(0xFF267C60)]),
-            ),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(widget.level,
-                style: const TextStyle(color: _gold, fontSize: 33,
-                    fontWeight: FontWeight.w900)),
-              const SizedBox(height: 7),
-              Text(_ar
-                  ? 'قصص أصيلة، استماع متدرج، مفردات وكتابة'
-                  : 'Original stories, graded listening, vocabulary and writing',
-                style: const TextStyle(color: Colors.white,
-                  fontSize: 18, fontWeight: FontWeight.w800)),
-              const SizedBox(height: 10),
-              Text(_ar
-                ? '${available.length} درس منشور للتجربة · يُضاف المحتوى الباقي تدريجيًا'
-                : '${available.length} published pilot lesson(s) · more in preparation',
-                style: const TextStyle(color: Colors.white70)),
-            ]),
-          ),
+          Text(_ar ? unit.titleArabic : unit.title,
+            style: TextStyle(color: Theme.of(context).brightness == Brightness.dark
+                ? const Color(0xFF98E8BC) : _green,
+                fontSize: 25, fontWeight: FontWeight.w900)),
+          const SizedBox(height: 6),
+          Text(_ar
+              ? 'English ${widget.level} · الوحدة ${unit.number}'
+              : 'English ${widget.level} · Unit ${unit.number}',
+            style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 14)),
           const SizedBox(height: 18),
-          Text(_ar ? 'الوحدة ${widget.unitNumber} · 10 دروس'
-              : 'Unit ${widget.unitNumber} · 10 lessons',
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
-          const SizedBox(height: 11),
           for (var i = 1; i <= 10; i++)
             Builder(builder: (context) {
               final lesson = unit.lessonAt(i);
               final published = lesson != null;
-              return Padding(padding: const EdgeInsets.only(bottom: 10),
-                child: Card(elevation: 0, color: scheme.surface,
-                  child: ListTile(
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 9),
+                child: Material(
+                  color: scheme.surface,
+                  borderRadius: BorderRadius.circular(17),
+                  child: InkWell(
                     key: ValueKey('advanced-lesson-${widget.level}-${widget.unitNumber}-$i'),
-                    contentPadding: const EdgeInsets.all(14),
-                    leading: CircleAvatar(
-                      backgroundColor: published
-                          ? scheme.primaryContainer : scheme.surfaceContainerHighest,
-                      child: Text('$i',
-                        style: const TextStyle(fontWeight: FontWeight.w900)),
-                    ),
-                    title: Text(_ar ? 'الدرس $i' : 'Lesson $i',
-                      style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.w800)),
-                    subtitle: Text(published
-                        ? (_ar
-                            ? 'قواعد · ${lesson.vocabulary.length} كلمة · قصة · استماع · اختبارات'
-                            : 'Grammar · ${lesson.vocabulary.length} words · story · listening · quizzes')
-                        : (_ar
-                            ? 'قيد الإعداد · ${unit.plannedTopics[i - 1]}'
-                            : 'In preparation · ${unit.plannedTopics[i - 1]}'),
-                      style: TextStyle(color: scheme.onSurfaceVariant)),
-                    trailing: Icon(published && _done.contains(lesson.id)
-                        ? Icons.check_circle_rounded
-                        : published
-                            ? Icons.chevron_right_rounded : Icons.lock_outline_rounded,
-                      color: published && _done.contains(lesson.id)
-                          ? _green : scheme.onSurfaceVariant),
+                    borderRadius: BorderRadius.circular(17),
                     onTap: published ? () => _open(lesson) : null,
+                    child: Container(
+                      padding: const EdgeInsets.all(13),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(17),
+                        border: Border.all(color: scheme.outlineVariant),
+                      ),
+                      child: Row(children: [
+                        CircleAvatar(
+                          backgroundColor: published
+                              ? scheme.primaryContainer : scheme.surfaceContainerHighest,
+                          child: Text('$i', style: TextStyle(
+                            color: published ? _green : scheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w900, fontSize: 19)),
+                        ),
+                        const SizedBox(width: 11),
+                        Expanded(child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(_ar ? 'الدرس $i' : 'Lesson $i',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w800, fontSize: 18)),
+                            Text(published
+                                ? (_ar
+                                    ? '${lesson.vocabulary.length} كلمة · قواعد · قصة · محادثة · استماع · اختبار'
+                                    : '${lesson.vocabulary.length} words · grammar · story · dialogue · listening · quiz')
+                                : (_ar
+                                    ? 'قيد الإعداد · ${unit.plannedTopics[i - 1]}'
+                                    : 'In preparation · ${unit.plannedTopics[i - 1]}'),
+                              style: TextStyle(color: scheme.onSurfaceVariant,
+                                fontSize: 12)),
+                          ],
+                        )),
+                        Icon(published && _done.contains(lesson.id)
+                            ? Icons.check_circle_rounded
+                            : published
+                                ? Icons.chevron_right_rounded : Icons.lock_outline_rounded,
+                          color: published && _done.contains(lesson.id)
+                              ? _green : scheme.onSurfaceVariant),
+                      ]),
+                    ),
                   ),
                 ),
               );
@@ -321,63 +322,89 @@ class _AcademyEnglishAdvancedLessonScreenState
   Widget _sectionMenu() {
     final scheme = Theme.of(context).colorScheme;
     final lesson = widget.lesson;
+    final accent = Theme.of(context).brightness == Brightness.dark
+        ? const Color(0xFF98E8BC) : _green;
     return ListView(
       key: const ValueKey('advanced-section-menu'),
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 26),
+      padding: const EdgeInsets.fromLTRB(17, 16, 17, 25),
       children: [
-        Text(_ar ? 'الدرس ${lesson.number}' : 'Lesson ${lesson.number}',
-          style: const TextStyle(fontSize: 27, fontWeight: FontWeight.w900)),
-        const SizedBox(height: 5),
-        Text(_ar ? lesson.titleArabic : lesson.title,
-          style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 16)),
-        const SizedBox(height: 12),
         Text(_ar
-            ? 'اختر القسم المتاح. القصة والقواعد والمفردات والاستماع كلها داخل الدرس.'
-            : 'Choose a section. Story, grammar, vocabulary and listening are all part of this lesson.',
-          style: TextStyle(color: scheme.onSurfaceVariant)),
+            ? 'الدرس ${lesson.number} · الوحدة ${lesson.unitNumber}'
+            : 'Lesson ${lesson.number} · Unit ${lesson.unitNumber}',
+          style: TextStyle(fontSize: 23, fontWeight: FontWeight.w900,
+              color: accent)),
+        const SizedBox(height: 5),
+        Text(_ar
+            ? 'هذه أقسام الدرس. ابدأ بالقواعد ثم أكمل الأقسام بالترتيب.'
+            : 'These sections belong to one lesson. Start with grammar and complete them in order.',
+          style: TextStyle(color: scheme.onSurfaceVariant, height: 1.5)),
         const SizedBox(height: 16),
         LinearProgressIndicator(
-          value: _highestUnlocked / 7, minHeight: 7,
-          borderRadius: BorderRadius.circular(7),
-          color: _green, backgroundColor: scheme.surfaceContainerHighest),
-        const SizedBox(height: 16),
+          value: _highestUnlocked / 7,
+          minHeight: 7, borderRadius: BorderRadius.circular(9),
+          color: accent, backgroundColor: scheme.surfaceContainerHighest,
+        ),
+        const SizedBox(height: 17),
         for (var index = 0; index < _sectionAr.length; index++)
           Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: Card(
-              elevation: 0,
-              child: ListTile(
+            padding: const EdgeInsets.only(bottom: 11),
+            child: Material(
+              color: scheme.surface,
+              borderRadius: BorderRadius.circular(17),
+              child: InkWell(
                 key: ValueKey('advanced-section-$index'),
-                contentPadding: const EdgeInsets.all(14),
                 onTap: index <= _highestUnlocked
                     ? () => _enterSection(index) : null,
-                leading: CircleAvatar(
-                  backgroundColor: scheme.primaryContainer,
-                  child: Icon(_sectionIcons[index], color: _green),
+                borderRadius: BorderRadius.circular(17),
+                child: Container(
+                  padding: const EdgeInsets.all(15),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(17),
+                    border: Border.all(color: index == _highestUnlocked
+                        ? accent.withValues(alpha: .55)
+                        : scheme.outlineVariant),
+                  ),
+                  child: Row(children: [
+                    CircleAvatar(
+                      radius: 23, backgroundColor: scheme.primaryContainer,
+                      child: Icon(_sectionIcons[index], color: accent),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(_ar ? _sectionAr[index] : _sectionEn[index],
+                          style: const TextStyle(fontSize: 17,
+                              fontWeight: FontWeight.w800)),
+                        const SizedBox(height: 4),
+                        Text(index == 1
+                            ? (_ar ? '${lesson.vocabulary.length} كلمة بالصوت والمعنى والنطق'
+                                : '${lesson.vocabulary.length} words with audio, meaning and pronunciation')
+                            : index == 2
+                                ? (_ar ? 'قصة قصيرة في صفحة واحدة · ${lesson.paragraphs.length} فقرات'
+                                    : 'One-page story · ${lesson.paragraphs.length} paragraphs')
+                                : _ar ? 'القسم ${index + 1} من 8'
+                                    : 'Section ${index + 1} of 8',
+                          style: TextStyle(fontSize: 12,
+                              color: scheme.onSurfaceVariant)),
+                      ],
+                    )),
+                    Icon(index < _highestUnlocked
+                        ? Icons.check_circle_rounded
+                        : index == _highestUnlocked
+                            ? Icons.chevron_right_rounded
+                            : Icons.lock_outline_rounded,
+                      color: index < _highestUnlocked
+                          ? accent : scheme.onSurfaceVariant),
+                  ]),
                 ),
-                title: Text(_ar ? _sectionAr[index] : _sectionEn[index],
-                  style: const TextStyle(fontWeight: FontWeight.w800)),
-                subtitle: Text(index == 1
-                    ? (_ar ? '${lesson.vocabulary.length} مفردة جديدة'
-                        : '${lesson.vocabulary.length} new words')
-                    : index == 2
-                        ? (_ar ? '${lesson.paragraphs.length} فقرات'
-                            : '${lesson.paragraphs.length} paragraphs')
-                        : (_ar ? 'القسم ${index + 1} من 8'
-                            : 'Section ${index + 1} of 8')),
-                trailing: Icon(index < _highestUnlocked
-                    ? Icons.check_circle_rounded
-                    : index == _highestUnlocked
-                        ? Icons.chevron_right_rounded
-                        : Icons.lock_outline_rounded,
-                  color: index < _highestUnlocked
-                      ? _green : scheme.onSurfaceVariant),
               ),
             ),
           ),
       ],
     );
   }
+
   bool get _ar => Localizations.localeOf(context).languageCode == 'ar';
 
   @override
