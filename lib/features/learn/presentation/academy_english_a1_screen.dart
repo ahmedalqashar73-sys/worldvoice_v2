@@ -116,8 +116,8 @@ class _AcademyEnglishA1PathState extends State<AcademyEnglishA1Path> {
                 style: const TextStyle(color: Colors.white,
                     fontSize: 23, fontWeight: FontWeight.w900)),
               const SizedBox(height: 6),
-              Text(_ar ? '3 وحدات · 36 درسًا متكاملًا · 9 قصص طويلة مصورة'
-                         : '3 units · 36 complete lessons · 9 illustrated stories',
+              Text(_ar ? '3 وحدات · 30 درسًا متكاملًا · 9 قصص مصورة'
+                         : '3 units · 30 complete lessons · 9 illustrated stories',
                 style: const TextStyle(color: Color(0xFFE5F5EF), fontSize: 14)),
               const SizedBox(height: 16),
               LinearProgressIndicator(
@@ -187,11 +187,11 @@ class _AcademyEnglishA1PathState extends State<AcademyEnglishA1Path> {
                             style: const TextStyle(
                                 fontSize: 18, fontWeight: FontWeight.w800)),
                           const SizedBox(height: 5),
-                          Text(_ar ? '$progress / 12 درس' : '$progress / 12 lessons',
+                          Text(_ar ? '$progress / 10 دروس' : '$progress / 10 lessons',
                             style: TextStyle(color: scheme.onSurfaceVariant)),
                           const SizedBox(height: 10),
                           LinearProgressIndicator(
-                            value: progress / 12, minHeight: 5,
+                            value: progress / 10, minHeight: 5,
                             color: _deepGreen,
                             backgroundColor: scheme.surfaceContainerHighest,
                           ),
@@ -310,8 +310,8 @@ class _EnglishA1UnitScreenState extends State<_EnglishA1UnitScreen> {
                                 fontWeight: FontWeight.w800, fontSize: 16)),
                           Text(
                             _ar
-                                ? 'الدرس ${i + 1} من 12 · 20 كلمة · محادثة وقصة واختبار'
-                                : 'Lesson ${i + 1} of 12 · 20 words · story and practice',
+                                ? 'الدرس ${i + 1} من 10 · 20 كلمة · قواعد وقصة ومحادثة'
+                                : 'Lesson ${i + 1} of 10 · 20 words · story and practice',
                             style: TextStyle(color: scheme.onSurfaceVariant,
                                 fontSize: 12)),
                         ],
