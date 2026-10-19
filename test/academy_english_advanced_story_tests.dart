@@ -56,6 +56,48 @@ void main() {
     expect(EnglishAdvancedSyllabus.forLevel('A1'), isEmpty);
   });
 
+  test('each level has three different story words to spell', () {
+    for (final lesson in EnglishAdvancedSyllabus.lessons) {
+      final challenge = lesson.spellingChallenge;
+      expect(challenge, hasLength(3), reason: lesson.id);
+      expect(challenge.first.term.toLowerCase(),
+          lesson.writingAnswer.toLowerCase(), reason: lesson.id);
+      expect(challenge.map((word) => word.term.toLowerCase()).toSet().length,
+          3, reason: lesson.id);
+      for (final word in challenge) {
+        expect(lesson.storyWords.any((item) => item.term == word.term), isTrue);
+        expect(word.arabic, isNotEmpty);
+      }
+    }
+  });
+
+  testWidgets('typing a correct story word unlocks the second word',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 1450);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    final lesson = EnglishAdvancedSyllabus.forLevel('A2').first;
+    await tester.pumpWidget(MaterialApp(
+      home: AcademyEnglishAdvancedLessonScreen(lesson: lesson),
+    ));
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('advanced-write-word')),
+      550,
+      scrollable: find.byType(Scrollable).first,
+      maxScrolls: 100,
+    );
+    expect(find.text('1 / 3'), findsOneWidget);
+    await tester.enterText(find.byKey(const ValueKey('advanced-write-word')),
+        lesson.spellingChallenge.first.term);
+    await tester.tap(find.byKey(const ValueKey('advanced-check-word')));
+    await tester.pump();
+    expect(find.text('2 / 3'), findsOneWidget);
+    expect(find.text('Great! Now try the next story word.'), findsOneWidget);
+  });
+
   test('advanced progress is account-scoped and cannot mark unwritten lessons', () async {
     SharedPreferences.setMockInitialValues({});
     final first = EnglishAdvancedSyllabus.forLevel('A2').first;
