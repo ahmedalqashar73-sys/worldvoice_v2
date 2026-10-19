@@ -6,10 +6,11 @@ import 'package:flutter/material.dart';
 /// copyrighted characters, and gentle motion that can run offline.
 class AcademyIllustratedStoryArt extends StatefulWidget {
   const AcademyIllustratedStoryArt({
-    required this.scene, required this.page, super.key,
+    required this.scene, required this.page, this.animate = true, super.key,
   });
   final int scene;
   final int page;
+  final bool animate;
 
   @override
   State<AcademyIllustratedStoryArt> createState() =>
@@ -20,7 +21,13 @@ class _AcademyIllustratedStoryArtState extends State<AcademyIllustratedStoryArt>
     with SingleTickerProviderStateMixin {
   late final AnimationController _motion = AnimationController(
     vsync: this, duration: const Duration(seconds: 9),
-  )..repeat();
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.animate) _motion.repeat();
+  }
 
   @override
   void dispose() {

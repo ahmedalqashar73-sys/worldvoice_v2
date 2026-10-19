@@ -57,12 +57,12 @@ class _AcademyEnglishA1IntegratedLessonState
       ? const Color(0xFF98E8BC) : _lessonGreen;
 
   static const _stageAr = [
-    'المحادثة', '20 مفردة', 'النطق', 'القواعد', 'الاستماع',
-    'القصة المصورة', 'التدريبات', 'اكتمال الدرس',
+    'شرح القواعد', '20 مفردة', 'القصة المصورة', 'اختبار الكلمات',
+    'المحادثة', 'النطق', 'الاستماع', 'اكتمال الدرس',
   ];
   static const _stageEn = [
-    'Conversation', '20 words', 'Pronunciation', 'Grammar',
-    'Listening', 'Storybook', 'Practice', 'Complete',
+    'Grammar', '20 words', 'Illustrated story', 'Word quiz',
+    'Conversation', 'Pronunciation', 'Listening', 'Complete',
   ];
 
   @override
@@ -430,22 +430,23 @@ class _AcademyEnglishA1IntegratedLessonState
     final scheme = Theme.of(context).colorScheme;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       AcademyIllustratedStoryArt(
-          scene: _story.scene, page: (widget.lessonNumber - 1) % 4),
+          scene: _story.scene, page: (widget.lessonNumber - 1) % 4,
+          animate: false),
       const SizedBox(height: 18),
       Text(_ar ? _story.titleArabic : _story.title,
           style: TextStyle(color: _accent,
               fontSize: 22, fontWeight: FontWeight.w900)),
       const SizedBox(height: 7),
-      Text(_ar ? 'الفصل ${(widget.lessonNumber - 1) % 4 + 1} من 4' :
-          'Chapter ${(widget.lessonNumber - 1) % 4 + 1} of 4',
+      Text(_ar ? 'قصة قصيرة · 3 فقرات' :
+          'Short story · 3 paragraphs',
         style: TextStyle(color: scheme.onSurfaceVariant)),
       const SizedBox(height: 10),
       Text(_ar ? _chapter.titleArabic : _chapter.title,
           style: TextStyle(fontSize: 18, color: scheme.onSurface)),
       const SizedBox(height: 12),
       Text(_ar
-          ? 'هذا الفصل يحتوي على ثلاث فقرات مصورة، مع صوت وترجمة وسؤال فهم.'
-          : 'This chapter has three illustrated reading paragraphs, audio, translation and a comprehension question.',
+          ? 'صفحة قراءة واحدة، تحتوي على رسمة وثلاث فقرات وصوت وترجمة وسؤال.'
+          : 'One readable page with an illustration, three paragraphs, audio, translation and a question.',
         style: TextStyle(color: scheme.onSurfaceVariant, height: 1.5)),
       const SizedBox(height: 15),
       FilledButton.icon(
@@ -543,13 +544,13 @@ class _AcademyEnglishA1IntegratedLessonState
   }
 
   Widget _currentStage() => switch (_stage) {
-    0 => _conversation(),
+    0 => _grammarPage(),
     1 => _vocabulary(),
-    2 => _pronunciation(),
-    3 => _grammarPage(),
-    4 => _listening(),
-    5 => _storyStage(),
-    6 => _practice(),
+    2 => _storyStage(),
+    3 => _practice(),
+    4 => _conversation(),
+    5 => _pronunciation(),
+    6 => _listening(),
     _ => _finish(),
   };
 
@@ -557,10 +558,10 @@ class _AcademyEnglishA1IntegratedLessonState
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final canContinue = switch (_stage) {
-      0 => _conversationPassed,
-      4 => _listeningPassed,
-      5 => _readingPassed,
-      6 => false,
+      2 => _readingPassed,
+      3 => false,
+      4 => _conversationPassed,
+      6 => _listeningPassed,
       _ => true,
     };
     return Scaffold(
@@ -650,15 +651,13 @@ class _EnglishA1BookChapter extends StatefulWidget {
 }
 
 class _EnglishA1BookChapterState extends State<_EnglishA1BookChapter> {
-  int _page = 0;
   int? _choice;
   bool _checked = false;
   bool _translate = false;
-  double _fontSize = 21;
+  double _fontSize = 20;
   late final FlutterTts _tts = FlutterTts();
 
   bool get _ar => Localizations.localeOf(context).languageCode == 'ar';
-  bool get _quiz => _page == widget.chapter.paragraphs.length + 1;
 
   Future<void> _speak(String text, {bool slow = false}) async {
     try {
@@ -670,22 +669,15 @@ class _EnglishA1BookChapterState extends State<_EnglishA1BookChapter> {
       await _tts.setSpeechRate(slow ? .30 : .50);
       await _tts.setVolume(1);
       final started = await _tts.speak(text);
-      if (started == 0) throw StateError('Could not speak');
+      if (started == 0) throw StateError('TTS did not start');
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(_ar ? 'صوت الإنجليزية غير متوفر على الجهاز.'
-            : 'English speech voice is unavailable on the device.'),
+        content: Text(_ar
+            ? 'تأكد من تثبيت صوت الإنجليزية ورفع صوت الوسائط.'
+            : 'Install an English speech voice and check media volume.'),
       ));
     }
-  }
-
-  void _turn(int next) {
-    if (next < 0 || next > widget.chapter.paragraphs.length + 1) return;
-    _tts.stop();
-    setState(() {
-      _page = next; _translate = false; _choice = null; _checked = false;
-    });
   }
 
   @override
@@ -696,202 +688,162 @@ class _EnglishA1BookChapterState extends State<_EnglishA1BookChapter> {
 
   @override
   Widget build(BuildContext context) {
-    final night = Theme.of(context).brightness == Brightness.dark;
     final scheme = Theme.of(context).colorScheme;
+    final night = Theme.of(context).brightness == Brightness.dark;
     final paper = night ? scheme.surfaceContainerHigh
-        : const Color(0xFFFFFCF2);
-    final ink = scheme.onSurface;
+        : const Color(0xFFFFFCF5);
     final correct = _checked && _choice == widget.question.answer;
+    final paragraphs = widget.chapter.paragraphs;
+    final fullText = paragraphs.map((p) => p.english).join(' ');
     return Scaffold(
       appBar: AppBar(
+        title: Text(_ar ? 'قصة مصورة' : 'Illustrated story'),
         backgroundColor: _lessonGreen, foregroundColor: Colors.white,
-        title: Text(_ar ? 'مكتبة WorldVoice' : 'WorldVoice Library'),
         actions: [
           IconButton(
-            tooltip: _ar ? 'تصغير النص' : 'Smaller text',
-            onPressed: () => setState(() {
-              _fontSize = (_fontSize - 2).clamp(17, 30).toDouble();
-            }),
+            tooltip: _ar ? 'تصغير الخط' : 'Smaller font',
+            onPressed: () => setState(() =>
+                _fontSize = (_fontSize - 2).clamp(16, 28).toDouble()),
             icon: const Icon(Icons.text_decrease_rounded)),
           IconButton(
-            tooltip: _ar ? 'تكبير النص' : 'Larger text',
-            onPressed: () => setState(() {
-              _fontSize = (_fontSize + 2).clamp(17, 30).toDouble();
-            }),
+            tooltip: _ar ? 'تكبير الخط' : 'Larger font',
+            onPressed: () => setState(() =>
+                _fontSize = (_fontSize + 2).clamp(16, 28).toDouble()),
             icon: const Icon(Icons.text_increase_rounded)),
         ],
       ),
-      body: SafeArea(child: Column(children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(17, 11, 17, 10),
-          child: Row(children: [
-            Expanded(child: LinearProgressIndicator(
-              value: (_page + 1) / (widget.chapter.paragraphs.length + 2),
-              minHeight: 6, borderRadius: BorderRadius.circular(8),
-              color: _lessonGreen,
-              backgroundColor: scheme.surfaceContainerHighest,
-            )),
-            const SizedBox(width: 12),
-            Text('${_page + 1}/${widget.chapter.paragraphs.length + 2}',
-                style: TextStyle(color: scheme.onSurfaceVariant)),
-          ]),
-        ),
-        Expanded(child: ListView(
-          key: ValueKey('academy-story-page-$_page'),
-          padding: const EdgeInsets.fromLTRB(15, 9, 15, 18),
-          children: [
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: paper,
-                borderRadius: BorderRadius.circular(19),
-                border: Border.all(color: scheme.outlineVariant),
-                boxShadow: [BoxShadow(
-                  color: Colors.black.withValues(alpha: night ? .07 : .09),
-                  blurRadius: 18, offset: const Offset(0, 7),
-                )],
+      body: SafeArea(child: ListView(
+        key: const ValueKey('academy-story-single-page'),
+        padding: const EdgeInsets.fromLTRB(15, 13, 15, 26),
+        children: [
+          Container(
+            padding: const EdgeInsets.all(15),
+            decoration: BoxDecoration(
+              color: paper,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: scheme.outlineVariant),
+            ),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              Text(_ar ? widget.story.titleArabic : widget.story.title,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: scheme.onSurface,
+                    fontWeight: FontWeight.w900, fontSize: 24)),
+              const SizedBox(height: 6),
+              Text(_ar ? widget.chapter.titleArabic : widget.chapter.title,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 15)),
+              const SizedBox(height: 15),
+              // Bundled vector art (one scene). No video or remote fetch.
+              AcademyIllustratedStoryArt(
+                scene: widget.story.scene,
+                page: widget.chapterNumber,
+                animate: false,
               ),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    const Icon(Icons.auto_stories_rounded,
-                        color: _lessonGreen, size: 22),
-                    const SizedBox(width: 7),
-                    Flexible(child: Text(
-                      _ar ? widget.story.titleArabic : widget.story.title,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900,
-                          color: ink))),
-                  ]),
-                  const SizedBox(height: 7),
-                  Text(_ar ? 'الفصل ${widget.chapterNumber} من 4'
-                      : 'Chapter ${widget.chapterNumber} of 4',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: scheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 11),
-                  AcademyIllustratedStoryArt(
-                    scene: widget.story.scene,
-                    page: widget.chapterNumber * 5 + _page,
+              const SizedBox(height: 18),
+              for (var i = 0; i < paragraphs.length; i++) ...[
+                SelectableText(
+                  paragraphs[i].english,
+                  key: ValueKey('academy-story-paragraph-$i'),
+                  textDirection: TextDirection.ltr,
+                  style: TextStyle(color: scheme.onSurface, height: 1.68,
+                    fontSize: _fontSize, fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(height: 15),
+              ],
+              Wrap(spacing: 8, runSpacing: 7, children: [
+                FilledButton.tonalIcon(
+                  onPressed: () => _speak(fullText),
+                  icon: const Icon(Icons.volume_up_rounded),
+                  label: Text(_ar ? 'اقرأ القصة' : 'Read aloud'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () => _speak(fullText, slow: true),
+                  icon: const Icon(Icons.slow_motion_video_rounded),
+                  label: Text(_ar ? 'ببطء' : 'Slow audio'),
+                ),
+                TextButton.icon(
+                  onPressed: () =>
+                      setState(() => _translate = !_translate),
+                  icon: const Icon(Icons.translate_rounded),
+                  label: Text(_ar ? 'الترجمة' : 'Translation'),
+                ),
+              ]),
+              if (_translate) ...[
+                const SizedBox(height: 14),
+                for (final paragraph in paragraphs)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 13),
+                    child: Text(paragraph.arabic,
+                      textDirection: TextDirection.rtl,
+                      style: TextStyle(fontSize: _fontSize - 2, height: 1.6,
+                          color: scheme.onSurface)),
                   ),
-                  const SizedBox(height: 15),
-                  if (_page == 0) ...[
-                    Text(_ar ? widget.chapter.titleArabic
-                        : widget.chapter.title,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: ink, fontSize: 24,
-                          fontWeight: FontWeight.w900)),
-                    const SizedBox(height: 14),
-                    Text(_ar
-                        ? 'افتح الصفحات واقرأ الفقرات الثلاث. يمكنك تكبير الخط والاستماع والترجمة، ثم أجب عن سؤال الفهم.'
-                        : 'Read three story paragraphs, resize the type, listen and translate; finish with a comprehension question.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: ink, fontSize: 17, height: 1.7)),
-                  ] else if (!_quiz) ...[
-                    Text(_ar ? 'فقرة $_page من 3' : 'Paragraph $_page of 3',
-                      style: TextStyle(color: scheme.onSurfaceVariant)),
-                    const SizedBox(height: 13),
-                    SelectableText(widget.chapter.paragraphs[_page - 1].english,
-                      textDirection: TextDirection.ltr,
-                      style: TextStyle(
-                        fontSize: _fontSize, height: 1.85,
-                        fontWeight: FontWeight.w600, color: ink)),
-                    const SizedBox(height: 13),
-                    Wrap(spacing: 8, runSpacing: 8, children: [
-                      FilledButton.tonalIcon(
-                        onPressed: () => _speak(
-                            widget.chapter.paragraphs[_page - 1].english),
-                        icon: const Icon(Icons.volume_up_rounded),
-                        label: Text(_ar ? 'اقرأ لي' : 'Read aloud')),
-                      OutlinedButton.icon(
-                        onPressed: () => _speak(
-                          widget.chapter.paragraphs[_page - 1].english, slow: true),
-                        icon: const Icon(Icons.slow_motion_video_rounded),
-                        label: Text(_ar ? 'ببطء' : 'Slow')),
-                      TextButton.icon(
-                        onPressed: () =>
-                            setState(() => _translate = !_translate),
-                        icon: const Icon(Icons.translate_rounded),
-                        label: Text(_ar ? 'الترجمة' : 'Translation')),
-                    ]),
-                    if (_translate) ...[
-                      const SizedBox(height: 12),
-                      Text(widget.chapter.paragraphs[_page - 1].arabic,
-                        textDirection: TextDirection.rtl,
-                        style: TextStyle(fontSize: _fontSize - 3, height: 1.7,
-                            color: ink)),
-                    ],
-                  ] else ...[
-                    Text(_ar ? 'هل فهمت الفصل؟' : 'Check your reading',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 22,
-                          fontWeight: FontWeight.w900, color: ink)),
-                    const SizedBox(height: 14),
-                    Text(widget.question.question,
-                      textDirection: TextDirection.ltr,
-                      style: TextStyle(fontSize: 19,
-                          fontWeight: FontWeight.w700, color: ink)),
-                    const SizedBox(height: 15),
-                    for (var i = 0; i < widget.question.options.length; i++)
-                      Padding(padding: const EdgeInsets.only(bottom: 10),
-                        child: OutlinedButton(
-                          onPressed: correct ? null : () => setState(() {
-                            _choice = i; _checked = false;
-                          }),
-                          style: OutlinedButton.styleFrom(
-                            backgroundColor: _choice == i
-                                ? scheme.primaryContainer : paper,
-                            minimumSize: const Size.fromHeight(54),
-                          ),
-                          child: Text(widget.question.options[i],
-                            style: TextStyle(color: ink)))),
-                    if (_checked)
-                      Text(correct
-                          ? (_ar ? 'رائع! فهمت أحداث الفصل.'
-                              : 'Great! You understood this chapter.')
-                          : (_ar ? 'حاول مرة أخرى.' : 'Try again.'),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontWeight: FontWeight.w800,
-                            color: correct ? _lessonGreen : scheme.error)),
-                  ],
-                  const SizedBox(height: 10),
-                  Divider(color: scheme.outlineVariant),
-                  const Text('WORLDVOICE · STORYBOOK',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(letterSpacing: 1.2,
-                        fontSize: 10, color: Color(0xFF6C8B80))),
-                ],
+              ],
+            ]),
+          ),
+          const SizedBox(height: 24),
+          Text(_ar ? 'اختبار فهم القصة' : 'Story comprehension',
+            style: const TextStyle(
+              fontWeight: FontWeight.w900, fontSize: 20)),
+          const SizedBox(height: 10),
+          Text(widget.question.question,
+            textDirection: TextDirection.ltr,
+            style: TextStyle(fontSize: 18, height: 1.5,
+                fontWeight: FontWeight.w700, color: scheme.onSurface)),
+          const SizedBox(height: 14),
+          for (var i = 0; i < widget.question.options.length; i++)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: OutlinedButton(
+                onPressed: correct ? null : () => setState(() {
+                  _choice = i; _checked = false;
+                }),
+                style: OutlinedButton.styleFrom(
+                  alignment: AlignmentDirectional.centerStart,
+                  minimumSize: const Size.fromHeight(56),
+                  backgroundColor: _choice == i
+                      ? scheme.primaryContainer : scheme.surface,
+                ),
+                child: Text(widget.question.options[i],
+                  textDirection: TextDirection.ltr,
+                  style: TextStyle(color: scheme.onSurface)),
               ),
             ),
-          ],
-        )),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(15, 4, 15, 14),
-          child: Row(children: [
-            if (_page > 0)
-              OutlinedButton(
-                onPressed: () => _turn(_page - 1),
-                child: Text(_ar ? 'السابق' : 'Back')),
-            const Spacer(),
-            FilledButton.icon(
-              key: const ValueKey('academy-story-chapter-next'),
-              onPressed: _quiz
-                  ? (_choice == null ? null
-                      : correct ? () => Navigator.of(context).pop(true)
-                      : () => setState(() => _checked = true))
-                  : () => _turn(_page + 1),
-              style: FilledButton.styleFrom(backgroundColor: _lessonGreen,
-                  foregroundColor: Colors.white),
-              icon: Icon(correct
-                  ? Icons.check_circle_rounded : Icons.arrow_forward_rounded),
-              label: Text(_quiz
-                  ? (correct ? (_ar ? 'إكمال الفصل' : 'Finish chapter')
-                      : (_ar ? 'تحقق' : 'Check answer'))
-                  : (_ar ? 'الصفحة التالية' : 'Next page')),
+          if (_checked)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Text(correct
+                  ? (_ar ? 'ممتاز! فهمت القصة.'
+                      : 'Excellent! You understood the story.')
+                  : (_ar ? 'أعد القراءة وحاول مجددًا.'
+                      : 'Read again and try once more.'),
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  color: correct ? _lessonGreen : scheme.error)),
             ),
-          ]),
-        ),
-      ])),
+          FilledButton.icon(
+            key: const ValueKey('academy-story-complete'),
+            onPressed: _choice == null ? null :
+                correct ? () => Navigator.of(context).pop(true)
+                : () => setState(() => _checked = true),
+            icon: Icon(correct
+                ? Icons.check_circle_rounded : Icons.task_alt_rounded),
+            label: Text(correct
+                ? (_ar ? 'إكمال القصة' : 'Finish story')
+                : (_ar ? 'تحقق من الإجابة' : 'Check answer')),
+            style: FilledButton.styleFrom(
+              backgroundColor: _lessonGreen,
+              foregroundColor: Colors.white,
+              minimumSize: const Size.fromHeight(54),
+            ),
+          ),
+          const SizedBox(height: 14),
+          Text('WORLDVOICE · STORYBOOK',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: scheme.onSurfaceVariant,
+                letterSpacing: 1.1, fontSize: 11)),
+        ],
+      )),
     );
   }
 }

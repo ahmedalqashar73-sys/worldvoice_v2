@@ -11,14 +11,14 @@ import 'package:worldvoice/features/learn/presentation/academy_english_a1_integr
 import 'package:worldvoice/features/learn/presentation/academy_illustrated_story_art.dart';
 
 void main() {
-  test('A1 has three units and every one of 36 lessons contains full content', () {
+  test('A1 has three units and every one of 30 lessons contains full content', () {
     expect(EnglishA1Catalog.units.length, 3);
-    expect(EnglishA1Catalog.lessonCount, 36);
+    expect(EnglishA1Catalog.lessonCount, 30);
     final ids = <String>{};
     for (final unit in EnglishA1Catalog.units) {
-      expect(unit.lessons, hasLength(12));
+      expect(unit.lessons, hasLength(10));
       expect(unit.goal.trim(), isNotEmpty);
-      for (var index = 0; index < 12; index++) {
+      for (var index = 0; index < 10; index++) {
         final lesson = unit.lessons[index];
         final num = index + 1;
         expect(ids.add(lesson.id), isTrue);
@@ -46,7 +46,7 @@ void main() {
         expect(quiz.answer, inInclusiveRange(0, 2));
       }
     }
-    expect(ids, hasLength(36));
+    expect(ids, hasLength(30));
   });
 
   test('Nine distinct four-chapter stories, exactly three in each unit', () {
@@ -88,10 +88,8 @@ void main() {
     expect((await EnglishA1Progress.load('person-a')).length, 1);
   });
 
-  testWidgets('each lesson begins with conversation and proceeds to 20 vocabulary cards',
+  testWidgets('lesson starts with grammar, then teaches twenty words',
       (tester) async {
-    // Use a phone-height viewport so answer buttons are not clipped by the
-    // short 800x600 default test surface.
     tester.view.physicalSize = const Size(900, 1400);
     tester.view.devicePixelRatio = 1;
     addTearDown(() {
@@ -103,18 +101,41 @@ void main() {
       home: AcademyEnglishA1IntegratedLesson(
         unit: unit, lesson: unit.lessons.first, lessonNumber: 1),
     ));
-    expect(find.text('Talk with your tutor'), findsOneWidget);
-    expect(find.text('What is a friendly reply to “Hello”?'), findsOneWidget);
-    await tester.ensureVisible(find.text('Hi!'));
-    await tester.tap(find.text('Hi!'));
-    await tester.pump();
-    await tester.ensureVisible(find.byKey(const ValueKey('academy-integrated-answer')));
-    await tester.tap(find.byKey(const ValueKey('academy-integrated-answer')));
-    await tester.pump();
-    await tester.tap(find.text('Continue').first);
-    await tester.pump();
+    expect(find.text('I am / You are'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('academy-integrated-next')));
+    await tester.pumpAndSettle();
     expect(find.text('20 words to learn and review'), findsOneWidget);
     expect(find.text('hello'), findsWidgets);
+  });
+
+  testWidgets('single-page story shows all three paragraphs at once',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 1450);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    final unit = EnglishA1Catalog.units.first;
+    await tester.pumpWidget(MaterialApp(
+      home: AcademyEnglishA1IntegratedLesson(
+        unit: unit, lesson: unit.lessons.first, lessonNumber: 1),
+    ));
+    for (var step = 0; step < 2; step++) {
+      await tester.tap(find.byKey(const ValueKey('academy-integrated-next')));
+      await tester.pump(const Duration(milliseconds: 250));
+    }
+    expect(find.byKey(const ValueKey('academy-integrated-read-story')),
+        findsOneWidget);
+    await tester.tap(find.byKey(
+        const ValueKey('academy-integrated-read-story')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('academy-story-single-page')),
+        findsOneWidget);
+    for (var i = 0; i < 3; i++) {
+      expect(find.byKey(ValueKey('academy-story-paragraph-$i')),
+          findsOneWidget);
+    }
   });
 
   test('old partial activity completion remains intact but not counted as a full lesson',
