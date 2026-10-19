@@ -137,7 +137,7 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
 
   Future<void> _openAdvanced(String level) async {
     await Navigator.of(context).push<void>(MaterialPageRoute(
-      builder: (_) => AcademyEnglishAdvancedPath(level: level),
+      builder: (_) => AcademyEnglishAdvancedLevelScreen(level: level),
     ));
   }
 
