@@ -270,27 +270,27 @@ class _AcademyEnglishAdvancedLessonScreenState
     'شرح القواعد',
     'المفردات',
     'القصة المصورة',
+    'اختبار الكلمات',
     'المحادثة',
-    'النطق الإنجليزي',
+    'النطق',
     'الاستماع',
-    'اختبارات الفهم والكتابة',
-    'إكمال الدرس',
+    'اكتمال الدرس',
   ];
   static const _sectionEn = <String>[
     'Grammar',
     'Vocabulary',
     'Illustrated story',
+    'Word quiz',
     'Conversation',
-    'English pronunciation',
+    'Pronunciation',
     'Listening',
-    'Comprehension and writing tests',
-    'Complete lesson',
+    'Complete',
   ];
   static const _sectionIcons = <IconData>[
     Icons.school_outlined, Icons.translate_rounded,
-    Icons.auto_stories_rounded, Icons.forum_rounded,
-    Icons.record_voice_over_rounded, Icons.headphones_rounded,
-    Icons.fact_check_rounded, Icons.emoji_events_rounded,
+    Icons.auto_stories_rounded, Icons.fact_check_rounded,
+    Icons.forum_rounded, Icons.record_voice_over_rounded,
+    Icons.headphones_rounded, Icons.emoji_events_rounded,
   ];
 
   void _enterSection(int section) {
@@ -302,8 +302,8 @@ class _AcademyEnglishAdvancedLessonScreenState
   }
 
   bool get _readyToAdvance => switch (_activeSection) {
-    5 => _listenPassed,
-    6 => _readPassed && _wordPassed && _sentencePassed,
+    3 => _readPassed && _wordPassed && _sentencePassed,
+    6 => _listenPassed,
     _ => true,
   };
 
@@ -639,7 +639,7 @@ class _AcademyEnglishAdvancedLessonScreenState
                     onPressed: () => _play(word.term)),
                 ),
             ]), icon: Icons.translate_rounded),
-          if (_activeSection == 3) _section(
+          if (_activeSection == 4) _section(
             'محادثة تفاعلية', 'Guided conversation',
             Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               Text(_ar
@@ -669,7 +669,7 @@ class _AcademyEnglishAdvancedLessonScreenState
                 label: Text(_ar ? 'استمع للحوار كاملًا' : 'Hear full dialogue'),
               ),
             ]), icon: Icons.forum_rounded),
-          if (_activeSection == 4) _section(
+          if (_activeSection == 5) _section(
             'تدريب النطق الإنجليزي', 'English pronunciation practice',
             Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               Text(_ar ? dialogue.tipArabic : dialogue.tip,
@@ -695,7 +695,7 @@ class _AcademyEnglishAdvancedLessonScreenState
                   : 'This is listen-and-repeat practice. Automatic microphone scoring is not enabled.',
                 style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
             ]), icon: Icons.record_voice_over_rounded),
-          if (_activeSection == 6) _section('اختبار فهم القصة', 'Story comprehension',
+          if (_activeSection == 3) _section('اختبار فهم القصة', 'Story comprehension',
             _quiz(
               keyName: 'advanced-reading',
               question: lesson.readingQuestion, answers: lesson.readingOptions,
@@ -707,7 +707,7 @@ class _AcademyEnglishAdvancedLessonScreenState
                 if (!_readPassed) _message = _ar ? 'راجع القصة وجرب مرة ثانية.' : 'Read again and retry.';
               }),
             ), icon: Icons.fact_check_rounded),
-          if (_activeSection == 5) _section('استماع أصعب بحسب المستوى', 'Graded listening challenge',
+          if (_activeSection == 6) _section('استماع أصعب بحسب المستوى', 'Graded listening challenge',
             Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               Text(_ar
                 ? 'استمع أولًا دون نص، ثم أجب. سرعة القراءة والمحتوى يتدرجان حسب المستوى.'
@@ -751,7 +751,7 @@ class _AcademyEnglishAdvancedLessonScreenState
                 }),
               ),
             ]), icon: Icons.headphones_rounded),
-          if (_activeSection == 6) _section('اختبار كتابة كلمات القصة', 'Story spelling challenge',
+          if (_activeSection == 3) _section('اختبار كتابة كلمات القصة', 'Story spelling challenge',
             Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               Text(_ar
                   ? 'اكتب 3 كلمات مختلفة من القصة، واحدة في كل مرة. راجع القائمة الكاملة أعلاه إذا احتجت.'
@@ -813,7 +813,7 @@ class _AcademyEnglishAdvancedLessonScreenState
                 onPressed: _checkSentence,
                 child: Text(_ar ? 'مراجعة تدريب الكتابة' : 'Check writing exercise')),
             ]), icon: Icons.edit_note_rounded),
-          if (_activeSection == 6 && _message != null)
+          if (_activeSection == 3 && _message != null)
             Padding(padding: const EdgeInsets.only(bottom: 16),
               child: Text(_message!, style: TextStyle(
                 color: scheme.onSurfaceVariant, fontWeight: FontWeight.w700))),
