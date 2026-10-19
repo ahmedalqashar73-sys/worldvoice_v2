@@ -15,6 +15,55 @@ class EnglishAdvancedDialogue {
 
 abstract final class EnglishAdvancedDialogues {
   static const _dialogues = <String, EnglishAdvancedDialogue>{
+    'b2.1.3': EnglishAdvancedDialogue(
+      lines: <String>[
+        'Tenant: Will the solar project actually reduce our bills?',
+        'Engineer: It could, although the savings will vary by season.',
+        'Tenant: Who pays for battery storage and future repairs?',
+        'Engineer: The proposal includes a maintenance reserve and clear billing rules.',
+        'Tenant: Then we should test a smaller installation before expanding.',
+      ],
+      tip: 'Contrast realistic forecasts with guarantees and stress although, could and provided that.',
+      tipArabic: 'استخدم نبرة تحفظ مع could وalthough عند الحديث عن التوقعات، ولا تحول الاحتمال إلى ضمان.',
+      pronunciation: <String>[
+        'photovoltaic /ˌfoʊtoʊvɑːlˈteɪɪk/',
+        'warranty /ˈwɔːrənti/',
+        'efficiency /ɪˈfɪʃənsi/',
+      ],
+    ),
+    'c1.1.3': EnglishAdvancedDialogue(
+      lines: <String>[
+        'Official: Does the evidence prove that the factory polluted the river?',
+        'Chemist: No. Similar particles were also found upstream.',
+        'Official: Could the rainfall explain the increase in concentration?',
+        'Chemist: It may contribute, but correlation is not proof of causation.',
+        'Official: What should we do while the source remains uncertain?',
+      ],
+      tip: 'Practise precise scientific hedging: may, suggest, and cannot establish.',
+      tipArabic: 'تدرّب على لغة البحث الدقيقة والتمييز بين suggest وprove، مع التأكيد على حدود النتائج.',
+      pronunciation: <String>[
+        'microplastic /ˌmaɪkroʊˈplæstɪk/',
+        'polymer /ˈpɑːlɪmər/',
+        'contamination /kənˌtæməˈneɪʃən/',
+      ],
+    ),
+    'c2.1.3': EnglishAdvancedDialogue(
+      lines: <String>[
+        'Counsel: Are you suggesting that the diplomat deliberately misled us?',
+        'Expert: Not necessarily. Memory can absorb details learned afterward.',
+        'Counsel: But surely a precise recollection ought to be trusted?',
+        'Expert: Coherence does not, by itself, establish historical accuracy.',
+        'Judge: Then we must weigh the testimony against contemporaneous records.',
+      ],
+      tip: 'Distinguish rhetorical certainty from evidential caution and practise complex stress patterns.',
+      tipArabic: 'لاحظ الفرق في النبرة بين الاعتراض القاطع والتحفظ المبني على الأدلة، خصوصًا not necessarily.',
+      pronunciation: <String>[
+        'retrospective /ˌrɛtrəˈspɛktɪv/',
+        'testimony /ˈtɛstəmoʊni/',
+        'corroborate /kəˈrɑːbəreɪt/',
+      ],
+    ),
+
     'a2.1.5': EnglishAdvancedDialogue(
       lines: <String>[
         'Salma: Do we have any rice for dinner?',

@@ -22,6 +22,46 @@ class AdvancedGrammarWorkshop {
 }
 abstract final class AdvancedGrammarWorkshops {
   static const _workshops = <String, AdvancedGrammarWorkshop>{
+    'B2:3': AdvancedGrammarWorkshop(
+      explanationEnglish: 'In a balanced argument, although introduces an opposing fact, provided that states a condition, and would expresses a hypothetical consequence. Explain uncertainty rather than presenting projections as guarantees.',
+      examples: <AdvancedGrammarExample>[
+        AdvancedGrammarExample('Although solar power is cheaper in the long run, installation is costly.', 'رغم أن الشمسية أرخص على المدى الطويل، فالتركيب مكلف.'),
+        AdvancedGrammarExample('The plan may succeed provided that maintenance is funded.', 'قد تنجح الخطة بشرط تمويل الصيانة.'),
+        AdvancedGrammarExample('Savings would increase if consumption fell.', 'ستزداد الوفورات افتراضيا لو انخفض الاستهلاك.'),
+      ],
+      wrong: 'Despite the panels are efficient, costs remain high.',
+      correct: 'Although the panels are efficient, costs remain high.',
+      question: 'Choose the correct concessive construction.',
+      options: <String>['Despite the costs are high, we proceed.', 'Although costs are high, we may proceed.', 'Although high costs, we proceed.'],
+      answer: 1,
+    ),
+    'C1:3': AdvancedGrammarWorkshop(
+      explanationEnglish: 'Scientific reporting must separate observation from causal inference. Use suggest, appear to, cannot establish, and remains uncertain to describe what research supports without overstating a relationship.',
+      examples: <AdvancedGrammarExample>[
+        AdvancedGrammarExample('The particles appear to come from several sources.', 'يبدو أن الجسيمات تأتي من عدة مصادر.'),
+        AdvancedGrammarExample('The association does not establish causation.', 'الارتباط لا يثبت السببية.'),
+        AdvancedGrammarExample('It remains uncertain whether the factory was the main contributor.', 'لا يزال غير مؤكد إن كان المصنع المساهم الرئيسي.'),
+      ],
+      wrong: 'The samples prove that the factory caused every particle.',
+      correct: 'The samples suggest that the factory may be one contributing source.',
+      question: 'Which statement accurately qualifies the evidence?',
+      options: <String>['The correlation proves a single cause.', 'The results may suggest several contributing pathways.', 'A large sample eliminates every uncertainty.'],
+      answer: 1,
+    ),
+    'C2:3': AdvancedGrammarWorkshop(
+      explanationEnglish: 'Elevated counterfactuals can omit if and invert had with the subject. Evidential modals (might have, must have, cannot have) encode different levels of certainty. Coherent testimony is not automatically conclusive evidence.',
+      examples: <AdvancedGrammarExample>[
+        AdvancedGrammarExample('Had the diplomat compared the records, he might have noticed the error.', 'لو قارن الدبلوماسي السجلات لربما لاحظ الخطأ.'),
+        AdvancedGrammarExample('The witness may have conflated two meetings.', 'ربما خلط الشاهد بين اجتماعين.'),
+        AdvancedGrammarExample('Only after the notebook surfaced did the panel revise its view.', 'لم تراجع اللجنة موقفها إلا بعد ظهور الدفتر.'),
+      ],
+      wrong: 'Had the witness checked, he would noticed the date.',
+      correct: 'Had the witness checked, he would have noticed the date.',
+      question: 'Which C2-level counterfactual is correctly formed?',
+      options: <String>['Had the judges read the notes, they might have reached another conclusion.', 'Had the judges read the notes, they might reached another conclusion.', 'If had they read the notes, they would reached another conclusion.'],
+      answer: 0,
+    ),
+
     'A2:5': AdvancedGrammarWorkshop(
       explanationEnglish: 'Some is common in positive statements and polite offers. Any is common in questions and negatives. Use many with countable nouns and much with uncountable nouns, such as rice or milk.',
       examples: <AdvancedGrammarExample>[
