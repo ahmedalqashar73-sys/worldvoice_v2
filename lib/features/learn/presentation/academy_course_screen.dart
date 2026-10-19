@@ -5,6 +5,8 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/academy_catalog.dart';
+import '../data/academy_multilingual_starters.dart';
+import 'academy_multilingual_starter_screen.dart';
 import '../data/academy_english_a1_catalog.dart';
 import 'academy_english_a1_screen.dart';
 import '../data/academy_journey_catalog.dart';
@@ -389,6 +391,35 @@ class _AcademyA1Home extends StatelessWidget {
           Text(ar ? 'قصص ومحادثات ومفردات ونطق — اختر القسم وابدأ دروسه.'
               : 'Stories, dialogues, vocabulary and pronunciation — choose a section.',
             style: TextStyle(color: scheme.onSurfaceVariant)),
+          if (AcademyMultilingualStarters.forCode(course.code) case final starter?) ...[
+            const SizedBox(height: 18),
+            Card(
+              color: scheme.surface, elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+                side: BorderSide(color: scheme.outlineVariant),
+              ),
+              child: ListTile(
+                key: const ValueKey('academy-new-guided-start'),
+                contentPadding: const EdgeInsets.all(15),
+                leading: CircleAvatar(
+                  backgroundColor: scheme.primaryContainer,
+                  child: Icon(Icons.school_rounded, color: accent)),
+                title: Text(ar ? 'الدرس الأول · شرح متكامل' :
+                    'Lesson 1 · Guided study',
+                  style: const TextStyle(fontWeight: FontWeight.w900)),
+                subtitle: Text(ar
+                    ? 'قواعد · 20 كلمة · محادثة · قصة · استماع واختبار'
+                    : 'Grammar · 20 words · dialogue · story · quiz'),
+                trailing: Icon(Icons.play_circle_fill_rounded,
+                    color: accent, size: 30),
+                onTap: () => Navigator.of(context).push<void>(
+                  MaterialPageRoute(
+                    builder: (_) => AcademyGuidedStartScreen(lesson: starter)),
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 14),
           OutlinedButton.icon(
             key: const ValueKey('academy-test-course-voice'),
