@@ -5,6 +5,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 
 import '../data/academy_english_a1_catalog.dart';
 import '../data/academy_a1_tutor_lessons.dart';
+import '../data/academy_tutor_locales.dart';
 import '../data/academy_english_pronunciation.dart';
 import '../data/academy_english_a1_lesson_checks.dart';
 import '../data/academy_english_a1_dialogues.dart';
@@ -65,7 +66,9 @@ class _AcademyEnglishA1IntegratedLessonState
   bool _speaking = false;
   bool _showListeningTranscript = false;
 
-  bool get _ar => Localizations.localeOf(context).languageCode == 'ar';
+  String get _locale => Localizations.localeOf(context).languageCode;
+  bool get _ar => _locale == 'ar';
+  String _tutorLabel(int index) => AcademyTutorLocales.label(_locale, index);
   Color get _accent => Theme.of(context).brightness == Brightness.dark
       ? const Color(0xFF98E8BC) : _lessonGreen;
 
@@ -353,7 +356,7 @@ class _AcademyEnglishA1IntegratedLessonState
         ])),
       const SizedBox(height: 16),
       if (tutor != null) ...[
-        Text(_ar ? 'النطق الإنجليزي · IPA' : 'English pronunciation · IPA',
+        Text(_tutorLabel(10),
           style: TextStyle(color: _accent,
               fontWeight: FontWeight.w900, fontSize: 19)),
         const SizedBox(height: 11),
@@ -366,8 +369,9 @@ class _AcademyEnglishA1IntegratedLessonState
                   textDirection: TextDirection.ltr,
                   style: TextStyle(color: scheme.onSurface,
                       fontSize: 20, fontWeight: FontWeight.w700))),
-            Text(tutor.pronunciationTipArabic,
-              textDirection: TextDirection.rtl,
+            Text(_ar ? tutor.pronunciationTipArabic
+                : AcademyTutorLocales.forLesson(_locale, widget.lessonNumber).practice,
+              textDirection: _ar ? TextDirection.rtl : null,
               style: TextStyle(color: scheme.onSurface,
                   fontSize: 15, height: 1.65)),
           ])),
@@ -387,6 +391,7 @@ class _AcademyEnglishA1IntegratedLessonState
 
   Widget _tutorGrammarPage(AcademyTutorLesson tutor) {
     final scheme = Theme.of(context).colorScheme;
+    final localized = AcademyTutorLocales.forLesson(_locale, widget.lessonNumber);
     final check = tutor.checks[_tutorQuestionIndex];
     final isCorrect = _tutorChecked && _tutorChoice == check.correctIndex;
 
@@ -398,7 +403,7 @@ class _AcademyEnglishA1IntegratedLessonState
         const SizedBox(width: 12),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(_ar ? 'الأستاذة إيما · شرح مباشر' : 'Tutor Emma · Guided lesson',
+            Text(_ar ? 'الأستاذة إيما · شرح مباشر' : _tutorLabel(0),
               style: TextStyle(color: _accent,
                 fontWeight: FontWeight.w900, fontSize: 18)),
             Text(_ar ? 'جزء القواعد · نحو 5 دقائق'
@@ -409,16 +414,17 @@ class _AcademyEnglishA1IntegratedLessonState
       const SizedBox(height: 15),
       _panel(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(tutor.welcomeArabic,
-              textDirection: TextDirection.rtl,
+          Text(_ar ? tutor.welcomeArabic : localized.intro,
+              textDirection: _ar ? TextDirection.rtl : null,
               style: TextStyle(color: scheme.onSurface,
                 fontSize: 17, height: 1.8)),
           const SizedBox(height: 15),
-          Text(_ar ? 'هدفنا اليوم' : 'Today’s goal',
+          Text(_tutorLabel(1),
             style: TextStyle(color: _accent,
                 fontWeight: FontWeight.w900, fontSize: 18)),
           const SizedBox(height: 5),
-          Text(tutor.goalArabic, textDirection: TextDirection.rtl,
+          Text(_ar ? tutor.goalArabic : localized.practice,
+            textDirection: _ar ? TextDirection.rtl : null,
             style: TextStyle(color: scheme.onSurface, height: 1.7)),
         ],
       )),
@@ -427,13 +433,14 @@ class _AcademyEnglishA1IntegratedLessonState
         style: TextStyle(color: _accent, fontSize: 25,
             fontWeight: FontWeight.w900)),
       const SizedBox(height: 11),
-      Text(tutor.ruleArabic, textDirection: TextDirection.rtl,
+      Text(_ar ? tutor.ruleArabic : localized.rule,
+        textDirection: _ar ? TextDirection.rtl : null,
         style: TextStyle(color: scheme.onSurface, fontSize: 17,
             height: 1.8)),
       const SizedBox(height: 16),
       _panel(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(_ar ? 'قاعدة سهلة تتذكرها' : 'Remember the pattern',
+          Text(_tutorLabel(2),
             style: TextStyle(color: _accent,
                 fontSize: 18, fontWeight: FontWeight.w900)),
           const SizedBox(height: 11),
@@ -447,7 +454,7 @@ class _AcademyEnglishA1IntegratedLessonState
         ],
       )),
       const SizedBox(height: 22),
-      Text(_ar ? 'نطبق معًا: خمس جمل' : 'Let’s practise: five examples',
+      Text(_tutorLabel(3),
         style: TextStyle(color: _accent,
             fontWeight: FontWeight.w900, fontSize: 20)),
       const SizedBox(height: 10),
@@ -463,20 +470,23 @@ class _AcademyEnglishA1IntegratedLessonState
                     fontWeight: FontWeight.w900, fontSize: 19,
                     height: 1.5))),
               IconButton.filledTonal(
-                tooltip: _ar ? 'استمع للمثال' : 'Hear example',
+                tooltip: _tutorLabel(11),
                 icon: const Icon(Icons.volume_up_rounded),
                 onPressed: () => _hear(tutor.examples[i].english),
               ),
             ]),
             const SizedBox(height: 7),
-            Text(tutor.examples[i].arabic,
-                textDirection: TextDirection.rtl,
+            Text(_ar ? tutor.examples[i].arabic
+                : localized.exampleMeanings[i],
+                textDirection: _ar ? TextDirection.rtl : null,
                 style: TextStyle(color: scheme.onSurface, fontSize: 15)),
-            const SizedBox(height: 8),
-            Text(tutor.examples[i].note,
+            if (_ar) ...[
+              const SizedBox(height: 8),
+              Text(tutor.examples[i].note,
                 textDirection: TextDirection.rtl,
                 style: TextStyle(color: scheme.onSurfaceVariant,
                     fontSize: 14, height: 1.6)),
+            ],
           ])),
         ),
       const SizedBox(height: 14),
@@ -485,7 +495,7 @@ class _AcademyEnglishA1IntegratedLessonState
           Row(children: [
             const Icon(Icons.lightbulb_outline_rounded, color: _lessonGold),
             const SizedBox(width: 7),
-            Text(_ar ? 'خطأ شائع — انتبه' : 'Common mistake',
+            Text(_tutorLabel(4),
               style: TextStyle(color: _accent,
                   fontWeight: FontWeight.w900, fontSize: 17)),
           ]),
@@ -500,20 +510,19 @@ class _AcademyEnglishA1IntegratedLessonState
               style: TextStyle(color: scheme.onSurface,
                   fontSize: 18, fontWeight: FontWeight.w800)),
           const SizedBox(height: 12),
-          Text(tutor.mistakeExplanationArabic,
-              textDirection: TextDirection.rtl,
+          Text(_ar ? tutor.mistakeExplanationArabic : localized.mistake,
+              textDirection: _ar ? TextDirection.rtl : null,
               style: TextStyle(color: scheme.onSurface,
                   height: 1.7)),
           const SizedBox(height: 13),
-          Text(tutor.teacherTipArabic,
-              textDirection: TextDirection.rtl,
+          Text(_ar ? tutor.teacherTipArabic : localized.practice,
+              textDirection: _ar ? TextDirection.rtl : null,
               style: TextStyle(color: scheme.onSurface,
                   height: 1.7)),
         ],
       )),
       const SizedBox(height: 22),
-      Text(_ar ? 'اسأل نفسك: هل فهمت القاعدة؟'
-                  : 'Quick understanding check',
+      Text(_tutorLabel(5),
         style: TextStyle(color: _accent,
             fontWeight: FontWeight.w900, fontSize: 21)),
       const SizedBox(height: 7),
@@ -526,9 +535,7 @@ class _AcademyEnglishA1IntegratedLessonState
         _panel(child: Row(children: [
           const Icon(Icons.check_circle_rounded, color: _lessonGreen),
           const SizedBox(width: 10),
-          Expanded(child: Text(_ar
-              ? 'أحسنت! أتقنت مراجعة القاعدة. تابع إلى المفردات.'
-              : 'Great work! Now continue to vocabulary.',
+          Expanded(child: Text(_tutorLabel(12),
               style: TextStyle(color: scheme.onSurface,
                   fontWeight: FontWeight.w700))),
         ]))
@@ -567,15 +574,12 @@ class _AcademyEnglishA1IntegratedLessonState
             ),
           if (_tutorChecked) ...[
             const SizedBox(height: 8),
-            Text(isCorrect
-                ? (_ar ? 'إجابة صحيحة! ممتاز.' : 'Correct. Well done!')
-                : (_ar ? 'هذه ليست الإجابة الصحيحة. جرّب مرة أخرى.'
-                        : 'Not quite. Try again.'),
+            Text(isCorrect ? _tutorLabel(7) : _tutorLabel(8),
               style: TextStyle(color: isCorrect
                   ? _accent : scheme.error, fontWeight: FontWeight.w800)),
             const SizedBox(height: 7),
-            Text(check.explanation,
-              textDirection: TextDirection.ltr,
+            Text(_ar ? check.explanation : localized.rule,
+              textDirection: _ar ? TextDirection.ltr : null,
               style: TextStyle(color: scheme.onSurface,
                   fontSize: 14, height: 1.5)),
           ],
@@ -599,9 +603,7 @@ class _AcademyEnglishA1IntegratedLessonState
               backgroundColor: _lessonGreen,
               foregroundColor: Colors.white,
               minimumSize: const Size.fromHeight(52)),
-            child: Text(isCorrect
-                ? (_ar ? 'السؤال التالي' : 'Next question')
-                : (_ar ? 'تحقق من الإجابة' : 'Check answer')),
+            child: Text(isCorrect ? _tutorLabel(9) : _tutorLabel(6)),
           ),
         ])),
     ]);
