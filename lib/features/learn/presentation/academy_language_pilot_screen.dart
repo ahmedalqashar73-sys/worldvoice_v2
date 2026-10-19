@@ -240,7 +240,8 @@ class _AcademyLanguagePilotScreenState
                 color: scheme.onSurfaceVariant, fontWeight: FontWeight.w700)),
           ])),
           const SizedBox(height: 16),
-          _audio(l.grammar),
+          // Always play the target language, not an English explanation.
+          _audio(l.dialogue),
         ]);
       case 1:
         return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
