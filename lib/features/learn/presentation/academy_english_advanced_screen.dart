@@ -169,7 +169,6 @@ class _AcademyEnglishAdvancedLessonScreenState
   bool _wordPassed = false;
   bool _sentencePassed = false;
   bool _showTranscript = false;
-  bool _showTranslations = true;
   String? _message;
   bool get _ar => Localizations.localeOf(context).languageCode == 'ar';
 
@@ -471,7 +470,7 @@ class _AcademyEnglishAdvancedLessonScreenState
                 controller: _typedWord,
                 textDirection: TextDirection.ltr,
                 autocorrect: false,
-                onChanged: (_) => setState(() { _wordPassed = false; _sentencePassed = false; }),
+                onChanged: (_) => setState(() => _wordPassed = false),
                 decoration: InputDecoration(
                   border: const OutlineInputBorder(),
                   labelText: _ar ? 'اكتب الكلمة بالإنجليزية' : 'Type the English word'),
