@@ -184,11 +184,14 @@ void main() {
       'Conversation', 'Pronunciation', 'Listening', 'Complete',
     ];
     for (var i = 0; i < expected.length; i++) {
-      final tile = tester.widget<ListTile>(
-          find.byKey(ValueKey('advanced-section-$i'),
-              skipOffstage: false));
-      expect((tile.title! as Text).data, expected[i]);
-      expect(tile.onTap, i == 0 ? isNotNull : isNull);
+      final key = find.byKey(ValueKey('advanced-section-$i'));
+      await tester.scrollUntilVisible(key, 220,
+          scrollable: find.byType(Scrollable).first, maxScrolls: 15);
+      await tester.pumpAndSettle();
+      expect(find.descendant(of: key, matching: find.text(expected[i])),
+          findsOneWidget);
+      expect(tester.widget<InkWell>(key).onTap,
+          i == 0 ? isNotNull : isNull);
     }
   });
 
@@ -205,7 +208,7 @@ void main() {
       home: AcademyEnglishAdvancedLessonScreen(lesson: lesson),
     ));
     expect(find.byKey(const ValueKey('advanced-section-menu')), findsOneWidget);
-    final locked = tester.widget<ListTile>(
+    final locked = tester.widget<InkWell>(
       find.byKey(const ValueKey('advanced-section-4'), skipOffstage: false));
     expect(locked.onTap, isNull);
     await reachAdvancedWriting(tester, lesson);
@@ -260,7 +263,7 @@ void main() {
     // All ten lesson slots are visible but unpublished content is locked.
     expect(find.byKey(const ValueKey('advanced-lesson-C2-1-10'),
         skipOffstage: false), findsOneWidget);
-    final locked = tester.widget<ListTile>(
+    final locked = tester.widget<InkWell>(
       find.byKey(const ValueKey('advanced-lesson-C2-1-10'),
           skipOffstage: false));
     expect(locked.onTap, isNull);
