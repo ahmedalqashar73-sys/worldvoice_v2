@@ -10,6 +10,27 @@ import 'package:worldvoice/features/learn/presentation/academy_english_a1_screen
 import 'package:worldvoice/features/learn/presentation/academy_english_a1_integrated_lesson.dart';
 import 'package:worldvoice/features/learn/presentation/academy_illustrated_story_art.dart';
 
+Future<void> passFirstTutorGrammar(WidgetTester tester) async {
+  const answers = ['am', 'You are my friend.', 'Are you a student?'];
+  for (final answer in answers) {
+    final option = find.descendant(
+      of: find.byType(OutlinedButton),
+      matching: find.text(answer),
+    );
+    await tester.ensureVisible(option);
+    await tester.pumpAndSettle();
+    await tester.tap(option);
+    await tester.pump();
+    final check = find.byKey(const ValueKey('academy-tutor-check-answer'));
+    await tester.ensureVisible(check);
+    await tester.pumpAndSettle();
+    await tester.tap(check);
+    await tester.pump();
+    await tester.tap(check);
+    await tester.pumpAndSettle();
+  }
+}
+
 void main() {
   test('A1 has three units and every one of 30 lessons contains full content', () {
     expect(EnglishA1Catalog.units.length, 3);
@@ -112,6 +133,9 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('academy-section-0')));
     await tester.pumpAndSettle();
     expect(find.text('I am / You are'), findsOneWidget);
+    expect(find.textContaining('I am Sara.'), findsWidgets);
+    expect(find.byKey(const ValueKey('academy-integrated-next')), findsNothing);
+    await passFirstTutorGrammar(tester);
     await tester.tap(find.byKey(const ValueKey('academy-integrated-next')));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('academy-lesson-sections')),
@@ -138,6 +162,7 @@ void main() {
     for (var step = 0; step < 2; step++) {
       await tester.tap(find.byKey(ValueKey('academy-section-$step')));
       await tester.pumpAndSettle();
+      if (step == 0) await passFirstTutorGrammar(tester);
       await tester.tap(find.byKey(const ValueKey('academy-integrated-next')));
       await tester.pumpAndSettle();
     }

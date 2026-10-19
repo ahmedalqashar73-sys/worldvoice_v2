@@ -15,7 +15,7 @@ abstract final class EnglishA1DialogueCatalog {
     [
       _d('Sara: Hello! My name is Sara.\nLeo: Hi, Sara! I am Leo. Nice to meet you.', 'Hello, my name is Sara. I am a student. Leo is my new friend.'),
       _d('Maya: Is that your sister?\nLeo: Yes, she is. Her name is Nina.', 'This is my family. I have one sister and one brother. We live together.'),
-      _d('Sara: How many books do you have?\nLeo: I have three books.', 'I have two pens and three books. I put five things in my bag.'),
+      _d('Sara: Is this your book?\nLeo: Yes, this is my book. That is your bag.', 'This is my book on the table. That is your blue bag next to the door.'),
       _d('Maya: What color is your bag?\nTom: It is blue. My notebook is green.', 'I see a red door, a green tree and a blue book near the window.'),
       _d('Sara: Is this your pen?\nLeo: No, it is your pen. My pen is on the desk.', 'There is a notebook on my desk. There is a pencil next to my chair.'),
       _d('Leo: Are you happy today?\nSara: Yes, I am. My friend is very kind.', 'Maya is excited. Leo is calm. Sara smiles because her friends are here.'),
