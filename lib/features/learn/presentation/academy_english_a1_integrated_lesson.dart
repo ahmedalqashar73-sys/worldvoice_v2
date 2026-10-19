@@ -5,6 +5,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 
 import '../data/academy_english_a1_catalog.dart';
 import '../data/academy_a1_tutor_lessons.dart';
+import '../data/academy_a1_grammar_workshops.dart';
 import '../data/academy_tutor_translations.dart';
 import '../data/academy_english_pronunciation.dart';
 import '../data/academy_english_a1_lesson_checks.dart';
@@ -60,6 +61,7 @@ class _AcademyEnglishA1IntegratedLessonState
   int? _tutorChoice;
   bool _tutorChecked = false;
   bool _tutorGrammarPassed = false;
+  bool _workshopPassed = false;
 
   AcademyTutorLesson? get _tutor =>
       AcademyA1TutorCatalog.forUnitLesson(widget.unit.id, widget.lessonNumber);
@@ -630,31 +632,149 @@ class _AcademyEnglishA1IntegratedLessonState
     final tutor = _tutor;
     if (tutor != null) return _tutorGrammarPage(tutor);
     final scheme = Theme.of(context).colorScheme;
+    final workshop = AcademyGrammarWorkshops.forLesson(
+        widget.unit.id, widget.lessonNumber);
+    if (workshop == null) {
+      // Protect old lesson links without inventing a grammar explanation.
+      return Text(_ar ? 'شرح هذا الدرس قيد المراجعة.'
+          : 'This grammar lesson is being reviewed.');
+    }
+    final right = _checked && _chosen == workshop.answer;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Text(_grammar.title,
-          style: TextStyle(color: _accent, fontSize: 24,
+      Row(children: [
+        const CircleAvatar(radius: 23,
+          backgroundColor: Color(0xFFD6EBDF),
+          child: Icon(Icons.face_3_rounded, color: _lessonGreen)),
+        const SizedBox(width: 12),
+        Expanded(child: Text(_ar ? 'الأستاذة إيما · شرح عملي'
+            : 'Tutor Emma · Guided grammar workshop',
+          style: TextStyle(color: _accent,
+            fontSize: 18, fontWeight: FontWeight.w900))),
+      ]),
+      const SizedBox(height: 13),
+      Text(_grammar.title, textDirection: TextDirection.ltr,
+          style: TextStyle(color: _accent, fontSize: 25,
               fontWeight: FontWeight.w900)),
       const SizedBox(height: 12),
-      _panel(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+      _panel(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(_grammar.example,
-              textDirection: TextDirection.ltr,
-              style: TextStyle(color: scheme.onSurface, fontSize: 21,
-                  fontWeight: FontWeight.w800, height: 1.5)),
+          Text(_ar ? 'نفهم القاعدة أولًا' : 'Understand the rule first',
+            style: TextStyle(color: _accent, fontSize: 19,
+                fontWeight: FontWeight.w900)),
           const SizedBox(height: 10),
-          Text(_grammar.helpArabic,
-              textDirection: TextDirection.rtl,
-              style: TextStyle(color: scheme.onSurface, fontSize: 16,
-                  height: 1.6)),
+          Text(_ar ? _grammar.helpArabic : workshop.ruleEnglish,
+            textDirection: _ar ? TextDirection.rtl : TextDirection.ltr,
+            style: TextStyle(color: scheme.onSurface,
+                fontSize: 17, height: 1.7)),
           const SizedBox(height: 13),
-          _audioControls(_grammar.example),
-        ])),
-      const SizedBox(height: 18),
-      Text(_ar ? 'تطبيق سريع' : 'Quick application',
-        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
-      const SizedBox(height: 7),
-      Text(_dialogue.dialogue, textDirection: TextDirection.ltr,
-        style: TextStyle(color: scheme.onSurfaceVariant, height: 1.5)),
+          Text(_ar ? 'استمع إلى الأمثلة ثم كوّن جملة بنفسك.'
+              : 'Hear each example, then make a sentence of your own.',
+            style: TextStyle(color: scheme.onSurfaceVariant,
+                height: 1.5)),
+        ],
+      )),
+      const SizedBox(height: 22),
+      Text(_ar ? 'أربعة أمثلة مشروحة' : 'Four worked examples',
+        style: TextStyle(color: _accent, fontSize: 20,
+            fontWeight: FontWeight.w900)),
+      const SizedBox(height: 10),
+      for (var i = 0; i < workshop.examples.length; i++)
+        Padding(padding: const EdgeInsets.only(bottom: 10),
+          child: _panel(child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              Row(children: [
+                Expanded(child: SelectableText(workshop.examples[i].english,
+                  key: ValueKey('academy-workshop-example-$i'),
+                  textDirection: TextDirection.ltr,
+                  style: TextStyle(color: scheme.onSurface,
+                    fontSize: 19, height: 1.5,
+                    fontWeight: FontWeight.w800))),
+                IconButton.filledTonal(
+                  tooltip: _ar ? 'استمع للمثال' : 'Hear the example',
+                  onPressed: () => _hear(workshop.examples[i].english),
+                  icon: const Icon(Icons.volume_up_rounded)),
+              ]),
+              if (_ar) ...[
+                const SizedBox(height: 9),
+                Text(workshop.examples[i].arabic,
+                  textDirection: TextDirection.rtl,
+                  style: TextStyle(color: scheme.onSurfaceVariant,
+                      fontSize: 16, height: 1.5)),
+              ],
+            ]))),
+      const SizedBox(height: 13),
+      _panel(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(_ar ? 'انتبه لهذا الخطأ' : 'Watch out for this mistake',
+            style: TextStyle(color: _accent, fontSize: 19,
+                fontWeight: FontWeight.w900)),
+          const SizedBox(height: 12),
+          SelectableText(workshop.wrong, textDirection: TextDirection.ltr,
+            style: TextStyle(color: scheme.error,
+              fontSize: 18, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 9),
+          SelectableText(workshop.correct, textDirection: TextDirection.ltr,
+            style: TextStyle(color: scheme.onSurface,
+              fontSize: 18, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 12),
+          Text(_ar ? _grammar.helpArabic : workshop.ruleEnglish,
+            textDirection: _ar ? TextDirection.rtl : TextDirection.ltr,
+            style: TextStyle(color: scheme.onSurfaceVariant, height: 1.5)),
+        ],
+      )),
+      const SizedBox(height: 23),
+      Text(_ar ? 'اختبر فهمك قبل المتابعة'
+          : 'Check your understanding before continuing',
+        style: TextStyle(color: _accent, fontSize: 20,
+            fontWeight: FontWeight.w900)),
+      const SizedBox(height: 12),
+      _panel(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(workshop.question, textDirection: TextDirection.ltr,
+            style: TextStyle(color: scheme.onSurface,
+              fontSize: 18, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 12),
+          for (var i = 0; i < workshop.options.length; i++)
+            Padding(padding: const EdgeInsets.only(bottom: 8),
+              child: OutlinedButton(
+                key: ValueKey('academy-workshop-option-$i'),
+                onPressed: _workshopPassed ? null : () => setState(() {
+                  _chosen = i;
+                  _checked = false;
+                }),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(52),
+                  backgroundColor: _chosen == i
+                      ? scheme.primaryContainer : scheme.surface),
+                child: Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text(workshop.options[i],
+                    textDirection: TextDirection.ltr,
+                    style: TextStyle(color: scheme.onSurface))),
+              )),
+          if (_checked)
+            Padding(padding: const EdgeInsets.only(bottom: 10),
+              child: Text(right
+                  ? (_ar ? 'صحيح! فهمت القاعدة، انتقل للقسم التالي.'
+                      : 'Correct! You can continue to the next section.')
+                  : (_ar ? 'الإجابة ليست صحيحة. راجع القاعدة وجرب مجددًا.'
+                      : 'Not quite. Review the rule and try again.'),
+                style: TextStyle(color: right ? _accent : scheme.error,
+                    fontWeight: FontWeight.w700))),
+          FilledButton(
+            key: const ValueKey('academy-workshop-check'),
+            onPressed: _chosen == null || _workshopPassed ? null
+                : () => setState(() {
+                    _checked = true;
+                    if (_chosen == workshop.answer) _workshopPassed = true;
+                  }),
+            style: FilledButton.styleFrom(
+                backgroundColor: _lessonGreen,
+                minimumSize: const Size.fromHeight(51)),
+            child: Text(_ar ? 'تحقق من الإجابة' : 'Check answer'),
+          ),
+        ],
+      )),
     ]);
   }
 
@@ -958,7 +1078,7 @@ class _AcademyEnglishA1IntegratedLessonState
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final canContinue = switch (_stage) {
-      0 => _tutor == null || _tutorGrammarPassed,
+      0 => _tutor != null ? _tutorGrammarPassed : _workshopPassed,
       2 => _readingPassed,
       3 => false,
       4 => _conversationPassed,
