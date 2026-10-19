@@ -246,7 +246,7 @@ class _AcademyEnglishA1IntegratedLessonState
           minimumSize: const Size.fromHeight(53)),
         child: Text(right
             ? (_ar ? 'التالي' : 'Continue')
-            : (_ar ? 'تحقق من الإجابة' : 'Check answer'))),
+            : (_ar ? 'تحقق من الإجابة' : 'Check answer')),
       ),
     ]);
   }
