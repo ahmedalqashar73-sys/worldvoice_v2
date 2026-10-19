@@ -101,8 +101,25 @@ void main() {
       home: AcademyEnglishA1IntegratedLesson(
         unit: unit, lesson: unit.lessons.first, lessonNumber: 1),
     ));
+    expect(find.byKey(const ValueKey('academy-lesson-sections')),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey('academy-section-0')), findsOneWidget);
+    expect(find.byKey(const ValueKey('academy-section-7')), findsOneWidget);
+    // Locked sections must not bypass the lesson stages.
+    final locked = tester.widget<InkWell>(
+        find.descendant(
+          of: find.byKey(const ValueKey('academy-section-2')),
+          matching: find.byType(InkWell),
+        ).first);
+    expect(locked.onTap, isNull);
+    await tester.tap(find.byKey(const ValueKey('academy-section-0')));
+    await tester.pumpAndSettle();
     expect(find.text('I am / You are'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('academy-integrated-next')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('academy-lesson-sections')),
+        findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('academy-section-1')));
     await tester.pumpAndSettle();
     expect(find.text('20 words to learn and review'), findsOneWidget);
     expect(find.text('hello'), findsWidgets);
@@ -122,9 +139,13 @@ void main() {
         unit: unit, lesson: unit.lessons.first, lessonNumber: 1),
     ));
     for (var step = 0; step < 2; step++) {
+      await tester.tap(find.byKey(ValueKey('academy-section-$step')));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('academy-integrated-next')));
-      await tester.pump(const Duration(milliseconds: 250));
+      await tester.pumpAndSettle();
     }
+    await tester.tap(find.byKey(const ValueKey('academy-section-2')));
+    await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('academy-integrated-read-story')),
         findsOneWidget);
     await tester.tap(find.byKey(
