@@ -244,7 +244,6 @@ class _AcademyEnglishAdvancedPathState
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final unit = EnglishAdvancedSyllabus.unitsForLevel(widget.level)[widget.unitNumber - 1];
-    final available = unit.publishedLessons;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: _green, foregroundColor: Colors.white,
