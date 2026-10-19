@@ -1,5 +1,5 @@
-/// WorldVoice English A1: three authored units with twelve different,
-/// assessable learning activities each. Progress is device-only until an
+/// WorldVoice English A1: three themed units with ten complete integrated
+/// lessons each. Every lesson has grammar, 20 words, story and practice. Progress is device-only until an
 /// Academy-specific, server-validated sync mechanism is deployed.
 enum EnglishA1Kind {
   dialogue, vocabulary, pronunciation, grammar, listening, story, practice, quiz,
@@ -201,14 +201,6 @@ abstract final class EnglishA1Catalog {
         'Maya and Leo find a special page in a library book.',
         'اكتشف ماذا يوجد في الصفحة العاشرة.', 'Look at page ten!',
         'What does Maya see?', ['A car', 'A tree', 'A phone'], 1, storyId: 'u1_bluebook'),
-      _a('en_a1_1_11', EnglishA1Kind.practice, 'Build a Greeting', 'تحدي التحيات',
-        'Put these ideas together: Hello. My name is __. Nice to meet you.',
-        'تدرّب على تكوين تعارف كامل.', 'Hello! My name is Ali. Nice to meet you.',
-        'Choose the natural introduction.', ['Name is friend hello.', 'Hello! My name is Ali.', 'Yesterday are Ali.'], 1),
-      _a('en_a1_1_12', EnglishA1Kind.quiz, 'Unit One Challenge', 'اختبار الوحدة الأولى',
-        'Review greetings, friends, colors and “I am”.',
-        'اختبر ما تعلمته في الوحدة.', 'I am Sara. This is my blue notebook.',
-        'Complete: I ___ Sara.', ['are', 'is', 'am'], 2),
     ]),
     EnglishA1Unit(2, 'A Day with Friends', 'العائلة والروتين اليومي',
         'Use everyday verbs, tell the time and follow two everyday adventures.', [
@@ -254,14 +246,6 @@ abstract final class EnglishA1Catalog {
         'Ben meets a helpful friend on a rainy day.',
         'اقرأ عن التعاون في يوم ممطر.', 'It starts to rain. Ben has no umbrella.',
         'What does Noor share?', ['Her lunch', 'Her umbrella', 'Her phone'], 1, storyId: 'u2_rain'),
-      _a('en_a1_2_11', EnglishA1Kind.practice, 'Tell Me Your Day', 'احكِ عن يومك',
-        'I wake up at seven. I go to school. I study in the evening.',
-        'كوّن ثلاث جمل عن يومك.', 'I wake up at seven. I go to school.',
-        'Which sentence describes a daily habit?', ['I go to school every day.', 'Hello, apple!', 'Go left tomorrow yesterday.'], 0),
-      _a('en_a1_2_12', EnglishA1Kind.quiz, 'Unit Two Challenge', 'اختبار الوحدة الثانية',
-        'Review time, routine, family and the rainy bus story.',
-        'اختبار قصير لما تعلمته.', 'She goes to school on Monday.',
-        'Choose the correct sentence.', ['She go to school.', 'She goes to school.', 'She going to school.'], 1),
     ]),
     EnglishA1Unit(3, 'Explore the City', 'الأماكن والتسوق والمغامرات',
         'Ask for directions, shop politely and discover a little night garden.', [
@@ -306,15 +290,6 @@ abstract final class EnglishA1Catalog {
         'Nina discovers something magical-looking with her grandma.',
         'اقرأ عن أضواء الحديقة المدهشة.', 'Are these stars? No, they are fireflies.',
         'What shines in the garden?', ['Fireflies', 'Trains', 'Phones'], 0, storyId: 'u3_garden'),
-      _a('en_a1_3_11', EnglishA1Kind.practice, 'A Day in Town', 'تحدي المدينة',
-        'Ask for a shop, buy water and give directions to a friend.',
-        'اربط بين المحادثة والاتجاهات والتسوق.',
-        'Excuse me. Where is the café? Go straight. Thank you!',
-        'Choose a clear direction.', ['Turn left at the park.', 'Park is on yesterday.', 'Turn thank you.'], 0),
-      _a('en_a1_3_12', EnglishA1Kind.quiz, 'A1 Final Adventure', 'اختبار مغامرة A1',
-        'Review introductions, routine, directions, stories and polite requests.',
-        'مراجعة شاملة للمحتوى المبدئي من A1.', 'Hello! My name is Sara. Where is the library?',
-        'Choose the correct phrase.', ['There are one shop.', 'There is a shop.', 'There am a shop.'], 1),
     ]),
   ];
 
