@@ -29,25 +29,13 @@ Future<void> finishAdvancedSection(WidgetTester tester) async {
 
 Future<void> reachAdvancedWriting(
     WidgetTester tester, EnglishAdvancedLesson lesson) async {
-  for (var index = 0; index < 6; index++) {
+  // Same eight-section flow as A1: grammar, vocabulary, illustrated
+  // story, word quiz, conversation, pronunciation, listening, completion.
+  for (var index = 0; index < 3; index++) {
     await openAdvancedSection(tester, index);
-    if (index == 5) {
-      const prefix = 'advanced-listening';
-      final correct = lesson.listeningAnswer;
-      final option = find.byKey(ValueKey('$prefix-option-$correct'));
-      await tester.scrollUntilVisible(option, 400,
-          scrollable: find.byType(Scrollable).first, maxScrolls: 80);
-      await tester.tap(option);
-      await tester.pump();
-      final check = find.byKey(ValueKey('$prefix-check'));
-      await tester.scrollUntilVisible(check, 350,
-          scrollable: find.byType(Scrollable).first, maxScrolls: 80);
-      await tester.tap(check);
-      await tester.pump();
-    }
     await finishAdvancedSection(tester);
   }
-  await openAdvancedSection(tester, 6);
+  await openAdvancedSection(tester, 3);
 }
 
 void main() {
@@ -179,6 +167,34 @@ void main() {
     }
   });
 
+  testWidgets('A2 lesson menu matches the eight A1 sections in order',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 1450);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    final lesson = EnglishAdvancedSyllabus.forLevel('A2').first;
+    await tester.pumpWidget(MaterialApp(
+      home: AcademyEnglishAdvancedLessonScreen(lesson: lesson),
+    ));
+    const expected = [
+      'Grammar', 'Vocabulary', 'Illustrated story', 'Word quiz',
+      'Conversation', 'Pronunciation', 'Listening', 'Complete',
+    ];
+    for (var i = 0; i < expected.length; i++) {
+      final key = find.byKey(ValueKey('advanced-section-$i'));
+      await tester.scrollUntilVisible(key, 220,
+          scrollable: find.byType(Scrollable).first, maxScrolls: 15);
+      await tester.pumpAndSettle();
+      expect(find.descendant(of: key, matching: find.text(expected[i])),
+          findsOneWidget);
+      expect(tester.widget<InkWell>(key).onTap,
+          i == 0 ? isNotNull : isNull);
+    }
+  });
+
   testWidgets('an A2 student reaches written recall through all lesson sections',
       (tester) async {
     tester.view.physicalSize = const Size(900, 1450);
@@ -192,7 +208,7 @@ void main() {
       home: AcademyEnglishAdvancedLessonScreen(lesson: lesson),
     ));
     expect(find.byKey(const ValueKey('advanced-section-menu')), findsOneWidget);
-    final locked = tester.widget<ListTile>(
+    final locked = tester.widget<InkWell>(
       find.byKey(const ValueKey('advanced-section-4'), skipOffstage: false));
     expect(locked.onTap, isNull);
     await reachAdvancedWriting(tester, lesson);
@@ -247,7 +263,7 @@ void main() {
     // All ten lesson slots are visible but unpublished content is locked.
     expect(find.byKey(const ValueKey('advanced-lesson-C2-1-10'),
         skipOffstage: false), findsOneWidget);
-    final locked = tester.widget<ListTile>(
+    final locked = tester.widget<InkWell>(
       find.byKey(const ValueKey('advanced-lesson-C2-1-10'),
           skipOffstage: false));
     expect(locked.onTap, isNull);
