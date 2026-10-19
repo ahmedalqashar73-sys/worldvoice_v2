@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/academy_english_a1_catalog.dart';
-import '../data/academy_english_a1_long_stories.dart';
 import 'academy_english_a1_integrated_lesson.dart';
 
 const _deepGreen = Color(0xFF145C46);
@@ -39,17 +38,6 @@ abstract final class EnglishA1Progress {
     if (!saved) throw StateError('Device could not save A1 completion.');
   }
 }
-
-IconData _lessonIcon(EnglishA1Kind kind) => switch (kind) {
-  EnglishA1Kind.dialogue => Icons.forum_rounded,
-  EnglishA1Kind.vocabulary => Icons.menu_book_rounded,
-  EnglishA1Kind.pronunciation => Icons.mic_rounded,
-  EnglishA1Kind.grammar => Icons.auto_stories_outlined,
-  EnglishA1Kind.listening => Icons.headphones_rounded,
-  EnglishA1Kind.story => Icons.book_rounded,
-  EnglishA1Kind.practice => Icons.extension_rounded,
-  EnglishA1Kind.quiz => Icons.fact_check_rounded,
-};
 
 class AcademyEnglishA1Path extends StatefulWidget {
   const AcademyEnglishA1Path({super.key});
@@ -210,6 +198,18 @@ class _AcademyEnglishA1PathState extends State<AcademyEnglishA1Path> {
   }
 }
 
+String _arabicLessonNumber(int number) {
+  const labels = [
+    'الدرس الأول', 'الدرس الثاني', 'الدرس الثالث', 'الدرس الرابع',
+    'الدرس الخامس', 'الدرس السادس', 'الدرس السابع', 'الدرس الثامن',
+    'الدرس التاسع', 'الدرس العاشر',
+  ];
+  if (number < 1 || number > labels.length) {
+    throw RangeError.range(number, 1, labels.length, 'number');
+  }
+  return labels[number - 1];
+}
+
 class _EnglishA1UnitScreen extends StatefulWidget {
   const _EnglishA1UnitScreen({required this.unit});
   final EnglishA1Unit unit;
@@ -294,24 +294,23 @@ class _EnglishA1UnitScreenState extends State<_EnglishA1UnitScreen> {
                     child: Row(children: [
                       CircleAvatar(
                         backgroundColor: scheme.primaryContainer,
-                        child: Icon(_lessonIcon(widget.unit.lessons[i].kind),
-                            color: accent),
+                        child: Text('${i + 1}',
+                            style: TextStyle(color: accent,
+                                fontWeight: FontWeight.w900, fontSize: 19)),
                       ),
                       const SizedBox(width: 11),
                       Expanded(child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(_ar
-                              ? EnglishA1StorySyllabus.chapterFor(
-                                  widget.unit.id, i + 1).titleArabic
-                              : EnglishA1StorySyllabus.chapterFor(
-                                  widget.unit.id, i + 1).title,
+                          Text(
+                            _ar ? _arabicLessonNumber(i + 1)
+                                : 'Lesson ${i + 1}',
                             style: const TextStyle(
-                                fontWeight: FontWeight.w800, fontSize: 16)),
+                                fontWeight: FontWeight.w800, fontSize: 18)),
                           Text(
                             _ar
-                                ? 'الدرس ${i + 1} من 10 · 20 كلمة · قواعد وقصة ومحادثة'
-                                : 'Lesson ${i + 1} of 10 · 20 words · story and practice',
+                                ? '20 كلمة · قواعد · قصة · محادثة · استماع · اختبار'
+                                : '20 words · grammar · story · dialogue · listening · quiz',
                             style: TextStyle(color: scheme.onSurfaceVariant,
                                 fontSize: 12)),
                         ],
