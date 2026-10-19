@@ -60,6 +60,27 @@ class EnglishAdvancedLesson {
   final String writingAnswer;
   String get id => 'worldvoice.en.${level.toLowerCase()}.u1.l${number.toString().padLeft(2, '0')}';
   List<EnglishAdvancedWord> get vocabulary => [...storyWords, ...extraWords];
+
+  /// Three different story words the learner must type correctly.
+  /// Begin with the authored fill-in-the-blank word, then sample the middle
+  /// and end of the story's new vocabulary, avoiding duplicate answers.
+  List<EnglishAdvancedWord> get spellingChallenge {
+    final selected = <EnglishAdvancedWord>[];
+    final candidates = <EnglishAdvancedWord>[
+      ...storyWords.where((word) =>
+          word.term.toLowerCase() == writingAnswer.toLowerCase()),
+      storyWords[storyWords.length ~/ 2],
+      storyWords.last,
+      ...storyWords,
+    ];
+    final seen = <String>{};
+    for (final word in candidates) {
+      if (!seen.add(word.term.toLowerCase())) continue;
+      selected.add(word);
+      if (selected.length == 3) break;
+    }
+    return selected;
+  }
 }
 
 abstract final class EnglishAdvancedSyllabus {
