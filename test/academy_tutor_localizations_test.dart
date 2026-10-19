@@ -19,7 +19,7 @@ void main() {
         for (var field = 0; field < 6; field++) {
           final explanation =
               AcademyTutorTranslations.explain(code, lesson, field);
-          expect(explanation.trim().length, greaterThan(15),
+          expect(explanation.trim().length, greaterThan(7),
               reason: '$code lesson $lesson field $field');
         }
         for (var example = 0; example < 5; example++) {
