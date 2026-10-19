@@ -145,7 +145,7 @@ void main() {
       expect(lesson.vocabulary, hasLength(24));
       expect(lesson.storyWords, hasLength(10));
       expect(lesson.extraWords, hasLength(14));
-      expect(lesson.listening.trim().split(RegExp(r'\\s+')).length,
+      expect(lesson.listening.trim().split(RegExp(r'\s+')).length,
           greaterThanOrEqualTo(45));
       expect(lesson.grammarExamples, hasLength(3));
       expect(lesson.spellingChallenge, hasLength(3));
