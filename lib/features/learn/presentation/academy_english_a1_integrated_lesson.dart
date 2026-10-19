@@ -495,15 +495,20 @@ class _AcademyEnglishA1IntegratedLessonState
                 onPressed: () => _hear(tutor.examples[i].english),
               ),
             ]),
-            const SizedBox(height: 7),
-            Text(_ar ? tutor.examples[i].arabic
-                    : AcademyTutorTranslations.exampleMeaning(
-                        _uiLanguage, widget.lessonNumber, i),
-                textDirection: _teacherDirection,
-                style: TextStyle(color: scheme.onSurface, fontSize: 15)),
+            // In an English UI, repeating the same English sentence in the
+            // translation slot is not teaching. Show meaning in other locales.
+            if (_uiLanguage != 'en') ...[
+              const SizedBox(height: 7),
+              Text(_ar ? tutor.examples[i].arabic
+                      : AcademyTutorTranslations.exampleMeaning(
+                          _uiLanguage, widget.lessonNumber, i),
+                  textDirection: _teacherDirection,
+                  style: TextStyle(color: scheme.onSurface, fontSize: 15)),
+            ],
             const SizedBox(height: 8),
             Text(_ar ? tutor.examples[i].note
-                    : AcademyTutorTranslations.exampleNote(_uiLanguage),
+                    : AcademyTutorTranslations.exampleNoteFor(
+                        _uiLanguage, widget.lessonNumber, i),
                 textDirection: _teacherDirection,
                 style: TextStyle(color: scheme.onSurfaceVariant,
                     fontSize: 14, height: 1.6)),
