@@ -5,6 +5,8 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/academy_catalog.dart';
+import '../data/academy_language_pilots.dart';
+import 'academy_language_pilot_screen.dart';
 import '../data/academy_english_a1_catalog.dart';
 import 'academy_english_a1_screen.dart';
 import '../data/academy_journey_catalog.dart';
@@ -371,6 +373,7 @@ class _AcademyA1Home extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final accent = Theme.of(context).brightness == Brightness.dark
         ? const Color(0xFF9DECC4) : _green;
+    final pilot = AcademyLanguagePilots.forCode(course.code);
     final kinds = <AcademyLessonKind?>[
       null, AcademyLessonKind.story, AcademyLessonKind.vocabulary,
       AcademyLessonKind.grammar, AcademyLessonKind.listening,
@@ -389,6 +392,30 @@ class _AcademyA1Home extends StatelessWidget {
           Text(ar ? 'قصص ومحادثات ومفردات ونطق — اختر القسم وابدأ دروسه.'
               : 'Stories, dialogues, vocabulary and pronunciation — choose a section.',
             style: TextStyle(color: scheme.onSurfaceVariant)),
+          if (pilot != null) ...[
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              key: const ValueKey('academy-open-target-pilot'),
+              style: FilledButton.styleFrom(
+                backgroundColor: _green,
+                foregroundColor: Colors.white,
+                minimumSize: const Size.fromHeight(56),
+              ),
+              onPressed: () => Navigator.of(context).push<void>(
+                MaterialPageRoute(
+                  builder: (_) => AcademyLanguagePilotScreen(lesson: pilot),
+                ),
+              ),
+              icon: const Icon(Icons.school_rounded),
+              label: Text(ar
+                  ? 'ابدأ الدرس الأول المتكامل · 20 كلمة وقصة'
+                  : 'Start complete first lesson · 20 words & story'),
+            ),
+            const SizedBox(height: 7),
+            Text(ar ? 'هذا الدرس الأول مكتمل؛ بقية دروس المستوى قيد الإعداد.'
+                : 'The first lesson is ready; more complete lessons are in development.',
+              style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
+          ],
           const SizedBox(height: 14),
           OutlinedButton.icon(
             key: const ValueKey('academy-test-course-voice'),
