@@ -32,63 +32,160 @@ abstract final class EnglishAdvancedProgress {
 
 /// CEFR level entry: higher levels use the same Level → Unit → Lesson
 /// hierarchy as A1. Only authored and tested units are clickable.
-class AcademyEnglishAdvancedLevelScreen extends StatelessWidget {
+class AcademyEnglishAdvancedLevelScreen extends StatefulWidget {
   const AcademyEnglishAdvancedLevelScreen({required this.level, super.key});
   final String level;
 
   @override
+  State<AcademyEnglishAdvancedLevelScreen> createState() =>
+      _AcademyEnglishAdvancedLevelScreenState();
+}
+
+class _AcademyEnglishAdvancedLevelScreenState
+    extends State<AcademyEnglishAdvancedLevelScreen> {
+  Set<String> _done = <String>{};
+
+  String? get _uid {
+    try {
+      return FirebaseAuth.instance.currentUser?.uid;
+    } on Exception {
+      return null;
+    }
+  }
+
+  bool get _ar => Localizations.localeOf(context).languageCode == 'ar';
+
+  @override
+  void initState() {
+    super.initState();
+    _refresh();
+  }
+
+  Future<void> _refresh() async {
+    final done = await EnglishAdvancedProgress.load(_uid);
+    if (mounted) setState(() => _done = done);
+  }
+
+  Future<void> _open(int number) async {
+    await Navigator.of(context).push<void>(MaterialPageRoute(
+      builder: (_) => AcademyEnglishAdvancedPath(
+          level: widget.level, unitNumber: number),
+    ));
+    await _refresh();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final ar = Localizations.localeOf(context).languageCode == 'ar';
     final scheme = Theme.of(context).colorScheme;
-    final units = EnglishAdvancedSyllabus.unitsForLevel(level);
+    final accent = Theme.of(context).brightness == Brightness.dark
+        ? const Color(0xFF98E8BC) : _green;
+    final units = EnglishAdvancedSyllabus.unitsForLevel(widget.level);
+    final available = EnglishAdvancedSyllabus.forLevel(widget.level);
+    final completed = available.where((lesson) => _done.contains(lesson.id)).length;
     return Scaffold(
       appBar: AppBar(
-        title: Text('English $level'),
-        backgroundColor: _green,
-        foregroundColor: Colors.white,
+        title: Text(_ar
+            ? 'الإنجليزية ${widget.level} · ${EnglishAdvancedSyllabus.arabicTitles[widget.level]}'
+            : 'English ${widget.level}'),
+        backgroundColor: _green, foregroundColor: Colors.white,
       ),
       body: SafeArea(child: ListView(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.fromLTRB(17, 17, 17, 30),
         children: [
-          Text(ar ? 'اختر الوحدة' : 'Choose a unit',
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
+          Container(
+            padding: const EdgeInsets.all(22),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              gradient: const LinearGradient(colors: [
+                Color(0xFF155640), Color(0xFF258F73),
+              ]),
+            ),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Icon(Icons.auto_stories_rounded,
+                  color: Color(0xFFFFDA8B), size: 39),
+              const SizedBox(height: 11),
+              Text(_ar
+                  ? 'رحلتك في الإنجليزية ${widget.level}'
+                  : 'Your English ${widget.level} journey',
+                style: const TextStyle(color: Colors.white,
+                  fontSize: 23, fontWeight: FontWeight.w900)),
+              const SizedBox(height: 6),
+              Text(_ar
+                  ? '3 وحدات · 30 درسًا مخططًا · قصص متدرجة'
+                  : '3 units · 30 planned lessons · graded stories',
+                style: const TextStyle(color: Color(0xFFE5F5EF), fontSize: 14)),
+              const SizedBox(height: 16),
+              LinearProgressIndicator(
+                value: completed / 30,
+                minHeight: 8, borderRadius: BorderRadius.circular(8),
+                color: const Color(0xFFFFD68E),
+                backgroundColor: Colors.white24),
+              const SizedBox(height: 8),
+              Text('$completed / 30',
+                style: const TextStyle(color: Colors.white,
+                    fontWeight: FontWeight.w800)),
+            ]),
+          ),
+          const SizedBox(height: 11),
+          Text(_ar
+              ? '${available.length} دروس منشورة حاليًا. بقية الدروس لا تزال قيد التأليف. التقدم محفوظ على هذا الجهاز.'
+              : '${available.length} lessons available so far. Others are being authored. Progress is stored on this device.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12)),
+          const SizedBox(height: 19),
+          Text(_ar ? 'اختر الوحدة' : 'Choose a unit',
+            style: TextStyle(color: accent, fontSize: 21,
+                fontWeight: FontWeight.w900)),
           const SizedBox(height: 10),
-          Text(ar
-              ? '3 وحدات في كل مستوى · 10 دروس لكل وحدة'
-              : '3 units per level · 10 lessons per unit',
-            style: TextStyle(color: scheme.onSurfaceVariant)),
-          const SizedBox(height: 16),
           for (final unit in units)
             Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Card(
-                child: ListTile(
+              padding: const EdgeInsets.only(bottom: 13),
+              child: Material(
+                color: scheme.surface,
+                borderRadius: BorderRadius.circular(21),
+                child: InkWell(
                   key: ValueKey('advanced-unit-${unit.number}'),
-                  contentPadding: const EdgeInsets.all(17),
-                  leading: CircleAvatar(
-                    backgroundColor: scheme.primaryContainer,
-                    child: Text('${unit.number}',
-                      style: const TextStyle(fontWeight: FontWeight.w900)),
+                  borderRadius: BorderRadius.circular(21),
+                  onTap: () => _open(unit.number),
+                  child: Container(
+                    padding: const EdgeInsets.all(19),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(21),
+                      border: Border.all(color: scheme.outlineVariant),
+                    ),
+                    child: Row(children: [
+                      CircleAvatar(
+                        backgroundColor: scheme.primaryContainer, radius: 27,
+                        child: Text('${unit.number}',
+                          style: TextStyle(fontWeight: FontWeight.w900,
+                            fontSize: 22, color: accent)),
+                      ),
+                      const SizedBox(width: 13),
+                      Expanded(child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(_ar ? unit.titleArabic : unit.title,
+                            style: const TextStyle(fontSize: 18,
+                                fontWeight: FontWeight.w800)),
+                          const SizedBox(height: 5),
+                          Text(_ar
+                              ? '${unit.publishedLessons.where((lesson) => _done.contains(lesson.id)).length} / 10 دروس'
+                              : '${unit.publishedLessons.where((lesson) => _done.contains(lesson.id)).length} / 10 lessons',
+                            style: TextStyle(color: scheme.onSurfaceVariant)),
+                          const SizedBox(height: 10),
+                          LinearProgressIndicator(
+                            value: unit.publishedLessons.where(
+                                (lesson) => _done.contains(lesson.id)).length / 10,
+                            minHeight: 5, color: _green,
+                            backgroundColor: scheme.surfaceContainerHighest),
+                        ],
+                      )),
+                      const Icon(Icons.chevron_right_rounded),
+                    ]),
                   ),
-                  title: Text(ar ? 'الوحدة ${unit.number}' : 'Unit ${unit.number}',
-                    style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w800)),
-                  subtitle: Text(ar
-                      ? '${unit.publishedLessons.length} من 10 دروس متاحة · ${unit.titleArabic}'
-                      : '${unit.publishedLessons.length} of 10 lessons available · ${unit.title}'),
-                  trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: () => Navigator.of(context).push<void>(
-                    MaterialPageRoute(
-                      builder: (_) => AcademyEnglishAdvancedPath(
-                        level: level, unitNumber: unit.number))),
                 ),
               ),
             ),
-          const SizedBox(height: 12),
-          Text(ar
-              ? 'المستويات منظمة كـ A1، لكن الدروس غير المؤلّفة تظهر مقفلة حتى يتم إعداد محتواها.'
-              : 'The same layout as A1. Unwritten lessons stay locked until their content is ready.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13)),
         ],
       )),
     );
