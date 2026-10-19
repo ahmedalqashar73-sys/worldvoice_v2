@@ -22,6 +22,8 @@ class AgoraVoiceRoomController extends ChangeNotifier {
   bool _joined = false;
   bool _muted = false;
   bool _released = false;
+  bool _disposed = false;
+  int _connectionAttempt = 0;
   bool _screenSharing = false;
   bool _cameraPublishing = false;
   bool _localPreviewPrepared = false;
@@ -50,6 +52,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
   /// Live uses this so the host sees the camera immediately while Agora
   /// authentication/join happens in the background.
   Future<void> prepareCameraPreview() async {
+    if (_disposed) return;
     if (_engine != null) {
       try {
         await _engine!.enableVideo();
@@ -100,33 +103,35 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     // Clear stale errors before observing a new connection attempt.
     if (!_connecting) _error = null;
     addListener(changed);
-    final timer = Timer(const Duration(seconds: 25), () {
-      if (!result.isCompleted) {
-        result.completeError(TimeoutException('Agora connection timed out. Check your network and token configuration.'));
+    Timer? timer;
+    // Token acquisition has its own per-endpoint deadline. Start the RTC
+    // deadline only after joinChannel has been submitted, so a cold backend
+    // cannot consume the entire media connection budget.
+    Future<void> begin() async {
+      try {
+        if (!_connecting) {
+          await connect(channelId: channelId, role: role, previewCamera: previewCamera);
+        }
+        changed();
+        if (!result.isCompleted) {
+          timer = Timer(const Duration(seconds: 25), () {
+            if (!result.isCompleted) {
+              result.completeError(TimeoutException('Agora media connection timed out. Please retry.'));
+            }
+          });
+        }
+      } catch (error, stack) {
+        if (!result.isCompleted) result.completeError(error, stack);
       }
-    });
+    }
+    unawaited(begin());
     try {
-      if (!_connecting) {
-        unawaited(
-          connect(
-            channelId: channelId,
-            role: role,
-            previewCamera: previewCamera,
-          ),
-        );
-      }
       await result.future;
-    } on TimeoutException {
-      if (_localPreviewPrepared && !_joined && _engine != null) {
-        _connecting = false;
-        _error ??= 'Agora connection timed out. Check your network and token configuration.';
-        notifyListeners();
-      } else {
-        await leave();
-      }
+    } catch (_) {
+      await leave();
       rethrow;
     } finally {
-      timer.cancel();
+      timer?.cancel();
       removeListener(changed);
     }
   }
@@ -136,7 +141,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     required AgoraRoomRole role,
     bool previewCamera = false,
   }) async {
-    if (_connecting || _joined) return;
+    if (_disposed || _connecting || _joined) return;
 
     if (!AgoraConfig.isConfigured) {
       _error =
@@ -148,6 +153,8 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     // Reuse a local preview engine when Live prepared the camera before
     // requesting a token. A stale joined/failed engine is still released.
     if (_engine != null && _handler != null) await leave();
+    if (_disposed) return;
+    final attempt = ++_connectionAttempt;
     _released = false;
     _connecting = true;
     _channelId = channelId;
@@ -165,6 +172,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
         }
       }
 
+      if (_disposed || attempt != _connectionAttempt) return;
       var engine = _engine;
       if (engine == null) {
         engine = createAgoraRtcEngine();
@@ -177,6 +185,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
         );
       }
 
+      if (_disposed || attempt != _connectionAttempt) return;
       _handler = RtcEngineEventHandler(
         onJoinChannelSuccess: (connection, elapsed) {
           if (_released) return;
@@ -277,7 +286,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
 
       // A timed-out request or a user retry may release this engine while
       // an HTTPS token request is still pending. Never join a stale engine.
-      if (_released || !identical(engine, _engine)) return;
+      if (_disposed || attempt != _connectionAttempt || _released || !identical(engine, _engine)) return;
       await engine.joinChannel(
         token: credential.token,
         channelId: channelId,
@@ -296,6 +305,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
         ),
       );
     } catch (error) {
+      if (_disposed || attempt != _connectionAttempt) return;
       _error = error.toString();
       _connecting = false;
       notifyListeners();
@@ -344,7 +354,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       throw StateError('Sign in is required before joining a voice room.');
     }
 
-    final idToken = await user.getIdToken(true);
+    final idToken = await user.getIdToken().timeout(const Duration(seconds: 15));
     if (idToken == null || idToken.isEmpty) {
       throw StateError('Could not authorize the Agora token request.');
     }
@@ -767,6 +777,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
   }
 
   Future<void> leave() async {
+    _connectionAttempt++;
     final engine = _engine;
     if (engine == null || _released) return;
 
@@ -795,7 +806,17 @@ class AgoraVoiceRoomController extends ChangeNotifier {
   }
 
   @override
+  void notifyListeners() {
+    if (!_disposed) super.notifyListeners();
+  }
+
+  @override
   void dispose() {
+    if (_disposed) return;
+    _connecting = false;
+    _error = 'Connection cancelled.';
+    notifyListeners();
+    _disposed = true;
     if (!_released) {
       leave();
     }
