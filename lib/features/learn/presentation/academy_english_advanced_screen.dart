@@ -167,6 +167,7 @@ class _AcademyEnglishAdvancedLessonScreenState
   bool _readPassed = false;
   bool _listenPassed = false;
   bool _wordPassed = false;
+  int _spellingStep = 0;
   bool _sentencePassed = false;
   bool _showTranscript = false;
   String? _message;
@@ -267,15 +268,26 @@ class _AcademyEnglishAdvancedLessonScreenState
   }
 
   void _checkTypedWord() {
-    String normalize(String s) =>
-        s.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
-    final passed = normalize(_typedWord.text) == normalize(widget.lesson.writingAnswer);
+    final words = widget.lesson.spellingChallenge;
+    if (_wordPassed || _spellingStep >= words.length) return;
+    String normalize(String value) =>
+        value.trim().toLowerCase().replaceAll(RegExp(r'\\s+'), ' ');
+    final expected = words[_spellingStep].term;
+    if (normalize(_typedWord.text) != normalize(expected)) {
+      setState(() => _message = _ar
+          ? 'هذه ليست الكلمة الصحيحة. راجع كلمات القصة وحاول مجددًا.'
+          : 'Not quite. Review the story-word list and try again.');
+      return;
+    }
     setState(() {
-      _wordPassed = passed;
-      _message = passed
-        ? (_ar ? 'صحيح! كتبت الكلمة من القصة.' : 'Correct story word!')
-        : (_ar ? 'ليست الكلمة المطلوبة. ارجع إلى قائمة كلمات القصة وحاول مجددًا.'
-            : 'Not quite. Review the story-word list and try again.');
+      _spellingStep++;
+      _wordPassed = _spellingStep == words.length;
+      _typedWord.clear();
+      _message = _wordPassed
+          ? (_ar ? 'أحسنت! كتبت الكلمات الثلاث من القصة بشكل صحيح.'
+              : 'Excellent! You spelled all three story words correctly.')
+          : (_ar ? 'ممتاز! ننتقل إلى الكلمة التالية.'
+              : 'Great! Now try the next story word.');
     });
   }
 
@@ -462,25 +474,47 @@ class _AcademyEnglishAdvancedLessonScreenState
                 }),
               ),
             ]), icon: Icons.headphones_rounded),
-          _section('اكتب كلمة من القصة', 'Type a story word',
+          _section('اختبار كتابة كلمات القصة', 'Story spelling challenge',
             Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              Text(lesson.writingCue, textDirection: TextDirection.ltr),
-              const SizedBox(height: 10),
-              TextField(
-                key: const ValueKey('advanced-write-word'),
-                controller: _typedWord,
-                textDirection: TextDirection.ltr,
-                autocorrect: false,
-                onChanged: (_) => setState(() => _wordPassed = false),
-                decoration: InputDecoration(
-                  border: const OutlineInputBorder(),
-                  labelText: _ar ? 'اكتب الكلمة بالإنجليزية' : 'Type the English word'),
-              ),
-              const SizedBox(height: 10),
-              FilledButton(
-                key: const ValueKey('advanced-check-word'),
-                onPressed: _checkTypedWord,
-                child: Text(_ar ? 'تحقق من الكلمة' : 'Check spelling')),
+              Text(_ar
+                  ? 'اكتب 3 كلمات مختلفة من القصة، واحدة في كل مرة. راجع القائمة الكاملة أعلاه إذا احتجت.'
+                  : 'Type three different story words, one at a time. Review the full word list above when needed.',
+                  style: TextStyle(color: scheme.onSurfaceVariant)),
+              const SizedBox(height: 9),
+              Text(_wordPassed
+                  ? (_ar ? '3 / 3 كلمات صحيحة ✓' : '3 / 3 words correct ✓')
+                  : '${_spellingStep + 1} / ${lesson.spellingChallenge.length}',
+                  key: const ValueKey('advanced-spelling-progress'),
+                  style: const TextStyle(
+                    color: _green, fontWeight: FontWeight.w900)),
+              const SizedBox(height: 12),
+              if (_wordPassed)
+                Text(_ar ? 'أتممت اختبار كلمات القصة.'
+                    : 'You completed the story-word challenge.')
+              else ...[
+                Text(_spellingStep == 0
+                    ? lesson.writingCue
+                    : (_ar
+                        ? 'اكتب الكلمة الإنجليزية التي تعني: ${lesson.spellingChallenge[_spellingStep].arabic}'
+                        : 'Type the English word for: ${lesson.spellingChallenge[_spellingStep].arabic}'),
+                    textDirection: _spellingStep == 0
+                        ? TextDirection.ltr : null),
+                const SizedBox(height: 10),
+                TextField(
+                  key: const ValueKey('advanced-write-word'),
+                  controller: _typedWord,
+                  textDirection: TextDirection.ltr,
+                  autocorrect: false,
+                  decoration: InputDecoration(
+                    border: const OutlineInputBorder(),
+                    labelText: _ar ? 'اكتب الكلمة بالإنجليزية' : 'Type the English word'),
+                ),
+                const SizedBox(height: 10),
+                FilledButton(
+                  key: const ValueKey('advanced-check-word'),
+                  onPressed: _checkTypedWord,
+                  child: Text(_ar ? 'تحقق من الكلمة' : 'Check spelling')),
+              ],
               const SizedBox(height: 16),
               Text(_ar
                 ? 'اكتب جملة أو فقرة قصيرة مستخدمًا كلمة جديدة على الأقل من القصة.'
