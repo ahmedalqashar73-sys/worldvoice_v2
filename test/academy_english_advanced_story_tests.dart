@@ -51,16 +51,17 @@ Future<void> reachAdvancedWriting(
 }
 
 void main() {
-  test('A2-C2 have two original graded stories and unique vocabulary', () {
+  test('A2-C2 published lessons have original graded stories and unique vocabulary', () {
     expect(EnglishAdvancedSyllabus.levels,
         <String>['A2', 'B1', 'B2', 'C1', 'C2']);
-    expect(EnglishAdvancedSyllabus.lessons, hasLength(10));
+    expect(EnglishAdvancedSyllabus.lessons, hasLength(12));
     final storyTexts = <String>{};
     final taughtWords = <String>{};
     final previousListeningLength = <int>[0, 0];
     for (final level in EnglishAdvancedSyllabus.levels) {
       final lessons = EnglishAdvancedSyllabus.forLevel(level);
-      expect(lessons, hasLength(2), reason: 'Published lessons $level');
+      expect(lessons, hasLength(level == 'A2' ? 4 : 2),
+          reason: 'Published lessons $level');
       for (var index = 0; index < lessons.length; index++) {
         final lesson = lessons[index];
         expect(lesson.number, index + 1);
@@ -87,9 +88,11 @@ void main() {
               reason: 'Repeated word: ${word.term}');
         }
         final listeningLength = lesson.listening.trim().split(RegExp(r'\s+')).length;
-        expect(listeningLength, greaterThan(previousListeningLength[index]),
-            reason: '$level listening must be more demanding');
-        previousListeningLength[index] = listeningLength;
+        if (index < previousListeningLength.length) {
+          expect(listeningLength, greaterThan(previousListeningLength[index]),
+              reason: '$level listening must be more demanding');
+          previousListeningLength[index] = listeningLength;
+        }
         expect(lesson.listeningOptions, hasLength(3));
         expect(lesson.readingOptions, hasLength(3));
         expect(lesson.listeningAnswer, inInclusiveRange(0, 2));
@@ -116,7 +119,7 @@ void main() {
         expect(unit.plannedTopics.toSet().length, 10);
         for (var number = 1; number <= 10; number++) {
           final lesson = unit.lessonAt(number);
-          if (unit.number == 1 && number <= 2) {
+          if (unit.number == 1 && number <= (level == 'A2' ? 4 : 2)) {
             expect(lesson, isNotNull);
             expect(lesson!.number, number);
             expect(lesson.unitNumber, unit.number);
@@ -127,6 +130,26 @@ void main() {
           }
         }
       }
+    }
+  });
+
+  test('A2 lessons three and four have full instruction and non-repeating story words', () {
+    final a2 = EnglishAdvancedSyllabus.forUnit('A2', 1);
+    expect(a2, hasLength(4));
+    final third = EnglishAdvancedSyllabus.findLesson('A2', 1, 3)!;
+    final fourth = EnglishAdvancedSyllabus.findLesson('A2', 1, 4)!;
+    expect(third.title, 'Finding an Apartment');
+    expect(fourth.title, 'At the Pharmacy');
+    for (final lesson in [third, fourth]) {
+      expect(lesson.paragraphs, hasLength(3));
+      expect(lesson.vocabulary, hasLength(24));
+      expect(lesson.storyWords, hasLength(10));
+      expect(lesson.extraWords, hasLength(14));
+      expect(lesson.listening.trim().split(RegExp(r'\s+')).length,
+          greaterThanOrEqualTo(45));
+      expect(lesson.grammarExamples, hasLength(3));
+      expect(lesson.spellingChallenge, hasLength(3));
+      expect(EnglishAdvancedDialogues.forLesson(lesson).lines, hasLength(5));
     }
   });
 
