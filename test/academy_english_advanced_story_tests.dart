@@ -58,13 +58,13 @@ void main() {
   test('A2-C2 published lessons have original graded stories and unique vocabulary', () {
     expect(EnglishAdvancedSyllabus.levels,
         <String>['A2', 'B1', 'B2', 'C1', 'C2']);
-    expect(EnglishAdvancedSyllabus.lessons, hasLength(12));
+    expect(EnglishAdvancedSyllabus.lessons, hasLength(14));
     final storyTexts = <String>{};
     final taughtWords = <String>{};
     final previousListeningLength = <int>[0, 0];
     for (final level in EnglishAdvancedSyllabus.levels) {
       final lessons = EnglishAdvancedSyllabus.forLevel(level);
-      expect(lessons, hasLength(level == 'A2' ? 4 : 2),
+      expect(lessons, hasLength(level == 'A2' ? 5 : level == 'B1' ? 3 : 2),
           reason: 'Published lessons $level');
       for (var index = 0; index < lessons.length; index++) {
         final lesson = lessons[index];
@@ -123,7 +123,7 @@ void main() {
         expect(unit.plannedTopics.toSet().length, 10);
         for (var number = 1; number <= 10; number++) {
           final lesson = unit.lessonAt(number);
-          if (unit.number == 1 && number <= (level == 'A2' ? 4 : 2)) {
+          if (unit.number == 1 && number <= (level == 'A2' ? 5 : level == 'B1' ? 3 : 2)) {
             expect(lesson, isNotNull);
             expect(lesson!.number, number);
             expect(lesson.unitNumber, unit.number);
@@ -137,9 +137,27 @@ void main() {
     }
   });
 
+  test('the newly-authored A2 fifth and B1 third lessons are real full sessions', () {
+    for (final (level, number) in [('A2', 5), ('B1', 3)]) {
+      final lesson = EnglishAdvancedSyllabus.findLesson(level, 1, number)!;
+      expect(lesson.paragraphs, hasLength(
+          EnglishAdvancedSyllabus.paragraphTargets[level]));
+      expect(lesson.vocabulary, hasLength(
+          EnglishAdvancedSyllabus.vocabularyTargets[level]));
+      expect(lesson.storyWords.length, greaterThanOrEqualTo(12));
+      expect(lesson.spellingChallenge, hasLength(3));
+      expect(AdvancedGrammarWorkshops.forLesson(level, number), isNotNull);
+      final dialogue = EnglishAdvancedDialogues.forLesson(lesson);
+      expect(dialogue.lines, hasLength(5));
+      expect(dialogue.pronunciation, hasLength(3));
+      expect(lesson.listening.split(RegExp(r'\s+')).length,
+          greaterThanOrEqualTo(65));
+    }
+  });
+
   test('A2 lessons three and four have full instruction and non-repeating story words', () {
     final a2 = EnglishAdvancedSyllabus.forUnit('A2', 1);
-    expect(a2, hasLength(4));
+    expect(a2, hasLength(5));
     final third = EnglishAdvancedSyllabus.findLesson('A2', 1, 3)!;
     final fourth = EnglishAdvancedSyllabus.findLesson('A2', 1, 4)!;
     expect(third.title, 'Finding an Apartment');

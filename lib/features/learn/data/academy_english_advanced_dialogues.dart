@@ -15,6 +15,39 @@ class EnglishAdvancedDialogue {
 
 abstract final class EnglishAdvancedDialogues {
   static const _dialogues = <String, EnglishAdvancedDialogue>{
+    'a2.1.5': EnglishAdvancedDialogue(
+      lines: <String>[
+        'Salma: Do we have any rice for dinner?',
+        'Mother: No, but we have some vegetables.',
+        'Salma: How many carrots should I buy?',
+        'Mother: Three carrots and two tomatoes, please.',
+        'Salma: Great! I will write them on my shopping list.',
+      ],
+      tip: 'Practise how much for uncountable food and how many for countable items.',
+      tipArabic: 'تدرب على السؤال عن كميات الطعام بتمييز how much عن how many مع نبرة سؤال طبيعية.',
+      pronunciation: <String>[
+        'vegetable /ˈvɛdʒtəbəl/',
+        'carrot /ˈkærət/',
+        'quantity /ˈkwɑːntəti/',
+      ],
+    ),
+    'b1.1.3': EnglishAdvancedDialogue(
+      lines: <String>[
+        'Yusuf: The model bridge is bending under pressure.',
+        'Hana: We should strengthen the supports before testing again.',
+        'Yusuf: Could we use another material instead?',
+        'Hana: We have to check the budget first.',
+        'Yusuf: Agreed. We must record the failed test in our report.',
+      ],
+      tip: 'Use must, have to, should and could to express different degrees of obligation.',
+      tipArabic: 'جرّب الاختلاف في النبرة بين الاقتراح could والنصيحة should والضرورة must.',
+      pronunciation: <String>[
+        'structural /ˈstrʌktʃərəl/',
+        'pressure /ˈprɛʃər/',
+        'durability /ˌdʊrəˈbɪləti/',
+      ],
+    ),
+
     'a2.1.3': EnglishAdvancedDialogue(
       lines: <String>[
         'Amira: Is this apartment still available to rent?',
