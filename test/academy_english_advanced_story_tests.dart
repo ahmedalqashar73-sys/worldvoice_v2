@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:worldvoice/features/learn/data/academy_english_advanced_models.dart';
+import 'package:worldvoice/features/learn/data/academy_advanced_grammar_workshops.dart';
 import 'package:worldvoice/features/learn/presentation/academy_english_advanced_screen.dart';
 
 Future<void> openAdvancedSection(WidgetTester tester, int index) async {
@@ -33,6 +34,21 @@ Future<void> reachAdvancedWriting(
   // story, word quiz, conversation, pronunciation, listening, completion.
   for (var index = 0; index < 3; index++) {
     await openAdvancedSection(tester, index);
+    if (index == 0) {
+      final workshop = AdvancedGrammarWorkshops.forLesson(
+          lesson.level, lesson.number)!;
+      final answer = find.byKey(
+          ValueKey('advanced-grammar-option-${workshop.answer}'));
+      await tester.ensureVisible(answer);
+      await tester.pumpAndSettle();
+      await tester.tap(answer);
+      await tester.pump();
+      final check = find.byKey(const ValueKey('advanced-grammar-check'));
+      await tester.ensureVisible(check);
+      await tester.pumpAndSettle();
+      await tester.tap(check);
+      await tester.pumpAndSettle();
+    }
     await finishAdvancedSection(tester);
   }
   await openAdvancedSection(tester, 3);
@@ -285,6 +301,21 @@ void main() {
         findsOneWidget);
     for (var index = 0; index < 2; index++) {
       await openAdvancedSection(tester, index);
+      if (index == 0) {
+        final workshop = AdvancedGrammarWorkshops.forLesson(
+            c2.level, c2.number)!;
+        final choice = find.byKey(
+            ValueKey('advanced-grammar-option-${workshop.answer}'));
+        await tester.ensureVisible(choice);
+        await tester.pumpAndSettle();
+        await tester.tap(choice);
+        await tester.pump();
+        final check = find.byKey(const ValueKey('advanced-grammar-check'));
+        await tester.ensureVisible(check);
+        await tester.pumpAndSettle();
+        await tester.tap(check);
+        await tester.pumpAndSettle();
+      }
       await finishAdvancedSection(tester);
     }
     await openAdvancedSection(tester, 2);
