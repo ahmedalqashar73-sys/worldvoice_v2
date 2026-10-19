@@ -4,6 +4,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/academy_english_advanced_models.dart';
+import '../data/academy_advanced_grammar_workshops.dart';
 
 const _green = Color(0xFF135941);
 const _gold = Color(0xFFF2C678);
@@ -354,6 +355,9 @@ class _AcademyEnglishAdvancedLessonScreenState
   int? _readChoice;
   int? _listenChoice;
   bool _readPassed = false;
+  bool _grammarPassed = false;
+  int? _grammarChoice;
+  bool _grammarChecked = false;
   bool _listenPassed = false;
   bool _wordPassed = false;
   int _spellingStep = 0;
@@ -399,6 +403,7 @@ class _AcademyEnglishAdvancedLessonScreenState
   }
 
   bool get _readyToAdvance => switch (_activeSection) {
+    0 => _grammarPassed,
     3 => _readPassed && _wordPassed && _sentencePassed,
     6 => _listenPassed,
     _ => true,
