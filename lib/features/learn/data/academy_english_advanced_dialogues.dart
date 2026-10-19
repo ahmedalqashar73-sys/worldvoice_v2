@@ -15,6 +15,38 @@ class EnglishAdvancedDialogue {
 
 abstract final class EnglishAdvancedDialogues {
   static const _dialogues = <String, EnglishAdvancedDialogue>{
+    'a2.1.3': EnglishAdvancedDialogue(
+      lines: <String>[
+        'Amira: Is this apartment still available to rent?',
+        'Agent: Yes. Would you like to see the living room first?',
+        'Amira: Please. Is the apartment furnished?',
+        'Agent: Yes, and the balcony faces the park.',
+        'Amira: Are the utility bills included in the rent?',
+      ],
+      tip: 'Practise polite comparisons with cheaper than, nearer than, and more comfortable than.',
+      tipArabic: 'تدرّب على المقارنة الطبيعية بين خيارين باستخدام cheaper than وnearer than، مع نبرة سؤال مهذبة.',
+      pronunciation: <String>[
+        'apartment /əˈpɑːrtmənt/',
+        'landlord /ˈlændlɔːrd/',
+        'deposit /dɪˈpɑːzɪt/',
+      ],
+    ),
+    'a2.1.4': EnglishAdvancedDialogue(
+      lines: <String>[
+        'Omar: Hello. I have a sore throat. Could you help me?',
+        'Pharmacist: Of course. Do you have any allergies?',
+        'Omar: No serious allergies, but I have a headache too.',
+        'Pharmacist: Please read the label and follow the dosage instructions.',
+        'Omar: Thank you. I will ask a doctor if the symptoms get worse.',
+      ],
+      tip: 'Use should for advice and pronounce warnings clearly in connected English speech.',
+      tipArabic: 'تعلّم طلب النصيحة بوضوح وتدرب على نطق should بسلاسة قبل الفعل الأساسي.',
+      pronunciation: <String>[
+        'pharmacy /ˈfɑːrməsi/',
+        'symptoms /ˈsɪmptəmz/',
+        'dosage /ˈdoʊsɪdʒ/',
+      ],
+    ),
     'a2.1.1': EnglishAdvancedDialogue(
       lines: <String>["Lina: Excuse me, which platform is the train leaving from?", "Clerk: It leaves from platform four in ten minutes.", "Lina: I cannot find my ticket. Can you check my booking?", "Clerk: Of course. Please show me the receipt.", "Lina: Thank you! I found it in my suitcase."],
       tip: "Practise polite questions with 'Excuse me' and 'Can you ...?'.", tipArabic: "تدرّب على السؤال المهذب باستخدام Excuse me وCan you، مع تقليد نبرة السؤال.",
