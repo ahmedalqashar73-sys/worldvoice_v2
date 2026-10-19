@@ -1,3 +1,6 @@
+part 'academy_english_advanced_core.dart';
+part 'academy_english_advanced_mastery.dart';
+
 /// Authored English CEFR pilot lessons beyond A1. Each published lesson has
 /// its own complete story, contextual vocabulary, grammar, listening and
 /// assessable understanding. Higher planned units remain unpublished.
