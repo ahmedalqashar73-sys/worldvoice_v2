@@ -271,7 +271,7 @@ class _AcademyEnglishAdvancedLessonScreenState
     final words = widget.lesson.spellingChallenge;
     if (_wordPassed || _spellingStep >= words.length) return;
     String normalize(String value) =>
-        value.trim().toLowerCase().replaceAll(RegExp(r'\\s+'), ' ');
+        value.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
     final expected = words[_spellingStep].term;
     if (normalize(_typedWord.text) != normalize(expected)) {
       setState(() => _message = _ar
