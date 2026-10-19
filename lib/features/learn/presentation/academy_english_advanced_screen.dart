@@ -267,7 +267,8 @@ class _AcademyEnglishAdvancedLessonScreenState
   }
 
   void _checkTypedWord() {
-    final normalize = (String s) => s.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+    String normalize(String s) =>
+        s.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
     final passed = normalize(_typedWord.text) == normalize(widget.lesson.writingAnswer);
     setState(() {
       _wordPassed = passed;
