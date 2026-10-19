@@ -128,4 +128,120 @@ abstract final class AcademyTutorTranslations {
     }
     return values[index];
   }
+  /// Translations of the five demonstration sentences per tutor lesson.
+  static const _exampleMeanings = <String, List<List<String>>>{
+    "ar": [
+      ["أنا سارة.", "أنا طالب.", "أنت صديقي.", "هل أنت طالب؟", "نعم، أنا كذلك. / لا، لست كذلك."],
+      ["اسمي مايا.", "ما اسمك؟", "هذا كتابي.", "اسمه ليو.", "اسمها نينا."],
+      ["هذا قلمي.", "تلك حقيبتك.", "هل هذا كتابك؟", "نعم، هو كذلك.", "لا، ذلك ليس دفتري."],
+    ],
+    "en": [
+      ["I am Sara.", "I am a student.", "You are my friend.", "Are you a student?", "Yes, I am. / No, I am not."],
+      ["My name is Maya.", "What is your name?", "This is my book.", "His name is Leo.", "Her name is Nina."],
+      ["This is my pen.", "That is your bag.", "Is this your book?", "Yes, it is.", "No, that is not my notebook."],
+    ],
+    "es": [
+      ["Soy Sara.", "Soy estudiante.", "Eres mi amigo.", "¿Eres estudiante?", "Sí, lo soy. / No, no lo soy."],
+      ["Me llamo Maya.", "¿Cómo te llamas?", "Este es mi libro.", "Se llama Leo.", "Se llama Nina."],
+      ["Este es mi bolígrafo.", "Esa es tu mochila.", "¿Es este tu libro?", "Sí, lo es.", "No, ese no es mi cuaderno."],
+    ],
+    "fr": [
+      ["Je suis Sara.", "Je suis étudiant(e).", "Tu es mon ami(e).", "Es-tu étudiant(e) ?", "Oui. / Non, je ne le suis pas."],
+      ["Je m’appelle Maya.", "Comment tu t’appelles ?", "Voici mon livre.", "Il s’appelle Léo.", "Elle s’appelle Nina."],
+      ["Voici mon stylo.", "C’est ton sac là-bas.", "Est-ce ton livre ?", "Oui, c’est ça.", "Non, ce n’est pas mon cahier."],
+    ],
+    "zh": [
+      ["我是萨拉。", "我是学生。", "你是我的朋友。", "你是学生吗？", "是的。/ 不，我不是。"],
+      ["我叫玛雅。", "你叫什么名字？", "这是我的书。", "他叫里奥。", "她叫妮娜。"],
+      ["这是我的钢笔。", "那是你的包。", "这是你的书吗？", "是的。", "不，那不是我的笔记本。"],
+    ],
+    "ko": [
+      ["저는 사라예요.", "저는 학생이에요.", "당신은 제 친구예요.", "학생이에요?", "네, 맞아요. / 아니요."],
+      ["제 이름은 마야예요.", "이름이 뭐예요?", "이것은 제 책이에요.", "그의 이름은 레오예요.", "그녀의 이름은 니나예요."],
+      ["이것은 제 펜이에요.", "저것은 당신의 가방이에요.", "이것은 당신의 책이에요?", "네, 맞아요.", "아니요, 저것은 제 공책이 아니에요."],
+    ],
+    "ja": [
+      ["私はサラです。", "私は学生です。", "あなたは私の友達です。", "あなたは学生ですか？", "はい、そうです。／いいえ、違います。"],
+      ["私の名前はマヤです。", "お名前は何ですか？", "これは私の本です。", "彼の名前はレオです。", "彼女の名前はニナです。"],
+      ["これは私のペンです。", "あれはあなたのかばんです。", "これはあなたの本ですか？", "はい、そうです。", "いいえ、あれは私のノートではありません。"],
+    ],
+    "de": [
+      ["Ich bin Sara.", "Ich bin Schüler(in).", "Du bist mein Freund.", "Bist du Schüler(in)?", "Ja. / Nein, bin ich nicht."],
+      ["Ich heiße Maya.", "Wie heißt du?", "Das ist mein Buch.", "Er heißt Leo.", "Sie heißt Nina."],
+      ["Das ist mein Stift.", "Das dort ist deine Tasche.", "Ist das dein Buch?", "Ja, das ist es.", "Nein, das ist nicht mein Notizbuch."],
+    ],
+    "pt": [
+      ["Eu sou Sara.", "Sou estudante.", "Você é meu amigo.", "Você é estudante?", "Sim, sou. / Não, não sou."],
+      ["Meu nome é Maya.", "Qual é o seu nome?", "Este é meu livro.", "O nome dele é Leo.", "O nome dela é Nina."],
+      ["Esta é minha caneta.", "Aquela é sua bolsa.", "Este é seu livro?", "Sim, é.", "Não, aquele não é meu caderno."],
+    ],
+    "ru": [
+      ["Я Сара.", "Я студент(ка).", "Ты мой друг.", "Ты студент(ка)?", "Да. / Нет."],
+      ["Меня зовут Майя.", "Как тебя зовут?", "Это моя книга.", "Его зовут Лео.", "Её зовут Нина."],
+      ["Это моя ручка.", "Вон там твоя сумка.", "Это твоя книга?", "Да.", "Нет, это не моя тетрадь."],
+    ],
+    "tr": [
+      ["Ben Sara'yım.", "Ben öğrenciyim.", "Sen benim arkadaşımsın.", "Öğrenci misin?", "Evet. / Hayır."],
+      ["Benim adım Maya.", "Adın ne?", "Bu benim kitabım.", "Onun adı Leo.", "Onun adı Nina."],
+      ["Bu benim kalemim.", "Şu senin çantan.", "Bu senin kitabın mı?", "Evet.", "Hayır, şu benim defterim değil."],
+    ],
+    "ur": [
+      ["میں سارہ ہوں۔", "میں طالب علم ہوں۔", "آپ میرے دوست ہیں۔", "کیا آپ طالب علم ہیں؟", "جی ہاں۔ / نہیں۔"],
+      ["میرا نام مایا ہے۔", "آپ کا نام کیا ہے؟", "یہ میری کتاب ہے۔", "اس کا نام لیو ہے۔", "اس کا نام نینا ہے۔"],
+      ["یہ میرا قلم ہے۔", "وہ آپ کا بیگ ہے۔", "کیا یہ آپ کی کتاب ہے؟", "جی ہاں۔", "نہیں، وہ میری نوٹ بک نہیں ہے۔"],
+    ],
+    "fa": [
+      ["من سارا هستم.", "من دانش‌آموز هستم.", "تو دوست من هستی.", "آیا دانش‌آموز هستی؟", "بله. / نه."],
+      ["نام من مایا است.", "نام تو چیست؟", "این کتاب من است.", "نام او لئو است.", "نام او نینا است."],
+      ["این خودکار من است.", "آن کیف تو است.", "آیا این کتاب تو است؟", "بله.", "نه، آن دفتر من نیست."],
+    ],
+    "id": [
+      ["Saya Sara.", "Saya seorang pelajar.", "Kamu teman saya.", "Apakah kamu pelajar?", "Ya. / Tidak."],
+      ["Nama saya Maya.", "Siapa namamu?", "Ini buku saya.", "Namanya Leo.", "Namanya Nina."],
+      ["Ini pena saya.", "Itu tasmu.", "Apakah ini bukumu?", "Ya.", "Tidak, itu bukan buku catatan saya."],
+    ],
+    "th": [
+      ["ฉันชื่อซารา", "ฉันเป็นนักเรียน", "คุณเป็นเพื่อนของฉัน", "คุณเป็นนักเรียนหรือเปล่า?", "ใช่ / ไม่ใช่"],
+      ["ฉันชื่อมายา", "คุณชื่ออะไร?", "นี่คือหนังสือของฉัน", "เขาชื่อเลโอ", "เธอชื่อนีนา"],
+      ["นี่คือปากกาของฉัน", "นั่นคือกระเป๋าของคุณ", "นี่คือหนังสือของคุณไหม?", "ใช่", "ไม่ นั่นไม่ใช่สมุดของฉัน"],
+    ],
+    "hi": [
+      ["मैं सारा हूँ।", "मैं विद्यार्थी हूँ।", "तुम मेरे दोस्त हो।", "क्या तुम विद्यार्थी हो?", "हाँ। / नहीं।"],
+      ["मेरा नाम माया है।", "तुम्हारा नाम क्या है?", "यह मेरी किताब है।", "उसका नाम लियो है।", "उसका नाम नीना है।"],
+      ["यह मेरा पेन है।", "वह तुम्हारा बैग है।", "क्या यह तुम्हारी किताब है?", "हाँ।", "नहीं, वह मेरी कॉपी नहीं है।"],
+    ],
+    "it": [
+      ["Sono Sara.", "Sono uno studente / una studentessa.", "Sei mio amico.", "Sei uno studente?", "Sì. / No."],
+      ["Mi chiamo Maya.", "Come ti chiami?", "Questo è il mio libro.", "Si chiama Leo.", "Si chiama Nina."],
+      ["Questa è la mia penna.", "Quella è la tua borsa.", "Questo è il tuo libro?", "Sì.", "No, quello non è il mio quaderno."],
+    ],
+  };
+  static const _exampleNotes = <String, String>{
+    "ar": "انتبه إلى تركيب الجملة الإنجليزية واستمع للنطق، ثم حاول تكوين مثال جديد.",
+    "en": "Notice the English sentence pattern, listen to the pronunciation, and make your own example.",
+    "es": "Observa la estructura inglesa, escucha la pronunciación y crea tu propio ejemplo.",
+    "fr": "Observez la structure anglaise, écoutez la prononciation et créez votre propre exemple.",
+    "zh": "注意英语句型，听发音，再尝试自己造一个句子。",
+    "ko": "영어 문장 구조를 살펴보고 발음을 들은 뒤 직접 문장을 만들어 보세요.",
+    "ja": "英語の文の形を確認し、発音を聞いて、自分でも文を作りましょう。",
+    "de": "Achte auf den englischen Satzbau, höre die Aussprache und bilde ein eigenes Beispiel.",
+    "pt": "Observe a estrutura em inglês, ouça a pronúncia e crie um exemplo próprio.",
+    "ru": "Обрати внимание на английскую структуру, послушай произношение и составь свой пример.",
+    "tr": "İngilizce cümle yapısını incele, telaffuzu dinle ve kendi örneğini oluştur.",
+    "ur": "انگریزی جملے کی ساخت دیکھیں، تلفظ سنیں اور اپنی مثال بنائیں۔",
+    "fa": "ساخت جمله انگلیسی را ببینید، تلفظ را بشنوید و مثال خودتان را بسازید.",
+    "id": "Perhatikan pola kalimat Inggris, dengarkan pengucapannya, lalu buat contoh sendiri.",
+    "th": "สังเกตโครงสร้างประโยคอังกฤษ ฟังการออกเสียง แล้วลองแต่งประโยคด้วยตนเอง",
+    "hi": "अंग्रेज़ी वाक्य की रचना देखें, उच्चारण सुनें और अपना उदाहरण बनाएँ।",
+    "it": "Osserva la struttura inglese, ascolta la pronuncia e crea un tuo esempio.",
+  };
+  static String exampleMeaning(String code, int lesson, int index) {
+    if (lesson < 1 || lesson > 3 || index < 0 || index > 4) {
+      throw RangeError('Unknown tutor example');
+    }
+    return _exampleMeanings[normalized(code)]![lesson - 1][index];
+  }
+  static String exampleNote(String code) =>
+      _exampleNotes[normalized(code)]!;
+
 }
