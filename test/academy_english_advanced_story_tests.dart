@@ -83,8 +83,14 @@ void main() {
       expect(find.byKey(ValueKey('advanced-paragraph-$i'), skipOffstage: false),
           findsOneWidget);
     }
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('advanced-finish')),
+      550,
+      scrollable: find.byType(Scrollable).first,
+      maxScrolls: 100,
+    );
     final save = tester.widget<FilledButton>(
-      find.byKey(const ValueKey('advanced-finish'), skipOffstage: false));
+      find.byKey(const ValueKey('advanced-finish')));
     expect(save.onPressed, isNull, reason: 'Reading alone must not mark completed');
   });
 }
