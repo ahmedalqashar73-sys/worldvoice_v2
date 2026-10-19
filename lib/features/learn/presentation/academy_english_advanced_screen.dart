@@ -205,19 +205,19 @@ class _AcademyEnglishAdvancedPathState
                           fontSize: 18, fontWeight: FontWeight.w800)),
                     subtitle: Text(published
                         ? (_ar
-                            ? 'قواعد · ${lesson.vocabulary.length} كلمة · قصة · استماع · اختبارات'
-                            : 'Grammar · ${lesson.vocabulary.length} words · story · listening · quizzes')
+                            ? 'قواعد · ${lesson!.vocabulary.length} كلمة · قصة · استماع · اختبارات'
+                            : 'Grammar · ${lesson!.vocabulary.length} words · story · listening · quizzes')
                         : (_ar
                             ? 'قيد الإعداد · ${unit.plannedTopics[i - 1]}'
                             : 'In preparation · ${unit.plannedTopics[i - 1]}'),
                       style: TextStyle(color: scheme.onSurfaceVariant)),
-                    trailing: Icon(published && _done.contains(lesson.id)
+                    trailing: Icon(published && _done.contains(lesson!.id)
                         ? Icons.check_circle_rounded
                         : published
                             ? Icons.chevron_right_rounded : Icons.lock_outline_rounded,
-                      color: published && _done.contains(lesson.id)
+                      color: published && _done.contains(lesson!.id)
                           ? _green : scheme.onSurfaceVariant),
-                    onTap: published ? () => _open(lesson) : null,
+                    onTap: published ? () => _open(lesson!) : null,
                   ),
                 ),
               );
@@ -270,27 +270,27 @@ class _AcademyEnglishAdvancedLessonScreenState
     'شرح القواعد',
     'المفردات',
     'القصة المصورة',
-    'الكلمات الجديدة في القصة',
-    'اختبار فهم القصة',
+    'المحادثة',
+    'النطق الإنجليزي',
     'الاستماع',
-    'اختبار الكتابة والنطق',
+    'اختبارات الفهم والكتابة',
     'إكمال الدرس',
   ];
   static const _sectionEn = <String>[
     'Grammar',
     'Vocabulary',
     'Illustrated story',
-    'New story words',
-    'Reading comprehension',
+    'Conversation',
+    'English pronunciation',
     'Listening',
-    'Writing and pronunciation practice',
+    'Comprehension and writing tests',
     'Complete lesson',
   ];
   static const _sectionIcons = <IconData>[
     Icons.school_outlined, Icons.translate_rounded,
-    Icons.auto_stories_rounded, Icons.bookmark_add_outlined,
-    Icons.fact_check_rounded, Icons.headphones_rounded,
-    Icons.edit_note_rounded, Icons.emoji_events_rounded,
+    Icons.auto_stories_rounded, Icons.forum_rounded,
+    Icons.record_voice_over_rounded, Icons.headphones_rounded,
+    Icons.fact_check_rounded, Icons.emoji_events_rounded,
   ];
 
   void _enterSection(int section) {
@@ -302,9 +302,8 @@ class _AcademyEnglishAdvancedLessonScreenState
   }
 
   bool get _readyToAdvance => switch (_activeSection) {
-    4 => _readPassed,
     5 => _listenPassed,
-    6 => _wordPassed && _sentencePassed,
+    6 => _readPassed && _wordPassed && _sentencePassed,
     _ => true,
   };
 
@@ -522,6 +521,7 @@ class _AcademyEnglishAdvancedLessonScreenState
   @override
   Widget build(BuildContext context) {
     final lesson = widget.lesson;
+    final dialogue = EnglishAdvancedDialogues.forLesson(lesson);
     final scheme = Theme.of(context).colorScheme;
     final canFinish = _readPassed && _listenPassed && _wordPassed && _sentencePassed;
     return Scaffold(
@@ -612,7 +612,7 @@ class _AcademyEnglishAdvancedLessonScreenState
                 ),
               ]),
             ]), icon: Icons.auto_stories_rounded),
-          if (_activeSection == 3) _section('الكلمات الجديدة داخل القصة', 'New words from this story',
+          if (_activeSection == 2) _section('الكلمات الجديدة داخل القصة', 'New words from this story',
             Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               for (final word in lesson.storyWords)
                 ListTile(
@@ -628,7 +628,7 @@ class _AcademyEnglishAdvancedLessonScreenState
             ]), icon: Icons.bookmark_add_outlined),
           if (_activeSection == 1) _section('مفردات إضافية للدرس', 'Additional lesson vocabulary',
             Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              for (final word in lesson.extraWords)
+              for (final word in lesson.vocabulary)
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   dense: true,
@@ -639,7 +639,63 @@ class _AcademyEnglishAdvancedLessonScreenState
                     onPressed: () => _play(word.term)),
                 ),
             ]), icon: Icons.translate_rounded),
-          if (_activeSection == 4) _section('اختبار فهم القصة', 'Story comprehension',
+          if (_activeSection == 3) _section(
+            'محادثة تفاعلية', 'Guided conversation',
+            Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              Text(_ar
+                  ? 'استمع للحوار بين شخصين، ثم حاول أداء أحد الدورين بنفسك.'
+                  : 'Listen to the two speakers and try taking one role yourself.',
+                  style: TextStyle(color: scheme.onSurfaceVariant)),
+              const SizedBox(height: 10),
+              for (var line = 0; line < dialogue.lines.length; line++)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 9),
+                  child: Card(
+                    color: line.isEven
+                        ? scheme.primaryContainer : scheme.surfaceContainerHigh,
+                    child: ListTile(
+                      title: Text(dialogue.lines[line],
+                        textDirection: TextDirection.ltr),
+                      trailing: IconButton(
+                        tooltip: _ar ? 'اسمع الجملة' : 'Hear sentence',
+                        onPressed: () => _play(dialogue.lines[line]),
+                        icon: const Icon(Icons.volume_up_rounded)),
+                    ),
+                  ),
+                ),
+              FilledButton.tonalIcon(
+                onPressed: () => _play(dialogue.lines.join(' ')),
+                icon: const Icon(Icons.record_voice_over_rounded),
+                label: Text(_ar ? 'استمع للحوار كاملًا' : 'Hear full dialogue'),
+              ),
+            ]), icon: Icons.forum_rounded),
+          if (_activeSection == 4) _section(
+            'تدريب النطق الإنجليزي', 'English pronunciation practice',
+            Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              Text(_ar ? dialogue.tipArabic : dialogue.tip,
+                style: const TextStyle(height: 1.55)),
+              const SizedBox(height: 12),
+              Text(_ar
+                ? 'استمع للنطق الإنجليزي ورموز IPA، ثم انطق بنفسك وقلّد الصوت.'
+                : 'Listen to English audio and IPA cues. Speak aloud and imitate the sounds.',
+                style: TextStyle(color: scheme.onSurfaceVariant)),
+              const SizedBox(height: 9),
+              for (final cue in dialogue.pronunciation)
+                ListTile(
+                  title: Text(cue, textDirection: TextDirection.ltr,
+                    style: const TextStyle(fontWeight: FontWeight.w700)),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.volume_up_rounded),
+                    onPressed: () => _play(cue.split(' /').first),
+                  ),
+                ),
+              const SizedBox(height: 8),
+              Text(_ar
+                  ? 'هذا تدريب استماع وتكرار؛ تقييم النطق بالميكروفون لم يُفعّل بعد.'
+                  : 'This is listen-and-repeat practice. Automatic microphone scoring is not enabled.',
+                style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
+            ]), icon: Icons.record_voice_over_rounded),
+          if (_activeSection == 6) _section('اختبار فهم القصة', 'Story comprehension',
             _quiz(
               keyName: 'advanced-reading',
               question: lesson.readingQuestion, answers: lesson.readingOptions,
