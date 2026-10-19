@@ -430,7 +430,8 @@ class _AcademyEnglishA1IntegratedLessonState
     final scheme = Theme.of(context).colorScheme;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       AcademyIllustratedStoryArt(
-          scene: _story.scene, page: (widget.lessonNumber - 1) % 4),
+          scene: _story.scene, page: (widget.lessonNumber - 1) % 4,
+          animate: false),
       const SizedBox(height: 18),
       Text(_ar ? _story.titleArabic : _story.title,
           style: TextStyle(color: _accent,
@@ -736,6 +737,7 @@ class _EnglishA1BookChapterState extends State<_EnglishA1BookChapter> {
               AcademyIllustratedStoryArt(
                 scene: widget.story.scene,
                 page: widget.chapterNumber,
+                animate: false,
               ),
               const SizedBox(height: 18),
               for (var i = 0; i < paragraphs.length; i++) ...[
