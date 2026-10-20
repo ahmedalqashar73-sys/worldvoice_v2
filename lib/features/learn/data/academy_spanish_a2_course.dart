@@ -236,7 +236,7 @@ abstract final class SpanishA2Course {
       grammarExamples:<String>["Me quedé porque estaba cansado.","Como llovía, no salimos.","Estudié mucho, por eso aprobé.","Llamé porque necesitaba ayuda.","Como tenía hambre, comí.","No había billetes; por eso esperamos."],
       story:<String>["Una familia pensaba pasar el fin de semana en un pueblo cercano. Habían reservado una casa rural y preparado comida para los dos días.","El viernes por la tarde comenzó a llover. Como la carretera estaba en mal estado, decidieron cambiar el plan y quedarse en la ciudad.","La madre propuso visitar un museo y el padre buscó actividades para los niños. La familia encontró una exposición interesante y disfrutó de la tarde.","Aunque el viaje se canceló, no perdieron el buen humor. Descubrieron que un cambio inesperado puede ofrecer otras oportunidades. Al final, recordaron aquella tarde como una experiencia especial y planearon la excursión para otro fin de semana."]),
     SpanishA2Lesson(unit:3, number:7,
-      title:"Cuando llegues, avísame", titleAr:"تتابع الأحداث المعتادة",
+      title:"Cuando llego a casa", titleAr:"تتابع الأحداث المعتادة",
       grammar:"Cuando + presente (hábitos)", grammarAr:"عندما مع المضارع للعادات",
       grammarHelpAr:"مع العادات المتكررة نستعمل cuando مع المضارع؛ ولحدث مستقبلي محدد نحتاج صيغة أخرى تدرس لاحقًا.",
       grammarExamples:<String>["Cuando llego a casa, descanso.","Cuando tengo tiempo, leo.","Cuando llueve, llevo paraguas.","Cuando estudias, aprendes.","Siempre llamo cuando salgo.","Cuando veo a Ana, sonrío."],
@@ -313,15 +313,19 @@ abstract final class SpanishA2Course {
     final ds = wordsOf(lesson, SpanishWordKind.adverb);
     return <String>[
       ...lesson.story,
-      'Al día siguiente, la protagonista escribió unas notas sobre '
-      'la ${ns[0].es} y la ${ns[1].es}. En su cuaderno explicó que '
-      'quería ${vs[0].es} ${ds[0].es} y también ${vs[1].es} '
-      '${ds[1].es}. Al recordar el encuentro, consideró la experiencia '
-      '${as[0].es} y la situación ${as[1].es}. '
-      'Después comparó los resultados con sus planes y compartió '
-      'sus observaciones con un amigo. La conversación les ayudó a '
-      'comprender mejor las decisiones del día y las nuevas palabras '
-      'que habían aprendido.',
+      'Después de la experiencia, los participantes se reunieron '
+      'para escribir una página de su diario. Cada persona recordó '
+      'un momento importante de la historia y explicó cómo se '
+      'había sentido al tomar sus decisiones. '
+      'Primero repasaron dos palabras del tema: «${ns[0].es}» y '
+      '«${ns[1].es}». Después trabajaron con los verbos '
+      '«${vs[0].es}» y «${vs[1].es}» y los adjetivos '
+      '«${as[0].es}» y «${as[1].es}». '
+      'Al finalizar, escucharon atentamente dos expresiones, '
+      '«${ds[0].es}» y «${ds[1].es}», y explicaron '
+      'su significado con ejemplos propios. '
+      'Esta revisión les ayudó a comprender mejor los hechos '
+      'del día y a contar experiencias con palabras nuevas.',
     ];
   }
 
