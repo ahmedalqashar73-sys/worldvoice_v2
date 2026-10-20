@@ -22,6 +22,24 @@ class AdvancedGrammarWorkshop {
 }
 abstract final class AdvancedGrammarWorkshops {
   static const _workshops = <String, AdvancedGrammarWorkshop>{
+    'B2:4': AdvancedGrammarWorkshop(
+      explanationEnglish: 'Use must or have to for essential duties and should or ought to for recommendations. The base verb follows modal verbs without to, except ought to. Be specific about safety versus advice.',
+      examples: <AdvancedGrammarExample>[
+        AdvancedGrammarExample('Food must be kept at a safe temperature.', 'يجب حفظ الطعام في درجة حرارة آمنة.'),
+        AdvancedGrammarExample('Schools ought to review how much food is wasted.', 'ينبغي للمدارس مراجعة كمية الطعام المهدور.'),
+        AdvancedGrammarExample('Students need not finish food if they are full.', 'ليس ضروريًا أن يُكمل الطلاب طعامهم إن كانوا شبعانين.'),
+      ],
+      wrong: 'The cafeteria should to check food temperatures.',
+      correct: 'The cafeteria should check food temperatures.',
+      question: 'Which sentence states a mandatory food-safety rule?',
+      options: <String>[
+        'Food could be stored safely if convenient.',
+        'Food must be stored at a safe temperature.',
+        'Food ought check the temperature.',
+      ],
+      answer: 1,
+    ),
+
     'B2:3': AdvancedGrammarWorkshop(
       explanationEnglish: 'In a balanced argument, although introduces an opposing fact, provided that states a condition, and would expresses a hypothetical consequence. Explain uncertainty rather than presenting projections as guarantees.',
       examples: <AdvancedGrammarExample>[

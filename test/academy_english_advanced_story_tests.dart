@@ -58,13 +58,13 @@ void main() {
   test('A2-C2 published lessons have original graded stories and unique vocabulary', () {
     expect(EnglishAdvancedSyllabus.levels,
         <String>['A2', 'B1', 'B2', 'C1', 'C2']);
-    expect(EnglishAdvancedSyllabus.lessons, hasLength(29));
+    expect(EnglishAdvancedSyllabus.lessons, hasLength(30));
     final storyTexts = <String>{};
     final taughtWords = <String>{};
     final previousListeningLength = <int>[0, 0];
     for (final level in EnglishAdvancedSyllabus.levels) {
       final lessons = EnglishAdvancedSyllabus.forLevel(level);
-      expect(lessons, hasLength(level == 'A2' ? 10 : level == 'B1' ? 10 : 3),
+      expect(lessons, hasLength(level == 'A2' ? 10 : level == 'B1' ? 10 : level == 'B2' ? 4 : 3),
           reason: 'Published lessons $level');
       for (var index = 0; index < lessons.length; index++) {
         final lesson = lessons[index];
@@ -106,6 +106,21 @@ void main() {
       }
     }
     expect(EnglishAdvancedSyllabus.forLevel('A1'), isEmpty);
+  });
+
+  test('B2 Unit 1 Lesson 4 contains a full graded story and unique vocab', () {
+    final lesson = EnglishAdvancedSyllabus.findLesson('B2', 1, 4);
+    expect(lesson, isNotNull);
+    expect(lesson!.paragraphs, hasLength(4));
+    expect(lesson.storyWords, hasLength(14));
+    expect(lesson.vocabulary, hasLength(36));
+    for (final word in lesson.storyWords) {
+      expect(lesson.paragraphs.join(' ').toLowerCase()
+          .contains(word.term.toLowerCase()), isTrue);
+    }
+    expect(EnglishAdvancedDialogues.forLesson(lesson).lines.length,
+        greaterThanOrEqualTo(5));
+    expect(AdvancedGrammarWorkshops.forLesson('B2', 4), isNotNull);
   });
 
   test('B1 first unit lessons 4–6 have full unique authored content', () {
@@ -206,7 +221,7 @@ void main() {
         expect(unit.plannedTopics.toSet().length, 10);
         for (var number = 1; number <= 10; number++) {
           final lesson = unit.lessonAt(number);
-          if (unit.number == 1 && number <= (level == 'A2' ? 10 : level == 'B1' ? 10 : 3)) {
+          if (unit.number == 1 && number <= (level == 'A2' ? 10 : level == 'B1' ? 10 : level == 'B2' ? 4 : 3)) {
             expect(lesson, isNotNull);
             expect(lesson!.number, number);
             expect(lesson.unitNumber, unit.number);

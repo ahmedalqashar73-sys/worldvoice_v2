@@ -15,6 +15,23 @@ class EnglishAdvancedDialogue {
 
 abstract final class EnglishAdvancedDialogues {
   static const _dialogues = <String, EnglishAdvancedDialogue>{
+    'b2.1.4': EnglishAdvancedDialogue(
+      lines: <String>[
+        'Amira: Could we donate every lunch that students do not eat?',
+        'Manager: Not all of them. Food must meet storage and temperature requirements.',
+        'Amira: Should we give everyone a smaller serving?',
+        'Manager: Offer a choice. Some pupils need a larger meal.',
+        'Amira: Then we should measure the results before expanding the scheme.',
+      ],
+      tip: 'Use strong stress on must for safety rules and softer intonation with should for advice.',
+      tipArabic: 'استخدم تشديدًا واضحًا على must للتعليمات الملزمة، ونبرة ألطف مع should للنصيحة.',
+      pronunciation: <String>[
+        'edible /ˈɛdəbəl/',
+        'surplus /ˈsɝːpləs/',
+        'hygiene /ˈhaɪdʒiːn/',
+      ],
+    ),
+
     'b2.1.3': EnglishAdvancedDialogue(
       lines: <String>[
         'Tenant: Will the solar project actually reduce our bills?',
