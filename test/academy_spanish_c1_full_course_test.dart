@@ -56,7 +56,8 @@ void main() {
       final reading=SpanishC1Course.reading(lesson);
       expect(reading,hasLength(7));
       expect(reading.first,lesson.story.first);
-      expect(reading.last.toLowerCase(),contains(words.first.es.toLowerCase()));
+      expect(reading.skip(lesson.story.length).join(' ').toLowerCase(),
+          contains(words.first.es.toLowerCase()));
       final conversation=SpanishC1Course.conversation(lesson);
       expect(conversation,hasLength(8));
       expect(conversation.join(' ').toLowerCase(),
