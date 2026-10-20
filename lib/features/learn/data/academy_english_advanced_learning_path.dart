@@ -37,7 +37,7 @@ abstract final class EnglishAdvancedLearningPath {
       },
       3: <AdvancedWordKind, String>{
       AdvancedWordKind.noun: "hotel|فندق;airport|مطار;museum|متحف;interview|مقابلة;excursion|رحلة قصيرة;complaint|شكوى;receipt|إيصال;flight|رحلة جوية;service|خدمة;customer|زبون",
-      AdvancedWordKind.verb: "check|يتحقق;request|يطلب;confirm|يؤكد;complain|يشتكي;apologize|يعتذر;apply|يتقدم بطلب;interview|يجري مقابلة;replace|يستبدل;reserve|يحجز;postpone|يؤجل",
+      AdvancedWordKind.verb: "check|يتحقق;request|يطلب;confirm|يؤكد;complain|يشتكي;apologize|يعتذر;apply|يتقدم بطلب;greet|يرحب;replace|يستبدل;reserve|يحجز;postpone|يؤجل",
       AdvancedWordKind.adjective: "professional|مهني;official|رسمي;missing|مفقود;broken|مكسور;reliable|موثوق;excellent|ممتاز;unexpected|غير متوقع;formal|رسمي الطابع;reasonable|معقول;necessary|ضروري",
       AdvancedWordKind.adverb: "online|عبر الإنترنت;personally|شخصيا;formally|بشكل رسمي;unexpectedly|بشكل مفاجئ;promptly|على الفور;correctly|بشكل صحيح;patiently|بصبر;briefly|باختصار;successfully|بنجاح;instead|بدلا من ذلك",
       },
