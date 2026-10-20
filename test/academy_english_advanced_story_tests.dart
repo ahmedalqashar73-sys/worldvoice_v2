@@ -221,7 +221,7 @@ void main() {
         expect(unit.plannedTopics.toSet().length, 10);
         for (var number = 1; number <= 10; number++) {
           final lesson = unit.lessonAt(number);
-          if (unit.number == 1 && number <= (level == 'A2' ? 10 : level == 'B1' ? 10 : 3)) {
+          if (unit.number == 1 && number <= (level == 'A2' ? 10 : level == 'B1' ? 10 : level == 'B2' ? 4 : 3)) {
             expect(lesson, isNotNull);
             expect(lesson!.number, number);
             expect(lesson.unitNumber, unit.number);
