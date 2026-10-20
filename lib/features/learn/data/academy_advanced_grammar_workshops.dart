@@ -62,6 +62,27 @@ abstract final class AdvancedGrammarWorkshops {
       answer: 0,
     ),
 
+    'A2.2.1': AdvancedGrammarWorkshop(
+      explanationEnglish: "Too goes before an adjective to show excess, as in too small. Enough usually follows an adjective (large enough), or comes before a noun (enough space).",
+      examples: <AdvancedGrammarExample>[AdvancedGrammarExample("The room is big enough for a desk.","الغرفة كبيرة بما يكفي لوضع مكتب."),AdvancedGrammarExample("This shelf is too high to reach.","هذا الرف مرتفع جدًا للوصول إليه."),AdvancedGrammarExample("We have enough space for our books.","لدينا مساحة كافية لكتبنا.")],
+      wrong: "The room is enough big.", correct: "The room is big enough.",
+      question: "Which expression of degree is grammatical?", options: <String>["We have enough space.","The room is enough large.","The shelf is high enough too."],
+      answer: 0,
+    ),
+    'A2.2.2': AdvancedGrammarWorkshop(
+      explanationEnglish: "Use for to express a duration and since to mark the starting point of a situation that continues. Present perfect combines have or has with a past participle.",
+      examples: <AdvancedGrammarExample>[AdvancedGrammarExample("I have felt tired for three days.","أشعر بالتعب منذ ثلاثة أيام."),AdvancedGrammarExample("She has worked here since Monday.","تعمل هنا منذ يوم الاثنين."),AdvancedGrammarExample("How long have you had these symptoms?","منذ متى تعاني من هذه الأعراض؟")],
+      wrong: "I have felt tired since three days.", correct: "I have felt tired for three days.",
+      question: "Choose the correct time expression.", options: <String>["I have waited since two hours.","I have waited for two hours.","I have wait for two hours."],
+      answer: 1,
+    ),
+    'A2.2.3': AdvancedGrammarWorkshop(
+      explanationEnglish: "Sequence instructions with first, next, then and finally. The imperative uses the base verb without to and often has an understood you as its subject.",
+      examples: <AdvancedGrammarExample>[AdvancedGrammarExample("First, wash the vegetables.","أولًا اغسل الخضروات."),AdvancedGrammarExample("Then add the tomatoes.","ثم أضف الطماطم."),AdvancedGrammarExample("Finally, serve the stew.","أخيرًا قدم اليخنة.")],
+      wrong: "First, to chop the vegetables.", correct: "First, chop the vegetables.",
+      question: "Choose a correct imperative instruction.", options: <String>["Next to add the spices.","Next, add the spices.","Next, adding the spices."],
+      answer: 1,
+    ),
     'A2:6': AdvancedGrammarWorkshop(
       explanationEnglish: "Use be going to for a plan already decided and will for a decision made now. The verb after will remains in its base form.",
       examples: <AdvancedGrammarExample>[AdvancedGrammarExample("I am going to leave class earlier.","سأغادر الحصة مبكرًا وفقًا لخطة."),AdvancedGrammarExample("The bus is gone, so I will call a taxi.","فاتت الحافلة، لذا سأتصل بسيارة أجرة الآن."),AdvancedGrammarExample("Is Mina going to check the timetable?","هل تنوي مينا مراجعة الجدول؟")],
