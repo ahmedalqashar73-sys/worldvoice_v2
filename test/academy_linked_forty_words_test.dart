@@ -7,8 +7,8 @@ void main() {
     test('$level links exactly forty graded words to reading, dialogue and podcast', () {
       final lessons = EnglishAdvancedSyllabus.forLevel(level);
       expect(lessons, hasLength(30));
-      if (level != 'A2') {
-        // Follow-up levels are only activated after their own curriculum
+      if (level == 'B2') {
+        // B2 is only activated after its own curriculum
         // and CI validations have been completed.
         expect(EnglishAdvancedLearningPath.supports(lessons.first), isFalse);
         return;
