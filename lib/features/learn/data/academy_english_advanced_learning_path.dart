@@ -38,6 +38,12 @@ abstract final class EnglishAdvancedLearningPath {
       AdvancedWordKind.adjective: "provisional|مؤقت قابل للتعديل;contentious|مثير للجدل;credible|موثوق;methodological|منهجي;ambiguous|ملتبس;defensible|يمكن الدفاع عنه;inconclusive|غير حاسم;systemic|بنيوي;nuanced|دقيق المعنى;compelling|مقنع بقوة;disproportionate|غير متناسب;transparent|شفاف;tentative|مبدئي;irreconcilable|متعذر التوفيق;unsubstantiated|غير مؤيد بالأدلة;contextual|سياقي;rigorous|صارم منهجيا;multifaceted|متعدد الجوانب;contested|موضع خلاف;consequential|ذو تبعات مهمة",
       AdvancedWordKind.adverb: "tentatively|على نحو مبدئي;conclusively|بشكل قاطع;explicitly|بوضوح وصراحة;implicitly|ضمنيا;critically|بشكل نقدي;systematically|بمنهجية;independently|باستقلالية;arguably|يمكن القول;ostensibly|ظاهريا;disproportionately|بشكل غير متناسب;subsequently|لاحقا;nonetheless|مع ذلك;accordingly|تبعا لذلك;presumably|على الأرجح;provisionally|بصورة مؤقتة;substantially|بدرجة كبيرة;conversely|على العكس;empirically|استنادا إلى التجربة;unequivocally|بلا التباس;prudently|بتعقل",
     },
+    'C2': <AdvancedWordKind, String>{
+      AdvancedWordKind.noun: "epistemology|نظرية المعرفة;hermeneutics|علم التأويل;indeterminacy|عدم التعيّن;presupposition|افتراض مسبق;anachronism|مفارقة زمنية;paradox|مفارقة;counterfactual|افتراض مضاد للواقع;ontology|علم الوجود;discourse|خطاب;metanarrative|سردية كبرى;intertextuality|التناص;dissonance|تنافر;hegemony|هيمنة;contingency|احتمال غير حتمي;dialectic|جدلية;paradigm|نموذج فكري;axiom|مسلمة;fallibility|قابلية الخطأ;subjectivity|ذاتية;exegesis|تفسير نقدي للنص",
+      AdvancedWordKind.verb: "problematize|يجعل موضع إشكال;deconstruct|يفكك نقديا;synthesize|يركب بين الأفكار;interrogate|يفحص نقديا;foreground|يبرز;qualify|يقيّد الحكم;delineate|يحدد المعالم;destabilize|يزعزع;juxtapose|يضع جنبا إلى جنب;extrapolate|يستقرئ;reconcile|يوفق;substantiate|يدعم بالأدلة;explicate|يفسر بالتفصيل;elucidate|يجلي;contest|ينازع;disentangle|يفصل المتشابك;conceptualize|يصوغ مفهوما;reframe|يعيد التأطير;scrutinize|يمحّص;contextualize|يضع في سياقه",
+      AdvancedWordKind.adjective: "epistemic|معرفي;hermeneutic|تأويلي;axiomatic|قائم على المسلمات;dialectical|جدلي;ontological|أنطولوجي;equivocal|ملتبس المعنى;incommensurable|متعذر القياس بمعيار مشترك;discursive|خطابي;contingent|غير حتمي;paradoxical|مفارقي;apodictic|قطعي البرهان;intersubjective|بين ذاتي;interpretive|تفسيري;teleological|غائي;normative|معياري;reductive|اختزالي;multivalent|متعدد الدلالات;self-referential|ذاتي الإحالة;anachronistic|مفارِق للعصر;irreducible|متعذر الاختزال",
+      AdvancedWordKind.adverb: "epistemically|من الوجهة المعرفية;hermeneutically|تأويليا;dialectically|جدليا;ostensibly|ظاهريا;tacitly|ضمنا;unequivocally|بلا لبس;categorically|بصورة قاطعة;tentatively|مبدئيا;cogently|بحجة متماسكة;incisively|بنقد نافذ;obliquely|بشكل غير مباشر;normatively|من الوجهة المعيارية;discursively|خطابيا;intrinsically|جوهريا;contingently|بصورة غير حتمية;reflexively|بمراجعة ذاتية;comparatively|بالمقارنة;meticulously|بدقة متناهية;provisionally|على نحو مؤقت;paradoxically|بصورة مفارقة",
+    },
   };
   static const _unit = <String, Map<int, Map<AdvancedWordKind, String>>>{
     'A2': <int, Map<AdvancedWordKind, String>>{
@@ -118,6 +124,26 @@ abstract final class EnglishAdvancedLearningPath {
       AdvancedWordKind.verb: "model|ينمذج;forecast|يتنبأ;quantify|يحدد كميا;mitigate|يخفف;diversify|ينوع;allocate|يخصص;simulate|يحاكي;monitor|يراقب;evaluate|يقيّم;prioritize|يعطي الأولوية",
       AdvancedWordKind.adjective: "ecological|بيئي;probabilistic|احتمالي;climatic|مناخي;resilient|مرن قادر على التكيف;sustainable|مستدام;data-driven|قائم على البيانات;counterfactual|مضاد للواقع;measurable|قابل للقياس;uncertain|غير يقيني;adaptive|تكيفي",
       AdvancedWordKind.adverb: "environmentally|بيئيا;probabilistically|احتماليا;regionally|إقليميا;globally|عالميا;quantitatively|كميا;ecologically|إيكولوجيا;economically|اقتصاديا;incrementally|تدريجيا;strategically|استراتيجيا;predictably|بصورة متوقعة",
+      },
+    },
+    'C2': <int, Map<AdvancedWordKind, String>>{
+      1: <AdvancedWordKind, String>{
+      AdvancedWordKind.noun: "textual criticism|النقد النصي;textual variant|تنويع نصي;marginalia|تعليقات هامشية;paleography|علم الخطوط القديمة;palimpsest|مخطوطة ممحوّة ومعاد استخدامها;attribution|إسناد;chronology|تسلسل زمني;eyewitness account|شهادة شاهد عيان;provenance|مصدر المنشأ;historiography|علم كتابة التاريخ",
+      AdvancedWordKind.verb: "collate|يقارن النسخ;authenticate|يثبت الأصالة;annotate|يعلق على النص;transcribe|ينسخ نصيا;emend|يصوّب النص;decipher|يفك رموزه;reconstruct|يعيد بناء;historicize|يحلل تاريخيا;translate|يترجم;date|يحدد زمن",
+      AdvancedWordKind.adjective: "archival|أرشيفي;fragmentary|مجتزأ;contested|متنازع عليه;apocryphal|منحول;authentic|أصيل;inconclusive|غير حاسم;archaic|قديم الأسلوب;diachronic|تعاقبي تاريخيا;philological|متعلق بفقه اللغة;polyphonic|متعدد الأصوات",
+      AdvancedWordKind.adverb: "historically|تاريخيا;anachronistically|خارج السياق الزمني;chronologically|زمنيا;philologically|وفق فقه اللغة;retrospectively|بأثر رجعي;sequentially|بالتتابع;intertextually|تناصيا;textually|من حيث النص;archivally|من حيث الأرشيف;faithfully|بأمانة",
+      },
+      2: <AdvancedWordKind, String>{
+      AdvancedWordKind.noun: "ethical agency|الفاعلية الأخلاقية;moral culpability|المسؤولية عن الذنب;distributive justice|العدالة التوزيعية;public reason|التعليل العمومي;euphemism|تعبير ملطف;enthymeme|قياس مضمر;rhetorical framing|تأطير بلاغي;legitimation|إضفاء الشرعية;moral luck|الحظ الأخلاقي;reciprocity|المعاملة بالمثل",
+      AdvancedWordKind.verb: "attribute|ينسب;legitimize|يضفي الشرعية;rationalize|يبرر بدوافع عقلية;euphemize|يصوغ تعبيرا ملطفا;implicate|يورط أو يقتضي;vindicate|يثبت صحة;presuppose|يفترض سلفا;universalize|يعمم;adjudicate|يفصل في نزاع;instrumentalize|يستخدم كوسيلة",
+      AdvancedWordKind.adjective: "ethical|أخلاقي;justificatory|تبريري;rhetorical|بلاغي;coercive|قَسري;deliberative|تداولي;distributive|توزيعي;consequentialist|نتائجي أخلاقيا;deontological|واجباتي أخلاقيا;paternalistic|أبوي متسلط;dialogical|حواري",
+      AdvancedWordKind.adverb: "ethically|أخلاقيا;rhetorically|بلاغيا;deliberatively|بالمداولة;pragmatically|براغماتيا;coercively|بالإكراه;equitably|بإنصاف;morally|من الناحية الأخلاقية;procedurally|إجرائيا;strategically|استراتيجيا;persuasively|بإقناع",
+      },
+      3: <AdvancedWordKind, String>{
+      AdvancedWordKind.noun: "causal attribution|إسناد السببية;explanatory gap|فجوة تفسيرية;disciplinary boundary|حد تخصصي;scholarly consensus|إجماع علمي;burden of proof|عبء الإثبات;formal inference|استدلال صوري;counterexample|مثال ناقض;evidentiary threshold|حد كفاية الدليل;methodological pluralism|تعدد المناهج;logical entailment|اقتضاء منطقي",
+      AdvancedWordKind.verb: "disambiguate|يزيل الالتباس;operationalize|يحوّل إلى متغير قابل للقياس;formalize|يصوغ رسميا;falsify|يدحض اختباريا;instantiate|يجسد في حالة;triangulate|يتحقق بعدة مصادر;generalize|يعمم;calibrate|يعاير;corroborate|يدعم بدليل مستقل;reinterpret|يعيد التأويل",
+      AdvancedWordKind.adjective: "interdisciplinary|متعدد التخصصات;inferential|استدلالي;causally robust|متين من حيث السببية;falsifiable|قابل للدحض;generalizable|قابل للتعميم;explanatory|تفسيري;conceptual|مفاهيمي;probabilistic|احتمالي;analytical|تحليلي;methodologically sound|سليم منهجيا",
+      AdvancedWordKind.adverb: "analytically|تحليليا;probabilistically|احتماليا;methodologically|منهجيا;theoretically|نظريا;empirically|تجريبيا;causally|سببيا;inferentially|استدلاليا;cautiously|بحذر;rigorously|بصرامة منهجية;systematically|بمنهجية",
       },
     },
   };
