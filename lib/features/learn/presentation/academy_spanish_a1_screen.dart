@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../data/academy_spanish_a1_course.dart';
 import '../data/academy_spanish_a2_course.dart';
 import '../data/academy_spanish_b1_course.dart';
+import '../data/academy_spanish_b2_course.dart';
 import 'academy_illustrated_story_art.dart';
 
 const _verde = Color(0xFF15583F);
@@ -24,7 +25,9 @@ abstract final class SpanishA1Progress {
 
   static Future<void> complete(String? uid, SpanishA1Lesson lesson,
       {String level = 'A1'}) async {
-    final accepted = level == 'B1'
+    final accepted = level == 'B2'
+        ? SpanishB2Course.lessons.any((x) => x.id == lesson.id)
+        : level == 'B1'
         ? SpanishB1Course.lessons.any((x) => x.id == lesson.id)
         : level == 'A2'
         ? SpanishA2Course.lessons.any((x) => x.id == lesson.id)
@@ -42,7 +45,7 @@ abstract final class SpanishA1Progress {
   }
 }
 
-/// Spanish A1, A2 and B1: each keeps three units and ten lessons per unit.
+/// Spanish A1, A2, B1 and B2: each keeps three units and ten lessons per unit.
 class AcademySpanishA1Path extends StatefulWidget {
   const AcademySpanishA1Path({this.level = 'A1', super.key});
   final String level;
@@ -118,7 +121,8 @@ class _SpanishA1PathState extends State<AcademySpanishA1Path> {
         ]),
       ),
       const SizedBox(height: 20),
-      for (final unit in widget.level == 'B1'
+      for (final unit in widget.level == 'B2'
+          ? SpanishB2Course.units : widget.level == 'B1'
           ? SpanishB1Course.units : widget.level == 'A2'
               ? SpanishA2Course.units : SpanishA1Course.units)
         Card(clipBehavior: Clip.antiAlias,
@@ -369,7 +373,9 @@ class _AcademySpanishA1LessonScreenState
   Widget _grammar() {
     final item = widget.lesson;
     final examples = item.grammarExamples;
-    final choices = widget.level == 'B1'
+    final choices = widget.level == 'B2'
+        ? SpanishB2Course.grammarOptions(widget.lesson as SpanishB2Lesson)
+        : widget.level == 'B1'
         ? SpanishB1Course.grammarOptions(widget.lesson as SpanishB1Lesson)
         : widget.level == 'A2'
         ? SpanishA2Course.grammarOptions(widget.lesson as SpanishA2Lesson)
@@ -460,7 +466,9 @@ class _AcademySpanishA1LessonScreenState
 
   Widget _story() {
     final lesson = widget.lesson;
-    final paragraphs = widget.level == 'B1'
+    final paragraphs = widget.level == 'B2'
+        ? SpanishB2Course.reading(lesson as SpanishB2Lesson)
+        : widget.level == 'B1'
         ? SpanishB1Course.reading(lesson as SpanishB1Lesson)
         : widget.level == 'A2'
         ? SpanishA2Course.reading(lesson as SpanishA2Lesson)
@@ -567,7 +575,9 @@ class _AcademySpanishA1LessonScreenState
   }
 
   Widget _conversation() {
-    final dialogue = widget.level == 'B1'
+    final dialogue = widget.level == 'B2'
+        ? SpanishB2Course.conversation(widget.lesson as SpanishB2Lesson)
+        : widget.level == 'B1'
         ? SpanishB1Course.conversation(widget.lesson as SpanishB1Lesson)
         : widget.level == 'A2'
         ? SpanishA2Course.conversation(widget.lesson as SpanishA2Lesson)
@@ -608,7 +618,9 @@ class _AcademySpanishA1LessonScreenState
   }
 
   Widget _listening() {
-    final episode = widget.level == 'B1'
+    final episode = widget.level == 'B2'
+        ? SpanishB2Course.podcast(widget.lesson as SpanishB2Lesson)
+        : widget.level == 'B1'
         ? SpanishB1Course.podcast(widget.lesson as SpanishB1Lesson)
         : widget.level == 'A2'
         ? SpanishA2Course.podcast(widget.lesson as SpanishA2Lesson)
