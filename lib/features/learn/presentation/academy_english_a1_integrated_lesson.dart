@@ -12,6 +12,7 @@ import '../data/academy_english_a1_lesson_checks.dart';
 import '../data/academy_english_a1_dialogues.dart';
 import '../data/academy_english_a1_long_stories.dart';
 import '../data/academy_english_a1_vocabulary.dart';
+import '../data/academy_english_a1_learning_loop.dart';
 import 'academy_illustrated_story_art.dart';
 
 const _lessonGreen = Color(0xFF125842);
@@ -41,11 +42,11 @@ class _AcademyEnglishA1IntegratedLessonState
   late final EnglishA1LongStory _story =
       EnglishA1StorySyllabus.storyFor(widget.unit.id, widget.lessonNumber);
   late final EnglishA1StoryChapter _chapter =
-      EnglishA1StorySyllabus.chapterFor(widget.unit.id, widget.lessonNumber);
+      EnglishA1LearningLoop.chapterFor(widget.unit.id, widget.lessonNumber);
   late final EnglishA1Grammar _grammar =
       EnglishA1LessonChecks.grammarFor(widget.unit.id, widget.lessonNumber);
   late final EnglishA1Dialogue _dialogue =
-      EnglishA1DialogueCatalog.forLesson(widget.unit.id, widget.lessonNumber);
+      EnglishA1LearningLoop.materialFor(widget.unit.id, widget.lessonNumber);
   late final FlutterTts _tts = FlutterTts();
 
   int _stage = 0;
@@ -98,11 +99,11 @@ class _AcademyEnglishA1IntegratedLessonState
       ? const Color(0xFF98E8BC) : _lessonGreen;
 
   static const _stageAr = [
-    'شرح القواعد', '20 مفردة', 'القصة المصورة', 'اختبار الكلمات',
+    'شرح القواعد', '40 مفردة', 'القصة المصورة', 'اختبار الكلمات',
     'المحادثة', 'النطق', 'الاستماع', 'اكتمال الدرس',
   ];
   static const _stageEn = [
-    'Grammar', '20 words', 'Illustrated story', 'Word quiz',
+    'Grammar', '40 words', 'Illustrated story', 'Word quiz',
     'Conversation', 'Pronunciation', 'Listening', 'Complete',
   ];
 
@@ -321,44 +322,75 @@ class _AcademyEnglishA1IntegratedLessonState
 
   Widget _vocabulary() {
     final scheme = Theme.of(context).colorScheme;
+    const categories = <EnglishA1WordKind>[
+      EnglishA1WordKind.noun, EnglishA1WordKind.verb,
+      EnglishA1WordKind.adjective, EnglishA1WordKind.adverb,
+    ];
+    const titles = <String>['Nouns', 'Verbs', 'Adjectives', 'Adverbs'];
+    const titlesAr = <String>['الأسماء', 'الأفعال', 'الصفات', 'الظروف'];
+    const icons = <IconData>[
+      Icons.menu_book_rounded, Icons.directions_run_rounded,
+      Icons.palette_rounded, Icons.schedule_rounded,
+    ];
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Text(_ar ? '20 كلمة للتعلم والمراجعة' : '20 words to learn and review',
-          style: TextStyle(color: _accent,
-              fontSize: 21, fontWeight: FontWeight.w900)),
+      Text(_ar ? '40 كلمة · 4 مجموعات' : '40 words · 4 word groups',
+        style: TextStyle(color: _accent,
+            fontWeight: FontWeight.w900, fontSize: 23)),
       const SizedBox(height: 7),
       Text(_ar
-          ? 'تحتوي القائمة على كلمات جديدة وأخرى تتكرر لترسيخ الحفظ.'
-          : 'New words and intentional revision words build lasting recall.',
-        style: TextStyle(color: scheme.onSurfaceVariant)),
-      const SizedBox(height: 15),
-      for (var i = 0; i < _words.length; i++)
-        Padding(
-          padding: const EdgeInsets.only(bottom: 9),
-          child: _panel(child: Row(children: [
-            Expanded(child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(_words[i].term, textDirection: TextDirection.ltr,
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900,
-                        color: scheme.onSurface)),
-                const SizedBox(height: 4),
-                Text(AcademyEnglishPronunciation.displayHint(_words[i].term),
-                    key: ValueKey('academy-english-pronunciation-$i'),
-                    textDirection: TextDirection.ltr,
-                    style: TextStyle(fontSize: 15,
-                        color: _accent, fontWeight: FontWeight.w700)),
-                const SizedBox(height: 3),
-                Text(_words[i].arabic,
-                    style: TextStyle(color: scheme.onSurface, fontSize: 15)),
-              ],
-            )),
-            IconButton.filledTonal(
-              tooltip: _ar ? 'استمع للكلمة' : 'Hear word',
-              icon: const Icon(Icons.volume_up_rounded),
-              onPressed: () => _hear(_words[i].term),
-            ),
-          ])),
+          ? '10 أسماء + 10 أفعال + 10 صفات + 10 ظروف. استمع لكل كلمة، ثم استخدمها في القصة والحوار والبودكاست.'
+          : 'Ten nouns, ten verbs, ten adjectives and ten adverbs. Listen, then meet the same words in your reading, dialogue and podcast.',
+          style: TextStyle(color: scheme.onSurfaceVariant, height: 1.5)),
+      const SizedBox(height: 16),
+      for (var category = 0; category < categories.length; category++) ...[
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 13),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(colors: [
+              Color(0xFF0E4B3B), Color(0xFF207A59)]),
+            borderRadius: BorderRadius.circular(16)),
+          child: Row(children: [
+            Icon(icons[category], color: _lessonGold),
+            const SizedBox(width: 10),
+            Expanded(child: Text(
+              _ar ? titlesAr[category] : titles[category],
+              style: const TextStyle(color: Colors.white,
+                  fontWeight: FontWeight.w900, fontSize: 19))),
+            Text('10 / 10', style: const TextStyle(color: Colors.white,
+                fontWeight: FontWeight.w700)),
+          ]),
         ),
+        const SizedBox(height: 12),
+        for (var i = 0; i < _words.length; i++)
+          if (_words[i].kind == categories[category])
+            Padding(
+              padding: const EdgeInsets.only(bottom: 9),
+              child: _panel(child: Row(children: [
+                Expanded(child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(_words[i].term, textDirection: TextDirection.ltr,
+                      style: TextStyle(fontSize: 21,
+                          fontWeight: FontWeight.w900,
+                          color: scheme.onSurface)),
+                    const SizedBox(height: 4),
+                    Text(AcademyEnglishPronunciation.displayHint(_words[i].term),
+                      key: ValueKey('academy-english-pronunciation-$i'),
+                      textDirection: TextDirection.ltr,
+                      style: TextStyle(fontSize: 14,
+                          color: _accent, fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 5),
+                    Text(_words[i].arabic,
+                      style: TextStyle(color: scheme.onSurface, fontSize: 15)),
+                  ])),
+                IconButton.filledTonal(
+                  tooltip: _ar ? 'استمع للكلمة' : 'Hear word',
+                  icon: const Icon(Icons.volume_up_rounded),
+                  onPressed: () => _hear(_words[i].term)),
+              ])),
+            ),
+        const SizedBox(height: 11),
+      ],
     ]);
   }
 
@@ -633,9 +665,63 @@ class _AcademyEnglishA1IntegratedLessonState
     ]);
   }
 
+  /// A beginner-first, one-rule overview before the full guided examples.
+  Widget _oneRuleOverview() {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      key: const ValueKey('academy-one-rule-overview'),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLow,
+        border: Border.all(color: _lessonGold, width: 1.3),
+        borderRadius: BorderRadius.circular(18)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Row(children: [
+          const Icon(Icons.lightbulb_rounded, color: Color(0xFFC39B51)),
+          const SizedBox(width: 8),
+          Expanded(child: Text(
+            _ar ? 'قاعدة واحدة، خطوة بخطوة' : 'One rule, step by step',
+            style: TextStyle(color: _accent, fontWeight: FontWeight.w900,
+                fontSize: 18))),
+        ]),
+        const SizedBox(height: 15),
+        Text(_grammar.title, textDirection: TextDirection.ltr,
+          style: TextStyle(color: _accent, fontWeight: FontWeight.w900,
+              fontSize: 22)),
+        const SizedBox(height: 9),
+        Text(_grammar.helpArabic, textDirection: TextDirection.rtl,
+          style: TextStyle(color: scheme.onSurface, height: 1.7,
+              fontSize: 16)),
+        const SizedBox(height: 13),
+        Text(_ar ? 'انظر إلى المثال ثم استمع إليه:' :
+          'Study this simple model, then listen:',
+          style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13)),
+        const SizedBox(height: 8),
+        Row(children: [
+          Expanded(child: Text(_grammar.example,
+            textDirection: TextDirection.ltr,
+            style: TextStyle(color: scheme.onSurface,
+                fontSize: 18, fontWeight: FontWeight.w800, height: 1.6))),
+          IconButton.filledTonal(
+            tooltip: _ar ? 'استمع للمثال' : 'Play grammar model',
+            onPressed: () => _hear(_grammar.example),
+            icon: const Icon(Icons.volume_up_rounded)),
+        ]),
+        const SizedBox(height: 7),
+        Text(_ar ? 'تابع الأمثلة المتعددة بالأسفل ثم حل السؤال.' :
+          'Review the worked examples below and answer the check.',
+          style: TextStyle(color: scheme.onSurfaceVariant)),
+      ]),
+    );
+  }
+
   Widget _grammarPage() {
     final tutor = _tutor;
-    if (tutor != null) return _tutorGrammarPage(tutor);
+    if (tutor != null) {
+      return Column(crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [_oneRuleOverview(), const SizedBox(height: 22),
+          _tutorGrammarPage(tutor)]);
+    }
     final scheme = Theme.of(context).colorScheme;
     final workshop = AcademyGrammarWorkshops.forLesson(
         widget.unit.id, widget.lessonNumber);
@@ -646,6 +732,8 @@ class _AcademyEnglishA1IntegratedLessonState
     }
     final right = _checked && _chosen == workshop.answer;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      _oneRuleOverview(),
+      const SizedBox(height: 22),
       Row(children: [
         const CircleAvatar(radius: 23,
           backgroundColor: Color(0xFFD6EBDF),
@@ -792,13 +880,13 @@ class _AcademyEnglishA1IntegratedLessonState
     final choices = <String>[other1.arabic, other2.arabic];
     choices.insert(correct, word.arabic);
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Text(_ar ? 'استماع وحوار من الحياة اليومية' : 'Listen to a real-life passage',
+      Text(_ar ? 'بودكاست الدرس · استماع ومفردات' : 'Lesson podcast · listening and vocabulary',
         style: TextStyle(color: _accent, fontSize: 23,
             fontWeight: FontWeight.w900)),
       const SizedBox(height: 8),
       Text(_ar
-          ? 'استمع إلى الفقرة كاملة، ثم اكشف النص إذا احتجت.'
-          : 'Listen to the passage first, and reveal the transcript if needed.',
+          ? 'استمع إلى حلقة صوتية تُعيد كلمات الدرس الأربعين، ثم اكشف النص عند الحاجة.'
+          : 'Listen to the lesson podcast recycling all forty words, then reveal the transcript if needed.',
         style: TextStyle(color: scheme.onSurfaceVariant, height: 1.5)),
       const SizedBox(height: 13),
       _panel(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -858,16 +946,16 @@ class _AcademyEnglishA1IntegratedLessonState
           style: TextStyle(color: _accent,
               fontSize: 22, fontWeight: FontWeight.w900)),
       const SizedBox(height: 7),
-      Text(_ar ? 'قصة قصيرة · 3 فقرات' :
-          'Short story · 3 paragraphs',
+      Text(_ar ? 'كتاب مصوّر · 4 فقرات مرتبطة بالمفردات' :
+          'Illustrated book · 4 linked reading paragraphs',
         style: TextStyle(color: scheme.onSurfaceVariant)),
       const SizedBox(height: 10),
       Text(_ar ? _chapter.titleArabic : _chapter.title,
           style: TextStyle(fontSize: 18, color: scheme.onSurface)),
       const SizedBox(height: 12),
       Text(_ar
-          ? 'صفحة قراءة واحدة، تحتوي على رسمة وثلاث فقرات وصوت وترجمة وسؤال.'
-          : 'One readable page with an illustration, three paragraphs, audio, translation and a question.',
+          ? 'قصة مصوّرة بتصميم كتاب تعليمي، مع مفردات الدرس وصور وصوت وترجمة واختبار فهم.'
+          : 'An illustrated book page with lesson vocabulary, pictures, audio, translation and a comprehension check.',
         style: TextStyle(color: scheme.onSurfaceVariant, height: 1.5)),
       const SizedBox(height: 15),
       FilledButton.icon(
@@ -894,7 +982,7 @@ class _AcademyEnglishA1IntegratedLessonState
 
   Widget _practice() {
     final scheme = Theme.of(context).colorScheme;
-    final index = _practiceNumber * 4;
+    final index = _practiceNumber * 5;
     final word = _words[index];
     final correctIndex = (_practiceNumber + 1) % 3;
     final choices = <String>[
@@ -906,8 +994,8 @@ class _AcademyEnglishA1IntegratedLessonState
             fontWeight: FontWeight.w900)),
       const SizedBox(height: 6),
       Text(_ar
-          ? 'سؤال ${_practiceNumber + 1} من 4'
-          : 'Question ${_practiceNumber + 1} of 4',
+          ? 'سؤال ${_practiceNumber + 1} من 8'
+          : 'Question ${_practiceNumber + 1} of 8',
         style: TextStyle(color: scheme.onSurfaceVariant)),
       const SizedBox(height: 13),
       _panel(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -925,7 +1013,7 @@ class _AcademyEnglishA1IntegratedLessonState
         question: _ar ? 'ما المعنى الصحيح؟' : 'Choose the correct meaning.',
         options: choices, correct: correctIndex, rtlOptions: true,
         onPassed: () {
-          if (_practiceNumber == 3) {
+          if (_practiceNumber == 7) {
             _next();
           } else {
             setState(() {
@@ -952,8 +1040,8 @@ class _AcademyEnglishA1IntegratedLessonState
             fontSize: 26, fontWeight: FontWeight.w900)),
       const SizedBox(height: 13),
       Text(_ar
-          ? 'أنهيت المحادثة، وراجعت 20 كلمة، وتدربت على النطق والقواعد والاستماع، وقرأت فصل القصة، وأجبت عن الاختبار.'
-          : 'You completed conversation, 20 vocabulary items, pronunciation, grammar, listening, an illustrated story chapter, and practice.',
+          ? 'أنهيت المحادثة، وراجعت 40 كلمة، وتدربت على النطق والقواعد والاستماع، وقرأت فصل القصة، وأجبت عن الاختبار.'
+          : 'You completed conversation, 40 vocabulary items, pronunciation, grammar, listening, an illustrated story chapter, and practice.',
         textAlign: TextAlign.center,
         style: TextStyle(color: scheme.onSurface, fontSize: 16, height: 1.7)),
       const SizedBox(height: 25),
@@ -1039,8 +1127,8 @@ class _AcademyEnglishA1IntegratedLessonState
                                 fontWeight: FontWeight.w800)),
                           const SizedBox(height: 4),
                           Text(i == 1
-                              ? (_ar ? '20 كلمة بالصوت والمعنى والنطق' :
-                                  '20 words with audio, meaning and pronunciation')
+                              ? (_ar ? '40 كلمة بالصوت والمعنى والنطق' :
+                                  '40 words with audio, meaning and pronunciation')
                               : i == 2
                                   ? (_ar ? 'قصة قصيرة في صفحة واحدة' :
                                       'One-page illustrated reading')
@@ -1264,14 +1352,42 @@ class _EnglishA1BookChapterState extends State<_EnglishA1BookChapter> {
               border: Border.all(color: scheme.outlineVariant),
             ),
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              Text(_ar ? widget.story.titleArabic : widget.story.title,
-                textAlign: TextAlign.center,
-                style: TextStyle(color: scheme.onSurface,
-                    fontWeight: FontWeight.w900, fontSize: 24)),
-              const SizedBox(height: 6),
-              Text(_ar ? widget.chapter.titleArabic : widget.chapter.title,
-                textAlign: TextAlign.center,
-                style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 15)),
+              Container(
+                padding: const EdgeInsets.fromLTRB(16, 22, 16, 22),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF124735), Color(0xFF277A60)]),
+                  borderRadius: BorderRadius.circular(17)),
+                child: Column(children: [
+                  const Icon(Icons.auto_stories_rounded,
+                      color: Color(0xFFF2CB84), size: 34),
+                  const SizedBox(height: 7),
+                  const Text('WORLDVOICE  •  ENGLISH A1',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Color(0xFFF2CB84),
+                        fontSize: 11, letterSpacing: 1.5,
+                        fontWeight: FontWeight.w800)),
+                  const SizedBox(height: 13),
+                  Text(_ar ? widget.story.titleArabic : widget.story.title,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.white,
+                        fontFamily: 'serif', height: 1.25,
+                        fontWeight: FontWeight.w900, fontSize: 26)),
+                  const SizedBox(height: 8),
+                  Text(_ar ? widget.chapter.titleArabic : widget.chapter.title,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                        color: Color(0xFFECDEC3), fontSize: 15)),
+                  const SizedBox(height: 12),
+                  Text(_ar ? 'قراءة مصوّرة مع مفردات الدرس' :
+                    'ILLUSTRATED READING · LESSON WORDS',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                        color: Color(0xFFF2CB84), fontSize: 11)),
+                ]),
+              ),
               const SizedBox(height: 15),
               // Bundled vector art (one scene). No video or remote fetch.
               AcademyIllustratedStoryArt(
@@ -1281,14 +1397,55 @@ class _EnglishA1BookChapterState extends State<_EnglishA1BookChapter> {
               ),
               const SizedBox(height: 18),
               for (var i = 0; i < paragraphs.length; i++) ...[
-                SelectableText(
-                  paragraphs[i].english,
-                  key: ValueKey('academy-story-paragraph-$i'),
-                  textDirection: TextDirection.ltr,
-                  style: TextStyle(color: scheme.onSurface, height: 1.68,
-                    fontSize: _fontSize, fontWeight: FontWeight.w500),
+                Container(
+                  margin: const EdgeInsets.only(bottom: 14),
+                  padding: const EdgeInsets.all(15),
+                  decoration: BoxDecoration(
+                    color: night ? scheme.surfaceContainerHighest
+                        : const Color(0xFFFFF9EC),
+                    border: Border.all(color: night
+                        ? scheme.outlineVariant : const Color(0xFFE7D9B7)),
+                    borderRadius: BorderRadius.circular(14)),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                    Row(children: [
+                      const Icon(Icons.bookmark_rounded,
+                        color: Color(0xFFB78B47), size: 17),
+                      const SizedBox(width: 6),
+                      Text(_ar ? 'الفقرة ${i + 1}' : 'PAGE ${i + 1}',
+                        style: TextStyle(color: night
+                            ? scheme.onSurfaceVariant : const Color(0xFF6D5A3F),
+                            fontWeight: FontWeight.w800,
+                            fontSize: 11, letterSpacing: 1.1)),
+                      const Spacer(),
+                      IconButton(
+                        tooltip: _ar ? 'استمع للفقرة' : 'Read this paragraph',
+                        onPressed: () => _speak(paragraphs[i].english),
+                        icon: const Icon(Icons.volume_up_rounded, size: 19)),
+                    ]),
+                    SelectableText(
+                      paragraphs[i].english,
+                      key: ValueKey('academy-story-paragraph-$i'),
+                      textDirection: TextDirection.ltr,
+                      style: TextStyle(color: scheme.onSurface,
+                        height: 1.8, fontFamily: 'serif',
+                        fontSize: _fontSize, fontWeight: FontWeight.w500)),
+                    if (_translate) ...[
+                      const SizedBox(height: 9),
+                      Text(paragraphs[i].arabic,
+                        textDirection: TextDirection.rtl,
+                        style: TextStyle(color: scheme.onSurfaceVariant,
+                            height: 1.6, fontSize: _fontSize - 3)),
+                    ],
+                  ]),
                 ),
-                const SizedBox(height: 15),
+                if (i == 1 || i == 2) ...[
+                  AcademyIllustratedStoryArt(
+                    scene: widget.story.scene,
+                    page: widget.chapterNumber + i,
+                    animate: false),
+                  const SizedBox(height: 15),
+                ],
               ],
               Wrap(spacing: 8, runSpacing: 7, children: [
                 FilledButton.tonalIcon(
@@ -1308,17 +1465,7 @@ class _EnglishA1BookChapterState extends State<_EnglishA1BookChapter> {
                   label: Text(_ar ? 'الترجمة' : 'Translation'),
                 ),
               ]),
-              if (_translate) ...[
-                const SizedBox(height: 14),
-                for (final paragraph in paragraphs)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 13),
-                    child: Text(paragraph.arabic,
-                      textDirection: TextDirection.rtl,
-                      style: TextStyle(fontSize: _fontSize - 2, height: 1.6,
-                          color: scheme.onSurface)),
-                  ),
-              ],
+
             ]),
           ),
           const SizedBox(height: 24),

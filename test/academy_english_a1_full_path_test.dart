@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:worldvoice/features/learn/data/academy_english_a1_catalog.dart';
 import 'package:worldvoice/features/learn/data/academy_english_a1_vocabulary.dart';
 import 'package:worldvoice/features/learn/data/academy_english_a1_long_stories.dart';
+import 'package:worldvoice/features/learn/data/academy_english_a1_learning_loop.dart';
 import 'package:worldvoice/features/learn/data/academy_english_a1_lesson_checks.dart';
 import 'package:worldvoice/features/learn/presentation/academy_english_a1_screen.dart';
 import 'package:worldvoice/features/learn/presentation/academy_english_a1_integrated_lesson.dart';
@@ -50,8 +51,25 @@ void main() {
         expect(lesson.options, hasLength(3));
         expect(lesson.answer, inInclusiveRange(0, 2));
         final words = EnglishA1Vocabulary.forLesson(unit.id, num);
-        expect(words, hasLength(20));
-        expect(words.map((w) => w.term.toLowerCase()).toSet().length, 20);
+        expect(words, hasLength(40));
+        expect(words.map((w) => w.term.toLowerCase()).toSet().length, 40);
+        for (final kind in EnglishA1WordKind.values) {
+          expect(words.where((w) => w.kind == kind), hasLength(10),
+              reason: '${unit.id} / $num / $kind');
+        }
+        final linked = EnglishA1LearningLoop.chapterFor(unit.id, num);
+        expect(linked.paragraphs, hasLength(4));
+        final extension = linked.paragraphs.last.english.toLowerCase();
+        final noun = words.firstWhere((w) => w.kind == EnglishA1WordKind.noun);
+        final verb = words.firstWhere((w) => w.kind == EnglishA1WordKind.verb);
+        expect(extension, contains(noun.term.toLowerCase()));
+        expect(extension, contains(verb.term.toLowerCase()));
+        final audio = EnglishA1LearningLoop.materialFor(unit.id, num);
+        expect(audio.dialogue, contains(noun.term));
+        for (final word in words) {
+          expect(audio.listening.toLowerCase(),
+              contains(word.term.toLowerCase()));
+        }
         for (final word in words) {
           expect(word.term.trim(), isNotEmpty);
           expect(word.arabic.trim(), isNotEmpty);
@@ -109,7 +127,7 @@ void main() {
     expect((await EnglishA1Progress.load('person-a')).length, 1);
   });
 
-  testWidgets('lesson starts with grammar, then teaches twenty words',
+  testWidgets('lesson starts with grammar, then teaches forty categorized words',
       (tester) async {
     tester.view.physicalSize = const Size(900, 1400);
     tester.view.devicePixelRatio = 1;
@@ -132,7 +150,7 @@ void main() {
     expect(locked.onTap, isNull);
     await tester.tap(find.byKey(const ValueKey('academy-section-0')));
     await tester.pumpAndSettle();
-    expect(find.text('I am / You are'), findsOneWidget);
+    expect(find.text('I am / You are'), findsWidgets);
     expect(find.textContaining('I am Sara.'), findsWidgets);
     expect(find.byKey(const ValueKey('academy-integrated-next')), findsNothing);
     await passFirstTutorGrammar(tester);
@@ -142,11 +160,11 @@ void main() {
         findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('academy-section-1')));
     await tester.pumpAndSettle();
-    expect(find.text('20 words to learn and review'), findsOneWidget);
-    expect(find.text('hello'), findsWidgets);
+    expect(find.text('40 words · 4 word groups'), findsOneWidget);
+    expect(find.text('notebook'), findsWidgets);
   });
 
-  testWidgets('single-page story shows all three paragraphs at once',
+  testWidgets('illustrated reader shows four paragraphs with lesson vocabulary',
       (tester) async {
     tester.view.physicalSize = const Size(900, 1450);
     tester.view.devicePixelRatio = 1;
@@ -175,7 +193,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('academy-story-single-page')),
         findsOneWidget);
-    for (var i = 0; i < 3; i++) {
+    for (var i = 0; i < 4; i++) {
       expect(find.byKey(ValueKey('academy-story-paragraph-$i')),
           findsOneWidget);
     }
