@@ -36,7 +36,7 @@ Future<void> reachAdvancedWriting(
     await openAdvancedSection(tester, index);
     if (index == 0) {
       final workshop = AdvancedGrammarWorkshops.forLesson(
-          lesson.level, lesson.number)!;
+          lesson.level, lesson.number, unitNumber: lesson.unitNumber)!;
       final answer = find.byKey(
           ValueKey('advanced-grammar-option-${workshop.answer}'));
       await tester.ensureVisible(answer);
@@ -58,13 +58,13 @@ void main() {
   test('A2-C2 published lessons have original graded stories and unique vocabulary', () {
     expect(EnglishAdvancedSyllabus.levels,
         <String>['A2', 'B1', 'B2', 'C1', 'C2']);
-    expect(EnglishAdvancedSyllabus.lessons, hasLength(40));
+    expect(EnglishAdvancedSyllabus.lessons, hasLength(50));
     final storyTexts = <String>{};
     final taughtWords = <String>{};
     final previousListeningLength = <int>[0, 0];
     for (final level in EnglishAdvancedSyllabus.levels) {
       final lessons = EnglishAdvancedSyllabus.forLevel(level);
-      expect(lessons, hasLength(level == 'A2' ? 20 : level == 'B1' ? 10 : level == 'B2' ? 4 : 3),
+      expect(lessons, hasLength(level == 'A2' ? 30 : level == 'B1' ? 10 : level == 'B2' ? 4 : 3),
           reason: 'Published lessons $level');
       for (var index = 0; index < lessons.length; index++) {
         final lesson = lessons[index];
@@ -188,7 +188,39 @@ void main() {
           greaterThanOrEqualTo(50));
     }
     expect(newWords, hasLength(240));
-    expect(EnglishAdvancedSyllabus.findLesson('A2', 3, 1), isNull);
+    expect(EnglishAdvancedSyllabus.findLesson('A2', 3, 1), isNotNull);
+  });
+
+  test('A2 unit three publishes all ten complete lessons with their own support', () {
+    final unit = EnglishAdvancedSyllabus.forUnit('A2', 3);
+    final outline = EnglishAdvancedSyllabus.unitsForLevel('A2')[2];
+    expect(unit, hasLength(10));
+    expect(EnglishAdvancedSyllabus.forLevel('A2'), hasLength(30));
+    final ids = <String>{};
+    for (var number = 1; number <= 10; number++) {
+      final lesson = outline.lessonAt(number)!;
+      expect(lesson.title, outline.plannedTopics[number - 1]);
+      expect(lesson.id, 'worldvoice.en.a2.u3.l${number.toString().padLeft(2, '0')}');
+      expect(ids.add(lesson.id), isTrue);
+      expect(lesson.storyWords, hasLength(12));
+      expect(lesson.extraWords, hasLength(12));
+      expect(lesson.paragraphs, hasLength(3));
+      expect(lesson.listening.split(RegExp(r'\s+')).length, greaterThanOrEqualTo(50));
+      final workshop = AdvancedGrammarWorkshops.forLesson('A2', number, unitNumber: 3);
+      expect(workshop, isNotNull);
+      expect(workshop!.examples, hasLength(3));
+      expect(workshop.options, hasLength(3));
+      expect(workshop.answer, inInclusiveRange(0, 2));
+      expect(workshop.options[workshop.answer].trim(), isNotEmpty);
+      expect(workshop.wrong, isNot(workshop.correct));
+      expect(identical(workshop, AdvancedGrammarWorkshops.forLesson('A2', number)), isFalse);
+      final dialogue = EnglishAdvancedDialogues.forLesson(lesson);
+      expect(dialogue.lines, hasLength(5));
+      expect(dialogue.pronunciation, hasLength(3));
+      expect(lesson.spellingChallenge, hasLength(3));
+    }
+    expect(AdvancedGrammarWorkshops.forLesson('A2', 11, unitNumber: 3), isNull);
+    expect(AdvancedGrammarWorkshops.forLesson('B1', 1, unitNumber: 3), isNull);
   });
 
   test('B2 Unit 1 Lesson 4 contains a full graded story and unique vocab', () {
@@ -304,7 +336,7 @@ void main() {
         expect(unit.plannedTopics.toSet().length, 10);
         for (var number = 1; number <= 10; number++) {
           final lesson = unit.lessonAt(number);
-          if ((unit.number == 1 && number <= (level == 'A2' ? 10 : level == 'B1' ? 10 : level == 'B2' ? 4 : 3)) || (level == 'A2' && unit.number == 2 && number <= 10)) {
+          if ((unit.number == 1 && number <= (level == 'A2' ? 10 : level == 'B1' ? 10 : level == 'B2' ? 4 : 3)) || (level == 'A2' && unit.number >= 2 && number <= 10)) {
             expect(lesson, isNotNull);
             expect(lesson!.number, number);
             expect(lesson.unitNumber, unit.number);
@@ -396,7 +428,7 @@ void main() {
       expect(lesson.spellingChallenge, hasLength(3));
     }
     expect(EnglishAdvancedSyllabus.forUnit('A2', 2), hasLength(10));
-    expect(EnglishAdvancedSyllabus.forUnit('A2', 3), isEmpty);
+    expect(EnglishAdvancedSyllabus.forUnit('A2', 3), hasLength(10));
   });
 
   test('Every published advanced lesson has a distinct guided dialogue and IPA practice', () {
@@ -488,6 +520,32 @@ void main() {
         reason: 'An unfinished spelling/writing task must lock completion.');
   });
 
+  testWidgets('A2 unit three opens its grammar and reaches gated written recall',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 1450);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    final lesson = EnglishAdvancedSyllabus.findLesson('A2', 3, 1)!;
+    await tester.pumpWidget(MaterialApp(
+      home: AcademyEnglishAdvancedLessonScreen(lesson: lesson),
+    ));
+    await reachAdvancedWriting(tester, lesson);
+    final input = find.byKey(const ValueKey('advanced-write-word'));
+    await tester.scrollUntilVisible(input, 500,
+        scrollable: find.byType(Scrollable).first, maxScrolls: 80);
+    expect(find.text('1 / 3'), findsOneWidget);
+    await tester.enterText(input, lesson.spellingChallenge.first.term);
+    final check = find.byKey(const ValueKey('advanced-check-word'));
+    await tester.ensureVisible(check);
+    await tester.tap(check);
+    await tester.pump();
+    expect(find.text('2 / 3'), findsOneWidget);
+    expect(find.byKey(const ValueKey('advanced-finish')), findsNothing);
+  });
+
   test('advanced progress is account-scoped and cannot mark unwritten lessons', () async {
     SharedPreferences.setMockInitialValues({});
     final first = EnglishAdvancedSyllabus.forLevel('A2').first;
@@ -570,3 +628,4 @@ void main() {
   });
 
 }
+

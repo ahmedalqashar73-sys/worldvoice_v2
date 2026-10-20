@@ -45,7 +45,7 @@ void main() {
         EnglishAdvancedSyllabus.lessons.length);
     for (final lesson in EnglishAdvancedSyllabus.lessons) {
       final workshop = AdvancedGrammarWorkshops.forLesson(
-          lesson.level, lesson.number);
+          lesson.level, lesson.number, unitNumber: lesson.unitNumber);
       expect(workshop, isNotNull, reason: lesson.id);
       expect(lesson.grammarExamples, hasLength(3));
       expect(workshop!.examples, hasLength(3));
@@ -134,3 +134,4 @@ void main() {
     expect(tester.widget<FilledButton>(next).onPressed, isNotNull);
   });
 }
+

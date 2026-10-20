@@ -21,6 +21,78 @@ class AdvancedGrammarWorkshop {
   final int answer;
 }
 abstract final class AdvancedGrammarWorkshops {
+  static const _unit3A2 = <int, AdvancedGrammarWorkshop>{
+    1: AdvancedGrammarWorkshop(
+      explanationEnglish: "Use Could you + base verb to ask someone politely to do something. Use Could I + base verb to ask permission. Do not add to after could.",
+      examples: <AdvancedGrammarExample>[AdvancedGrammarExample("Could you show me the elevator?", "هل يمكنك إرشادي إلى المصعد؟"), AdvancedGrammarExample("Could I have a second key card?", "هل يمكنني الحصول على بطاقة مفتاح ثانية؟"), AdvancedGrammarExample("Could you tell me the breakfast hours?", "هل يمكنك إخباري بساعات الإفطار؟")],
+      wrong: "Could you to check the booking?", correct: "Could you check the booking?",
+      question: "Choose the grammatically correct sentence.",
+      options: <String>["Could you checks the booking?", "Could you check the booking?", "Could you to check the booking?"], answer: 1,
+    ),
+    2: AdvancedGrammarWorkshop(
+      explanationEnglish: "Would like to + base verb expresses a polite wish. Want to is more direct. Use a noun after would like when you are requesting a thing.",
+      examples: <AdvancedGrammarExample>[AdvancedGrammarExample("We would like to arrive on Saturday.", "نود الوصول يوم السبت."), AdvancedGrammarExample("Would you like another night?", "هل ترغب في ليلة أخرى؟"), AdvancedGrammarExample("I want to read the new booking summary.", "أريد قراءة ملخص الحجز الجديد.")],
+      wrong: "I would like change my dates.", correct: "I would like to change my dates.",
+      question: "Choose the grammatically correct sentence.",
+      options: <String>["I would like changing my dates.", "I would like to changing my dates.", "I would like to change my dates."], answer: 2,
+    ),
+    3: AdvancedGrammarWorkshop(
+      explanationEnglish: "Use must + base verb for a rule or strong obligation. Use must not for something that is forbidden. The verb after must never takes an extra s.",
+      examples: <AdvancedGrammarExample>[AdvancedGrammarExample("You must leave large bags outside.", "يجب أن تترك الحقائب الكبيرة بالخارج."), AdvancedGrammarExample("We must not use a flash here.", "يُمنع أن نستخدم الفلاش هنا."), AdvancedGrammarExample("Everyone must follow the guide.", "يجب أن يتبع الجميع المرشد.")],
+      wrong: "Visitors must to keep their tickets.", correct: "Visitors must keep their tickets.",
+      question: "Choose the grammatically correct sentence.",
+      options: <String>["You must not touch the glass case.", "You must not touching the glass case.", "You must not to touch the glass case."], answer: 0,
+    ),
+    4: AdvancedGrammarWorkshop(
+      explanationEnglish: "Use am, is or are + verb-ing for a future arrangement, especially with a future time expression. The time expression distinguishes the arrangement from an action happening now.",
+      examples: <AdvancedGrammarExample>[AdvancedGrammarExample("My cousin is meeting me tonight.", "سيقابلني ابن عمي الليلة."), AdvancedGrammarExample("They are leaving on Friday morning.", "سيغادرون صباح الجمعة."), AdvancedGrammarExample("Are you taking the early flight tomorrow?", "هل ستستقل الرحلة المبكرة غدًا؟")],
+      wrong: "We is flying tomorrow.", correct: "We are flying tomorrow.",
+      question: "Choose the grammatically correct sentence.",
+      options: <String>["We are fly tomorrow.", "We are flying tomorrow.", "We is flying tomorrow."], answer: 1,
+    ),
+    5: AdvancedGrammarWorkshop(
+      explanationEnglish: "Use Shall I + base verb to offer help as a question. Use I will or I will not to make a decision or offer at the moment of speaking. In conversation, I will is often contracted to I'll.",
+      examples: <AdvancedGrammarExample>[AdvancedGrammarExample("Shall I open the door for you?", "هل أفتح الباب لك؟"), AdvancedGrammarExample("I will put the box beside the wall.", "سأضع الصندوق بجوار الحائط."), AdvancedGrammarExample("Shall I bring a larger screwdriver?", "هل أحضر مفكًا أكبر؟")],
+      wrong: "Shall I to carry the box?", correct: "Shall I carry the box?",
+      question: "Choose the grammatically correct sentence.",
+      options: <String>["Shall I carrying the box?", "Shall I carries the box?", "Shall I carry the box?"], answer: 2,
+    ),
+    6: AdvancedGrammarWorkshop(
+      explanationEnglish: "Ask about a finished past job with Did + subject + base verb. Use the past simple in the answer. Do not put the main verb in the past form after did.",
+      examples: <AdvancedGrammarExample>[AdvancedGrammarExample("When did your last job finish?", "متى انتهت وظيفتك السابقة؟"), AdvancedGrammarExample("She answered every question clearly.", "أجابت عن كل سؤال بوضوح."), AdvancedGrammarExample("Did they ask about your working hours?", "هل سألوا عن ساعات عملك؟")],
+      wrong: "Did you worked in a shop?", correct: "Did you work in a shop?",
+      question: "Choose the grammatically correct sentence.",
+      options: <String>["Did you work in a shop?", "Did you worked in a shop?", "Did you working in a shop?"], answer: 0,
+    ),
+    7: AdvancedGrammarWorkshop(
+      explanationEnglish: "Put usually, often and rarely before the main verb but after be. Ask How often to find out the frequency. Expressions such as twice a week usually come at the end.",
+      examples: <AdvancedGrammarExample>[AdvancedGrammarExample("She rarely misses a class.", "نادرًا ما تفوتها حصة."), AdvancedGrammarExample("They are usually ready by six.", "يكونون عادة جاهزين بحلول السادسة."), AdvancedGrammarExample("How often do you walk to work?", "كم مرة تمشي إلى العمل؟")],
+      wrong: "He is often be early.", correct: "He is often early.",
+      question: "Choose the grammatically correct sentence.",
+      options: <String>["He goes twice a week to always.", "He usually goes to class on Monday.", "He goes usually to class on Monday."], answer: 1,
+    ),
+    8: AdvancedGrammarWorkshop(
+      explanationEnglish: "Use if + present simple for a possible future condition, and will + base verb for its result. The if clause can come first or second. Do not use will inside the if clause in this pattern.",
+      examples: <AdvancedGrammarExample>[AdvancedGrammarExample("If the rain stops, we will visit the farmyard.", "إذا توقف المطر، فسنزور ساحة المزرعة."), AdvancedGrammarExample("They will wait here if the coach is late.", "سينتظرون هنا إذا تأخرت الحافلة."), AdvancedGrammarExample("If you bring boots, your feet will stay dry.", "إذا أحضرت أحذية مطاطية، فستبقى قدماك جافتين.")],
+      wrong: "If it will rain, we will go inside.", correct: "If it rains, we will go inside.",
+      question: "Choose the grammatically correct sentence.",
+      options: <String>["If it raining, we will go inside.", "If it will rain, we go inside.", "If it rains, we will go inside."], answer: 2,
+    ),
+    9: AdvancedGrammarWorkshop(
+      explanationEnglish: "Too comes before an adjective and suggests a problem: too cold. Enough comes after an adjective: warm enough. Enough comes before a noun: enough time.",
+      examples: <AdvancedGrammarExample>[AdvancedGrammarExample("The drink is too hot to drink now.", "الشراب ساخن أكثر من اللازم لشربه الآن."), AdvancedGrammarExample("This table is big enough for us.", "هذه الطاولة كبيرة بما يكفي لنا."), AdvancedGrammarExample("There are enough napkins for everyone.", "توجد مناديل كافية للجميع.")],
+      wrong: "The meal is enough warm.", correct: "The meal is warm enough.",
+      question: "Choose the grammatically correct sentence.",
+      options: <String>["The meal is warm enough.", "The meal is enough warm.", "The meal warm is too enough."], answer: 0,
+    ),
+    10: AdvancedGrammarWorkshop(
+      explanationEnglish: "Use am, is or are going to + base verb for an intention or plan. Use if + present simple and will + base verb to describe an alternative if circumstances change.",
+      examples: <AdvancedGrammarExample>[AdvancedGrammarExample("I am going to buy a new sketchbook.", "أنوي شراء دفتر رسم جديد."), AdvancedGrammarExample("Are they going to travel by bus?", "هل ينوون السفر بالحافلة؟"), AdvancedGrammarExample("If the course is full, we will choose another week.", "إذا كانت الدورة ممتلئة، فسنختار أسبوعًا آخر.")],
+      wrong: "We going to visit the village.", correct: "We are going to visit the village.",
+      question: "Choose the grammatically correct sentence.",
+      options: <String>["We are going visit the village.", "We are going to visit the village.", "We going to visiting the village."], answer: 1,
+    ),
+  };
   static const _unit2A2 = <int, AdvancedGrammarWorkshop>{
     1: AdvancedGrammarWorkshop(
       explanationEnglish: 'Comparatives describe differences: brighter than, more comfortable than. Enough follows an adjective but precedes a noun.',
@@ -392,9 +464,12 @@ abstract final class AdvancedGrammarWorkshops {
   };
   static AdvancedGrammarWorkshop? forLesson(String level, int number,
       {int unitNumber = 1}) {
+    if (unitNumber == 3 && level == 'A2') return _unit3A2[number];
     if (unitNumber == 2 && level == 'A2') return _unit2A2[number];
     if (unitNumber != 1) return null;
     return _workshops['$level:$number'];
   }
-  static int get count => _workshops.length;
+  static int get count =>
+      _workshops.length + _unit2A2.length + _unit3A2.length;
 }
+

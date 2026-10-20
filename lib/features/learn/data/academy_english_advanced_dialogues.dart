@@ -15,6 +15,66 @@ class EnglishAdvancedDialogue {
 
 abstract final class EnglishAdvancedDialogues {
   static const _dialogues = <String, EnglishAdvancedDialogue>{
+    'a2.3.1': EnglishAdvancedDialogue(
+      lines: <String>["Salma: Could you check my booking, please?", "Receptionist: Certainly. What seems to be wrong?", "Salma: We booked a twin room, but this room has one bed.", "Receptionist: I am sorry. I can give you the correct room now.", "Salma: Thank you. Could we have two key cards?"],
+      tip: "Say Could you as a smooth phrase, then stress the main request: check my booking.",
+      tipArabic: "اربط Could you بسلاسة، وشدّد على الفعل الأساسي في الطلب.",
+      pronunciation: <String>["reception /rɪˈsepʃən/", "porter /ˈpɔːrtər/", "elevator /ˈeləveɪtər/"],
+    ),
+    'a2.3.2': EnglishAdvancedDialogue(
+      lines: <String>["Omar: I would like to move my arrival to Saturday.", "Agent: Certainly. Would you like to keep the same number of nights?", "Omar: Yes, two nights, please. Is there a change fee?", "Agent: No, your flexible rate includes this change.", "Omar: Great. I would like written confirmation, please."],
+      tip: "Practise I would like to as one phrase; stress the new day to make the change clear.",
+      tipArabic: "تدرّب على I would like to كعبارة واحدة، وأبرز اسم اليوم الجديد.",
+      pronunciation: <String>["calendar /ˈkælɪndər/", "available /əˈveɪləbəl/", "cancel /ˈkænsəl/"],
+    ),
+    'a2.3.3': EnglishAdvancedDialogue(
+      lines: <String>["Maya: Can I take a photo of this pot?", "Guide: Yes, but you must not use a flash.", "Maya: Do I have to leave my small bag outside?", "Guide: No, small bags are allowed. You must leave large bags in the cloakroom.", "Maya: Thank you. I will keep my ticket with me."],
+      tip: "Make the negative clear in must not; do not let a rule sound like permission.",
+      tipArabic: "انطق not بوضوح حتى لا تبدو قاعدة المنع وكأنها إذن.",
+      pronunciation: <String>["museum /mjuˈziːəm/", "ancient /ˈeɪnʃənt/", "exhibition /ˌeksɪˈbɪʃən/"],
+    ),
+    'a2.3.4': EnglishAdvancedDialogue(
+      lines: <String>["Nabil: I am flying to Muscat this afternoon. Is this the right gate?", "Employee: No, your flight is now leaving from gate eighteen.", "Nabil: Are passengers boarding yet?", "Employee: Yes. Follow the blue signs and keep your boarding pass ready.", "Nabil: Thank you. My cousin is meeting me at the airport tonight."],
+      tip: "Keep the ending in flying and meeting audible; stress the gate number when asking directions.",
+      tipArabic: "أظهر نهاية ing في flying وmeeting، وانطق رقم البوابة بوضوح.",
+      pronunciation: <String>["airport /ˈerpɔːrt/", "luggage /ˈlʌɡɪdʒ/", "boarding /ˈbɔːrdɪŋ/"],
+    ),
+    'a2.3.5': EnglishAdvancedDialogue(
+      lines: <String>["Mr Ali: Shall I help you carry that parcel?", "Hana: Yes, please. It is too heavy for me.", "Mr Ali: I will bring my toolbox as well.", "Hana: Thank you. Shall I water your plants when you go away?", "Mr Ali: That would be very helpful. I will show you on Wednesday."],
+      tip: "Use a friendly rising tone for Shall I questions; practise the contraction I will → I'll.",
+      tipArabic: "استخدم نبرة سؤال لطيفة مع Shall I، وتدرّب على اختصار I will إلى I’ll.",
+      pronunciation: <String>["neighbor /ˈneɪbər/", "parcel /ˈpɑːrsəl/", "screwdriver /ˈskruːdraɪvər/"],
+    ),
+    'a2.3.6': EnglishAdvancedDialogue(
+      lines: <String>["Interviewer: Where did you work last summer?", "Rania: I worked in a small clothes shop.", "Interviewer: Did you help customers choose clothes?", "Rania: Yes, I did. I also kept the shelves tidy.", "Interviewer: Thank you. Which days can you work here?"],
+      tip: "Practise the final /t/ in worked and the final /d/ in smiled without adding an extra syllable.",
+      tipArabic: "تدرّب على نهاية worked بصوت /t/ ونهاية smiled بصوت /d/ دون إضافة مقطع.",
+      pronunciation: <String>["interview /ˈɪntərvjuː/", "strength /streŋθ/", "punctual /ˈpʌŋktʃuəl/"],
+    ),
+    'a2.3.7': EnglishAdvancedDialogue(
+      lines: <String>["Instructor: How often do you exercise?", "Yusuf: I rarely exercise, but I want to start.", "Instructor: Our beginner group meets twice a week.", "Yusuf: That works for me. Is the class usually busy?", "Instructor: It is sometimes busy, so please arrive a little early."],
+      tip: "Stress the frequency words to distinguish usually, sometimes and rarely.",
+      tipArabic: "شدّد على كلمات التكرار لتوضيح الفرق بين usually وsometimes وrarely.",
+      pronunciation: <String>["exercise /ˈeksərsaɪz/", "usually /ˈjuːʒuəli/", "energetic /ˌenərˈdʒetɪk/"],
+    ),
+    'a2.3.8': EnglishAdvancedDialogue(
+      lines: <String>["Teacher: What will we do if the rain continues?", "Farmer: If it stays wet, we will visit the barn.", "Teacher: Can the children see the animals there?", "Farmer: Yes. If the path dries later, we will take a short walk too.", "Teacher: Good. I will tell the group about the new plan."],
+      tip: "Pause lightly after the if clause and stress the activity that will change.",
+      tipArabic: "توقف قليلًا بعد جملة if، وأبرز النشاط الذي سيتغير في جملة النتيجة.",
+      pronunciation: <String>["excursion /ɪkˈskɜːrʒən/", "waterproof /ˈwɔːtərpruːf/", "muddy /ˈmʌdi/"],
+    ),
+    'a2.3.9': EnglishAdvancedDialogue(
+      lines: <String>["Dalia: Excuse me. I think this is the wrong order.", "Server: I am sorry. What did you order?", "Dalia: A grilled sandwich, please. We have enough time to wait.", "Server: I will ask the kitchen to prepare it now.", "Dalia: Thank you. The new sandwich is warm enough."],
+      tip: "Use a calm tone for Excuse me and stress wrong order without shouting.",
+      tipArabic: "استخدم نبرة هادئة في Excuse me، وأبرز wrong order دون صراخ.",
+      pronunciation: <String>["omelet /ˈɑːmlət/", "enough /ɪˈnʌf/", "complaint /kəmˈpleɪnt/"],
+    ),
+    'a2.3.10': EnglishAdvancedDialogue(
+      lines: <String>["Leen: We are going to visit a mountain village next summer.", "Brother: Are we going to stay near the painting school?", "Leen: Yes, if we can find a room at a good price.", "Brother: If the first guesthouse is expensive, we will try another one.", "Leen: Good idea. Let us check the costs before we book."],
+      tip: "Practise are going to and is going to clearly, then contrast the plan with the if alternative.",
+      tipArabic: "تدرّب على are going to وis going to، ثم ميّز الخطة عن البديل الذي يبدأ بـ if.",
+      pronunciation: <String>["brochure /broʊˈʃʊr/", "village /ˈvɪlɪdʒ/", "summer /ˈsʌmər/"],
+    ),
     'a2.2.8': EnglishAdvancedDialogue(
       lines: <String>[
         'Lina: I lost the phone that I used on the bus.',
@@ -410,3 +470,4 @@ abstract final class EnglishAdvancedDialogues {
     return dialogue;
   }
 }
+
