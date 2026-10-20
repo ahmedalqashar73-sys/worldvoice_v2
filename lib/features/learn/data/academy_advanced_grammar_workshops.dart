@@ -196,6 +196,24 @@ abstract final class AdvancedGrammarWorkshops {
       wrong: "Had the translator simplified the idiom, the nuance will vanish.", correct: "Had the translator simplified the idiom, the nuance would have vanished.",
       question: "Choose the most precise alternative.", options: <String>["Were the phrase translated literally, its rhythm might suffer.","Were the phrase translate literally, its rhythm suffered.","If the phrase translated, rhythm surely disappears."], answer: 0,
     ),
+    'B1:4': AdvancedGrammarWorkshop(
+      explanationEnglish: "Use have/has + past participle to describe life experience without a finished time expression. When the time is fixed (yesterday or last Monday), use the past simple.",
+      examples: <AdvancedGrammarExample>[AdvancedGrammarExample("I have never introduced a radio programme.", "لم يسبق لي تقديم برنامج إذاعي."), AdvancedGrammarExample("Huda read the announcement yesterday.", "قرأت هدى الإعلان أمس."), AdvancedGrammarExample("Have you ever used studio headphones?", "هل استخدمت سماعات الاستوديو من قبل؟")],
+      wrong: "I have visited the studio last Tuesday.", correct: "I visited the studio last Tuesday.",
+      question: "Choose the correct present-perfect sentence.", options: <String>["Have you ever used a microphone?", "Did you ever used a microphone?", "I have used a microphone yesterday."], answer: 0,
+    ),
+    'B1:5': AdvancedGrammarWorkshop(
+      explanationEnglish: "A defining relative clause specifies a particular person or thing. Use who for people and that or which for things, without extra commas around an essential clause.",
+      examples: <AdvancedGrammarExample>[AdvancedGrammarExample("The resident who signed the petition lives next door.", "يسكن الجار الذي وقّع العريضة في المنزل المجاور."), AdvancedGrammarExample("The crossing that the council inspected is near the school.", "يقع المعبر الذي فحصه المجلس قرب المدرسة."), AdvancedGrammarExample("The signs which warn drivers must be clear.", "يجب أن تكون العلامات التي تحذر السائقين واضحة.")],
+      wrong: "The school who needs a crossing is nearby.", correct: "The school that needs a crossing is nearby.",
+      question: "Choose the correct defining relative clause.", options: <String>["The parents which met the officer were worried.", "The road that needs repairs is busy.", "The sign who fell was dangerous."], answer: 1,
+    ),
+    'B1:6': AdvancedGrammarWorkshop(
+      explanationEnglish: "Use if + past simple followed by would + base verb for imagined present or future situations. Were is especially common in hypothetical clauses with any subject.",
+      examples: <AdvancedGrammarExample>[AdvancedGrammarExample("If I were in charge, I would train the helpers.", "لو كنت مسؤولة لدربت المساعدين."), AdvancedGrammarExample("Samira would wait if the puppy were nervous.", "ستنتظر سميرة إذا كان الجرو متوترًا."), AdvancedGrammarExample("If we had more space, we could rescue more pets.", "لو كانت لدينا مساحة أكبر لتمكنا من إنقاذ حيوانات أكثر.")],
+      wrong: "If the puppy were afraid, I will wait.", correct: "If the puppy were afraid, I would wait.",
+      question: "Which sentence shows an imagined situation correctly?", options: <String>["If I would see a frightened puppy, I ask a worker.", "If the puppy were afraid, I would speak softly.", "If the puppy is afraid yesterday, I waited."], answer: 1,
+    ),
   };
   static AdvancedGrammarWorkshop? forLesson(String level, int number) =>
       _workshops['$level:$number'];

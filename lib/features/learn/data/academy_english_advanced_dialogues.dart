@@ -204,6 +204,21 @@ abstract final class EnglishAdvancedDialogues {
       tip: "Practise subtle pragmatic emphasis on 'arguably', 'might', and 'inadvertently'.", tipArabic: "تدرّب على النبرة التي تميز التحفظ الدقيق عن الرفض القطعي، خصوصًا arguably وmight.",
       pronunciation: <String>["polysemy /pəˈlɪsəmi/", "paraphrase /ˈpærəfreɪz/", "hermeneutics /ˌhɝːməˈnuːtɪks/"],
     ),
+    'b1.1.4': EnglishAdvancedDialogue(
+      lines: <String>["Producer: Have you ever worked at a radio station?", "Huda: No, I haven't, but I have practised reading announcements.", "Producer: You introduced the segment very clearly yesterday.", "Huda: Thank you. I was nervous when I started.", "Producer: Next time, pause before the important information."],
+      tip: "Practise asking about experience with Have you ever and compare it with an event at a specific past time.", tipArabic: "اسأل عن الخبرة باستخدام Have you ever، ثم استخدم الماضي البسيط عند الحديث عن وقت محدد.",
+      pronunciation: <String>["producer /prəˈduːsər/", "broadcast /ˈbrɔːdkæst/", "headset /ˈhɛdsɛt/"],
+    ),
+    'b1.1.5': EnglishAdvancedDialogue(
+      lines: <String>["Parent: Is this the crossing that parents complained about?", "Leila: Yes. It is the crossing that needs brighter lighting.", "Parent: Who will inspect the street?", "Leila: An officer who works for the council will visit tomorrow.", "Parent: I will write a statement about what I saw."],
+      tip: "Use who for identifying people and that for identifying things. Read the clauses without unnatural long pauses.", tipArabic: "استخدم who لتحديد الأشخاص وthat لتحديد الأشياء، واقرأ جملة الصلة دون فواصل صوتية غير طبيعية.",
+      pronunciation: <String>["petition /pəˈtɪʃən/", "pedestrian /pəˈdɛstriən/", "crossing /ˈkrɔːsɪŋ/"],
+    ),
+    'b1.1.6': EnglishAdvancedDialogue(
+      lines: <String>["Coordinator: What would you do if a puppy became frightened?", "Samira: I would give it space and speak softly.", "Coordinator: Would you try to pick it up immediately?", "Samira: No. I would ask a trained worker for guidance.", "Coordinator: Excellent. Safety and patience come first."],
+      tip: "Practise hypothetical If ... were ... I would ... sentences, with natural linking and stress on would.", tipArabic: "تدرّب على الشرط الافتراضي If ... were ... I would مع ربط الكلمات وتشديد مناسب.",
+      pronunciation: <String>["volunteer /ˌvɑːlənˈtɪr/", "shelter /ˈʃɛltər/", "veterinary /ˈvɛtərənɛri/"],
+    ),
   };
 
   static EnglishAdvancedDialogue forLesson(EnglishAdvancedLesson lesson) {

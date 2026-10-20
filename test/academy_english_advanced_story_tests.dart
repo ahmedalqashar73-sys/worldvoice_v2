@@ -58,13 +58,13 @@ void main() {
   test('A2-C2 published lessons have original graded stories and unique vocabulary', () {
     expect(EnglishAdvancedSyllabus.levels,
         <String>['A2', 'B1', 'B2', 'C1', 'C2']);
-    expect(EnglishAdvancedSyllabus.lessons, hasLength(22));
+    expect(EnglishAdvancedSyllabus.lessons, hasLength(25));
     final storyTexts = <String>{};
     final taughtWords = <String>{};
     final previousListeningLength = <int>[0, 0];
     for (final level in EnglishAdvancedSyllabus.levels) {
       final lessons = EnglishAdvancedSyllabus.forLevel(level);
-      expect(lessons, hasLength(level == 'A2' ? 10 : 3),
+      expect(lessons, hasLength(level == 'A2' ? 10 : level == 'B1' ? 6 : 3),
           reason: 'Published lessons $level');
       for (var index = 0; index < lessons.length; index++) {
         final lesson = lessons[index];
@@ -108,6 +108,45 @@ void main() {
     expect(EnglishAdvancedSyllabus.forLevel('A1'), isEmpty);
   });
 
+  test('B1 first unit lessons 4–6 have full unique authored content', () {
+    final earlier = EnglishAdvancedSyllabus.lessons.where((lesson) =>
+        !(lesson.level == 'B1' && lesson.unitNumber == 1 &&
+            lesson.number >= 4 && lesson.number <= 6));
+    final previousWords = earlier.expand((lesson) =>
+        lesson.vocabulary.map((word) => word.term.toLowerCase())).toSet();
+    final newWords = <String>{};
+    for (var number = 4; number <= 6; number++) {
+      final lesson = EnglishAdvancedSyllabus.findLesson('B1', 1, number);
+      expect(lesson, isNotNull, reason: 'B1 Unit 1 Lesson $number');
+      expect(lesson!.paragraphs, hasLength(4));
+      expect(lesson.vocabulary, hasLength(30));
+      expect(lesson.storyWords, hasLength(12));
+      expect(lesson.extraWords, hasLength(18));
+      final story = lesson.paragraphs.join(' ').toLowerCase();
+      for (final word in lesson.storyWords) {
+        expect(story.contains(word.term.toLowerCase()), isTrue,
+            reason: '${lesson.id} story missing ${word.term}');
+      }
+      for (final word in lesson.vocabulary) {
+        expect(previousWords.contains(word.term.toLowerCase()), isFalse,
+            reason: 'Reused established vocabulary: ${word.term}');
+        expect(newWords.add(word.term.toLowerCase()), isTrue,
+            reason: 'Reused new vocabulary: ${word.term}');
+      }
+      expect(lesson.listening.trim().split(RegExp(r'\s+')).length,
+          greaterThanOrEqualTo(65));
+      final grammar = AdvancedGrammarWorkshops.forLesson('B1', number);
+      expect(grammar, isNotNull);
+      expect(grammar!.examples, hasLength(3));
+      expect(grammar.options, hasLength(3));
+      final dialogue = EnglishAdvancedDialogues.forLesson(lesson);
+      expect(dialogue.lines, hasLength(5));
+      expect(dialogue.pronunciation, hasLength(3));
+      expect(lesson.spellingChallenge, hasLength(3));
+    }
+    expect(newWords, hasLength(90));
+  });
+
   test('Every higher level has three A1-style units with ten lesson slots', () {
     expect(EnglishAdvancedCurriculum.plannedSlotCount, 150);
     for (final level in EnglishAdvancedSyllabus.levels) {
@@ -123,7 +162,7 @@ void main() {
         expect(unit.plannedTopics.toSet().length, 10);
         for (var number = 1; number <= 10; number++) {
           final lesson = unit.lessonAt(number);
-          if (unit.number == 1 && number <= (level == 'A2' ? 10 : 3)) {
+          if (unit.number == 1 && number <= (level == 'A2' ? 10 : level == 'B1' ? 6 : 3)) {
             expect(lesson, isNotNull);
             expect(lesson!.number, number);
             expect(lesson.unitNumber, unit.number);
