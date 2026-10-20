@@ -64,6 +64,31 @@ abstract final class EnglishAdvancedDialogues {
       ],
     ),
 
+    'a2.1.6': EnglishAdvancedDialogue(
+      lines: <String>["Mina: Excuse me, has the last bus left?","Waiter: I'm afraid it has. Would you like me to call a licensed taxi?","Mina: Yes, please. I am going to check the timetable next time.","Waiter: You can wait inside while the driver is on the way.","Mina: Thank you. I will send my sister the meeting point."],
+      tip: "Practise going to for plans and will for an immediate decision.", tipArabic: "فرّق في النطق بين going to للخطة وwill للقرار اللحظي.",
+      pronunciation: <String>["reminder /rɪˈmaɪndər/","licensed /ˈlaɪsənst/","timetable /ˈtaɪmˌteɪbəl/"],
+    ),
+    'a2.1.7': EnglishAdvancedDialogue(
+      lines: <String>["Leo: Have you ever joined an art club?","Hana: No, I've never been to one before.","Leo: Our club makes posters and works on creative projects.","Hana: That sounds interesting. Can beginners join?","Leo: Of course! I'll show you the room after class."],
+      tip: "Listen for contractions I've and I'll in friendly conversation.", tipArabic: "انتبه إلى نطق I've وI'll كاختصارات إنجليزية طبيعية.",
+      pronunciation: <String>["sketching /ˈskɛtʃɪŋ/","corridor /ˈkɔːrɪdɔːr/","classmate /ˈklæsˌmeɪt/"],
+    ),
+    'a2.1.8': EnglishAdvancedDialogue(
+      lines: <String>["Daniel: Excuse me, could I return this lamp?","Assistant: Certainly. What seems to be wrong with it?","Daniel: The switch doesn't work. Would a replacement be possible?","Assistant: Yes, I'll check the fault and bring another one.","Daniel: Thank you for your help. I appreciate it."],
+      tip: "Maintain a calm, polite tone for could and would questions.", tipArabic: "درّب نبرة الطلب المهذب مع could وwould في المتجر.",
+      pronunciation: <String>["replacement /rɪˈpleɪsmənt/","warranty /ˈwɔːrənti/","inconvenience /ˌɪnkənˈviːniəns/"],
+    ),
+    'a2.1.9': EnglishAdvancedDialogue(
+      lines: <String>["Emma: Should we take this shortcut?","Cousin: No, let's follow the marked forest trail.","Emma: Good idea. We will stop when we reach the viewpoint.","Ranger: Please stay on the path and keep your rubbish with you.","Emma: We will. Thank you for the safety advice."],
+      tip: "Practise natural stress in sequencing: before, after and when.", tipArabic: "درّب النبرة الصحيحة على before وafter وwhen عند ترتيب الأحداث.",
+      pronunciation: <String>["shortcut /ˈʃɔːrtkʌt/","viewpoint /ˈvjuːˌpɔɪnt/","forecast /ˈfɔːrkæst/"],
+    ),
+    'a2.1.10': EnglishAdvancedDialogue(
+      lines: <String>["Sara: Which team is the fastest today?","Coach: The blue team, but the relay isn't over yet.","Sara: That was the most exciting final lap!","Coach: The runners showed great sportsmanship when the baton fell.","Sara: I agree. Helping others matters more than winning."],
+      tip: "Stress comparisons: faster than, the fastest and the most exciting.", tipArabic: "أكّد صوتيًا على صيغ المقارنة والتفضيل بدل حفظها دون فهم.",
+      pronunciation: <String>["relay /ˈriːleɪ/","baton /bəˈtɑːn/","sportsmanship /ˈspɔːrtsmənʃɪp/"],
+    ),
     'a2.1.5': EnglishAdvancedDialogue(
       lines: <String>[
         'Salma: Do we have any rice for dinner?',
