@@ -89,8 +89,8 @@ void main() {
     expect(await SpanishA1Progress.load('learnerA'), contains(a1.id));
     expect(await SpanishA1Progress.load('learnerB', level: 'A2'), isEmpty);
     expect(await SpanishA1Progress.load(null, level: 'A2'), isEmpty);
-    expect(
-      () => SpanishA1Progress.complete('learnerA', a1, level: 'A2'),
+    await expectLater(
+      SpanishA1Progress.complete('learnerA', a1, level: 'A2'),
       throwsArgumentError);
   });
 
