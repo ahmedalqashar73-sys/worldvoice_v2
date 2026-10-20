@@ -665,9 +665,63 @@ class _AcademyEnglishA1IntegratedLessonState
     ]);
   }
 
+  /// A beginner-first, one-rule overview before the full guided examples.
+  Widget _oneRuleOverview() {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      key: const ValueKey('academy-one-rule-overview'),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLow,
+        border: Border.all(color: _lessonGold, width: 1.3),
+        borderRadius: BorderRadius.circular(18)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Row(children: [
+          const Icon(Icons.lightbulb_rounded, color: Color(0xFFC39B51)),
+          const SizedBox(width: 8),
+          Expanded(child: Text(
+            _ar ? 'قاعدة واحدة، خطوة بخطوة' : 'One rule, step by step',
+            style: TextStyle(color: _accent, fontWeight: FontWeight.w900,
+                fontSize: 18))),
+        ]),
+        const SizedBox(height: 15),
+        Text(_grammar.title, textDirection: TextDirection.ltr,
+          style: TextStyle(color: _accent, fontWeight: FontWeight.w900,
+              fontSize: 22)),
+        const SizedBox(height: 9),
+        Text(_grammar.helpArabic, textDirection: TextDirection.rtl,
+          style: TextStyle(color: scheme.onSurface, height: 1.7,
+              fontSize: 16)),
+        const SizedBox(height: 13),
+        Text(_ar ? 'انظر إلى المثال ثم استمع إليه:' :
+          'Study this simple model, then listen:',
+          style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13)),
+        const SizedBox(height: 8),
+        Row(children: [
+          Expanded(child: Text(_grammar.example,
+            textDirection: TextDirection.ltr,
+            style: TextStyle(color: scheme.onSurface,
+                fontSize: 18, fontWeight: FontWeight.w800, height: 1.6))),
+          IconButton.filledTonal(
+            tooltip: _ar ? 'استمع للمثال' : 'Play grammar model',
+            onPressed: () => _hear(_grammar.example),
+            icon: const Icon(Icons.volume_up_rounded)),
+        ]),
+        const SizedBox(height: 7),
+        Text(_ar ? 'تابع الأمثلة المتعددة بالأسفل ثم حل السؤال.' :
+          'Review the worked examples below and answer the check.',
+          style: TextStyle(color: scheme.onSurfaceVariant)),
+      ]),
+    );
+  }
+
   Widget _grammarPage() {
     final tutor = _tutor;
-    if (tutor != null) return _tutorGrammarPage(tutor);
+    if (tutor != null) {
+      return Column(crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [_oneRuleOverview(), const SizedBox(height: 22),
+          _tutorGrammarPage(tutor)]);
+    }
     final scheme = Theme.of(context).colorScheme;
     final workshop = AcademyGrammarWorkshops.forLesson(
         widget.unit.id, widget.lessonNumber);
@@ -678,6 +732,8 @@ class _AcademyEnglishA1IntegratedLessonState
     }
     final right = _checked && _chosen == workshop.answer;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      _oneRuleOverview(),
+      const SizedBox(height: 22),
       Row(children: [
         const CircleAvatar(radius: 23,
           backgroundColor: Color(0xFFD6EBDF),
