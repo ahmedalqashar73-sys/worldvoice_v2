@@ -322,6 +322,23 @@ class _AcademySpanishA1LessonScreenState
             minimumSize: const Size.fromHeight(52))),
     );
 
+  /// Modern accessible multiple-choice control. Avoid deprecated RadioListTile
+  /// groupValue/onChanged API, keep the question state in this lesson alone.
+  Widget _option(String label, int index, String keyPrefix) =>
+      Card(child: ListTile(
+        key: ValueKey('$keyPrefix-$index'),
+        title: Text(label, textDirection: TextDirection.ltr),
+        leading: Icon(_choice == index
+            ? Icons.radio_button_checked_rounded
+            : Icons.radio_button_unchecked_rounded,
+            color: _choice == index ? _verde : null),
+        selected: _choice == index,
+        onTap: () => setState(() {
+          _choice = index;
+          _checked = false;
+        }),
+      ));
+
   Widget _audio(String text, {bool slow = false}) =>
       IconButton(tooltip: _ar ? 'استمع للإسبانية' : 'Hear Spanish',
         onPressed: () => _speak(text, slow: slow),
@@ -365,10 +382,7 @@ class _AcademySpanishA1LessonScreenState
       Text(_ar ? 'اختر الجملة الصحيحة' : 'Elige la frase correcta',
         style: const TextStyle(fontWeight: FontWeight.w900)),
       for (var i = 0; i < choices.length; i++)
-        RadioListTile<int>(title: Text(choices[i],
-            textDirection: TextDirection.ltr),
-          value: i, groupValue: _choice,
-          onChanged: (v) => setState(() => _choice = v)),
+        _option(choices[i], i, 'spanish-grammar-option'),
       if (_checked)
         Text(_choice == 1 ? (_ar ? 'صحيح!' : '¡Correcto!') :
           (_ar ? 'راجع القاعدة وحاول مرة أخرى.' : 'Inténtalo otra vez.'),
@@ -376,8 +390,11 @@ class _AcademySpanishA1LessonScreenState
               Theme.of(context).colorScheme.error)),
       _primary(_ar ? 'تحقق ثم تابع' : 'Comprueba y continúa',
         _choice == null ? null : () {
-          if (_choice == 1) _pass();
-          else setState(() => _checked = true);
+          if (_choice == 1) {
+            _pass();
+          } else {
+            setState(() => _checked = true);
+          }
         }, key: const ValueKey('spanish-grammar-check')),
     ]);
   }
@@ -506,9 +523,7 @@ class _AcademySpanishA1LessonScreenState
       ])),
       Text(_ar ? 'ما المعنى الصحيح؟' : '¿Qué significa?'),
       for (var i = 0; i < options.length; i++)
-        RadioListTile<int>(
-          title: Text(options[i]), value: i, groupValue: _choice,
-          onChanged: (v) => setState(() => _choice = v)),
+        _option(options[i], i, 'spanish-quiz-option'),
       if (_checked)
         Text(_ar ? 'الإجابة غير صحيحة، حاول مجددًا.' :
           'No es correcto. Inténtalo otra vez.'),
@@ -592,15 +607,16 @@ class _AcademySpanishA1LessonScreenState
       Text(_ar ? 'ما معنى «${nouns[0].es}»؟' :
           '¿Qué significa «${nouns[0].es}»?'),
       for (var i=0;i<answers.length;i++)
-        RadioListTile<int>(title: Text(answers[i]),
-          value: i, groupValue: _choice,
-          onChanged: (v) => setState(() => _choice = v)),
+        _option(answers[i], i, 'spanish-listening-option'),
       if (_checked)
         Text(_ar ? 'حاول مرة أخرى.' : 'Inténtalo otra vez.'),
       _primary(_ar ? 'تحقق ثم أكمل' : 'Comprobar y continuar',
         _choice == null ? null : () {
-          if (_choice == 0) _pass();
-          else setState(() => _checked = true);
+          if (_choice == 0) {
+            _pass();
+          } else {
+            setState(() => _checked = true);
+          }
         }, key: const ValueKey('spanish-listening-check')),
     ]);
   }
