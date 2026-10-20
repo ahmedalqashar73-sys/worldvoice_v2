@@ -247,7 +247,7 @@ void main() {
               hasLength(5));
           if (outline.number != 1 || i > 3) {
             expect(lesson.paragraphs.every((p) =>
-                p.trim().split(RegExp(r'\\s+')).length >= 55), isTrue);
+                p.trim().split(RegExp(r'\s+')).length >= 55), isTrue);
           }
         }
       }
