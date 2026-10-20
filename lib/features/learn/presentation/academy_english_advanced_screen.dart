@@ -844,10 +844,54 @@ class _AcademyEnglishAdvancedLessonScreenState
                     page: 2, animate: false),
                   const SizedBox(height: 12),
                 ],
-                SelectableText(reading[i],
-                  key: ValueKey('advanced-paragraph-$i'),
-                  textDirection: TextDirection.ltr,
-                  style: const TextStyle(height: 1.75, fontSize: 18)),
+
+                if (linked && (lesson.level == 'C1' || lesson.level == 'C2') && i == 5) ...[
+                  AcademyIllustratedStoryArt(
+                    scene: (lesson.number + lesson.unitNumber * 2) % 9,
+                    page: 3, animate: false),
+                  const SizedBox(height: 12),
+                ],
+                if (lesson.level == 'C1' || lesson.level == 'C2')
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? scheme.surfaceContainerHigh
+                          : const Color(0xFFFFFBF2),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? scheme.outlineVariant : const Color(0xFFE3D0A5)),
+                    ),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                      Row(children: [
+                        const Icon(Icons.auto_stories_rounded,
+                            size: 18, color: Color(0xFFB68A43)),
+                        const SizedBox(width: 8),
+                        Expanded(child: Text(
+                          _ar ? 'الصفحة ${i + 1} · قراءة متقدمة'
+                              : 'PAGE ${i + 1} · ADVANCED READING',
+                          style: TextStyle(color: scheme.onSurfaceVariant,
+                              fontSize: 11, fontWeight: FontWeight.w900,
+                              letterSpacing: 1.1))),
+                        IconButton(
+                          tooltip: _ar ? 'استمع للفقرة' : 'Listen to paragraph',
+                          icon: const Icon(Icons.volume_up_rounded),
+                          onPressed: () => _play(reading[i])),
+                      ]),
+                      const SizedBox(height: 6),
+                      SelectableText(reading[i],
+                        key: ValueKey('advanced-paragraph-$i'),
+                        textDirection: TextDirection.ltr,
+                        style: TextStyle(color: scheme.onSurface,
+                            fontFamily: 'serif', height: 1.85, fontSize: 18)),
+                    ]),
+                  )
+                else
+                  SelectableText(reading[i],
+                    key: ValueKey('advanced-paragraph-$i'),
+                    textDirection: TextDirection.ltr,
+                    style: const TextStyle(height: 1.75, fontSize: 18)),
                 const SizedBox(height: 15),
               ],
               Wrap(spacing: 8, runSpacing: 8, children: [
