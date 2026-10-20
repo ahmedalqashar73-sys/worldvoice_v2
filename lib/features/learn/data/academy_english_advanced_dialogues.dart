@@ -15,6 +15,63 @@ class EnglishAdvancedDialogue {
 
 abstract final class EnglishAdvancedDialogues {
   static const _dialogues = <String, EnglishAdvancedDialogue>{
+    'a2.2.4': EnglishAdvancedDialogue(
+      lines: <String>[
+        'Yusuf: Can you check my bicycle? The front tire is flat.',
+        'Mechanic: I have just found a hole near the valve.',
+        'Yusuf: Have you checked the chain yet?',
+        'Mechanic: Yes, I have already tightened it.',
+        'Yusuf: Great! I will test the brakes before riding.',
+      ],
+      tip: 'Stress just and already when explaining what has been repaired.',
+      tipArabic: 'شدّد على just وalready لتوضيح زمن إكمال التصليح.',
+      pronunciation: <String>[
+        'mechanic /məˈkænɪk/', 'bicycle /ˈbaɪsɪkəl/', 'valve /vælv/',
+      ],
+    ),
+    'a2.2.5': EnglishAdvancedDialogue(
+      lines: <String>[
+        'Layla: Do I have to complete this adoption form today?',
+        'Worker: Yes, but you do not have to take the kitten home today.',
+        'Layla: Must I buy special food?',
+        'Worker: Please ask the vet about the best choice.',
+        'Layla: Thank you. I will prepare a quiet place first.',
+      ],
+      tip: 'Contrast have to with do not have to using clear pauses.',
+      tipArabic: 'لاحظ الفرق بين الإلزام وعدم الضرورة في have to وdon’t have to.',
+      pronunciation: <String>[
+        'adoption /əˈdɑːpʃən/', 'kitten /ˈkɪtən/', 'veterinary /ˈvɛtərɪnɛri/',
+      ],
+    ),
+    'a2.2.6': EnglishAdvancedDialogue(
+      lines: <String>[
+        'Host: Would you like some tea?',
+        'Hana: Yes, please. That would be lovely.',
+        'Host: Would you like to try the homemade biscuits?',
+        'Hana: I would love to. Shall I help with the cups?',
+        'Host: Thank you, but please relax and enjoy the visit.',
+      ],
+      tip: 'Keep invitations and polite offers soft and friendly.',
+      tipArabic: 'استخدم نبرة هادئة ومهذبة عند تقديم الدعوات والعروض.',
+      pronunciation: <String>[
+        'hospitality /ˌhɑːspɪˈtæləti/', 'pastries /ˈpeɪstriz/', 'invitation /ˌɪnvɪˈteɪʃən/',
+      ],
+    ),
+    'a2.2.7': EnglishAdvancedDialogue(
+      lines: <String>[
+        'Ken: How long have you practised speaking English?',
+        'Fatima: I have studied for about two years.',
+        'Ken: Have you worked with a partner since January?',
+        'Fatima: Yes. We have met every Wednesday.',
+        'Ken: Great! Let us practise a short role-play today.',
+      ],
+      tip: 'Give for and since clear stress to mark duration and starting point.',
+      tipArabic: 'ميّز بين مدة التعلم ونقطة البداية باستخدام for وsince.',
+      pronunciation: <String>[
+        'exchange /ɪksˈtʃeɪndʒ/', 'fluently /ˈfluːəntli/', 'feedback /ˈfiːdbæk/',
+      ],
+    ),
+
     'a2.2.1': EnglishAdvancedDialogue(
       lines: <String>[
         'Salma: Do you think this desk is too large for the bedroom?',
