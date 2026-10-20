@@ -6,6 +6,8 @@ part 'academy_english_advanced_dialogues.dart';
 part 'academy_english_advanced_a2_additional.dart';
 part 'academy_english_advanced_third_batch.dart';
 part 'academy_english_advanced_upper_third.dart';
+part 'academy_english_advanced_a2_6_7.dart';
+part 'academy_english_advanced_a2_8_10.dart';
 
 /// Authored English CEFR pilot lessons beyond A1. Each published lesson has
 /// its own complete story, contextual vocabulary, grammar, listening and
@@ -109,8 +111,8 @@ abstract final class EnglishAdvancedSyllabus {
     'C2': 'الإتقان',
   };
 
-  /// The first two curated lessons of each higher level. Publishing more
-  /// lessons is a separate content-review milestone; no fabricated lessons.
+  /// Every entry is a distinct authored session with its own story,
+  /// graded listening, grammar and assessments. Unwritten slots stay locked.
   static final lessons = <EnglishAdvancedLesson>[
     ...EnglishAdvancedCoreLessons.lessons,
     ...EnglishAdvancedMasteryLessons.lessons,
@@ -118,6 +120,8 @@ abstract final class EnglishAdvancedSyllabus {
     ...EnglishAdvancedA2Additional.lessons,
     ...EnglishAdvancedThirdBatch.lessons,
     ...EnglishAdvancedUpperThirdBatch.lessons,
+    ...EnglishAdvancedA2FinalSixSeven.lessons,
+    ...EnglishAdvancedA2FinalEightTen.lessons,
   ];
 
   static List<EnglishAdvancedLesson> forLevel(String level) =>
