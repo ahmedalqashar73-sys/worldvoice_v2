@@ -256,6 +256,22 @@ abstract final class EnglishAdvancedDialogues {
       tip:"Stress the central contrasts in although, despite and however.",tipArabic:"شدّد على الكلمات التي توضّح المقارنة أثناء استعمال although وdespite وhowever.",
       pronunciation:<String>["scholarship /ˈskɑːlərʃɪp/","accommodation /əˌkɑːməˈdeɪʃən/","ambition /æmˈbɪʃən/"],
     ),
+    'a2.2.1': EnglishAdvancedDialogue(
+      lines: <String>[
+        'Amal: My old desk is too wide for this corner.',
+        'Brother: Have you measured the space near the window?',
+        'Amal: Yes. A folding desk would be small enough to fit.',
+        'Brother: Is there enough room for a reading lamp?',
+        'Amal: I think so, if we move the storage box to the shelf.',
+      ],
+      tip: 'Practise too wide, small enough and enough room as full English phrases with natural sentence stress.',
+      tipArabic: 'انطق too wide وsmall enough وenough room كمقاطع إنجليزية مترابطة، وانتبه إلى ترتيب الكلمات.',
+      pronunciation: <String>[
+        'comfortable /ˈkʌmftərbəl/',
+        'measure /ˈmɛʒər/',
+        'furniture /ˈfɝːnɪtʃər/',
+      ],
+    ),
   };
 
   static EnglishAdvancedDialogue forLesson(EnglishAdvancedLesson lesson) {
