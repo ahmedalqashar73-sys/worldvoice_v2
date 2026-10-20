@@ -113,6 +113,45 @@ abstract final class AdvancedGrammarWorkshops {
       options: <String>['I have studied since Monday.', 'I have studied since three weeks.', 'I study since tomorrow.'],
       answer: 0,
     ),
+    8: AdvancedGrammarWorkshop(
+      explanationEnglish: 'A defining relative clause identifies a person or thing. Use who for people, which for things and that for either when the meaning is clear.',
+      examples: <AdvancedGrammarExample>[
+        AdvancedGrammarExample('The driver who found the phone called Lina.', 'السائق الذي وجد الهاتف اتصل بلينا.'),
+        AdvancedGrammarExample('This is the phone that she lost.', 'هذا هو الهاتف الذي فقدته.'),
+        AdvancedGrammarExample('The screen which was broken is now repaired.', 'الشاشة التي كانت مكسورة صُلحت الآن.'),
+      ],
+      wrong: 'The driver which found the phone was kind.',
+      correct: 'The driver who found the phone was kind.',
+      question: 'Which relative clause is correct?',
+      options: <String>['The person which helped me was kind.', 'The officer who helped was friendly.', 'The phone who I lost is blue.'],
+      answer: 1,
+    ),
+    9: AdvancedGrammarWorkshop(
+      explanationEnglish: 'Use be going to for a plan you already made. Use will for a decision made while speaking or for a promise.',
+      examples: <AdvancedGrammarExample>[
+        AdvancedGrammarExample('I am going to buy a birthday gift.', 'سأشتري هدية عيد ميلاد وفق خطة.'),
+        AdvancedGrammarExample('I will wrap it for you.', 'سأغلفها لك، وهو قرار لحظي.'),
+        AdvancedGrammarExample('She is going to enjoy the surprise.', 'ستستمتع بالمفاجأة على الأغلب.'),
+      ],
+      wrong: 'I going to buy a present.',
+      correct: 'I am going to buy a present.',
+      question: 'Which sentence describes a planned purchase?',
+      options: <String>['I am going to buy a gift.', 'I going to buy a gift.', 'I am going buy a gift.'],
+      answer: 0,
+    ),
+    10: AdvancedGrammarWorkshop(
+      explanationEnglish: 'Used to + base verb describes a repeated habit or state in the past that is no longer true. After did, use use to without -d.',
+      examples: <AdvancedGrammarExample>[
+        AdvancedGrammarExample('We used to visit the sea every summer.', 'كنا نزور البحر كل صيف سابقًا.'),
+        AdvancedGrammarExample('I did not use to like the cold water.', 'لم أكن أحب الماء البارد سابقًا.'),
+        AdvancedGrammarExample('Did you use to collect seashells?', 'هل كنت تجمع الأصداف سابقًا؟'),
+      ],
+      wrong: 'Did you used to swim here?',
+      correct: 'Did you use to swim here?',
+      question: 'Which sentence describes a past habit correctly?',
+      options: <String>['We use to went to the beach.', 'We used to visit this beach.', 'Did you used to live here?'],
+      answer: 1,
+    ),
   };
 
   static const _workshops = <String, AdvancedGrammarWorkshop>{
