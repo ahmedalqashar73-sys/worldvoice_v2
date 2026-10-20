@@ -87,8 +87,9 @@ class _SpanishA1PathState extends State<AcademySpanishA1Path> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: Text(_ar ? 'الإسبانية ${widget.level} · ${widget.level == 'A1' ? 'المبتدئ' : 'ما بعد المبتدئ'}'
-          : 'Español ${widget.level} · ${widget.level == 'A1' ? 'Beginner' : 'Elementary'}'),
+      title: Text(_ar
+          ? 'الإسبانية ${widget.level} · ${widget.level == 'A1' ? 'المبتدئ' : widget.level == 'A2' ? 'الابتدائي' : widget.level == 'B1' ? 'المتوسط' : 'فوق المتوسط'}'
+          : 'Español ${widget.level} · ${widget.level == 'A1' ? 'Beginner' : widget.level == 'A2' ? 'Elementary' : widget.level == 'B1' ? 'Intermediate' : 'Upper-intermediate'}'),
       backgroundColor: _verde, foregroundColor: Colors.white),
     body: ListView(padding: const EdgeInsets.all(18), children: [
       Container(
