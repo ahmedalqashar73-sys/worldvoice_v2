@@ -15,6 +15,49 @@ class EnglishAdvancedDialogue {
 
 abstract final class EnglishAdvancedDialogues {
   static const _dialogues = <String, EnglishAdvancedDialogue>{
+    'a2.2.8': EnglishAdvancedDialogue(
+      lines: <String>[
+        'Lina: I lost the phone that I used on the bus.',
+        'Friend: Did you ask the driver who was on duty?',
+        'Lina: Not yet. Can we visit the lost property office?',
+        'Friend: Yes, we can describe the screen and ringtone.',
+        'Lina: Thank you. I hope someone has found it.',
+      ],
+      tip: 'Link who and that to the words they describe, with natural stress.',
+      tipArabic: 'اربط who وthat بالأسماء التي تصفها دون وقفة طويلة.',
+      pronunciation: <String>[
+        'notification /ˌnoʊtɪfɪˈkeɪʃən/', 'ringtone /ˈrɪŋtoʊn/', 'contact /ˈkɑːntækt/',
+      ],
+    ),
+    'a2.2.9': EnglishAdvancedDialogue(
+      lines: <String>[
+        'Tariq: I am going to buy a gift for my sister.',
+        'Seller: Would you like her initials on the mug?',
+        'Tariq: That sounds great. How long will it take?',
+        'Seller: About twenty minutes. I will wrap it for you.',
+        'Tariq: Perfect! I am going to give it to her tonight.',
+      ],
+      tip: 'Contrast an existing plan with a spontaneous offer using will.',
+      tipArabic: 'فرق بين خطة going to والعرض اللحظي باستخدام will.',
+      pronunciation: <String>[
+        'engraved /ɪnˈɡreɪvd/', 'ceramic /səˈræmɪk/', 'initials /ɪˈnɪʃəlz/',
+      ],
+    ),
+    'a2.2.10': EnglishAdvancedDialogue(
+      lines: <String>[
+        'Amal: Did you use to visit the beach as a child?',
+        'Cousin: Yes, we used to build sandcastles every summer.',
+        'Amal: I did not use to enjoy swimming in cold water.',
+        'Cousin: Let us walk to the lighthouse instead.',
+        'Amal: Good idea. We can watch the tide from there.',
+      ],
+      tip: 'Practise the smooth sound of used to in affirmative sentences.',
+      tipArabic: 'تدرّب على used to في الإثبات وuse to بعد did.',
+      pronunciation: <String>[
+        'lighthouse /ˈlaɪthaʊs/', 'seashell /ˈsiːʃel/', 'coastline /ˈkoʊstlaɪn/',
+      ],
+    ),
+
     'a2.2.4': EnglishAdvancedDialogue(
       lines: <String>[
         'Yusuf: Can you check my bicycle? The front tire is flat.',
