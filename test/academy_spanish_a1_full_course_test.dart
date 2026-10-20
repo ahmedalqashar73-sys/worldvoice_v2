@@ -101,7 +101,10 @@ void main() {
     await tester.ensureVisible(rightAnswer);
     await tester.tap(rightAnswer);
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('spanish-grammar-check')));
+    final check = find.byKey(const ValueKey('spanish-grammar-check'));
+    await tester.ensureVisible(check);
+    await tester.pumpAndSettle();
+    await tester.tap(check);
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('spanish-vocabulary-next')),
       findsOneWidget);
