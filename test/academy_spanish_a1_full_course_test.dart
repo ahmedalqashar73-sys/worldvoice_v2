@@ -92,10 +92,14 @@ void main() {
     expect(find.byKey(const ValueKey('spanish-grammar-check')),
       findsOneWidget);
     expect(find.byKey(const ValueKey('spanish-a1-finish')), findsNothing);
-    final answers = find.byType(RadioListTile<int>);
-    expect(answers, findsNWidgets(3));
-    await tester.ensureVisible(answers.at(1));
-    await tester.tap(answers.at(1));
+    for (var i = 0; i < 3; i++) {
+      expect(find.byKey(ValueKey('spanish-grammar-option-$i')),
+          findsOneWidget);
+    }
+    final rightAnswer = find.byKey(
+        const ValueKey('spanish-grammar-option-1'));
+    await tester.ensureVisible(rightAnswer);
+    await tester.tap(rightAnswer);
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('spanish-grammar-check')));
     await tester.pumpAndSettle();
