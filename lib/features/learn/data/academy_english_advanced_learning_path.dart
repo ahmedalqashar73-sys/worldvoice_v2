@@ -32,6 +32,12 @@ abstract final class EnglishAdvancedLearningPath {
       AdvancedWordKind.adjective: "credible|موثوق;nuanced|دقيق التفاصيل;equitable|منصف;ethical|أخلاقي;sustainable|مستدام;contentious|مثير للجدل;plausible|معقول;rigorous|صارم منهجيا;transparent|شفاف;empirical|تجريبي;systematic|منهجي;impartial|محايد;significant|ذو دلالة;measurable|قابل للقياس;widespread|واسع الانتشار;sophisticated|متطور;controversial|خلافي;preliminary|أولي;decisive|حاسم;substantial|جوهري",
       AdvancedWordKind.adverb: "critically|بنظرة نقدية;ethically|بشكل أخلاقي;systematically|بمنهجية;empirically|تجريبيا;broadly|على نطاق واسع;narrowly|في نطاق ضيق;considerably|بدرجة كبيرة;comparatively|بالمقارنة;implicitly|ضمنيا;explicitly|صراحة;disproportionately|بشكل غير متناسب;independently|بشكل مستقل;objectively|بموضوعية;plausibly|بشكل معقول;arguably|يمكن القول;theoretically|نظريا;cautiously|بحذر;consequently|وبناء على ذلك;nevertheless|مع ذلك;ultimately|في نهاية المطاف",
     },
+    'C1': <AdvancedWordKind, String>{
+      AdvancedWordKind.noun: "inference|استدلال;provenance|مصدر المنشأ;corroboration|تأييد مستقل;methodology|منهجية;discrepancy|تباين;deliberation|مداولة;legitimacy|مشروعية;ambiguity|غموض;premise|مقدمة حجاجية;repercussion|تبعة;nuance|دقة المعنى;contingency|احتمال مشروط;attribution|إسناد;accountability|مساءلة;consensus|توافق;counterargument|حجة مضادة;plausibility|معقولية;testimony|شهادة;concession|تنازل حجاجي;qualification|تحفظ علمي",
+      AdvancedWordKind.verb: "scrutinize|يفحص بدقة;corroborate|يؤيد بأدلة;contextualize|يضع في سياقه;substantiate|يثبت بالأدلة;reconcile|يوفق بين;elucidate|يوضح بدقة;interrogate|يفحص نقديا;reassess|يعيد التقييم;distinguish|يميز;acknowledge|يقر;document|يوثق;reconstruct|يعيد بناء;challenge|يطعن في;articulate|يصوغ بدقة;qualify|يقيد الحكم;mediate|يتوسط;disclose|يفصح عن;reconsider|يعيد النظر;differentiate|يفرق بين;justify|يبرر",
+      AdvancedWordKind.adjective: "provisional|مؤقت قابل للتعديل;contentious|مثير للجدل;credible|موثوق;methodological|منهجي;ambiguous|ملتبس;defensible|يمكن الدفاع عنه;inconclusive|غير حاسم;systemic|بنيوي;nuanced|دقيق المعنى;compelling|مقنع بقوة;disproportionate|غير متناسب;transparent|شفاف;tentative|مبدئي;irreconcilable|متعذر التوفيق;unsubstantiated|غير مؤيد بالأدلة;contextual|سياقي;rigorous|صارم منهجيا;multifaceted|متعدد الجوانب;contested|موضع خلاف;consequential|ذو تبعات مهمة",
+      AdvancedWordKind.adverb: "tentatively|على نحو مبدئي;conclusively|بشكل قاطع;explicitly|بوضوح وصراحة;implicitly|ضمنيا;critically|بشكل نقدي;systematically|بمنهجية;independently|باستقلالية;arguably|يمكن القول;ostensibly|ظاهريا;disproportionately|بشكل غير متناسب;subsequently|لاحقا;nonetheless|مع ذلك;accordingly|تبعا لذلك;presumably|على الأرجح;provisionally|بصورة مؤقتة;substantially|بدرجة كبيرة;conversely|على العكس;empirically|استنادا إلى التجربة;unequivocally|بلا التباس;prudently|بتعقل",
+    },
   };
   static const _unit = <String, Map<int, Map<AdvancedWordKind, String>>>{
     'A2': <int, Map<AdvancedWordKind, String>>{
@@ -94,6 +100,26 @@ abstract final class EnglishAdvancedLearningPath {
       AdvancedWordKind.adverb: "structurally|بنيويا;politically|سياسيا;economically|اقتصاديا;socially|اجتماعيا;environmentally|بيئيا;institutionally|مؤسسيا;historically|تاريخيا;pragmatically|عمليا;sustainably|بشكل مستدام;inclusively|بشكل شامل",
       },
     },
+    'C1': <int, Map<AdvancedWordKind, String>>{
+      1: <AdvancedWordKind, String>{
+      AdvancedWordKind.noun: "manuscript|مخطوطة;artifact|قطعة أثرية;archive|أرشيف;repository|مستودع بحثي;protocol|بروتوكول;dataset|مجموعة بيانات;hypothesis|فرضية;peer review|مراجعة الأقران;chronology|تسلسل زمني;consent|موافقة مستنيرة",
+      AdvancedWordKind.verb: "authenticate|يثبت الأصالة;transcribe|ينسخ نصيا;replicate|يكرر التجربة;triangulate|يفحص بمصادر متعددة;validate|يتحقق من صحة;annotate|يعلق توضيحيا;interpret|يفسر;calibrate|يعاير;extrapolate|يستقرئ;verify|يتحقق من",
+      AdvancedWordKind.adjective: "archival|أرشيفي;peer-reviewed|محكم علميا;replicable|قابل للتكرار;unverified|غير متحقق منه;longitudinal|طولي عبر الزمن;historical|تاريخي;anomalous|شاذ عن المعتاد;predictive|تنبؤي;interdisciplinary|متعدد التخصصات;authenticated|موثق الأصالة",
+      AdvancedWordKind.adverb: "historically|تاريخيا;statistically|إحصائيا;scientifically|علميا;retrospectively|بأثر رجعي;chronologically|حسب التسلسل الزمني;analytically|تحليليا;experimentally|تجريبيا;precisely|بدقة;comparatively|بالمقارنة;reproducibly|بصورة قابلة للتكرار",
+      },
+      2: <AdvancedWordKind, String>{
+      AdvancedWordKind.noun: "restitution|رد المقتنيات;whistleblower|كاشف مخالفات;oversight|رقابة;grievance|تظلم;stewardship|رعاية مسؤولة;mandate|تفويض;governance|حوكمة;consultation|مشاورة;redress|إنصاف;stakeholder|صاحب مصلحة",
+      AdvancedWordKind.verb: "legislate|يسن التشريعات;remediate|يعالج الأضرار;advocate|يناصر;regulate|ينظم;consult|يستشير;negotiate|يتفاوض;represent|يمثل;safeguard|يصون;adjudicate|يفصل في النزاع;implement|ينفذ",
+      AdvancedWordKind.adjective: "institutional|مؤسسي;equitable|منصف;participatory|تشاركي;legally binding|ملزم قانونيا;representative|تمثيلي;deliberative|تداولي;inclusive|شامل;unlawful|غير قانوني;reciprocal|متبادل;procedural|إجرائي",
+      AdvancedWordKind.adverb: "legally|قانونيا;institutionally|مؤسسيا;collectively|جماعيا;democratically|ديمقراطيا;equitably|بعدالة;formally|رسميا;publicly|علنا;transnationally|عبر الحدود;collaboratively|بالتعاون;ethically|أخلاقيا",
+      },
+      3: <AdvancedWordKind, String>{
+      AdvancedWordKind.noun: "resilience|مرونة التكيف;ecosystem|نظام بيئي;procurement|مشتريات مؤسسية;confounder|متغير مربك;probability|احتمالية;emissions|انبعاثات;distribution|توزيع;mitigation|تخفيف الضرر;adaptation|تكيف;trade-off|مفاضلة",
+      AdvancedWordKind.verb: "model|ينمذج;forecast|يتنبأ;quantify|يحدد كميا;mitigate|يخفف;diversify|ينوع;allocate|يخصص;simulate|يحاكي;monitor|يراقب;evaluate|يقيّم;prioritize|يعطي الأولوية",
+      AdvancedWordKind.adjective: "ecological|بيئي;probabilistic|احتمالي;climatic|مناخي;resilient|مرن قادر على التكيف;sustainable|مستدام;data-driven|قائم على البيانات;counterfactual|مضاد للواقع;measurable|قابل للقياس;uncertain|غير يقيني;adaptive|تكيفي",
+      AdvancedWordKind.adverb: "environmentally|بيئيا;probabilistically|احتماليا;regionally|إقليميا;globally|عالميا;quantitatively|كميا;ecologically|إيكولوجيا;economically|اقتصاديا;incrementally|تدريجيا;strategically|استراتيجيا;predictably|بصورة متوقعة",
+      },
+    },
   };
 
   static bool supports(EnglishAdvancedLesson lesson) =>
@@ -126,6 +152,47 @@ abstract final class EnglishAdvancedLearningPath {
       wordsFor(lesson).where((word) => word.kind == kind)
           .toList(growable: false);
 
+  /// Two additional academic reading paragraphs extend the original story.
+  /// Each contains topic vocabulary, an explicit counterargument and a
+  /// defensible qualified conclusion rather than a beginner dialogue.
+  static List<String> _upperReading(
+      EnglishAdvancedLesson lesson,
+      List<AdvancedCourseWord> nouns,
+      List<AdvancedCourseWord> verbs,
+      List<AdvancedCourseWord> adjectives,
+      List<AdvancedCourseWord> adverbs) {
+    final first =
+        'The enquiry at the centre of "${lesson.storyTitle}" entered a more '
+        'demanding phase when the panel revisited the ${nouns[0].term}. '
+        'What had initially seemed straightforward became a question about '
+        'the ${nouns[1].term} and the assumptions beneath an apparently '
+        'authoritative explanation. The investigators decided to '
+        '${verbs[0].term} the available evidence ${adverbs[0].term} and '
+        'to ${verbs[1].term} the competing interpretation ${adverbs[1].term}. '
+        'One participant called the emerging account ${adjectives[0].term}; '
+        'another judged it ${adjectives[1].term}, pointing to important '
+        'information that had been omitted. Neither position could be '
+        'adopted merely because its spokesperson sounded confident. '
+        'The group had to say what counted as evidence, what remained '
+        'unresolved, and why a particular inference deserved provisional trust.';
+    final second =
+        'In the closing session, the discussion turned to the '
+        '${nouns[2].term} and its connection with the ${nouns[3].term}. '
+        'The chair asked each contributor to ${verbs[2].term} '
+        'the central claim ${adverbs[2].term}, and to '
+        '${verbs[3].term} the supporting material ${adverbs[3].term}. '
+        'The resulting memorandum acknowledged a ${adjectives[2].term} '
+        'difficulty without presenting every interpretation as equally '
+        'plausible. Its authors also explained why the '
+        '${nouns[4].term} could not be dismissed as a technical detail. '
+        'To some readers, this measured response seemed frustratingly '
+        'incomplete; to others, it was precisely the restraint that '
+        'responsible scholarship required. The decision therefore remained '
+        'open to further scrutiny, with clearly identified conditions '
+        'under which it would need to be revised.';
+    return <String>[...lesson.paragraphs, first, second];
+  }
+
   /// Preserve the full original reading, with one newly scaffolded scene
   /// reusing lesson nouns, action verbs, descriptors and manner adverbs.
   static List<String> readingFor(EnglishAdvancedLesson lesson) {
@@ -134,6 +201,9 @@ abstract final class EnglishAdvancedLearningPath {
     final verbs = category(lesson, AdvancedWordKind.verb);
     final adjectives = category(lesson, AdvancedWordKind.adjective);
     final adverbs = category(lesson, AdvancedWordKind.adverb);
+    if (lesson.level == 'C1' || lesson.level == 'C2') {
+      return _upperReading(lesson, nouns, verbs, adjectives, adverbs);
+    }
     final context = lesson.level == 'A2'
         ? 'At the end of the day, the friends talked about their '
           '${nouns[0].term} and ${nouns[1].term}. They described the situation as '
@@ -158,6 +228,22 @@ abstract final class EnglishAdvancedLearningPath {
     final verbs = category(lesson, AdvancedWordKind.verb);
     final adjectives = category(lesson, AdvancedWordKind.adjective);
     final adverbs = category(lesson, AdvancedWordKind.adverb);
+    if (lesson.level == 'C1' || lesson.level == 'C2') {
+      return <String>[
+        ...original,
+        'Editor: What does the ${nouns[0].term} reveal about the '
+            'main argument in ${lesson.storyTitle}?',
+        'Researcher: The ${nouns[1].term} appears ${adjectives[0].term}, '
+            'but another account makes it ${adjectives[1].term}.',
+        'Editor: How could you ${verbs[0].term} that claim ${adverbs[0].term} '
+            'without overlooking rival interpretations?',
+        'Researcher: I would ${verbs[1].term} the ${nouns[2].term} '
+            '${adverbs[1].term}, and then ${verbs[2].term} '
+            'the ${nouns[3].term}.',
+        'Editor: Offer a qualified judgement that states both its '
+            'evidential grounds and the limits of your conclusion.',
+      ];
+    }
     return <String>[
       ...original,
       'Tutor: What can you tell me about ${nouns[0].term} and ${nouns[1].term}?',
@@ -181,8 +267,19 @@ abstract final class EnglishAdvancedLearningPath {
       final terms = category(lesson, kind).map((w) => w.term).join(', ');
       return 'Now listen to these ten ${names[kind]}: $terms.';
     }).join(' ');
+    final upper = lesson.level == 'C1' || lesson.level == 'C2';
+    final criticalListening = upper
+      ? 'Consider this question: which interpretation is grounded in '
+        'evidence and which rests on an assumption? '
+        'Pause to identify a credible counterargument and explain '
+        'whether it changes the original conclusion. '
+        'Do not simply repeat the speaker’s confidence; examine the '
+        'scope of each claim. The most persuasive response '
+        'may be a qualified conclusion that distinguishes observation '
+        'from inference. '
+      : '';
     return '${lesson.listening} Welcome to the WorldVoice '
-      '${lesson.level} vocabulary podcast. '
+      '${lesson.level} vocabulary podcast. $criticalListening'
       'This episode revisits the same words used in your story and conversation. '
       '$groups Listen a second time. Pause after every word, repeat it, '
       'and write one sentence that uses the grammar rule from this lesson.';

@@ -3,7 +3,7 @@ import 'package:worldvoice/features/learn/data/academy_english_advanced_models.d
 import 'package:worldvoice/features/learn/data/academy_english_advanced_learning_path.dart';
 
 void main() {
-  for (final level in <String>['A2', 'B1', 'B2']) {
+  for (final level in <String>['A2', 'B1', 'B2', 'C1']) {
     test('$level links exactly forty graded words to reading, dialogue and podcast', () {
       final lessons = EnglishAdvancedSyllabus.forLevel(level);
       expect(lessons, hasLength(30));
@@ -19,9 +19,17 @@ void main() {
         }
         expect(words.every((word) => word.arabic.trim().isNotEmpty), isTrue);
         final chapters = EnglishAdvancedLearningPath.readingFor(lesson);
-        expect(chapters, hasLength(lesson.paragraphs.length + 1));
+        expect(chapters, hasLength(lesson.paragraphs.length + (level == 'C1' || level == 'C2' ? 2 : 1)));
         expect(chapters.first, lesson.paragraphs.first);
-        expect(chapters.last, contains(words.first.term));
+        expect(chapters.skip(lesson.paragraphs.length).join(' '),
+            contains(words.first.term));
+        if (level == 'C1' || level == 'C2') {
+          expect(chapters.length, greaterThanOrEqualTo(level == 'C1' ? 7 : 8));
+          expect(chapters[chapters.length - 2].split(RegExp(r'\s+')).length,
+              greaterThanOrEqualTo(100));
+          expect(chapters.last.split(RegExp(r'\s+')).length,
+              greaterThanOrEqualTo(100));
+        }
         final dialogue = EnglishAdvancedLearningPath.conversationFor(lesson);
         expect(dialogue, hasLength(10));
         expect(dialogue.join(' '), contains(words.first.term));
