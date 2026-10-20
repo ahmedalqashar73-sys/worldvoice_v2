@@ -64,6 +64,21 @@ abstract final class EnglishAdvancedDialogues {
       ],
     ),
 
+    'a2.2.1': EnglishAdvancedDialogue(
+      lines: <String>["Layla: Could you help me move this bookshelf?","Roommate: Sure. Is there enough space beside the window?","Layla: I think so, but the bedside table might be too large.","Roommate: Let's measure the wall before we move anything.","Layla: Good idea. I also need to report a loose wardrobe handle."],
+      tip: "Practise the contrast between too and enough in descriptions.", tipArabic: "استخدم too وenough مع النطق المتصل لوصف المساحة.",
+      pronunciation: <String>["wardrobe /ˈwɔːrdroʊb/","curtains /ˈkɝːtənz/","furniture /ˈfɝːnɪtʃər/"],
+    ),
+    'a2.2.2': EnglishAdvancedDialogue(
+      lines: <String>["Nabil: Good morning. I have felt tired for several days.","Doctor: When did you first notice the change?","Nabil: I have been tired since Monday.","Doctor: Let's discuss your sleep and decide whether a test is useful.","Nabil: Thank you. I will write down your instructions."],
+      tip: "Stress the time expressions for and since while asking about duration.", tipArabic: "تدرّب على الفرق الصوتي والمعنوي بين for وsince عند الحديث عن المدة.",
+      pronunciation: <String>["appointment /əˈpɔɪntmənt/","clinician /klɪˈnɪʃən/","reassured /ˌriːəˈʃʊrd/"],
+    ),
+    'a2.2.3': EnglishAdvancedDialogue(
+      lines: <String>["Mariam: First, we need to wash all the vegetables.","Brother: Should I chop the onions now?","Mariam: Yes, and then please add the tomatoes to the pot.","Brother: How long should the stew cook?","Mariam: Let it simmer gently, then we can serve it."],
+      tip: "Use clear sentence stress for first, next, then and finally.", tipArabic: "اربط كلمات ترتيب خطوات الوصفة بإيقاع واضح: first، next، then، finally.",
+      pronunciation: <String>["stew /stuː/","simmer /ˈsɪmər/","seasoning /ˈsiːzənɪŋ/"],
+    ),
     'a2.1.6': EnglishAdvancedDialogue(
       lines: <String>["Mina: Excuse me, has the last bus left?","Waiter: I'm afraid it has. Would you like me to call a licensed taxi?","Mina: Yes, please. I am going to check the timetable next time.","Waiter: You can wait inside while the driver is on the way.","Mina: Thank you. I will send my sister the meeting point."],
       tip: "Practise going to for plans and will for an immediate decision.", tipArabic: "فرّق في النطق بين going to للخطة وwill للقرار اللحظي.",
