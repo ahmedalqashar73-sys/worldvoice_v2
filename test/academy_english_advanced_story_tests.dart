@@ -58,13 +58,13 @@ void main() {
   test('A2-C2 published lessons have original graded stories and unique vocabulary', () {
     expect(EnglishAdvancedSyllabus.levels,
         <String>['A2', 'B1', 'B2', 'C1', 'C2']);
-    expect(EnglishAdvancedSyllabus.lessons, hasLength(96));
+    expect(EnglishAdvancedSyllabus.lessons, hasLength(150));
     final storyTexts = <String>{};
     final taughtWords = <String>{};
     final previousListeningLength = <int>[0, 0];
     for (final level in EnglishAdvancedSyllabus.levels) {
       final lessons = EnglishAdvancedSyllabus.forLevel(level);
-      expect(lessons, hasLength(['A2', 'B1', 'B2'].contains(level) ? 30 : 3),
+      expect(lessons, hasLength(30),
           reason: 'Published lessons $level');
       for (var index = 0; index < lessons.length; index++) {
         final lesson = lessons[index];
@@ -223,6 +223,37 @@ void main() {
     expect(AdvancedGrammarWorkshops.forLesson('B1', 1, unitNumber: 3), isNull);
   });
 
+
+  test('C1 and C2 have all thirty rigorous integrated lessons', () {
+    for (final level in ['C1', 'C2']) {
+      final total = EnglishAdvancedSyllabus.forLevel(level);
+      expect(total, hasLength(30));
+      for (final outline in EnglishAdvancedSyllabus.unitsForLevel(level)) {
+        expect(outline.publishedLessons, hasLength(10));
+        for (var i = 1; i <= 10; i++) {
+          final lesson = outline.lessonAt(i)!;
+          expect(lesson.title, outline.plannedTopics[i - 1]);
+          expect(lesson.paragraphs,
+              hasLength(level == 'C1' ? 5 : 6));
+          expect(lesson.vocabulary.length,
+              greaterThanOrEqualTo(level == 'C1' ? 42 : 50));
+          expect(lesson.grammarExamples, hasLength(3));
+          final workshop = AdvancedGrammarWorkshops.forLesson(level, i,
+              unitNumber: outline.number);
+          expect(workshop, isNotNull);
+          expect(workshop!.examples, hasLength(3));
+          expect(workshop.correct, workshop.options[workshop.answer]);
+          expect(EnglishAdvancedDialogues.forLesson(lesson).lines,
+              hasLength(5));
+          if (outline.number != 1 || i > 3) {
+            expect(lesson.paragraphs.every((p) =>
+                p.trim().split(RegExp(r'\s+')).length >= 55), isTrue);
+          }
+        }
+      }
+    }
+  });
+
   test('B1 and B2 have complete distinct content in all thirty lesson slots', () {
     final ids = <String>{};
     final newVocabulary = <String>{};
@@ -268,8 +299,8 @@ void main() {
     expect(ids, hasLength(60));
     expect(newLessonCount, 46);
     expect(newVocabulary, hasLength(1536));
-    expect(EnglishAdvancedSyllabus.forUnit('C1', 2), isEmpty);
-    expect(EnglishAdvancedSyllabus.forUnit('C2', 3), isEmpty);
+    expect(EnglishAdvancedSyllabus.forUnit('C1', 2), hasLength(10));
+    expect(EnglishAdvancedSyllabus.forUnit('C2', 3), hasLength(10));
   });
 
   for (final (level, unit, number) in [

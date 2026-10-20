@@ -1,3 +1,5 @@
+import 'academy_english_advanced_models.dart';
+
 /// Additional CEFR-appropriate teaching examples for every published
 /// advanced grammar lesson, beyond the original three simple examples.
 /// These are original sentences, not duplicated story paragraphs.
@@ -878,12 +880,58 @@ abstract final class AdvancedGrammarWorkshops {
       question:"Which sentence uses contrast correctly?", options:<String>["Despite the campus was distant, she enrolled.","Although the campus was distant, she enrolled.","However the campus was distant she enrolled."],answer:1,
     ),
   };
+
+  /// The C1/C2 completion maintains the eight-stage classroom system:
+  /// teach, exemplify, diagnose an error, and require a mastery response.
+  static AdvancedGrammarWorkshop _upperLevelWorkshop(
+      String level, int unitNumber, int number) {
+    final lesson = EnglishAdvancedSyllabus.findLesson(level, unitNumber, number)!;
+    final title = lesson.title.toLowerCase();
+    final explanations = <String>[
+      'Distinguish an observed pattern from the inference that explains it. Report degrees of certainty using modal verbs and evidential verbs; resist categorical statements when plausible alternatives remain.',
+      'When acknowledging objections, concede their strongest point before identifying the limit of that concession. Accurate academic argument weighs rival interpretations instead of dismissing them.',
+      'Formal negative adverbials such as rarely and not until require auxiliary inversion. The inversion foregrounds evidential change without altering the underlying chronology.',
+      'Participle clauses condense background and cause. A dangling participle can assign the action to the wrong subject; verify that the implied subject is unambiguous.',
+      'Nominalisation turns processes into subjects of discussion, but can conceal agency. Restore who acted when responsibility matters more than abstract elegance.',
+      'Cleft constructions foreground the contested element of a claim. They are useful for marking emphasis but must not exaggerate what evidence establishes.',
+      'Verbs such as allege, concede, maintain and challenge indicate the speaker’s evidential stance. Choose verbs that attribute claims without silently endorsing them.',
+      'Mixed and inverted conditional constructions contrast evidence that was absent in the past with outcomes and evaluations in the present. Keep the time reference of each clause coherent.',
+      'May have, must have and cannot have encode different levels of inference, not direct observations. State the premises that justify your chosen modal.',
+      'Use however, consequently, provided that and nonetheless to express relationships between claims. A qualified conclusion should acknowledge the conditions under which it holds.',
+    ];
+    final c2Explanation = 'At C2, examine semantic scope, pragmatic presuppositions, counterfactual assumptions and rhetorical force. Distinguish a defensible reading from a uniquely established interpretation. '; 
+    final focus = explanations[(number - 1) % explanations.length];
+    return AdvancedGrammarWorkshop(
+      explanationEnglish: (level == 'C2' ? c2Explanation : '') + focus +
+          ' Apply this distinction to $title, and explain what the sources cannot establish.',
+      examples: <AdvancedGrammarExample>[
+        AdvancedGrammarExample('The available evidence concerning $title is persuasive, although not decisive.', 'الأدلة المتاحة مقنعة لكنها ليست حاسمة.'),
+        AdvancedGrammarExample('Had the inquiry ignored the alternative explanation, its conclusions might have been misleading.', 'لو تجاهل التحقيق التفسير البديل، لربما كانت استنتاجاته مضللة.'),
+        AdvancedGrammarExample('Only after the record was re-examined did the panel qualify its findings.', 'لم تتحفظ اللجنة في نتائجها إلا بعد إعادة فحص السجل.'),
+      ],
+      wrong: 'The evidence prove every interpretations of $title.',
+      correct: 'The evidence supports a qualified interpretation of $title.',
+      question: 'Which statement uses accurate academic English and appropriately calibrated evidence?',
+      options: <String>[
+        'The evidence prove every interpretations of $title.',
+        'The evidence supports a qualified interpretation of $title.',
+        'The evidence must proves the only interpretation of $title.'
+      ],
+      answer: 1,
+    );
+  }
+
   static AdvancedGrammarWorkshop? forLesson(String level, int number,
       {int unitNumber = 1}) {
     final additional = _intermediateCompletion['$level:$unitNumber:$number'];
     if (additional != null) return additional;
     if (unitNumber == 3 && level == 'A2') return _unit3A2[number];
     if (unitNumber == 2 && level == 'A2') return _unit2A2[number];
+    if ((level == 'C1' || level == 'C2') &&
+        EnglishAdvancedSyllabus.findLesson(level, unitNumber, number) != null) {
+      return _workshops['$level:$number'] ??
+          _upperLevelWorkshop(level, unitNumber, number);
+    }
     if (unitNumber != 1) return null;
     return _workshops['$level:$number'];
   }
