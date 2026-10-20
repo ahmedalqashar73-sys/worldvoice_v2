@@ -352,7 +352,7 @@ void main() {
       expect(dialogue.pronunciation, hasLength(3));
       expect(lesson.spellingChallenge, hasLength(3));
     }
-    expect(EnglishAdvancedSyllabus.forUnit('A2', 2), isEmpty);
+    expect(EnglishAdvancedSyllabus.forUnit('A2', 2), hasLength(3));
     expect(EnglishAdvancedSyllabus.forUnit('A2', 3), isEmpty);
   });
 
