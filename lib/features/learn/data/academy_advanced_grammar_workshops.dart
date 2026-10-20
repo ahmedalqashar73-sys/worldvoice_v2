@@ -62,6 +62,41 @@ abstract final class AdvancedGrammarWorkshops {
       answer: 0,
     ),
 
+    'A2:6': AdvancedGrammarWorkshop(
+      explanationEnglish: "Use be going to for a plan already decided and will for a decision made now. The verb after will remains in its base form.",
+      examples: <AdvancedGrammarExample>[AdvancedGrammarExample("I am going to leave class earlier.","سأغادر الحصة مبكرًا وفقًا لخطة."),AdvancedGrammarExample("The bus is gone, so I will call a taxi.","فاتت الحافلة، لذا سأتصل بسيارة أجرة الآن."),AdvancedGrammarExample("Is Mina going to check the timetable?","هل تنوي مينا مراجعة الجدول؟")],
+      wrong: "I will to call a taxi.", correct: "I will call a taxi.",
+      question: "Which sentence describes a prior plan?",
+      options: <String>["I am going to leave earlier.","I going leave earlier.","I will to leaving early."], answer: 0,
+    ),
+    'A2:7': AdvancedGrammarWorkshop(
+      explanationEnglish: "Use have or has plus the past participle for experiences when no definite past time is given. Use the past simple with yesterday or last week.",
+      examples: <AdvancedGrammarExample>[AdvancedGrammarExample("Have you ever joined an art club?","هل سبق وانضممت إلى نادٍ فني؟"),AdvancedGrammarExample("She has never visited that room.","لم تزر تلك الغرفة من قبل."),AdvancedGrammarExample("Hana met Leo on Monday.","قابلت هانا ليو يوم الاثنين.")],
+      wrong: "I have never visit the club.", correct: "I have never visited the club.",
+      question: "Which present-perfect experience is correct?",
+      options: <String>["I has never seen it.","She has never drawn a poster.","She has never drew a poster."], answer: 1,
+    ),
+    'A2:8': AdvancedGrammarWorkshop(
+      explanationEnglish: "Could I and Would it be possible to are polite ways to request assistance. Would you mind requires an -ing form.",
+      examples: <AdvancedGrammarExample>[AdvancedGrammarExample("Could I return this lamp, please?","هل يمكنني إرجاع هذا المصباح من فضلك؟"),AdvancedGrammarExample("Would it be possible to receive a replacement?","هل سيكون من الممكن الحصول على بديل؟"),AdvancedGrammarExample("Would you mind checking the switch?","هل تمانع فحص المفتاح؟")],
+      wrong: "Would you mind to check it?", correct: "Would you mind checking it?",
+      question: "Choose the polite and grammatical request.",
+      options: <String>["Could I to return this?","Would you mind check it?","Could I return this, please?"], answer: 2,
+    ),
+    'A2:9': AdvancedGrammarWorkshop(
+      explanationEnglish: "Before, after and when organize events. In future time clauses after when and as soon as, use the present simple rather than will.",
+      examples: <AdvancedGrammarExample>[AdvancedGrammarExample("Before we left, we checked the weather.","قبل أن نغادر راجعنا الطقس."),AdvancedGrammarExample("After we reached the hill, we rested.","بعد وصولنا إلى التل استرحنا."),AdvancedGrammarExample("We will stop when we find water.","سنتوقف عندما نجد ماء.")],
+      wrong: "We will stop when we will reach the hill.", correct: "We will stop when we reach the hill.",
+      question: "Which future time clause is correct?",
+      options: <String>["I will call you when I arrive.","I will call when I will arrive.","I calling you when arrive."], answer: 0,
+    ),
+    'A2:10': AdvancedGrammarWorkshop(
+      explanationEnglish: "Comparatives compare two people or things, while superlatives identify the highest degree in a group. Use -est for short adjectives and most for many longer adjectives.",
+      examples: <AdvancedGrammarExample>[AdvancedGrammarExample("Sara was the youngest volunteer.","كانت سارة أصغر المتطوعين."),AdvancedGrammarExample("The relay was the most exciting event.","كان التتابع أكثر الأحداث إثارة."),AdvancedGrammarExample("Our runners were faster than last year.","كان عداؤونا أسرع من العام الماضي.")],
+      wrong: "This was the more exciting event of all.", correct: "This was the most exciting event of all.",
+      question: "Which superlative is correct?",
+      options: <String>["She is fastest than me.","This is the most exciting race.","This is the more exciting race of all."], answer: 1,
+    ),
     'A2:5': AdvancedGrammarWorkshop(
       explanationEnglish: 'Some is common in positive statements and polite offers. Any is common in questions and negatives. Use many with countable nouns and much with uncountable nouns, such as rice or milk.',
       examples: <AdvancedGrammarExample>[
