@@ -110,8 +110,8 @@ abstract final class EnglishAdvancedLearningPath {
     final adverbs = category(lesson, AdvancedWordKind.adverb);
     final context = lesson.level == 'A2'
         ? 'At the end of the day, the friends talked about their '
-          '${nouns[0].term} and ${nouns[1].term}. They shared an '
-          '${adjectives[0].term} idea and wanted to ${verbs[0].term} '
+          '${nouns[0].term} and ${nouns[1].term}. They described the situation as '
+          '${adjectives[0].term} and wanted to ${verbs[0].term} '
           '${adverbs[0].term}. One person offered to ${verbs[1].term} '
           '${adverbs[1].term}. Although the situation was '
           '${adjectives[1].term}, everyone listened and learned together.'
@@ -135,7 +135,7 @@ abstract final class EnglishAdvancedLearningPath {
     return <String>[
       ...original,
       'Tutor: What can you tell me about ${nouns[0].term} and ${nouns[1].term}?',
-      'Learner: I have an ${adjectives[0].term} idea about this topic.',
+      'Learner: I think the situation is ${adjectives[0].term}.',
       'Tutor: Could you use two new verbs in complete sentences?',
       'Learner: I would like to ${verbs[0].term} ${adverbs[0].term} '
           'and ${verbs[1].term} ${adverbs[1].term}.',
