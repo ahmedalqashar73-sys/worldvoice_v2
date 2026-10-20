@@ -133,7 +133,7 @@ void main() {
         expect(newWords.add(word.term.toLowerCase()), isTrue,
             reason: 'Reused new vocabulary: ${word.term}');
       }
-      expect(lesson.listening.trim().split(RegExp(r'\\s+')).length,
+      expect(lesson.listening.trim().split(RegExp(r'\s+')).length,
           greaterThanOrEqualTo(65));
       final grammar = AdvancedGrammarWorkshops.forLesson('B1', number);
       expect(grammar, isNotNull);
