@@ -127,7 +127,7 @@ void main() {
     expect((await EnglishA1Progress.load('person-a')).length, 1);
   });
 
-  testWidgets('lesson starts with grammar, then teaches twenty words',
+  testWidgets('lesson starts with grammar, then teaches forty categorized words',
       (tester) async {
     tester.view.physicalSize = const Size(900, 1400);
     tester.view.devicePixelRatio = 1;
@@ -160,11 +160,11 @@ void main() {
         findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('academy-section-1')));
     await tester.pumpAndSettle();
-    expect(find.text('20 words to learn and review'), findsOneWidget);
-    expect(find.text('hello'), findsWidgets);
+    expect(find.text('40 words · 4 word groups'), findsOneWidget);
+    expect(find.text('notebook'), findsWidgets);
   });
 
-  testWidgets('single-page story shows all three paragraphs at once',
+  testWidgets('illustrated reader shows four paragraphs with lesson vocabulary',
       (tester) async {
     tester.view.physicalSize = const Size(900, 1450);
     tester.view.devicePixelRatio = 1;
@@ -193,7 +193,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('academy-story-single-page')),
         findsOneWidget);
-    for (var i = 0; i < 3; i++) {
+    for (var i = 0; i < 4; i++) {
       expect(find.byKey(ValueKey('academy-story-paragraph-$i')),
           findsOneWidget);
     }
