@@ -13,6 +13,7 @@ part 'academy_english_advanced_b1_7_10.dart';
 part 'academy_english_advanced_b2_4.dart';
 part 'academy_english_advanced_a2_unit2_first.dart';
 part 'academy_english_advanced_a2_unit2_middle.dart';
+part 'academy_english_advanced_a2_unit2_last.dart';
 
 /// Authored English CEFR pilot lessons beyond A1. Each published lesson has
 /// its own complete story, contextual vocabulary, grammar, listening and
@@ -132,6 +133,7 @@ abstract final class EnglishAdvancedSyllabus {
     ...EnglishAdvancedB2FoodRecovery.lessons,
     ...EnglishAdvancedA2UnitTwoFirst.lessons,
     ...EnglishAdvancedA2UnitTwoMiddle.lessons,
+    ...EnglishAdvancedA2UnitTwoLast.lessons,
   ];
 
   static List<EnglishAdvancedLesson> forLevel(String level) =>
