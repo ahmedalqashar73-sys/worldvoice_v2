@@ -650,7 +650,8 @@ class _AcademyEnglishAdvancedLessonScreenState
   Widget build(BuildContext context) {
     final lesson = widget.lesson;
     final dialogue = EnglishAdvancedDialogues.forLesson(lesson);
-    final workshop = AdvancedGrammarWorkshops.forLesson(lesson.level, lesson.number);
+    final workshop = AdvancedGrammarWorkshops.forLesson(
+        lesson.level, lesson.number, unitNumber: lesson.unitNumber);
     final scheme = Theme.of(context).colorScheme;
     final canFinish = _readPassed && _listenPassed && _wordPassed && _sentencePassed;
     return Scaffold(
