@@ -1,0 +1,18 @@
+name: Temporary A2 Unit Two Completion Validation
+on:
+  push:
+    branches:
+      - feat/academy-a2-unit2-middle-20261020
+jobs:
+  academy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test test/academy_english_advanced_story_tests.dart test/academy_english_a1_full_path_test.dart
