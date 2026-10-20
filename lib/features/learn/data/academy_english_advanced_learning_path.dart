@@ -152,6 +152,47 @@ abstract final class EnglishAdvancedLearningPath {
       wordsFor(lesson).where((word) => word.kind == kind)
           .toList(growable: false);
 
+  /// Two additional academic reading paragraphs extend the original story.
+  /// Each contains topic vocabulary, an explicit counterargument and a
+  /// defensible qualified conclusion rather than a beginner dialogue.
+  static List<String> _upperReading(
+      EnglishAdvancedLesson lesson,
+      List<AdvancedCourseWord> nouns,
+      List<AdvancedCourseWord> verbs,
+      List<AdvancedCourseWord> adjectives,
+      List<AdvancedCourseWord> adverbs) {
+    final first =
+        'The enquiry at the centre of "${lesson.storyTitle}" entered a more '
+        'demanding phase when the panel revisited the ${nouns[0].term}. '
+        'What had initially seemed straightforward became a question about '
+        'the ${nouns[1].term} and the assumptions beneath an apparently '
+        'authoritative explanation. The investigators decided to '
+        '${verbs[0].term} the available evidence ${adverbs[0].term} and '
+        'to ${verbs[1].term} the competing interpretation ${adverbs[1].term}. '
+        'One participant called the emerging account ${adjectives[0].term}; '
+        'another judged it ${adjectives[1].term}, pointing to important '
+        'information that had been omitted. Neither position could be '
+        'adopted merely because its spokesperson sounded confident. '
+        'The group had to say what counted as evidence, what remained '
+        'unresolved, and why a particular inference deserved provisional trust.';
+    final second =
+        'In the closing session, the discussion turned to the '
+        '${nouns[2].term} and its connection with the ${nouns[3].term}. '
+        'The chair asked each contributor to ${verbs[2].term} '
+        'the central claim ${adverbs[2].term}, and to '
+        '${verbs[3].term} the supporting material ${adverbs[3].term}. '
+        'The resulting memorandum acknowledged a ${adjectives[2].term} '
+        'difficulty without presenting every interpretation as equally '
+        'plausible. Its authors also explained why the '
+        '${nouns[4].term} could not be dismissed as a technical detail. '
+        'To some readers, this measured response seemed frustratingly '
+        'incomplete; to others, it was precisely the restraint that '
+        'responsible scholarship required. The decision therefore remained '
+        'open to further scrutiny, with clearly identified conditions '
+        'under which it would need to be revised.';
+    return <String>[...lesson.paragraphs, first, second];
+  }
+
   /// Preserve the full original reading, with one newly scaffolded scene
   /// reusing lesson nouns, action verbs, descriptors and manner adverbs.
   static List<String> readingFor(EnglishAdvancedLesson lesson) {
@@ -160,6 +201,9 @@ abstract final class EnglishAdvancedLearningPath {
     final verbs = category(lesson, AdvancedWordKind.verb);
     final adjectives = category(lesson, AdvancedWordKind.adjective);
     final adverbs = category(lesson, AdvancedWordKind.adverb);
+    if (lesson.level == 'C1' || lesson.level == 'C2') {
+      return _upperReading(lesson, nouns, verbs, adjectives, adverbs);
+    }
     final context = lesson.level == 'A2'
         ? 'At the end of the day, the friends talked about their '
           '${nouns[0].term} and ${nouns[1].term}. They described the situation as '
@@ -184,6 +228,22 @@ abstract final class EnglishAdvancedLearningPath {
     final verbs = category(lesson, AdvancedWordKind.verb);
     final adjectives = category(lesson, AdvancedWordKind.adjective);
     final adverbs = category(lesson, AdvancedWordKind.adverb);
+    if (lesson.level == 'C1' || lesson.level == 'C2') {
+      return <String>[
+        ...original,
+        'Editor: What does the ${nouns[0].term} reveal about the '
+            'main argument in ${lesson.storyTitle}?',
+        'Researcher: The ${nouns[1].term} appears ${adjectives[0].term}, '
+            'but another account makes it ${adjectives[1].term}.',
+        'Editor: How could you ${verbs[0].term} that claim ${adverbs[0].term} '
+            'without overlooking rival interpretations?',
+        'Researcher: I would ${verbs[1].term} the ${nouns[2].term} '
+            '${adverbs[1].term}, and then ${verbs[2].term} '
+            'the ${nouns[3].term}.',
+        'Editor: Offer a qualified judgement that states both its '
+            'evidential grounds and the limits of your conclusion.',
+      ];
+    }
     return <String>[
       ...original,
       'Tutor: What can you tell me about ${nouns[0].term} and ${nouns[1].term}?',
@@ -207,8 +267,19 @@ abstract final class EnglishAdvancedLearningPath {
       final terms = category(lesson, kind).map((w) => w.term).join(', ');
       return 'Now listen to these ten ${names[kind]}: $terms.';
     }).join(' ');
+    final upper = lesson.level == 'C1' || lesson.level == 'C2';
+    final criticalListening = upper
+      ? 'Consider this question: which interpretation is grounded in '
+        'evidence and which rests on an assumption? '
+        'Pause to identify a credible counterargument and explain '
+        'whether it changes the original conclusion. '
+        'Do not simply repeat the speaker’s confidence; examine the '
+        'scope of each claim. The most persuasive response '
+        'may be a qualified conclusion that distinguishes observation '
+        'from inference. '
+      : '';
     return '${lesson.listening} Welcome to the WorldVoice '
-      '${lesson.level} vocabulary podcast. '
+      '${lesson.level} vocabulary podcast. $criticalListening'
       'This episode revisits the same words used in your story and conversation. '
       '$groups Listen a second time. Pause after every word, repeat it, '
       'and write one sentence that uses the grammar rule from this lesson.';
