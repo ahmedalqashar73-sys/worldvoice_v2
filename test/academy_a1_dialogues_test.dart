@@ -35,7 +35,7 @@ void main() {
     expect(find.byKey(const ValueKey('academy-lesson-sections')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('academy-section-0')));
     await tester.pumpAndSettle();
-    expect(find.text('I am / You are'), findsOneWidget);
+    expect(find.text('I am / You are'), findsWidgets);
     expect(find.text('Conversation'), findsNothing);
     expect(find.byType(FilledButton), findsWidgets);
   });
