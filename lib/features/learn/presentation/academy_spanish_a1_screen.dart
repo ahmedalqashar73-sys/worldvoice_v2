@@ -468,8 +468,8 @@ class _AcademySpanishA1LessonScreenState
         child: Column(children: [
           const Icon(Icons.auto_stories, color: _oro, size: 40),
           const SizedBox(height: 8),
-          const Text('WORLDVOICE · ESPAÑOL A1',
-            style: TextStyle(color: _oro, letterSpacing: 1.4)),
+          Text('WORLDVOICE · ESPAÑOL ${widget.level}',
+            style: const TextStyle(color: _oro, letterSpacing: 1.4)),
           const SizedBox(height: 12),
           Text(lesson.title, textAlign: TextAlign.center,
             style: const TextStyle(color: Colors.white,
