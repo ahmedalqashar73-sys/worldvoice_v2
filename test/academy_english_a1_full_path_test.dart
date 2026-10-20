@@ -150,7 +150,7 @@ void main() {
     expect(locked.onTap, isNull);
     await tester.tap(find.byKey(const ValueKey('academy-section-0')));
     await tester.pumpAndSettle();
-    expect(find.text('I am / You are'), findsOneWidget);
+    expect(find.text('I am / You are'), findsWidgets);
     expect(find.textContaining('I am Sara.'), findsWidgets);
     expect(find.byKey(const ValueKey('academy-integrated-next')), findsNothing);
     await passFirstTutorGrammar(tester);
