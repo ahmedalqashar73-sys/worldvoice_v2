@@ -163,7 +163,7 @@ void main() {
       expect(lesson.extraWords, hasLength(18));
       expect(lesson.vocabulary, hasLength(30));
       for (final paragraph in lesson.paragraphs) {
-        expect(paragraph.trim().split(RegExp(r'\\s+')).length,
+        expect(paragraph.trim().split(RegExp(r'\s+')).length,
             greaterThanOrEqualTo(20), reason: lesson.id);
       }
       final story = lesson.paragraphs.join(' ').toLowerCase();
@@ -177,7 +177,7 @@ void main() {
         expect(newWords.add(term), isTrue, reason: term);
         expect(word.arabic.trim(), isNotEmpty);
       }
-      expect(lesson.listening.trim().split(RegExp(r'\\s+')).length,
+      expect(lesson.listening.trim().split(RegExp(r'\s+')).length,
           greaterThanOrEqualTo(65));
       expect(lesson.spellingChallenge, hasLength(3));
       final workshop = AdvancedGrammarWorkshops.forLesson('B1', i);
