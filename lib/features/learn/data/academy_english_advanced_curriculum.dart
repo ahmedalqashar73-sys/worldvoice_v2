@@ -65,7 +65,7 @@ abstract final class EnglishAdvancedCurriculum {
       EnglishAdvancedUnitOutline(
         level: 'B2', number: 1,
         title: "Society, Evidence and Debate", titleArabic: "المجتمع والأدلة والنقاش",
-        plannedTopics: <String>["The Headline That Spread", "The Hybrid Work Question", "A City Without Cars", "The Food Waste Challenge", "The Ethics of Advertising", "Online Privacy", "The University Debate", "A Renewable Energy Proposal", "Tourism and Local Culture", "An Election of Ideas"],
+        plannedTopics: <String>["The Headline That Spread", "The Hybrid Work Question", "The Rooftop Energy Debate", "The Food Waste Challenge", "The Ethics of Advertising", "Online Privacy", "The University Debate", "A Renewable Energy Proposal", "Tourism and Local Culture", "An Election of Ideas"],
       ),
       EnglishAdvancedUnitOutline(
         level: 'B2', number: 2,
@@ -122,3 +122,4 @@ abstract final class EnglishAdvancedCurriculum {
           total + units.fold<int>(0, (sum, unit) =>
               sum + unit.plannedTopics.length));
 }
+
