@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/academy_english_advanced_models.dart';
 import '../data/academy_advanced_grammar_workshops.dart';
+import '../data/academy_english_advanced_learning_path.dart';
+import 'academy_illustrated_story_art.dart';
 
 const _green = Color(0xFF135941);
 const _gold = Color(0xFFF2C678);
@@ -423,6 +425,7 @@ class _AcademyEnglishAdvancedLessonScreenState
   Widget _sectionMenu() {
     final scheme = Theme.of(context).colorScheme;
     final lesson = widget.lesson;
+    final linked = EnglishAdvancedLearningPath.supports(lesson);
     final accent = Theme.of(context).brightness == Brightness.dark
         ? const Color(0xFF98E8BC) : _green;
     return ListView(
@@ -479,8 +482,8 @@ class _AcademyEnglishAdvancedLessonScreenState
                               fontWeight: FontWeight.w800)),
                         const SizedBox(height: 4),
                         Text(index == 1
-                            ? (_ar ? '${lesson.vocabulary.length} كلمة بالصوت والمعنى والنطق'
-                                : '${lesson.vocabulary.length} words with audio, meaning and pronunciation')
+                            ? (_ar ? '${linked ? 40 : lesson.vocabulary.length} كلمة بالصوت والمعنى والنطق'
+                                : '${linked ? 40 : lesson.vocabulary.length} words with audio, meaning and pronunciation')
                             : index == 2
                                 ? (_ar ? 'قصة قصيرة في صفحة واحدة · ${lesson.paragraphs.length} فقرات'
                                     : 'One-page story · ${lesson.paragraphs.length} paragraphs')
@@ -649,6 +652,11 @@ class _AcademyEnglishAdvancedLessonScreenState
   @override
   Widget build(BuildContext context) {
     final lesson = widget.lesson;
+    final linked = EnglishAdvancedLearningPath.supports(lesson);
+    final grouped = EnglishAdvancedLearningPath.wordsFor(lesson);
+    final reading = EnglishAdvancedLearningPath.readingFor(lesson);
+    final conversation = EnglishAdvancedLearningPath.conversationFor(lesson);
+    final listening = EnglishAdvancedLearningPath.podcastFor(lesson);
     final dialogue = EnglishAdvancedDialogues.forLesson(lesson);
     final workshop = AdvancedGrammarWorkshops.forLesson(
         lesson.level, lesson.number, unitNumber: lesson.unitNumber);
@@ -680,12 +688,33 @@ class _AcademyEnglishAdvancedLessonScreenState
             style: const TextStyle(fontSize: 27, fontWeight: FontWeight.w900)),
           const SizedBox(height: 6),
           Text(_ar
-            ? '${lesson.paragraphs.length} فقرات · ${lesson.vocabulary.length} كلمة جديدة · استماع متدرج'
-            : '${lesson.paragraphs.length} paragraphs · ${lesson.vocabulary.length} new words · graded listening',
+            ? '${reading.length} فقرات · ${linked ? 40 : lesson.vocabulary.length} كلمة جديدة · استماع متدرج'
+            : '${reading.length} paragraphs · ${linked ? 40 : lesson.vocabulary.length} new words · graded listening',
             style: TextStyle(color: scheme.onSurfaceVariant)),
           const SizedBox(height: 17),
           if (_activeSection == 0) _section('شرح القاعدة', 'Grammar with examples',
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              if (linked) ...[
+                Container(
+                  key: const ValueKey('advanced-one-rule-primer'),
+                  padding: const EdgeInsets.all(15),
+                  decoration: BoxDecoration(
+                    color: scheme.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(17),
+                    border: Border.all(color: _gold)),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(_ar ? 'قاعدة واحدة، خطوة بخطوة' :
+                        'One rule, step by step',
+                        style: const TextStyle(fontSize: 18,
+                          color: _green, fontWeight: FontWeight.w900)),
+                      const SizedBox(height: 9),
+                      Text(_ar ? '1. افهم القاعدة.\n2. اقرأ الصيغة والأمثلة.\n3. جرّب أمثلة جديدة.\n4. صحّح الخطأ واختبر نفسك.' :
+                        '1. Understand the rule.\n2. Study the pattern.\n3. Hear more examples.\n4. Correct a mistake and practise.',
+                        style: const TextStyle(height: 1.7)),
+                    ])),
+                const SizedBox(height: 16),
+              ],
               Text(lesson.grammarTitle, textDirection: TextDirection.ltr,
                 style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
               const SizedBox(height: 9),
@@ -782,8 +811,8 @@ class _AcademyEnglishAdvancedLessonScreenState
                 ),
               ],
             ]), icon: Icons.school_outlined),
-          if (_activeSection == 2) _section('قصة المستوى · ${lesson.paragraphs.length} فقرات',
-              'Graded story · ${lesson.paragraphs.length} paragraphs',
+          if (_activeSection == 2) _section('قصة المستوى · ${reading.length} فقرات',
+              'Graded story · ${reading.length} paragraphs',
             Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               Container(
                 key: const ValueKey('advanced-story-cover'),
@@ -802,8 +831,20 @@ class _AcademyEnglishAdvancedLessonScreenState
                 ]),
               ),
               const SizedBox(height: 16),
-              for (var i = 0; i < lesson.paragraphs.length; i++) ...[
-                SelectableText(lesson.paragraphs[i],
+              if (linked) ...[
+                AcademyIllustratedStoryArt(
+                  scene: (lesson.number + lesson.unitNumber * 2) % 9,
+                  page: 1, animate: false),
+                const SizedBox(height: 13),
+              ],
+              for (var i = 0; i < reading.length; i++) ...[
+                if (linked && i == 2) ...[
+                  AcademyIllustratedStoryArt(
+                    scene: (lesson.number + lesson.unitNumber * 2) % 9,
+                    page: 2, animate: false),
+                  const SizedBox(height: 12),
+                ],
+                SelectableText(reading[i],
                   key: ValueKey('advanced-paragraph-$i'),
                   textDirection: TextDirection.ltr,
                   style: const TextStyle(height: 1.75, fontSize: 18)),
@@ -811,12 +852,12 @@ class _AcademyEnglishAdvancedLessonScreenState
               ],
               Wrap(spacing: 8, runSpacing: 8, children: [
                 FilledButton.tonalIcon(
-                  onPressed: () => _play(lesson.paragraphs.join(' ')),
+                  onPressed: () => _play(reading.join(' ')),
                   icon: const Icon(Icons.volume_up_rounded),
                   label: Text(_ar ? 'استمع للقصة' : 'Hear story'),
                 ),
                 OutlinedButton.icon(
-                  onPressed: () => _play(lesson.paragraphs.join(' '), slow: true),
+                  onPressed: () => _play(reading.join(' '), slow: true),
                   icon: const Icon(Icons.slow_motion_video_rounded),
                   label: Text(_ar ? 'ببطء' : 'Slow'),
                 ),
@@ -836,7 +877,35 @@ class _AcademyEnglishAdvancedLessonScreenState
                     onPressed: () => _play(word.term)),
                 ),
             ]), icon: Icons.bookmark_add_outlined),
-          if (_activeSection == 1) _section('مفردات إضافية للدرس', 'Additional lesson vocabulary',
+          if (_activeSection == 1 && linked) _section(
+            '40 كلمة: أسماء، أفعال، صفات، ظروف',
+            '40 words: Nouns, Verbs, Adjectives, Adverbs',
+            Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              for (final kind in AdvancedWordKind.values) ...[
+                Container(
+                  margin: const EdgeInsets.symmetric(vertical: 9),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(color: _green,
+                    borderRadius: BorderRadius.circular(13)),
+                  child: Text(switch (kind) {
+                    AdvancedWordKind.noun => _ar ? 'أسماء · 10' : 'Nouns · 10',
+                    AdvancedWordKind.verb => _ar ? 'أفعال · 10' : 'Verbs · 10',
+                    AdvancedWordKind.adjective => _ar ? 'صفات · 10' : 'Adjectives · 10',
+                    AdvancedWordKind.adverb => _ar ? 'ظروف · 10' : 'Adverbs · 10',
+                  }, style: const TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.w900)),
+                ),
+                for (final word in grouped.where((w) => w.kind == kind))
+                  ListTile(
+                    title: Text(word.term, textDirection: TextDirection.ltr),
+                    subtitle: Text(word.arabic, textDirection: TextDirection.rtl),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.volume_up_rounded),
+                      onPressed: () => _play(word.term)),
+                  ),
+              ],
+            ]), icon: Icons.translate_rounded),
+          if (_activeSection == 1 && !linked) _section('مفردات إضافية للدرس', 'Additional lesson vocabulary',
             Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               for (final word in lesson.vocabulary)
                 ListTile(
@@ -857,24 +926,24 @@ class _AcademyEnglishAdvancedLessonScreenState
                   : 'Listen to the two speakers and try taking one role yourself.',
                   style: TextStyle(color: scheme.onSurfaceVariant)),
               const SizedBox(height: 10),
-              for (var line = 0; line < dialogue.lines.length; line++)
+              for (var line = 0; line < conversation.length; line++)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 9),
                   child: Card(
                     color: line.isEven
                         ? scheme.primaryContainer : scheme.surfaceContainerHigh,
                     child: ListTile(
-                      title: Text(dialogue.lines[line],
+                      title: Text(conversation[line],
                         textDirection: TextDirection.ltr),
                       trailing: IconButton(
                         tooltip: _ar ? 'اسمع الجملة' : 'Hear sentence',
-                        onPressed: () => _play(dialogue.lines[line]),
+                        onPressed: () => _play(conversation[line]),
                         icon: const Icon(Icons.volume_up_rounded)),
                     ),
                   ),
                 ),
               FilledButton.tonalIcon(
-                onPressed: () => _play(dialogue.lines.join(' ')),
+                onPressed: () => _play(conversation.join(' ')),
                 icon: const Icon(Icons.record_voice_over_rounded),
                 label: Text(_ar ? 'استمع للحوار كاملًا' : 'Hear full dialogue'),
               ),
@@ -927,12 +996,12 @@ class _AcademyEnglishAdvancedLessonScreenState
               Wrap(spacing: 8, runSpacing: 7, children: [
                 FilledButton.tonalIcon(
                   key: const ValueKey('advanced-listening-play'),
-                  onPressed: () => _play(lesson.listening),
+                  onPressed: () => _play(listening),
                   icon: const Icon(Icons.headphones_rounded),
                   label: Text(_ar ? 'استمع' : 'Listen'),
                 ),
                 OutlinedButton.icon(
-                  onPressed: () => _play(lesson.listening, slow: true),
+                  onPressed: () => _play(listening, slow: true),
                   icon: const Icon(Icons.slow_motion_video_rounded),
                   label: Text(_ar ? 'ببطء' : 'Slow'),
                 ),
@@ -945,7 +1014,7 @@ class _AcademyEnglishAdvancedLessonScreenState
               if (_showTranscript)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  child: SelectableText(lesson.listening,
+                  child: SelectableText(listening,
                     textDirection: TextDirection.ltr,
                     style: const TextStyle(height: 1.6))),
               const SizedBox(height: 14),
