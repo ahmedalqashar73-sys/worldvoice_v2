@@ -13,6 +13,7 @@ import 'academy_english_advanced_screen.dart';
 import 'academy_english_a1_screen.dart';
 import 'academy_spanish_a1_screen.dart';
 import '../data/academy_spanish_a2_course.dart';
+import '../data/academy_spanish_b1_course.dart';
 import '../data/academy_journey_catalog.dart';
 import '../data/academy_story_catalog.dart';
 import '../services/academy_progress_service.dart';
@@ -61,6 +62,7 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
   int _pendingCount = 0;
   int _integratedA1Done = 0;
   int _spanishA2Done = 0;
+  int _spanishB1Done = 0;
 
   String get _progressUser => FirebaseAuth.instance.currentUser?.uid ?? 'guest';
   String get _placementKey =>
@@ -87,9 +89,14 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
           ? (await SpanishA1Progress.load(
               _progressUser == 'guest' ? null : _progressUser,
               level: 'A2')).length : 0;
+      final b1Done = widget.course.code == 'es'
+          ? (await SpanishA1Progress.load(
+              _progressUser == 'guest' ? null : _progressUser,
+              level: 'B1')).length : 0;
       if (!mounted) return;
       setState(() {
         _spanishA2Done = a2Done;
+        _spanishB1Done = b1Done;
         _integratedA1Done = integratedDone;
         _placementLevel = saved;
         _pendingCount = pending;
@@ -153,14 +160,20 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
 
   Future<void> _openAdvanced(String level) async {
     await Navigator.of(context).push<void>(MaterialPageRoute(
-      builder: (_) => widget.course.code == 'es' && level == 'A2'
-          ? const AcademySpanishA1Path(level: 'A2')
+      builder: (_) => widget.course.code == 'es' && (level == 'A2' || level == 'B1')
+          ? AcademySpanishA1Path(level: level)
           : AcademyEnglishAdvancedLevelScreen(level: level),
     ));
-    if (widget.course.code == 'es' && level == 'A2') {
+    if (widget.course.code == 'es' && (level == 'A2' || level == 'B1')) {
       final count = await SpanishA1Progress.load(
-          _progressUser == 'guest' ? null : _progressUser, level: 'A2');
-      if (mounted) setState(() => _spanishA2Done = count.length);
+          _progressUser == 'guest' ? null : _progressUser, level: level);
+      if (mounted) setState(() {
+        if (level == 'A2') {
+          _spanishA2Done = count.length;
+        } else {
+          _spanishB1Done = count.length;
+        }
+      });
     }
   }
 
@@ -199,9 +212,10 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
           final done = snapshot.data ?? <String>{};
           final total = widget.course.code == 'en'
               ? EnglishA1Catalog.lessonCount
-              : widget.course.code == 'es' ? 60 : widget.course.lessonCount;
+              : widget.course.code == 'es' ? 90 : widget.course.lessonCount;
           final count = widget.course.code == 'en' || widget.course.code == 'es'
-              ? _integratedA1Done + (widget.course.code == 'es' ? _spanishA2Done : 0)
+              ? _integratedA1Done + (widget.course.code == 'es'
+                  ? _spanishA2Done + _spanishB1Done : 0)
               : widget.course.units.fold<int>(0, (n, unit) =>
                   n + AcademyLessonKind.values.where(
                       (kind) => done.contains(unit.lessonId(kind))).length);
@@ -280,7 +294,9 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
                 final advancedLessons = widget.course.code == 'en'
                     ? EnglishAdvancedSyllabus.forLevel(level.id).length
                     : widget.course.code == 'es' && level.id == 'A2'
-                        ? SpanishA2Course.lessons.length : 0;
+                        ? SpanishA2Course.lessons.length
+                        : widget.course.code == 'es' && level.id == 'B1'
+                            ? SpanishB1Course.lessons.length : 0;
                 final published = a1 || advancedLessons > 0;
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 10),
