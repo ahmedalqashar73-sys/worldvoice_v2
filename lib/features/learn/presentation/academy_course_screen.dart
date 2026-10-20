@@ -167,13 +167,15 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
     if (widget.course.code == 'es' && (level == 'A2' || level == 'B1')) {
       final count = await SpanishA1Progress.load(
           _progressUser == 'guest' ? null : _progressUser, level: level);
-      if (mounted) setState(() {
-        if (level == 'A2') {
-          _spanishA2Done = count.length;
-        } else {
-          _spanishB1Done = count.length;
-        }
-      });
+      if (mounted) {
+        setState(() {
+          if (level == 'A2') {
+            _spanishA2Done = count.length;
+          } else {
+            _spanishB1Done = count.length;
+          }
+        });
+      }
     }
   }
 
