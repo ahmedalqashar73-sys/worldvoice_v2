@@ -61,6 +61,58 @@ abstract final class AdvancedGrammarWorkshops {
       options: <String>['Then, to add the onions.', 'Next, added some broth.', 'Finally, serve the meal.'],
       answer: 2,
     ),
+    4: AdvancedGrammarWorkshop(
+      explanationEnglish: 'Use have or has followed by the past participle. Just describes something recent; already describes completed work; yet often appears in questions and negatives.',
+      examples: <AdvancedGrammarExample>[
+        AdvancedGrammarExample('The mechanic has just fixed the tire.', 'الميكانيكي أصلح الإطار لتوه.'),
+        AdvancedGrammarExample('I have already checked the chain.', 'لقد فحصت السلسلة بالفعل.'),
+        AdvancedGrammarExample('Have you tested the brakes yet?', 'هل فحصت المكابح حتى الآن؟'),
+      ],
+      wrong: 'She has just fix the wheel.',
+      correct: 'She has just fixed the wheel.',
+      question: 'Which sentence uses the present perfect correctly?',
+      options: <String>['She has fix the tire.', 'She has just fixed the tire.', 'She have fixed the tire.'],
+      answer: 1,
+    ),
+    5: AdvancedGrammarWorkshop(
+      explanationEnglish: 'Have to indicates an obligation. Do not have to means something is optional. Must not expresses prohibition, not a lack of obligation.',
+      examples: <AdvancedGrammarExample>[
+        AdvancedGrammarExample('You have to feed your new pet.', 'يجب أن تطعم حيوانك الجديد.'),
+        AdvancedGrammarExample('You do not have to buy expensive toys.', 'ليس عليك شراء ألعاب غالية.'),
+        AdvancedGrammarExample('You must not leave the door open.', 'ممنوع ترك الباب مفتوحًا.'),
+      ],
+      wrong: 'You must not buy expensive toys if you do not want to.',
+      correct: 'You do not have to buy expensive toys if you do not want to.',
+      question: 'Which sentence means a choice rather than a ban?',
+      options: <String>['You must not buy a toy.', 'You do not have to buy a toy.', 'You cannot buy a toy.'],
+      answer: 1,
+    ),
+    6: AdvancedGrammarWorkshop(
+      explanationEnglish: 'Would you like is a polite way to offer something or invite a person. Use Shall I to offer help and I would love to for a polite acceptance.',
+      examples: <AdvancedGrammarExample>[
+        AdvancedGrammarExample('Would you like some tea?', 'هل ترغب في بعض الشاي؟'),
+        AdvancedGrammarExample('Would you like to join us on Friday?', 'هل ترغب في الانضمام إلينا يوم الجمعة؟'),
+        AdvancedGrammarExample('Shall I help with the cups?', 'هل أساعد في الأكواب؟'),
+      ],
+      wrong: 'Would you like joining us?',
+      correct: 'Would you like to join us?',
+      question: 'Which is the most polite invitation?',
+      options: <String>['You will come now?', 'Would you like to join us?', 'You join us yesterday?'],
+      answer: 1,
+    ),
+    7: AdvancedGrammarWorkshop(
+      explanationEnglish: 'For tells us how long an activity lasts. Since tells us its starting point. Use them with the present perfect for actions continuing to now.',
+      examples: <AdvancedGrammarExample>[
+        AdvancedGrammarExample('We have practised for two months.', 'تدرّبنا منذ شهرين لمدة شهرين.'),
+        AdvancedGrammarExample('I have studied since January.', 'درست منذ يناير.'),
+        AdvancedGrammarExample('How long have you known your partner?', 'منذ متى تعرف شريكك؟'),
+      ],
+      wrong: 'We have practised since three weeks.',
+      correct: 'We have practised for three weeks.',
+      question: 'Which sentence uses since correctly?',
+      options: <String>['I have studied since Monday.', 'I have studied since three weeks.', 'I study since tomorrow.'],
+      answer: 0,
+    ),
   };
 
   static const _workshops = <String, AdvancedGrammarWorkshop>{
