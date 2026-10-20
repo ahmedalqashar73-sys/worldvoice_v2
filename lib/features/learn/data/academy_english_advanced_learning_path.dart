@@ -26,6 +26,12 @@ abstract final class EnglishAdvancedLearningPath {
       AdvancedWordKind.adjective: "reliable|موثوق;relevant|ذو صلة;practical|عملي;ambitious|طموح;efficient|كفؤ;flexible|مرن;independent|مستقل;supportive|داعم;constructive|بنّاء;confident|واثق;reasonable|معقول;transparent|شفاف;responsible|مسؤول;appropriate|مناسب;effective|فعال;accessible|يسهل الوصول إليه;optimistic|متفائل;sensitive|حساس;productive|منتج;challenging|صعب",
       AdvancedWordKind.adverb: "effectively|بفعالية;responsibly|بمسؤولية;confidently|بثقة;independently|باستقلالية;patiently|بصبر;constructively|بشكل بناء;increasingly|بشكل متزايد;eventually|في نهاية المطاف;consistently|باستمرار;surprisingly|بشكل مفاجئ;clearly|بوضوح;accurately|بدقة;approximately|تقريبا;efficiently|بكفاءة;particularly|على وجه الخصوص;primarily|في المقام الأول;apparently|على ما يبدو;widely|على نطاق واسع;relatively|نسبيا;genuinely|بصدق",
     },
+    'B2': <AdvancedWordKind, String>{
+      AdvancedWordKind.noun: "framework|إطار;assumption|افتراض;credibility|مصداقية;perspective|منظور;implication|دلالة;incentive|حافز;evidence|دليل;interpretation|تفسير;regulation|تنظيم;controversy|جدل;hypothesis|فرضية;constraint|قيد;stakeholder|صاحب مصلحة;inequality|تفاوت;transparency|شفافية;sustainability|استدامة;innovation|ابتكار;accountability|مساءلة;consensus|إجماع;uncertainty|عدم يقين",
+      AdvancedWordKind.verb: "scrutinize|يفحص بدقة;substantiate|يثبت بالدليل;assess|يقيّم;emphasize|يؤكد;illustrate|يوضح بمثال;challenge|يطعن في;question|يتساءل عن;advocate|يدافع عن;mitigate|يخفف;regulate|ينظم;quantify|يحدد كميا;anticipate|يتوقع;prioritize|يعطي الأولوية;integrate|يدمج;reform|يصلح;negotiate|يتفاوض;contextualize|يضع في سياقه;disclose|يفصح عن;distinguish|يميز;reconsider|يعيد النظر",
+      AdvancedWordKind.adjective: "credible|موثوق;nuanced|دقيق التفاصيل;equitable|منصف;ethical|أخلاقي;sustainable|مستدام;contentious|مثير للجدل;plausible|معقول;rigorous|صارم منهجيا;transparent|شفاف;empirical|تجريبي;systematic|منهجي;impartial|محايد;significant|ذو دلالة;measurable|قابل للقياس;widespread|واسع الانتشار;sophisticated|متطور;controversial|خلافي;preliminary|أولي;decisive|حاسم;substantial|جوهري",
+      AdvancedWordKind.adverb: "critically|بنظرة نقدية;ethically|بشكل أخلاقي;systematically|بمنهجية;empirically|تجريبيا;broadly|على نطاق واسع;narrowly|في نطاق ضيق;considerably|بدرجة كبيرة;comparatively|بالمقارنة;implicitly|ضمنيا;explicitly|صراحة;disproportionately|بشكل غير متناسب;independently|بشكل مستقل;objectively|بموضوعية;plausibly|بشكل معقول;arguably|يمكن القول;theoretically|نظريا;cautiously|بحذر;consequently|وبناء على ذلك;nevertheless|مع ذلك;ultimately|في نهاية المطاف",
+    },
   };
   static const _unit = <String, Map<int, Map<AdvancedWordKind, String>>>{
     'A2': <int, Map<AdvancedWordKind, String>>{
@@ -66,6 +72,26 @@ abstract final class EnglishAdvancedLearningPath {
       AdvancedWordKind.verb: "repair|يصلح;restore|يعيد ترميم;conserve|يحافظ على;rebuild|يعيد بناء;enact|يسن;consult|يستشير;redesign|يعيد تصميم;evacuate|يخلي;accommodate|يستوعب;mediate|يتوسط",
       AdvancedWordKind.adjective: "sustainable|مستدام;damaged|متضرر;equitable|منصف;risky|محفوف بالمخاطر;creative|إبداعي;diverse|متنوع;viable|قابل للتطبيق;unresolved|غير محسوم;substantial|كبير;temporary|مؤقت",
       AdvancedWordKind.adverb: "strategically|استراتيجيا;collaboratively|بالتعاون;sustainably|بشكل مستدام;urgently|بشكل عاجل;fairly|بعدالة;alternatively|كبديل;temporarily|بشكل مؤقت;pragmatically|بصورة عملية;safely|بأمان;systematically|بمنهجية",
+      },
+    },
+    'B2': <int, Map<AdvancedWordKind, String>>{
+      1: <AdvancedWordKind, String>{
+      AdvancedWordKind.noun: "headline|عنوان صحفي;bias|تحيز;dataset|مجموعة بيانات;sample|عينة;statistic|إحصائية;opinion column|عمود رأي;publication|منشور;medium|وسيلة إعلام;correlation|ارتباط;rebuttal|تفنيد",
+      AdvancedWordKind.verb: "verify|يتحقق;misrepresent|يشوه العرض;publish|ينشر;circulate|يتداول;rebut|يدحض;justify|يبرر;distort|يشوه;debate|يناقش;correct|يصحح;investigate|يتقصى",
+      AdvancedWordKind.adjective: "misleading|مضلل;sensational|مثير مبالغ فيه;statistical|إحصائي;editorial|تحريري;biased|متحيز;representative|ممثل للعينة;contradictory|متناقض;persuasive|مقنع;flawed|معيب;verifiable|قابل للتحقق",
+      AdvancedWordKind.adverb: "selectively|بشكل انتقائي;statistically|إحصائيا;inaccurately|على نحو غير دقيق;prominently|بشكل بارز;publicly|علنا;editorially|تحريريا;superficially|بسطحية;honestly|بأمانة;collectively|جماعيا;deliberately|عمدا",
+      },
+      2: <AdvancedWordKind, String>{
+      AdvancedWordKind.noun: "algorithm|خوارزمية;platform|منصة;automation|أتمتة;infrastructure|بنية تحتية;surveillance|مراقبة;emissions|انبعاثات;subsidy|دعم حكومي;legislation|تشريع;audit|تدقيق;accessibility|إتاحة الوصول",
+      AdvancedWordKind.verb: "automate|يؤتمت;encrypt|يشفّر;monitor|يراقب;optimize|يحسّن;deploy|ينشر تقنيا;simulate|يحاكي;incentivize|يحفز;enforce|ينفذ;validate|يتحقق من الصلاحية;calibrate|يعاير",
+      AdvancedWordKind.adjective: "digital|رقمي;algorithmic|خوارزمي;renewable|متجدد;accessible|متاح للجميع;invasive|منتهك للخصوصية;scalable|قابل للتوسع;regulated|خاضع للتنظيم;predictive|تنبؤي;affordable|ميسور التكلفة;decentralized|لامركزي",
+      AdvancedWordKind.adverb: "digitally|رقميا;remotely|عن بعد;securely|بأمان;automatically|آليا;experimentally|تجريبيا;prospectively|استشرافيا;transparently|بشفافية;reliably|بموثوقية;globally|عالميا;technically|تقنيا",
+      },
+      3: <AdvancedWordKind, String>{
+      AdvancedWordKind.noun: "workforce|قوة عاملة;housing|سكن;conservation|حفاظ على الطبيعة;curriculum|منهج دراسي;expenditure|إنفاق;productivity|إنتاجية;tourism|سياحة;heritage|تراث;inclusion|إدماج;democracy|ديمقراطية",
+      AdvancedWordKind.verb: "revise|يراجع;redistribute|يعيد توزيع;conserve|يحافظ على;protect|يحمي;allocate|يخصص;fund|يمول;reconstruct|يعيد بناء;interpret|يفسر;balance|يوازن;legislate|يشرّع",
+      AdvancedWordKind.adjective: "interdisciplinary|متعدد التخصصات;disproportionate|غير متناسب;long-term|طويل الأجل;complex|معقد;structural|بنيوي;vulnerable|عرضة للخطر;representative|تمثيلي;democratic|ديمقراطي;beneficial|نافع;unintended|غير مقصود",
+      AdvancedWordKind.adverb: "structurally|بنيويا;politically|سياسيا;economically|اقتصاديا;socially|اجتماعيا;environmentally|بيئيا;institutionally|مؤسسيا;historically|تاريخيا;pragmatically|عمليا;sustainably|بشكل مستدام;inclusively|بشكل شامل",
       },
     },
   };
