@@ -214,6 +214,30 @@ abstract final class AdvancedGrammarWorkshops {
       wrong: "If the puppy were afraid, I will wait.", correct: "If the puppy were afraid, I would wait.",
       question: "Which sentence shows an imagined situation correctly?", options: <String>["If I would see a frightened puppy, I ask a worker.", "If the puppy were afraid, I would speak softly.", "If the puppy is afraid yesterday, I waited."], answer: 1,
     ),
+    'B1:7': AdvancedGrammarWorkshop(
+      explanationEnglish: "Enjoy is followed by -ing, while decide and hope take to + the base verb. Do not mix the patterns.",
+      examples: <AdvancedGrammarExample>[AdvancedGrammarExample("I enjoy repairing old chairs.", "أستمتع بإصلاح الكراسي القديمة."), AdvancedGrammarExample("She decided to open her own business.", "قررت افتتاح مشروعها."), AdvancedGrammarExample("They hope to attract customers.", "يأملون جذب العملاء.")],
+      wrong: "I enjoy to repair chairs.", correct: "I enjoy repairing chairs.",
+      question: "Which sentence has the correct verb pattern?", options: <String>["She enjoys making furniture.","He decided opening a store.","They hope improving sales."], answer: 0,
+    ),
+    'B1:8': AdvancedGrammarWorkshop(
+      explanationEnglish: "Indirect questions use statement word order: where the entrance was, not where was the entrance.",
+      examples: <AdvancedGrammarExample>[AdvancedGrammarExample("She asked where the race would begin.", "سألت أين سيبدأ السباق."), AdvancedGrammarExample("He wanted to know whether the path was open.", "أراد معرفة ما إذا كان الطريق مفتوحًا."), AdvancedGrammarExample("They asked runners to remain calm.", "طلبوا من المتسابقين الهدوء.")],
+      wrong: "She asked where was the starting point.", correct: "She asked where the starting point was.",
+      question: "Which reported question is correct?", options: <String>["He asked where did it start.","She asked whether the gate was open.","They asked when would the race begin."], answer: 1,
+    ),
+    'B1:9': AdvancedGrammarWorkshop(
+      explanationEnglish: "Whereas contrasts two facts, while although concedes a point. Do not combine although with a second but.",
+      examples: <AdvancedGrammarExample>[AdvancedGrammarExample("Some liked flowers, whereas others wanted vegetables.", "فضل بعضهم الزهور بينما فضل آخرون الخضروات."), AdvancedGrammarExample("Although the plot was small, everyone could help.", "رغم صغر الأرض استطاع الجميع المساعدة."), AdvancedGrammarExample("While Ali dug, Sara watered the plants.", "بينما حفر علي سقت سارة النباتات.")],
+      wrong: "Although the garden was small, but it was useful.", correct: "Although the garden was small, it was useful.",
+      question: "Choose the correct contrast construction.", options: <String>["Although it was small, but it worked.","Some grew herbs, whereas others preferred roses.","Whereas some wanted flowers, but others preferred herbs."], answer: 1,
+    ),
+    'B1:10': AdvancedGrammarWorkshop(
+      explanationEnglish: "Use should for advice, might for possibility and must for necessity. These modals take the base verb without to.",
+      examples: <AdvancedGrammarExample>[AdvancedGrammarExample("You should compare the two offers.", "ينبغي مقارنة العرضين."), AdvancedGrammarExample("The exchange might help her grow.", "قد تساعدها التجربة على التطور."), AdvancedGrammarExample("She must submit the application on time.", "يجب تقديم الطلب في موعده.")],
+      wrong: "She should to compare her options.", correct: "She should compare her options.",
+      question: "Which modal sentence is correct?", options: <String>["She might to enjoy the course.","He must checks the documents.","You should ask for advice."], answer: 2,
+    ),
   };
   static AdvancedGrammarWorkshop? forLesson(String level, int number) =>
       _workshops['$level:$number'];
