@@ -982,7 +982,7 @@ class _AcademyEnglishA1IntegratedLessonState
 
   Widget _practice() {
     final scheme = Theme.of(context).colorScheme;
-    final index = _practiceNumber * 4;
+    final index = _practiceNumber * 5;
     final word = _words[index];
     final correctIndex = (_practiceNumber + 1) % 3;
     final choices = <String>[
@@ -994,8 +994,8 @@ class _AcademyEnglishA1IntegratedLessonState
             fontWeight: FontWeight.w900)),
       const SizedBox(height: 6),
       Text(_ar
-          ? 'سؤال ${_practiceNumber + 1} من 4'
-          : 'Question ${_practiceNumber + 1} of 4',
+          ? 'سؤال ${_practiceNumber + 1} من 8'
+          : 'Question ${_practiceNumber + 1} of 8',
         style: TextStyle(color: scheme.onSurfaceVariant)),
       const SizedBox(height: 13),
       _panel(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -1013,7 +1013,7 @@ class _AcademyEnglishA1IntegratedLessonState
         question: _ar ? 'ما المعنى الصحيح؟' : 'Choose the correct meaning.',
         options: choices, correct: correctIndex, rtlOptions: true,
         onPassed: () {
-          if (_practiceNumber == 3) {
+          if (_practiceNumber == 7) {
             _next();
           } else {
             setState(() {
