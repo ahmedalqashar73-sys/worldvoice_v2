@@ -14,6 +14,7 @@ import 'academy_english_a1_screen.dart';
 import 'academy_spanish_a1_screen.dart';
 import '../data/academy_spanish_a2_course.dart';
 import '../data/academy_spanish_b1_course.dart';
+import '../data/academy_spanish_b2_course.dart';
 import '../data/academy_journey_catalog.dart';
 import '../data/academy_story_catalog.dart';
 import '../services/academy_progress_service.dart';
@@ -63,6 +64,7 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
   int _integratedA1Done = 0;
   int _spanishA2Done = 0;
   int _spanishB1Done = 0;
+  int _spanishB2Done = 0;
 
   String get _progressUser => FirebaseAuth.instance.currentUser?.uid ?? 'guest';
   String get _placementKey =>
@@ -93,8 +95,13 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
           ? (await SpanishA1Progress.load(
               _progressUser == 'guest' ? null : _progressUser,
               level: 'B1')).length : 0;
+      final b2Done = widget.course.code == 'es'
+          ? (await SpanishA1Progress.load(
+              _progressUser == 'guest' ? null : _progressUser,
+              level: 'B2')).length : 0;
       if (!mounted) return;
       setState(() {
+        _spanishB2Done = b2Done;
         _spanishA2Done = a2Done;
         _spanishB1Done = b1Done;
         _integratedA1Done = integratedDone;
@@ -160,19 +167,21 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
 
   Future<void> _openAdvanced(String level) async {
     await Navigator.of(context).push<void>(MaterialPageRoute(
-      builder: (_) => widget.course.code == 'es' && (level == 'A2' || level == 'B1')
+      builder: (_) => widget.course.code == 'es' && (level == 'A2' || level == 'B1' || level == 'B2')
           ? AcademySpanishA1Path(level: level)
           : AcademyEnglishAdvancedLevelScreen(level: level),
     ));
-    if (widget.course.code == 'es' && (level == 'A2' || level == 'B1')) {
+    if (widget.course.code == 'es' && (level == 'A2' || level == 'B1' || level == 'B2')) {
       final count = await SpanishA1Progress.load(
           _progressUser == 'guest' ? null : _progressUser, level: level);
       if (mounted) {
         setState(() {
           if (level == 'A2') {
             _spanishA2Done = count.length;
-          } else {
+          } else if (level == 'B1') {
             _spanishB1Done = count.length;
+          } else if (level == 'B2') {
+            _spanishB2Done = count.length;
           }
         });
       }
@@ -214,10 +223,10 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
           final done = snapshot.data ?? <String>{};
           final total = widget.course.code == 'en'
               ? EnglishA1Catalog.lessonCount
-              : widget.course.code == 'es' ? 90 : widget.course.lessonCount;
+              : widget.course.code == 'es' ? 120 : widget.course.lessonCount;
           final count = widget.course.code == 'en' || widget.course.code == 'es'
               ? _integratedA1Done + (widget.course.code == 'es'
-                  ? _spanishA2Done + _spanishB1Done : 0)
+                  ? _spanishA2Done + _spanishB1Done + _spanishB2Done : 0)
               : widget.course.units.fold<int>(0, (n, unit) =>
                   n + AcademyLessonKind.values.where(
                       (kind) => done.contains(unit.lessonId(kind))).length);
@@ -298,7 +307,9 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
                     : widget.course.code == 'es' && level.id == 'A2'
                         ? SpanishA2Course.lessons.length
                         : widget.course.code == 'es' && level.id == 'B1'
-                            ? SpanishB1Course.lessons.length : 0;
+                            ? SpanishB1Course.lessons.length
+                            : widget.course.code == 'es' && level.id == 'B2'
+                                ? SpanishB2Course.lessons.length : 0;
                 final published = a1 || advancedLessons > 0;
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 10),

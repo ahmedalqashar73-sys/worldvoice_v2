@@ -1,0 +1,26 @@
+name: Spanish B2 integrated course checks
+on:
+  pull_request:
+    branches: [feature/scalable-progress-foundation]
+    paths:
+      - 'lib/features/learn/data/academy_spanish_b2_course.dart'
+      - 'lib/features/learn/presentation/academy_spanish_a1_screen.dart'
+      - 'lib/features/learn/presentation/academy_course_screen.dart'
+      - 'test/academy_spanish_b2_full_course_test.dart'
+      - '.github/workflows/academy-spanish-b2.yml'
+jobs:
+  verify_spanish_b2:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Resolve packages
+        run: flutter pub get
+      - name: Analyze all integrated Spanish levels
+        run: |
+          flutter analyze --no-pub lib/features/learn/data/academy_spanish_a1_course.dart lib/features/learn/data/academy_spanish_a2_course.dart lib/features/learn/data/academy_spanish_b1_course.dart lib/features/learn/data/academy_spanish_b2_course.dart lib/features/learn/presentation/academy_spanish_a1_screen.dart lib/features/learn/presentation/academy_course_screen.dart test/academy_spanish_b2_full_course_test.dart
+      - name: Verify Spanish A1 through B2
+        run: flutter test --no-pub test/academy_spanish_a1_full_course_test.dart test/academy_spanish_a2_full_course_test.dart test/academy_spanish_b1_full_course_test.dart test/academy_spanish_b2_full_course_test.dart
