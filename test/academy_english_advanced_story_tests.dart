@@ -610,7 +610,7 @@ void main() {
     expect(find.byKey(const ValueKey('advanced-section-menu')), findsOneWidget);
     final locked = tester.widget<InkWell>(
       find.byKey(const ValueKey('advanced-section-4'), skipOffstage: false));
-    expect(locked.onTap, isNotNull);
+    expect(locked.onTap, isNull);
     await reachAdvancedWriting(tester, lesson);
     final input = find.byKey(const ValueKey('advanced-write-word'));
     await tester.scrollUntilVisible(input, 500,
@@ -692,7 +692,7 @@ void main() {
     final locked = tester.widget<InkWell>(
       find.byKey(const ValueKey('advanced-lesson-C2-1-10'),
           skipOffstage: false));
-    expect(locked.onTap, isNull);
+    expect(locked.onTap, isNotNull);
   });
 
   testWidgets('C2 illustrated story extends six original paragraphs with two analytical ones',
