@@ -20,6 +20,12 @@ abstract final class EnglishAdvancedLearningPath {
       AdvancedWordKind.adjective: "helpful|مفيد;simple|بسيط;difficult|صعب;comfortable|مريح;unusual|غير مألوف;interesting|مثير للاهتمام;important|مهم;possible|ممكن;useful|نافع;polite|مهذب;friendly|ودود;careful|حذر;ready|مستعد;available|متاح;similar|مشابه;different|مختلف;successful|ناجح;surprised|متفاجئ;worried|قلق;excited|متحمس",
       AdvancedWordKind.adverb: "carefully|بعناية;usually|عادة;often|غالبا;sometimes|أحيانا;always|دائما;rarely|نادرا;quickly|بسرعة;slowly|ببطء;quietly|بهدوء;clearly|بوضوح;politely|بأدب;happily|بسعادة;recently|مؤخرا;already|بالفعل;finally|أخيرا;probably|على الأرجح;really|حقا;especially|خصوصا;nearly|تقريبا;gradually|تدريجيا",
     },
+    'B1': <AdvancedWordKind, String>{
+      AdvancedWordKind.noun: "initiative|مبادرة;responsibility|مسؤولية;colleague|زميل;manager|مدير;resident|ساكن;participant|مشارك;volunteer|متطوع;resource|مورد;deadline|موعد نهائي;feedback|تغذية راجعة;consequence|نتيجة مترتبة;improvement|تحسين;agreement|اتفاق;dispute|خلاف;proposal|مقترح;survey|استبيان;evidence|دليل;outcome|حصيلة;attitude|موقف;relationship|علاقة",
+      AdvancedWordKind.verb: "coordinate|ينسق;evaluate|يقيّم;investigate|يحقق;negotiate|يتفاوض;contribute|يساهم;collaborate|يتعاون;adapt|يتكيف;motivate|يحفز;resolve|يحل;persuade|يقنع;prioritize|يعطي الأولوية;respond|يستجيب;justify|يبرر;recommend|يوصي;manage|يدير;participate|يشارك;demonstrate|يوضح;challenge|يتحدى;estimate|يقدر;reflect|يتأمل",
+      AdvancedWordKind.adjective: "reliable|موثوق;relevant|ذو صلة;practical|عملي;ambitious|طموح;efficient|كفؤ;flexible|مرن;independent|مستقل;supportive|داعم;constructive|بنّاء;confident|واثق;reasonable|معقول;transparent|شفاف;responsible|مسؤول;appropriate|مناسب;effective|فعال;accessible|يسهل الوصول إليه;optimistic|متفائل;sensitive|حساس;productive|منتج;challenging|صعب",
+      AdvancedWordKind.adverb: "effectively|بفعالية;responsibly|بمسؤولية;confidently|بثقة;independently|باستقلالية;patiently|بصبر;constructively|بشكل بناء;increasingly|بشكل متزايد;eventually|في نهاية المطاف;consistently|باستمرار;surprisingly|بشكل مفاجئ;clearly|بوضوح;accurately|بدقة;approximately|تقريبا;efficiently|بكفاءة;particularly|على وجه الخصوص;primarily|في المقام الأول;apparently|على ما يبدو;widely|على نطاق واسع;relatively|نسبيا;genuinely|بصدق",
+    },
   };
   static const _unit = <String, Map<int, Map<AdvancedWordKind, String>>>{
     'A2': <int, Map<AdvancedWordKind, String>>{
@@ -40,6 +46,26 @@ abstract final class EnglishAdvancedLearningPath {
       AdvancedWordKind.verb: "check|يتحقق;request|يطلب;confirm|يؤكد;complain|يشتكي;apologize|يعتذر;apply|يتقدم بطلب;greet|يرحب;replace|يستبدل;reserve|يحجز;postpone|يؤجل",
       AdvancedWordKind.adjective: "professional|مهني;official|رسمي;missing|مفقود;broken|مكسور;reliable|موثوق;excellent|ممتاز;unexpected|غير متوقع;formal|رسمي الطابع;reasonable|معقول;necessary|ضروري",
       AdvancedWordKind.adverb: "online|عبر الإنترنت;personally|شخصيا;formally|بشكل رسمي;unexpectedly|بشكل مفاجئ;promptly|على الفور;correctly|بشكل صحيح;patiently|بصبر;briefly|باختصار;successfully|بنجاح;instead|بدلا من ذلك",
+      },
+    },
+    'B1': <int, Map<AdvancedWordKind, String>>{
+      1: <AdvancedWordKind, String>{
+      AdvancedWordKind.noun: "festival|مهرجان;internship|تدريب عملي;donation|تبرع;campaign|حملة;committee|لجنة;fundraiser|جمع تبرعات;petition|عريضة;entrepreneur|رائد أعمال;sponsor|جهة راعية;workplace|مكان عمل",
+      AdvancedWordKind.verb: "advocate|يدافع عن;assist|يساعد;mentor|يوجه;endorse|يؤيد;launch|يطلق;recruit|يوظف;fund|يمول;appeal|يناشد;organize|ينظم;expand|يوسع",
+      AdvancedWordKind.adjective: "charitable|خيري;local|محلي;urgent|عاجل;worthwhile|جدير بالاهتمام;communal|مجتمعي;inclusive|شامل;innovative|مبتكر;financial|مالي;enthusiastic|متحمس;dedicated|متفان",
+      AdvancedWordKind.adverb: "publicly|علنا;voluntarily|طوعا;collectively|جماعيا;successfully|بنجاح;financially|ماليا;socially|اجتماعيا;locally|محليا;steadily|بثبات;creatively|بإبداع;jointly|بشكل مشترك",
+      },
+      2: <AdvancedWordKind, String>{
+      AdvancedWordKind.noun: "misunderstanding|سوء فهم;attachment|مرفق;interviewer|محاور;candidate|مرشح;culture|ثقافة;setback|انتكاسة;election|انتخابات;presentation|عرض تقديمي;customer|عميل;itinerary|برنامج رحلة",
+      AdvancedWordKind.verb: "clarify|يوضح;apologize|يعتذر;summarize|يلخص;interview|يجري مقابلة;hesitate|يتردد;reinterpret|يعيد تفسير;reschedule|يعيد الجدولة;express|يعبر;reassure|يطمئن;submit|يقدم",
+      AdvancedWordKind.adjective: "cross-cultural|عابر للثقافات;confusing|مربك;disappointing|مخيب للأمل;informal|غير رسمي;professional|مهني;unfamiliar|غير مألوف;stressful|مجهد;persuasive|مقنع;memorable|لا ينسى;hesitant|متردد",
+      AdvancedWordKind.adverb: "tactfully|بلباقة;thoughtfully|بتفكير متأن;respectfully|باحترام;unexpectedly|بشكل غير متوقع;openly|بصراحة;deliberately|عن قصد;diplomatically|بدبلوماسية;verbally|شفهيا;privately|بشكل خاص;positively|بإيجابية",
+      },
+      3: <AdvancedWordKind, String>{
+      AdvancedWordKind.noun: "playground|ملعب;exhibition|معرض;installation|تركيب;policy|سياسة;assignment|مهمة دراسية;exchange|تبادل;emergency|حالة طوارئ;transport|نقل;neighborhood|حي;workshop|ورشة",
+      AdvancedWordKind.verb: "repair|يصلح;restore|يعيد ترميم;conserve|يحافظ على;rebuild|يعيد بناء;enact|يسن;consult|يستشير;redesign|يعيد تصميم;evacuate|يخلي;accommodate|يستوعب;mediate|يتوسط",
+      AdvancedWordKind.adjective: "sustainable|مستدام;damaged|متضرر;equitable|منصف;risky|محفوف بالمخاطر;creative|إبداعي;diverse|متنوع;viable|قابل للتطبيق;unresolved|غير محسوم;substantial|كبير;temporary|مؤقت",
+      AdvancedWordKind.adverb: "strategically|استراتيجيا;collaboratively|بالتعاون;sustainably|بشكل مستدام;urgently|بشكل عاجل;fairly|بعدالة;alternatively|كبديل;temporarily|بشكل مؤقت;pragmatically|بصورة عملية;safely|بأمان;systematically|بمنهجية",
       },
     },
   };
