@@ -22,6 +22,24 @@ class AdvancedGrammarWorkshop {
 }
 abstract final class AdvancedGrammarWorkshops {
   static const _workshops = <String, AdvancedGrammarWorkshop>{
+    'B2:5': AdvancedGrammarWorkshop(
+      explanationEnglish: 'Use although with a full contrasting clause, whereas to compare two perspectives, and rather than before a noun or verb in -ing. Explain what evidence actually supports instead of treating persuasion as proof.',
+      examples: <AdvancedGrammarExample>[
+        AdvancedGrammarExample('Although the advertisement looked convincing, the claim lacked evidence.', 'رغم أن الإعلان بدا مقنعًا، فقد افتقر الادعاء إلى الدليل.'),
+        AdvancedGrammarExample('Some directors prioritized speed, whereas others wanted greater transparency.', 'أعطى بعض المديرين الأولوية للسرعة، بينما فضّل آخرون مزيدًا من الشفافية.'),
+        AdvancedGrammarExample('The agency chose honest descriptions rather than making exaggerated promises.', 'اختارت الوكالة أوصافًا صادقة بدلًا من تقديم وعود مبالغ فيها.'),
+      ],
+      wrong: 'Despite the evidence is weak, the product became popular.',
+      correct: 'Although the evidence is weak, the product became popular.',
+      question: 'Which sentence correctly compares two opposing choices?',
+      options: <String>[
+        'Whereas buyers want clarity, some advertisers prefer vague claims.',
+        'Despite the buyers want clarity, advertising is vague.',
+        'Rather than to explain the limits, they omitted them.',
+      ],
+      answer: 0,
+    ),
+
     'B2:4': AdvancedGrammarWorkshop(
       explanationEnglish: 'Use must or have to for essential duties and should or ought to for recommendations. The base verb follows modal verbs without to, except ought to. Be specific about safety versus advice.',
       examples: <AdvancedGrammarExample>[
