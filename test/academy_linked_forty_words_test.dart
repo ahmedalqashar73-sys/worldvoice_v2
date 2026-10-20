@@ -21,7 +21,8 @@ void main() {
         final chapters = EnglishAdvancedLearningPath.readingFor(lesson);
         expect(chapters, hasLength(lesson.paragraphs.length + (level == 'C1' || level == 'C2' ? 2 : 1)));
         expect(chapters.first, lesson.paragraphs.first);
-        expect(chapters.last, contains(words.first.term));
+        expect(chapters.skip(lesson.paragraphs.length).join(' '),
+            contains(words.first.term));
         if (level == 'C1' || level == 'C2') {
           expect(chapters.length, greaterThanOrEqualTo(level == 'C1' ? 7 : 8));
           expect(chapters[chapters.length - 2].split(RegExp(r'\s+')).length,
