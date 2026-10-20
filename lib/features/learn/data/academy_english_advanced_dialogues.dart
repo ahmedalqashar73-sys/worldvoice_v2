@@ -737,10 +737,38 @@ abstract final class EnglishAdvancedDialogues {
     ),
   };
 
+
+  /// Newly authored upper-level units use a contextual guided discussion.
+  /// Existing original C1/C2 dialogues remain unchanged.
+  static EnglishAdvancedDialogue _upperLevelDialogue(EnglishAdvancedLesson lesson) {
+    final subject = lesson.storyTitle;
+    final disputedClaim = lesson.paragraphs[0].split('. ')[1];
+    final nextStep = lesson.paragraphs[3].split('. ')[2];
+    final conclusion = lesson.paragraphs[4].split('. ')[2];
+    return EnglishAdvancedDialogue(
+      lines: <String>[
+        'Interviewer: What made the inquiry into $subject controversial?',
+        'Researcher: $disputedClaim',
+        'Interviewer: How did you evaluate evidence without overstating it?',
+        'Researcher: $nextStep',
+        'Interviewer: What should readers remember? $conclusion',
+      ],
+      tip: 'Present a claim, acknowledge a counterargument and qualify your inference. Read the contrasting clauses aloud with natural prominence.',
+      tipArabic: 'اعرض الحجة والرأي المعارض ثم استنتج بحذر. تدرب على إبراز كلمات الدليل والاعتراض والاستنتاج في النطق.',
+      pronunciation: lesson.level == 'C2'
+          ? <String>['hermeneutics /ˌhɜːrməˈnuːtɪks/', 'presupposition /ˌpriːsʌpəˈzɪʃən/', 'nuance /ˈnuːɑːns/']
+          : <String>['inference /ˈɪnfərəns/', 'ambiguity /ˌæmbɪˈɡjuːɪti/', 'accountability /əˌkaʊntəˈbɪləti/'],
+    );
+  }
+
   static EnglishAdvancedDialogue forLesson(EnglishAdvancedLesson lesson) {
     final key = '${lesson.level.toLowerCase()}.${lesson.unitNumber}.${lesson.number}';
     final dialogue = _dialogues[key];
     if (dialogue == null) {
+      if ((lesson.level == 'C1' || lesson.level == 'C2') &&
+          lesson.unitNumber >= 1 && lesson.unitNumber <= 3) {
+        return _upperLevelDialogue(lesson);
+      }
       throw StateError('No authored dialogue for $key');
     }
     return dialogue;
