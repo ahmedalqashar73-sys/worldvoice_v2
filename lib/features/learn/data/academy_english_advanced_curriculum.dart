@@ -82,7 +82,7 @@ abstract final class EnglishAdvancedCurriculum {
       EnglishAdvancedUnitOutline(
         level: 'C1', number: 1,
         title: "Research and Interpretation", titleArabic: "البحث والتفسير",
-        plannedTopics: <String>["The Archive's Dilemma", "Beneath the Changing Reef", "The Limits of a Survey", "The Museum's Disputed Artifact", "Scientific Uncertainty", "Interpreting Historical Letters", "The Language of Policy", "The Ethics of a Clinical Trial", "Competing Environmental Models", "A Researcher's Responsibility"],
+        plannedTopics: <String>["The Archive's Dilemma", "Beneath the Changing Reef", "What the River Samples Revealed", "The Museum's Disputed Artifact", "Scientific Uncertainty", "Interpreting Historical Letters", "The Language of Policy", "The Ethics of a Clinical Trial", "Competing Environmental Models", "A Researcher's Responsibility"],
       ),
       EnglishAdvancedUnitOutline(
         level: 'C1', number: 2,
@@ -99,7 +99,7 @@ abstract final class EnglishAdvancedCurriculum {
       EnglishAdvancedUnitOutline(
         level: 'C2', number: 1,
         title: "Interpretation and Evidence", titleArabic: "التأويل والأدلة",
-        plannedTopics: <String>["The Harbor of Unreliable Maps", "The Translator's Unfinished Sentence", "The Trial of a Lost Century", "The Paradox of Perfect Evidence", "An Unreliable Narrator", "The Architecture of an Argument", "When Memory Contradicts Record", "The Ethics of Historical Judgment", "A Disputed Translation", "The Limits of Certainty"],
+        plannedTopics: <String>["The Harbor of Unreliable Maps", "The Translator's Unfinished Sentence", "The Witness Who Remembered Tomorrow", "The Paradox of Perfect Evidence", "An Unreliable Narrator", "The Architecture of an Argument", "When Memory Contradicts Record", "The Ethics of Historical Judgment", "A Disputed Translation", "The Limits of Certainty"],
       ),
       EnglishAdvancedUnitOutline(
         level: 'C2', number: 2,

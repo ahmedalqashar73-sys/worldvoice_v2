@@ -3,10 +3,14 @@ import 'package:worldvoice/features/learn/data/academy_english_advanced_models.d
 import 'package:worldvoice/features/learn/data/academy_english_advanced_learning_path.dart';
 
 void main() {
-  for (final level in <String>['A2', 'B1', 'B2', 'C1']) {
+  for (final level in <String>['A2', 'B1', 'B2', 'C1', 'C2']) {
     test('$level links exactly forty graded words to reading, dialogue and podcast', () {
       final lessons = EnglishAdvancedSyllabus.forLevel(level);
       expect(lessons, hasLength(30));
+      expect(EnglishAdvancedSyllabus.unitsForLevel(level), hasLength(3));
+      for (final unit in EnglishAdvancedSyllabus.unitsForLevel(level)) {
+        expect(unit.publishedLessons, hasLength(10));
+      }
       for (final lesson in lessons) {
         expect(EnglishAdvancedLearningPath.supports(lesson), isTrue);
         final words = EnglishAdvancedLearningPath.wordsFor(lesson);

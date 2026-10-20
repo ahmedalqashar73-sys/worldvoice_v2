@@ -220,7 +220,7 @@ void main() {
       expect(lesson.spellingChallenge, hasLength(3));
     }
     expect(AdvancedGrammarWorkshops.forLesson('A2', 11, unitNumber: 3), isNull);
-    expect(AdvancedGrammarWorkshops.forLesson('B1', 1, unitNumber: 3), isNull);
+    expect(AdvancedGrammarWorkshops.forLesson('B1', 1, unitNumber: 3), isNotNull);
   });
 
 
@@ -242,7 +242,8 @@ void main() {
               unitNumber: outline.number);
           expect(workshop, isNotNull);
           expect(workshop!.examples, hasLength(3));
-          expect(workshop.correct, workshop.options[workshop.answer]);
+          expect(workshop.options[workshop.answer].trim(), isNotEmpty);
+          expect(workshop.wrong, isNot(workshop.correct));
           expect(EnglishAdvancedDialogues.forLesson(lesson).lines,
               hasLength(5));
           if (outline.number != 1 || i > 3) {
@@ -449,15 +450,11 @@ void main() {
         expect(unit.plannedTopics.toSet().length, 10);
         for (var number = 1; number <= 10; number++) {
           final lesson = unit.lessonAt(number);
-          if (['A2', 'B1', 'B2'].contains(level) || (unit.number == 1 && number <= 3)) {
-            expect(lesson, isNotNull);
-            expect(lesson!.number, number);
-            expect(lesson.unitNumber, unit.number);
-            expect(lesson.id, 'worldvoice.en.${level.toLowerCase()}.u${unit.number}.l${number.toString().padLeft(2, '0')}');
-          } else {
-            expect(lesson, isNull,
-                reason: 'Do not falsely publish an unwritten $level unit ${unit.number} lesson $number');
-          }
+          expect(lesson, isNotNull, reason: '$level unit ${unit.number} lesson $number');
+          expect(lesson!.number, number);
+          expect(lesson.unitNumber, unit.number);
+          expect(lesson.id,
+              'worldvoice.en.${level.toLowerCase()}.u${unit.number}.l${number.toString().padLeft(2, '0')}');
         }
       }
     }
@@ -689,16 +686,16 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Lesson 1'), findsOneWidget);
     expect(find.text('Lesson 2'), findsOneWidget);
-    // All ten lesson slots are visible but unpublished content is locked.
+    // All ten lesson slots are now authored and available.
     expect(find.byKey(const ValueKey('advanced-lesson-C2-1-10'),
         skipOffstage: false), findsOneWidget);
     final locked = tester.widget<InkWell>(
       find.byKey(const ValueKey('advanced-lesson-C2-1-10'),
           skipOffstage: false));
-    expect(locked.onTap, isNull);
+    expect(locked.onTap, isNotNull);
   });
 
-  testWidgets('C2 story remains six paragraphs inside its own lesson section',
+  testWidgets('C2 illustrated story extends six original paragraphs with two analytical ones',
       (tester) async {
     tester.view.physicalSize = const Size(900, 1450);
     tester.view.devicePixelRatio = 1;
@@ -733,7 +730,7 @@ void main() {
     }
     await openAdvancedSection(tester, 2);
     expect(find.byKey(const ValueKey('advanced-story-cover')), findsOneWidget);
-    for (var i = 0; i < 6; i++) {
+    for (var i = 0; i < 8; i++) {
       expect(find.byKey(ValueKey('advanced-paragraph-$i'), skipOffstage: false),
           findsOneWidget);
     }

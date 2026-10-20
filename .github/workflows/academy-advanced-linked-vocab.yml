@@ -20,4 +20,4 @@ jobs:
       - name: Analyze Academy code
         run: flutter analyze --no-pub lib/features/learn/data/academy_english_advanced_learning_path.dart lib/features/learn/presentation/academy_english_advanced_screen.dart test/academy_linked_forty_words_test.dart
       - name: Test curriculum word banks
-        run: flutter test --no-pub test/academy_linked_forty_words_test.dart
+        run: flutter test --no-pub test/academy_linked_forty_words_test.dart test/academy_english_advanced_story_tests.dart
