@@ -58,13 +58,13 @@ void main() {
   test('A2-C2 published lessons have original graded stories and unique vocabulary', () {
     expect(EnglishAdvancedSyllabus.levels,
         <String>['A2', 'B1', 'B2', 'C1', 'C2']);
-    expect(EnglishAdvancedSyllabus.lessons, hasLength(17));
+    expect(EnglishAdvancedSyllabus.lessons, hasLength(22));
     final storyTexts = <String>{};
     final taughtWords = <String>{};
     final previousListeningLength = <int>[0, 0];
     for (final level in EnglishAdvancedSyllabus.levels) {
       final lessons = EnglishAdvancedSyllabus.forLevel(level);
-      expect(lessons, hasLength(level == 'A2' ? 5 : 3),
+      expect(lessons, hasLength(level == 'A2' ? 10 : 3),
           reason: 'Published lessons $level');
       for (var index = 0; index < lessons.length; index++) {
         final lesson = lessons[index];
@@ -123,7 +123,7 @@ void main() {
         expect(unit.plannedTopics.toSet().length, 10);
         for (var number = 1; number <= 10; number++) {
           final lesson = unit.lessonAt(number);
-          if (unit.number == 1 && number <= (level == 'A2' ? 5 : 3)) {
+          if (unit.number == 1 && number <= (level == 'A2' ? 10 : 3)) {
             expect(lesson, isNotNull);
             expect(lesson!.number, number);
             expect(lesson.unitNumber, unit.number);
@@ -177,7 +177,7 @@ void main() {
 
   test('A2 lessons three and four have full instruction and non-repeating story words', () {
     final a2 = EnglishAdvancedSyllabus.forUnit('A2', 1);
-    expect(a2, hasLength(5));
+    expect(a2, hasLength(10));
     final third = EnglishAdvancedSyllabus.findLesson('A2', 1, 3)!;
     final fourth = EnglishAdvancedSyllabus.findLesson('A2', 1, 4)!;
     expect(third.title, 'Finding an Apartment');
@@ -193,6 +193,29 @@ void main() {
       expect(lesson.spellingChallenge, hasLength(3));
       expect(EnglishAdvancedDialogues.forLesson(lesson).lines, hasLength(5));
     }
+  });
+
+  test('A2 first unit has ten distinct complete lessons with no placeholder', () {
+    final published = EnglishAdvancedSyllabus.forUnit('A2', 1);
+    expect(published, hasLength(10));
+    final titles = <String>{};
+    for (var number = 1; number <= 10; number++) {
+      final lesson = EnglishAdvancedSyllabus.findLesson('A2', 1, number);
+      expect(lesson, isNotNull, reason: 'A2 lesson $number must be authored');
+      expect(titles.add(lesson!.title), isTrue);
+      expect(lesson.storyWords.length, greaterThanOrEqualTo(10));
+      expect(lesson.paragraphs, hasLength(3));
+      expect(lesson.vocabulary, hasLength(24));
+      expect(lesson.listening.trim().split(RegExp(r'\\s+')).length,
+          greaterThanOrEqualTo(35));
+      expect(AdvancedGrammarWorkshops.forLesson('A2', number), isNotNull);
+      final dialogue = EnglishAdvancedDialogues.forLesson(lesson);
+      expect(dialogue.lines, hasLength(5));
+      expect(dialogue.pronunciation, hasLength(3));
+      expect(lesson.spellingChallenge, hasLength(3));
+    }
+    expect(EnglishAdvancedSyllabus.forUnit('A2', 2), isEmpty);
+    expect(EnglishAdvancedSyllabus.forUnit('A2', 3), isEmpty);
   });
 
   test('Every published advanced lesson has a distinct guided dialogue and IPA practice', () {
