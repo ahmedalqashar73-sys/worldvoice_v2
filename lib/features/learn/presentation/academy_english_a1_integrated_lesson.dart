@@ -1296,14 +1296,42 @@ class _EnglishA1BookChapterState extends State<_EnglishA1BookChapter> {
               border: Border.all(color: scheme.outlineVariant),
             ),
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              Text(_ar ? widget.story.titleArabic : widget.story.title,
-                textAlign: TextAlign.center,
-                style: TextStyle(color: scheme.onSurface,
-                    fontWeight: FontWeight.w900, fontSize: 24)),
-              const SizedBox(height: 6),
-              Text(_ar ? widget.chapter.titleArabic : widget.chapter.title,
-                textAlign: TextAlign.center,
-                style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 15)),
+              Container(
+                padding: const EdgeInsets.fromLTRB(16, 22, 16, 22),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF124735), Color(0xFF277A60)]),
+                  borderRadius: BorderRadius.circular(17)),
+                child: Column(children: [
+                  const Icon(Icons.auto_stories_rounded,
+                      color: Color(0xFFF2CB84), size: 34),
+                  const SizedBox(height: 7),
+                  const Text('WORLDVOICE  •  ENGLISH A1',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Color(0xFFF2CB84),
+                        fontSize: 11, letterSpacing: 1.5,
+                        fontWeight: FontWeight.w800)),
+                  const SizedBox(height: 13),
+                  Text(_ar ? widget.story.titleArabic : widget.story.title,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.white,
+                        fontFamily: 'serif', height: 1.25,
+                        fontWeight: FontWeight.w900, fontSize: 26)),
+                  const SizedBox(height: 8),
+                  Text(_ar ? widget.chapter.titleArabic : widget.chapter.title,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                        color: Color(0xFFECDEC3), fontSize: 15)),
+                  const SizedBox(height: 12),
+                  Text(_ar ? 'قراءة مصوّرة مع مفردات الدرس' :
+                    'ILLUSTRATED READING · LESSON WORDS',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                        color: Color(0xFFF2CB84), fontSize: 11)),
+                ]),
+              ),
               const SizedBox(height: 15),
               // Bundled vector art (one scene). No video or remote fetch.
               AcademyIllustratedStoryArt(
@@ -1313,14 +1341,55 @@ class _EnglishA1BookChapterState extends State<_EnglishA1BookChapter> {
               ),
               const SizedBox(height: 18),
               for (var i = 0; i < paragraphs.length; i++) ...[
-                SelectableText(
-                  paragraphs[i].english,
-                  key: ValueKey('academy-story-paragraph-$i'),
-                  textDirection: TextDirection.ltr,
-                  style: TextStyle(color: scheme.onSurface, height: 1.68,
-                    fontSize: _fontSize, fontWeight: FontWeight.w500),
+                Container(
+                  margin: const EdgeInsets.only(bottom: 14),
+                  padding: const EdgeInsets.all(15),
+                  decoration: BoxDecoration(
+                    color: night ? scheme.surfaceContainerHighest
+                        : const Color(0xFFFFF9EC),
+                    border: Border.all(color: night
+                        ? scheme.outlineVariant : const Color(0xFFE7D9B7)),
+                    borderRadius: BorderRadius.circular(14)),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                    Row(children: [
+                      const Icon(Icons.bookmark_rounded,
+                        color: Color(0xFFB78B47), size: 17),
+                      const SizedBox(width: 6),
+                      Text(_ar ? 'الفقرة ${i + 1}' : 'PAGE ${i + 1}',
+                        style: TextStyle(color: night
+                            ? scheme.onSurfaceVariant : const Color(0xFF6D5A3F),
+                            fontWeight: FontWeight.w800,
+                            fontSize: 11, letterSpacing: 1.1)),
+                      const Spacer(),
+                      IconButton(
+                        tooltip: _ar ? 'استمع للفقرة' : 'Read this paragraph',
+                        onPressed: () => _speak(paragraphs[i].english),
+                        icon: const Icon(Icons.volume_up_rounded, size: 19)),
+                    ]),
+                    SelectableText(
+                      paragraphs[i].english,
+                      key: ValueKey('academy-story-paragraph-$i'),
+                      textDirection: TextDirection.ltr,
+                      style: TextStyle(color: scheme.onSurface,
+                        height: 1.8, fontFamily: 'serif',
+                        fontSize: _fontSize, fontWeight: FontWeight.w500)),
+                    if (_translate) ...[
+                      const SizedBox(height: 9),
+                      Text(paragraphs[i].arabic,
+                        textDirection: TextDirection.rtl,
+                        style: TextStyle(color: scheme.onSurfaceVariant,
+                            height: 1.6, fontSize: _fontSize - 3)),
+                    ],
+                  ]),
                 ),
-                const SizedBox(height: 15),
+                if (i == 1 || i == 2) ...[
+                  AcademyIllustratedStoryArt(
+                    scene: widget.story.scene,
+                    page: widget.chapterNumber + i,
+                    animate: false),
+                  const SizedBox(height: 15),
+                ],
               ],
               Wrap(spacing: 8, runSpacing: 7, children: [
                 FilledButton.tonalIcon(
@@ -1340,17 +1409,7 @@ class _EnglishA1BookChapterState extends State<_EnglishA1BookChapter> {
                   label: Text(_ar ? 'الترجمة' : 'Translation'),
                 ),
               ]),
-              if (_translate) ...[
-                const SizedBox(height: 14),
-                for (final paragraph in paragraphs)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 13),
-                    child: Text(paragraph.arabic,
-                      textDirection: TextDirection.rtl,
-                      style: TextStyle(fontSize: _fontSize - 2, height: 1.6,
-                          color: scheme.onSurface)),
-                  ),
-              ],
+
             ]),
           ),
           const SizedBox(height: 24),
