@@ -83,6 +83,12 @@ void main() {
 
   testWidgets('first grammar stage precedes vocabulary and protects completion',
       (tester) async {
+    tester.view.physicalSize = const Size(900, 1500);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
     SharedPreferences.setMockInitialValues(<String, Object>{});
     final lesson = SpanishA1Course.find(1, 1);
     await tester.pumpWidget(MaterialApp(
@@ -98,11 +104,14 @@ void main() {
     }
     final rightAnswer = find.byKey(
         const ValueKey('spanish-grammar-option-1'));
-    await tester.ensureVisible(rightAnswer);
+    await tester.scrollUntilVisible(rightAnswer, 350,
+        scrollable: find.byType(Scrollable).first, maxScrolls: 25);
+    await tester.pumpAndSettle();
     await tester.tap(rightAnswer);
     await tester.pumpAndSettle();
     final check = find.byKey(const ValueKey('spanish-grammar-check'));
-    await tester.ensureVisible(check);
+    await tester.scrollUntilVisible(check, 250,
+        scrollable: find.byType(Scrollable).first, maxScrolls: 25);
     await tester.pumpAndSettle();
     await tester.tap(check);
     await tester.pumpAndSettle();
