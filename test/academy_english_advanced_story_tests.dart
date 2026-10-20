@@ -206,7 +206,7 @@ void main() {
       expect(lesson.storyWords.length, greaterThanOrEqualTo(10));
       expect(lesson.paragraphs, hasLength(3));
       expect(lesson.vocabulary, hasLength(24));
-      expect(lesson.listening.trim().split(RegExp(r'\\s+')).length,
+      expect(lesson.listening.trim().split(RegExp(r'\s+')).length,
           greaterThanOrEqualTo(35));
       expect(AdvancedGrammarWorkshops.forLesson('A2', number), isNotNull);
       final dialogue = EnglishAdvancedDialogues.forLesson(lesson);
