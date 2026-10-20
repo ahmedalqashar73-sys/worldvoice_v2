@@ -219,6 +219,26 @@ abstract final class EnglishAdvancedDialogues {
       tip: "Practise hypothetical If ... were ... I would ... sentences, with natural linking and stress on would.", tipArabic: "تدرّب على الشرط الافتراضي If ... were ... I would مع ربط الكلمات وتشديد مناسب.",
       pronunciation: <String>["volunteer /ˌvɑːlənˈtɪr/", "shelter /ˈʃɛltər/", "veterinary /ˈvɛtərənɛri/"],
     ),
+    'b1.1.7': EnglishAdvancedDialogue(
+      lines: <String>["Buyer: Do you enjoy restoring old furniture?", "Kareem: Yes, and I decided to open an online shop.", "Buyer: How do you protect orders during delivery?", "Kareem: We use stronger boxes and provide clear return information.", "Buyer: Great. I would like a price quotation."],
+      tip: "Stress enjoy restoring and decide to open; practise linking words naturally.", tipArabic: "درّب الطالب على تركيب enjoy مع ing وdecide مع to عند النطق.",
+      pronunciation: <String>["craftsmanship /ˈkræftsmənʃɪp/", "catalogue /ˈkætəlɔːɡ/", "quotation /kwoʊˈteɪʃən/"],
+    ),
+    'b1.1.8': EnglishAdvancedDialogue(
+      lines: <String>["Runner: Could you tell me where the starting point is?", "Marshal: It's now at the western entrance.", "Runner: Did the coordinator say when the race would begin?", "Marshal: She said it would begin at nine thirty.", "Runner: Thanks. I will tell my team."],
+      tip: "Contrast direct-question intonation with indirect questions spoken as statements.", tipArabic: "درّب الفرق في التنغيم بين السؤال المباشر والسؤال المنقول.",
+      pronunciation: <String>["marshal /ˈmɑːrʃəl/", "registration /ˌrɛdʒɪˈstreɪʃən/", "hydration /haɪˈdreɪʃən/"],
+    ),
+    'b1.1.9': EnglishAdvancedDialogue(
+      lines: <String>["Resident: Why do you have two planting areas?", "Coordinator: Some prefer vegetables, whereas others enjoy flowers.", "Resident: Is there a raised bed for older gardeners?", "Coordinator: Yes, it's beside the quiet seating area.", "Resident: Great. I would like to help with the first harvest."],
+      tip: "Pause briefly before whereas and keep although connected to its clause.", tipArabic: "لاحظ وقفة خفيفة قبل whereas وتجنب وقفات متكسرة بعد although.",
+      pronunciation: <String>["composting /ˈkɑːmpoʊstɪŋ/", "pollinator /ˈpɑːləneɪtər/", "harvest /ˈhɑːrvəst/"],
+    ),
+    'b1.1.10': EnglishAdvancedDialogue(
+      lines: <String>["Adviser: Which offer fits your long-term goals?", "Laila: The overseas exchange might improve my independence.", "Adviser: You should also consider the living expenses.", "Laila: I have compared the advantages and disadvantages.", "Adviser: Good. No choice can guarantee a perfect outcome."],
+      tip: "Pronounce should, might and must clearly without adding an extra to.", tipArabic: "فرّق بين should وmight وmust بنطق إنجليزي طبيعي دون to زائدة.",
+      pronunciation: <String>["independence /ˌɪndɪˈpɛndəns/", "adviser /ədˈvaɪzər/", "opportunity /ˌɑːpərˈtuːnɪti/"],
+    ),
   };
 
   static EnglishAdvancedDialogue forLesson(EnglishAdvancedLesson lesson) {
