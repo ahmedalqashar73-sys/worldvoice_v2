@@ -15,6 +15,23 @@ class EnglishAdvancedDialogue {
 
 abstract final class EnglishAdvancedDialogues {
   static const _dialogues = <String, EnglishAdvancedDialogue>{
+    'b2.1.5': EnglishAdvancedDialogue(
+      lines: <String>[
+        'Noura: Could the sponsored post mislead customers?',
+        'Reviewer: Yes. The photographs are authentic, but the comparison is unfair.',
+        'Noura: What if we add a clear disclaimer and publish the test results?',
+        'Reviewer: That would help, although we must also label the influencer partnership.',
+        'Noura: We should earn buyers\' trust rather than promise instant miracles.',
+      ],
+      tip: 'Contrast although and whereas with natural pauses; emphasize evidence and trust without overstating certainty.',
+      tipArabic: 'اربط although وwhereas بنبرة توضح المقابلة، وشدّد على evidence وtrust عند النقاش.',
+      pronunciation: <String>[
+        'advertisement /ˌædvərˈtaɪzmənt/',
+        'disclaimer /dɪsˈkleɪmər/',
+        'endorsement /ɪnˈdɔːrsmənt/',
+      ],
+    ),
+
     'b2.1.4': EnglishAdvancedDialogue(
       lines: <String>[
         'Amira: Could we donate every lunch that students do not eat?',
