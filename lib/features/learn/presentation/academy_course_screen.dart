@@ -12,6 +12,7 @@ import '../data/academy_english_advanced_models.dart';
 import 'academy_english_advanced_screen.dart';
 import 'academy_english_a1_screen.dart';
 import 'academy_spanish_a1_screen.dart';
+import '../data/academy_spanish_a2_course.dart';
 import '../data/academy_journey_catalog.dart';
 import '../data/academy_story_catalog.dart';
 import '../services/academy_progress_service.dart';
@@ -59,6 +60,7 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
   bool _openingPlacement = false;
   int _pendingCount = 0;
   int _integratedA1Done = 0;
+  int _spanishA2Done = 0;
 
   String get _progressUser => FirebaseAuth.instance.currentUser?.uid ?? 'guest';
   String get _placementKey =>
@@ -81,8 +83,13 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
           : widget.course.code == 'es'
               ? (await SpanishA1Progress.load(
                   _progressUser == 'guest' ? null : _progressUser)).length : 0;
+      final a2Done = widget.course.code == 'es'
+          ? (await SpanishA1Progress.load(
+              _progressUser == 'guest' ? null : _progressUser,
+              level: 'A2')).length : 0;
       if (!mounted) return;
       setState(() {
+        _spanishA2Done = a2Done;
         _integratedA1Done = integratedDone;
         _placementLevel = saved;
         _pendingCount = pending;
@@ -146,8 +153,15 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
 
   Future<void> _openAdvanced(String level) async {
     await Navigator.of(context).push<void>(MaterialPageRoute(
-      builder: (_) => AcademyEnglishAdvancedLevelScreen(level: level),
+      builder: (_) => widget.course.code == 'es' && level == 'A2'
+          ? const AcademySpanishA1Path(level: 'A2')
+          : AcademyEnglishAdvancedLevelScreen(level: level),
     ));
+    if (widget.course.code == 'es' && level == 'A2') {
+      final count = await SpanishA1Progress.load(
+          _progressUser == 'guest' ? null : _progressUser, level: 'A2');
+      if (mounted) setState(() => _spanishA2Done = count.length);
+    }
   }
 
   Future<void> _sync() async {
@@ -185,9 +199,9 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
           final done = snapshot.data ?? <String>{};
           final total = widget.course.code == 'en'
               ? EnglishA1Catalog.lessonCount
-              : widget.course.code == 'es' ? 30 : widget.course.lessonCount;
+              : widget.course.code == 'es' ? 60 : widget.course.lessonCount;
           final count = widget.course.code == 'en' || widget.course.code == 'es'
-              ? _integratedA1Done
+              ? _integratedA1Done + (widget.course.code == 'es' ? _spanishA2Done : 0)
               : widget.course.units.fold<int>(0, (n, unit) =>
                   n + AcademyLessonKind.values.where(
                       (kind) => done.contains(unit.lessonId(kind))).length);
@@ -264,7 +278,9 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
               ...AcademyJourneyCatalog.levels.map((level) {
                 final a1 = level.isBeginner;
                 final advancedLessons = widget.course.code == 'en'
-                    ? EnglishAdvancedSyllabus.forLevel(level.id).length : 0;
+                    ? EnglishAdvancedSyllabus.forLevel(level.id).length
+                    : widget.course.code == 'es' && level.id == 'A2'
+                        ? SpanishA2Course.lessons.length : 0;
                 final published = a1 || advancedLessons > 0;
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 10),
@@ -305,8 +321,11 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
                                       ? '${widget.course.code == 'en' || widget.course.code == 'es' ? 3 : widget.course.units.length} وحدات جاهزة للبدء'
                                       : '${widget.course.code == 'en' || widget.course.code == 'es' ? 3 : widget.course.units.length} units ready')
                                   : advancedLessons > 0
-                                      ? (ar ? '$advancedLessons درس تجريبي منشور · المزيد قيد التأليف'
-                                          : '$advancedLessons published pilot lesson · more in progress')
+                                      ? widget.course.code == 'es' && level.id == 'A2'
+                                          ? (ar ? '$advancedLessons درسًا متكاملًا · 3 وحدات'
+                                              : '$advancedLessons complete lessons · 3 units')
+                                          : (ar ? '$advancedLessons درس تجريبي منشور · المزيد قيد التأليف'
+                                              : '$advancedLessons published pilot lesson · more in progress')
                                       : (ar ? 'قيد إعداد الدروس'
                                           : 'Lessons are being prepared'),
                                 style: TextStyle(color: scheme.onSurfaceVariant)),
