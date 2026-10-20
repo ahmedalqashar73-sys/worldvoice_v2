@@ -15,6 +15,49 @@ class EnglishAdvancedDialogue {
 
 abstract final class EnglishAdvancedDialogues {
   static const _dialogues = <String, EnglishAdvancedDialogue>{
+    'a2.2.1': EnglishAdvancedDialogue(
+      lines: <String>[
+        'Salma: Do you think this desk is too large for the bedroom?',
+        'Nadia: No, it is small enough to fit beside the window.',
+        'Salma: Is the blue rug more expensive than the green one?',
+        'Nadia: Yes, but the green rug is softer and easier to clean.',
+        'Salma: Great! Then I have enough money for a reading lamp.',
+      ],
+      tip: 'Use a clear stress on brighter, enough, and more expensive.',
+      tipArabic: 'تدرّب على نبر المقارنة والتشديد على brighter وenough.',
+      pronunciation: <String>[
+        'wardrobe /ˈwɔːr.droʊb/', 'mirror /ˈmɪr.ər/', 'comfortable /ˈkʌmf.tə.bəl/',
+      ],
+    ),
+    'a2.2.2': EnglishAdvancedDialogue(
+      lines: <String>[
+        'Omar: I feel dizzy. Should I go to work today?',
+        'Nurse: You should rest and drink enough water.',
+        'Omar: Do I have to take the medicine after food?',
+        'Nurse: Please follow the instructions on the label.',
+        'Omar: Thank you. I will call again if I feel worse.',
+      ],
+      tip: 'Practise polite requests with should and have to.',
+      tipArabic: 'لاحظ النبرة المهذبة عند طلب النصيحة باستخدام should.',
+      pronunciation: <String>[
+        'clinic /ˈklɪn.ɪk/', 'infection /ɪnˈfek.ʃən/', 'medicine /ˈmed.ɪ.sən/',
+      ],
+    ),
+    'a2.2.3': EnglishAdvancedDialogue(
+      lines: <String>[
+        'Mira: Can you help me make the family dish?',
+        'Sam: Sure! What should I do first?',
+        'Mira: First, wash the vegetables. Then, chop the onions.',
+        'Sam: Should I add the broth now?',
+        'Mira: Yes. Finally, taste it before adding any salt.',
+      ],
+      tip: 'Mark each step with first, then, and finally.',
+      tipArabic: 'اجعل صوتك واضحًا عند ترتيب الخطوات: first، then، finally.',
+      pronunciation: <String>[
+        'broth /brɔːθ/', 'vegetables /ˈvedʒ.tə.bəlz/', 'onions /ˈʌn.jənz/',
+      ],
+    ),
+
     'b2.1.4': EnglishAdvancedDialogue(
       lines: <String>[
         'Amira: Could we donate every lunch that students do not eat?',
