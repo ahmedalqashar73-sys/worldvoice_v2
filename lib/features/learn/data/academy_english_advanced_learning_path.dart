@@ -32,6 +32,12 @@ abstract final class EnglishAdvancedLearningPath {
       AdvancedWordKind.adjective: "credible|موثوق;nuanced|دقيق التفاصيل;equitable|منصف;ethical|أخلاقي;sustainable|مستدام;contentious|مثير للجدل;plausible|معقول;rigorous|صارم منهجيا;transparent|شفاف;empirical|تجريبي;systematic|منهجي;impartial|محايد;significant|ذو دلالة;measurable|قابل للقياس;widespread|واسع الانتشار;sophisticated|متطور;controversial|خلافي;preliminary|أولي;decisive|حاسم;substantial|جوهري",
       AdvancedWordKind.adverb: "critically|بنظرة نقدية;ethically|بشكل أخلاقي;systematically|بمنهجية;empirically|تجريبيا;broadly|على نطاق واسع;narrowly|في نطاق ضيق;considerably|بدرجة كبيرة;comparatively|بالمقارنة;implicitly|ضمنيا;explicitly|صراحة;disproportionately|بشكل غير متناسب;independently|بشكل مستقل;objectively|بموضوعية;plausibly|بشكل معقول;arguably|يمكن القول;theoretically|نظريا;cautiously|بحذر;consequently|وبناء على ذلك;nevertheless|مع ذلك;ultimately|في نهاية المطاف",
     },
+    'C1': <AdvancedWordKind, String>{
+      AdvancedWordKind.noun: "inference|استدلال;provenance|مصدر المنشأ;corroboration|تأييد مستقل;methodology|منهجية;discrepancy|تباين;deliberation|مداولة;legitimacy|مشروعية;ambiguity|غموض;premise|مقدمة حجاجية;repercussion|تبعة;nuance|دقة المعنى;contingency|احتمال مشروط;attribution|إسناد;accountability|مساءلة;consensus|توافق;counterargument|حجة مضادة;plausibility|معقولية;testimony|شهادة;concession|تنازل حجاجي;qualification|تحفظ علمي",
+      AdvancedWordKind.verb: "scrutinize|يفحص بدقة;corroborate|يؤيد بأدلة;contextualize|يضع في سياقه;substantiate|يثبت بالأدلة;reconcile|يوفق بين;elucidate|يوضح بدقة;interrogate|يفحص نقديا;reassess|يعيد التقييم;distinguish|يميز;acknowledge|يقر;document|يوثق;reconstruct|يعيد بناء;challenge|يطعن في;articulate|يصوغ بدقة;qualify|يقيد الحكم;mediate|يتوسط;disclose|يفصح عن;reconsider|يعيد النظر;differentiate|يفرق بين;justify|يبرر",
+      AdvancedWordKind.adjective: "provisional|مؤقت قابل للتعديل;contentious|مثير للجدل;credible|موثوق;methodological|منهجي;ambiguous|ملتبس;defensible|يمكن الدفاع عنه;inconclusive|غير حاسم;systemic|بنيوي;nuanced|دقيق المعنى;compelling|مقنع بقوة;disproportionate|غير متناسب;transparent|شفاف;tentative|مبدئي;irreconcilable|متعذر التوفيق;unsubstantiated|غير مؤيد بالأدلة;contextual|سياقي;rigorous|صارم منهجيا;multifaceted|متعدد الجوانب;contested|موضع خلاف;consequential|ذو تبعات مهمة",
+      AdvancedWordKind.adverb: "tentatively|على نحو مبدئي;conclusively|بشكل قاطع;explicitly|بوضوح وصراحة;implicitly|ضمنيا;critically|بشكل نقدي;systematically|بمنهجية;independently|باستقلالية;arguably|يمكن القول;ostensibly|ظاهريا;disproportionately|بشكل غير متناسب;subsequently|لاحقا;nonetheless|مع ذلك;accordingly|تبعا لذلك;presumably|على الأرجح;provisionally|بصورة مؤقتة;substantially|بدرجة كبيرة;conversely|على العكس;empirically|استنادا إلى التجربة;unequivocally|بلا التباس;prudently|بتعقل",
+    },
   };
   static const _unit = <String, Map<int, Map<AdvancedWordKind, String>>>{
     'A2': <int, Map<AdvancedWordKind, String>>{
@@ -92,6 +98,26 @@ abstract final class EnglishAdvancedLearningPath {
       AdvancedWordKind.verb: "revise|يراجع;redistribute|يعيد توزيع;conserve|يحافظ على;protect|يحمي;allocate|يخصص;fund|يمول;reconstruct|يعيد بناء;interpret|يفسر;balance|يوازن;legislate|يشرّع",
       AdvancedWordKind.adjective: "interdisciplinary|متعدد التخصصات;disproportionate|غير متناسب;long-term|طويل الأجل;complex|معقد;structural|بنيوي;vulnerable|عرضة للخطر;representative|تمثيلي;democratic|ديمقراطي;beneficial|نافع;unintended|غير مقصود",
       AdvancedWordKind.adverb: "structurally|بنيويا;politically|سياسيا;economically|اقتصاديا;socially|اجتماعيا;environmentally|بيئيا;institutionally|مؤسسيا;historically|تاريخيا;pragmatically|عمليا;sustainably|بشكل مستدام;inclusively|بشكل شامل",
+      },
+    },
+    'C1': <int, Map<AdvancedWordKind, String>>{
+      1: <AdvancedWordKind, String>{
+      AdvancedWordKind.noun: "manuscript|مخطوطة;artifact|قطعة أثرية;archive|أرشيف;repository|مستودع بحثي;protocol|بروتوكول;dataset|مجموعة بيانات;hypothesis|فرضية;peer review|مراجعة الأقران;chronology|تسلسل زمني;consent|موافقة مستنيرة",
+      AdvancedWordKind.verb: "authenticate|يثبت الأصالة;transcribe|ينسخ نصيا;replicate|يكرر التجربة;triangulate|يفحص بمصادر متعددة;validate|يتحقق من صحة;annotate|يعلق توضيحيا;interpret|يفسر;calibrate|يعاير;extrapolate|يستقرئ;verify|يتحقق من",
+      AdvancedWordKind.adjective: "archival|أرشيفي;peer-reviewed|محكم علميا;replicable|قابل للتكرار;unverified|غير متحقق منه;longitudinal|طولي عبر الزمن;historical|تاريخي;anomalous|شاذ عن المعتاد;predictive|تنبؤي;interdisciplinary|متعدد التخصصات;authenticated|موثق الأصالة",
+      AdvancedWordKind.adverb: "historically|تاريخيا;statistically|إحصائيا;scientifically|علميا;retrospectively|بأثر رجعي;chronologically|حسب التسلسل الزمني;analytically|تحليليا;experimentally|تجريبيا;precisely|بدقة;comparatively|بالمقارنة;reproducibly|بصورة قابلة للتكرار",
+      },
+      2: <AdvancedWordKind, String>{
+      AdvancedWordKind.noun: "restitution|رد المقتنيات;whistleblower|كاشف مخالفات;oversight|رقابة;grievance|تظلم;stewardship|رعاية مسؤولة;mandate|تفويض;governance|حوكمة;consultation|مشاورة;redress|إنصاف;stakeholder|صاحب مصلحة",
+      AdvancedWordKind.verb: "legislate|يسن التشريعات;remediate|يعالج الأضرار;advocate|يناصر;regulate|ينظم;consult|يستشير;negotiate|يتفاوض;represent|يمثل;safeguard|يصون;adjudicate|يفصل في النزاع;implement|ينفذ",
+      AdvancedWordKind.adjective: "institutional|مؤسسي;equitable|منصف;participatory|تشاركي;legally binding|ملزم قانونيا;representative|تمثيلي;deliberative|تداولي;inclusive|شامل;unlawful|غير قانوني;reciprocal|متبادل;procedural|إجرائي",
+      AdvancedWordKind.adverb: "legally|قانونيا;institutionally|مؤسسيا;collectively|جماعيا;democratically|ديمقراطيا;equitably|بعدالة;formally|رسميا;publicly|علنا;transnationally|عبر الحدود;collaboratively|بالتعاون;ethically|أخلاقيا",
+      },
+      3: <AdvancedWordKind, String>{
+      AdvancedWordKind.noun: "resilience|مرونة التكيف;ecosystem|نظام بيئي;procurement|مشتريات مؤسسية;confounder|متغير مربك;probability|احتمالية;emissions|انبعاثات;distribution|توزيع;mitigation|تخفيف الضرر;adaptation|تكيف;trade-off|مفاضلة",
+      AdvancedWordKind.verb: "model|ينمذج;forecast|يتنبأ;quantify|يحدد كميا;mitigate|يخفف;diversify|ينوع;allocate|يخصص;simulate|يحاكي;monitor|يراقب;evaluate|يقيّم;prioritize|يعطي الأولوية",
+      AdvancedWordKind.adjective: "ecological|بيئي;probabilistic|احتمالي;climatic|مناخي;resilient|مرن قادر على التكيف;sustainable|مستدام;data-driven|قائم على البيانات;counterfactual|مضاد للواقع;measurable|قابل للقياس;uncertain|غير يقيني;adaptive|تكيفي",
+      AdvancedWordKind.adverb: "environmentally|بيئيا;probabilistically|احتماليا;regionally|إقليميا;globally|عالميا;quantitatively|كميا;ecologically|إيكولوجيا;economically|اقتصاديا;incrementally|تدريجيا;strategically|استراتيجيا;predictably|بصورة متوقعة",
       },
     },
   };
