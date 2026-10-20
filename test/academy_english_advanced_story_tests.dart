@@ -120,7 +120,7 @@ void main() {
       expect(story.contains(term.term.toLowerCase()), isTrue,
           reason: 'Story missing ${term.term}');
     }
-    expect(lesson.listening.split(RegExp(r'\\s+')).length,
+    expect(lesson.listening.trim().split(RegExp(r'\s+')).length,
         greaterThanOrEqualTo(100));
     expect(lesson.spellingChallenge, hasLength(3));
     final grammar = AdvancedGrammarWorkshops.forLesson('B2', 5);
