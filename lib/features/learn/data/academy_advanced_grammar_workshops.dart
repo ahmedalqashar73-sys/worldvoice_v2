@@ -197,7 +197,11 @@ abstract final class AdvancedGrammarWorkshops {
       question: "Choose the most precise alternative.", options: <String>["Were the phrase translated literally, its rhythm might suffer.","Were the phrase translate literally, its rhythm suffered.","If the phrase translated, rhythm surely disappears."], answer: 0,
     ),
   };
-  static AdvancedGrammarWorkshop? forLesson(String level, int number) =>
-      _workshops['$level:$number'];
+  /// Use a distinct grammar workshop for every unit and lesson.
+  /// Legacy unit-one keys stay unchanged for existing learners.
+  static AdvancedGrammarWorkshop? forLesson(
+      String level, int number, {int unitNumber = 1}) =>
+      _workshops['$level.$unitNumber.$number'] ??
+      (unitNumber == 1 ? _workshops['$level:$number'] : null);
   static int get count => _workshops.length;
 }
