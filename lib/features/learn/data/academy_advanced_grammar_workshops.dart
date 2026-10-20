@@ -21,6 +21,48 @@ class AdvancedGrammarWorkshop {
   final int answer;
 }
 abstract final class AdvancedGrammarWorkshops {
+  static const _unit2A2 = <int, AdvancedGrammarWorkshop>{
+    1: AdvancedGrammarWorkshop(
+      explanationEnglish: 'Comparatives describe differences: brighter than, more comfortable than. Enough follows an adjective but precedes a noun.',
+      examples: <AdvancedGrammarExample>[
+        AdvancedGrammarExample('This bedroom is brighter than my old one.', 'غرفة النوم هذه أكثر إضاءة من غرفتي القديمة.'),
+        AdvancedGrammarExample('The desk is small enough for the corner.', 'المكتب صغير بما يكفي للزاوية.'),
+        AdvancedGrammarExample('We have enough space for two chairs.', 'لدينا مساحة كافية لكرسيين.'),
+      ],
+      wrong: 'My room is more brighter than yours.',
+      correct: 'My room is brighter than yours.',
+      question: 'Which comparison is correct?',
+      options: <String>['My room is more brighter.', 'The lamp is enough small.', 'The room is brighter than before.'],
+      answer: 2,
+    ),
+    2: AdvancedGrammarWorkshop(
+      explanationEnglish: 'Use should for advice, should not for warnings, and must for strong requirements. Follow each modal with the base verb.',
+      examples: <AdvancedGrammarExample>[
+        AdvancedGrammarExample('You should drink more water.', 'ينبغي أن تشرب ماءً أكثر.'),
+        AdvancedGrammarExample('You should not ignore a high fever.', 'لا ينبغي تجاهل الحمى المرتفعة.'),
+        AdvancedGrammarExample('You must follow the medicine instructions.', 'يجب اتباع تعليمات الدواء.'),
+      ],
+      wrong: 'You should to stay at home.',
+      correct: 'You should stay at home.',
+      question: 'Choose the correct advice.',
+      options: <String>['You should to rest.', 'You should rest.', 'You must to rest.'],
+      answer: 1,
+    ),
+    3: AdvancedGrammarWorkshop(
+      explanationEnglish: 'Sequence instructions with first, then, next and finally. Begin an imperative with its base verb, not with to.',
+      examples: <AdvancedGrammarExample>[
+        AdvancedGrammarExample('First, wash the vegetables.', 'أولًا اغسل الخضار.'),
+        AdvancedGrammarExample('Then, add the broth.', 'ثم أضف المرق.'),
+        AdvancedGrammarExample('Finally, serve the meal.', 'أخيرًا قدّم الوجبة.'),
+      ],
+      wrong: 'Finally, to serve the meal.',
+      correct: 'Finally, serve the meal.',
+      question: 'Choose the natural instruction.',
+      options: <String>['Then, to add the onions.', 'Next, added some broth.', 'Finally, serve the meal.'],
+      answer: 2,
+    ),
+  };
+
   static const _workshops = <String, AdvancedGrammarWorkshop>{
     'B2:4': AdvancedGrammarWorkshop(
       explanationEnglish: 'Use must or have to for essential duties and should or ought to for recommendations. The base verb follows modal verbs without to, except ought to. Be specific about safety versus advice.',
@@ -257,7 +299,11 @@ abstract final class AdvancedGrammarWorkshops {
       question:"Which sentence uses contrast correctly?", options:<String>["Despite the campus was distant, she enrolled.","Although the campus was distant, she enrolled.","However the campus was distant she enrolled."],answer:1,
     ),
   };
-  static AdvancedGrammarWorkshop? forLesson(String level, int number) =>
-      _workshops['$level:$number'];
+  static AdvancedGrammarWorkshop? forLesson(String level, int number,
+      {int unitNumber = 1}) {
+    if (unitNumber == 2 && level == 'A2') return _unit2A2[number];
+    if (unitNumber != 1) return null;
+    return _workshops['$level:$number'];
+  }
   static int get count => _workshops.length;
 }
