@@ -44,22 +44,22 @@ abstract final class SpanishC1Course {
     SpanishWordKind.adverb: "tentativamente|مبدئيًا;concluyentemente|بصورة حاسمة;explícitamente|صراحة;implícitamente|ضمنيًا;críticamente|نقديًا;sistemáticamente|بمنهجية;independientemente|باستقلالية;posiblemente|ربما;presuntamente|بحسب المزاعم;desproporcionadamente|بشكل غير متناسب;posteriormente|لاحقًا;no obstante|مع ذلك;en consecuencia|بناء عليه;presumiblemente|على الأرجح;provisionalmente|بصورة مؤقتة;sustancialmente|بشكل جوهري;por el contrario|على النقيض;empíricamente|تجريبيًا;inequívocamente|بلا لبس;prudentemente|بحكمة",
   };
   static const _focused=<int,Map<SpanishWordKind,String>>{
-    $u:<SpanishWordKind,String>{
+    1:<SpanishWordKind,String>{
     SpanishWordKind.noun: "manuscrito|مخطوطة;objeto arqueológico|قطعة أثرية;archivo|أرشيف;repositorio|مستودع بحثي;protocolo|بروتوكول;conjunto de datos|مجموعة بيانات;hipótesis|فرضية;revisión por pares|تحكيم علمي;cronología|تسلسل زمني;consentimiento|موافقة مستنيرة",
     SpanishWordKind.verb: "autentificar|يوثق الأصالة;transcribir|ينسخ نصيًا;replicar|يكرر التجربة;triangular|يتحقق بمصادر متعددة;validar|يتحقق من صحة;anotar|يعلق;interpretar|يفسر;calibrar|يعاير;extrapolar|يستقرئ;verificar|يتحقق",
     SpanishWordKind.adjective: "archivístico|أرشيفي;revisado por pares|محكم علميًا;replicable|قابل للتكرار;no verificado|غير متحقق منه;longitudinal|طولي عبر الزمن;histórico|تاريخي;anómalo|شاذ;predictivo|تنبؤي;interdisciplinario|متعدد التخصصات;autentificado|موثق",
     SpanishWordKind.adverb: "históricamente|تاريخيًا;estadísticamente|إحصائيًا;científicamente|علميًا;retrospectivamente|بأثر رجعي;cronológicamente|حسب التسلسل;analíticamente|تحليليًا;experimentalmente|تجريبيًا;precisamente|بدقة;comparativamente|بالمقارنة;reproduciblemente|بشكل قابل للتكرار",
     },
-    $u:<SpanishWordKind,String>{
+    2:<SpanishWordKind,String>{
     SpanishWordKind.noun: "restitución|استرداد مقتنيات;denunciante|مبلغ عن مخالفات;supervisión|رقابة;agravio|تظلم;custodia|حفظ مسؤول;mandato|تفويض;gobernanza|حوكمة;consulta|مشاورة;reparación|جبر ضرر;actor implicado|طرف معني",
     SpanishWordKind.verb: "legislar|يشرع;subsanar|يعالج الخلل;abogar|يناصر;regular|ينظم;consultar|يستشير;negociar|يتفاوض;representar|يمثل;salvaguardar|يصون;arbitrar|يفصل في النزاع;implementar|ينفذ",
     SpanishWordKind.adjective: "institucional|مؤسسي;equitativo|منصف;participativo|تشاركي;vinculante|ملزم;representativo|تمثيلي;deliberativo|تداولي;inclusivo|شامل;ilícito|غير قانوني;recíproco|متبادل;procedimental|إجرائي",
     SpanishWordKind.adverb: "jurídicamente|قانونيًا;institucionalmente|مؤسسيًا;colectivamente|جماعيًا;democráticamente|ديمقراطيًا;equitativamente|بعدل;formalmente|رسميًا;públicamente|علانية;transnacionalmente|عبر الحدود;colaborativamente|بالتعاون;éticamente|أخلاقيًا",
     },
-    $u:<SpanishWordKind,String>{
+    3:<SpanishWordKind,String>{
     SpanishWordKind.noun: "resiliencia|قدرة على التكيف;ecosistema|نظام بيئي;contratación pública|مشتريات عامة;factor de confusión|متغير مربك;probabilidad|احتمال;emisiones|انبعاثات;distribución|توزيع;mitigación|تخفيف أضرار;adaptación|تكيف;disyuntiva|مفاضلة",
     SpanishWordKind.verb: "modelizar|ينمذج;pronosticar|يتنبأ;cuantificar|يحدد كميًا;mitigar|يخفف;diversificar|ينوع;asignar|يخصص;simular|يحاكي;supervisar|يراقب;evaluar|يقيّم;priorizar|يعطي الأولوية",
-    SpanishWordKind.adjective: "ecológico|بيئي;probabilístico|احتمالي;climático|مناخي;resiliente|مرن; sostenible|مستدام;basado en datos|قائم على البيانات;contrafactual|افتراضي مضاد للواقع;mensurable|قابل للقياس;incierto|غير يقيني;adaptativo|تكيفي",
+    SpanishWordKind.adjective: "ecológico|بيئي;probabilístico|احتمالي;climático|مناخي;resiliente|مرن;sostenible|مستدام;basado en datos|قائم على البيانات;contrafactual|افتراضي مضاد للواقع;mensurable|قابل للقياس;incierto|غير يقيني;adaptativo|تكيفي",
     SpanishWordKind.adverb: "medioambientalmente|بيئيًا;probabilísticamente|احتماليًا;regionalmente|إقليميًا;globalmente|عالميًا;cuantitativamente|كميًا;ecológicamente|بيئيًا من منظور النظام;económicamente|اقتصاديًا;gradualmente|تدريجيًا;estratégicamente|استراتيجيًا;previsiblemente|بشكل متوقع",
     },
   };
