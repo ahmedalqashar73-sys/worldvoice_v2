@@ -11,6 +11,7 @@ import '../data/academy_english_a1_catalog.dart';
 import '../data/academy_english_advanced_models.dart';
 import 'academy_english_advanced_screen.dart';
 import 'academy_english_a1_screen.dart';
+import 'academy_spanish_a1_screen.dart';
 import '../data/academy_journey_catalog.dart';
 import '../data/academy_story_catalog.dart';
 import '../services/academy_progress_service.dart';
@@ -57,7 +58,7 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
   bool _checkingPlacement = true;
   bool _openingPlacement = false;
   int _pendingCount = 0;
-  int _englishDone = 0;
+  int _integratedA1Done = 0;
 
   String get _progressUser => FirebaseAuth.instance.currentUser?.uid ?? 'guest';
   String get _placementKey =>
@@ -74,12 +75,15 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
       final prefs = await SharedPreferences.getInstance();
       final saved = prefs.getString(_placementKey);
       final pending = await _progress.pendingCount();
-      final englishDone = widget.course.code == 'en'
+      final integratedDone = widget.course.code == 'en'
           ? (await EnglishA1Progress.load(
-              _progressUser == 'guest' ? null : _progressUser)).length : 0;
+              _progressUser == 'guest' ? null : _progressUser)).length
+          : widget.course.code == 'es'
+              ? (await SpanishA1Progress.load(
+                  _progressUser == 'guest' ? null : _progressUser)).length : 0;
       if (!mounted) return;
       setState(() {
-        _englishDone = englishDone;
+        _integratedA1Done = integratedDone;
         _placementLevel = saved;
         _pendingCount = pending;
         _checkingPlacement = false;
@@ -118,19 +122,24 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
       MaterialPageRoute(
         builder: (_) => widget.course.code == 'en'
             ? const AcademyEnglishA1Path()
+            : widget.course.code == 'es'
+                ? const AcademySpanishA1Path()
             : _AcademyA1Home(
                 course: widget.course, progress: _progress,
               ),
       ),
     );
     final pending = await _progress.pendingCount();
-    final englishDone = widget.course.code == 'en'
+    final integratedDone = widget.course.code == 'en'
         ? (await EnglishA1Progress.load(
-            _progressUser == 'guest' ? null : _progressUser)).length : 0;
+            _progressUser == 'guest' ? null : _progressUser)).length
+        : widget.course.code == 'es'
+            ? (await SpanishA1Progress.load(
+                _progressUser == 'guest' ? null : _progressUser)).length : 0;
     if (mounted) {
       setState(() {
         _pendingCount = pending;
-        _englishDone = englishDone;
+        _integratedA1Done = integratedDone;
       });
     }
   }
@@ -175,9 +184,10 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
         builder: (context, snapshot) {
           final done = snapshot.data ?? <String>{};
           final total = widget.course.code == 'en'
-              ? EnglishA1Catalog.lessonCount : widget.course.lessonCount;
-          final count = widget.course.code == 'en'
-              ? _englishDone
+              ? EnglishA1Catalog.lessonCount
+              : widget.course.code == 'es' ? 30 : widget.course.lessonCount;
+          final count = widget.course.code == 'en' || widget.course.code == 'es'
+              ? _integratedA1Done
               : widget.course.units.fold<int>(0, (n, unit) =>
                   n + AcademyLessonKind.values.where(
                       (kind) => done.contains(unit.lessonId(kind))).length);
@@ -292,8 +302,8 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
                               const SizedBox(height: 4),
                               Text(a1
                                   ? (ar
-                                      ? '${widget.course.code == 'en' ? 3 : widget.course.units.length} وحدات جاهزة للبدء'
-                                      : '${widget.course.code == 'en' ? 3 : widget.course.units.length} units ready')
+                                      ? '${widget.course.code == 'en' || widget.course.code == 'es' ? 3 : widget.course.units.length} وحدات جاهزة للبدء'
+                                      : '${widget.course.code == 'en' || widget.course.code == 'es' ? 3 : widget.course.units.length} units ready')
                                   : advancedLessons > 0
                                       ? (ar ? '$advancedLessons درس تجريبي منشور · المزيد قيد التأليف'
                                           : '$advancedLessons published pilot lesson · more in progress')
@@ -311,9 +321,13 @@ class _AcademyCourseScreenState extends State<AcademyCourseScreen> {
                   ),
                 );
               }),
-              Text(ar
-                  ? 'اختبار المستوى تمهيدي. فتحنا دروسًا تجريبية فعلية في A2–C2، وستُضاف بقية الدروس بعد التأليف والمراجعة.'
-                  : 'Placement is preliminary. Authored A2–C2 pilot lessons are open; further lessons are being reviewed.',
+              Text(widget.course.code == 'es'
+                  ? (ar
+                      ? 'الإسبانية A1: ثلاث وحدات وثلاثون درسًا متكاملًا. المستويات الأعلى قيد الإعداد.'
+                      : 'Spanish A1: three units and thirty lessons. Higher levels are not published yet.')
+                  : (ar
+                      ? 'اختبار المستوى تمهيدي. هذه دروس الأكاديمية المتاحة حاليًا.'
+                      : 'Placement is preliminary. The listed Academy lessons are available.'),
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 12,
                     color: scheme.onSurfaceVariant)),
