@@ -1,5 +1,4 @@
 import 'academy_spanish_a1_course.dart';
-import 'academy_spanish_a2_course.dart';
 
 /// The CEFR B1 level is published only after authoring all 30 lessons.
 /// A1 and A2 lesson identifiers, vocabulary and completion data are unchanged.
