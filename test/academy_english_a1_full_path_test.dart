@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:worldvoice/features/learn/data/academy_english_a1_catalog.dart';
 import 'package:worldvoice/features/learn/data/academy_english_a1_vocabulary.dart';
 import 'package:worldvoice/features/learn/data/academy_english_a1_long_stories.dart';
+import 'package:worldvoice/features/learn/data/academy_english_a1_learning_loop.dart';
 import 'package:worldvoice/features/learn/data/academy_english_a1_lesson_checks.dart';
 import 'package:worldvoice/features/learn/presentation/academy_english_a1_screen.dart';
 import 'package:worldvoice/features/learn/presentation/academy_english_a1_integrated_lesson.dart';
@@ -50,8 +51,25 @@ void main() {
         expect(lesson.options, hasLength(3));
         expect(lesson.answer, inInclusiveRange(0, 2));
         final words = EnglishA1Vocabulary.forLesson(unit.id, num);
-        expect(words, hasLength(20));
-        expect(words.map((w) => w.term.toLowerCase()).toSet().length, 20);
+        expect(words, hasLength(40));
+        expect(words.map((w) => w.term.toLowerCase()).toSet().length, 40);
+        for (final kind in EnglishA1WordKind.values) {
+          expect(words.where((w) => w.kind == kind), hasLength(10),
+              reason: '${unit.id} / $num / $kind');
+        }
+        final linked = EnglishA1LearningLoop.chapterFor(unit.id, num);
+        expect(linked.paragraphs, hasLength(4));
+        final extension = linked.paragraphs.last.english.toLowerCase();
+        final noun = words.firstWhere((w) => w.kind == EnglishA1WordKind.noun);
+        final verb = words.firstWhere((w) => w.kind == EnglishA1WordKind.verb);
+        expect(extension, contains(noun.term.toLowerCase()));
+        expect(extension, contains(verb.term.toLowerCase()));
+        final audio = EnglishA1LearningLoop.materialFor(unit.id, num);
+        expect(audio.dialogue, contains(noun.term));
+        for (final word in words) {
+          expect(audio.listening.toLowerCase(),
+              contains(word.term.toLowerCase()));
+        }
         for (final word in words) {
           expect(word.term.trim(), isNotEmpty);
           expect(word.arabic.trim(), isNotEmpty);
