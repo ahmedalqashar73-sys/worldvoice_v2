@@ -4,6 +4,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/academy_spanish_a1_course.dart';
+import '../data/academy_spanish_a2_course.dart';
 import 'academy_illustrated_story_art.dart';
 
 const _verde = Color(0xFF15583F);
@@ -12,31 +13,36 @@ const _oro = Color(0xFFECC887);
 /// Account-isolated offline completion, independent from the legacy
 /// six-activity Academy format and from English A1 progress.
 abstract final class SpanishA1Progress {
-  static String _key(String? uid) =>
-      'worldvoice.academy.es.a1.integrated.v1.${uid ?? 'guest'}.done';
+  static String _key(String? uid, {String level = 'A1'}) =>
+      'worldvoice.academy.es.${level.toLowerCase()}.integrated.v1.${uid ?? 'guest'}.done';
 
-  static Future<Set<String>> load(String? uid) async {
+  static Future<Set<String>> load(String? uid, {String level = 'A1'}) async {
     final prefs = await SharedPreferences.getInstance();
-    return (prefs.getStringList(_key(uid)) ?? <String>[]).toSet();
+    return (prefs.getStringList(_key(uid, level: level)) ?? <String>[]).toSet();
   }
 
-  static Future<void> complete(String? uid, SpanishA1Lesson lesson) async {
-    if (!SpanishA1Course.lessons.any((x) => x.id == lesson.id)) {
+  static Future<void> complete(String? uid, SpanishA1Lesson lesson,
+      {String level = 'A1'}) async {
+    final accepted = level == 'A2'
+        ? SpanishA2Course.lessons.any((x) => x.id == lesson.id)
+        : level == 'A1' && SpanishA1Course.lessons.any((x) => x.id == lesson.id);
+    if (!accepted) {
       throw ArgumentError.value(lesson.id, 'lesson', 'Unknown Spanish lesson');
     }
     final prefs = await SharedPreferences.getInstance();
-    final completed = (prefs.getStringList(_key(uid)) ?? <String>[]).toSet()
+    final key = _key(uid, level: level);
+    final completed = (prefs.getStringList(key) ?? <String>[]).toSet()
       ..add(lesson.id);
-    if (!await prefs.setStringList(
-        _key(uid), completed.toList()..sort())) {
-      throw StateError('Unable to save Spanish A1 progress locally');
+    if (!await prefs.setStringList(key, completed.toList()..sort())) {
+      throw StateError('Unable to save Spanish $level progress locally');
     }
   }
 }
 
 /// Spanish level home: A1 -> 3 units -> 10 self-contained lessons.
 class AcademySpanishA1Path extends StatefulWidget {
-  const AcademySpanishA1Path({super.key});
+  const AcademySpanishA1Path({this.level = 'A1', super.key});
+  final String level;
 
   @override
   State<AcademySpanishA1Path> createState() => _SpanishA1PathState();
@@ -62,20 +68,21 @@ class _SpanishA1PathState extends State<AcademySpanishA1Path> {
   }
 
   Future<void> _refresh() async {
-    final completed = await SpanishA1Progress.load(_uid);
+    final completed = await SpanishA1Progress.load(_uid, level: widget.level);
     if (mounted) setState(() => _completed = completed);
   }
 
   Future<void> _unit(SpanishA1Unit unit) async {
     await Navigator.of(context).push<void>(MaterialPageRoute(
-      builder: (_) => _SpanishUnitScreen(unit: unit)));
+      builder: (_) => _SpanishUnitScreen(unit: unit, level: widget.level)));
     await _refresh();
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: Text(_ar ? 'الإسبانية A1 · المبتدئ' : 'Español A1 · Beginner'),
+      title: Text(_ar ? 'الإسبانية ${widget.level} · ${widget.level == 'A1' ? 'المبتدئ' : 'ما بعد المبتدئ'}'
+          : 'Español ${widget.level} · ${widget.level == 'A1' ? 'Beginner' : 'Elementary'}'),
       backgroundColor: _verde, foregroundColor: Colors.white),
     body: ListView(padding: const EdgeInsets.all(18), children: [
       Container(
@@ -87,12 +94,17 @@ class _SpanishA1PathState extends State<AcademySpanishA1Path> {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const Icon(Icons.auto_stories_rounded, color: _oro, size: 42),
           const SizedBox(height: 11),
-          Text(_ar ? 'رحلتك الأولى باللغة الإسبانية' : 'Tu aventura en español',
+          Text(_ar ? (widget.level == 'A1'
+              ? 'رحلتك الأولى باللغة الإسبانية'
+              : 'واصل رحلتك في الإسبانية')
+              : (widget.level == 'A1'
+                  ? 'Tu aventura en español'
+                  : 'Tu siguiente paso en español'),
             style: const TextStyle(color: Colors.white,
                 fontSize: 23, fontWeight: FontWeight.w900)),
           const SizedBox(height: 8),
-          const Text('A1  ·  3 UNIDADES  ·  30 LECCIONES',
-            style: TextStyle(color: _oro, fontWeight: FontWeight.w800)),
+          Text('${widget.level}  ·  3 UNIDADES  ·  30 LECCIONES',
+            style: const TextStyle(color: _oro, fontWeight: FontWeight.w800)),
           const SizedBox(height: 10),
           Text(_ar ? '${_completed.length} من 30 درسًا مكتملًا'
               : '${_completed.length} of 30 lessons completed',
@@ -103,10 +115,11 @@ class _SpanishA1PathState extends State<AcademySpanishA1Path> {
         ]),
       ),
       const SizedBox(height: 20),
-      for (final unit in SpanishA1Course.units)
+      for (final unit in widget.level == 'A2'
+          ? SpanishA2Course.units : SpanishA1Course.units)
         Card(clipBehavior: Clip.antiAlias,
           child: ListTile(
-            key: ValueKey('spanish-a1-unit-${unit.number}'),
+            key: ValueKey('spanish-${widget.level.toLowerCase()}-unit-${unit.number}'),
             contentPadding: const EdgeInsets.all(14),
             leading: CircleAvatar(backgroundColor: _verde,
               child: Text('${unit.number}',
@@ -123,8 +136,9 @@ class _SpanishA1PathState extends State<AcademySpanishA1Path> {
 }
 
 class _SpanishUnitScreen extends StatefulWidget {
-  const _SpanishUnitScreen({required this.unit});
+  const _SpanishUnitScreen({required this.unit, required this.level});
   final SpanishA1Unit unit;
+  final String level;
 
   @override
   State<_SpanishUnitScreen> createState() => _SpanishUnitScreenState();
@@ -148,13 +162,14 @@ class _SpanishUnitScreenState extends State<_SpanishUnitScreen> {
   }
 
   Future<void> _reload() async {
-    final data = await SpanishA1Progress.load(_uid);
+    final data = await SpanishA1Progress.load(_uid, level: widget.level);
     if (mounted) setState(() => _completed = data);
   }
 
   Future<void> _open(SpanishA1Lesson lesson) async {
     await Navigator.of(context).push<void>(MaterialPageRoute(
-      builder: (_) => AcademySpanishA1LessonScreen(lesson: lesson)));
+      builder: (_) => AcademySpanishA1LessonScreen(
+        lesson: lesson, level: widget.level)));
     await _reload();
   }
 
@@ -170,7 +185,7 @@ class _SpanishUnitScreenState extends State<_SpanishUnitScreen> {
         const SizedBox(height: 12),
         for (final lesson in widget.unit.lessons)
           Card(child: ListTile(
-            key: ValueKey('spanish-a1-lesson-${lesson.unit}-${lesson.number}'),
+            key: ValueKey('spanish-${widget.level.toLowerCase()}-lesson-${lesson.unit}-${lesson.number}'),
             leading: CircleAvatar(backgroundColor: _verde.withValues(alpha: .1),
               child: Text('${lesson.number}',
                 style: const TextStyle(color: _verde))),
@@ -190,8 +205,10 @@ class _SpanishUnitScreenState extends State<_SpanishUnitScreen> {
 /// grammar, vocabulary, illustrated story, word checks, dialogue, pronunciation,
 /// podcast listening and confirmed completion.
 class AcademySpanishA1LessonScreen extends StatefulWidget {
-  const AcademySpanishA1LessonScreen({required this.lesson, super.key});
+  const AcademySpanishA1LessonScreen({
+    required this.lesson, this.level = 'A1', super.key});
   final SpanishA1Lesson lesson;
+  final String level;
 
   @override
   State<AcademySpanishA1LessonScreen> createState() =>
@@ -236,7 +253,7 @@ class _AcademySpanishA1LessonScreenState
   }
 
   Future<void> _load() async {
-    final saved = await SpanishA1Progress.load(_uid);
+    final saved = await SpanishA1Progress.load(_uid, level: widget.level);
     if (mounted) setState(() => _complete = saved.contains(widget.lesson.id));
   }
 
@@ -289,7 +306,8 @@ class _AcademySpanishA1LessonScreenState
     if (_saving || _passed.length < 7) return;
     setState(() => _saving = true);
     try {
-      await SpanishA1Progress.complete(_uid, widget.lesson);
+      await SpanishA1Progress.complete(
+          _uid, widget.lesson, level: widget.level);
       if (mounted) {
         setState(() => _complete = true);
         Navigator.of(context).pop();
@@ -347,11 +365,9 @@ class _AcademySpanishA1LessonScreenState
   Widget _grammar() {
     final item = widget.lesson;
     final examples = item.grammarExamples;
-    final choices = <String>[
-      'Yo es una estudiantes.',
-      examples[0],
-      'Tú soy la libros.',
-    ];
+    final choices = widget.level == 'A2'
+        ? SpanishA2Course.grammarOptions(widget.lesson as SpanishA2Lesson)
+        : <String>['Yo es una estudiantes.', examples[0], 'Tú soy la libros.'];
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       _panel(Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const Icon(Icons.lightbulb_rounded, color: Color(0xFFB48A46)),
@@ -438,7 +454,9 @@ class _AcademySpanishA1LessonScreenState
 
   Widget _story() {
     final lesson = widget.lesson;
-    final paragraphs = SpanishA1Course.reading(lesson);
+    final paragraphs = widget.level == 'A2'
+        ? SpanishA2Course.reading(lesson as SpanishA2Lesson)
+        : SpanishA1Course.reading(lesson);
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Container(
         key: const ValueKey('spanish-story-cover'),
@@ -541,7 +559,9 @@ class _AcademySpanishA1LessonScreenState
   }
 
   Widget _conversation() {
-    final dialogue = SpanishA1Course.dialogue(widget.lesson);
+    final dialogue = widget.level == 'A2'
+        ? SpanishA2Course.conversation(widget.lesson as SpanishA2Lesson)
+        : SpanishA1Course.dialogue(widget.lesson);
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Text(_ar ? 'محادثة تستخدم كلمات الدرس' :
           'Conversación con las palabras de hoy',
@@ -578,7 +598,9 @@ class _AcademySpanishA1LessonScreenState
   }
 
   Widget _listening() {
-    final episode = SpanishA1Course.podcast(widget.lesson);
+    final episode = widget.level == 'A2'
+        ? SpanishA2Course.podcast(widget.lesson as SpanishA2Lesson)
+        : SpanishA1Course.podcast(widget.lesson);
     final nouns = SpanishA1Course.wordsOf(widget.lesson, SpanishWordKind.noun);
     final answers = <String>[nouns[0].ar, nouns[3].ar, nouns[6].ar];
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -637,7 +659,7 @@ class _AcademySpanishA1LessonScreenState
           ? (_ar ? 'الدرس محفوظ' : 'Lección guardada')
           : (_ar ? 'إنهاء الدرس وحفظ التقدم' : 'Terminar y guardar'),
           _saving || _complete || _passed.length != 7 ? null : _finish,
-          key: const ValueKey('spanish-a1-finish'),
+          key: ValueKey('spanish-${widget.level.toLowerCase()}-finish'),
           icon: Icons.check_circle_rounded),
     ]);
 
@@ -645,7 +667,7 @@ class _AcademySpanishA1LessonScreenState
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
       backgroundColor: _verde, foregroundColor: Colors.white,
-      title: Text('Español A1 · ${widget.lesson.unit}.${widget.lesson.number}'),
+      title: Text('Español ${widget.level} · ${widget.lesson.unit}.${widget.lesson.number}'),
       actions: [
         IconButton(
           tooltip: _ar ? 'عرض الأقسام' : 'Secciones',
