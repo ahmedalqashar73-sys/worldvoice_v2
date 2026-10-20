@@ -256,8 +256,33 @@ abstract final class AdvancedGrammarWorkshops {
       wrong:"Despite she had a scholarship, she hesitated.", correct:"Although she had a scholarship, she hesitated.",
       question:"Which sentence uses contrast correctly?", options:<String>["Despite the campus was distant, she enrolled.","Although the campus was distant, she enrolled.","However the campus was distant she enrolled."],answer:1,
     ),
+    'A2:2:1': AdvancedGrammarWorkshop(
+      explanationEnglish: 'Too comes before an adjective to show a problem: too wide. Enough follows an adjective (small enough) but precedes a noun (enough space). Compare each form with an actual situation.',
+      examples: <AdvancedGrammarExample>[
+        AdvancedGrammarExample('The old desk is too wide to fit.', 'المكتب القديم أعرض من المساحة المتاحة.'),
+        AdvancedGrammarExample('The shelf is small enough for this wall.', 'الرف صغير بما يكفي لهذا الجدار.'),
+        AdvancedGrammarExample('Amal has enough space for a desk.', 'لدى أمل مساحة كافية لمكتب.'),
+      ],
+      wrong: 'The desk is enough small for the corner.',
+      correct: 'The desk is small enough for the corner.',
+      question: 'Which sentence uses enough correctly?',
+      options: <String>[
+        'This room is enough big for the table.',
+        'The lamp is bright enough to read by.',
+        'We have space enough for the shelf.',
+      ],
+      answer: 1,
+    ),
   };
-  static AdvancedGrammarWorkshop? forLesson(String level, int number) =>
-      _workshops['$level:$number'];
+  /// Existing Unit 1 IDs remain unchanged for account progress and tests.
+  /// Other units use their own distinct lesson keys to prevent showing
+  /// Unit 1 grammar in Unit 2 lessons with the same number.
+  static AdvancedGrammarWorkshop? forLesson(
+      String level, int number, {int unitNumber = 1}) {
+    final key = unitNumber == 1
+        ? '$level:$number'
+        : '$level:$unitNumber:$number';
+    return _workshops[key];
+  }
   static int get count => _workshops.length;
 }
