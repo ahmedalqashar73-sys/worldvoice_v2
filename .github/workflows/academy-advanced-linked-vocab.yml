@@ -1,4 +1,4 @@
-name: Academy A2 B1 B2 linked vocabulary checks
+name: Academy A2-C2 linked vocabulary checks
 on:
   pull_request:
     branches: [feature/scalable-progress-foundation]
