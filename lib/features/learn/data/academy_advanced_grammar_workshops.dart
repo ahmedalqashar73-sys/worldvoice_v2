@@ -214,6 +214,30 @@ abstract final class AdvancedGrammarWorkshops {
       wrong: "If the puppy were afraid, I will wait.", correct: "If the puppy were afraid, I would wait.",
       question: "Which sentence shows an imagined situation correctly?", options: <String>["If I would see a frightened puppy, I ask a worker.", "If the puppy were afraid, I would speak softly.", "If the puppy is afraid yesterday, I waited."], answer: 1,
     ),
+    'B1:7': AdvancedGrammarWorkshop(
+      explanationEnglish:"Use decide and plan with to + base verb. Use enjoy with -ing and suggest with -ing when recommending activities.",
+      examples:<AdvancedGrammarExample>[AdvancedGrammarExample("Farah planned to open a small cart.","خططت فرح لافتتاح عربة صغيرة."),AdvancedGrammarExample("She enjoyed interviewing customers.","استمتعت بمقابلة الزبائن."),AdvancedGrammarExample("Her mentor suggested testing the menu first.","اقترح المرشد تجربة القائمة أولًا.")],
+      wrong:"She decided selling healthy food.", correct:"She decided to sell healthy food.",
+      question:"Which sentence uses the verb pattern correctly?", options:<String>["She enjoys to meet customers.","She decided to test the menu.","She planned opening a shop."],answer:1,
+    ),
+    'B1:8': AdvancedGrammarWorkshop(
+      explanationEnglish:"Must and have to express obligation, while should expresses advice. Mustn't indicates prohibition; don't have to means there is no obligation.",
+      examples:<AdvancedGrammarExample>[AdvancedGrammarExample("Runners must follow the marked course.","يجب على العدائين اتباع المسار المحدد."),AdvancedGrammarExample("Participants should bring their own water.","يُنصح المشاركون بإحضار مياههم."),AdvancedGrammarExample("Visitors do not have to run.","الزوار ليسوا ملزمين بالجري.")],
+      wrong:"You must to wear your bib number.", correct:"You must wear your bib number.",
+      question:"Choose the correct sentence about race rules.", options:<String>["Runners must to follow the signs.","Participants should to bring water.","Volunteers have to arrive early."],answer:2,
+    ),
+    'B1:9': AdvancedGrammarWorkshop(
+      explanationEnglish:"A defining relative clause identifies a person or thing. Use who for people and which or that for things.",
+      examples:<AdvancedGrammarExample>[AdvancedGrammarExample("The neighbor who helped was kind.","كان الجار الذي ساعد لطيفًا."),AdvancedGrammarExample("The plants that need shade grow here.","النباتات التي تحتاج ظلًا تنمو هنا."),AdvancedGrammarExample("The beds which face south get more sun.","تتلقى الأحواض المواجهة للجنوب ضوءًا أكثر.")],
+      wrong:"The gardener which helped us was experienced.", correct:"The gardener who helped us was experienced.",
+      question:"Choose the correct relative clause.", options:<String>["The resident which lives here watered the plants.","The gardener who works here knows the soil.","The flowers who need water are near the gate."],answer:1,
+    ),
+    'B1:10': AdvancedGrammarWorkshop(
+      explanationEnglish:"Although precedes a full clause, despite precedes a noun or -ing phrase, and however introduces a contrasting point in another clause or sentence.",
+      examples:<AdvancedGrammarExample>[AdvancedGrammarExample("Although she was unsure, she applied.","رغم أنها كانت مترددة، قدمت طلبها."),AdvancedGrammarExample("Despite the distance, she accepted the offer.","رغم المسافة، قبلت العرض."),AdvancedGrammarExample("The fees were high; however, the course was valuable.","كانت الرسوم مرتفعة، ومع ذلك كان الكورس مفيدًا.")],
+      wrong:"Despite she had a scholarship, she hesitated.", correct:"Although she had a scholarship, she hesitated.",
+      question:"Which sentence uses contrast correctly?", options:<String>["Despite the campus was distant, she enrolled.","Although the campus was distant, she enrolled.","However the campus was distant she enrolled."],answer:1,
+    ),
   };
   static AdvancedGrammarWorkshop? forLesson(String level, int number) =>
       _workshops['$level:$number'];

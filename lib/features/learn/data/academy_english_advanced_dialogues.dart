@@ -219,6 +219,26 @@ abstract final class EnglishAdvancedDialogues {
       tip: "Practise hypothetical If ... were ... I would ... sentences, with natural linking and stress on would.", tipArabic: "تدرّب على الشرط الافتراضي If ... were ... I would مع ربط الكلمات وتشديد مناسب.",
       pronunciation: <String>["volunteer /ˌvɑːlənˈtɪr/", "shelter /ˈʃɛltər/", "veterinary /ˈvɛtərənɛri/"],
     ),
+    'b1.1.7': EnglishAdvancedDialogue(
+      lines:<String>["Mentor: What are you planning to sell?","Farah: I want to test a small breakfast menu.","Mentor: Have you considered speaking to customers?","Farah: Yes, and I enjoyed doing the survey.","Mentor: Plan to expand only after the trial works."],
+      tip:"Practise decide to and enjoy -ing as natural chunks; stress the verb.",tipArabic:"تدرّب على decide to مع الفعل وenjoy مع ing، وكرر الجمل بإيقاع إنجليزي طبيعي.",
+      pronunciation:<String>["entrepreneur /ˌɑːntrəprəˈnɝː/","supplier /səˈplaɪər/","profit /ˈprɑːfɪt/"],
+    ),
+    'b1.1.8': EnglishAdvancedDialogue(
+      lines:<String>["Runner: Must I wear my number throughout the race?","Omar: Yes, it must stay visible.","Runner: Should I bring my own drinking water?","Omar: You should. There are also two water stations.","Runner: Where can I find the first-aid team?"],
+      tip:"Give clear instructions with emphasis on must and should.",tipArabic:"استخدم نبرة واضحة للفرق بين must للإلزام وshould للنصيحة.",
+      pronunciation:<String>["participant /pɑːrˈtɪsəpənt/","marshal /ˈmɑːrʃəl/","hydration /haɪˈdreɪʃən/"],
+    ),
+    'b1.1.9': EnglishAdvancedDialogue(
+      lines:<String>["Neighbor: Is this the area that will become the vegetable garden?","Leila: Yes, and the section which faces west will have flowers.","Neighbor: Who will look after the raised beds?","Leila: Residents who sign up for the maintenance rota.","Neighbor: That sounds fair. I can help on Saturdays."],
+      tip:"Link relative clauses smoothly and distinguish who and which.",tipArabic:"اربط جمل الصلة دون توقف غير طبيعي؛ who للأشخاص وwhich للأشياء.",
+      pronunciation:<String>["rotation /roʊˈteɪʃən/","irrigation /ˌɪrəˈɡeɪʃən/","harvest /ˈhɑːrvɪst/"],
+    ),
+    'b1.1.10': EnglishAdvancedDialogue(
+      lines:<String>["Adviser: Which university are you considering?","Yara: Although the first offers a scholarship, the second has more placements.","Adviser: Have you compared accommodation costs?","Yara: Yes. Despite the distance, the course suits my ambitions.","Adviser: Then choose the programme that supports your goals."],
+      tip:"Stress the central contrasts in although, despite and however.",tipArabic:"شدّد على الكلمات التي توضّح المقارنة أثناء استعمال although وdespite وhowever.",
+      pronunciation:<String>["scholarship /ˈskɑːlərʃɪp/","accommodation /əˌkɑːməˈdeɪʃən/","ambition /æmˈbɪʃən/"],
+    ),
   };
 
   static EnglishAdvancedDialogue forLesson(EnglishAdvancedLesson lesson) {
