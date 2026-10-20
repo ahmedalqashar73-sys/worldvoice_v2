@@ -261,6 +261,46 @@ abstract final class SpanishA2Course {
       story:<String>["Clara participó en una reunión vecinal para hablar de un nuevo parque. Algunas personas querían más árboles y otras preferían una zona para practicar deporte.","Clara escuchó todas las opiniones y explicó que ambas ideas podían ser útiles. Aunque no todos estaban de acuerdo, la conversación fue respetuosa.","Un vecino propuso dividir el espacio en dos partes y preparar un presupuesto antes de tomar la decisión definitiva. La mayoría consideró razonable la propuesta.","Al terminar, los participantes acordaron organizar otra reunión. Comprendieron que resolver un problema común requiere escuchar, explicar y buscar puntos de acuerdo."]),
   ];
 
+  /// Lesson-specific wrong examples, so grammar choices assess this
+  /// lesson's rule instead of unrelated beginner-language mistakes.
+  static const _grammarMistakes = <List<String>>[
+    <String>["Yo has visitado Madrid.", "Ella hemos llegado temprano."],
+    <String>["Ayer yo compró un billete.", "Ana visitamos el museo ayer."],
+    <String>["Ayer yo comió arroz.", "Ellos viví en Sevilla."],
+    <String>["De niña yo jugabas.", "Mi abuelo caminábamos."],
+    <String>["Antes nosotros vivía aquí.", "Ella comíamos a las ocho."],
+    <String>["Hacía frío cuando salía ayer de repente.", "Mientras caminaba, llovió siempre cada día."],
+    <String>["Ayer yo fue al museo.", "Nosotros fui a Granada."],
+    <String>["Ayer yo tuvo una reunión.", "Ella hice la reserva."],
+    <String>["Vivo aquí desde hace 2022.", "Llegué desde tres meses."],
+    <String>["Ya no he terminado todavía ayer.", "Todavía no ya he comprado los billetes."],
+    <String>["Mañana yo vamos a cocinar.", "Ella voy a descansar."],
+    <String>["El próximo año yo viajará.", "Nosotros estudiarán español."],
+    <String>["Me gustaría reservaré una mesa.", "Yo gustaría participar."],
+    <String>["Tengo que estudiaré más.", "Ella tienen que descansar."],
+    <String>["Hay que bebemos agua.", "Hay que comiendo verduras."],
+    <String>["Estoy preparar la cena.", "Ellos está jugando."],
+    <String>["Me ha levantado temprano.", "Ella se hemos vestido."],
+    <String>["Ana es más alta como Luis.", "Mi casa es tan grande que la tuya."],
+    <String>["Esta es el más bonito lugar.", "Es la mejor restaurante."],
+    <String>["No tengo ningún preguntas.", "Tengo alguno libros."],
+    <String>["Abres la puerta, por favor.", "Escuchando con atención ahora."],
+    <String>["No habla tan rápido, por favor.", "No salgas sin abrigos ayer."],
+    <String>["Las entradas, lo tengo.", "El libro, la compré."],
+    <String>["A Ana les envié un correo.", "A mis amigos le escribí."],
+    <String>["Este regalo es por mi madre.", "Gracias para tu ayuda."],
+    <String>["Como estaba cansado porque, no salí.", "No había billetes por eso porque esperamos."],
+    <String>["Cuando llega mañana, avísame.", "Cuando lloviendo, uso paraguas."],
+    <String>["La persona donde llamó es Ana.", "El libro quien compré está aquí."],
+    <String>["Si tendré tiempo, iré.", "Si lloverá, no saldremos."],
+    <String>["Aunque pero llovía, salimos.", "Sin embargo además sin embargo fuimos."],
+  ];
+
+  static List<String> grammarOptions(SpanishA2Lesson lesson) {
+    final wrong = _grammarMistakes[(lesson.unit - 1) * 10 + lesson.number - 1];
+    return <String>[wrong[0], lesson.grammarExamples.first, wrong[1]];
+  }
+
   static SpanishA2Lesson find(int unit, int number) =>
       lessons.firstWhere((x) => x.unit == unit && x.number == number);
 
