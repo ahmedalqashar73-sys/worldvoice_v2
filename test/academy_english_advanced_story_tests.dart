@@ -162,7 +162,7 @@ void main() {
       expect(lesson.vocabulary, hasLength(30));
       expect(lesson.storyWords, hasLength(12));
       expect(lesson.extraWords, hasLength(18));
-      expect(lesson.paragraphs.every((p) => p.trim().split(RegExp(r'\\s+')).length >= 20), isTrue);
+      expect(lesson.paragraphs.every((p) => p.trim().split(RegExp(r'\s+')).length >= 20), isTrue);
       final text = lesson.paragraphs.join(' ').toLowerCase();
       for (final word in lesson.storyWords) {
         expect(text.contains(word.term.toLowerCase()), isTrue, reason: '${lesson.id}: ${word.term}');
@@ -171,7 +171,7 @@ void main() {
         expect(previousWords.contains(word.term.toLowerCase()), isFalse, reason: 'Repeated: ${word.term}');
         expect(storyWords.add(word.term.toLowerCase()), isTrue, reason: 'Repeated new: ${word.term}');
       }
-      expect(lesson.listening.trim().split(RegExp(r'\\s+')).length, greaterThanOrEqualTo(65));
+      expect(lesson.listening.trim().split(RegExp(r'\s+')).length, greaterThanOrEqualTo(65));
       expect(lesson.spellingChallenge, hasLength(3));
       final workshop = AdvancedGrammarWorkshops.forLesson('B1', n);
       expect(workshop, isNotNull);
