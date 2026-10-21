@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
+import '../vip/vip_entitlement.dart';
+
 /// During development show only Google's demo banner on the home screen for
 /// free users. Release builds intentionally show nothing until the real
 /// AdMob application and banner unit IDs, consent and account approvals
@@ -23,7 +25,7 @@ class FreeHomeBanner extends StatelessWidget {
     return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
       stream: FirebaseFirestore.instance.collection('users').doc(uid).snapshots(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData || snapshot.data?.data()?['isVip'] == true) {
+        if (!snapshot.hasData || VipEntitlement.isActive(snapshot.data?.data())) {
           return const SizedBox.shrink();
         }
         return const _DemoBanner();
