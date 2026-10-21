@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../../../core/vip/vip_entitlement.dart';
+
 class RoomQuotaStatus {
   const RoomQuotaStatus({
     required this.allowed,
@@ -30,6 +32,7 @@ class RoomQuotaService {
 
   DateTime? _sessionStartedAt;
   bool _sessionIsHost = false;
+  bool _sessionStartedAsVip = false;
   int _sessionRoomLevel = 1;
 
   String get _dayKey {
@@ -68,7 +71,7 @@ class RoomQuotaService {
 
     final profile =
         await _db.collection('users').doc(user.uid).get();
-    final isVip = profile.data()?['isVip'] == true;
+    final isVip = VipEntitlement.isActive(profile.data());
 
     if (isVip) {
       return const RoomQuotaStatus(
@@ -87,10 +90,10 @@ class RoomQuotaService {
     final adsWatched = (data['adsWatched'] as num?)?.toInt() ?? 0;
     final adBonus = (data['adBonusSeconds'] as num?)?.toInt() ?? 0;
 
-    // Free daily stage allowance: host 4h, guest/speaker 3h.
+    // Free daily stage allowance: host 4h, guest/speaker 2h.
     // Each room/user level above 1 adds 15 minutes. VIP remains unlimited.
     final levelBonus = (roomLevel - 1).clamp(0, 999) * 15 * 60;
-    final base = (asHost ? 4 * 60 * 60 : 3 * 60 * 60) + levelBonus;
+    final base = (asHost ? 4 * 60 * 60 : 2 * 60 * 60) + levelBonus;
     final limit = base + (asHost ? 0 : adBonus.clamp(0, 3 * 60 * 60));
 
     return RoomQuotaStatus(
@@ -114,6 +117,7 @@ class RoomQuotaService {
     if (status.allowed) {
       _sessionStartedAt = DateTime.now();
       _sessionIsHost = asHost;
+      _sessionStartedAsVip = status.isUnlimited;
       _sessionRoomLevel = roomLevel;
     }
 
@@ -149,8 +153,11 @@ class RoomQuotaService {
 
     final elapsed = DateTime.now().difference(startedAt).inSeconds;
     _sessionStartedAt = null;
+    final wasVip = _sessionStartedAsVip;
+    _sessionStartedAsVip = false;
 
-    if (elapsed <= 0) return;
+    // VIP usage must not consume the free allowance after a plan expires.
+    if (elapsed <= 0 || wasVip) return;
 
     await ref.set(
       {
