@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+import '../core/ads/academy_lesson_ads.dart';
 import '../core/localization/locale_controller.dart';
 import '../core/localization/supported_language.dart';
 import '../core/theme/app_theme.dart';
@@ -140,7 +141,12 @@ class _StartupGate extends StatelessWidget {
 
             final data = profileSnapshot.data!.data();
             if (AuthService.hasCompletedProfileData(data)) {
-              return HomeScreen(localeController: localeController);
+              return _AcademyHomeLaunchGate(
+                key: ValueKey('academy-app-launch-' + user.uid),
+                uid: user.uid,
+                isVip: data?['isVip'] == true,
+                localeController: localeController,
+              );
             }
             // Do not create a duplicate profile from a missing local cache.
             // Check the server for legacy profiles with this verified email.
@@ -154,6 +160,50 @@ class _StartupGate extends StatelessWidget {
       },
     );
   }
+}
+
+
+/// Count only real, authenticated app launches after a saved profile loaded.
+/// Keep the startup loading screen visible while a third-launch AppOpenAd
+/// loads/shows, never display it unexpectedly over interactive home content.
+class _AcademyHomeLaunchGate extends StatefulWidget {
+  const _AcademyHomeLaunchGate({
+    required this.uid,
+    required this.isVip,
+    required this.localeController,
+    super.key,
+  });
+
+  final String uid;
+  final bool isVip;
+  final LocaleController localeController;
+
+  @override
+  State<_AcademyHomeLaunchGate> createState() => _AcademyHomeLaunchGateState();
+}
+
+class _AcademyHomeLaunchGateState extends State<_AcademyHomeLaunchGate> {
+  late final Future<void> _startupAd;
+
+  @override
+  void initState() {
+    super.initState();
+    _startupAd = AcademyAppLaunchAdGate.beforeHome(
+      uid: widget.uid,
+      isVip: widget.isVip,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => FutureBuilder<void>(
+    future: _startupAd,
+    builder: (context, snapshot) {
+      if (snapshot.connectionState != ConnectionState.done) {
+        return const _StartupLoading();
+      }
+      return HomeScreen(localeController: widget.localeController);
+    },
+  );
 }
 
 
