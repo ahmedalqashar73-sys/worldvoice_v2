@@ -237,7 +237,7 @@ class AcademySpanishA1LessonScreen extends StatefulWidget {
 }
 
 class _AcademySpanishA1LessonScreenState
-    extends State<AcademySpanishA1LessonScreen> {
+    extends State<AcademySpanishA1LessonScreen> with WidgetsBindingObserver {
   final FlutterTts _tts = FlutterTts();
   Future<void> _latestStageSave = Future<void>.value();
   int _speechRequest = 0;
@@ -288,7 +288,17 @@ class _AcademySpanishA1LessonScreenState
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _load();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Do not continue a long classroom reading aloud after the student
+    // backgrounds the app or locks the phone.
+    if (state != AppLifecycleState.resumed && _isSpeaking) {
+      unawaited(_stopSpeech());
+    }
   }
 
   Future<void> _load() async {
@@ -310,6 +320,7 @@ class _AcademySpanishA1LessonScreenState
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _speechRequest++;
     _tts.stop();
     _typedSpanishWord.dispose();
@@ -357,15 +368,21 @@ class _AcademySpanishA1LessonScreenState
     }
   }
 
-  void _choose(int next) => setState(() {
-    if (next <= _highestUnlocked) {
+  void _choose(int next) {
+    if (next > _highestUnlocked || next < 0) return;
+    if (next != _stage && _isSpeaking) {
+      unawaited(_stopSpeech());
+    }
+    setState(() {
       _stage = next;
       _choice = null;
       _checked = false;
-    }
-  });
+    });
+  }
 
   void _pass() {
+    // A story or podcast must never keep speaking over the next exercise.
+    if (_isSpeaking) unawaited(_stopSpeech());
     setState(() {
       _passed.add(_stage);
       final next = (_stage + 1).clamp(0, 7);
@@ -388,6 +405,7 @@ class _AcademySpanishA1LessonScreenState
 
   Future<void> _finish() async {
     if (_saving || _passed.length < 7) return;
+    if (_isSpeaking) unawaited(_stopSpeech());
     setState(() => _saving = true);
     try {
       await SpanishA1Progress.complete(
@@ -1073,6 +1091,12 @@ class _AcademySpanishA1LessonScreenState
       backgroundColor: _verde, foregroundColor: Colors.white,
       title: Text('Español ${widget.level} · ${widget.lesson.unit}.${widget.lesson.number}'),
       actions: [
+        if (_isSpeaking)
+          IconButton(
+            key: const ValueKey('spanish-stop-audio-global'),
+            tooltip: _ar ? 'إيقاف النطق الإسباني' : 'Detener audio',
+            onPressed: _stopSpeech,
+            icon: const Icon(Icons.stop_circle_outlined)),
         IconButton(
           tooltip: _ar ? 'عرض الأقسام' : 'Secciones',
           onPressed: () => showModalBottomSheet<void>(
