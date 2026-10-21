@@ -24,6 +24,7 @@ import {validateQuizDraft, quizWinners} from "./quiz_policy.js";
 import {roomTaskSpec, advanceRoomLevel, roomLevelFromXp} from "./room_task_policy.js";
 import {privateWalletRef, requirePrivateWallet} from "./wallet_store.js";
 import {approvedWorldVoiceGift} from "./gift_catalog.js";
+import {requireRoomTeacherVip} from "./vip_feature_policy.js";
 
 const { RtcRole, RtcTokenBuilder } = agoraToken;
 
@@ -1159,6 +1160,10 @@ app.post("/teacher-ai", async (req, res, next) => {
       });
     }
 
+    // The external Teacher AI provider is a room VIP benefit.
+    // Verify on the server before any model call or cached response.
+    if (context === "room") await requireRoomTeacherVip(db, user.uid);
+
     const existingNote = await noteRef.get();
     if (existingNote.exists) {
       return res.json({ok: true, cached: true});
@@ -1305,6 +1310,10 @@ app.post("/teacher-ai/ask", async (req, res, next) => {
           "User is not in this Live." : "User is not in this room.",
       });
     }
+
+    // The external Teacher AI provider is a room VIP benefit.
+    // Verify on the server before any model call or cached response.
+    if (context === "room") await requireRoomTeacherVip(db, user.uid);
 
     const roomLanguageCode =
       requestedRoomLanguage ||
