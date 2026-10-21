@@ -17,7 +17,7 @@ abstract final class SpanishLessonStageProgress {
     required String lessonId,
   }) async {
     final prefs = await SharedPreferences.getInstance();
-    return (prefs.getInt(_key(uid, level, lessonId)) ?? 0).clamp(0, 7);
+    return (prefs.getInt(_key(uid, level, lessonId)) ?? 0).clamp(0, 7).toInt();
   }
 
   static Future<void> save(
