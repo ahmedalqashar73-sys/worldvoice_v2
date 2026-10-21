@@ -1,0 +1,23 @@
+name: Deployed Teacher AI VIP authorization
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/src/server.js'
+      - 'backend/src/vip_feature_policy.js'
+      - 'backend/test/vip_feature_policy.test.js'
+      - '.github/workflows/teacher-ai-vip-backend-rollout.yml'
+jobs:
+  vip_backend_security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Parse live backend syntax
+        run: node --check backend/src/server.js
+      - name: Enforce VIP room AI server-side
+        working-directory: backend
+        run: node --test test/vip_feature_policy.test.js
