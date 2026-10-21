@@ -33,7 +33,6 @@ class VipMembershipScreen extends StatefulWidget {
 
 class _VipMembershipScreenState extends State<VipMembershipScreen> {
   static const _green = Color(0xFF145A43);
-  static const _gold = Color(0xFFF0CB79);
 
   late final Future<ProductDetails?> _monthlyProduct;
 
