@@ -26,6 +26,11 @@ void main() {
         expect(ruleTitles.add(lesson.grammar), isTrue);
         expect(ids.add(lesson.id), isTrue);
         expect(lesson.grammarExamples, hasLength(6));
+        final guidedExamples = SpanishA2Course.grammarExamplesFor(lesson);
+        expect(guidedExamples, hasLength(8), reason: lesson.id);
+        expect(guidedExamples.take(6), orderedEquals(lesson.grammarExamples));
+        expect(guidedExamples.toSet(), hasLength(8), reason: lesson.id);
+        expect(guidedExamples.every((x) => x.trim().isNotEmpty), isTrue);
         expect(lesson.grammarExamples.every((x) => x.trim().isNotEmpty), isTrue);
         final distractors = SpanishA2Course.grammarOptions(lesson);
         expect(distractors, hasLength(3));
