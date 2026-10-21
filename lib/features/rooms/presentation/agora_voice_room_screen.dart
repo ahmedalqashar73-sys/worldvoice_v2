@@ -14,6 +14,7 @@ import '../../chat/presentation/chat_screen.dart';
 import '../../profile/presentation/public_profile_screen.dart';
 import '../../profile/services/profile_social_service.dart';
 import '../../../core/localization/locale_controller.dart';
+import '../../../core/vip/vip_entitlement.dart';
 import '../data/room_caption.dart';
 import '../data/room_feature_models.dart';
 import '../data/room_background_catalog.dart';
@@ -1128,6 +1129,32 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     }
 
     if (_teacherAiSheetOpen || _leaving) return;
+
+    // Show a clear membership message instead of opening a panel that the
+    // server will reject. The backend remains the source of truth.
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+    try {
+      final membership = await FirebaseFirestore.instance
+          .collection('users').doc(uid).get();
+      if (!mounted || _leaving) return;
+      if (!VipEntitlement.isActive(membership.data())) {
+        final ar = Localizations.localeOf(context).languageCode == 'ar';
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(ar
+              ? 'Teacher AI داخل الغرفة متاح لأعضاء VIP فقط.'
+              : 'Room Teacher AI is available to active VIP members only.'),
+        ));
+        return;
+      }
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Could not verify VIP membership. Please retry.'),
+      ));
+      return;
+    }
+
     final canSpeak = _controller.joined &&
         _me?.isOnStage == true &&
         !_controller.muted &&
