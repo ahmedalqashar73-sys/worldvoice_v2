@@ -51,7 +51,9 @@ abstract final class AcademyLessonAdGate {
   }
 
   static Future<void> beforeLesson({required String? uid}) async {
-    if (!_supportedDevice || uid == null || uid.isEmpty) return;
+    // No delays for production learners until real AdMob identifiers,
+    // consent and publishing approvals are configured.
+    if (kReleaseMode || !_supportedDevice || uid == null || uid.isEmpty) return;
     try {
       // Never risk advertising to a VIP due to an unavailable Firestore read.
       // Skip on timeout/offline; the lesson must remain accessible.
@@ -65,7 +67,6 @@ abstract final class AcademyLessonAdGate {
       // Existing Android/iOS manifest uses a Google DEMO app ID.
       // A real AdMob app ID, production unit IDs and consent are prerequisites
       // to enabling ads in public release builds.
-      if (kReleaseMode) return;
       final unitId = _testAdUnitId;
       if (unitId == null) return;
       await _showGoogleTestInterstitial(unitId);
