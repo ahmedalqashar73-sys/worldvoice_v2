@@ -86,6 +86,21 @@ void main() {
     expect(entries.where((e) => e == AcademyDailyAccess.limitReached).length, 4);
   });
 
+  test('Every new free lesson can request an interstitial without waiting a minute',
+      () async {
+    const student = 'rapid-learner';
+    final now = DateTime(2026, 10, 21, 15);
+    for (var index = 1; index <= 3; index++) {
+      final result = await AcademyDailyLessonQuota.admit(
+        student, 'es.A1.lesson$index', now: now);
+      expect(result, AcademyDailyAccess.newLesson);
+      // No one-minute cooldown on the deliberate lesson navigation boundary.
+      expect(AcademyDemoAds.mayRequestLessonInterstitial, isTrue);
+    }
+    expect(await AcademyDailyLessonQuota.admit(student, 'es.A1.lesson4',
+        now: now), AcademyDailyAccess.limitReached);
+  });
+
   test('One app-open opportunity per three cold starts, separate from lessons',
       () async {
     const student = 'active-student';
