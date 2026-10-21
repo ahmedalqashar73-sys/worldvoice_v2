@@ -37,13 +37,17 @@ jobs:
           cache-dependency-path: backend/package.json
       - run: npm install
       - run: node --check src/server.js
+      - run: node --check src/vip_subscription_routes.js
+      - run: node --check src/vip_subscription_policy.js
+      - run: node --check scripts/seed-vip-badges.mjs
+      - run: node --check scripts/seed-vip-subscriptions.mjs
       - run: node --check src/chat_routes.js
       - run: node --check src/story_routes.js
       - run: node --check src/social_routes.js
       - run: node --check src/call_routes.js
       - run: node --check scripts/seed-classic-gifts.mjs
       - run: node --check scripts/grant-beta-access.mjs
-      - run: node --test test/classic_gifts.test.js test/admin_cosmetic_access.test.js test/economy_policy.test.js test/vip_feature_policy.test.js
+      - run: node --test test/classic_gifts.test.js test/admin_cosmetic_access.test.js test/economy_policy.test.js test/vip_feature_policy.test.js test/vip_subscription_policy.test.js
 
       - name: Diagnose published API and Agora worker (public checks only)
         continue-on-error: true
