@@ -296,6 +296,51 @@ abstract final class SpanishA2Course {
     <String>["Aunque pero llovía, salimos.", "Sin embargo además sin embargo fuimos."],
   ];
 
+
+  /// Two additional lesson-specific, spoken grammar examples for all 30
+  /// Spanish A2 lessons. Preserve the six original examples and their
+  /// lesson-level assessments.
+  static const _extraGrammarExamples = <List<String>>[
+    <String>["Esta semana hemos visitado Sevilla.", "¿Alguna vez has viajado en tren?"],
+    <String>["Reservamos la habitación el lunes.", "El guía explicó la ruta ayer."],
+    <String>["Ayer aprendí una expresión nueva.", "Los alumnos escribieron una postal."],
+    <String>["De niño jugaba en el parque.", "Mi madre cocinaba cada sábado."],
+    <String>["Antes vivíamos en un pueblo.", "El abuelo leía todos los días."],
+    <String>["Mientras caminaba, empezó a llover.", "Hacía frío cuando salimos."],
+    <String>["Mi amiga fue al mercado.", "La excursión fue muy interesante."],
+    <String>["Tuvimos que cambiar la reserva.", "Ella hizo la compra antes de salir."],
+    <String>["Trabajo aquí desde enero.", "Esperamos desde hace media hora."],
+    <String>["Ya he enviado el mensaje.", "Todavía no hemos recibido respuesta."],
+    <String>["Esta noche voy a preparar arroz.", "El sábado vamos a visitar a Luis."],
+    <String>["Mañana estudiaré una hora.", "¿Cuándo visitarás a tu familia?"],
+    <String>["Nos gustaría aprender a cocinar.", "¿Te gustaría venir mañana?"],
+    <String>["Tengo que tomar el medicamento.", "Tenemos que ordenar la habitación."],
+    <String>["Hay que descansar después de trabajar.", "Para mejorar, hay que practicar."],
+    <String>["Estamos buscando las llaves.", "Mi hermana está estudiando."],
+    <String>["Me he duchado después del ejercicio.", "¿Te has vestido ya?"],
+    <String>["Esta calle es menos ruidosa que aquella.", "Mi dormitorio es tan cómodo como el tuyo."],
+    <String>["Este es el restaurante más tranquilo.", "Fue el mejor momento del viaje."],
+    <String>["No hay ninguna farmacia abierta.", "Tengo algunos libros para prestar."],
+    <String>["Escribe tu nombre aquí.", "Abre la ventana, por favor."],
+    <String>["No comas tan deprisa.", "No llegues tarde a la cita."],
+    <String>["Las encontré en la mochila.", "Lo compré para mi hermana."],
+    <String>["Les expliqué el problema.", "Le mandamos un correo al profesor."],
+    <String>["Trabajo por la mañana.", "He comprado el regalo para Elena."],
+    <String>["Como no tenía tiempo, llamé.", "Estaba enfermo; por eso me quedé en casa."],
+    <String>["Cuando vuelvo a casa, descanso.", "Cuando tengo tiempo, llamo a mi familia."],
+    <String>["La mujer que conocimos habla francés.", "Tengo una vecina que trabaja en el hospital."],
+    <String>["Si ahorras, podrás viajar.", "Si mañana llueve, nos quedaremos en casa."],
+    <String>["Aunque tenía sueño, siguió estudiando.", "Hicimos la compra; además, visitamos el mercado."],
+  ];
+
+  static List<String> grammarExamplesFor(SpanishA2Lesson lesson) {
+    final index=(lesson.unit-1)*10+lesson.number-1;
+    return List<String>.unmodifiable(<String>[
+      ...lesson.grammarExamples,
+      ..._extraGrammarExamples[index],
+    ]);
+  }
+
   static List<String> grammarOptions(SpanishA2Lesson lesson) {
     final wrong = _grammarMistakes[(lesson.unit - 1) * 10 + lesson.number - 1];
     return <String>[wrong[0], lesson.grammarExamples.first, wrong[1]];
