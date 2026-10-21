@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../../core/ads/academy_lesson_ads.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
@@ -668,6 +669,9 @@ class _AcademySectionListState extends State<_AcademySectionList> {
                           ? Icons.check_circle_rounded
                           : Icons.chevron_right_rounded),
                       onTap: () async {
+                        final uid = FirebaseAuth.instance.currentUser?.uid;
+                        await AcademyLessonAdGate.beforeLesson(uid: uid);
+                        if (!context.mounted) return;
                         await Navigator.of(context).push<void>(
                           MaterialPageRoute(builder: (_) => AcademyLessonScreen(
                             unit: unit, kind: widget.kind,
