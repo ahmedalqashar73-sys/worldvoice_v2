@@ -18,13 +18,13 @@ abstract final class AcademyDailyLessonQuota {
 
   static String dateToken(DateTime date) {
     final d = date.toLocal();
-    return d.year.toString().padLeft(4, '0') +
-        d.month.toString().padLeft(2, '0') +
-        d.day.toString().padLeft(2, '0');
+    return '${d.year.toString().padLeft(4, '0')}'
+        '${d.month.toString().padLeft(2, '0')}'
+        '${d.day.toString().padLeft(2, '0')}';
   }
 
   static String storageKey(String uid, DateTime at) =>
-      'worldvoice.academy.free.daily.v2.' + uid + '.' + dateToken(at);
+      'worldvoice.academy.free.daily.v2.$uid.${dateToken(at)}';
 
   static Future<List<String>> openedLessons(String uid, {DateTime? now}) async {
     if (uid.isEmpty) return const <String>[];
@@ -67,7 +67,7 @@ abstract final class AcademyDailyLessonQuota {
 abstract final class AcademyAppOpenFrequency {
   static const launchesPerAd = 3;
   static String storageKey(String uid) =>
-      'worldvoice.academy.free.app_open.v1.' + uid;
+      'worldvoice.academy.free.app_open.v1.$uid';
 
   static Future<bool> registerLaunch(String uid) async {
     if (uid.isEmpty) return false;
@@ -127,7 +127,7 @@ abstract final class AcademyDemoAds {
         },
         onAdFailedToLoad: (error) {
           if (!ready.isCompleted) ready.complete(null);
-          debugPrint('Academy interstitial unavailable: ' + error.toString());
+          debugPrint('Academy interstitial unavailable: $error');
         },
       ),
     );
@@ -156,7 +156,7 @@ abstract final class AcademyDemoAds {
       await ad.show();
       await ended.future.timeout(const Duration(seconds: 60));
     } catch (error) {
-      debugPrint('Academy interstitial skipped: ' + error.toString());
+      debugPrint('Academy interstitial skipped: $error');
       done(ad);
     }
   }
@@ -180,7 +180,7 @@ abstract final class AcademyDemoAds {
         },
         onAdFailedToLoad: (error) {
           if (!ready.isCompleted) ready.complete(null);
-          debugPrint('Academy app-open unavailable: ' + error.toString());
+          debugPrint('Academy app-open unavailable: $error');
         },
       ),
     );
@@ -208,7 +208,7 @@ abstract final class AcademyDemoAds {
       await ad.show();
       await ended.future.timeout(const Duration(seconds: 60));
     } catch (error) {
-      debugPrint('Academy app-open skipped: ' + error.toString());
+      debugPrint('Academy app-open skipped: $error');
       done(ad);
     }
   }
@@ -261,7 +261,7 @@ abstract final class AcademyLessonAdGate {
         await AcademyDemoAds.showLessonInterstitial();
       }
     } catch (error) {
-      debugPrint('Academy quota/ad skipped: ' + error.toString());
+      debugPrint('Academy quota/ad skipped: $error');
     }
     return true;
   }
@@ -279,7 +279,7 @@ abstract final class AcademyAppLaunchAdGate {
         await AcademyDemoAds.showStartupAppOpen();
       }
     } catch (error) {
-      debugPrint('Academy startup ad skipped: ' + error.toString());
+      debugPrint('Academy startup ad skipped: $error');
     }
   }
 }
