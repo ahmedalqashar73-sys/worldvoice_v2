@@ -1632,8 +1632,15 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
         throw Object.assign(new Error("Wallet under payment review."), {status: 423});
       }
       const owner = gifting ? snaps[8].data() || {} : payerSnap.data() || {};
+      const recipientProfile = gifting
+        ? snaps[7].data() || {} : payerProfileSnap.data() || {};
+      // Respect both stored expiry copies when extending gifted VIP,
+      // including permanent admin/test grants tracked on users/{uid}.
       const existingExpiry = item.type === "vip"
-        ? owner.vipExpiresAt?.toMillis?.()
+        ? Math.max(
+          owner.vipExpiresAt?.toMillis?.() || 0,
+          recipientProfile.vipExpiresAt?.toMillis?.() || 0,
+        )
         : ownedSnap.data()?.expiresAt?.toMillis?.();
       if (ownedSnap.exists && item.type !== "vip" &&
           ownedSnap.data()?.expiresAt == null &&
@@ -1679,6 +1686,14 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
       }, {merge: true});
       if (item.type === "vip") {
         tx.update(recipientWalletRef, {vipExpiresAt: expiresAt});
+        // Voice-room and profile entitlements read users/{uid}, not the
+        // private wallet. Keep the two server-authored records in sync.
+        tx.set(recipientRef, {
+          isVip: true,
+          vipExpiresAt: expiresAt,
+          vipSource: "coin_gift",
+          vipUpdatedAt: FieldValue.serverTimestamp(),
+        }, {merge: true});
       }
       if (item.type === "background") {
         // Temporary mirrored legacy read model; remove after all clients
