@@ -10,6 +10,7 @@ import '../../../core/localization/app_strings.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../../../core/localization/supported_language.dart';
 import '../../auth/services/auth_service.dart';
+import 'vip_membership_screen.dart';
 import '../../onboarding/presentation/language/language_selection_screen.dart';
 
 const String _settingsBackend =
@@ -93,6 +94,24 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 );
               },
+            ),
+          ),
+          Card(
+            child: ListTile(
+              key: const ValueKey('settings-vip-store'),
+              leading: const Icon(Icons.workspace_premium_rounded,
+                  color: Color(0xFFB38C31)),
+              title: Text(code == 'ar' ? 'متجر VIP والاشتراك'
+                  : 'VIP membership and store'),
+              subtitle: Text(code == 'ar'
+                  ? 'المميزات، حالة العضوية، والاشتراك الشهري'
+                  : 'Benefits, membership status and monthly subscription'),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const VipMembershipScreen(),
+                ),
+              ),
             ),
           ),
           if (uid != null)

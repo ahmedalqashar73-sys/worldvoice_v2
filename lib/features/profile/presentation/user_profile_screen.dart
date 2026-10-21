@@ -14,6 +14,7 @@ import 'profile_identity_strip.dart';
 import 'profile_setup_screen.dart';
 import 'profile_visitors_screen.dart';
 import 'settings_screen.dart';
+import 'vip_membership_screen.dart';
 import 'voice_bio_card.dart';
 
 class UserProfileScreen extends StatelessWidget {
@@ -47,6 +48,16 @@ class UserProfileScreen extends StatelessWidget {
                     : 'My profile',
           ),
           actions: [
+            IconButton(
+              key: const ValueKey('profile-vip-store'),
+              tooltip: code == 'ar' ? 'متجر VIP' : 'VIP membership',
+              icon: const Icon(Icons.workspace_premium_rounded),
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const VipMembershipScreen(),
+                ),
+              ),
+            ),
             IconButton(
               tooltip: AppStrings.of(code).profile('settings'),
               onPressed: () {
