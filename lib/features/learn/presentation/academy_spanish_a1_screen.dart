@@ -630,44 +630,189 @@ class _AcademySpanishA1LessonScreenState
     ]);
   }
 
+  /// Same three-stage English exercise: vocabulary, story comprehension,
+  /// and open-ended spelling/writing. Passing multiple-choice alone
+  /// cannot unlock the conversation section.
   Widget _quiz() {
-    final kinds = SpanishWordKind.values;
-    final kind = kinds[_wordIndex % kinds.length];
-    final selected = SpanishA1Course.wordsOf(widget.lesson, kind);
-    final word = selected[_wordIndex ~/ 4];
-    final answers = <String>[
+    final kinds=SpanishWordKind.values;
+    final kind=kinds[_wordIndex % kinds.length];
+    final selected=SpanishA1Course.wordsOf(widget.lesson,kind);
+    final word=selected[_wordIndex ~/ 4];
+    final choices=<String>[
       word.ar,
-      selected[(2 + _wordIndex) % selected.length].ar,
-      selected[(5 + _wordIndex) % selected.length].ar,
+      selected[(2+_wordIndex)%selected.length].ar,
+      selected[(5+_wordIndex)%selected.length].ar,
     ];
-    final correct = _wordIndex % 3;
-    final options = <String>[answers[1], answers[2]]
-      ..insert(correct, answers[0]);
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Text(_ar ? 'اختبار الكلمات · ${_wordIndex + 1}/8' :
-          'Repaso · ${_wordIndex + 1}/8',
-          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
-      _panel(Row(children: [
-        Expanded(child: Text(word.es,
-          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900))),
-        _audio(word.es),
+    final correct=_wordIndex%3;
+    final shuffled=<String>[choices[1],choices[2]]
+      ..insert(correct,choices[0]);
+    final paragraph=widget.lesson.story;
+    String opening(String text){
+      final end=text.indexOf('.');
+      return end<0?text.trim():text.substring(0,end+1).trim();
+    }
+    final readingAnswers=<String>[
+      opening(paragraph[0]),opening(paragraph[1]),opening(paragraph[2]),
+    ];
+    final spelling=SpanishA1Course.wordsOf(widget.lesson,SpanishWordKind.noun)
+        .take(3).toList(growable:false);
+    final minWords=switch(widget.level){
+      'C2'=>20,'C1'=>18,'B2'=>14,'B1'=>10,_=>7,
+    };
+    return Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
+      Text(_ar?'اختبارات مفردات وفهم القصة وكتابة بالإسبانية':
+          'Vocabulario, comprensión y escritura en español',
+        style:const TextStyle(fontSize:22,fontWeight:FontWeight.w900,
+          color:_verde)),
+      const SizedBox(height:12),
+      _panel(Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
+        Text(_ar?'1 · اختبار 8 كلمات من الدرس':
+            '1 · Repaso de ocho palabras',
+          style:const TextStyle(fontWeight:FontWeight.w900,fontSize:18)),
+        const SizedBox(height:8),
+        if(_vocabularyQuizPassed)
+          const Text('8 / 8  ✓',key:ValueKey('spanish-vocabulary-quiz-passed'))
+        else ...[
+          Text('${_wordIndex+1} / 8',style:const TextStyle(color:_verde)),
+          Row(children:[
+            Expanded(child:Text(word.es,textDirection:TextDirection.ltr,
+              style:const TextStyle(fontSize:20,fontWeight:FontWeight.w900))),
+            _audio(word.es),
+          ]),
+          Text(_ar?'ما المعنى الصحيح؟':'¿Qué significa?'),
+          for(var i=0;i<shuffled.length;i++)
+            _option(shuffled[i],i,'spanish-quiz-option'),
+          if(_checked) Text(_ar?'حاول مجددًا':'Inténtalo otra vez',
+              style:TextStyle(color:Theme.of(context).colorScheme.error)),
+          _primary(_ar?'تحقق من الإجابة':'Comprobar',
+            _choice==null?null:(){
+              if(_choice!=correct){setState(()=>_checked=true);}
+              else if(_wordIndex==7){
+                setState((){
+                  _vocabularyQuizPassed=true;
+                  _choice=null;
+                  _checked=false;
+                });
+              }else{
+                setState((){
+                  _wordIndex++;
+                  _choice=null;
+                  _checked=false;
+                });
+              }
+            },key:const ValueKey('spanish-quiz-check')),
+        ],
       ])),
-      Text(_ar ? 'ما المعنى الصحيح؟' : '¿Qué significa?'),
-      for (var i = 0; i < options.length; i++)
-        _option(options[i], i, 'spanish-quiz-option'),
-      if (_checked)
-        Text(_ar ? 'الإجابة غير صحيحة، حاول مجددًا.' :
-          'No es correcto. Inténtalo otra vez.'),
-      _primary(_ar ? 'تحقق من الإجابة' : 'Comprobar respuesta',
-        _choice == null ? null : () {
-          if (_choice != correct) {
-            setState(() => _checked = true);
-          } else if (_wordIndex == 7) {
-            _pass();
-          } else {
-            setState(() { _wordIndex++; _choice = null; _checked = false; });
-          }
-        }, key: const ValueKey('spanish-quiz-check')),
+      _panel(Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
+        Text(_ar?'2 · اختبار فهم القصة':'2 · Comprensión lectora',
+          style:const TextStyle(fontWeight:FontWeight.w900,fontSize:18)),
+        const SizedBox(height:8),
+        Text(_ar?'أي جملة تبدأ بها الفقرة الثانية من القصة؟':
+            '¿Con qué frase comienza el segundo párrafo de la historia?'),
+        const SizedBox(height:10),
+        for(var i=0;i<readingAnswers.length;i++)
+          Card(child:ListTile(
+            key:ValueKey('spanish-reading-option-$i'),
+            selected:_readingChoice==i,
+            enabled:!_readingPassed,
+            title:Text(readingAnswers[i],textDirection:TextDirection.ltr),
+            leading:Icon(_readingChoice==i?
+              Icons.radio_button_checked_rounded:
+              Icons.radio_button_unchecked_rounded,color:_verde),
+            onTap:()=>setState(()=>_readingChoice=i),
+          )),
+        if(_readingPassed) Text(_ar?'فهم القصة: صحيح ✓':'Comprensión correcta ✓',
+          key:const ValueKey('spanish-reading-passed'),
+          style:const TextStyle(color:_verde,fontWeight:FontWeight.bold)),
+        _primary(_ar?'تحقق من فهم القصة':'Comprobar comprensión',
+          _readingChoice==null||_readingPassed?null:(){
+            setState((){
+              _readingPassed=_readingChoice==1;
+              if(!_readingPassed) _writingFeedback=_ar?
+                'راجع الفقرة الثانية وحاول مرة أخرى.':
+                'Relee el segundo párrafo e inténtalo de nuevo.';
+              else _writingFeedback=null;
+            });
+          },key:const ValueKey('spanish-reading-check')),
+      ])),
+      _panel(Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
+        Text(_ar?'3 · اكتب ثلاث كلمات إسبانية':
+            '3 · Escribe tres palabras en español',
+          style:const TextStyle(fontWeight:FontWeight.w900,fontSize:18)),
+        const SizedBox(height:8),
+        Text(_spellingPassed?'3 / 3 ✓':'${_spellingStep+1} / 3',
+          key:const ValueKey('spanish-spelling-progress')),
+        if(!_spellingPassed) ...[
+          Text(_ar?'اكتب الكلمة الإسبانية التي تعني: ${spelling[_spellingStep].ar}':
+              'Escribe la palabra española para: ${spelling[_spellingStep].ar}'),
+          const SizedBox(height:9),
+          TextField(key:const ValueKey('spanish-write-word'),
+            controller:_typedSpanishWord,
+            textDirection:TextDirection.ltr,
+            autocorrect:false,
+            decoration:InputDecoration(border:const OutlineInputBorder(),
+              labelText:_ar?'الكلمة بالإسبانية':'Palabra en español')),
+          _primary(_ar?'تحقق من الكلمة':'Comprobar palabra',(){
+            String norm(String value)=>value.trim().toLowerCase()
+                .replaceAll(RegExp(r'\\s+'),' ');
+            if(norm(_typedSpanishWord.text)!=norm(spelling[_spellingStep].es)){
+              setState(()=>_writingFeedback=_ar?
+                  'راجع مفردات الدرس وتحقق من تهجئة الكلمة.':
+                  'Revisa el vocabulario y la ortografía.');
+              return;
+            }
+            setState((){
+              _spellingStep++;
+              _spellingPassed=_spellingStep==3;
+              _typedSpanishWord.clear();
+              _writingFeedback=_spellingPassed?(_ar?
+                  'أحسنت! كتبت الكلمات الثلاث بشكل صحيح.':
+                  '¡Muy bien! Tres palabras correctas.') : null;
+            });
+          },key:const ValueKey('spanish-check-word')),
+        ],
+        const SizedBox(height:15),
+        Text(_ar?'4 · اكتب جملة أو فقرة مستخدمًا مفردات الدرس':
+            '4 · Escribe una frase o un párrafo',
+          style:const TextStyle(fontWeight:FontWeight.w900,fontSize:18)),
+        const SizedBox(height:6),
+        Text(_ar?'اكتب $minWords كلمات إسبانية على الأقل، واستخدم كلمة '
+            'واحدة من مفردات هذا الدرس. هذا فحص ممارسة وليس تقييمًا '
+            'آليًا لصحة القواعد.':
+            'Escribe al menos $minWords palabras e incluye vocabulario '
+            'de la lección. Es práctica, no corrección gramatical automática.'),
+        const SizedBox(height:8),
+        TextField(key:const ValueKey('spanish-write-sentence'),
+          controller:_writtenSpanish,
+          textDirection:TextDirection.ltr,
+          minLines:3,maxLines:6,
+          onChanged:(_)=>setState(()=>_writingPassed=false),
+          decoration:InputDecoration(border:const OutlineInputBorder(),
+            hintText:_ar?'اكتب بالإسبانية...':'Escribe en español...')),
+        _primary(_ar?'راجع الكتابة':'Revisar escritura',(){
+          final text=_writtenSpanish.text.trim().toLowerCase();
+          final count=text.isEmpty?0:text.split(RegExp(r'\\s+')).length;
+          final contains=widget.lesson.words.any(
+            (w)=>text.contains(w.es.toLowerCase()));
+          setState((){
+            _writingPassed=count>=minWords&&contains;
+            _writingFeedback=_writingPassed?(_ar?
+              'تم التدريب. راجع دقة الجمل مع المعلم.':
+              'Práctica completada. Revisa la gramática con tu profesor.')
+              :(_ar?'أكمل عدد الكلمات المطلوب واستخدم مفردة من الدرس.':
+              'Escribe más palabras e incluye vocabulario del tema.');
+          });
+        },key:const ValueKey('spanish-check-sentence')),
+        if(_writingFeedback!=null)
+          Padding(padding:const EdgeInsets.only(top:9),
+            child:Text(_writingFeedback!,
+              style:TextStyle(color:_writingPassed?_verde:
+                Theme.of(context).colorScheme.onSurfaceVariant))),
+      ])),
+      _primary(_ar?'أكملت اختبارات الدرس':'He completado los ejercicios',
+        _vocabularyQuizPassed&&_readingPassed&&_spellingPassed&&_writingPassed
+            ? _pass:null,
+        key:const ValueKey('spanish-quiz-next')),
     ]);
   }
 
