@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../core/localization/locale_controller.dart';
 import '../../../core/media/cloudinary_image_service.dart';
+import '../../../core/vip/vip_entitlement.dart';
 import '../data/profile_language_catalog.dart';
 import '../data/profession_catalog.dart';
 import '../data/profile_identity_utils.dart';
@@ -105,9 +106,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       learningLanguages
         ..clear()
         ..addAll(learningCodes);
-      vipLearningEnabled = data['isVip'] == true ||
-          (data['vipTier']?.toString().isNotEmpty == true &&
-           data['vipTier']?.toString() != 'none');
+      vipLearningEnabled = VipEntitlement.isActive(data);
       professionKey = data['professionKey'] as String?;
       languageLevel =
           (data['languageLevel'] as String?)?.isNotEmpty == true
