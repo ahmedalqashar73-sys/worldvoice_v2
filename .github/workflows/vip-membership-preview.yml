@@ -1,0 +1,25 @@
+name: WorldVoice VIP membership preview
+on:
+  pull_request:
+    branches:
+      - feature/scalable-progress-foundation
+    paths:
+      - 'lib/features/profile/presentation/vip_membership_screen.dart'
+      - 'lib/features/profile/presentation/user_profile_screen.dart'
+      - 'lib/features/profile/presentation/settings_screen.dart'
+      - 'test/vip_membership_store_test.dart'
+      - '.github/workflows/vip-membership-preview.yml'
+jobs:
+  vip_preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Analyze VIP storefront and profile integration
+        run: flutter analyze --no-pub lib/features/profile/presentation/vip_membership_screen.dart lib/features/profile/presentation/user_profile_screen.dart lib/features/profile/presentation/settings_screen.dart test/vip_membership_store_test.dart
+      - name: Verify VIP previews and academy policy
+        run: flutter test --no-pub test/vip_membership_store_test.dart test/academy_lesson_ads_test.dart
