@@ -325,7 +325,7 @@ abstract final class SpanishA2Course {
     <String>["No comas tan deprisa.", "No llegues tarde a la cita."],
     <String>["Las encontré en la mochila.", "Lo compré para mi hermana."],
     <String>["Les expliqué el problema.", "Le mandamos un correo al profesor."],
-    <String>["Trabajo por la mañana.", "He comprado el regalo para Elena."],
+    <String>["Pasamos por la plaza ayer.", "He comprado el regalo para Elena."],
     <String>["Como no tenía tiempo, llamé.", "Estaba enfermo; por eso me quedé en casa."],
     <String>["Cuando vuelvo a casa, descanso.", "Cuando tengo tiempo, llamo a mi familia."],
     <String>["La mujer que conocimos habla francés.", "Tengo una vecina que trabaja en el hospital."],
