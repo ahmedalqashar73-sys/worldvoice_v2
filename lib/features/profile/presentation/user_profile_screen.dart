@@ -6,6 +6,7 @@ import '../../../core/localization/app_strings.dart';
 
 import '../../../core/localization/locale_controller.dart';
 import '../../../core/widgets/worldvoice_avatar_frame.dart';
+import '../../../core/vip/vip_entitlement.dart';
 import '../services/profile_social_service.dart';
 import '../data/profile_language_catalog.dart';
 import 'profile_connections_screen.dart';
@@ -81,7 +82,7 @@ class UserProfileScreen extends StatelessWidget {
                 (data['nativeLanguageCode'] ?? data['nativeLanguage'])?.toString(), code);
             final birthRaw = data['birthDate'];
             final birthDate = birthRaw is Timestamp ? birthRaw.toDate() : null;
-            final isVip = data['isVip'] == true;
+            final isVip = VipEntitlement.isActive(data);
             final profileFrameId =
                 (data['profileFrameId'] as String?)?.trim();
             final voiceBioUrl = data['voiceBioUrl'] as String?;
