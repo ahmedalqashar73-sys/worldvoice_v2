@@ -40,7 +40,24 @@ void main() {
           expect(find.byKey(ValueKey('spanish-section-$index')),
             findsOneWidget,reason:'${entry.key} section $index');
         }
+        expect(find.byKey(const ValueKey('spanish-lesson-section-menu')),
+          findsOneWidget);
+        expect(find.text(entry.value.grammar),findsNothing);
+        expect(find.byKey(const ValueKey('spanish-grammar-check')),
+          findsNothing);
+        await tester.tap(find.byKey(const ValueKey('spanish-section-0')));
+        await tester.pumpAndSettle();
+        expect(find.byKey(const ValueKey('spanish-lesson-section-detail-0')),
+          findsOneWidget);
+        expect(find.byKey(const ValueKey('spanish-lesson-section-menu')),
+          findsNothing);
         expect(find.text(entry.value.grammar),findsOneWidget);
+        expect(find.byKey(const ValueKey('spanish-section-back')),findsOneWidget);
+        await tester.tap(find.byKey(const ValueKey('spanish-section-back')));
+        await tester.pumpAndSettle();
+        expect(find.byKey(const ValueKey('spanish-lesson-section-menu')),
+          findsOneWidget);
+        expect(find.text(entry.value.grammar),findsNothing);
         expect(find.byKey(ValueKey(
           'spanish-${entry.key.toLowerCase()}-finish')),findsNothing);
       });
