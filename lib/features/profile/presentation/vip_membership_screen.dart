@@ -87,9 +87,12 @@ class _VipMembershipScreenState extends State<VipMembershipScreen> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 final data = snapshot.data!.data() ?? <String, dynamic>{};
-                final isVip = data['isVip'] == true;
                 final expiry = data['vipExpiresAt'];
                 final date = expiry is Timestamp ? expiry.toDate() : null;
+                // Expired paid memberships must not be displayed as active.
+                final isVip = data['isVip'] == true &&
+                    (expiry == null || (date != null &&
+                        date.isAfter(DateTime.now())));
                 return ListView(
                   padding: const EdgeInsets.fromLTRB(18, 18, 18, 30),
                   children: [
@@ -221,6 +224,27 @@ class VipMembershipHighlights extends StatelessWidget {
         arabic ? 'ترجمة وسبتايتل بدون إعلان' : 'Ad-free translation and subtitles',
         arabic ? 'مباشرة في الغرف واللايف، بدون إعلان مكافأة'
             : 'Instant access in rooms and Live; Free watches a rewarded video',
+      ),
+      (
+        Icons.timer_off_outlined,
+        arabic ? 'وقت غير محدود في الروم واللايف'
+            : 'Unlimited Room and Live time',
+        arabic ? 'للمضيف والضيف، بدون انتظار تمديد بالإعلانات'
+            : 'Host and guest, without rewarded-ad extensions',
+      ),
+      (
+        Icons.smart_toy_outlined,
+        arabic ? 'Teacher AI داخل الروم'
+            : 'Teacher AI inside voice rooms',
+        arabic ? 'محادثة مع المعلم الصوتي للأعضاء فقط'
+            : 'Exclusive voice-room AI teacher conversations',
+      ),
+      (
+        Icons.translate_rounded,
+        arabic ? 'ترجمة وسبتايتل بلا إعلانات'
+            : 'Ad-free translation and subtitles',
+        arabic ? 'متاحة في الغرف والبث المباشر دون مشاهدة إعلان'
+            : 'Available in rooms and Live without rewarded ads',
       ),
       (
         Icons.visibility_off_outlined,

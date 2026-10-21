@@ -13,6 +13,9 @@ abstract final class VipRoomFeatures {
     final expiry = profile?['vipExpiresAt'];
     if (expiry is Timestamp && !expiry.toDate().isAfter(now)) return false;
     if (expiry is DateTime && !expiry.isAfter(now)) return false;
+    if (expiry != null && expiry is! Timestamp && expiry is! DateTime) {
+      return false;
+    }
     return true;
   }
 
