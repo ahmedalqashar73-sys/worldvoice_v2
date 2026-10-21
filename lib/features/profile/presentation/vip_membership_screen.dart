@@ -223,6 +223,27 @@ class VipMembershipHighlights extends StatelessWidget {
             : 'Instant access in rooms and Live; Free watches a rewarded video',
       ),
       (
+        Icons.timer_off_outlined,
+        arabic ? 'وقت غير محدود في الروم واللايف'
+            : 'Unlimited Room and Live time',
+        arabic ? 'للمضيف والضيف، بدون انتظار تمديد بالإعلانات'
+            : 'Host and guest, without rewarded-ad extensions',
+      ),
+      (
+        Icons.smart_toy_outlined,
+        arabic ? 'Teacher AI داخل الروم'
+            : 'Teacher AI inside voice rooms',
+        arabic ? 'محادثة مع المعلم الصوتي للأعضاء فقط'
+            : 'Exclusive voice-room AI teacher conversations',
+      ),
+      (
+        Icons.translate_rounded,
+        arabic ? 'ترجمة وسبتايتل بلا إعلانات'
+            : 'Ad-free translation and subtitles',
+        arabic ? 'متاحة في الغرف والبث المباشر دون مشاهدة إعلان'
+            : 'Available in rooms and Live without rewarded ads',
+      ),
+      (
         Icons.visibility_off_outlined,
         arabic ? 'إخفاء زيارات البروفايل' : 'Hide profile visit history',
         arabic ? 'ميزة متاحة في إعدادات VIP' : 'Available in VIP privacy settings',
