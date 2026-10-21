@@ -238,7 +238,9 @@ class _EnglishA1UnitScreenState extends State<_EnglishA1UnitScreen> {
   Future<void> _open(EnglishA1Lesson lesson) async {
     if (!await AcademyLessonAdGate.beforeLesson(context,
         uid: _uid, lessonId: lesson.id,
-        isReview: _completed.contains(lesson.id))) return;
+        isReview: _completed.contains(lesson.id))) {
+      return;
+    }
     if (!mounted) return;
     final lessonNumber = widget.unit.lessons.indexOf(lesson) + 1;
     final passed = await Navigator.of(context).push<bool>(MaterialPageRoute(
