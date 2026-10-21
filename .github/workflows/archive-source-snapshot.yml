@@ -1,0 +1,60 @@
+name: WorldVoice source backup snapshot
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/archive-source-snapshot.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Archive exactly the application commit (no uncommitted modifications)
+        env:
+          SNAPSHOT_SHA: 2de0e23d5c30ed6cc46c8509358085d4f98d904d
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p output
+          git cat-file -e "$SNAPSHOT_SHA^{commit}"
+          git archive --format=zip --prefix=WorldVoice/ \
+            --output=output/WorldVoice_APP_FULL_2026-10-21.zip "$SNAPSHOT_SHA"
+          python3 - <<'PY'
+          import zipfile
+          fn = 'output/WorldVoice_APP_FULL_2026-10-21.zip'
+          info = """WorldVoice source code backup
+          Repository: ahmedalqashar73-sys/worldvoice_v2
+          Source branch: fix/vip-entitlements-consistency-20261021
+          Source commit: 2de0e23d5c30ed6cc46c8509358085d4f98d904d
+          Contains: Git-tracked Flutter Android/iOS app + Node/Render backend + Firebase rules/scripts/assets.
+          Excludes: uncommitted local files, live Firebase Firestore/Storage/Auth data,
+                    untracked credentials, Render secret environment variables.
+          This is a SOURCE backup; it is not a production database backup.
+          """
+          with zipfile.ZipFile(fn,'a') as z:
+              z.writestr('WorldVoice/SOURCE_BACKUP_README.txt',info)
+          with zipfile.ZipFile(fn) as z:
+              bad=z.testzip()
+              if bad: raise SystemExit('ZIP corruption: '+bad)
+              print('Verified',len(z.namelist()),'archive entries')
+          PY
+          sha256sum output/WorldVoice_APP_FULL_2026-10-21.zip | tee output/SHA256.txt
+          du -h output/*
+
+      - name: Upload source backup
+        uses: actions/upload-artifact@v4
+        with:
+          name: WorldVoice-APP-source-snapshot
+          path: output/*
+          retention-days: 7
+          if-no-files-found: error
