@@ -1,0 +1,24 @@
+name: Spanish eight-section English parity checks
+on:
+  pull_request:
+    branches:
+      - feature/scalable-progress-foundation
+    paths:
+      - 'lib/features/learn/presentation/academy_spanish_a1_screen.dart'
+      - 'test/academy_spanish_english_parity_test.dart'
+      - '.github/workflows/academy-spanish-english-parity.yml'
+jobs:
+  spanish_english_parity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Resolve packages
+        run: flutter pub get
+      - name: Analyze shared Spanish Academy and parity tests
+        run: flutter analyze --no-pub lib/features/learn/presentation/academy_spanish_a1_screen.dart test/academy_spanish_english_parity_test.dart
+      - name: Test all six Spanish levels and English-style cards
+        run: flutter test --no-pub test/academy_spanish_a1_full_course_test.dart test/academy_spanish_a2_full_course_test.dart test/academy_spanish_b1_full_course_test.dart test/academy_spanish_b2_full_course_test.dart test/academy_spanish_c1_full_course_test.dart test/academy_spanish_c2_full_course_test.dart test/academy_spanish_english_parity_test.dart
