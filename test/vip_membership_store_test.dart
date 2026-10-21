@@ -6,7 +6,8 @@ void main() {
   testWidgets('Free membership is clearly displayed without pretending VIP is active',
       (tester) async {
     await tester.pumpWidget(const MaterialApp(home: Scaffold(
-      body: VipMembershipHighlights(isVip:false, arabic:true),
+      body: SingleChildScrollView(
+        child: VipMembershipHighlights(isVip:false, arabic:true)),
     )));
     expect(find.text('عضويتك الحالية: Free'), findsOneWidget);
     expect(find.text('مميزات VIP الحالية'), findsOneWidget);
@@ -19,7 +20,8 @@ void main() {
   testWidgets('VIP status is shown only when the server-provided flag is true',
       (tester) async {
     await tester.pumpWidget(const MaterialApp(home: Scaffold(
-      body: VipMembershipHighlights(isVip:true, arabic:false),
+      body: SingleChildScrollView(
+        child: VipMembershipHighlights(isVip:true, arabic:false)),
     )));
     expect(find.text('Your VIP membership is active'), findsOneWidget);
     expect(find.text('Your current plan: Free'), findsNothing);

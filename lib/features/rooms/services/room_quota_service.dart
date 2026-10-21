@@ -1,6 +1,24 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import 'vip_room_features.dart';
+
+/// Room AND Live host/guest time allowances. Free: host 4 hours, guest
+/// 2 hours; up to three extra guest hours after the existing rewarded ads.
+abstract final class RoomTimeAllowance {
+  static const freeHostSeconds = 4 * 60 * 60;
+  static const freeGuestSeconds = 2 * 60 * 60;
+  static const rewardedGuestBonusSeconds = 3 * 60 * 60;
+
+  static int freeLimit({required bool asHost, required int adBonusSeconds}) {
+    final base = asHost ? freeHostSeconds : freeGuestSeconds;
+    final bonus = asHost
+        ? 0
+        : adBonusSeconds.clamp(0, rewardedGuestBonusSeconds);
+    return base + bonus;
+  }
+}
+
 class RoomQuotaStatus {
   const RoomQuotaStatus({
     required this.allowed,
@@ -68,7 +86,7 @@ class RoomQuotaService {
 
     final profile =
         await _db.collection('users').doc(user.uid).get();
-    final isVip = profile.data()?['isVip'] == true;
+    final isVip = VipRoomFeatures.activeVip(profile.data(), DateTime.now());
 
     if (isVip) {
       return const RoomQuotaStatus(
@@ -87,11 +105,10 @@ class RoomQuotaService {
     final adsWatched = (data['adsWatched'] as num?)?.toInt() ?? 0;
     final adBonus = (data['adBonusSeconds'] as num?)?.toInt() ?? 0;
 
-    // Free daily stage allowance: host 4h, guest/speaker 3h.
-    // Each room/user level above 1 adds 15 minutes. VIP remains unlimited.
-    final levelBonus = (roomLevel - 1).clamp(0, 999) * 15 * 60;
-    final base = (asHost ? 4 * 60 * 60 : 3 * 60 * 60) + levelBonus;
-    final limit = base + (asHost ? 0 : adBonus.clamp(0, 3 * 60 * 60));
+    // Strict Free cap for rooms and Live: host 4h; guest 2h with up to
+    // 3 hours rewarded extension. VIP host and guest bypass the quota.
+    final limit = RoomTimeAllowance.freeLimit(
+      asHost: asHost, adBonusSeconds: adBonus);
 
     return RoomQuotaStatus(
       allowed: used < limit,

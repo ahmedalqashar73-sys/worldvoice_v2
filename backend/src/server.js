@@ -28,6 +28,7 @@ import {registerRoomTaskRoutes} from "./room_task_routes.js";
 import {registerRoomGameRoutes} from "./room_games_routes.js";
 import {privateWalletRef, requirePrivateWallet} from "./wallet_store.js";
 import {approvedWorldVoiceGift} from "./gift_catalog.js";
+import {requireRoomTeacherVip} from "./vip_feature_policy.js";
 
 const { RtcRole, RtcTokenBuilder } = agoraToken;
 
@@ -1163,6 +1164,10 @@ app.post("/teacher-ai", async (req, res, next) => {
       });
     }
 
+    // A client-side button is insufficient to protect paid AI processing.
+    // Other Live Teacher AI behavior stays unchanged; room AI is VIP-only.
+    if (context === "room") await requireRoomTeacherVip(db, user.uid);
+
     const existingNote = await noteRef.get();
     if (existingNote.exists) {
       return res.json({ok: true, cached: true});
@@ -1309,6 +1314,10 @@ app.post("/teacher-ai/ask", async (req, res, next) => {
           "User is not in this Live." : "User is not in this room.",
       });
     }
+
+    // A client-side button is insufficient to protect paid AI processing.
+    // Other Live Teacher AI behavior stays unchanged; room AI is VIP-only.
+    if (context === "room") await requireRoomTeacherVip(db, user.uid);
 
     const roomLanguageCode =
       requestedRoomLanguage ||
