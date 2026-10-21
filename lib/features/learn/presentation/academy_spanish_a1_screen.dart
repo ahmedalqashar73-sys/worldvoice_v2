@@ -191,7 +191,9 @@ class _SpanishUnitScreenState extends State<_SpanishUnitScreen> {
   Future<void> _open(SpanishA1Lesson lesson) async {
     if (!await AcademyLessonAdGate.beforeLesson(context,
         uid: _uid, lessonId: lesson.id,
-        isReview: _completed.contains(lesson.id))) return;
+        isReview: _completed.contains(lesson.id))) {
+      return;
+    }
     if (!mounted) return;
     await Navigator.of(context).push<void>(MaterialPageRoute(
       builder: (_) => AcademySpanishA1LessonScreen(
