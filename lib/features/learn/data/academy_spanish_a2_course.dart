@@ -387,7 +387,7 @@ abstract final class SpanishA2Course {
       'Ana: ¿Puedes describir la situación con más precisión?',
       'Luis: En mi opinión, fue ${as[0].es}, pero también ${as[1].es}.',
       'Ana: ¿Qué habrías recomendado tú?',
-      'Luis: Habría intentado ${vs[1].es} ${ds[1].es} y escuchar a los demás.',
+      'Luis: Podría ${vs[1].es} ${ds[1].es} y escuchar a los demás.',
     ];
   }
 
