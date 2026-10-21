@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../../core/ads/academy_lesson_ads.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -233,6 +234,8 @@ class _AcademyEnglishAdvancedPathState
   }
 
   Future<void> _open(EnglishAdvancedLesson lesson) async {
+    await AcademyLessonAdGate.beforeLesson(uid: _uid);
+    if (!mounted) return;
     final passed = await Navigator.of(context).push<bool>(
       MaterialPageRoute(builder: (_) =>
           AcademyEnglishAdvancedLessonScreen(lesson: lesson)),
