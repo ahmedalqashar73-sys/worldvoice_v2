@@ -174,7 +174,7 @@ abstract final class SpanishB1Course {
     final opening=lesson.story.first.split('.').first.trim();
     return <String>[
       'Ana: ¿Qué ha sucedido en «${lesson.title}»?',
-      'Luis: Al principio del relato se cuenta lo siguiente: ${opening}.',
+      'Luis: Al principio del relato se cuenta lo siguiente: $opening.',
       'Ana: ¿Puedes utilizar la regla de hoy para explicar otra experiencia?',
       'Luis: Claro. Un buen ejemplo es: «${lesson.grammarExamples.first}»',
       'Ana: ¿Qué significa la expresión «${n.first.es}» en este contexto?',
