@@ -164,7 +164,7 @@ service cloud.firestore {
             'walletBalance', 'withdrawableDiamonds', 'walletDebtCoins',
             'walletFrozen', 'payoutFrozen', 'diamondsReserved',
             'firstRechargeUsed', 'payoutFreezeReason', 'identityVerified',
-            'isVip', 'isAdmin', 'vipExpiresAt', 'vipSource', 'adminSource',
+            'isVip', 'vipTier', 'isAdmin', 'vipExpiresAt', 'vipSource', 'adminSource',
             'activeBadgeId', 'vipBadgeExpiresAt',
             'vipUpdatedAt', 'adminUpdatedAt'
           ]);
@@ -183,7 +183,7 @@ service cloud.firestore {
           && request.resource.data.get('isVip', false) == false
           && !request.resource.data.keys().hasAny([
             'lastGiftRoomId', 'lastGiftEventId', 'withdrawableDiamonds',
-            'walletBalance', 'vipExpiresAt', 'isAdmin',
+            'walletBalance', 'vipExpiresAt', 'isAdmin', 'vipTier',
             'activeBadgeId', 'vipBadgeExpiresAt',
             'vipSource', 'adminSource', 'vipUpdatedAt', 'adminUpdatedAt'
           ]);
