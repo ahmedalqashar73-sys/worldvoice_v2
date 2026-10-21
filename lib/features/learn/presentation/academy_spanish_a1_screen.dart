@@ -488,9 +488,31 @@ class _AcademySpanishA1LessonScreenState
           fontWeight: FontWeight.w800, fontSize: 16)),
         const SizedBox(height: 8),
         Text(item.grammarHelpAr, style: const TextStyle(height: 1.8)),
-        const SizedBox(height: 8),
-        const Text('1 · Comprende     2 · Observa     3 · Practica',
-            style: TextStyle(fontWeight: FontWeight.w700)),
+        const SizedBox(height: 13),
+        Text(_ar?'1 · افهم لماذا نستخدم القاعدة':
+            '1 · Cuándo usar esta regla',
+            style:const TextStyle(fontWeight:FontWeight.w900,color:_verde)),
+        Text(_ar
+          ? 'ابدأ بالسياق والمعنى، ثم قارِن بين الأمثلة للتعرف على الاستخدام.'
+          : 'Relaciona el significado con los contextos de los ejemplos.',
+          style:const TextStyle(height:1.6)),
+        const SizedBox(height:10),
+        Text(_ar?'2 · احفظ صيغة القاعدة':'2 · Estructura',
+          style:const TextStyle(fontWeight:FontWeight.w900,color:_verde)),
+        Text(item.grammar,textDirection:TextDirection.ltr),
+        const SizedBox(height:10),
+        Text(_ar?'3 · راجع الفرق بين المثالين الأول والثاني':
+            '3 · Compara los primeros ejemplos',
+          style:const TextStyle(fontWeight:FontWeight.w900,color:_verde)),
+        Text(examples.take(2).join('  /  '),textDirection:TextDirection.ltr,
+          style:const TextStyle(height:1.6)),
+        const SizedBox(height:10),
+        Text(_ar?'4 · اكتشف الخطأ ثم اختبر فهمك':
+            '4 · Detecta errores y practica',
+          style:const TextStyle(fontWeight:FontWeight.w900,color:_verde)),
+        Text(_ar?'راجع الجملة الخاطئة أدناه وصحّحها قبل الإجابة.':
+            'Revisa la frase incorrecta y corrígela antes del test.',
+          style:const TextStyle(height:1.6)),
       ])),
       Text(_ar ? 'أمثلة مشروحة بالصوت' : 'Ejemplos con audio',
         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
@@ -500,6 +522,19 @@ class _AcademySpanishA1LessonScreenState
             style: const TextStyle(fontSize: 17))),
           _audio(e),
         ])),
+      _panel(Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
+        Text(_ar?'خطأ شائع وتصحيحه':'Error frecuente y corrección',
+          style:const TextStyle(fontWeight:FontWeight.w900,fontSize:18)),
+        const SizedBox(height:8),
+        Text(choices.first,textDirection:TextDirection.ltr,
+          style:TextStyle(color:Theme.of(context).colorScheme.error)),
+        const SizedBox(height:6),
+        Row(children:[const Icon(Icons.check_circle,color:_verde),
+          const SizedBox(width:7),
+          Expanded(child:Text(examples.first,
+            textDirection:TextDirection.ltr,
+            style:const TextStyle(fontWeight:FontWeight.w800)))]),
+      ])),
       Text(_ar ? 'اختر الجملة الصحيحة' : 'Elige la frase correcta',
         style: const TextStyle(fontWeight: FontWeight.w900)),
       for (var i = 0; i < choices.length; i++)
@@ -594,7 +629,8 @@ class _AcademySpanishA1LessonScreenState
         ])),
       const SizedBox(height: 13),
       for (var i = 0; i < paragraphs.length; i++) ...[
-        if (i == 0 || i == 2)
+        if (i == 0 || i == 2 ||
+            ((widget.level == 'C1' || widget.level == 'C2') && i == 5))
           AcademyIllustratedStoryArt(
             scene: ((lesson.unit - 1) * 10 + lesson.number - 1) % 9,
             page: i + 1, animate: false),
@@ -612,6 +648,15 @@ class _AcademySpanishA1LessonScreenState
                 fontSize: 19, height: 1.75)),
         ])),
       ],
+      _panel(Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
+        Text(_ar?'مفردات الدرس المرتبطة بالقراءة':
+            'Vocabulario relacionado con la lectura',
+          style:const TextStyle(fontWeight:FontWeight.w900,fontSize:18)),
+        const SizedBox(height:7),
+        for(final word in lesson.words.take(8))
+          ListTile(title:Text(word.es,textDirection:TextDirection.ltr),
+            subtitle:Text(word.ar),trailing:_audio(word.es)),
+      ])),
       Wrap(spacing: 8, children: [
         FilledButton.tonalIcon(
           onPressed: () => _speak(paragraphs.join(' ')),
@@ -841,6 +886,11 @@ class _AcademySpanishA1LessonScreenState
                 style: TextStyle(color: i.isEven ? _verde : null)),
             trailing: _audio(dialogue[i].split(': ').last),
           )),
+      FilledButton.tonalIcon(
+        onPressed:()=>_speak(dialogue.join(' ')),
+        icon:const Icon(Icons.volume_up_rounded),
+        label:Text(_ar?'استمع للمحادثة كاملة':
+            'Escuchar el diálogo completo')),
       _primary(_ar ? 'تدربت على دوري في المحادثة' :
           'He practicado la conversación', _pass,
           key: const ValueKey('spanish-conversation-next')),
@@ -853,7 +903,18 @@ class _AcademySpanishA1LessonScreenState
       Text(_ar ? 'استمع ثم كرر بالإسبانية' : 'Escucha y repite',
         style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
       Text(_ar ? 'النطق هنا تدريب سماع وتكرار، ولا يوجد تقييم آلي للميكروفون.'
-          : 'Listening and repetition only; microphone scoring is not enabled.'),
+          : 'Escucha y repite; no hay evaluación automática del micrófono.'),
+      const SizedBox(height:8),
+      _panel(Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+        Text(_ar?'ملاحظات النطق الإسباني':
+          'Pronunciación del español',
+          style:const TextStyle(fontWeight:FontWeight.w900,color:_verde)),
+        const SizedBox(height:6),
+        const Text('j /x/ · ñ /ɲ/ · ll /ʝ/ · rr /r/ · h muda',
+          textDirection:TextDirection.ltr),
+        Text(_ar?'استمع للفروق الصوتية أولًا، ثم كرر كلمات درس اليوم.':
+          'Escucha los sonidos, luego repite las palabras del tema.'),
+      ])),
       for (final word in words)
         ListTile(
           title: Text(word.es, textDirection: TextDirection.ltr),
