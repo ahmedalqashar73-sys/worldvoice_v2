@@ -101,8 +101,11 @@ abstract final class AcademyDemoAds {
     _ => null,
   };
 
-  /// Avoid back-to-back full-screen ads if a learner opens a lesson just
-  /// after seeing an app-open ad or skips between lessons unusually quickly.
+  /// The startup AppOpenAd keeps a cooldown to avoid unexpected full-screen
+  /// ads immediately after the user has already seen another full-screen ad.
+  /// A NEW free lesson is a deliberate navigation boundary, so its test
+  /// interstitial does not inherit that cooldown: all three daily lesson
+  /// entries can offer an ad even if a student proceeds quickly.
   static bool get _mayShow {
     if (_showingFullscreen) return false;
     final last = _lastFullscreenAd;
@@ -110,9 +113,11 @@ abstract final class AcademyDemoAds {
         DateTime.now().difference(last) >= const Duration(seconds: 60);
   }
 
+  static bool get mayRequestLessonInterstitial => !_showingFullscreen;
+
   static Future<void> showLessonInterstitial() async {
     final unit = _interstitialId;
-    if (!enabled || unit == null || !_mayShow) return;
+    if (!enabled || unit == null || !mayRequestLessonInterstitial) return;
     final ready = Completer<InterstitialAd?>();
     InterstitialAd.load(
       adUnitId: unit,
@@ -135,7 +140,7 @@ abstract final class AcademyDemoAds {
     final ad = await ready.future.timeout(
       const Duration(seconds: 4), onTimeout: () => null);
     if (ad == null) return;
-    if (!_mayShow) {
+    if (!mayRequestLessonInterstitial) {
       ad.dispose();
       return;
     }
