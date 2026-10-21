@@ -499,7 +499,7 @@ class _AcademySpanishA1LessonScreenState
         const SizedBox(height:10),
         Text(_ar?'2 · احفظ صيغة القاعدة':'2 · Estructura',
           style:const TextStyle(fontWeight:FontWeight.w900,color:_verde)),
-        Text(item.grammar,textDirection:TextDirection.ltr),
+        Text('Estructura: ${item.grammar}',textDirection:TextDirection.ltr),
         const SizedBox(height:10),
         Text(_ar?'3 · راجع الفرق بين المثالين الأول والثاني':
             '3 · Compara los primeros ejemplos',
