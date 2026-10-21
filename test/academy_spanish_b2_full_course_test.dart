@@ -43,6 +43,14 @@ void main() {
     expect(rules,hasLength(30));
   });
 
+  test('B2 endings are authored individually for every lesson', (){
+    final endings=SpanishB2Course.lessons.map((l)=>
+        SpanishB2Course.reading(l).last).toList();
+    expect(endings,hasLength(30));
+    expect(endings.toSet(),hasLength(30));
+    expect(endings.every((p)=>p.split(RegExp(r'\s+')).length>35),isTrue);
+  });
+
   test('Every B2 lesson has forty balanced bilingual words reused in materials', (){
     for(final lesson in SpanishB2Course.lessons){
       final words=lesson.words;
@@ -54,9 +62,10 @@ void main() {
         expect(words.where((w)=>w.kind==kind),hasLength(10),reason:lesson.id);
       }
       final reading=SpanishB2Course.reading(lesson);
-      expect(reading,hasLength(6));
+      expect(reading,hasLength(7));
       expect(reading.first,lesson.story.first);
-      expect(reading.last.toLowerCase(),contains(words.first.es.toLowerCase()));
+      expect(reading[5].toLowerCase(),contains(words.first.es.toLowerCase()));
+      expect(reading.last.trim().split(RegExp(r'\s+')).length,greaterThan(35));
       final conversation=SpanishB2Course.conversation(lesson);
       expect(conversation,hasLength(8));
       expect(conversation.join(' ').toLowerCase(),

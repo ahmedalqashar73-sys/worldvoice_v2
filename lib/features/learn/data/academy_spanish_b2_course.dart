@@ -121,6 +121,41 @@ abstract final class SpanishB2Course {
 
   /// Original five authored paragraphs + a sixth, contextual word review.
   /// The review is separate from the main story to avoid forced word insertion.
+  /// Thirty story-specific closing scenes, rather than a common
+  /// formulaic paragraph standing in for upper-intermediate narration.
+  static const _authoredEpilogues=<String>[
+    "La periodista imaginó qué habría cambiado si hubiera podido consultar el registro completo desde el principio. Reconoció que sus deseos no sustituían las pruebas disponibles. Tras una última conversación con el archivero, preparó dos versiones del reportaje: una que distinguía los hechos comprobados y otra que exponía únicamente las preguntas abiertas.",
+    "Durante la segunda reunión, la directora permitió que hablaran también quienes no habían intervenido la primera vez. Una alumna pidió datos sobre el horario de la biblioteca y otra recordó sus necesidades familiares. El consejo comprendió que la participación solo funciona cuando las personas disponen de información clara y tiempo para examinarla.",
+    "La guía invitó a los visitantes a escribir dos conclusiones: una basada en testimonios conocidos y otra formulada como hipótesis. Compararon las diferencias de significado entre ambas versiones y discutieron qué pruebas necesitarían. Al final, aunque persistían las dudas, lograron describir el pasado con precisión y respeto.",
+    "Cuando terminó la presentación, la estudiante explicó qué haría si contara con un presupuesto mayor y qué decisiones podía tomar realmente. Sus compañeros distinguieron los escenarios deseables de los recursos disponibles. Ese contraste convirtió una propuesta abstracta en un plan de trabajo que podía evaluarse durante los meses siguientes.",
+    "El documental incluyó una breve conversación sobre las oportunidades que se habían perdido por el retraso. Cada investigador expresó qué habría hecho de otro modo, pero evitó culpar a personas que no controlaban la situación. La última secuencia mostró que reflexionar sobre el pasado sirve para diseñar decisiones futuras.",
+    "Una semana después de la conferencia, llegaron finalmente los documentos que la investigadora esperaba. Descubrió que algunos datos confirmaban su interpretación y otros exigían una revisión. Publicó una actualización en la que explicó por qué había sido razonable formular reservas mientras no se habían recibido las pruebas originales.",
+    "El grupo organizó una nueva jornada y envió las instrucciones por diferentes canales. Antes de comenzar, comprobó que todos hubieran recibido la información. La experiencia anterior no podía modificarse, pero sus consecuencias podían aprovecharse para crear procedimientos más claros y evitar errores de coordinación.",
+    "Al redactar el artículo definitivo, la periodista comparó el anuncio original con la fecha real de publicación. Indicó que el portavoz había manifestado una intención, no un compromiso absolutamente confirmado. Esa distinción ayudó a los lectores a interpretar una declaración pública sin atribuirle palabras que nunca se habían pronunciado.",
+    "El museo contrató a una especialista que había trabajado con testimonios orales y documentos de archivo. La investigadora propuso entrevistar a más vecinos antes de cerrar la exposición. Los responsables comprendieron que buscar a alguien con experiencia no es lo mismo que suponer que una sola persona conoce toda la historia.",
+    "Tras recibir los nuevos análisis, los investigadores revisaron la manera de comunicar el hallazgo. Mantuvieron una hipótesis plausible, pero explicaron que todavía podía aparecer una interpretación diferente. El periodista redactó una noticia que diferenciaba claramente lo posible, lo probable y lo que ya había sido demostrado.",
+    "La asociación revisó las respuestas de quienes no habían podido acudir al encuentro. Descubrió que varios participantes preferían recibir los materiales por escrito antes de hablar en público. Modificó el calendario y explicó cada cambio para que todos entendieran el proceso. La participación aumentó cuando desaparecieron algunas barreras invisibles.",
+    "Antes de comenzar las reparaciones, los vecinos comprobaron que cada propietario conociera las condiciones del presupuesto. El técnico explicó las consecuencias de retrasar las obras y respondió a preguntas difíciles. La comunidad aprobó un calendario de seguimiento para detectar problemas antes de que se convirtieran en riesgos mayores.",
+    "La coordinadora conservó la propuesta original mientras esperaba nuevos datos de las asociaciones locales. Cuando recibió información sobre un barrio desatendido, convocó una reunión extraordinaria. Todos aceptaron que una regla clara puede admitir excepciones razonables, siempre que se expliquen los criterios y se eviten decisiones arbitrarias.",
+    "Los profesores solicitaron opiniones anónimas para comprobar si alguien se había sentido excluido durante la jornada cultural. Varias respuestas mostraron que las actividades pequeñas habían facilitado la participación. En la siguiente edición incorporaron más opciones, sin exigir a los estudiantes que compartieran aspectos de su identidad que consideraran privados.",
+    "La estudiante de urbanismo preparó una pregunta concreta sobre los costes que faltaban en la propuesta. El portavoz respondió con un cálculo provisional y reconoció que debía revisarlo. La reunión terminó con un acuerdo: hablar con seguridad puede facilitar un debate, pero ninguna expresión convincente sustituye los documentos que la respaldan.",
+    "La coordinadora recogió las opiniones de las familias que todavía no habían podido asistir. Le preocupaba que algunas necesidades permanecieran invisibles y celebraba que los alumnos hubieran preparado propuestas concretas. Acordaron utilizar esas respuestas en una evaluación posterior, sin presentar la primera reunión como una representación completa de toda la comunidad.",
+    "Los voluntarios enviaron sus resultados a una institución independiente para comprobar la procedencia de los residuos. Aunque el análisis requería más tiempo, decidieron mantener las actividades educativas. Comprendieron que repetir una acción útil no basta cuando el origen del problema continúa sin resolverse y necesita otras medidas.",
+    "Los periodistas regresaron a los barrios estudiados para comprobar si sus conclusiones reflejaban la experiencia cotidiana. Una familia valoraba los parques; otra consideraba fundamental el transporte público. La comparación les recordó que describir tendencias generales no significa borrar las diferencias entre personas que viven en un mismo lugar.",
+    "Durante una visita al centro, una vecina preguntó quién había aprobado el presupuesto y quién supervisaría las obras. El responsable mostró los documentos correspondientes y explicó que las decisiones habían pasado por varias etapas. La claridad de las responsabilidades permitió debatir el proyecto sin confundir sus resultados con sus autores.",
+    "El historiador explicó a los visitantes por qué una sala restaurada no significa necesariamente que todos los materiales estén disponibles. Algunas piezas seguían protegidas por necesidades de conservación. El grupo aprendió a distinguir la acción de restaurar, las personas que la realizan y el estado en que queda cada objeto.",
+    "La universidad publicó una actualización para mostrar cuánta energía se había ahorrado durante el primer periodo de evaluación. Los investigadores calcularon qué objetivos podrían haber alcanzado al terminar el año siguiente, pero señalaron las condiciones de esa previsión. El informe permitió comparar avances reales con promesas futuras.",
+    "La historiadora incorporó una sección sobre los horarios probables de la antigua escuela. Indicó que la reunión habría comenzado alrededor de cierta hora, pero no existía un reloj registrado en las fuentes. Sus lectores pudieron comprender la diferencia entre una deducción razonable y la precisión que permite un documento verificable.",
+    "La estudiante presentó el error de unidades durante una clase sobre interpretación de gráficos. Sus compañeros propusieron varias causas posibles y aprendieron a comprobarlas sin precipitarse. La discusión terminó con una regla práctica: cuando un resultado parece extraño, hay que verificar primero los datos y el método de cálculo.",
+    "Tras la visita de la periodista, la asociación publicó una comparación de diez años de mediciones. Los investigadores explicaron qué métodos habían permanecido estables y cuáles habían cambiado. Aquella perspectiva histórica permitió hablar de tendencias sin convertir una mejora temporal en una afirmación sobre la solución definitiva del problema.",
+    "El instituto mantuvo la prueba durante varios meses y publicó los fallos encontrados. Las familias señalaron qué horarios necesitaban mayor estabilidad, mientras los técnicos revisaban la cobertura. Seguir trabajando no significaba repetir el mismo procedimiento, sino adaptar el diseño a la información que aportaban los usuarios.",
+    "Algunos lectores compartieron el nuevo informe antes de terminar de leerlo. Los estudiantes prepararon una explicación de sus principales limitaciones e invitaron a comprobar las tablas originales. Descubrieron que comunicar un hallazgo reciente exige distinguir entre la publicación de un documento y la confirmación de todas sus interpretaciones.",
+    "La comisión simplificó los requisitos del sistema antes de repetir las pruebas. La enfermera pudo mostrar cómo solicitar una cita sin depender de un familiar. Los responsables comprendieron que una solución técnicamente sofisticada puede fallar si no responde a las condiciones reales de quienes deben utilizarla diariamente.",
+    "Durante una visita posterior, una familia explicó que ahora gastaba menos en energía y se sentía más cómoda en casa. La ingeniera insistió en que ese beneficio debía medirse sin exageraciones. La cooperativa presentó los resultados económicos y sociales por separado antes de decidir qué mejoras podían extenderse a otros edificios.",
+    "La investigadora redactó recomendaciones para un lanzamiento responsable de la herramienta. Incluyó condiciones sobre transparencia, revisión humana y atención a posibles errores. Aunque conocía los riesgos, defendió la continuidad de las pruebas bajo supervisión. Su postura mostró que el juicio crítico puede orientar una innovación en lugar de limitarse a aceptarla o rechazarla.",
+    "Al publicar la resolución, la comisión reconoció que algunos proyectos ofrecían ventajas inmediatas; no obstante, faltaban datos sobre sus consecuencias a largo plazo. Estableció un periodo de consulta y explicó qué indicadores serían decisivos. La decisión final se aplazó para evitar que la rapidez sustituyera la evaluación rigurosa.",
+  ];
+
   static List<String> reading(SpanishB2Lesson lesson){
     final n=wordsOf(lesson,SpanishWordKind.noun);
     final v=wordsOf(lesson,SpanishWordKind.verb);
@@ -138,27 +173,24 @@ abstract final class SpanishB2Course {
       'como recursos lingüísticos que conviene utilizar con precisión. '
       'Finalmente defendieron una postura razonada, reconocieron sus '
       'limitaciones y formularon preguntas para una investigación futura.',
+      _authoredEpilogues[(lesson.unit-1)*10+lesson.number-1],
     ];
   }
 
   static List<String> conversation(SpanishB2Lesson lesson){
-    final n=wordsOf(lesson,SpanishWordKind.noun);
-    final v=wordsOf(lesson,SpanishWordKind.verb);
-    final a=wordsOf(lesson,SpanishWordKind.adjective);
-    final d=wordsOf(lesson,SpanishWordKind.adverb);
+    final terms=wordsOf(lesson,SpanishWordKind.noun);
+    final opening=lesson.story.first.split('.').first.trim();
     return <String>[
-      'Lucía: ¿Qué implicaciones tiene el tema «${lesson.title}»?',
-      'Diego: La «${n[0].es}» es fundamental, aunque la «${n[1].es}» '
-          'también merece atención.',
-      'Lucía: ¿Qué datos necesitaríamos para defender esa interpretación?',
-      'Diego: Primero deberíamos ${v[0].es} ${d[0].es}; después podríamos '
-          '${v[1].es} ${d[1].es}.',
-      'Lucía: Sin embargo, ¿no podría resultar ${a[0].es} esa conclusión?',
-      'Diego: Es posible que sí; debemos distinguir una explicación '
-          '${a[1].es} de una mera suposición.',
-      'Lucía: ¿Cómo resumirías tu postura sin ignorar las objeciones?',
-      'Diego: Aceptaría el argumento provisionalmente y explicaría '
-          'qué pruebas podrían hacerme reconsiderarlo.',
+      'Lucía: ¿Qué cuestiones plantea «${lesson.title}»?',
+      'Diego: La historia comienza así: $opening.',
+      'Lucía: ¿Cómo expresarías una hipótesis o una objeción?',
+      'Diego: Podemos partir de este ejemplo: «${lesson.grammarExamples.first}»',
+      'Lucía: ¿Y cómo definirías el término «${terms.first.es}» '
+          'sin confundirlo con una opinión?',
+      'Diego: Buscaría un ejemplo concreto y lo contrastaría con las fuentes.',
+      'Lucía: ¿Qué otra estructura utilizarías para matizar la conclusión?',
+      'Diego: «${lesson.grammarExamples[1]}». '
+          'Después expondría una objeción y las pruebas que faltan.',
     ];
   }
   static String podcast(SpanishB2Lesson lesson){
@@ -174,7 +206,7 @@ abstract final class SpanishB2Course {
     }).join();
     return 'Bienvenidos al pódcast de español B2 de WorldVoice. '
         'Hoy examinaremos un relato titulado ${lesson.title}. '
-        '${lesson.story.join(' ')} '
+        '${reading(lesson).join(' ')} '
         'A continuación, repasaremos las cuarenta palabras del tema. '
         '$groups'
         'Escucha otra vez y distingue los hechos de las opiniones. '
