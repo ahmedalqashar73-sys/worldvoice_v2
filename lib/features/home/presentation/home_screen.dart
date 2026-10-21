@@ -11,6 +11,7 @@ import '../../profile/presentation/public_profile_screen.dart';
 import '../../profile/presentation/profile_form_validation.dart';
 import '../../profile/presentation/user_profile_screen.dart';
 import '../../rooms/presentation/rooms_hub_screen.dart';
+import '../../vip/presentation/worldvoice_store_screen.dart';
 import 'home_feed_section.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -244,6 +245,16 @@ class _HomeLandingState extends State<_HomeLanding> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  IconButton(
+                    tooltip: ar ? 'متجر WorldVoice' : 'WorldVoice Store',
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => WorldVoiceStoreScreen(languageCode: code),
+                      ),
+                    ),
+                    icon: const Icon(Icons.storefront_rounded, size: 25,
+                        color: Color(0xFF188668)),
+                  ),
                   IconButton(
                     onPressed: () => _feedKey.currentState?.createPost(),
                     tooltip: t.createPost,
