@@ -38,6 +38,8 @@ jobs:
       - run: npm install
       - run: node --check src/server.js
       - run: node --check src/vip_subscription_routes.js
+      - name: Confirm native billing verifier module loads
+        run: node --input-type=module -e "import('./src/vip_subscription_routes.js').then(m => { if (typeof m.registerVipSubscriptionRoutes !== 'function') process.exit(1); })"
       - run: node --check src/vip_subscription_policy.js
       - run: node --check scripts/seed-vip-badges.mjs
       - run: node --check scripts/seed-vip-subscriptions.mjs
