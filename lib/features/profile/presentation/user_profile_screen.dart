@@ -15,6 +15,7 @@ import 'profile_setup_screen.dart';
 import 'profile_visitors_screen.dart';
 import 'settings_screen.dart';
 import 'voice_bio_card.dart';
+import '../../vip/vip_membership_screen.dart';
 
 class UserProfileScreen extends StatelessWidget {
   const UserProfileScreen({
@@ -203,6 +204,25 @@ class UserProfileScreen extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 18),
+                      Card(
+                        child: ListTile(
+                          leading: const Icon(Icons.workspace_premium_rounded,
+                              color: Color(0xFFAA8125)),
+                          title: Text(code == 'ar' ? 'عضوية VIP' : 'My VIP'),
+                          subtitle: Text(isVip
+                              ? (code == 'ar' ? 'عضويتك فعّالة' : 'Membership active')
+                              : (code == 'ar' ? 'عرض المميزات والحالة' : 'View benefits and status')),
+                          trailing: const Icon(Icons.chevron_right_rounded),
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => VipMembershipScreen(
+                                languageCode: code,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
                       SizedBox(
                         width: double.infinity,
                         child: OutlinedButton.icon(
