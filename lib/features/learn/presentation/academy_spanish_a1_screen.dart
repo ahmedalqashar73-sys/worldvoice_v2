@@ -416,7 +416,7 @@ class _AcademySpanishA1LessonScreenState
                 ])),
               ),
             ),
-          )),
+          ),
     ]);
   }
 
@@ -773,10 +773,13 @@ class _AcademySpanishA1LessonScreenState
           _readingChoice==null||_readingPassed?null:(){
             setState((){
               _readingPassed=_readingChoice==1;
-              if(!_readingPassed) _writingFeedback=_ar?
-                'راجع الفقرة الثانية وحاول مرة أخرى.':
-                'Relee el segundo párrafo e inténtalo de nuevo.';
-              else _writingFeedback=null;
+              if(!_readingPassed) {
+                _writingFeedback=_ar?
+                  'راجع الفقرة الثانية وحاول مرة أخرى.':
+                  'Relee el segundo párrafo e inténtalo de nuevo.';
+              } else {
+                _writingFeedback=null;
+              }
             });
           },key:const ValueKey('spanish-reading-check')),
       ])),
