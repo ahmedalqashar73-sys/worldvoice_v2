@@ -612,6 +612,21 @@ service cloud.firestore {
     // -------------------------
     // COIN PRODUCTS
     // -------------------------
+    // VIP subscription catalog and rollout flags are server-managed only.
+    match /vip_config/{configId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    match /vip_products/{productId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    match /vip_purchase_receipts/{receiptId} {
+      allow read, write: if false;
+    }
+
     match /coin_products/{productId} {
       allow read: if signedIn();
       allow write: if false;
