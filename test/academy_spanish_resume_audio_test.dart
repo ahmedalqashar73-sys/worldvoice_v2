@@ -85,10 +85,16 @@ void main() {
     await tester.pumpWidget(MaterialApp(home:
       AcademySpanishA1LessonScreen(lesson:lesson,level:'A1')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('spanish-story-cover')),findsOneWidget);
+    expect(find.byKey(const ValueKey('spanish-story-cover')),findsNothing);
     expect(find.byKey(const ValueKey('spanish-vocabulary-next')),findsNothing);
     expect(find.byKey(const ValueKey('spanish-eight-section-heading')),
       findsOneWidget);
+    await tester.ensureVisible(find.byKey(const ValueKey('spanish-section-2')));
+    await tester.tap(find.byKey(const ValueKey('spanish-section-2')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('spanish-story-cover')),findsOneWidget);
+    expect(find.byKey(const ValueKey('spanish-eight-section-heading')),
+      findsNothing);
   });
   for(final (level, lesson, savedStage, contentKey) in <
       (String, SpanishA1Lesson, int, String)>[
@@ -109,11 +115,18 @@ void main() {
       await tester.pumpWidget(MaterialApp(home:
         AcademySpanishA1LessonScreen(level:level,lesson:lesson)));
       await tester.pumpAndSettle();
-      expect(find.byKey(ValueKey(contentKey)),findsOneWidget);
+      expect(find.byKey(ValueKey(contentKey)),findsNothing);
+      expect(find.byKey(const ValueKey('spanish-lesson-section-menu')),
+        findsOneWidget);
       expect(find.byKey(const ValueKey('spanish-stop-audio-global')),
         findsNothing);
-      expect(find.byKey(ValueKey('spanish-section-$savedStage')),
-        findsOneWidget);
+      await tester.ensureVisible(
+        find.byKey(ValueKey('spanish-section-$savedStage')));
+      await tester.tap(find.byKey(ValueKey('spanish-section-$savedStage')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(ValueKey(contentKey)),findsOneWidget);
+      expect(find.byKey(const ValueKey('spanish-lesson-section-menu')),
+        findsNothing);
     });
   }
 
@@ -131,6 +144,10 @@ void main() {
     });
     await tester.pumpWidget(MaterialApp(home:
       AcademySpanishA1LessonScreen(lesson:lesson,level:'C2')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('spanish-c2-finish')),findsNothing);
+    await tester.ensureVisible(find.byKey(const ValueKey('spanish-section-7')));
+    await tester.tap(find.byKey(const ValueKey('spanish-section-7')));
     await tester.pumpAndSettle();
     final finish=find.byKey(const ValueKey('spanish-c2-finish'));
     expect(finish,findsOneWidget);
