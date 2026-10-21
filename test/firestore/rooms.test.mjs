@@ -662,3 +662,27 @@ test('profile visitor lists are readable only with active VIP membership', async
   await assertFails(getDocs(collection(user('outsider'),
       'users/vip/profile_visitors')));
 });
+
+test('VIP badge equipment and store launch cannot be forged by clients', async () => {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    await setDoc(doc(ctx.firestore(), 'users/customer'), {
+      uid: 'customer', displayName: 'Customer', isVip: false,
+    });
+  });
+  const db = user('customer');
+  await assertFails(updateDoc(doc(db, 'users/customer'), {
+    activeBadgeId: 'badge__royal_crown',
+  }));
+  await assertFails(updateDoc(doc(db, 'users/customer'), {
+    vipBadgeExpiresAt: new Date('2099-01-01T00:00:00Z'),
+  }));
+  await assertFails(setDoc(doc(db, 'vip_config/current'), {
+    enabled: true, storeIntegrationVerified: true,
+  }));
+  await assertFails(setDoc(doc(db, 'vip_products/vip_gold_monthly'), {
+    tier: 'gold', active: true,
+  }));
+  await assertFails(setDoc(doc(db, 'vip_purchase_receipts/receipt1'), {
+    uid: 'customer',
+  }));
+});
