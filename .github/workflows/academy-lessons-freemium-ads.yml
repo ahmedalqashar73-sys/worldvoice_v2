@@ -1,10 +1,11 @@
-name: Academy freemium lesson ads
+name: Academy daily lessons and app-open ads
 on:
   pull_request:
     branches:
       - feature/scalable-progress-foundation
     paths:
       - 'lib/core/ads/academy_lesson_ads.dart'
+      - 'lib/app/app.dart'
       - 'lib/features/learn/presentation/academy_spanish_a1_screen.dart'
       - 'lib/features/learn/presentation/academy_english_a1_screen.dart'
       - 'lib/features/learn/presentation/academy_english_advanced_screen.dart'
@@ -23,6 +24,6 @@ jobs:
       - name: Flutter packages
         run: flutter pub get
       - name: Analyze integration and ad controller
-        run: flutter analyze --no-pub lib/core/ads/academy_lesson_ads.dart lib/features/learn/presentation/academy_spanish_a1_screen.dart lib/features/learn/presentation/academy_english_a1_screen.dart lib/features/learn/presentation/academy_english_advanced_screen.dart lib/features/learn/presentation/academy_course_screen.dart test/academy_lesson_ads_test.dart
-      - name: Verify ad frequency and Spanish learning regressions
+        run: flutter analyze --no-pub lib/core/ads/academy_lesson_ads.dart lib/app/app.dart lib/features/learn/presentation/academy_spanish_a1_screen.dart lib/features/learn/presentation/academy_english_a1_screen.dart lib/features/learn/presentation/academy_english_advanced_screen.dart lib/features/learn/presentation/academy_course_screen.dart test/academy_lesson_ads_test.dart
+      - name: Verify daily quota, app openings and Spanish learning regressions
         run: flutter test --no-pub test/academy_lesson_ads_test.dart test/academy_spanish_english_parity_test.dart test/academy_spanish_resume_audio_test.dart
