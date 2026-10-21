@@ -236,7 +236,9 @@ class _AcademyEnglishAdvancedPathState
   Future<void> _open(EnglishAdvancedLesson lesson) async {
     if (!await AcademyLessonAdGate.beforeLesson(context,
         uid: _uid, lessonId: lesson.id,
-        isReview: _done.contains(lesson.id))) return;
+        isReview: _done.contains(lesson.id))) {
+      return;
+    }
     if (!mounted) return;
     final passed = await Navigator.of(context).push<bool>(
       MaterialPageRoute(builder: (_) =>
