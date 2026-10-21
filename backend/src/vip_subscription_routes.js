@@ -75,9 +75,14 @@ export function registerVipSubscriptionRoutes({app, db, authenticatedUser,
       const verificationData = String(req.body?.verificationData || "").trim();
 
       if (!["android", "ios"].includes(platform) ||
-          !/^[A-Za-z0-9_.-]{3,160}$/.test(productId) ||
+          !/^wv_vip_[A-Za-z0-9_.-]{3,148}$/.test(productId) ||
           verificationData.length < 3 || verificationData.length > 12000) {
         return res.status(400).json({error: "Invalid subscription verification data."});
+      }
+      const vipConfig = await db.doc("vip_config/current").get();
+      if (vipConfig.data()?.enabled !== true ||
+          vipConfig.data()?.storeIntegrationVerified !== true) {
+        throw fail("VIP store setup has not been approved.", 503);
       }
       const skuField = platform === "android"
         ? "androidProductId" : "iosProductId";
