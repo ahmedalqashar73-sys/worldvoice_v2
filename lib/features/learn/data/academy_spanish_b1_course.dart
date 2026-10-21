@@ -116,6 +116,41 @@ abstract final class SpanishB1Course {
 
   /// The learner follows five authored narrative paragraphs, then one
   /// contextual vocabulary-recall scene, not a disconnected word list.
+  /// Lesson-specific epilogues extend the plot instead of reusing a
+  /// single generic story ending for all thirty B1 lessons.
+  static const _authoredEpilogues=<String>[
+    "Al día siguiente, el grupo revisó las decisiones tomadas antes del viaje. Una compañera recordó que habían confirmado los horarios, pero no habían previsto todos los retrasos. Decidieron preparar una lista más flexible y compartirla con los demás viajeros. Así comprendieron que la experiencia acumulada puede mejorar la organización sin eliminar por completo las sorpresas.",
+    "Tras aquella jornada, los participantes volvieron a conversar sobre el cambio inesperado. Cada uno explicó qué hacía antes del suceso y cómo reaccionó después. Aunque sus recuerdos no coincidían en todos los detalles, reconocieron la importancia de escuchar otras versiones. Finalmente redactaron juntos una descripción ordenada de lo ocurrido.",
+    "Cuando llegó la noticia, nadie sabía con seguridad si la visita tendría lugar. Marta preguntó qué había dicho exactamente el organizador y comprobó el mensaje original. Más tarde comunicó a sus compañeros que el encuentro seguía previsto para el día siguiente. La claridad de aquella explicación evitó nuevos malentendidos entre los invitados.",
+    "El mensaje llegó cuando todos tenían otros compromisos. La coordinadora explicó que su colega estaba ocupado y no podría responder inmediatamente. Antes de comunicarlo al grupo, revisó las palabras para no presentarlas como una negativa definitiva. Al final propusieron otro horario y consiguieron mantener la reunión sin crear un conflicto innecesario.",
+    "Después de escuchar el teléfono, Laura dejó el libro abierto sobre la mesa. Había estado leyendo tranquilamente cuando la llamada interrumpió sus planes. Anotó lo que le dijeron y volvió a la lectura una vez resuelta la cuestión. Más tarde comparó ambos acontecimientos para practicar la diferencia entre una acción en desarrollo y otra puntual.",
+    "Al publicar los resultados, la organización explicó cómo se habían recogido los datos. Muchos lectores preguntaron quién había revisado cada documento y por qué algunas cifras eran provisionales. El equipo respondió con un resumen accesible y conservó los registros originales. La transparencia ayudó a evitar interpretaciones equivocadas y reforzó la confianza de la comunidad.",
+    "La mujer con quien había hablado explicó nuevos detalles durante una segunda entrevista. Su testimonio aclaraba varios hechos, pero también planteaba preguntas sobre otras personas implicadas. El investigador decidió contrastar la información antes de escribir sus conclusiones. Así comprobó que identificar correctamente a los interlocutores puede cambiar la interpretación de una historia.",
+    "Al recordar la experiencia, Daniel distinguió entre lo que esperaba y lo que realmente sucedió. Lo que más le sorprendió no fue el problema inicial, sino la reacción solidaria de los vecinos. Contó esa diferencia a su clase y escuchó opiniones distintas. El intercambio le permitió explicar sus emociones con mayor precisión.",
+    "Durante la última semana, la estudiante había incorporado varias expresiones nuevas a su diario. Escribió ejemplos relacionados con experiencias reales y comparó sus textos actuales con los anteriores. Descubrió avances importantes, aunque todavía cometía errores frecuentes. Su profesora le recomendó seguir practicando y registrar los cambios para observar su progreso.",
+    "Antes de compartir la información, un grupo de alumnos comparó varias fuentes. Algunas noticias ofrecían detalles diferentes y otras omitían la fecha del acontecimiento. Los estudiantes buscaron el documento original y debatieron qué datos podían confirmar. Aprendieron que una fuente fiable debe permitir comprobar sus afirmaciones y reconocer sus límites.",
+    "En la reunión, la coordinadora pidió que todos participaran en la decisión. Una estudiante quería presentar una propuesta y otra prefería escuchar primero las opiniones del grupo. La coordinadora explicó que ambas formas de colaboración eran válidas. Finalmente organizaron turnos de palabra para que nadie quedara excluido de la conversación.",
+    "Cuando apareció una dificultad, algunos participantes pensaron que la iniciativa no podría continuar. Sin embargo, la profesora les pidió que examinaran los recursos disponibles antes de abandonar. Descubrieron que podían modificar el calendario y dividir las tareas. El resultado mostró que dudar de una solución no significa renunciar a buscar alternativas.",
+    "Al recibir a los nuevos compañeros, Sonia explicó por qué le alegraba que estuvieran allí. Cada persona compartió una experiencia y habló de lo que esperaba aprender. Aunque algunos estaban nerviosos, pronto encontraron intereses comunes. La conversación terminó con un pequeño proyecto que les permitiría seguir colaborando durante las semanas siguientes.",
+    "La asociación reconoció que era necesario ayudar a quienes no podían asistir regularmente. Unos vecinos propusieron cambiar los horarios y otros ofrecieron acompañar a las personas mayores. Antes de elegir una medida, consultaron las necesidades reales de los participantes. Acordaron revisar el programa después del primer mes para mejorarlo.",
+    "Al despedirse, los amigos intercambiaron mensajes llenos de buenos deseos. Clara esperaba que su compañero encontrara pronto una oportunidad de trabajo. Él le agradeció las palabras, pero explicó que seguiría preparándose mientras buscaba ofertas. La conversación permitió distinguir un deseo sincero de una promesa sobre el futuro.",
+    "Los organizadores prepararon materiales claros para que los visitantes comprendieran el recorrido. También enviaron instrucciones a los voluntarios y reservaron un espacio para resolver dudas. Cuando llegaron los participantes, pudieron comenzar sin grandes retrasos. El grupo comprobó que explicar la finalidad de cada tarea facilita mucho la cooperación.",
+    "Cuando termine el proyecto, el equipo presentará los resultados a la comunidad. Mientras tanto, los responsables conservan los documentos y responden a las preguntas de los vecinos. Nadie quiere anunciar un éxito antes de comprobar los datos. Por eso han preparado un calendario para evaluar lo realizado y corregir posibles errores.",
+    "Durante la preparación de la actividad, Miguel pidió ayuda de una manera respetuosa. Su compañera aceptó colaborar, aunque tenía poco tiempo disponible. Juntos repartieron las tareas y establecieron prioridades. Al terminar, Miguel agradeció el apoyo y comprendió que las peticiones corteses favorecen una comunicación más eficaz.",
+    "Si el tiempo acompaña, los participantes realizarán la actividad al aire libre. En caso de lluvia, la organización dispone de un local alternativo. La coordinadora explicó ambos planes para evitar confusiones. Todos entendieron que una condición futura puede cambiar los detalles sin impedir necesariamente la realización del proyecto.",
+    "La profesora recomendó escuchar primero a las personas afectadas por el problema. Un alumno propuso enviar un mensaje inmediato, mientras otro prefería reunirse personalmente. Compararon las ventajas de ambas opciones antes de decidir. Al final eligieron una conversación directa porque necesitaban aclarar varios puntos delicados.",
+    "Si dispusiera de más tiempo, Carmen estudiaría otras posibilidades antes de elegir. Sin embargo, reconoció que debía actuar con la información disponible. Consultó a sus compañeros y preparó una alternativa realista. La experiencia le enseñó a expresar hipótesis sin confundirlas con las decisiones que verdaderamente podía tomar.",
+    "El equipo necesitaba a alguien que conociera bien la zona y pudiera orientar a los visitantes. Recibió varias propuestas, pero decidió comprobar la experiencia de cada candidato. Una guía local explicó el recorrido y respondió a preguntas difíciles. Los organizadores la eligieron porque sus conocimientos se ajustaban a las necesidades del grupo.",
+    "Antes de que empezara la sesión, los alumnos revisaron el material de lectura. La profesora les pidió que prepararan preguntas sobre los personajes y las decisiones narradas. Durante el debate surgieron interpretaciones diferentes. Al terminar, cada participante escribió una conclusión breve y explicó en qué hechos de la historia se apoyaba.",
+    "El responsable pidió a su asistente que le enviara los documentos antes del viernes. Ella comprobó la dirección y adjuntó los archivos necesarios. Más tarde recibió una confirmación y conservó una copia del mensaje. Ambos valoraron la importancia de emplear un registro formal sin perder claridad ni cortesía.",
+    "Cuando recibió el informe, Teresa se lo envió a la coordinadora sin retraso. La destinataria respondió que ya había recibido la versión anterior y pidió aclarar los cambios. Teresa explicó qué documentos había sustituido. Aquella conversación permitió practicar los pronombres sin olvidar quién enviaba cada cosa y a quién.",
+    "Después de asumir nuevas tareas, Andrés se hizo más responsable de sus decisiones. Empezó a consultar a sus compañeros y a explicar las razones de cada cambio. Al principio cometió algunos errores, pero aprendió a reconocerlos. Con el tiempo, su actitud mejoró las relaciones dentro del equipo.",
+    "Aunque ya comprendía muchas conversaciones, Julia siguió aprendiendo español cada semana. Escuchaba entrevistas breves, anotaba expresiones nuevas y escribía ejemplos propios. Sus amigos la ayudaban a corregir errores sin interrumpir constantemente la comunicación. Poco a poco empezó a utilizar estructuras más complejas con mayor seguridad.",
+    "El técnico llevaba dos años trabajando en el mismo centro cuando recibió una nueva propuesta. Había aprendido a resolver problemas frecuentes, pero quería ampliar su experiencia. Antes de cambiar de empleo, habló con sus colegas y comparó las condiciones. Su decisión combinó los conocimientos adquiridos con sus objetivos futuros.",
+    "Aunque algunas personas no estén de acuerdo, la asociación mantendrá abierto el debate. Los coordinadores explicaron que el desacuerdo no impide escuchar otras razones. Cada participante tuvo tiempo para justificar su opinión y formular preguntas. Al final, el grupo acordó revisar la propuesta sin descalificar a quienes pensaban de otra manera.",
+    "Por un lado, el nuevo plan ofrecía oportunidades para muchos vecinos; por otro, exigía recursos adicionales. Los representantes analizaron ambas perspectivas y compararon alternativas. Nadie quiso presentar una decisión compleja como si fuera completamente sencilla. El informe final explicó ventajas, inconvenientes y condiciones para evaluar los resultados.",
+  ];
+
   static List<String> reading(SpanishB1Lesson lesson){
     final nouns=wordsOf(lesson,SpanishWordKind.noun);
     final verbs=wordsOf(lesson,SpanishWordKind.verb);
@@ -131,22 +166,22 @@ abstract final class SpanishB1Course {
       'con «${adverbs[0].es}» y «${adverbs[1].es}». '
       'En lugar de repetir palabras sin contexto, formularon ejemplos '
       'relacionados con el problema y defendieron sus propias conclusiones.';
-    return <String>[...lesson.story,extension];
+    final index=(lesson.unit-1)*10+lesson.number-1;
+    return <String>[...lesson.story,extension,_authoredEpilogues[index]];
   }
   static List<String> conversation(SpanishB1Lesson lesson){
     final n=wordsOf(lesson,SpanishWordKind.noun);
-    final v=wordsOf(lesson,SpanishWordKind.verb);
-    final a=wordsOf(lesson,SpanishWordKind.adjective);
-    final d=wordsOf(lesson,SpanishWordKind.adverb);
+    final opening=lesson.story.first.split('.').first.trim();
     return <String>[
-      'Ana: ¿Qué conclusión has sacado de «${lesson.title}»?',
-      'Luis: Me parece que la «${n[0].es}» cambió la situación.',
-      'Ana: ¿Por qué piensas eso? ¿Qué ocurrió antes?',
-      'Luis: Si pudiera ${v[0].es} ${d[0].es}, mejoraría el resultado.',
-      'Ana: ¿Cómo describirías la «${n[1].es}»?',
-      'Luis: Fue ${a[0].es}; sin embargo, también parecía ${a[1].es}.',
-      'Ana: ¿Qué recomendarías a otras personas?',
-      'Luis: Les propondría ${v[1].es} ${d[1].es} y hablar con respeto.',
+      'Ana: ¿Qué ha sucedido en «${lesson.title}»?',
+      'Luis: Al principio del relato se cuenta lo siguiente: ${opening}.',
+      'Ana: ¿Puedes utilizar la regla de hoy para explicar otra experiencia?',
+      'Luis: Claro. Un buen ejemplo es: «${lesson.grammarExamples.first}»',
+      'Ana: ¿Qué significa la expresión «${n.first.es}» en este contexto?',
+      'Luis: Es una palabra del tema que debemos explicar con una frase propia.',
+      'Ana: ¿Puedes darme otro ejemplo y resumir la conclusión?',
+      'Luis: Sí. «${lesson.grammarExamples[1]}»; además, conviene '
+          'comparar los hechos antes de sacar conclusiones.',
     ];
   }
   static String podcast(SpanishB1Lesson lesson){
@@ -162,7 +197,7 @@ abstract final class SpanishB1Course {
     }).join();
     return 'Bienvenidos al pódcast intermedio de español B1 de WorldVoice. '
       'El episodio de hoy se titula ${lesson.title}. '
-      '${lesson.story.join(' ')} '
+      '${reading(lesson).join(' ')} '
       'Ahora vamos a recordar las cuarenta palabras del tema. '
       '$groups'
       'Para terminar, explica las causas de los acontecimientos y '
