@@ -120,6 +120,40 @@ abstract final class SpanishC1Course {
 
   /// The original five/six paragraphs stay intact; two advanced analytic
   /// pages provide evidence-based interpretation and vocabulary transfer.
+  /// Individually authored post-story analyses for the thirty C1 lessons.
+  static const _originalAfterwords=<String>[
+    "En la última sesión, Elena decidió no clasificar el manuscrito como auténtico ni falso de manera definitiva. Describió los indicios disponibles y explicó qué análisis futuros serían necesarios para sostener una atribución responsable. La prudencia, lejos de restar interés al hallazgo, permitió que otros especialistas continuaran examinando el documento.",
+    "Antes de publicar las declaraciones, la periodista distinguió entre las palabras literales del científico y el contexto en que se habían pronunciado. Revisó los cambios de referencia temporal y comprobó que una reformulación aparentemente inocente podía alterar la interpretación. Su artículo incluyó una nota metodológica destinada a los lectores más exigentes.",
+    "La directora del museo convocó a expertos con interpretaciones opuestas y les pidió que explicaran sus hipótesis. Ninguno pudo demostrar de forma concluyente la procedencia de la pieza, aunque algunos resultados parecían prometedores. El comunicado final dejó constancia de la incertidumbre y de los procedimientos acordados para resolverla.",
+    "Durante la exposición, la documentalista describió por qué se habían conservado ciertas cartas y se habían descartado otras. Un visitante quiso saber quién había tomado esas decisiones. La respuesta mostró que una construcción pasiva puede destacar el procedimiento, pero que también conviene identificar a las personas responsables cuando la transparencia lo exige.",
+    "Los estudiantes reescribieron el informe utilizando una terminología más precisa, pero observaron que un exceso de sustantivos oscurecía las acciones. La profesora les pidió que recuperaran los sujetos cuando fuera importante atribuir responsabilidades. El equilibrio entre síntesis y claridad se convirtió en el criterio central de la revisión académica.",
+    "Al revisar los testimonios, una investigadora detectó que una coma modificaba la cantidad de personas incluidas en una afirmación. Sus compañeros compararon las dos versiones y reconstruyeron el contexto. La corrección permitió evitar una conclusión injustificada y mostró que la puntuación también participa en la argumentación histórica.",
+    "La archivista recibió finalmente un reconocimiento explícito por la investigación decisiva. Durante la ceremonia explicó que el descubrimiento había dependido de un equipo y de varios años de conservación documental. La institución revisó su política de comunicación para destacar los aportes individuales sin atribuir el trabajo colectivo a una única figura.",
+    "Antes de examinar otros inventarios, la investigadora presentó una cronología provisional que separaba los hechos de las deducciones. Al contrastar los nuevos documentos, descubrió un error en la clasificación inicial. Sus colegas actualizaron la base de datos y publicaron la corrección, subrayando que una investigación sólida acepta revisiones justificadas.",
+    "El equipo organizó un seminario sobre los cambios que venía observando en los formatos digitales. Los participantes señalaron que algunas dificultades eran técnicas y otras dependían de decisiones presupuestarias. La discusión sirvió para formular un plan de conservación que incorporaba revisiones periódicas y responsabilidades compartidas.",
+    "Solo después de comparar los inventarios comprendieron la verdadera importancia del hallazgo. Los documentos no habían desaparecido: se encontraban en una colección descrita con criterios distintos. La biblioteca aprovechó la experiencia para mejorar las búsquedas, pero también para explicar públicamente las limitaciones de sus antiguos sistemas.",
+    "El consejo publicó el supuesto acuerdo y abrió un periodo para recibir comentarios. Algunos vecinos sostuvieron que el documento no reflejaba lo discutido, mientras otros defendieron su contenido. La presidencia aclaró qué decisiones eran vinculantes y cuáles quedaban pendientes de deliberación, con el fin de recuperar la confianza.",
+    "A pesar de las reiteradas peticiones, la institución mantuvo una respuesta insuficiente durante varios meses. Los representantes vecinales documentaron sus comunicaciones y solicitaron una revisión independiente. Cuando finalmente se abrió el diálogo, ambas partes reconocieron que el conflicto se había agravado por la falta de información verificable.",
+    "Un mediador invitó a los participantes a imaginar cómo sería la situación actual si se hubiera intervenido oportunamente. Las respuestas revelaron costes sociales que no aparecían en el presupuesto inicial. El grupo distinguió las consecuencias comprobables de los escenarios hipotéticos y acordó criterios más responsables para futuras decisiones.",
+    "Durante una audiencia, un portavoz respondió como si no hubiera ocurrido ningún incidente. Varias personas presentaron documentos que cuestionaban esa afirmación. En lugar de prolongar la confrontación personal, la comisión solicitó una cronología compartida. El contraste permitió debatir hechos concretos sin sustituir el análisis por impresiones.",
+    "La organización reconoció que resultaba lamentable que ciertos informes no hubieran sido accesibles a los afectados. Publicó los documentos omitidos y explicó el proceso de revisión. Sin embargo, los participantes pidieron también garantías sobre la conservación futura de la información, porque una disculpa no reemplaza una mejora institucional.",
+    "Cuando el director anunció nuevas medidas, algunos oyentes interpretaron sus palabras como una promesa inmediata. La secretaria aclaró que se trataba de un plan condicionado a una evaluación. La explicación distinguió entre lo que efectivamente se había decidido y aquello que aún dependería de presupuestos y autorizaciones.",
+    "Un informe crítico señaló que no se había consultado a los residentes ni se habían explicado los criterios de selección. El municipio abrió entonces una nueva audiencia y publicó las actas. Los participantes insistieron en que el procedimiento no era un detalle secundario, sino una condición esencial de legitimidad.",
+    "La propuesta original fue cuestionada por su coste y reformulada después de escuchar argumentos distintos. Los redactores explicaron qué supuestos habían abandonado y cuáles conservaban. Esa transparencia permitió comprender la evolución de la decisión y evitó presentar el nuevo documento como si siempre hubiera sido la única alternativa.",
+    "Los expertos explicaron los daños previsibles de no actuar, de ahí que consideraran imprescindible una evaluación adicional. Una asociación pidió que también se estimaran los efectos de cada intervención propuesta. La comisión aceptó incorporar esas preguntas y pospuso la votación hasta disponer de indicadores más completos.",
+    "La comunidad apoyó provisionalmente el proyecto a condición de que se cumplieran garantías verificables. Los responsables establecieron un calendario y publicaron quién debía informar sobre cada fase. El acuerdo no eliminó los desacuerdos, pero transformó las exigencias generales en compromisos que podían supervisarse.",
+    "Un comité independiente examinó los riesgos antes de autorizar las pruebas. Algunos resultados parecían favorables, aunque todavía no se había comprobado su estabilidad. El informe recomendó una aplicación gradual y mecanismos de revisión, subrayando que la urgencia por innovar no exime de justificar cada decisión.",
+    "La propuesta quedó condicionada por los datos más recientes y por la necesidad de proteger a grupos vulnerables. Dos especialistas defendieron prioridades diferentes y explicaron qué riesgos aceptarían. La comisión comparó ambas posiciones y elaboró un acuerdo que reconocía los límites de sus previsiones.",
+    "Los técnicos explicaron que habrían terminado la revisión antes del siguiente trimestre si no aparecían problemas imprevistos. Sin embargo, advirtieron que una fecha estimada no debía confundirse con una garantía. La institución publicó las condiciones de la previsión para que los interesados pudieran interpretarla correctamente.",
+    "Una investigadora lamentó que el informe no hubiera estado disponible antes de la reunión. Sus colegas debatieron si la demora había afectado las decisiones y qué mecanismos podían evitarla. Acordaron publicar versiones provisionales identificadas con claridad para no confundir datos en revisión con resultados definitivos.",
+    "Los redactores reformularon las conclusiones de modo que nadie interpretara los resultados como afirmaciones universales. Añadieron ejemplos sobre las diferencias regionales y aclararon el tamaño de la muestra. Aquella precisión hizo el texto más extenso, pero también permitió que los lectores identificaran qué situaciones quedaban fuera del estudio.",
+    "Concluido el análisis técnico, comenzó un debate sobre sus implicaciones económicas y sociales. Un especialista recordó que los cálculos no determinaban por sí solos qué decisión era justa. La comisión escuchó perspectivas diferentes antes de formular recomendaciones, evitando convertir una metodología útil en una respuesta política automática.",
+    "En cuanto se confirmó la nueva previsión, el ayuntamiento publicó los datos y explicó el margen de error. Algunas personas reclamaron decisiones inmediatas; otras pidieron una segunda revisión. Los responsables acordaron medidas preventivas reversibles mientras continuaba la evaluación, porque la incertidumbre también requiere criterios de actuación.",
+    "El equipo anunció que mantendría sus conclusiones salvo que aparecieran pruebas capaces de modificarlas. Para facilitar esa posibilidad, dejó disponibles los procedimientos de análisis. Otros investigadores pudieron reproducir algunas observaciones y señalar discrepancias que merecían una revisión sin descalificar el trabajo previo.",
+    "La inversión parecía viable; eso sí, exigía recursos de mantenimiento que no figuraban en el resumen inicial. Una responsable financiera solicitó un análisis de costes a largo plazo. La revisión permitió comparar alternativas que parecían equivalentes en el corto plazo, pero presentaban consecuencias muy diferentes.",
+    "La conclusión del comité resultaba defendible, aunque requería matices sobre la incertidumbre de las mediciones. Los especialistas introdujeron una explicación de los supuestos utilizados y de sus efectos. El informe final no descartó la propuesta, sino que estableció condiciones concretas para revisarla cuando hubiera nueva información.",
+  ];
+
   static List<String> reading(SpanishC1Lesson lesson){
     final n=wordsOf(lesson,SpanishWordKind.noun);
     final v=wordsOf(lesson,SpanishWordKind.verb);
@@ -147,27 +181,24 @@ abstract final class SpanishC1Course {
       'condiciones justificarían una revisión futura. '
       'Así, el relato terminó sin confundir prudencia con indecisión '
       'ni el desacuerdo razonado con una falta de respeto.',
+      _originalAfterwords[(lesson.unit-1)*10+lesson.number-1],
     ];
   }
   static List<String> conversation(SpanishC1Lesson lesson){
     final n=wordsOf(lesson,SpanishWordKind.noun);
-    final v=wordsOf(lesson,SpanishWordKind.verb);
-    final a=wordsOf(lesson,SpanishWordKind.adjective);
-    final d=wordsOf(lesson,SpanishWordKind.adverb);
+    final opening=lesson.story.first.split('.').first.trim();
     return <String>[
-      'Editora: ¿Hasta qué punto la «${n[0].es}» fundamenta '
-          'la interpretación de «${lesson.title}»?',
-      'Investigador: Debemos examinar también la «${n[1].es}», '
-          'porque un relato ${a[0].es} puede ocultar otras perspectivas.',
-      'Editora: ¿Qué evidencia refutaría tu hipótesis?',
-      'Investigador: Antes de decidir, habría que ${v[0].es} '
-          'los testimonios ${d[0].es}.',
-      'Editora: ¿Y si el segundo argumento resultara ${a[1].es}?',
-      'Investigador: Procuraría ${v[1].es} las interpretaciones '
-          '${d[1].es}, sin ignorar sus contradicciones.',
-      'Editora: Formula una conclusión que reconozca los límites.',
-      'Investigador: La aceptaría provisionalmente y señalaría '
-          'qué nueva información podría obligarnos a revisarla.',
+      'Editora: ¿Qué interpretación propondrías para «${lesson.title}»?',
+      'Investigador: Partiría de este hecho del relato: $opening.',
+      'Editora: ¿Qué prueba podría hacerte reconsiderar esa lectura?',
+      'Investigador: Mi hipótesis puede formularse así: '
+          '«${lesson.grammarExamples.first}»',
+      'Editora: ¿Qué entiendes por «${n.first.es}» y cómo lo definirías?',
+      'Investigador: Precisaría su significado en el contexto de las fuentes '
+          'y admitiría las interpretaciones alternativas.',
+      'Editora: ¿Podrías matizar la conclusión utilizando la estructura de hoy?',
+      'Investigador: «${lesson.grammarExamples[1]}». '
+          'No obstante, exigiría datos adicionales para corroborarlo.',
     ];
   }
   static String podcast(SpanishC1Lesson lesson){
@@ -181,7 +212,7 @@ abstract final class SpanishC1Course {
       return 'Diez $label: ${wordsOf(lesson,kind).map((w)=>w.es).join(', ')}. ';
     }).join();
     return 'Bienvenidos al seminario oral de WorldVoice, español ${lesson.level}. '
-      'El tema de hoy es ${lesson.title}. ${lesson.story.join(' ')} '
+      'El tema de hoy es ${lesson.title}. ${reading(lesson).join(' ')} '
       'No basta con recordar los datos. Analiza la relación entre '
       'las fuentes, los supuestos y las consecuencias, y formula '
       'una objeción fundamentada antes de concluir. '

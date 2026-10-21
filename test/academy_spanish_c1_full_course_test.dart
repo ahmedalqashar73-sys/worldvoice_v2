@@ -43,6 +43,15 @@ void main() {
     expect(rules,hasLength(30));
   });
 
+  test('C1 has thirty independent advanced post-story analyses', (){
+    final pages=SpanishC1Course.lessons.map((lesson)=>
+        SpanishC1Course.reading(lesson).last).toList();
+    expect(pages,hasLength(30));
+    expect(pages.toSet(),hasLength(30));
+    expect(pages.every((paragraph)=>
+        paragraph.split(RegExp(r'\s+')).length>35),isTrue);
+  });
+
   test('Every C1 lesson has forty balanced bilingual words reused in materials', (){
     for(final lesson in SpanishC1Course.lessons){
       final words=lesson.words;
@@ -54,7 +63,8 @@ void main() {
         expect(words.where((w)=>w.kind==kind),hasLength(10),reason:lesson.id);
       }
       final reading=SpanishC1Course.reading(lesson);
-      expect(reading,hasLength(7));
+      expect(reading,hasLength(8));
+      expect(reading.last.split(RegExp(r'\s+')).length,greaterThan(35));
       expect(reading.first,lesson.story.first);
       expect(reading.skip(lesson.story.length).join(' ').toLowerCase(),
           contains(words.first.es.toLowerCase()));
