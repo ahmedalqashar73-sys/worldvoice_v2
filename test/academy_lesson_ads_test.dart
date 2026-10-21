@@ -5,49 +5,113 @@ import 'package:worldvoice/core/ads/academy_lesson_ads.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  setUp(() {
-    SharedPreferences.setMockInitialValues(<String, Object>{});
+  setUp(() => SharedPreferences.setMockInitialValues(<String, Object>{}));
+
+  test('Three NEW free lessons per local day; fourth denied', () async {
+    const uid = 'free-learner';
+    final today = DateTime(2026, 10, 21, 13, 0);
+    for (var i = 1; i <= 3; i++) {
+      expect(
+        await AcademyDailyLessonQuota.admit(uid, 'es.A1.u1.l$i', now: today),
+        AcademyDailyAccess.newLesson,
+      );
+    }
+    expect(
+      await AcademyDailyLessonQuota.admit(uid, 'es.A1.u1.l4', now: today),
+      AcademyDailyAccess.limitReached,
+    );
+    expect((await AcademyDailyLessonQuota.openedLessons(uid, now: today)).length,
+        3);
   });
 
-  test('One interstitial opportunity every three free lesson openings', () async {
-    const student = 'free-learner';
-    expect(await AcademyAdFrequency.countFreeLessonVisit(student), false);
-    expect(await AcademyAdFrequency.countFreeLessonVisit(student), false);
-    expect(await AcademyAdFrequency.countFreeLessonVisit(student), true);
-    expect(await AcademyAdFrequency.countFreeLessonVisit(student), false);
-    expect(await AcademyAdFrequency.countFreeLessonVisit(student), false);
-    expect(await AcademyAdFrequency.countFreeLessonVisit(student), true);
-  });
-
-  test('English and Spanish share one cadence, not a counter per stage', () async {
-    const student = 'multi-language-learner';
-    // These calls represent Spanish A1, English B2 and Spanish C1
-    // lesson openings. Opening a story or vocabulary card never
-    // invokes the visit counter from the unit's navigation.
-    final spanishA1 = await AcademyAdFrequency.countFreeLessonVisit(student);
-    final englishB2 = await AcademyAdFrequency.countFreeLessonVisit(student);
-    final spanishC1 = await AcademyAdFrequency.countFreeLessonVisit(student);
-    expect(<bool>[spanishA1, englishB2, spanishC1],
-        <bool>[false, false, true]);
-  });
-
-  test('Frequency does not mix accounts and survives preference reads',
+  test('Reopening a started lesson does not consume the daily allocation',
       () async {
-    expect(await AcademyAdFrequency.countFreeLessonVisit('first'), false);
-    expect(await AcademyAdFrequency.countFreeLessonVisit('first'), false);
-    expect(await AcademyAdFrequency.countFreeLessonVisit('second'), false);
-    final prefs = await SharedPreferences.getInstance();
-    expect(prefs.getInt(AcademyAdFrequency.storageKey('first')), 2);
-    expect(prefs.getInt(AcademyAdFrequency.storageKey('second')), 1);
-    expect(await AcademyAdFrequency.countFreeLessonVisit('first'), true);
-    expect(prefs.getInt(AcademyAdFrequency.storageKey('first')), 0);
-    expect(prefs.getInt(AcademyAdFrequency.storageKey('second')), 1);
+    final today = DateTime(2026, 10, 21, 9, 0);
+    const uid = 'free-learner';
+    expect(await AcademyDailyLessonQuota.admit(uid, 'en.A1.l1', now: today),
+        AcademyDailyAccess.newLesson);
+    expect(await AcademyDailyLessonQuota.admit(uid, 'en.A1.l1', now: today),
+        AcademyDailyAccess.alreadyStarted);
+    expect(await AcademyDailyLessonQuota.admit(uid, 'es.B2.l7', now: today),
+        AcademyDailyAccess.newLesson);
+    expect(await AcademyDailyLessonQuota.admit(uid, 'es.C1.l9', now: today),
+        AcademyDailyAccess.newLesson);
+    expect(await AcademyDailyLessonQuota.admit(uid, 'en.A1.l1', now: today),
+        AcademyDailyAccess.alreadyStarted);
+    expect(await AcademyDailyLessonQuota.admit(uid, 'es.C2.l5', now: today),
+        AcademyDailyAccess.limitReached);
   });
 
-  test('Anonymous students do not receive counted ad impressions',
+  test('Daily quota resets after midnight, not three days after first lesson',
       () async {
-    expect(await AcademyAdFrequency.countFreeLessonVisit(''), false);
-    final prefs = await SharedPreferences.getInstance();
-    expect(prefs.getKeys(), isEmpty);
+    const uid = 'student';
+    final today = DateTime(2026, 10, 21, 23, 55);
+    final tomorrow = DateTime(2026, 10, 22, 0, 1);
+    for (var i = 1; i <= 3; i++) {
+      expect(await AcademyDailyLessonQuota.admit(
+          uid, 'spanish.A1.lesson$i', now: today),
+        AcademyDailyAccess.newLesson);
+    }
+    expect(await AcademyDailyLessonQuota.admit(
+        uid, 'spanish.A1.lesson4', now: today),
+        AcademyDailyAccess.limitReached);
+    expect(await AcademyDailyLessonQuota.admit(
+        uid, 'spanish.A1.lesson4', now: tomorrow),
+        AcademyDailyAccess.newLesson);
+    expect(await AcademyDailyLessonQuota.openedLessons(uid, now: tomorrow),
+      <String>['spanish.A1.lesson4']);
+  });
+
+  test('Different students and English/Spanish use isolated unified quota',
+      () async {
+    final today = DateTime(2026, 10, 21, 11);
+    expect(await AcademyDailyLessonQuota.admit('alice', 'en.A1.1',
+        now: today), AcademyDailyAccess.newLesson);
+    expect(await AcademyDailyLessonQuota.admit('alice', 'es.A1.1',
+        now: today), AcademyDailyAccess.newLesson);
+    expect(await AcademyDailyLessonQuota.admit('alice', 'es.C2.5',
+        now: today), AcademyDailyAccess.newLesson);
+    expect(await AcademyDailyLessonQuota.admit('alice', 'en.B1.2',
+        now: today), AcademyDailyAccess.limitReached);
+    expect(await AcademyDailyLessonQuota.admit('bob', 'en.B1.2',
+        now: today), AcademyDailyAccess.newLesson);
+  });
+
+  test('Concurrent taps do not allow more than three new lessons', () async {
+    final day = DateTime(2026, 10, 21, 12);
+    final entries = await Future.wait(List<Future<AcademyDailyAccess>>.generate(
+      7, (i) => AcademyDailyLessonQuota.admit(
+        'double-tap', 'lesson$i', now: day)));
+    expect(entries.where((e) => e == AcademyDailyAccess.newLesson).length, 3);
+    expect(entries.where((e) => e == AcademyDailyAccess.limitReached).length, 4);
+  });
+
+  test('One app-open opportunity per three cold starts, separate from lessons',
+      () async {
+    const student = 'active-student';
+    expect(await AcademyAppOpenFrequency.registerLaunch(student), false);
+    expect(await AcademyAppOpenFrequency.registerLaunch(student), false);
+    expect(await AcademyAppOpenFrequency.registerLaunch(student), true);
+    expect(await AcademyAppOpenFrequency.registerLaunch(student), false);
+    expect(await AcademyAppOpenFrequency.registerLaunch(student), false);
+    expect(await AcademyAppOpenFrequency.registerLaunch(student), true);
+  });
+
+  test('App-open frequency keeps its own account scope', () async {
+    expect(await AcademyAppOpenFrequency.registerLaunch('alice'), false);
+    expect(await AcademyAppOpenFrequency.registerLaunch('alice'), false);
+    expect(await AcademyAppOpenFrequency.registerLaunch('bob'), false);
+    expect(await AcademyAppOpenFrequency.registerLaunch('alice'), true);
+    expect(await AcademyAppOpenFrequency.registerLaunch('bob'), false);
+    expect(await AcademyAppOpenFrequency.registerLaunch('bob'), true);
+  });
+
+  test('Empty user and lesson IDs are not admissible into daily quota',
+      () async {
+    await expectLater(
+      AcademyDailyLessonQuota.admit('', 'es.A1.u1.l1'), throwsArgumentError);
+    await expectLater(
+      AcademyDailyLessonQuota.admit('u', ''), throwsArgumentError);
+    expect(await AcademyAppOpenFrequency.registerLaunch(''), false);
   });
 }
