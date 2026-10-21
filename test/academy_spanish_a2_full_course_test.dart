@@ -124,6 +124,13 @@ void main() {
     await tester.pumpWidget(MaterialApp(
       home: AcademySpanishA1LessonScreen(lesson: lesson, level: 'A2')));
     await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('spanish-lesson-section-menu')), findsOneWidget);
+    expect(find.text(lesson.grammar), findsNothing);
+    expect(find.byKey(const ValueKey('spanish-grammar-check')), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('spanish-section-0')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('spanish-lesson-section-detail-0')), findsOneWidget);
+    expect(find.byKey(const ValueKey('spanish-section-back')), findsOneWidget);
     expect(find.text(lesson.grammar), findsOneWidget);
     expect(find.byKey(const ValueKey('spanish-a2-finish')), findsNothing);
     final right = find.byKey(const ValueKey('spanish-grammar-option-1'));
@@ -138,7 +145,14 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(check);
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('spanish-vocabulary-next')),
-        findsOneWidget);
+    expect(find.byKey(const ValueKey('spanish-lesson-section-menu')), findsOneWidget);
+    expect(find.byKey(const ValueKey('spanish-grammar-check')), findsNothing);
+    expect(find.byKey(const ValueKey('spanish-vocabulary-next')), findsNothing);
+    expect(find.byKey(const ValueKey('spanish-section-1')), findsOneWidget);
+    await tester.ensureVisible(find.byKey(const ValueKey('spanish-section-1')));
+    await tester.tap(find.byKey(const ValueKey('spanish-section-1')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('spanish-lesson-section-detail-1')), findsOneWidget);
+    expect(find.byKey(const ValueKey('spanish-vocabulary-next')), findsOneWidget);
   });
 }
