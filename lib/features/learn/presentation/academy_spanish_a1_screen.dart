@@ -461,7 +461,9 @@ class _AcademySpanishA1LessonScreenState
 
   Widget _grammar() {
     final item = widget.lesson;
-    final examples = item.grammarExamples;
+    final examples = widget.level == 'A2'
+        ? SpanishA2Course.grammarExamplesFor(item as SpanishA2Lesson)
+        : item.grammarExamples;
     final choices = widget.level == 'C2'
         ? SpanishC2Course.grammarOptions(widget.lesson as SpanishC2Lesson)
         : widget.level == 'C1'
