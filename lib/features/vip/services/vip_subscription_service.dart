@@ -49,7 +49,9 @@ class VipSubscriptionService extends ChangeNotifier {
         : RoomBackendConfig.economyBaseUrl.trim();
     final uri = Uri.tryParse(raw);
     if (uri == null || uri.scheme != 'https' || !uri.hasAuthority ||
-        uri.userInfo.isNotEmpty || uri.hasQuery || uri.hasFragment) return '';
+        uri.userInfo.isNotEmpty || uri.hasQuery || uri.hasFragment) {
+      return '';
+    }
     return raw.endsWith('/') ? raw.substring(0, raw.length - 1) : raw;
   }
 
