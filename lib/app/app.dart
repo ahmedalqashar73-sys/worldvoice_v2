@@ -142,7 +142,7 @@ class _StartupGate extends StatelessWidget {
             final data = profileSnapshot.data!.data();
             if (AuthService.hasCompletedProfileData(data)) {
               return _AcademyHomeLaunchGate(
-                key: ValueKey('academy-app-launch-' + user.uid),
+                key: ValueKey('academy-app-launch-${user.uid}'),
                 uid: user.uid,
                 isVip: data?['isVip'] == true,
                 localeController: localeController,
