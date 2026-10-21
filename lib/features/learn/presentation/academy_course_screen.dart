@@ -670,7 +670,13 @@ class _AcademySectionListState extends State<_AcademySectionList> {
                           : Icons.chevron_right_rounded),
                       onTap: () async {
                         final uid = FirebaseAuth.instance.currentUser?.uid;
-                        await AcademyLessonAdGate.beforeLesson(uid: uid);
+                        if (!await AcademyLessonAdGate.beforeLesson(context,
+                          uid: uid,
+                          lessonId: widget.course.code + '.' +
+                              unit.lessonId(widget.kind),
+                          isReview: completed.contains(unit.lessonId(widget.kind)))) {
+                          return;
+                        }
                         if (!context.mounted) return;
                         await Navigator.of(context).push<void>(
                           MaterialPageRoute(builder: (_) => AcademyLessonScreen(
