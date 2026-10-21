@@ -44,6 +44,14 @@ void main() {
     expect(rules,hasLength(30));
   });
 
+  test('C2 has thirty distinct extended afterwords', (){
+    final endings=SpanishC2Course.lessons.map((lesson)=>
+        SpanishC2Course.reading(lesson).last).toList();
+    expect(endings,hasLength(30));
+    expect(endings.toSet(),hasLength(30));
+    expect(endings.every((p)=>p.split(RegExp(r'\s+')).length>35),isTrue);
+  });
+
   test('Every C2 lesson has forty balanced bilingual words reused in materials', (){
     for(final lesson in SpanishC2Course.lessons){
       final words=lesson.words;
@@ -55,7 +63,8 @@ void main() {
         expect(words.where((w)=>w.kind==kind),hasLength(10),reason:lesson.id);
       }
       final reading=SpanishC2Course.reading(lesson);
-      expect(reading,hasLength(8));
+      expect(reading,hasLength(9));
+      expect(reading.last.split(RegExp(r'\s+')).length,greaterThan(35));
       expect(reading.first,lesson.story.first);
       expect(reading.skip(lesson.story.length).join(' ').toLowerCase(),
           contains(words.first.es.toLowerCase()));
