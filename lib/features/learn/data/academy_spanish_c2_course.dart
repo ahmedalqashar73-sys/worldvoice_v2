@@ -120,6 +120,41 @@ abstract final class SpanishC2Course {
 
   /// The original six paragraphs stay intact; two advanced analytic
   /// pages provide evidence-based interpretation and vocabulary transfer.
+  /// Thirty unique C2 afterwords for rhetorical precision, source
+  /// evaluation and mature argumentation.
+  static const _originalAfterwords=<String>[
+    "Durante el interrogatorio, el experto insistió en que su negativa no invalidaba necesariamente las pruebas documentales. Los investigadores separaron las contradicciones de su declaración de los indicios verificables. Aun cuando el testigo hubiera rechazado toda responsabilidad, el análisis debía reconocer los límites de cada fuente y evitar convertir una discrepancia en condena anticipada.",
+    "Por más que las partes insistieran en una interpretación única, los documentos permitían lecturas parcialmente distintas. La mediadora rechazó presentar esa pluralidad como un fracaso. Propuso un procedimiento que identificara acuerdos concretos y desacuerdos pendientes, de manera que las decisiones pudieran justificarse sin forzar un consenso artificial.",
+    "Ni siquiera si apareciera un documento nuevo resultaría legítimo descartar automáticamente los testimonios anteriores. Una archivista recordó que la autenticidad, la fecha y el contexto debían comprobarse por separado. El comité acordó evaluar cualquier hallazgo según criterios públicos, evitando que la novedad por sí sola determinara el valor de la prueba.",
+    "La institución detectó inconsistencias entre dos informes que se consideraban definitivos. De ahí que exigiera una revisión metodológica independiente antes de anunciar nuevas conclusiones. Varios especialistas cuestionaron también el lenguaje de los resúmenes: una expresión tajante podía ocultar un margen de incertidumbre que los datos originales reconocían explícitamente.",
+    "El portavoz narró los acontecimientos como si hubiera presenciado cada conversación, aunque su participación había comenzado mucho después. Los periodistas contrastaron su relato con actas y grabaciones. No pretendían invalidar su perspectiva, sino establecer qué afirmaciones provenían de una experiencia directa y cuáles eran interpretaciones elaboradas posteriormente.",
+    "Examinadas las fuentes, la comisión advirtió que varios documentos compartían una misma procedencia y no constituían confirmaciones independientes. El informe final explicó por qué la acumulación de referencias no equivale siempre a una mayor solidez. Se recomendó ampliar la búsqueda antes de presentar como corroborada una hipótesis todavía dependiente de un único testimonio.",
+    "La obra cuya autoría se discutía había pasado por varias colecciones antes de llegar al museo. Una historiadora reconstruyó su recorrido y señaló vacíos importantes en los registros de propiedad. El comité decidió incorporar esas dudas a la exposición para que los visitantes entendieran la diferencia entre atribución artística y procedencia documentada.",
+    "De haber conocido las condiciones del acuerdo, varios participantes habrían solicitado garantías adicionales antes de aprobarlo. El análisis posterior no podía modificar el pasado, pero sí explicar cómo se habían distribuido las responsabilidades. La comisión propuso reglas de comunicación que permitieran detectar contradicciones antes de que produjeran consecuencias irreversibles.",
+    "Una revisión externa concluyó que el problema no había sido un cálculo equivocado, sino la omisión consciente de una condición relevante. La distinción modificó el debate sobre la responsabilidad institucional. Los redactores eligieron términos precisos y documentaron su razonamiento para evitar que una formulación ambigua sustituyera la evaluación de los hechos.",
+    "Sea cual sea la interpretación finalmente aceptada, la institución deberá conservar las fuentes y explicar sus criterios de selección. El grupo de expertos sostuvo que la transparencia metodológica no garantiza unanimidad, pero hace posible una crítica informada. Acordaron publicar las objeciones recibidas junto a la respuesta razonada de los investigadores.",
+    "Mal que les pesara a quienes preferían un cierre inmediato, la audiencia debía continuar mientras quedaran alegaciones relevantes. Un representante defendió que escuchar críticas no debilita por sí solo la legitimidad de un procedimiento. La comisión fijó plazos proporcionales para evitar que la deliberación se convirtiera, a su vez, en una excusa para no decidir.",
+    "Sea como fuere, el desacuerdo sobre los antecedentes no impedía establecer garantías para el futuro. Las partes identificaron las condiciones mínimas que podían verificar de manera independiente. El documento resultante reconoció explícitamente las controversias irresueltas y distinguió los compromisos efectivos de las aspiraciones que todavía requerían negociación.",
+    "La asociación aceptó colaborar con la nueva propuesta con tal de que se respetaran los derechos de las personas implicadas. Un abogado pidió que las garantías no quedaran reducidas a una fórmula ceremonial. Se definieron mecanismos de reclamación y criterios de evaluación, de manera que la protección pudiera demostrarse mediante procedimientos concretos.",
+    "El consejo aprobó el programa a condición de que toda modificación relevante quedara documentada. Los responsables precisaron quién tenía autoridad para introducir cambios y cómo debían comunicarlos. Esa estructura no eliminó la necesidad de juicio humano, pero redujo la posibilidad de justificar decisiones arbitrarias mediante instrucciones ambiguas.",
+    "No es que los participantes carecieran de argumentos; más bien discrepaban sobre los criterios con que debían valorarse. Una mediadora reorganizó la discusión para examinar primero las premisas compartidas. La conversación avanzó cuando se dejó de presentar toda objeción como una resistencia personal al cambio.",
+    "Lejos de resolver el conflicto, la primera declaración institucional había añadido interpretaciones incompatibles. El segundo comunicado reconoció expresamente esas limitaciones y ofreció acceso a los documentos pertinentes. Aunque la rectificación no borró el problema inicial, creó mejores condiciones para un debate centrado en hechos contrastables.",
+    "El equipo conservó una copia adicional por si acaso se producía un fallo durante la migración informática. La decisión parecía redundante hasta que una interrupción afectó a parte del sistema principal. Tras recuperar los archivos, los técnicos explicaron por qué una medida preventiva debe evaluarse también a la luz de riesgos poco frecuentes.",
+    "Concedido que existiera un desacuerdo legítimo sobre las prioridades, seguía siendo necesario justificar la distribución de recursos. La comisión comparó propuestas desde distintos criterios y publicó las razones de su decisión. Evitó convertir una discrepancia razonable en una falsa oposición entre responsabilidad económica y justicia social.",
+    "En virtud de las pruebas examinadas, el comité mantuvo una conclusión provisional y solicitó una evaluación posterior. El texto definitivo detalló el alcance de su mandato y distinguió las obligaciones legales de las recomendaciones técnicas. Esa precisión evitó atribuir al informe facultades que sus autores nunca habían tenido.",
+    "Los responsables siguieron adelante a sabiendas de que el calendario previsto podía resultar insuficiente. Cuando surgieron dificultades, tuvieron que explicar por qué habían aceptado aquel riesgo. La evaluación posterior recomendó fijar márgenes más realistas y documentar las advertencias internas para que la memoria institucional no dependiera de relatos retrospectivos.",
+    "Una investigadora planteó que el técnico habría interpretado mal los resultados al utilizar una referencia estadística distinta. Sus colegas examinaron las instrucciones y compararon los cálculos originales. El informe no convirtió la conjetura en acusación: explicó qué hipótesis encajaban con los datos y cuáles requerían una comprobación adicional.",
+    "Un informe preliminar sugería que los autores habrían omitido una variable importante al construir el modelo. Antes de difundir la conclusión, los revisores reprodujeron el análisis con diferentes supuestos. Descubrieron que la variable afectaba a algunas predicciones, pero no a todas, y publicaron una corrección suficientemente matizada.",
+    "Resultaba insostenible que se hubiera descartado una alternativa sin explicar los criterios de evaluación. La comisión reabrió el expediente y solicitó una comparación verificable de costes, riesgos y beneficios. El nuevo procedimiento permitió debatir las opciones sin fingir que la complejidad de la elección desaparecía mediante una votación.",
+    "De no haber existido el control independiente, un error habría podido propagarse por varias etapas del proyecto. Los responsables reconstruyeron la secuencia y delimitaron las consecuencias verificables. El análisis contrafactual sirvió para mejorar la prevención, pero no se presentó como prueba de acontecimientos que nunca llegaron a producirse.",
+    "Los conservadores duplicaron los registros, no fuera a ser que una avería destruyera material irremplazable. Algunas personas cuestionaron el coste de aquella decisión hasta conocer los antecedentes técnicos. La institución publicó un análisis de riesgos que permitía comparar la prevención con los posibles daños de una pérdida irreversible.",
+    "Cualquiera que sea el enfoque escogido, la evaluación deberá definir qué entiende por éxito y qué información necesita. Dos equipos defendieron métodos diferentes, aunque coincidieron en compartir los datos fundamentales. La dirección aceptó permitir comparaciones abiertas para que la elección final no dependiera únicamente de preferencias institucionales.",
+    "El hecho de que una tendencia aparezca repetidamente no implica que exista una relación causal entre todas las variables observadas. Los investigadores introdujeron controles adicionales y examinaron explicaciones alternativas. El artículo final explicó de forma accesible por qué una coincidencia estadística puede resultar relevante sin constituir una demostración definitiva.",
+    "El laboratorio llevaba analizadas veinte muestras cuando surgió una discrepancia entre instrumentos. Una técnica suspendió el procedimiento y revisó la calibración antes de continuar. Los responsables optaron por comunicar la incidencia, porque el número de mediciones completadas no justificaba ocultar un problema que podía afectar a su interpretación.",
+    "El nuevo resultado no confirmaba todas las hipótesis iniciales; no por ello dejaba de ser pertinente para comprender el fenómeno. Los investigadores discutieron qué preguntas seguían abiertas y cuáles debían reformularse. El debate permitió reconocer el valor de una prueba limitada sin exagerar su alcance explicativo.",
+    "En definitiva, la propuesta ofrecía ventajas sustanciales; con todo, convenía matizar las conclusiones sobre su viabilidad general. El informe distinguió entre contextos en los que existían garantías suficientes y situaciones que exigían más investigación. Su principal aporte fue formular criterios revisables en vez de presentar una solución incondicional.",
+  ];
+
   static List<String> reading(SpanishC2Lesson lesson){
     final n=wordsOf(lesson,SpanishWordKind.noun);
     final v=wordsOf(lesson,SpanishWordKind.verb);
@@ -147,27 +182,24 @@ abstract final class SpanishC2Course {
       'condiciones justificarían una revisión futura. '
       'Así, el relato terminó sin confundir prudencia con indecisión '
       'ni el desacuerdo razonado con una falta de respeto.',
+      _originalAfterwords[(lesson.unit-1)*10+lesson.number-1],
     ];
   }
   static List<String> conversation(SpanishC2Lesson lesson){
-    final n=wordsOf(lesson,SpanishWordKind.noun);
-    final v=wordsOf(lesson,SpanishWordKind.verb);
-    final a=wordsOf(lesson,SpanishWordKind.adjective);
-    final d=wordsOf(lesson,SpanishWordKind.adverb);
+    final terms=wordsOf(lesson,SpanishWordKind.noun);
+    final opening=lesson.story.first.split('.').first.trim();
     return <String>[
-      'Editora: ¿Hasta qué punto la «${n[0].es}» fundamenta '
-          'la interpretación de «${lesson.title}»?',
-      'Investigador: Debemos examinar también la «${n[1].es}», '
-          'porque un relato ${a[0].es} puede ocultar otras perspectivas.',
-      'Editora: ¿Qué evidencia refutaría tu hipótesis?',
-      'Investigador: Antes de decidir, habría que ${v[0].es} '
-          'los testimonios ${d[0].es}.',
-      'Editora: ¿Y si el segundo argumento resultara ${a[1].es}?',
-      'Investigador: Procuraría ${v[1].es} las interpretaciones '
-          '${d[1].es}, sin ignorar sus contradicciones.',
-      'Editora: Formula una conclusión que reconozca los límites.',
-      'Investigador: La aceptaría provisionalmente y señalaría '
-          'qué nueva información podría obligarnos a revisarla.',
+      'Investigadora: ¿Hasta qué punto defenderías la interpretación de '
+          '«${lesson.title}»?',
+      'Editora: En primer lugar, distinguiría el hecho documentado: $opening.',
+      'Investigadora: ¿Qué objeción considerarías suficientemente sólida?',
+      'Editora: Podría formularse así: «${lesson.grammarExamples.first}»',
+      'Investigadora: ¿En qué sentido utilizas el término «${terms.first.es}»?',
+      'Editora: Precisaría su acepción y las condiciones bajo las cuales '
+          'podría resultar problemático generalizarla.',
+      'Investigadora: ¿Cómo cerrarías el debate sin fingir una certeza absoluta?',
+      'Editora: «${lesson.grammarExamples[1]}». '
+          'Con todo, dejaría constancia de las salvedades pertinentes.',
     ];
   }
   static String podcast(SpanishC2Lesson lesson){
@@ -181,7 +213,7 @@ abstract final class SpanishC2Course {
       return 'Diez $label: ${wordsOf(lesson,kind).map((w)=>w.es).join(', ')}. ';
     }).join();
     return 'Bienvenidos al seminario oral de WorldVoice, español ${lesson.level}. '
-      'El tema de hoy es ${lesson.title}. ${lesson.story.join(' ')} '
+      'El tema de hoy es ${lesson.title}. ${reading(lesson).join(' ')} '
       'No basta con recordar los datos. Analiza la relación entre '
       'las fuentes, los supuestos y las consecuencias, y formula '
       'una objeción fundamentada antes de concluir. '
