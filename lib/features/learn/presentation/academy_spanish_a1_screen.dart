@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../../core/ads/academy_lesson_ads.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -188,6 +189,8 @@ class _SpanishUnitScreenState extends State<_SpanishUnitScreen> {
   }
 
   Future<void> _open(SpanishA1Lesson lesson) async {
+    await AcademyLessonAdGate.beforeLesson(uid: _uid);
+    if (!mounted) return;
     await Navigator.of(context).push<void>(MaterialPageRoute(
       builder: (_) => AcademySpanishA1LessonScreen(
         lesson: lesson, level: widget.level)));
