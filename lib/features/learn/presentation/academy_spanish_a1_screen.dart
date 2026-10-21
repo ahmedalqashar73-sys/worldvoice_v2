@@ -799,7 +799,7 @@ class _AcademySpanishA1LessonScreenState
               labelText:_ar?'الكلمة بالإسبانية':'Palabra en español')),
           _primary(_ar?'تحقق من الكلمة':'Comprobar palabra',(){
             String norm(String value)=>value.trim().toLowerCase()
-                .replaceAll(RegExp(r'\\s+'),' ');
+                .replaceAll(RegExp(r'\s+'),' ');
             if(norm(_typedSpanishWord.text)!=norm(spelling[_spellingStep].es)){
               setState(()=>_writingFeedback=_ar?
                   'راجع مفردات الدرس وتحقق من تهجئة الكلمة.':
@@ -836,7 +836,7 @@ class _AcademySpanishA1LessonScreenState
             hintText:_ar?'اكتب بالإسبانية...':'Escribe en español...')),
         _primary(_ar?'راجع الكتابة':'Revisar escritura',(){
           final text=_writtenSpanish.text.trim().toLowerCase();
-          final count=text.isEmpty?0:text.split(RegExp(r'\\s+')).length;
+          final count=text.isEmpty?0:text.split(RegExp(r'\s+')).length;
           final contains=widget.lesson.words.any(
             (w)=>text.contains(w.es.toLowerCase()));
           setState((){
