@@ -25,6 +25,7 @@ import {roomTaskSpec, advanceRoomLevel, roomLevelFromXp} from "./room_task_polic
 import {privateWalletRef, requirePrivateWallet} from "./wallet_store.js";
 import {approvedWorldVoiceGift} from "./gift_catalog.js";
 import {requireRoomTeacherVip, isActiveVipProfile} from "./vip_feature_policy.js";
+import {registerVipSubscriptionRoutes} from "./vip_subscription_routes.js";
 
 const { RtcRole, RtcTokenBuilder } = agoraToken;
 
@@ -2244,6 +2245,13 @@ app.post("/gift/send", async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+});
+
+// The native subscription endpoint is fail-closed until explicitly enabled
+// and store-approved products are configured. Coin checkout stays separate.
+registerVipSubscriptionRoutes({
+  app, db, authenticatedUser, googlePlayAuth, androidPackageName, iosBundleId,
+  appleIapKeyId, appleIapIssuerId, appleIapPrivateKey,
 });
 
 app.post("/iap/verify", async (req, res, next) => {
