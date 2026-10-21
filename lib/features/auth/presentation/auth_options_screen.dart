@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb, TargetPlatform;
 import 'package:flutter/material.dart';
 
 import '../../../core/localization/app_strings.dart';
@@ -84,6 +85,30 @@ class _AuthOptionsScreenState extends State<AuthOptionsScreen> {
           _rtl ? 'تعذر تسجيل الدخول عبر Google. حاول مرة أخرى.' : 'Google sign-in failed. Please try again.',
         );
       }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _apple() async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      await AuthService.signInWithApple();
+      _message(_rtl ? 'تم تسجيل الدخول عبر Apple بنجاح ✓'
+          : 'Signed in with Apple successfully ✓', success: true);
+      await Future<void>.delayed(const Duration(milliseconds: 450));
+      await _openAfterAuth();
+    } on FirebaseAuthException catch (error) {
+      if (error.code == 'canceled' || error.code == 'web-context-cancelled') {
+        return;
+      }
+      _message(_rtl
+          ? 'تعذّر تسجيل الدخول عبر Apple. تأكد من تفعيل الخدمة في إعدادات WorldVoice.'
+          : 'Apple sign-in is unavailable. Check the WorldVoice Apple configuration.');
+    } catch (_) {
+      _message(_rtl ? 'تعذّر تسجيل الدخول عبر Apple. حاول مجددًا.'
+          : 'Apple sign-in failed. Please try again.');
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -220,7 +245,14 @@ class _AuthOptionsScreenState extends State<AuthOptionsScreen> {
               const SizedBox(height: 36),
               _AuthButton(icon: Icons.g_mobiledata_rounded, label: strings.google, onPressed: _busy ? null : _google),
               const SizedBox(height: 12),
-              _AuthButton(icon: Icons.apple_rounded, label: strings.apple, onPressed: () => _message(_rtl ? 'Apple Sign In سيكون متاحًا على iOS.' : 'Apple Sign In will be available on iOS.')),
+              if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) ...[
+                _AuthButton(
+                  icon: Icons.apple_rounded,
+                  label: strings.apple,
+                  onPressed: _busy ? null : _apple,
+                ),
+                const SizedBox(height: 12),
+              ],
               const SizedBox(height: 12),
               _AuthButton(icon: Icons.mail_outline_rounded, label: strings.email, onPressed: _busy ? null : _emailSheet),
               if (_busy) ...[const SizedBox(height: 24), const Center(child: CircularProgressIndicator())],
