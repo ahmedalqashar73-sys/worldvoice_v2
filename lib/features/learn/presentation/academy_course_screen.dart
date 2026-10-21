@@ -672,8 +672,7 @@ class _AcademySectionListState extends State<_AcademySectionList> {
                         final uid = FirebaseAuth.instance.currentUser?.uid;
                         if (!await AcademyLessonAdGate.beforeLesson(context,
                           uid: uid,
-                          lessonId: widget.course.code + '.' +
-                              unit.lessonId(widget.kind),
+                          lessonId: '${widget.course.code}.${unit.lessonId(widget.kind)}',
                           isReview: completed.contains(unit.lessonId(widget.kind)))) {
                           return;
                         }
