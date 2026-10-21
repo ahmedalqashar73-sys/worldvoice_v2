@@ -10,6 +10,16 @@ import 'package:worldvoice/features/learn/presentation/academy_spanish_a1_screen
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  test('Every B1 lesson has a distinct story epilogue connected to its reading',(){
+    final paragraphs=SpanishB1Course.lessons.map((lesson) =>
+        SpanishB1Course.reading(lesson).last).toList();
+    expect(paragraphs,hasLength(30));
+    expect(paragraphs.toSet(),hasLength(30));
+    for(final p in paragraphs){
+      expect(p.split(RegExp(r'\s+')).length,greaterThan(35));
+    }
+  });
+
   test('B1 has three authored units with exactly ten distinct lessons each', () {
     expect(SpanishB1Course.units, hasLength(3));
     expect(SpanishB1Course.lessons, hasLength(30));
@@ -54,9 +64,10 @@ void main() {
         expect(words.where((w)=>w.kind==kind),hasLength(10),reason:lesson.id);
       }
       final reading=SpanishB1Course.reading(lesson);
-      expect(reading,hasLength(6));
+      expect(reading,hasLength(7));
       expect(reading.first,lesson.story.first);
-      expect(reading.last,contains(words.first.es));
+      expect(reading[5],contains(words.first.es));
+      expect(reading.last.split(RegExp(r'\s+')).length,greaterThan(35));
       expect(reading.join(' ').split(RegExp(r'\s+')).length,
         greaterThanOrEqualTo(160),reason:lesson.id);
       final dialogue=SpanishB1Course.conversation(lesson);
