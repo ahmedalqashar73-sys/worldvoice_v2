@@ -29,6 +29,7 @@ import '../services/room_moderation_service.dart';
 import '../services/room_admin_service.dart';
 import '../services/room_quota_service.dart';
 import '../services/room_rewarded_ad_service.dart';
+import '../services/vip_room_features.dart';
 import '../services/room_translation_service.dart';
 import '../services/room_teacher_ai_service.dart';
 import 'room_background_shop_sheet.dart';
@@ -194,6 +195,9 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   Timer? _quotaTimer;
   bool _quotaEnding = false;
   bool _captionsEnabled = false;
+  bool _languageToolsSessionUnlocked = false;
+  bool _languageUnlockBusy = false;
+  bool _teacherAiVipAllowed = false;
   bool _captionListening = false;
   bool _captionTranslationEnabled = false;
   bool _pronunciationTipsEnabled = false;
@@ -259,9 +263,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     _captionService = RoomCaptionService(roomId: widget.channelId);
     _translationService = RoomTranslationService(roomId: widget.channelId);
     _teacherAi = RoomTeacherAiService(roomId: widget.channelId);
-    // Warm the free Render instance while the user enters the room, rather
-    // than waiting for the Teacher AI panel to request its first response.
-    unawaited(_teacherAi.warmUpBackend());
+    // Only an authenticated VIP may start provider-backed room Teacher AI.
+    unawaited(_loadTeacherVipEntitlement());
     // The AI seat is a room participant: connection runs independently
     // of whether its optional details sheet is open.
     _teacherAiReconnectTimer = Timer.periodic(
@@ -741,8 +744,22 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     }
   }
 
+  Future<void> _loadTeacherVipEntitlement() async {
+    final member = await VipRoomFeatures.getMembership();
+    if (!mounted || _leaving) return;
+    _teacherAiVipAllowed = member == true;
+    if (_teacherAiVipAllowed) {
+      unawaited(_teacherAi.warmUpBackend());
+      _ensureTeacherAiActive();
+    } else {
+      _teacherAiConversationActive = false;
+      _teacherAiOnline.value = false;
+    }
+  }
+
   void _ensureTeacherAiActive() {
-    if (!mounted || _leaving || !_showTeacherAiSeat ||
+    if (!_teacherAiVipAllowed ||
+        !mounted || _leaving || !_showTeacherAiSeat ||
         !_controller.joined || !_teacherAi.isAskConfigured ||
         _teacherAiProbeInProgress) {
       return;
@@ -1112,6 +1129,24 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     }
   }
 
+  Future<bool> _unlockLanguageToolsIfNeeded() async {
+    if (_languageToolsSessionUnlocked) return true;
+    if (_languageUnlockBusy || _leaving) return false;
+    _languageUnlockBusy = true;
+    try {
+      final result = await VipRoomFeatures.unlockLanguageTools(
+        context,
+        unlockedForSession: _languageToolsSessionUnlocked,
+        rewardedAds: _rewardedAds,
+      );
+      if (!mounted || _leaving) return false;
+      if (result) _languageToolsSessionUnlocked = true;
+      return result;
+    } finally {
+      _languageUnlockBusy = false;
+    }
+  }
+
   Future<void> _setCaptionsEnabled(bool value) async {
     if (mounted) {
       setState(() {
@@ -1127,6 +1162,9 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   }
 
   Future<void> _showTeacherAiChat() async {
+    if (!await VipRoomFeatures.requireTeacherVip(context)) return;
+    if (!mounted || _leaving) return;
+    _teacherAiVipAllowed = true;
     if (!_showTeacherAiSeat) {
       if (!mounted) return;
       final isArabic =
@@ -1293,10 +1331,17 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
             listening: _captionListening,
             error: _captionError,
             onEnabledChanged: (value) {
-              unawaited(_setCaptionsEnabled(value));
-              refreshSheet();
+              unawaited(() async {
+                if (value && !await _unlockLanguageToolsIfNeeded()) return;
+                if (!mounted) return;
+                await _setCaptionsEnabled(value);
+                if (sheetContext.mounted) refreshSheet();
+              }());
             },
             onTranslationChanged: (value) {
+              unawaited(() async {
+                if (value && !await _unlockLanguageToolsIfNeeded()) return;
+                if (!mounted) return;
               setState(() {
                 _captionTranslationEnabled = value;
                 _latestTranslatedCaption = null;
@@ -1310,7 +1355,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               if (value && latest != null) {
                 unawaited(_translateLatestCaption(latest));
               }
-              refreshSheet();
+              if (sheetContext.mounted) refreshSheet();
+              }());
             },
             onPronunciationChanged: (value) {
               setState(() {
@@ -3307,6 +3353,11 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               value: _showTeacherAiSeat,
               onChanged: (value) async {
                 try {
+                  if (value) {
+                    if (!await VipRoomFeatures.requireTeacherVip(context)) return;
+                    if (!mounted) return;
+                    _teacherAiVipAllowed = true;
+                  }
                   await _moderation.setTeacherAiSeatVisible(value);
                   if (sheet.mounted) Navigator.pop(sheet);
                 } catch (error) {
