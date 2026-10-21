@@ -3,9 +3,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/vip/vip_entitlement.dart';
+import 'presentation/vip_subscription_offers.dart';
 
-/// Membership overview. No checkout button is shown until native subscription
-/// products, receipt verification and restoration are ready for release.
+/// Membership overview and provider-priced subscription offers. Purchase
+/// controls only appear after server and native-store approval.
 class VipMembershipScreen extends StatelessWidget {
   const VipMembershipScreen({super.key, required this.languageCode});
 
@@ -129,12 +130,7 @@ class VipMembershipScreen extends StatelessWidget {
                           : 'Choose to hide your profile visits in Settings',
                     ),
                     const SizedBox(height: 18),
-                    Text(
-                      ar
-                          ? 'الدفع والتجديد التلقائي عبر Google Play وApp Store غير متاحين بعد. سيتم عرض الاشتراكات بعد تفعيل منتجات المتجر والتحقق الآمن من المشتريات.'
-                          : 'Subscriptions and auto-renewal through Google Play and the App Store are not available yet. Purchase options will appear after native products and secure receipt verification are enabled.',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
+                    VipSubscriptionOffers(ar: ar),
                   ],
                 );
               },
