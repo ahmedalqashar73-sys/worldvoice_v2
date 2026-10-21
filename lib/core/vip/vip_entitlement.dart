@@ -5,24 +5,21 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class VipEntitlement {
   const VipEntitlement._();
 
+  static DateTime? expiryDate(Map<String, dynamic>? profile) {
+    final rawExpiry = profile?['vipExpiresAt'];
+    if (rawExpiry is Timestamp) return rawExpiry.toDate();
+    if (rawExpiry is DateTime) return rawExpiry;
+    if (rawExpiry is String) return DateTime.tryParse(rawExpiry);
+    return null;
+  }
+
   static bool isActive(Map<String, dynamic>? profile, {DateTime? now}) {
     if (profile?['isVip'] != true) return false;
 
-    final rawExpiry = profile?['vipExpiresAt'];
     // Legacy/admin grants without an expiry remain supported.
-    if (rawExpiry == null) return true;
+    if (profile?['vipExpiresAt'] == null) return true;
 
-    final DateTime? expiry;
-    if (rawExpiry is Timestamp) {
-      expiry = rawExpiry.toDate();
-    } else if (rawExpiry is DateTime) {
-      expiry = rawExpiry;
-    } else if (rawExpiry is String) {
-      expiry = DateTime.tryParse(rawExpiry);
-    } else {
-      return false; // Fail closed on invalid or unrecognized expiry values.
-    }
-
+    final expiry = expiryDate(profile);
     return expiry != null && expiry.isAfter(now ?? DateTime.now());
   }
 }
