@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:worldvoice/features/learn/data/academy_spanish_a1_course.dart';
+import 'package:worldvoice/features/learn/data/academy_spanish_b1_course.dart';
+import 'package:worldvoice/features/learn/data/academy_spanish_c2_course.dart';
 import 'package:worldvoice/features/learn/data/academy_spanish_lesson_stage_progress.dart';
 import 'package:worldvoice/features/learn/data/academy_spanish_speech_chunks.dart';
 import 'package:worldvoice/features/learn/presentation/academy_spanish_a1_screen.dart';
@@ -88,4 +90,52 @@ void main() {
     expect(find.byKey(const ValueKey('spanish-eight-section-heading')),
       findsOneWidget);
   });
+  for(final (level, lesson, savedStage, contentKey) in <
+      (String, SpanishA1Lesson, int, String)>[
+    ('B1', SpanishB1Course.find(2, 1), 2, 'spanish-story-cover'),
+    ('C2', SpanishC2Course.find(3, 10), 5, 'spanish-pronunciation-next'),
+  ]) {
+    testWidgets('Return to Spanish $level at saved stage $savedStage',
+      (tester) async {
+      SharedPreferences.setMockInitialValues(<String,Object>{});
+      await SpanishLessonStageProgress.save(null,
+        level:level,lessonId:lesson.id,unlockedStage:savedStage);
+      tester.view.physicalSize=const Size(900,1500);
+      tester.view.devicePixelRatio=1;
+      addTearDown((){
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+      await tester.pumpWidget(MaterialApp(home:
+        AcademySpanishA1LessonScreen(level:level,lesson:lesson)));
+      await tester.pumpAndSettle();
+      expect(find.byKey(ValueKey(contentKey)),findsOneWidget);
+      expect(find.byKey(const ValueKey('spanish-stop-audio-global')),
+        findsNothing);
+      expect(find.byKey(ValueKey('spanish-section-$savedStage')),
+        findsOneWidget);
+    });
+  }
+
+  testWidgets('Spanish C2 final section stays available after restart',
+    (tester) async {
+    SharedPreferences.setMockInitialValues(<String,Object>{});
+    final lesson=SpanishC2Course.find(1,1);
+    await SpanishLessonStageProgress.save(null,
+      level:'C2',lessonId:lesson.id,unlockedStage:7);
+    tester.view.physicalSize=const Size(900,1500);
+    tester.view.devicePixelRatio=1;
+    addTearDown((){
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    await tester.pumpWidget(MaterialApp(home:
+      AcademySpanishA1LessonScreen(lesson:lesson,level:'C2')));
+    await tester.pumpAndSettle();
+    final finish=find.byKey(const ValueKey('spanish-c2-finish'));
+    expect(finish,findsOneWidget);
+    final button=tester.widget<FilledButton>(finish);
+    expect(button.onPressed,isNotNull);
+  });
+
 }
