@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import '../../../core/vip/vip_entitlement.dart';
 import '../../rooms/data/room_shop_models.dart';
 import '../../rooms/presentation/room_coin_store_sheet.dart';
-import '../../rooms/services/room_coin_purchase_service.dart';
 import '../../rooms/services/room_shop_service.dart';
 import '../vip_membership_screen.dart';
 import 'worldvoice_vip_badge.dart';
@@ -60,8 +59,8 @@ class _WorldVoiceStoreScreenState extends State<WorldVoiceStoreScreen> {
       builder: (dialogContext) => AlertDialog(
         title: Text(_ar ? 'تأكيد الشراء' : 'Confirm purchase'),
         content: Text(_ar
-            ? 'شراء ' + item.name + ' مقابل ' + item.priceCoins.toString() + ' عملة؟'
-            : 'Buy ' + item.name + ' for ' + item.priceCoins.toString() + ' coins?'),
+            ? 'شراء ${item.name} مقابل ${item.priceCoins} عملة؟'
+            : 'Buy ${item.name} for ${item.priceCoins} coins?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
@@ -373,6 +372,9 @@ class _WorldVoiceStoreScreenState extends State<WorldVoiceStoreScreen> {
             itemBuilder: (context, i) {
               final item = items[i];
               final hasIt = ownedIds.contains(item.id);
+              final durationLabel = item.durationDays == null
+                  ? ''
+                  : ' • ${item.durationDays} ${_ar ? 'يوم' : 'days'}';
               return Card(
                 child: ListTile(
                   leading: Icon(
@@ -382,11 +384,7 @@ class _WorldVoiceStoreScreenState extends State<WorldVoiceStoreScreen> {
                     color: const Color(0xFF148266),
                   ),
                   title: Text(item.name),
-                  subtitle: Text(item.priceCoins.toString() +
-                      (_ar ? ' عملة' : ' coins') +
-                      (item.durationDays == null ? '' :
-                          ' • ' + item.durationDays.toString() +
-                          (_ar ? ' يوم' : ' days'))),
+                  subtitle: Text('${item.priceCoins} ${_ar ? 'عملة' : 'coins'}$durationLabel'),
                   trailing: FilledButton.tonal(
                     onPressed: hasIt || _busy
                         ? null : () => _buy(item),
