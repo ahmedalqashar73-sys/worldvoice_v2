@@ -1750,54 +1750,6 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
   }
 });
 
-/**
- * Equip only a server-purchased, unexpired VIP badge. The equipped badge ID
- * and its expiry are public profile decorations, never client-controlled.
- */
-app.post("/store/equip-badge", async (req, res, next) => {
-  try {
-    const user = await authenticatedUser(req);
-    const badgeId = String(req.body?.badgeId || "").trim();
-    if (badgeId && !/^badge__[A-Za-z0-9_-]{1,80}$/.test(badgeId)) {
-      return res.status(400).json({error: "Invalid VIP badge."});
-    }
-
-    const profileRef = db.collection("users").doc(user.uid);
-    const inventoryRef = badgeId
-      ? profileRef.collection("inventory").doc(badgeId) : null;
-
-    await db.runTransaction(async tx => {
-      const profileSnap = await tx.get(profileRef);
-      if (!profileSnap.exists) {
-        throw Object.assign(new Error("Profile not found."), {status: 404});
-      }
-      if (!badgeId) {
-        tx.update(profileRef, {
-          activeBadgeId: FieldValue.delete(),
-          vipBadgeExpiresAt: FieldValue.delete(),
-        });
-        return;
-      }
-      if (!isActiveVipProfile(profileSnap.data())) {
-        throw Object.assign(new Error("VIP_REQUIRED: Badge use requires active VIP."), {status: 403});
-      }
-      const owned = await tx.get(inventoryRef);
-      const rawExpiry = owned.data()?.expiresAt;
-      const validExpiry = rawExpiry?.toMillis?.() > Date.now();
-      if (!owned.exists || owned.data()?.type !== "badge" || !validExpiry) {
-        throw Object.assign(new Error("Badge not owned or expired."), {status: 403});
-      }
-      tx.update(profileRef, {
-        activeBadgeId: badgeId,
-        vipBadgeExpiresAt: rawExpiry,
-      });
-    });
-    return res.json({ok: true, badgeId});
-  } catch (error) {
-    next(error);
-  }
-});
-
 app.post("/store/claim-reward", async (req, res, next) => {
   try {
     const user = await authenticatedUser(req);
@@ -2327,6 +2279,54 @@ app.post("/iap/verify", async (req, res, next) => {
       coinsAdded: credit.coins,
       alreadyCredited: credit.alreadyCredited,
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * Equip only a server-purchased, unexpired VIP badge. The equipped badge ID
+ * and its expiry are public profile decorations, never client-controlled.
+ */
+app.post("/store/equip-badge", async (req, res, next) => {
+  try {
+    const user = await authenticatedUser(req);
+    const badgeId = String(req.body?.badgeId || "").trim();
+    if (badgeId && !/^badge__[A-Za-z0-9_-]{1,80}$/.test(badgeId)) {
+      return res.status(400).json({error: "Invalid VIP badge."});
+    }
+
+    const profileRef = db.collection("users").doc(user.uid);
+    const inventoryRef = badgeId
+      ? profileRef.collection("inventory").doc(badgeId) : null;
+
+    await db.runTransaction(async tx => {
+      const profileSnap = await tx.get(profileRef);
+      if (!profileSnap.exists) {
+        throw Object.assign(new Error("Profile not found."), {status: 404});
+      }
+      if (!badgeId) {
+        tx.update(profileRef, {
+          activeBadgeId: FieldValue.delete(),
+          vipBadgeExpiresAt: FieldValue.delete(),
+        });
+        return;
+      }
+      if (!isActiveVipProfile(profileSnap.data())) {
+        throw Object.assign(new Error("VIP_REQUIRED: Badge use requires active VIP."), {status: 403});
+      }
+      const owned = await tx.get(inventoryRef);
+      const rawExpiry = owned.data()?.expiresAt;
+      const validExpiry = rawExpiry?.toMillis?.() > Date.now();
+      if (!owned.exists || owned.data()?.type !== "badge" || !validExpiry) {
+        throw Object.assign(new Error("Badge not owned or expired."), {status: 403});
+      }
+      tx.update(profileRef, {
+        activeBadgeId: badgeId,
+        vipBadgeExpiresAt: rawExpiry,
+      });
+    });
+    return res.json({ok: true, badgeId});
   } catch (error) {
     next(error);
   }
