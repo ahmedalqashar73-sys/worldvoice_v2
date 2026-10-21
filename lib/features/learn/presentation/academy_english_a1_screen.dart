@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../../core/ads/academy_lesson_ads.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -235,6 +236,8 @@ class _EnglishA1UnitScreenState extends State<_EnglishA1UnitScreen> {
   }
 
   Future<void> _open(EnglishA1Lesson lesson) async {
+    await AcademyLessonAdGate.beforeLesson(uid: _uid);
+    if (!mounted) return;
     final lessonNumber = widget.unit.lessons.indexOf(lesson) + 1;
     final passed = await Navigator.of(context).push<bool>(MaterialPageRoute(
       builder: (_) => AcademyEnglishA1IntegratedLesson(
