@@ -246,6 +246,7 @@ class _AcademySpanishA1LessonScreenState
   final TextEditingController _writtenSpanish = TextEditingController();
   int _stage = 0;
   int _highestUnlocked = 0;
+  bool _showSectionMenu = true;
   final Set<int> _passed = <int>{};
   int? _choice;
   bool _checked = false;
@@ -277,6 +278,8 @@ class _AcademySpanishA1LessonScreenState
   ];
 
   bool get _ar => Localizations.localeOf(context).languageCode == 'ar';
+  Color get _visibleGreen => Theme.of(context).brightness == Brightness.dark
+      ? const Color(0xFF80D9AF) : _verde;
   String? get _uid {
     try {
       return FirebaseAuth.instance.currentUser?.uid;
@@ -368,6 +371,11 @@ class _AcademySpanishA1LessonScreenState
     }
   }
 
+  void _returnToMenu() {
+    if (_isSpeaking) unawaited(_stopSpeech());
+    setState(() => _showSectionMenu = true);
+  }
+
   void _choose(int next) {
     if (next > _highestUnlocked || next < 0) return;
     if (next != _stage && _isSpeaking) {
@@ -375,6 +383,7 @@ class _AcademySpanishA1LessonScreenState
     }
     setState(() {
       _stage = next;
+      _showSectionMenu = false;
       _choice = null;
       _checked = false;
     });
@@ -388,6 +397,9 @@ class _AcademySpanishA1LessonScreenState
       final next = (_stage + 1).clamp(0, 7);
       if (_highestUnlocked < next) _highestUnlocked = next;
       _stage = next;
+      // Completing a section returns to the lesson's section index;
+      // the learner chooses the next unlocked section explicitly.
+      _showSectionMenu = true;
       _choice = null;
       _checked = false;
       _wordIndex = 0;
@@ -441,8 +453,8 @@ class _AcademySpanishA1LessonScreenState
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Text(_ar ? 'أقسام الدرس الثمانية' : 'Ocho secciones de la lección',
         key: const ValueKey('spanish-eight-section-heading'),
-        style: const TextStyle(fontSize: 23,
-          fontWeight: FontWeight.w900,color: _verde)),
+        style: TextStyle(fontSize: 23,
+          fontWeight: FontWeight.w900,color: _visibleGreen)),
       const SizedBox(height: 5),
       Text(_ar
           ? 'كل هذه الأقسام داخل درس واحد. ابدأ بالقواعد ثم افتح البقية بالترتيب.'
@@ -464,10 +476,10 @@ class _AcademySpanishA1LessonScreenState
               child:Container(padding:const EdgeInsets.all(13),
                 decoration:BoxDecoration(
                   borderRadius:BorderRadius.circular(17),
-                  border:Border.all(color:i==_stage?_verde:scheme.outlineVariant)),
+                  border:Border.all(color:i==_stage?_visibleGreen:scheme.outlineVariant)),
                 child:Row(children:[
-                  CircleAvatar(backgroundColor:scheme.primaryContainer,
-                    child:Icon(_sectionIcons[i],color:_verde)),
+                  CircleAvatar(backgroundColor:_verde.withValues(alpha:.22),
+                    child:Icon(_sectionIcons[i],color:_visibleGreen)),
                   const SizedBox(width:12),
                   Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,
                     children:[
@@ -488,7 +500,7 @@ class _AcademySpanishA1LessonScreenState
                   Icon(i<_highestUnlocked?Icons.check_circle_rounded:
                     i==_stage?Icons.arrow_circle_right_outlined:
                     Icons.lock_outline_rounded,color:i<=_highestUnlocked?
-                        _verde:scheme.onSurfaceVariant),
+                        _visibleGreen:scheme.onSurfaceVariant),
                 ])),
               ),
             ),
@@ -1086,10 +1098,25 @@ class _AcademySpanishA1LessonScreenState
     ]);
 
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context) => PopScope<void>(
+    canPop: _showSectionMenu,
+    onPopInvokedWithResult: (didPop, result) {
+      if (!didPop && !_showSectionMenu) _returnToMenu();
+    },
+    child: Scaffold(
     appBar: AppBar(
       backgroundColor: _verde, foregroundColor: Colors.white,
-      title: Text('Español ${widget.level} · ${widget.lesson.unit}.${widget.lesson.number}'),
+      // BackButton automatically points in the appropriate RTL/LTR direction.
+      // Inside a section it returns to the eight-card lesson index; on
+      // the index the normal AppBar back button returns to the unit.
+      leading: _showSectionMenu
+          ? null
+          : BackButton(
+              key: const ValueKey('spanish-section-back'),
+              onPressed: _returnToMenu),
+      title: Text(_showSectionMenu
+          ? 'Español ${widget.level} · ${widget.lesson.unit}.${widget.lesson.number}'
+          : (_ar ? _arNames[_stage] : _esNames[_stage])),
       actions: [
         if (_isSpeaking)
           IconButton(
@@ -1097,49 +1124,48 @@ class _AcademySpanishA1LessonScreenState
             tooltip: _ar ? 'إيقاف النطق الإسباني' : 'Detener audio',
             onPressed: _stopSpeech,
             icon: const Icon(Icons.stop_circle_outlined)),
-        IconButton(
-          tooltip: _ar ? 'عرض الأقسام' : 'Secciones',
-          onPressed: () => showModalBottomSheet<void>(
-            context: context, builder: (sheetContext) => SafeArea(
-              child: ListView(shrinkWrap: true, children: [
-                for (var i = 0; i < 8; i++)
-                  ListTile(
-                    title: Text(_ar ? _arNames[i] : _esNames[i]),
-                    leading: Icon(i < _highestUnlocked
-                        ? Icons.check_circle : Icons.lock_outline),
-                    enabled: i <= _highestUnlocked,
-                    onTap: i <= _highestUnlocked ? () {
-                      Navigator.pop(sheetContext); _choose(i);
-                    } : null),
-              ]))),
-          icon: const Icon(Icons.view_list_rounded)),
+        if (!_showSectionMenu)
+          IconButton(
+            key: const ValueKey('spanish-sections-menu-button'),
+            tooltip: _ar ? 'العودة لأقسام الدرس' : 'Volver a las secciones',
+            onPressed: _returnToMenu,
+            icon: const Icon(Icons.view_list_rounded)),
       ]),
     body: SafeArea(child: ListView(
+      key: ValueKey(_showSectionMenu
+          ? 'spanish-lesson-section-menu'
+          : 'spanish-lesson-section-detail-$_stage'),
       padding: const EdgeInsets.fromLTRB(17, 18, 17, 28),
       children: [
         Text(widget.lesson.title, textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 23, fontWeight: FontWeight.w900,
-              color: _verde)),
+          style: TextStyle(fontSize: 23, fontWeight: FontWeight.w900,
+              color: _visibleGreen)),
         const SizedBox(height: 5),
-        Text(_arNames[_stage], textAlign: TextAlign.center,
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+        Text(_showSectionMenu
+            ? (_ar ? 'اختر القسم الذي تريد دراسته'
+                : 'Elige una sección para estudiar')
+            : (_ar ? _arNames[_stage] : _esNames[_stage]),
+          textAlign: TextAlign.center,
+          style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant)),
         const SizedBox(height: 9),
-        LinearProgressIndicator(value: _stage / 7,
+        LinearProgressIndicator(value: _highestUnlocked / 7,
           color: _verde, borderRadius: BorderRadius.circular(6)),
         const SizedBox(height: 12),
-        _sectionMenu(),
-        const SizedBox(height: 16),
-        switch(_stage) {
-          0 => _grammar(),
-          1 => _vocabulary(),
-          2 => _story(),
-          3 => _quiz(),
-          4 => _conversation(),
-          5 => _pronunciation(),
-          6 => _listening(),
-          _ => _completion(),
-        },
+        if (_showSectionMenu)
+          _sectionMenu()
+        else
+          switch (_stage) {
+            0 => _grammar(),
+            1 => _vocabulary(),
+            2 => _story(),
+            3 => _quiz(),
+            4 => _conversation(),
+            5 => _pronunciation(),
+            6 => _listening(),
+            _ => _completion(),
+          },
       ],
     )),
-  );
+  ));
 }
