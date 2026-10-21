@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
@@ -9,6 +11,8 @@ import '../data/academy_spanish_b1_course.dart';
 import '../data/academy_spanish_b2_course.dart';
 import '../data/academy_spanish_c1_course.dart';
 import '../data/academy_spanish_c2_course.dart';
+import '../data/academy_spanish_speech_chunks.dart';
+import '../data/academy_spanish_lesson_stage_progress.dart';
 import 'academy_illustrated_story_art.dart';
 
 const _verde = Color(0xFF15583F);
@@ -235,6 +239,9 @@ class AcademySpanishA1LessonScreen extends StatefulWidget {
 class _AcademySpanishA1LessonScreenState
     extends State<AcademySpanishA1LessonScreen> {
   final FlutterTts _tts = FlutterTts();
+  Future<void> _latestStageSave = Future<void>.value();
+  int _speechRequest = 0;
+  bool _isSpeaking = false;
   final TextEditingController _typedSpanishWord = TextEditingController();
   final TextEditingController _writtenSpanish = TextEditingController();
   int _stage = 0;
@@ -285,35 +292,68 @@ class _AcademySpanishA1LessonScreenState
   }
 
   Future<void> _load() async {
-    final saved = await SpanishA1Progress.load(_uid, level: widget.level);
-    if (mounted) setState(() => _complete = saved.contains(widget.lesson.id));
+    final uid = _uid;
+    final completed = await SpanishA1Progress.load(uid, level: widget.level);
+    final isComplete = completed.contains(widget.lesson.id);
+    final lastStage = isComplete ? 7 : await SpanishLessonStageProgress.load(
+      uid, level: widget.level, lessonId: widget.lesson.id);
+    if (!mounted) return;
+    setState(() {
+      _complete = isComplete;
+      if (lastStage > _highestUnlocked) {
+        _highestUnlocked = lastStage;
+        _stage = lastStage;
+      }
+      _passed.addAll(List<int>.generate(_highestUnlocked, (i) => i));
+    });
   }
 
   @override
   void dispose() {
+    _speechRequest++;
     _tts.stop();
     _typedSpanishWord.dispose();
     _writtenSpanish.dispose();
     super.dispose();
   }
 
+  Future<void> _stopSpeech() async {
+    _speechRequest++;
+    if (mounted) setState(() => _isSpeaking = false);
+    await _tts.stop();
+  }
+
   Future<void> _speak(String value, {bool slow = false}) async {
+    final request = ++_speechRequest;
+    if (mounted) setState(() => _isSpeaking = true);
     try {
       await _tts.stop();
+      if (request != _speechRequest || !mounted) return;
       if (await _tts.isLanguageAvailable('es-ES') == false) {
-        throw StateError('Spanish speech package unavailable');
+        throw StateError('Spanish voice unavailable');
       }
+      if (request != _speechRequest || !mounted) return;
       await _tts.setLanguage('es-ES');
       await _tts.setSpeechRate(slow ? .32 : .48);
       await _tts.setVolume(1);
-      if (await _tts.speak(value) == 0) {
-        throw StateError('Speech not started');
+      // Without completion-await, the second chunk interrupts the first one.
+      await _tts.awaitSpeakCompletion(true);
+      for (final chunk in SpanishSpeechChunks.split(value)) {
+        if (request != _speechRequest || !mounted) return;
+        if (await _tts.speak(chunk) == 0) {
+          if (request != _speechRequest || !mounted) return;
+          throw StateError('Speech not started');
+        }
       }
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted || request != _speechRequest) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_ar
-          ? 'ثبّت صوت الإسبانية من إعدادات تحويل النص إلى كلام ثم جرّب مرة أخرى.'
-          : 'Install an es-ES text-to-speech voice and try again.')));
+          ? 'تعذر تشغيل الصوت الإسباني. ثبّت صوت الإسبانية من إعدادات الهاتف.'
+          : 'Spanish speech unavailable. Install an es-ES voice in Settings.')));
+    } finally {
+      if (mounted && request == _speechRequest) {
+        setState(() => _isSpeaking = false);
+      }
     }
   }
 
@@ -335,6 +375,15 @@ class _AcademySpanishA1LessonScreenState
       _checked = false;
       _wordIndex = 0;
     });
+    // Serialize checkpoint writes, so finishing the lesson cannot clear a
+    // checkpoint before an earlier in-flight save has completed.
+    final unlocked = _highestUnlocked;
+    _latestStageSave = _latestStageSave.then((_) =>
+      SpanishLessonStageProgress.save(_uid,
+        level: widget.level, lessonId: widget.lesson.id,
+        unlockedStage: unlocked,
+      )).catchError((Object _) {});
+    unawaited(_latestStageSave);
   }
 
   Future<void> _finish() async {
@@ -343,6 +392,15 @@ class _AcademySpanishA1LessonScreenState
     try {
       await SpanishA1Progress.complete(
           _uid, widget.lesson, level: widget.level);
+      // Once the durable completion is recorded, clear the temporary
+      // section checkpoint. A failure to clear must not undo completion.
+      try {
+        await _latestStageSave;
+        await SpanishLessonStageProgress.clear(_uid,
+          level: widget.level, lessonId: widget.lesson.id);
+      } catch (_) {
+        // Full lesson completion was already saved.
+      }
       if (mounted) {
         setState(() => _complete = true);
         Navigator.of(context).pop();
@@ -959,6 +1017,12 @@ class _AcademySpanishA1LessonScreenState
           onPressed: () => _speak(episode, slow: true),
           icon: const Icon(Icons.slow_motion_video),
           label: Text(_ar ? 'ببطء' : 'Lento')),
+        if (_isSpeaking)
+          OutlinedButton.icon(
+            key: const ValueKey('spanish-stop-audio'),
+            onPressed: _stopSpeech,
+            icon: const Icon(Icons.stop_circle_outlined),
+            label: Text(_ar ? 'إيقاف الصوت' : 'Detener audio')),
         TextButton(onPressed: () => setState(() => _transcript = !_transcript),
           child: Text(_ar ? 'إظهار أو إخفاء النص' :
             'Mostrar u ocultar texto')),
