@@ -178,7 +178,7 @@ class RoomShopService {
   }
 
   Stream<List<RoomStoreItem>> watchStoreItems(String type) {
-    if (!const {'gift', 'background', 'frame', 'entrance', 'vip'}
+    if (!const {'gift', 'background', 'frame', 'entrance', 'vip', 'badge'}
         .contains(type)) {
       return Stream.value(const <RoomStoreItem>[]);
     }
@@ -192,6 +192,10 @@ class RoomShopService {
 
   Future<void> purchaseItem(String itemId) =>
       _post(action: 'purchase', body: {'itemId': itemId});
+
+  /// Server verifies active VIP, inventory and expiry before equipping.
+  Future<void> equipVipBadge(String? badgeId) =>
+      _post(action: 'equip-badge', body: {'badgeId': badgeId ?? ''});
 
   Future<void> purchaseBackground(String itemId) {
     return _post(

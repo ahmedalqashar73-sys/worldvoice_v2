@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb, TargetPlatform;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 
@@ -131,6 +132,25 @@ class AuthService {
     return _auth.signInWithCredential(
       GoogleAuthProvider.credential(idToken: idToken),
     );
+  }
+
+  /// Native Sign in with Apple for iPhone/iPad. The Apple provider must be
+  /// enabled in Firebase Auth and the Runner App ID must carry the matching
+  /// Sign in with Apple entitlement in Apple Developer.
+  /// This does not silently merge an existing Google identity with a new
+  /// Apple private-relay email: explicit verified account linking is required.
+  static Future<UserCredential> signInWithApple() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.iOS) {
+      throw FirebaseAuthException(
+        code: 'apple-platform-unsupported',
+        message: 'Sign in with Apple is currently enabled only on iOS.',
+      );
+    }
+    final provider = AppleAuthProvider()
+      ..addScope('email')
+      ..addScope('name');
+
+    return _auth.signInWithProvider(provider);
   }
 
   static Future<UserCredential> signInWithEmail({

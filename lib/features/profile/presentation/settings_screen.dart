@@ -9,6 +9,7 @@ import '../../../core/localization/app_strings.dart';
 
 import '../../../core/localization/locale_controller.dart';
 import '../../../core/localization/supported_language.dart';
+import '../../../core/vip/vip_entitlement.dart';
 import '../../auth/services/auth_service.dart';
 import '../../onboarding/presentation/language/language_selection_screen.dart';
 
@@ -104,7 +105,7 @@ class SettingsScreen extends StatelessWidget {
               builder: (context, snapshot) {
                 final data =
                     snapshot.data?.data() ?? const <String, dynamic>{};
-                final isVip = data['isVip'] == true;
+                final isVip = VipEntitlement.isActive(data);
                 final hideVisits = data['hideVisitLog'] == true;
                 final hideCity = data['hideCity'] == true;
                 final messageApprovalRequired =

@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../../../core/vip/vip_entitlement.dart';
+
 class ProfileSocialService {
   ProfileSocialService._();
 
@@ -102,7 +104,7 @@ class ProfileSocialService {
     final targetSnap = await _db.collection('users').doc(targetUid).get();
     final targetData = targetSnap.data() ?? const <String, dynamic>{};
 
-    final viewerIsVip = viewerData['isVip'] == true;
+    final viewerIsVip = VipEntitlement.isActive(viewerData);
     final hideMyVisits = viewerData['hideVisitLog'] == true;
 
     final batch = _db.batch();

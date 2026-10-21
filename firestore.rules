@@ -18,6 +18,19 @@ service cloud.firestore {
       return /databases/$(database)/documents/users/$(userId);
     }
 
+    // Reading the complete visitor list is a VIP-only entitlement. Client
+    // widgets must not be the sole barrier to premium profile data.
+    function hasActiveVip(userId) {
+      let profile = get(userPath(userId)).data;
+      return profile.get('isVip', false) == true
+          && (
+            !('vipExpiresAt' in profile)
+            || profile.vipExpiresAt == null
+            || (profile.vipExpiresAt is timestamp
+                && profile.vipExpiresAt > request.time)
+          );
+    }
+
     function globalModeratorPath(ownerId, userId) {
       return /databases/$(database)/documents/users/$(ownerId)/moderators/$(userId);
     }
@@ -151,7 +164,8 @@ service cloud.firestore {
             'walletBalance', 'withdrawableDiamonds', 'walletDebtCoins',
             'walletFrozen', 'payoutFrozen', 'diamondsReserved',
             'firstRechargeUsed', 'payoutFreezeReason', 'identityVerified',
-            'isVip', 'isAdmin', 'vipExpiresAt', 'vipSource', 'adminSource',
+            'isVip', 'vipTier', 'isAdmin', 'vipExpiresAt', 'vipSource', 'adminSource',
+            'activeBadgeId', 'vipBadgeExpiresAt',
             'vipUpdatedAt', 'adminUpdatedAt'
           ]);
     }
@@ -169,7 +183,8 @@ service cloud.firestore {
           && request.resource.data.get('isVip', false) == false
           && !request.resource.data.keys().hasAny([
             'lastGiftRoomId', 'lastGiftEventId', 'withdrawableDiamonds',
-            'walletBalance', 'vipExpiresAt', 'isAdmin',
+            'walletBalance', 'vipExpiresAt', 'isAdmin', 'vipTier',
+            'activeBadgeId', 'vipBadgeExpiresAt',
             'vipSource', 'adminSource', 'vipUpdatedAt', 'adminUpdatedAt'
           ]);
     }
@@ -324,7 +339,8 @@ service cloud.firestore {
       }
 
       match /profile_visitors/{viewerUserId} {
-        allow read: if signedIn() && request.auth.uid == userId;
+        allow read: if signedIn() && request.auth.uid == userId
+            && hasActiveVip(userId);
 
         // The visitor records only their own visit on the target profile.
         allow create, update: if signedIn()
@@ -596,6 +612,21 @@ service cloud.firestore {
     // -------------------------
     // COIN PRODUCTS
     // -------------------------
+    // VIP subscription catalog and rollout flags are server-managed only.
+    match /vip_config/{configId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    match /vip_products/{productId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    match /vip_purchase_receipts/{receiptId} {
+      allow read, write: if false;
+    }
+
     match /coin_products/{productId} {
       allow read: if signedIn();
       allow write: if false;
