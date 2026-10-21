@@ -463,7 +463,7 @@ class _AcademySpanishA1LessonScreenState
       const SizedBox(height: 11),
       LinearProgressIndicator(value:_highestUnlocked/7,
         minHeight:7,borderRadius:BorderRadius.circular(8),
-        color:_verde,backgroundColor:scheme.surfaceContainerHighest),
+        color:_visibleGreen,backgroundColor:scheme.surfaceContainerHighest),
       const SizedBox(height: 12),
       for(var i=0;i<_arNames.length;i++)
         Padding(padding:const EdgeInsets.only(bottom:8),
@@ -568,7 +568,7 @@ class _AcademySpanishA1LessonScreenState
         const Icon(Icons.lightbulb_rounded, color: Color(0xFFB48A46)),
         Text(_ar ? 'قاعدة واحدة · خطوة بخطوة' :
             'Una regla · paso a paso',
-          style: const TextStyle(color: _verde, fontWeight: FontWeight.w900,
+          style: TextStyle(color: _visibleGreen, fontWeight: FontWeight.w900,
             fontSize: 21)),
         const SizedBox(height: 12),
         Text(item.grammar, style: const TextStyle(
@@ -581,25 +581,25 @@ class _AcademySpanishA1LessonScreenState
         const SizedBox(height: 13),
         Text(_ar?'1 · افهم لماذا نستخدم القاعدة':
             '1 · Cuándo usar esta regla',
-            style:const TextStyle(fontWeight:FontWeight.w900,color:_verde)),
+            style:TextStyle(fontWeight:FontWeight.w900,color:_visibleGreen)),
         Text(_ar
           ? 'ابدأ بالسياق والمعنى، ثم قارِن بين الأمثلة للتعرف على الاستخدام.'
           : 'Relaciona el significado con los contextos de los ejemplos.',
           style:const TextStyle(height:1.6)),
         const SizedBox(height:10),
         Text(_ar?'2 · احفظ صيغة القاعدة':'2 · Estructura',
-          style:const TextStyle(fontWeight:FontWeight.w900,color:_verde)),
+          style:TextStyle(fontWeight:FontWeight.w900,color:_visibleGreen)),
         Text('Estructura: ${item.grammar}',textDirection:TextDirection.ltr),
         const SizedBox(height:10),
         Text(_ar?'3 · راجع الفرق بين المثالين الأول والثاني':
             '3 · Compara los primeros ejemplos',
-          style:const TextStyle(fontWeight:FontWeight.w900,color:_verde)),
+          style:TextStyle(fontWeight:FontWeight.w900,color:_visibleGreen)),
         Text(examples.take(2).join('  /  '),textDirection:TextDirection.ltr,
           style:const TextStyle(height:1.6)),
         const SizedBox(height:10),
         Text(_ar?'4 · اكتشف الخطأ ثم اختبر فهمك':
             '4 · Detecta errores y practica',
-          style:const TextStyle(fontWeight:FontWeight.w900,color:_verde)),
+          style:TextStyle(fontWeight:FontWeight.w900,color:_visibleGreen)),
         Text(_ar?'راجع الجملة الخاطئة أدناه وصحّحها قبل الإجابة.':
             'Revisa la frase incorrecta y corrígela antes del test.',
           style:const TextStyle(height:1.6)),
@@ -619,7 +619,7 @@ class _AcademySpanishA1LessonScreenState
         Text(choices.first,textDirection:TextDirection.ltr,
           style:TextStyle(color:Theme.of(context).colorScheme.error)),
         const SizedBox(height:6),
-        Row(children:[const Icon(Icons.check_circle,color:_verde),
+        Row(children:[Icon(Icons.check_circle,color:_visibleGreen),
           const SizedBox(width:7),
           Expanded(child:Text(examples.first,
             textDirection:TextDirection.ltr,
@@ -632,7 +632,7 @@ class _AcademySpanishA1LessonScreenState
       if (_checked)
         Text(_choice == 1 ? (_ar ? 'صحيح!' : '¡Correcto!') :
           (_ar ? 'راجع القاعدة وحاول مرة أخرى.' : 'Inténtalo otra vez.'),
-          style: TextStyle(color: _choice == 1 ? _verde :
+          style: TextStyle(color: _choice == 1 ? _visibleGreen :
               Theme.of(context).colorScheme.error)),
       _primary(_ar ? 'تحقق ثم تابع' : 'Comprueba y continúa',
         _choice == null ? null : () {
@@ -727,7 +727,7 @@ class _AcademySpanishA1LessonScreenState
         _panel(Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Row(children: [
             Text(_ar ? 'الصفحة ${i+1}' : 'PÁGINA ${i+1}',
-              style: const TextStyle(color: _verde,
+              style: TextStyle(color: _visibleGreen,
                   fontWeight: FontWeight.w900)),
             const Spacer(), _audio(paragraphs[i]),
           ]),
@@ -808,7 +808,7 @@ class _AcademySpanishA1LessonScreenState
         if(_vocabularyQuizPassed)
           const Text('8 / 8  ✓',key:ValueKey('spanish-vocabulary-quiz-passed'))
         else ...[
-          Text('${_wordIndex+1} / 8',style:const TextStyle(color:_verde)),
+          Text('${_wordIndex+1} / 8',style:TextStyle(color:_visibleGreen)),
           Row(children:[
             Expanded(child:Text(word.es,textDirection:TextDirection.ltr,
               style:const TextStyle(fontSize:20,fontWeight:FontWeight.w900))),
@@ -853,12 +853,12 @@ class _AcademySpanishA1LessonScreenState
             title:Text(readingAnswers[i],textDirection:TextDirection.ltr),
             leading:Icon(_readingChoice==i?
               Icons.radio_button_checked_rounded:
-              Icons.radio_button_unchecked_rounded,color:_verde),
+              Icons.radio_button_unchecked_rounded,color:_visibleGreen),
             onTap:()=>setState(()=>_readingChoice=i),
           )),
         if(_readingPassed) Text(_ar?'فهم القصة: صحيح ✓':'Comprensión correcta ✓',
           key:const ValueKey('spanish-reading-passed'),
-          style:const TextStyle(color:_verde,fontWeight:FontWeight.bold)),
+          style:TextStyle(color:_visibleGreen,fontWeight:FontWeight.bold)),
         _primary(_ar?'تحقق من فهم القصة':'Comprobar comprensión',
           _readingChoice==null||_readingPassed?null:(){
             setState((){
@@ -1001,7 +1001,7 @@ class _AcademySpanishA1LessonScreenState
       _panel(Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
         Text(_ar?'ملاحظات النطق الإسباني':
           'Pronunciación del español',
-          style:const TextStyle(fontWeight:FontWeight.w900,color:_verde)),
+          style:TextStyle(fontWeight:FontWeight.w900,color:_visibleGreen)),
         const SizedBox(height:6),
         const Text('j /x/ · ñ /ɲ/ · ll /ʝ/ · rr /r/ · h muda',
           textDirection:TextDirection.ltr),
@@ -1032,7 +1032,7 @@ class _AcademySpanishA1LessonScreenState
     final nouns = SpanishA1Course.wordsOf(widget.lesson, SpanishWordKind.noun);
     final answers = <String>[nouns[0].ar, nouns[3].ar, nouns[6].ar];
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      const Icon(Icons.headphones_rounded, color: _verde, size: 40),
+      Icon(Icons.headphones_rounded, color: _visibleGreen, size: 40),
       Text(_ar ? 'بودكاست المفردات الأربعين' :
           'Pódcast de 40 palabras',
         style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 22)),
@@ -1150,7 +1150,7 @@ class _AcademySpanishA1LessonScreenState
               color: Theme.of(context).colorScheme.onSurfaceVariant)),
         const SizedBox(height: 9),
         LinearProgressIndicator(value: _highestUnlocked / 7,
-          color: _verde, borderRadius: BorderRadius.circular(6)),
+          color: _visibleGreen, borderRadius: BorderRadius.circular(6)),
         const SizedBox(height: 12),
         if (_showSectionMenu)
           _sectionMenu()
