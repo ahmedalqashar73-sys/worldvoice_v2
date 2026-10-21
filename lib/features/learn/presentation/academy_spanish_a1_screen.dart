@@ -235,6 +235,8 @@ class AcademySpanishA1LessonScreen extends StatefulWidget {
 class _AcademySpanishA1LessonScreenState
     extends State<AcademySpanishA1LessonScreen> {
   final FlutterTts _tts = FlutterTts();
+  final TextEditingController _typedSpanishWord = TextEditingController();
+  final TextEditingController _writtenSpanish = TextEditingController();
   int _stage = 0;
   int _highestUnlocked = 0;
   final Set<int> _passed = <int>{};
@@ -244,10 +246,23 @@ class _AcademySpanishA1LessonScreenState
   bool _saving = false;
   bool _complete = false;
   bool _transcript = false;
+  bool _vocabularyQuizPassed = false;
+  bool _readingPassed = false;
+  bool _spellingPassed = false;
+  bool _writingPassed = false;
+  int _spellingStep = 0;
+  int? _readingChoice;
+  String? _writingFeedback;
 
   static const _arNames = <String>[
     'شرح القواعد', '40 مفردة', 'القصة المصورة', 'اختبار الكلمات',
     'المحادثة', 'النطق', 'الاستماع والبودكاست', 'اكتمال الدرس',
+  ];
+  static const _sectionIcons = <IconData>[
+    Icons.menu_book_outlined, Icons.translate_rounded,
+    Icons.auto_stories_rounded, Icons.fact_check_rounded,
+    Icons.forum_outlined, Icons.record_voice_over_outlined,
+    Icons.headphones_rounded, Icons.workspace_premium_outlined,
   ];
   static const _esNames = <String>[
     'Gramática', 'Vocabulario', 'Historia ilustrada', 'Repaso',
@@ -277,6 +292,8 @@ class _AcademySpanishA1LessonScreenState
   @override
   void dispose() {
     _tts.stop();
+    _typedSpanishWord.dispose();
+    _writtenSpanish.dispose();
     super.dispose();
   }
 
@@ -311,8 +328,9 @@ class _AcademySpanishA1LessonScreenState
   void _pass() {
     setState(() {
       _passed.add(_stage);
-      _highestUnlocked = (_stage + 1).clamp(0, 7);
-      _stage = _highestUnlocked;
+      final next = (_stage + 1).clamp(0, 7);
+      if (_highestUnlocked < next) _highestUnlocked = next;
+      _stage = next;
       _choice = null;
       _checked = false;
       _wordIndex = 0;
@@ -338,6 +356,68 @@ class _AcademySpanishA1LessonScreenState
     } finally {
       if (mounted) setState(() => _saving = false);
     }
+  }
+
+  /// The same 8 clearly visible classroom cards as English Advanced.
+  /// Locked cards explain progression rather than hiding lesson contents.
+  Widget _sectionMenu() {
+    final scheme = Theme.of(context).colorScheme;
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Text(_ar ? 'أقسام الدرس الثمانية' : 'Ocho secciones de la lección',
+        key: const ValueKey('spanish-eight-section-heading'),
+        style: const TextStyle(fontSize: 23,
+          fontWeight: FontWeight.w900,color: _verde)),
+      const SizedBox(height: 5),
+      Text(_ar
+          ? 'كل هذه الأقسام داخل درس واحد. ابدأ بالقواعد ثم افتح البقية بالترتيب.'
+          : 'Estas ocho secciones pertenecen a una lección. Empieza por gramática.',
+        style: TextStyle(color:scheme.onSurfaceVariant,height:1.55)),
+      const SizedBox(height: 11),
+      LinearProgressIndicator(value:_highestUnlocked/7,
+        minHeight:7,borderRadius:BorderRadius.circular(8),
+        color:_verde,backgroundColor:scheme.surfaceContainerHighest),
+      const SizedBox(height: 12),
+      for(var i=0;i<_arNames.length;i++)
+        Padding(padding:const EdgeInsets.only(bottom:8),
+          child:Material(color:scheme.surface,
+            borderRadius:BorderRadius.circular(17),
+            child:InkWell(
+              key:ValueKey('spanish-section-$i'),
+              onTap:i<=_highestUnlocked?()=>_choose(i):null,
+              borderRadius:BorderRadius.circular(17),
+              child:Container(padding:const EdgeInsets.all(13),
+                decoration:BoxDecoration(
+                  borderRadius:BorderRadius.circular(17),
+                  border:Border.all(color:i==_stage?_verde:scheme.outlineVariant)),
+                child:Row(children:[
+                  CircleAvatar(backgroundColor:scheme.primaryContainer,
+                    child:Icon(_sectionIcons[i],color:_verde)),
+                  const SizedBox(width:12),
+                  Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,
+                    children:[
+                      Text(_ar?_arNames[i]:_esNames[i],
+                        style:const TextStyle(fontWeight:FontWeight.w800)),
+                      Text(_ar
+                          ? (i==0?'القاعدة والأمثلة':i==1?'40 مفردة':i==2
+                              ? 'قصة متعددة الفقرات':i==3?'فهم وكتابة واختبارات'
+                              :i==4?'حوار بالإسبانية':i==5?'تدريب الصوت والنطق'
+                              :i==6?'بودكاست وأسئلة':'حفظ إنجاز الدرس')
+                          : (i==0?'Explicación y ejemplos':i==1?'40 palabras'
+                              :i==2?'Lectura de varios párrafos'
+                              :i==3?'Comprensión y escritura'
+                              :i==4?'Diálogo':i==5?'Pronunciación'
+                              :i==6?'Audio y preguntas':'Guardar progreso'),
+                        style:TextStyle(fontSize:12,color:scheme.onSurfaceVariant)),
+                    ])),
+                  Icon(i<_highestUnlocked?Icons.check_circle_rounded:
+                    i==_stage?Icons.arrow_circle_right_outlined:
+                    Icons.lock_outline_rounded,color:i<=_highestUnlocked?
+                        _verde:scheme.onSurfaceVariant),
+                ])),
+              ),
+            ),
+          )),
+    ]);
   }
 
   Widget _panel(Widget child) => Card(
@@ -747,6 +827,8 @@ class _AcademySpanishA1LessonScreenState
         const SizedBox(height: 9),
         LinearProgressIndicator(value: _stage / 7,
           color: _verde, borderRadius: BorderRadius.circular(6)),
+        const SizedBox(height: 12),
+        _sectionMenu(),
         const SizedBox(height: 16),
         switch(_stage) {
           0 => _grammar(),
