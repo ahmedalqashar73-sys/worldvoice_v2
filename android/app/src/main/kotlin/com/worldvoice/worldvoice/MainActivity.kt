@@ -5,6 +5,8 @@ import android.content.pm.PackageManager
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.media.AudioAttributes
+import android.media.AudioManager
+import android.media.ToneGenerator
 import android.os.Handler
 import android.os.Looper
 import androidx.core.app.ActivityCompat
@@ -17,6 +19,8 @@ import java.util.Locale
 class MainActivity : FlutterActivity() {
     private val livePermissionChannel = "worldvoice/live_permissions"
     private val liveTtsChannel = "worldvoice/live_tts"
+    private val gameAudioChannel = "worldvoice/room_games_audio"
+    private var gameTone: ToneGenerator? = null
     private val cameraRequestCode = 7401
     private var pendingCameraResult: MethodChannel.Result? = null
     private var textToSpeech: TextToSpeech? = null
@@ -95,6 +99,38 @@ class MainActivity : FlutterActivity() {
         ).setMethodCallHandler { call, result ->
             when (call.method) {
                 "requestCamera" -> requestCameraPermission(result)
+                else -> result.notImplemented()
+            }
+        }
+
+        // Unlike a UI click, game tones play on the MEDIA volume stream.
+        // Keep them local to the device rather than injecting audio into Agora.
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            gameAudioChannel,
+        ).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "play" -> {
+                    val kind = call.argument<String>("kind")
+                    if (kind != "start" && kind != "winner") {
+                        result.error("INVALID_GAME_CUE", "Unknown game sound.", null)
+                    } else {
+                        try {
+                            val tone = gameTone ?: ToneGenerator(
+                                AudioManager.STREAM_MUSIC, 95,
+                            ).also { gameTone = it }
+                            tone.stopTone()
+                            tone.startTone(
+                                if (kind == "winner") ToneGenerator.TONE_PROP_ACK
+                                else ToneGenerator.TONE_PROP_BEEP,
+                                if (kind == "winner") 320 else 170,
+                            )
+                            result.success(null)
+                        } catch (error: RuntimeException) {
+                            result.error("GAME_CUE_FAILED", error.message, null)
+                        }
+                    }
+                }
                 else -> result.notImplemented()
             }
         }
@@ -218,6 +254,8 @@ class MainActivity : FlutterActivity() {
         textToSpeech?.stop()
         textToSpeech?.shutdown()
         textToSpeech = null
+        gameTone?.release()
+        gameTone = null
         ttsReady = false
         super.onDestroy()
     }

@@ -1,5 +1,70 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+// Shared UI-only representation of the authoritative server castle cap.
+// Never use client calculations to grant XP or rewards.
+const int roomCastleMaxLevel = 50;
+const int roomCastleLevelsPerTier = 5;
+const int roomCastleMaxTier = 10;
+
+int roomCastleTierForLevel(int level) {
+  final visibleLevel = level.clamp(1, roomCastleMaxLevel);
+  return ((visibleLevel - 1) ~/ roomCastleLevelsPerTier) + 1;
+}
+
+int roomXpThresholdForLevel(int level) {
+  final safe = level.clamp(1, roomCastleMaxLevel);
+  var total = 0;
+  for (var previous = 1; previous < safe; previous++) {
+    total += roomXpRequiredForLevel(previous);
+  }
+  return total;
+}
+
+int roomLevelFromXp(int xp) {
+  final safeXp = xp < 0 ? 0 : xp;
+  for (var level = roomCastleMaxLevel; level >= 2; level--) {
+    if (safeXp >= roomXpThresholdForLevel(level)) return level;
+  }
+  return 1;
+}
+
+int roomXpRequiredForLevel(int level) {
+  final safe = level.clamp(1, roomCastleMaxLevel - 1);
+  return safe == 1 ? 300 : safe == 2 ? 400 : 700 + (safe - 3) * 300;
+}
+
+// Read-only migration view for rooms saved with the older 100-XP/level curve.
+// No client writes XP. The trusted backend persists a version-2 value after
+// the first verified mission/gift, preserving legacyRoomXp for reconciliation.
+const int roomCastleXpVersion = 2;
+
+int roomCastleDisplayXp(Map<String, dynamic> data) {
+  final raw = ((data['roomXp'] ?? data['roomPoints']) as num?)?.toInt() ?? 0;
+  if (raw <= 0) return 0;
+  if ((data['roomCastleXpVersion'] as num?)?.toInt() == roomCastleXpVersion) {
+    return raw;
+  }
+  final oldLevel = (raw ~/ 100 + 1).clamp(1, roomCastleMaxLevel);
+  if (oldLevel >= roomCastleMaxLevel) {
+    return roomXpThresholdForLevel(roomCastleMaxLevel);
+  }
+  final oldRemainder = raw % 100;
+  return roomXpThresholdForLevel(oldLevel) +
+      (roomXpRequiredForLevel(oldLevel) * oldRemainder ~/ 100);
+}
+
+String roomCastleWebpAssetForLevel(int level) {
+  final tier = roomCastleTierForLevel(level);
+  final from = ((tier - 1) * 5 + 1).toString().padLeft(2, '0');
+  final to = (tier * 5).toString().padLeft(2, '0');
+  return 'assets/castles/castle_${tier.toString().padLeft(2, '0')}_lv$from-$to.webp';
+}
+
+String roomCastleAssetForLevel(int level) {
+  final tier = roomCastleTierForLevel(level).toString().padLeft(2, '0');
+  return 'assets/castles/castle_tier_$tier.svg';
+}
+
 class RoomFeatureState {
   const RoomFeatureState({
     required this.roomLevel,
@@ -51,9 +116,10 @@ class RoomFeatureState {
         ? Map<String, dynamic>.from(quiz)
         : const <String, dynamic>{};
 
+    final displayXp = roomCastleDisplayXp(data);
     return RoomFeatureState(
-      roomLevel: (data['roomLevel'] as num?)?.toInt() ?? 1,
-      roomXp: (data['roomXp'] as num?)?.toInt() ?? 0,
+      roomLevel: roomLevelFromXp(displayXp),
+      roomXp: displayXp,
       themeId: (data['themeId'] ?? 'softGreenFlow').toString(),
       backgroundUrl: data['backgroundUrl']?.toString(),
       boardWriteEnabled: data['boardWriteEnabled'] != false,

@@ -342,9 +342,31 @@ service cloud.firestore {
             && request.auth.uid == userId;
       }
 
+      // Private immutable Academy checklist; no coins or XP.
+      match /academy_progress/{lessonId} {
+        allow read: if signedIn() && request.auth.uid == userId;
+        allow create: if signedIn() && request.auth.uid == userId
+            && lessonId.matches('^(en|es|zh|fr|ko)_(1|2)_(vocabulary|grammar|story|listening|speaking|quiz)$')
+            && request.resource.data.keys().hasOnly([
+              'completed', 'language', 'completedAt'
+            ])
+            && request.resource.data.keys().hasAll([
+              'completed', 'language', 'completedAt'
+            ])
+            && request.resource.data.completed == true
+            && request.resource.data.language in ['en', 'es', 'zh', 'fr', 'ko']
+            && request.resource.data.completedAt == request.time;
+        allow update, delete: if false;
+      }
+
       match /room_history/{roomId} {
         allow read, create, update, delete: if signedIn()
             && request.auth.uid == userId;
+      }
+
+      // Five daily free starts are enforced atomically by the backend.
+      match /game_usage/{dayAndMode} {
+        allow read, write: if false;
       }
 
       match /room_usage/{dayKey} {
@@ -953,6 +975,9 @@ service cloud.firestore {
           && request.resource.data.channelId == roomId
           && request.resource.data.get('roomLevel', 1) == 1
           && request.resource.data.get('roomXp', 0) == 0
+          && !request.resource.data.keys().hasAny([
+            'roomCastleXpVersion', 'legacyRoomXp'
+          ])
           // A verified quiz must be created by the authenticated backend.
           && !('quiz' in request.resource.data);
 
@@ -963,7 +988,8 @@ service cloud.firestore {
           && request.resource.data.channelId == resource.data.channelId
           && !request.resource.data.diff(resource.data)
               .affectedKeys().hasAny([
-                'roomXp', 'roomLevel', 'lastTaskCompletionId'
+                'roomXp', 'roomLevel', 'lastTaskCompletionId',
+                'roomCastleXpVersion', 'legacyRoomXp'
               ])
           && validRoomThemeChange()
           && validClientQuizChange()
@@ -1135,6 +1161,16 @@ service cloud.firestore {
 
       // Correct answers for server-created rounds are never exposed to
       // clients, including the room host. Admin SDK alone writes these.
+      // Secret word definitions, solutions, answers, leaderboards and
+      // server-owned game state are inaccessible through client Firestore.
+      // All game reads/writes are authenticated HTTP server routes.
+      match /private_games/{sessionId} {
+        allow read, write: if false;
+        match /answers/{answerId} { allow read, write: if false; }
+        match /scores/{playerId} { allow read, write: if false; }
+        match /public_attempts/{attemptId} { allow read, write: if false; }
+      }
+
       match /quiz_private/{quizId} {
         allow read, write: if false;
       }

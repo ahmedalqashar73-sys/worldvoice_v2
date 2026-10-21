@@ -25,6 +25,7 @@ import '../../rooms/services/room_teacher_ai_service.dart';
 import '../../rooms/services/room_translation_service.dart';
 import '../../rooms/services/room_quota_service.dart';
 import '../../rooms/services/room_rewarded_ad_service.dart';
+import '../../rooms/services/vip_room_features.dart';
 import '../services/live_session_service.dart';
 
 import '../../../core/localization/locale_controller.dart';
@@ -2711,6 +2712,9 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
   bool _listening = false;
   bool _translationEnabled = false;
   bool _pronunciationEnabled = false;
+  bool _languageToolsSessionUnlocked = false;
+  bool _languageUnlockBusy = false;
+  final RoomRewardedAdService _languageAds = RoomRewardedAdService();
   String _targetLanguage = 'en';
   bool _targetInitialized = false;
   String? _error;
@@ -2984,6 +2988,24 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
     }
   }
 
+  Future<bool> _unlockLanguageToolsIfNeeded() async {
+    if (_languageToolsSessionUnlocked) return true;
+    if (_languageUnlockBusy) return false;
+    _languageUnlockBusy = true;
+    try {
+      final result = await VipRoomFeatures.unlockLanguageTools(
+        context,
+        unlockedForSession: _languageToolsSessionUnlocked,
+        rewardedAds: _languageAds,
+      );
+      if (!mounted) return false;
+      if (result) _languageToolsSessionUnlocked = true;
+      return result;
+    } finally {
+      _languageUnlockBusy = false;
+    }
+  }
+
   Future<void> _setEnabled(bool value) async {
     setState(() {
       _enabled = value;
@@ -3129,10 +3151,17 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
             listening: _listening,
             error: _error,
             onEnabledChanged: (value) {
-              unawaited(_setEnabled(value));
-              refresh(() {});
+              unawaited(() async {
+                if (value && !await _unlockLanguageToolsIfNeeded()) return;
+                if (!mounted) return;
+                await _setEnabled(value);
+                if (sheetContext.mounted) refresh(() {});
+              }());
             },
             onTranslationChanged: (value) {
+              unawaited(() async {
+                if (value && !await _unlockLanguageToolsIfNeeded()) return;
+                if (!mounted) return;
               setState(() {
                 _translationEnabled = value;
                 _translated = null;
@@ -3143,7 +3172,8 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
               }
               final latest = _latest;
               if (value && latest != null) unawaited(_translate(latest));
-              refresh(() {});
+              if (sheetContext.mounted) refresh(() {});
+              }());
             },
             onPronunciationChanged: (value) {
               setState(() {

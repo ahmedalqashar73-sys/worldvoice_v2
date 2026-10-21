@@ -37,6 +37,10 @@ class UnifiedGiftPanel extends StatefulWidget {
 class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
   late final Future<List<RoomGiftCatalogItem>> _classicPreviews =
       ClassicGiftCatalog.load();
+  late final Stream<DocumentSnapshot<Map<String, dynamic>>>? _rewardInventory =
+      FirebaseAuth.instance.currentUser == null ? null : FirebaseFirestore.instance
+        .collection('users').doc(FirebaseAuth.instance.currentUser!.uid)
+        .collection('inventory').doc('gift__wv_gift_001').snapshots();
   String? _recipient;
   RoomGiftCatalogItem? _gift;
   int _giftCategory = 0; // 1-150, 151-1000, 1001-5000
@@ -392,6 +396,21 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                         label: Text(ar ? 'شحن' : 'Recharge'),
                       ),
                     ]),
+                  ),
+                  StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                    stream: _rewardInventory,
+                    builder: (context, snapshot) {
+                      final data = snapshot.data?.data();
+                      final expiry = (data?['expiresAt'] as Timestamp?)?.toDate();
+                      final count = expiry != null && !expiry.isAfter(DateTime.now()) ? 0
+                        : (data?['freeGiftBalance'] as num? ?? 0).toInt();
+                      if (count <= 0) return const SizedBox.shrink();
+                      return Padding(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        child: Text(ar
+                          ? 'في حقيبتك: $count من هدية «هيبة منتصف الليل» مجانًا. تُستخدم تلقائيًا عند إرسالها.'
+                          : 'Your bag: $count free Midnight Prestige gifts. Used automatically when sent.',
+                          style: const TextStyle(color: Color(0xFFFFD675))));
+                    },
                   ),
                   if (!ready) Padding(
                     padding: const EdgeInsets.all(8),

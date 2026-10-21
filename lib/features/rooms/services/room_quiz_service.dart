@@ -294,3 +294,63 @@ class RoomQuizService {
       _room.collection('quiz_answers').snapshots();
 
 }
+
+
+/// Server-authoritative language games share the existing quiz entry point.
+/// Answers, host-only daily quotas and leaderboards are never calculated on
+/// the device or written directly to Firestore.
+class RoomGamesService {
+  const RoomGamesService({required this.roomId});
+  final String roomId;
+
+  Future<Map<String, dynamic>> _request(String action,
+      {Map<String, dynamic>? payload}) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) throw StateError('Sign in to play WorldVoice Games.');
+    final base = RoomBackendConfig.economyBaseUrl.trim();
+    final normalized = base.endsWith('/')
+        ? base.substring(0, base.length - 1) : base;
+    final uri = Uri.tryParse('$normalized/room/games/$action');
+    if (uri == null || uri.scheme != 'https' || !uri.hasAuthority) {
+      throw StateError('Invalid room game backend URL.');
+    }
+    final token = await user.getIdToken();
+    if (token == null || token.isEmpty) throw StateError('Unable to verify account.');
+    final headers = {'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json'};
+    final response = await (payload == null
+        ? http.get(uri.replace(queryParameters: {'roomId': roomId}),
+            headers: headers)
+        : http.post(uri, headers: headers,
+            body: jsonEncode({'roomId': roomId, ...payload})))
+        .timeout(const Duration(seconds: 40));
+    if (response.statusCode != 200) {
+      var message = response.statusCode == 404
+          ? 'WorldVoice Games needs the updated room backend.'
+          : 'Game request failed: ${response.statusCode}';
+      try {
+        final data = jsonDecode(response.body);
+        if (data is Map) message = data['error']?.toString() ?? message;
+      } catch (_) {
+        // Non-JSON backend responses are mapped to a generic error.
+      }
+      throw StateError(message);
+    }
+    return Map<String, dynamic>.from(jsonDecode(response.body) as Map);
+  }
+
+  Future<Map<String, dynamic>> status() => _request('status');
+  /// Host exits game mode for everyone without deleting historical scores.
+  Future<Map<String, dynamic>> close(String sessionId) =>
+      _request('close', payload: {'sessionId': sessionId});
+  Future<Map<String, dynamic>> start({
+    required String mode, required String level, required String language,
+  }) => _request('start', payload: {
+    'mode': mode, 'level': level, 'language': language,
+  });
+  Future<Map<String, dynamic>> answer({
+    required String sessionId, required int wordIndex, required String answer,
+  }) => _request('answer', payload: {
+    'sessionId': sessionId, 'wordIndex': wordIndex, 'answer': answer,
+  });
+}

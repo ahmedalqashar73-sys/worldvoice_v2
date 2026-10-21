@@ -9,10 +9,26 @@ class RoomConversationPanel extends StatefulWidget {
     required this.onGifts, required this.onShop, required this.onTools,
     required this.onCaptions, required this.onMic, required this.micIcon,
     required this.micLabel, this.handControl, this.onTranslateMessage,
-    this.onReportMessage, this.translationHint, this.enabled = true, super.key,
+    this.onReportMessage, this.translationHint, this.enabled = true,
+    this.onGameAnswer, this.gameAnswerEnabled = false,
+    this.gameAnswerSubmitted = false, this.gameRoundClosed = false,
+    this.gameAnnouncement,
+    this.gameAnswerEvents = const <Map<String, dynamic>>[],
+    super.key,
   });
   final Stream<List<RoomChatMessage>> messages;
   final Future<void> Function(String) onSend;
+  /// Sends words to the verified game API, never the public room chat.
+  final Future<void> Function(String)? onGameAnswer;
+  final bool gameAnswerEnabled;
+  final bool gameAnswerSubmitted;
+  /// A first correct answer closes the word to everyone.
+  final bool gameRoundClosed;
+  /// Server-confirmed winner shown as a public chat notice (not a user post).
+  final String? gameAnnouncement;
+  /// Most recent server-verified attempts visible to everyone in the room.
+  /// Kept separate from Firestore chat writes; includes right/wrong verdicts.
+  final List<Map<String, dynamic>> gameAnswerEvents;
   final bool isArabic;
   final bool enabled;
   final VoidCallback onGifts, onShop, onTools, onCaptions;
@@ -74,6 +90,14 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
   }
   Future<void> _openComposer() async {
     if (!widget.enabled || !mounted) return;
+    if (widget.gameRoundClosed) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(widget.isArabic
+            ? 'سبقك لاعب بالإجابة الصحيحة • انتظر الكلمة التالية'
+            : 'This word has a winner. Wait for the next word.'),
+      ));
+      return;
+    }
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -89,10 +113,11 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
                 child: TextField(
                   controller: _text,
                   autofocus: true,
-                  enabled: !_sending,
+                  enabled: !_sending && !widget.gameRoundClosed,
                   minLines: 1,
                   maxLines: 4,
-                  maxLength: 500,
+                  maxLength: widget.gameAnswerEnabled &&
+                      !widget.gameAnswerSubmitted ? 80 : 500,
                   textInputAction: TextInputAction.send,
                   onSubmitted: (_) async {
                     await _send();
@@ -102,7 +127,11 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
                   },
                   style: const TextStyle(color: Colors.white, fontSize: 15),
                   decoration: InputDecoration(
-                    hintText: widget.isArabic ? 'اكتب رسالة…' : 'Write a message…',
+                    hintText: widget.gameAnswerEnabled && !widget.gameAnswerSubmitted
+                        ? (widget.isArabic ? 'إجابة اللعبة (خاصة)'
+                            : 'Private game answer…')
+                        : (widget.isArabic ? 'اكتب رسالة…'
+                            : 'Write a message…'),
                     counterText: '',
                     hintStyle: const TextStyle(color: Colors.white54),
                     filled: true,
@@ -143,14 +172,26 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
 
   Future<void> _send() async {
     final value = _text.text.trim();
-    if (value.isEmpty || _sending || !widget.enabled) return;
+    if (value.isEmpty || _sending || !widget.enabled ||
+        widget.gameRoundClosed) {
+      return;
+    }
     setState(() => _sending = true);
     try {
-      await widget.onSend(value);
+      if (widget.gameAnswerEnabled && !widget.gameAnswerSubmitted &&
+          widget.onGameAnswer != null) {
+        await widget.onGameAnswer!(value);
+      } else {
+        await widget.onSend(value);
+      }
       if (mounted && _text.text.trim() == value) _text.clear();
     } catch (_) {
       if (mounted) { ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(widget.isArabic ? 'تعذر إرسال الرسالة. حاول مجددًا.' : 'Message not sent. Please retry.'),
+        content: Text(widget.gameAnswerEnabled && !widget.gameAnswerSubmitted
+            ? (widget.isArabic ? 'تعذر إرسال إجابة اللعبة، حاول مجددًا.'
+                : 'Could not submit your game answer. Please retry.')
+            : (widget.isArabic ? 'تعذر إرسال الرسالة. حاول مجددًا.'
+                : 'Message not sent. Please retry.')),
       )); }
     } finally {
       if (mounted) setState(() => _sending = false);
@@ -203,10 +244,90 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
             primary: false,
             reverse: true, padding: EdgeInsets.fromLTRB(16, 12, 16,
               keyboardInset > 0 ? keyboardInset + 70 : 92),
-            itemCount: messages.length + 1,
+            itemCount: messages.length + 1 +
+                widget.gameAnswerEvents.length +
+                (widget.gameAnnouncement != null &&
+                        widget.gameAnswerEvents.isEmpty ? 1 : 0),
             itemBuilder: (context, index) {
-              final welcome = index == messages.length;
-              final msg = welcome ? null : messages[index];
+              final events = widget.gameAnswerEvents;
+              if (index < events.length) {
+                final event = events[index];
+                final correct = event['correct'] == true;
+                final name = event['name']?.toString() ?? 'WorldVoice';
+                final answer = event['answer']?.toString() ?? '';
+                final word = ((event['wordIndex'] as num?)?.toInt() ?? 0) + 1;
+                return Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Container(
+                    key: ValueKey<String>(
+                      'room-chat-game-attempt-${event['id']}'),
+                    margin: const EdgeInsets.only(top: 7, bottom: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: correct
+                          ? const Color(0xFF166342)
+                          : const Color(0xFF332C20),
+                      borderRadius: BorderRadius.circular(15),
+                      border: Border.all(color: correct
+                          ? const Color(0xFFEAD17B)
+                          : const Color(0xFFD4A17D)),
+                    ),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      Icon(correct ? Icons.emoji_events_rounded
+                          : Icons.cancel_outlined,
+                        color: correct
+                            ? const Color(0xFFF2D588)
+                            : const Color(0xFFFFB29C), size: 18),
+                      const SizedBox(width: 7),
+                      Flexible(child: Text(
+                        correct
+                          ? (ar
+                              ? '$name: $answer  ✅ صح • الأسرع • كلمة $word'
+                              : '$name: $answer  ✅ Correct • first! • Word $word')
+                          : (ar
+                              ? '$name: $answer  ❌ خطأ • كلمة $word'
+                              : '$name: $answer  ❌ Incorrect • Word $word'),
+                        style: const TextStyle(color: Colors.white,
+                          fontSize: 13, fontWeight: FontWeight.w800),
+                      )),
+                    ]),
+                  ),
+                );
+              }
+              final announcement = events.isEmpty
+                  ? widget.gameAnnouncement : null;
+              final announcementIndex = index - events.length;
+              if (announcementIndex == 0 && announcement != null) {
+                return Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Container(
+                    key: const ValueKey('room-chat-game-winner-announcement'),
+                    margin: const EdgeInsets.only(top: 8, bottom: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 13, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF176344),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFD6B969)),
+                    ),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      const Icon(Icons.emoji_events_rounded,
+                        color: Color(0xFFF2D28B), size: 19),
+                      const SizedBox(width: 7),
+                      Flexible(child: Text(announcement,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800))),
+                    ]),
+                  ),
+                );
+              }
+              final messageIndex = announcementIndex -
+                  (announcement == null ? 0 : 1);
+              final welcome = messageIndex == messages.length;
+              final msg = welcome ? null : messages[messageIndex];
               final giftPreview = msg == null
                   ? null
                   : RoomGiftPreviewChatCodec.decode(msg.text);
@@ -361,7 +482,15 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
             style: const TextStyle(color: Colors.white, fontSize: 14),
             maxLines: 1,
             decoration: InputDecoration(
-              hintText: ar ? 'تعليق…' : 'Message…',
+              hintText: widget.gameRoundClosed
+                   ? (ar ? 'انتهى السؤال • انتظر التالي'
+                       : 'Word closed • next soon')
+                   : widget.gameAnswerEnabled && !widget.gameAnswerSubmitted
+                   ? (ar ? 'إجابة اللعبة…' : 'Game answer…')
+                   : widget.gameAnswerSubmitted
+                       ? (ar ? 'تم إرسال الإجابة • تعليق…'
+                           : 'Answer sent • Comment…')
+                       : (ar ? 'تعليق…' : 'Message…'),
               hintStyle: const TextStyle(color: Colors.white54),
               filled: true,
               fillColor: const Color(0xFF123C30),
