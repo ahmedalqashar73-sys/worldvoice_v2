@@ -87,9 +87,12 @@ class _VipMembershipScreenState extends State<VipMembershipScreen> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 final data = snapshot.data!.data() ?? <String, dynamic>{};
-                final isVip = data['isVip'] == true;
                 final expiry = data['vipExpiresAt'];
                 final date = expiry is Timestamp ? expiry.toDate() : null;
+                // Expired paid memberships must not be displayed as active.
+                final isVip = data['isVip'] == true &&
+                    (expiry == null || (date != null &&
+                        date.isAfter(DateTime.now())));
                 return ListView(
                   padding: const EdgeInsets.fromLTRB(18, 18, 18, 30),
                   children: [
