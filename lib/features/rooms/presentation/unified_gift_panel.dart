@@ -20,12 +20,15 @@ class UnifiedGiftPanel extends StatefulWidget {
     required this.recipients,
     this.onOpenCoinStore,
     this.onPreview,
+    this.initialRecipientId,
     super.key,
   });
 
   final String contextType;
   final String contextId;
   final Map<String, String> recipients;
+  /// Preferred live recipient (normally the host). Other contexts opt out.
+  final String? initialRecipientId;
   final VoidCallback? onOpenCoinStore;
   /// Optional in-context animation preview, never a gift delivery.
   final void Function(RoomGiftCatalogItem gift, String? recipientId)? onPreview;
@@ -54,6 +57,32 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
   String? _pendingKey;
   String? _pendingSignature;
   String? _message;
+
+  String? _liveDefaultRecipient() {
+    final id = widget.initialRecipientId;
+    if (id == null || id == FirebaseAuth.instance.currentUser?.uid ||
+        !widget.recipients.containsKey(id)) {
+      return null;
+    }
+    return id;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _recipient = _liveDefaultRecipient();
+  }
+
+  @override
+  void didUpdateWidget(covariant UnifiedGiftPanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Keep the chosen guest while present; fall back to the host if they leave.
+    if (_recipient == null || !widget.recipients.containsKey(_recipient)) {
+      _recipient = _liveDefaultRecipient();
+      _pendingKey = null;
+      _pendingSignature = null;
+    }
+  }
 
   String _newKey() => List<int>.generate(24, (_) => Random.secure().nextInt(256))
       .map((b) => b.toRadixString(16).padLeft(2, '0')).join();
