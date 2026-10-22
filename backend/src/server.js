@@ -819,6 +819,64 @@ async function creditVerifiedCoins({
   });
 }
 
+
+const escapeLiveHtml = (value) => String(value ?? "").replace(
+  /[&<>"']/g,
+  (character) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[character]),
+);
+
+// Public, read-only external Live invitation for WhatsApp, browsers, etc.
+// Never expose private viewers/messages, secrets or arbitrary redirect URLs.
+app.get("/live/:liveId", async (req, res, next) => {
+  try {
+    const liveId = String(req.params.liveId || "");
+    if (!/^[A-Za-z0-9_-]{3,128}$/.test(liveId)) {
+      return res.status(404).send("Invalid WorldVoice Live link.");
+    }
+    const snapshot = await db.collection("live_sessions").doc(liveId).get();
+    const live = snapshot.data() || {};
+    const heartbeat = live.hostHeartbeatAt?.toMillis?.() || 0;
+    const online = snapshot.exists && live.isLive === true &&
+        heartbeat > Date.now() - 60000;
+    const title = escapeLiveHtml(
+      String(live.topic || "WorldVoice Live").slice(0, 140));
+    const hostName = escapeLiveHtml(
+      String(live.hostName || "WorldVoice").slice(0, 90));
+    const lang = escapeLiveHtml(String(live.languageCode || "").slice(0, 12));
+    const shareUrl = `https://worldvoice-v2.onrender.com/live/${liveId}`;
+    const appLink = `worldvoice://live/${liveId}`;
+    const photoUrl = String(live.hostPhotoUrl || "");
+    const safePhoto = /^https:\/\//i.test(photoUrl) &&
+      photoUrl.length < 1500 ? escapeLiveHtml(photoUrl) : "";
+    res.set({
+      "Cache-Control": "no-store",
+      "X-Content-Type-Options": "nosniff",
+      "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; img-src https:; base-uri 'none'; form-action 'none'",
+    });
+    return res.status(snapshot.exists ? 200 : 404)
+      .type("html").send(`<!doctype html><html lang="ar" dir="rtl">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${title} | WorldVoice LIVE</title>
+<meta property="og:type" content="website"><meta property="og:title" content="${title} · WorldVoice Live">
+<meta property="og:description" content="${hostName} · ${lang} · ${online ? "LIVE" : "Ended"}">
+<meta property="og:url" content="${shareUrl}">
+${safePhoto ? `<meta property="og:image" content="${safePhoto}">` : ""}
+<style>
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:#071f18;color:#fff;font:16px system-ui,sans-serif}
+main{width:min(90vw,430px);padding:30px;border-radius:24px;text-align:center;background:linear-gradient(135deg,#124c38,#0b2b23);box-shadow:0 15px 40px #0005}
+h1{font-size:27px}small{color:#b6e4cf}.pill{display:inline-block;background:#b63131;padding:6px 13px;border-radius:12px}
+a{display:block;text-decoration:none;background:#ffd782;color:#122f24;padding:15px;margin-top:20px;border-radius:16px;font-weight:800}
+</style></head><body><main>
+<div class="pill">${online ? "🔴 LIVE" : "انتهى البث"}</div>
+<h1>${title}</h1><p>${hostName}</p><small>${lang}</small>
+${online ? `<a href="${appLink}">الدخول إلى اللايف في تطبيق WorldVoice</a>` : "<p>هذا البث غير متاح حاليًا.</p>"}
+<p><small>يُفتح الرابط داخل WorldVoice عند تثبيت التطبيق وتسجيل الدخول.</small></p>
+</main></body></html>`);
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.get("/health", (_req, res) => {
   res.json({
     ok: true,
