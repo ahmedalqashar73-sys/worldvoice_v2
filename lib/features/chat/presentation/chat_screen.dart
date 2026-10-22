@@ -24,6 +24,7 @@ import '../../rooms/data/room_feature_models.dart';
 import '../../rooms/services/room_feature_service.dart';
 import '../../profile/presentation/public_profile_screen.dart';
 import '../../stories/presentation/story_strip.dart';
+import '../../live/presentation/live_screen.dart';
 import '../services/chat_extended_service.dart';
 import '../services/chat_call_service.dart';
 import 'chat_media_bubble.dart';
@@ -1530,7 +1531,29 @@ class _ChatConversationState extends State<ChatConversationScreen> {
                                           fileName: data['fileName']?.toString(),
                                           cacheScope: 'chat_${uid ?? 'anonymous'}',
                                         )
-                                      : Text(value),
+                                      : worldVoiceLiveIdInText(value) != null
+                                          ? Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text(value),
+                                                const SizedBox(height: 8),
+                                                FilledButton.icon(
+                                                  onPressed: () => openWorldVoiceLive(
+                                                    context,
+                                                    liveId: worldVoiceLiveIdInText(value)!,
+                                                  ),
+                                                  icon: const Icon(
+                                                    Icons.live_tv_rounded,
+                                                  ),
+                                                  label: Text(ar
+                                                      ? 'دخول اللايف'
+                                                      : 'Join Live'),
+                                                ),
+                                              ],
+                                            )
+                                          : Text(value),
                         ),
                       );
                     },
