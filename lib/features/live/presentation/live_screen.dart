@@ -149,6 +149,59 @@ class _LiveScreenState extends State<LiveScreen> {
   OverlayEntry? _viewerOverlay;
   String? _playingLiveId;
   bool _mini = false;
+  OverlayEntry? _hostOverlay;
+  bool _hostMini = false;
+
+  void _closeHostOverlay() {
+    final entry = _hostOverlay;
+    _hostOverlay = null;
+    _hostMini = false;
+    entry?.remove();
+    entry?.dispose();
+    if (mounted) setState(() {});
+  }
+
+  void _toggleHostMini() {
+    if (_hostOverlay == null) return;
+    _hostMini = !_hostMini;
+    _hostOverlay!.markNeedsBuild();
+    if (mounted) setState(() {});
+  }
+
+  void _startHostLive({required bool ar, required String language}) {
+    if (_hostOverlay != null) {
+      if (_hostMini) _toggleHostMini();
+      return;
+    }
+    unawaited(_warmLiveBackend());
+    _hostMini = false;
+    _hostOverlay = OverlayEntry(
+      builder: (context) => Positioned(
+        top: _hostMini ? null : 0,
+        bottom: _hostMini ? 96 : 0,
+        left: _hostMini ? null : 0,
+        right: _hostMini ? 12 : 0,
+        width: _hostMini ? 190 : null,
+        height: _hostMini ? 254 : null,
+        child: Material(
+          color: Colors.black,
+          elevation: _hostMini ? 14 : 0,
+          clipBehavior: Clip.antiAlias,
+          borderRadius: BorderRadius.circular(_hostMini ? 19 : 0),
+          child: _LiveCameraGate(
+            key: const ValueKey('worldvoice-host-live-overlay'),
+            ar: ar,
+            initialLanguageCode: language,
+            miniMode: _hostMini,
+            onMiniToggle: _toggleHostMini,
+            onClose: _closeHostOverlay,
+          ),
+        ),
+      ),
+    );
+    Overlay.of(context, rootOverlay: true).insert(_hostOverlay!);
+    if (mounted) setState(() {});
+  }
 
   void _closeMiniLive() {
     final entry = _viewerOverlay;
@@ -205,10 +258,12 @@ class _LiveScreenState extends State<LiveScreen> {
 
   @override
   void dispose() {
-    final entry = _viewerOverlay;
+    for (final entry in [_viewerOverlay, _hostOverlay]) {
+      entry?.remove();
+      entry?.dispose();
+    }
     _viewerOverlay = null;
-    entry?.remove();
-    entry?.dispose();
+    _hostOverlay = null;
     super.dispose();
   }
 
@@ -267,20 +322,11 @@ class _LiveScreenState extends State<LiveScreen> {
                   FilledButton(
                     key: const ValueKey('start-live'),
                     onPressed: () {
-                      unawaited(_warmLiveBackend());
                       final fallback =
                           ProfileLanguageCatalog.byCode(language) == null
                               ? 'en'
                               : language;
-                      Navigator.of(context).push<void>(
-                        MaterialPageRoute(
-                          fullscreenDialog: true,
-                          builder: (_) => _LiveCameraGate(
-                            ar: ar,
-                            initialLanguageCode: fallback,
-                          ),
-                        ),
-                      );
+                      _startHostLive(ar: ar, language: fallback);
                     },
                     child: Text(ar ? 'إنشاء' : 'Create'),
                   ),
@@ -578,9 +624,16 @@ class _LiveCameraGate extends StatefulWidget {
   const _LiveCameraGate({
     required this.ar,
     required this.initialLanguageCode,
+    this.miniMode = false,
+    this.onMiniToggle,
+    this.onClose,
+    super.key,
   });
   final bool ar;
   final String initialLanguageCode;
+  final bool miniMode;
+  final VoidCallback? onMiniToggle;
+  final VoidCallback? onClose;
 
   @override
   State<_LiveCameraGate> createState() => _LiveCameraGateState();
@@ -724,7 +777,11 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
               title: Text(widget.ar ? 'تصغير اللايف' : 'Minimize Live'),
               onTap: () {
                 Navigator.pop(sheetContext);
-                unawaited(_enterLiveMiniWindow(context, widget.ar));
+                if (widget.onMiniToggle != null) {
+                  widget.onMiniToggle!();
+                } else {
+                  unawaited(_enterLiveMiniWindow(context, widget.ar));
+                }
               },
             ),
             ListTile(
@@ -823,7 +880,11 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     }
     await _controller.leave();
     if (!mounted) return;
-    Navigator.of(context).pop();
+    if (widget.onClose != null) {
+      widget.onClose!();
+    } else {
+      Navigator.of(context).pop();
+    }
   }
 
   void _startHostQuotaTimer() {
@@ -1089,8 +1150,69 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     });
   }
 
+  Widget _hostMiniPlayer() {
+    return Scaffold(
+      backgroundColor: const Color(0xFF08251C),
+      body: InkWell(
+        onTap: widget.onMiniToggle,
+        child: Stack(fit: StackFit.expand, children: [
+          if (_controller.engine != null && !_cameraPaused)
+            AgoraVideoView(controller: VideoViewController(
+              rtcEngine: _controller.engine!,
+              canvas: const VideoCanvas(uid: 0),
+            ))
+          else
+            const Center(child: Icon(Icons.videocam_off_rounded,
+                size: 48, color: Colors.white70)),
+          const IgnorePointer(child: DecoratedBox(
+            decoration: BoxDecoration(gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xAA000000), Color(0x00000000),
+                Color(0xBB000000)],
+            )),
+          )),
+          PositionedDirectional(
+            top: 2, start: 3, end: 3,
+            child: Row(children: [
+              const Padding(
+                padding: EdgeInsetsDirectional.only(start: 6),
+                child: Text('● LIVE', style: TextStyle(
+                  fontSize: 11, color: Color(0xFFFF6565),
+                  fontWeight: FontWeight.w900)),
+              ),
+              const Spacer(),
+              IconButton(
+                onPressed: widget.onMiniToggle,
+                icon: const Icon(Icons.open_in_full_rounded,
+                  color: Colors.white, size: 18),
+                tooltip: widget.ar ? 'تكبير اللايف' : 'Expand Live',
+                visualDensity: VisualDensity.compact,
+              ),
+              IconButton(
+                onPressed: _confirmEndLive,
+                icon: const Icon(Icons.stop_circle_outlined,
+                  color: Colors.white, size: 20),
+                tooltip: widget.ar ? 'إنهاء اللايف' : 'End Live',
+                visualDensity: VisualDensity.compact,
+              ),
+            ]),
+          ),
+          PositionedDirectional(
+            start: 8, end: 8, bottom: 9,
+            child: Text(_resolvedTopic,
+              maxLines: 1, overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.white,
+                fontSize: 12, fontWeight: FontWeight.w900)),
+          ),
+        ]),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (widget.miniMode && _cameraReady) return _hostMiniPlayer();
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: Colors.black,
@@ -1393,7 +1515,8 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
               top: 10,
               start: 10,
               child: IconButton.filledTonal(
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: widget.onClose ??
+                    () => Navigator.of(context).pop(),
                 icon: const Icon(Icons.close_rounded),
               ),
             ),
