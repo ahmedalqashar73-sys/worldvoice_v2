@@ -728,6 +728,23 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
               },
             ),
             ListTile(
+              leading: const Icon(Icons.explore_rounded),
+              title: Text(widget.ar ? 'استكشاف بثوث أخرى'
+                : 'Explore other Lives'),
+              subtitle: Text(widget.ar
+                ? 'تصفح دون إيقاف الكاميرا أو اللايف'
+                : 'Browse without interrupting your broadcast'),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted && _liveId != null) {
+                    unawaited(_showLiveExploreDrawer(context,
+                      currentLiveId: _liveId!, ar: widget.ar));
+                  }
+                });
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.admin_panel_settings_rounded),
               title: Text(widget.ar ? 'إدارة اللايف' : 'Live moderators'),
               onTap: () {
@@ -2280,6 +2297,32 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
               } else {
                 unawaited(_enterLiveMiniWindow(context, widget.ar));
               }
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.explore_rounded),
+            title: Text(widget.ar ? 'استكشف بثوثًا أخرى'
+                : 'Explore other Lives'),
+            onTap: () {
+              Navigator.pop(sheetContext);
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!mounted) return;
+                unawaited(_showLiveExploreDrawer(
+                  context, currentLiveId: widget.liveId,
+                  ar: widget.ar, onChooseLive: (newId) async {
+                    final navigator = Navigator.of(context);
+                    await _closeViewer();
+                    // The previous Agora session releases during dispose.
+                    await Future<void>.delayed(
+                      const Duration(milliseconds: 120));
+                    if (!navigator.mounted) return;
+                    await navigator.push<void>(MaterialPageRoute(
+                      builder: (_) => WorldVoiceLiveInvitationPage(
+                        liveId: newId),
+                    ));
+                  },
+                ));
+              });
             },
           ),
           if (_isModerator)
@@ -4269,6 +4312,174 @@ String _liveShareText({
   final title = cleanTopic.isEmpty ? 'WorldVoice Live' : cleanTopic;
   return '🔴 WorldVoice Live\n$title\n$hostName\n${_liveShareUri(liveId)}';
 }
+
+/// Browse other Live streams without interrupting the currently joined
+/// Agora session. This panel sits above the video, like a compact discovery
+/// drawer; it never touches or rebuilds the voice-room screen.
+Future<void> _showLiveExploreDrawer(
+  BuildContext context, {
+  required String currentLiveId,
+  required bool ar,
+  Future<void> Function(String id)? onChooseLive,
+}) => showGeneralDialog<void>(
+  context: context,
+  barrierDismissible: true,
+  barrierLabel: ar ? 'إغلاق الاستكشاف' : 'Close discovery',
+  barrierColor: Colors.black54,
+  transitionDuration: const Duration(milliseconds: 230),
+  transitionBuilder: (context, animation, _, child) =>
+    SlideTransition(
+      position: Tween<Offset>(
+        begin: const Offset(-1, 0),
+        end: Offset.zero,
+      ).animate(CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeOutCubic,
+      )),
+      child: child,
+    ),
+  pageBuilder: (dialogContext, _, _) => Align(
+    alignment: Alignment.centerLeft,
+    child: FractionallySizedBox(
+      widthFactor: .84,
+      heightFactor: 1,
+      child: Material(
+        color: const Color(0xFF0A1F1A),
+        child: SafeArea(child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 18),
+          child: Column(children: [
+            Row(children: [
+              const Icon(Icons.live_tv_rounded,
+                color: Color(0xFFFFD67D)),
+              const SizedBox(width: 8),
+              Expanded(child: Text(
+                ar ? 'استكشف البثوث المباشرة' : 'Explore live broadcasts',
+                style: const TextStyle(color: Colors.white,
+                  fontSize: 17, fontWeight: FontWeight.w900))),
+              IconButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                icon: const Icon(Icons.close_rounded,
+                  color: Colors.white),
+              ),
+            ]),
+            const SizedBox(height: 10),
+            Expanded(child: StreamBuilder<
+                QuerySnapshot<Map<String, dynamic>>>(
+              stream: LiveSessionService().watchOpen(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Center(child: Text(ar
+                    ? 'تعذر تحميل اللايفات.' : 'Could not load Lives.',
+                    style: const TextStyle(color: Colors.white70)));
+                }
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                final docs = snapshot.data!.docs.where((doc) =>
+                    doc.id != currentLiveId &&
+                    LiveSessionService.isFresh(doc.data()))
+                    .toList(growable: false);
+                if (docs.isEmpty) {
+                  return Center(child: Text(ar
+                    ? 'لا توجد بثوث أخرى الآن.'
+                    : 'No other active Lives yet.',
+                    style: const TextStyle(color: Colors.white70)));
+                }
+                return GridView.builder(
+                  itemCount: docs.length,
+                  gridDelegate:
+                    const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 9,
+                      mainAxisSpacing: 9,
+                      childAspectRatio: .72,
+                    ),
+                  itemBuilder: (context, index) {
+                    final doc = docs[index];
+                    final live = doc.data();
+                    final photo = (live['hostPhotoUrl'] ?? '').toString();
+                    final name = (live['hostName'] ?? 'WorldVoice')
+                        .toString();
+                    final topic = (live['topic'] ?? '').toString();
+                    final count = live['viewerCount'] ?? 0;
+                    final code =
+                        (live['languageCode'] ?? '').toString().toUpperCase();
+                    return InkWell(
+                      onTap: onChooseLive == null ? null : () {
+                        Navigator.pop(dialogContext);
+                        unawaited(onChooseLive(doc.id));
+                      },
+                      borderRadius: BorderRadius.circular(18),
+                      child: Ink(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF174234),
+                          border: Border.all(
+                            color: const Color(0xFF33775D)),
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(9),
+                          child: Column(children: [
+                            Row(children: [
+                              const Icon(Icons.circle,
+                                size: 8, color: Colors.redAccent),
+                              const Spacer(),
+                              const Icon(Icons.visibility_rounded,
+                                size: 15, color: Colors.white70),
+                              const SizedBox(width: 3),
+                              Text('$count', style: const TextStyle(
+                                color: Colors.white70, fontSize: 12)),
+                            ]),
+                            const Spacer(),
+                            CircleAvatar(radius: 27,
+                              foregroundImage: photo.isEmpty
+                                ? null : NetworkImage(photo),
+                              backgroundColor: const Color(0xFF35725C),
+                              child: photo.isEmpty
+                                ? const Icon(Icons.person_rounded,
+                                    color: Colors.white)
+                                : null,
+                            ),
+                            const SizedBox(height: 7),
+                            Text(name, maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Color(0xFFFFDA87),
+                                fontWeight: FontWeight.w800)),
+                            const SizedBox(height: 4),
+                            Text(topic, textAlign: TextAlign.center,
+                              maxLines: 2, overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.white, fontSize: 12)),
+                            const Spacer(),
+                            Text(code, style: const TextStyle(
+                              color: Color(0xFFA8E8CC),
+                              fontWeight: FontWeight.w900)),
+                          ]),
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            )),
+            const SizedBox(height: 10),
+            Text(
+              onChooseLive == null
+                ? (ar ? 'أنت تبث الآن؛ يمكنك الاستكشاف دون إيقاف بثك.'
+                    : 'Explore without ending your broadcast.')
+                : (ar ? 'اختر لايف للانتقال إليه.'
+                    : 'Select a Live to switch streams.'),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Color(0xFFD2E8DC), fontSize: 12),
+            ),
+          ]),
+        )),
+      ),
+    ),
+  ),
+);
 
 Future<void> _showLiveShareSheet(
   BuildContext context, {
