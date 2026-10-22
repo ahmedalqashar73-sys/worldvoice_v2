@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../profile/data/profile_language_catalog.dart';
 
 /// Firestore coordination for video Live.
 ///
@@ -39,16 +40,14 @@ class LiveSessionService {
     } catch (_) {
       // A temporary profile read failure must not prevent creating a Live.
     }
-    String validCode(Object? value) {
-      final code = (value ?? '').toString().trim().toLowerCase();
-      return RegExp(r'^[a-z]{2,3}$').hasMatch(code) ? code : '';
-    }
-    final native = validCode(profile['nativeLanguageCode']);
-    final source = (profile['learningLanguageCodes'] as List?)?.isNotEmpty == true
-        ? profile['learningLanguageCodes'] as List
-        : (profile['learningLanguages'] as List?) ?? const <dynamic>[];
-    final learning = source.map(validCode).where((code) =>
-        code.isNotEmpty && code != native).toSet().take(10).toList();
+    final native = ProfileLanguageCatalog.codeFromStored(
+      profile['nativeLanguageCode'] ?? profile['nativeLanguage'],
+    ) ?? '';
+    // Use the same ordered profile source as Live discovery; this must not
+    // truncate a VIP profile to ten languages or silently lose legacy names.
+    final learning = ProfileLanguageCatalog.liveDiscoveryCodes(profile)
+        .where((code) => code != 'all' && code != native)
+        .toList(growable: false);
     final ref = _sessions.doc(channelId);
     await ref.set({
       'channelId': channelId,

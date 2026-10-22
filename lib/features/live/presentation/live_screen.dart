@@ -1038,15 +1038,25 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
               : 'Camera permission is required for the Live preview.',
         );
       }
-      await _controller.prepareCameraPreview();
+      await guardLiveStartup(
+        _controller.prepareCameraPreview(),
+        phase: 'camera preview',
+        timeout: const Duration(seconds: 18),
+      );
       if (!mounted) return;
       setState(() {
         _previewReady = true;
         _preparingPreview = false;
       });
     } catch (error) {
+      // Timeout does not cancel a platform Future: release the preview
+      // controller so a later native completion cannot retain the camera.
+      try {
+        await _controller.leave().timeout(const Duration(seconds: 5));
+      } catch (_) {}
       if (!mounted) return;
       setState(() {
+        _previewReady = false;
         _preparingPreview = false;
         _cameraStartError = error.toString();
       });
