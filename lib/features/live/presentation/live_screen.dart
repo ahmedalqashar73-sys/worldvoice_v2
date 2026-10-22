@@ -1134,6 +1134,15 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                           Positioned.fill(
                             child: _LiveGiftEffects(liveId: _liveId!),
                           ),
+                        if (_liveId != null)
+                          PositionedDirectional(
+                            top: 92,
+                            end: 12,
+                            child: _LiveProfileLanguages(
+                              hostId: FirebaseAuth.instance.currentUser?.uid ?? '',
+                              ar: widget.ar,
+                            ),
+                          ),
                         if (_chatOpen && _liveId != null)
                           PositionedDirectional(
                             start: 10,
@@ -2233,6 +2242,14 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                       ),
                       Positioned.fill(
                         child: _LiveGiftEffects(liveId: widget.liveId),
+                      ),
+                      PositionedDirectional(
+                        top: 92,
+                        end: 12,
+                        child: _LiveProfileLanguages(
+                          hostId: (live?['hostId'] ?? widget.data['hostId'] ?? '').toString(),
+                          ar: widget.ar,
+                        ),
                       ),
                       if (_chatOpen)
                         PositionedDirectional(
@@ -3692,6 +3709,53 @@ Future<void> _showLiveCameraTools(
       ),
     ),
   );
+}
+
+class _LiveProfileLanguages extends StatelessWidget {
+  const _LiveProfileLanguages({required this.hostId, required this.ar});
+  final String hostId;
+  final bool ar;
+
+  @override
+  Widget build(BuildContext context) {
+    if (hostId.isEmpty) return const SizedBox.shrink();
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance.collection('users').doc(hostId).snapshots(),
+      builder: (context, snapshot) {
+        final data = snapshot.data?.data();
+        if (data == null) return const SizedBox.shrink();
+        final native = (data['nativeLanguageCode'] ?? '').toString().trim();
+        final raw = data['learningLanguageCodes'];
+        final learning = raw is List
+            ? raw.map((e) => e.toString().trim())
+                .where((e) => e.isNotEmpty && e != native).toSet().take(3).toList()
+            : <String>[];
+        if (native.isEmpty && learning.isEmpty) return const SizedBox.shrink();
+        final nativeLabel = native.isEmpty ? '' : ProfileLanguageCatalog.label(native);
+        final learningLabel = learning.map(ProfileLanguageCatalog.label).join(' · ');
+        return IgnorePointer(
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 228),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: const Color(0xB3082D21),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              [
+                if (native.isNotEmpty) '${ar ? 'الأم' : 'Native'}: $nativeLabel',
+                if (learning.isNotEmpty) '${ar ? 'أتعلم' : 'Learning'}: $learningLabel',
+              ].join('  •  '),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.white, fontSize: 11,
+                fontWeight: FontWeight.w700),
+            ),
+          ),
+        );
+      },
+    );
+  }
 }
 
 String _liveShareUri(String liveId) => 'worldvoice://live/$liveId';
