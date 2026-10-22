@@ -1114,6 +1114,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
           channelId: channel,
           role: AgoraRoomRole.speaker,
           previewCamera: true,
+          fastLiveStartup: true,
         ),
         phase: 'Agora connection',
         timeout: const Duration(seconds: 45),
@@ -2704,6 +2705,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
       await _controller.ensureConnected(
         channelId: widget.liveId,
         role: AgoraRoomRole.listener,
+        fastLiveStartup: true,
       );
     } catch (error) {
       await _controller.leave();
