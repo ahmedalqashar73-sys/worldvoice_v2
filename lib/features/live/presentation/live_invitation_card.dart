@@ -14,7 +14,7 @@ class WorldVoiceLiveLinks {
 
   static String? extract(String text) {
     final match = RegExp(
-      r'(?:worldvoice://live/|https://worldvoice-v2\\.onrender\\.com/live/)'
+      r'(?:worldvoice://live/|https://worldvoice-v2\.onrender\.com/live/)'
       r'([A-Za-z0-9_-]{3,128})',
       caseSensitive: false,
     ).firstMatch(text);
