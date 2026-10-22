@@ -2566,6 +2566,26 @@ class ProfileLanguageCatalog {
     return null;
   }
 
+  /// Language discovery filter order: native first, then All, then every
+  /// saved learning language. No free/VIP display cap: show all saved values.
+  static List<String> liveDiscoveryCodes(Map<String, dynamic> profile) {
+    final native = codeFromStored(
+      profile['nativeLanguageCode'] ?? profile['nativeLanguage'],
+    );
+    final stored = (profile['learningLanguageCodes'] as List?)
+                ?.isNotEmpty == true
+        ? (profile['learningLanguageCodes'] as List)
+        : (profile['learningLanguages'] as List?) ?? const <dynamic>[];
+    return <String>{
+      if (native != null) native,
+      'all',
+      ...stored
+          .map(codeFromStored)
+          .whereType<String>()
+          .where((code) => code != native),
+    }.toList(growable: false);
+  }
+
   // Existing profiles may still store legacy English/native labels instead of
   // ISO codes. Convert them for display without changing Firestore data.
   static String localizedStoredName(String? saved, String uiLocale) {
