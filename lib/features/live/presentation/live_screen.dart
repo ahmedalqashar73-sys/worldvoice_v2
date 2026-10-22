@@ -199,7 +199,10 @@ class _LiveScreenState extends State<LiveScreen> {
 
   @override
   void dispose() {
-    _closeMiniLive();
+    final entry = _viewerOverlay;
+    _viewerOverlay = null;
+    entry?.remove();
+    entry?.dispose();
     super.dispose();
   }
 
@@ -215,7 +218,7 @@ class _LiveScreenState extends State<LiveScreen> {
       child: ColoredBox(
         color: Theme.of(context).scaffoldBackgroundColor,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(18, 18, 18, 28),
+          padding: const EdgeInsets.fromLTRB(14, 14, 14, 112),
           children: [
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -284,6 +287,59 @@ class _LiveScreenState extends State<LiveScreen> {
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 10),
+            FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+              future: _myProfile,
+              builder: (context, profileSnap) {
+                final profile = profileSnap.data?.data() ??
+                    const <String, dynamic>{};
+                final native = (profile['nativeLanguageCode'] ??
+                    profile['nativeLanguage'] ?? '').toString().toLowerCase();
+                final stored = (profile['learningLanguageCodes'] as List?)
+                            ?.isNotEmpty == true
+                    ? (profile['learningLanguageCodes'] as List)
+                    : (profile['learningLanguages'] as List?) ??
+                        const <dynamic>[];
+                final codes = <String>{
+                  'all',
+                  if (ProfileLanguageCatalog.byCode(native) != null) native,
+                  ...stored.map((v) => v.toString().trim().toLowerCase())
+                      .where((v) => ProfileLanguageCatalog.byCode(v) != null),
+                }.toList(growable: false);
+                if (!codes.contains(_languageFilter)) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) setState(() => _languageFilter = 'all');
+                  });
+                }
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: SizedBox(
+                    height: 44,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: codes.length,
+                      separatorBuilder: (_, _) => const SizedBox(width: 8),
+                      itemBuilder: (context, index) {
+                        final code = codes[index];
+                        final selected = _languageFilter == code;
+                        return ChoiceChip(
+                          showCheckmark: false,
+                          selected: selected,
+                          selectedColor: const Color(0xFF116A4B),
+                          onSelected: (_) =>
+                              setState(() => _languageFilter = code),
+                          label: Text(code == 'all' ? 'All'
+                              : ProfileLanguageCatalog.label(code)),
+                          labelStyle: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            color: selected ? Colors.white : null,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                );
+              },
+            ),
             StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
               stream: _sessions,
               builder: (context, snapshot) {
@@ -294,6 +350,15 @@ class _LiveScreenState extends State<LiveScreen> {
                     const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
                 final docs = rawDocs
                     .where((doc) => LiveSessionService.isFresh(doc.data()))
+                    .where((doc) {
+                      if (_languageFilter == 'all') return true;
+                      final data = doc.data();
+                      if ((data['languageCode'] ?? '').toString().toLowerCase() ==
+                          _languageFilter) return true;
+                      final learning = data['learningLanguageCodes'];
+                      return learning is List && learning.any(
+                        (v) => v.toString().toLowerCase() == _languageFilter);
+                    })
                     .toList(growable: false);
                 if (snapshot.connectionState == ConnectionState.waiting &&
                     !snapshot.hasData) {
@@ -311,40 +376,122 @@ class _LiveScreenState extends State<LiveScreen> {
                         : 'No one is live yet. Start the first Live.'),
                   );
                 }
-                return Column(
-                  children: [
-                    for (final doc in docs)
-                      Card(
-                        child: ListTile(
-                          leading: const CircleAvatar(
-                            child: Icon(Icons.videocam_rounded),
-                          ),
-                          title: Text(
-                            (doc.data()['topic'] as String?)?.trim().isNotEmpty == true
-                                ? doc.data()['topic'].toString()
-                                : doc.data()['hostName']?.toString() ??
-                                    'WorldVoice Live',
-                            style: const TextStyle(fontWeight: FontWeight.w800),
-                          ),
-                          subtitle: Text(
-                            '${doc.data()['hostName'] ?? 'WorldVoice host'} • '
-                            '${(doc.data()['languageCode'] ?? 'en').toString().toUpperCase()} • '
-                            '${doc.data()['viewerCount'] ?? 0} 👁',
-                          ),
-                          trailing: const Icon(Icons.chevron_right_rounded),
-                          onTap: () => Navigator.of(context).push<void>(
-                            MaterialPageRoute(
-                              fullscreenDialog: true,
-                              builder: (_) => _LiveViewerScreen(
-                                liveId: doc.id,
-                                data: doc.data(),
-                                ar: ar,
+                return LayoutBuilder(
+                  builder: (context, bounds) => GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: docs.length,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: bounds.maxWidth > 640 ? 3 : 2,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                      childAspectRatio: bounds.maxWidth > 640 ? .94 : .83,
+                    ),
+                    itemBuilder: (context, index) {
+                      final doc = docs[index];
+                      final data = doc.data();
+                      final photo = (data['hostPhotoUrl'] ?? '')
+                          .toString().trim();
+                      final name = (data['hostName'] ?? 'WorldVoice')
+                          .toString();
+                      final title = (data['topic'] ?? '').toString().trim();
+                      final code = (data['languageCode'] ?? 'en')
+                          .toString().toUpperCase();
+                      final viewers = data['viewerCount'] ?? 0;
+                      return Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          key: ValueKey(doc.id),
+                          onTap: () => _watchLive(doc, ar),
+                          borderRadius: BorderRadius.circular(22),
+                          child: Ink(
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(colors: [
+                                Color(0xFF0B2922),
+                                Color(0xFF14513F),
+                                Color(0xFF09382C),
+                              ]),
+                              borderRadius: BorderRadius.circular(22),
+                              border: Border.all(
+                                color: const Color(0x5568D8B0)),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.graphic_eq_rounded,
+                                          color: Color(0xFF8FEAC4), size: 20),
+                                      const Spacer(),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 5),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xCC081E16),
+                                          borderRadius:
+                                              BorderRadius.circular(9)),
+                                        child: Text(code,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w800)),
+                                      ),
+                                    ],
+                                  ),
+                                  const Spacer(),
+                                  CircleAvatar(
+                                    radius: 27,
+                                    backgroundColor: const Color(0xFF2C8060),
+                                    foregroundImage: photo.isEmpty
+                                        ? null : NetworkImage(photo),
+                                    child: photo.isEmpty
+                                        ? const Icon(Icons.person_rounded,
+                                            size: 32, color: Colors.white)
+                                        : null,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(name, maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Color(0xFFC0E5D4),
+                                      fontWeight: FontWeight.w700)),
+                                  const SizedBox(height: 4),
+                                  Text(title.isEmpty
+                                      ? (ar ? 'بث مباشر' : 'Live broadcast')
+                                      : title,
+                                    textAlign: TextAlign.center,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Colors.white, fontSize: 14,
+                                      fontWeight: FontWeight.w900)),
+                                  const Spacer(),
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.circle,
+                                          color: Colors.redAccent, size: 9),
+                                      const SizedBox(width: 4),
+                                      const Text('LIVE', style: TextStyle(
+                                        color: Color(0xFFFFC1B1),
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w900)),
+                                      const Spacer(),
+                                      const Icon(Icons.visibility_rounded,
+                                          color: Colors.white70, size: 16),
+                                      const SizedBox(width: 4),
+                                      Text('$viewers',
+                                        style: const TextStyle(
+                                          color: Colors.white70)),
+                                    ],
+                                  ),
+                                ],
                               ),
                             ),
                           ),
                         ),
-                      ),
-                  ],
+                      );
+                    },
+                  ),
                 );
               },
             ),
