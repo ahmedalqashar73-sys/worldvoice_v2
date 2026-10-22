@@ -1894,10 +1894,17 @@ class _LiveViewerScreen extends StatefulWidget {
     required this.liveId,
     required this.data,
     required this.ar,
+    this.miniMode = false,
+    this.onMiniToggle,
+    this.onClose,
+    super.key,
   });
   final String liveId;
   final Map<String, dynamic> data;
   final bool ar;
+  final bool miniMode;
+  final VoidCallback? onMiniToggle;
+  final VoidCallback? onClose;
 
   @override
   State<_LiveViewerScreen> createState() => _LiveViewerScreenState();
@@ -1931,6 +1938,104 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   bool _invitePromptOpen = false;
   String? _lastInviteMarker;
   StreamSubscription<bool>? _moderatorSub;
+
+  Future<void> _closeViewer() async {
+    if (widget.onClose != null) {
+      widget.onClose!();
+    } else if (mounted && Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    }
+  }
+
+  Widget _miniPlayer(Map<String, dynamic>? live) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF081B16),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          AnimatedBuilder(
+            animation: _controller,
+            builder: (context, _) {
+              final engine = _controller.engine;
+              final remote = _controller.remoteSpeakers;
+              if (_joining || engine == null || remote.isEmpty) {
+                return const Center(
+                  child: Icon(Icons.live_tv_rounded,
+                    color: Color(0xFF81E3BD), size: 55),
+                );
+              }
+              final hostAgoraUid =
+                  (live?['hostAgoraUid'] as num?)?.toInt() ??
+                  (widget.data['hostAgoraUid'] as num?)?.toInt();
+              final selected = hostAgoraUid != null &&
+                      remote.contains(hostAgoraUid)
+                  ? hostAgoraUid : remote.first;
+              return AgoraVideoView(
+                controller: VideoViewController.remote(
+                  rtcEngine: engine,
+                  canvas: VideoCanvas(uid: selected),
+                  connection: RtcConnection(channelId: widget.liveId),
+                ),
+              );
+            },
+          ),
+          const IgnorePointer(
+            child: DecoratedBox(decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter, end: Alignment.bottomCenter,
+                colors: [Color(0xAD000000), Color(0x00000000),
+                  Color(0xA6000000)],
+              ),
+            )),
+          ),
+          PositionedDirectional(
+            top: 4, start: 4, end: 4,
+            child: Row(children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 7, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFBC2832),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Text('LIVE', style: TextStyle(
+                  color: Colors.white, fontSize: 10,
+                  fontWeight: FontWeight.w900)),
+              ),
+              const Spacer(),
+              IconButton(
+                constraints: const BoxConstraints(minWidth: 30,
+                  minHeight: 30),
+                visualDensity: VisualDensity.compact,
+                onPressed: widget.onMiniToggle,
+                icon: const Icon(Icons.open_in_full_rounded,
+                  color: Colors.white, size: 18),
+              ),
+              IconButton(
+                constraints: const BoxConstraints(minWidth: 30,
+                  minHeight: 30),
+                visualDensity: VisualDensity.compact,
+                onPressed: _closeViewer,
+                icon: const Icon(Icons.close_rounded,
+                  color: Colors.white, size: 18),
+              ),
+            ]),
+          ),
+          PositionedDirectional(
+            bottom: 8, start: 9, end: 9,
+            child: Text(
+              (live?['hostName'] ?? widget.data['hostName'] ??
+                 'WorldVoice LIVE').toString(),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.white,
+                fontWeight: FontWeight.w900, fontSize: 12),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -2315,9 +2420,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
         final live = liveSnapshot.data?.data();
         if (liveSnapshot.hasData && live?['isLive'] != true) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted && Navigator.of(context).canPop()) {
-              Navigator.of(context).pop();
-            }
+            if (mounted) _closeViewer();
           });
         }
         return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
@@ -2339,6 +2442,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
             if (mounted) setState(() => _requested = false);
           });
         }
+        if (widget.miniMode) return _miniPlayer(live);
         return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: Colors.black,
@@ -2362,9 +2466,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                     _hostSeen = true;
                   } else if (_hostSeen && hostAgoraUid != null) {
                     WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (mounted && Navigator.of(context).canPop()) {
-                        Navigator.of(context).pop();
-                      }
+                      if (mounted) _closeViewer();
                     });
                   }
                   final engine = _controller.engine;
@@ -2613,8 +2715,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                   ),
                                 ),
                                 IconButton(
-                                  onPressed: () =>
-                                      Navigator.of(context).pop(),
+                                  onPressed: _closeViewer,
                                   icon: const Icon(
                                     Icons.close_rounded,
                                     color: Colors.white,
@@ -2655,7 +2756,8 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                           children: [
                             IconButton(
                               tooltip: widget.ar ? 'نافذة عائمة' : 'Mini Live window',
-                              onPressed: () => _enterLiveMiniWindow(context, widget.ar),
+                              onPressed: widget.onMiniToggle ??
+                                  () => _enterLiveMiniWindow(context, widget.ar),
                               icon: const Icon(Icons.picture_in_picture_alt_rounded,
                                 color: Colors.white),
                             ),
