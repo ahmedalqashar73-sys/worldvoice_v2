@@ -17,6 +17,7 @@ class StoryItem {
     required this.createdAtMs,
     required this.expiresAtMs,
     required this.mediaUrl,
+    this.liveId = '',
   });
 
   final String id;
@@ -29,7 +30,9 @@ class StoryItem {
   final int createdAtMs;
   final int expiresAtMs;
   final String mediaUrl;
+  final String liveId;
 
+  bool get isLiveShare => kind == 'live' && liveId.isNotEmpty;
   bool get isVideo => kind == 'video';
   bool get isCloseFriends => audience == 'close_friends';
 
@@ -45,6 +48,7 @@ class StoryItem {
       createdAtMs: (json['createdAtMs'] as num?)?.toInt() ?? 0,
       expiresAtMs: (json['expiresAtMs'] as num?)?.toInt() ?? 0,
       mediaUrl: (json['mediaUrl'] ?? '').toString(),
+      liveId: (json['liveId'] ?? '').toString(),
     );
   }
 }
@@ -155,8 +159,23 @@ class StoryService {
         .map((item) => StoryItem.fromJson(
               item.map((key, value) => MapEntry(key.toString(), value)),
             ))
-        .where((item) => item.id.isNotEmpty && item.mediaUrl.isNotEmpty)
+        .where((item) => item.id.isNotEmpty &&
+            (item.mediaUrl.isNotEmpty || item.isLiveShare))
         .toList(growable: false);
+  }
+
+  /// Publishes a clickable Live story without uploading media.
+  Future<void> shareLive(String liveId) async {
+    final token = await _token();
+    final response = await _client.post(
+      _uri('/stories/live-share'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'liveId': liveId}),
+    ).timeout(const Duration(seconds: 25));
+    await _decode(response);
   }
 
   Future<void> uploadStory({
