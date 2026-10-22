@@ -32,6 +32,7 @@ import '../../profile/services/profile_social_service.dart';
 import '../../profile/data/profile_language_catalog.dart';
 import '../../profile/presentation/public_profile_screen.dart';
 import '../../chat/presentation/chat_screen.dart';
+import '../../home/services/home_feed_service.dart';
 
 const MethodChannel _livePermissionChannel =
     MethodChannel('worldvoice/live_permissions');
@@ -1138,11 +1139,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                             start: 10,
                             end: 68,
                             bottom: 78 + MediaQuery.viewInsetsOf(context).bottom,
-                            height: _boardOpen
-                                ? MediaQuery.sizeOf(context).height * .27
-                                : (tiles.length >= 3
-                                    ? MediaQuery.sizeOf(context).height * .34
-                                    : 250),
+                            height: _boardOpen ? 98 : 124,
                             child: _LiveChatOverlay(
                               service: _liveService,
                               liveId: _liveId!,
@@ -2242,11 +2239,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                           start: 10,
                           end: 68,
                           bottom: 78 + MediaQuery.viewInsetsOf(context).bottom,
-                          height: _boardOpen
-                              ? MediaQuery.sizeOf(context).height * .27
-                              : (tiles.length >= 3
-                                  ? MediaQuery.sizeOf(context).height * .34
-                                  : 250),
+                          height: _boardOpen ? 98 : 124,
                           child: _LiveChatOverlay(
                             service: _service,
                             liveId: widget.liveId,
@@ -3762,6 +3755,28 @@ Future<void> _showLiveShareSheet(
           ),
           ListTile(
             leading: const CircleAvatar(
+              child: Icon(Icons.post_add_rounded),
+            ),
+            title: Text(
+              ar ? 'نشر اللايف كمنشور' : 'Share Live as a post',
+              style: const TextStyle(fontWeight: FontWeight.w800),
+            ),
+            subtitle: Text(
+              ar
+                  ? 'انشره في الصفحة الرئيسية ليتمكن الآخرون من الدخول.'
+                  : 'Publish in the Home feed so others can join.',
+            ),
+            onTap: () async {
+              Navigator.of(sheetContext).pop();
+              await _publishLivePost(
+                context,
+                shareText: shareText,
+                ar: ar,
+              );
+            },
+          ),
+          ListTile(
+            leading: const CircleAvatar(
               child: Icon(Icons.link_rounded),
             ),
             title: Text(
@@ -3814,6 +3829,64 @@ Future<void> _showLiveShareSheet(
       ),
     ),
   );
+}
+
+/// Publish a live invitation through the existing authenticated feed API.
+Future<void> _publishLivePost(
+  BuildContext context, {
+  required String shareText,
+  required bool ar,
+}) async {
+  try {
+    await HomeFeedService().createPost(text: shareText);
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(ar
+          ? 'تم نشر دعوة اللايف في الصفحة الرئيسية.'
+          : 'Live invitation published to the Home feed.')),
+    );
+  } catch (error) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(error.toString().replaceFirst('Bad state: ', ''))),
+    );
+  }
+}
+
+Future<void> openSharedWorldVoiceLive(
+  BuildContext context,
+  String liveId, {
+  required bool ar,
+}) async {
+  final id = liveId.trim();
+  if (id.isEmpty || id.contains('/')) return;
+  try {
+    final snapshot = await FirebaseFirestore.instance
+        .collection('live_sessions').doc(id).get();
+    if (!context.mounted) return;
+    final data = snapshot.data();
+    if (!LiveSessionService.isFresh(data)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(ar
+            ? 'انتهى هذا البث المباشر.'
+            : 'This Live has ended.')),
+      );
+      return;
+    }
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => _LiveViewerScreen(liveId: id, data: data!, ar: ar),
+      ),
+    );
+  } catch (error) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(ar
+          ? 'تعذر فتح البث الآن.'
+          : 'Could not open this Live.')),
+    );
+  }
 }
 
 Future<void> _showLiveShareToChat(
