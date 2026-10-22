@@ -1869,8 +1869,8 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                             ),
                           ),
                         PositionedDirectional(
-                          top: 12,
-                          end: 12,
+                          top: 14,
+                          end: 78,
                           child: Row(
                             children: [
                               IconButton(
