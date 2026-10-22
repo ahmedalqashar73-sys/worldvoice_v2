@@ -2243,6 +2243,89 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
     }
   }
 
+  Future<void> _showViewerLiveMenu() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      useSafeArea: true,
+      builder: (sheetContext) => Padding(
+        padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          ListTile(
+            leading: const Icon(Icons.share_rounded),
+            title: Text(widget.ar ? 'مشاركة اللايف' : 'Share Live'),
+            subtitle: Text(widget.ar
+                ? 'كمنشور أو عبر الدردشة أو الستوري'
+                : 'Post, direct chat or story'),
+            onTap: () {
+              Navigator.pop(sheetContext);
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) unawaited(_shareLive());
+              });
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.picture_in_picture_alt_rounded),
+            title: Text(widget.ar ? 'تصغير اللايف' : 'Minimize Live'),
+            onTap: () {
+              Navigator.pop(sheetContext);
+              if (widget.onMiniToggle != null) {
+                widget.onMiniToggle!();
+              } else {
+                unawaited(_enterLiveMiniWindow(context, widget.ar));
+              }
+            },
+          ),
+          if (_isModerator)
+            ListTile(
+              leading: const Icon(Icons.admin_panel_settings_rounded),
+              title: Text(widget.ar ? 'طلبات الضيوف' : 'Guest requests'),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                if (mounted) setState(() =>
+                    _moderatorRequestsOpen = !_moderatorRequestsOpen);
+              },
+            ),
+          if (_guestPublishing) ...[
+            ListTile(
+              leading: Icon(_guestMicMuted ? Icons.mic_off_rounded
+                  : Icons.mic_rounded),
+              title: Text(widget.ar ? 'الميكروفون' : 'Microphone'),
+              onTap: () async {
+                Navigator.pop(sheetContext);
+                final next = !_guestMicMuted;
+                await _controller.setMuted(next);
+                if (mounted) setState(() => _guestMicMuted = next);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.schedule_rounded),
+              title: Text(widget.ar ? 'وقت الضيف' : 'Guest time'),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) unawaited(_showGuestQuotaStatus());
+                });
+              },
+            ),
+          ],
+          ListTile(
+            leading: const Icon(Icons.logout_rounded),
+            title: Text(widget.ar ? 'مغادرة اللايف' : 'Leave Live'),
+            onTap: () {
+              Navigator.pop(sheetContext);
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) unawaited(_closeViewer());
+              });
+            },
+          ),
+          Text('WorldVoice Live UI • 2026.10.22.5',
+              style: Theme.of(sheetContext).textTheme.labelSmall),
+        ]),
+      ),
+    );
+  }
+
   Future<void> _shareLive() async {
     final topic = (widget.data['topic'] ?? '').toString().trim();
     final host = (widget.data['hostName'] ?? 'WorldVoice host').toString();
@@ -2798,22 +2881,13 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                           : (widget.ar ? 'متابعة' : 'Follow'),
                                     ),
                                   ),
-                                if (widget.onMiniToggle != null)
-                                  IconButton(
-                                    tooltip: widget.ar
-                                        ? 'تصغير اللايف داخل التطبيق'
-                                        : 'Minimize Live inside app',
-                                    onPressed: widget.onMiniToggle,
-                                    icon: const Icon(
-                                      Icons.picture_in_picture_rounded,
-                                      color: Color(0xFFFFD681),
-                                    ),
-                                  ),
+
                                 IconButton(
-                                  tooltip: widget.ar ? 'مشاركة' : 'Share',
-                                  onPressed: _shareLive,
+                                  tooltip: widget.ar
+                                      ? 'قائمة اللايف' : 'Live options',
+                                  onPressed: _showViewerLiveMenu,
                                   icon: const Icon(
-                                    Icons.share_rounded,
+                                    Icons.more_horiz_rounded,
                                     color: Colors.white,
                                   ),
                                 ),
@@ -2846,14 +2920,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                         start: 12,
                         end: 12,
                         child: _LiveControlDock(
-                          pinnedAction: IconButton(
-                            tooltip: widget.ar
-                                ? 'مشاركة اللايف كمنشور أو في الدردشة'
-                                : 'Share Live as post or to chat',
-                            onPressed: _shareLive,
-                            icon: const Icon(Icons.share_rounded,
-                              color: Color(0xFFFFD681)),
-                          ),
+
                           composer: _LiveInlineComposer(
                             service: _service,
                             liveId: widget.liveId,
@@ -2866,170 +2933,56 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                           ),
                           children: [
                             IconButton(
-                              tooltip: widget.ar ? 'نافذة عائمة' : 'Mini Live window',
-                              onPressed: widget.onMiniToggle ??
-                                  () => _enterLiveMiniWindow(context, widget.ar),
-                              icon: const Icon(Icons.picture_in_picture_alt_rounded,
-                                color: Colors.white),
+                              tooltip: widget.ar ? 'الشات' : 'Chat',
+                              onPressed: () => setState(() => _chatOpen = !_chatOpen),
+                              icon: const Icon(Icons.chat_bubble_outline_rounded,
+                                  color: Colors.white),
                             ),
                             IconButton(
-                              tooltip: widget.ar ? 'الهدايا' : 'Gifts',
-                              onPressed: () => _showLiveGifts(
-                                context,
-                                liveId: widget.liveId,
-                                service: _service,
-                                hostId: (live?['hostId'] ??
-                                        widget.data['hostId'] ??
-                                        '')
-                                    .toString(),
-                                hostName: (live?['hostName'] ??
-                                        widget.data['hostName'] ??
-                                        'WorldVoice host')
-                                    .toString(),
-                                ar: widget.ar,
-                              ),
-                              icon: const Icon(
-                                Icons.card_giftcard_rounded,
-                                color: Color(0xFFFFC857),
-                              ),
-                            ),
-                            IconButton(
-                              tooltip: widget.ar ? 'السبورة' : 'Board',
+                              tooltip: widget.ar ? 'السبورة' : 'Whiteboard',
                               onPressed: () => setState(() {
                                 _boardOpen = !_boardOpen;
                                 if (_boardOpen) _chatOpen = true;
                               }),
-                              icon: Icon(
-                                _boardOpen
-                                    ? Icons.dashboard_rounded
-                                    : Icons.dashboard_outlined,
-                                color: Colors.white,
-                              ),
+                              icon: Icon(_boardOpen ? Icons.dashboard_rounded
+                                  : Icons.dashboard_outlined, color: Colors.white),
+                            ),
+                            IconButton(
+                              tooltip: widget.ar ? 'الهدايا' : 'Gifts',
+                              onPressed: () => _showLiveGifts(context,
+                                liveId: widget.liveId, service: _service,
+                                hostId: (live?['hostId'] ??
+                                    widget.data['hostId'] ?? '').toString(),
+                                hostName: (live?['hostName'] ??
+                                    widget.data['hostName'] ??
+                                    'WorldVoice host').toString(),
+                                ar: widget.ar),
+                              icon: const Icon(Icons.card_giftcard_rounded,
+                                color: Color(0xFFFFC857)),
                             ),
                             if (!_guestPublishing)
-                              FilledButton.icon(
-                                style: FilledButton.styleFrom(
-                                  backgroundColor: _requested
-                                      ? const Color(0x663A8068)
-                                      : const Color(0xFF1EA972),
-                                  foregroundColor: Colors.white,
-                                  minimumSize: const Size(128, 44),
-                                ),
+                              IconButton(
+                                tooltip: _requested
+                                    ? (widget.ar ? 'تم طلب الانضمام' : 'Request sent')
+                                    : (widget.ar ? 'طلب الصعود' : 'Join stage'),
                                 onPressed: _requested ? null : _requestCamera,
-                                icon: Icon(
-                                  _requested
-                                      ? Icons.hourglass_top_rounded
-                                      : Icons.group_add_rounded,
-                                ),
-                                label: Text(
-                                  _requested
-                                      ? (widget.ar ? 'تم الطلب' : 'Requested')
-                                      : (widget.ar ? 'انضمام' : 'Join'),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                              ),
-                            if (_isModerator)
+                                icon: Icon(_requested
+                                    ? Icons.hourglass_top_rounded
+                                    : Icons.group_add_rounded,
+                                  color: Colors.white),
+                              )
+                            else
                               IconButton(
-                                tooltip: widget.ar
-                                    ? 'طلبات الانضمام'
-                                    : 'Join requests',
-                                onPressed: () => setState(
-                                  () => _moderatorRequestsOpen =
-                                      !_moderatorRequestsOpen,
-                                ),
-                                icon: const Icon(
-                                  Icons.admin_panel_settings_rounded,
-                                  color: Color(0xFFFFD77A),
-                                ),
-                              ),
-                            if (_guestPublishing) ...[
-                              IconButton(
-                                tooltip: widget.ar
-                                    ? 'وقت الصعود'
-                                    : 'Guest time',
-                                onPressed: _showGuestQuotaStatus,
-                                icon: const Icon(
-                                  Icons.schedule_rounded,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              IconButton(
-                                tooltip: widget.ar ? 'المايك' : 'Microphone',
+                                tooltip: widget.ar ? 'الميكروفون' : 'Microphone',
                                 onPressed: () async {
                                   final next = !_guestMicMuted;
                                   await _controller.setMuted(next);
-                                  if (mounted) {
-                                    setState(() => _guestMicMuted = next);
-                                  }
+                                  if (mounted) setState(() => _guestMicMuted = next);
                                 },
-                                icon: Icon(
-                                  _guestMicMuted
-                                      ? Icons.mic_off_rounded
-                                      : Icons.mic_rounded,
-                                  color: Colors.white,
-                                ),
+                                icon: Icon(_guestMicMuted
+                                    ? Icons.mic_off_rounded
+                                    : Icons.mic_rounded, color: Colors.white),
                               ),
-                              IconButton(
-                                tooltip: widget.ar
-                                    ? 'الفلاتر والكاميرا'
-                                    : 'Filters & camera',
-                                onPressed: () => _showLiveCameraTools(
-                                  context,
-                                  controller: _controller,
-                                  ar: widget.ar,
-                                  beautyEnabled: _guestBeautyEnabled,
-                                  filterPreset: _guestFilterPreset,
-                                  backgroundBlurEnabled:
-                                      _guestBackgroundBlurEnabled,
-                                  zoom: _guestCameraZoom,
-                                  onBeautyChanged: (value) {
-                                    if (mounted) {
-                                      setState(
-                                        () => _guestBeautyEnabled = value,
-                                      );
-                                    }
-                                  },
-                                  onFilterPresetChanged: (value) {
-                                    if (mounted) {
-                                      setState(
-                                        () => _guestFilterPreset = value,
-                                      );
-                                    }
-                                  },
-                                  onBackgroundBlurChanged: (value) {
-                                    if (mounted) {
-                                      setState(
-                                        () => _guestBackgroundBlurEnabled =
-                                            value,
-                                      );
-                                    }
-                                  },
-                                  onZoomChanged: (value) {
-                                    if (mounted) {
-                                      setState(
-                                        () => _guestCameraZoom = value,
-                                      );
-                                    }
-                                  },
-                                ),
-                                icon: const Icon(
-                                  Icons.auto_fix_high_rounded,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              IconButton(
-                                tooltip: widget.ar
-                                    ? 'اخرج من الكاميرا'
-                                    : 'Leave camera',
-                                onPressed: _leaveGuestCamera,
-                                icon: const Icon(
-                                  Icons.videocam_off_rounded,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
                           ],
                         ),
                       ),
