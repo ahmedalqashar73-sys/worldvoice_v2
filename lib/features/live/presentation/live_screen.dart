@@ -659,7 +659,6 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   String _filterPreset = 'off';
   bool _backgroundBlurEnabled = false;
   double _cameraZoom = 1;
-  bool _requestsOpen = false;
   bool _boardOpen = false;
   bool _chatOpen = true;
   bool _sessionClosed = false;
@@ -750,6 +749,32 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
       ),
     );
     if (approved == true && mounted) await _endLiveAndPop();
+  }
+
+  Future<void> _openHostRequests() async {
+    final id = _liveId;
+    if (id == null) return;
+    if (_boardOpen) setState(() => _boardOpen = false);
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      useSafeArea: true,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF0F2923),
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 6, 12, 22),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Text(widget.ar ? 'طلبات الانضمام إلى اللايف' : 'Join requests',
+              style: const TextStyle(color: Colors.white,
+                  fontSize: 17, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 14),
+            _HostJoinRequests(liveId: id,
+              service: _liveService, ar: widget.ar),
+          ]),
+        ),
+      ),
+    );
   }
 
   Future<void> _showHostLiveMenu() async {
@@ -1045,7 +1070,6 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
       _starting = true;
       _startPhase = widget.ar ? 'التحقق من صلاحيات البث' : 'Checking Live eligibility';
       _cameraStartError = null;
-      _requestsOpen = false;
       _boardOpen = false;
       _chatOpen = true;
     });
@@ -1899,7 +1923,10 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                               IconButton(
                                 tooltip: widget.ar ? 'السبورة' : 'Whiteboard',
                                 onPressed: _liveId == null ? null
-                                  : () => setState(() => _boardOpen = !_boardOpen),
+                                  : () => setState(() {
+                                      _boardOpen = !_boardOpen;
+                                      if (_boardOpen) _chatOpen = false;
+                                    }),
                                 icon: Icon(_boardOpen
                                   ? Icons.dashboard_rounded
                                   : Icons.dashboard_outlined,
@@ -1907,8 +1934,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                               ),
                               IconButton(
                                 tooltip: widget.ar ? 'طلبات الضيوف' : 'Guest requests',
-                                onPressed: () => setState(
-                                  () => _requestsOpen = !_requestsOpen),
+                                onPressed: _liveId == null ? null : _openHostRequests,
                                 icon: const Icon(Icons.group_add_rounded,
                                   color: Colors.white),
                               ),
@@ -1926,17 +1952,6 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                             ],
                           ),
                         ),
-                        if (_requestsOpen && _liveId != null)
-                          PositionedDirectional(
-                            bottom: 86,
-                            start: 14,
-                            end: 14,
-                            child: _HostJoinRequests(
-                              liveId: _liveId!,
-                              service: _liveService,
-                              ar: widget.ar,
-                            ),
-                          ),
                         PositionedDirectional(
                           top: 14,
                           end: 78,
