@@ -3301,23 +3301,14 @@ Future<void> _showLiveGifts(
                   doc.id: (doc.data()['displayName'] ?? 'WorldVoice guest')
                       .toString(),
             };
-            if (recipients.isEmpty) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Text(
-                    ar
-                        ? 'لا يوجد شخص آخر على الكاميرا لإرسال هدية له الآن.'
-                        : 'There is no other on-camera person to gift right now.',
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              );
-            }
+            // Keep the catalog available to a solo host for free effect
+            // previews; paid delivery stays disabled without a recipient.
+            // Viewers default to the host, and can switch to an active guest.
             return UnifiedGiftPanel(
               contextType: 'live',
               contextId: liveId,
               recipients: recipients,
+              initialRecipientId: myId == hostId ? null : hostId,
             );
           },
         ),
