@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import '../core/localization/locale_controller.dart';
@@ -10,6 +11,7 @@ import '../core/localization/supported_language.dart';
 import '../core/theme/app_theme.dart';
 import '../features/auth/services/auth_service.dart';
 import '../features/home/presentation/home_screen.dart';
+import '../features/live/presentation/live_screen.dart';
 import '../features/onboarding/presentation/welcome_screen.dart';
 import '../features/profile/presentation/profile_setup_screen.dart';
 import '../features/profile/services/user_presence_service.dart';
@@ -24,6 +26,11 @@ class WorldVoiceApp extends StatefulWidget {
 
 class _WorldVoiceAppState extends State<WorldVoiceApp> with WidgetsBindingObserver {
   final LocaleController _localeController = LocaleController();
+  final GlobalKey<NavigatorState> _navigator = GlobalKey<NavigatorState>();
+  static const MethodChannel _liveLinks =
+      MethodChannel('worldvoice/live_links');
+  String? _pendingSharedLive;
+  bool _openingSharedLive = false;
   final PresenceSession _presenceSession = PresenceSession();
   StreamSubscription<User?>? _authSubscription;
   bool _ready = false;
@@ -32,12 +39,19 @@ class _WorldVoiceAppState extends State<WorldVoiceApp> with WidgetsBindingObserv
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _liveLinks.setMethodCallHandler((call) async {
+      if (call.method == 'openLive' && call.arguments is String) {
+        _queueSharedLive(call.arguments as String);
+      }
+    });
+    unawaited(_readInitialLiveLink());
     _localeController.addListener(_refresh);
     _authSubscription = FirebaseAuth.instance.authStateChanges().listen((user) {
       if (user != null) {
         _presenceSession.start();
         unawaited(AuthService.syncPrivilegedAccountEntitlements());
         unawaited(RoomCoinPurchaseService.instance.initialize());
+        _scheduleOpenSharedLive();
       } else {
         _presenceSession.stop();
       }
@@ -47,7 +61,59 @@ class _WorldVoiceAppState extends State<WorldVoiceApp> with WidgetsBindingObserv
 
   Future<void> _load() async {
     await _localeController.load();
-    if (mounted) setState(() => _ready = true);
+    if (mounted) {
+      setState(() => _ready = true);
+      _scheduleOpenSharedLive();
+    }
+  }
+
+  Future<void> _readInitialLiveLink() async {
+    try {
+      final id = await _liveLinks.invokeMethod<String>('initial');
+      if (id != null) _queueSharedLive(id);
+    } on PlatformException {
+      // iOS / older Android builds can still open the app normally.
+    } on MissingPluginException {
+      // No native link handler on this platform.
+    }
+  }
+
+  void _queueSharedLive(String id) {
+    if (!RegExp(r'^[A-Za-z0-9_-]{3,128}$').hasMatch(id)) return;
+    _pendingSharedLive = id;
+    _scheduleOpenSharedLive();
+  }
+
+  void _scheduleOpenSharedLive() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) unawaited(_openPendingSharedLive());
+    });
+  }
+
+  Future<void> _openPendingSharedLive() async {
+    if (!_ready || _openingSharedLive || _pendingSharedLive == null) return;
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return; // Retain the link across login.
+    _openingSharedLive = true;
+    try {
+      final profile = await FirebaseFirestore.instance
+          .collection('users').doc(user.uid).get();
+      if (!AuthService.hasCompletedProfileData(profile.data())) {
+        return; // Do not bypass login or onboarding.
+      }
+      if (!mounted) return;
+      final navigator = _navigator.currentState;
+      if (navigator == null) return;
+      final id = _pendingSharedLive!;
+      _pendingSharedLive = null;
+      await navigator.push<void>(MaterialPageRoute(
+        builder: (_) => WorldVoiceLiveInvitationPage(liveId: id),
+      ));
+    } catch (_) {
+      // Profile unavailable/offline: keep the invitation for another attempt.
+    } finally {
+      _openingSharedLive = false;
+    }
   }
 
   void _refresh() {
@@ -59,6 +125,7 @@ class _WorldVoiceAppState extends State<WorldVoiceApp> with WidgetsBindingObserv
     switch (state) {
       case AppLifecycleState.resumed:
         _presenceSession.start();
+        _scheduleOpenSharedLive();
         return;
       case AppLifecycleState.inactive:
       case AppLifecycleState.paused:
@@ -72,6 +139,7 @@ class _WorldVoiceAppState extends State<WorldVoiceApp> with WidgetsBindingObserv
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _liveLinks.setMethodCallHandler(null);
     _authSubscription?.cancel();
     _presenceSession.dispose();
     _localeController.removeListener(_refresh);
@@ -82,6 +150,7 @@ class _WorldVoiceAppState extends State<WorldVoiceApp> with WidgetsBindingObserv
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: _navigator,
       title: 'WorldVoice',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
