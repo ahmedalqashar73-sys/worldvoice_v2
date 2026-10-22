@@ -2549,6 +2549,23 @@ class ProfileLanguageCatalog {
     return byCode(code)?.displayName ?? code;
   }
 
+  /// Resolve stored profile values to catalog codes, including older profile
+  /// documents that saved the translated/English language names.
+  /// Live discovery uses codes to match sessions rather than UI labels.
+  static String? codeFromStored(Object? saved) {
+    final raw = (saved ?? '').toString().trim();
+    if (raw.isEmpty) return null;
+    final normalized = raw.toLowerCase().split(RegExp(r'[-_]')).first;
+    if (byCode(normalized) != null) return normalized;
+    for (final language in languages) {
+      if (language.englishName.toLowerCase() == raw.toLowerCase() ||
+          language.nativeName?.toLowerCase() == raw.toLowerCase()) {
+        return language.code;
+      }
+    }
+    return null;
+  }
+
   // Existing profiles may still store legacy English/native labels instead of
   // ISO codes. Convert them for display without changing Firestore data.
   static String localizedStoredName(String? saved, String uiLocale) {
