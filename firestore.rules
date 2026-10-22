@@ -835,6 +835,17 @@ service cloud.firestore {
                     .data.hostId,
                 request.auth.uid
               )
+              // Active on-camera guests are public to joined viewers, so the
+              // live gift picker can address them. Pending requests remain
+              // private to their owner and the host/moderators.
+              || (
+                resource.data.status == 'accepted'
+                && get(/databases/$(database)/documents/live_sessions/$(liveId))
+                    .data.isLive == true
+                && exists(
+                  /databases/$(database)/documents/live_sessions/$(liveId)/viewers/$(request.auth.uid)
+                )
+              )
             );
         allow create: if signedIn()
             && request.resource.data.uid == userId
