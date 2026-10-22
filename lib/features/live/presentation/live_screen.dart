@@ -26,6 +26,7 @@ import '../../rooms/services/room_translation_service.dart';
 import '../../rooms/services/room_quota_service.dart';
 import '../../rooms/services/room_rewarded_ad_service.dart';
 import '../services/live_session_service.dart';
+import '../services/live_startup_guard.dart';
 import 'live_invitation_card.dart';
 import 'live_priority_controls.dart';
 
@@ -650,6 +651,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   bool _preparingPreview = false;
   bool _cameraReady = false;
   bool _starting = false;
+  String _startPhase = '';
   bool _cameraPaused = false;
   String? _cameraStartError;
   bool _micMuted = false;
@@ -1026,57 +1028,102 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     }
   }
 
+  void _setStartupPhase(String phase) {
+    if (!mounted) return;
+    setState(() => _startPhase = phase);
+  }
+
   Future<void> _startCamera() async {
     if (_starting || _cameraReady) return;
     if (!_previewReady) {
       await _preparePreview();
-      if (!_previewReady) return;
+      if (!_previewReady || !mounted) return;
     }
+    String? attemptedLiveId;
+    var createRequested = false;
     setState(() {
       _starting = true;
+      _startPhase = widget.ar ? 'التحقق من صلاحيات البث' : 'Checking Live eligibility';
       _cameraStartError = null;
+      _requestsOpen = false;
+      _boardOpen = false;
+      _chatOpen = true;
     });
     try {
-      _quotaLevel = await _currentUserStageLevel();
-      final quotaStatus = await _quota.startSession(
-        asHost: true,
-        roomLevel: _quotaLevel,
+      _quotaLevel = await guardLiveStartup(
+        _currentUserStageLevel(),
+        phase: 'room level',
+        timeout: const Duration(seconds: 8),
+      );
+      _setStartupPhase(widget.ar
+          ? 'التحقق من الوقت المتاح'
+          : 'Checking hosting allowance');
+      final quotaStatus = await guardLiveStartup(
+        _quota.startSession(asHost: true, roomLevel: _quotaLevel),
+        phase: 'hosting allowance',
+        timeout: const Duration(seconds: 12),
       );
       if (!quotaStatus.allowed) {
-        throw StateError(
-          widget.ar
-              ? 'انتهى وقت استضافة اللايف المتاح لك اليوم.'
-              : 'Your Live hosting time for today has been used.',
-        );
+        throw StateError(widget.ar
+            ? 'انتهى وقت استضافة اللايف المتاح لك اليوم.'
+            : 'Your Live hosting time for today has been used.');
       }
       _quotaStarted = true;
 
       final channel = 'live_${DateTime.now().millisecondsSinceEpoch}';
       _channelId = channel;
-      await _controller.ensureConnected(
-        channelId: channel,
-        role: AgoraRoomRole.speaker,
-        previewCamera: true,
+      _setStartupPhase(widget.ar
+          ? 'الاتصال بالصوت والفيديو'
+          : 'Connecting audio and video');
+      await guardLiveStartup(
+        _controller.ensureConnected(
+          channelId: channel,
+          role: AgoraRoomRole.speaker,
+          previewCamera: true,
+        ),
+        phase: 'Agora connection',
+        timeout: const Duration(seconds: 45),
       );
-      if (!mounted) { await _controller.leave(); return; }
+      if (!mounted) {
+        await _controller.leave().timeout(const Duration(seconds: 5));
+        return;
+      }
       final engine = _controller.engine;
       if (engine == null || !_controller.joined) {
         throw StateError(_controller.error ?? 'Could not start Live.');
       }
-      await _controller.setCameraPublishing(true);
+      _setStartupPhase(widget.ar
+          ? 'تشغيل الكاميرا للمشاهدين'
+          : 'Publishing camera');
+      await guardLiveStartup(
+        _controller.setCameraPublishing(true),
+        phase: 'camera publishing',
+        timeout: const Duration(seconds: 10),
+      );
       final hostAgoraUid = _controller.localUid;
       if (hostAgoraUid == null || hostAgoraUid <= 0) {
         throw StateError('Agora did not return a valid host UID.');
       }
-      _liveId = await _liveService.create(
-        channelId: channel,
-        languageCode: _languageCode,
-        hostAgoraUid: hostAgoraUid,
-        topic: _resolvedTopic,
+
+      _setStartupPhase(widget.ar
+          ? 'نشر اللايف للمشاهدين'
+          : 'Publishing Live session');
+      attemptedLiveId = channel;
+      createRequested = true;
+      _liveId = await guardLiveStartup(
+        _liveService.create(
+          channelId: channel,
+          languageCode: _languageCode,
+          hostAgoraUid: hostAgoraUid,
+          topic: _resolvedTopic,
+        ),
+        phase: 'Firestore Live registration',
+        timeout: const Duration(seconds: 15),
       );
       if (!mounted) {
-        await _liveService.end(_liveId!);
-        await _controller.leave();
+        await _liveService.end(_liveId!)
+            .timeout(const Duration(seconds: 5));
+        await _controller.leave().timeout(const Duration(seconds: 5));
         return;
       }
       _startHeartbeat();
@@ -1084,20 +1131,40 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
       setState(() {
         _cameraReady = true;
         _starting = false;
+        _startPhase = '';
         _cameraPaused = false;
         _cameraStartError = null;
       });
     } catch (error) {
-      if (_quotaStarted) {
-        await _quota.endSession();
-        _quotaStarted = false;
+      // A Firestore write that times out can still be locally queued.
+      // Queue a terminal update for the same deterministic document ID, so
+      // a later reconnect does not advertise an abandoned broadcast.
+      if (createRequested && attemptedLiveId != null) {
+        try {
+          await _liveService.end(attemptedLiveId)
+              .timeout(const Duration(seconds: 4));
+        } catch (_) {
+          // A final cleanup is also attempted on screen disposal if needed.
+        }
       }
-      await _controller.leave();
+      if (_quotaStarted) {
+        _quotaStarted = false;
+        try {
+          await _quota.endSession().timeout(const Duration(seconds: 4));
+        } catch (_) {}
+      }
+      try {
+        await _controller.leave().timeout(const Duration(seconds: 5));
+      } catch (_) {}
+      debugPrint('WorldVoice Live startup failed at $_startPhase: $error');
       if (!mounted) return;
+      final phase = _startPhase;
       setState(() {
         _starting = false;
+        _startPhase = '';
         _previewReady = false;
-        _cameraStartError = error.toString();
+        _cameraStartError = '${widget.ar ? 'تعذر بدء اللايف خلال' : 'Live could not start during'} '
+            '$phase: $error';
       });
     }
   }
@@ -1504,9 +1571,11 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                     : const Icon(Icons.live_tv_rounded),
                                 label: Text(
                                   _starting
-                                      ? (widget.ar
-                                          ? 'جاري بدء اللايف...'
-                                          : 'Starting Live...')
+                                      ? (_startPhase.isNotEmpty
+                                          ? _startPhase
+                                          : (widget.ar
+                                              ? 'جاري بدء اللايف...'
+                                              : 'Starting Live...'))
                                       : (widget.ar
                                           ? 'ابدأ اللايف'
                                           : 'Go LIVE'),
