@@ -1896,13 +1896,10 @@ class _LiveControlDock extends StatelessWidget {
   const _LiveControlDock({
     required this.children,
     this.composer,
-    this.pinnedAction,
   });
 
   final List<Widget> children;
   final Widget? composer;
-  // A primary action stays visible while the other tools scroll.
-  final Widget? pinnedAction;
   final EdgeInsetsGeometry padding =
       const EdgeInsets.symmetric(horizontal: 8, vertical: 7);
 
@@ -1933,10 +1930,6 @@ class _LiveControlDock extends StatelessWidget {
                 child: composer!,
               ),
               const SizedBox(width: 7),
-            ],
-            if (pinnedAction != null) ...[
-              pinnedAction!,
-              const SizedBox(width: 4),
             ],
             Expanded(
               flex: composer == null ? 1 : 7,
@@ -2269,8 +2262,10 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
               title: Text(widget.ar ? 'طلبات الضيوف' : 'Guest requests'),
               onTap: () {
                 Navigator.pop(sheetContext);
-                if (mounted) setState(() =>
+                if (mounted) {
+                  setState(() =>
                     _moderatorRequestsOpen = !_moderatorRequestsOpen);
+                }
               },
             ),
           if (_guestPublishing) ...[
