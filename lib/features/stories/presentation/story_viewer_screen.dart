@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
 import '../services/story_service.dart';
+import '../../live/presentation/live_screen.dart';
 
 class StoryViewerScreen extends StatefulWidget {
   const StoryViewerScreen({
@@ -77,10 +78,20 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
     }
 
     if (mounted) setState(() => _mediaLoading = false);
+    // Keep a Live invitation visible until the viewer chooses Join or skips.
+    if (story.isLiveShare) return;
     final duration = Duration(
       milliseconds: story.durationMs.clamp(2500, 12000),
     );
     _timer = Timer(duration, _next);
+  }
+
+  Future<void> _openLiveStory() async {
+    final liveId = _story.liveId;
+    if (liveId.isEmpty) return;
+    _timer?.cancel();
+    await openWorldVoiceLive(context, liveId: liveId);
+    if (mounted) unawaited(_showCurrent());
   }
 
   void _videoListener() {
@@ -162,7 +173,38 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
           fit: StackFit.expand,
           children: [
             Positioned.fill(
-              child: story.isVideo
+              child: story.isLiveShare
+                  ? Container(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [Color(0xFF071C18), Color(0xFF125C43),
+                            Color(0xFF172E28)],
+                        ),
+                      ),
+                      child: Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.live_tv_rounded,
+                                size: 90, color: Color(0xFFFFD67D)),
+                            const SizedBox(height: 16),
+                            Text(ar ? 'بث مباشر على WorldVoice'
+                                    : 'WorldVoice LIVE',
+                                style: const TextStyle(
+                                  fontSize: 24, fontWeight: FontWeight.w900,
+                                  color: Colors.white,
+                                )),
+                            const SizedBox(height: 12),
+                            Text(ar ? 'اضغط بالأسفل للدخول إلى البث'
+                                    : 'Tap below to join the Live',
+                                style: const TextStyle(color: Colors.white70)),
+                          ],
+                        ),
+                      ),
+                    )
+                  : story.isVideo
                   ? (_video?.value.isInitialized == true
                       ? FittedBox(
                           fit: BoxFit.contain,
@@ -353,6 +395,22 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
                 ],
               ),
             ),
+            if (story.isLiveShare)
+              Positioned(
+                left: 26,
+                right: 26,
+                bottom: 86,
+                child: FilledButton.icon(
+                  onPressed: _openLiveStory,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFFFFCE66),
+                    foregroundColor: const Color(0xFF153524),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  icon: const Icon(Icons.play_arrow_rounded),
+                  label: Text(ar ? 'دخول اللايف الآن' : 'Join Live now'),
+                ),
+              ),
             if (!_isOwner && widget.onReply != null)
               Positioned(
                 left: 16,
