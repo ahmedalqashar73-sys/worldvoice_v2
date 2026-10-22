@@ -354,7 +354,9 @@ class _LiveScreenState extends State<LiveScreen> {
                       if (_languageFilter == 'all') return true;
                       final data = doc.data();
                       if ((data['languageCode'] ?? '').toString().toLowerCase() ==
-                          _languageFilter) return true;
+                          _languageFilter ||
+                          (data['nativeLanguageCode'] ?? '').toString()
+                              .toLowerCase() == _languageFilter) return true;
                       final learning = data['learningLanguageCodes'];
                       return learning is List && learning.any(
                         (v) => v.toString().toLowerCase() == _languageFilter);
@@ -1307,9 +1309,16 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                         if (!_boardOpen)
                           Positioned.fill(
                             bottom: tiles.length >= 3
-                                ? MediaQuery.sizeOf(context).height * .38
+                                ? MediaQuery.sizeOf(context).height * .41
                                 : 0,
-                            child: _LiveVideoGrid(children: tiles),
+                            child: _LiveVideoGrid(
+                              children: tiles,
+                              labels: [
+                                FirebaseAuth.instance.currentUser?.displayName ??
+                                    (widget.ar ? 'المضيف' : 'Host'),
+                                ...remote.map((_) => widget.ar ? 'ضيف' : 'Guest'),
+                              ],
+                            ),
                           )
                         else
                           const ColoredBox(color: Color(0xFF081A15)),
@@ -2504,9 +2513,22 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                         if (tiles.isNotEmpty)
                           Positioned.fill(
                             bottom: tiles.length >= 3
-                                ? MediaQuery.sizeOf(context).height * .38
+                                ? MediaQuery.sizeOf(context).height * .41
                                 : 0,
-                            child: _LiveVideoGrid(children: tiles),
+                            child: _LiveVideoGrid(
+                              children: tiles,
+                              labels: [
+                                if (_guestPublishing)
+                                  FirebaseAuth.instance.currentUser?.displayName ??
+                                      (widget.ar ? 'أنا' : 'Me'),
+                                ...remote.take(_guestPublishing ? 3 : 4).map(
+                                  (id) => id == hostAgoraUid
+                                    ? (live?['hostName'] ?? widget.data['hostName'] ??
+                                        'Host').toString()
+                                    : (widget.ar ? 'ضيف' : 'Guest'),
+                                ),
+                              ],
+                            ),
                           )
                         else
                           const Center(
@@ -5134,10 +5156,15 @@ class _HostJoinRequests extends StatelessWidget {
 }
 
 class _LiveVideoGrid extends StatelessWidget {
-  const _LiveVideoGrid({required this.children});
+  const _LiveVideoGrid({required this.children, this.labels = const []});
   final List<Widget> children;
+  final List<String> labels;
 
-  Widget _tile(Widget child) {
+  String? _labelAt(int index) =>
+      index < labels.length && labels[index].trim().isNotEmpty
+          ? labels[index].trim() : null;
+
+  Widget _tile(Widget child, int index) {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: const Color(0xFF071B16),
@@ -5151,6 +5178,24 @@ class _LiveVideoGrid extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             SizedBox.expand(child: child),
+            if (_labelAt(index) != null)
+              PositionedDirectional(
+                start: 8, bottom: 8,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: const Color(0xB8000000),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 9, vertical: 5),
+                    child: Text(_labelAt(index)!,
+                      maxLines: 1, overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(color: Colors.white,
+                        fontSize: 12, fontWeight: FontWeight.w800)),
+                  ),
+                ),
+              ),
             const IgnorePointer(
               child: DecoratedBox(
                 decoration: BoxDecoration(
@@ -5191,15 +5236,15 @@ class _LiveVideoGrid extends StatelessWidget {
     }
 
     if (items.length == 1) {
-      return _tile(items.first);
+      return _tile(items.first, 0);
     }
 
     if (items.length == 2) {
       return Row(
         children: [
-          Expanded(child: _tile(items[0])),
+          Expanded(child: _tile(items[0], 0)),
           const SizedBox(width: 2),
-          Expanded(child: _tile(items[1])),
+          Expanded(child: _tile(items[1], 1)),
         ],
       );
     }
@@ -5212,16 +5257,16 @@ class _LiveVideoGrid extends StatelessWidget {
             flex: 44,
             child: Column(
               children: [
-                Expanded(child: _tile(items[1])),
+                Expanded(child: _tile(items[1], 1)),
                 const SizedBox(height: 2),
-                Expanded(child: _tile(items[2])),
+                Expanded(child: _tile(items[2], 2)),
               ],
             ),
           ),
           const SizedBox(width: 2),
           Expanded(
             flex: 56,
-            child: _tile(items[0]),
+            child: _tile(items[0], 0),
           ),
         ],
       );
@@ -5232,9 +5277,9 @@ class _LiveVideoGrid extends StatelessWidget {
         Expanded(
           child: Row(
             children: [
-              Expanded(child: _tile(items[0])),
+              Expanded(child: _tile(items[0], 0)),
               const SizedBox(width: 2),
-              Expanded(child: _tile(items[1])),
+              Expanded(child: _tile(items[1], 1)),
             ],
           ),
         ),
@@ -5242,9 +5287,9 @@ class _LiveVideoGrid extends StatelessWidget {
         Expanded(
           child: Row(
             children: [
-              Expanded(child: _tile(items[2])),
+              Expanded(child: _tile(items[2], 2)),
               const SizedBox(width: 2),
-              Expanded(child: _tile(items[3])),
+              Expanded(child: _tile(items[3], 3)),
             ],
           ),
         ),
