@@ -32,8 +32,8 @@ import '../../profile/services/profile_social_service.dart';
 import '../../profile/data/profile_language_catalog.dart';
 import '../../profile/presentation/public_profile_screen.dart';
 import '../../chat/presentation/chat_screen.dart';
-import '../../home/services/home_feed_service.dart';
 import '../../stories/services/story_service.dart';
+import '../../home/services/home_feed_service.dart';
 
 const MethodChannel _livePermissionChannel =
     MethodChannel('worldvoice/live_permissions');
@@ -1135,16 +1135,21 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                           Positioned.fill(
                             child: _LiveGiftEffects(liveId: _liveId!),
                           ),
+                        if (_liveId != null)
+                          PositionedDirectional(
+                            top: 92,
+                            end: 12,
+                            child: _LiveProfileLanguages(
+                              hostId: FirebaseAuth.instance.currentUser?.uid ?? '',
+                              ar: widget.ar,
+                            ),
+                          ),
                         if (_chatOpen && _liveId != null)
                           PositionedDirectional(
                             start: 10,
                             end: 68,
                             bottom: 78 + MediaQuery.viewInsetsOf(context).bottom,
-                            height: _boardOpen
-                                ? MediaQuery.sizeOf(context).height * .27
-                                : (tiles.length >= 3
-                                    ? MediaQuery.sizeOf(context).height * .34
-                                    : 250),
+                            height: _boardOpen ? 98 : 124,
                             child: _LiveChatOverlay(
                               service: _liveService,
                               liveId: _liveId!,
@@ -2239,16 +2244,20 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                       Positioned.fill(
                         child: _LiveGiftEffects(liveId: widget.liveId),
                       ),
+                      PositionedDirectional(
+                        top: 92,
+                        end: 12,
+                        child: _LiveProfileLanguages(
+                          hostId: (live?['hostId'] ?? widget.data['hostId'] ?? '').toString(),
+                          ar: widget.ar,
+                        ),
+                      ),
                       if (_chatOpen)
                         PositionedDirectional(
                           start: 10,
                           end: 68,
                           bottom: 78 + MediaQuery.viewInsetsOf(context).bottom,
-                          height: _boardOpen
-                              ? MediaQuery.sizeOf(context).height * .27
-                              : (tiles.length >= 3
-                                  ? MediaQuery.sizeOf(context).height * .34
-                                  : 250),
+                          height: _boardOpen ? 98 : 124,
                           child: _LiveChatOverlay(
                             service: _service,
                             liveId: widget.liveId,
@@ -3703,14 +3712,84 @@ Future<void> _showLiveCameraTools(
   );
 }
 
-String _liveShareUri(String liveId) => 'worldvoice://live/$liveId';
+class _LiveProfileLanguages extends StatelessWidget {
+  const _LiveProfileLanguages({required this.hostId, required this.ar});
+  final String hostId;
+  final bool ar;
 
-/// Opens a shared Live directly from a WorldVoice post, story or chat.
-Future<void> openWorldVoiceLive(
-  BuildContext context, {
+  @override
+  Widget build(BuildContext context) {
+    if (hostId.isEmpty) return const SizedBox.shrink();
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance.collection('users').doc(hostId).snapshots(),
+      builder: (context, snapshot) {
+        final data = snapshot.data?.data();
+        if (data == null) return const SizedBox.shrink();
+        final native = (data['nativeLanguageCode'] ?? '').toString().trim();
+        final raw = data['learningLanguageCodes'];
+        final learning = raw is List
+            ? raw.map((e) => e.toString().trim())
+                .where((e) => e.isNotEmpty && e != native).toSet().take(3).toList()
+            : <String>[];
+        if (native.isEmpty && learning.isEmpty) return const SizedBox.shrink();
+        final nativeLabel = native.isEmpty ? '' : ProfileLanguageCatalog.label(native);
+        final learningLabel = learning.map(ProfileLanguageCatalog.label).join(' · ');
+        return IgnorePointer(
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 228),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: const Color(0xB3082D21),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              [
+                if (native.isNotEmpty) '${ar ? 'الأم' : 'Native'}: $nativeLabel',
+                if (learning.isNotEmpty) '${ar ? 'أتعلم' : 'Learning'}: $learningLabel',
+              ].join('  •  '),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.white, fontSize: 11,
+                fontWeight: FontWeight.w700),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Opens a shared Live from a story, feed post, or chat message.
+Future<void> openWorldVoiceLive(BuildContext context, {
   required String liveId,
+}) => openSharedWorldVoiceLive(context, liveId,
+    ar: Localizations.localeOf(context).languageCode == 'ar');
+
+String? worldVoiceLiveIdInText(String text) =>
+    RegExp(r'worldvoice://live/([A-Za-z0-9_-]{3,128})')
+        .firstMatch(text)?.group(1);
+
+Future<void> _publishLiveStory(BuildContext context, {
+  required String liveId,
+  required bool ar,
 }) async {
-  if (!RegExp(r'^[A-Za-z0-9_-]{3,128}
+  try {
+    await StoryService().shareLive(liveId);
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(ar
+          ? 'تم نشر دعوة اللايف في الستوري.'
+          : 'Live invitation shared to your story.')),
+    );
+  } catch (error) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(error.toString().replaceFirst('Bad state: ', ''))),
+    );
+  }
+}
+
+String _liveShareUri(String liveId) => 'worldvoice://live/$liveId';
 
 String _liveShareText({
   required String liveId,
@@ -3746,30 +3825,6 @@ Future<void> _showLiveShareSheet(
         mainAxisSize: MainAxisSize.min,
         children: [
           ListTile(
-            leading: const CircleAvatar(child: Icon(Icons.dynamic_feed_rounded)),
-            title: Text(ar ? 'مشاركة اللايف كمنشور' : 'Share Live as a post',
-                style: const TextStyle(fontWeight: FontWeight.w800)),
-            subtitle: Text(ar ? 'يظهر في الهوم ويستطيع الآخرون الدخول إلى اللايف.'
-                : 'Publish to Home with a Join Live button.'),
-            onTap: () async {
-              Navigator.of(sheetContext).pop();
-              await _publishLiveShare(context, liveId: liveId,
-                  shareText: shareText, asStory: false, ar: ar);
-            },
-          ),
-          ListTile(
-            leading: const CircleAvatar(child: Icon(Icons.auto_stories_rounded)),
-            title: Text(ar ? 'مشاركة اللايف كستوري' : 'Share Live as a story',
-                style: const TextStyle(fontWeight: FontWeight.w800)),
-            subtitle: Text(ar ? 'ستوري فيها زر للدخول للبث المباشر.'
-                : 'A story with a Join Live button.'),
-            onTap: () async {
-              Navigator.of(sheetContext).pop();
-              await _publishLiveShare(context, liveId: liveId,
-                  shareText: shareText, asStory: true, ar: ar);
-            },
-          ),
-          ListTile(
             leading: const CircleAvatar(
               child: Icon(Icons.chat_bubble_rounded),
             ),
@@ -3791,6 +3846,42 @@ Future<void> _showLiveShareSheet(
                 shareText: shareText,
                 ar: ar,
               );
+            },
+          ),
+          ListTile(
+            leading: const CircleAvatar(
+              child: Icon(Icons.post_add_rounded),
+            ),
+            title: Text(
+              ar ? 'نشر اللايف كمنشور' : 'Share Live as a post',
+              style: const TextStyle(fontWeight: FontWeight.w800),
+            ),
+            subtitle: Text(
+              ar
+                  ? 'انشره في الصفحة الرئيسية ليتمكن الآخرون من الدخول.'
+                  : 'Publish in the Home feed so others can join.',
+            ),
+            onTap: () async {
+              Navigator.of(sheetContext).pop();
+              await _publishLivePost(
+                context,
+                shareText: shareText,
+                ar: ar,
+              );
+            },
+          ),
+          ListTile(
+            leading: const CircleAvatar(
+              child: Icon(Icons.auto_stories_rounded),
+            ),
+            title: Text(ar ? 'مشاركة اللايف كستوري' : 'Share Live to story',
+              style: const TextStyle(fontWeight: FontWeight.w800)),
+            subtitle: Text(ar
+              ? 'يظهر في الستوري مع زر دخول مباشر إلى اللايف.'
+              : 'A story card lets friends join the Live.'),
+            onTap: () async {
+              Navigator.of(sheetContext).pop();
+              await _publishLiveStory(context, liveId: liveId, ar: ar);
             },
           ),
           ListTile(
@@ -3849,1095 +3940,62 @@ Future<void> _showLiveShareSheet(
   );
 }
 
-Future<void> _showLiveShareToChat(
+/// Publish a live invitation through the existing authenticated feed API.
+Future<void> _publishLivePost(
   BuildContext context, {
   required String shareText,
   required bool ar,
-}) {
-  final uid = FirebaseAuth.instance.currentUser?.uid;
-  if (uid == null) {
+}) async {
+  try {
+    await HomeFeedService().createPost(text: shareText);
+    if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(ar ? 'سجّل دخولك أولًا.' : 'Sign in first.'),
-      ),
+      SnackBar(content: Text(ar
+          ? 'تم نشر دعوة اللايف في الصفحة الرئيسية.'
+          : 'Live invitation published to the Home feed.')),
     );
-    return Future<void>.value();
+  } catch (error) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(error.toString().replaceFirst('Bad state: ', ''))),
+    );
   }
-
-  String? sendingChatId;
-  return showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    showDragHandle: true,
-    useSafeArea: true,
-    builder: (sheetContext) => StatefulBuilder(
-      builder: (innerContext, setSheetState) => SizedBox(
-        height: MediaQuery.sizeOf(innerContext).height * .68,
-        child: Column(
-          children: [
-            ListTile(
-              title: Text(
-                ar ? 'إرسال اللايف إلى...' : 'Send Live to...',
-                style: const TextStyle(
-                  fontSize: 19,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              subtitle: Text(
-                ar
-                    ? 'اختر محادثة موجودة.'
-                    : 'Choose an existing conversation.',
-              ),
-            ),
-            Expanded(
-              child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                stream: FirebaseFirestore.instance
-                    .collection('chats')
-                    .where('memberIds', arrayContains: uid)
-                    .where('active', isEqualTo: true)
-                    .snapshots(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasError) {
-                    return Center(
-                      child: Text(
-                        ar
-                            ? 'تعذر تحميل المحادثات.'
-                            : 'Could not load conversations.',
-                      ),
-                    );
-                  }
-                  if (!snapshot.hasData) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  final chats = snapshot.data!.docs.toList()
-                    ..sort((a, b) {
-                      final aTime = a.data()['lastMessageAt'];
-                      final bTime = b.data()['lastMessageAt'];
-                      final aMs =
-                          aTime is Timestamp ? aTime.millisecondsSinceEpoch : 0;
-                      final bMs =
-                          bTime is Timestamp ? bTime.millisecondsSinceEpoch : 0;
-                      return bMs.compareTo(aMs);
-                    });
-                  if (chats.isEmpty) {
-                    return Center(
-                      child: Text(
-                        ar
-                            ? 'لا توجد محادثات لإرسال اللايف إليها.'
-                            : 'No conversations available for Live sharing.',
-                        textAlign: TextAlign.center,
-                      ),
-                    );
-                  }
-
-                  return ListView.builder(
-                    itemCount: chats.length,
-                    itemBuilder: (context, index) {
-                      final doc = chats[index];
-                      final data = doc.data();
-                      final memberIds =
-                          List<String>.from(data['memberIds'] ?? const []);
-                      final peerId = memberIds.firstWhere(
-                        (value) => value != uid,
-                        orElse: () => '',
-                      );
-                      final names = Map<String, dynamic>.from(
-                        data['memberNames'] as Map? ?? <String, dynamic>{},
-                      );
-                      final peerName = (names[peerId] ?? 'WorldVoice').toString();
-                      final sending = sendingChatId == doc.id;
-
-                      return ListTile(
-                        leading: const CircleAvatar(
-                          child: Icon(Icons.person_rounded),
-                        ),
-                        title: Text(
-                          peerName,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        subtitle: Text(
-                          (data['latestText'] ?? '').toString(),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        trailing: sending
-                            ? const SizedBox.square(
-                                dimension: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Icon(Icons.send_rounded),
-                        onTap: sendingChatId != null
-                            ? null
-                            : () async {
-                                setSheetState(() => sendingChatId = doc.id);
-                                try {
-                                  await ChatScreen.sendTextMessageToConversation(
-                                    chatId: doc.id,
-                                    text: shareText,
-                                  );
-                                  if (!sheetContext.mounted) return;
-                                  Navigator.of(sheetContext).pop();
-                                  if (!context.mounted) return;
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        ar
-                                            ? 'تم إرسال اللايف في الشات.'
-                                            : 'Live sent in chat.',
-                                      ),
-                                    ),
-                                  );
-                                } catch (error) {
-                                  if (!sheetContext.mounted) return;
-                                  setSheetState(() => sendingChatId = null);
-                                  ScaffoldMessenger.of(sheetContext)
-                                      .showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        error
-                                            .toString()
-                                            .replaceFirst('Bad state: ', ''),
-                                      ),
-                                    ),
-                                  );
-                                }
-                              },
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
 }
 
-class _LiveChatOverlay extends StatefulWidget {
-  const _LiveChatOverlay({
-    required this.service,
-    required this.liveId,
-    required this.ar,
-    this.showComposer = true,
-  });
-
-  final LiveSessionService service;
-  final String liveId;
-  final bool ar;
-  final bool showComposer;
-
-  @override
-  State<_LiveChatOverlay> createState() => _LiveChatOverlayState();
-}
-
-class _LiveChatOverlayState extends State<_LiveChatOverlay> {
-  final TextEditingController _input = TextEditingController();
-  final FocusNode _focusNode = FocusNode();
-  bool _sending = false;
-
-  Future<void> _send() async {
-    final value = _input.text.trim();
-    if (value.isEmpty || _sending) return;
-    setState(() => _sending = true);
-    try {
-      await widget.service.sendChat(widget.liveId, value);
-      if (!mounted) return;
-      _input.clear();
-      _focusNode.requestFocus();
-    } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.toString())),
-      );
-    } finally {
-      if (mounted) setState(() => _sending = false);
-    }
-  }
-
-  @override
-  void dispose() {
-    _focusNode.dispose();
-    _input.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-            stream: widget.service.watchChat(widget.liveId),
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return const SizedBox.shrink();
-              }
-
-              final docs = snapshot.data?.docs ??
-                  const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
-
-              return ListView.builder(
-                reverse: true,
-                padding: const EdgeInsets.fromLTRB(2, 4, 2, 4),
-                itemCount: docs.length,
-                itemBuilder: (context, index) {
-                  final data = docs[index].data();
-                  final type = (data['type'] ?? 'message').toString();
-                  final name =
-                      (data['senderName'] ?? 'WorldVoice').toString();
-                  final photo =
-                      (data['senderPhotoUrl'] ?? '').toString().trim();
-                  final message = (data['text'] ?? '').toString();
-
-                  if (type == 'join') {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 3),
-                      child: Align(
-                        alignment: AlignmentDirectional.centerStart,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: const Color(0x66000000),
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 6,
-                            ),
-                            child: Text(
-                              widget.ar
-                                  ? '✨ $name انضم إلى اللايف'
-                                  : '✨ $name joined the Live',
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  }
-
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 3),
-                    child: Align(
-                      alignment: AlignmentDirectional.centerStart,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          CircleAvatar(
-                            radius: 12,
-                            backgroundColor: const Color(0x77444444),
-                            foregroundImage:
-                                photo.isEmpty ? null : NetworkImage(photo),
-                            child: photo.isEmpty
-                                ? const Icon(
-                                    Icons.person_rounded,
-                                    size: 13,
-                                    color: Colors.white,
-                                  )
-                                : null,
-                          ),
-                          const SizedBox(width: 6),
-                          Flexible(
-                            child: Container(
-                              constraints: const BoxConstraints(maxWidth: 330),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 7,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0x99000000),
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: Text.rich(
-                                TextSpan(
-                                  children: [
-                                    TextSpan(
-                                      text: '$name  ',
-                                      style: const TextStyle(
-                                        color: Color(0xFFFFD77A),
-                                        fontWeight: FontWeight.w900,
-                                      ),
-                                    ),
-                                    TextSpan(
-                                      text: message,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        height: 1.25,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                maxLines: 4,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              );
-            },
-          ),
-        ),
-        if (widget.showComposer)
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _input,
-                  focusNode: _focusNode,
-                  maxLength: 500,
-                  maxLines: 1,
-                  textInputAction: TextInputAction.send,
-                  onSubmitted: (_) => _send(),
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    counterText: '',
-                    hintText: widget.ar ? 'تعليق...' : 'Comment...',
-                    hintStyle: const TextStyle(color: Colors.white60),
-                    filled: true,
-                    fillColor: const Color(0xA6141C19),
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 11,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(22),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 4),
-              IconButton(
-                style: IconButton.styleFrom(
-                  backgroundColor: const Color(0xE0188A63),
-                  foregroundColor: Colors.white,
-                ),
-                onPressed: _sending ? null : _send,
-                icon: _sending
-                    ? const SizedBox.square(
-                        dimension: 17,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Icon(Icons.send_rounded),
-              ),
-            ],
-          ),
-      ],
-    );
-  }}
-
-Future<void> _showLiveModeratorManagement(
-  BuildContext context, {
-  required String liveId,
-  required LiveSessionService service,
+Future<void> openSharedWorldVoiceLive(
+  BuildContext context,
+  String liveId, {
   required bool ar,
-}) {
-  final hostId = FirebaseAuth.instance.currentUser?.uid ?? '';
-  if (hostId.isEmpty) return Future<void>.value();
-
-  return showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    useSafeArea: true,
-    backgroundColor: Colors.transparent,
-    builder: (sheetContext) => Container(
-      height: MediaQuery.sizeOf(sheetContext).height * .72,
-      decoration: const BoxDecoration(
-        color: Color(0xF2141716),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(18, 14, 10, 8),
-            child: Row(
-              children: [
-                const CircleAvatar(
-                  backgroundColor: Color(0xFF174D3D),
-                  child: Icon(
-                    Icons.admin_panel_settings_rounded,
-                    color: Color(0xFFFFD77A),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        ar ? 'مودريتر WorldVoice' : 'WorldVoice moderators',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                      Text(
-                        ar
-                            ? 'المودريتر الذي تعيّنه هنا يبقى مودريتر في اللايف والرومات الصوتية التابعة لك.'
-                            : 'A moderator assigned here stays moderator across your Live and voice rooms.',
-                        style: const TextStyle(
-                          color: Colors.white60,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  onPressed: () => Navigator.pop(sheetContext),
-                  icon: const Icon(Icons.close_rounded, color: Colors.white),
-                ),
-              ],
-            ),
-          ),
-          const Divider(height: 1, color: Colors.white12),
-          Expanded(
-            child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-              stream: service.watchGlobalModerators(hostId),
-              builder: (context, moderatorSnapshot) {
-                final moderatorDocs = moderatorSnapshot.data?.docs ??
-                    const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
-                final moderatorIds =
-                    moderatorDocs.map((doc) => doc.id).toSet();
-                return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                  stream: service.watchViewers(liveId),
-                  builder: (context, viewerSnapshot) {
-                    final viewers = viewerSnapshot.data?.docs ??
-                        const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
-                    if (viewers.isEmpty && moderatorDocs.isEmpty) {
-                      return Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(28),
-                          child: Text(
-                            ar
-                                ? 'عندما يدخل المشاهدون تقدر تعيّن الموثوقين كمودريتر.'
-                                : 'When viewers join, you can assign trusted people as moderators.',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(color: Colors.white60),
-                          ),
-                        ),
-                      );
-                    }
-
-                    final byId = <String, Map<String, dynamic>>{
-                      for (final doc in moderatorDocs)
-                        doc.id: <String, dynamic>{...doc.data()},
-                      for (final doc in viewers)
-                        doc.id: <String, dynamic>{...doc.data()},
-                    };
-                    final entries = byId.entries.toList()
-                      ..sort((a, b) {
-                        final am = moderatorIds.contains(a.key);
-                        final bm = moderatorIds.contains(b.key);
-                        if (am != bm) return am ? -1 : 1;
-                        return (a.value['displayName'] ?? '')
-                            .toString()
-                            .compareTo(
-                              (b.value['displayName'] ?? '').toString(),
-                            );
-                      });
-
-                    return ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(12, 10, 12, 24),
-                      itemCount: entries.length,
-                      separatorBuilder: (_, _) =>
-                          const Divider(height: 1, color: Colors.white10),
-                      itemBuilder: (context, index) {
-                        final entry = entries[index];
-                        final data = entry.value;
-                        final selected = moderatorIds.contains(entry.key);
-                        final name =
-                            (data['displayName'] ?? 'WorldVoice user')
-                                .toString();
-                        final photo =
-                            (data['photoUrl'] ?? '').toString().trim();
-                        return ListTile(
-                          leading: CircleAvatar(
-                            backgroundImage:
-                                photo.isEmpty ? null : NetworkImage(photo),
-                            child: photo.isEmpty
-                                ? const Icon(Icons.person_rounded)
-                                : null,
-                          ),
-                          title: Text(
-                            name,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                          subtitle: Text(
-                            selected
-                                ? (ar
-                                    ? 'مودريتر في Live + Voice Rooms'
-                                    : 'Moderator in Live + Voice Rooms')
-                                : (ar
-                                    ? 'مشاهد'
-                                    : 'Viewer'),
-                            style: TextStyle(
-                              color: selected
-                                  ? const Color(0xFFFFD77A)
-                                  : Colors.white54,
-                            ),
-                          ),
-                          onTap: () {
-                            Navigator.of(sheetContext).push(
-                              MaterialPageRoute<void>(
-                                builder: (_) => PublicProfileScreen(
-                                  userId: entry.key,
-                                  languageCode: Localizations.localeOf(
-                                    sheetContext,
-                                  ).languageCode.toLowerCase(),
-                                  onInviteToStage: () => service.inviteViewer(
-                                    liveId: liveId,
-                                    userId: entry.key,
-                                  ),
-                                  inviteToStageLabel: ar
-                                      ? 'دعوة للكاميرا'
-                                      : 'Invite to Live stage',
-                                ),
-                              ),
-                            );
-                          },
-                          trailing: Switch(
-                            value: selected,
-                            onChanged: (value) async {
-                              try {
-                                await service.setGlobalModerator(
-                                  liveId: liveId,
-                                  targetUserId: entry.key,
-                                  displayName: name,
-                                  photoUrl: photo,
-                                  value: value,
-                                );
-                              } catch (error) {
-                                if (!sheetContext.mounted) return;
-                                ScaffoldMessenger.of(sheetContext)
-                                    .showSnackBar(
-                                  SnackBar(
-                                    content: Text(error.toString()),
-                                  ),
-                                );
-                              }
-                            },
-                          ),
-                        );
-                      },
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-class _HostJoinRequests extends StatelessWidget {
-  const _HostJoinRequests({
-    required this.liveId,
-    required this.service,
-    required this.ar,
-  });
-
-  final String liveId;
-  final LiveSessionService service;
-  final bool ar;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.black87,
-      borderRadius: BorderRadius.circular(20),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxHeight: 260),
-        child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-          stream: service.watchJoinRequests(liveId),
-          builder: (context, snapshot) {
-            final docs = snapshot.data?.docs ??
-                const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
-            if (docs.isEmpty) {
-              return Padding(
-                padding: const EdgeInsets.all(18),
-                child: Text(
-                  ar ? 'لا توجد طلبات الآن.' : 'No requests right now.',
-                  style: const TextStyle(color: Colors.white70),
-                ),
-              );
-            }
-            return ListView.builder(
-              shrinkWrap: true,
-              itemCount: docs.length,
-              itemBuilder: (context, index) {
-                final doc = docs[index];
-                final data = doc.data();
-                return ListTile(
-                  leading: const CircleAvatar(
-                    child: Icon(Icons.person_rounded),
-                  ),
-                  title: Text(
-                    data['displayName']?.toString() ?? 'WorldVoice user',
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        tooltip: ar ? 'رفض' : 'Decline',
-                        onPressed: () async {
-                          try {
-                            await service.decideRequest(
-                              liveId: liveId,
-                              userId: doc.id,
-                              accept: false,
-                            );
-                          } catch (error) {
-                            if (!context.mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(error.toString())),
-                            );
-                          }
-                        },
-                        icon: const Icon(Icons.close_rounded, color: Colors.redAccent),
-                      ),
-                      IconButton(
-                        tooltip: ar ? 'قبول' : 'Accept',
-                        onPressed: () async {
-                          try {
-                            await service.decideRequest(
-                              liveId: liveId,
-                              userId: doc.id,
-                              accept: true,
-                            );
-                          } catch (error) {
-                            if (!context.mounted) return;
-                            final full = error.toString().contains(
-                              'LIVE_GUEST_LIMIT_REACHED',
-                            );
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  full
-                                      ? (ar
-                                          ? 'وصل اللايف للحد الأقصى: المضيف + 3 ضيوف.'
-                                          : 'Live is full: host + 3 guests.')
-                                      : error.toString(),
-                                ),
-                              ),
-                            );
-                          }
-                        },
-                        icon: const Icon(Icons.check_rounded, color: Colors.greenAccent),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            );
-          },
-        ),
-      ),
-    );
-  }
-}
-
-class _LiveVideoGrid extends StatelessWidget {
-  const _LiveVideoGrid({required this.children});
-  final List<Widget> children;
-
-  Widget _tile(Widget child) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: const Color(0xFF071B16),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: .06),
-          width: .8,
-        ),
-      ),
-      child: ClipRect(
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            SizedBox.expand(child: child),
-            const IgnorePointer(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color(0x20000000),
-                      Color(0x00000000),
-                      Color(0x30000000),
-                    ],
-                    stops: [0, .62, 1],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final items = children.take(4).toList(growable: false);
-
-    if (items.isEmpty) {
-      return const ColoredBox(
-        color: Color(0xFF071B16),
-        child: Center(
-          child: Icon(
-            Icons.live_tv_rounded,
-            color: Colors.white30,
-            size: 64,
-          ),
-        ),
-      );
-    }
-
-    if (items.length == 1) {
-      return _tile(items.first);
-    }
-
-    if (items.length == 2) {
-      return Row(
-        children: [
-          Expanded(child: _tile(items[0])),
-          const SizedBox(width: 2),
-          Expanded(child: _tile(items[1])),
-        ],
-      );
-    }
-
-    if (items.length == 3) {
-      return Row(
-        textDirection: TextDirection.ltr,
-        children: [
-          Expanded(
-            flex: 44,
-            child: Column(
-              children: [
-                Expanded(child: _tile(items[1])),
-                const SizedBox(height: 2),
-                Expanded(child: _tile(items[2])),
-              ],
-            ),
-          ),
-          const SizedBox(width: 2),
-          Expanded(
-            flex: 56,
-            child: _tile(items[0]),
-          ),
-        ],
-      );
-    }
-
-    return Column(
-      children: [
-        Expanded(
-          child: Row(
-            children: [
-              Expanded(child: _tile(items[0])),
-              const SizedBox(width: 2),
-              Expanded(child: _tile(items[1])),
-            ],
-          ),
-        ),
-        const SizedBox(height: 2),
-        Expanded(
-          child: Row(
-            children: [
-              Expanded(child: _tile(items[2])),
-              const SizedBox(width: 2),
-              Expanded(child: _tile(items[3])),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _LiveViewerFaces extends StatelessWidget {
-  const _LiveViewerFaces({
-    required this.service,
-    required this.liveId,
-    this.onViewerTap,
-  });
-
-  final LiveSessionService service;
-  final String liveId;
-  final void Function(String userId, String displayName, String photoUrl)?
-      onViewerTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: service.watchViewers(liveId),
-      builder: (context, snapshot) {
-        final viewers = snapshot.data?.docs.take(3).toList(growable: false) ??
-            const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
-        if (viewers.isEmpty) return const SizedBox.shrink();
-
-        final width = 24.0 + ((viewers.length - 1) * 15);
-        return SizedBox(
-          width: width,
-          height: 26,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              for (var index = 0; index < viewers.length; index++)
-                Positioned(
-                  left: index * 15,
-                  child: Builder(
-                    builder: (context) {
-                      final data = viewers[index].data();
-                      final photo =
-                          (data['photoUrl'] ?? '').toString().trim();
-                      final name =
-                          (data['displayName'] ?? 'WorldVoice user').toString();
-                      return GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: onViewerTap == null
-                            ? null
-                            : () => onViewerTap!(
-                                  viewers[index].id,
-                                  name,
-                                  photo,
-                                ),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Colors.white,
-                              width: 1.5,
-                            ),
-                          ),
-                          child: CircleAvatar(
-                            radius: 11,
-                            backgroundColor: const Color(0xFF245A49),
-                            foregroundImage:
-                                photo.isEmpty ? null : NetworkImage(photo),
-                            child: photo.isEmpty
-                                ? const Icon(
-                                    Icons.person_rounded,
-                                    color: Colors.white,
-                                    size: 13,
-                                  )
-                                : null,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}).hasMatch(liveId)) return;
+}) async {
+  final id = liveId.trim();
+  if (id.isEmpty || id.contains('/')) return;
   try {
     final snapshot = await FirebaseFirestore.instance
-        .collection('live_sessions').doc(liveId).get();
+        .collection('live_sessions').doc(id).get();
     if (!context.mounted) return;
     final data = snapshot.data();
     if (!LiveSessionService.isFresh(data)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(
-          Localizations.localeOf(context).languageCode == 'ar'
-              ? 'انتهى هذا اللايف أو لم يعد متاحًا.'
-              : 'This Live has ended or is no longer available.',
-        )),
+        SnackBar(content: Text(ar
+            ? 'انتهى هذا البث المباشر.'
+            : 'This Live has ended.')),
       );
       return;
     }
     await Navigator.of(context).push<void>(
       MaterialPageRoute(
         fullscreenDialog: true,
-        builder: (_) => _LiveViewerScreen(
-          liveId: liveId,
-          data: data!,
-          ar: Localizations.localeOf(context).languageCode == 'ar',
-        ),
+        builder: (_) => _LiveViewerScreen(liveId: id, data: data!, ar: ar),
       ),
     );
   } catch (error) {
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(error.toString().replaceFirst('Bad state: ', ''))),
+      SnackBar(content: Text(ar
+          ? 'تعذر فتح البث الآن.'
+          : 'Could not open this Live.')),
     );
   }
-}
-
-/// Extracts an internal Live ID from a post or message.
-String? worldVoiceLiveIdInText(String text) =>
-    RegExp(r'worldvoice://live/([A-Za-z0-9_-]{3,128})')
-        .firstMatch(text)?.group(1);
-
-Future<void> _publishLiveShare(
-  BuildContext context, {
-  required String liveId,
-  required String shareText,
-  required bool asStory,
-  required bool ar,
-}) async {
-  try {
-    if (asStory) {
-      await StoryService().shareLive(liveId);
-    } else {
-      await HomeFeedService().createPost(text: shareText);
-    }
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(asStory
-          ? (ar ? 'تم نشر اللايف في الستوري.' : 'Live added to your story.')
-          : (ar ? 'تم نشر اللايف كمنشور.' : 'Live posted to your feed.'))),
-    );
-  } catch (error) {
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(error.toString().replaceFirst('Bad state: ', ''))),
-    );
-  }
-}
-
-String _liveShareText({
-  required String liveId,
-  required String topic,
-  required String hostName,
-}) {
-  final cleanTopic = topic.trim();
-  final title = cleanTopic.isEmpty ? 'WorldVoice Live' : cleanTopic;
-  return '🔴 WorldVoice Live\n$title\n$hostName\n${_liveShareUri(liveId)}';
-}
-
-Future<void> _showLiveShareSheet(
-  BuildContext context, {
-  required String liveId,
-  required String topic,
-  required String hostName,
-  required bool ar,
-}) {
-  final shareText = _liveShareText(
-    liveId: liveId,
-    topic: topic,
-    hostName: hostName,
-  );
-  final link = _liveShareUri(liveId);
-
-  return showModalBottomSheet<void>(
-    context: context,
-    showDragHandle: true,
-    useSafeArea: true,
-    builder: (sheetContext) => Padding(
-      padding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(
-            leading: const CircleAvatar(
-              child: Icon(Icons.chat_bubble_rounded),
-            ),
-            title: Text(
-              ar ? 'إرسال داخل شات WorldVoice' : 'Send in WorldVoice chat',
-              style: const TextStyle(fontWeight: FontWeight.w800),
-            ),
-            subtitle: Text(
-              ar
-                  ? 'اختر شخصًا من محادثاتك وأرسل له اللايف.'
-                  : 'Choose a conversation and send the Live.',
-            ),
-            onTap: () async {
-              Navigator.of(sheetContext).pop();
-              await Future<void>.delayed(Duration.zero);
-              if (!context.mounted) return;
-              await _showLiveShareToChat(
-                context,
-                shareText: shareText,
-                ar: ar,
-              );
-            },
-          ),
-          ListTile(
-            leading: const CircleAvatar(
-              child: Icon(Icons.link_rounded),
-            ),
-            title: Text(
-              ar ? 'نسخ رابط اللايف' : 'Copy Live link',
-              style: const TextStyle(fontWeight: FontWeight.w800),
-            ),
-            subtitle: Text(
-              link,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            onTap: () async {
-              await Clipboard.setData(ClipboardData(text: link));
-              if (!sheetContext.mounted) return;
-              Navigator.of(sheetContext).pop();
-              if (!context.mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    ar ? 'تم نسخ رابط اللايف.' : 'Live link copied.',
-                  ),
-                ),
-              );
-            },
-          ),
-          ListTile(
-            leading: const CircleAvatar(
-              child: Icon(Icons.ios_share_rounded),
-            ),
-            title: Text(
-              ar ? 'مشاركة الرابط' : 'Share link',
-              style: const TextStyle(fontWeight: FontWeight.w800),
-            ),
-            subtitle: Text(
-              ar
-                  ? 'شارك اللايف في أي تطبيق.'
-                  : 'Share the Live in any app.',
-            ),
-            onTap: () async {
-              Navigator.of(sheetContext).pop();
-              await SharePlus.instance.share(
-                ShareParams(
-                  title: 'WorldVoice Live',
-                  text: shareText,
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    ),
-  );
 }
 
 Future<void> _showLiveShareToChat(
