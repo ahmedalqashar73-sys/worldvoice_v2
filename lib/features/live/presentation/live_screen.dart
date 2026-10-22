@@ -299,8 +299,10 @@ class _LiveScreenState extends State<LiveScreen> {
                     ? (profile['learningLanguageCodes'] as List)
                     : (profile['learningLanguages'] as List?) ??
                         const <dynamic>[];
+                // Always expose the core discovery languages, even when
+                // an older profile has no saved learning-language list.
                 final codes = <String>{
-                  'all',
+                  'all', 'ar', 'en', 'es',
                   if (ProfileLanguageCatalog.byCode(native) != null) native,
                   ...stored.map((v) => v.toString().trim().toLowerCase())
                       .where((v) => ProfileLanguageCatalog.byCode(v) != null),
@@ -1504,6 +1506,14 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                           start: 12,
                           end: 12,
                           child: _LiveControlDock(
+                            pinnedAction: IconButton(
+                              tooltip: widget.ar
+                                  ? 'مشاركة اللايف كمنشور أو في الدردشة'
+                                  : 'Share Live as post or to chat',
+                              onPressed: _liveId == null ? null : _shareHostLive,
+                              icon: const Icon(Icons.share_rounded,
+                                color: Color(0xFFFFD681)),
+                            ),
                             composer: _liveId == null
                                 ? null
                                 : _LiveInlineComposer(
@@ -1596,17 +1606,6 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                     _liveId == null ? null : _showHostQuotaStatus,
                                 icon: const Icon(
                                   Icons.schedule_rounded,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              IconButton(
-                                tooltip: widget.ar
-                                    ? 'مشاركة اللايف'
-                                    : 'Share Live',
-                                onPressed:
-                                    _liveId == null ? null : _shareHostLive,
-                                icon: const Icon(
-                                  Icons.share_rounded,
                                   color: Colors.white,
                                 ),
                               ),
@@ -1848,10 +1847,13 @@ class _LiveControlDock extends StatelessWidget {
   const _LiveControlDock({
     required this.children,
     this.composer,
+    this.pinnedAction,
   });
 
   final List<Widget> children;
   final Widget? composer;
+  // A primary action stays visible while the other tools scroll.
+  final Widget? pinnedAction;
   final EdgeInsetsGeometry padding =
       const EdgeInsets.symmetric(horizontal: 8, vertical: 7);
 
@@ -1882,6 +1884,10 @@ class _LiveControlDock extends StatelessWidget {
                 child: composer!,
               ),
               const SizedBox(width: 7),
+            ],
+            if (pinnedAction != null) ...[
+              pinnedAction!,
+              const SizedBox(width: 4),
             ],
             Expanded(
               flex: composer == null ? 1 : 6,
@@ -2778,6 +2784,14 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                         start: 12,
                         end: 12,
                         child: _LiveControlDock(
+                          pinnedAction: IconButton(
+                            tooltip: widget.ar
+                                ? 'مشاركة اللايف كمنشور أو في الدردشة'
+                                : 'Share Live as post or to chat',
+                            onPressed: _shareLive,
+                            icon: const Icon(Icons.share_rounded,
+                              color: Color(0xFFFFD681)),
+                          ),
                           composer: _LiveInlineComposer(
                             service: _service,
                             liveId: widget.liveId,
