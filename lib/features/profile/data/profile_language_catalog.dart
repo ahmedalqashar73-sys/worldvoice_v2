@@ -2577,7 +2577,7 @@ class ProfileLanguageCatalog {
         ? (profile['learningLanguageCodes'] as List)
         : (profile['learningLanguages'] as List?) ?? const <dynamic>[];
     return <String>{
-      if (native != null) native,
+      ?native,
       'all',
       ...stored
           .map(codeFromStored)
