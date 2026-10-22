@@ -34,6 +34,7 @@ jobs:
       - name: Build Android TEST APK
         run: >
           flutter build apk --release
+          --dart-define=WORLDVOICE_BUILD_REVISION=${GITHUB_SHA}
           --dart-define=WORLDVOICE_FRIEND_GIFT_PREVIEW=true
           --dart-define=AGORA_APP_ID=fa41476c6813471eb45c059bcb4a0e19
           --dart-define=WORLDVOICE_ROOM_BACKEND_URL=https://worldvoice-v2.onrender.com
@@ -43,7 +44,7 @@ jobs:
       - name: Upload test APK
         uses: actions/upload-artifact@v4
         with:
-          name: worldvoice-test-apk
+          name: worldvoice-test-apk-${{ github.sha }}
           path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
           retention-days: 7

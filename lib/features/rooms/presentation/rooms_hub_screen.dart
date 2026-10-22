@@ -118,6 +118,22 @@ class _RoomsHubScreenState extends State<RoomsHubScreen> {
               ),
             ),
             const SizedBox(height: 8),
+            if (_section == 1)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 3),
+                child: Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text(
+                    'LIVE UI $worldVoiceLiveUiRevision • '
+                    '${worldVoiceBuildRevision.length > 8 ? worldVoiceBuildRevision.substring(0, 8) : worldVoiceBuildRevision}',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: Color(0xFF28966F),
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ),
             Expanded(
               child: _section == 0
                   ? VoiceRoomsList(

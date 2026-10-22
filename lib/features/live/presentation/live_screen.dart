@@ -123,6 +123,11 @@ Future<bool> _requestLiveCameraPermission() async {
 /// Phase 1 deliberately keeps the existing voice-room implementation isolated:
 /// Live is video-first and has no seats. The camera publishing screen is wired
 /// separately so room audio behavior cannot regress.
+/// Bump this when the Live UI materially changes so stale APKs are obvious.
+const String worldVoiceLiveUiRevision = '2026.10.22.7';
+const String worldVoiceBuildRevision =
+    String.fromEnvironment('WORLDVOICE_BUILD_REVISION', defaultValue: 'local');
+
 class LiveScreen extends StatefulWidget {
   const LiveScreen({required this.localeController, super.key});
 
@@ -136,9 +141,9 @@ class _LiveScreenState extends State<LiveScreen> {
   late final Stream<QuerySnapshot<Map<String, dynamic>>> _sessions =
       LiveSessionService().watchOpen();
   final String? _myUid = FirebaseAuth.instance.currentUser?.uid;
-  late final Future<DocumentSnapshot<Map<String, dynamic>>> _myProfile =
+  late final Stream<DocumentSnapshot<Map<String, dynamic>>> _myProfile =
       FirebaseFirestore.instance.collection('users')
-          .doc(_myUid ?? '__signed_out__').get();
+          .doc(_myUid ?? '__signed_out__').snapshots();
   String _languageFilter = 'all';
   OverlayEntry? _viewerOverlay;
   String? _playingLiveId;
@@ -281,63 +286,83 @@ class _LiveScreenState extends State<LiveScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: Text(
+                'WORLDVOICE LIVE · $worldVoiceLiveUiRevision'
+                ' · ${worldVoiceBuildRevision.length > 8 ? worldVoiceBuildRevision.substring(0, 8) : worldVoiceBuildRevision}',
+                style: const TextStyle(
+                  color: Color(0xFF419875),
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
             Text(
               ar ? 'البثوث المباشرة الآن' : 'Live now',
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 10),
-            FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-              future: _myProfile,
+            StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+              stream: _myProfile,
               builder: (context, profileSnap) {
                 final profile = profileSnap.data?.data() ??
                     const <String, dynamic>{};
-                final native = (profile['nativeLanguageCode'] ??
-                    profile['nativeLanguage'] ?? '').toString().toLowerCase();
-                final stored = (profile['learningLanguageCodes'] as List?)
-                            ?.isNotEmpty == true
-                    ? (profile['learningLanguageCodes'] as List)
-                    : (profile['learningLanguages'] as List?) ??
-                        const <dynamic>[];
-                // Always expose the core discovery languages, even when
-                // an older profile has no saved learning-language list.
-                final codes = <String>{
-                  'all', 'ar', 'en', 'es',
-                  if (ProfileLanguageCatalog.byCode(native) != null) native,
-                  ...stored.map((v) => v.toString().trim().toLowerCase())
-                      .where((v) => ProfileLanguageCatalog.byCode(v) != null),
-                }.toList(growable: false);
+                final native = ProfileLanguageCatalog.codeFromStored(
+                  profile['nativeLanguageCode'] ?? profile['nativeLanguage']);
+                final codes = ProfileLanguageCatalog.liveDiscoveryCodes(profile);
                 if (!codes.contains(_languageFilter)) {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (mounted) setState(() => _languageFilter = 'all');
+                    if (mounted && !codes.contains(_languageFilter)) {
+                      setState(() => _languageFilter = 'all');
+                    }
                   });
                 }
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: SizedBox(
-                    height: 44,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: codes.length,
-                      separatorBuilder: (_, _) => const SizedBox(width: 8),
-                      itemBuilder: (context, index) {
-                        final code = codes[index];
-                        final selected = _languageFilter == code;
-                        return ChoiceChip(
-                          showCheckmark: false,
-                          selected: selected,
-                          selectedColor: const Color(0xFF116A4B),
-                          onSelected: (_) =>
-                              setState(() => _languageFilter = code),
-                          label: Text(code == 'all' ? 'All'
-                              : ProfileLanguageCatalog.label(code)),
-                          labelStyle: TextStyle(
-                            fontWeight: FontWeight.w800,
-                            color: selected ? Colors.white : null,
-                          ),
-                        );
-                      },
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(ar ? 'اللغة الأم ولغات التعلّم' :
+                          'Native and learning languages',
+                        style: const TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.w800)),
+                      const SizedBox(height: 7),
+                      SizedBox(
+                        height: 44,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: codes.length,
+                          separatorBuilder: (_, _) =>
+                              const SizedBox(width: 8),
+                          itemBuilder: (context, index) {
+                            final code = codes[index];
+                            final selected = _languageFilter == code;
+                            final label = code == 'all'
+                                ? (ar ? 'الكل' : 'All')
+                                : code == native
+                                    ? '${ar ? 'الأم' : 'Native'}: '
+                                      '${ProfileLanguageCatalog.localizedName(code, language)}'
+                                    : ProfileLanguageCatalog.localizedName(
+                                        code, language);
+                            return ChoiceChip(
+                              key: ValueKey('live-language-$code'),
+                              showCheckmark: false,
+                              selected: selected,
+                              selectedColor: const Color(0xFF116A4B),
+                              onSelected: (_) =>
+                                  setState(() => _languageFilter = code),
+                              label: Text(label),
+                              labelStyle: TextStyle(
+                                fontWeight: FontWeight.w800,
+                                color: selected ? Colors.white : null,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                 );
               },
