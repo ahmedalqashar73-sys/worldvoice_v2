@@ -32,11 +32,45 @@ import '../../profile/services/profile_social_service.dart';
 import '../../profile/data/profile_language_catalog.dart';
 import '../../profile/presentation/public_profile_screen.dart';
 import '../../chat/presentation/chat_screen.dart';
+import '../../stories/services/story_service.dart';
 import '../../home/services/home_feed_service.dart';
 
 const MethodChannel _livePermissionChannel =
     MethodChannel('worldvoice/live_permissions');
 const MethodChannel _liveTtsChannel = MethodChannel('worldvoice/live_tts');
+const MethodChannel _livePipChannel = MethodChannel('worldvoice/live_pip');
+
+Future<void> _enterLiveMiniWindow(BuildContext context, bool ar) async {
+  if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(ar
+          ? 'النافذة العائمة متاحة على أندرويد المدعوم حاليًا.'
+          : 'Picture-in-Picture currently requires a supported Android device.')),
+    );
+    return;
+  }
+  try {
+    final opened = await _livePipChannel.invokeMethod<bool>('enter');
+    if (opened == true || !context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(ar
+          ? 'هذا الجهاز لا يدعم النافذة العائمة.'
+          : 'Picture-in-Picture is not supported on this device.')),
+    );
+  } on PlatformException catch (error) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(error.message ?? error.code)),
+    );
+  } on MissingPluginException {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(ar
+          ? 'حدّث نسخة الأندرويد لتفعيل النافذة العائمة.'
+          : 'Install the updated Android build to enable PiP.')),
+    );
+  }
+}
 
 Future<void> _warmLiveBackend() async {
   final endpoint = RoomBackendConfig.endpoint('/health');
@@ -1259,6 +1293,13 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                   ),
                             children: [
                               IconButton(
+                                tooltip: widget.ar ? 'نافذة عائمة' : 'Mini Live window',
+                                onPressed: _liveId == null ? null
+                                  : () => _enterLiveMiniWindow(context, widget.ar),
+                                icon: const Icon(Icons.picture_in_picture_alt_rounded,
+                                  color: Colors.white),
+                              ),
+                              IconButton(
                                 tooltip: widget.ar ? 'الهدايا' : 'Gifts',
                                 onPressed: _liveId == null
                                     ? null
@@ -2398,6 +2439,12 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                             },
                           ),
                           children: [
+                            IconButton(
+                              tooltip: widget.ar ? 'نافذة عائمة' : 'Mini Live window',
+                              onPressed: () => _enterLiveMiniWindow(context, widget.ar),
+                              icon: const Icon(Icons.picture_in_picture_alt_rounded,
+                                color: Colors.white),
+                            ),
                             IconButton(
                               tooltip: widget.ar ? 'الهدايا' : 'Gifts',
                               onPressed: () => _showLiveGifts(
@@ -3758,6 +3805,36 @@ class _LiveProfileLanguages extends StatelessWidget {
   }
 }
 
+/// Opens a shared Live from a story, feed post, or chat message.
+Future<void> openWorldVoiceLive(BuildContext context, {
+  required String liveId,
+}) => openSharedWorldVoiceLive(context, liveId,
+    ar: Localizations.localeOf(context).languageCode == 'ar');
+
+String? worldVoiceLiveIdInText(String text) =>
+    RegExp(r'worldvoice://live/([A-Za-z0-9_-]{3,128})')
+        .firstMatch(text)?.group(1);
+
+Future<void> _publishLiveStory(BuildContext context, {
+  required String liveId,
+  required bool ar,
+}) async {
+  try {
+    await StoryService().shareLive(liveId);
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(ar
+          ? 'تم نشر دعوة اللايف في الستوري.'
+          : 'Live invitation shared to your story.')),
+    );
+  } catch (error) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(error.toString().replaceFirst('Bad state: ', ''))),
+    );
+  }
+}
+
 String _liveShareUri(String liveId) => 'worldvoice://live/$liveId';
 
 String _liveShareText({
@@ -3837,6 +3914,20 @@ Future<void> _showLiveShareSheet(
                 shareText: shareText,
                 ar: ar,
               );
+            },
+          ),
+          ListTile(
+            leading: const CircleAvatar(
+              child: Icon(Icons.auto_stories_rounded),
+            ),
+            title: Text(ar ? 'مشاركة اللايف كستوري' : 'Share Live to story',
+              style: const TextStyle(fontWeight: FontWeight.w800)),
+            subtitle: Text(ar
+              ? 'يظهر في الستوري مع زر دخول مباشر إلى اللايف.'
+              : 'A story card lets friends join the Live.'),
+            onTap: () async {
+              Navigator.of(sheetContext).pop();
+              await _publishLiveStory(context, liveId: liveId, ar: ar);
             },
           ),
           ListTile(
@@ -4140,6 +4231,20 @@ class _LiveChatOverlay extends StatefulWidget {
 }
 
 class _LiveChatOverlayState extends State<_LiveChatOverlay> {
+  // One read per distinct sender while the chat is open, not per message.
+  final Map<String, Future<Map<String, dynamic>>> _profiles = {};
+  Future<Map<String, dynamic>> _profile(String uid) =>
+      _profiles.putIfAbsent(uid, () async {
+        if (uid.isEmpty) return const <String, dynamic>{};
+        try {
+          final doc = await FirebaseFirestore.instance
+              .collection('users').doc(uid).get();
+          return doc.data() ?? const <String, dynamic>{};
+        } catch (_) {
+          return const <String, dynamic>{};
+        }
+      });
+
   final TextEditingController _input = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   bool _sending = false;
@@ -4262,27 +4367,73 @@ class _LiveChatOverlayState extends State<_LiveChatOverlay> {
                                 color: const Color(0x99000000),
                                 borderRadius: BorderRadius.circular(14),
                               ),
-                              child: Text.rich(
-                                TextSpan(
-                                  children: [
-                                    TextSpan(
-                                      text: '$name  ',
-                                      style: const TextStyle(
-                                        color: Color(0xFFFFD77A),
-                                        fontWeight: FontWeight.w900,
-                                      ),
-                                    ),
-                                    TextSpan(
-                                      text: message,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        height: 1.25,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                maxLines: 4,
-                                overflow: TextOverflow.ellipsis,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(name, maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Color(0xFFFFD77A),
+                                      fontWeight: FontWeight.w900,
+                                    )),
+                                  FutureBuilder<Map<String, dynamic>>(
+                                    future: _profile(
+                                      (data['senderId'] ?? '').toString()),
+                                    builder: (context, profileSnapshot) {
+                                      final profile = profileSnapshot.data;
+                                      if (profile == null) {
+                                        return const SizedBox.shrink();
+                                      }
+                                      final locale =
+                                        Localizations.localeOf(context).languageCode;
+                                      final native =
+                                          ProfileLanguageCatalog.localizedStoredName(
+                                        (profile['nativeLanguageCode'] ??
+                                         profile['nativeLanguage'])?.toString(),
+                                        locale,
+                                      );
+                                      final preferred =
+                                          profile['learningLanguageCodes'];
+                                      final saved = preferred is List &&
+                                              preferred.isNotEmpty
+                                          ? preferred
+                                          : (profile['learningLanguages'] as List?) ??
+                                              const <dynamic>[];
+                                      final learning = saved
+                                          .map((v) => ProfileLanguageCatalog
+                                              .localizedStoredName(v.toString(), locale))
+                                          .where((v) => v.trim().isNotEmpty)
+                                          .take(5).toList();
+                                      if (native.isEmpty && learning.isEmpty) {
+                                        return const SizedBox.shrink();
+                                      }
+                                      return Padding(
+                                        padding: const EdgeInsets.only(bottom: 3),
+                                        child: Text(
+                                          [
+                                            if (native.isNotEmpty)
+                                              '${widget.ar ? 'الأم' : 'Native'}: $native',
+                                            if (learning.isNotEmpty)
+                                              '${widget.ar ? 'يتعلم' : 'Learning'}: ${learning.join(' • ')}',
+                                          ].join('  |  '),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            color: Color(0xFF9CE8C6),
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  Text(message, maxLines: 4,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Colors.white, height: 1.25,
+                                    )),
+                                ],
                               ),
                             ),
                           ),
