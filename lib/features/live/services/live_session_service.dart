@@ -29,6 +29,26 @@ class LiveSessionService {
     String topic = '',
   }) async {
     final user = _user;
+    // The profile is the authoritative source of native/learning languages.
+    // Read it only when creating a Live, not for every discovery card.
+    Map<String, dynamic> profile = const <String, dynamic>{};
+    try {
+      final snapshot = await _db.collection('users').doc(user.uid).get()
+          .timeout(const Duration(seconds: 5));
+      profile = snapshot.data() ?? const <String, dynamic>{};
+    } catch (_) {
+      // A temporary profile read failure must not prevent creating a Live.
+    }
+    String validCode(Object? value) {
+      final code = (value ?? '').toString().trim().toLowerCase();
+      return RegExp(r'^[a-z]{2,3}$').hasMatch(code) ? code : '';
+    }
+    final native = validCode(profile['nativeLanguageCode']);
+    final source = (profile['learningLanguageCodes'] as List?)?.isNotEmpty == true
+        ? profile['learningLanguageCodes'] as List
+        : (profile['learningLanguages'] as List?) ?? const <dynamic>[];
+    final learning = source.map(validCode).where((code) =>
+        code.isNotEmpty && code != native).toSet().take(10).toList();
     final ref = _sessions.doc(channelId);
     await ref.set({
       'channelId': channelId,
@@ -37,6 +57,8 @@ class LiveSessionService {
       'hostPhotoUrl': user.photoURL ?? '',
       'hostAgoraUid': hostAgoraUid,
       'languageCode': languageCode,
+      'nativeLanguageCode': native,
+      'learningLanguageCodes': learning,
       'topic': topic.trim(),
       'isLive': true,
       'viewerCount': 0,
