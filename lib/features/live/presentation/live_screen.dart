@@ -1941,7 +1941,7 @@ class _LiveControlDock extends StatelessWidget {
           children: [
             if (composer != null) ...[
               Expanded(
-                flex: 5,
+                flex: 4,
                 child: composer!,
               ),
               const SizedBox(width: 7),
@@ -1951,7 +1951,7 @@ class _LiveControlDock extends StatelessWidget {
               const SizedBox(width: 4),
             ],
             Expanded(
-              flex: composer == null ? 1 : 6,
+              flex: composer == null ? 1 : 7,
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
