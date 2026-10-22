@@ -38,6 +38,39 @@ import '../../home/services/home_feed_service.dart';
 const MethodChannel _livePermissionChannel =
     MethodChannel('worldvoice/live_permissions');
 const MethodChannel _liveTtsChannel = MethodChannel('worldvoice/live_tts');
+const MethodChannel _livePipChannel = MethodChannel('worldvoice/live_pip');
+
+Future<void> _enterLiveMiniWindow(BuildContext context, bool ar) async {
+  if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(ar
+          ? 'النافذة العائمة متاحة على أندرويد المدعوم حاليًا.'
+          : 'Picture-in-Picture currently requires a supported Android device.')),
+    );
+    return;
+  }
+  try {
+    final opened = await _livePipChannel.invokeMethod<bool>('enter');
+    if (opened == true || !context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(ar
+          ? 'هذا الجهاز لا يدعم النافذة العائمة.'
+          : 'Picture-in-Picture is not supported on this device.')),
+    );
+  } on PlatformException catch (error) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(error.message ?? error.code)),
+    );
+  } on MissingPluginException {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(ar
+          ? 'حدّث نسخة الأندرويد لتفعيل النافذة العائمة.'
+          : 'Install the updated Android build to enable PiP.')),
+    );
+  }
+}
 
 Future<void> _warmLiveBackend() async {
   final endpoint = RoomBackendConfig.endpoint('/health');
@@ -1260,6 +1293,13 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                   ),
                             children: [
                               IconButton(
+                                tooltip: widget.ar ? 'نافذة عائمة' : 'Mini Live window',
+                                onPressed: _liveId == null ? null
+                                  : () => _enterLiveMiniWindow(context, widget.ar),
+                                icon: const Icon(Icons.picture_in_picture_alt_rounded,
+                                  color: Colors.white),
+                              ),
+                              IconButton(
                                 tooltip: widget.ar ? 'الهدايا' : 'Gifts',
                                 onPressed: _liveId == null
                                     ? null
@@ -2399,6 +2439,12 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                             },
                           ),
                           children: [
+                            IconButton(
+                              tooltip: widget.ar ? 'نافذة عائمة' : 'Mini Live window',
+                              onPressed: () => _enterLiveMiniWindow(context, widget.ar),
+                              icon: const Icon(Icons.picture_in_picture_alt_rounded,
+                                color: Colors.white),
+                            ),
                             IconButton(
                               tooltip: widget.ar ? 'الهدايا' : 'Gifts',
                               onPressed: () => _showLiveGifts(
