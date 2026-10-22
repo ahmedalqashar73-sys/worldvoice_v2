@@ -1493,6 +1493,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                     'WorldVoice host',
                             audioFrames: _controller.audioFrames,
                             ar: widget.ar,
+                            onLiveOptions: _showHostLiveMenu,
                           ),
                         ),
                         if (_liveId != null)
@@ -1521,19 +1522,6 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                               showComposer: false,
                             ),
                           ),
-                        PositionedDirectional(
-                          top: 62,
-                          start: 12,
-                          child: IconButton.filledTonal(
-                            tooltip: widget.ar ? 'قائمة اللايف' : 'Live options',
-                            style: IconButton.styleFrom(
-                              backgroundColor: const Color(0xC9143329),
-                              foregroundColor: Colors.white,
-                            ),
-                            onPressed: _showHostLiveMenu,
-                            icon: const Icon(Icons.more_horiz_rounded),
-                          ),
-                        ),
                         PositionedDirectional(
                           top: 12,
                           start: 12,
@@ -2811,6 +2799,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                   'WorldVoice user',
                           audioFrames: _controller.audioFrames,
                           ar: widget.ar,
+                          onLiveOptions: _showViewerLiveMenu,
                         ),
                       ),
                       Positioned.fill(
@@ -2923,15 +2912,6 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                     ),
                                   ),
 
-                                IconButton(
-                                  tooltip: widget.ar
-                                      ? 'قائمة اللايف' : 'Live options',
-                                  onPressed: _showViewerLiveMenu,
-                                  icon: const Icon(
-                                    Icons.more_horiz_rounded,
-                                    color: Colors.white,
-                                  ),
-                                ),
                                 IconButton(
                                   onPressed: _closeViewer,
                                   icon: const Icon(
@@ -3163,6 +3143,7 @@ class _LiveLanguageToolsOverlay extends StatefulWidget {
     required this.displayName,
     required this.audioFrames,
     required this.ar,
+    this.onLiveOptions,
   });
 
   final String liveId;
@@ -3171,6 +3152,7 @@ class _LiveLanguageToolsOverlay extends StatefulWidget {
   final String displayName;
   final Stream<AgoraRoomAudioFrame> audioFrames;
   final bool ar;
+  final VoidCallback? onLiveOptions;
 
   @override
   State<_LiveLanguageToolsOverlay> createState() =>
@@ -3686,14 +3668,14 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
           child: Row(
             children: [
               IconButton.filledTonal(
-                tooltip: widget.ar ? 'الترجمة والسبتايتل' : 'Language tools',
-                onPressed: _showSettings,
+                tooltip: widget.ar ? 'الترجمة والـ AI' : 'Language & AI tools',
+                onPressed: _showMoreTools,
                 icon: const Icon(Icons.language_rounded),
               ),
               const SizedBox(width: 6),
               IconButton.filledTonal(
-                tooltip: widget.ar ? 'المزيد' : 'More',
-                onPressed: _showMoreTools,
+                tooltip: widget.ar ? 'خيارات اللايف' : 'Live options',
+                onPressed: widget.onLiveOptions ?? _showMoreTools,
                 icon: const Icon(Icons.more_horiz_rounded),
               ),
             ],
