@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import '../../../core/localization/app_strings.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../../../core/widgets/worldvoice_avatar_frame.dart';
+import '../../../core/vip/vip_entitlement.dart';
+import '../../vip/presentation/worldvoice_vip_badge.dart';
 import '../../chat/presentation/chat_screen.dart';
 import '../../stories/presentation/story_strip.dart';
 import '../services/profile_social_service.dart';
@@ -173,7 +175,12 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
             final country = data['country'] as String?;
             final city = (data['city'] as String?)?.trim();
             final hideCity = data['hideCity'] == true;
-            final isVip = data['isVip'] == true;
+            final isVip = VipEntitlement.isActive(data);
+            final badgeId = (data['activeBadgeId'] ?? '').toString();
+            final badgeExpiry = data['vipBadgeExpiresAt'];
+            final showBadge = isVip && badgeExpiry is Timestamp &&
+                badgeExpiry.toDate().isAfter(DateTime.now()) &&
+                WorldVoiceVipBadgeDesign.byId(badgeId) != null;
             final profileFrameId =
                 (data['profileFrameId'] as String?)?.trim();
             final gender = data['gender'] as String?;
@@ -251,6 +258,10 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                         fontWeight: FontWeight.w900,
                       ),
                 ),
+                if (showBadge) ...[
+                  const SizedBox(height: 6),
+                  Center(child: WorldVoiceVipBadge(badgeId: badgeId)),
+                ],
                 if (username?.isNotEmpty == true) ...[
                   const SizedBox(height: 4),
                   Row(

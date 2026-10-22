@@ -6,6 +6,7 @@ import '../../../core/localization/app_strings.dart';
 
 import '../../../core/localization/locale_controller.dart';
 import '../../../core/widgets/worldvoice_avatar_frame.dart';
+import '../../../core/vip/vip_entitlement.dart';
 import '../services/profile_social_service.dart';
 import '../data/profile_language_catalog.dart';
 import 'profile_connections_screen.dart';
@@ -14,6 +15,9 @@ import 'profile_setup_screen.dart';
 import 'profile_visitors_screen.dart';
 import 'settings_screen.dart';
 import 'voice_bio_card.dart';
+import '../../vip/vip_membership_screen.dart';
+import '../../vip/presentation/worldvoice_store_screen.dart';
+import '../../vip/presentation/worldvoice_vip_badge.dart';
 
 class UserProfileScreen extends StatelessWidget {
   const UserProfileScreen({
@@ -81,7 +85,13 @@ class UserProfileScreen extends StatelessWidget {
                 (data['nativeLanguageCode'] ?? data['nativeLanguage'])?.toString(), code);
             final birthRaw = data['birthDate'];
             final birthDate = birthRaw is Timestamp ? birthRaw.toDate() : null;
-            final isVip = data['isVip'] == true;
+            final isVip = VipEntitlement.isActive(data);
+            final selectedBadge = (data['activeBadgeId'] ?? '').toString();
+            final badgeExpiresAt = data['vipBadgeExpiresAt'];
+            final validBadge = isVip &&
+                badgeExpiresAt is Timestamp &&
+                badgeExpiresAt.toDate().isAfter(DateTime.now()) &&
+                WorldVoiceVipBadgeDesign.byId(selectedBadge) != null;
             final profileFrameId =
                 (data['profileFrameId'] as String?)?.trim();
             final voiceBioUrl = data['voiceBioUrl'] as String?;
@@ -160,6 +170,10 @@ class UserProfileScreen extends StatelessWidget {
                             .headlineSmall
                             ?.copyWith(fontWeight: FontWeight.w900),
                       ),
+                      if (validBadge) ...[
+                        const SizedBox(height: 6),
+                        WorldVoiceVipBadge(badgeId: selectedBadge),
+                      ],
                       const SizedBox(height: 4),
                       Text(
                         '@${username?.isNotEmpty == true ? username! : 'user'}',
@@ -202,6 +216,42 @@ class UserProfileScreen extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 18),
+                      Card(
+                        child: ListTile(
+                          leading: const Icon(Icons.workspace_premium_rounded,
+                              color: Color(0xFFAA8125)),
+                          title: Text(code == 'ar' ? 'عضوية VIP' : 'My VIP'),
+                          subtitle: Text(isVip
+                              ? (code == 'ar' ? 'عضويتك فعّالة' : 'Membership active')
+                              : (code == 'ar' ? 'عرض المميزات والحالة' : 'View benefits and status')),
+                          trailing: const Icon(Icons.chevron_right_rounded),
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => VipMembershipScreen(
+                                languageCode: code,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Card(
+                        child: ListTile(
+                          leading: const Icon(Icons.storefront_rounded,
+                              color: Color(0xFF128667)),
+                          title: Text(code == 'ar' ? 'متجر WorldVoice' : 'WorldVoice Store'),
+                          subtitle: Text(code == 'ar'
+                              ? 'الشارات • الإطارات • الخلفيات • عضوية VIP'
+                              : 'VIP Gold • Badges • Frames • Backgrounds'),
+                          trailing: const Icon(Icons.chevron_right_rounded),
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => WorldVoiceStoreScreen(languageCode: code),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
                       SizedBox(
                         width: double.infinity,
                         child: OutlinedButton.icon(

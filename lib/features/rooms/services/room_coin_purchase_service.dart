@@ -231,6 +231,9 @@ class RoomCoinPurchaseService extends ChangeNotifier {
     List<PurchaseDetails> purchases,
   ) async {
     for (final purchase in purchases) {
+      // VIP subscriptions have their own receipt handler and must never be
+      // processed as consumable coin purchases.
+      if (purchase.productID.startsWith('wv_vip_')) continue;
       try {
         switch (purchase.status) {
           case PurchaseStatus.pending:

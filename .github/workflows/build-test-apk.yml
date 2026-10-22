@@ -3,7 +3,12 @@ name: Build WorldVoice Test APK
 on:
   push:
     branches: [main, feat/chat-social-foundation-20261004]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   android-debug-apk:

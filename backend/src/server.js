@@ -24,7 +24,8 @@ import {validateQuizDraft, quizWinners} from "./quiz_policy.js";
 import {roomTaskSpec, advanceRoomLevel, roomLevelFromXp} from "./room_task_policy.js";
 import {privateWalletRef, requirePrivateWallet} from "./wallet_store.js";
 import {approvedWorldVoiceGift} from "./gift_catalog.js";
-import {requireRoomTeacherVip} from "./vip_feature_policy.js";
+import {requireRoomTeacherVip, isActiveVipProfile} from "./vip_feature_policy.js";
+import {registerVipSubscriptionRoutes} from "./vip_subscription_routes.js";
 
 const { RtcRole, RtcTokenBuilder } = agoraToken;
 
@@ -1514,7 +1515,7 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
     const recipientId = requestedRecipient || sender.uid;
     const gifting = recipientId !== sender.uid;
     const key = String(req.headers["idempotency-key"] || "").trim();
-    if (!/^(background|frame|entrance|vip)__[A-Za-z0-9_-]{1,80}$/.test(itemId) ||
+    if (!/^(background|frame|entrance|vip|badge)__[A-Za-z0-9_-]{1,80}$/.test(itemId) ||
         !/^[A-Za-z0-9_-]{12,100}$/.test(key)) {
       return res.status(400).json({error: "Invalid item or idempotency key."});
     }
@@ -1554,7 +1555,7 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
       if ((!itemSnap.exists && !builtInRoomBackground(itemId) &&
           !builtInWorldVoiceFrame(itemId)) ||
           item.active !== true ||
-          !["background", "frame", "entrance", "vip"].includes(item.type) ||
+          !["background", "frame", "entrance", "vip", "badge"].includes(item.type) ||
           !itemId.startsWith(item.type + "__")) {
         throw Object.assign(new Error("Store item unavailable."), {status: 404});
       }
@@ -1567,6 +1568,14 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
         throw Object.assign(new Error("This room background was retired."),
           {status: 409});
       }
+      // VIP-only cosmetic badges cannot be bought or gifted to free users.
+      // Validate on the trusted backend rather than just hiding UI controls.
+      if (item.type === "badge" &&
+          (!isActiveVipProfile(payerProfileSnap.data()) ||
+           (gifting && !isActiveVipProfile(snaps[7].data())))) {
+        throw Object.assign(new Error("VIP_REQUIRED: Premium badges require active VIP for both accounts."),
+          {status: 403});
+      }
       if (item.type === "vip" && !gifting) {
         throw Object.assign(new Error("Use verified store billing for personal VIP."),
           {status: 400});
@@ -1574,6 +1583,11 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
       const price = Number(item.priceCoins);
       const duration = item.durationDays == null
         ? null : Number(item.durationDays);
+      if (item.type === "badge" &&
+          (!Number.isInteger(duration) || ![7, 15, 30].includes(duration))) {
+        throw Object.assign(new Error("Premium badge duration is unavailable."),
+          {status: 409});
+      }
       if (!Number.isSafeInteger(price) || price <= 0 ||
           (duration != null && (!Number.isSafeInteger(duration) || duration <= 0)) ||
           (item.type === "vip" && duration == null)) {
@@ -1632,8 +1646,15 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
         throw Object.assign(new Error("Wallet under payment review."), {status: 423});
       }
       const owner = gifting ? snaps[8].data() || {} : payerSnap.data() || {};
+      const recipientProfile = gifting
+        ? snaps[7].data() || {} : payerProfileSnap.data() || {};
+      // Respect both stored expiry copies when extending gifted VIP,
+      // including permanent admin/test grants tracked on users/{uid}.
       const existingExpiry = item.type === "vip"
-        ? owner.vipExpiresAt?.toMillis?.()
+        ? Math.max(
+          owner.vipExpiresAt?.toMillis?.() || 0,
+          recipientProfile.vipExpiresAt?.toMillis?.() || 0,
+        )
         : ownedSnap.data()?.expiresAt?.toMillis?.();
       if (ownedSnap.exists && item.type !== "vip" &&
           ownedSnap.data()?.expiresAt == null &&
@@ -1679,6 +1700,14 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
       }, {merge: true});
       if (item.type === "vip") {
         tx.update(recipientWalletRef, {vipExpiresAt: expiresAt});
+        // Voice-room and profile entitlements read users/{uid}, not the
+        // private wallet. Keep the two server-authored records in sync.
+        tx.set(recipientRef, {
+          isVip: true,
+          vipExpiresAt: expiresAt,
+          vipSource: "coin_gift",
+          vipUpdatedAt: FieldValue.serverTimestamp(),
+        }, {merge: true});
       }
       if (item.type === "background") {
         // Temporary mirrored legacy read model; remove after all clients
@@ -2170,6 +2199,13 @@ app.post("/gift/send", async (req, res, next) => {
   }
 });
 
+// The native subscription endpoint is fail-closed until explicitly enabled
+// and store-approved products are configured. Coin checkout stays separate.
+registerVipSubscriptionRoutes({
+  app, db, authenticatedUser, googlePlayAuth, androidPackageName, iosBundleId,
+  appleIapKeyId, appleIapIssuerId, appleIapPrivateKey,
+});
+
 app.post("/iap/verify", async (req, res, next) => {
   try {
     const user = await authenticatedUser(req);
@@ -2243,6 +2279,54 @@ app.post("/iap/verify", async (req, res, next) => {
       coinsAdded: credit.coins,
       alreadyCredited: credit.alreadyCredited,
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * Equip only a server-purchased, unexpired VIP badge. The equipped badge ID
+ * and its expiry are public profile decorations, never client-controlled.
+ */
+app.post("/store/equip-badge", async (req, res, next) => {
+  try {
+    const user = await authenticatedUser(req);
+    const badgeId = String(req.body?.badgeId || "").trim();
+    if (badgeId && !/^badge__[A-Za-z0-9_-]{1,80}$/.test(badgeId)) {
+      return res.status(400).json({error: "Invalid VIP badge."});
+    }
+
+    const profileRef = db.collection("users").doc(user.uid);
+    const inventoryRef = badgeId
+      ? profileRef.collection("inventory").doc(badgeId) : null;
+
+    await db.runTransaction(async tx => {
+      const profileSnap = await tx.get(profileRef);
+      if (!profileSnap.exists) {
+        throw Object.assign(new Error("Profile not found."), {status: 404});
+      }
+      if (!badgeId) {
+        tx.update(profileRef, {
+          activeBadgeId: FieldValue.delete(),
+          vipBadgeExpiresAt: FieldValue.delete(),
+        });
+        return;
+      }
+      if (!isActiveVipProfile(profileSnap.data())) {
+        throw Object.assign(new Error("VIP_REQUIRED: Badge use requires active VIP."), {status: 403});
+      }
+      const owned = await tx.get(inventoryRef);
+      const rawExpiry = owned.data()?.expiresAt;
+      const validExpiry = rawExpiry?.toMillis?.() > Date.now();
+      if (!owned.exists || owned.data()?.type !== "badge" || !validExpiry) {
+        throw Object.assign(new Error("Badge not owned or expired."), {status: 403});
+      }
+      tx.update(profileRef, {
+        activeBadgeId: badgeId,
+        vipBadgeExpiresAt: rawExpiry,
+      });
+    });
+    return res.json({ok: true, badgeId});
   } catch (error) {
     next(error);
   }
