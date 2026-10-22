@@ -27,6 +27,7 @@ import '../../rooms/services/room_quota_service.dart';
 import '../../rooms/services/room_rewarded_ad_service.dart';
 import '../services/live_session_service.dart';
 import 'live_invitation_card.dart';
+import 'live_priority_controls.dart';
 
 import '../../../core/localization/locale_controller.dart';
 import '../../profile/services/profile_social_service.dart';
@@ -641,6 +642,7 @@ class _LiveCameraGate extends StatefulWidget {
 
 class _LiveCameraGateState extends State<_LiveCameraGate> {
   final AgoraVoiceRoomController _controller = AgoraVoiceRoomController();
+  final GlobalKey<_LiveLanguageToolsOverlayState> _languageToolsKey = GlobalKey<_LiveLanguageToolsOverlayState>();
   final TextEditingController _topicController = TextEditingController();
   late String _languageCode;
   late List<String> _learningCodes;
@@ -1651,6 +1653,8 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                           ),
                         Positioned.fill(
                           child: _LiveLanguageToolsOverlay(
+                            key: _languageToolsKey,
+                            showControls: false,
                             liveId: _liveId ?? '',
                             roomLanguageCode: _languageCode,
                             canPublish: !_micMuted,
@@ -1664,7 +1668,9 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                         ),
                         if (_liveId != null)
                           Positioned.fill(
-                            child: _LiveGiftEffects(liveId: _liveId!),
+                            child: IgnorePointer(
+                              child: _LiveGiftEffects(liveId: _liveId!),
+                            ),
                           ),
                         if (_liveId != null)
                           PositionedDirectional(
@@ -1915,21 +1921,34 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                 icon: const Icon(Icons.auto_fix_high_rounded),
                               ),
                               const SizedBox(width: 8),
-                              IconButton(
-                                style: IconButton.styleFrom(
-                                  backgroundColor: const Color(0xCC8B1E1E),
-                                  foregroundColor: Colors.white,
-                                ),
-                                tooltip: widget.ar ? 'إنهاء اللايف' : 'End live',
-                                onPressed: _confirmEndLive,
-                                icon: const Icon(Icons.stop_circle_rounded),
-                              ),
                             ],
                           ),
                         ),
                       ],
                     );
                   },
+                ),
+              ),
+            // Last children of the outer Stack stay above Agora,
+            // language overlays and gift animations for reliable taps.
+            if (_cameraReady)
+              PositionedDirectional(
+                top: 64,
+                start: 12,
+                child: LivePriorityMenuButtons(
+                  ar: widget.ar,
+                  onLanguage: () => _languageToolsKey.currentState?._showMoreTools(),
+                  onOptions: _showHostLiveMenu,
+                ),
+              ),
+            if (_cameraReady)
+              PositionedDirectional(
+                top: 12,
+                end: 12,
+                child: LivePriorityExitButton(
+                  ar: widget.ar,
+                  host: true,
+                  onExit: _confirmEndLive,
                 ),
               ),
           ],
@@ -3331,6 +3350,8 @@ class _LiveLanguageToolsOverlay extends StatefulWidget {
     required this.audioFrames,
     required this.ar,
     this.onLiveOptions,
+    this.showControls = true,
+    super.key,
   });
 
   final String liveId;
@@ -3340,6 +3361,7 @@ class _LiveLanguageToolsOverlay extends StatefulWidget {
   final Stream<AgoraRoomAudioFrame> audioFrames;
   final bool ar;
   final VoidCallback? onLiveOptions;
+  final bool showControls;
 
   @override
   State<_LiveLanguageToolsOverlay> createState() =>
@@ -3849,7 +3871,8 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
     return Stack(
       fit: StackFit.expand,
       children: [
-        PositionedDirectional(
+        if (widget.showControls)
+          PositionedDirectional(
           top: 64,
           start: 12,
           child: Row(
