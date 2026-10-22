@@ -11,6 +11,7 @@ import '../../../core/localization/locale_controller.dart';
 import '../../profile/presentation/public_profile_screen.dart';
 import '../services/home_feed_service.dart';
 import '../../live/presentation/live_screen.dart';
+import '../../live/presentation/live_invitation_card.dart';
 
 class HomeFeedSection extends StatefulWidget {
   const HomeFeedSection({
@@ -480,21 +481,16 @@ class _HomePostCard extends StatelessWidget {
                 style: const TextStyle(fontSize: 15.5, height: 1.35),
               ),
             ),
-          if (RegExp(r'worldvoice://live/[A-Za-z0-9_-]+').hasMatch(post.text))
+          if (WorldVoiceLiveLinks.extract(post.text) != null)
             Padding(
               padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 12),
-              child: FilledButton.icon(
-                onPressed: () {
-                  final match = RegExp(r'worldvoice://live/([A-Za-z0-9_-]+)')
-                      .firstMatch(post.text);
-                  if (match != null) {
-                    openSharedWorldVoiceLive(
-                      context, match.group(1)!, ar: isArabic,
-                    );
-                  }
-                },
-                icon: const Icon(Icons.live_tv_rounded),
-                label: Text(isArabic ? 'الدخول إلى اللايف' : 'Join Live'),
+              child: WorldVoiceLiveInvitationCard(
+                liveId: WorldVoiceLiveLinks.extract(post.text)!,
+                ar: isArabic,
+                onJoin: () => openSharedWorldVoiceLive(
+                  context, WorldVoiceLiveLinks.extract(post.text)!,
+                  ar: isArabic,
+                ),
               ),
             ),
           if (post.hasImage)
