@@ -26,6 +26,7 @@ import '../../rooms/services/room_translation_service.dart';
 import '../../rooms/services/room_quota_service.dart';
 import '../../rooms/services/room_rewarded_ad_service.dart';
 import '../services/live_session_service.dart';
+import 'live_invitation_card.dart';
 
 import '../../../core/localization/locale_controller.dart';
 import '../../profile/services/profile_social_service.dart';
@@ -148,6 +149,59 @@ class _LiveScreenState extends State<LiveScreen> {
   OverlayEntry? _viewerOverlay;
   String? _playingLiveId;
   bool _mini = false;
+  OverlayEntry? _hostOverlay;
+  bool _hostMini = false;
+
+  void _closeHostOverlay() {
+    final entry = _hostOverlay;
+    _hostOverlay = null;
+    _hostMini = false;
+    entry?.remove();
+    entry?.dispose();
+    if (mounted) setState(() {});
+  }
+
+  void _toggleHostMini() {
+    if (_hostOverlay == null) return;
+    _hostMini = !_hostMini;
+    _hostOverlay!.markNeedsBuild();
+    if (mounted) setState(() {});
+  }
+
+  void _startHostLive({required bool ar, required String language}) {
+    if (_hostOverlay != null) {
+      if (_hostMini) _toggleHostMini();
+      return;
+    }
+    unawaited(_warmLiveBackend());
+    _hostMini = false;
+    _hostOverlay = OverlayEntry(
+      builder: (context) => Positioned(
+        top: _hostMini ? null : 0,
+        bottom: _hostMini ? 96 : 0,
+        left: _hostMini ? null : 0,
+        right: _hostMini ? 12 : 0,
+        width: _hostMini ? 190 : null,
+        height: _hostMini ? 254 : null,
+        child: Material(
+          color: Colors.black,
+          elevation: _hostMini ? 14 : 0,
+          clipBehavior: Clip.antiAlias,
+          borderRadius: BorderRadius.circular(_hostMini ? 19 : 0),
+          child: _LiveCameraGate(
+            key: const ValueKey('worldvoice-host-live-overlay'),
+            ar: ar,
+            initialLanguageCode: language,
+            miniMode: _hostMini,
+            onMiniToggle: _toggleHostMini,
+            onClose: _closeHostOverlay,
+          ),
+        ),
+      ),
+    );
+    Overlay.of(context, rootOverlay: true).insert(_hostOverlay!);
+    if (mounted) setState(() {});
+  }
 
   void _closeMiniLive() {
     final entry = _viewerOverlay;
@@ -204,10 +258,12 @@ class _LiveScreenState extends State<LiveScreen> {
 
   @override
   void dispose() {
-    final entry = _viewerOverlay;
+    for (final entry in [_viewerOverlay, _hostOverlay]) {
+      entry?.remove();
+      entry?.dispose();
+    }
     _viewerOverlay = null;
-    entry?.remove();
-    entry?.dispose();
+    _hostOverlay = null;
     super.dispose();
   }
 
@@ -266,20 +322,11 @@ class _LiveScreenState extends State<LiveScreen> {
                   FilledButton(
                     key: const ValueKey('start-live'),
                     onPressed: () {
-                      unawaited(_warmLiveBackend());
                       final fallback =
                           ProfileLanguageCatalog.byCode(language) == null
                               ? 'en'
                               : language;
-                      Navigator.of(context).push<void>(
-                        MaterialPageRoute(
-                          fullscreenDialog: true,
-                          builder: (_) => _LiveCameraGate(
-                            ar: ar,
-                            initialLanguageCode: fallback,
-                          ),
-                        ),
-                      );
+                      _startHostLive(ar: ar, language: fallback);
                     },
                     child: Text(ar ? 'إنشاء' : 'Create'),
                   ),
@@ -577,9 +624,16 @@ class _LiveCameraGate extends StatefulWidget {
   const _LiveCameraGate({
     required this.ar,
     required this.initialLanguageCode,
+    this.miniMode = false,
+    this.onMiniToggle,
+    this.onClose,
+    super.key,
   });
   final bool ar;
   final String initialLanguageCode;
+  final bool miniMode;
+  final VoidCallback? onMiniToggle;
+  final VoidCallback? onClose;
 
   @override
   State<_LiveCameraGate> createState() => _LiveCameraGateState();
@@ -723,7 +777,28 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
               title: Text(widget.ar ? 'تصغير اللايف' : 'Minimize Live'),
               onTap: () {
                 Navigator.pop(sheetContext);
-                unawaited(_enterLiveMiniWindow(context, widget.ar));
+                if (widget.onMiniToggle != null) {
+                  widget.onMiniToggle!();
+                } else {
+                  unawaited(_enterLiveMiniWindow(context, widget.ar));
+                }
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.explore_rounded),
+              title: Text(widget.ar ? 'استكشاف بثوث أخرى'
+                : 'Explore other Lives'),
+              subtitle: Text(widget.ar
+                ? 'تصفح دون إيقاف الكاميرا أو اللايف'
+                : 'Browse without interrupting your broadcast'),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted && _liveId != null) {
+                    unawaited(_showLiveExploreDrawer(context,
+                      currentLiveId: _liveId!, ar: widget.ar));
+                  }
+                });
               },
             ),
             ListTile(
@@ -805,7 +880,11 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     }
     await _controller.leave();
     if (!mounted) return;
-    Navigator.of(context).pop();
+    if (widget.onClose != null) {
+      widget.onClose!();
+    } else {
+      Navigator.of(context).pop();
+    }
   }
 
   void _startHostQuotaTimer() {
@@ -1071,8 +1150,69 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     });
   }
 
+  Widget _hostMiniPlayer() {
+    return Scaffold(
+      backgroundColor: const Color(0xFF08251C),
+      body: InkWell(
+        onTap: widget.onMiniToggle,
+        child: Stack(fit: StackFit.expand, children: [
+          if (_controller.engine != null && !_cameraPaused)
+            AgoraVideoView(controller: VideoViewController(
+              rtcEngine: _controller.engine!,
+              canvas: const VideoCanvas(uid: 0),
+            ))
+          else
+            const Center(child: Icon(Icons.videocam_off_rounded,
+                size: 48, color: Colors.white70)),
+          const IgnorePointer(child: DecoratedBox(
+            decoration: BoxDecoration(gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xAA000000), Color(0x00000000),
+                Color(0xBB000000)],
+            )),
+          )),
+          PositionedDirectional(
+            top: 2, start: 3, end: 3,
+            child: Row(children: [
+              const Padding(
+                padding: EdgeInsetsDirectional.only(start: 6),
+                child: Text('● LIVE', style: TextStyle(
+                  fontSize: 11, color: Color(0xFFFF6565),
+                  fontWeight: FontWeight.w900)),
+              ),
+              const Spacer(),
+              IconButton(
+                onPressed: widget.onMiniToggle,
+                icon: const Icon(Icons.open_in_full_rounded,
+                  color: Colors.white, size: 18),
+                tooltip: widget.ar ? 'تكبير اللايف' : 'Expand Live',
+                visualDensity: VisualDensity.compact,
+              ),
+              IconButton(
+                onPressed: _confirmEndLive,
+                icon: const Icon(Icons.stop_circle_outlined,
+                  color: Colors.white, size: 20),
+                tooltip: widget.ar ? 'إنهاء اللايف' : 'End Live',
+                visualDensity: VisualDensity.compact,
+              ),
+            ]),
+          ),
+          PositionedDirectional(
+            start: 8, end: 8, bottom: 9,
+            child: Text(_resolvedTopic,
+              maxLines: 1, overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.white,
+                fontSize: 12, fontWeight: FontWeight.w900)),
+          ),
+        ]),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (widget.miniMode && _cameraReady) return _hostMiniPlayer();
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: Colors.black,
@@ -1375,7 +1515,8 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
               top: 10,
               start: 10,
               child: IconButton.filledTonal(
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: widget.onClose ??
+                    () => Navigator.of(context).pop(),
                 icon: const Icon(Icons.close_rounded),
               ),
             ),
@@ -2279,6 +2420,32 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
               } else {
                 unawaited(_enterLiveMiniWindow(context, widget.ar));
               }
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.explore_rounded),
+            title: Text(widget.ar ? 'استكشف بثوثًا أخرى'
+                : 'Explore other Lives'),
+            onTap: () {
+              Navigator.pop(sheetContext);
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!mounted) return;
+                unawaited(_showLiveExploreDrawer(
+                  context, currentLiveId: widget.liveId,
+                  ar: widget.ar, onChooseLive: (newId) async {
+                    final navigator = Navigator.of(context);
+                    await _closeViewer();
+                    // The previous Agora session releases during dispose.
+                    await Future<void>.delayed(
+                      const Duration(milliseconds: 120));
+                    if (!navigator.mounted) return;
+                    await navigator.push<void>(MaterialPageRoute(
+                      builder: (_) => WorldVoiceLiveInvitationPage(
+                        liveId: newId),
+                    ));
+                  },
+                ));
+              });
             },
           ),
           if (_isModerator)
@@ -4235,8 +4402,7 @@ Future<void> openWorldVoiceLive(BuildContext context, {
     ar: Localizations.localeOf(context).languageCode == 'ar');
 
 String? worldVoiceLiveIdInText(String text) =>
-    RegExp(r'worldvoice://live/([A-Za-z0-9_-]{3,128})')
-        .firstMatch(text)?.group(1);
+    WorldVoiceLiveLinks.extract(text);
 
 Future<void> _publishLiveStory(BuildContext context, {
   required String liveId,
@@ -4258,7 +4424,7 @@ Future<void> _publishLiveStory(BuildContext context, {
   }
 }
 
-String _liveShareUri(String liveId) => 'worldvoice://live/$liveId';
+String _liveShareUri(String liveId) => WorldVoiceLiveLinks.web(liveId);
 
 String _liveShareText({
   required String liveId,
@@ -4269,6 +4435,174 @@ String _liveShareText({
   final title = cleanTopic.isEmpty ? 'WorldVoice Live' : cleanTopic;
   return '🔴 WorldVoice Live\n$title\n$hostName\n${_liveShareUri(liveId)}';
 }
+
+/// Browse other Live streams without interrupting the currently joined
+/// Agora session. This panel sits above the video, like a compact discovery
+/// drawer; it never touches or rebuilds the voice-room screen.
+Future<void> _showLiveExploreDrawer(
+  BuildContext context, {
+  required String currentLiveId,
+  required bool ar,
+  Future<void> Function(String id)? onChooseLive,
+}) => showGeneralDialog<void>(
+  context: context,
+  barrierDismissible: true,
+  barrierLabel: ar ? 'إغلاق الاستكشاف' : 'Close discovery',
+  barrierColor: Colors.black54,
+  transitionDuration: const Duration(milliseconds: 230),
+  transitionBuilder: (context, animation, _, child) =>
+    SlideTransition(
+      position: Tween<Offset>(
+        begin: const Offset(-1, 0),
+        end: Offset.zero,
+      ).animate(CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeOutCubic,
+      )),
+      child: child,
+    ),
+  pageBuilder: (dialogContext, _, _) => Align(
+    alignment: Alignment.centerLeft,
+    child: FractionallySizedBox(
+      widthFactor: .84,
+      heightFactor: 1,
+      child: Material(
+        color: const Color(0xFF0A1F1A),
+        child: SafeArea(child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 18),
+          child: Column(children: [
+            Row(children: [
+              const Icon(Icons.live_tv_rounded,
+                color: Color(0xFFFFD67D)),
+              const SizedBox(width: 8),
+              Expanded(child: Text(
+                ar ? 'استكشف البثوث المباشرة' : 'Explore live broadcasts',
+                style: const TextStyle(color: Colors.white,
+                  fontSize: 17, fontWeight: FontWeight.w900))),
+              IconButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                icon: const Icon(Icons.close_rounded,
+                  color: Colors.white),
+              ),
+            ]),
+            const SizedBox(height: 10),
+            Expanded(child: StreamBuilder<
+                QuerySnapshot<Map<String, dynamic>>>(
+              stream: LiveSessionService().watchOpen(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Center(child: Text(ar
+                    ? 'تعذر تحميل اللايفات.' : 'Could not load Lives.',
+                    style: const TextStyle(color: Colors.white70)));
+                }
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                final docs = snapshot.data!.docs.where((doc) =>
+                    doc.id != currentLiveId &&
+                    LiveSessionService.isFresh(doc.data()))
+                    .toList(growable: false);
+                if (docs.isEmpty) {
+                  return Center(child: Text(ar
+                    ? 'لا توجد بثوث أخرى الآن.'
+                    : 'No other active Lives yet.',
+                    style: const TextStyle(color: Colors.white70)));
+                }
+                return GridView.builder(
+                  itemCount: docs.length,
+                  gridDelegate:
+                    const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 9,
+                      mainAxisSpacing: 9,
+                      childAspectRatio: .72,
+                    ),
+                  itemBuilder: (context, index) {
+                    final doc = docs[index];
+                    final live = doc.data();
+                    final photo = (live['hostPhotoUrl'] ?? '').toString();
+                    final name = (live['hostName'] ?? 'WorldVoice')
+                        .toString();
+                    final topic = (live['topic'] ?? '').toString();
+                    final count = live['viewerCount'] ?? 0;
+                    final code =
+                        (live['languageCode'] ?? '').toString().toUpperCase();
+                    return InkWell(
+                      onTap: onChooseLive == null ? null : () {
+                        Navigator.pop(dialogContext);
+                        unawaited(onChooseLive(doc.id));
+                      },
+                      borderRadius: BorderRadius.circular(18),
+                      child: Ink(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF174234),
+                          border: Border.all(
+                            color: const Color(0xFF33775D)),
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(9),
+                          child: Column(children: [
+                            Row(children: [
+                              const Icon(Icons.circle,
+                                size: 8, color: Colors.redAccent),
+                              const Spacer(),
+                              const Icon(Icons.visibility_rounded,
+                                size: 15, color: Colors.white70),
+                              const SizedBox(width: 3),
+                              Text('$count', style: const TextStyle(
+                                color: Colors.white70, fontSize: 12)),
+                            ]),
+                            const Spacer(),
+                            CircleAvatar(radius: 27,
+                              foregroundImage: photo.isEmpty
+                                ? null : NetworkImage(photo),
+                              backgroundColor: const Color(0xFF35725C),
+                              child: photo.isEmpty
+                                ? const Icon(Icons.person_rounded,
+                                    color: Colors.white)
+                                : null,
+                            ),
+                            const SizedBox(height: 7),
+                            Text(name, maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Color(0xFFFFDA87),
+                                fontWeight: FontWeight.w800)),
+                            const SizedBox(height: 4),
+                            Text(topic, textAlign: TextAlign.center,
+                              maxLines: 2, overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.white, fontSize: 12)),
+                            const Spacer(),
+                            Text(code, style: const TextStyle(
+                              color: Color(0xFFA8E8CC),
+                              fontWeight: FontWeight.w900)),
+                          ]),
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            )),
+            const SizedBox(height: 10),
+            Text(
+              onChooseLive == null
+                ? (ar ? 'أنت تبث الآن؛ يمكنك الاستكشاف دون إيقاف بثك.'
+                    : 'Explore without ending your broadcast.')
+                : (ar ? 'اختر لايف للانتقال إليه.'
+                    : 'Select a Live to switch streams.'),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Color(0xFFD2E8DC), fontSize: 12),
+            ),
+          ]),
+        )),
+      ),
+    ),
+  ),
+);
 
 Future<void> _showLiveShareSheet(
   BuildContext context, {
@@ -4427,6 +4761,62 @@ Future<void> _publishLivePost(
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(error.toString().replaceFirst('Bad state: ', ''))),
+    );
+  }
+}
+
+/// The route reached from an external HTTPS invitation. Existing live
+/// viewer ownership/lifecycle stays with the normal Agora viewer widget.
+class WorldVoiceLiveInvitationPage extends StatefulWidget {
+  const WorldVoiceLiveInvitationPage({required this.liveId, super.key});
+  final String liveId;
+
+  @override
+  State<WorldVoiceLiveInvitationPage> createState() =>
+      _WorldVoiceLiveInvitationPageState();
+}
+
+class _WorldVoiceLiveInvitationPageState
+    extends State<WorldVoiceLiveInvitationPage> {
+  late final Future<DocumentSnapshot<Map<String, dynamic>>> _live =
+      FirebaseFirestore.instance.collection('live_sessions')
+          .doc(widget.liveId).get();
+
+  @override
+  Widget build(BuildContext context) {
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    return FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      future: _live,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+        final data = snapshot.data?.data();
+        if (!LiveSessionService.isFresh(data)) {
+          return Scaffold(
+            appBar: AppBar(title: Text(ar ? 'دعوة لايف' : 'Live invitation')),
+            body: Center(child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.live_tv_outlined, size: 58),
+                const SizedBox(height: 12),
+                Text(ar ? 'هذا اللايف انتهى أو غير متاح الآن.'
+                    : 'This Live has ended or is unavailable.'),
+                const SizedBox(height: 16),
+                FilledButton(
+                  onPressed: () => Navigator.of(context).maybePop(),
+                  child: Text(ar ? 'العودة' : 'Back'),
+                ),
+              ],
+            )),
+          );
+        }
+        return _LiveViewerScreen(
+          liveId: widget.liveId, data: data!, ar: ar,
+        );
+      },
     );
   }
 }
