@@ -17,6 +17,7 @@ import 'package:record/record.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../../../core/widgets/worldvoice_avatar_frame.dart';
 import '../../rooms/presentation/unified_gift_panel.dart';
+import '../../live/presentation/live_screen.dart';
 import '../../rooms/presentation/classic_gift_visual.dart';
 import '../../rooms/presentation/room_gift_overlay.dart';
 import '../../rooms/data/classic_gift_catalog.dart';
@@ -24,7 +25,6 @@ import '../../rooms/data/room_feature_models.dart';
 import '../../rooms/services/room_feature_service.dart';
 import '../../profile/presentation/public_profile_screen.dart';
 import '../../stories/presentation/story_strip.dart';
-import '../../live/presentation/live_screen.dart';
 import '../services/chat_extended_service.dart';
 import '../services/chat_call_service.dart';
 import 'chat_media_bubble.dart';
@@ -1531,25 +1531,25 @@ class _ChatConversationState extends State<ChatConversationScreen> {
                                           fileName: data['fileName']?.toString(),
                                           cacheScope: 'chat_${uid ?? 'anonymous'}',
                                         )
-                                      : worldVoiceLiveIdInText(value) != null
+                                      : RegExp(r'worldvoice://live/[A-Za-z0-9_-]+').hasMatch(value)
                                           ? Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
                                                 Text(value),
                                                 const SizedBox(height: 8),
                                                 FilledButton.icon(
-                                                  onPressed: () => openWorldVoiceLive(
-                                                    context,
-                                                    liveId: worldVoiceLiveIdInText(value)!,
-                                                  ),
-                                                  icon: const Icon(
-                                                    Icons.live_tv_rounded,
-                                                  ),
-                                                  label: Text(ar
-                                                      ? 'دخول اللايف'
-                                                      : 'Join Live'),
+                                                  onPressed: () {
+                                                    final id = RegExp(
+                                                      r'worldvoice://live/([A-Za-z0-9_-]+)',
+                                                    ).firstMatch(value)?.group(1);
+                                                    if (id != null) {
+                                                      openSharedWorldVoiceLive(
+                                                        context, id, ar: ar,
+                                                      );
+                                                    }
+                                                  },
+                                                  icon: const Icon(Icons.live_tv_rounded),
+                                                  label: Text(ar ? 'الدخول إلى اللايف' : 'Join Live'),
                                                 ),
                                               ],
                                             )
