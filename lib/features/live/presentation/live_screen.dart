@@ -135,6 +135,73 @@ class LiveScreen extends StatefulWidget {
 class _LiveScreenState extends State<LiveScreen> {
   late final Stream<QuerySnapshot<Map<String, dynamic>>> _sessions =
       LiveSessionService().watchOpen();
+  final String? _myUid = FirebaseAuth.instance.currentUser?.uid;
+  late final Future<DocumentSnapshot<Map<String, dynamic>>> _myProfile =
+      FirebaseFirestore.instance.collection('users')
+          .doc(_myUid ?? '__signed_out__').get();
+  String _languageFilter = 'all';
+  OverlayEntry? _viewerOverlay;
+  String? _playingLiveId;
+  bool _mini = false;
+
+  void _closeMiniLive() {
+    final entry = _viewerOverlay;
+    _viewerOverlay = null;
+    _playingLiveId = null;
+    _mini = false;
+    entry?.remove();
+    entry?.dispose();
+    if (mounted) setState(() {});
+  }
+
+  void _toggleMiniLive() {
+    if (_viewerOverlay == null) return;
+    _mini = !_mini;
+    _viewerOverlay?.markNeedsBuild();
+    if (mounted) setState(() {});
+  }
+
+  void _watchLive(QueryDocumentSnapshot<Map<String, dynamic>> doc, bool ar) {
+    if (_playingLiveId == doc.id) {
+      if (_mini) _toggleMiniLive();
+      return;
+    }
+    _closeMiniLive();
+    _playingLiveId = doc.id;
+    _viewerOverlay = OverlayEntry(
+      builder: (overlayContext) => Positioned(
+        top: _mini ? null : 0,
+        bottom: _mini ? 96 : 0,
+        left: _mini ? null : 0,
+        right: _mini ? 14 : 0,
+        width: _mini ? 182 : null,
+        height: _mini ? 248 : null,
+        child: Material(
+          color: Colors.black,
+          elevation: _mini ? 16 : 0,
+          clipBehavior: Clip.antiAlias,
+          borderRadius: BorderRadius.circular(_mini ? 18 : 0),
+          child: _LiveViewerScreen(
+            key: ValueKey(doc.id),
+            liveId: doc.id,
+            data: doc.data(),
+            ar: ar,
+            miniMode: _mini,
+            onMiniToggle: _toggleMiniLive,
+            onClose: _closeMiniLive,
+          ),
+        ),
+      ),
+    );
+    Overlay.of(context, rootOverlay: true).insert(_viewerOverlay!);
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _closeMiniLive();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
