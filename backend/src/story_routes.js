@@ -60,6 +60,23 @@ async function signedStory({bucketForLegacy, doc}) {
   const data = doc.data() || {};
   const publicId = String(data.cloudinaryPublicId || "");
   const storagePath = String(data.storagePath || "");
+  if (data.kind === "live") {
+    const liveId = String(data.liveId || "");
+    if (!/^[A-Za-z0-9_-]{3,128}$/.test(liveId)) return null;
+    return {
+      id: doc.id,
+      ownerId: String(data.ownerId || ""),
+      ownerName: String(data.ownerName || "WorldVoice"),
+      ownerPhotoUrl: String(data.ownerPhotoUrl || ""),
+      kind: "live",
+      liveId,
+      audience: "everyone",
+      durationMs: 12000,
+      createdAtMs: timestampMillis(data.createdAt),
+      expiresAtMs: timestampMillis(data.expiresAt),
+      mediaUrl: "",
+    };
+  }
   if (!publicId && !storagePath) return null;
   try {
     let mediaUrl = "";
@@ -393,6 +410,51 @@ export function registerStoryRoutes({
       }
     },
   );
+
+  app.post("/stories/live-share", async (req, res, next) => {
+    try {
+      const user = await authenticatedUser(req);
+      const liveId = String(req.body?.liveId || "").trim();
+      if (!/^[A-Za-z0-9_-]{3,128}$/.test(liveId)) {
+        fail("Invalid Live ID.");
+      }
+      const liveRef = db.collection("live_sessions").doc(liveId);
+      const liveSnap = await liveRef.get();
+      const live = liveSnap.data() || {};
+      const heartbeatMs = live.hostHeartbeatAt?.toMillis?.() ?? 0;
+      if (!liveSnap.exists || live.isLive !== true ||
+          live.channelId !== liveId ||
+          heartbeatMs < Date.now() - 60000) {
+        fail("Live has ended.", 409);
+      }
+      if (live.hostId !== user.uid) {
+        const viewer = await liveRef.collection("viewers").doc(user.uid).get();
+        if (!viewer.exists || viewer.data()?.uid !== user.uid) {
+          fail("Join the Live before sharing it to a story.", 403);
+        }
+      }
+      const profileSnap = await db.collection("users").doc(user.uid).get();
+      if (!profileSnap.exists) fail("WorldVoice profile is required.", 409);
+      const profile = profileSnap.data() || {};
+      const now = Date.now();
+      const ref = db.collection("stories").doc();
+      await ref.set({
+        ownerId: user.uid,
+        ownerName: String(profile.displayName || user.name || "WorldVoice")
+          .slice(0, 100),
+        ownerPhotoUrl: String(profile.photoUrl || user.picture || ""),
+        kind: "live",
+        liveId,
+        audience: "everyone",
+        durationMs: 12000,
+        createdAt: Timestamp.fromMillis(now),
+        expiresAt: Timestamp.fromMillis(now + STORY_LIFETIME_MS),
+      });
+      return res.json({ok: true, storyId: ref.id});
+    } catch (error) {
+      next(error);
+    }
+  });
 
   app.get("/stories/feed", async (req, res, next) => {
     try {
