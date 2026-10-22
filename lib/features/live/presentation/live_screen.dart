@@ -1345,13 +1345,12 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                   ),
                 ),
               ),
-            PositionedDirectional(
+            if (!_cameraReady)
+              PositionedDirectional(
               top: 10,
               start: 10,
               child: IconButton.filledTonal(
-                onPressed: _cameraReady
-                    ? _confirmEndLive
-                    : () => Navigator.of(context).pop(),
+                onPressed: () => Navigator.of(context).pop(),
                 icon: const Icon(Icons.close_rounded),
               ),
             ),
@@ -2296,6 +2295,48 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                 final next = !_guestMicMuted;
                 await _controller.setMuted(next);
                 if (mounted) setState(() => _guestMicMuted = next);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.auto_fix_high_rounded),
+              title: Text(widget.ar ? 'فلاتر الكاميرا' : 'Camera & filters'),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (!mounted) return;
+                  unawaited(_showLiveCameraTools(
+                    context,
+                    controller: _controller,
+                    ar: widget.ar,
+                    beautyEnabled: _guestBeautyEnabled,
+                    filterPreset: _guestFilterPreset,
+                    backgroundBlurEnabled: _guestBackgroundBlurEnabled,
+                    zoom: _guestCameraZoom,
+                    onBeautyChanged: (value) {
+                      if (mounted) setState(() => _guestBeautyEnabled = value);
+                    },
+                    onFilterPresetChanged: (value) {
+                      if (mounted) setState(() => _guestFilterPreset = value);
+                    },
+                    onBackgroundBlurChanged: (value) {
+                      if (mounted) {
+                        setState(() => _guestBackgroundBlurEnabled = value);
+                      }
+                    },
+                    onZoomChanged: (value) {
+                      if (mounted) setState(() => _guestCameraZoom = value);
+                    },
+                  ));
+                });
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.videocam_off_rounded),
+              title: Text(widget.ar ? 'النزول من الكاميرا'
+                  : 'Leave the camera stage'),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                unawaited(_leaveGuestCamera());
               },
             ),
             ListTile(
