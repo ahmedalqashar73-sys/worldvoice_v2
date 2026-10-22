@@ -4185,6 +4185,20 @@ class _LiveChatOverlay extends StatefulWidget {
 }
 
 class _LiveChatOverlayState extends State<_LiveChatOverlay> {
+  // One read per distinct sender while the chat is open, not per message.
+  final Map<String, Future<Map<String, dynamic>>> _profiles = {};
+  Future<Map<String, dynamic>> _profile(String uid) =>
+      _profiles.putIfAbsent(uid, () async {
+        if (uid.isEmpty) return const <String, dynamic>{};
+        try {
+          final doc = await FirebaseFirestore.instance
+              .collection('users').doc(uid).get();
+          return doc.data() ?? const <String, dynamic>{};
+        } catch (_) {
+          return const <String, dynamic>{};
+        }
+      });
+
   final TextEditingController _input = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   bool _sending = false;
@@ -4307,27 +4321,73 @@ class _LiveChatOverlayState extends State<_LiveChatOverlay> {
                                 color: const Color(0x99000000),
                                 borderRadius: BorderRadius.circular(14),
                               ),
-                              child: Text.rich(
-                                TextSpan(
-                                  children: [
-                                    TextSpan(
-                                      text: '$name  ',
-                                      style: const TextStyle(
-                                        color: Color(0xFFFFD77A),
-                                        fontWeight: FontWeight.w900,
-                                      ),
-                                    ),
-                                    TextSpan(
-                                      text: message,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        height: 1.25,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                maxLines: 4,
-                                overflow: TextOverflow.ellipsis,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(name, maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Color(0xFFFFD77A),
+                                      fontWeight: FontWeight.w900,
+                                    )),
+                                  FutureBuilder<Map<String, dynamic>>(
+                                    future: _profile(
+                                      (data['senderId'] ?? '').toString()),
+                                    builder: (context, profileSnapshot) {
+                                      final profile = profileSnapshot.data;
+                                      if (profile == null) {
+                                        return const SizedBox.shrink();
+                                      }
+                                      final locale =
+                                        Localizations.localeOf(context).languageCode;
+                                      final native =
+                                          ProfileLanguageCatalog.localizedStoredName(
+                                        (profile['nativeLanguageCode'] ??
+                                         profile['nativeLanguage'])?.toString(),
+                                        locale,
+                                      );
+                                      final preferred =
+                                          profile['learningLanguageCodes'];
+                                      final saved = preferred is List &&
+                                              preferred.isNotEmpty
+                                          ? preferred
+                                          : (profile['learningLanguages'] as List?) ??
+                                              const <dynamic>[];
+                                      final learning = saved
+                                          .map((v) => ProfileLanguageCatalog
+                                              .localizedStoredName(v.toString(), locale))
+                                          .where((v) => v.trim().isNotEmpty)
+                                          .take(5).toList();
+                                      if (native.isEmpty && learning.isEmpty) {
+                                        return const SizedBox.shrink();
+                                      }
+                                      return Padding(
+                                        padding: const EdgeInsets.only(bottom: 3),
+                                        child: Text(
+                                          [
+                                            if (native.isNotEmpty)
+                                              '${widget.ar ? 'الأم' : 'Native'}: $native',
+                                            if (learning.isNotEmpty)
+                                              '${widget.ar ? 'يتعلم' : 'Learning'}: ${learning.join(' • ')}',
+                                          ].join('  |  '),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            color: Color(0xFF9CE8C6),
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  Text(message, maxLines: 4,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Colors.white, height: 1.25,
+                                    )),
+                                ],
                               ),
                             ),
                           ),
