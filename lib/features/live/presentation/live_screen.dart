@@ -2728,6 +2728,17 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                           : (widget.ar ? 'متابعة' : 'Follow'),
                                     ),
                                   ),
+                                if (widget.onMiniToggle != null)
+                                  IconButton(
+                                    tooltip: widget.ar
+                                        ? 'تصغير اللايف داخل التطبيق'
+                                        : 'Minimize Live inside app',
+                                    onPressed: widget.onMiniToggle,
+                                    icon: const Icon(
+                                      Icons.picture_in_picture_rounded,
+                                      color: Color(0xFFFFD681),
+                                    ),
+                                  ),
                                 IconButton(
                                   tooltip: widget.ar ? 'مشاركة' : 'Share',
                                   onPressed: _shareLive,
