@@ -32,6 +32,7 @@ import '../../profile/services/profile_social_service.dart';
 import '../../profile/data/profile_language_catalog.dart';
 import '../../profile/presentation/public_profile_screen.dart';
 import '../../chat/presentation/chat_screen.dart';
+import '../../home/services/home_feed_service.dart';
 
 const MethodChannel _livePermissionChannel =
     MethodChannel('worldvoice/live_permissions');
@@ -1133,16 +1134,21 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                           Positioned.fill(
                             child: _LiveGiftEffects(liveId: _liveId!),
                           ),
+                        if (_liveId != null)
+                          PositionedDirectional(
+                            top: 92,
+                            end: 12,
+                            child: _LiveProfileLanguages(
+                              hostId: FirebaseAuth.instance.currentUser?.uid ?? '',
+                              ar: widget.ar,
+                            ),
+                          ),
                         if (_chatOpen && _liveId != null)
                           PositionedDirectional(
                             start: 10,
                             end: 68,
                             bottom: 78 + MediaQuery.viewInsetsOf(context).bottom,
-                            height: _boardOpen
-                                ? MediaQuery.sizeOf(context).height * .27
-                                : (tiles.length >= 3
-                                    ? MediaQuery.sizeOf(context).height * .34
-                                    : 250),
+                            height: _boardOpen ? 98 : 124,
                             child: _LiveChatOverlay(
                               service: _liveService,
                               liveId: _liveId!,
@@ -2237,16 +2243,20 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                       Positioned.fill(
                         child: _LiveGiftEffects(liveId: widget.liveId),
                       ),
+                      PositionedDirectional(
+                        top: 92,
+                        end: 12,
+                        child: _LiveProfileLanguages(
+                          hostId: (live?['hostId'] ?? widget.data['hostId'] ?? '').toString(),
+                          ar: widget.ar,
+                        ),
+                      ),
                       if (_chatOpen)
                         PositionedDirectional(
                           start: 10,
                           end: 68,
                           bottom: 78 + MediaQuery.viewInsetsOf(context).bottom,
-                          height: _boardOpen
-                              ? MediaQuery.sizeOf(context).height * .27
-                              : (tiles.length >= 3
-                                  ? MediaQuery.sizeOf(context).height * .34
-                                  : 250),
+                          height: _boardOpen ? 98 : 124,
                           child: _LiveChatOverlay(
                             service: _service,
                             liveId: widget.liveId,
@@ -3701,6 +3711,53 @@ Future<void> _showLiveCameraTools(
   );
 }
 
+class _LiveProfileLanguages extends StatelessWidget {
+  const _LiveProfileLanguages({required this.hostId, required this.ar});
+  final String hostId;
+  final bool ar;
+
+  @override
+  Widget build(BuildContext context) {
+    if (hostId.isEmpty) return const SizedBox.shrink();
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance.collection('users').doc(hostId).snapshots(),
+      builder: (context, snapshot) {
+        final data = snapshot.data?.data();
+        if (data == null) return const SizedBox.shrink();
+        final native = (data['nativeLanguageCode'] ?? '').toString().trim();
+        final raw = data['learningLanguageCodes'];
+        final learning = raw is List
+            ? raw.map((e) => e.toString().trim())
+                .where((e) => e.isNotEmpty && e != native).toSet().take(3).toList()
+            : <String>[];
+        if (native.isEmpty && learning.isEmpty) return const SizedBox.shrink();
+        final nativeLabel = native.isEmpty ? '' : ProfileLanguageCatalog.label(native);
+        final learningLabel = learning.map(ProfileLanguageCatalog.label).join(' · ');
+        return IgnorePointer(
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 228),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: const Color(0xB3082D21),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              [
+                if (native.isNotEmpty) '${ar ? 'الأم' : 'Native'}: $nativeLabel',
+                if (learning.isNotEmpty) '${ar ? 'أتعلم' : 'Learning'}: $learningLabel',
+              ].join('  •  '),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.white, fontSize: 11,
+                fontWeight: FontWeight.w700),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 String _liveShareUri(String liveId) => 'worldvoice://live/$liveId';
 
 String _liveShareText({
@@ -3762,6 +3819,28 @@ Future<void> _showLiveShareSheet(
           ),
           ListTile(
             leading: const CircleAvatar(
+              child: Icon(Icons.post_add_rounded),
+            ),
+            title: Text(
+              ar ? 'نشر اللايف كمنشور' : 'Share Live as a post',
+              style: const TextStyle(fontWeight: FontWeight.w800),
+            ),
+            subtitle: Text(
+              ar
+                  ? 'انشره في الصفحة الرئيسية ليتمكن الآخرون من الدخول.'
+                  : 'Publish in the Home feed so others can join.',
+            ),
+            onTap: () async {
+              Navigator.of(sheetContext).pop();
+              await _publishLivePost(
+                context,
+                shareText: shareText,
+                ar: ar,
+              );
+            },
+          ),
+          ListTile(
+            leading: const CircleAvatar(
               child: Icon(Icons.link_rounded),
             ),
             title: Text(
@@ -3814,6 +3893,64 @@ Future<void> _showLiveShareSheet(
       ),
     ),
   );
+}
+
+/// Publish a live invitation through the existing authenticated feed API.
+Future<void> _publishLivePost(
+  BuildContext context, {
+  required String shareText,
+  required bool ar,
+}) async {
+  try {
+    await HomeFeedService().createPost(text: shareText);
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(ar
+          ? 'تم نشر دعوة اللايف في الصفحة الرئيسية.'
+          : 'Live invitation published to the Home feed.')),
+    );
+  } catch (error) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(error.toString().replaceFirst('Bad state: ', ''))),
+    );
+  }
+}
+
+Future<void> openSharedWorldVoiceLive(
+  BuildContext context,
+  String liveId, {
+  required bool ar,
+}) async {
+  final id = liveId.trim();
+  if (id.isEmpty || id.contains('/')) return;
+  try {
+    final snapshot = await FirebaseFirestore.instance
+        .collection('live_sessions').doc(id).get();
+    if (!context.mounted) return;
+    final data = snapshot.data();
+    if (!LiveSessionService.isFresh(data)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(ar
+            ? 'انتهى هذا البث المباشر.'
+            : 'This Live has ended.')),
+      );
+      return;
+    }
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => _LiveViewerScreen(liveId: id, data: data!, ar: ar),
+      ),
+    );
+  } catch (error) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(ar
+          ? 'تعذر فتح البث الآن.'
+          : 'Could not open this Live.')),
+    );
+  }
 }
 
 Future<void> _showLiveShareToChat(

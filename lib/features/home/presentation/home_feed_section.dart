@@ -10,6 +10,7 @@ import 'package:video_player/video_player.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../../profile/presentation/public_profile_screen.dart';
 import '../services/home_feed_service.dart';
+import '../../live/presentation/live_screen.dart';
 
 class HomeFeedSection extends StatefulWidget {
   const HomeFeedSection({
@@ -477,6 +478,23 @@ class _HomePostCard extends StatelessWidget {
               child: Text(
                 post.text,
                 style: const TextStyle(fontSize: 15.5, height: 1.35),
+              ),
+            ),
+          if (RegExp(r'worldvoice://live/[A-Za-z0-9_-]+').hasMatch(post.text))
+            Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 12),
+              child: FilledButton.icon(
+                onPressed: () {
+                  final match = RegExp(r'worldvoice://live/([A-Za-z0-9_-]+)')
+                      .firstMatch(post.text);
+                  if (match != null) {
+                    openSharedWorldVoiceLive(
+                      context, match.group(1)!, ar: isArabic,
+                    );
+                  }
+                },
+                icon: const Icon(Icons.live_tv_rounded),
+                label: Text(isArabic ? 'الدخول إلى اللايف' : 'Join Live'),
               ),
             ),
           if (post.hasImage)
