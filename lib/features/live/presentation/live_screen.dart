@@ -356,7 +356,9 @@ class _LiveScreenState extends State<LiveScreen> {
                       if ((data['languageCode'] ?? '').toString().toLowerCase() ==
                           _languageFilter ||
                           (data['nativeLanguageCode'] ?? '').toString()
-                              .toLowerCase() == _languageFilter) return true;
+                              .toLowerCase() == _languageFilter) {
+                        return true;
+                      }
                       final learning = data['learningLanguageCodes'];
                       return learning is List && learning.any(
                         (v) => v.toString().toLowerCase() == _languageFilter);
@@ -1312,12 +1314,12 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                 ? MediaQuery.sizeOf(context).height * .41
                                 : 0,
                             child: _LiveVideoGrid(
-                              children: tiles,
                               labels: [
                                 FirebaseAuth.instance.currentUser?.displayName ??
                                     (widget.ar ? 'المضيف' : 'Host'),
                                 ...remote.map((_) => widget.ar ? 'ضيف' : 'Guest'),
                               ],
+                              children: tiles,
                             ),
                           )
                         else
@@ -2516,7 +2518,6 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                 ? MediaQuery.sizeOf(context).height * .41
                                 : 0,
                             child: _LiveVideoGrid(
-                              children: tiles,
                               labels: [
                                 if (_guestPublishing)
                                   FirebaseAuth.instance.currentUser?.displayName ??
@@ -2528,6 +2529,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                     : (widget.ar ? 'ضيف' : 'Guest'),
                                 ),
                               ],
+                              children: tiles,
                             ),
                           )
                         else
