@@ -311,22 +311,7 @@ class _LiveScreenState extends State<LiveScreen> {
                     const <String, dynamic>{};
                 final native = ProfileLanguageCatalog.codeFromStored(
                   profile['nativeLanguageCode'] ?? profile['nativeLanguage']);
-                final stored = (profile['learningLanguageCodes'] as List?)
-                            ?.isNotEmpty == true
-                    ? (profile['learningLanguageCodes'] as List)
-                    : (profile['learningLanguages'] as List?) ??
-                        const <dynamic>[];
-                // All saved learning languages are shown, without a display
-                // limit or a hard-coded list of English/Spanish/Arabic.
-                // Native first, then All, then the saved learning order.
-                final codes = <String>{
-                  if (native != null) native,
-                  'all',
-                  ...stored
-                      .map(ProfileLanguageCatalog.codeFromStored)
-                      .whereType<String>()
-                      .where((code) => code != native),
-                }.toList(growable: false);
+                final codes = ProfileLanguageCatalog.liveDiscoveryCodes(profile);
                 if (!codes.contains(_languageFilter)) {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     if (mounted && !codes.contains(_languageFilter)) {
