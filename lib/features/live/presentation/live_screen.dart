@@ -867,21 +867,45 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     _heartbeatTimer?.cancel();
     _cameraOffTimer?.cancel();
     _quotaTimer?.cancel();
-    if (_quotaStarted) {
-      await _quota.endSession();
-      _quotaStarted = false;
-    }
+
+    // End the public Live first. The old implementation awaited the quota
+    // network request before this update, which could strand a host on screen.
+    Object? remoteEndError;
     final liveId = _liveId;
     if (liveId != null) {
       try {
-        await _liveService.end(liveId);
-      } catch (_) {
-        _sessionClosed = false;
-        rethrow;
+        await _liveService.end(liveId)
+            .timeout(const Duration(seconds: 10));
+      } catch (error) {
+        remoteEndError = error;
       }
     }
-    await _controller.leave();
+
+    if (_quotaStarted) {
+      _quotaStarted = false;
+      try {
+        await _quota.endSession()
+            .timeout(const Duration(seconds: 4));
+      } catch (_) {
+        // A quota-service delay must never trap the host in the camera view.
+      }
+    }
+
+    try {
+      await _controller.leave()
+          .timeout(const Duration(seconds: 5));
+    } catch (_) {
+      // The controller is also disposed when the Live screen is removed.
+    }
     if (!mounted) return;
+    if (remoteEndError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        duration: const Duration(seconds: 8),
+        content: Text(widget.ar
+            ? 'تمت مغادرة شاشة اللايف، لكن تعذر تأكيد إنهائه على الخادم. افحص حالة البث عند عودة الاتصال.'
+            : 'Left the Live screen, but the server could not confirm its end. Check Live status once connected.'),
+      ));
+    }
     if (widget.onClose != null) {
       widget.onClose!();
     } else {
