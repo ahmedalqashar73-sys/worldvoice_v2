@@ -1,6 +1,10 @@
 package com.worldvoice.worldvoice
 
 import android.Manifest
+import android.app.PictureInPictureParams
+import android.content.res.Configuration
+import android.os.Build
+import android.util.Rational
 import android.content.pm.PackageManager
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
@@ -17,6 +21,8 @@ import java.util.Locale
 class MainActivity : FlutterActivity() {
     private val livePermissionChannel = "worldvoice/live_permissions"
     private val liveTtsChannel = "worldvoice/live_tts"
+    private val livePipChannel = "worldvoice/live_pip"
+    private var pipMessenger: MethodChannel? = null
     private val cameraRequestCode = 7401
     private var pendingCameraResult: MethodChannel.Result? = null
     private var textToSpeech: TextToSpeech? = null
@@ -86,6 +92,31 @@ class MainActivity : FlutterActivity() {
                     pendingTeacherSpeech = null
                     finishSpeech("TTS_UNAVAILABLE", "The Android speech engine could not initialize.")
                 }
+            }
+        }
+
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            livePipChannel,
+        ).also { pipMessenger = it }.setMethodCallHandler { call, result ->
+            when (call.method) {
+                "enter" -> {
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O ||
+                        !packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
+                    ) {
+                        result.success(false)
+                    } else {
+                        try {
+                            val params = PictureInPictureParams.Builder()
+                                .setAspectRatio(Rational(9, 16))
+                                .build()
+                            result.success(enterPictureInPictureMode(params))
+                        } catch (error: Exception) {
+                            result.error("PIP_UNAVAILABLE", error.message, null)
+                        }
+                    }
+                }
+                else -> result.notImplemented()
             }
         }
 
@@ -212,7 +243,16 @@ class MainActivity : FlutterActivity() {
         pendingCameraResult = null
     }
 
+    override fun onPictureInPictureModeChanged(
+        isInPictureInPictureMode: Boolean,
+        newConfig: Configuration,
+    ) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        pipMessenger?.invokeMethod("modeChanged", isInPictureInPictureMode)
+    }
+
     override fun onDestroy() {
+        pipMessenger = null
         finishSpeech("TTS_CANCELLED", "The activity closed.")
         pendingTeacherSpeech = null
         textToSpeech?.stop()
