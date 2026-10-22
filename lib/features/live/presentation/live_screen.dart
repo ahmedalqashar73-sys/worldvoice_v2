@@ -640,6 +640,111 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     );
   }
 
+  Future<void> _confirmEndLive() async {
+    if (!_cameraReady) {
+      Navigator.of(context).pop();
+      return;
+    }
+    final approved = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(widget.ar ? 'إنهاء البث المباشر؟' : 'End this Live?'),
+        content: Text(widget.ar
+            ? 'سيتم إيقاف اللايف لجميع المشاهدين والضيوف.'
+            : 'This ends the Live for all viewers and guests.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(widget.ar ? 'إلغاء' : 'Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFFC93838)),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(widget.ar ? 'إنهاء اللايف' : 'End Live'),
+          ),
+        ],
+      ),
+    );
+    if (approved == true && mounted) await _endLiveAndPop();
+  }
+
+  Future<void> _showHostLiveMenu() async {
+    if (_liveId == null) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      useSafeArea: true,
+      builder: (sheetContext) => Padding(
+        padding: const EdgeInsets.fromLTRB(12, 0, 12, 18),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.share_rounded),
+              title: Text(widget.ar ? 'مشاركة اللايف' : 'Share Live'),
+              subtitle: Text(widget.ar
+                  ? 'كمنشور، عبر الدردشة، ستوري، أو نسخ الرابط'
+                  : 'Post, direct chat, story or copy link'),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) unawaited(_shareHostLive());
+                });
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.picture_in_picture_alt_rounded),
+              title: Text(widget.ar ? 'تصغير اللايف' : 'Minimize Live'),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                unawaited(_enterLiveMiniWindow(context, widget.ar));
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.admin_panel_settings_rounded),
+              title: Text(widget.ar ? 'إدارة اللايف' : 'Live moderators'),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted && _liveId != null) {
+                    unawaited(_showLiveModeratorManagement(context,
+                      liveId: _liveId!, service: _liveService, ar: widget.ar));
+                  }
+                });
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.schedule_rounded),
+              title: Text(widget.ar ? 'وقت اللايف' : 'Live time'),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) unawaited(_showHostQuotaStatus());
+                });
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.power_settings_new_rounded,
+                  color: Colors.redAccent),
+              title: Text(widget.ar ? 'إنهاء البث للجميع' : 'End Live for everyone',
+                style: const TextStyle(color: Colors.redAccent)),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) unawaited(_confirmEndLive());
+                });
+              },
+            ),
+            const SizedBox(height: 4),
+            Text('WorldVoice Live UI • 2026.10.22.5',
+              style: Theme.of(sheetContext).textTheme.labelSmall),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _shareHostLive() async {
     final liveId = _liveId;
     if (liveId == null) return;
@@ -1245,7 +1350,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
               start: 10,
               child: IconButton.filledTonal(
                 onPressed: _cameraReady
-                    ? _endLiveAndPop
+                    ? _confirmEndLive
                     : () => Navigator.of(context).pop(),
                 icon: const Icon(Icons.close_rounded),
               ),
@@ -1418,6 +1523,19 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                             ),
                           ),
                         PositionedDirectional(
+                          top: 62,
+                          start: 12,
+                          child: IconButton.filledTonal(
+                            tooltip: widget.ar ? 'قائمة اللايف' : 'Live options',
+                            style: IconButton.styleFrom(
+                              backgroundColor: const Color(0xC9143329),
+                              foregroundColor: Colors.white,
+                            ),
+                            onPressed: _showHostLiveMenu,
+                            icon: const Icon(Icons.more_horiz_rounded),
+                          ),
+                        ),
+                        PositionedDirectional(
                           top: 12,
                           start: 12,
                           child: StreamBuilder<
@@ -1506,14 +1624,6 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                           start: 12,
                           end: 12,
                           child: _LiveControlDock(
-                            pinnedAction: IconButton(
-                              tooltip: widget.ar
-                                  ? 'مشاركة اللايف كمنشور أو في الدردشة'
-                                  : 'Share Live as post or to chat',
-                              onPressed: _liveId == null ? null : _shareHostLive,
-                              icon: const Icon(Icons.share_rounded,
-                                color: Color(0xFFFFD681)),
-                            ),
                             composer: _liveId == null
                                 ? null
                                 : _LiveInlineComposer(
@@ -1528,86 +1638,38 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                   ),
                             children: [
                               IconButton(
-                                tooltip: widget.ar ? 'نافذة عائمة' : 'Mini Live window',
+                                tooltip: widget.ar ? 'الشات' : 'Chat',
+                                onPressed: () => setState(
+                                  () => _chatOpen = !_chatOpen),
+                                icon: const Icon(Icons.chat_bubble_outline_rounded,
+                                  color: Colors.white),
+                              ),
+                              IconButton(
+                                tooltip: widget.ar ? 'السبورة' : 'Whiteboard',
                                 onPressed: _liveId == null ? null
-                                  : () => _enterLiveMiniWindow(context, widget.ar),
-                                icon: const Icon(Icons.picture_in_picture_alt_rounded,
+                                  : () => setState(() => _boardOpen = !_boardOpen),
+                                icon: Icon(_boardOpen
+                                  ? Icons.dashboard_rounded
+                                  : Icons.dashboard_outlined,
+                                  color: Colors.white),
+                              ),
+                              IconButton(
+                                tooltip: widget.ar ? 'طلبات الضيوف' : 'Guest requests',
+                                onPressed: () => setState(
+                                  () => _requestsOpen = !_requestsOpen),
+                                icon: const Icon(Icons.group_add_rounded,
                                   color: Colors.white),
                               ),
                               IconButton(
                                 tooltip: widget.ar ? 'الهدايا' : 'Gifts',
-                                onPressed: _liveId == null
-                                    ? null
-                                    : () => _showLiveGifts(
-                                          context,
-                                          liveId: _liveId!,
-                                          service: _liveService,
-                                          hostId: FirebaseAuth
-                                                  .instance.currentUser?.uid ??
-                                              '',
-                                          hostName: FirebaseAuth.instance
-                                                  .currentUser?.displayName ??
-                                              'WorldVoice host',
-                                          ar: widget.ar,
-                                        ),
-                                icon: const Icon(
-                                  Icons.card_giftcard_rounded,
-                                  color: Color(0xFFFFC857),
-                                ),
-                              ),
-                              IconButton(
-                                tooltip: widget.ar ? 'السبورة' : 'Board',
-                                onPressed: _liveId == null
-                                    ? null
-                                    : () => setState(
-                                          () => _boardOpen = !_boardOpen,
-                                        ),
-                                icon: Icon(
-                                  _boardOpen
-                                      ? Icons.dashboard_rounded
-                                      : Icons.dashboard_outlined,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              IconButton(
-                                tooltip: widget.ar
-                                    ? 'طلبات الانضمام'
-                                    : 'Join requests',
-                                onPressed: () => setState(
-                                  () => _requestsOpen = !_requestsOpen,
-                                ),
-                                icon: const Icon(
-                                  Icons.group_add_rounded,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              IconButton(
-                                tooltip: widget.ar
-                                    ? 'المودريتر'
-                                    : 'Moderators',
-                                onPressed: _liveId == null
-                                    ? null
-                                    : () => _showLiveModeratorManagement(
-                                          context,
-                                          liveId: _liveId!,
-                                          service: _liveService,
-                                          ar: widget.ar,
-                                        ),
-                                icon: const Icon(
-                                  Icons.admin_panel_settings_rounded,
-                                  color: Color(0xFFFFD77A),
-                                ),
-                              ),
-                              IconButton(
-                                tooltip: widget.ar
-                                    ? 'وقت اللايف'
-                                    : 'Live time',
-                                onPressed:
-                                    _liveId == null ? null : _showHostQuotaStatus,
-                                icon: const Icon(
-                                  Icons.schedule_rounded,
-                                  color: Colors.white,
-                                ),
+                                onPressed: _liveId == null ? null
+                                  : () => _showLiveGifts(context,
+                                    liveId: _liveId!, service: _liveService,
+                                    hostId: FirebaseAuth.instance.currentUser?.uid ?? '',
+                                    hostName: FirebaseAuth.instance.currentUser?.displayName ??
+                                        'WorldVoice host', ar: widget.ar),
+                                icon: const Icon(Icons.card_giftcard_rounded,
+                                  color: Color(0xFFFFC857)),
                               ),
                             ],
                           ),
@@ -1706,7 +1768,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                   foregroundColor: Colors.white,
                                 ),
                                 tooltip: widget.ar ? 'إنهاء اللايف' : 'End live',
-                                onPressed: _endLiveAndPop,
+                                onPressed: _confirmEndLive,
                                 icon: const Icon(Icons.stop_circle_rounded),
                               ),
                             ],
