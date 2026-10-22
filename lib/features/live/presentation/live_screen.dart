@@ -26,6 +26,7 @@ import '../../rooms/services/room_translation_service.dart';
 import '../../rooms/services/room_quota_service.dart';
 import '../../rooms/services/room_rewarded_ad_service.dart';
 import '../services/live_session_service.dart';
+import 'live_invitation_card.dart';
 
 import '../../../core/localization/locale_controller.dart';
 import '../../profile/services/profile_social_service.dart';
@@ -4235,8 +4236,7 @@ Future<void> openWorldVoiceLive(BuildContext context, {
     ar: Localizations.localeOf(context).languageCode == 'ar');
 
 String? worldVoiceLiveIdInText(String text) =>
-    RegExp(r'worldvoice://live/([A-Za-z0-9_-]{3,128})')
-        .firstMatch(text)?.group(1);
+    WorldVoiceLiveLinks.extract(text);
 
 Future<void> _publishLiveStory(BuildContext context, {
   required String liveId,
@@ -4258,7 +4258,7 @@ Future<void> _publishLiveStory(BuildContext context, {
   }
 }
 
-String _liveShareUri(String liveId) => 'worldvoice://live/$liveId';
+String _liveShareUri(String liveId) => WorldVoiceLiveLinks.web(liveId);
 
 String _liveShareText({
   required String liveId,
@@ -4427,6 +4427,62 @@ Future<void> _publishLivePost(
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(error.toString().replaceFirst('Bad state: ', ''))),
+    );
+  }
+}
+
+/// The route reached from an external HTTPS invitation. Existing live
+/// viewer ownership/lifecycle stays with the normal Agora viewer widget.
+class WorldVoiceLiveInvitationPage extends StatefulWidget {
+  const WorldVoiceLiveInvitationPage({required this.liveId, super.key});
+  final String liveId;
+
+  @override
+  State<WorldVoiceLiveInvitationPage> createState() =>
+      _WorldVoiceLiveInvitationPageState();
+}
+
+class _WorldVoiceLiveInvitationPageState
+    extends State<WorldVoiceLiveInvitationPage> {
+  late final Future<DocumentSnapshot<Map<String, dynamic>>> _live =
+      FirebaseFirestore.instance.collection('live_sessions')
+          .doc(widget.liveId).get();
+
+  @override
+  Widget build(BuildContext context) {
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    return FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      future: _live,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+        final data = snapshot.data?.data();
+        if (!LiveSessionService.isFresh(data)) {
+          return Scaffold(
+            appBar: AppBar(title: Text(ar ? 'دعوة لايف' : 'Live invitation')),
+            body: Center(child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.live_tv_outlined, size: 58),
+                const SizedBox(height: 12),
+                Text(ar ? 'هذا اللايف انتهى أو غير متاح الآن.'
+                    : 'This Live has ended or is unavailable.'),
+                const SizedBox(height: 16),
+                FilledButton(
+                  onPressed: () => Navigator.of(context).maybePop(),
+                  child: Text(ar ? 'العودة' : 'Back'),
+                ),
+              ],
+            )),
+          );
+        }
+        return _LiveViewerScreen(
+          liveId: widget.liveId, data: data!, ar: ar,
+        );
+      },
     );
   }
 }
