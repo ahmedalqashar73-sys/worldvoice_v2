@@ -99,8 +99,189 @@ class LiveScreen extends StatefulWidget {
 }
 
 class _LiveScreenState extends State<LiveScreen> {
+  final LiveSessionService _service = LiveSessionService();
   late final Stream<QuerySnapshot<Map<String, dynamic>>> _sessions =
-      LiveSessionService().watchOpen();
+      _service.watchOpen();
+  List<String> _profileLanguages = const <String>[];
+  String _selectedLanguage = '';
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_loadProfileLanguages());
+  }
+
+  static String _normalizedLanguage(Object? raw) {
+    final value = (raw ?? '').toString().trim();
+    if (value.isEmpty) return '';
+    final code = value.toLowerCase().split(RegExp(r'[-_]')).first;
+    if (ProfileLanguageCatalog.byCode(code) != null) return code;
+    for (final entry in ProfileLanguageCatalog.languages) {
+      if (entry.englishName.toLowerCase() == value.toLowerCase() ||
+          entry.nativeName?.toLowerCase() == value.toLowerCase()) {
+        return entry.code;
+      }
+    }
+    return '';
+  }
+
+  Future<void> _loadProfileLanguages() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+    try {
+      final profile =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      final data = profile.data() ?? const <String, dynamic>{};
+      final codes = <String>[];
+      void add(Object? item) {
+        final code = _normalizedLanguage(item);
+        if (code.isNotEmpty && !codes.contains(code)) codes.add(code);
+      }
+      add(data['nativeLanguageCode'] ?? data['nativeLanguage']);
+      final raw = data['learningLanguageCodes'] ??
+          data['learningLanguages'] ?? const <dynamic>[];
+      if (raw is List) {
+        for (final item in raw) {
+          add(item);
+        }
+      }
+      if (mounted) {
+        setState(() => _profileLanguages = List<String>.unmodifiable(codes));
+      }
+    } catch (error) {
+      debugPrint('WorldVoice Live discovery languages: $error');
+    }
+  }
+
+  bool _matchesLanguage(Map<String, dynamic> data) {
+    if (_selectedLanguage.isEmpty) return true;
+    final codes = data['languageCodes'];
+    if (codes is List) {
+      return codes.any(
+          (item) => _normalizedLanguage(item) == _selectedLanguage);
+    }
+    return _normalizedLanguage(data['languageCode']) == _selectedLanguage;
+  }
+
+  Widget _liveCard(
+    BuildContext context, {
+    required String liveId,
+    required Map<String, dynamic> data,
+    required bool ar,
+    required String uiLanguage,
+    required int index,
+  }) {
+    const cardColors = [
+      Color(0xFF054F51),
+      Color(0xFF312066),
+      Color(0xFF104D38),
+      Color(0xFF3F2A61),
+    ];
+    final avatarUrl = (data['hostPhotoUrl'] ?? '').toString().trim();
+    final name = (data['hostName'] ?? 'WorldVoice').toString();
+    final topic = (data['topic'] ?? '').toString().trim();
+    final rawLanguage = _normalizedLanguage(data['languageCode']);
+    final languageLabel = rawLanguage.isEmpty
+        ? ''
+        : ProfileLanguageCatalog.localizedName(rawLanguage, uiLanguage);
+    final viewerCount = (data['viewerCount'] as num?)?.toInt() ?? 0;
+    return Material(
+      color: cardColors[index % cardColors.length],
+      borderRadius: BorderRadius.circular(22),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => Navigator.of(context).push<void>(
+          MaterialPageRoute(
+            fullscreenDialog: true,
+            builder: (_) => _LiveViewerScreen(
+              liveId: liveId,
+              data: data,
+              ar: ar,
+              localeController: widget.localeController,
+            ),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 13),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Row(children: [
+                const Icon(Icons.graphic_eq_rounded,
+                    color: Colors.white, size: 20),
+                const Spacer(),
+                if (languageLabel.isNotEmpty)
+                  Container(
+                    constraints: const BoxConstraints(maxWidth: 116),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 9, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: const Color(0xAA071712),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(languageLabel,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800)),
+                  ),
+              ]),
+              const SizedBox(height: 9),
+              CircleAvatar(
+                radius: 31,
+                foregroundImage:
+                    avatarUrl.isEmpty ? null : NetworkImage(avatarUrl),
+                backgroundColor: const Color(0x5538BC88),
+                child: avatarUrl.isEmpty
+                    ? const Icon(Icons.person_rounded,
+                        color: Colors.white, size: 28)
+                    : null,
+              ),
+              const SizedBox(height: 9),
+              Text(name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700)),
+              const SizedBox(height: 7),
+              Expanded(
+                child: Center(
+                  child: Text(
+                    topic.isEmpty ? (ar ? 'تحدث وتعلّم معًا' : 'Talk and learn together') : topic,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 17,
+                      height: 1.2,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text('$viewerCount',
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700)),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.visibility_rounded,
+                      size: 17, color: Colors.white),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -113,137 +294,164 @@ class _LiveScreenState extends State<LiveScreen> {
       textDirection: rtl ? TextDirection.rtl : TextDirection.ltr,
       child: ColoredBox(
         color: Theme.of(context).scaffoldBackgroundColor,
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(18, 18, 18, 28),
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainer,
-                borderRadius: BorderRadius.circular(22),
-              ),
-              child: Row(
-                children: [
-                  const CircleAvatar(
-                    radius: 24,
-                    backgroundColor: Color(0xFFDCF4EA),
-                    child: Icon(
-                      Icons.videocam_rounded,
-                      color: Color(0xFF0B7A58),
+        child: CustomScrollView(
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(18, 14, 18, 12),
+              sliver: SliverToBoxAdapter(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 13),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF11261D),
+                    borderRadius: BorderRadius.circular(22),
+                  ),
+                  child: Row(children: [
+                    const CircleAvatar(
+                      radius: 23,
+                      backgroundColor: Color(0xFFDCF4EA),
+                      child: Icon(Icons.videocam_rounded,
+                          color: Color(0xFF0B7A58)),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          ar ? 'أنشئ بثك المباشر' : 'Create your live',
-                          style: const TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          ar
-                              ? 'افتح الكاميرا وابدأ مباشرة.'
-                              : 'Open the camera and go live.',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
+                    const SizedBox(width: 11),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(ar ? 'أنشئ بثك المباشر' : 'Create your live',
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 16)),
+                          Text(ar ? 'تحدّث مع العالم' : 'Connect with the world',
+                              style: const TextStyle(color: Colors.white70)),
+                        ],
+                      ),
                     ),
-                  ),
-                  FilledButton(
-                    key: const ValueKey('start-live'),
-                    onPressed: () {
-                      unawaited(_warmLiveBackend());
-                      final fallback =
-                          ProfileLanguageCatalog.byCode(language) == null
-                              ? 'en'
-                              : language;
-                      Navigator.of(context).push<void>(
-                        MaterialPageRoute(
-                          fullscreenDialog: true,
-                          builder: (_) => _LiveCameraGate(
-                            ar: ar,
-                            initialLanguageCode: fallback,
+                    FilledButton(
+                      key: const ValueKey('start-live'),
+                      onPressed: () {
+                        unawaited(_warmLiveBackend());
+                        final fallback = _profileLanguages.isNotEmpty
+                            ? _profileLanguages.first
+                            : (ProfileLanguageCatalog.byCode(language) == null
+                                ? 'en' : language);
+                        Navigator.of(context).push<void>(
+                          MaterialPageRoute(
+                            fullscreenDialog: true,
+                            builder: (_) => _LiveCameraGate(
+                              ar: ar,
+                              initialLanguageCode: fallback,
+                              localeController: widget.localeController,
+                            ),
                           ),
-                        ),
-                      );
-                    },
-                    child: Text(ar ? 'إنشاء' : 'Create'),
-                  ),
-                ],
+                        );
+                      },
+                      child: Text(ar ? 'إنشاء' : 'Create'),
+                    ),
+                  ]),
+                ),
               ),
             ),
-            const SizedBox(height: 20),
-            Text(
-              ar ? 'البثوث المباشرة الآن' : 'Live now',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+            SliverToBoxAdapter(
+              child: SizedBox(
+                height: 54,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 18),
+                  children: [
+                    for (final code in <String>['', ..._profileLanguages])
+                      Padding(
+                        padding: const EdgeInsetsDirectional.only(end: 8),
+                        child: ChoiceChip(
+                          selected: _selectedLanguage == code,
+                          showCheckmark: false,
+                          label: Text(code.isEmpty
+                              ? 'All'
+                              : ProfileLanguageCatalog.localizedName(
+                                  code, language)),
+                          onSelected: (_) => setState(() {
+                            _selectedLanguage = code;
+                          }),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(height: 10),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(18, 12, 18, 12),
+              sliver: SliverToBoxAdapter(
+                child: Text(
+                  ar ? 'البثوث المباشرة الآن' : 'Live now',
+                  style: const TextStyle(
+                      fontSize: 19, fontWeight: FontWeight.w900),
+                ),
+              ),
+            ),
             StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
               stream: _sessions,
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
-                  return Text(ar ? 'تعذر تحميل البثوث. تحقق من الاتصال.' : 'Could not load live sessions. Check your connection.');
+                  return SliverToBoxAdapter(
+                    child: Center(
+                      child: Text(ar
+                          ? 'تعذر تحميل البثوث. تحقق من الاتصال.'
+                          : 'Could not load live sessions. Check your connection.'),
+                    ),
+                  );
+                }
+                if (snapshot.connectionState == ConnectionState.waiting &&
+                    !snapshot.hasData) {
+                  return const SliverToBoxAdapter(
+                    child: Center(child: CircularProgressIndicator()),
+                  );
                 }
                 final rawDocs = snapshot.data?.docs ??
                     const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
-                final docs = rawDocs
-                    .where((doc) => LiveSessionService.isFresh(doc.data()))
-                    .toList(growable: false);
-                if (snapshot.connectionState == ConnectionState.waiting &&
-                    !snapshot.hasData) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+                final docs = rawDocs.where((doc) =>
+                    LiveSessionService.isFresh(doc.data()) &&
+                    _matchesLanguage(doc.data())).toList(growable: false);
                 if (docs.isEmpty) {
-                  return Container(
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
-                      borderRadius: BorderRadius.circular(18),
+                  return SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(22),
+                      child: Center(
+                        child: Text(ar
+                            ? 'لا توجد بثوث لهذه اللغة الآن.'
+                            : 'No live sessions for this language yet.'),
+                      ),
                     ),
-                    child: Text(ar
-                        ? 'لا يوجد بث مباشر الآن. ابدأ أول Live.'
-                        : 'No one is live yet. Start the first Live.'),
                   );
                 }
-                return Column(
-                  children: [
-                    for (final doc in docs)
-                      Card(
-                        child: ListTile(
-                          leading: const CircleAvatar(
-                            child: Icon(Icons.videocam_rounded),
-                          ),
-                          title: Text(
-                            (doc.data()['topic'] as String?)?.trim().isNotEmpty == true
-                                ? doc.data()['topic'].toString()
-                                : doc.data()['hostName']?.toString() ??
-                                    'WorldVoice Live',
-                            style: const TextStyle(fontWeight: FontWeight.w800),
-                          ),
-                          subtitle: Text(
-                            '${doc.data()['hostName'] ?? 'WorldVoice host'} • '
-                            '${(doc.data()['languageCode'] ?? 'en').toString().toUpperCase()} • '
-                            '${doc.data()['viewerCount'] ?? 0} 👁',
-                          ),
-                          trailing: const Icon(Icons.chevron_right_rounded),
-                          onTap: () => Navigator.of(context).push<void>(
-                            MaterialPageRoute(
-                              fullscreenDialog: true,
-                              builder: (_) => _LiveViewerScreen(
-                                liveId: doc.id,
-                                data: doc.data(),
-                                ar: ar,
-                              ),
-                            ),
-                          ),
+                return SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(18, 0, 18, 28),
+                  sliver: SliverLayoutBuilder(
+                    builder: (context, constraints) {
+                      final width = constraints.crossAxisExtent;
+                      return SliverGrid(
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: width >= 760 ? 3 : 2,
+                          mainAxisSpacing: 12,
+                          crossAxisSpacing: 12,
+                          mainAxisExtent: 235,
                         ),
-                      ),
-                  ],
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            final doc = docs[index];
+                            return _liveCard(
+                              context,
+                              liveId: doc.id,
+                              data: doc.data(),
+                              ar: ar,
+                              uiLanguage: language,
+                              index: index,
+                            );
+                          },
+                          childCount: docs.length,
+                        ),
+                      );
+                    },
+                  ),
                 );
               },
             ),
