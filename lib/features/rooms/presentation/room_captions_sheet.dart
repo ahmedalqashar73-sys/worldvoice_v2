@@ -21,6 +21,7 @@ class RoomCaptionsSheet extends StatelessWidget {
     this.pronunciationNote,
     this.targetLanguages,
     this.error,
+    this.section = 'all',
     super.key,
   });
 
@@ -34,6 +35,7 @@ class RoomCaptionsSheet extends StatelessWidget {
   final bool canPublish;
   final bool listening;
   final String? error;
+  final String section;
   final ValueChanged<bool> onEnabledChanged;
   final ValueChanged<bool> onTranslationChanged;
   final ValueChanged<bool> onPronunciationChanged;
@@ -66,7 +68,8 @@ class RoomCaptionsSheet extends StatelessWidget {
                     : 'Each option here is private to your screen and does not change what others see.',
               ),
             ),
-            SwitchListTile(
+            if (section != 'translation')
+              SwitchListTile(
               contentPadding: EdgeInsets.zero,
               value: enabled,
               onChanged: onEnabledChanged,
@@ -94,7 +97,8 @@ class RoomCaptionsSheet extends StatelessWidget {
                           : 'Only you will see captions from speakers on stage.',
                     ),
             ),
-            SwitchListTile(
+            if (section != 'subtitles')
+              SwitchListTile(
               contentPadding: EdgeInsets.zero,
               value: translationEnabled,
               onChanged: onTranslationChanged,
@@ -108,7 +112,7 @@ class RoomCaptionsSheet extends StatelessWidget {
                     : 'Translation is shown only to you; your profile native language is the default target.',
               ),
             ),
-            if (translationEnabled && choices.isNotEmpty)
+            if (section != 'subtitles' && translationEnabled && choices.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
                 child: Column(
@@ -140,7 +144,8 @@ class RoomCaptionsSheet extends StatelessWidget {
                   ],
                 ),
               ),
-            SwitchListTile(
+            if (section == 'all')
+              SwitchListTile(
               contentPadding: EdgeInsets.zero,
               value: pronunciationEnabled,
               onChanged: onPronunciationChanged,
@@ -150,7 +155,7 @@ class RoomCaptionsSheet extends StatelessWidget {
                   ? 'يعتمد على الكلام المحوّل إلى نص ويعطيك ملاحظة نطق مباشرة على جهازك. لا يعطي درجة صوتية وهمية.'
                   : 'Uses the recognized transcript to give immediate on-device pronunciation guidance. It does not invent an acoustic score.'),
             ),
-            if (pronunciationEnabled &&
+            if (section == 'all' && pronunciationEnabled &&
                 (pronunciationNote != null || pronunciationNotes != null))
               SizedBox(
                 height: 155,
