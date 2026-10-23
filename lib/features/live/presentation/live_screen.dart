@@ -33,6 +33,7 @@ import '../../profile/data/profile_language_catalog.dart';
 import '../../profile/presentation/public_profile_screen.dart';
 import '../../chat/presentation/chat_screen.dart';
 import '../../home/services/home_feed_service.dart';
+import '../../home/presentation/home_screen.dart';
 
 const MethodChannel _livePermissionChannel =
     MethodChannel('worldvoice/live_permissions');
@@ -503,6 +504,102 @@ Future<List<String>> _myLearningLanguageCodes(String fallback) async {
 
 
 
+class _WorldVoiceMiniWindow extends StatefulWidget {
+  const _WorldVoiceMiniWindow({
+    required this.controller,
+    required this.channelId,
+    required this.isHost,
+    required this.onRestore,
+    this.hostUid,
+  });
+
+  final AgoraVoiceRoomController controller;
+  final String channelId;
+  final bool isHost;
+  final int? hostUid;
+  final VoidCallback onRestore;
+
+  @override
+  State<_WorldVoiceMiniWindow> createState() => _WorldVoiceMiniWindowState();
+}
+
+class _WorldVoiceMiniWindowState extends State<_WorldVoiceMiniWindow> {
+  double _top = 130;
+  double _right = 16;
+
+  @override
+  Widget build(BuildContext context) {
+    final screen = MediaQuery.sizeOf(context);
+    return Positioned(
+      top: _top.clamp(54.0, (screen.height - 235).clamp(54.0, screen.height)).toDouble(),
+      right: _right.clamp(8.0, (screen.width - 155).clamp(8.0, screen.width)).toDouble(),
+      child: GestureDetector(
+        onPanUpdate: (details) => setState(() {
+          _top += details.delta.dy;
+          _right -= details.delta.dx;
+        }),
+        onTap: widget.onRestore,
+        child: Material(
+          elevation: 12,
+          borderRadius: BorderRadius.circular(18),
+          color: const Color(0xFF10261D),
+          clipBehavior: Clip.antiAlias,
+          child: SizedBox(
+            width: 142,
+            height: 205,
+            child: Column(children: [
+              Container(
+                color: const Color(0xFF174F3A),
+                height: 27,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: const Row(children: [
+                  Icon(Icons.circle, size: 10, color: Colors.redAccent),
+                  SizedBox(width: 6),
+                  Text('LIVE', style: TextStyle(
+                    color: Colors.white, fontSize: 12, fontWeight: FontWeight.w900)),
+                  Spacer(),
+                  Icon(Icons.open_in_full_rounded, color: Colors.white70, size: 16),
+                ]),
+              ),
+              Expanded(
+                child: AnimatedBuilder(
+                  animation: widget.controller,
+                  builder: (context, _) {
+                    final engine = widget.controller.engine;
+                    if (engine == null) {
+                      return const Center(child: Icon(Icons.videocam_rounded,
+                          color: Colors.white70));
+                    }
+                    if (widget.isHost) {
+                      return AgoraVideoView(controller: VideoViewController(
+                        rtcEngine: engine, canvas: const VideoCanvas(uid: 0)));
+                    }
+                    final uid = widget.hostUid;
+                    if (uid == null || !widget.controller.remoteSpeakers.contains(uid)) {
+                      return const Center(child: Icon(Icons.person_rounded,
+                          color: Colors.white70, size: 40));
+                    }
+                    return AgoraVideoView(controller: VideoViewController.remote(
+                      rtcEngine: engine,
+                      canvas: VideoCanvas(uid: uid),
+                      connection: RtcConnection(channelId: widget.channelId),
+                    ));
+                  },
+                ),
+              ),
+              const SizedBox(
+                height: 26,
+                child: Center(child: Text('WorldVoice',
+                  style: TextStyle(color: Colors.white70, fontSize: 11))),
+              ),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 Widget _liveQuickAction({
   required IconData icon,
   required String label,
@@ -544,9 +641,11 @@ class _LiveCameraGate extends StatefulWidget {
   const _LiveCameraGate({
     required this.ar,
     required this.initialLanguageCode,
+    required this.localeController,
   });
   final bool ar;
   final String initialLanguageCode;
+  final LocaleController localeController;
 
   @override
   State<_LiveCameraGate> createState() => _LiveCameraGateState();
@@ -574,6 +673,9 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   bool _boardOpen = false;
   bool _chatOpen = true;
   bool _sessionClosed = false;
+  bool _minimized = false;
+  OverlayEntry? _miniEntry;
+  Timer? _rebuildThrottle;
   Timer? _heartbeatTimer;
   Timer? _cameraOffTimer;
   int _cameraOffSeconds = 0;
@@ -586,14 +688,22 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   bool _quotaStarted = false;
 
   void _onControllerChanged() {
-    if (mounted && _starting && !_cameraReady) {
-      setState(() {});
-    }
+    if (!mounted || !_starting || _cameraReady ||
+        _rebuildThrottle != null) return;
+    // Avoid rebuilding the Agora native texture for each connection callback.
+    _rebuildThrottle = Timer(const Duration(milliseconds: 250), () {
+      _rebuildThrottle = null;
+      if (mounted && _starting && !_cameraReady) setState(() {});
+    });
   }
 
   @override
   void dispose() {
     _topicController.dispose();
+    _rebuildThrottle?.cancel();
+    _miniEntry?.remove();
+    _miniEntry?.dispose();
+    _miniEntry = null;
     _controller.removeListener(_onControllerChanged);
     _heartbeatTimer?.cancel();
     _cameraOffTimer?.cancel();
@@ -632,6 +742,41 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
         ),
       ),
     );
+  }
+
+  void _minimizeHostLive() {
+    if (!mounted || !_cameraReady || _minimized ||
+        _controller.engine == null) return;
+    final navigator = Navigator.of(context);
+    final sourceRoute = ModalRoute.of(context);
+    if (sourceRoute == null) return;
+    setState(() => _minimized = true);
+    final browsingRoute = MaterialPageRoute<void>(
+      builder: (_) => HomeScreen(localeController: widget.localeController),
+    );
+    unawaited(navigator.push<void>(browsingRoute).whenComplete(() {
+      _miniEntry?.remove();
+      _miniEntry?.dispose();
+      _miniEntry = null;
+      if (mounted) setState(() => _minimized = false);
+    }));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_minimized || !browsingRoute.isActive) return;
+      final entry = OverlayEntry(
+        builder: (_) => _WorldVoiceMiniWindow(
+          controller: _controller,
+          channelId: _liveId ?? '',
+          isHost: true,
+          onRestore: () {
+            if (navigator.mounted) {
+              navigator.popUntil((route) => route == sourceRoute);
+            }
+          },
+        ),
+      );
+      _miniEntry = entry;
+      Overlay.of(context, rootOverlay: true).insert(entry);
+    });
   }
 
   Future<void> _confirmEndLiveFromMenu() async {
@@ -681,8 +826,13 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
             ),
             _liveQuickAction(
               icon: Icons.picture_in_picture_alt_rounded,
-              label: widget.ar ? 'تصغير قريبًا' : 'Minimize (soon)',
-              onPressed: null,
+              label: widget.ar ? 'تصغير النافذة' : 'Minimize',
+              onPressed: () {
+                Navigator.pop(sheetContext);
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) _minimizeHostLive();
+                });
+              },
             ),
             _liveQuickAction(
               icon: Icons.ios_share_rounded,
@@ -1332,7 +1482,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                 icon: const Icon(Icons.close_rounded),
               ),
             ),
-            if (_cameraReady && _controller.engine != null)
+            if (_cameraReady && _controller.engine != null && !_minimized)
               Positioned.fill(
                 child: AnimatedBuilder(
                   animation: _controller,
@@ -1979,10 +2129,12 @@ class _LiveViewerScreen extends StatefulWidget {
     required this.liveId,
     required this.data,
     required this.ar,
+    required this.localeController,
   });
   final String liveId;
   final Map<String, dynamic> data;
   final bool ar;
+  final LocaleController localeController;
 
   @override
   State<_LiveViewerScreen> createState() => _LiveViewerScreenState();
