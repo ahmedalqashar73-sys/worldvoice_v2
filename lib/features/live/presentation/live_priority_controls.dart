@@ -81,3 +81,62 @@ class LivePriorityExitButton extends StatelessWidget {
     ),
   );
 }
+
+
+//// Dedicated action row for active Live broadcasts. A native video view
+//// must never own this widget's tap targets.
+class LiveHostActionButtons extends StatelessWidget {
+  const LiveHostActionButtons({
+    required this.ar,
+    required this.onChat,
+    required this.onBoard,
+    required this.onRequests,
+    required this.onGifts,
+    this.boardOpen = false,
+    super.key,
+  });
+
+  final bool ar;
+  final VoidCallback onChat;
+  final VoidCallback onBoard;
+  final VoidCallback onRequests;
+  final VoidCallback onGifts;
+  final bool boardOpen;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      IconButton(
+        key: const ValueKey('live-host-chat'),
+        tooltip: ar ? 'الشات' : 'Chat',
+        onPressed: onChat,
+        icon: const Icon(Icons.chat_bubble_outline_rounded,
+          color: Colors.white),
+      ),
+      IconButton(
+        key: const ValueKey('live-host-whiteboard'),
+        tooltip: ar ? 'السبورة' : 'Whiteboard',
+        onPressed: onBoard,
+        icon: Icon(boardOpen
+            ? Icons.dashboard_rounded
+            : Icons.dashboard_outlined,
+          color: Colors.white),
+      ),
+      IconButton(
+        key: const ValueKey('live-host-requests'),
+        tooltip: ar ? 'طلبات الضيوف' : 'Guest requests',
+        onPressed: onRequests,
+        icon: const Icon(Icons.group_add_rounded,
+          color: Colors.white),
+      ),
+      IconButton(
+        key: const ValueKey('live-host-gifts'),
+        tooltip: ar ? 'الهدايا' : 'Gifts',
+        onPressed: onGifts,
+        icon: const Icon(Icons.card_giftcard_rounded,
+          color: Color(0xFFFFC857)),
+      ),
+    ],
+  );
+}
