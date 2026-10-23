@@ -22,7 +22,7 @@ test("health fails closed without the secret certificate", async () => {
   assert.equal(response.status, 503);
   const health = await response.json();
   assert.equal(health.ok, false);
-  assert.equal(health.tokenApiRevision, "2026-10-23.2");
+  assert.equal(health.tokenApiRevision, "2026-10-23.4");
   assert.equal(JSON.stringify(health).includes("test-only-placeholder"), false);
 });
 
