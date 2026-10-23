@@ -39,7 +39,7 @@ void main() {
 
   test('Distinguishes network outage from server configuration', () async {
     final client = MockClient((_) async =>
-        throw const http.ClientException('Network unreachable'));
+        throw http.ClientException('Network unreachable'));
     final result = await LiveTokenServerReadiness.check(client: client);
     expect(result.workerReachable, isFalse);
     expect(result.renderReachable, isFalse);
