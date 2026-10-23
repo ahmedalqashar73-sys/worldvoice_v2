@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import worker, { validChannelName, agoraUidForFirebaseUid } from "../src/index.js";
+import worker, { validChannelName, agoraUidForFirebaseUid, liveHostChannelPrefix, isOwnerScopedLiveChannel } from "../src/index.js";
 
 test("reject invalid room IDs before Firebase/Firestore", () => {
   assert.equal(validChannelName("good_room_123"), true);
@@ -14,6 +14,20 @@ test("Agora UID is positive and deterministic", () => {
   assert.ok(agoraUidForFirebaseUid("uid_1") > 0);
 });
 
+test("Live host-only token namespace requires matching signed-in UID", () => {
+  assert.equal(liveHostChannelPrefix("firebase_uid_123"),
+    "live_c7c014818089c02032162815_");
+  const channel = liveHostChannelPrefix("firebase_uid_123") +
+    "64edcba12345678abcde";
+  assert.equal(isOwnerScopedLiveChannel(channel, "firebase_uid_123"), true);
+  assert.equal(isOwnerScopedLiveChannel(channel, "other_uid"), false);
+  assert.equal(isOwnerScopedLiveChannel("live_1770000000000", "firebase_uid_123"), false);
+  assert.equal(isOwnerScopedLiveChannel(
+    "live_" + "0".repeat(24) + "_" + "f".repeat(21),
+    "firebase_uid_123",
+  ), false);
+});
+
 test("health fails closed without the secret certificate", async () => {
   const response = await worker.fetch(new Request("https://test.example/health"), {
     FIREBASE_PROJECT_ID: "worldvoice-37896",
@@ -22,7 +36,7 @@ test("health fails closed without the secret certificate", async () => {
   assert.equal(response.status, 503);
   const health = await response.json();
   assert.equal(health.ok, false);
-  assert.equal(health.tokenApiRevision, "2026-10-23.4");
+  assert.equal(health.tokenApiRevision, "2026-10-23.5");
   assert.equal(JSON.stringify(health).includes("test-only-placeholder"), false);
 });
 
