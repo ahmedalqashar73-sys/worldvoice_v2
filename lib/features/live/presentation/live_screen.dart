@@ -2653,31 +2653,45 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
       builder: (sheetContext) => Padding(
         padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          ListTile(
-            leading: const Icon(Icons.share_rounded),
-            title: Text(widget.ar ? 'مشاركة اللايف' : 'Share Live'),
-            subtitle: Text(widget.ar
-                ? 'كمنشور أو عبر الدردشة أو الستوري'
-                : 'Post, direct chat or story'),
-            onTap: () {
-              Navigator.pop(sheetContext);
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) unawaited(_shareLive());
-              });
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.picture_in_picture_alt_rounded),
-            title: Text(widget.ar ? 'تصغير اللايف' : 'Minimize Live'),
-            onTap: () {
-              Navigator.pop(sheetContext);
-              if (widget.onMiniToggle != null) {
-                widget.onMiniToggle!();
-              } else {
-                unawaited(_enterLiveMiniWindow(context, widget.ar));
-              }
-            },
-          ),
+          Row(children: [
+            _liveQuickMenuAction(
+              icon: Icons.logout_rounded,
+              label: widget.ar ? 'مغادرة اللايف' : 'Leave Live',
+              destructive: true,
+              onPressed: () {
+                Navigator.pop(sheetContext);
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) unawaited(_closeViewer());
+                });
+              },
+            ),
+            _liveQuickMenuAction(
+              icon: Icons.picture_in_picture_alt_rounded,
+              label: widget.ar ? 'تصغير النافذة' : 'Minimize',
+              onPressed: () {
+                Navigator.pop(sheetContext);
+                if (widget.onMiniToggle != null) {
+                  widget.onMiniToggle!();
+                } else {
+                  unawaited(_enterLiveMiniWindow(context, widget.ar));
+                }
+              },
+            ),
+            _liveQuickMenuAction(
+              icon: Icons.ios_share_rounded,
+              label: widget.ar ? 'مشاركة اللايف' : 'Share Live',
+              onPressed: () {
+                Navigator.pop(sheetContext);
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) unawaited(_shareLive());
+                });
+              },
+            ),
+          ]),
+          ExpansionTile(
+            leading: const Icon(Icons.tune_rounded),
+            title: Text(widget.ar ? 'خيارات إضافية' : 'More options'),
+            children: [
           ListTile(
             leading: const Icon(Icons.explore_rounded),
             title: Text(widget.ar ? 'استكشف بثوثًا أخرى'
@@ -2770,27 +2784,8 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                 unawaited(_leaveGuestCamera());
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.schedule_rounded),
-              title: Text(widget.ar ? 'وقت الضيف' : 'Guest time'),
-              onTap: () {
-                Navigator.pop(sheetContext);
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted) unawaited(_showGuestQuotaStatus());
-                });
-              },
-            ),
           ],
-          ListTile(
-            leading: const Icon(Icons.logout_rounded),
-            title: Text(widget.ar ? 'مغادرة اللايف' : 'Leave Live'),
-            onTap: () {
-              Navigator.pop(sheetContext);
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) unawaited(_closeViewer());
-              });
-            },
-          ),
+          ]),
           Text('WorldVoice Live UI • 2026.10.22.5',
               style: Theme.of(sheetContext).textTheme.labelSmall),
         ]),
