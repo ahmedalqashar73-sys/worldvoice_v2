@@ -2102,22 +2102,25 @@ class _LiveControlDock extends StatelessWidget {
       ),
       child: Padding(
         padding: padding,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: double.infinity,
-              height: 48,
+        child: SizedBox(
+          height: 50,
+          child: Row(children: [
+            Expanded(
+              flex: composer == null ? 1 : 6,
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                child: Row(children: children),
+                child: Row(mainAxisSize: MainAxisSize.min,
+                    children: children),
               ),
             ),
             if (composer != null) ...[
-              const SizedBox(height: 4),
-              SizedBox(height: 44, child: composer!),
+              const SizedBox(width: 5),
+              Expanded(
+                flex: 5,
+                child: SizedBox(height: 44, child: composer!),
+              ),
             ],
-          ],
+          ]),
         ),
       ),
     );
@@ -2151,6 +2154,8 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   int _guestQuotaLevel = 1;
   bool _guestQuotaStarted = false;
   bool _guestQuotaHandling = false;
+  bool _minimized = false;
+  OverlayEntry? _miniEntry;
   bool _joining = true;
   String? _joinError;
   bool _requested = false;
@@ -2298,6 +2303,41 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
     }
   }
 
+  void _minimizeViewerLive() {
+    if (!mounted || _minimized || _joining || _controller.engine == null) return;
+    final navigator = Navigator.of(context);
+    final sourceRoute = ModalRoute.of(context);
+    if (sourceRoute == null) return;
+    setState(() => _minimized = true);
+    final browsingRoute = MaterialPageRoute<void>(
+      builder: (_) => HomeScreen(localeController: widget.localeController),
+    );
+    unawaited(navigator.push<void>(browsingRoute).whenComplete(() {
+      _miniEntry?.remove();
+      _miniEntry?.dispose();
+      _miniEntry = null;
+      if (mounted) setState(() => _minimized = false);
+    }));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_minimized || !browsingRoute.isActive) return;
+      final entry = OverlayEntry(
+        builder: (_) => _WorldVoiceMiniWindow(
+          controller: _controller,
+          channelId: widget.liveId,
+          isHost: false,
+          hostUid: (widget.data['hostAgoraUid'] as num?)?.toInt(),
+          onRestore: () {
+            if (navigator.mounted) {
+              navigator.popUntil((route) => route == sourceRoute);
+            }
+          },
+        ),
+      );
+      _miniEntry = entry;
+      Overlay.of(context, rootOverlay: true).insert(entry);
+    });
+  }
+
   Future<void> _showViewerLiveOptions() async {
     await showModalBottomSheet<void>(
       context: context,
@@ -2318,8 +2358,13 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
           ),
           _liveQuickAction(
             icon: Icons.picture_in_picture_alt_rounded,
-            label: widget.ar ? 'تصغير قريبًا' : 'Minimize (soon)',
-            onPressed: null,
+            label: widget.ar ? 'تصغير النافذة' : 'Minimize',
+            onPressed: () {
+              Navigator.pop(sheetContext);
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) _minimizeViewerLive();
+              });
+            },
           ),
           _liveQuickAction(
             icon: Icons.ios_share_rounded,
@@ -2375,6 +2420,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
 
   @override
   void dispose() {
+    _miniEntry?.remove();
+    _miniEntry?.dispose();
+    _miniEntry = null;
     _guestQuotaTimer?.cancel();
     if (_guestQuotaStarted) {
       unawaited(_guestQuota.endSession());
@@ -2620,7 +2668,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
       resizeToAvoidBottomInset: false,
       backgroundColor: Colors.black,
       body: SafeArea(
-        child: _joining
+        child: _minimized
+            ? const ColoredBox(color: Color(0xFF071812))
+            : _joining
             ? const Center(child: CircularProgressIndicator())
             : _joinError != null
                 ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
