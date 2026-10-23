@@ -634,7 +634,7 @@ Future<void> _showLiveSidePanel(
       barrierDismissible: true,
       barrierLabel: 'Live options',
       barrierColor: const Color(0x99000000),
-      pageBuilder: (dialogContext, _, __) => Align(
+      pageBuilder: (dialogContext, _, _) => Align(
         alignment: AlignmentDirectional.centerStart,
         child: Theme(
           data: ThemeData.dark(),
