@@ -76,7 +76,7 @@ jobs:
 
 
   deploy-worker:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
     needs: [test, backend-economy, firestore-captions-rules, flutter-analyze]
     runs-on: ubuntu-latest
     defaults:
