@@ -2,17 +2,15 @@ name: Agora Worker Unit Tests
 on:
   workflow_dispatch:
   pull_request:
-    branches:
-      - feat/economy-chat-context-20260928
+    branches: [main]
+    paths:
+      - 'services/agora-token-worker/**'
+      - '.github/workflows/agora-worker-ci.yml'
   push:
-    branches:
-      - fix/free-worker-always-available-agora-20260927
-      - fix/green-room-chat-stage-hand-preview-20260927
-      - fix/firestore-captions-permission-20260927
-      - feat/economy-foundation-20260928
-      - feat/economy-wallet-ui-20260928
-      - feat/economy-chat-context-20260928
-      - fix/finish-room-hub-quiz-gift-20260928
+    branches: [main]
+    paths:
+      - 'services/agora-token-worker/**'
+      - '.github/workflows/agora-worker-ci.yml'
 jobs:
   flutter-analyze:
     runs-on: ubuntu-latest
@@ -78,7 +76,7 @@ jobs:
 
 
   deploy-worker:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/fix/finish-room-hub-quiz-gift-20260928'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [test, backend-economy, firestore-captions-rules, flutter-analyze]
     runs-on: ubuntu-latest
     defaults:

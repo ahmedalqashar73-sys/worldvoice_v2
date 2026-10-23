@@ -20,7 +20,10 @@ test("health fails closed without the secret certificate", async () => {
     AGORA_APP_ID: "fa41476c6813471eb45c059bcb4a0e19",
   });
   assert.equal(response.status, 503);
-  assert.equal((await response.json()).ok, false);
+  const health = await response.json();
+  assert.equal(health.ok, false);
+  assert.equal(health.tokenApiRevision, "2026-10-23.2");
+  assert.equal(JSON.stringify(health).includes("test-only-placeholder"), false);
 });
 
 test("POST token rejects missing bearer header", async () => {

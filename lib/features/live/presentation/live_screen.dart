@@ -17,6 +17,7 @@ import '../../rooms/presentation/room_gift_overlay.dart';
 import '../../rooms/data/room_caption.dart';
 import '../../rooms/data/room_teacher_ai_note.dart';
 import '../../rooms/data/room_backend_config.dart';
+import '../../rooms/data/agora_config.dart';
 import '../../rooms/data/room_feature_models.dart';
 import '../../rooms/services/room_feature_service.dart';
 import '../../rooms/services/room_caption_service.dart';
@@ -1068,6 +1069,52 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     setState(() => _startPhase = phase);
   }
 
+  Future<void> _checkLiveTokenEndpoints() async {
+    final worker = AgoraConfig.stableTokenEndpoint
+        .replaceFirst('/agora/token', '/health');
+    final render = RoomBackendConfig.endpoint('/health');
+    final checks = <(String, String)>[
+      ('Cloudflare Agora Worker', worker),
+      if (render.isNotEmpty) ('WorldVoice Render', render),
+    ];
+    final results = await Future.wait(checks.map((entry) async {
+      final (label, url) = entry;
+      final watch = Stopwatch()..start();
+      try {
+        final response = await http.get(Uri.parse(url))
+            .timeout(const Duration(seconds: 8));
+        return '$label: HTTP ${response.statusCode}'
+            ' (${watch.elapsed.inMilliseconds} ms)';
+      } catch (_) {
+        return '$label: unreachable after '
+            '${watch.elapsed.inSeconds}s';
+      } finally {
+        watch.stop();
+      }
+    }));
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(widget.ar
+            ? 'فحص اتصال خدمات اللايف' : 'Live connection diagnostics'),
+        content: Text(
+          '${results.join('\n')}\n\n'
+          '${widget.ar ? 'هذا الفحص يتحقق من وصول الشبكة فقط؛ '
+            'ولا يختبر صلاحيات Firebase أو إصدار التوكن المحمي.'
+            : 'This checks network reachability only, not Firebase '
+              'authorization or protected token issuance.'}',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(widget.ar ? 'حسنًا' : 'OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _startCamera() async {
     if (_starting || _cameraReady) return;
     if (!_previewReady) {
@@ -1117,7 +1164,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
           fastLiveStartup: true,
         ),
         phase: 'Agora connection',
-        timeout: const Duration(seconds: 45),
+        timeout: const Duration(seconds: 50),
       );
       if (!mounted) {
         await _controller.leave().timeout(const Duration(seconds: 5));
@@ -1632,6 +1679,16 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                               color: Colors.orangeAccent,
                               fontSize: 12,
                             ),
+                          ),
+                          TextButton.icon(
+                            onPressed: _checkLiveTokenEndpoints,
+                            icon: const Icon(Icons.wifi_find_rounded,
+                                color: Color(0xFF76E2BD)),
+                            label: Text(widget.ar
+                                ? 'فحص اتصال خدمات اللايف'
+                                : 'Check Live server connection',
+                              style: const TextStyle(
+                                  color: Color(0xFF76E2BD))),
                           ),
                         ],
                         ],
