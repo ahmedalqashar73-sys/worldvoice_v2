@@ -945,7 +945,14 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     }
     await _controller.leave();
     if (!mounted) return;
-    Navigator.of(context).pop();
+    final navigator = Navigator.of(context);
+    if (_minimized) {
+      final liveRoute = ModalRoute.of(context);
+      if (liveRoute != null) {
+        navigator.popUntil((route) => route == liveRoute);
+      }
+    }
+    if (navigator.canPop()) navigator.pop();
   }
 
   void _startHostQuotaTimer() {
