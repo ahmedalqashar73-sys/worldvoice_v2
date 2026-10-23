@@ -25,7 +25,6 @@ import '../../rooms/services/room_teacher_ai_service.dart';
 import '../../rooms/services/room_translation_service.dart';
 import '../../rooms/services/room_quota_service.dart';
 import '../../rooms/services/room_rewarded_ad_service.dart';
-import '../../rooms/services/vip_room_features.dart';
 import '../services/live_session_service.dart';
 
 import '../../../core/localization/locale_controller.dart';
@@ -2874,6 +2873,7 @@ class _LiveLanguageToolsOverlay extends StatefulWidget {
     required this.displayName,
     required this.audioFrames,
     required this.ar,
+    super.key,
   });
 
   final String liveId;
@@ -3176,19 +3176,60 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
     }
   }
 
-  Future<bool> _unlockLanguageToolsIfNeeded() async {
-    if (_languageToolsSessionUnlocked) return true;
+  Future<bool> _unlockLanguageToolsIfNeeded({
+    bool translation = false,
+  }) async {
+    // Translation remains VIP-only. Subtitles can be unlocked for this
+    // session by a rewarded ad; an earlier caption unlock never grants VIP.
+    if (!translation && _languageToolsSessionUnlocked) return true;
     if (_languageUnlockBusy) return false;
     _languageUnlockBusy = true;
     try {
-      final result = await VipRoomFeatures.unlockLanguageTools(
-        context,
-        unlockedForSession: _languageToolsSessionUnlocked,
-        rewardedAds: _languageAds,
-      );
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid == null) return false;
+
+      final profile =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
       if (!mounted) return false;
-      if (result) _languageToolsSessionUnlocked = true;
-      return result;
+      final data = profile.data() ?? const <String, dynamic>{};
+      final vip = data['isVip'] == true;
+      if (vip) {
+        _languageToolsSessionUnlocked = true;
+        return true;
+      }
+
+      if (translation) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(widget.ar
+                ? 'الترجمة الفورية متاحة لمشتركي VIP فقط.'
+                : 'Live translation is available to VIP members only.'),
+          ),
+        );
+        return false;
+      }
+
+      final rewarded = await _languageAds.show();
+      if (!mounted) return false;
+      if (rewarded) {
+        _languageToolsSessionUnlocked = true;
+        return true;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(widget.ar
+              ? 'شاهد إعلان المكافأة لتفعيل Subtitles.'
+              : 'Watch a rewarded ad to unlock subtitles.'),
+        ),
+      );
+      return false;
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.toString())),
+        );
+      }
+      return false;
     } finally {
       _languageUnlockBusy = false;
     }
@@ -3344,7 +3385,11 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
                     : (widget.ar ? 'تفعيل السبايتلز' : 'Enable subtitles')),
                 onChanged: (value) {
                   unawaited(() async {
-                    if (value && !await _unlockLanguageToolsIfNeeded()) return;
+                    if (value &&
+                        !await _unlockLanguageToolsIfNeeded(
+                            translation: translation)) {
+                      return;
+                    }
                     if (!mounted) return;
                     if (translation) {
                       setState(() {
@@ -3366,7 +3411,7 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
               ),
               if (translation)
                 DropdownButtonFormField<String>(
-                  value: _targetLanguage,
+                  initialValue: _targetLanguage,
                   decoration: InputDecoration(
                     labelText: widget.ar ? 'لغة الترجمة' : 'Translate to',
                   ),
@@ -3436,7 +3481,10 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
             },
             onTranslationChanged: (value) {
               unawaited(() async {
-                if (value && !await _unlockLanguageToolsIfNeeded()) return;
+                if (value &&
+                    !await _unlockLanguageToolsIfNeeded(translation: true)) {
+                  return;
+                }
                 if (!mounted) return;
               setState(() {
                 _translationEnabled = value;
