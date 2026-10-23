@@ -729,7 +729,9 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
       _videoRoster.value++;
     }
     if (!mounted || !_starting || _cameraReady ||
-        _rebuildThrottle != null) return;
+        _rebuildThrottle != null) {
+      return;
+    }
     // Avoid rebuilding the Agora native texture for each connection callback.
     _rebuildThrottle = Timer(const Duration(milliseconds: 250), () {
       _rebuildThrottle = null;
@@ -787,7 +789,9 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
 
   void _minimizeHostLive() {
     if (!mounted || !_cameraReady || _minimized ||
-        _controller.engine == null) return;
+        _controller.engine == null) {
+      return;
+    }
     final navigator = Navigator.of(context);
     final sourceRoute = ModalRoute.of(context);
     if (sourceRoute == null) return;
