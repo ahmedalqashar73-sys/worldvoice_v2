@@ -36,7 +36,8 @@ test("health fails closed without the secret certificate", async () => {
   assert.equal(response.status, 503);
   const health = await response.json();
   assert.equal(health.ok, false);
-  assert.equal(health.tokenApiRevision, "2026-10-23.5");
+  assert.equal(health.tokenApiRevision, "2026-10-23.6");
+  assert.equal(health.liveHostBootstrapSupported, true);
   assert.equal(JSON.stringify(health).includes("test-only-placeholder"), false);
 });
 

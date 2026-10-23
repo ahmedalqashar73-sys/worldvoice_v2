@@ -3,6 +3,9 @@ import agoraToken from "agora-token";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 
 const { RtcRole, RtcTokenBuilder } = agoraToken;
+
+// Public health metadata used to detect a stale Cloudflare deployment.
+export const TOKEN_API_REVISION = "2026-10-23.6";
 const firebasePublicKeys = createRemoteJWKSet(
   new URL(
     "https://www.googleapis.com/service_accounts/v1/jwk/" +
@@ -304,7 +307,8 @@ export default {
         ok: ready,
         service: "worldvoice-agora-token-worker",
         // Public release identifier; does not expose secrets or user data.
-        tokenApiRevision: "2026-10-23.5",
+        tokenApiRevision: TOKEN_API_REVISION,
+        liveHostBootstrapSupported: true,
       }, ready ? 200 : 503);
     }
     if (auxiliaryRoutes.has(url.pathname) &&
