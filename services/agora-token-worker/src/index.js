@@ -274,7 +274,7 @@ export default {
         ok: ready,
         service: "worldvoice-agora-token-worker",
         // Public release identifier; does not expose secrets or user data.
-        tokenApiRevision: "2026-10-23.2",
+        tokenApiRevision: "2026-10-23.4",
       }, ready ? 200 : 503);
     }
     if (auxiliaryRoutes.has(url.pathname) &&
