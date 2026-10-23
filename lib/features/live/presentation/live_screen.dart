@@ -1260,10 +1260,9 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
         _starting = false;
         _startPhase = '';
         _previewReady = false;
-        _cameraStartError = tokenGuidance == null
-            ? '${widget.ar ? 'تعذر بدء اللايف خلال' : 'Live could not start during'} '
-                '$phase: $error'
-            : tokenGuidance;
+        _cameraStartError = tokenGuidance ??
+            ('${widget.ar ? 'تعذر بدء اللايف خلال' : 'Live could not start during'} '
+                '$phase: $error');
       });
     }
   }
