@@ -489,11 +489,15 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     }
 
     Object? lastError;
+    final failures = <String>[];
     for (final endpoint in endpoints) {
       final uri = Uri.tryParse(endpoint);
       if (uri == null || !uri.hasAuthority) continue;
       if (kReleaseMode && uri.scheme != 'https') continue;
 
+      final issuer = endpoint == AgoraConfig.stableTokenEndpoint
+          ? 'Cloudflare Worker' : 'WorldVoice Render';
+      final clock = Stopwatch()..start();
       try {
         final response = await http
             .post(
@@ -511,8 +515,8 @@ class AgoraVoiceRoomController extends ChangeNotifier {
             .timeout(
               fastLiveStartup
                   ? (endpoint == AgoraConfig.stableTokenEndpoint
-                        ? const Duration(seconds: 7)
-                        : const Duration(seconds: 8))
+                        ? const Duration(seconds: 14)
+                        : const Duration(seconds: 17))
                   : (endpoint == AgoraConfig.stableTokenEndpoint
                         ? const Duration(seconds: 10)
                         : const Duration(seconds: 35)),
@@ -559,16 +563,23 @@ class AgoraVoiceRoomController extends ChangeNotifier {
         rethrow;
       } on TimeoutException catch (error) {
         lastError = error;
+        if (fastLiveStartup) {
+          failures.add('$issuer: timeout after ${clock.elapsed.inSeconds}s');
+        }
       } catch (error) {
         lastError = error;
+        if (fastLiveStartup) {
+          failures.add('$issuer: ${error.toString()}');
+        }
+      } finally {
+        clock.stop();
       }
     }
 
     throw StateError(
       fastLiveStartup
-          ? 'LIVE_AGORA_TOKEN_UNAVAILABLE: Neither the Worker nor '
-            'the WorldVoice server issued a token within the Live '
-            'connection budget. Last error: ${lastError ?? 'unknown'}'
+          ? 'LIVE_AGORA_TOKEN_UNAVAILABLE: '
+            '${failures.isEmpty ? 'No usable Agora token endpoint.' : failures.join(' | ')}'
           : 'Agora token service is temporarily unavailable. '
             'Tried the fast token worker and the WorldVoice backend fallback. '
             '${lastError ?? ''}',
