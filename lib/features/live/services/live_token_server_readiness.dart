@@ -21,6 +21,15 @@ class LiveTokenServerReadiness {
   final bool renderIndependentIssuer;
 
   String message({required bool ar}) {
+    if (!workerReachable && !renderReachable) {
+      return ar
+          ? 'تعذر الاتصال بخدمتي التوكن على Cloudflare وRender. '
+            'افتح صفحات /health من الجوال وافحص الإنترنت وDNS '
+            'وحالة نشر الخوادم.'
+          : 'Both token-service health checks were unreachable. '
+            'Open each /health page on your phone and check connectivity, '
+            'DNS and service deployments.';
+    }
     if (!workerReady && !renderIndependentIssuer) {
       return ar
           ? 'خدمة توكن Agora غير جاهزة: Cloudflare Worker لا يعلن الجاهزية '
