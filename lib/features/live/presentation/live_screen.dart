@@ -754,6 +754,38 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     if (approved == true && mounted) await _endLiveAndPop();
   }
 
+  Future<void> _openHostChat() async {
+    final liveId = _liveId;
+    if (liveId == null) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      useSafeArea: true,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF0F2923),
+      builder: (sheetContext) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
+        ),
+        child: SizedBox(
+          height: MediaQuery.sizeOf(sheetContext).height * .65,
+          child: Column(children: [
+            Text(widget.ar ? 'دردشة اللايف' : 'Live chat',
+              style: const TextStyle(color: Colors.white,
+                  fontWeight: FontWeight.w800, fontSize: 17)),
+            const SizedBox(height: 10),
+            Expanded(child: _LiveChatOverlay(
+              service: _liveService,
+              liveId: liveId,
+              ar: widget.ar,
+              showComposer: true,
+            )),
+          ]),
+        ),
+      ),
+    );
+  }
+
   Future<void> _openHostRequests() async {
     final id = _liveId;
     if (id == null) return;
@@ -2093,45 +2125,24 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                     },
                                   ),
                             children: [
-                              IconButton(
-                                key: const ValueKey('live-host-chat'),
-                                tooltip: widget.ar ? 'الشات' : 'Chat',
-                                onPressed: () => setState(
-                                  () => _chatOpen = !_chatOpen),
-                                icon: const Icon(Icons.chat_bubble_outline_rounded,
-                                  color: Colors.white),
-                              ),
-                              IconButton(
-                                key: const ValueKey('live-host-whiteboard'),
-                                tooltip: widget.ar ? 'السبورة' : 'Whiteboard',
-                                onPressed: _liveId == null ? null
-                                  : () => setState(() {
-                                      _boardOpen = !_boardOpen;
-                                      if (_boardOpen) _chatOpen = false;
-                                    }),
-                                icon: Icon(_boardOpen
-                                  ? Icons.dashboard_rounded
-                                  : Icons.dashboard_outlined,
-                                  color: Colors.white),
-                              ),
-                              IconButton(
-                                key: const ValueKey('live-host-requests'),
-                                tooltip: widget.ar ? 'طلبات الضيوف' : 'Guest requests',
-                                onPressed: _liveId == null ? null : _openHostRequests,
-                                icon: const Icon(Icons.group_add_rounded,
-                                  color: Colors.white),
-                              ),
-                              IconButton(
-                                key: const ValueKey('live-host-gifts'),
-                                tooltip: widget.ar ? 'الهدايا' : 'Gifts',
-                                onPressed: _liveId == null ? null
-                                  : () => _showLiveGifts(context,
-                                    liveId: _liveId!, service: _liveService,
-                                    hostId: FirebaseAuth.instance.currentUser?.uid ?? '',
-                                    hostName: FirebaseAuth.instance.currentUser?.displayName ??
-                                        'WorldVoice host', ar: widget.ar),
-                                icon: const Icon(Icons.card_giftcard_rounded,
-                                  color: Color(0xFFFFC857)),
+                              LiveHostActionButtons(
+                                ar: widget.ar,
+                                boardOpen: _boardOpen,
+                                onChat: _openHostChat,
+                                onBoard: () {
+                                  setState(() {
+                                    _boardOpen = !_boardOpen;
+                                    if (_boardOpen) _chatOpen = false;
+                                  });
+                                },
+                                onRequests: _openHostRequests,
+                                onGifts: () => _showLiveGifts(context,
+                                  liveId: _liveId!,
+                                  service: _liveService,
+                                  hostId: FirebaseAuth.instance.currentUser?.uid ?? '',
+                                  hostName: FirebaseAuth.instance.currentUser?.displayName ??
+                                    'WorldVoice host',
+                                  ar: widget.ar),
                               ),
                             ],
                           ),
@@ -5330,12 +5341,25 @@ class _LiveChatOverlayState extends State<_LiveChatOverlay> {
             stream: widget.service.watchChat(widget.liveId),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
-                return const SizedBox.shrink();
+                return Center(
+                  child: Text(
+                    widget.ar ? 'تعذّر تحميل رسائل اللايف'
+                        : 'Could not load Live messages',
+                    style: const TextStyle(color: Colors.orangeAccent),
+                  ),
+                );
               }
 
               final docs = snapshot.data?.docs ??
                   const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
 
+              if (docs.isEmpty) {
+                return Center(
+                  child: Text(widget.ar ? 'لا توجد رسائل بعد. ابدأ المحادثة!'
+                      : 'No messages yet. Start the conversation!',
+                    style: const TextStyle(color: Colors.white70)),
+                );
+              }
               return ListView.builder(
                 reverse: true,
                 padding: const EdgeInsets.fromLTRB(2, 4, 2, 4),
