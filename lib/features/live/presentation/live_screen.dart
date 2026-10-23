@@ -28,6 +28,7 @@ import '../../rooms/services/room_quota_service.dart';
 import '../../rooms/services/room_rewarded_ad_service.dart';
 import '../services/live_session_service.dart';
 import '../services/live_startup_guard.dart';
+import '../services/live_token_server_readiness.dart';
 import 'live_invitation_card.dart';
 import 'live_priority_controls.dart';
 
@@ -1238,6 +1239,20 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
       try {
         await _controller.leave().timeout(const Duration(seconds: 5));
       } catch (_) {}
+      // A request timeout alone cannot tell whether the Worker is deployed,
+      // Render has its own certificate, or Firestore authorization is slow.
+      // Read public /health endpoints without transmitting any user token.
+      String? tokenGuidance;
+      if (error.toString().contains('LIVE_AGORA_TOKEN_UNAVAILABLE')) {
+        try {
+          final status = await LiveTokenServerReadiness.check();
+          tokenGuidance = status.message(ar: widget.ar);
+        } catch (_) {
+          tokenGuidance = widget.ar
+              ? 'تحقق من اتصال الشبكة وخدمة توكن Agora.'
+              : 'Check network access to the Agora token service.';
+        }
+      }
       debugPrint('WorldVoice Live startup failed at $_startPhase: $error');
       if (!mounted) return;
       final phase = _startPhase;
@@ -1245,8 +1260,9 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
         _starting = false;
         _startPhase = '';
         _previewReady = false;
-        _cameraStartError = '${widget.ar ? 'تعذر بدء اللايف خلال' : 'Live could not start during'} '
-            '$phase: $error';
+        _cameraStartError = tokenGuidance ??
+            ('${widget.ar ? 'تعذر بدء اللايف خلال' : 'Live could not start during'} '
+                '$phase: $error');
       });
     }
   }
