@@ -709,6 +709,8 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   bool _minimized = false;
   OverlayEntry? _miniEntry;
   Timer? _rebuildThrottle;
+  final ValueNotifier<int> _videoRoster = ValueNotifier<int>(0);
+  String _lastVideoRoster = '';
   Timer? _heartbeatTimer;
   Timer? _cameraOffTimer;
   int _cameraOffSeconds = 0;
@@ -721,6 +723,11 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   bool _quotaStarted = false;
 
   void _onControllerChanged() {
+    final roster = _controller.remoteSpeakers.join(',');
+    if (roster != _lastVideoRoster) {
+      _lastVideoRoster = roster;
+      _videoRoster.value++;
+    }
     if (!mounted || !_starting || _cameraReady ||
         _rebuildThrottle != null) return;
     // Avoid rebuilding the Agora native texture for each connection callback.
@@ -734,6 +741,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   void dispose() {
     _topicController.dispose();
     _rebuildThrottle?.cancel();
+    _videoRoster.dispose();
     _miniEntry?.remove();
     _miniEntry?.dispose();
     _miniEntry = null;
@@ -1515,7 +1523,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
             if (_cameraReady && _controller.engine != null && !_minimized)
               Positioned.fill(
                 child: AnimatedBuilder(
-                  animation: _controller,
+                  animation: _videoRoster,
                   builder: (context, _) {
                     final remote = _controller.remoteSpeakers.take(3).toList();
                     final tiles = <Widget>[
@@ -2136,7 +2144,7 @@ class _LiveControlDock extends StatelessWidget {
           height: 50,
           child: Row(children: [
             Expanded(
-              flex: composer == null ? 1 : 6,
+              flex: composer == null ? 1 : 7,
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(mainAxisSize: MainAxisSize.min,
@@ -2146,7 +2154,7 @@ class _LiveControlDock extends StatelessWidget {
             if (composer != null) ...[
               const SizedBox(width: 5),
               Expanded(
-                flex: 5,
+                flex: 4,
                 child: SizedBox(height: 44, child: composer!),
               ),
             ],
@@ -2187,6 +2195,8 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   bool _minimized = false;
   OverlayEntry? _miniEntry;
   bool _joining = true;
+  final ValueNotifier<int> _videoRoster = ValueNotifier<int>(0);
+  String _lastVideoRoster = '';
   String? _joinError;
   bool _requested = false;
   bool _guestPublishing = false;
@@ -2206,9 +2216,18 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   String? _lastInviteMarker;
   StreamSubscription<bool>? _moderatorSub;
 
+  void _onVideoRosterChanged() {
+    final roster = _controller.remoteSpeakers.join(',');
+    if (roster != _lastVideoRoster) {
+      _lastVideoRoster = roster;
+      _videoRoster.value++;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    _controller.addListener(_onVideoRosterChanged);
     _join();
     _loadFollow();
     final hostId = widget.data['hostId']?.toString() ?? '';
@@ -2450,6 +2469,8 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
     _miniEntry?.remove();
     _miniEntry?.dispose();
     _miniEntry = null;
+    _controller.removeListener(_onVideoRosterChanged);
+    _videoRoster.dispose();
     _guestQuotaTimer?.cancel();
     if (_guestQuotaStarted) {
       unawaited(_guestQuota.endSession());
@@ -2706,7 +2727,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                     TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(widget.ar ? 'رجوع' : 'Back')),
                   ]))
                 : AnimatedBuilder(
-                animation: _controller,
+                animation: _videoRoster,
                 builder: (context, _) {
                   final remote = _controller.remoteSpeakers;
                   final hostAgoraUid =
