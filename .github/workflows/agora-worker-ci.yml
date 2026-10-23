@@ -22,7 +22,7 @@ jobs:
           cache: true
       - run: flutter pub get
       - run: flutter analyze
-      - run: flutter test test/room_conversation_panel_test.dart test/room_quiz_options_test.dart
+      - run: flutter test test/live_host_channel_test.dart test/room_conversation_panel_test.dart test/room_quiz_options_test.dart
 
   test:
     runs-on: ubuntu-latest
@@ -109,7 +109,7 @@ jobs:
         run: |
           node --input-type=module <<'JS'
           const url = 'https://worldvoice-agora-token.worldvoice.workers.dev/health';
-          const expected = '2026-10-23.4';
+          const expected = '2026-10-23.5';
           let last = '';
           for (let attempt = 1; attempt <= 3; attempt++) {
             try {

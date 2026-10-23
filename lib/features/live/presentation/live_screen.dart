@@ -28,6 +28,7 @@ import '../../rooms/services/room_quota_service.dart';
 import '../../rooms/services/room_rewarded_ad_service.dart';
 import '../services/live_session_service.dart';
 import '../services/live_startup_guard.dart';
+import '../services/live_host_channel.dart';
 import '../services/live_token_server_readiness.dart';
 import 'live_invitation_card.dart';
 import 'live_priority_controls.dart';
@@ -1152,7 +1153,13 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
       }
       _quotaStarted = true;
 
-      final channel = 'live_${DateTime.now().millisecondsSinceEpoch}';
+      final hostUid = FirebaseAuth.instance.currentUser?.uid;
+      if (hostUid == null || hostUid.isEmpty) {
+        throw StateError(widget.ar
+            ? 'سجّل الدخول قبل إنشاء اللايف.'
+            : 'Sign in before starting a Live.');
+      }
+      final channel = newLiveHostChannel(hostUid);
       _channelId = channel;
       _setStartupPhase(widget.ar
           ? 'الاتصال بالصوت والفيديو'
