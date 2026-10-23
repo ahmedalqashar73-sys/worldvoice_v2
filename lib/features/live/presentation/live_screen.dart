@@ -1987,63 +1987,6 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                           ),
                         ),
                         PositionedDirectional(
-                          bottom: 18,
-                          start: 12,
-                          end: 12,
-                          child: _LiveControlDock(
-                            composer: _liveId == null
-                                ? null
-                                : _LiveInlineComposer(
-                                    service: _liveService,
-                                    liveId: _liveId!,
-                                    ar: widget.ar,
-                                    onOpenChat: () {
-                                      if (mounted && !_chatOpen) {
-                                        setState(() => _chatOpen = true);
-                                      }
-                                    },
-                                  ),
-                            children: [
-                              IconButton(
-                                tooltip: widget.ar ? 'الشات' : 'Chat',
-                                onPressed: () => setState(
-                                  () => _chatOpen = !_chatOpen),
-                                icon: const Icon(Icons.chat_bubble_outline_rounded,
-                                  color: Colors.white),
-                              ),
-                              IconButton(
-                                tooltip: widget.ar ? 'السبورة' : 'Whiteboard',
-                                onPressed: _liveId == null ? null
-                                  : () => setState(() {
-                                      _boardOpen = !_boardOpen;
-                                      if (_boardOpen) _chatOpen = false;
-                                    }),
-                                icon: Icon(_boardOpen
-                                  ? Icons.dashboard_rounded
-                                  : Icons.dashboard_outlined,
-                                  color: Colors.white),
-                              ),
-                              IconButton(
-                                tooltip: widget.ar ? 'طلبات الضيوف' : 'Guest requests',
-                                onPressed: _liveId == null ? null : _openHostRequests,
-                                icon: const Icon(Icons.group_add_rounded,
-                                  color: Colors.white),
-                              ),
-                              IconButton(
-                                tooltip: widget.ar ? 'الهدايا' : 'Gifts',
-                                onPressed: _liveId == null ? null
-                                  : () => _showLiveGifts(context,
-                                    liveId: _liveId!, service: _liveService,
-                                    hostId: FirebaseAuth.instance.currentUser?.uid ?? '',
-                                    hostName: FirebaseAuth.instance.currentUser?.displayName ??
-                                        'WorldVoice host', ar: widget.ar),
-                                icon: const Icon(Icons.card_giftcard_rounded,
-                                  color: Color(0xFFFFC857)),
-                              ),
-                            ],
-                          ),
-                        ),
-                        PositionedDirectional(
                           top: 14,
                           end: 78,
                           child: Row(
@@ -2128,6 +2071,71 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                   },
                 ),
               ),
+            // Host actions belong above the entire Agora video subtree.
+            // This also keeps chat, gifts and invitations tappable when
+            // camera/screen-share native surfaces are active.
+            if (_cameraReady)
+                        PositionedDirectional(
+                          bottom: 18,
+                          start: 12,
+                          end: 12,
+                          child: _LiveControlDock(
+                            composer: _liveId == null
+                                ? null
+                                : _LiveInlineComposer(
+                                    service: _liveService,
+                                    liveId: _liveId!,
+                                    ar: widget.ar,
+                                    onOpenChat: () {
+                                      if (mounted && !_chatOpen) {
+                                        setState(() => _chatOpen = true);
+                                      }
+                                    },
+                                  ),
+                            children: [
+                              IconButton(
+                                key: const ValueKey('live-host-chat'),
+                                tooltip: widget.ar ? 'الشات' : 'Chat',
+                                onPressed: () => setState(
+                                  () => _chatOpen = !_chatOpen),
+                                icon: const Icon(Icons.chat_bubble_outline_rounded,
+                                  color: Colors.white),
+                              ),
+                              IconButton(
+                                key: const ValueKey('live-host-whiteboard'),
+                                tooltip: widget.ar ? 'السبورة' : 'Whiteboard',
+                                onPressed: _liveId == null ? null
+                                  : () => setState(() {
+                                      _boardOpen = !_boardOpen;
+                                      if (_boardOpen) _chatOpen = false;
+                                    }),
+                                icon: Icon(_boardOpen
+                                  ? Icons.dashboard_rounded
+                                  : Icons.dashboard_outlined,
+                                  color: Colors.white),
+                              ),
+                              IconButton(
+                                key: const ValueKey('live-host-requests'),
+                                tooltip: widget.ar ? 'طلبات الضيوف' : 'Guest requests',
+                                onPressed: _liveId == null ? null : _openHostRequests,
+                                icon: const Icon(Icons.group_add_rounded,
+                                  color: Colors.white),
+                              ),
+                              IconButton(
+                                key: const ValueKey('live-host-gifts'),
+                                tooltip: widget.ar ? 'الهدايا' : 'Gifts',
+                                onPressed: _liveId == null ? null
+                                  : () => _showLiveGifts(context,
+                                    liveId: _liveId!, service: _liveService,
+                                    hostId: FirebaseAuth.instance.currentUser?.uid ?? '',
+                                    hostName: FirebaseAuth.instance.currentUser?.displayName ??
+                                        'WorldVoice host', ar: widget.ar),
+                                icon: const Icon(Icons.card_giftcard_rounded,
+                                  color: Color(0xFFFFC857)),
+                              ),
+                            ],
+                          ),
+                        ),
             // Last children of the outer Stack stay above Agora,
             // language overlays and gift animations for reliable taps.
             if (_cameraReady)
@@ -3209,7 +3217,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                         ),
                       ),
                       Positioned.fill(
-                        child: _LiveGiftEffects(liveId: widget.liveId),
+                        child: IgnorePointer(
+                          child: _LiveGiftEffects(liveId: widget.liveId),
+                        ),
                       ),
                       PositionedDirectional(
                         top: 92,
