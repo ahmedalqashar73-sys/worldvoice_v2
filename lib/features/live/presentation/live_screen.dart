@@ -754,6 +754,38 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     if (approved == true && mounted) await _endLiveAndPop();
   }
 
+  Future<void> _openHostChat() async {
+    final liveId = _liveId;
+    if (liveId == null) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      useSafeArea: true,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF0F2923),
+      builder: (sheetContext) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
+        ),
+        child: SizedBox(
+          height: MediaQuery.sizeOf(sheetContext).height * .65,
+          child: Column(children: [
+            Text(widget.ar ? 'دردشة اللايف' : 'Live chat',
+              style: const TextStyle(color: Colors.white,
+                  fontWeight: FontWeight.w800, fontSize: 17)),
+            const SizedBox(height: 10),
+            Expanded(child: _LiveChatOverlay(
+              service: _liveService,
+              liveId: liveId,
+              ar: widget.ar,
+              showComposer: true,
+            )),
+          ]),
+        ),
+      ),
+    );
+  }
+
   Future<void> _openHostRequests() async {
     final id = _liveId;
     if (id == null) return;
@@ -1987,63 +2019,6 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                           ),
                         ),
                         PositionedDirectional(
-                          bottom: 18,
-                          start: 12,
-                          end: 12,
-                          child: _LiveControlDock(
-                            composer: _liveId == null
-                                ? null
-                                : _LiveInlineComposer(
-                                    service: _liveService,
-                                    liveId: _liveId!,
-                                    ar: widget.ar,
-                                    onOpenChat: () {
-                                      if (mounted && !_chatOpen) {
-                                        setState(() => _chatOpen = true);
-                                      }
-                                    },
-                                  ),
-                            children: [
-                              IconButton(
-                                tooltip: widget.ar ? 'الشات' : 'Chat',
-                                onPressed: () => setState(
-                                  () => _chatOpen = !_chatOpen),
-                                icon: const Icon(Icons.chat_bubble_outline_rounded,
-                                  color: Colors.white),
-                              ),
-                              IconButton(
-                                tooltip: widget.ar ? 'السبورة' : 'Whiteboard',
-                                onPressed: _liveId == null ? null
-                                  : () => setState(() {
-                                      _boardOpen = !_boardOpen;
-                                      if (_boardOpen) _chatOpen = false;
-                                    }),
-                                icon: Icon(_boardOpen
-                                  ? Icons.dashboard_rounded
-                                  : Icons.dashboard_outlined,
-                                  color: Colors.white),
-                              ),
-                              IconButton(
-                                tooltip: widget.ar ? 'طلبات الضيوف' : 'Guest requests',
-                                onPressed: _liveId == null ? null : _openHostRequests,
-                                icon: const Icon(Icons.group_add_rounded,
-                                  color: Colors.white),
-                              ),
-                              IconButton(
-                                tooltip: widget.ar ? 'الهدايا' : 'Gifts',
-                                onPressed: _liveId == null ? null
-                                  : () => _showLiveGifts(context,
-                                    liveId: _liveId!, service: _liveService,
-                                    hostId: FirebaseAuth.instance.currentUser?.uid ?? '',
-                                    hostName: FirebaseAuth.instance.currentUser?.displayName ??
-                                        'WorldVoice host', ar: widget.ar),
-                                icon: const Icon(Icons.card_giftcard_rounded,
-                                  color: Color(0xFFFFC857)),
-                              ),
-                            ],
-                          ),
-                        ),
-                        PositionedDirectional(
                           top: 14,
                           end: 78,
                           child: Row(
@@ -2128,6 +2103,50 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                   },
                 ),
               ),
+            // Host actions belong above the entire Agora video subtree.
+            // This also keeps chat, gifts and invitations tappable when
+            // camera/screen-share native surfaces are active.
+            if (_cameraReady)
+                        PositionedDirectional(
+                          bottom: 18,
+                          start: 12,
+                          end: 12,
+                          child: _LiveControlDock(
+                            composer: _liveId == null
+                                ? null
+                                : _LiveInlineComposer(
+                                    service: _liveService,
+                                    liveId: _liveId!,
+                                    ar: widget.ar,
+                                    onOpenChat: () {
+                                      if (mounted && !_chatOpen) {
+                                        setState(() => _chatOpen = true);
+                                      }
+                                    },
+                                  ),
+                            children: [
+                              LiveHostActionButtons(
+                                ar: widget.ar,
+                                boardOpen: _boardOpen,
+                                onChat: _openHostChat,
+                                onBoard: () {
+                                  setState(() {
+                                    _boardOpen = !_boardOpen;
+                                    if (_boardOpen) _chatOpen = false;
+                                  });
+                                },
+                                onRequests: _openHostRequests,
+                                onGifts: () => _showLiveGifts(context,
+                                  liveId: _liveId!,
+                                  service: _liveService,
+                                  hostId: FirebaseAuth.instance.currentUser?.uid ?? '',
+                                  hostName: FirebaseAuth.instance.currentUser?.displayName ??
+                                    'WorldVoice host',
+                                  ar: widget.ar),
+                              ),
+                            ],
+                          ),
+                        ),
             // Last children of the outer Stack stay above Agora,
             // language overlays and gift animations for reliable taps.
             if (_cameraReady)
@@ -3209,7 +3228,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                         ),
                       ),
                       Positioned.fill(
-                        child: _LiveGiftEffects(liveId: widget.liveId),
+                        child: IgnorePointer(
+                          child: _LiveGiftEffects(liveId: widget.liveId),
+                        ),
                       ),
                       PositionedDirectional(
                         top: 92,
@@ -5320,12 +5341,25 @@ class _LiveChatOverlayState extends State<_LiveChatOverlay> {
             stream: widget.service.watchChat(widget.liveId),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
-                return const SizedBox.shrink();
+                return Center(
+                  child: Text(
+                    widget.ar ? 'تعذّر تحميل رسائل اللايف'
+                        : 'Could not load Live messages',
+                    style: const TextStyle(color: Colors.orangeAccent),
+                  ),
+                );
               }
 
               final docs = snapshot.data?.docs ??
                   const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
 
+              if (docs.isEmpty) {
+                return Center(
+                  child: Text(widget.ar ? 'لا توجد رسائل بعد. ابدأ المحادثة!'
+                      : 'No messages yet. Start the conversation!',
+                    style: const TextStyle(color: Colors.white70)),
+                );
+              }
               return ListView.builder(
                 reverse: true,
                 padding: const EdgeInsets.fromLTRB(2, 4, 2, 4),
