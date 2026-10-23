@@ -625,6 +625,40 @@ Future<List<String>> _myLearningLanguageCodes(String fallback) async {
 }
 
 
+Future<void> _showLiveSidePanel(
+  BuildContext context, {
+  required WidgetBuilder builder,
+}) =>
+    showGeneralDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Live options',
+      barrierColor: const Color(0x99000000),
+      pageBuilder: (dialogContext, _, __) => Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: Theme(
+          data: ThemeData.dark(),
+          child: Material(
+            color: const Color(0xFF101B18),
+            borderRadius: const BorderRadiusDirectional.only(
+              topEnd: Radius.circular(24),
+              bottomEnd: Radius.circular(24),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: SafeArea(
+              child: SizedBox(
+                width: MediaQuery.sizeOf(dialogContext).width * 0.82,
+                height: MediaQuery.sizeOf(dialogContext).height,
+                child: SingleChildScrollView(
+                  child: builder(dialogContext),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
 Widget _liveQuickMenuAction({
   required IconData icon,
   required String label,
@@ -842,12 +876,10 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
 
   Future<void> _showHostLiveMenu() async {
     if (_liveId == null) return;
-    await showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      useSafeArea: true,
+    await _showLiveSidePanel(
+      context,
       builder: (sheetContext) => Padding(
-        padding: const EdgeInsets.fromLTRB(12, 8, 12, 18),
+        padding: const EdgeInsets.fromLTRB(12, 72, 12, 18),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Row(children: [
             _liveQuickMenuAction(
@@ -2646,12 +2678,10 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   }
 
   Future<void> _showViewerLiveMenu() async {
-    await showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      useSafeArea: true,
+    await _showLiveSidePanel(
+      context,
       builder: (sheetContext) => Padding(
-        padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
+        padding: const EdgeInsets.fromLTRB(12, 72, 12, 16),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Row(children: [
             _liveQuickMenuAction(
