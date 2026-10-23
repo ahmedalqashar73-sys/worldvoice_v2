@@ -33,6 +33,7 @@ import '../../profile/services/profile_social_service.dart';
 import '../../profile/data/profile_language_catalog.dart';
 import '../../profile/presentation/public_profile_screen.dart';
 import '../../chat/presentation/chat_screen.dart';
+import '../../home/services/home_feed_service.dart';
 
 const MethodChannel _livePermissionChannel =
     MethodChannel('worldvoice/live_permissions');
@@ -294,6 +295,44 @@ Future<List<String>> _myLearningLanguageCodes(String fallback) async {
 }
 
 
+
+Widget _liveQuickAction({
+  required IconData icon,
+  required String label,
+  required VoidCallback? onPressed,
+  bool danger = false,
+}) {
+  return Expanded(
+    child: InkWell(
+      onTap: onPressed,
+      borderRadius: BorderRadius.circular(18),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          CircleAvatar(
+            radius: 25,
+            backgroundColor: const Color(0xFF203D33),
+            child: Icon(icon,
+                color: onPressed == null
+                    ? Colors.white38
+                    : danger ? Colors.redAccent : Colors.white),
+          ),
+          const SizedBox(height: 8),
+          Text(label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: onPressed == null
+                    ? Colors.white54
+                    : danger ? Colors.redAccent : Colors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+              )),
+        ]),
+      ),
+    ),
+  );
+}
+
 class _LiveCameraGate extends StatefulWidget {
   const _LiveCameraGate({
     required this.ar,
@@ -308,6 +347,8 @@ class _LiveCameraGate extends StatefulWidget {
 
 class _LiveCameraGateState extends State<_LiveCameraGate> {
   final AgoraVoiceRoomController _controller = AgoraVoiceRoomController();
+  final GlobalKey<_LiveLanguageToolsOverlayState> _liveLanguageKey =
+      GlobalKey<_LiveLanguageToolsOverlayState>();
   final TextEditingController _topicController = TextEditingController();
   late String _languageCode;
   late List<String> _learningCodes;
@@ -382,6 +423,94 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
           inviteToStageLabel:
               widget.ar ? 'دعوة للكاميرا' : 'Invite to Live stage',
         ),
+      ),
+    );
+  }
+
+  Future<void> _confirmEndLiveFromMenu() async {
+    final approved = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(widget.ar ? 'إنهاء اللايف؟' : 'End this Live?'),
+        content: Text(widget.ar
+            ? 'سيتم إنهاء البث لجميع المشاهدين.'
+            : 'This will end the broadcast for everyone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(widget.ar ? 'إلغاء' : 'Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(widget.ar ? 'إنهاء' : 'End Live'),
+          ),
+        ],
+      ),
+    );
+    if (approved == true && mounted) await _endLiveAndPop();
+  }
+
+  Future<void> _showHostLiveOptions() async {
+    if (_liveId == null) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      useSafeArea: true,
+      showDragHandle: true,
+      backgroundColor: const Color(0xFF101E19),
+      builder: (sheetContext) => Padding(
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 18),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Row(children: [
+            _liveQuickAction(
+              icon: Icons.power_settings_new_rounded,
+              label: widget.ar ? 'إنهاء اللايف' : 'End Live',
+              danger: true,
+              onPressed: () {
+                Navigator.pop(sheetContext);
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) unawaited(_confirmEndLiveFromMenu());
+                });
+              },
+            ),
+            _liveQuickAction(
+              icon: Icons.picture_in_picture_alt_rounded,
+              label: widget.ar ? 'تصغير قريبًا' : 'Minimize (soon)',
+              onPressed: null,
+            ),
+            _liveQuickAction(
+              icon: Icons.ios_share_rounded,
+              label: widget.ar ? 'مشاركة اللايف' : 'Share Live',
+              onPressed: () {
+                Navigator.pop(sheetContext);
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) unawaited(_shareHostLive());
+                });
+              },
+            ),
+          ]),
+          const Divider(color: Colors.white12),
+          ListTile(
+            leading: const Icon(Icons.admin_panel_settings_rounded),
+            title: Text(widget.ar ? 'إدارة المودريتر' : 'Manage moderators'),
+            onTap: () {
+              Navigator.pop(sheetContext);
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted && _liveId != null) {
+                  unawaited(_showLiveModeratorManagement(context,
+                    liveId: _liveId!, service: _liveService, ar: widget.ar));
+                }
+              });
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.group_add_rounded),
+            title: Text(widget.ar ? 'طلبات الصعود' : 'Stage requests'),
+            onTap: () {
+              Navigator.pop(sheetContext);
+              if (mounted) setState(() => _requestsOpen = true);
+            },
+          ),
+        ]),
       ),
     );
   }
@@ -1120,6 +1249,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                           ),
                         Positioned.fill(
                           child: _LiveLanguageToolsOverlay(
+                            key: _liveLanguageKey,
                             liveId: _liveId ?? '',
                             roomLanguageCode: _languageCode,
                             canPublish: !_micMuted,
@@ -1132,7 +1262,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                         ),
                         if (_liveId != null)
                           Positioned.fill(
-                            child: _LiveGiftEffects(liveId: _liveId!),
+                            child: IgnorePointer(child: _LiveGiftEffects(liveId: _liveId!)),
                           ),
                         if (_chatOpen && _liveId != null)
                           PositionedDirectional(
@@ -1275,6 +1405,40 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                 ),
                               ),
                               IconButton(
+                                tooltip: widget.ar ? 'الوقت' : 'Live time',
+                                onPressed: _liveId == null ? null : _showHostQuotaStatus,
+                                icon: const Icon(Icons.schedule_rounded, color: Colors.white),
+                              ),
+                              IconButton(
+                                tooltip: 'Subtitles',
+                                onPressed: () {
+                                  final overlay = _liveLanguageKey.currentState;
+                                  if (overlay != null) {
+                                    unawaited(overlay._showQuickLanguageSettings(
+                                        translation: false));
+                                  }
+                                },
+                                icon: const Icon(Icons.closed_caption_rounded,
+                                    color: Colors.white),
+                              ),
+                              IconButton(
+                                tooltip: widget.ar ? 'الترجمة' : 'Translation',
+                                onPressed: () {
+                                  final overlay = _liveLanguageKey.currentState;
+                                  if (overlay != null) {
+                                    unawaited(overlay._showQuickLanguageSettings(
+                                        translation: true));
+                                  }
+                                },
+                                icon: const Icon(Icons.translate_rounded,
+                                    color: Colors.white),
+                              ),
+                              IconButton(
+                                tooltip: 'Teacher AI',
+                                onPressed: () => _liveLanguageKey.currentState?._showMoreTools(),
+                                icon: const Icon(Icons.smart_toy_outlined, color: Colors.white),
+                              ),
+                              IconButton(
                                 tooltip: widget.ar ? 'السبورة' : 'Board',
                                 onPressed: _liveId == null
                                     ? null
@@ -1315,28 +1479,6 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                 icon: const Icon(
                                   Icons.admin_panel_settings_rounded,
                                   color: Color(0xFFFFD77A),
-                                ),
-                              ),
-                              IconButton(
-                                tooltip: widget.ar
-                                    ? 'وقت اللايف'
-                                    : 'Live time',
-                                onPressed:
-                                    _liveId == null ? null : _showHostQuotaStatus,
-                                icon: const Icon(
-                                  Icons.schedule_rounded,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              IconButton(
-                                tooltip: widget.ar
-                                    ? 'مشاركة اللايف'
-                                    : 'Share Live',
-                                onPressed:
-                                    _liveId == null ? null : _shareHostLive,
-                                icon: const Icon(
-                                  Icons.share_rounded,
-                                  color: Colors.white,
                                 ),
                               ),
                             ],
@@ -1432,12 +1574,12 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                               const SizedBox(width: 8),
                               IconButton(
                                 style: IconButton.styleFrom(
-                                  backgroundColor: const Color(0xCC8B1E1E),
+                                  backgroundColor: const Color(0xB3000000),
                                   foregroundColor: Colors.white,
                                 ),
-                                tooltip: widget.ar ? 'إنهاء اللايف' : 'End live',
-                                onPressed: _endLiveAndPop,
-                                icon: const Icon(Icons.stop_circle_rounded),
+                                tooltip: widget.ar ? 'خيارات اللايف' : 'Live options',
+                                onPressed: _showHostLiveOptions,
+                                icon: const Icon(Icons.more_horiz_rounded),
                               ),
                             ],
                           ),
@@ -1603,25 +1745,21 @@ class _LiveControlDock extends StatelessWidget {
       ),
       child: Padding(
         padding: padding,
-        child: Row(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            if (composer != null) ...[
-              Expanded(
-                flex: 5,
-                child: composer!,
-              ),
-              const SizedBox(width: 7),
-            ],
-            Expanded(
-              flex: composer == null ? 1 : 6,
+            SizedBox(
+              width: double.infinity,
+              height: 48,
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: children,
-                ),
+                child: Row(children: children),
               ),
             ),
+            if (composer != null) ...[
+              const SizedBox(height: 4),
+              SizedBox(height: 44, child: composer!),
+            ],
           ],
         ),
       ),
@@ -1645,6 +1783,8 @@ class _LiveViewerScreen extends StatefulWidget {
 
 class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   final AgoraVoiceRoomController _controller = AgoraVoiceRoomController();
+  final GlobalKey<_LiveLanguageToolsOverlayState> _liveLanguageKey =
+      GlobalKey<_LiveLanguageToolsOverlayState>();
   final LiveSessionService _service = LiveSessionService();
   final RoomQuotaService _guestQuota = RoomQuotaService();
   final RoomRewardedAdService _rewardedAds = RoomRewardedAdService();
@@ -1797,6 +1937,44 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
     } finally {
       _invitePromptOpen = false;
     }
+  }
+
+  Future<void> _showViewerLiveOptions() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      useSafeArea: true,
+      backgroundColor: const Color(0xFF101E19),
+      builder: (sheetContext) => Padding(
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 18),
+        child: Row(children: [
+          _liveQuickAction(
+            icon: Icons.logout_rounded,
+            label: widget.ar ? 'مغادرة اللايف' : 'Leave Live',
+            danger: true,
+            onPressed: () {
+              Navigator.pop(sheetContext);
+              if (mounted) Navigator.of(context).pop();
+            },
+          ),
+          _liveQuickAction(
+            icon: Icons.picture_in_picture_alt_rounded,
+            label: widget.ar ? 'تصغير قريبًا' : 'Minimize (soon)',
+            onPressed: null,
+          ),
+          _liveQuickAction(
+            icon: Icons.ios_share_rounded,
+            label: widget.ar ? 'مشاركة اللايف' : 'Share Live',
+            onPressed: () {
+              Navigator.pop(sheetContext);
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) unawaited(_shareLive());
+              });
+            },
+          ),
+        ]),
+      ),
+    );
   }
 
   Future<void> _shareLive() async {
@@ -2223,6 +2401,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                         ),
                       Positioned.fill(
                         child: _LiveLanguageToolsOverlay(
+                          key: _liveLanguageKey,
                           liveId: widget.liveId,
                           roomLanguageCode:
                               (live?['languageCode'] ?? widget.data['languageCode'] ?? 'en')
@@ -2236,7 +2415,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                         ),
                       ),
                       Positioned.fill(
-                        child: _LiveGiftEffects(liveId: widget.liveId),
+                        child: IgnorePointer(child: _LiveGiftEffects(liveId: widget.liveId)),
                       ),
                       if (_chatOpen)
                         PositionedDirectional(
@@ -2341,20 +2520,10 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                     ),
                                   ),
                                 IconButton(
-                                  tooltip: widget.ar ? 'مشاركة' : 'Share',
-                                  onPressed: _shareLive,
-                                  icon: const Icon(
-                                    Icons.share_rounded,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                IconButton(
-                                  onPressed: () =>
-                                      Navigator.of(context).pop(),
-                                  icon: const Icon(
-                                    Icons.close_rounded,
-                                    color: Colors.white,
-                                  ),
+                                  tooltip: widget.ar ? 'خيارات اللايف' : 'Live options',
+                                  onPressed: _showViewerLiveOptions,
+                                  icon: const Icon(Icons.more_horiz_rounded,
+                                      color: Colors.white),
                                 ),
                               ],
                             ),
@@ -2411,6 +2580,35 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                               ),
                             ),
                             IconButton(
+                              tooltip: widget.ar ? 'الوقت' : 'Live time',
+                              onPressed: _showGuestQuotaStatus,
+                              icon: const Icon(Icons.schedule_rounded, color: Colors.white),
+                            ),
+                            IconButton(
+                              tooltip: 'Subtitles',
+                              onPressed: () {
+                                final overlay = _liveLanguageKey.currentState;
+                                if (overlay != null) {
+                                  unawaited(overlay._showQuickLanguageSettings(
+                                      translation: false));
+                                }
+                              },
+                              icon: const Icon(Icons.closed_caption_rounded,
+                                  color: Colors.white),
+                            ),
+                            IconButton(
+                              tooltip: widget.ar ? 'الترجمة' : 'Translation',
+                              onPressed: () {
+                                final overlay = _liveLanguageKey.currentState;
+                                if (overlay != null) {
+                                  unawaited(overlay._showQuickLanguageSettings(
+                                      translation: true));
+                                }
+                              },
+                              icon: const Icon(Icons.translate_rounded,
+                                  color: Colors.white),
+                            ),
+                            IconButton(
                               tooltip: widget.ar ? 'السبورة' : 'Board',
                               onPressed: () => setState(() {
                                 _boardOpen = !_boardOpen;
@@ -2462,16 +2660,6 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                 ),
                               ),
                             if (_guestPublishing) ...[
-                              IconButton(
-                                tooltip: widget.ar
-                                    ? 'وقت الصعود'
-                                    : 'Guest time',
-                                onPressed: _showGuestQuotaStatus,
-                                icon: const Icon(
-                                  Icons.schedule_rounded,
-                                  color: Colors.white,
-                                ),
-                              ),
                               IconButton(
                                 tooltip: widget.ar ? 'المايك' : 'Microphone',
                                 onPressed: () async {
@@ -3127,6 +3315,94 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
     }
   }
 
+  Future<void> _showQuickLanguageSettings({required bool translation}) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      useSafeArea: true,
+      showDragHandle: true,
+      backgroundColor: const Color(0xFF10251D),
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, refresh) => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              ListTile(
+                leading: Icon(translation
+                    ? Icons.translate_rounded
+                    : Icons.closed_caption_rounded),
+                title: Text(
+                    translation
+                        ? (widget.ar ? 'الترجمة الفورية' : 'Live translation')
+                        : 'Subtitles',
+                    style: const TextStyle(fontWeight: FontWeight.w800)),
+              ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                value: translation ? _translationEnabled : _enabled,
+                title: Text(translation
+                    ? (widget.ar ? 'تفعيل الترجمة' : 'Enable translation')
+                    : (widget.ar ? 'تفعيل السبايتلز' : 'Enable subtitles')),
+                onChanged: (value) {
+                  unawaited(() async {
+                    if (value && !await _unlockLanguageToolsIfNeeded()) return;
+                    if (!mounted) return;
+                    if (translation) {
+                      setState(() {
+                        _translationEnabled = value;
+                        _translated = null;
+                        _translatedCaptionId = null;
+                      });
+                      if (value) {
+                        unawaited(_prepareTranslationModels());
+                        final latest = _latest;
+                        if (latest != null) unawaited(_translate(latest));
+                      }
+                    } else {
+                      await _setEnabled(value);
+                    }
+                    if (sheetContext.mounted) refresh(() {});
+                  }());
+                },
+              ),
+              if (translation)
+                DropdownButtonFormField<String>(
+                  value: _targetLanguage,
+                  decoration: InputDecoration(
+                    labelText: widget.ar ? 'لغة الترجمة' : 'Translate to',
+                  ),
+                  items: [
+                    for (final item in roomCaptionLanguages)
+                      DropdownMenuItem(
+                        value: item.code,
+                        child: Text(item.label),
+                      ),
+                  ],
+                  onChanged: (value) {
+                    if (value == null) return;
+                    setState(() {
+                      _targetLanguage = value;
+                      _translated = null;
+                      _translatedCaptionId = null;
+                    });
+                    if (_translationEnabled) {
+                      unawaited(_prepareTranslationModels());
+                      final latest = _latest;
+                      if (latest != null) unawaited(_translate(latest));
+                    }
+                    if (sheetContext.mounted) refresh(() {});
+                  },
+                ),
+              if (_error?.isNotEmpty == true) ...[
+                const SizedBox(height: 12),
+                Text(_error!, style: const TextStyle(color: Colors.orangeAccent)),
+              ],
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _showSettings() => showModalBottomSheet<void>(
         context: context,
         showDragHandle: true,
@@ -3232,25 +3508,6 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
     return Stack(
       fit: StackFit.expand,
       children: [
-        PositionedDirectional(
-          top: 64,
-          start: 12,
-          child: Row(
-            children: [
-              IconButton.filledTonal(
-                tooltip: widget.ar ? 'الترجمة والسبتايتل' : 'Language tools',
-                onPressed: _showSettings,
-                icon: const Icon(Icons.language_rounded),
-              ),
-              const SizedBox(width: 6),
-              IconButton.filledTonal(
-                tooltip: widget.ar ? 'المزيد' : 'More',
-                onPressed: _showMoreTools,
-                icon: const Icon(Icons.more_horiz_rounded),
-              ),
-            ],
-          ),
-        ),
         if ((_enabled || _translationEnabled) && caption != null)
           PositionedDirectional(
             start: 28,
@@ -3797,6 +4054,30 @@ Future<void> _showLiveShareSheet(
                 shareText: shareText,
                 ar: ar,
               );
+            },
+          ),
+          ListTile(
+            leading: const CircleAvatar(
+              child: Icon(Icons.post_add_rounded),
+            ),
+            title: Text(ar ? 'مشاركة كمنشور في Home' : 'Share as a Home post',
+              style: const TextStyle(fontWeight: FontWeight.w800)),
+            onTap: () async {
+              Navigator.pop(sheetContext);
+              try {
+                await HomeFeedService().createPost(text: shareText);
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(ar
+                      ? 'تم نشر اللايف في Home.'
+                      : 'Live posted to Home.')),
+                );
+              } catch (error) {
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(error.toString())),
+                );
+              }
             },
           ),
           ListTile(
