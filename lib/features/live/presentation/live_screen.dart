@@ -625,6 +625,34 @@ Future<List<String>> _myLearningLanguageCodes(String fallback) async {
 }
 
 
+Widget _liveQuickMenuAction({
+  required IconData icon,
+  required String label,
+  required VoidCallback onPressed,
+  bool destructive = false,
+}) =>
+    Expanded(
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(18),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            CircleAvatar(
+              radius: 26,
+              backgroundColor: const Color(0xFF25463E),
+              child: Icon(icon,
+                  color: destructive ? Colors.redAccent : Colors.white),
+            ),
+            const SizedBox(height: 8),
+            Text(label, textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700,
+                    color: destructive ? Colors.redAccent : null)),
+          ]),
+        ),
+      ),
+    );
+
 class _LiveCameraGate extends StatefulWidget {
   const _LiveCameraGate({
     required this.ar,
@@ -819,27 +847,24 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
       showDragHandle: true,
       useSafeArea: true,
       builder: (sheetContext) => Padding(
-        padding: const EdgeInsets.fromLTRB(12, 0, 12, 18),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.share_rounded),
-              title: Text(widget.ar ? 'مشاركة اللايف' : 'Share Live'),
-              subtitle: Text(widget.ar
-                  ? 'كمنشور، عبر الدردشة، ستوري، أو نسخ الرابط'
-                  : 'Post, direct chat, story or copy link'),
-              onTap: () {
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 18),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Row(children: [
+            _liveQuickMenuAction(
+              icon: Icons.power_settings_new_rounded,
+              label: widget.ar ? 'إنهاء اللايف' : 'End Live',
+              destructive: true,
+              onPressed: () {
                 Navigator.pop(sheetContext);
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted) unawaited(_shareHostLive());
+                  if (mounted) unawaited(_confirmEndLive());
                 });
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.picture_in_picture_alt_rounded),
-              title: Text(widget.ar ? 'تصغير اللايف' : 'Minimize Live'),
-              onTap: () {
+            _liveQuickMenuAction(
+              icon: Icons.picture_in_picture_alt_rounded,
+              label: widget.ar ? 'تصغير النافذة' : 'Minimize',
+              onPressed: () {
                 Navigator.pop(sheetContext);
                 if (widget.onMiniToggle != null) {
                   widget.onMiniToggle!();
@@ -848,63 +873,50 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                 }
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.explore_rounded),
-              title: Text(widget.ar ? 'استكشاف بثوث أخرى'
-                : 'Explore other Lives'),
-              subtitle: Text(widget.ar
-                ? 'تصفح دون إيقاف الكاميرا أو اللايف'
-                : 'Browse without interrupting your broadcast'),
-              onTap: () {
+            _liveQuickMenuAction(
+              icon: Icons.ios_share_rounded,
+              label: widget.ar ? 'مشاركة اللايف' : 'Share Live',
+              onPressed: () {
                 Navigator.pop(sheetContext);
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted && _liveId != null) {
-                    unawaited(_showLiveExploreDrawer(context,
-                      currentLiveId: _liveId!, ar: widget.ar));
-                  }
+                  if (mounted) unawaited(_shareHostLive());
                 });
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.admin_panel_settings_rounded),
-              title: Text(widget.ar ? 'إدارة اللايف' : 'Live moderators'),
-              onTap: () {
-                Navigator.pop(sheetContext);
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted && _liveId != null) {
-                    unawaited(_showLiveModeratorManagement(context,
-                      liveId: _liveId!, service: _liveService, ar: widget.ar));
-                  }
-                });
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.schedule_rounded),
-              title: Text(widget.ar ? 'وقت اللايف' : 'Live time'),
-              onTap: () {
-                Navigator.pop(sheetContext);
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted) unawaited(_showHostQuotaStatus());
-                });
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.power_settings_new_rounded,
-                  color: Colors.redAccent),
-              title: Text(widget.ar ? 'إنهاء البث للجميع' : 'End Live for everyone',
-                style: const TextStyle(color: Colors.redAccent)),
-              onTap: () {
-                Navigator.pop(sheetContext);
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted) unawaited(_confirmEndLive());
-                });
-              },
-            ),
-            const SizedBox(height: 4),
-            Text('WorldVoice Live UI • 2026.10.22.5',
-              style: Theme.of(sheetContext).textTheme.labelSmall),
-          ],
-        ),
+          ]),
+          ExpansionTile(
+            leading: const Icon(Icons.tune_rounded),
+            title: Text(widget.ar ? 'خيارات إضافية' : 'More options'),
+            children: [
+              ListTile(
+                leading: const Icon(Icons.explore_rounded),
+                title: Text(widget.ar ? 'استكشاف بثوث أخرى' : 'Explore other Lives'),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted && _liveId != null) {
+                      unawaited(_showLiveExploreDrawer(context,
+                          currentLiveId: _liveId!, ar: widget.ar));
+                    }
+                  });
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.admin_panel_settings_rounded),
+                title: Text(widget.ar ? 'إدارة اللايف' : 'Live moderators'),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted && _liveId != null) {
+                      unawaited(_showLiveModeratorManagement(context,
+                        liveId: _liveId!, service: _liveService, ar: widget.ar));
+                    }
+                  });
+                },
+              ),
+            ],
+          ),
+        ]),
       ),
     );
   }
@@ -2136,6 +2148,22 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                   });
                                 },
                                 onRequests: _openHostRequests,
+                                onTime: _showHostQuotaStatus,
+                                onSubtitles: () {
+                                  final overlay = _languageToolsKey.currentState;
+                                  if (overlay != null) {
+                                    unawaited(overlay._showSettings(section: 'subtitles'));
+                                  }
+                                },
+                                onTranslation: () {
+                                  final overlay = _languageToolsKey.currentState;
+                                  if (overlay != null) {
+                                    unawaited(overlay._showSettings(section: 'translation'));
+                                  }
+                                },
+                                onLanguageAi: () {
+                                  _languageToolsKey.currentState?._showMoreTools();
+                                },
                                 onGifts: () => _showLiveGifts(context,
                                   liveId: _liveId!,
                                   service: _liveService,
@@ -2155,18 +2183,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                 start: 12,
                 child: LivePriorityMenuButtons(
                   ar: widget.ar,
-                  onLanguage: () => _languageToolsKey.currentState?._showMoreTools(),
                   onOptions: _showHostLiveMenu,
-                ),
-              ),
-            if (_cameraReady)
-              PositionedDirectional(
-                top: 12,
-                end: 12,
-                child: LivePriorityExitButton(
-                  ar: widget.ar,
-                  host: true,
-                  onExit: _confirmEndLive,
                 ),
               ),
           ],
@@ -3995,12 +4012,13 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
     }
   }
 
-  Future<void> _showSettings() => showModalBottomSheet<void>(
+  Future<void> _showSettings({String section = 'all'}) => showModalBottomSheet<void>(
         context: context,
         showDragHandle: true,
         useSafeArea: true,
         builder: (sheetContext) => StatefulBuilder(
           builder: (sheetContext, refresh) => RoomCaptionsSheet(
+            section: section,
             enabled: _enabled,
             translationEnabled: _translationEnabled,
             pronunciationEnabled: _pronunciationEnabled,
