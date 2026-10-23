@@ -2391,6 +2391,8 @@ class _LiveViewerScreen extends StatefulWidget {
 
 class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   final AgoraVoiceRoomController _controller = AgoraVoiceRoomController();
+  final GlobalKey<_LiveLanguageToolsOverlayState> _languageToolsKey =
+      GlobalKey<_LiveLanguageToolsOverlayState>();
   final LiveSessionService _service = LiveSessionService();
   final RoomQuotaService _guestQuota = RoomQuotaService();
   final RoomRewardedAdService _rewardedAds = RoomRewardedAdService();
@@ -3231,6 +3233,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                         ),
                       Positioned.fill(
                         child: _LiveLanguageToolsOverlay(
+                          key: _languageToolsKey,
                           liveId: widget.liveId,
                           roomLanguageCode:
                               (live?['languageCode'] ?? widget.data['languageCode'] ?? 'en')
@@ -3424,6 +3427,31 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                 ar: widget.ar),
                               icon: const Icon(Icons.card_giftcard_rounded,
                                 color: Color(0xFFFFC857)),
+                            ),
+                            IconButton(
+                              tooltip: widget.ar ? 'الوقت' : 'Live time',
+                              onPressed: _showGuestQuotaStatus,
+                              icon: const Icon(Icons.schedule_rounded, color: Colors.white),
+                            ),
+                            IconButton(
+                              tooltip: 'Subtitles',
+                              onPressed: () {
+                                final overlay = _languageToolsKey.currentState;
+                                if (overlay != null) {
+                                  unawaited(overlay._showSettings(section: 'subtitles'));
+                                }
+                              },
+                              icon: const Icon(Icons.closed_caption_rounded, color: Colors.white),
+                            ),
+                            IconButton(
+                              tooltip: widget.ar ? 'الترجمة' : 'Translation',
+                              onPressed: () {
+                                final overlay = _languageToolsKey.currentState;
+                                if (overlay != null) {
+                                  unawaited(overlay._showSettings(section: 'translation'));
+                                }
+                              },
+                              icon: const Icon(Icons.translate_rounded, color: Colors.white),
                             ),
                             if (!_guestPublishing)
                               IconButton(
@@ -4116,12 +4144,6 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
           start: 12,
           child: Row(
             children: [
-              IconButton.filledTonal(
-                tooltip: widget.ar ? 'الترجمة والـ AI' : 'Language & AI tools',
-                onPressed: _showMoreTools,
-                icon: const Icon(Icons.language_rounded),
-              ),
-              const SizedBox(width: 6),
               IconButton.filledTonal(
                 tooltip: widget.ar ? 'خيارات اللايف' : 'Live options',
                 onPressed: widget.onLiveOptions ?? _showMoreTools,
