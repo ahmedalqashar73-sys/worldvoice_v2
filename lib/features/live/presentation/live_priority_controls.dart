@@ -6,13 +6,13 @@ import 'package:flutter/material.dart';
 class LivePriorityMenuButtons extends StatelessWidget {
   const LivePriorityMenuButtons({
     required this.ar,
-    required this.onLanguage,
+    this.onLanguage,
     required this.onOptions,
     super.key,
   });
 
   final bool ar;
-  final VoidCallback onLanguage;
+  final VoidCallback? onLanguage;
   final VoidCallback onOptions;
 
   @override
@@ -21,7 +21,8 @@ class LivePriorityMenuButtons extends StatelessWidget {
     child: Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        IconButton.filledTonal(
+        if (onLanguage != null) ...[
+          IconButton.filledTonal(
           key: const ValueKey('live-priority-language'),
           tooltip: ar ? 'الترجمة والـ AI' : 'Language and AI tools',
           onPressed: onLanguage,
@@ -32,6 +33,7 @@ class LivePriorityMenuButtons extends StatelessWidget {
           icon: const Icon(Icons.language_rounded),
         ),
         const SizedBox(width: 6),
+        ],
         IconButton.filledTonal(
           key: const ValueKey('live-priority-options'),
           tooltip: ar ? 'مشاركة وخيارات اللايف' : 'Share and Live options',
@@ -92,6 +94,10 @@ class LiveHostActionButtons extends StatelessWidget {
     required this.onBoard,
     required this.onRequests,
     required this.onGifts,
+    this.onTime,
+    this.onSubtitles,
+    this.onTranslation,
+    this.onLanguageAi,
     this.boardOpen = false,
     super.key,
   });
@@ -101,6 +107,10 @@ class LiveHostActionButtons extends StatelessWidget {
   final VoidCallback onBoard;
   final VoidCallback onRequests;
   final VoidCallback onGifts;
+  final VoidCallback? onTime;
+  final VoidCallback? onSubtitles;
+  final VoidCallback? onTranslation;
+  final VoidCallback? onLanguageAi;
   final bool boardOpen;
 
   @override
@@ -137,6 +147,34 @@ class LiveHostActionButtons extends StatelessWidget {
         icon: const Icon(Icons.card_giftcard_rounded,
           color: Color(0xFFFFC857)),
       ),
+      if (onTime != null)
+        IconButton(
+          key: const ValueKey('live-host-time'),
+          tooltip: ar ? 'الوقت' : 'Live time',
+          onPressed: onTime,
+          icon: const Icon(Icons.schedule_rounded, color: Colors.white),
+        ),
+      if (onSubtitles != null)
+        IconButton(
+          key: const ValueKey('live-host-subtitles'),
+          tooltip: 'Subtitles',
+          onPressed: onSubtitles,
+          icon: const Icon(Icons.closed_caption_rounded, color: Colors.white),
+        ),
+      if (onTranslation != null)
+        IconButton(
+          key: const ValueKey('live-host-translation'),
+          tooltip: ar ? 'الترجمة' : 'Translation',
+          onPressed: onTranslation,
+          icon: const Icon(Icons.translate_rounded, color: Colors.white),
+        ),
+      if (onLanguageAi != null)
+        IconButton(
+          key: const ValueKey('live-host-language-ai'),
+          tooltip: 'Teacher AI',
+          onPressed: onLanguageAi,
+          icon: const Icon(Icons.smart_toy_outlined, color: Colors.white),
+        ),
     ],
   );
 }
