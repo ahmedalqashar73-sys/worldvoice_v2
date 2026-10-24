@@ -54,6 +54,8 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
   bool _initialMessagesLoaded = false;
   final Map<String, String> _translations = <String, String>{};
   final Set<String> _translating = <String>{};
+  final Set<String> _failedTranslations = <String>{};
+  bool _translateFullMessages = false;
 
   Future<void> _translate(RoomChatMessage message) async {
     final translate = widget.onTranslateMessage;
@@ -62,13 +64,17 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
         _translating.contains(message.id)) {
       return;
     }
-    setState(() => _translating.add(message.id));
+    setState(() {
+      _failedTranslations.remove(message.id);
+      _translating.add(message.id);
+    });
     try {
       final translated = await translate(message.text);
       if (!mounted) return;
       setState(() => _translations[message.id] = translated.trim());
     } catch (_) {
       if (!mounted) return;
+      _failedTranslations.add(message.id);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -331,6 +337,20 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
               final giftPreview = msg == null
                   ? null
                   : RoomGiftPreviewChatCodec.decode(msg.text);
+              // Translate the entire message, not individual words.
+              // Avoid generating large requests for old history.
+              if (_translateFullMessages && msg != null &&
+                  giftPreview == null && messageIndex < 15 &&
+                  widget.onTranslateMessage != null &&
+                  !_translations.containsKey(msg.id) &&
+                  !_translating.contains(msg.id) &&
+                  !_failedTranslations.contains(msg.id)) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted && _translateFullMessages) {
+                    _translate(msg);
+                  }
+                });
+              }
               final translated = msg == null ? null : _translations[msg.id];
               final translating =
                   msg != null && _translating.contains(msg.id);
@@ -507,6 +527,18 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
             _action(Icons.storefront_rounded, ar ? 'المتجر' : 'Shop', widget.onShop),
             _action(Icons.grid_view_rounded, ar ? 'الأدوات' : 'Tools', widget.onTools),
             _action(Icons.closed_caption_outlined, ar ? 'الترجمة' : 'Captions', widget.onCaptions),
+            if (widget.onTranslateMessage != null)
+              _action(
+                _translateFullMessages
+                    ? Icons.translate_rounded : Icons.g_translate_rounded,
+                ar ? 'ترجمة الرسائل كاملة' : 'Translate full messages',
+                () => setState(() {
+                  _translateFullMessages = !_translateFullMessages;
+                  if (_translateFullMessages) _failedTranslations.clear();
+                }),
+                color: _translateFullMessages
+                    ? const Color(0xFF83E6C0) : Colors.white,
+              ),
             if (widget.onMic != null)
               _action(widget.micIcon, widget.micLabel, widget.onMic),
             if (widget.handControl != null) widget.handControl!,
