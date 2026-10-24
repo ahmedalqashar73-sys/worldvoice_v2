@@ -91,6 +91,7 @@ flutter:
     - assets/gifts/worldvoice_gifts.json
     - assets/gifts/catalog/
     - assets/backgrounds/
+    - assets/chat_wallpapers/
     - assets/frames/
     - assets/castles/
 
