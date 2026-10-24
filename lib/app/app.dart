@@ -9,6 +9,7 @@ import '../core/ads/academy_lesson_ads.dart';
 import '../core/localization/locale_controller.dart';
 import '../core/localization/supported_language.dart';
 import '../core/theme/app_theme.dart';
+import '../core/theme/worldvoice_appearance.dart';
 import '../features/auth/services/auth_service.dart';
 import '../features/home/presentation/home_screen.dart';
 import '../features/onboarding/presentation/welcome_screen.dart';
@@ -47,7 +48,10 @@ class _WorldVoiceAppState extends State<WorldVoiceApp> with WidgetsBindingObserv
   }
 
   Future<void> _load() async {
-    await _localeController.load();
+    await Future.wait([
+      _localeController.load(),
+      WorldVoiceAppearance.instance.load(),
+    ]);
     if (mounted) setState(() => _ready = true);
   }
 
@@ -82,12 +86,14 @@ class _WorldVoiceAppState extends State<WorldVoiceApp> with WidgetsBindingObserv
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: WorldVoiceAppearance.instance.mode,
+      builder: (context, selectedTheme, _) => MaterialApp(
       title: 'WorldVoice',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.system,
+      themeMode: selectedTheme,
       locale: _localeController.locale,
       supportedLocales: SupportedLanguages.locales,
       localizationsDelegates: const [
@@ -98,6 +104,7 @@ class _WorldVoiceAppState extends State<WorldVoiceApp> with WidgetsBindingObserv
       home: !_ready
           ? const _StartupLoading()
           : _StartupGate(localeController: _localeController),
+    ),
     );
   }
 }
