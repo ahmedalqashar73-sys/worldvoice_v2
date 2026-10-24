@@ -602,6 +602,41 @@ service cloud.firestore {
         allow delete: if false;
       }
 
+      // Transient WebRTC negotiation only. Never store message bodies,
+      // attachments, filenames or message receipts in this collection.
+      // Only a verified chat member can read peer transport metadata.
+      match /p2p_signals/{ownerId} {
+        allow get, list: if signedIn()
+            && exists(/databases/$(database)/documents/chats/$(chatId))
+            && get(/databases/$(database)/documents/chats/$(chatId)).data.active == true
+            && request.auth.uid in get(
+                /databases/$(database)/documents/chats/$(chatId)
+              ).data.memberIds;
+        allow create, update: if signedIn()
+            && request.auth.uid == ownerId
+            && exists(/databases/$(database)/documents/chats/$(chatId))
+            && get(/databases/$(database)/documents/chats/$(chatId)).data.active == true
+            && request.auth.uid in get(
+                /databases/$(database)/documents/chats/$(chatId)
+              ).data.memberIds
+            && request.resource.data.keys().hasOnly([
+              'owner', 'offerId', 'kind', 'sdp', 'ice', 'updatedAt'
+            ])
+            && request.resource.data.keys().hasAll([
+              'owner', 'offerId', 'kind', 'sdp', 'ice', 'updatedAt'
+            ])
+            && request.resource.data.owner == ownerId
+            && request.resource.data.kind in ['offer', 'answer']
+            && request.resource.data.offerId is string
+            && request.resource.data.offerId.size() <= 120
+            && request.resource.data.sdp is string
+            && request.resource.data.sdp.size() <= 120000
+            && request.resource.data.ice is list
+            && request.resource.data.ice.size() <= 80
+            && request.resource.data.updatedAt == request.time;
+        allow delete: if signedIn() && request.auth.uid == ownerId;
+      }
+
       match /messages/{messageId} {
         allow get, list: if signedIn()
             && exists(/databases/$(database)/documents/chats/$(chatId))
