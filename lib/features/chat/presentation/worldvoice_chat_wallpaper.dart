@@ -143,15 +143,16 @@ Future<void> showWorldVoiceWallpaperPicker(
                             SvgPicture.asset(WorldVoiceChatWallpaper.paths[value], fit: BoxFit.cover),
                           if (value != WorldVoiceChatWallpaper.none)
                             const ColoredBox(color: Color(0x29040D17)),
-                          Center(
-                            child: Text(
-                              'WorldVoice',
-                              style: TextStyle(
-                                color: Colors.white.withValues(alpha: .32),
-                                fontSize: 10, fontWeight: FontWeight.w700,
+                          if (value != WorldVoiceChatWallpaper.none)
+                            Center(
+                              child: Text(
+                                'WorldVoice',
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: .32),
+                                  fontSize: 10, fontWeight: FontWeight.w700,
+                                ),
                               ),
                             ),
-                          ),
                           if (active)
                             const PositionedDirectional(
                               top: 6, end: 6,
