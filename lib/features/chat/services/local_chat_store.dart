@@ -151,7 +151,9 @@ class LocalChatStore {
       final privateRoot = Directory('${root.path}/worldvoice_private_chats').absolute.path;
       final incomingRoot = Directory('${root.path}/worldvoice_peer_media').absolute.path;
       if (!path.startsWith('$privateRoot/') &&
-          !path.startsWith('$incomingRoot/')) continue;
+          !path.startsWith('$incomingRoot/')) {
+        continue;
+      }
       try {
         final file = File(path);
         if (await file.exists()) await file.delete();
