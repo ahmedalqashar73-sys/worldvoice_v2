@@ -1856,9 +1856,15 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                 ),
                               ),
                               IconButton(
-                                tooltip: widget.ar ? 'الوقت' : 'Live time',
-                                onPressed: _liveId == null ? null : _showHostQuotaStatus,
-                                icon: const Icon(Icons.schedule_rounded, color: Colors.white),
+                                tooltip: widget.ar ? 'مشاركة اللايف' : 'Share Live',
+                                onPressed: _liveId == null ? null : _shareHostLive,
+                                icon: const Icon(Icons.ios_share_rounded,
+                                    color: Colors.white),
+                              ),
+                              IconButton(
+                                tooltip: 'Teacher AI',
+                                onPressed: () => _liveLanguageKey.currentState?._showMoreTools(),
+                                icon: const Icon(Icons.smart_toy_outlined, color: Colors.white),
                               ),
                               IconButton(
                                 tooltip: 'Subtitles',
@@ -1885,15 +1891,9 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                     color: Colors.white),
                               ),
                               IconButton(
-                                tooltip: 'Teacher AI',
-                                onPressed: () => _liveLanguageKey.currentState?._showMoreTools(),
-                                icon: const Icon(Icons.smart_toy_outlined, color: Colors.white),
-                              ),
-                              IconButton(
-                                tooltip: widget.ar ? 'مشاركة اللايف' : 'Share Live',
-                                onPressed: _liveId == null ? null : _shareHostLive,
-                                icon: const Icon(Icons.ios_share_rounded,
-                                    color: Colors.white),
+                                tooltip: widget.ar ? 'الوقت' : 'Live time',
+                                onPressed: _liveId == null ? null : _showHostQuotaStatus,
+                                icon: const Icon(Icons.schedule_rounded, color: Colors.white),
                               ),
                               IconButton(
                                 tooltip: widget.ar ? 'السبورة' : 'Board',
@@ -3099,9 +3099,21 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                               ),
                             ),
                             IconButton(
-                              tooltip: widget.ar ? 'الوقت' : 'Live time',
-                              onPressed: _showGuestQuotaStatus,
-                              icon: const Icon(Icons.schedule_rounded, color: Colors.white),
+                              tooltip: widget.ar ? 'مشاركة اللايف' : 'Share Live',
+                              onPressed: _shareLive,
+                              icon: const Icon(Icons.ios_share_rounded,
+                                  color: Colors.white),
+                            ),
+                            IconButton(
+                              tooltip: 'Teacher AI',
+                              onPressed: () {
+                                final overlay = _liveLanguageKey.currentState;
+                                if (overlay != null) {
+                                  unawaited(overlay._showMoreTools());
+                                }
+                              },
+                              icon: const Icon(Icons.smart_toy_outlined,
+                                  color: Colors.white),
                             ),
                             IconButton(
                               tooltip: 'Subtitles',
@@ -3128,21 +3140,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                   color: Colors.white),
                             ),
                             IconButton(
-                              tooltip: 'Teacher AI',
-                              onPressed: () {
-                                final overlay = _liveLanguageKey.currentState;
-                                if (overlay != null) {
-                                  unawaited(overlay._showMoreTools());
-                                }
-                              },
-                              icon: const Icon(Icons.smart_toy_outlined,
-                                  color: Colors.white),
-                            ),
-                            IconButton(
-                              tooltip: widget.ar ? 'مشاركة اللايف' : 'Share Live',
-                              onPressed: _shareLive,
-                              icon: const Icon(Icons.ios_share_rounded,
-                                  color: Colors.white),
+                              tooltip: widget.ar ? 'الوقت' : 'Live time',
+                              onPressed: _showGuestQuotaStatus,
+                              icon: const Icon(Icons.schedule_rounded, color: Colors.white),
                             ),
                             IconButton(
                               tooltip: widget.ar ? 'السبورة' : 'Board',
@@ -3960,6 +3960,25 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
                   }());
                 },
               ),
+              if (!translation && _enabled) ...[
+                const SizedBox(height: 6),
+                Text(
+                  widget.canPublish
+                      ? (_listening
+                          ? (widget.ar
+                              ? 'جاري استقبال الصوت وتحويله إلى نص.'
+                              : 'Listening for speech to generate captions.')
+                          : (widget.ar
+                              ? 'لم يبدأ التعرف على الصوت بعد. تحقق من المايك والاتصال.'
+                              : 'Speech recognition has not started. Check microphone and connection.'))
+                      : (widget.ar
+                          ? 'بانتظار ترجمة الكلام إلى نص من صاحب البث أو الضيوف.'
+                          : 'Waiting for captions published by Live speakers.'),
+                  style: const TextStyle(
+                    fontSize: 12, color: Colors.white70),
+                  textAlign: TextAlign.center,
+                ),
+              ],
               if (translation)
                 DropdownButtonFormField<String>(
                   initialValue: _targetLanguage,
