@@ -509,7 +509,9 @@ class _DirectChatConversationScreenState
                       for (final doc in giftSnapshot.data?.docs ??
                           <QueryDocumentSnapshot<Map<String, dynamic>>>[]) {
                         if (locallyHiddenIds.contains(doc.id) ||
-                            messages.any((m) => m['id'] == doc.id)) continue;
+                            messages.any((m) => m['id'] == doc.id)) {
+                          continue;
+                        }
                         final data = doc.data();
                         final timestamp = data['createdAt'];
                         messages.add({
