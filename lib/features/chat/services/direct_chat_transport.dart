@@ -349,7 +349,9 @@ class DirectChatTransport {
       final data = frame['data'];
       if (transfer.isEmpty || data is! Map ||
           data['senderId'] != peerId ||
-          ((data['fileSize'] as num?)?.toInt() ?? 0) > 80 * 1024 * 1024) return;
+          ((data['fileSize'] as num?)?.toInt() ?? 0) > 80 * 1024 * 1024) {
+        return;
+      }
       final original = (data['fileName'] ?? 'file.bin').toString();
       final extension = original.split('.').last.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '');
       final root = await getApplicationSupportDirectory();
