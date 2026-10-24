@@ -593,7 +593,7 @@ class _DirectChatConversationScreenState
                 ? const CircularProgressIndicator()
                 : Text(_ar ? 'المحادثة المحلية غير متاحة حاليًا.'
                     : 'Local conversation unavailable.',
-                  style: const TextStyle(color: Color(0xFFD4C9BC)))
+                  style: const TextStyle(color: Color(0xFFD4C9BC))))
             : StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                 // Read-only legacy history until the safe migration runs.
                 // New direct chat messages never write to this collection.
