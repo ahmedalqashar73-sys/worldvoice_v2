@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
+import 'package:path_provider/path_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
@@ -253,15 +255,19 @@ class DirectChatTransport {
     // Binary frame: 1-byte delimiter followed by UTF-8 transfer ID,
     // newline, then payload; stream, never load an entire video into RAM.
     final prefix = utf8.encode('W$transfer\n');
-    await for (final chunk in file.openRead(0)) {
-      if (!isOnline) return;
-      while (isOnline && await _channel!.getBufferedAmount() > 256 * 1024) {
-        await Future<void>.delayed(const Duration(milliseconds: 20));
+    await for (final chunk in file.openRead()) {
+      // Keep WebRTC data-channel frames below the common 16 KiB limit.
+      for (var offset = 0; offset < chunk.length; offset += 12 * 1024) {
+        if (!isOnline) return;
+        final end = min(offset + 12 * 1024, chunk.length);
+        while (isOnline && await _channel!.getBufferedAmount() > 256 * 1024) {
+          await Future<void>.delayed(const Duration(milliseconds: 20));
+        }
+        if (!isOnline) return;
+        await _channel!.send(RTCDataChannelMessage.fromBinary(
+          Uint8List.fromList([...prefix, ...chunk.sublist(offset, end)]),
+        ));
       }
-      if (!isOnline) return;
-      await _channel!.send(RTCDataChannelMessage.fromBinary(
-        Uint8List.fromList([...prefix, ...chunk]),
-      ));
     }
     await _transmit({'op': 'file-end', 'transfer': transfer, 'id': id});
   }
