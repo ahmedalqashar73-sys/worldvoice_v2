@@ -3213,17 +3213,13 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                 ),
                               ),
                             if (_isModerator)
-                              IconButton(
-                                tooltip: widget.ar
-                                    ? 'طلبات الانضمام'
-                                    : 'Join requests',
+                              _LiveStageRequestsButton(
+                                liveId: widget.liveId,
+                                service: _service,
+                                ar: widget.ar,
                                 onPressed: () => setState(
                                   () => _moderatorRequestsOpen =
                                       !_moderatorRequestsOpen,
-                                ),
-                                icon: const Icon(
-                                  Icons.pan_tool_alt_rounded,
-                                  color: Colors.white,
                                 ),
                               ),
                             if (_guestPublishing) ...[
