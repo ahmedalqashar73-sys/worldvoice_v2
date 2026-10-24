@@ -34,6 +34,9 @@ class DirectChatTransport {
   String? _offerId;
   String? _remoteSession;
   final Set<String> _iceSeen = {};
+  final List<Map<String, dynamic>> _pendingLocalIce = [];
+  bool _signalReady = false;
+  Map<String, dynamic>? _deferredSignal;
   bool _handlingRemote = false;
   final Map<String, IOSink> _incomingFiles = {};
   final Map<String, File> _incomingPaths = {};
@@ -60,12 +63,8 @@ class DirectChatTransport {
     });
     _pc!.onIceCandidate = (candidate) {
       if (_disposed || candidate.candidate == null) return;
-      unawaited(_self.update({
-        'ice': FieldValue.arrayUnion([candidate.toMap()]),
-        'updatedAt': FieldValue.serverTimestamp(),
-      }).catchError((Object error) {
-        debugPrint('WorldVoice P2P ICE candidate: $error');
-      }));
+      _pendingLocalIce.add(Map<String, dynamic>.from(candidate.toMap()));
+      if (_signalReady) unawaited(_flushIce());
     };
     _pc!.onDataChannel = _attachChannel;
     _pc!.onConnectionState = (state) {
@@ -86,6 +85,22 @@ class DirectChatTransport {
     if (uid.compareTo(peerId) < 0) await _publishOffer();
   }
 
+  Future<void> _flushIce() async {
+    if (!_signalReady || _pendingLocalIce.isEmpty || _disposed) return;
+    final values = List<Map<String, dynamic>>.from(_pendingLocalIce);
+    _pendingLocalIce.clear();
+    try {
+      await _self.update({
+        'ice': FieldValue.arrayUnion(values),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (error) {
+      // Retry with the next ICE candidate or the next negotiation.
+      _pendingLocalIce.insertAll(0, values);
+      debugPrint('WorldVoice P2P ICE retry: $error');
+    }
+  }
+
   Future<void> _publishOffer() async {
     _offerId = LocalChatStore.newId();
     final dc = await _pc!.createDataChannel('worldvoice-chat',
@@ -98,10 +113,16 @@ class DirectChatTransport {
       'sdp': offer.sdp ?? '', 'ice': <dynamic>[],
       'updatedAt': FieldValue.serverTimestamp(),
     });
+    _signalReady = true;
+    await _flushIce();
   }
 
   Future<void> _consumeSignal(Map<String, dynamic> data) async {
-    if (_handlingRemote || _disposed || _pc == null) return;
+    if (_disposed || _pc == null) return;
+    if (_handlingRemote) {
+      _deferredSignal = data;
+      return;
+    }
     _handlingRemote = true;
     try {
       final kind = data['kind'];
@@ -122,6 +143,8 @@ class DirectChatTransport {
             'sdp': answer.sdp ?? '', 'ice': <dynamic>[],
             'updatedAt': FieldValue.serverTimestamp(),
           });
+          _signalReady = true;
+          await _flushIce();
         }
       } else if (uid.compareTo(peerId) < 0 &&
           kind == 'answer' && offerId == _offerId && !_remoteSet) {
@@ -153,6 +176,11 @@ class DirectChatTransport {
       debugPrint('WorldVoice P2P negotiation: $error');
     } finally {
       _handlingRemote = false;
+      final next = _deferredSignal;
+      _deferredSignal = null;
+      if (next != null && !_disposed) {
+        unawaited(_consumeSignal(next));
+      }
     }
   }
 
@@ -219,7 +247,7 @@ class DirectChatTransport {
       for (final item in messages) {
         if (!isOnline) return;
         if (item['senderId'] != uid ||
-            item['delivered'] == true || item['hidden'] == true) continue;
+            item['delivered'] == true) continue;
         final pendingOp = item['pendingOp']?.toString();
         if (pendingOp == 'edit' || pendingOp == 'withdraw') {
           await _transmit({
@@ -375,18 +403,26 @@ class DirectChatTransport {
     final messages = await store.messages();
     if (!messages.any((m) => m['id'] == id && m['senderId'] == uid &&
         m['type'] == 'text')) return;
-    await store.patch(id, {'text': text, 'edited': true, 'delivered': false, 'pendingOp': 'edit'});
+    final prior = messages.firstWhere((m) => m['id'] == id);
+    final delivered = prior['delivered'] == true;
+    await store.patch(id, {
+      'text': text, 'edited': true, 'delivered': false,
+      'pendingOp': delivered ? 'edit' : '',
+    });
     await flush();
   }
 
   Future<void> withdraw(String id) async {
     final messages = await store.messages();
     if (!messages.any((m) => m['id'] == id && m['senderId'] == uid)) return;
+    final prior = messages.firstWhere((m) => m['id'] == id);
+    final delivered = prior['delivered'] == true;
     await store.patch(id, {
-      'withdrawn': true, 'text': '', 'filePath': '', 'delivered': false,
-      'pendingOp': 'withdraw',
+      'withdrawn': true, 'text': '', 'filePath': '',
+      'delivered': !delivered,
+      'pendingOp': delivered ? 'withdraw' : '',
     });
-    await flush();
+    if (delivered) await flush();
   }
 
   Future<void> dispose() async {
