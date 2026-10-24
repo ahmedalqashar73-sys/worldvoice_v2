@@ -1,0 +1,48 @@
+name: WorldVoice Chat Appearance Check
+
+on:
+  push:
+    branches:
+      - feature/scalable-progress-foundation
+    paths:
+      - '.github/workflows/chat-appearance-check.yml'
+      - 'assets/chat_wallpapers/**'
+      - 'lib/core/theme/worldvoice_appearance.dart'
+      - 'lib/features/chat/presentation/worldvoice_chat_wallpaper.dart'
+      - 'lib/features/chat/presentation/direct_chat_conversation_screen.dart'
+      - 'lib/features/profile/presentation/settings_screen.dart'
+      - 'lib/app/app.dart'
+      - 'pubspec.yaml'
+      - 'test/worldvoice_chat_appearance_test.dart'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  chat-appearance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.8'
+          channel: stable
+          cache: true
+      - name: Validate all six SVG assets
+        run: |
+          python3 - <<'PY'
+          import pathlib
+          import xml.etree.ElementTree as ET
+          paths = sorted(pathlib.Path("assets/chat_wallpapers").glob("*.svg"))
+          assert len(paths) == 6, f"Expected six backgrounds; found {len(paths)}"
+          for path in paths:
+              root = ET.parse(path).getroot()
+              assert root.tag.endswith("svg"), str(path)
+              assert int(root.attrib.get("width", 0)) >= 720
+              print("OK:", path)
+          PY
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test test/worldvoice_chat_appearance_test.dart
