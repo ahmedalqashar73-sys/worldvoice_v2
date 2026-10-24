@@ -247,6 +247,17 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if signedIn();
 
+      // Each user alone controls their personal messaging block list.
+      match /blocked_peers/{peerId} {
+        allow read: if signedIn() && request.auth.uid == userId;
+        allow create, update: if signedIn() && request.auth.uid == userId
+            && peerId != userId
+            && request.resource.data.keys().hasOnly(['targetId', 'createdAt'])
+            && request.resource.data.targetId == peerId
+            && request.resource.data.createdAt == request.time;
+        allow delete: if signedIn() && request.auth.uid == userId;
+      }
+
       allow create: if signedIn()
           && request.auth.uid == userId
           && request.resource.data.uid == userId
@@ -648,6 +659,32 @@ service cloud.firestore {
         // Neither text, gift animation nor amount can be forged by a device.
         allow create, update, delete: if false;
       }
+    }
+
+    // Abuse reports contain classification only by default: a private
+    // on-device chat transcript is never uploaded without explicit consent.
+    match /chat_reports/{reportId} {
+      allow get, list, update, delete: if false;
+      allow create: if signedIn()
+          && request.resource.data.keys().hasOnly([
+            'reporterId', 'targetUserId', 'chatId', 'reason', 'createdAt'
+          ])
+          && request.resource.data.keys().hasAll([
+            'reporterId', 'targetUserId', 'chatId', 'reason', 'createdAt'
+          ])
+          && request.resource.data.reporterId == request.auth.uid
+          && request.resource.data.targetUserId is string
+          && request.resource.data.targetUserId != request.auth.uid
+          && request.resource.data.chatId is string
+          && request.resource.data.chatId.size() <= 160
+          && request.resource.data.reason in [
+            'harassment', 'spam', 'impersonation', 'other'
+          ]
+          && request.resource.data.createdAt == request.time
+          && exists(/databases/$(database)/documents/chats/$(request.resource.data.chatId))
+          && request.auth.uid in get(
+            /databases/$(database)/documents/chats/$(request.resource.data.chatId)
+          ).data.memberIds;
     }
 
     // -------------------------
