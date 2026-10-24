@@ -393,6 +393,10 @@ class _DirectChatConversationScreenState
                 Text(_ar ? 'تم سحب الرسالة' : 'Message unsent',
                   style: const TextStyle(color: Colors.black54,
                     fontStyle: FontStyle.italic))
+              else if (type == 'gift')
+                Text(text.isNotEmpty ? text : '🎁 WorldVoice Gift',
+                  style: const TextStyle(
+                    color: Color(0xFF1F6047), fontWeight: FontWeight.w700))
               else if (type != 'text')
                 _PrivateMediaBubble(
                   type: type,
@@ -472,21 +476,45 @@ class _DirectChatConversationScreenState
               child: Text(_ar ? 'هذا المستخدم محظور' : 'This user is blocked')),
           Expanded(child: _store == null
             ? const Center(child: CircularProgressIndicator())
-            : FutureBuilder<List<Map<String, dynamic>>>(
-              future: _store!.messages(),
-              builder: (ctx, snapshot) {
-                if (snapshot.hasError) {
-                  return Center(child: Text(snapshot.error.toString()));
-                }
-                final messages = snapshot.data ?? <Map<String, dynamic>>[];
-                return ListView.builder(
-                  reverse: true,
-                  padding: const EdgeInsets.only(top: 10, bottom: 14),
-                  itemCount: messages.length,
-                  itemBuilder: (ctx, index) =>
-                    _bubble(messages[messages.length - 1 - index]),
-                );
-              })),
+            : StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                // Gifting remains backend-authoritative, not a P2P coin event.
+                stream: FirebaseFirestore.instance.collection('chats')
+                  .doc(widget.chatId).collection('messages')
+                  .where('type', isEqualTo: 'gift').limit(40).snapshots(),
+                builder: (ctx, giftSnapshot) =>
+                  FutureBuilder<List<Map<String, dynamic>>>(
+                    future: _store!.messages(),
+                    builder: (ctx, snapshot) {
+                      if (snapshot.hasError) {
+                        return Center(child: Text(snapshot.error.toString()));
+                      }
+                      final messages = List<Map<String, dynamic>>.from(
+                        snapshot.data ?? const <Map<String, dynamic>>[]);
+                      // Gift ledger events are not ordinary private messages.
+                      for (final doc in giftSnapshot.data?.docs ??
+                          <QueryDocumentSnapshot<Map<String, dynamic>>>[]) {
+                        final data = doc.data();
+                        final timestamp = data['createdAt'];
+                        messages.add({
+                          'id': doc.id, 'type': 'gift',
+                          'senderId': data['senderId'],
+                          'text': '🎁 ${data['senderName'] ?? 'WorldVoice'}',
+                          'createdAt': timestamp is Timestamp
+                              ? timestamp.millisecondsSinceEpoch : 0,
+                          'hidden': false,
+                        });
+                      }
+                      messages.sort((a, b) =>
+                        ((a['createdAt'] as num?)?.toInt() ?? 0).compareTo(
+                          (b['createdAt'] as num?)?.toInt() ?? 0));
+                      return ListView.builder(
+                        reverse: true,
+                        padding: const EdgeInsets.only(top: 10, bottom: 14),
+                        itemCount: messages.length,
+                        itemBuilder: (ctx, index) =>
+                          _bubble(messages[messages.length - 1 - index]),
+                      );
+                    }))),
           Container(
             decoration: const BoxDecoration(
               color: Color(0xFFF9FCFA),
