@@ -160,7 +160,7 @@ class _DirectChatConversationScreenState
         recipientId: widget.peerId, chatId: widget.chatId, type: type);
       if (!mounted) return;
       await Navigator.of(context).push(MaterialPageRoute<void>(
-        builder: (_) => ChatCallScreen(call: info, outgoing: true)));
+        builder: (_) => ChatCallScreen(call: info, peerName: widget.peerName, peerPhotoUrl: '', accepted: false)));
     } catch (error) { _error(error); }
   }
 
