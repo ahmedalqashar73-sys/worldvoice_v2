@@ -1033,7 +1033,8 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
 
   Future<void> _endLiveAndPop() async {
     if (_sessionClosed) return;
-    _sessionClosed = true;
+    // Enable the route to pop only for a deliberate End Live action.
+    if (mounted) setState(() => _sessionClosed = true);
     _heartbeatTimer?.cancel();
     _cameraOffTimer?.cancel();
     _quotaTimer?.cancel();
@@ -1046,11 +1047,14 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
       try {
         await _liveService.end(liveId);
       } catch (_) {
-        _sessionClosed = false;
+        if (mounted) setState(() => _sessionClosed = false);
         rethrow;
       }
     }
     await _controller.leave();
+    if (!mounted) return;
+    // PopScope must rebuild with canPop=true before the explicit route pop.
+    await WidgetsBinding.instance.endOfFrame;
     if (!mounted) return;
     final navigator = Navigator.of(context);
     if (_minimized) {
@@ -1328,7 +1332,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: !_cameraReady,
+      canPop: !_cameraReady || _sessionClosed,
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop && _cameraReady && !_sessionClosed) {
           _minimizeHostLive();
