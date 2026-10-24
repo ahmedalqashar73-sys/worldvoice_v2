@@ -4608,7 +4608,7 @@ class WorldVoiceLiveSharedCard extends StatelessWidget {
         return Align(
           alignment: AlignmentDirectional.centerStart,
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 335),
+            constraints: const BoxConstraints(maxWidth: 310),
             child: Material(
               color: Colors.transparent,
               borderRadius: BorderRadius.circular(22),
@@ -4619,7 +4619,7 @@ class WorldVoiceLiveSharedCard extends StatelessWidget {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: fresh
-                        ? const [Color(0xFF38216B), Color(0xFF271851)]
+                        ? const [Color(0xFF28205A), Color(0xFF362373)]
                         : const [Color(0xFF3D3D46), Color(0xFF27272D)],
                   ),
                 ),
@@ -4628,7 +4628,7 @@ class WorldVoiceLiveSharedCard extends StatelessWidget {
                       ? () => _openLive(context, id: id, live: live)
                       : null,
                   child: SizedBox(
-                    height: 294,
+                    height: 278,
                     width: double.infinity,
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(13, 12, 13, 13),
@@ -4674,7 +4674,7 @@ class WorldVoiceLiveSharedCard extends StatelessWidget {
                                     loading
                                         ? '…'
                                         : fresh
-                                            ? '● LIVE'
+                                            ? (ar ? '● مباشر' : '● LIVE')
                                             : (ar ? 'انتهى' : 'Ended'),
                                     style: const TextStyle(
                                       color: Colors.white,
@@ -4736,7 +4736,7 @@ class WorldVoiceLiveSharedCard extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
-                                    ar ? 'شاهد البث' : 'Watch live',
+                                    ar ? 'انضم إلى البث' : 'Join Live',
                                     style: const TextStyle(
                                       color: Color(0xFF4A260A),
                                       fontSize: 11,
@@ -4786,6 +4786,7 @@ String _liveShareText({
 }) {
   final cleanTopic = topic.trim();
   final title = cleanTopic.isEmpty ? 'WorldVoice Live' : cleanTopic;
+  // Shared chat messages and Home posts use the same clickable Live preview.
   return '🔴 WorldVoice Live\n$title\n$hostName\n${_liveShareUri(liveId)}';
 }
 
