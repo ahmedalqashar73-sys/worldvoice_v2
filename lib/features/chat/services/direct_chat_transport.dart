@@ -62,6 +62,7 @@ class DirectChatTransport {
       if (_disposed || candidate.candidate == null) return;
       unawaited(_self.update({
         'ice': FieldValue.arrayUnion([candidate.toMap()]),
+        'updatedAt': FieldValue.serverTimestamp(),
       }).catchError((Object error) {
         debugPrint('WorldVoice P2P ICE candidate: $error');
       }));
@@ -219,6 +220,14 @@ class DirectChatTransport {
         if (!isOnline) return;
         if (item['senderId'] != uid ||
             item['delivered'] == true || item['hidden'] == true) continue;
+        final pendingOp = item['pendingOp']?.toString();
+        if (pendingOp == 'edit' || pendingOp == 'withdraw') {
+          await _transmit({
+            'op': pendingOp, 'id': item['id'], 'senderId': uid,
+            'text': item['text'] ?? '',
+          });
+          continue;
+        }
         final type = item['type']?.toString() ?? 'text';
         final filePath = item['filePath']?.toString() ?? '';
         if (type != 'text' && filePath.isNotEmpty) {
@@ -287,7 +296,7 @@ class DirectChatTransport {
     final op = frame['op'];
     final id = frame['id']?.toString();
     if (op == 'ack' && id != null) {
-      await store.patch(id, {'delivered': true});
+      await store.patch(id, {'delivered': true, 'pendingOp': ''});
       return;
     }
     if (op == 'read' && id != null) {
@@ -303,6 +312,7 @@ class DirectChatTransport {
           ? {'withdrawn': true, 'text': '', 'filePath': ''}
           : {'edited': true, 'text': (frame['text'] ?? '').toString()});
       }
+      await _transmit({'op': 'ack', 'id': id});
       return;
     }
     if (op == 'file-begin') {
@@ -365,8 +375,8 @@ class DirectChatTransport {
     final messages = await store.messages();
     if (!messages.any((m) => m['id'] == id && m['senderId'] == uid &&
         m['type'] == 'text')) return;
-    await store.patch(id, {'text': text, 'edited': true, 'delivered': false});
-    if (isOnline) await _transmit({'op': 'edit', 'id': id, 'senderId': uid, 'text': text});
+    await store.patch(id, {'text': text, 'edited': true, 'delivered': false, 'pendingOp': 'edit'});
+    await flush();
   }
 
   Future<void> withdraw(String id) async {
@@ -374,8 +384,9 @@ class DirectChatTransport {
     if (!messages.any((m) => m['id'] == id && m['senderId'] == uid)) return;
     await store.patch(id, {
       'withdrawn': true, 'text': '', 'filePath': '', 'delivered': false,
+      'pendingOp': 'withdraw',
     });
-    if (isOnline) await _transmit({'op': 'withdraw', 'id': id, 'senderId': uid});
+    await flush();
   }
 
   Future<void> dispose() async {
