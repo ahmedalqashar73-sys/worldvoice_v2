@@ -63,7 +63,12 @@ class _DirectChatConversationScreenState
   }
 
   Future<void> _setup() async {
-    if (_uid.isEmpty) return;
+    if (_uid.isEmpty) {
+      if (mounted) {
+        setState(() => _setupError = 'WorldVoice sign-in is required.');
+      }
+      return;
+    }
     try {
       final store = LocalChatStore.of(_uid, widget.chatId);
       await store.messages();
@@ -95,7 +100,12 @@ class _DirectChatConversationScreenState
         }
       }
     } catch (error) {
-      if (mounted) setState(() => _setupError = error.toString());
+      debugPrint('WorldVoice private chat initialization failed: $error');
+      if (mounted) {
+        setState(() => _setupError = _ar
+            ? 'تعذّر فتح الرسائل المحلية بأمان. لا تحذف بيانات التطبيق، وأعد المحاولة.'
+            : 'Unable to read saved chats securely. Do not clear app data; please retry.');
+      }
     }
   }
 
@@ -552,8 +562,17 @@ class _DirectChatConversationScreenState
       body: WorldVoiceChatWallpaper(index: _wallpaper,
         child: Column(children: [
           if (_setupError != null)
-            Padding(padding: const EdgeInsets.all(8),
-              child: Text(_setupError!, style: const TextStyle(color: Colors.red))),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              child: Row(children: [
+                const Icon(Icons.info_outline_rounded,
+                  size: 18, color: Color(0xFFE7BD76)),
+                const SizedBox(width: 8),
+                Expanded(child: Text(_setupError!,
+                  style: const TextStyle(
+                    color: Color(0xFFE3D4B8), fontSize: 12))),
+              ]),
+            ),
           if (_connectionNotice != null)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
@@ -570,7 +589,11 @@ class _DirectChatConversationScreenState
             Padding(padding: const EdgeInsets.all(8),
               child: Text(_ar ? 'هذا المستخدم محظور' : 'This user is blocked')),
           Expanded(child: _store == null
-            ? const Center(child: CircularProgressIndicator())
+            ? Center(child: _setupError == null
+                ? const CircularProgressIndicator()
+                : Text(_ar ? 'المحادثة المحلية غير متاحة حاليًا.'
+                    : 'Local conversation unavailable.',
+                  style: const TextStyle(color: Color(0xFFD4C9BC))))
             : StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                 // Read-only legacy history until the safe migration runs.
                 // New direct chat messages never write to this collection.
