@@ -179,6 +179,8 @@ class _LiveScreenState extends State<LiveScreen> {
       Color(0xFF3F2A61),
     ];
     final avatarUrl = (data['hostPhotoUrl'] ?? '').toString().trim();
+    final savedCover = (data['hostCoverUrl'] ?? '').toString().trim();
+    final backgroundUrl = savedCover.isEmpty ? avatarUrl : savedCover;
     final name = (data['hostName'] ?? 'WorldVoice').toString();
     final topic = (data['topic'] ?? '').toString().trim();
     final rawLanguage = _normalizedLanguage(data['languageCode']);
@@ -202,14 +204,42 @@ class _LiveScreenState extends State<LiveScreen> {
             ),
           ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 12, 12, 13),
-          child: Column(
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (backgroundUrl.isNotEmpty)
+              Image.network(
+                backgroundUrl,
+                fit: BoxFit.cover,
+                filterQuality: FilterQuality.low,
+                errorBuilder: (context, error, stackTrace) =>
+                    const SizedBox.shrink(),
+              ),
+            const DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0xC71A142C),
+                    Color(0xA9101A21),
+                    Color(0xE5091415),
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 13),
+              child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Row(children: [
                 const Icon(Icons.graphic_eq_rounded,
                     color: Colors.white, size: 20),
+                const SizedBox(width: 5),
+                Text(ar ? 'مباشر' : 'LIVE',
+                    style: const TextStyle(color: Color(0xFFFF7182),
+                        fontSize: 10, fontWeight: FontWeight.w900)),
                 const Spacer(),
                 if (languageLabel.isNotEmpty)
                   Container(
@@ -279,6 +309,8 @@ class _LiveScreenState extends State<LiveScreen> {
               ),
             ],
           ),
+        ),
+          ],
         ),
       ),
     );
