@@ -29,12 +29,28 @@ class LiveSessionService {
     String topic = '',
   }) async {
     final user = _user;
+    // Use the completed WorldVoice profile, not only the Google/Firebase
+    // sign-in photo. A missing or slow profile fetch must not block Live.
+    Map<String, dynamic> hostProfile = const <String, dynamic>{};
+    try {
+      final profile = await _db.collection('users').doc(user.uid).get()
+          .timeout(const Duration(seconds: 3));
+      hostProfile = profile.data() ?? const <String, dynamic>{};
+    } catch (_) {
+      // The Auth metadata still provides a safe fallback.
+    }
+    final savedPhoto = (hostProfile['photoUrl'] ?? '').toString().trim();
+    final savedCover = (hostProfile['coverUrl'] ?? '').toString().trim();
+    final savedName = (hostProfile['displayName'] ??
+        hostProfile['name'] ?? '').toString().trim();
     final ref = _sessions.doc(channelId);
     await ref.set({
       'channelId': channelId,
       'hostId': user.uid,
-      'hostName': user.displayName ?? 'WorldVoice host',
-      'hostPhotoUrl': user.photoURL ?? '',
+      'hostName': savedName.isNotEmpty
+          ? savedName : (user.displayName ?? 'WorldVoice host'),
+      'hostPhotoUrl': savedPhoto.isNotEmpty ? savedPhoto : (user.photoURL ?? ''),
+      'hostCoverUrl': savedCover,
       'hostAgoraUid': hostAgoraUid,
       'languageCode': languageCode,
       'topic': topic.trim(),
