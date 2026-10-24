@@ -4556,10 +4556,7 @@ class WorldVoiceLiveSharedCard extends StatelessWidget {
     final localeController = LocaleController();
     try {
       await localeController.load();
-      if (!context.mounted) {
-        localeController.dispose();
-        return;
-      }
+      if (!context.mounted) return;
       await Navigator.of(context).push<void>(
         MaterialPageRoute(
           fullscreenDialog: true,
@@ -4608,7 +4605,7 @@ class WorldVoiceLiveSharedCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           clipBehavior: Clip.antiAlias,
           child: InkWell(
-            onTap: fresh
+            onTap: fresh && live != null
                 ? () => _openLive(context, id: id, live: live)
                 : null,
             child: ConstrainedBox(
