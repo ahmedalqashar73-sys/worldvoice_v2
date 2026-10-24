@@ -211,6 +211,9 @@ class _LiveScreenState extends State<LiveScreen> {
               Image.network(
                 backgroundUrl,
                 fit: BoxFit.cover,
+                // Thumbnail decoding, not a full-resolution profile cover for
+                // every card in the two-column discovery grid.
+                cacheWidth: 600,
                 filterQuality: FilterQuality.low,
                 errorBuilder: (context, error, stackTrace) =>
                     const SizedBox.shrink(),
