@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
 import '../services/story_service.dart';
+import '../../chat/presentation/worldvoice_share_to_chat_sheet.dart';
 
 class StoryViewerScreen extends StatefulWidget {
   const StoryViewerScreen({
@@ -323,6 +324,18 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
                         ),
                       ],
                     ),
+                  IconButton(
+                    tooltip: ar ? 'مشاركة الستوري' : 'Share story in chat',
+                    onPressed: () => WorldVoiceShareToChatSheet.show(
+                      context,
+                      text: '🌸 WorldVoice Story\n'
+                          '${story.ownerName}\n'
+                          'worldvoice://story/${story.id}',
+                      title: ar ? 'مشاركة الستوري إلى...' : 'Share story to...',
+                    ),
+                    icon: const Icon(Icons.ios_share_rounded,
+                      color: Colors.white),
+                  ),
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
                     icon: const Icon(
