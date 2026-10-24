@@ -113,9 +113,10 @@ Future<void> showWorldVoiceWallpaperPicker(
             style: const TextStyle(color: Color(0xFFABB6B2), fontSize: 12),
           ),
           const SizedBox(height: 20),
-          Flexible(
+          SizedBox(
+            height: (MediaQuery.sizeOf(sheetContext).height * .52)
+                .clamp(260.0, 540.0),
             child: GridView.builder(
-              shrinkWrap: true,
               itemCount: paths.length + 1,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 3, childAspectRatio: .65,
