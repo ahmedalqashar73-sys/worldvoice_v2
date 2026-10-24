@@ -259,8 +259,10 @@ class _DirectChatConversationScreenState
   Future<void> _options() async {
     await showModalBottomSheet<void>(
       context: context, showDragHandle: true, useSafeArea: true,
-      backgroundColor: const Color(0xFFF7FAF8),
-      builder: (sheet) => SafeArea(child: Column(
+      backgroundColor: const Color(0xFF1C2228),
+      builder: (sheet) => Theme(
+        data: ThemeData.dark(useMaterial3: true),
+        child: SafeArea(child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           ListTile(leading: const Icon(Icons.person_outline),
@@ -286,7 +288,7 @@ class _DirectChatConversationScreenState
           ListTile(leading: const Icon(Icons.delete_outline, color: Colors.red),
             title: Text(_ar ? 'حذف المحادثة من جهازي' : 'Delete local chat'),
             onTap: () { Navigator.pop(sheet); unawaited(_clearChat()); }),
-        ])));
+        ]))));
   }
 
   Future<void> _messageOptions(Map<String, dynamic> item) async {
@@ -381,7 +383,11 @@ class _DirectChatConversationScreenState
     final created = DateTime.fromMillisecondsSinceEpoch(
       (item['createdAt'] as num?)?.toInt() ?? 0);
     final time = TimeOfDay.fromDateTime(created).format(context);
-    final onMine = const Color(0xFFD6F0E3);
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final myBubble = dark ? const Color(0xFF145540) : const Color(0xFFD6F0E3);
+    final peerBubble = dark ? const Color(0xF02A3038) : const Color(0xFFF8FCFA);
+    final messageColor = dark ? const Color(0xFFF2F7F4) : const Color(0xFF16372B);
+    final detailColor = dark ? const Color(0xFFBACEC5) : const Color(0xFF657D72);
     return Align(
       alignment: mine ? AlignmentDirectional.centerEnd :
         AlignmentDirectional.centerStart,
@@ -392,7 +398,7 @@ class _DirectChatConversationScreenState
           margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
           padding: const EdgeInsets.fromLTRB(13, 10, 13, 8),
           decoration: BoxDecoration(
-            color: mine ? onMine : Colors.white.withValues(alpha: .91),
+            color: mine ? myBubble : peerBubble,
             borderRadius: BorderRadius.circular(18),
             boxShadow: const [BoxShadow(color: Color(0x110E2B22),
               blurRadius: 5, offset: Offset(0, 2))]),
@@ -401,12 +407,12 @@ class _DirectChatConversationScreenState
             crossAxisAlignment: CrossAxisAlignment.start, children: [
               if (removed)
                 Text(_ar ? 'تم سحب الرسالة' : 'Message unsent',
-                  style: const TextStyle(color: Colors.black54,
+                  style: TextStyle(color: detailColor,
                     fontStyle: FontStyle.italic))
               else if (type == 'gift')
                 Text(text.isNotEmpty ? text : '🎁 WorldVoice Gift',
-                  style: const TextStyle(
-                    color: Color(0xFF1F6047), fontWeight: FontWeight.w700))
+                  style: TextStyle(
+                    color: messageColor, fontWeight: FontWeight.w700))
               else if (type != 'text')
                 _PrivateMediaBubble(
                   type: type,
@@ -416,25 +422,26 @@ class _DirectChatConversationScreenState
                   cacheScope: 'chat_$_uid',
                 )
               else
-                Text(text, style: const TextStyle(
-                  fontSize: 15, height: 1.4, color: Color(0xFF16372B))),
+                Text(text, style: TextStyle(
+                  fontSize: 15, height: 1.4, color: messageColor)),
               const SizedBox(height: 5),
               Row(mainAxisSize: MainAxisSize.min, children: [
                 if (edited) ...[
                   Text(_ar ? 'معدلة' : 'Edited',
-                    style: const TextStyle(fontSize: 10, color: Colors.black54)),
+                    style: TextStyle(fontSize: 10, color: detailColor)),
                   const SizedBox(width: 5),
                 ],
-                Text(time, style: const TextStyle(
-                  fontSize: 10, color: Color(0xFF657D72))),
+                Text(time, style: TextStyle(
+                  fontSize: 10, color: detailColor)),
                 if (mine) ...[
                   const SizedBox(width: 5),
                   Text(read
                     ? (_ar ? 'تمت القراءة' : 'Read')
                     : (_ar ? 'تم الإرسال' : 'Sent'),
                     style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600,
-                      color: read ? const Color(0xFF11845C)
-                        : const Color(0xFF64786D))),
+                      color: read
+                          ? (dark ? const Color(0xFF91E5C1) : const Color(0xFF11845C))
+                          : detailColor)),
                 ],
               ]),
             ]),
@@ -445,26 +452,32 @@ class _DirectChatConversationScreenState
 
   @override
   Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final foreground = dark ? const Color(0xFFF1F6F3) : const Color(0xFF183A2C);
+    final barColor = dark ? const Color(0xFF171B20) : const Color(0xFFFBFDFB);
     return Scaffold(
-      backgroundColor: const Color(0xFFE7F0E9),
+      backgroundColor: dark ? const Color(0xFF0F1115) : const Color(0xFFF4F6F5),
       appBar: AppBar(
         titleSpacing: 0,
-        backgroundColor: const Color(0xFFF9FCFA),
+        foregroundColor: foreground,
+        backgroundColor: barColor,
         title: InkWell(
           onTap: _options,
           child: Row(children: [
             const CircleAvatar(
-              radius: 18, backgroundColor: Color(0xFFD6E9DC),
-              child: Icon(Icons.person, color: Color(0xFF346E51))),
+              radius: 18, backgroundColor: Color(0xFF204E3C),
+              child: Icon(Icons.person, color: Color(0xFFAFEBD0))),
             const SizedBox(width: 9),
             Flexible(child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(widget.peerName,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                Text(_ar ? 'محادثة خاصة' : 'Private conversation',
-                  style: const TextStyle(fontSize: 11, color: Colors.black54)),
+                  style: TextStyle(
+                    color: foreground, fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(_ar ? 'محادثة WorldVoice الخاصة' : 'WorldVoice private chat',
+                  style: TextStyle(fontSize: 11,
+                    color: foreground.withValues(alpha: .64))),
               ])),
           ]),
         ),
@@ -539,13 +552,15 @@ class _DirectChatConversationScreenState
                       );
                     }))),
           Container(
-            decoration: const BoxDecoration(
-              color: Color(0xFFF9FCFA),
-              boxShadow: [BoxShadow(color: Color(0x14000000), blurRadius: 8)]),
+            decoration: BoxDecoration(
+              color: barColor,
+              boxShadow: const [BoxShadow(
+                color: Color(0x1F000000), blurRadius: 9)]),
             padding: const EdgeInsets.fromLTRB(6, 5, 6, 8),
             child: SafeArea(top: false, child: Row(children: [
               PopupMenuButton<String>(
-                icon: const Icon(Icons.add_circle_outline),
+                tooltip: _ar ? 'إرفاق' : 'Attach',
+                icon: Icon(Icons.add_circle_outline, color: foreground),
                 onSelected: (type) {
                   if (type == 'gift') { _gifts(); return; }
                   unawaited(_pickAttachment(type));
@@ -559,18 +574,36 @@ class _DirectChatConversationScreenState
               Expanded(child: TextField(
                 controller: _input, enabled: !_blocked,
                 minLines: 1, maxLines: 4,
+                style: TextStyle(color: foreground, fontSize: 15),
+                cursorColor: const Color(0xFF59CFA3),
                 textInputAction: TextInputAction.send,
                 onSubmitted: (_) => unawaited(_send()),
                 decoration: InputDecoration(
+                  filled: true,
+                  fillColor: dark
+                    ? const Color(0xFF262C32) : const Color(0xFFECF2EE),
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 15, vertical: 12),
                   hintText: _ar ? 'اكتب رسالة...' : 'Message...',
-                  border: InputBorder.none))),
+                  hintStyle: TextStyle(
+                    color: foreground.withValues(alpha: .53)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(25),
+                    borderSide: BorderSide.none,
+                  )))),
               IconButton(
                 tooltip: _recording ? 'Send voice' : 'Record voice',
                 onPressed: _busy || _blocked ? null : _toggleRecording,
                 icon: Icon(_recording
                     ? Icons.stop_circle_rounded : Icons.mic_none_rounded,
-                    color: _recording ? Colors.red : const Color(0xFF286B51))),
+                    color: _recording ? Colors.redAccent
+                        : (dark ? const Color(0xFF8ED5B7) : const Color(0xFF286B51)))),
               IconButton.filled(
+                style: IconButton.styleFrom(
+                  backgroundColor: const Color(0xFF169B6B),
+                  foregroundColor: Colors.white,
+                ),
                 onPressed: _busy || _blocked ? null : _send,
                 icon: _busy
                   ? const SizedBox.square(dimension: 16,
