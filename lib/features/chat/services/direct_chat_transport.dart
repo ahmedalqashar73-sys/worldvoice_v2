@@ -29,6 +29,7 @@ class DirectChatTransport {
   RTCDataChannel? _channel;
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _signalListener;
   bool _disposed = false;
+  bool _storeListening = false;
   bool _remoteSet = false;
   String? _offerId;
   String? _remoteSession;
@@ -51,8 +52,18 @@ class DirectChatTransport {
   bool get isOnline => connected.value && !_disposed &&
       _channel?.state == RTCDataChannelState.RTCDataChannelOpen;
 
+  void _onLocalOutboxUpdated() {
+    // Cross-feature Live/room/story shares may be queued while the data
+    // channel is already open. Flush immediately, never upload chat bodies.
+    if (isOnline) unawaited(flush());
+  }
+
   Future<void> start() async {
     if (_disposed || _signalListener != null) return;
+    if (!_storeListening) {
+      store.revision.addListener(_onLocalOutboxUpdated);
+      _storeListening = true;
+    }
     _pc = await createPeerConnection({
       'iceServers': [
         {'urls': 'stun:stun.l.google.com:19302'},
@@ -436,6 +447,10 @@ class DirectChatTransport {
 
   Future<void> dispose() async {
     _disposed = true;
+    if (_storeListening) {
+      store.revision.removeListener(_onLocalOutboxUpdated);
+      _storeListening = false;
+    }
     connected.value = false;
     await _signalListener?.cancel();
     // Do not clear the local queue. Future sessions retry delivery.
