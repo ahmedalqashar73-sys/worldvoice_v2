@@ -55,7 +55,11 @@ class LocalChatStore {
 
   Future<void> _load() async {
     if (_cached != null) return;
-    if (_loading != null) return _loading;
+    final previousLoad = _loading;
+    if (previousLoad != null) {
+      await previousLoad;
+      return;
+    }
     final done = Completer<void>();
     _loading = done.future;
     try {
