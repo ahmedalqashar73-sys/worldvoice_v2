@@ -11,6 +11,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:just_audio/just_audio.dart';
 
 import '../../home/presentation/home_screen.dart';
+import '../../chat/presentation/worldvoice_share_to_chat_sheet.dart';
 import '../../profile/presentation/public_profile_screen.dart';
 import '../../profile/services/profile_social_service.dart';
 import '../../../core/localization/locale_controller.dart';
@@ -2888,19 +2889,46 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   }
 
   Future<void> _shareRoom() async {
-    final language = widget.roomLanguageCode?.toUpperCase() ?? '';
-    final privateCode = widget.privateAccessCode?.trim() ?? '';
-    final accessLine = widget.initialIsPrivate && privateCode.isNotEmpty
-        ? '\nPrivate code: $privateCode'
-        : '';
-
-    await SharePlus.instance.share(
-      ShareParams(
-        text: 'WorldVoice • ${widget.roomName}'
-            '${language.isEmpty ? '' : ' • $language'}'
-            '$accessLine',
-      ),
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    final shareText = '🎙 WorldVoice Room\n'
+        '${widget.roomName}\n'
+        'worldvoice://room/${widget.channelId}';
+    final selection = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheet) => SafeArea(child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.forum_outlined),
+            title: Text(ar ? 'مشاركة الروم مع أصدقائي' : 'Share room in Chat'),
+            subtitle: Text(ar ? 'بطاقة روم داخل WorldVoice'
+                : 'Send a WorldVoice room preview card'),
+            onTap: () => Navigator.pop(sheet, 'chat'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.ios_share_rounded),
+            title: Text(ar ? 'مشاركة خارج التطبيق' : 'Share outside WorldVoice'),
+            onTap: () => Navigator.pop(sheet, 'external'),
+          ),
+        ],
+      )),
     );
+    if (!mounted) return;
+    if (selection == 'chat') {
+      await WorldVoiceShareToChatSheet.show(context,
+        text: shareText,
+        title: ar ? 'مشاركة الروم إلى...' : 'Share room to...',
+      );
+    } else if (selection == 'external') {
+      final language = widget.roomLanguageCode?.toUpperCase() ?? '';
+      final code = widget.privateAccessCode?.trim() ?? '';
+      final accessLine = widget.initialIsPrivate && code.isNotEmpty
+          ? '\nPrivate code: $code' : '';
+      await SharePlus.instance.share(ShareParams(
+        text: '$shareText${language.isEmpty ? '' : '\n$language'}$accessLine',
+      ));
+    }
   }
 
   Future<void> _showRoomExtras({int initialTab = 0}) async {
