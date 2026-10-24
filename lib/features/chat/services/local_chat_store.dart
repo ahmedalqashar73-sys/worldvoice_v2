@@ -140,7 +140,26 @@ class LocalChatStore {
 
   Future<void> hide(String id) => patch(id, {'hidden': true});
 
-  Future<void> clear() => _mutate((items) => items.clear());
+  Future<void> clear() async {
+    final items = await messages();
+    await _mutate((records) => records.clear());
+    final root = await getApplicationSupportDirectory();
+    for (final item in items) {
+      final value = item['filePath']?.toString() ?? '';
+      if (value.isEmpty) continue;
+      final path = File(value).absolute.path;
+      final privateRoot = Directory('${root.path}/worldvoice_private_chats').absolute.path;
+      final incomingRoot = Directory('${root.path}/worldvoice_peer_media').absolute.path;
+      if (!path.startsWith('$privateRoot/') &&
+          !path.startsWith('$incomingRoot/')) continue;
+      try {
+        final file = File(path);
+        if (await file.exists()) await file.delete();
+      } catch (_) {
+        // Local cleanup is best effort; never restore erased chat history.
+      }
+    }
+  }
 
   Future<File> saveAttachment(File original, String id) async {
     final root = await _root();
