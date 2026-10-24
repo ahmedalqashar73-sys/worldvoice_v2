@@ -3690,6 +3690,10 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
         enabled: widget.canPublish,
         canPublish: widget.canPublish,
         captureRemote: false,
+        // Agora owns the Live microphone. Reuse the audio frames it already
+        // captures instead of competing with a second Android recorder.
+        // The existing backend transcribes the resulting short WAV segments.
+        useAgoraLocal: true,
         languageCode: widget.roomLanguageCode,
         displayName: widget.displayName,
       );
