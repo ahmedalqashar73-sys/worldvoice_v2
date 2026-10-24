@@ -87,9 +87,11 @@ class _DirectChatConversationScreenState
           await transport.start();
         } catch (error) {
           // The local encrypted outbox still works without a live peer.
-          if (mounted) setState(() => _connectionNotice = _ar
-              ? 'التسليم المباشر غير متصل. ستظل الرسائل محفوظة على جهازك.'
-              : 'Direct delivery is offline. Messages stay saved on this device.');
+          if (mounted) {
+            setState(() => _connectionNotice = _ar
+                ? 'التسليم المباشر غير متصل. ستظل الرسائل محفوظة على جهازك.'
+                : 'Direct delivery is offline. Messages stay saved on this device.');
+          }
         }
       }
     } catch (error) {
