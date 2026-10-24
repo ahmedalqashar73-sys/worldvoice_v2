@@ -714,6 +714,65 @@ Widget _liveQuickAction({
   );
 }
 
+
+class _LiveStageRequestsButton extends StatelessWidget {
+  const _LiveStageRequestsButton({
+    required this.liveId,
+    required this.service,
+    required this.ar,
+    required this.onPressed,
+  });
+
+  final String liveId;
+  final LiveSessionService service;
+  final bool ar;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: service.watchJoinRequests(liveId),
+      builder: (context, snapshot) {
+        final count = snapshot.data?.docs.length ?? 0;
+        return IconButton(
+          tooltip: ar ? 'طلبات الصعود' : 'Stage requests',
+          onPressed: onPressed,
+          icon: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              const Icon(Icons.pan_tool_alt_rounded, color: Colors.white),
+              if (count > 0)
+                Positioned(
+                  right: -11,
+                  top: -10,
+                  child: Container(
+                    constraints: const BoxConstraints(
+                      minWidth: 18, minHeight: 18,
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 3),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFD3414B),
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      count > 99 ? '99+' : '$count',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
 class _LiveCameraGate extends StatefulWidget {
   const _LiveCameraGate({
     required this.ar,
@@ -1268,10 +1327,17 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      backgroundColor: Colors.black,
-      body: SafeArea(
+    return PopScope(
+      canPop: !_cameraReady,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop && _cameraReady && !_sessionClosed) {
+          _minimizeHostLive();
+        }
+      },
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        backgroundColor: Colors.black,
+        body: SafeArea(
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -1571,7 +1637,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
               start: 10,
               child: IconButton.filledTonal(
                 onPressed: _cameraReady
-                    ? _endLiveAndPop
+                    ? _minimizeHostLive
                     : () => Navigator.of(context).pop(),
                 icon: const Icon(Icons.close_rounded),
               ),
@@ -1856,17 +1922,6 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                 ),
                               ),
                               IconButton(
-                                tooltip: widget.ar ? 'مشاركة اللايف' : 'Share Live',
-                                onPressed: _liveId == null ? null : _shareHostLive,
-                                icon: const Icon(Icons.ios_share_rounded,
-                                    color: Colors.white),
-                              ),
-                              IconButton(
-                                tooltip: 'Teacher AI',
-                                onPressed: () => _liveLanguageKey.currentState?._showMoreTools(),
-                                icon: const Icon(Icons.smart_toy_outlined, color: Colors.white),
-                              ),
-                              IconButton(
                                 tooltip: 'Subtitles',
                                 onPressed: () {
                                   final overlay = _liveLanguageKey.currentState;
@@ -1909,18 +1964,15 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                   color: Colors.white,
                                 ),
                               ),
-                              IconButton(
-                                tooltip: widget.ar
-                                    ? 'طلبات الانضمام'
-                                    : 'Join requests',
-                                onPressed: () => setState(
-                                  () => _requestsOpen = !_requestsOpen,
+                              if (_liveId != null)
+                                _LiveStageRequestsButton(
+                                  liveId: _liveId!,
+                                  service: _liveService,
+                                  ar: widget.ar,
+                                  onPressed: () => setState(
+                                    () => _requestsOpen = !_requestsOpen,
+                                  ),
                                 ),
-                                icon: const Icon(
-                                  Icons.group_add_rounded,
-                                  color: Colors.white,
-                                ),
-                              ),
                               IconButton(
                                 tooltip: widget.ar
                                     ? 'المودريتر'
@@ -2048,6 +2100,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
               ),
           ],
         ),
+      ),
       ),
     );
   }
@@ -3099,23 +3152,6 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                               ),
                             ),
                             IconButton(
-                              tooltip: widget.ar ? 'مشاركة اللايف' : 'Share Live',
-                              onPressed: _shareLive,
-                              icon: const Icon(Icons.ios_share_rounded,
-                                  color: Colors.white),
-                            ),
-                            IconButton(
-                              tooltip: 'Teacher AI',
-                              onPressed: () {
-                                final overlay = _liveLanguageKey.currentState;
-                                if (overlay != null) {
-                                  unawaited(overlay._showMoreTools());
-                                }
-                              },
-                              icon: const Icon(Icons.smart_toy_outlined,
-                                  color: Colors.white),
-                            ),
-                            IconButton(
                               tooltip: 'Subtitles',
                               onPressed: () {
                                 final overlay = _liveLanguageKey.currentState;
@@ -3158,27 +3194,18 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                               ),
                             ),
                             if (!_guestPublishing)
-                              FilledButton.icon(
-                                style: FilledButton.styleFrom(
-                                  backgroundColor: _requested
-                                      ? const Color(0x663A8068)
-                                      : const Color(0xFF1EA972),
-                                  foregroundColor: Colors.white,
-                                  minimumSize: const Size(128, 44),
+                              IconButton.filledTonal(
+                                tooltip: _requested
+                                    ? (widget.ar ? 'طلب الصعود قيد الانتظار' : 'Stage request pending')
+                                    : (widget.ar ? 'ارفع يدك للصعود' : 'Raise hand to join'),
+                                style: IconButton.styleFrom(
+                                  backgroundColor: const Color(0x553A8068),
+                                  disabledBackgroundColor: const Color(0x333A8068),
                                 ),
                                 onPressed: _requested ? null : _requestCamera,
                                 icon: Icon(
-                                  _requested
-                                      ? Icons.hourglass_top_rounded
-                                      : Icons.group_add_rounded,
-                                ),
-                                label: Text(
-                                  _requested
-                                      ? (widget.ar ? 'تم الطلب' : 'Requested')
-                                      : (widget.ar ? 'انضمام' : 'Join'),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                  ),
+                                  Icons.pan_tool_alt_rounded,
+                                  color: _requested ? Colors.white54 : Colors.white,
                                 ),
                               ),
                             if (_isModerator)
@@ -3191,8 +3218,8 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                       !_moderatorRequestsOpen,
                                 ),
                                 icon: const Icon(
-                                  Icons.admin_panel_settings_rounded,
-                                  color: Color(0xFFFFD77A),
+                                  Icons.pan_tool_alt_rounded,
+                                  color: Colors.white,
                                 ),
                               ),
                             if (_guestPublishing) ...[
