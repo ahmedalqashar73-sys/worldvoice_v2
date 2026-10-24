@@ -481,25 +481,34 @@ Future<int> _currentUserStageLevel() async {
 }
 
 Future<List<String>> _myLearningLanguageCodes(String fallback) async {
-  final uid = FirebaseAuth.instance.currentUser?.uid;
-  if (uid == null) return <String>[fallback];
-  try {
-    final snap =
-        await FirebaseFirestore.instance.collection('users').doc(uid).get();
-    final raw = snap.data()?['learningLanguageCodes'];
-    final codes = raw is List
-        ? raw
-            .map((value) => value.toString().trim())
-            .where((code) =>
-                code.isNotEmpty && ProfileLanguageCatalog.byCode(code) != null)
-            .toSet()
-            .toList(growable: false)
-        : const <String>[];
-    if (codes.isNotEmpty) return codes;
-  } catch (_) {
-    // Keep Live usable if the profile read is temporarily unavailable.
+  // The live language picker must include the native language first, followed
+  // by learning languages. The profile is the source of truth for both.
+  final codes = <String>[];
+  void add(Object? value) {
+    final code = _LiveScreenState._normalizedLanguage(value);
+    if (code.isNotEmpty && !codes.contains(code)) codes.add(code);
   }
-  return <String>[fallback];
+
+  final uid = FirebaseAuth.instance.currentUser?.uid;
+  if (uid != null) {
+    try {
+      final snap =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      final data = snap.data() ?? const <String, dynamic>{};
+      add(data['nativeLanguageCode'] ?? data['nativeLanguage']);
+      final learning = data['learningLanguageCodes'] ??
+          data['learningLanguages'];
+      if (learning is List) {
+        for (final value in learning) {
+          add(value);
+        }
+      }
+    } catch (error) {
+      debugPrint('WorldVoice Live profile languages: $error');
+    }
+  }
+  if (codes.isEmpty) add(fallback);
+  return codes.isEmpty ? const <String>['en'] : codes;
 }
 
 
@@ -1359,8 +1368,8 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                             dropdownColor: const Color(0xFF17211C),
                             decoration: InputDecoration(
                               labelText: widget.ar
-                                  ? 'لغة التعلم'
-                                  : 'Learning language',
+                                  ? 'لغة البث'
+                                  : 'Live language',
                               labelStyle:
                                   const TextStyle(color: Colors.white70),
                               enabledBorder: OutlineInputBorder(
@@ -1380,7 +1389,8 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                 DropdownMenuItem(
                                   value: code,
                                   child: Text(
-                                    ProfileLanguageCatalog.label(code),
+                                    ProfileLanguageCatalog.localizedName(
+                                      code, widget.ar ? 'ar' : 'en'),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
@@ -1401,7 +1411,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                               color: Colors.white70,
                             ),
                             title: Text(
-                              widget.ar ? 'لغة التعلم' : 'Learning language',
+                              widget.ar ? 'لغة البث' : 'Live language',
                               style: const TextStyle(color: Colors.white70),
                             ),
                             subtitle: Text(
@@ -1843,6 +1853,12 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                 tooltip: 'Teacher AI',
                                 onPressed: () => _liveLanguageKey.currentState?._showMoreTools(),
                                 icon: const Icon(Icons.smart_toy_outlined, color: Colors.white),
+                              ),
+                              IconButton(
+                                tooltip: widget.ar ? 'مشاركة اللايف' : 'Share Live',
+                                onPressed: _liveId == null ? null : _shareHostLive,
+                                icon: const Icon(Icons.ios_share_rounded,
+                                    color: Colors.white),
                               ),
                               IconButton(
                                 tooltip: widget.ar ? 'السبورة' : 'Board',
@@ -3077,6 +3093,23 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                   color: Colors.white),
                             ),
                             IconButton(
+                              tooltip: 'Teacher AI',
+                              onPressed: () {
+                                final overlay = _liveLanguageKey.currentState;
+                                if (overlay != null) {
+                                  unawaited(overlay._showMoreTools());
+                                }
+                              },
+                              icon: const Icon(Icons.smart_toy_outlined,
+                                  color: Colors.white),
+                            ),
+                            IconButton(
+                              tooltip: widget.ar ? 'مشاركة اللايف' : 'Share Live',
+                              onPressed: _shareLive,
+                              icon: const Icon(Icons.ios_share_rounded,
+                                  color: Colors.white),
+                            ),
+                            IconButton(
                               tooltip: widget.ar ? 'السبورة' : 'Board',
                               onPressed: () => setState(() {
                                 _boardOpen = !_boardOpen;
@@ -3705,6 +3738,16 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
   }
 
   Future<void> _setEnabled(bool value) async {
+    if (value && widget.canPublish) {
+      // Retry the existing capture pipeline when the host enables captions.
+      // Do not create a second microphone recorder or transcription engine.
+      try {
+        await _syncPublishing();
+      } catch (error) {
+        if (mounted) setState(() => _error = error.toString());
+      }
+    }
+    if (!mounted) return;
     setState(() {
       _enabled = value;
       if (!value) {
@@ -3906,6 +3949,17 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
                     if (sheetContext.mounted) refresh(() {});
                   },
                 ),
+              if (!translation && _enabled) ...[
+                const SizedBox(height: 8),
+                Text(
+                  _listening
+                      ? (widget.ar ? 'الميكروفون يستمع للكلام الآن' : 'Listening for speech')
+                      : (widget.ar
+                          ? 'في انتظار صوت المتحدث. تأكد من إذن الميكروفون.'
+                          : 'Waiting for speaker audio. Check microphone permission.'),
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+              ],
               if (_error?.isNotEmpty == true) ...[
                 const SizedBox(height: 12),
                 Text(_error!, style: const TextStyle(color: Colors.orangeAccent)),
@@ -4105,19 +4159,9 @@ Future<void> _showLiveGifts(
                   doc.id: (doc.data()['displayName'] ?? 'WorldVoice guest')
                       .toString(),
             };
-            if (recipients.isEmpty) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Text(
-                    ar
-                        ? 'لا يوجد شخص آخر على الكاميرا لإرسال هدية له الآن.'
-                        : 'There is no other on-camera person to gift right now.',
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              );
-            }
+            // Keep the gift catalog visible to preview while hosting alone.
+            // Settlement remains disabled until an eligible recipient joins;
+            // UnifiedGiftPanel rejects sending to the current user.
             return UnifiedGiftPanel(
               contextType: 'live',
               contextId: liveId,
