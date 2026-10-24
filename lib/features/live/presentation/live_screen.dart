@@ -1012,6 +1012,18 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
               if (mounted) setState(() => _requestsOpen = true);
             },
           ),
+          ListTile(
+            leading: const Icon(Icons.smart_toy_outlined),
+            title: Text(widget.ar ? 'أدوات الذكاء واللغات' : 'AI & language tools'),
+            onTap: () {
+              Navigator.pop(sheetContext);
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+                  unawaited(_liveLanguageKey.currentState?._showMoreTools());
+                }
+              });
+            },
+          ),
         ]),
       ),
     );
@@ -2511,7 +2523,8 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
       context,
       builder: (sheetContext) => Padding(
         padding: const EdgeInsets.fromLTRB(12, 10, 12, 18),
-        child: Row(children: [
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Row(children: [
           _liveQuickAction(
             icon: Icons.logout_rounded,
             label: widget.ar ? 'مغادرة اللايف' : 'Leave Live',
@@ -2538,6 +2551,20 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
               Navigator.pop(sheetContext);
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (mounted) unawaited(_shareLive());
+              });
+            },
+          ),
+          ]),
+          const Divider(color: Colors.white12),
+          ListTile(
+            leading: const Icon(Icons.smart_toy_outlined),
+            title: Text(widget.ar ? 'أدوات الذكاء واللغات' : 'AI & language tools'),
+            onTap: () {
+              Navigator.pop(sheetContext);
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+                  unawaited(_liveLanguageKey.currentState?._showMoreTools());
+                }
               });
             },
           ),
