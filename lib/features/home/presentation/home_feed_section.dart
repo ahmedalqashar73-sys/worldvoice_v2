@@ -10,6 +10,7 @@ import 'package:video_player/video_player.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../../profile/presentation/public_profile_screen.dart';
 import '../services/home_feed_service.dart';
+import '../../live/presentation/live_screen.dart';
 
 class HomeFeedSection extends StatefulWidget {
   const HomeFeedSection({
@@ -471,7 +472,12 @@ class _HomePostCard extends StatelessWidget {
                   )
                 : null,
           ),
-          if (post.text.trim().isNotEmpty)
+          if (WorldVoiceLiveSharedCard.liveIdFromText(post.text) != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 2, 16, 12),
+              child: WorldVoiceLiveSharedCard(shareText: post.text),
+            )
+          else if (post.text.trim().isNotEmpty)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 2, 16, 12),
               child: Text(
