@@ -340,14 +340,17 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
               // Translate the entire message, not individual words.
               // Avoid generating large requests for old history.
               if (_translateFullMessages && msg != null &&
-                  giftPreview == null && messageIndex < 15 &&
+                  giftPreview == null && messageIndex < 6 &&
                   widget.onTranslateMessage != null &&
                   !_translations.containsKey(msg.id) &&
                   !_translating.contains(msg.id) &&
                   !_failedTranslations.contains(msg.id)) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted && _translateFullMessages) {
-                    _translate(msg);
+                  if (mounted && _translateFullMessages &&
+                      _translating.length < 2 &&
+                      !_translations.containsKey(msg.id) &&
+                      !_failedTranslations.contains(msg.id)) {
+                    unawaited(_translate(msg));
                   }
                 });
               }
