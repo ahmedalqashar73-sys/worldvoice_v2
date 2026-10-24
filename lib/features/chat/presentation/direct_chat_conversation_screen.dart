@@ -20,6 +20,7 @@ import '../services/local_chat_store.dart';
 import 'chat_call_screen.dart';
 import 'chat_media_bubble.dart';
 import 'worldvoice_chat_wallpaper.dart';
+import 'worldvoice_shared_content_card.dart';
 
 /// New direct/private chat. The outgoing path NEVER invokes /chat/message
 /// or /chat/media: text and files live on devices, not in Cloudinary/Firestore.
@@ -47,6 +48,7 @@ class _DirectChatConversationScreenState
   bool _blocked = false;
   int _wallpaper = 0;
   String? _setupError;
+  String? _connectionNotice;
 
   String get _uid => FirebaseAuth.instance.currentUser?.uid ?? '';
   bool get _ar => Localizations.localeOf(context).languageCode == 'ar';
@@ -85,7 +87,9 @@ class _DirectChatConversationScreenState
           await transport.start();
         } catch (error) {
           // The local encrypted outbox still works without a live peer.
-          if (mounted) setState(() => _setupError = error.toString());
+          if (mounted) setState(() => _connectionNotice = _ar
+              ? 'التسليم المباشر غير متصل. ستظل الرسائل محفوظة على جهازك.'
+              : 'Direct delivery is offline. Messages stay saved on this device.');
         }
       }
     } catch (error) {
@@ -427,6 +431,7 @@ class _DirectChatConversationScreenState
     final type = item['type']?.toString() ?? 'text';
     final text = item['text']?.toString() ?? '';
     final edited = item['edited'] == true;
+    final shared = type == 'text' && WorldVoiceSharedLink.parse(text) != null;
     final read = item['read'] == true;
     final created = DateTime.fromMillisecondsSinceEpoch(
       (item['createdAt'] as num?)?.toInt() ?? 0);
@@ -444,9 +449,12 @@ class _DirectChatConversationScreenState
         child: Container(
           constraints: const BoxConstraints(maxWidth: 305),
           margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
-          padding: const EdgeInsets.fromLTRB(13, 10, 13, 8),
+          padding: shared
+              ? const EdgeInsets.fromLTRB(0, 0, 0, 6)
+              : const EdgeInsets.fromLTRB(13, 10, 13, 8),
           decoration: BoxDecoration(
-            color: mine ? myBubble : peerBubble,
+            color: shared ? Colors.transparent
+                : mine ? myBubble : peerBubble,
             borderRadius: BorderRadius.circular(18),
             boxShadow: const [BoxShadow(color: Color(0x110E2B22),
               blurRadius: 5, offset: Offset(0, 2))]),
@@ -469,6 +477,8 @@ class _DirectChatConversationScreenState
                   legacyUrl: item['mediaUrl']?.toString() ?? '',
                   cacheScope: 'chat_$_uid',
                 )
+              else if (shared)
+                WorldVoiceSharedContentCard(text: text)
               else
                 Text(text, style: TextStyle(
                   fontSize: 15, height: 1.4, color: messageColor)),
@@ -542,6 +552,18 @@ class _DirectChatConversationScreenState
           if (_setupError != null)
             Padding(padding: const EdgeInsets.all(8),
               child: Text(_setupError!, style: const TextStyle(color: Colors.red))),
+          if (_connectionNotice != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+              child: Row(children: [
+                const Icon(Icons.info_outline_rounded,
+                    size: 16, color: Color(0xFFB1C4BB)),
+                const SizedBox(width: 8),
+                Expanded(child: Text(_connectionNotice!,
+                  style: const TextStyle(fontSize: 11,
+                    color: Color(0xFFB1C4BB)))),
+              ]),
+            ),
           if (_blocked)
             Padding(padding: const EdgeInsets.all(8),
               child: Text(_ar ? 'هذا المستخدم محظور' : 'This user is blocked')),
