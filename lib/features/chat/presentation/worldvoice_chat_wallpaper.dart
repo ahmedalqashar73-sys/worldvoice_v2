@@ -117,7 +117,7 @@ Future<void> showWorldVoiceWallpaperPicker(
             height: (MediaQuery.sizeOf(sheetContext).height * .52)
                 .clamp(260.0, 540.0),
             child: GridView.builder(
-              itemCount: paths.length + 1,
+              itemCount: WorldVoiceChatWallpaper.paths.length + 1,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 3, childAspectRatio: .65,
                 crossAxisSpacing: 12, mainAxisSpacing: 14,
@@ -137,11 +137,11 @@ Future<void> showWorldVoiceWallpaperPicker(
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(14),
                         child: Stack(fit: StackFit.expand, children: [
-                          if (value == none)
+                          if (value == WorldVoiceChatWallpaper.none)
                             const ColoredBox(color: Color(0xFF0F1115))
                           else
-                            SvgPicture.asset(paths[value], fit: BoxFit.cover),
-                          if (value != none)
+                            SvgPicture.asset(WorldVoiceChatWallpaper.paths[value], fit: BoxFit.cover),
+                          if (value != WorldVoiceChatWallpaper.none)
                             const ColoredBox(color: Color(0x29040D17)),
                           Center(
                             child: Text(
@@ -165,9 +165,9 @@ Future<void> showWorldVoiceWallpaperPicker(
                     ),
                     const SizedBox(height: 7),
                     Text(
-                      value == none
+                      value == WorldVoiceChatWallpaper.none
                         ? (ar ? 'بدون خلفية' : 'No background')
-                        : (ar ? localizedNames[value] : names[value]),
+                        : (ar ? WorldVoiceChatWallpaper.localizedNames[value] : WorldVoiceChatWallpaper.names[value]),
                       maxLines: 1, overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: active ? const Color(0xFF7AE2B4) : Colors.white,
