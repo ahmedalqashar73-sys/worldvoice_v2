@@ -4514,8 +4514,9 @@ Future<void> _showLiveCameraTools(
   );
 }
 
-/// Renders a first-party WorldVoice Live preview from a shared chat/post link.
-/// No second media session is created until the recipient actually joins.
+/// Reusable WorldVoice Live share preview in messages and Home posts.
+/// The actual Live session is only joined after the recipient taps the card.
+/// Never interpret a shared link itself as permission to launch Agora.
 class WorldVoiceLiveSharedCard extends StatelessWidget {
   const WorldVoiceLiveSharedCard({
     required this.shareText,
@@ -4537,19 +4538,18 @@ class WorldVoiceLiveSharedCard extends StatelessWidget {
   }) async {
     final ar = Localizations.localeOf(context).languageCode == 'ar';
     if (!LiveSessionService.isFresh(live)) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(ar ? 'هذا البث انتهى.' : 'This live has ended.'),
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(ar ? 'هذا البث انتهى.' : 'This live has ended.')),
+      );
       return;
     }
-
     if ((live['hostId'] ?? '').toString() ==
         FirebaseAuth.instance.currentUser?.uid) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(ar
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(ar
             ? 'أنت مضيف هذا اللايف بالفعل.'
-            : 'You are already hosting this live.'),
-      ));
+            : 'You are already hosting this live.')),
+      );
       return;
     }
 
@@ -4578,130 +4578,195 @@ class WorldVoiceLiveSharedCard extends StatelessWidget {
     final id = liveIdFromText(shareText);
     if (id == null) return Text(shareText);
     final parts = shareText.split('\n');
-    final fallbackTitle = parts.length > 1
-        ? parts[1].trim()
-        : 'WorldVoice Live';
-    final fallbackHost = parts.length > 2 ? parts[2].trim() : 'WorldVoice';
-    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    final fallbackTitle =
+        parts.length > 1 ? parts[1].trim() : 'WorldVoice Live';
+    final fallbackHost =
+        parts.length > 2 ? parts[2].trim() : 'WorldVoice';
+    final locale = Localizations.localeOf(context).languageCode;
+    final ar = locale == 'ar';
 
     return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
       stream: FirebaseFirestore.instance
-          .collection('live_sessions').doc(id).snapshots(),
+          .collection('live_sessions')
+          .doc(id)
+          .snapshots(),
       builder: (context, snapshot) {
         final live = snapshot.data?.data();
+        final loading = !snapshot.hasData && !snapshot.hasError;
         final fresh = live != null && LiveSessionService.isFresh(live);
-        final title = (live?['topic'] ?? fallbackTitle).toString().trim();
-        final host = (live?['hostName'] ?? fallbackHost).toString().trim();
+        final rawTitle = (live?['topic'] ?? fallbackTitle).toString().trim();
+        final title = rawTitle.isEmpty ? 'WorldVoice Live' : rawTitle;
+        final rawHost = (live?['hostName'] ?? fallbackHost).toString().trim();
+        final host = rawHost.isEmpty ? 'WorldVoice' : rawHost;
         final photo = (live?['hostPhotoUrl'] ?? '').toString().trim();
         final viewers = (live?['viewerCount'] as num?)?.toInt() ?? 0;
-        final code = (live?['languageCode'] ?? '').toString();
-        final localizedCode = ProfileLanguageCatalog.byCode(code) == null
+        final languageCode = (live?['languageCode'] ?? '').toString();
+        final languageLabel = ProfileLanguageCatalog.byCode(languageCode) == null
             ? ''
-            : ProfileLanguageCatalog.localizedName(
-                code, Localizations.localeOf(context).languageCode);
+            : ProfileLanguageCatalog.localizedName(languageCode, locale);
 
-        return Material(
-          color: const Color(0xFF2D205C),
-          borderRadius: BorderRadius.circular(20),
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: fresh && live != null
-                ? () => _openLive(context, id: id, live: live)
-                : null,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 218),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(14, 11, 14, 12),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(children: [
-                      const Icon(Icons.graphic_eq_rounded,
-                          color: Colors.white, size: 19),
-                      const Spacer(),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 9, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: fresh
-                              ? const Color(0xFFB31D43)
-                              : const Color(0xFF565261),
-                          borderRadius: BorderRadius.circular(9),
-                        ),
-                        child: Text(
-                          fresh ? '● LIVE' : (ar ? 'انتهى' : 'Ended'),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 11,
+        return Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 335),
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(22),
+              clipBehavior: Clip.antiAlias,
+              child: Ink(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: fresh
+                        ? const [Color(0xFF38216B), Color(0xFF271851)]
+                        : const [Color(0xFF3D3D46), Color(0xFF27272D)],
+                  ),
+                ),
+                child: InkWell(
+                  onTap: fresh && live != null
+                      ? () => _openLive(context, id: id, live: live)
+                      : null,
+                  child: SizedBox(
+                    height: 294,
+                    width: double.infinity,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(13, 12, 13, 13),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.graphic_eq_rounded,
+                                  color: Colors.white, size: 22),
+                              const Spacer(),
+                              if (languageLabel.isNotEmpty)
+                                Flexible(
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 9, vertical: 5),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xAA111021),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      languageLabel,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w800),
+                                    ),
+                                  ),
+                                ),
+                              const SizedBox(width: 7),
+                              DecoratedBox(
+                                decoration: BoxDecoration(
+                                  color: fresh
+                                      ? const Color(0xFFB71D50)
+                                      : const Color(0xFF55545D),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 9, vertical: 5),
+                                  child: Text(
+                                    loading
+                                        ? '…'
+                                        : fresh
+                                            ? '● LIVE'
+                                            : (ar ? 'انتهى' : 'Ended'),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
+                          const SizedBox(height: 13),
+                          CircleAvatar(
+                            radius: 36,
+                            backgroundColor: const Color(0xFF604495),
+                            foregroundImage:
+                                photo.isEmpty ? null : NetworkImage(photo),
+                            child: photo.isEmpty
+                                ? const Icon(Icons.person_rounded,
+                                    color: Colors.white, size: 38)
+                                : null,
+                          ),
+                          const SizedBox(height: 7),
+                          Text(
+                            host,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 7),
+                          Expanded(
+                            child: Center(
+                              child: Text(
+                                title,
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 19,
+                                    fontWeight: FontWeight.w900,
+                                    height: 1.18),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 7),
+                          Row(
+                            children: [
+                              if (fresh)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 5),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFFC64A),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    ar ? 'شاهد البث' : 'Watch live',
+                                    style: const TextStyle(
+                                      color: Color(0xFF4A260A),
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
+                                ),
+                              const Spacer(),
+                              if (fresh) ...[
+                                Text('$viewers',
+                                    style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w700)),
+                                const SizedBox(width: 4),
+                                const Icon(Icons.visibility_rounded,
+                                    color: Colors.white, size: 18),
+                              ] else
+                                Text(
+                                  loading
+                                      ? (ar ? 'جار التحميل' : 'Loading')
+                                      : (ar ? 'البث غير متاح' : 'Live unavailable'),
+                                  style: const TextStyle(
+                                      color: Colors.white70, fontSize: 11),
+                                ),
+                            ],
+                          ),
+                        ],
                       ),
-                      if (localizedCode.isNotEmpty) ...[
-                        const SizedBox(width: 6),
-                        Text(localizedCode,
-                            style: const TextStyle(
-                                color: Colors.white70, fontSize: 11)),
-                      ],
-                    ]),
-                    const SizedBox(height: 12),
-                    CircleAvatar(
-                      radius: 34,
-                      backgroundColor: const Color(0xFF563D94),
-                      foregroundImage:
-                          photo.isEmpty ? null : NetworkImage(photo),
-                      child: photo.isEmpty
-                          ? const Icon(Icons.person_rounded,
-                              color: Colors.white, size: 35)
-                          : null,
                     ),
-                    const SizedBox(height: 7),
-                    Text(host.isEmpty ? 'WorldVoice' : host,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white70, fontSize: 13)),
-                    const SizedBox(height: 7),
-                    Text(
-                      title.isEmpty ? 'WorldVoice Live' : title,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                          color: Colors.white,
-                          height: 1.16,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 17),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(children: [
-                      if (fresh)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFFC64A),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Text('🔥 Hot',
-                              style: TextStyle(
-                                  color: Color(0xFF4A260A),
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 11)),
-                        ),
-                      const Spacer(),
-                      if (fresh) ...[
-                        Text('$viewers',
-                            style: const TextStyle(color: Colors.white)),
-                        const SizedBox(width: 4),
-                        const Icon(Icons.visibility_rounded,
-                            color: Colors.white, size: 18),
-                      ] else
-                        Text(ar ? 'البث غير متاح' : 'Live unavailable',
-                            style: const TextStyle(
-                                color: Colors.white70, fontSize: 11)),
-                    ]),
-                  ],
+                  ),
                 ),
               ),
             ),
