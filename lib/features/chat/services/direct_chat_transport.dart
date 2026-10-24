@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
-import 'dart:typed_data';
 import 'package:path_provider/path_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
@@ -247,7 +246,9 @@ class DirectChatTransport {
       for (final item in messages) {
         if (!isOnline) return;
         if (item['senderId'] != uid ||
-            item['delivered'] == true) continue;
+            item['delivered'] == true) {
+          continue;
+        }
         final pendingOp = item['pendingOp']?.toString();
         if (pendingOp == 'edit' || pendingOp == 'withdraw') {
           await _transmit({
@@ -366,7 +367,9 @@ class DirectChatTransport {
       final sink = _incomingFiles.remove(transfer);
       final path = _incomingPaths.remove(transfer);
       final data = _incomingMeta.remove(transfer);
-      if (sink == null || path == null || data == null) return;
+      if (sink == null || path == null || data == null) {
+        return;
+      }
       await sink.flush();
       await sink.close();
       final size = await path.length();
@@ -385,7 +388,9 @@ class DirectChatTransport {
     if (op != 'message') return;
     final data = frame['data'];
     if (data is! Map || data['senderId'] != peerId ||
-        data['id'] is! String || data['text'] is! String) return;
+        data['id'] is! String || data['text'] is! String) {
+      return;
+    }
     final items = await store.messages();
     final exists = items.any((item) => item['id'] == data['id']);
     if (!exists) {
@@ -402,7 +407,9 @@ class DirectChatTransport {
   Future<void> edit(String id, String text) async {
     final messages = await store.messages();
     if (!messages.any((m) => m['id'] == id && m['senderId'] == uid &&
-        m['type'] == 'text')) return;
+        m['type'] == 'text')) {
+      return;
+    }
     final prior = messages.firstWhere((m) => m['id'] == id);
     final delivered = prior['delivered'] == true;
     await store.patch(id, {
