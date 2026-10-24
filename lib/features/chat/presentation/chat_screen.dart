@@ -29,6 +29,7 @@ import '../services/chat_call_service.dart';
 import 'chat_media_bubble.dart';
 import 'chat_call_screen.dart';
 import 'group_chat_screen.dart';
+import '../../live/presentation/live_screen.dart';
 
 /// Real authenticated conversations. The economy backend, not Flutter,
 /// establishes mutual-follower membership and writes chat/gift messages.
@@ -1530,7 +1531,11 @@ class _ChatConversationState extends State<ChatConversationScreen> {
                                           fileName: data['fileName']?.toString(),
                                           cacheScope: 'chat_${uid ?? 'anonymous'}',
                                         )
-                                      : Text(value),
+                                      : WorldVoiceLiveSharedCard.liveIdFromText(value) != null
+                                          ? WorldVoiceLiveSharedCard(
+                                              shareText: value,
+                                            )
+                                          : Text(value),
                         ),
                       );
                     },
