@@ -5,6 +5,7 @@ import '../../../core/localization/locale_controller.dart';
 import '../../live/presentation/live_screen.dart';
 import '../../rooms/data/room_mode.dart';
 import '../../rooms/presentation/agora_voice_room_screen.dart';
+import '../../rooms/presentation/room_background_atlas.dart';
 import '../../rooms/services/agora_voice_room_controller.dart';
 import '../../stories/services/story_service.dart';
 import '../../stories/presentation/story_viewer_screen.dart';
@@ -96,6 +97,12 @@ class _RoomCard extends StatelessWidget {
         final title = (room?['name'] ??
             (fallback.length > 1 ? fallback[1] : 'WorldVoice Room')).toString();
         final host = (room?['hostName'] ?? 'WorldVoice').toString();
+        final photo = (room?['hostPhotoUrl'] ?? '').toString().trim();
+        final photoUrl = Uri.tryParse(photo);
+        final safePhoto = photoUrl != null &&
+            (photoUrl.scheme == 'https' || photoUrl.scheme == 'http') &&
+            photoUrl.hasAuthority;
+        final backgroundTheme = (room?['themeId'] ?? 'softGreenFlow').toString();
         return ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 300),
           child: Material(
@@ -106,23 +113,40 @@ class _RoomCard extends StatelessWidget {
               onTap: canJoin ? () => _join(context, room!) : null,
               child: Column(crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Container(
-                    height: 125,
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Color(0xFF174937), Color(0xFF1A6A73),
-                          Color(0xFF322C67)])),
-                    child: Stack(children: [
-                      const Center(child: Icon(Icons.record_voice_over_rounded,
-                        size: 70, color: Color(0xAADDFFEA))),
-                      const PositionedDirectional(top: 12, start: 12,
+                  SizedBox(
+                    height: 138,
+                    child: Stack(fit: StackFit.expand, children: [
+                      RoomBackgroundAtlas(themeId: backgroundTheme),
+                      const ColoredBox(color: Color(0x660A171E)),
+                      Center(child: CircleAvatar(
+                        radius: 33,
+                        backgroundColor: const Color(0xFF12543F),
+                        backgroundImage: safePhoto ? NetworkImage(photo) : null,
+                        child: safePhoto ? null : const Icon(
+                          Icons.person_rounded, size: 36, color: Colors.white),
+                      )),
+                      const PositionedDirectional(top: 10, start: 10,
                         child: Text('WorldVoice • ROOM',
                           style: TextStyle(color: Colors.white,
                             fontSize: 12, fontWeight: FontWeight.w900))),
                       PositionedDirectional(top: 10, end: 10,
-                        child: Text(open ? '● OPEN' : 'ENDED',
-                          style: const TextStyle(color: Color(0xFFAAFFDA),
-                            fontWeight: FontWeight.bold))),
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: open
+                                ? const Color(0xFF126F48)
+                                : const Color(0xFF59626D),
+                            borderRadius: BorderRadius.circular(7),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                            child: Text(open
+                              ? (ar ? '● مفتوحة' : '● OPEN')
+                              : (ar ? 'مغلقة' : 'ENDED'),
+                              style: const TextStyle(color: Colors.white,
+                                fontSize: 10, fontWeight: FontWeight.bold)),
+                          ),
+                        )),
                     ]),
                   ),
                   Padding(padding: const EdgeInsets.all(13),
