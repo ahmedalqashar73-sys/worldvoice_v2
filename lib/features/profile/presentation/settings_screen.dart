@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import '../../../core/localization/app_strings.dart';
+import '../../../core/theme/worldvoice_appearance.dart';
 
 import '../../../core/localization/locale_controller.dart';
 import '../../../core/localization/supported_language.dart';
@@ -94,6 +95,47 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 );
               },
+            ),
+          ),
+          ValueListenableBuilder<ThemeMode>(
+            valueListenable: WorldVoiceAppearance.instance.mode,
+            builder: (context, selected, _) => Card(
+              child: ListTile(
+                key: const ValueKey('worldvoice-app-appearance'),
+                leading: Icon(selected == ThemeMode.dark
+                    ? Icons.dark_mode_rounded
+                    : Icons.brightness_6_rounded),
+                title: Text(code == 'ar' ? 'مظهر WorldVoice' : 'WorldVoice appearance'),
+                subtitle: Text(switch (selected) {
+                  ThemeMode.dark => code == 'ar' ? 'داكن' : 'Dark',
+                  ThemeMode.light => code == 'ar' ? 'فاتح' : 'Light',
+                  ThemeMode.system => code == 'ar' ? 'حسب الجهاز' : 'System',
+                }),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () async {
+                  final selection = await showModalBottomSheet<ThemeMode>(
+                    context: context, showDragHandle: true,
+                    builder: (sheetContext) => SafeArea(
+                      child: Column(mainAxisSize: MainAxisSize.min, children: [
+                        for (final mode in ThemeMode.values)
+                          RadioListTile<ThemeMode>(
+                            title: Text(switch (mode) {
+                              ThemeMode.dark => code == 'ar' ? 'داكن' : 'Dark',
+                              ThemeMode.light => code == 'ar' ? 'فاتح' : 'Light',
+                              ThemeMode.system => code == 'ar'
+                                  ? 'حسب إعدادات الجهاز' : 'Follow device',
+                            }),
+                            value: mode, groupValue: selected,
+                            onChanged: (value) => Navigator.pop(sheetContext, value),
+                          ),
+                      ]),
+                    ),
+                  );
+                  if (selection != null) {
+                    await WorldVoiceAppearance.instance.setMode(selection);
+                  }
+                },
+              ),
             ),
           ),
           Card(
