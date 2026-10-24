@@ -291,6 +291,7 @@ class _DirectChatConversationScreenState
 
   Future<void> _messageOptions(Map<String, dynamic> item) async {
     final mine = item['senderId'] == _uid;
+    final legacy = item['legacy'] == true;
     final id = item['id']?.toString() ?? '';
     final withdrawn = item['withdrawn'] == true;
     if (id.isEmpty) return;
@@ -302,14 +303,14 @@ class _DirectChatConversationScreenState
             ListTile(leading: const Icon(Icons.copy),
               title: Text(_ar ? 'نسخ' : 'Copy'),
               onTap: () => Navigator.pop(ctx, 'copy')),
-          if (mine && !withdrawn && item['type'] == 'text')
+          if (mine && !legacy && !withdrawn && item['type'] == 'text')
             ListTile(leading: const Icon(Icons.edit_outlined),
               title: Text(_ar ? 'تعديل الرسالة' : 'Edit message'),
               onTap: () => Navigator.pop(ctx, 'edit')),
           ListTile(leading: const Icon(Icons.delete_outline),
             title: Text(_ar ? 'حذف لدي' : 'Delete for me'),
             onTap: () => Navigator.pop(ctx, 'hide')),
-          if (mine && !withdrawn)
+          if (mine && !legacy && !withdrawn)
             ListTile(leading: const Icon(Icons.undo, color: Colors.red),
               title: Text(_ar ? 'سحب للجميع' : 'Unsend for everyone'),
               onTap: () => Navigator.pop(ctx, 'withdraw')),
@@ -317,7 +318,16 @@ class _DirectChatConversationScreenState
     if (action == 'copy') {
       await Clipboard.setData(ClipboardData(text: item['text']?.toString() ?? ''));
     } else if (action == 'hide') {
-      await _store?.hide(id);
+      if (legacy) {
+        // Read-only pre-migration entry; keep a device-only suppression record.
+        await _store?.upsert({
+          'id': id, 'senderId': item['senderId'], 'type': 'legacy_hidden',
+          'text': '', 'createdAt': item['createdAt'], 'hidden': true,
+          'delivered': true,
+        });
+      } else {
+        await _store?.hide(id);
+      }
     } else if (action == 'withdraw') {
       await _transport?.withdraw(id);
     } else if (action == 'edit' && mounted) {
@@ -477,10 +487,11 @@ class _DirectChatConversationScreenState
           Expanded(child: _store == null
             ? const Center(child: CircularProgressIndicator())
             : StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                // Gifting remains backend-authoritative, not a P2P coin event.
+                // Read-only legacy history until the safe migration runs.
+                // New direct chat messages never write to this collection.
                 stream: FirebaseFirestore.instance.collection('chats')
                   .doc(widget.chatId).collection('messages')
-                  .where('type', isEqualTo: 'gift').limit(40).snapshots(),
+                  .orderBy('createdAt', descending: true).limit(100).snapshots(),
                 builder: (ctx, giftSnapshot) =>
                   FutureBuilder<List<Map<String, dynamic>>>(
                     future: _store!.messages(),
@@ -490,15 +501,25 @@ class _DirectChatConversationScreenState
                       }
                       final messages = List<Map<String, dynamic>>.from(
                         snapshot.data ?? const <Map<String, dynamic>>[]);
-                      // Gift ledger events are not ordinary private messages.
+                      // Preserve historical chats while keeping them read-only.
+                      final locallyHiddenIds = messages.where((m) =>
+                        m['type'] == 'legacy_hidden').map((m) => m['id']).toSet();
+                      messages.removeWhere((m) =>
+                        m['type'] == 'legacy_hidden' || m['hidden'] == true);
                       for (final doc in giftSnapshot.data?.docs ??
                           <QueryDocumentSnapshot<Map<String, dynamic>>>[]) {
+                        if (locallyHiddenIds.contains(doc.id) ||
+                            messages.any((m) => m['id'] == doc.id)) continue;
                         final data = doc.data();
                         final timestamp = data['createdAt'];
                         messages.add({
-                          'id': doc.id, 'type': 'gift',
+                          ...data,
+                          'id': doc.id, 'legacy': true,
+                          'type': data['type'] ?? 'text',
                           'senderId': data['senderId'],
-                          'text': '🎁 ${data['senderName'] ?? 'WorldVoice'}',
+                          'text': data['type'] == 'gift'
+                            ? '🎁 ${data['senderName'] ?? 'WorldVoice'}'
+                            : (data['text'] ?? '').toString(),
                           'createdAt': timestamp is Timestamp
                               ? timestamp.millisecondsSinceEpoch : 0,
                           'hidden': false,
