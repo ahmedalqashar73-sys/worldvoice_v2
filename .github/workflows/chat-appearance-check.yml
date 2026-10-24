@@ -10,6 +10,14 @@ on:
       - 'lib/core/theme/worldvoice_appearance.dart'
       - 'lib/features/chat/presentation/worldvoice_chat_wallpaper.dart'
       - 'lib/features/chat/presentation/direct_chat_conversation_screen.dart'
+      - 'lib/features/chat/presentation/worldvoice_shared_content_card.dart'
+      - 'lib/features/chat/presentation/worldvoice_share_to_chat_sheet.dart'
+      - 'lib/features/chat/services/chat_local_share_service.dart'
+      - 'lib/features/chat/presentation/chat_screen.dart'
+      - 'lib/features/rooms/presentation/agora_voice_room_screen.dart'
+      - 'lib/features/rooms/presentation/room_conversation_panel.dart'
+      - 'lib/features/stories/presentation/story_viewer_screen.dart'
+      - 'test/worldvoice_chat_shared_links_test.dart'
       - 'lib/features/profile/presentation/settings_screen.dart'
       - 'lib/app/app.dart'
       - 'pubspec.yaml'
@@ -45,4 +53,4 @@ jobs:
           PY
       - run: flutter pub get
       - run: flutter analyze
-      - run: flutter test test/worldvoice_chat_appearance_test.dart
+      - run: flutter test test/worldvoice_chat_appearance_test.dart test/worldvoice_chat_shared_links_test.dart
