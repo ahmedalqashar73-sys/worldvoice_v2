@@ -11,6 +11,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../../core/theme/worldvoice_appearance.dart';
 import '../../profile/presentation/public_profile_screen.dart';
 import '../../rooms/presentation/unified_gift_panel.dart';
 import '../services/chat_call_service.dart';
@@ -183,6 +184,50 @@ class _DirectChatConversationScreenState
       });
   }
 
+  Future<void> _chooseAppearance() async {
+    final current = WorldVoiceAppearance.instance.mode.value;
+    final selected = await showModalBottomSheet<ThemeMode>(
+      context: context,
+      backgroundColor: const Color(0xFF1C2228),
+      showDragHandle: true,
+      builder: (sheetContext) => Theme(
+        data: ThemeData.dark(useMaterial3: true),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                title: Text(_ar ? 'مظهر WorldVoice' : 'WorldVoice appearance'),
+                subtitle: Text(_ar
+                    ? 'اختر الوضع الداكن أو الفاتح أو حسب الجهاز'
+                    : 'Choose Dark, Light, or Follow device'),
+              ),
+              for (final mode in ThemeMode.values)
+                ListTile(
+                  leading: Icon(
+                    mode == current
+                        ? Icons.radio_button_checked_rounded
+                        : Icons.radio_button_unchecked_rounded,
+                    color: mode == current
+                        ? const Color(0xFF68D3AA) : Colors.white70,
+                  ),
+                  title: Text(switch (mode) {
+                    ThemeMode.dark => _ar ? 'داكن' : 'Dark',
+                    ThemeMode.light => _ar ? 'فاتح' : 'Light',
+                    ThemeMode.system => _ar ? 'حسب الجهاز' : 'Follow device',
+                  }),
+                  onTap: () => Navigator.of(sheetContext).pop(mode),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (selected != null) {
+      await WorldVoiceAppearance.instance.setMode(selected);
+    }
+  }
+
   Future<void> _toggleBlock() async {
     try {
       if (_blocked) {
@@ -277,6 +322,9 @@ class _DirectChatConversationScreenState
           ListTile(leading: const Icon(Icons.wallpaper_rounded),
             title: Text(_ar ? 'خلفية المحادثة' : 'Chat wallpaper'),
             onTap: () { Navigator.pop(sheet); unawaited(_chooseWallpaper()); }),
+          ListTile(leading: const Icon(Icons.dark_mode_outlined),
+            title: Text(_ar ? 'مظهر WorldVoice' : 'WorldVoice appearance'),
+            onTap: () { Navigator.pop(sheet); unawaited(_chooseAppearance()); }),
           ListTile(leading: Icon(_blocked ? Icons.lock_open : Icons.block),
             title: Text(_blocked
                 ? (_ar ? 'إلغاء الحظر' : 'Unblock')
