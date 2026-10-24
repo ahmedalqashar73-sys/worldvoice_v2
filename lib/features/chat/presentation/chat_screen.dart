@@ -28,6 +28,7 @@ import '../services/chat_extended_service.dart';
 import '../services/chat_call_service.dart';
 import 'chat_media_bubble.dart';
 import 'chat_call_screen.dart';
+import 'direct_chat_conversation_screen.dart';
 import 'group_chat_screen.dart';
 import '../../live/presentation/live_screen.dart';
 
@@ -159,7 +160,7 @@ class ChatScreen extends StatelessWidget {
     }
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => ChatConversationScreen(
+        builder: (_) => DirectChatConversationScreen(
           chatId: chatId,
           peerId: peerId,
           peerName: peerName,
@@ -313,7 +314,7 @@ class ChatScreen extends StatelessWidget {
                                       await Navigator.of(parentContext).push(
                                         MaterialPageRoute<void>(
                                           builder: (_) =>
-                                              ChatConversationScreen(
+                                              DirectChatConversationScreen(
                                             chatId: chatId,
                                             peerId: senderId,
                                             peerName: senderName,
@@ -817,7 +818,7 @@ class ChatScreen extends StatelessWidget {
                       latestText: (data['latestText'] ?? '').toString(),
                       onOpenConversation: () => Navigator.of(context).push(
                         MaterialPageRoute<void>(
-                          builder: (_) => ChatConversationScreen(
+                          builder: (_) => DirectChatConversationScreen(
                             chatId: snap.id,
                             peerId: peer,
                             peerName: name,
