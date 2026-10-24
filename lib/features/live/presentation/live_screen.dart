@@ -4514,6 +4514,207 @@ Future<void> _showLiveCameraTools(
   );
 }
 
+/// Renders a first-party WorldVoice Live preview from a shared chat/post link.
+/// No second media session is created until the recipient actually joins.
+class WorldVoiceLiveSharedCard extends StatelessWidget {
+  const WorldVoiceLiveSharedCard({
+    required this.shareText,
+    super.key,
+  });
+
+  final String shareText;
+
+  static final RegExp _liveLinkPattern =
+      RegExp(r'worldvoice://live/([A-Za-z0-9_-]{4,100})');
+
+  static String? liveIdFromText(String value) =>
+      _liveLinkPattern.firstMatch(value)?.group(1);
+
+  Future<void> _openLive(
+    BuildContext context, {
+    required String id,
+    required Map<String, dynamic> live,
+  }) async {
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    if (!LiveSessionService.isFresh(live)) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(ar ? 'هذا البث انتهى.' : 'This live has ended.'),
+      ));
+      return;
+    }
+
+    if ((live['hostId'] ?? '').toString() ==
+        FirebaseAuth.instance.currentUser?.uid) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(ar
+            ? 'أنت مضيف هذا اللايف بالفعل.'
+            : 'You are already hosting this live.'),
+      ));
+      return;
+    }
+
+    final localeController = LocaleController();
+    try {
+      await localeController.load();
+      if (!context.mounted) {
+        localeController.dispose();
+        return;
+      }
+      await Navigator.of(context).push<void>(
+        MaterialPageRoute(
+          fullscreenDialog: true,
+          builder: (_) => _LiveViewerScreen(
+            liveId: id,
+            data: live,
+            ar: localeController.locale?.languageCode == 'ar',
+            localeController: localeController,
+          ),
+        ),
+      );
+    } finally {
+      localeController.dispose();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final id = liveIdFromText(shareText);
+    if (id == null) return Text(shareText);
+    final parts = shareText.split('\n');
+    final fallbackTitle = parts.length > 1
+        ? parts[1].trim()
+        : 'WorldVoice Live';
+    final fallbackHost = parts.length > 2 ? parts[2].trim() : 'WorldVoice';
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance
+          .collection('live_sessions').doc(id).snapshots(),
+      builder: (context, snapshot) {
+        final live = snapshot.data?.data();
+        final fresh = live != null && LiveSessionService.isFresh(live);
+        final title = (live?['topic'] ?? fallbackTitle).toString().trim();
+        final host = (live?['hostName'] ?? fallbackHost).toString().trim();
+        final photo = (live?['hostPhotoUrl'] ?? '').toString().trim();
+        final viewers = (live?['viewerCount'] as num?)?.toInt() ?? 0;
+        final code = (live?['languageCode'] ?? '').toString();
+        final localizedCode = ProfileLanguageCatalog.byCode(code) == null
+            ? ''
+            : ProfileLanguageCatalog.localizedName(
+                code, Localizations.localeOf(context).languageCode);
+
+        return Material(
+          color: const Color(0xFF2D205C),
+          borderRadius: BorderRadius.circular(20),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: fresh
+                ? () => _openLive(context, id: id, live: live)
+                : null,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 218),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(14, 11, 14, 12),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(children: [
+                      const Icon(Icons.graphic_eq_rounded,
+                          color: Colors.white, size: 19),
+                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 9, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: fresh
+                              ? const Color(0xFFB31D43)
+                              : const Color(0xFF565261),
+                          borderRadius: BorderRadius.circular(9),
+                        ),
+                        child: Text(
+                          fresh ? '● LIVE' : (ar ? 'انتهى' : 'Ended'),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
+                      if (localizedCode.isNotEmpty) ...[
+                        const SizedBox(width: 6),
+                        Text(localizedCode,
+                            style: const TextStyle(
+                                color: Colors.white70, fontSize: 11)),
+                      ],
+                    ]),
+                    const SizedBox(height: 12),
+                    CircleAvatar(
+                      radius: 34,
+                      backgroundColor: const Color(0xFF563D94),
+                      foregroundImage:
+                          photo.isEmpty ? null : NetworkImage(photo),
+                      child: photo.isEmpty
+                          ? const Icon(Icons.person_rounded,
+                              color: Colors.white, size: 35)
+                          : null,
+                    ),
+                    const SizedBox(height: 7),
+                    Text(host.isEmpty ? 'WorldVoice' : host,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white70, fontSize: 13)),
+                    const SizedBox(height: 7),
+                    Text(
+                      title.isEmpty ? 'WorldVoice Live' : title,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                          color: Colors.white,
+                          height: 1.16,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 17),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(children: [
+                      if (fresh)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFC64A),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Text('🔥 Hot',
+                              style: TextStyle(
+                                  color: Color(0xFF4A260A),
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 11)),
+                        ),
+                      const Spacer(),
+                      if (fresh) ...[
+                        Text('$viewers',
+                            style: const TextStyle(color: Colors.white)),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.visibility_rounded,
+                            color: Colors.white, size: 18),
+                      ] else
+                        Text(ar ? 'البث غير متاح' : 'Live unavailable',
+                            style: const TextStyle(
+                                color: Colors.white70, fontSize: 11)),
+                    ]),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 String _liveShareUri(String liveId) => 'worldvoice://live/$liveId';
 
 String _liveShareText({
