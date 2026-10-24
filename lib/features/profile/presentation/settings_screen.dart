@@ -118,15 +118,22 @@ class SettingsScreen extends StatelessWidget {
                     builder: (sheetContext) => SafeArea(
                       child: Column(mainAxisSize: MainAxisSize.min, children: [
                         for (final mode in ThemeMode.values)
-                          RadioListTile<ThemeMode>(
+                          ListTile(
+                            leading: Icon(
+                              mode == selected
+                                  ? Icons.radio_button_checked_rounded
+                                  : Icons.radio_button_unchecked_rounded,
+                              color: mode == selected
+                                  ? Theme.of(sheetContext).colorScheme.primary
+                                  : null,
+                            ),
                             title: Text(switch (mode) {
                               ThemeMode.dark => code == 'ar' ? 'داكن' : 'Dark',
                               ThemeMode.light => code == 'ar' ? 'فاتح' : 'Light',
                               ThemeMode.system => code == 'ar'
                                   ? 'حسب إعدادات الجهاز' : 'Follow device',
                             }),
-                            value: mode, groupValue: selected,
-                            onChanged: (value) => Navigator.pop(sheetContext, value),
+                            onTap: () => Navigator.pop(sheetContext, mode),
                           ),
                       ]),
                     ),
