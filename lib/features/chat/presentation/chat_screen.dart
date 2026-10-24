@@ -30,6 +30,7 @@ import 'chat_media_bubble.dart';
 import 'chat_call_screen.dart';
 import 'direct_chat_conversation_screen.dart';
 import '../services/local_chat_store.dart';
+import '../services/chat_local_share_service.dart';
 import 'group_chat_screen.dart';
 import '../../live/presentation/live_screen.dart';
 
@@ -364,19 +365,10 @@ class ChatScreen extends StatelessWidget {
   static Future<void> sendTextMessageToConversation({
     required String chatId,
     required String text,
-  }) async {
-    final value = text.trim();
-    if (value.isEmpty) return;
-    final random = Random.secure();
-    final requestKey = List<int>.generate(24, (_) => random.nextInt(256))
-        .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
-        .join();
-    await _post(
-      '/chat/message',
-      <String, dynamic>{'chatId': chatId, 'text': value},
-      requestKey: requestKey,
-    );
-  }
+  }) => WorldVoiceLocalShareService.queue(
+        chatId: chatId,
+        text: text,
+      );
 
   static Future<void> openDirectConversation({
     required BuildContext context,
