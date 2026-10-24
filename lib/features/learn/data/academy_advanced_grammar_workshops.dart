@@ -901,9 +901,9 @@ abstract final class AdvancedGrammarWorkshops {
     ];
     final c2Explanation = 'At C2, examine semantic scope, pragmatic presuppositions, counterfactual assumptions and rhetorical force. Distinguish a defensible reading from a uniquely established interpretation. '; 
     final focus = explanations[(number - 1) % explanations.length];
+    final preface = level == 'C2' ? c2Explanation : '';
     return AdvancedGrammarWorkshop(
-      explanationEnglish: (level == 'C2' ? c2Explanation : '') + focus +
-          ' Apply this distinction to $title, and explain what the sources cannot establish.',
+      explanationEnglish: '$preface$focus Apply this distinction to $title, and explain what the sources cannot establish.',
       examples: <AdvancedGrammarExample>[
         AdvancedGrammarExample('The available evidence concerning $title is persuasive, although not decisive.', 'الأدلة المتاحة مقنعة لكنها ليست حاسمة.'),
         AdvancedGrammarExample('Had the inquiry ignored the alternative explanation, its conclusions might have been misleading.', 'لو تجاهل التحقيق التفسير البديل، لربما كانت استنتاجاته مضللة.'),
