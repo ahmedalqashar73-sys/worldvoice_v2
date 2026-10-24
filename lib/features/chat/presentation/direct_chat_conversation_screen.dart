@@ -63,18 +63,29 @@ class _DirectChatConversationScreenState
     if (_uid.isEmpty) return;
     try {
       final store = LocalChatStore.of(_uid, widget.chatId);
+      await store.messages();
       final wallpaper = await WorldVoiceChatWallpaper.load(_uid, widget.chatId);
-      final blocked = (await _blockRef.get()).exists;
+      var blocked = false;
+      try {
+        blocked = (await _blockRef.get()).exists;
+      } catch (error) {
+        debugPrint('WorldVoice chat block status unavailable: $error');
+      }
       final transport = DirectChatTransport(
         uid: _uid, peerId: widget.peerId, chatId: widget.chatId, store: store);
-      store.revision.addListener(_refresh);
       if (!mounted) return;
+      store.revision.addListener(_refresh);
       setState(() {
         _store = store; _transport = transport;
         _wallpaper = wallpaper; _blocked = blocked;
       });
       if (!blocked) {
-        await transport.start();
+        try {
+          await transport.start();
+        } catch (error) {
+          // The local encrypted outbox still works without a live peer.
+          if (mounted) setState(() => _setupError = error.toString());
+        }
       }
     } catch (error) {
       if (mounted) setState(() => _setupError = error.toString());
