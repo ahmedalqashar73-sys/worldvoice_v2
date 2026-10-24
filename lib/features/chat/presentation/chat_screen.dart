@@ -29,6 +29,7 @@ import '../services/chat_call_service.dart';
 import 'chat_media_bubble.dart';
 import 'chat_call_screen.dart';
 import 'direct_chat_conversation_screen.dart';
+import '../services/local_chat_store.dart';
 import 'group_chat_screen.dart';
 import '../../live/presentation/live_screen.dart';
 
@@ -813,6 +814,7 @@ class ChatScreen extends StatelessWidget {
                     );
                     final name = (names[peer] ?? peer).toString();
                     return _ConversationTile(
+                      chatId: snap.id,
                       peerId: peer,
                       peerName: name,
                       latestText: (data['latestText'] ?? '').toString(),
@@ -847,6 +849,7 @@ class ChatScreen extends StatelessWidget {
 
 class _ConversationTile extends StatelessWidget {
   const _ConversationTile({
+    required this.chatId,
     required this.peerId,
     required this.peerName,
     required this.latestText,
@@ -854,6 +857,7 @@ class _ConversationTile extends StatelessWidget {
     required this.onOpenProfile,
   });
 
+  final String chatId;
   final String peerId;
   final String peerName;
   final String latestText;
@@ -935,11 +939,37 @@ class _ConversationTile extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(fontWeight: FontWeight.w900),
           ),
-          subtitle: Text(
-            latestText.isEmpty ? ' ' : latestText,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
+          subtitle: Builder(builder: (context) {
+            final me = FirebaseAuth.instance.currentUser?.uid;
+            if (me == null) return Text(latestText);
+            final local = LocalChatStore.of(me, chatId);
+            return ValueListenableBuilder<int>(
+              valueListenable: local.revision,
+              builder: (context, revision, _) =>
+                  FutureBuilder<List<Map<String, dynamic>>>(
+                    future: local.messages(),
+                    builder: (context, localSnapshot) {
+                      final items = localSnapshot.data
+                          ?.where((message) => message['hidden'] != true)
+                          .toList() ?? [];
+                      if (items.isEmpty) {
+                        return Text(latestText.isEmpty ? ' ' : latestText,
+                          maxLines: 1, overflow: TextOverflow.ellipsis);
+                      }
+                      final latest = items.last;
+                      final type = latest['type']?.toString() ?? 'text';
+                      final preview = latest['withdrawn'] == true
+                        ? 'Message unsent'
+                        : type == 'text'
+                          ? (latest['text'] ?? '').toString()
+                          : {'image': '📷 Photo', 'video': '🎬 Video',
+                             'audio': '🎙 Voice', 'pdf': '📄 PDF'}[type] ?? type;
+                      return Text(preview, maxLines: 1,
+                        overflow: TextOverflow.ellipsis);
+                    },
+                  ),
+            );
+          }),
           onTap: onOpenConversation,
         );
       },
