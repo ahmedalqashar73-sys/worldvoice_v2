@@ -4624,7 +4624,7 @@ class WorldVoiceLiveSharedCard extends StatelessWidget {
                   ),
                 ),
                 child: InkWell(
-                  onTap: fresh && live != null
+                  onTap: fresh
                       ? () => _openLive(context, id: id, live: live)
                       : null,
                   child: SizedBox(
