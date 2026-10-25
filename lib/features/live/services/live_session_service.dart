@@ -1,3 +1,4 @@
+import '../../rooms/services/active_chat_bubble_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -419,7 +420,11 @@ class LiveSessionService {
     try {
       final profile = await _db.collection('users').doc(user.uid).get()
           .timeout(const Duration(seconds: 4));
-      bubbleId = (profile.data()?['chatBubbleId'] ?? 'free').toString();
+      bubbleId = await ActiveChatBubbleService.fromProfile(
+        firestore: _db,
+        uid: user.uid,
+        profile: profile.data(),
+      );
     } catch (_) {
       // Live comments still send with the free bubble if profile is offline.
     }
