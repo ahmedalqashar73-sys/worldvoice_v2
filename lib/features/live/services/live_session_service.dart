@@ -415,8 +415,17 @@ class LiveSessionService {
     if (!session.exists || session.data()?['isLive'] != true) {
       throw StateError('LIVE_ENDED');
     }
+    String bubbleId = 'free';
+    try {
+      final profile = await _db.collection('users').doc(user.uid).get()
+          .timeout(const Duration(seconds: 4));
+      bubbleId = (profile.data()?['chatBubbleId'] ?? 'free').toString();
+    } catch (_) {
+      // Live comments still send with the free bubble if profile is offline.
+    }
     await _sessions.doc(liveId).collection('messages').add({
       'senderId': user.uid,
+      'bubbleId': bubbleId,
       'senderName': user.displayName ?? 'WorldVoice user',
       'senderPhotoUrl': user.photoURL ?? '',
       'text': value,
