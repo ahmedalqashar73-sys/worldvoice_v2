@@ -15,6 +15,7 @@ import '../../../core/theme/worldvoice_appearance.dart';
 import '../../profile/presentation/public_profile_screen.dart';
 import '../../rooms/presentation/unified_gift_panel.dart';
 import '../../rooms/data/chat_bubble_catalog.dart';
+import '../../rooms/services/active_chat_bubble_service.dart';
 import '../../rooms/presentation/chat_bubble_frame.dart';
 import '../services/chat_call_service.dart';
 import '../services/direct_chat_transport.dart';
@@ -124,7 +125,11 @@ class _DirectChatConversationScreenState
       try {
         final profile = await FirebaseFirestore.instance.collection('users')
             .doc(_uid).get().timeout(const Duration(seconds: 4));
-        bubbleId = (profile.data()?['chatBubbleId'] ?? 'free').toString();
+        bubbleId = await ActiveChatBubbleService.fromProfile(
+          firestore: FirebaseFirestore.instance,
+          uid: _uid,
+          profile: profile.data(),
+        );
       } catch (_) {
         // Offline text must still be stored and queued locally.
       }
