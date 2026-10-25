@@ -17,6 +17,7 @@ import 'package:record/record.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../../../core/widgets/worldvoice_avatar_frame.dart';
 import '../../rooms/presentation/unified_gift_panel.dart';
+import '../../rooms/presentation/room_background_shop_sheet.dart';
 import '../../live/presentation/live_screen.dart';
 import '../../live/presentation/live_invitation_card.dart';
 import '../../rooms/presentation/classic_gift_visual.dart';
@@ -1267,6 +1268,15 @@ class _ChatConversationState extends State<ChatConversationScreen> {
     }
   }
 
+  void _showAppearanceShop() {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => RoomBackgroundShopSheet(),
+    );
+  }
+
   void _showGifts() {
     showModalBottomSheet<void>(
       context: context,
@@ -1565,6 +1575,13 @@ class _ChatConversationState extends State<ChatConversationScreen> {
             ),
             Row(
               children: [
+                IconButton(
+                  tooltip: ar ? 'متجر الخلفيات والإطارات والفقاعات'
+                      : 'Backgrounds, frames and chat bubbles',
+                  onPressed: _showAppearanceShop,
+                  icon: const Icon(Icons.storefront_rounded,
+                    color: Color(0xFFE9C779)),
+                ),
                 PopupMenuButton<String>(
                   tooltip: ar ? 'المزيد' : 'More',
                   icon: const Icon(Icons.add_circle_outline),
