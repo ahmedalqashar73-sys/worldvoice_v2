@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 
 import '../../rooms/services/agora_voice_room_controller.dart';
 import '../../rooms/presentation/room_board_screen.dart';
+import '../../rooms/data/chat_bubble_catalog.dart';
 import '../../rooms/presentation/room_captions_sheet.dart';
 import '../../rooms/presentation/room_teacher_ai_sheet.dart';
 import '../../rooms/presentation/unified_gift_panel.dart';
@@ -5317,6 +5318,8 @@ class _LiveChatOverlayState extends State<_LiveChatOverlay> {
                   final photo =
                       (data['senderPhotoUrl'] ?? '').toString().trim();
                   final message = (data['text'] ?? '').toString();
+                  final art = WorldVoiceChatBubbles.find(
+                    data['bubbleId']?.toString());
 
                   if (type == 'join') {
                     return Padding(
@@ -5379,7 +5382,12 @@ class _LiveChatOverlayState extends State<_LiveChatOverlay> {
                                 vertical: 7,
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(0x99000000),
+                                color: art == null
+                                    ? const Color(0x99000000) : null,
+                                gradient: art == null ? null : LinearGradient(
+                                  colors: [art.primary, art.secondary]),
+                                border: art == null ? null : Border.all(
+                                  color: art.accent, width: 1.4),
                                 borderRadius: BorderRadius.circular(14),
                               ),
                               child: Text.rich(
