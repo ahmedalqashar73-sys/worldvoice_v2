@@ -92,6 +92,7 @@ flutter:
     - assets/gifts/catalog/
     - assets/backgrounds/
     - assets/chat_wallpapers/
+    - assets/chat_bubbles/
     - assets/frames/
     - assets/castles/
 
