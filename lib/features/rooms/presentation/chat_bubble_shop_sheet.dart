@@ -297,14 +297,25 @@ class _BubbleShopState extends State<WorldVoiceChatBubbleShopSheet> {
                                   style: const TextStyle(fontSize: 10)))),
                             ]),
                             if (!design.isVip)
-                              TextButton(
-                                onPressed: _busy || !_shop.isConfigured
-                                  ? null : () => _gift(design),
-                                style: TextButton.styleFrom(
-                                  minimumSize: const Size(0, 27),
-                                  padding: EdgeInsets.zero),
-                                child: Text(_ar ? 'إهداء أو تمديد' : 'Gift / Extend',
-                                  style: const TextStyle(fontSize: 10))),
+                              Row(children: [
+                                if (owned && !permanent)
+                                  Expanded(child: TextButton(
+                                    onPressed: _busy || !_shop.isConfigured
+                                      ? null : () => _buy(design),
+                                    style: TextButton.styleFrom(
+                                      minimumSize: const Size(0, 27),
+                                      padding: EdgeInsets.zero),
+                                    child: Text(_ar ? 'تجديد' : 'Renew',
+                                      style: const TextStyle(fontSize: 10)))),
+                                Expanded(child: TextButton(
+                                  onPressed: _busy || !_shop.isConfigured
+                                    ? null : () => _gift(design),
+                                  style: TextButton.styleFrom(
+                                    minimumSize: const Size(0, 27),
+                                    padding: EdgeInsets.zero),
+                                  child: Text(_ar ? 'إهداء' : 'Gift',
+                                    style: const TextStyle(fontSize: 10)))),
+                              ]),
                           ]),
                         ),
                       );
