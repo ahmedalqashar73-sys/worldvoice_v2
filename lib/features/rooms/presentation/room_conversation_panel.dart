@@ -12,6 +12,7 @@ class RoomConversationPanel extends StatefulWidget {
     required this.messages, required this.onSend, required this.isArabic,
     required this.onGifts, required this.onShop, required this.onTools,
     required this.onCaptions, required this.onMic, required this.micIcon,
+    this.onTranslation,
     required this.micLabel, this.handControl, this.onTranslateMessage,
     this.onReportMessage, this.translationHint, this.enabled = true,
     this.onGameAnswer, this.gameAnswerEnabled = false,
@@ -36,6 +37,7 @@ class RoomConversationPanel extends StatefulWidget {
   final bool isArabic;
   final bool enabled;
   final VoidCallback onGifts, onShop, onTools, onCaptions;
+  final VoidCallback? onTranslation;
   final VoidCallback? onMic;
   final IconData micIcon;
   final String micLabel;
@@ -550,7 +552,9 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
             _action(Icons.card_giftcard_rounded, ar ? 'الهدايا' : 'Gifts', widget.onGifts, color: const Color(0xFFFFC577)),
             _action(Icons.storefront_rounded, ar ? 'المتجر' : 'Shop', widget.onShop),
             _action(Icons.grid_view_rounded, ar ? 'الأدوات' : 'Tools', widget.onTools),
-            _action(Icons.closed_caption_outlined, ar ? 'الترجمة' : 'Captions', widget.onCaptions),
+            _action(Icons.closed_caption_outlined, ar ? 'السبتايتلز' : 'Subtitles', widget.onCaptions),
+            if (widget.onTranslation != null)
+              _action(Icons.translate_rounded, ar ? 'الترجمة الفورية' : 'Live translation', widget.onTranslation),
             if (widget.onTranslateMessage != null)
               _action(
                 _translateFullMessages
@@ -565,9 +569,9 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
               ),
             if (widget.onMic != null)
               _action(widget.micIcon, widget.micLabel, widget.onMic),
-            if (widget.handControl != null) widget.handControl!,
+            // Raise hand is fixed in the parent room Stack, never inside the action row.
           ];
-          if (constraints.maxWidth < 350 ||
+          if (constraints.maxWidth < 315 ||
               MediaQuery.textScalerOf(context).scale(14) > 20) {
             return Column(mainAxisSize: MainAxisSize.min, children: [
               field, const SizedBox(height: 6),
