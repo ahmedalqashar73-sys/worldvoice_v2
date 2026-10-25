@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../data/room_chat_message.dart';
+import 'active_chat_bubble_service.dart';
 
 class RoomChatService {
   RoomChatService({required this.roomId});
@@ -37,6 +38,8 @@ class RoomChatService {
     final profile =
         await _db.collection('users').doc(user.uid).get();
     final data = profile.data() ?? const <String, dynamic>{};
+    final verifiedBubble = await ActiveChatBubbleService.fromProfile(
+      firestore: _db, uid: user.uid, profile: data);
 
     await _messages.add({
       'userId': user.uid,
@@ -45,6 +48,7 @@ class RoomChatService {
               .toString(),
       'photoUrl': data['photoUrl'],
       'text': text,
+      'bubbleId': verifiedBubble,
       'createdAt': FieldValue.serverTimestamp(),
     });
   }
