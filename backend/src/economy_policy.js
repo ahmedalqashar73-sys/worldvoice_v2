@@ -143,3 +143,7 @@ export function canManageStore(admin) {
     (admin.role === "super_admin" ||
       (Array.isArray(admin.permissions) && admin.permissions.includes("manage_store")));
 }
+
+export function canGrantStoreCosmetic(admin, type) {
+  return canManageStore(admin) && ["background", "frame", "bubble"].includes(type);
+}

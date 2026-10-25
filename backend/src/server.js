@@ -12,7 +12,7 @@ import { FieldValue, Timestamp, getFirestore } from "firebase-admin/firestore";
 import { google } from "googleapis";
 import OpenAI, { toFile } from "openai";
 import Stripe from "stripe";
-import { requireLiveEconomy, calculateGiftSettlement, calculatePurchaseCredit, canManageStore } from "./economy_policy.js";
+import { requireLiveEconomy, calculateGiftSettlement, calculatePurchaseCredit, canManageStore, canGrantStoreCosmetic } from "./economy_policy.js";
 import {registerWalletRoutes} from "./wallet_routes.js";
 import {registerChatRoutes} from "./chat_routes.js";
 import {registerStoryRoutes} from "./story_routes.js";
@@ -28,6 +28,9 @@ import {registerRoomTaskRoutes} from "./room_task_routes.js";
 import {registerRoomGameRoutes} from "./room_games_routes.js";
 import {privateWalletRef, requirePrivateWallet} from "./wallet_store.js";
 import {approvedWorldVoiceGift, syncWorldVoiceGiftStore} from "./gift_catalog.js";
+
+import {builtInChatBubble, chatBubbleInventoryId,
+  vipChatBubbles, vipBubbleAllowed} from "./chat_bubble_policy.js";
 
 const { RtcRole, RtcTokenBuilder } = agoraToken;
 
@@ -702,6 +705,8 @@ app.get("/health", (_req, res) => {
   res.json({
     ok: true,
     service: "worldvoice-room-backend",
+    chatBubbles: true,
+    adminBubbleGrants: true,
   });
 });
 
@@ -1354,7 +1359,7 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
     const recipientId = requestedRecipient || sender.uid;
     const gifting = recipientId !== sender.uid;
     const key = String(req.headers["idempotency-key"] || "").trim();
-    if (!/^(background|frame|entrance|vip)__[A-Za-z0-9_-]{1,80}$/.test(itemId) ||
+    if (!/^(background|frame|entrance|vip|bubble)__[A-Za-z0-9_-]{1,80}$/.test(itemId) ||
         !/^[A-Za-z0-9_-]{12,100}$/.test(key)) {
       return res.status(400).json({error: "Invalid item or idempotency key."});
     }
@@ -1367,7 +1372,9 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
     const payerWalletRef = privateWalletRef(payerRef);
     const recipientRef = db.collection("users").doc(recipientId);
     const recipientWalletRef = gifting ? privateWalletRef(recipientRef) : payerWalletRef;
-    const inventoryRef = recipientRef.collection("inventory").doc(itemId);
+    const bubbleProduct = builtInChatBubble(itemId);
+    const inventoryRef = recipientRef.collection("inventory").doc(
+      bubbleProduct ? chatBubbleInventoryId(bubbleProduct.bubbleId) : itemId);
     const friendRef = gifting ? payerRef.collection("following").doc(recipientId)
       : null;
     const day = new Date().toISOString().slice(0, 10);
@@ -1387,14 +1394,14 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
         }
         return {...old.outcome, alreadyProcessed: true};
       }
-      const item = itemSnap.exists
+      const item = bubbleProduct || (itemSnap.exists
         ? itemSnap.data() || {}
         : builtInRoomBackground(itemId) ||
-          builtInWorldVoiceFrame(itemId) || {};
+          builtInWorldVoiceFrame(itemId) || {});
       if ((!itemSnap.exists && !builtInRoomBackground(itemId) &&
-          !builtInWorldVoiceFrame(itemId)) ||
+          !builtInWorldVoiceFrame(itemId) && !bubbleProduct) ||
           item.active !== true ||
-          !["background", "frame", "entrance", "vip"].includes(item.type) ||
+          !["background", "frame", "entrance", "vip", "bubble"].includes(item.type) ||
           !itemId.startsWith(item.type + "__")) {
         throw Object.assign(new Error("Store item unavailable."), {status: 404});
       }
@@ -1421,8 +1428,7 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
           {status: 503});
       }
       if (req.path === "/store/admin-grant") {
-        if (!canManageStore(snaps[snaps.length - 1].data()) ||
-            !["background", "frame"].includes(item.type)) {
+        if (!canGrantStoreCosmetic(snaps[snaps.length - 1].data(), item.type)) {
           throw Object.assign(new Error("Store administrator access required."), {status: 403});
         }
         if (!payerProfileSnap.exists || (gifting && (!snaps[7].exists || !snaps[9].exists))) {
@@ -1432,6 +1438,7 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
           Date.now() + duration * 24 * 60 * 60 * 1000);
         const entitlement = {
           itemId, type: item.type, source: "admin_grant", grantedBy: sender.uid,
+          ...(item.type === "bubble" ? {bubbleId: item.bubbleId} : {}),
           giftedBy: gifting ? sender.uid : null, quantity: 1, freeGiftBalance: 0,
           name: String(item.name || itemId), expiresAt,
           updatedAt: FieldValue.serverTimestamp(),
@@ -1507,6 +1514,7 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
       }
       tx.set(inventoryRef, {
         itemId, type: item.type, source: gifting ? "gift" : "purchase",
+        ...(item.type === "bubble" ? {bubbleId: item.bubbleId} : {}),
         giftedBy: gifting ? sender.uid : null,
         quantity: 1, freeGiftBalance: 0,
         name: String(item.name || itemId),
@@ -1559,6 +1567,52 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+});
+
+/**
+ * Server-verified equip. A client cannot activate another person's purchased
+ * design, an expired entitlement, or VIP cosmetics after VIP expires.
+ */
+app.post("/store/bubble/equip", async (req, res, next) => {
+  try {
+    const user = await authenticatedUser(req);
+    const bubbleId = String(req.body?.bubbleId || "").trim();
+    const isVipDesign = vipChatBubbles.includes(bubbleId);
+    const ownedDesign = chatBubbleInventoryId(bubbleId);
+    if (bubbleId !== "free" && !isVipDesign && !ownedDesign) {
+      return res.status(400).json({error: "Invalid chat bubble."});
+    }
+    const userRef = db.collection("users").doc(user.uid);
+    const inventoryRef = ownedDesign
+      ? userRef.collection("inventory").doc(ownedDesign) : null;
+    await db.runTransaction(async tx => {
+      const userSnap = await tx.get(userRef);
+      if (!userSnap.exists) {
+        throw Object.assign(new Error("Profile not found."), {status: 404});
+      }
+      if (isVipDesign && !vipBubbleAllowed(userSnap.data(), Date.now())) {
+        throw Object.assign(new Error("VIP subscription is required."),
+          {status: 403});
+      }
+      if (inventoryRef) {
+        const item = await tx.get(inventoryRef);
+        const expiry = item.data()?.expiresAt;
+        if (!item.exists || item.data()?.type !== "bubble" ||
+            item.data()?.bubbleId !== bubbleId ||
+            !(Number(item.data()?.quantity || 0) > 0) ||
+            (expiry != null &&
+              !(expiry?.toMillis?.() > Date.now()))) {
+          throw Object.assign(new Error("Chat bubble is not owned or has expired."),
+            {status: 403});
+        }
+      }
+      tx.set(userRef, {
+        chatBubbleId: bubbleId,
+        chatBubbleUpdatedAt: FieldValue.serverTimestamp(),
+      }, {merge: true});
+    });
+    res.json({ok: true, bubbleId});
+  } catch (error) { next(error); }
 });
 
 app.post("/store/claim-reward", async (req, res, next) => {
