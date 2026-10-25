@@ -14,6 +14,7 @@ import 'package:video_player/video_player.dart';
 import '../../../core/theme/worldvoice_appearance.dart';
 import '../../profile/presentation/public_profile_screen.dart';
 import '../../rooms/presentation/unified_gift_panel.dart';
+import '../../rooms/presentation/room_background_shop_sheet.dart';
 import '../../rooms/data/chat_bubble_catalog.dart';
 import '../../rooms/services/active_chat_bubble_service.dart';
 import '../../rooms/presentation/chat_bubble_frame.dart';
@@ -205,6 +206,13 @@ class _DirectChatConversationScreenState
       await Navigator.of(context).push(MaterialPageRoute<void>(
         builder: (_) => ChatCallScreen(call: info, peerName: widget.peerName, peerPhotoUrl: '', accepted: false)));
     } catch (error) { _error(error); }
+  }
+
+  void _showAppearanceShop() {
+    showModalBottomSheet<void>(
+      context: context, isScrollControlled: true, useSafeArea: true,
+      builder: (_) => RoomBackgroundShopSheet(),
+    );
   }
 
   Future<void> _chooseWallpaper() async {
@@ -587,6 +595,10 @@ class _DirectChatConversationScreenState
             onPressed: () => unawaited(_call('audio'))),
           IconButton(icon: const Icon(Icons.videocam_outlined),
             onPressed: () => unawaited(_call('video'))),
+          IconButton(
+            tooltip: _ar ? 'الخلفيات والإطارات والفقاعات' : 'Appearance shop',
+            icon: const Icon(Icons.storefront_rounded), onPressed: _showAppearanceShop,
+          ),
           IconButton(icon: const Icon(Icons.more_vert), onPressed: _options),
         ],
       ),
@@ -689,6 +701,7 @@ class _DirectChatConversationScreenState
                 icon: Icon(Icons.add_circle_outline, color: foreground),
                 onSelected: (type) {
                   if (type == 'gift') { _gifts(); return; }
+                  if (type == 'shop') { _showAppearanceShop(); return; }
                   unawaited(_pickAttachment(type));
                 },
                 itemBuilder: (_) => [
@@ -696,6 +709,7 @@ class _DirectChatConversationScreenState
                   PopupMenuItem(value: 'video', child: Text(_ar ? 'فيديو' : 'Video')),
                   PopupMenuItem(value: 'pdf', child: Text('PDF')),
                   PopupMenuItem(value: 'gift', child: Text(_ar ? 'هدية' : 'Gift')),
+                  PopupMenuItem(value: 'shop', child: Text(_ar ? 'فقاعات الدردشة والإطارات' : 'Bubbles and frames')),
                 ]),
               Expanded(child: TextField(
                 controller: _input, enabled: !_blocked,
