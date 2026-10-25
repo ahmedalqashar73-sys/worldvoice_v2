@@ -20,13 +20,48 @@ class WorldVoiceAvatarFrame extends StatefulWidget {
   final bool animate;
 
   static const List<String> freeFrameIds = <String>[
-    'free_clean_white', 'free_soft_green', 'free_sky_blue', 'free_silver',
+    'free_clean_white',
+    'free_soft_green',
+    'free_sky_blue',
+    'free_silver',
   ];
 
-  /// 33 artwork frames, packed as a transparent 6x6 WebP atlas.
-  static const String artworkAsset = 'assets/frames/frames_192.webp';
+  /// 33 signature frames; IDs and prices remain compatible with owned items.
+  static const String artworkAsset = 'assets/frames/signature_frames.webp';
   static const List<int> artworkPricesCoins = <int>[
-    0, 360, 280, 300, 240, 520, 280, 310, 0, 420, 560, 250, 420, 380, 0, 320, 460, 370, 490, 370, 400, 480, 440, 360, 0, 520, 580, 450, 620, 420, 520, 640, 590
+    0,
+    360,
+    280,
+    300,
+    240,
+    520,
+    280,
+    310,
+    0,
+    420,
+    560,
+    250,
+    420,
+    380,
+    0,
+    320,
+    460,
+    370,
+    490,
+    370,
+    400,
+    480,
+    440,
+    360,
+    0,
+    520,
+    580,
+    450,
+    620,
+    420,
+    520,
+    640,
+    590,
   ];
   static const List<String> _artNamesEn = <String>[
     'Royal Crescent',
@@ -115,12 +150,10 @@ class WorldVoiceAvatarFrame extends StatefulWidget {
   }
 
   static final List<String> premiumArtworkFrameIds =
-      List<String>.unmodifiable(
-        <String>[
-          for (var index = 0; index < 33; index++)
-            if (!_freeArtwork.containsKey(index)) artworkId(index),
-        ],
-      );
+      List<String>.unmodifiable(<String>[
+        for (var index = 0; index < 33; index++)
+          if (!_freeArtwork.containsKey(index)) artworkId(index),
+      ]);
 
   static int? artworkIndex(String? id) {
     final value = id?.trim() ?? '';
@@ -164,7 +197,7 @@ class WorldVoiceAvatarFrame extends StatefulWidget {
             'free_soft_green',
             'free_sky_blue',
             'free_silver',
-            'free_minimal_glow'
+            'free_minimal_glow',
           }.contains(frameId));
 
   static bool isPremium(String? frameId) =>
@@ -252,17 +285,20 @@ class WorldVoiceAvatarFrame extends StatefulWidget {
   }
 
   @override
-  State<WorldVoiceAvatarFrame> createState() =>
-      _WorldVoiceAvatarFrameState();
+  State<WorldVoiceAvatarFrame> createState() => _WorldVoiceAvatarFrameState();
 }
 
 class _WorldVoiceAvatarFrameState extends State<WorldVoiceAvatarFrame>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
 
+  bool _reduceMotion = false;
+
   bool get _animated =>
       widget.animate &&
-      (WorldVoiceAvatarFrame.isPremium(widget.frameId) ||
+      !_reduceMotion &&
+      (WorldVoiceAvatarFrame.isArtworkFrame(widget.frameId) ||
+          WorldVoiceAvatarFrame.isPremium(widget.frameId) ||
           widget.frameId == 'free_minimal_glow');
 
   @override
@@ -270,17 +306,31 @@ class _WorldVoiceAvatarFrameState extends State<WorldVoiceAvatarFrame>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 5),
+      duration: const Duration(seconds: 7),
     );
     if (_animated) _controller.repeat();
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _reduceMotion = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    if (_animated && TickerMode.valuesOf(context).enabled) {
+      if (!_controller.isAnimating) _controller.repeat();
+    } else {
+      _controller.stop();
+    }
+  }
+
+  @override
   void didUpdateWidget(covariant WorldVoiceAvatarFrame oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (_animated && !_controller.isAnimating) {
+    if (_animated &&
+        TickerMode.valuesOf(context).enabled &&
+        !_controller.isAnimating) {
       _controller.repeat();
-    } else if (!_animated && _controller.isAnimating) {
+    } else if ((!_animated || !TickerMode.valuesOf(context).enabled) &&
+        _controller.isAnimating) {
       _controller.stop();
       _controller.value = 0;
     }
@@ -297,50 +347,34 @@ class _WorldVoiceAvatarFrameState extends State<WorldVoiceAvatarFrame>
     final id = widget.frameId;
     final artIndex = WorldVoiceAvatarFrame.artworkIndex(id);
     if (artIndex != null) {
-      return AnimatedBuilder(
-        animation: _controller,
-        builder: (context, _) => SizedBox(
+      return RepaintBoundary(
+        child: SizedBox(
           width: widget.size,
           height: widget.size,
           child: Stack(
-            clipBehavior: Clip.none,
             fit: StackFit.expand,
             children: [
+              // The portrait is never animated or covered by the artwork.
               Padding(
-                padding: EdgeInsets.all(widget.size * .19),
+                padding: EdgeInsets.all(widget.size * .12),
                 child: ClipOval(child: widget.child),
               ),
-              if (artIndex >= 4 && _animated)
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFFFFD27D).withValues(
-                          alpha: .14 +
-                              .12 * math.sin(_controller.value * math.pi).abs(),
-                        ),
-                        blurRadius: widget.size * .14,
-                      ),
-                    ],
-                  ),
-                ),
               IgnorePointer(
-                child: FutureBuilder<ui.Image>(
-                  future: WorldVoiceAvatarFrame._artworkImage,
-                  builder: (context, snapshot) {
-                    final image = snapshot.data;
-                    if (image == null) return const SizedBox.expand();
-                    return RepaintBoundary(
-                      child: CustomPaint(
+                child: ExcludeSemantics(
+                  child: ClipPath(
+                    clipper: const WorldVoiceFrameRingClipper(),
+                    child: FutureBuilder<ui.Image>(
+                      future: WorldVoiceAvatarFrame._artworkImage,
+                      builder: (context, snapshot) => CustomPaint(
                         painter: _WorldVoiceArtworkPainter(
-                          image: image,
+                          image: snapshot.data,
                           index: artIndex,
+                          progress: _controller,
+                          animated: _animated,
                         ),
-                        child: const SizedBox.expand(),
                       ),
-                    );
-                  },
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -360,8 +394,8 @@ class _WorldVoiceAvatarFrameState extends State<WorldVoiceAvatarFrame>
         final glow = premium
             ? 10 + 5 * math.sin(_controller.value * math.pi * 2).abs()
             : id == 'free_minimal_glow'
-                ? 7.0
-                : 0.0;
+            ? 7.0
+            : 0.0;
 
         return SizedBox(
           width: widget.size,
@@ -400,10 +434,7 @@ class _WorldVoiceAvatarFrameState extends State<WorldVoiceAvatarFrame>
                     size: widget.size * .28,
                     color: const Color(0xFFFFD65A),
                     shadows: const [
-                      Shadow(
-                        color: Color(0x99000000),
-                        blurRadius: 4,
-                      ),
+                      Shadow(color: Color(0x99000000), blurRadius: 4),
                     ],
                   ),
                 ),
@@ -425,31 +456,148 @@ class _WorldVoiceAvatarFrameState extends State<WorldVoiceAvatarFrame>
   }
 }
 
+/// The center is an enforced no-paint region, including at every animation phase.
+class WorldVoiceFrameRingClipper extends CustomClipper<Path> {
+  const WorldVoiceFrameRingClipper();
+  @override
+  Path getClip(Size size) {
+    final center = size.center(Offset.zero);
+    return Path()
+      ..fillType = PathFillType.evenOdd
+      ..addOval(Rect.fromCircle(center: center, radius: size.shortestSide * .5))
+      ..addOval(
+        Rect.fromCircle(center: center, radius: size.shortestSide * .38),
+      );
+  }
+
+  @override
+  bool shouldReclip(WorldVoiceFrameRingClipper oldClipper) => false;
+}
+
 class _WorldVoiceArtworkPainter extends CustomPainter {
-  const _WorldVoiceArtworkPainter({required this.image, required this.index});
-  final ui.Image image;
+  _WorldVoiceArtworkPainter({
+    required this.image,
+    required this.index,
+    required this.progress,
+    required this.animated,
+  }) : super(repaint: progress);
+  final ui.Image? image;
   final int index;
+  final Animation<double> progress;
+  final bool animated;
+
+  static const accents = [
+    Color(0xFFE4E9FF),
+    Color(0xFFFFD577),
+    Color(0xFF8CEFFF),
+    Color(0xFFA9D4FF),
+    Color(0xFFF1A2FF),
+    Color(0xFF9BDFFF),
+    Color(0xFFFFC86B),
+    Color(0xFF53E3FF),
+    Color(0xFFFFB8D9),
+    Color(0xFFFFD980),
+    Color(0xFF67CEFF),
+    Color(0xFFFFB2D4),
+    Color(0xFFE2F3FF),
+    Color(0xFFFF7597),
+    Color(0xFFB2ED9C),
+    Color(0xFFFFDCEB),
+    Color(0xFF76EDBB),
+    Color(0xFFC9CAED),
+    Color(0xFFADE8FF),
+    Color(0xFFF4D58E),
+    Color(0xFFD8B9FF),
+    Color(0xFF6EECDD),
+    Color(0xFFFF91A9),
+    Color(0xFFE9B7FF),
+    Color(0xFFB1F8F3),
+    Color(0xFFD1E8FF),
+    Color(0xFFFFBD68),
+    Color(0xFFB4F2A0),
+    Color(0xFFFF9476),
+    Color(0xFFC1A2FF),
+    Color(0xFFF5DFFF),
+    Color(0xFFFFDA9E),
+    Color(0xFFFFD264),
+  ];
 
   @override
   void paint(Canvas canvas, Size size) {
     if (size.isEmpty) return;
-    final cellWidth = image.width / 6;
-    final cellHeight = image.height / 6;
-    final source = Rect.fromLTWH(
-      (index % 6) * cellWidth,
-      (index ~/ 6) * cellHeight,
-      cellWidth,
-      cellHeight,
+    final center = size.center(Offset.zero);
+    final d = size.shortestSide;
+    final accent = accents[index];
+    canvas.save();
+    canvas.clipPath(const WorldVoiceFrameRingClipper().getClip(size));
+    // Thin inner bezel joins the photograph to the jewelry without covering it.
+    canvas.drawCircle(
+      center,
+      d * .388,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = d * .012
+        ..color = accent.withValues(alpha: .8),
     );
-    canvas.drawImageRect(
-      image,
-      source,
-      Offset.zero & size,
-      Paint()..filterQuality = FilterQuality.high,
-    );
+    final art = image;
+    if (art != null) {
+      final w = art.width / 6, h = art.height / 6;
+      canvas.drawImageRect(
+        art,
+        Rect.fromLTWH((index % 6) * w, (index ~/ 6) * h, w, h),
+        Offset.zero & size,
+        Paint()..filterQuality = FilterQuality.high,
+      );
+    }
+    if (animated) {
+      final phase = progress.value * math.pi * 2;
+      // Travel along the outer rim; the photo and sculpted artwork remain still.
+      for (var i = 0; i < 3; i++) {
+        final angle = phase + i * math.pi * 2 / 3 + index * .3;
+        final r = d * (.435 + .012 * math.sin(phase + i));
+        final point = center + Offset(math.cos(angle), math.sin(angle)) * r;
+        final alpha = .4 + .5 * (.5 + .5 * math.sin(phase * 2 + i));
+        canvas.drawCircle(
+          point,
+          d * .026,
+          Paint()..color = accent.withValues(alpha: alpha * .22),
+        );
+        final pen = Paint()
+          ..color = Color.lerp(
+            accent,
+            Colors.white,
+            .7,
+          )!.withValues(alpha: alpha)
+          ..strokeWidth = math.max(.6, d * .008)
+          ..strokeCap = StrokeCap.round;
+        final extent = d * (i == 0 ? .022 : .014);
+        canvas.drawLine(
+          point - Offset(extent, 0),
+          point + Offset(extent, 0),
+          pen,
+        );
+        canvas.drawLine(
+          point - Offset(0, extent),
+          point + Offset(0, extent),
+          pen,
+        );
+      }
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: d * .405),
+        phase + index,
+        .3,
+        false,
+        Paint()
+          ..color = accent.withValues(alpha: .6)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = math.max(.7, d * .009)
+          ..strokeCap = StrokeCap.round,
+      );
+    }
+    canvas.restore();
   }
 
   @override
   bool shouldRepaint(covariant _WorldVoiceArtworkPainter old) =>
-      old.image != image || old.index != index;
+      old.image != image || old.index != index || old.animated != animated;
 }
