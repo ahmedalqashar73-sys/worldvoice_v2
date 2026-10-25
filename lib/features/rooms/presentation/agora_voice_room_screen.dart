@@ -1893,10 +1893,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     return null;
   }
 
-  // Hand requests use the same translucent look as empty room seats.
-  // The control sits in the fixed chat toolbar, not over the room stage.
+  // Raise-hand stays visually fixed ABOVE the bottom toolbar, not inside
+  // the chat action row. The host can manage the queue during room startup.
   Widget _buildHandControl(bool isArabic, bool isPublishing) {
-    if (_me == null || (isPublishing && !_canModerate)) {
+    if ((_me == null && !_isHost) || (isPublishing && !_canModerate)) {
       return const SizedBox.shrink();
     }
 
@@ -1916,7 +1916,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         clipBehavior: Clip.antiAlias,
         child: IconButton(
           key: const ValueKey('fixed-room-hand-control'),
-          constraints: const BoxConstraints.tightFor(width: 44, height: 44),
+          constraints: const BoxConstraints.tightFor(width: 54, height: 54),
           padding: EdgeInsets.zero,
           tooltip: manageRequests
               ? (isArabic ? 'طلبات رفع اليد' : 'Raise hand requests')
@@ -1924,7 +1924,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   ? (isArabic ? 'إلغاء رفع اليد' : 'Cancel hand request')
                   : (isArabic ? 'رفع اليد' : 'Raise hand'),
           icon: const Icon(
-            Icons.back_hand_rounded, color: Colors.white, size: 24,
+            Icons.back_hand_rounded, color: Colors.white, size: 28,
           ),
           onPressed: manageRequests
               ? _showRaisedHandsSheet
@@ -3957,7 +3957,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                           _me?.forcedMuted == true || !isPublishing
                       ? null : _toggleMicSafely,
                   )),
-                  if (_me != null && (_canModerate || !isPublishing))
+                  if ((_me != null || _isHost) && (_canModerate || !isPublishing))
                     Positioned(
                       key: const ValueKey('fixed-room-hand-position'),
                       right: 14,
