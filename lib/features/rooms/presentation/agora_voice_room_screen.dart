@@ -1308,7 +1308,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         : 'Microphone is not listening. Check microphone permission.';
   }
 
-  Future<void> _showCaptionSettings() async {
+  Future<void> _showCaptionSettings({String section = 'all'}) async {
     await showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
@@ -1318,6 +1318,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
           void refreshSheet() => setSheetState(() {});
 
           return RoomCaptionsSheet(
+            section: section,
             enabled: _captionsEnabled,
             translationEnabled: _captionTranslationEnabled,
             pronunciationEnabled: _pronunciationTipsEnabled,
@@ -1973,10 +1974,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     return null;
   }
 
-  // Hand requests use the same translucent look as empty room seats.
-  // The control sits in the fixed chat toolbar, not over the room stage.
+  // Raise hand is permanently anchored over the comment toolbar, never
+  // embedded among the scrollable room controls.
   Widget _buildHandControl(bool isArabic, bool isPublishing) {
-    if (_me == null || (isPublishing && !_canModerate)) {
+    if ((_me == null && !_isHost) || (isPublishing && !_canModerate)) {
       return const SizedBox.shrink();
     }
 
@@ -1996,7 +1997,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         clipBehavior: Clip.antiAlias,
         child: IconButton(
           key: const ValueKey('fixed-room-hand-control'),
-          constraints: const BoxConstraints.tightFor(width: 44, height: 44),
+          constraints: const BoxConstraints.tightFor(width: 54, height: 54),
           padding: EdgeInsets.zero,
           tooltip: manageRequests
               ? (isArabic ? 'طلبات رفع اليد' : 'Raise hand requests')
@@ -2004,7 +2005,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   ? (isArabic ? 'إلغاء رفع اليد' : 'Cancel hand request')
                   : (isArabic ? 'رفع اليد' : 'Raise hand'),
           icon: const Icon(
-            Icons.back_hand_rounded, color: Colors.white, size: 24,
+            Icons.back_hand_rounded, color: Colors.white, size: 28,
           ),
           onPressed: manageRequests
               ? _showRaisedHandsSheet
@@ -4128,7 +4129,9 @@ onEndGame: _isHost ? _endRoomGame : null,
                           : '🏆 ${(_roomGameStatus!['winner'] as Map)['name'] ?? 'WorldVoice'} was first! Answer: ${(_roomGameStatus!['winner'] as Map)['answer'] ?? ''}')
                       : null,
                   onGifts: _showGifts, onShop: _showBackgroundStore,
-                  onTools: _showToolsGrid, onCaptions: _showCaptionSettings,
+                  onTools: _showToolsGrid,
+                  onCaptions: () => _showCaptionSettings(section: 'subtitles'),
+                  onTranslation: () => _showCaptionSettings(section: 'translation'),
                   onTranslateMessage: _translateChatMessage,
                   onReportMessage: (message) => _reportParticipant(
                     targetUserId: message.userId,
@@ -4150,9 +4153,14 @@ onEndGame: _isHost ? _endRoomGame : null,
                   onMic: !_controller.joined || _micBusy ||
                           _me?.forcedMuted == true || !isPublishing
                       ? null : _toggleMicSafely,
-                  handControl: _me != null && (_canModerate || !isPublishing)
-                      ? _buildHandControl(isArabic, isPublishing) : null,
                   )),
+                  if ((_me != null || _isHost) && (_canModerate || !isPublishing))
+                    Positioned(
+                      key: const ValueKey('fixed-room-hand-position'),
+                      right: 14,
+                      bottom: 92,
+                      child: _buildHandControl(isArabic, isPublishing),
+                    ),
                 ])),
               ]);
             })),
