@@ -5381,7 +5381,7 @@ class _LiveChatOverlayState extends State<_LiveChatOverlay> {
                               constraints: const BoxConstraints(maxWidth: 270),
                               padding: art == null
                                   ? const EdgeInsets.symmetric(horizontal: 10, vertical: 7)
-                                  : const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                  : EdgeInsets.zero,
                               decoration: BoxDecoration(
                                 color: art == null
                                     ? const Color(0x99000000) : Colors.transparent,

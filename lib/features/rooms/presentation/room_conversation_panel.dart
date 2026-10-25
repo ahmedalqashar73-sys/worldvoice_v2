@@ -381,10 +381,10 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
                       ? null : () => widget.onReportMessage!(msg),
                   child: Builder(builder: (context) {
                     final content = Container(
-                    margin: const EdgeInsets.only(top: 8),
+                    margin: art == null ? const EdgeInsets.only(top: 8) : EdgeInsets.zero,
                     padding: art == null
                       ? const EdgeInsets.symmetric(horizontal: 12, vertical: 9)
-                      : const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                      : EdgeInsets.zero,
                     decoration: BoxDecoration(
                       color: art == null
                           ? const Color(0xFF102C25).withValues(alpha: .8)
@@ -395,16 +395,6 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        if (art != null)
-                          Padding(padding: const EdgeInsets.only(bottom: 3),
-                            child: Row(mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(art.icon, color: art.accent, size: 11),
-                                const SizedBox(width: 4),
-                                Text('WorldVoice', style: TextStyle(
-                                  color: art.accent, fontSize: 10,
-                                  fontWeight: FontWeight.w800)),
-                              ])),
                         Text.rich(
                           TextSpan(
                             children: [
@@ -473,7 +463,7 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
                               ),
                             ],
                           ),
-                        ] else if (msg != null &&
+                        ] else if (art == null && msg != null &&
                             giftPreview == null &&
                             widget.onTranslateMessage != null) ...[
                           const SizedBox(height: 4),
@@ -491,8 +481,10 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
                       ],
                     ),
                     );
-                    return art == null ? content : WorldVoiceBubbleFrame(
-                      design: art, compact: true, child: content);
+                    return art == null ? content : Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: WorldVoiceBubbleFrame(
+                        design: art, compact: true, child: content));
                   }),
                 ),
               );

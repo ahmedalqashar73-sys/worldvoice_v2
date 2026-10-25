@@ -485,11 +485,10 @@ class _DirectChatConversationScreenState
         onLongPress: () => unawaited(_messageOptions(item)),
         child: Builder(builder: (context) {
           final content = Container(
-          constraints: BoxConstraints(maxWidth: art == null ? 305 : 240),
-          margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+          constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * .75),
           padding: shared
               ? const EdgeInsets.fromLTRB(0, 0, 0, 6)
-              : art != null ? const EdgeInsets.symmetric(horizontal: 7, vertical: 3)
+              : art != null ? EdgeInsets.zero
               : const EdgeInsets.fromLTRB(13, 10, 13, 8),
           decoration: BoxDecoration(
             color: shared || art != null ? Colors.transparent
@@ -500,14 +499,6 @@ class _DirectChatConversationScreenState
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start, children: [
-              if (art != null)
-                Row(mainAxisSize: MainAxisSize.min, children: [
-                  Icon(art.icon, size: 15, color: art.accent),
-                  const SizedBox(width: 4),
-                  Text('✦ WorldVoice', style: TextStyle(
-                    color: art.accent, fontSize: 10,
-                    fontWeight: FontWeight.w800)),
-                ]),
               if (removed)
                 Text(_ar ? 'تم سحب الرسالة' : 'Message unsent',
                   style: TextStyle(color: detailColor,
@@ -530,8 +521,21 @@ class _DirectChatConversationScreenState
                 Text(text, style: TextStyle(
                   fontSize: 15, height: 1.4,
                   color: art == null ? messageColor : Colors.white)),
-              const SizedBox(height: 5),
-              Row(mainAxisSize: MainAxisSize.min, children: [
+
+            ]),
+          );
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * .78),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: mine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                children: [
+                  art == null ? content : WorldVoiceBubbleFrame(
+                    design: art, compact: true, child: content),
+                  const SizedBox(height: 3),
+                                Row(mainAxisSize: MainAxisSize.min, children: [
                 if (edited) ...[
                   Text(_ar ? 'معدلة' : 'Edited',
                     style: TextStyle(fontSize: 10, color: detailColor)),
@@ -550,10 +554,10 @@ class _DirectChatConversationScreenState
                           : detailColor)),
                 ],
               ]),
-            ]),
+                ],
+              ),
+            ),
           );
-          return art == null ? content : WorldVoiceBubbleFrame(
-            design: art, child: content);
         }),
       ),
     );

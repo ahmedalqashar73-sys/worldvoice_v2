@@ -78,10 +78,24 @@ void main() {
           await tester.pumpAndSettle();
           expect(tester.takeException(), isNull);
           final artSize = tester.getSize(find.byType(SvgPicture).first);
-          expect(artSize.width, closeTo(720 * (compact ? .17 : .23), .01));
-          expect(artSize.height, closeTo(260 * (compact ? .17 : .23), .01));
+          expect(artSize.width, closeTo(720 * (compact ? .11 : .23), .01));
+          expect(artSize.height, closeTo(260 * (compact ? .11 : .23), .01));
         }
       }
     },
   );
+  testWidgets('Short compact messages stay content-sized', (tester) async {
+    await tester.pumpWidget(MaterialApp(home: Scaffold(body: Align(
+      alignment: Alignment.topRight,
+      child: WorldVoiceBubbleFrame(design: WorldVoiceChatBubbles.designs[2],
+        compact: true, child: const Text('Hello', style: TextStyle(fontSize: 15))),
+    ))));
+    await tester.pumpAndSettle();
+    final size = tester.getSize(find.byType(WorldVoiceBubbleFrame));
+    expect(size.width, lessThan(110));
+    expect(size.height, lessThan(45));
+    expect(find.text('WorldVoice'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
 }

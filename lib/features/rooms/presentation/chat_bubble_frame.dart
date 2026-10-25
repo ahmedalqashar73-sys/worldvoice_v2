@@ -100,8 +100,8 @@ class WorldVoiceBubbleFrame extends StatelessWidget {
                     // Reserve horizontal space for the corner jewelry even
                     // for one-word messages and translated multiline text.
                     padding: EdgeInsets.symmetric(
-                      horizontal: compact ? 24 : 32,
-                      vertical: compact ? 10 : 15,
+                      horizontal: compact ? 16 : 32,
+                      vertical: compact ? 6 : 15,
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -145,7 +145,7 @@ class WorldVoiceBubbleFrame extends StatelessWidget {
   }
 
   Widget _ornament(Alignment alignment) {
-    final scale = compact ? .17 : .23;
+    final scale = compact ? .11 : .23;
     return IgnorePointer(
       child: ExcludeSemantics(
         child: SizedBox(
