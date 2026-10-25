@@ -52,4 +52,29 @@ void main() {
     await tester.pump();
     expect(find.textContaining('Hola amigos'), findsOneWidget);
   });
+  testWidgets('CC is the only language action and translates while enabled', (tester) async {
+    var opened = 0;
+    var translated = false;
+    await tester.binding.setSurfaceSize(const Size(728, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(MaterialApp(home: Scaffold(body: RoomConversationPanel(
+      messages: Stream.value([RoomChatMessage(id: 'cc-message', userId: 'other',
+        displayName: 'Sara', text: 'Hello everyone', createdAt: DateTime(2026))]),
+      onSend: (_) async {}, isArabic: false,
+      onGifts: () {}, onShop: () {}, onTools: () {},
+      onCaptions: () { opened++; }, onTranslation: () {},
+      languageToolsEnabled: true,
+      onMic: null, micIcon: Icons.mic, micLabel: 'Mic',
+      onTranslateMessage: (text) async { translated = true; return 'مرحبًا بالجميع'; },
+    ))));
+    await tester.pumpAndSettle();
+    expect(find.byIcon(Icons.closed_caption_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.g_translate_rounded), findsNothing);
+    expect(find.byIcon(Icons.translate_rounded), findsNothing);
+    await tester.tap(find.byIcon(Icons.closed_caption_outlined));
+    expect(opened, 1);
+    expect(translated, isTrue);
+    expect(find.text('مرحبًا بالجميع'), findsOneWidget);
+  });
+
 }

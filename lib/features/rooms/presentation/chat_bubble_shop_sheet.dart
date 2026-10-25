@@ -72,7 +72,14 @@ class _BubbleShopState extends State<WorldVoiceChatBubbleShopSheet> {
     setState(() => _busy = true);
     try {
       await _shop.purchaseItem(design.storeId(_days));
-      _notice(_ar ? 'تم الشراء أو تمديد المدة.' : 'Purchased or extended.');
+      try {
+        await _shop.setChatBubble(design.id);
+        _notice(_ar ? 'تم الشراء وتفعيل الفقاعة للرسائل الجديدة.'
+          : 'Purchased and equipped for new messages.');
+      } catch (_) {
+        _notice(_ar ? 'تم الشراء. اضغط استخدام لتفعيل الفقاعة؛ لا تحتاج للشراء مجددًا.'
+          : 'Purchased. Tap Use to equip; you do not need to buy again.');
+      }
     } catch (error) { await _failed(error); }
     finally { if (mounted) setState(() => _busy = false); }
   }
@@ -278,7 +285,7 @@ class _BubbleShopState extends State<WorldVoiceChatBubbleShopSheet> {
                                 style: OutlinedButton.styleFrom(
                                   visualDensity: VisualDensity.compact,
                                   padding: EdgeInsets.zero),
-                                child: Text(_ar ? 'عرض' : 'Try',
+                                child: Text(_ar ? 'معاينة' : 'Preview',
                                   style: const TextStyle(fontSize: 10)))),
                               const SizedBox(width: 4),
                               Expanded(child: FilledButton(

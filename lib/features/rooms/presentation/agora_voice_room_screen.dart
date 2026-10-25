@@ -1308,6 +1308,30 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         : 'Microphone is not listening. Check microphone permission.';
   }
 
+  Future<void> _setCombinedLanguageTools(bool value) async {
+    if (value && !await _unlockLanguageToolsIfNeeded()) return;
+    if (!mounted || _leaving) return;
+    setState(() {
+      _captionsEnabled = value;
+      _captionTranslationEnabled = value;
+      _latestTranslatedCaption = null;
+      _lastTranslatedCaptionId = null;
+      _captionError = null;
+    });
+    unawaited(_syncCaptionPublishing());
+    if (value) {
+      unawaited(_prepareTranslationModels());
+      final latest = _latestCaption;
+      if (latest != null) unawaited(_translateLatestCaption(latest));
+    }
+  }
+
+  Future<void> _showCombinedLanguageTools() async {
+    await _setCombinedLanguageTools(true);
+    if (!mounted || _leaving) return;
+    await _showCaptionSettings(section: 'combined');
+  }
+
   Future<void> _showCaptionSettings({String section = 'all'}) async {
     await showModalBottomSheet<void>(
       context: context,
@@ -1333,6 +1357,12 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
             listening: _captionListening,
             error: _captionError,
             onEnabledChanged: (value) {
+              if (section == 'combined') {
+                unawaited(_setCombinedLanguageTools(value).then((_) {
+                  if (sheetContext.mounted) refreshSheet();
+                }));
+                return;
+              }
               unawaited(() async {
                 if (value && !await _unlockLanguageToolsIfNeeded()) return;
                 if (!mounted) return;
@@ -4130,8 +4160,8 @@ onEndGame: _isHost ? _endRoomGame : null,
                       : null,
                   onGifts: _showGifts, onShop: _showBackgroundStore,
                   onTools: _showToolsGrid,
-                  onCaptions: () => _showCaptionSettings(section: 'subtitles'),
-                  onTranslation: () => _showCaptionSettings(section: 'translation'),
+                  onCaptions: _showCombinedLanguageTools,
+                  languageToolsEnabled: _captionsEnabled && _captionTranslationEnabled,
                   onTranslateMessage: _translateChatMessage,
                   onReportMessage: (message) => _reportParticipant(
                     targetUserId: message.userId,

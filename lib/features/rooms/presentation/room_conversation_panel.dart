@@ -12,7 +12,7 @@ class RoomConversationPanel extends StatefulWidget {
     required this.messages, required this.onSend, required this.isArabic,
     required this.onGifts, required this.onShop, required this.onTools,
     required this.onCaptions, required this.onMic, required this.micIcon,
-    this.onTranslation,
+    this.onTranslation, this.languageToolsEnabled = false,
     required this.micLabel, this.handControl, this.onTranslateMessage,
     this.onReportMessage, this.translationHint, this.enabled = true,
     this.onGameAnswer, this.gameAnswerEnabled = false,
@@ -36,6 +36,7 @@ class RoomConversationPanel extends StatefulWidget {
   final List<Map<String, dynamic>> gameAnswerEvents;
   final bool isArabic;
   final bool enabled;
+  final bool languageToolsEnabled;
   final VoidCallback onGifts, onShop, onTools, onCaptions;
   final VoidCallback? onTranslation;
   final VoidCallback? onMic;
@@ -61,7 +62,7 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
   final Map<String, String> _translations = <String, String>{};
   final Set<String> _translating = <String>{};
   final Set<String> _failedTranslations = <String>{};
-  bool _translateFullMessages = false;
+
 
   Future<void> _translate(RoomChatMessage message) async {
     final translate = widget.onTranslateMessage;
@@ -345,14 +346,14 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
                   : RoomGiftPreviewChatCodec.decode(msg.text);
               // Translate the entire message, not individual words.
               // Avoid generating large requests for old history.
-              if (_translateFullMessages && msg != null &&
+              if (widget.languageToolsEnabled && msg != null &&
                   giftPreview == null && messageIndex < 6 &&
                   widget.onTranslateMessage != null &&
                   !_translations.containsKey(msg.id) &&
                   !_translating.contains(msg.id) &&
                   !_failedTranslations.contains(msg.id)) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted && _translateFullMessages &&
+                  if (mounted && widget.languageToolsEnabled &&
                       _translating.length < 2 &&
                       !_translations.containsKey(msg.id) &&
                       !_failedTranslations.contains(msg.id)) {
@@ -552,21 +553,11 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
             _action(Icons.card_giftcard_rounded, ar ? 'الهدايا' : 'Gifts', widget.onGifts, color: const Color(0xFFFFC577)),
             _action(Icons.storefront_rounded, ar ? 'المتجر' : 'Shop', widget.onShop),
             _action(Icons.grid_view_rounded, ar ? 'الأدوات' : 'Tools', widget.onTools),
-            _action(Icons.closed_caption_outlined, ar ? 'السبتايتلز' : 'Subtitles', widget.onCaptions),
-            if (widget.onTranslation != null)
-              _action(Icons.translate_rounded, ar ? 'الترجمة الفورية' : 'Live translation', widget.onTranslation),
-            if (widget.onTranslateMessage != null)
-              _action(
-                _translateFullMessages
-                    ? Icons.translate_rounded : Icons.g_translate_rounded,
-                ar ? 'ترجمة الرسائل كاملة' : 'Translate full messages',
-                () => setState(() {
-                  _translateFullMessages = !_translateFullMessages;
-                  if (_translateFullMessages) _failedTranslations.clear();
-                }),
-                color: _translateFullMessages
-                    ? const Color(0xFF83E6C0) : Colors.white,
-              ),
+            _action(Icons.closed_caption_outlined,
+              ar ? 'السبتايتلز والترجمة' : 'Subtitles & translation',
+              widget.onCaptions,
+              color: widget.languageToolsEnabled
+                  ? const Color(0xFF83E6C0) : Colors.white),
             if (widget.onMic != null)
               _action(widget.micIcon, widget.micLabel, widget.onMic),
             // Raise hand is fixed in the parent room Stack, never inside the action row.
