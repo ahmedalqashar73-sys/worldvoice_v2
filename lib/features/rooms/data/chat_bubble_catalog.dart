@@ -16,7 +16,7 @@ class ChatBubbleDesign {
   bool get isVip => tier == ChatBubbleTier.vip;
   String get inventoryId => 'bubble__$id';
   String storeId(int? days) =>
-      'bubble__${id}__${days == null ? "permanent" : days}';
+      'bubble__${id}__${days?.toString() ?? "permanent"}';
   int price(int? days) => switch (tier) {
     ChatBubbleTier.classic => switch (days) {7 => 25, 30 => 80, _ => 600},
     ChatBubbleTier.premium => switch (days) {7 => 60, 30 => 180, _ => 1500},
