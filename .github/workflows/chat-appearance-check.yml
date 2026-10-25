@@ -7,6 +7,19 @@ on:
     paths:
       - '.github/workflows/chat-appearance-check.yml'
       - 'assets/chat_wallpapers/**'
+      - 'lib/features/rooms/data/chat_bubble_catalog.dart'
+      - 'lib/features/rooms/presentation/chat_bubble_frame.dart'
+      - 'lib/features/rooms/presentation/chat_bubble_shop_sheet.dart'
+      - 'lib/features/rooms/presentation/room_background_shop_sheet.dart'
+      - 'lib/features/rooms/services/room_shop_service.dart'
+      - 'lib/features/rooms/services/room_chat_service.dart'
+      - 'lib/features/rooms/data/room_chat_message.dart'
+      - 'lib/features/live/services/live_session_service.dart'
+      - 'lib/features/live/presentation/live_screen.dart'
+      - 'backend/src/chat_bubble_policy.js'
+      - 'backend/src/server.js'
+      - 'backend/test/chat_bubble_policy.test.js'
+      - 'test/worldvoice_chat_bubble_catalog_test.dart'
       - 'lib/core/theme/worldvoice_appearance.dart'
       - 'lib/features/chat/presentation/worldvoice_chat_wallpaper.dart'
       - 'lib/features/chat/presentation/direct_chat_conversation_screen.dart'
@@ -55,4 +68,10 @@ jobs:
           PY
       - run: flutter pub get
       - run: flutter analyze
-      - run: flutter test test/worldvoice_chat_appearance_test.dart test/worldvoice_chat_shared_links_test.dart test/worldvoice_room_full_message_translation_test.dart
+      - run: flutter test test/worldvoice_chat_appearance_test.dart test/worldvoice_chat_shared_links_test.dart test/worldvoice_room_full_message_translation_test.dart test/worldvoice_chat_bubble_catalog_test.dart
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify server-owned bubble prices and expiry
+        working-directory: backend
+        run: node --test test/chat_bubble_policy.test.js
