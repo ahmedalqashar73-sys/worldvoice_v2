@@ -10,6 +10,8 @@ import 'package:http/http.dart' as http;
 
 import '../../rooms/services/agora_voice_room_controller.dart';
 import '../../rooms/presentation/room_board_screen.dart';
+import '../../rooms/data/chat_bubble_catalog.dart';
+import '../../rooms/presentation/chat_bubble_frame.dart';
 import '../../rooms/presentation/room_captions_sheet.dart';
 import '../../rooms/presentation/room_teacher_ai_sheet.dart';
 import '../../rooms/presentation/unified_gift_panel.dart';
@@ -5437,6 +5439,8 @@ class _LiveChatOverlayState extends State<_LiveChatOverlay> {
                   final photo =
                       (data['senderPhotoUrl'] ?? '').toString().trim();
                   final message = (data['text'] ?? '').toString();
+                  final art = WorldVoiceChatBubbles.find(
+                    data['bubbleId']?.toString());
 
                   if (type == 'join') {
                     return Padding(
@@ -5492,14 +5496,15 @@ class _LiveChatOverlayState extends State<_LiveChatOverlay> {
                           ),
                           const SizedBox(width: 6),
                           Flexible(
-                            child: Container(
-                              constraints: const BoxConstraints(maxWidth: 330),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 7,
-                              ),
+                            child: Builder(builder: (context) {
+                              final content = Container(
+                              constraints: const BoxConstraints(maxWidth: 280),
+                              padding: art == null
+                                  ? const EdgeInsets.symmetric(horizontal: 10, vertical: 7)
+                                  : const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                               decoration: BoxDecoration(
-                                color: const Color(0x99000000),
+                                color: art == null
+                                  ? const Color(0x99000000) : Colors.transparent,
                                 borderRadius: BorderRadius.circular(14),
                               ),
                               child: Column(
@@ -5570,7 +5575,10 @@ class _LiveChatOverlayState extends State<_LiveChatOverlay> {
                                     )),
                                 ],
                               ),
-                            ),
+                              );
+                              return art == null ? content : WorldVoiceBubbleFrame(
+                                design: art, compact: true, child: content);
+                            }),
                           ),
                         ],
                       ),
