@@ -222,10 +222,11 @@ class DirectChatTransport {
   }
 
   /// The local encrypted copy is committed before any attempt to transmit.
-  Future<void> queueText(String text) async {
+  Future<void> queueText(String text, {String bubbleId = 'free'}) async {
     final id = LocalChatStore.newId();
     await store.upsert({
       'id': id, 'senderId': uid, 'type': 'text', 'text': text,
+      'bubbleId': bubbleId,
       'createdAt': DateTime.now().millisecondsSinceEpoch,
       'edited': false, 'withdrawn': false, 'hidden': false,
       'delivered': false, 'read': false,
@@ -287,6 +288,7 @@ class DirectChatTransport {
   Map<String, dynamic> _wireData(Map<String, dynamic> item) => {
     'id': item['id'], 'senderId': uid, 'type': item['type'],
     'text': item['text'], 'createdAt': item['createdAt'],
+    'bubbleId': item['bubbleId'] ?? 'free',
     'edited': item['edited'] == true,
     'withdrawn': item['withdrawn'] == true,
   };
