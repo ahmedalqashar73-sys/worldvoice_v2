@@ -10,6 +10,7 @@ import '../services/room_feature_service.dart';
 import '../services/room_shop_service.dart';
 import 'room_background_atlas.dart';
 import 'room_coin_store_sheet.dart';
+import 'chat_bubble_shop_sheet.dart';
 import '../services/room_coin_purchase_service.dart';
 
 class RoomBackgroundShopSheet extends StatelessWidget {
@@ -127,6 +128,16 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                         shop: _shop,
                         isArabic: isArabic,
                       ),
+                    ),
+                  ),
+                  ActionChip(
+                    avatar: const Icon(Icons.chat_bubble_outline_rounded, size: 17),
+                    label: Text(isArabic ? 'فقاعات الدردشة' : 'Chat Bubbles'),
+                    onPressed: () => showModalBottomSheet<void>(
+                      context: context,
+                      isScrollControlled: true,
+                      useSafeArea: true,
+                      builder: (_) => const WorldVoiceChatBubbleShopSheet(),
                     ),
                   ),
                   if (onOpenWriting != null)
