@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../data/chat_bubble_catalog.dart';
 
@@ -46,6 +47,15 @@ class WorldVoiceBubbleFrame extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: Stack(
         children: [
+          Positioned.fill(
+            child: IgnorePointer(
+              child: SvgPicture.asset(
+                'assets/chat_bubbles/${design.id}.svg',
+                fit: BoxFit.cover,
+                alignment: Alignment.center,
+              ),
+            ),
+          ),
           PositionedDirectional(
             top: tiny ? -3 : -5, start: tiny ? -4 : -7,
             child: Icon(design.icon,
