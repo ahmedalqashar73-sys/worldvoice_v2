@@ -8,6 +8,7 @@ class RoomChatMessage {
     required this.text,
     required this.createdAt,
     this.photoUrl,
+    this.bubbleId = 'free',
   });
 
   final String id;
@@ -15,6 +16,7 @@ class RoomChatMessage {
   final String displayName;
   final String? photoUrl;
   final String text;
+  final String bubbleId;
   final DateTime? createdAt;
 
   factory RoomChatMessage.fromDoc(
@@ -28,6 +30,7 @@ class RoomChatMessage {
       displayName: (data['displayName'] ?? 'WorldVoice user').toString(),
       photoUrl: data['photoUrl'] as String?,
       text: (data['text'] ?? '').toString(),
+      bubbleId: (data['bubbleId'] ?? 'free').toString(),
       createdAt: rawCreatedAt is Timestamp ? rawCreatedAt.toDate() : null,
     );
   }
