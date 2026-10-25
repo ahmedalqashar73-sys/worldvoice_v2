@@ -12,7 +12,7 @@ import { FieldValue, Timestamp, getFirestore } from "firebase-admin/firestore";
 import { google } from "googleapis";
 import OpenAI, { toFile } from "openai";
 import Stripe from "stripe";
-import { requireLiveEconomy, calculateGiftSettlement, calculatePurchaseCredit, canManageStore } from "./economy_policy.js";
+import { requireLiveEconomy, calculateGiftSettlement, calculatePurchaseCredit, canManageStore, canGrantStoreCosmetic } from "./economy_policy.js";
 import {registerWalletRoutes} from "./wallet_routes.js";
 import {registerChatRoutes} from "./chat_routes.js";
 import {registerStoryRoutes} from "./story_routes.js";
@@ -1589,8 +1589,7 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
           {status: 503});
       }
       if (req.path === "/store/admin-grant") {
-        if (!canManageStore(snaps[snaps.length - 1].data()) ||
-            !["background", "frame"].includes(item.type)) {
+        if (!canGrantStoreCosmetic(snaps[snaps.length - 1].data(), item.type)) {
           throw Object.assign(new Error("Store administrator access required."), {status: 403});
         }
         if (!payerProfileSnap.exists || (gifting && (!snaps[7].exists || !snaps[9].exists))) {
@@ -1600,6 +1599,7 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
           Date.now() + duration * 24 * 60 * 60 * 1000);
         const entitlement = {
           itemId, type: item.type, source: "admin_grant", grantedBy: sender.uid,
+          ...(item.type === "bubble" ? {bubbleId: item.bubbleId} : {}),
           giftedBy: gifting ? sender.uid : null, quantity: 1, freeGiftBalance: 0,
           name: String(item.name || itemId), expiresAt,
           updatedAt: FieldValue.serverTimestamp(),
