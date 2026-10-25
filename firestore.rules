@@ -152,7 +152,8 @@ service cloud.firestore {
             'walletFrozen', 'payoutFrozen', 'diamondsReserved',
             'firstRechargeUsed', 'payoutFreezeReason', 'identityVerified',
             'isVip', 'isAdmin', 'vipExpiresAt', 'vipSource', 'adminSource',
-            'vipUpdatedAt', 'adminUpdatedAt'
+            'vipUpdatedAt', 'adminUpdatedAt',
+            'chatBubbleId', 'chatBubbleUpdatedAt'
           ]);
     }
 
@@ -170,7 +171,8 @@ service cloud.firestore {
           && !request.resource.data.keys().hasAny([
             'lastGiftRoomId', 'lastGiftEventId', 'withdrawableDiamonds',
             'walletBalance', 'vipExpiresAt', 'isAdmin',
-            'vipSource', 'adminSource', 'vipUpdatedAt', 'adminUpdatedAt'
+            'vipSource', 'adminSource', 'vipUpdatedAt', 'adminUpdatedAt',
+            'chatBubbleId', 'chatBubbleUpdatedAt'
           ]);
     }
 
