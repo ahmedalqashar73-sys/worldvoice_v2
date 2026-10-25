@@ -21,7 +21,9 @@ abstract final class ActiveChatBubbleService {
     }
     if (owned?['type'] != 'bubble' ||
         owned?['bubbleId'] != design.id ||
-        (owned?['quantity'] as num? ?? 0) <= 0) return false;
+        (owned?['quantity'] as num? ?? 0) <= 0) {
+      return false;
+    }
     final expiry = owned?['expiresAt'];
     if (expiry == null) return true;
     if (expiry is Timestamp) return expiry.toDate().isAfter(now);
