@@ -178,7 +178,7 @@ class RoomShopService {
   }
 
   Stream<List<RoomStoreItem>> watchStoreItems(String type) {
-    if (!const {'gift', 'background', 'frame', 'entrance', 'vip'}
+    if (!const {'gift', 'background', 'frame', 'entrance', 'vip', 'bubble'}
         .contains(type)) {
       return Stream.value(const <RoomStoreItem>[]);
     }
@@ -192,6 +192,9 @@ class RoomShopService {
 
   Future<void> purchaseItem(String itemId) =>
       _post(action: 'purchase', body: {'itemId': itemId});
+
+  Future<void> setChatBubble(String bubbleId) =>
+      _post(action: 'bubble/equip', body: {'bubbleId': bubbleId});
 
   Future<void> purchaseBackground(String itemId) {
     return _post(
