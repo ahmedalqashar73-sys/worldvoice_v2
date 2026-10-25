@@ -13,6 +13,7 @@ on:
       - 'lib/features/rooms/presentation/chat_bubble_shop_sheet.dart'
       - 'lib/features/rooms/presentation/room_background_shop_sheet.dart'
       - 'lib/features/rooms/services/room_shop_service.dart'
+      - 'lib/features/rooms/services/active_chat_bubble_service.dart'
       - 'lib/features/rooms/services/room_chat_service.dart'
       - 'lib/features/rooms/data/room_chat_message.dart'
       - 'lib/features/live/services/live_session_service.dart'
@@ -21,6 +22,8 @@ on:
       - 'backend/src/server.js'
       - 'backend/test/chat_bubble_policy.test.js'
       - 'test/worldvoice_chat_bubble_catalog_test.dart'
+      - 'test/worldvoice_active_chat_bubble_test.dart'
+      - 'firestore.rules'
       - 'lib/core/theme/worldvoice_appearance.dart'
       - 'lib/features/chat/presentation/worldvoice_chat_wallpaper.dart'
       - 'lib/features/chat/presentation/direct_chat_conversation_screen.dart'
@@ -76,7 +79,7 @@ jobs:
           PY
       - run: flutter pub get
       - run: flutter analyze
-      - run: flutter test test/worldvoice_chat_appearance_test.dart test/worldvoice_chat_shared_links_test.dart test/worldvoice_room_full_message_translation_test.dart test/worldvoice_chat_bubble_catalog_test.dart
+      - run: flutter test test/worldvoice_chat_appearance_test.dart test/worldvoice_chat_shared_links_test.dart test/worldvoice_room_full_message_translation_test.dart test/worldvoice_chat_bubble_catalog_test.dart test/worldvoice_active_chat_bubble_test.dart
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
