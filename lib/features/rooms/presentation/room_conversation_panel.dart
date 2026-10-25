@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../data/room_chat_message.dart';
+import '../data/chat_bubble_catalog.dart';
+import 'chat_bubble_frame.dart';
 import '../data/room_feature_models.dart';
 
 /// Live room conversation, independent of Firebase for layout testing.
@@ -213,6 +215,8 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
               final translated = msg == null ? null : _translations[msg.id];
               final translating =
                   msg != null && _translating.contains(msg.id);
+              final art = msg == null || giftPreview != null ? null
+                  : WorldVoiceChatBubbles.find(msg.bubbleId);
               final bubble = Align(
                 alignment: AlignmentDirectional.centerStart,
                 child: GestureDetector(
@@ -226,14 +230,16 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
                   onLongPress: msg == null || giftPreview != null ||
                           widget.onReportMessage == null
                       ? null : () => widget.onReportMessage!(msg),
-                  child: Container(
+                  child: Builder(builder: (context) {
+                    final content = Container(
                     margin: const EdgeInsets.only(top: 8),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 9,
-                    ),
+                    padding: art == null
+                      ? const EdgeInsets.symmetric(horizontal: 12, vertical: 9)
+                      : const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF102C25).withValues(alpha: .8),
+                      color: art == null
+                        ? const Color(0xFF102C25).withValues(alpha: .8)
+                        : Colors.transparent,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Column(
@@ -325,7 +331,10 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
                         ],
                       ],
                     ),
-                  ),
+                    );
+                    return art == null ? content : WorldVoiceBubbleFrame(
+                      design: art, compact: true, child: content);
+                  }),
                 ),
               );
               // Fade the words of each NEW message only. The seats, Teacher AI
