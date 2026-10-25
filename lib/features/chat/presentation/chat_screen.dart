@@ -23,6 +23,8 @@ import '../../rooms/presentation/classic_gift_visual.dart';
 import '../../rooms/presentation/room_gift_overlay.dart';
 import '../../rooms/data/classic_gift_catalog.dart';
 import '../../rooms/data/room_feature_models.dart';
+import '../../rooms/data/chat_bubble_catalog.dart';
+import '../../rooms/presentation/chat_bubble_frame.dart';
 import '../../rooms/services/room_feature_service.dart';
 import '../../profile/presentation/public_profile_screen.dart';
 import '../../stories/presentation/story_strip.dart';
@@ -1442,15 +1444,21 @@ class _ChatConversationState extends State<ChatConversationScreen> {
                       final value = isGift
                           ? (ar ? '🎁 هدية: $giftId' : '🎁 Gift: $giftId')
                           : (data['text'] ?? '').toString();
+                      final art = !isGift && !isMedia &&
+                          WorldVoiceLiveLinks.extract(value) == null
+                          ? WorldVoiceChatBubbles.find(data['bubbleId']?.toString())
+                          : null;
                       return Align(
                         alignment: mine ? AlignmentDirectional.centerEnd
                             : AlignmentDirectional.centerStart,
-                        child: Container(
-                          constraints: const BoxConstraints(maxWidth: 300),
+                        child: Builder(builder: (context) {
+                          final content = Container(
+                          constraints: const BoxConstraints(maxWidth: 270),
                           margin: const EdgeInsets.symmetric(vertical: 4),
-                          padding: const EdgeInsets.all(12),
+                          padding: art == null ? const EdgeInsets.all(12)
+                              : const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                           decoration: BoxDecoration(
-                            color: classicGift ? null
+                            color: classicGift || art != null ? Colors.transparent
                                 : mine
                                     ? Theme.of(context).colorScheme.primaryContainer
                                     : Theme.of(context).colorScheme.surfaceContainerHighest,
@@ -1543,8 +1551,12 @@ class _ChatConversationState extends State<ChatConversationScreen> {
                                                 ar: ar,
                                               ),
                                             )
-                                          : Text(value),
-                        ),
+                                          : Text(value, style: art == null ? null
+                                          : const TextStyle(color: Colors.white)),
+                          );
+                          return art == null ? content : WorldVoiceBubbleFrame(
+                            design: art, child: content);
+                        }),
                       );
                     },
                   );
