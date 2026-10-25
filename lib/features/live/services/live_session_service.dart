@@ -1,3 +1,4 @@
+import '../../rooms/services/active_chat_bubble_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../profile/data/profile_language_catalog.dart';
@@ -420,8 +421,19 @@ class LiveSessionService {
     if (!session.exists || session.data()?['isLive'] != true) {
       throw StateError('LIVE_ENDED');
     }
+    String bubbleId = 'free';
+    try {
+      final profile = await _db.collection('users').doc(user.uid).get()
+          .timeout(const Duration(seconds: 4));
+      bubbleId = await ActiveChatBubbleService.fromProfile(
+        firestore: _db, uid: user.uid, profile: profile.data(),
+      );
+    } catch (_) {
+      // Comments must still send when the cosmetic inventory is unavailable.
+    }
     await _sessions.doc(liveId).collection('messages').add({
       'senderId': user.uid,
+      'bubbleId': bubbleId,
       'senderName': user.displayName ?? 'WorldVoice user',
       'senderPhotoUrl': user.photoURL ?? '',
       'text': value,
