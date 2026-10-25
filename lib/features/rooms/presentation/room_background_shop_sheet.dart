@@ -15,13 +15,13 @@ import '../services/room_coin_purchase_service.dart';
 
 class RoomBackgroundShopSheet extends StatelessWidget {
   RoomBackgroundShopSheet({
-    required this.roomFeatures,
-    required this.isHost,
+    this.roomFeatures,
+    this.isHost = false,
     this.onOpenWriting,
     super.key,
   });
 
-  final RoomFeatureService roomFeatures;
+  final RoomFeatureService? roomFeatures;
   final bool isHost;
   final VoidCallback? onOpenWriting;
   final RoomShopService _shop = RoomShopService();
@@ -33,9 +33,10 @@ class RoomBackgroundShopSheet extends StatelessWidget {
     bool isArabic,
     {bool adminGrant = false}
   ) async {
+    if (roomFeatures == null) return;
     try {
       if (adminGrant && !item.isFree) await _shop.grantItem(item.id);
-      await roomFeatures.setPurchasedBackground(
+      await roomFeatures!.setPurchasedBackground(
         themeId: item.themeId,
         backgroundUrl: null,
       );
@@ -80,7 +81,7 @@ class RoomBackgroundShopSheet extends StatelessWidget {
           children: [
             ListTile(
               title: Text(
-                isArabic ? 'الخلفيات' : 'Backgrounds',
+                isArabic ? 'متجر المظهر' : 'Appearance Shop',
                 style: const TextStyle(fontWeight: FontWeight.w900),
               ),
               subtitle: user == null
@@ -109,48 +110,53 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                 icon: const Icon(Icons.close_rounded),
               ),
             ),
-            // Visual styling stays separate from the gift catalog.
+            // A clearly visible shop portal for all three cosmetic categories.
+            // The backgrounds grid stays open by default, as in the original UI.
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              child: Wrap(
-                alignment: WrapAlignment.center,
-                spacing: 8,
-                runSpacing: 5,
-                children: [
-                  ActionChip(
-                    avatar: const Icon(Icons.crop_free_rounded, size: 17),
-                    label: Text(isArabic ? 'الإطارات' : 'Frames'),
-                    onPressed: () => showModalBottomSheet<void>(
-                      context: context,
-                      isScrollControlled: true,
-                      builder: (_) => _OtherStoreTab(
-                        type: 'frame',
-                        shop: _shop,
-                        isArabic: isArabic,
-                      ),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              child: Row(children: [
+                Expanded(child: FilledButton.tonalIcon(
+                  onPressed: null,
+                  icon: const Icon(Icons.wallpaper_rounded, size: 17),
+                  label: Text(isArabic ? 'الخلفيات' : 'Backgrounds',
+                    maxLines: 1, overflow: TextOverflow.ellipsis),
+                )),
+                const SizedBox(width: 5),
+                Expanded(child: OutlinedButton.icon(
+                  onPressed: () => showModalBottomSheet<void>(
+                    context: context, isScrollControlled: true, useSafeArea: true,
+                    builder: (_) => _OtherStoreTab(
+                      type: 'frame', shop: _shop, isArabic: isArabic,
                     ),
                   ),
-                  ActionChip(
-                    avatar: const Icon(Icons.chat_bubble_outline_rounded, size: 17),
-                    label: Text(isArabic ? 'فقاعات الدردشة' : 'Chat Bubbles'),
-                    onPressed: () => showModalBottomSheet<void>(
-                      context: context, isScrollControlled: true,
-                      useSafeArea: true,
-                      builder: (_) => const WorldVoiceChatBubbleShopSheet(),
-                    ),
+                  icon: const Icon(Icons.crop_free_rounded, size: 17),
+                  label: Text(isArabic ? 'الإطارات' : 'Frames',
+                    maxLines: 1, overflow: TextOverflow.ellipsis),
+                )),
+                const SizedBox(width: 5),
+                Expanded(child: OutlinedButton.icon(
+                  onPressed: () => showModalBottomSheet<void>(
+                    context: context, isScrollControlled: true, useSafeArea: true,
+                    builder: (_) => const WorldVoiceChatBubbleShopSheet(),
                   ),
-                  if (onOpenWriting != null)
-                    ActionChip(
-                      avatar: const Icon(Icons.text_fields_rounded, size: 17),
-                      label: Text(isArabic ? 'الكتابة والألوان' : 'Writing and colors'),
-                      onPressed: () {
-                        Navigator.pop(context);
-                        onOpenWriting!();
-                      },
-                    ),
-                ],
-              ),
+                  icon: const Icon(Icons.chat_bubble_outline_rounded, size: 17),
+                  label: Text(isArabic ? 'الفقاعات' : 'Bubbles',
+                    maxLines: 1, overflow: TextOverflow.ellipsis),
+                )),
+              ]),
             ),
+            if (onOpenWriting != null)
+              Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: TextButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    onOpenWriting!();
+                  },
+                  icon: const Icon(Icons.text_fields_rounded, size: 16),
+                  label: Text(isArabic ? 'الكتابة والألوان' : 'Writing and colors'),
+                ),
+              ),
             if (!_shop.isConfigured)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
@@ -179,7 +185,7 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                   };
 
                   return StreamBuilder<RoomFeatureState>(
-                        stream: roomFeatures.watchState(),
+                        stream: roomFeatures?.watchState() ?? const Stream<RoomFeatureState>.empty(),
                         builder: (context, roomSnapshot) {
                           final selectedTheme =
                               roomSnapshot.data?.themeId ?? 'softGreenFlow';
@@ -208,7 +214,7 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                                 rewardAvailable: false,
                                 isHost: isHost,
                                 isArabic: isArabic,
-                                onApply: ownedBackground && isHost
+                                onApply: ownedBackground && isHost && roomFeatures != null
                                     ? () => _applyBackground(
                                           context,
                                           item,
