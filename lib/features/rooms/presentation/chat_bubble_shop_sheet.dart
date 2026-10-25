@@ -45,6 +45,9 @@ class _BubbleShopState extends State<WorldVoiceChatBubbleShopSheet> {
     final duration = _days == null
         ? (_ar ? 'دائم' : 'Permanent')
         : '${_days} ${_ar ? 'أيام' : 'days'}';
+    final policyText = _ar
+      ? 'تبدأ الصلاحية فور وصول العنصر. الهدية المكررة تمدد المدة المتبقية.'
+      : 'Validity starts at delivery. Repeated gifts extend existing time.';
     final result = await showDialog<bool>(context: context,
       builder: (dialog) => AlertDialog(
         title: Text(recipient == null
@@ -53,9 +56,7 @@ class _BubbleShopState extends State<WorldVoiceChatBubbleShopSheet> {
         content: Text('$label • $duration\n'
             '${design.price(_days)} ${_ar ? 'كوين' : 'coins'}'
             '${recipient == null ? '' : '\n$recipient'}\n'
-            (_ar
-              ? 'تبدأ الصلاحية فور وصول العنصر. الهدية المكررة تمدد المدة المتبقية.'
-              : 'Validity starts at delivery. Repeated gifts extend existing time.')),
+            '$policyText'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(dialog, false),
             child: Text(_ar ? 'إلغاء' : 'Cancel')),
