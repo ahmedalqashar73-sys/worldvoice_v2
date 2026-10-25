@@ -11,6 +11,7 @@ import 'package:http/http.dart' as http;
 import '../../rooms/services/agora_voice_room_controller.dart';
 import '../../rooms/presentation/room_board_screen.dart';
 import '../../rooms/data/chat_bubble_catalog.dart';
+import '../../rooms/presentation/chat_bubble_frame.dart';
 import '../../rooms/presentation/room_captions_sheet.dart';
 import '../../rooms/presentation/room_teacher_ai_sheet.dart';
 import '../../rooms/presentation/unified_gift_panel.dart';
@@ -5375,19 +5376,15 @@ class _LiveChatOverlayState extends State<_LiveChatOverlay> {
                           ),
                           const SizedBox(width: 6),
                           Flexible(
-                            child: Container(
-                              constraints: const BoxConstraints(maxWidth: 330),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 7,
-                              ),
+                            child: Builder(builder: (context) {
+                              final content = Container(
+                              constraints: const BoxConstraints(maxWidth: 270),
+                              padding: art == null
+                                  ? const EdgeInsets.symmetric(horizontal: 10, vertical: 7)
+                                  : const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                               decoration: BoxDecoration(
                                 color: art == null
-                                    ? const Color(0x99000000) : null,
-                                gradient: art == null ? null : LinearGradient(
-                                  colors: [art.primary, art.secondary]),
-                                border: art == null ? null : Border.all(
-                                  color: art.accent, width: 1.4),
+                                    ? const Color(0x99000000) : Colors.transparent,
                                 borderRadius: BorderRadius.circular(14),
                               ),
                               child: Text.rich(
@@ -5412,7 +5409,10 @@ class _LiveChatOverlayState extends State<_LiveChatOverlay> {
                                 maxLines: 4,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                            ),
+                              );
+                              return art == null ? content : WorldVoiceBubbleFrame(
+                                design: art, compact: true, child: content);
+                            }),
                           ),
                         ],
                       ),
