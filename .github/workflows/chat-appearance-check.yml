@@ -23,6 +23,7 @@ on:
       - 'backend/test/chat_bubble_policy.test.js'
       - 'test/worldvoice_chat_bubble_catalog_test.dart'
       - 'test/worldvoice_active_chat_bubble_test.dart'
+      - 'test/worldvoice_chat_bubble_art_test.dart'
       - 'firestore.rules'
       - 'lib/core/theme/worldvoice_appearance.dart'
       - 'lib/features/chat/presentation/worldvoice_chat_wallpaper.dart'
@@ -79,7 +80,7 @@ jobs:
           PY
       - run: flutter pub get
       - run: flutter analyze
-      - run: flutter test test/worldvoice_chat_appearance_test.dart test/worldvoice_chat_shared_links_test.dart test/worldvoice_room_full_message_translation_test.dart test/worldvoice_chat_bubble_catalog_test.dart test/worldvoice_active_chat_bubble_test.dart
+      - run: flutter test test/worldvoice_chat_appearance_test.dart test/worldvoice_chat_shared_links_test.dart test/worldvoice_room_full_message_translation_test.dart test/worldvoice_chat_bubble_catalog_test.dart test/worldvoice_active_chat_bubble_test.dart test/worldvoice_chat_bubble_art_test.dart
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
