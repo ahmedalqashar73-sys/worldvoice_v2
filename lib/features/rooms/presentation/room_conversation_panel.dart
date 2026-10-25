@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../data/room_chat_message.dart';
 import '../data/room_feature_models.dart';
+import '../data/chat_bubble_catalog.dart';
 
 /// Live room conversation, independent of Firebase for layout testing.
 class RoomConversationPanel extends StatefulWidget {
@@ -359,6 +360,8 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
               final translated = msg == null ? null : _translations[msg.id];
               final translating =
                   msg != null && _translating.contains(msg.id);
+              final art = msg == null || giftPreview != null
+                  ? null : WorldVoiceChatBubbles.find(msg.bubbleId);
               final bubble = Align(
                 alignment: AlignmentDirectional.centerStart,
                 child: GestureDetector(
@@ -379,13 +382,30 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
                       vertical: 9,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF102C25).withValues(alpha: .8),
+                      color: art == null
+                          ? const Color(0xFF102C25).withValues(alpha: .8)
+                          : null,
+                      gradient: art == null ? null : LinearGradient(
+                        begin: Alignment.topLeft, end: Alignment.bottomRight,
+                        colors: [art.primary, art.secondary, art.primary]),
+                      border: art == null ? null : Border.all(
+                        color: art.accent, width: 1.5),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        if (art != null)
+                          Padding(padding: const EdgeInsets.only(bottom: 3),
+                            child: Row(mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(art.icon, color: art.accent, size: 11),
+                                const SizedBox(width: 4),
+                                Text('WorldVoice', style: TextStyle(
+                                  color: art.accent, fontSize: 10,
+                                  fontWeight: FontWeight.w800)),
+                              ])),
                         Text.rich(
                           TextSpan(
                             children: [
