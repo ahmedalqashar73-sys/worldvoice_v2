@@ -35,6 +35,8 @@ on:
       - 'lib/features/chat/presentation/chat_screen.dart'
       - 'lib/features/rooms/presentation/agora_voice_room_screen.dart'
       - 'lib/features/rooms/presentation/room_conversation_panel.dart'
+      - 'lib/features/rooms/presentation/room_captions_sheet.dart'
+      - 'lib/features/profile/presentation/user_profile_screen.dart'
       - 'lib/features/stories/presentation/story_viewer_screen.dart'
       - 'test/worldvoice_chat_shared_links_test.dart'
       - 'test/worldvoice_room_full_message_translation_test.dart'
