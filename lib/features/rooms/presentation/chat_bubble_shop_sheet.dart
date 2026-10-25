@@ -44,7 +44,7 @@ class _BubbleShopState extends State<WorldVoiceChatBubbleShopSheet> {
     final label = _ar ? design.nameAr : design.name;
     final duration = _days == null
         ? (_ar ? 'دائم' : 'Permanent')
-        : '${_days} ${_ar ? 'أيام' : 'days'}';
+        : '$_days ${_ar ? 'أيام' : 'days'}';
     final policyText = _ar
       ? 'تبدأ الصلاحية فور وصول العنصر. الهدية المكررة تمدد المدة المتبقية.'
       : 'Validity starts at delivery. Repeated gifts extend existing time.';
@@ -243,7 +243,7 @@ class _BubbleShopState extends State<WorldVoiceChatBubbleShopSheet> {
                       final permanent = owned && !design.isVip && exp == null;
                       final duration = _days == null
                           ? (_ar ? 'دائم' : 'Permanent')
-                          : '${_days} ${_ar ? 'أيام' : 'days'}';
+                          : '$_days ${_ar ? 'أيام' : 'days'}';
                       return Card(
                         clipBehavior: Clip.antiAlias, margin: EdgeInsets.zero,
                         child: Padding(padding: const EdgeInsets.all(7),
