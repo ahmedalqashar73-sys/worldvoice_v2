@@ -87,6 +87,7 @@ flutter:
   assets:
     - assets/gifts/worldvoice_gifts.json
     - assets/gifts/catalog/
+    - assets/chat_bubbles/
     - assets/backgrounds/
     - assets/frames/
 
