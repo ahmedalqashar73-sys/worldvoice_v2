@@ -92,7 +92,9 @@ void main() {
     ))));
     await tester.pumpAndSettle();
     final size = tester.getSize(find.byType(WorldVoiceBubbleFrame));
-    expect(size.width, lessThan(110));
+    final textSize = tester.getSize(find.text('Hello'));
+    expect(size.width, lessThanOrEqualTo(textSize.width + 36));
+    expect(size.width, lessThan(125));
     expect(size.height, lessThan(45));
     expect(find.text('WorldVoice'), findsNothing);
     expect(tester.takeException(), isNull);
