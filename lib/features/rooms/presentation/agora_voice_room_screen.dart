@@ -1238,7 +1238,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         : 'Microphone is not listening. Check microphone permission.';
   }
 
-  Future<void> _showCaptionSettings() async {
+  Future<void> _showCaptionSettings({String section = 'all'}) async {
     await showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
@@ -1248,6 +1248,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
           void refreshSheet() => setSheetState(() {});
 
           return RoomCaptionsSheet(
+            section: section,
             enabled: _captionsEnabled,
             translationEnabled: _captionTranslationEnabled,
             pronunciationEnabled: _pronunciationTipsEnabled,
@@ -3931,7 +3932,9 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   messages: _chatMessages ?? const Stream<List<RoomChatMessage>>.empty(),
                   enabled: !_leaving, onSend: _roomChat.send, isArabic: isArabic,
                   onGifts: _showGifts, onShop: _showBackgroundStore,
-                  onTools: _showToolsGrid, onCaptions: _showCaptionSettings,
+                  onTools: _showToolsGrid,
+                  onCaptions: () => _showCaptionSettings(section: 'subtitles'),
+                  onTranslation: () => _showCaptionSettings(section: 'translation'),
                   onTranslateMessage: _translateChatMessage,
                   onReportMessage: (message) => _reportParticipant(
                     targetUserId: message.userId,
@@ -3953,9 +3956,14 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                   onMic: !_controller.joined || _micBusy ||
                           _me?.forcedMuted == true || !isPublishing
                       ? null : _toggleMicSafely,
-                  handControl: _me != null && (_canModerate || !isPublishing)
-                      ? _buildHandControl(isArabic, isPublishing) : null,
                   )),
+                  if (_me != null && (_canModerate || !isPublishing))
+                    Positioned(
+                      key: const ValueKey('fixed-room-hand-position'),
+                      right: 14,
+                      bottom: 92,
+                      child: _buildHandControl(isArabic, isPublishing),
+                    ),
                 ])),
               ]);
             })),
