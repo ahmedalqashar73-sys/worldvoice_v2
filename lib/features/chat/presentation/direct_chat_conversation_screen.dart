@@ -15,6 +15,7 @@ import '../../../core/theme/worldvoice_appearance.dart';
 import '../../profile/presentation/public_profile_screen.dart';
 import '../../rooms/presentation/unified_gift_panel.dart';
 import '../../rooms/data/chat_bubble_catalog.dart';
+import '../../rooms/presentation/chat_bubble_frame.dart';
 import '../services/chat_call_service.dart';
 import '../services/direct_chat_transport.dart';
 import '../services/local_chat_store.dart';
@@ -469,20 +470,17 @@ class _DirectChatConversationScreenState
         AlignmentDirectional.centerStart,
       child: GestureDetector(
         onLongPress: () => unawaited(_messageOptions(item)),
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 305),
+        child: Builder(builder: (context) {
+          final content = Container(
+          constraints: BoxConstraints(maxWidth: art == null ? 305 : 240),
           margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
           padding: shared
               ? const EdgeInsets.fromLTRB(0, 0, 0, 6)
+              : art != null ? const EdgeInsets.symmetric(horizontal: 7, vertical: 3)
               : const EdgeInsets.fromLTRB(13, 10, 13, 8),
           decoration: BoxDecoration(
-            color: shared ? Colors.transparent
-                : art != null ? null : mine ? myBubble : peerBubble,
-            gradient: art == null ? null : LinearGradient(
-              colors: [art.primary, art.secondary, art.primary],
-              begin: Alignment.topLeft, end: Alignment.bottomRight),
-            border: art == null ? null : Border.all(
-              color: art.accent, width: art.isVip ? 1.8 : 1.3),
+            color: shared || art != null ? Colors.transparent
+                : mine ? myBubble : peerBubble,
             borderRadius: BorderRadius.circular(18),
             boxShadow: const [BoxShadow(color: Color(0x110E2B22),
               blurRadius: 5, offset: Offset(0, 2))]),
@@ -540,7 +538,10 @@ class _DirectChatConversationScreenState
                 ],
               ]),
             ]),
-        ),
+          );
+          return art == null ? content : WorldVoiceBubbleFrame(
+            design: art, child: content);
+        }),
       ),
     );
   }
