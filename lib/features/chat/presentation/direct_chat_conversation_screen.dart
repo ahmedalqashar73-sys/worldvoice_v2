@@ -14,6 +14,7 @@ import 'package:video_player/video_player.dart';
 import '../../../core/theme/worldvoice_appearance.dart';
 import '../../profile/presentation/public_profile_screen.dart';
 import '../../rooms/presentation/unified_gift_panel.dart';
+import '../../rooms/data/chat_bubble_catalog.dart';
 import '../services/chat_call_service.dart';
 import '../services/direct_chat_transport.dart';
 import '../services/local_chat_store.dart';
@@ -118,7 +119,15 @@ class _DirectChatConversationScreenState
     if (text.isEmpty || _busy || _blocked || _transport == null) return;
     setState(() => _busy = true);
     try {
-      await _transport!.queueText(text);
+      String bubbleId = 'free';
+      try {
+        final profile = await FirebaseFirestore.instance.collection('users')
+            .doc(_uid).get().timeout(const Duration(seconds: 4));
+        bubbleId = (profile.data()?['chatBubbleId'] ?? 'free').toString();
+      } catch (_) {
+        // Offline text must still be stored and queued locally.
+      }
+      await _transport!.queueText(text, bubbleId: bubbleId);
       if (mounted) _input.clear();
     } catch (error) { _error(error); }
     finally { if (mounted) setState(() => _busy = false); }
@@ -444,6 +453,8 @@ class _DirectChatConversationScreenState
     final text = item['text']?.toString() ?? '';
     final edited = item['edited'] == true;
     final shared = type == 'text' && WorldVoiceSharedLink.parse(text) != null;
+    final art = type == 'text' && !shared && !removed
+        ? WorldVoiceChatBubbles.find(item['bubbleId']?.toString()) : null;
     final read = item['read'] == true;
     final created = DateTime.fromMillisecondsSinceEpoch(
       (item['createdAt'] as num?)?.toInt() ?? 0);
@@ -466,13 +477,26 @@ class _DirectChatConversationScreenState
               : const EdgeInsets.fromLTRB(13, 10, 13, 8),
           decoration: BoxDecoration(
             color: shared ? Colors.transparent
-                : mine ? myBubble : peerBubble,
+                : art != null ? null : mine ? myBubble : peerBubble,
+            gradient: art == null ? null : LinearGradient(
+              colors: [art.primary, art.secondary, art.primary],
+              begin: Alignment.topLeft, end: Alignment.bottomRight),
+            border: art == null ? null : Border.all(
+              color: art.accent, width: art.isVip ? 1.8 : 1.3),
             borderRadius: BorderRadius.circular(18),
             boxShadow: const [BoxShadow(color: Color(0x110E2B22),
               blurRadius: 5, offset: Offset(0, 2))]),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start, children: [
+              if (art != null)
+                Row(mainAxisSize: MainAxisSize.min, children: [
+                  Icon(art.icon, size: 15, color: art.accent),
+                  const SizedBox(width: 4),
+                  Text('✦ WorldVoice', style: TextStyle(
+                    color: art.accent, fontSize: 10,
+                    fontWeight: FontWeight.w800)),
+                ]),
               if (removed)
                 Text(_ar ? 'تم سحب الرسالة' : 'Message unsent',
                   style: TextStyle(color: detailColor,
@@ -493,7 +517,8 @@ class _DirectChatConversationScreenState
                 WorldVoiceSharedContentCard(text: text)
               else
                 Text(text, style: TextStyle(
-                  fontSize: 15, height: 1.4, color: messageColor)),
+                  fontSize: 15, height: 1.4,
+                  color: art == null ? messageColor : Colors.white)),
               const SizedBox(height: 5),
               Row(mainAxisSize: MainAxisSize.min, children: [
                 if (edited) ...[
