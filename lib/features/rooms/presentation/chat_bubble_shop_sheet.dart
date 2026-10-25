@@ -24,8 +24,10 @@ class _BubbleShopState extends State<WorldVoiceChatBubbleShopSheet> {
   bool get _ar => Localizations.localeOf(context).languageCode == 'ar';
 
   void _notice(String value) {
-    if (mounted) ScaffoldMessenger.of(context)
-      .showSnackBar(SnackBar(content: Text(value)));
+    if (mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(value)));
+    }
   }
 
   Future<void> _failed(Object error) async {
@@ -42,15 +44,15 @@ class _BubbleShopState extends State<WorldVoiceChatBubbleShopSheet> {
     final label = _ar ? design.nameAr : design.name;
     final duration = _days == null
         ? (_ar ? 'دائم' : 'Permanent')
-        : _days.toString() + (_ar ? ' أيام' : ' days');
+        : '${_days} ${_ar ? 'أيام' : 'days'}';
     final result = await showDialog<bool>(context: context,
       builder: (dialog) => AlertDialog(
         title: Text(recipient == null
           ? (_ar ? 'تأكيد الشراء' : 'Confirm purchase')
           : (_ar ? 'تأكيد الإهداء' : 'Confirm gift')),
-        content: Text(label + ' • ' + duration + '\n' +
-            design.price(_days).toString() + (_ar ? ' كوين' : ' coins') +
-            (recipient == null ? '' : '\n' + recipient) + '\n' +
+        content: Text('$label • $duration\n'
+            '${design.price(_days)} ${_ar ? 'كوين' : 'coins'}'
+            '${recipient == null ? '' : '\n$recipient'}\n'
             (_ar
               ? 'تبدأ الصلاحية فور وصول العنصر. الهدية المكررة تمدد المدة المتبقية.'
               : 'Validity starts at delivery. Repeated gifts extend existing time.')),
@@ -97,7 +99,9 @@ class _BubbleShopState extends State<WorldVoiceChatBubbleShopSheet> {
       );
       if (recipient == null || !mounted ||
           !await _confirm(design, recipient:
-            (recipient.data()['displayName'] ?? recipient.id).toString())) return;
+            (recipient.data()['displayName'] ?? recipient.id).toString())) {
+        return;
+      }
       setState(() => _busy = true);
       await _shop.giftItem(
         itemId: design.storeId(_days), recipientId: recipient.id);
@@ -142,7 +146,9 @@ class _BubbleShopState extends State<WorldVoiceChatBubbleShopSheet> {
     final data = items[design.inventoryId];
     if (data == null || data['type'] != 'bubble' ||
         data['bubbleId'] != design.id ||
-        (data['quantity'] as num? ?? 0) <= 0) return false;
+        (data['quantity'] as num? ?? 0) <= 0) {
+      return false;
+    }
     final exp = data['expiresAt'];
     return exp == null || (exp is Timestamp &&
         exp.toDate().isAfter(DateTime.now()));
@@ -236,7 +242,7 @@ class _BubbleShopState extends State<WorldVoiceChatBubbleShopSheet> {
                       final permanent = owned && !design.isVip && exp == null;
                       final duration = _days == null
                           ? (_ar ? 'دائم' : 'Permanent')
-                          : _days.toString() + (_ar ? ' أيام' : ' days');
+                          : '${_days} ${_ar ? 'أيام' : 'days'}';
                       return Card(
                         clipBehavior: Clip.antiAlias, margin: EdgeInsets.zero,
                         child: Padding(padding: const EdgeInsets.all(7),
@@ -247,15 +253,14 @@ class _BubbleShopState extends State<WorldVoiceChatBubbleShopSheet> {
                                 child: WorldVoiceBubbleFrame(design: design,
                                   child: const Text('Hello!',
                                     style: TextStyle(color: Colors.white,
-                                      fontWeight: FontWeight.w800))))),
+                                      fontWeight: FontWeight.w800)))))),
                             Text(_ar ? design.nameAr : design.name,
                               maxLines: 1, overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 12)),
                             const SizedBox(height: 3),
                             Text(design.isVip ? 'VIP Exclusive'
-                              : design.price(_days).toString() +
-                                ' 🪙 • ' + duration,
+                              : '${design.price(_days)} 🪙 • $duration',
                               style: const TextStyle(fontSize: 10)),
                             if (owned)
                               Text(design.isVip ? 'VIP'
