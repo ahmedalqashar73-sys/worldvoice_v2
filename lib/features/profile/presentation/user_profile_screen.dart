@@ -10,6 +10,7 @@ import '../../../core/widgets/worldvoice_avatar_frame.dart';
 import '../services/profile_social_service.dart';
 import '../data/profile_language_catalog.dart';
 import 'profile_connections_screen.dart';
+import '../../rooms/presentation/room_background_shop_sheet.dart';
 import 'profile_identity_strip.dart';
 import 'profile_setup_screen.dart';
 import 'profile_visitors_screen.dart';
@@ -48,6 +49,16 @@ class UserProfileScreen extends StatelessWidget {
                     : 'My profile',
           ),
           actions: [
+            IconButton(
+              tooltip: code == 'ar' ? 'الخلفيات والإطارات والفقاعات'
+                  : 'WorldVoice Appearance Shop',
+              icon: const Icon(Icons.storefront_rounded),
+              onPressed: () => showModalBottomSheet<void>(
+                context: context, isScrollControlled: true,
+                useSafeArea: true,
+                builder: (_) => RoomBackgroundShopSheet(),
+              ),
+            ),
             IconButton(
               key: const ValueKey('profile-vip-store'),
               tooltip: code == 'ar' ? 'متجر VIP' : 'VIP membership',
