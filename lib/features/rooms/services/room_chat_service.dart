@@ -45,6 +45,7 @@ class RoomChatService {
               .toString(),
       'photoUrl': data['photoUrl'],
       'text': text,
+      'bubbleId': (data['chatBubbleId'] ?? 'free').toString(),
       'createdAt': FieldValue.serverTimestamp(),
     });
   }
