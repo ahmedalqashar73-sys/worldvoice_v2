@@ -97,6 +97,30 @@ Future<bool> _requestLiveCameraPermission() async {
 class LiveScreen extends StatefulWidget {
   const LiveScreen({required this.localeController, super.key});
 
+  /// Public navigation entry for an official activity card.
+  static Future<void> openLiveById(
+    BuildContext context, String liveId, LocaleController localeController,
+  ) async {
+    final snap = await FirebaseFirestore.instance
+        .collection('live_sessions').doc(liveId).get();
+    if (!context.mounted) return;
+    final data = snap.data();
+    final ar = localeController.locale?.languageCode == 'ar';
+    if (data == null || data['isLive'] != true) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(ar ? 'انتهى هذا البث المباشر' : 'This live has ended'),
+      ));
+      return;
+    }
+    await Navigator.of(context).push<void>(MaterialPageRoute(
+      fullscreenDialog: true,
+      builder: (_) => _LiveViewerScreen(
+        liveId: liveId, data: data, ar: ar,
+        localeController: localeController,
+      ),
+    ));
+  }
+
   final LocaleController localeController;
 
   @override
