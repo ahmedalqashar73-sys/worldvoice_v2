@@ -134,10 +134,10 @@ class _WorldVoiceOfficialScreenState extends State<WorldVoiceOfficialScreen> {
               ),
               Padding(
                 padding: const EdgeInsets.all(14),
-                child: FutureBuilder<bool>(
-                  future: _isPublisher,
+                child: FutureBuilder<Map<String, dynamic>>(
+                  future: _publisher,
                   builder: (context, snap) {
-                    if (snap.data == true) {
+                    if (snap.data?['canPublish'] == true) {
                       return SizedBox(width: double.infinity,
                         child: FilledButton.icon(
                           icon: const Icon(Icons.campaign_outlined),
