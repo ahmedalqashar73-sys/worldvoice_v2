@@ -31,7 +31,7 @@ async function sendPush(db, uid, activity, language) {
   try {
     const tokens = await db.collection("users").doc(uid)
       .collection("notification_devices").limit(3).get();
-    const locale = langs.has(language) ? language : "en";
+    const localeFallback = langs.has(language) ? language : "en";
     for (const device of tokens.docs) {
       const token = safeString(device.data()?.token, 2048);
       if (!token) continue;
