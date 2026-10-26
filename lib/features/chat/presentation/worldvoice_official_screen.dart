@@ -180,6 +180,9 @@ class _OfficialComposerState extends State<_OfficialComposer> {
   final _title = TextEditingController();
   final _body = TextEditingController();
   bool _sending = false;
+  bool _sendEmail = false;
+  String? _announcementId;
+  int _emailSent = 0;
   String? _error;
 
   @override
