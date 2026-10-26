@@ -46,6 +46,9 @@ class _WorldVoiceAppState extends State<WorldVoiceApp> with WidgetsBindingObserv
         unawaited(_setupPushForAccount());
       } else {
         _presenceSession.stop();
+        unawaited(WorldVoiceNotificationService.clearAnnouncementTopic());
+        _pushTokenSubscription?.cancel();
+        _pushTokenSubscription = null;
       }
     });
     _load();
