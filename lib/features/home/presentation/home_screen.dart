@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 
 import '../../../core/localization/locale_controller.dart';
 import '../../chat/presentation/chat_screen.dart';
+import '../../chat/presentation/worldvoice_activity_screen.dart';
+import '../../chat/presentation/worldvoice_official_screen.dart';
+import '../../chat/services/worldvoice_notification_service.dart';
 import '../../chat/presentation/incoming_call_watcher.dart';
 import '../../discover/presentation/discover_screen.dart';
 import '../../profile/presentation/public_profile_screen.dart';
@@ -24,6 +27,39 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _index = 0;
+  bool _openingOfficialPush = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WorldVoiceNotificationService.pendingInbox.addListener(_openPendingPush);
+    _openPendingPush();
+  }
+
+  @override
+  void dispose() {
+    WorldVoiceNotificationService.pendingInbox.removeListener(_openPendingPush);
+    super.dispose();
+  }
+
+  void _openPendingPush() {
+    if (!mounted || _openingOfficialPush ||
+        WorldVoiceNotificationService.pendingInbox.value == null) return;
+    _openingOfficialPush = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _openingOfficialPush = false;
+      if (!mounted) return;
+      final destination = WorldVoiceNotificationService.pendingInbox.value;
+      if (destination == null) return;
+      WorldVoiceNotificationService.pendingInbox.value = null;
+      setState(() => _index = 3);
+      Navigator.of(context).push(MaterialPageRoute<void>(
+        builder: (_) => destination == 'activity'
+          ? WorldVoiceActivityScreen(localeController: widget.localeController)
+          : WorldVoiceOfficialScreen(localeController: widget.localeController),
+      ));
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
