@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -28,6 +29,8 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
   int _durationMs = 7000;
   bool _uploading = false;
   String? _publishError;
+  String? _publishedStoryId;
+  String _uploadId = '';
   bool _loadingEntitlements = true;
   bool _isVip = false;
   Set<String> _closeFriends = <String>{};
@@ -123,6 +126,9 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
     setState(() {
       _media = selected;
       _kind = kind;
+      _publishedStoryId = null;
+      // Stable for retries, fresh whenever a different media file is picked.
+      _uploadId = 'wv_${DateTime.now().microsecondsSinceEpoch}_${Random.secure().nextInt(0x7fffffff)}';
       _publishError = null;
     });
   }
@@ -281,14 +287,27 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
       _publishError = null;
     });
     try {
-      await widget.service.uploadStory(
+      final id = _publishedStoryId ?? await widget.service.uploadStory(
         file: media,
         kind: _kind,
         audience: _audience,
         durationMs: _durationMs,
+        uploadId: _uploadId,
       );
-      if (!mounted) return;
-      Navigator.pop(context, true);
+      _publishedStoryId = id;
+      // Do not return to the previous screen until the published media is
+      // readable. Temporary CDN delays can resolve without uploading twice.
+      for (var attempt = 0; attempt < 3; attempt++) {
+        try {
+          await widget.service.verifyPublishedStory(id);
+          if (!mounted) return;
+          Navigator.pop(context, true);
+          return;
+        } catch (_) {
+          if (attempt == 2) rethrow;
+          await Future<void>.delayed(const Duration(seconds: 2));
+        }
+      }
     } catch (error) {
       if (!mounted) return;
       final raw = error.toString().replaceFirst('Bad state: ', '');
@@ -297,6 +316,12 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
           raw.contains('STORY_STORAGE_NOT_READY');
       setState(() {
         _uploading = false;
+        if (_publishedStoryId != null) {
+          _publishError = ar
+              ? 'تم حفظ الستوري لكن الوسائط لم تظهر بعد. اضغط الزر مرة ثانية للتحقق بدون إعادة الرفع.'
+              : 'Story saved, but media is not ready yet. Tap again to verify without re-uploading.';
+          return;
+        }
         // A snackbar appears behind an open bottom sheet. Keep the failure
         // visible beside Share Story so users know publication did not work.
         _publishError = unavailable
