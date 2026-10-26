@@ -132,7 +132,9 @@ class StoryService {
     final alternate = _uri(path, base: _fallbackEndpoint)
         .replace(queryParameters: query);
     if (alternate.origin == firstUrl.origin &&
-        alternate.path == firstUrl.path) return first;
+        alternate.path == firstUrl.path) {
+      return first;
+    }
     final second = await _client.get(alternate, headers: headers).timeout(timeout);
     if (second.statusCode >= 200 && second.statusCode < 300) {
       _activeEndpoint = _fallbackEndpoint;
