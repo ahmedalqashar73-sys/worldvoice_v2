@@ -189,6 +189,7 @@ class UserProfileScreen extends StatelessWidget {
                         style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(fontWeight: FontWeight.w900),
                       ),
+                      PublicMemberMarks(userId: uid),
                       const SizedBox(height: 4),
                       Text(
                         '@${username?.isNotEmpty == true ? username! : 'user'}',
@@ -282,7 +283,6 @@ class UserProfileScreen extends StatelessWidget {
                           ),
                         ],
                       ),
-                      PublicMemberMarks(userId: uid),
                       CreativeProfileLink(userId: uid),
                       const SizedBox(height: 12),
                       VoiceBioCard(

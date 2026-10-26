@@ -98,28 +98,31 @@ class VipSignatureBadge extends StatelessWidget {
             ),
           ],
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: large ? 28 : 13, color: color),
-            SizedBox(width: large ? 8 : 3),
-            Text(
-              'VIP',
-              style: TextStyle(
-                color: color,
-                fontSize: large ? 25 : 11,
-                height: 1,
-                fontStyle: FontStyle.italic,
-                fontWeight: FontWeight.w900,
-                letterSpacing: .6,
-              ),
-            ),
-            if (design == 'lifetime')
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: large ? 28 : 13, color: color),
+              SizedBox(width: large ? 8 : 3),
               Text(
-                ' ∞',
-                style: TextStyle(color: color, fontSize: large ? 24 : 12),
+                'VIP',
+                style: TextStyle(
+                  color: color,
+                  fontSize: large ? 25 : 11,
+                  height: 1,
+                  fontStyle: FontStyle.italic,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: .6,
+                ),
               ),
-          ],
+              if (design == 'lifetime')
+                Text(
+                  ' ∞',
+                  style: TextStyle(color: color, fontSize: large ? 24 : 12),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -194,12 +197,17 @@ class _PublicMemberMarksState extends State<PublicMemberMarks> {
     super.initState();
     _load();
     if (_future == null) return;
+    EngagementService.badgeRevision.addListener(_refreshBadge);
     _timer = Timer.periodic(const Duration(seconds: 65), (_) {
       if (mounted &&
           WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
         setState(_load);
       }
     });
+  }
+
+  void _refreshBadge() {
+    if (mounted) setState(_load);
   }
 
   @override
@@ -211,6 +219,7 @@ class _PublicMemberMarksState extends State<PublicMemberMarks> {
   @override
   void dispose() {
     _timer?.cancel();
+    EngagementService.badgeRevision.removeListener(_refreshBadge);
     super.dispose();
   }
 

@@ -1,3 +1,4 @@
+import '../../engagement/services/engagement_service.dart';
 import '../../profile/presentation/member_badges.dart';
 import 'dart:math';
 
@@ -103,6 +104,8 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
         giftId: gift.id,
         requestKey: _pendingKey,
       );
+      final senderUid = FirebaseAuth.instance.currentUser?.uid;
+      if (senderUid != null) EngagementService.invalidate(senderUid);
       if (!mounted) return;
       setState(() {
         _needsRecharge = false;
