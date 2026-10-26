@@ -57,7 +57,7 @@ test('engagement transactions in demo emulator', {skip: !process.env.FIRESTORE_E
       assert.equal((await engagementRef(db, uid).get()).data().creativeCycles, undefined);
       const result = await call('badges', uid, {}, {userIds: uid});
       assert.deepEqual(Object.keys(result.body.badges[uid]).sort(),
-        ['completedCycles', 'creativeAwardedAtMs', 'creativeCycles', 'giftLevel']);
+        ['completedCycles', 'creativeAwardedAtMs', 'creativeCycles', 'giftLevel', 'vipBadge']);
       assert.equal((await call('status', null)).status, 401);
     });
     await t.test('third claim awards badge atomically only with server evidence', async () => {

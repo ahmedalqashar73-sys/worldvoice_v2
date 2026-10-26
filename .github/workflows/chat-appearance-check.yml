@@ -9,6 +9,9 @@ on:
       - 'assets/chat_wallpapers/**'
       - 'assets/chat_bubbles/**'
       - 'assets/frames/**'
+      - 'lib/features/profile/presentation/member_badges.dart'
+      - 'backend/src/member_badge*'
+      - 'test/member_badges_test.dart'
       - 'lib/core/widgets/worldvoice_avatar_frame.dart'
       - 'test/worldvoice_avatar_frame_test.dart'
       - 'lib/features/rooms/data/chat_bubble_catalog.dart'
@@ -85,10 +88,16 @@ jobs:
           PY
       - run: flutter pub get
       - run: flutter analyze
-      - run: flutter test test/worldvoice_chat_appearance_test.dart test/worldvoice_chat_shared_links_test.dart test/worldvoice_room_full_message_translation_test.dart test/worldvoice_chat_bubble_catalog_test.dart test/worldvoice_active_chat_bubble_test.dart test/worldvoice_chat_bubble_art_test.dart test/worldvoice_avatar_frame_test.dart
+      - run: flutter test test/worldvoice_chat_appearance_test.dart test/worldvoice_chat_shared_links_test.dart test/worldvoice_room_full_message_translation_test.dart test/worldvoice_chat_bubble_catalog_test.dart test/worldvoice_active_chat_bubble_test.dart test/worldvoice_chat_bubble_art_test.dart test/worldvoice_avatar_frame_test.dart test/member_badges_test.dart test/vip_membership_store_test.dart
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - name: Verify server-owned bubble prices and expiry
         working-directory: backend
-        run: node --test test/chat_bubble_policy.test.js
+        run: node --test test/chat_bubble_policy.test.js test/member_badge_policy.test.js
+      - name: Install backend test dependencies
+        working-directory: backend
+        run: npm install --ignore-scripts --no-package-lock
+      - name: Verify badge purchases and authorization
+        working-directory: backend
+        run: node --test test/member_badge_routes.test.js

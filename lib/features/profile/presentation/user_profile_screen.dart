@@ -1,3 +1,4 @@
+import 'member_badges.dart';
 import '../../engagement/presentation/creative_progress_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -19,17 +20,15 @@ import 'vip_membership_screen.dart';
 import 'voice_bio_card.dart';
 
 class UserProfileScreen extends StatelessWidget {
-  const UserProfileScreen({
-    required this.localeController,
-    super.key,
-  });
+  const UserProfileScreen({required this.localeController, super.key});
 
   final LocaleController localeController;
 
   @override
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
-    final code = localeController.locale?.languageCode ??
+    final code =
+        localeController.locale?.languageCode ??
         Localizations.localeOf(context).languageCode;
     final rtl = const {'ar', 'ur', 'fa'}.contains(code);
 
@@ -45,16 +44,18 @@ class UserProfileScreen extends StatelessWidget {
             code == 'ar'
                 ? 'بروفايلي'
                 : code == 'es'
-                    ? 'Mi perfil'
-                    : 'My profile',
+                ? 'Mi perfil'
+                : 'My profile',
           ),
           actions: [
             IconButton(
-              tooltip: code == 'ar' ? 'الخلفيات والإطارات والفقاعات'
+              tooltip: code == 'ar'
+                  ? 'الخلفيات والإطارات والفقاعات'
                   : 'WorldVoice Appearance Shop',
               icon: const Icon(Icons.storefront_rounded),
               onPressed: () => showModalBottomSheet<void>(
-                context: context, isScrollControlled: true,
+                context: context,
+                isScrollControlled: true,
                 useSafeArea: true,
                 builder: (_) => RoomBackgroundShopSheet(),
               ),
@@ -74,9 +75,8 @@ class UserProfileScreen extends StatelessWidget {
               onPressed: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (_) => SettingsScreen(
-                      localeController: localeController,
-                    ),
+                    builder: (_) =>
+                        SettingsScreen(localeController: localeController),
                   ),
                 );
               },
@@ -85,8 +85,10 @@ class UserProfileScreen extends StatelessWidget {
           ],
         ),
         body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-          stream:
-              FirebaseFirestore.instance.collection('users').doc(uid).snapshots(),
+          stream: FirebaseFirestore.instance
+              .collection('users')
+              .doc(uid)
+              .snapshots(),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
               return const Center(child: CircularProgressIndicator());
@@ -101,20 +103,29 @@ class UserProfileScreen extends StatelessWidget {
             final country = data['country'] as String?;
             final gender = data['gender'] as String?;
             final nativeLanguage = ProfileLanguageCatalog.localizedStoredName(
-                (data['nativeLanguageCode'] ?? data['nativeLanguage'])?.toString(), code);
+              (data['nativeLanguageCode'] ?? data['nativeLanguage'])
+                  ?.toString(),
+              code,
+            );
             final birthRaw = data['birthDate'];
             final birthDate = birthRaw is Timestamp ? birthRaw.toDate() : null;
             final isVip = data['isVip'] == true;
-            final profileFrameId =
-                (data['profileFrameId'] as String?)?.trim();
+            final profileFrameId = (data['profileFrameId'] as String?)?.trim();
             final voiceBioUrl = data['voiceBioUrl'] as String?;
-            final savedLearning = (data['learningLanguageCodes'] as List?)?.isNotEmpty == true
+            final savedLearning =
+                (data['learningLanguageCodes'] as List?)?.isNotEmpty == true
                 ? (data['learningLanguageCodes'] as List)
                 : (data['learningLanguages'] as List?) ?? const [];
             final learning = savedLearning
-                .map((e) => ProfileLanguageCatalog.localizedStoredName(e.toString(), code))
+                .map(
+                  (e) => ProfileLanguageCatalog.localizedStoredName(
+                    e.toString(),
+                    code,
+                  ),
+                )
                 .toList();
-            final hobbies = (data['interests'] as List?)
+            final hobbies =
+                (data['interests'] as List?)
                     ?.map((e) => e.toString())
                     .toList() ??
                 const <String>[];
@@ -150,10 +161,7 @@ class UserProfileScreen extends StatelessWidget {
                             color: Theme.of(context).colorScheme.surface,
                             child: photo == null || photo.isEmpty
                                 ? const Center(
-                                    child: Icon(
-                                      Icons.person_rounded,
-                                      size: 58,
-                                    ),
+                                    child: Icon(Icons.person_rounded, size: 58),
                                   )
                                 : Image.network(
                                     photo,
@@ -178,9 +186,7 @@ class UserProfileScreen extends StatelessWidget {
                     children: [
                       Text(
                         name?.isNotEmpty == true ? name! : 'WorldVoice',
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineSmall
+                        style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(fontWeight: FontWeight.w900),
                       ),
                       const SizedBox(height: 4),
@@ -276,6 +282,7 @@ class UserProfileScreen extends StatelessWidget {
                           ),
                         ],
                       ),
+                      PublicMemberMarks(userId: uid),
                       CreativeProfileLink(userId: uid),
                       const SizedBox(height: 12),
                       VoiceBioCard(
@@ -285,32 +292,35 @@ class UserProfileScreen extends StatelessWidget {
                       ),
                       _InfoCard(
                         icon: Icons.translate_rounded,
-                        title: ProfileLanguageCatalog.localizedFieldTitle('learning', code),
+                        title: ProfileLanguageCatalog.localizedFieldTitle(
+                          'learning',
+                          code,
+                        ),
                         value: learning.isEmpty ? '—' : learning.join(' • '),
                         trailing: IconButton.filledTonal(
                           tooltip: profileAddLearningLabel(code),
                           onPressed: () {
-                            Navigator.of(context).push(MaterialPageRoute(
-                              builder: (_) => ProfileSetupScreen(
-                                localeController: localeController,
-                                editMode: true,
-                                openLearningPickerOnLaunch: true,
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => ProfileSetupScreen(
+                                  localeController: localeController,
+                                  editMode: true,
+                                  openLearningPickerOnLaunch: true,
+                                ),
                               ),
-                            ));
+                            );
                           },
                           icon: const Icon(Icons.add_rounded),
                         ),
                       ),
                       _InfoCard(
                         icon: Icons.favorite_outline_rounded,
-                        title:
-                            AppStrings.of(code).profile('interests'),
+                        title: AppStrings.of(code).profile('interests'),
                         value: hobbies.isEmpty ? '—' : hobbies.join(' • '),
                       ),
                       _InfoCard(
                         icon: Icons.work_outline_rounded,
-                        title:
-                            AppStrings.of(code).profile('profession'),
+                        title: AppStrings.of(code).profile('profession'),
                         value: (data['profession'] ?? '—').toString(),
                       ),
                       const SizedBox(height: 8),
@@ -320,8 +330,7 @@ class UserProfileScreen extends StatelessWidget {
                             child: _Wallet(
                               icon: Icons.diamond_outlined,
                               value: (data['diamonds'] ?? 0).toString(),
-                              label:
-                                  AppStrings.of(code).profile('diamonds'),
+                              label: AppStrings.of(code).profile('diamonds'),
                             ),
                           ),
                           const SizedBox(width: 10),
@@ -345,10 +354,7 @@ class UserProfileScreen extends StatelessWidget {
     );
   }
 
-  void _openConnections(
-    BuildContext context,
-    ProfileConnectionType type,
-  ) {
+  void _openConnections(BuildContext context, ProfileConnectionType type) {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => ProfileConnectionsScreen(
@@ -402,27 +408,21 @@ class _LiveCountStat extends StatelessWidget {
 }
 
 class _StaticStat extends StatelessWidget {
-  const _StaticStat({
-    required this.value,
-    required this.label,
-  });
+  const _StaticStat({required this.value, required this.label});
 
   final String value;
   final String label;
 
   @override
   Widget build(BuildContext context) => Column(
-        children: [
-          Text(
-            value,
-            style: const TextStyle(
-              fontWeight: FontWeight.w900,
-              fontSize: 18,
-            ),
-          ),
-          Text(label, style: Theme.of(context).textTheme.bodySmall),
-        ],
-      );
+    children: [
+      Text(
+        value,
+        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
+      ),
+      Text(label, style: Theme.of(context).textTheme.bodySmall),
+    ],
+  );
 }
 
 class _ProfileAction extends StatelessWidget {
@@ -441,14 +441,8 @@ class _ProfileAction extends StatelessWidget {
     return FilledButton.tonalIcon(
       onPressed: onTap,
       icon: Icon(icon),
-      label: Text(
-        title,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-      style: FilledButton.styleFrom(
-        minimumSize: const Size.fromHeight(50),
-      ),
+      label: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
+      style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(50)),
     );
   }
 }
@@ -468,24 +462,19 @@ class _InfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-        margin: const EdgeInsets.only(bottom: 10),
-        child: ListTile(
-          contentPadding: const EdgeInsets.all(14),
-          leading: Icon(icon),
-          title:
-              Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
-          subtitle: Text(value),
-          trailing: trailing,
-        ),
-      );
+    margin: const EdgeInsets.only(bottom: 10),
+    child: ListTile(
+      contentPadding: const EdgeInsets.all(14),
+      leading: Icon(icon),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
+      subtitle: Text(value),
+      trailing: trailing,
+    ),
+  );
 }
 
 class _Wallet extends StatelessWidget {
-  const _Wallet({
-    required this.icon,
-    required this.value,
-    required this.label,
-  });
+  const _Wallet({required this.icon, required this.value, required this.label});
 
   final IconData icon;
   final String value;
@@ -493,22 +482,19 @@ class _Wallet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              Icon(icon),
-              const SizedBox(height: 7),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w900,
-                  fontSize: 18,
-                ),
-              ),
-              Text(label),
-            ],
+    child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          Icon(icon),
+          const SizedBox(height: 7),
+          Text(
+            value,
+            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
           ),
-        ),
-      );
+          Text(label),
+        ],
+      ),
+    ),
+  );
 }

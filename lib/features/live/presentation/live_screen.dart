@@ -1,3 +1,4 @@
+import '../../profile/presentation/member_badges.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
@@ -37,8 +38,9 @@ import '../../chat/presentation/chat_screen.dart';
 import '../../home/services/home_feed_service.dart';
 import '../../home/presentation/home_screen.dart';
 
-const MethodChannel _livePermissionChannel =
-    MethodChannel('worldvoice/live_permissions');
+const MethodChannel _livePermissionChannel = MethodChannel(
+  'worldvoice/live_permissions',
+);
 const MethodChannel _liveTtsChannel = MethodChannel('worldvoice/live_tts');
 
 Future<void> _warmLiveBackend() async {
@@ -103,8 +105,8 @@ class LiveScreen extends StatefulWidget {
 
 class _LiveScreenState extends State<LiveScreen> {
   final LiveSessionService _service = LiveSessionService();
-  late final Stream<QuerySnapshot<Map<String, dynamic>>> _sessions =
-      _service.watchOpen();
+  late final Stream<QuerySnapshot<Map<String, dynamic>>> _sessions = _service
+      .watchOpen();
   List<String> _profileLanguages = const <String>[];
   String _selectedLanguage = '';
 
@@ -132,17 +134,22 @@ class _LiveScreenState extends State<LiveScreen> {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
     try {
-      final profile =
-          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      final profile = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .get();
       final data = profile.data() ?? const <String, dynamic>{};
       final codes = <String>[];
       void add(Object? item) {
         final code = _normalizedLanguage(item);
         if (code.isNotEmpty && !codes.contains(code)) codes.add(code);
       }
+
       add(data['nativeLanguageCode'] ?? data['nativeLanguage']);
-      final raw = data['learningLanguageCodes'] ??
-          data['learningLanguages'] ?? const <dynamic>[];
+      final raw =
+          data['learningLanguageCodes'] ??
+          data['learningLanguages'] ??
+          const <dynamic>[];
       if (raw is List) {
         for (final item in raw) {
           add(item);
@@ -161,7 +168,8 @@ class _LiveScreenState extends State<LiveScreen> {
     final codes = data['languageCodes'];
     if (codes is List) {
       return codes.any(
-          (item) => _normalizedLanguage(item) == _selectedLanguage);
+        (item) => _normalizedLanguage(item) == _selectedLanguage,
+      );
     }
     return _normalizedLanguage(data['languageCode']) == _selectedLanguage;
   }
@@ -236,85 +244,117 @@ class _LiveScreenState extends State<LiveScreen> {
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 12, 12, 13),
               child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Row(children: [
-                const Icon(Icons.graphic_eq_rounded,
-                    color: Colors.white, size: 20),
-                const SizedBox(width: 5),
-                Text(ar ? 'مباشر' : 'LIVE',
-                    style: const TextStyle(color: Color(0xFFFF7182),
-                        fontSize: 10, fontWeight: FontWeight.w900)),
-                const Spacer(),
-                if (languageLabel.isNotEmpty)
-                  Container(
-                    constraints: const BoxConstraints(maxWidth: 116),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 9, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: const Color(0xAA071712),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(languageLabel,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.graphic_eq_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        ar ? 'مباشر' : 'LIVE',
                         style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w800)),
+                          color: Color(0xFFFF7182),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const Spacer(),
+                      if (languageLabel.isNotEmpty)
+                        Container(
+                          constraints: const BoxConstraints(maxWidth: 116),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 9,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xAA071712),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            languageLabel,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
-              ]),
-              const SizedBox(height: 9),
-              CircleAvatar(
-                radius: 31,
-                foregroundImage:
-                    avatarUrl.isEmpty ? null : NetworkImage(avatarUrl),
-                backgroundColor: const Color(0x5538BC88),
-                child: avatarUrl.isEmpty
-                    ? const Icon(Icons.person_rounded,
-                        color: Colors.white, size: 28)
-                    : null,
-              ),
-              const SizedBox(height: 9),
-              Text(name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  const SizedBox(height: 9),
+                  CircleAvatar(
+                    radius: 31,
+                    foregroundImage: avatarUrl.isEmpty
+                        ? null
+                        : NetworkImage(avatarUrl),
+                    backgroundColor: const Color(0x5538BC88),
+                    child: avatarUrl.isEmpty
+                        ? const Icon(
+                            Icons.person_rounded,
+                            color: Colors.white,
+                            size: 28,
+                          )
+                        : null,
+                  ),
+                  const SizedBox(height: 9),
+                  Text(
+                    name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
                       color: Colors.white70,
                       fontSize: 13,
-                      fontWeight: FontWeight.w700)),
-              const SizedBox(height: 7),
-              Expanded(
-                child: Center(
-                  child: Text(
-                    topic.isEmpty ? (ar ? 'تحدث وتعلّم معًا' : 'Talk and learn together') : topic,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 17,
-                      height: 1.2,
-                      fontWeight: FontWeight.w900,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
-                ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text('$viewerCount',
-                      style: const TextStyle(
+                  const SizedBox(height: 7),
+                  Expanded(
+                    child: Center(
+                      child: Text(
+                        topic.isEmpty
+                            ? (ar
+                                  ? 'تحدث وتعلّم معًا'
+                                  : 'Talk and learn together')
+                            : topic,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
                           color: Colors.white,
-                          fontWeight: FontWeight.w700)),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.visibility_rounded,
-                      size: 17, color: Colors.white),
+                          fontSize: 17,
+                          height: 1.2,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        '$viewerCount',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(
+                        Icons.visibility_rounded,
+                        size: 17,
+                        color: Colors.white,
+                      ),
+                    ],
+                  ),
                 ],
               ),
-            ],
-          ),
-        ),
+            ),
           ],
         ),
       ),
@@ -323,7 +363,8 @@ class _LiveScreenState extends State<LiveScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final language = widget.localeController.locale?.languageCode ??
+    final language =
+        widget.localeController.locale?.languageCode ??
         Localizations.localeOf(context).languageCode;
     final ar = language == 'ar';
     final rtl = const {'ar', 'ur', 'fa'}.contains(language);
@@ -338,55 +379,68 @@ class _LiveScreenState extends State<LiveScreen> {
               padding: const EdgeInsets.fromLTRB(18, 14, 18, 12),
               sliver: SliverToBoxAdapter(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 13),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 13,
+                    vertical: 13,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFF11261D),
                     borderRadius: BorderRadius.circular(22),
                   ),
-                  child: Row(children: [
-                    const CircleAvatar(
-                      radius: 23,
-                      backgroundColor: Color(0xFFDCF4EA),
-                      child: Icon(Icons.videocam_rounded,
-                          color: Color(0xFF0B7A58)),
-                    ),
-                    const SizedBox(width: 11),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(ar ? 'أنشئ بثك المباشر' : 'Create your live',
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 16)),
-                          Text(ar ? 'تحدّث مع العالم' : 'Connect with the world',
-                              style: const TextStyle(color: Colors.white70)),
-                        ],
+                  child: Row(
+                    children: [
+                      const CircleAvatar(
+                        radius: 23,
+                        backgroundColor: Color(0xFFDCF4EA),
+                        child: Icon(
+                          Icons.videocam_rounded,
+                          color: Color(0xFF0B7A58),
+                        ),
                       ),
-                    ),
-                    FilledButton(
-                      key: const ValueKey('start-live'),
-                      onPressed: () {
-                        unawaited(_warmLiveBackend());
-                        final fallback = _profileLanguages.isNotEmpty
-                            ? _profileLanguages.first
-                            : (ProfileLanguageCatalog.byCode(language) == null
-                                ? 'en' : language);
-                        Navigator.of(context).push<void>(
-                          MaterialPageRoute(
-                            fullscreenDialog: true,
-                            builder: (_) => _LiveCameraGate(
-                              ar: ar,
-                              initialLanguageCode: fallback,
-                              localeController: widget.localeController,
+                      const SizedBox(width: 11),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              ar ? 'أنشئ بثك المباشر' : 'Create your live',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w900,
+                                fontSize: 16,
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                      child: Text(ar ? 'إنشاء' : 'Create'),
-                    ),
-                  ]),
+                            Text(
+                              ar ? 'تحدّث مع العالم' : 'Connect with the world',
+                              style: const TextStyle(color: Colors.white70),
+                            ),
+                          ],
+                        ),
+                      ),
+                      FilledButton(
+                        key: const ValueKey('start-live'),
+                        onPressed: () {
+                          unawaited(_warmLiveBackend());
+                          final fallback = _profileLanguages.isNotEmpty
+                              ? _profileLanguages.first
+                              : (ProfileLanguageCatalog.byCode(language) == null
+                                    ? 'en'
+                                    : language);
+                          Navigator.of(context).push<void>(
+                            MaterialPageRoute(
+                              fullscreenDialog: true,
+                              builder: (_) => _LiveCameraGate(
+                                ar: ar,
+                                initialLanguageCode: fallback,
+                                localeController: widget.localeController,
+                              ),
+                            ),
+                          );
+                        },
+                        child: Text(ar ? 'إنشاء' : 'Create'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -403,10 +457,14 @@ class _LiveScreenState extends State<LiveScreen> {
                         child: ChoiceChip(
                           selected: _selectedLanguage == code,
                           showCheckmark: false,
-                          label: Text(code.isEmpty
-                              ? 'All'
-                              : ProfileLanguageCatalog.localizedName(
-                                  code, language)),
+                          label: Text(
+                            code.isEmpty
+                                ? 'All'
+                                : ProfileLanguageCatalog.localizedName(
+                                    code,
+                                    language,
+                                  ),
+                          ),
                           onSelected: (_) => setState(() {
                             _selectedLanguage = code;
                           }),
@@ -422,7 +480,9 @@ class _LiveScreenState extends State<LiveScreen> {
                 child: Text(
                   ar ? 'البثوث المباشرة الآن' : 'Live now',
                   style: const TextStyle(
-                      fontSize: 19, fontWeight: FontWeight.w900),
+                    fontSize: 19,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ),
             ),
@@ -432,9 +492,11 @@ class _LiveScreenState extends State<LiveScreen> {
                 if (snapshot.hasError) {
                   return SliverToBoxAdapter(
                     child: Center(
-                      child: Text(ar
-                          ? 'تعذر تحميل البثوث. تحقق من الاتصال.'
-                          : 'Could not load live sessions. Check your connection.'),
+                      child: Text(
+                        ar
+                            ? 'تعذر تحميل البثوث. تحقق من الاتصال.'
+                            : 'Could not load live sessions. Check your connection.',
+                      ),
                     ),
                   );
                 }
@@ -444,19 +506,26 @@ class _LiveScreenState extends State<LiveScreen> {
                     child: Center(child: CircularProgressIndicator()),
                   );
                 }
-                final rawDocs = snapshot.data?.docs ??
+                final rawDocs =
+                    snapshot.data?.docs ??
                     const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
-                final docs = rawDocs.where((doc) =>
-                    LiveSessionService.isFresh(doc.data()) &&
-                    _matchesLanguage(doc.data())).toList(growable: false);
+                final docs = rawDocs
+                    .where(
+                      (doc) =>
+                          LiveSessionService.isFresh(doc.data()) &&
+                          _matchesLanguage(doc.data()),
+                    )
+                    .toList(growable: false);
                 if (docs.isEmpty) {
                   return SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.all(22),
                       child: Center(
-                        child: Text(ar
-                            ? 'لا توجد بثوث لهذه اللغة الآن.'
-                            : 'No live sessions for this language yet.'),
+                        child: Text(
+                          ar
+                              ? 'لا توجد بثوث لهذه اللغة الآن.'
+                              : 'No live sessions for this language yet.',
+                        ),
                       ),
                     ),
                   );
@@ -473,20 +542,17 @@ class _LiveScreenState extends State<LiveScreen> {
                           crossAxisSpacing: 12,
                           mainAxisExtent: 235,
                         ),
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            final doc = docs[index];
-                            return _liveCard(
-                              context,
-                              liveId: doc.id,
-                              data: doc.data(),
-                              ar: ar,
-                              uiLanguage: language,
-                              index: index,
-                            );
-                          },
-                          childCount: docs.length,
-                        ),
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          final doc = docs[index];
+                          return _liveCard(
+                            context,
+                            liveId: doc.id,
+                            data: doc.data(),
+                            ar: ar,
+                            uiLanguage: language,
+                            index: index,
+                          );
+                        }, childCount: docs.length),
                       );
                     },
                   ),
@@ -504,8 +570,10 @@ Future<int> _currentUserStageLevel() async {
   final uid = FirebaseAuth.instance.currentUser?.uid;
   if (uid == null) return 1;
   try {
-    final snap =
-        await FirebaseFirestore.instance.collection('users').doc(uid).get();
+    final snap = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .get();
     final data = snap.data() ?? const <String, dynamic>{};
     for (final key in const ['liveLevel', 'roomLevel', 'level']) {
       final value = (data[key] as num?)?.toInt();
@@ -529,12 +597,14 @@ Future<List<String>> _myLearningLanguageCodes(String fallback) async {
   final uid = FirebaseAuth.instance.currentUser?.uid;
   if (uid != null) {
     try {
-      final snap =
-          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      final snap = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .get();
       final data = snap.data() ?? const <String, dynamic>{};
       add(data['nativeLanguageCode'] ?? data['nativeLanguage']);
-      final learning = data['learningLanguageCodes'] ??
-          data['learningLanguages'];
+      final learning =
+          data['learningLanguageCodes'] ?? data['learningLanguages'];
       if (learning is List) {
         for (final value in learning) {
           add(value);
@@ -547,8 +617,6 @@ Future<List<String>> _myLearningLanguageCodes(String fallback) async {
   if (codes.isEmpty) add(fallback);
   return codes.isEmpty ? const <String>['en'] : codes;
 }
-
-
 
 Future<void> _showLiveSidePanel(
   BuildContext context, {
@@ -564,9 +632,7 @@ Future<void> _showLiveSidePanel(
       alignment: Alignment.centerLeft,
       child: Material(
         color: const Color(0xFF111713),
-        borderRadius: const BorderRadius.horizontal(
-          right: Radius.circular(24),
-        ),
+        borderRadius: const BorderRadius.horizontal(right: Radius.circular(24)),
         clipBehavior: Clip.antiAlias,
         child: SafeArea(
           child: SizedBox(
@@ -610,8 +676,12 @@ class _WorldVoiceMiniWindowState extends State<_WorldVoiceMiniWindow> {
   Widget build(BuildContext context) {
     final screen = MediaQuery.sizeOf(context);
     return Positioned(
-      top: _top.clamp(54.0, (screen.height - 235).clamp(54.0, screen.height)).toDouble(),
-      right: _right.clamp(8.0, (screen.width - 155).clamp(8.0, screen.width)).toDouble(),
+      top: _top
+          .clamp(54.0, (screen.height - 235).clamp(54.0, screen.height))
+          .toDouble(),
+      right: _right
+          .clamp(8.0, (screen.width - 155).clamp(8.0, screen.width))
+          .toDouble(),
       child: GestureDetector(
         onPanUpdate: (details) => setState(() {
           _top += details.delta.dy;
@@ -626,52 +696,88 @@ class _WorldVoiceMiniWindowState extends State<_WorldVoiceMiniWindow> {
           child: SizedBox(
             width: 142,
             height: 205,
-            child: Column(children: [
-              Container(
-                color: const Color(0xFF174F3A),
-                height: 27,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: const Row(children: [
-                  Icon(Icons.circle, size: 10, color: Colors.redAccent),
-                  SizedBox(width: 6),
-                  Text('LIVE', style: TextStyle(
-                    color: Colors.white, fontSize: 12, fontWeight: FontWeight.w900)),
-                  Spacer(),
-                  Icon(Icons.open_in_full_rounded, color: Colors.white70, size: 16),
-                ]),
-              ),
-              Expanded(
-                child: AnimatedBuilder(
-                  animation: widget.controller,
-                  builder: (context, _) {
-                    final engine = widget.controller.engine;
-                    if (engine == null) {
-                      return const Center(child: Icon(Icons.videocam_rounded,
-                          color: Colors.white70));
-                    }
-                    if (widget.isHost) {
-                      return AgoraVideoView(controller: VideoViewController(
-                        rtcEngine: engine, canvas: const VideoCanvas(uid: 0)));
-                    }
-                    final uid = widget.hostUid;
-                    if (uid == null || !widget.controller.remoteSpeakers.contains(uid)) {
-                      return const Center(child: Icon(Icons.person_rounded,
-                          color: Colors.white70, size: 40));
-                    }
-                    return AgoraVideoView(controller: VideoViewController.remote(
-                      rtcEngine: engine,
-                      canvas: VideoCanvas(uid: uid),
-                      connection: RtcConnection(channelId: widget.channelId),
-                    ));
-                  },
+            child: Column(
+              children: [
+                Container(
+                  color: const Color(0xFF174F3A),
+                  height: 27,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.circle, size: 10, color: Colors.redAccent),
+                      SizedBox(width: 6),
+                      Text(
+                        'LIVE',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      Spacer(),
+                      Icon(
+                        Icons.open_in_full_rounded,
+                        color: Colors.white70,
+                        size: 16,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(
-                height: 26,
-                child: Center(child: Text('WorldVoice',
-                  style: TextStyle(color: Colors.white70, fontSize: 11))),
-              ),
-            ]),
+                Expanded(
+                  child: AnimatedBuilder(
+                    animation: widget.controller,
+                    builder: (context, _) {
+                      final engine = widget.controller.engine;
+                      if (engine == null) {
+                        return const Center(
+                          child: Icon(
+                            Icons.videocam_rounded,
+                            color: Colors.white70,
+                          ),
+                        );
+                      }
+                      if (widget.isHost) {
+                        return AgoraVideoView(
+                          controller: VideoViewController(
+                            rtcEngine: engine,
+                            canvas: const VideoCanvas(uid: 0),
+                          ),
+                        );
+                      }
+                      final uid = widget.hostUid;
+                      if (uid == null ||
+                          !widget.controller.remoteSpeakers.contains(uid)) {
+                        return const Center(
+                          child: Icon(
+                            Icons.person_rounded,
+                            color: Colors.white70,
+                            size: 40,
+                          ),
+                        );
+                      }
+                      return AgoraVideoView(
+                        controller: VideoViewController.remote(
+                          rtcEngine: engine,
+                          canvas: VideoCanvas(uid: uid),
+                          connection: RtcConnection(
+                            channelId: widget.channelId,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(
+                  height: 26,
+                  child: Center(
+                    child: Text(
+                      'WorldVoice',
+                      style: TextStyle(color: Colors.white70, fontSize: 11),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -691,31 +797,41 @@ Widget _liveQuickAction({
       borderRadius: BorderRadius.circular(18),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          CircleAvatar(
-            radius: 25,
-            backgroundColor: const Color(0xFF203D33),
-            child: Icon(icon,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircleAvatar(
+              radius: 25,
+              backgroundColor: const Color(0xFF203D33),
+              child: Icon(
+                icon,
                 color: onPressed == null
                     ? Colors.white38
-                    : danger ? Colors.redAccent : Colors.white),
-          ),
-          const SizedBox(height: 8),
-          Text(label,
+                    : danger
+                    ? Colors.redAccent
+                    : Colors.white,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: onPressed == null
                     ? Colors.white54
-                    : danger ? Colors.redAccent : Colors.white,
+                    : danger
+                    ? Colors.redAccent
+                    : Colors.white,
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
-              )),
-        ]),
+              ),
+            ),
+          ],
+        ),
       ),
     ),
   );
 }
-
 
 class _LiveStageRequestsButton extends StatelessWidget {
   const _LiveStageRequestsButton({
@@ -749,7 +865,8 @@ class _LiveStageRequestsButton extends StatelessWidget {
                   top: -10,
                   child: Container(
                     constraints: const BoxConstraints(
-                      minWidth: 18, minHeight: 18,
+                      minWidth: 18,
+                      minHeight: 18,
                     ),
                     padding: const EdgeInsets.symmetric(horizontal: 3),
                     decoration: const BoxDecoration(
@@ -833,8 +950,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
       _lastVideoRoster = roster;
       _videoRoster.value++;
     }
-    if (!mounted || !_starting || _cameraReady ||
-        _rebuildThrottle != null) {
+    if (!mounted || !_starting || _cameraReady || _rebuildThrottle != null) {
       return;
     }
     // Avoid rebuilding the Agora native texture for each connection callback.
@@ -879,22 +995,21 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
       MaterialPageRoute<void>(
         builder: (_) => PublicProfileScreen(
           userId: userId,
-          languageCode:
-              Localizations.localeOf(context).languageCode.toLowerCase(),
-          onInviteToStage: () => _liveService.inviteViewer(
-            liveId: liveId,
-            userId: userId,
-          ),
-          inviteToStageLabel:
-              widget.ar ? 'دعوة للكاميرا' : 'Invite to Live stage',
+          languageCode: Localizations.localeOf(
+            context,
+          ).languageCode.toLowerCase(),
+          onInviteToStage: () =>
+              _liveService.inviteViewer(liveId: liveId, userId: userId),
+          inviteToStageLabel: widget.ar
+              ? 'دعوة للكاميرا'
+              : 'Invite to Live stage',
         ),
       ),
     );
   }
 
   void _minimizeHostLive() {
-    if (!mounted || !_cameraReady || _minimized ||
-        _controller.engine == null) {
+    if (!mounted || !_cameraReady || _minimized || _controller.engine == null) {
       return;
     }
     final navigator = Navigator.of(context);
@@ -904,12 +1019,14 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     final browsingRoute = MaterialPageRoute<void>(
       builder: (_) => HomeScreen(localeController: widget.localeController),
     );
-    unawaited(navigator.push<void>(browsingRoute).whenComplete(() {
-      _miniEntry?.remove();
-      _miniEntry?.dispose();
-      _miniEntry = null;
-      if (mounted) setState(() => _minimized = false);
-    }));
+    unawaited(
+      navigator.push<void>(browsingRoute).whenComplete(() {
+        _miniEntry?.remove();
+        _miniEntry?.dispose();
+        _miniEntry = null;
+        if (mounted) setState(() => _minimized = false);
+      }),
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || !_minimized || !browsingRoute.isActive) return;
       final entry = OverlayEntry(
@@ -934,9 +1051,11 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(widget.ar ? 'إنهاء اللايف؟' : 'End this Live?'),
-        content: Text(widget.ar
-            ? 'سيتم إنهاء البث لجميع المشاهدين.'
-            : 'This will end the broadcast for everyone.'),
+        content: Text(
+          widget.ar
+              ? 'سيتم إنهاء البث لجميع المشاهدين.'
+              : 'This will end the broadcast for everyone.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
@@ -958,75 +1077,88 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
       context,
       builder: (sheetContext) => Padding(
         padding: const EdgeInsets.fromLTRB(12, 10, 12, 18),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Row(children: [
-            _liveQuickAction(
-              icon: Icons.power_settings_new_rounded,
-              label: widget.ar ? 'إنهاء اللايف' : 'End Live',
-              danger: true,
-              onPressed: () {
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                _liveQuickAction(
+                  icon: Icons.power_settings_new_rounded,
+                  label: widget.ar ? 'إنهاء اللايف' : 'End Live',
+                  danger: true,
+                  onPressed: () {
+                    Navigator.pop(sheetContext);
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted) unawaited(_confirmEndLiveFromMenu());
+                    });
+                  },
+                ),
+                _liveQuickAction(
+                  icon: Icons.picture_in_picture_alt_rounded,
+                  label: widget.ar ? 'تصغير النافذة' : 'Minimize',
+                  onPressed: () {
+                    Navigator.pop(sheetContext);
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted) _minimizeHostLive();
+                    });
+                  },
+                ),
+                _liveQuickAction(
+                  icon: Icons.ios_share_rounded,
+                  label: widget.ar ? 'مشاركة اللايف' : 'Share Live',
+                  onPressed: () {
+                    Navigator.pop(sheetContext);
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted) unawaited(_shareHostLive());
+                    });
+                  },
+                ),
+              ],
+            ),
+            const Divider(color: Colors.white12),
+            ListTile(
+              leading: const Icon(Icons.admin_panel_settings_rounded),
+              title: Text(widget.ar ? 'إدارة المودريتر' : 'Manage moderators'),
+              onTap: () {
                 Navigator.pop(sheetContext);
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted) unawaited(_confirmEndLiveFromMenu());
+                  if (mounted && _liveId != null) {
+                    unawaited(
+                      _showLiveModeratorManagement(
+                        context,
+                        liveId: _liveId!,
+                        service: _liveService,
+                        ar: widget.ar,
+                      ),
+                    );
+                  }
                 });
               },
             ),
-            _liveQuickAction(
-              icon: Icons.picture_in_picture_alt_rounded,
-              label: widget.ar ? 'تصغير النافذة' : 'Minimize',
-              onPressed: () {
+            ListTile(
+              leading: const Icon(Icons.group_add_rounded),
+              title: Text(widget.ar ? 'طلبات الصعود' : 'Stage requests'),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                if (mounted) setState(() => _requestsOpen = true);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.smart_toy_outlined),
+              title: Text(
+                widget.ar ? 'أدوات الذكاء واللغات' : 'AI & language tools',
+              ),
+              onTap: () {
                 Navigator.pop(sheetContext);
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted) _minimizeHostLive();
+                  if (mounted) {
+                    unawaited(_liveLanguageKey.currentState?._showMoreTools());
+                  }
                 });
               },
             ),
-            _liveQuickAction(
-              icon: Icons.ios_share_rounded,
-              label: widget.ar ? 'مشاركة اللايف' : 'Share Live',
-              onPressed: () {
-                Navigator.pop(sheetContext);
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted) unawaited(_shareHostLive());
-                });
-              },
-            ),
-          ]),
-          const Divider(color: Colors.white12),
-          ListTile(
-            leading: const Icon(Icons.admin_panel_settings_rounded),
-            title: Text(widget.ar ? 'إدارة المودريتر' : 'Manage moderators'),
-            onTap: () {
-              Navigator.pop(sheetContext);
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted && _liveId != null) {
-                  unawaited(_showLiveModeratorManagement(context,
-                    liveId: _liveId!, service: _liveService, ar: widget.ar));
-                }
-              });
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.group_add_rounded),
-            title: Text(widget.ar ? 'طلبات الصعود' : 'Stage requests'),
-            onTap: () {
-              Navigator.pop(sheetContext);
-              if (mounted) setState(() => _requestsOpen = true);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.smart_toy_outlined),
-            title: Text(widget.ar ? 'أدوات الذكاء واللغات' : 'AI & language tools'),
-            onTap: () {
-              Navigator.pop(sheetContext);
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) {
-                  unawaited(_liveLanguageKey.currentState?._showMoreTools());
-                }
-              });
-            },
-          ),
-        ]),
+          ],
+        ),
       ),
     );
   }
@@ -1119,10 +1251,12 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
         title: Text(widget.ar ? 'وقت اللايف اليومي' : 'Daily Live time'),
         content: Text(
           status.isUnlimited
-              ? (widget.ar ? 'VIP: وقت اللايف غير محدود.' : 'VIP: Live time is unlimited.')
+              ? (widget.ar
+                    ? 'VIP: وقت اللايف غير محدود.'
+                    : 'VIP: Live time is unlimited.')
               : (widget.ar
-                  ? 'المتبقي: ${formatSeconds(status.remainingSeconds)}'
-                  : 'Remaining: ${formatSeconds(status.remainingSeconds)}'),
+                    ? 'المتبقي: ${formatSeconds(status.remainingSeconds)}'
+                    : 'Remaining: ${formatSeconds(status.remainingSeconds)}'),
         ),
         actions: [
           TextButton(
@@ -1225,7 +1359,10 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
         role: AgoraRoomRole.speaker,
         previewCamera: true,
       );
-      if (!mounted) { await _controller.leave(); return; }
+      if (!mounted) {
+        await _controller.leave();
+        return;
+      }
       final engine = _controller.engine;
       if (engine == null || !_controller.joined) {
         throw StateError(_controller.error ?? 'Could not start Live.');
@@ -1284,18 +1421,16 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              widget.ar
-                  ? 'تم تشغيل الكاميرا من جديد.'
-                  : 'Camera is back on.',
+              widget.ar ? 'تم تشغيل الكاميرا من جديد.' : 'Camera is back on.',
             ),
           ),
         );
       }
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.toString())),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.toString())));
     }
   }
 
@@ -1356,769 +1491,848 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
         resizeToAvoidBottomInset: false,
         backgroundColor: Colors.black,
         body: SafeArea(
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            if (!_cameraReady && _controller.engine != null)
-              Positioned.fill(
-                child: AgoraVideoView(
-                  controller: VideoViewController(
-                    rtcEngine: _controller.engine!,
-                    canvas: const VideoCanvas(uid: 0),
-                  ),
-                ),
-              ),
-            if (!_cameraReady && _controller.engine == null)
-              const Positioned.fill(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Color(0xFF1A211E), Color(0xFF090B0A)],
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (!_cameraReady && _controller.engine != null)
+                Positioned.fill(
+                  child: AgoraVideoView(
+                    controller: VideoViewController(
+                      rtcEngine: _controller.engine!,
+                      canvas: const VideoCanvas(uid: 0),
                     ),
                   ),
                 ),
-              ),
-            if (!_cameraReady)
-              PositionedDirectional(
-                start: 14,
-                end: 14,
-                bottom: 14 + MediaQuery.viewInsetsOf(context).bottom,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: const Color(0xCC101713),
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: Colors.white24),
-                  ),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxHeight: MediaQuery.sizeOf(context).height * .58,
-                    ),
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                        Align(
-                          alignment: AlignmentDirectional.centerStart,
-                          child: Text(
-                            widget.ar ? 'إنشاء بثك المباشر' : 'Create your live',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 21,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Align(
-                          alignment: AlignmentDirectional.centerStart,
-                          child: Text(
-                            widget.ar
-                                ? 'جهّز العنوان ولغة التعلم. اللايف يدعمك مع 3 ضيوف — 4 أشخاص كحد أقصى.'
-                                : 'Set the topic and learning language. Live supports you plus 3 guests — 4 people maximum.',
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              height: 1.35,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        if (_preparingPreview)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: Row(
-                              children: [
-                                const SizedBox.square(
-                                  dimension: 15,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Color(0xFF3CD6A0),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  widget.ar
-                                      ? 'جاري تجهيز الكاميرا...'
-                                      : 'Preparing camera...',
-                                  style: const TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        TextField(
-                          controller: _topicController,
-                          enabled: !_starting,
-                          maxLength: 80,
-                          style: const TextStyle(color: Colors.white),
-                          decoration: InputDecoration(
-                            counterText: '',
-                            labelText:
-                                widget.ar ? 'موضوع اللايف' : 'Live topic',
-                            labelStyle:
-                                const TextStyle(color: Colors.white70),
-                            hintText: widget.ar
-                                ? 'اختياري — سننشئ عنوانًا تلقائيًا'
-                                : 'Optional — we can create one automatically',
-                            hintStyle:
-                                const TextStyle(color: Colors.white54),
-                            enabledBorder: OutlineInputBorder(
-                              borderSide:
-                                  const BorderSide(color: Colors.white30),
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderSide:
-                                  const BorderSide(color: Color(0xFF3CD6A0)),
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        if (_learningCodes.length > 1)
-                          DropdownButtonFormField<String>(
-                            initialValue: _languageCode,
-                            isExpanded: true,
-                            dropdownColor: const Color(0xFF17211C),
-                            decoration: InputDecoration(
-                              labelText: widget.ar
-                                  ? 'لغة البث'
-                                  : 'Live language',
-                              labelStyle:
-                                  const TextStyle(color: Colors.white70),
-                              enabledBorder: OutlineInputBorder(
-                                borderSide:
-                                    const BorderSide(color: Colors.white30),
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderSide:
-                                    const BorderSide(color: Color(0xFF3CD6A0)),
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                            ),
-                            style: const TextStyle(color: Colors.white),
-                            items: [
-                              for (final code in _learningCodes)
-                                DropdownMenuItem(
-                                  value: code,
-                                  child: Text(
-                                    ProfileLanguageCatalog.localizedName(
-                                      code, widget.ar ? 'ar' : 'en'),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                            ],
-                            onChanged: _starting
-                                ? null
-                                : (value) {
-                                    if (value != null) {
-                                      setState(() => _languageCode = value);
-                                    }
-                                  },
-                          )
-                        else
-                          ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: const Icon(
-                              Icons.school_rounded,
-                              color: Colors.white70,
-                            ),
-                            title: Text(
-                              widget.ar ? 'لغة البث' : 'Live language',
-                              style: const TextStyle(color: Colors.white70),
-                            ),
-                            subtitle: Text(
-                              ProfileLanguageCatalog.label(_languageCode),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                          ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            IconButton.filledTonal(
-                              tooltip: widget.ar
-                                  ? 'الفلاتر'
-                                  : 'Filters',
-                              onPressed: (_starting || !_previewReady)
-                                  ? null
-                                  : () => _showLiveCameraTools(
-                                        context,
-                                        controller: _controller,
-                                        ar: widget.ar,
-                                        beautyEnabled: _beautyEnabled,
-                                        filterPreset: _filterPreset,
-                                        backgroundBlurEnabled:
-                                            _backgroundBlurEnabled,
-                                        zoom: _cameraZoom,
-                                        onBeautyChanged: (value) {
-                                          if (mounted) {
-                                            setState(
-                                              () => _beautyEnabled = value,
-                                            );
-                                          }
-                                        },
-                                        onFilterPresetChanged: (value) {
-                                          if (mounted) {
-                                            setState(
-                                              () => _filterPreset = value,
-                                            );
-                                          }
-                                        },
-                                        onBackgroundBlurChanged: (value) {
-                                          if (mounted) {
-                                            setState(
-                                              () => _backgroundBlurEnabled =
-                                                  value,
-                                            );
-                                          }
-                                        },
-                                        onZoomChanged: (value) {
-                                          if (mounted) {
-                                            setState(
-                                              () => _cameraZoom = value,
-                                            );
-                                          }
-                                        },
-                                      ),
-                              icon:
-                                  const Icon(Icons.auto_fix_high_rounded),
-                            ),
-                            const SizedBox(width: 8),
-                            IconButton.filledTonal(
-                              tooltip: widget.ar
-                                  ? 'تبديل الكاميرا'
-                                  : 'Switch camera',
-                              onPressed: (_starting || !_previewReady)
-                                  ? null
-                                  : () => _controller.switchCamera(),
-                              icon:
-                                  const Icon(Icons.cameraswitch_rounded),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: FilledButton.icon(
-                                onPressed: _starting ? null : _startCamera,
-                                icon: _starting
-                                    ? const SizedBox.square(
-                                        dimension: 18,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: Colors.white,
-                                        ),
-                                      )
-                                    : const Icon(Icons.live_tv_rounded),
-                                label: Text(
-                                  _starting
-                                      ? (widget.ar
-                                          ? 'جاري بدء اللايف...'
-                                          : 'Starting Live...')
-                                      : (widget.ar
-                                          ? 'ابدأ اللايف'
-                                          : 'Go LIVE'),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w900,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (_cameraStartError?.trim().isNotEmpty == true &&
-                            !_starting) ...[
-                          const SizedBox(height: 8),
-                          Text(
-                            _cameraStartError!,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Colors.orangeAccent,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                        ],
+              if (!_cameraReady && _controller.engine == null)
+                const Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Color(0xFF1A211E), Color(0xFF090B0A)],
                       ),
                     ),
                   ),
                 ),
-              ),
-            PositionedDirectional(
-              top: 10,
-              start: 10,
-              child: IconButton.filledTonal(
-                onPressed: _cameraReady
-                    ? _minimizeHostLive
-                    : () => Navigator.of(context).pop(),
-                icon: const Icon(Icons.close_rounded),
-              ),
-            ),
-            if (_cameraReady && _controller.engine != null && !_minimized)
-              Positioned.fill(
-                child: AnimatedBuilder(
-                  animation: _videoRoster,
-                  builder: (context, _) {
-                    final remote = _controller.remoteSpeakers.take(3).toList();
-                    final tiles = <Widget>[
-                      _cameraPaused
-                          ? ColoredBox(
-                              color: Colors.black,
-                              child: Center(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
+              if (!_cameraReady)
+                PositionedDirectional(
+                  start: 14,
+                  end: 14,
+                  bottom: 14 + MediaQuery.viewInsetsOf(context).bottom,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: const Color(0xCC101713),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: Colors.white24),
+                    ),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxHeight: MediaQuery.sizeOf(context).height * .58,
+                      ),
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Align(
+                              alignment: AlignmentDirectional.centerStart,
+                              child: Text(
+                                widget.ar
+                                    ? 'إنشاء بثك المباشر'
+                                    : 'Create your live',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 21,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Align(
+                              alignment: AlignmentDirectional.centerStart,
+                              child: Text(
+                                widget.ar
+                                    ? 'جهّز العنوان ولغة التعلم. اللايف يدعمك مع 3 ضيوف — 4 أشخاص كحد أقصى.'
+                                    : 'Set the topic and learning language. Live supports you plus 3 guests — 4 people maximum.',
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  height: 1.35,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            if (_preparingPreview)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: Row(
                                   children: [
-                                    const Icon(
-                                      Icons.videocam_off_rounded,
-                                      color: Colors.white70,
-                                      size: 56,
+                                    const SizedBox.square(
+                                      dimension: 15,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Color(0xFF3CD6A0),
+                                      ),
                                     ),
-                                    const SizedBox(height: 10),
+                                    const SizedBox(width: 8),
                                     Text(
                                       widget.ar
-                                          ? 'الكاميرا مغلقة'
-                                          : 'Camera off',
+                                          ? 'جاري تجهيز الكاميرا...'
+                                          : 'Preparing camera...',
                                       style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w800,
+                                        color: Colors.white70,
+                                        fontSize: 12,
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                            )
-                          : _PinchZoomCameraView(
-                              controller: _controller,
-                              zoom: _cameraZoom,
-                              onZoomChanged: (value) {
-                                if (mounted) setState(() => _cameraZoom = value);
-                              },
-                              child: AgoraVideoView(
-                                controller: VideoViewController(
-                                  rtcEngine: _controller.engine!,
-                                  canvas: const VideoCanvas(uid: 0),
+                            TextField(
+                              controller: _topicController,
+                              enabled: !_starting,
+                              maxLength: 80,
+                              style: const TextStyle(color: Colors.white),
+                              decoration: InputDecoration(
+                                counterText: '',
+                                labelText: widget.ar
+                                    ? 'موضوع اللايف'
+                                    : 'Live topic',
+                                labelStyle: const TextStyle(
+                                  color: Colors.white70,
                                 ),
-                              ),
-                            ),
-                      for (final uid in remote)
-                        AgoraVideoView(
-                          controller: VideoViewController.remote(
-                            rtcEngine: _controller.engine!,
-                            canvas: VideoCanvas(uid: uid),
-                            connection: RtcConnection(
-                              channelId: _channelId ?? '',
-                            ),
-                          ),
-                        ),
-                    ];
-                    return Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        if (!_boardOpen)
-                          Positioned.fill(
-                            bottom: tiles.length >= 3
-                                ? MediaQuery.sizeOf(context).height * .38
-                                : 0,
-                            child: _LiveVideoGrid(children: tiles),
-                          )
-                        else
-                          const ColoredBox(color: Color(0xFF081A15)),
-                        if (_boardOpen)
-                          PositionedDirectional(
-                            top: 66,
-                            end: 16,
-                            child: Container(
-                              width: 92,
-                              height: 92,
-                              decoration: BoxDecoration(
-                                color: Colors.black,
-                                borderRadius: BorderRadius.circular(22),
-                                border: Border.all(
-                                  color: const Color(0xFF65E3B4),
-                                  width: 2,
+                                hintText: widget.ar
+                                    ? 'اختياري — سننشئ عنوانًا تلقائيًا'
+                                    : 'Optional — we can create one automatically',
+                                hintStyle: const TextStyle(
+                                  color: Colors.white54,
                                 ),
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Color(0x55000000),
-                                    blurRadius: 16,
-                                    offset: Offset(0, 6),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: const BorderSide(
+                                    color: Colors.white30,
                                   ),
-                                ],
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: const BorderSide(
+                                    color: Color(0xFF3CD6A0),
+                                  ),
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
                               ),
-                              clipBehavior: Clip.antiAlias,
-                              child: _cameraPaused
-                                  ? _LiveBoardAvatar(
-                                      photoUrl: FirebaseAuth
-                                              .instance.currentUser?.photoURL ??
-                                          '',
-                                    )
-                                  : AgoraVideoView(
-                                      controller: VideoViewController(
-                                        rtcEngine: _controller.engine!,
-                                        canvas: const VideoCanvas(uid: 0),
+                            ),
+                            const SizedBox(height: 10),
+                            if (_learningCodes.length > 1)
+                              DropdownButtonFormField<String>(
+                                initialValue: _languageCode,
+                                isExpanded: true,
+                                dropdownColor: const Color(0xFF17211C),
+                                decoration: InputDecoration(
+                                  labelText: widget.ar
+                                      ? 'لغة البث'
+                                      : 'Live language',
+                                  labelStyle: const TextStyle(
+                                    color: Colors.white70,
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: const BorderSide(
+                                      color: Colors.white30,
+                                    ),
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: const BorderSide(
+                                      color: Color(0xFF3CD6A0),
+                                    ),
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                ),
+                                style: const TextStyle(color: Colors.white),
+                                items: [
+                                  for (final code in _learningCodes)
+                                    DropdownMenuItem(
+                                      value: code,
+                                      child: Text(
+                                        ProfileLanguageCatalog.localizedName(
+                                          code,
+                                          widget.ar ? 'ar' : 'en',
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
-                            ),
-                          ),
-                        if (_boardOpen && _liveId != null)
-                          Positioned(
-                            left: 12,
-                            right: 12,
-                            top: 170,
-                            height: MediaQuery.sizeOf(context).height * .40,
-                            child: RoomBoardScreen(
-                              roomId: _liveId!,
-                              parentCollection: 'live_sessions',
-                              canWrite: true,
-                              isHost: true,
-                              agoraController: _controller,
-                              embedded: true,
-                              onClose: () => setState(() => _boardOpen = false),
-                            ),
-                          ),
-                        Positioned.fill(
-                          child: _LiveLanguageToolsOverlay(
-                            key: _liveLanguageKey,
-                            liveId: _liveId ?? '',
-                            roomLanguageCode: _languageCode,
-                            canPublish: !_micMuted,
-                            displayName:
-                                FirebaseAuth.instance.currentUser?.displayName ??
-                                    'WorldVoice host',
-                            audioFrames: _controller.audioFrames,
-                            ar: widget.ar,
-                          ),
-                        ),
-                        if (_liveId != null)
-                          Positioned.fill(
-                            child: IgnorePointer(child: _LiveGiftEffects(liveId: _liveId!)),
-                          ),
-                        if (_chatOpen && _liveId != null)
-                          PositionedDirectional(
-                            start: 10,
-                            end: 68,
-                            bottom: 78 + MediaQuery.viewInsetsOf(context).bottom,
-                            height: _boardOpen
-                                ? MediaQuery.sizeOf(context).height * .27
-                                : (tiles.length >= 3
-                                    ? MediaQuery.sizeOf(context).height * .34
-                                    : 250),
-                            child: _LiveChatOverlay(
-                              service: _liveService,
-                              liveId: _liveId!,
-                              ar: widget.ar,
-                              showComposer: false,
-                            ),
-                          ),
-                        PositionedDirectional(
-                          top: 12,
-                          start: 12,
-                          child: StreamBuilder<
-                              DocumentSnapshot<Map<String, dynamic>>>(
-                            stream: _liveId == null
-                                ? null
-                                : _liveService.watch(_liveId!),
-                            builder: (context, snapshot) {
-                              final viewers =
-                                  snapshot.data?.data()?['viewerCount'] ?? 0;
-                              final user = FirebaseAuth.instance.currentUser;
-                              final photo = user?.photoURL?.trim() ?? '';
-                              return DecoratedBox(
-                                decoration: BoxDecoration(
-                                  color: const Color(0xB3000000),
-                                  borderRadius: BorderRadius.circular(999),
+                                ],
+                                onChanged: _starting
+                                    ? null
+                                    : (value) {
+                                        if (value != null) {
+                                          setState(() => _languageCode = value);
+                                        }
+                                      },
+                              )
+                            else
+                              ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                leading: const Icon(
+                                  Icons.school_rounded,
+                                  color: Colors.white70,
                                 ),
-                                child: Padding(
-                                  padding: const EdgeInsetsDirectional.fromSTEB(
-                                    6,
-                                    5,
-                                    10,
-                                    5,
+                                title: Text(
+                                  widget.ar ? 'لغة البث' : 'Live language',
+                                  style: const TextStyle(color: Colors.white70),
+                                ),
+                                subtitle: Text(
+                                  ProfileLanguageCatalog.label(_languageCode),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w800,
                                   ),
-                                  child: Row(
+                                ),
+                              ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                IconButton.filledTonal(
+                                  tooltip: widget.ar ? 'الفلاتر' : 'Filters',
+                                  onPressed: (_starting || !_previewReady)
+                                      ? null
+                                      : () => _showLiveCameraTools(
+                                          context,
+                                          controller: _controller,
+                                          ar: widget.ar,
+                                          beautyEnabled: _beautyEnabled,
+                                          filterPreset: _filterPreset,
+                                          backgroundBlurEnabled:
+                                              _backgroundBlurEnabled,
+                                          zoom: _cameraZoom,
+                                          onBeautyChanged: (value) {
+                                            if (mounted) {
+                                              setState(
+                                                () => _beautyEnabled = value,
+                                              );
+                                            }
+                                          },
+                                          onFilterPresetChanged: (value) {
+                                            if (mounted) {
+                                              setState(
+                                                () => _filterPreset = value,
+                                              );
+                                            }
+                                          },
+                                          onBackgroundBlurChanged: (value) {
+                                            if (mounted) {
+                                              setState(
+                                                () => _backgroundBlurEnabled =
+                                                    value,
+                                              );
+                                            }
+                                          },
+                                          onZoomChanged: (value) {
+                                            if (mounted) {
+                                              setState(
+                                                () => _cameraZoom = value,
+                                              );
+                                            }
+                                          },
+                                        ),
+                                  icon: const Icon(Icons.auto_fix_high_rounded),
+                                ),
+                                const SizedBox(width: 8),
+                                IconButton.filledTonal(
+                                  tooltip: widget.ar
+                                      ? 'تبديل الكاميرا'
+                                      : 'Switch camera',
+                                  onPressed: (_starting || !_previewReady)
+                                      ? null
+                                      : () => _controller.switchCamera(),
+                                  icon: const Icon(Icons.cameraswitch_rounded),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: FilledButton.icon(
+                                    onPressed: _starting ? null : _startCamera,
+                                    icon: _starting
+                                        ? const SizedBox.square(
+                                            dimension: 18,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: Colors.white,
+                                            ),
+                                          )
+                                        : const Icon(Icons.live_tv_rounded),
+                                    label: Text(
+                                      _starting
+                                          ? (widget.ar
+                                                ? 'جاري بدء اللايف...'
+                                                : 'Starting Live...')
+                                          : (widget.ar
+                                                ? 'ابدأ اللايف'
+                                                : 'Go LIVE'),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (_cameraStartError?.trim().isNotEmpty == true &&
+                                !_starting) ...[
+                              const SizedBox(height: 8),
+                              Text(
+                                _cameraStartError!,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: Colors.orangeAccent,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              PositionedDirectional(
+                top: 10,
+                start: 10,
+                child: IconButton.filledTonal(
+                  onPressed: _cameraReady
+                      ? _minimizeHostLive
+                      : () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.close_rounded),
+                ),
+              ),
+              if (_cameraReady && _controller.engine != null && !_minimized)
+                Positioned.fill(
+                  child: AnimatedBuilder(
+                    animation: _videoRoster,
+                    builder: (context, _) {
+                      final remote = _controller.remoteSpeakers
+                          .take(3)
+                          .toList();
+                      final tiles = <Widget>[
+                        _cameraPaused
+                            ? ColoredBox(
+                                color: Colors.black,
+                                child: Center(
+                                  child: Column(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      CircleAvatar(
-                                        radius: 14,
-                                        backgroundImage: photo.isEmpty
-                                            ? null
-                                            : NetworkImage(photo),
-                                        child: photo.isEmpty
-                                            ? const Icon(
-                                                Icons.person_rounded,
-                                                size: 15,
-                                              )
-                                            : null,
+                                      const Icon(
+                                        Icons.videocam_off_rounded,
+                                        color: Colors.white70,
+                                        size: 56,
                                       ),
-                                      const SizedBox(width: 7),
-                                      ConstrainedBox(
-                                        constraints:
-                                            const BoxConstraints(maxWidth: 120),
-                                        child: Text(
-                                          user?.displayName ??
-                                              (widget.ar
-                                                  ? 'المضيف'
-                                                  : 'Host'),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w800,
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      if (_liveId != null) ...[
-                                        _LiveViewerFaces(
-                                          service: _liveService,
-                                          liveId: _liveId!,
-                                          onViewerTap: (userId, name, photo) =>
-                                              _openViewerProfile(
-                                            userId: userId,
-                                            displayName: name,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 6),
-                                      ],
+                                      const SizedBox(height: 10),
                                       Text(
-                                        'LIVE • $viewers 👁 • ${tiles.length}/4',
+                                        widget.ar
+                                            ? 'الكاميرا مغلقة'
+                                            : 'Camera off',
                                         style: const TextStyle(
-                                          color: Colors.redAccent,
-                                          fontWeight: FontWeight.w900,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w800,
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
-                              );
-                            },
-                          ),
-                        ),
-                        PositionedDirectional(
-                          bottom: 18,
-                          start: 12,
-                          end: 12,
-                          child: _LiveControlDock(
-                            composer: _liveId == null
-                                ? null
-                                : _LiveInlineComposer(
-                                    service: _liveService,
-                                    liveId: _liveId!,
-                                    ar: widget.ar,
-                                    onOpenChat: () {
-                                      if (mounted && !_chatOpen) {
-                                        setState(() => _chatOpen = true);
-                                      }
-                                    },
-                                  ),
-                            children: [
-                              IconButton(
-                                tooltip: widget.ar ? 'الهدايا' : 'Gifts',
-                                onPressed: _liveId == null
-                                    ? null
-                                    : () => _showLiveGifts(
-                                          context,
-                                          liveId: _liveId!,
-                                          service: _liveService,
-                                          hostId: FirebaseAuth
-                                                  .instance.currentUser?.uid ??
-                                              '',
-                                          hostName: FirebaseAuth.instance
-                                                  .currentUser?.displayName ??
-                                              'WorldVoice host',
-                                          ar: widget.ar,
-                                        ),
-                                icon: const Icon(
-                                  Icons.card_giftcard_rounded,
-                                  color: Color(0xFFFFC857),
-                                ),
-                              ),
-                              IconButton(
-                                tooltip: 'Subtitles',
-                                onPressed: () {
-                                  final overlay = _liveLanguageKey.currentState;
-                                  if (overlay != null) {
-                                    unawaited(overlay._showQuickLanguageSettings(
-                                        translation: false));
+                              )
+                            : _PinchZoomCameraView(
+                                controller: _controller,
+                                zoom: _cameraZoom,
+                                onZoomChanged: (value) {
+                                  if (mounted) {
+                                    setState(() => _cameraZoom = value);
                                   }
                                 },
-                                icon: const Icon(Icons.closed_caption_rounded,
-                                    color: Colors.white),
-                              ),
-                              IconButton(
-                                tooltip: widget.ar ? 'الترجمة' : 'Translation',
-                                onPressed: () {
-                                  final overlay = _liveLanguageKey.currentState;
-                                  if (overlay != null) {
-                                    unawaited(overlay._showQuickLanguageSettings(
-                                        translation: true));
-                                  }
-                                },
-                                icon: const Icon(Icons.translate_rounded,
-                                    color: Colors.white),
-                              ),
-                              IconButton(
-                                tooltip: widget.ar ? 'الوقت' : 'Live time',
-                                onPressed: _liveId == null ? null : _showHostQuotaStatus,
-                                icon: const Icon(Icons.schedule_rounded, color: Colors.white),
-                              ),
-                              IconButton(
-                                tooltip: widget.ar ? 'السبورة' : 'Board',
-                                onPressed: _liveId == null
-                                    ? null
-                                    : () => setState(
-                                          () => _boardOpen = !_boardOpen,
-                                        ),
-                                icon: Icon(
-                                  _boardOpen
-                                      ? Icons.dashboard_rounded
-                                      : Icons.dashboard_outlined,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              if (_liveId != null)
-                                _LiveStageRequestsButton(
-                                  liveId: _liveId!,
-                                  service: _liveService,
-                                  ar: widget.ar,
-                                  onPressed: () => setState(
-                                    () => _requestsOpen = !_requestsOpen,
+                                child: AgoraVideoView(
+                                  controller: VideoViewController(
+                                    rtcEngine: _controller.engine!,
+                                    canvas: const VideoCanvas(uid: 0),
                                   ),
                                 ),
-                              IconButton(
-                                tooltip: widget.ar
-                                    ? 'المودريتر'
-                                    : 'Moderators',
-                                onPressed: _liveId == null
-                                    ? null
-                                    : () => _showLiveModeratorManagement(
-                                          context,
-                                          liveId: _liveId!,
-                                          service: _liveService,
-                                          ar: widget.ar,
-                                        ),
-                                icon: const Icon(
-                                  Icons.admin_panel_settings_rounded,
-                                  color: Color(0xFFFFD77A),
-                                ),
                               ),
-                            ],
+                        for (final uid in remote)
+                          AgoraVideoView(
+                            controller: VideoViewController.remote(
+                              rtcEngine: _controller.engine!,
+                              canvas: VideoCanvas(uid: uid),
+                              connection: RtcConnection(
+                                channelId: _channelId ?? '',
+                              ),
+                            ),
                           ),
-                        ),
-                        if (_requestsOpen && _liveId != null)
-                          PositionedDirectional(
-                            bottom: 86,
-                            start: 14,
-                            end: 14,
-                            child: _HostJoinRequests(
-                              liveId: _liveId!,
-                              service: _liveService,
+                      ];
+                      return Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          if (!_boardOpen)
+                            Positioned.fill(
+                              bottom: tiles.length >= 3
+                                  ? MediaQuery.sizeOf(context).height * .38
+                                  : 0,
+                              child: _LiveVideoGrid(children: tiles),
+                            )
+                          else
+                            const ColoredBox(color: Color(0xFF081A15)),
+                          if (_boardOpen)
+                            PositionedDirectional(
+                              top: 66,
+                              end: 16,
+                              child: Container(
+                                width: 92,
+                                height: 92,
+                                decoration: BoxDecoration(
+                                  color: Colors.black,
+                                  borderRadius: BorderRadius.circular(22),
+                                  border: Border.all(
+                                    color: const Color(0xFF65E3B4),
+                                    width: 2,
+                                  ),
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      color: Color(0x55000000),
+                                      blurRadius: 16,
+                                      offset: Offset(0, 6),
+                                    ),
+                                  ],
+                                ),
+                                clipBehavior: Clip.antiAlias,
+                                child: _cameraPaused
+                                    ? _LiveBoardAvatar(
+                                        photoUrl:
+                                            FirebaseAuth
+                                                .instance
+                                                .currentUser
+                                                ?.photoURL ??
+                                            '',
+                                      )
+                                    : AgoraVideoView(
+                                        controller: VideoViewController(
+                                          rtcEngine: _controller.engine!,
+                                          canvas: const VideoCanvas(uid: 0),
+                                        ),
+                                      ),
+                              ),
+                            ),
+                          if (_boardOpen && _liveId != null)
+                            Positioned(
+                              left: 12,
+                              right: 12,
+                              top: 170,
+                              height: MediaQuery.sizeOf(context).height * .40,
+                              child: RoomBoardScreen(
+                                roomId: _liveId!,
+                                parentCollection: 'live_sessions',
+                                canWrite: true,
+                                isHost: true,
+                                agoraController: _controller,
+                                embedded: true,
+                                onClose: () =>
+                                    setState(() => _boardOpen = false),
+                              ),
+                            ),
+                          Positioned.fill(
+                            child: _LiveLanguageToolsOverlay(
+                              key: _liveLanguageKey,
+                              liveId: _liveId ?? '',
+                              roomLanguageCode: _languageCode,
+                              canPublish: !_micMuted,
+                              displayName:
+                                  FirebaseAuth
+                                      .instance
+                                      .currentUser
+                                      ?.displayName ??
+                                  'WorldVoice host',
+                              audioFrames: _controller.audioFrames,
                               ar: widget.ar,
                             ),
                           ),
-                        PositionedDirectional(
-                          top: 12,
-                          end: 12,
-                          child: Row(
-                            children: [
-                              IconButton(
-                                style: IconButton.styleFrom(
-                                  backgroundColor: const Color(0xB3000000),
-                                  foregroundColor: Colors.white,
-                                ),
-                                tooltip: _cameraPaused
-                                    ? (widget.ar ? 'تشغيل الكاميرا' : 'Turn camera on')
-                                    : (widget.ar ? 'إيقاف الكاميرا' : 'Turn camera off'),
-                                onPressed: _toggleHostCamera,
-                                icon: Icon(
-                                  _cameraPaused
-                                      ? Icons.videocam_off_rounded
-                                      : Icons.videocam_rounded,
-                                ),
+                          if (_liveId != null)
+                            Positioned.fill(
+                              child: IgnorePointer(
+                                child: _LiveGiftEffects(liveId: _liveId!),
                               ),
-                              const SizedBox(width: 8),
-                              IconButton(
-                                style: IconButton.styleFrom(
-                                  backgroundColor: const Color(0xB3000000),
-                                  foregroundColor: Colors.white,
-                                ),
-                                tooltip: widget.ar ? 'المايك' : 'Microphone',
-                                onPressed: () async {
-                                  final next = !_micMuted;
-                                  await _controller.setMuted(next);
-                                  if (mounted) setState(() => _micMuted = next);
-                                },
-                                icon: Icon(_micMuted ? Icons.mic_off_rounded : Icons.mic_rounded),
+                            ),
+                          if (_chatOpen && _liveId != null)
+                            PositionedDirectional(
+                              start: 10,
+                              end: 68,
+                              bottom:
+                                  78 + MediaQuery.viewInsetsOf(context).bottom,
+                              height: _boardOpen
+                                  ? MediaQuery.sizeOf(context).height * .27
+                                  : (tiles.length >= 3
+                                        ? MediaQuery.sizeOf(context).height *
+                                              .34
+                                        : 250),
+                              child: _LiveChatOverlay(
+                                service: _liveService,
+                                liveId: _liveId!,
+                                ar: widget.ar,
+                                showComposer: false,
                               ),
-                              const SizedBox(width: 8),
-                              IconButton(
-                                style: IconButton.styleFrom(
-                                  backgroundColor: const Color(0xB3000000),
-                                  foregroundColor: Colors.white,
+                            ),
+                          PositionedDirectional(
+                            top: 12,
+                            start: 12,
+                            child:
+                                StreamBuilder<
+                                  DocumentSnapshot<Map<String, dynamic>>
+                                >(
+                                  stream: _liveId == null
+                                      ? null
+                                      : _liveService.watch(_liveId!),
+                                  builder: (context, snapshot) {
+                                    final viewers =
+                                        snapshot.data?.data()?['viewerCount'] ??
+                                        0;
+                                    final user =
+                                        FirebaseAuth.instance.currentUser;
+                                    final photo = user?.photoURL?.trim() ?? '';
+                                    return DecoratedBox(
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xB3000000),
+                                        borderRadius: BorderRadius.circular(
+                                          999,
+                                        ),
+                                      ),
+                                      child: Padding(
+                                        padding:
+                                            const EdgeInsetsDirectional.fromSTEB(
+                                              6,
+                                              5,
+                                              10,
+                                              5,
+                                            ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            CircleAvatar(
+                                              radius: 14,
+                                              backgroundImage: photo.isEmpty
+                                                  ? null
+                                                  : NetworkImage(photo),
+                                              child: photo.isEmpty
+                                                  ? const Icon(
+                                                      Icons.person_rounded,
+                                                      size: 15,
+                                                    )
+                                                  : null,
+                                            ),
+                                            const SizedBox(width: 7),
+                                            ConstrainedBox(
+                                              constraints: const BoxConstraints(
+                                                maxWidth: 120,
+                                              ),
+                                              child: Text(
+                                                user?.displayName ??
+                                                    (widget.ar
+                                                        ? 'المضيف'
+                                                        : 'Host'),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.w800,
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            if (_liveId != null) ...[
+                                              _LiveViewerFaces(
+                                                service: _liveService,
+                                                liveId: _liveId!,
+                                                onViewerTap:
+                                                    (userId, name, photo) =>
+                                                        _openViewerProfile(
+                                                          userId: userId,
+                                                          displayName: name,
+                                                        ),
+                                              ),
+                                              const SizedBox(width: 6),
+                                            ],
+                                            Text(
+                                              'LIVE • $viewers 👁 • ${tiles.length}/4',
+                                              style: const TextStyle(
+                                                color: Colors.redAccent,
+                                                fontWeight: FontWeight.w900,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
                                 ),
-                                tooltip: widget.ar ? 'الفلاتر والكاميرا' : 'Filters & camera',
-                                onPressed: _cameraPaused
-                                    ? null
-                                    : () => _showLiveCameraTools(
-                                  context,
-                                  controller: _controller,
-                                  ar: widget.ar,
-                                  beautyEnabled: _beautyEnabled,
-                                  filterPreset: _filterPreset,
-                                  backgroundBlurEnabled: _backgroundBlurEnabled,
-                                  zoom: _cameraZoom,
-                                  onBeautyChanged: (value) {
-                                    if (mounted) {
-                                      setState(() => _beautyEnabled = value);
-                                    }
-                                  },
-                                  onFilterPresetChanged: (value) {
-                                    if (mounted) {
-                                      setState(() => _filterPreset = value);
-                                    }
-                                  },
-                                  onBackgroundBlurChanged: (value) {
-                                    if (mounted) {
-                                      setState(
-                                        () => _backgroundBlurEnabled = value,
+                          ),
+                          PositionedDirectional(
+                            bottom: 18,
+                            start: 12,
+                            end: 12,
+                            child: _LiveControlDock(
+                              composer: _liveId == null
+                                  ? null
+                                  : _LiveInlineComposer(
+                                      service: _liveService,
+                                      liveId: _liveId!,
+                                      ar: widget.ar,
+                                      onOpenChat: () {
+                                        if (mounted && !_chatOpen) {
+                                          setState(() => _chatOpen = true);
+                                        }
+                                      },
+                                    ),
+                              children: [
+                                IconButton(
+                                  tooltip: widget.ar ? 'الهدايا' : 'Gifts',
+                                  onPressed: _liveId == null
+                                      ? null
+                                      : () => _showLiveGifts(
+                                          context,
+                                          liveId: _liveId!,
+                                          service: _liveService,
+                                          hostId:
+                                              FirebaseAuth
+                                                  .instance
+                                                  .currentUser
+                                                  ?.uid ??
+                                              '',
+                                          hostName:
+                                              FirebaseAuth
+                                                  .instance
+                                                  .currentUser
+                                                  ?.displayName ??
+                                              'WorldVoice host',
+                                          ar: widget.ar,
+                                        ),
+                                  icon: const Icon(
+                                    Icons.card_giftcard_rounded,
+                                    color: Color(0xFFFFC857),
+                                  ),
+                                ),
+                                IconButton(
+                                  tooltip: 'Subtitles',
+                                  onPressed: () {
+                                    final overlay =
+                                        _liveLanguageKey.currentState;
+                                    if (overlay != null) {
+                                      unawaited(
+                                        overlay._showQuickLanguageSettings(
+                                          translation: false,
+                                        ),
                                       );
                                     }
                                   },
-                                  onZoomChanged: (value) {
-                                    if (mounted) {
-                                      setState(() => _cameraZoom = value);
+                                  icon: const Icon(
+                                    Icons.closed_caption_rounded,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                IconButton(
+                                  tooltip: widget.ar
+                                      ? 'الترجمة'
+                                      : 'Translation',
+                                  onPressed: () {
+                                    final overlay =
+                                        _liveLanguageKey.currentState;
+                                    if (overlay != null) {
+                                      unawaited(
+                                        overlay._showQuickLanguageSettings(
+                                          translation: true,
+                                        ),
+                                      );
                                     }
                                   },
+                                  icon: const Icon(
+                                    Icons.translate_rounded,
+                                    color: Colors.white,
+                                  ),
                                 ),
-                                icon: const Icon(Icons.auto_fix_high_rounded),
-                              ),
-                              const SizedBox(width: 8),
-                              IconButton(
-                                style: IconButton.styleFrom(
-                                  backgroundColor: const Color(0xB3000000),
-                                  foregroundColor: Colors.white,
+                                IconButton(
+                                  tooltip: widget.ar ? 'الوقت' : 'Live time',
+                                  onPressed: _liveId == null
+                                      ? null
+                                      : _showHostQuotaStatus,
+                                  icon: const Icon(
+                                    Icons.schedule_rounded,
+                                    color: Colors.white,
+                                  ),
                                 ),
-                                tooltip: widget.ar ? 'خيارات اللايف' : 'Live options',
-                                onPressed: _showHostLiveOptions,
-                                icon: const Icon(Icons.more_horiz_rounded),
-                              ),
-                            ],
+                                IconButton(
+                                  tooltip: widget.ar ? 'السبورة' : 'Board',
+                                  onPressed: _liveId == null
+                                      ? null
+                                      : () => setState(
+                                          () => _boardOpen = !_boardOpen,
+                                        ),
+                                  icon: Icon(
+                                    _boardOpen
+                                        ? Icons.dashboard_rounded
+                                        : Icons.dashboard_outlined,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                if (_liveId != null)
+                                  _LiveStageRequestsButton(
+                                    liveId: _liveId!,
+                                    service: _liveService,
+                                    ar: widget.ar,
+                                    onPressed: () => setState(
+                                      () => _requestsOpen = !_requestsOpen,
+                                    ),
+                                  ),
+                                IconButton(
+                                  tooltip: widget.ar
+                                      ? 'المودريتر'
+                                      : 'Moderators',
+                                  onPressed: _liveId == null
+                                      ? null
+                                      : () => _showLiveModeratorManagement(
+                                          context,
+                                          liveId: _liveId!,
+                                          service: _liveService,
+                                          ar: widget.ar,
+                                        ),
+                                  icon: const Icon(
+                                    Icons.admin_panel_settings_rounded,
+                                    color: Color(0xFFFFD77A),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
-                    );
-                  },
+                          if (_requestsOpen && _liveId != null)
+                            PositionedDirectional(
+                              bottom: 86,
+                              start: 14,
+                              end: 14,
+                              child: _HostJoinRequests(
+                                liveId: _liveId!,
+                                service: _liveService,
+                                ar: widget.ar,
+                              ),
+                            ),
+                          PositionedDirectional(
+                            top: 12,
+                            end: 12,
+                            child: Row(
+                              children: [
+                                IconButton(
+                                  style: IconButton.styleFrom(
+                                    backgroundColor: const Color(0xB3000000),
+                                    foregroundColor: Colors.white,
+                                  ),
+                                  tooltip: _cameraPaused
+                                      ? (widget.ar
+                                            ? 'تشغيل الكاميرا'
+                                            : 'Turn camera on')
+                                      : (widget.ar
+                                            ? 'إيقاف الكاميرا'
+                                            : 'Turn camera off'),
+                                  onPressed: _toggleHostCamera,
+                                  icon: Icon(
+                                    _cameraPaused
+                                        ? Icons.videocam_off_rounded
+                                        : Icons.videocam_rounded,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                IconButton(
+                                  style: IconButton.styleFrom(
+                                    backgroundColor: const Color(0xB3000000),
+                                    foregroundColor: Colors.white,
+                                  ),
+                                  tooltip: widget.ar ? 'المايك' : 'Microphone',
+                                  onPressed: () async {
+                                    final next = !_micMuted;
+                                    await _controller.setMuted(next);
+                                    if (mounted) {
+                                      setState(() => _micMuted = next);
+                                    }
+                                  },
+                                  icon: Icon(
+                                    _micMuted
+                                        ? Icons.mic_off_rounded
+                                        : Icons.mic_rounded,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                IconButton(
+                                  style: IconButton.styleFrom(
+                                    backgroundColor: const Color(0xB3000000),
+                                    foregroundColor: Colors.white,
+                                  ),
+                                  tooltip: widget.ar
+                                      ? 'الفلاتر والكاميرا'
+                                      : 'Filters & camera',
+                                  onPressed: _cameraPaused
+                                      ? null
+                                      : () => _showLiveCameraTools(
+                                          context,
+                                          controller: _controller,
+                                          ar: widget.ar,
+                                          beautyEnabled: _beautyEnabled,
+                                          filterPreset: _filterPreset,
+                                          backgroundBlurEnabled:
+                                              _backgroundBlurEnabled,
+                                          zoom: _cameraZoom,
+                                          onBeautyChanged: (value) {
+                                            if (mounted) {
+                                              setState(
+                                                () => _beautyEnabled = value,
+                                              );
+                                            }
+                                          },
+                                          onFilterPresetChanged: (value) {
+                                            if (mounted) {
+                                              setState(
+                                                () => _filterPreset = value,
+                                              );
+                                            }
+                                          },
+                                          onBackgroundBlurChanged: (value) {
+                                            if (mounted) {
+                                              setState(
+                                                () => _backgroundBlurEnabled =
+                                                    value,
+                                              );
+                                            }
+                                          },
+                                          onZoomChanged: (value) {
+                                            if (mounted) {
+                                              setState(
+                                                () => _cameraZoom = value,
+                                              );
+                                            }
+                                          },
+                                        ),
+                                  icon: const Icon(Icons.auto_fix_high_rounded),
+                                ),
+                                const SizedBox(width: 8),
+                                IconButton(
+                                  style: IconButton.styleFrom(
+                                    backgroundColor: const Color(0xB3000000),
+                                    foregroundColor: Colors.white,
+                                  ),
+                                  tooltip: widget.ar
+                                      ? 'خيارات اللايف'
+                                      : 'Live options',
+                                  onPressed: _showHostLiveOptions,
+                                  icon: const Icon(Icons.more_horiz_rounded),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
@@ -2158,9 +2372,9 @@ class _LiveInlineComposerState extends State<_LiveInlineComposer> {
       _focusNode.requestFocus();
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.toString())),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.toString())));
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -2185,10 +2399,7 @@ class _LiveInlineComposerState extends State<_LiveInlineComposer> {
         textInputAction: TextInputAction.send,
         onTap: widget.onOpenChat,
         onSubmitted: (_) => _send(),
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 14,
-        ),
+        style: const TextStyle(color: Colors.white, fontSize: 14),
         decoration: InputDecoration(
           counterText: '',
           hintText: widget.ar ? 'تعليق...' : 'Comment...',
@@ -2196,12 +2407,7 @@ class _LiveInlineComposerState extends State<_LiveInlineComposer> {
           filled: true,
           fillColor: const Color(0xB50B1511),
           isDense: true,
-          contentPadding: const EdgeInsetsDirectional.fromSTEB(
-            14,
-            11,
-            4,
-            11,
-          ),
+          contentPadding: const EdgeInsetsDirectional.fromSTEB(14, 11, 4, 11),
           suffixIcon: IconButton(
             tooltip: widget.ar ? 'إرسال' : 'Send',
             onPressed: _sending ? null : _send,
@@ -2220,22 +2426,15 @@ class _LiveInlineComposerState extends State<_LiveInlineComposer> {
           ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(24),
-            borderSide: BorderSide(
-              color: Colors.white.withValues(alpha: .08),
-            ),
+            borderSide: BorderSide(color: Colors.white.withValues(alpha: .08)),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(24),
-            borderSide: BorderSide(
-              color: Colors.white.withValues(alpha: .08),
-            ),
+            borderSide: BorderSide(color: Colors.white.withValues(alpha: .08)),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(24),
-            borderSide: const BorderSide(
-              color: Color(0xFF65E3B4),
-              width: 1.2,
-            ),
+            borderSide: const BorderSide(color: Color(0xFF65E3B4), width: 1.2),
           ),
         ),
       ),
@@ -2244,15 +2443,14 @@ class _LiveInlineComposerState extends State<_LiveInlineComposer> {
 }
 
 class _LiveControlDock extends StatelessWidget {
-  const _LiveControlDock({
-    required this.children,
-    this.composer,
-  });
+  const _LiveControlDock({required this.children, this.composer});
 
   final List<Widget> children;
   final Widget? composer;
-  final EdgeInsetsGeometry padding =
-      const EdgeInsets.symmetric(horizontal: 8, vertical: 7);
+  final EdgeInsetsGeometry padding = const EdgeInsets.symmetric(
+    horizontal: 8,
+    vertical: 7,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -2260,9 +2458,7 @@ class _LiveControlDock extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xD9081712),
         borderRadius: BorderRadius.circular(26),
-        border: Border.all(
-          color: const Color(0x335FE6B5),
-        ),
+        border: Border.all(color: const Color(0x335FE6B5)),
         boxShadow: const [
           BoxShadow(
             blurRadius: 22,
@@ -2275,23 +2471,27 @@ class _LiveControlDock extends StatelessWidget {
         padding: padding,
         child: SizedBox(
           height: 50,
-          child: Row(children: [
-            Expanded(
-              flex: composer == null ? 1 : 7,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(mainAxisSize: MainAxisSize.min,
-                    children: children),
-              ),
-            ),
-            if (composer != null) ...[
-              const SizedBox(width: 5),
+          child: Row(
+            children: [
               Expanded(
-                flex: 4,
-                child: SizedBox(height: 44, child: composer!),
+                flex: composer == null ? 1 : 7,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: children,
+                  ),
+                ),
               ),
+              if (composer != null) ...[
+                const SizedBox(width: 5),
+                Expanded(
+                  flex: 4,
+                  child: SizedBox(height: 44, child: composer!),
+                ),
+              ],
             ],
-          ]),
+          ),
         ),
       ),
     );
@@ -2400,9 +2600,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
       setState(() => _following = !_following);
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.toString())),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.toString())));
       }
     } finally {
       if (mounted) setState(() => _followBusy = false);
@@ -2418,24 +2618,24 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
       MaterialPageRoute<void>(
         builder: (_) => PublicProfileScreen(
           userId: userId,
-          languageCode:
-              Localizations.localeOf(context).languageCode.toLowerCase(),
+          languageCode: Localizations.localeOf(
+            context,
+          ).languageCode.toLowerCase(),
           onInviteToStage: !_isModerator
               ? null
               : () => _service.inviteViewer(
-                    liveId: widget.liveId,
-                    userId: userId,
-                  ),
-          inviteToStageLabel:
-              widget.ar ? 'دعوة للكاميرا' : 'Invite to Live stage',
+                  liveId: widget.liveId,
+                  userId: userId,
+                ),
+          inviteToStageLabel: widget.ar
+              ? 'دعوة للكاميرا'
+              : 'Invite to Live stage',
         ),
       ),
     );
   }
 
-  Future<void> _showLiveInvitePrompt(
-    Map<String, dynamic> requestData,
-  ) async {
+  Future<void> _showLiveInvitePrompt(Map<String, dynamic> requestData) async {
     if (_invitePromptOpen || !mounted) return;
     final invitedAt = requestData['invitedAt'];
     final marker = invitedAt is Timestamp
@@ -2471,22 +2671,21 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
         ),
       );
       if (accepted == null) return;
-      await _service.respondToInvite(
-        liveId: widget.liveId,
-        accept: accepted,
-      );
+      await _service.respondToInvite(liveId: widget.liveId, accept: accepted);
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.toString())),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.toString())));
     } finally {
       _invitePromptOpen = false;
     }
   }
 
   void _minimizeViewerLive() {
-    if (!mounted || _minimized || _joining || _controller.engine == null) return;
+    if (!mounted || _minimized || _joining || _controller.engine == null) {
+      return;
+    }
     final navigator = Navigator.of(context);
     final sourceRoute = ModalRoute.of(context);
     if (sourceRoute == null) return;
@@ -2494,12 +2693,14 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
     final browsingRoute = MaterialPageRoute<void>(
       builder: (_) => HomeScreen(localeController: widget.localeController),
     );
-    unawaited(navigator.push<void>(browsingRoute).whenComplete(() {
-      _miniEntry?.remove();
-      _miniEntry?.dispose();
-      _miniEntry = null;
-      if (mounted) setState(() => _minimized = false);
-    }));
+    unawaited(
+      navigator.push<void>(browsingRoute).whenComplete(() {
+        _miniEntry?.remove();
+        _miniEntry?.dispose();
+        _miniEntry = null;
+        if (mounted) setState(() => _minimized = false);
+      }),
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || !_minimized || !browsingRoute.isActive) return;
       final entry = OverlayEntry(
@@ -2525,52 +2726,59 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
       context,
       builder: (sheetContext) => Padding(
         padding: const EdgeInsets.fromLTRB(12, 10, 12, 18),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Row(children: [
-          _liveQuickAction(
-            icon: Icons.logout_rounded,
-            label: widget.ar ? 'مغادرة اللايف' : 'Leave Live',
-            danger: true,
-            onPressed: () {
-              Navigator.pop(sheetContext);
-              if (mounted) Navigator.of(context).pop();
-            },
-          ),
-          _liveQuickAction(
-            icon: Icons.picture_in_picture_alt_rounded,
-            label: widget.ar ? 'تصغير النافذة' : 'Minimize',
-            onPressed: () {
-              Navigator.pop(sheetContext);
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) _minimizeViewerLive();
-              });
-            },
-          ),
-          _liveQuickAction(
-            icon: Icons.ios_share_rounded,
-            label: widget.ar ? 'مشاركة اللايف' : 'Share Live',
-            onPressed: () {
-              Navigator.pop(sheetContext);
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) unawaited(_shareLive());
-              });
-            },
-          ),
-          ]),
-          const Divider(color: Colors.white12),
-          ListTile(
-            leading: const Icon(Icons.smart_toy_outlined),
-            title: Text(widget.ar ? 'أدوات الذكاء واللغات' : 'AI & language tools'),
-            onTap: () {
-              Navigator.pop(sheetContext);
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) {
-                  unawaited(_liveLanguageKey.currentState?._showMoreTools());
-                }
-              });
-            },
-          ),
-        ]),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                _liveQuickAction(
+                  icon: Icons.logout_rounded,
+                  label: widget.ar ? 'مغادرة اللايف' : 'Leave Live',
+                  danger: true,
+                  onPressed: () {
+                    Navigator.pop(sheetContext);
+                    if (mounted) Navigator.of(context).pop();
+                  },
+                ),
+                _liveQuickAction(
+                  icon: Icons.picture_in_picture_alt_rounded,
+                  label: widget.ar ? 'تصغير النافذة' : 'Minimize',
+                  onPressed: () {
+                    Navigator.pop(sheetContext);
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted) _minimizeViewerLive();
+                    });
+                  },
+                ),
+                _liveQuickAction(
+                  icon: Icons.ios_share_rounded,
+                  label: widget.ar ? 'مشاركة اللايف' : 'Share Live',
+                  onPressed: () {
+                    Navigator.pop(sheetContext);
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted) unawaited(_shareLive());
+                    });
+                  },
+                ),
+              ],
+            ),
+            const Divider(color: Colors.white12),
+            ListTile(
+              leading: const Icon(Icons.smart_toy_outlined),
+              title: Text(
+                widget.ar ? 'أدوات الذكاء واللغات' : 'AI & language tools',
+              ),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) {
+                    unawaited(_liveLanguageKey.currentState?._showMoreTools());
+                  }
+                });
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -2588,7 +2796,12 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   }
 
   Future<void> _join() async {
-    if (mounted) setState(() { _joining = true; _joinError = null; });
+    if (mounted) {
+      setState(() {
+        _joining = true;
+        _joinError = null;
+      });
+    }
     var countedViewer = false;
     try {
       await _service.enterViewer(widget.liveId);
@@ -2649,9 +2862,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
           context: context,
           barrierDismissible: false,
           builder: (dialogContext) => AlertDialog(
-            title: Text(
-              widget.ar ? 'وقت إضافي للايف' : 'Get more Live time',
-            ),
+            title: Text(widget.ar ? 'وقت إضافي للايف' : 'Get more Live time'),
             content: Text(
               widget.ar
                   ? 'شاهد الإعلان $next من 3 كاملًا. بعد 3 إعلانات تحصل على 3 ساعات إضافية اليوم.'
@@ -2842,502 +3053,611 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
           });
         }
         return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-      stream: _service.watchMyRequest(widget.liveId),
-      builder: (context, requestSnapshot) {
-        final requestData =
-            requestSnapshot.data?.data() ?? const <String, dynamic>{};
-        final status = requestData['status']?.toString();
-        if (status == 'invited') {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) unawaited(_showLiveInvitePrompt(requestData));
-          });
-        }
-        if (status == 'accepted' && !_guestPublishing) {
-          WidgetsBinding.instance.addPostFrameCallback((_) => _becomeGuest());
-        }
-        if ((status == 'declined' || status == 'left') && _requested) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) setState(() => _requested = false);
-          });
-        }
-        return Scaffold(
-      resizeToAvoidBottomInset: false,
-      backgroundColor: Colors.black,
-      body: SafeArea(
-        child: _minimized
-            ? const ColoredBox(color: Color(0xFF071812))
-            : _joining
-            ? const Center(child: CircularProgressIndicator())
-            : _joinError != null
-                ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    Text(widget.ar ? 'تعذر الاتصال بالبث' : 'Could not connect to Live', style: const TextStyle(color: Colors.white)),
-                    FilledButton(onPressed: _join, child: Text(widget.ar ? 'إعادة المحاولة' : 'Retry')),
-                    TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(widget.ar ? 'رجوع' : 'Back')),
-                  ]))
-                : AnimatedBuilder(
-                animation: _videoRoster,
-                builder: (context, _) {
-                  final remote = _controller.remoteSpeakers;
-                  final hostAgoraUid =
-                      (live?['hostAgoraUid'] as num?)?.toInt() ??
-                          (widget.data['hostAgoraUid'] as num?)?.toInt();
-                  if (hostAgoraUid != null && remote.contains(hostAgoraUid)) {
-                    _hostSeen = true;
-                  } else if (_hostSeen && hostAgoraUid != null) {
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (mounted && Navigator.of(context).canPop()) {
-                        Navigator.of(context).pop();
-                      }
-                    });
-                  }
-                  final engine = _controller.engine;
-                  final tiles = <Widget>[
-                    if (_guestPublishing && engine != null)
-                      _PinchZoomCameraView(
-                        controller: _controller,
-                        zoom: _guestCameraZoom,
-                        onZoomChanged: (value) {
-                          if (mounted) {
-                            setState(() => _guestCameraZoom = value);
-                          }
-                        },
-                        child: AgoraVideoView(
-                          controller: VideoViewController(
-                            rtcEngine: engine,
-                            canvas: const VideoCanvas(uid: 0),
-                          ),
-                        ),
-                      ),
-                    if (engine != null)
-                      for (final uid in remote.take(_guestPublishing ? 3 : 4))
-                        AgoraVideoView(
-                          controller: VideoViewController.remote(
-                            rtcEngine: engine,
-                            canvas: VideoCanvas(uid: uid),
-                            connection: RtcConnection(channelId: widget.liveId),
-                          ),
-                        ),
-                  ];
-                  return Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      if (!_boardOpen)
-                        if (tiles.isNotEmpty)
-                          Positioned.fill(
-                            bottom: tiles.length >= 3
-                                ? MediaQuery.sizeOf(context).height * .38
-                                : 0,
-                            child: _LiveVideoGrid(children: tiles),
-                          )
-                        else
-                          const Center(
-                            child: Icon(
-                              Icons.live_tv_rounded,
-                              color: Colors.white54,
-                              size: 72,
+          stream: _service.watchMyRequest(widget.liveId),
+          builder: (context, requestSnapshot) {
+            final requestData =
+                requestSnapshot.data?.data() ?? const <String, dynamic>{};
+            final status = requestData['status']?.toString();
+            if (status == 'invited') {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) unawaited(_showLiveInvitePrompt(requestData));
+              });
+            }
+            if (status == 'accepted' && !_guestPublishing) {
+              WidgetsBinding.instance.addPostFrameCallback(
+                (_) => _becomeGuest(),
+              );
+            }
+            if ((status == 'declined' || status == 'left') && _requested) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) setState(() => _requested = false);
+              });
+            }
+            return Scaffold(
+              resizeToAvoidBottomInset: false,
+              backgroundColor: Colors.black,
+              body: SafeArea(
+                child: _minimized
+                    ? const ColoredBox(color: Color(0xFF071812))
+                    : _joining
+                    ? const Center(child: CircularProgressIndicator())
+                    : _joinError != null
+                    ? Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              widget.ar
+                                  ? 'تعذر الاتصال بالبث'
+                                  : 'Could not connect to Live',
+                              style: const TextStyle(color: Colors.white),
                             ),
-                          )
-                      else
-                        const ColoredBox(color: Color(0xFF081A15)),
-                      if (_boardOpen)
-                        PositionedDirectional(
-                          top: 66,
-                          end: 16,
-                          child: Container(
-                            width: 92,
-                            height: 92,
-                            decoration: BoxDecoration(
-                              color: Colors.black,
-                              borderRadius: BorderRadius.circular(22),
-                              border: Border.all(
-                                color: const Color(0xFF65E3B4),
-                                width: 2,
+                            FilledButton(
+                              onPressed: _join,
+                              child: Text(
+                                widget.ar ? 'إعادة المحاولة' : 'Retry',
                               ),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Color(0x55000000),
-                                  blurRadius: 16,
-                                  offset: Offset(0, 6),
-                                ),
-                              ],
                             ),
-                            clipBehavior: Clip.antiAlias,
-                            child: engine != null &&
-                                    (hostAgoraUid != null
-                                        ? remote.contains(hostAgoraUid)
-                                        : remote.isNotEmpty)
-                                ? AgoraVideoView(
-                                    controller: VideoViewController.remote(
-                                      rtcEngine: engine,
-                                      canvas: VideoCanvas(
-                                        uid: hostAgoraUid ??
-                                            remote.first,
-                                      ),
-                                      connection: RtcConnection(
-                                        channelId: widget.liveId,
-                                      ),
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: Text(widget.ar ? 'رجوع' : 'Back'),
+                            ),
+                          ],
+                        ),
+                      )
+                    : AnimatedBuilder(
+                        animation: _videoRoster,
+                        builder: (context, _) {
+                          final remote = _controller.remoteSpeakers;
+                          final hostAgoraUid =
+                              (live?['hostAgoraUid'] as num?)?.toInt() ??
+                              (widget.data['hostAgoraUid'] as num?)?.toInt();
+                          if (hostAgoraUid != null &&
+                              remote.contains(hostAgoraUid)) {
+                            _hostSeen = true;
+                          } else if (_hostSeen && hostAgoraUid != null) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (mounted && Navigator.of(context).canPop()) {
+                                Navigator.of(context).pop();
+                              }
+                            });
+                          }
+                          final engine = _controller.engine;
+                          final tiles = <Widget>[
+                            if (_guestPublishing && engine != null)
+                              _PinchZoomCameraView(
+                                controller: _controller,
+                                zoom: _guestCameraZoom,
+                                onZoomChanged: (value) {
+                                  if (mounted) {
+                                    setState(() => _guestCameraZoom = value);
+                                  }
+                                },
+                                child: AgoraVideoView(
+                                  controller: VideoViewController(
+                                    rtcEngine: engine,
+                                    canvas: const VideoCanvas(uid: 0),
+                                  ),
+                                ),
+                              ),
+                            if (engine != null)
+                              for (final uid in remote.take(
+                                _guestPublishing ? 3 : 4,
+                              ))
+                                AgoraVideoView(
+                                  controller: VideoViewController.remote(
+                                    rtcEngine: engine,
+                                    canvas: VideoCanvas(uid: uid),
+                                    connection: RtcConnection(
+                                      channelId: widget.liveId,
+                                    ),
+                                  ),
+                                ),
+                          ];
+                          return Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              if (!_boardOpen)
+                                if (tiles.isNotEmpty)
+                                  Positioned.fill(
+                                    bottom: tiles.length >= 3
+                                        ? MediaQuery.sizeOf(context).height *
+                                              .38
+                                        : 0,
+                                    child: _LiveVideoGrid(children: tiles),
+                                  )
+                                else
+                                  const Center(
+                                    child: Icon(
+                                      Icons.live_tv_rounded,
+                                      color: Colors.white54,
+                                      size: 72,
                                     ),
                                   )
-                                : _LiveBoardAvatar(
-                                    photoUrl:
-                                        (live?['hostPhotoUrl'] ??
-                                                widget.data['hostPhotoUrl'] ??
-                                                '')
-                                            .toString(),
+                              else
+                                const ColoredBox(color: Color(0xFF081A15)),
+                              if (_boardOpen)
+                                PositionedDirectional(
+                                  top: 66,
+                                  end: 16,
+                                  child: Container(
+                                    width: 92,
+                                    height: 92,
+                                    decoration: BoxDecoration(
+                                      color: Colors.black,
+                                      borderRadius: BorderRadius.circular(22),
+                                      border: Border.all(
+                                        color: const Color(0xFF65E3B4),
+                                        width: 2,
+                                      ),
+                                      boxShadow: const [
+                                        BoxShadow(
+                                          color: Color(0x55000000),
+                                          blurRadius: 16,
+                                          offset: Offset(0, 6),
+                                        ),
+                                      ],
+                                    ),
+                                    clipBehavior: Clip.antiAlias,
+                                    child:
+                                        engine != null &&
+                                            (hostAgoraUid != null
+                                                ? remote.contains(hostAgoraUid)
+                                                : remote.isNotEmpty)
+                                        ? AgoraVideoView(
+                                            controller:
+                                                VideoViewController.remote(
+                                                  rtcEngine: engine,
+                                                  canvas: VideoCanvas(
+                                                    uid:
+                                                        hostAgoraUid ??
+                                                        remote.first,
+                                                  ),
+                                                  connection: RtcConnection(
+                                                    channelId: widget.liveId,
+                                                  ),
+                                                ),
+                                          )
+                                        : _LiveBoardAvatar(
+                                            photoUrl:
+                                                (live?['hostPhotoUrl'] ??
+                                                        widget
+                                                            .data['hostPhotoUrl'] ??
+                                                        '')
+                                                    .toString(),
+                                          ),
                                   ),
-                          ),
-                        ),
-                      if (_boardOpen)
-                        Positioned(
-                          left: 12,
-                          right: 12,
-                          top: 170,
-                          height: MediaQuery.sizeOf(context).height * .40,
-                          child: RoomBoardScreen(
-                            roomId: widget.liveId,
-                            parentCollection: 'live_sessions',
-                            canWrite: _guestPublishing &&
-                                (live?['boardWriteEnabled'] != false),
-                            isHost: false,
-                            agoraController: _controller,
-                            embedded: true,
-                            onClose: () => setState(() => _boardOpen = false),
-                          ),
-                        ),
-                      Positioned.fill(
-                        child: _LiveLanguageToolsOverlay(
-                          key: _liveLanguageKey,
-                          liveId: widget.liveId,
-                          roomLanguageCode:
-                              (live?['languageCode'] ?? widget.data['languageCode'] ?? 'en')
-                                  .toString(),
-                          canPublish: _guestPublishing,
-                          displayName:
-                              FirebaseAuth.instance.currentUser?.displayName ??
-                                  'WorldVoice user',
-                          audioFrames: _controller.audioFrames,
-                          ar: widget.ar,
-                        ),
-                      ),
-                      Positioned.fill(
-                        child: IgnorePointer(child: _LiveGiftEffects(liveId: widget.liveId)),
-                      ),
-                      if (_chatOpen)
-                        PositionedDirectional(
-                          start: 10,
-                          end: 68,
-                          bottom: 78 + MediaQuery.viewInsetsOf(context).bottom,
-                          height: _boardOpen
-                              ? MediaQuery.sizeOf(context).height * .27
-                              : (tiles.length >= 3
-                                  ? MediaQuery.sizeOf(context).height * .34
-                                  : 250),
-                          child: _LiveChatOverlay(
-                            service: _service,
-                            liveId: widget.liveId,
-                            ar: widget.ar,
-                            showComposer: false,
-                          ),
-                        ),
-                      PositionedDirectional(
-                        top: 10,
-                        start: 10,
-                        end: 10,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: const Color(0x99000000),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 6,
-                            ),
-                            child: Row(
-                              children: [
-                                CircleAvatar(
-                                  radius: 17,
-                                  backgroundImage: (() {
-                                    final url = (live?['hostPhotoUrl'] ??
-                                            widget.data['hostPhotoUrl'] ??
-                                            '')
-                                        .toString()
-                                        .trim();
-                                    return url.isEmpty ? null : NetworkImage(url);
-                                  })(),
-                                  child: ((live?['hostPhotoUrl'] ??
-                                                  widget.data['hostPhotoUrl'] ??
-                                                  '')
-                                              .toString()
-                                              .trim()
-                                              .isEmpty)
-                                      ? const Icon(Icons.person_rounded, size: 18)
-                                      : null,
                                 ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        (live?['hostName'] ??
-                                                widget.data['hostName'] ??
-                                                'WorldVoice host')
-                                            .toString(),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w800,
+                              if (_boardOpen)
+                                Positioned(
+                                  left: 12,
+                                  right: 12,
+                                  top: 170,
+                                  height:
+                                      MediaQuery.sizeOf(context).height * .40,
+                                  child: RoomBoardScreen(
+                                    roomId: widget.liveId,
+                                    parentCollection: 'live_sessions',
+                                    canWrite:
+                                        _guestPublishing &&
+                                        (live?['boardWriteEnabled'] != false),
+                                    isHost: false,
+                                    agoraController: _controller,
+                                    embedded: true,
+                                    onClose: () =>
+                                        setState(() => _boardOpen = false),
+                                  ),
+                                ),
+                              Positioned.fill(
+                                child: _LiveLanguageToolsOverlay(
+                                  key: _liveLanguageKey,
+                                  liveId: widget.liveId,
+                                  roomLanguageCode:
+                                      (live?['languageCode'] ??
+                                              widget.data['languageCode'] ??
+                                              'en')
+                                          .toString(),
+                                  canPublish: _guestPublishing,
+                                  displayName:
+                                      FirebaseAuth
+                                          .instance
+                                          .currentUser
+                                          ?.displayName ??
+                                      'WorldVoice user',
+                                  audioFrames: _controller.audioFrames,
+                                  ar: widget.ar,
+                                ),
+                              ),
+                              Positioned.fill(
+                                child: IgnorePointer(
+                                  child: _LiveGiftEffects(
+                                    liveId: widget.liveId,
+                                  ),
+                                ),
+                              ),
+                              if (_chatOpen)
+                                PositionedDirectional(
+                                  start: 10,
+                                  end: 68,
+                                  bottom:
+                                      78 +
+                                      MediaQuery.viewInsetsOf(context).bottom,
+                                  height: _boardOpen
+                                      ? MediaQuery.sizeOf(context).height * .27
+                                      : (tiles.length >= 3
+                                            ? MediaQuery.sizeOf(
+                                                    context,
+                                                  ).height *
+                                                  .34
+                                            : 250),
+                                  child: _LiveChatOverlay(
+                                    service: _service,
+                                    liveId: widget.liveId,
+                                    ar: widget.ar,
+                                    showComposer: false,
+                                  ),
+                                ),
+                              PositionedDirectional(
+                                top: 10,
+                                start: 10,
+                                end: 10,
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    color: const Color(0x99000000),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 6,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        CircleAvatar(
+                                          radius: 17,
+                                          backgroundImage: (() {
+                                            final url =
+                                                (live?['hostPhotoUrl'] ??
+                                                        widget
+                                                            .data['hostPhotoUrl'] ??
+                                                        '')
+                                                    .toString()
+                                                    .trim();
+                                            return url.isEmpty
+                                                ? null
+                                                : NetworkImage(url);
+                                          })(),
+                                          child:
+                                              ((live?['hostPhotoUrl'] ??
+                                                      widget
+                                                          .data['hostPhotoUrl'] ??
+                                                      '')
+                                                  .toString()
+                                                  .trim()
+                                                  .isEmpty)
+                                              ? const Icon(
+                                                  Icons.person_rounded,
+                                                  size: 18,
+                                                )
+                                              : null,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                (live?['hostName'] ??
+                                                        widget
+                                                            .data['hostName'] ??
+                                                        'WorldVoice host')
+                                                    .toString(),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.w800,
+                                                ),
+                                              ),
+                                              Text(
+                                                'LIVE • ${live?['viewerCount'] ?? widget.data['viewerCount'] ?? 0} 👁',
+                                                style: const TextStyle(
+                                                  color: Colors.white70,
+                                                  fontSize: 11,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        _LiveViewerFaces(
+                                          service: _service,
+                                          liveId: widget.liveId,
+                                          onViewerTap: (userId, name, photo) =>
+                                              _openViewerProfile(
+                                                userId: userId,
+                                                displayName: name,
+                                              ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        if ((widget.data['hostId'] ?? '')
+                                                .toString() !=
+                                            FirebaseAuth
+                                                .instance
+                                                .currentUser
+                                                ?.uid)
+                                          FilledButton.tonal(
+                                            onPressed: _followBusy
+                                                ? null
+                                                : _toggleFollow,
+                                            child: Text(
+                                              _following
+                                                  ? (widget.ar
+                                                        ? 'متابَع'
+                                                        : 'Following')
+                                                  : (widget.ar
+                                                        ? 'متابعة'
+                                                        : 'Follow'),
+                                            ),
+                                          ),
+                                        IconButton(
+                                          tooltip: widget.ar
+                                              ? 'خيارات اللايف'
+                                              : 'Live options',
+                                          onPressed: _showViewerLiveOptions,
+                                          icon: const Icon(
+                                            Icons.more_horiz_rounded,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              if (_isModerator && _moderatorRequestsOpen)
+                                PositionedDirectional(
+                                  bottom: 84,
+                                  start: 14,
+                                  end: 14,
+                                  child: _HostJoinRequests(
+                                    liveId: widget.liveId,
+                                    service: _service,
+                                    ar: widget.ar,
+                                  ),
+                                ),
+                              PositionedDirectional(
+                                bottom: 16,
+                                start: 12,
+                                end: 12,
+                                child: _LiveControlDock(
+                                  composer: _LiveInlineComposer(
+                                    service: _service,
+                                    liveId: widget.liveId,
+                                    ar: widget.ar,
+                                    onOpenChat: () {
+                                      if (mounted && !_chatOpen) {
+                                        setState(() => _chatOpen = true);
+                                      }
+                                    },
+                                  ),
+                                  children: [
+                                    IconButton(
+                                      tooltip: widget.ar ? 'الهدايا' : 'Gifts',
+                                      onPressed: () => _showLiveGifts(
+                                        context,
+                                        liveId: widget.liveId,
+                                        service: _service,
+                                        hostId:
+                                            (live?['hostId'] ??
+                                                    widget.data['hostId'] ??
+                                                    '')
+                                                .toString(),
+                                        hostName:
+                                            (live?['hostName'] ??
+                                                    widget.data['hostName'] ??
+                                                    'WorldVoice host')
+                                                .toString(),
+                                        ar: widget.ar,
+                                      ),
+                                      icon: const Icon(
+                                        Icons.card_giftcard_rounded,
+                                        color: Color(0xFFFFC857),
+                                      ),
+                                    ),
+                                    IconButton(
+                                      tooltip: 'Subtitles',
+                                      onPressed: () {
+                                        final overlay =
+                                            _liveLanguageKey.currentState;
+                                        if (overlay != null) {
+                                          unawaited(
+                                            overlay._showQuickLanguageSettings(
+                                              translation: false,
+                                            ),
+                                          );
+                                        }
+                                      },
+                                      icon: const Icon(
+                                        Icons.closed_caption_rounded,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    IconButton(
+                                      tooltip: widget.ar
+                                          ? 'الترجمة'
+                                          : 'Translation',
+                                      onPressed: () {
+                                        final overlay =
+                                            _liveLanguageKey.currentState;
+                                        if (overlay != null) {
+                                          unawaited(
+                                            overlay._showQuickLanguageSettings(
+                                              translation: true,
+                                            ),
+                                          );
+                                        }
+                                      },
+                                      icon: const Icon(
+                                        Icons.translate_rounded,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    IconButton(
+                                      tooltip: widget.ar
+                                          ? 'الوقت'
+                                          : 'Live time',
+                                      onPressed: _showGuestQuotaStatus,
+                                      icon: const Icon(
+                                        Icons.schedule_rounded,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    IconButton(
+                                      tooltip: widget.ar ? 'السبورة' : 'Board',
+                                      onPressed: () => setState(() {
+                                        _boardOpen = !_boardOpen;
+                                        if (_boardOpen) _chatOpen = true;
+                                      }),
+                                      icon: Icon(
+                                        _boardOpen
+                                            ? Icons.dashboard_rounded
+                                            : Icons.dashboard_outlined,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    if (!_guestPublishing)
+                                      IconButton.filledTonal(
+                                        tooltip: _requested
+                                            ? (widget.ar
+                                                  ? 'طلب الصعود قيد الانتظار'
+                                                  : 'Stage request pending')
+                                            : (widget.ar
+                                                  ? 'ارفع يدك للصعود'
+                                                  : 'Raise hand to join'),
+                                        style: IconButton.styleFrom(
+                                          backgroundColor: const Color(
+                                            0x553A8068,
+                                          ),
+                                          disabledBackgroundColor: const Color(
+                                            0x333A8068,
+                                          ),
+                                        ),
+                                        onPressed: _requested
+                                            ? null
+                                            : _requestCamera,
+                                        icon: Icon(
+                                          Icons.pan_tool_alt_rounded,
+                                          color: _requested
+                                              ? Colors.white54
+                                              : Colors.white,
                                         ),
                                       ),
-                                      Text(
-                                        'LIVE • ${live?['viewerCount'] ?? widget.data['viewerCount'] ?? 0} 👁',
-                                        style: const TextStyle(
-                                          color: Colors.white70,
-                                          fontSize: 11,
+                                    if (_isModerator)
+                                      _LiveStageRequestsButton(
+                                        liveId: widget.liveId,
+                                        service: _service,
+                                        ar: widget.ar,
+                                        onPressed: () => setState(
+                                          () => _moderatorRequestsOpen =
+                                              !_moderatorRequestsOpen,
+                                        ),
+                                      ),
+                                    if (_guestPublishing) ...[
+                                      IconButton(
+                                        tooltip: widget.ar
+                                            ? 'المايك'
+                                            : 'Microphone',
+                                        onPressed: () async {
+                                          final next = !_guestMicMuted;
+                                          await _controller.setMuted(next);
+                                          if (mounted) {
+                                            setState(
+                                              () => _guestMicMuted = next,
+                                            );
+                                          }
+                                        },
+                                        icon: Icon(
+                                          _guestMicMuted
+                                              ? Icons.mic_off_rounded
+                                              : Icons.mic_rounded,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      IconButton(
+                                        tooltip: widget.ar
+                                            ? 'الفلاتر والكاميرا'
+                                            : 'Filters & camera',
+                                        onPressed: () => _showLiveCameraTools(
+                                          context,
+                                          controller: _controller,
+                                          ar: widget.ar,
+                                          beautyEnabled: _guestBeautyEnabled,
+                                          filterPreset: _guestFilterPreset,
+                                          backgroundBlurEnabled:
+                                              _guestBackgroundBlurEnabled,
+                                          zoom: _guestCameraZoom,
+                                          onBeautyChanged: (value) {
+                                            if (mounted) {
+                                              setState(
+                                                () =>
+                                                    _guestBeautyEnabled = value,
+                                              );
+                                            }
+                                          },
+                                          onFilterPresetChanged: (value) {
+                                            if (mounted) {
+                                              setState(
+                                                () =>
+                                                    _guestFilterPreset = value,
+                                              );
+                                            }
+                                          },
+                                          onBackgroundBlurChanged: (value) {
+                                            if (mounted) {
+                                              setState(
+                                                () =>
+                                                    _guestBackgroundBlurEnabled =
+                                                        value,
+                                              );
+                                            }
+                                          },
+                                          onZoomChanged: (value) {
+                                            if (mounted) {
+                                              setState(
+                                                () => _guestCameraZoom = value,
+                                              );
+                                            }
+                                          },
+                                        ),
+                                        icon: const Icon(
+                                          Icons.auto_fix_high_rounded,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      IconButton(
+                                        tooltip: widget.ar
+                                            ? 'اخرج من الكاميرا'
+                                            : 'Leave camera',
+                                        onPressed: _leaveGuestCamera,
+                                        icon: const Icon(
+                                          Icons.videocam_off_rounded,
+                                          color: Colors.white,
                                         ),
                                       ),
                                     ],
-                                  ),
-                                ),
-                                _LiveViewerFaces(
-                                  service: _service,
-                                  liveId: widget.liveId,
-                                  onViewerTap: (userId, name, photo) =>
-                                      _openViewerProfile(
-                                    userId: userId,
-                                    displayName: name,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                if ((widget.data['hostId'] ?? '').toString() !=
-                                    FirebaseAuth.instance.currentUser?.uid)
-                                  FilledButton.tonal(
-                                    onPressed:
-                                        _followBusy ? null : _toggleFollow,
-                                    child: Text(
-                                      _following
-                                          ? (widget.ar ? 'متابَع' : 'Following')
-                                          : (widget.ar ? 'متابعة' : 'Follow'),
-                                    ),
-                                  ),
-                                IconButton(
-                                  tooltip: widget.ar ? 'خيارات اللايف' : 'Live options',
-                                  onPressed: _showViewerLiveOptions,
-                                  icon: const Icon(Icons.more_horiz_rounded,
-                                      color: Colors.white),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      if (_isModerator &&
-                          _moderatorRequestsOpen)
-                        PositionedDirectional(
-                          bottom: 84,
-                          start: 14,
-                          end: 14,
-                          child: _HostJoinRequests(
-                            liveId: widget.liveId,
-                            service: _service,
-                            ar: widget.ar,
-                          ),
-                        ),
-                      PositionedDirectional(
-                        bottom: 16,
-                        start: 12,
-                        end: 12,
-                        child: _LiveControlDock(
-                          composer: _LiveInlineComposer(
-                            service: _service,
-                            liveId: widget.liveId,
-                            ar: widget.ar,
-                            onOpenChat: () {
-                              if (mounted && !_chatOpen) {
-                                setState(() => _chatOpen = true);
-                              }
-                            },
-                          ),
-                          children: [
-                            IconButton(
-                              tooltip: widget.ar ? 'الهدايا' : 'Gifts',
-                              onPressed: () => _showLiveGifts(
-                                context,
-                                liveId: widget.liveId,
-                                service: _service,
-                                hostId: (live?['hostId'] ??
-                                        widget.data['hostId'] ??
-                                        '')
-                                    .toString(),
-                                hostName: (live?['hostName'] ??
-                                        widget.data['hostName'] ??
-                                        'WorldVoice host')
-                                    .toString(),
-                                ar: widget.ar,
-                              ),
-                              icon: const Icon(
-                                Icons.card_giftcard_rounded,
-                                color: Color(0xFFFFC857),
-                              ),
-                            ),
-                            IconButton(
-                              tooltip: 'Subtitles',
-                              onPressed: () {
-                                final overlay = _liveLanguageKey.currentState;
-                                if (overlay != null) {
-                                  unawaited(overlay._showQuickLanguageSettings(
-                                      translation: false));
-                                }
-                              },
-                              icon: const Icon(Icons.closed_caption_rounded,
-                                  color: Colors.white),
-                            ),
-                            IconButton(
-                              tooltip: widget.ar ? 'الترجمة' : 'Translation',
-                              onPressed: () {
-                                final overlay = _liveLanguageKey.currentState;
-                                if (overlay != null) {
-                                  unawaited(overlay._showQuickLanguageSettings(
-                                      translation: true));
-                                }
-                              },
-                              icon: const Icon(Icons.translate_rounded,
-                                  color: Colors.white),
-                            ),
-                            IconButton(
-                              tooltip: widget.ar ? 'الوقت' : 'Live time',
-                              onPressed: _showGuestQuotaStatus,
-                              icon: const Icon(Icons.schedule_rounded, color: Colors.white),
-                            ),
-                            IconButton(
-                              tooltip: widget.ar ? 'السبورة' : 'Board',
-                              onPressed: () => setState(() {
-                                _boardOpen = !_boardOpen;
-                                if (_boardOpen) _chatOpen = true;
-                              }),
-                              icon: Icon(
-                                _boardOpen
-                                    ? Icons.dashboard_rounded
-                                    : Icons.dashboard_outlined,
-                                color: Colors.white,
-                              ),
-                            ),
-                            if (!_guestPublishing)
-                              IconButton.filledTonal(
-                                tooltip: _requested
-                                    ? (widget.ar ? 'طلب الصعود قيد الانتظار' : 'Stage request pending')
-                                    : (widget.ar ? 'ارفع يدك للصعود' : 'Raise hand to join'),
-                                style: IconButton.styleFrom(
-                                  backgroundColor: const Color(0x553A8068),
-                                  disabledBackgroundColor: const Color(0x333A8068),
-                                ),
-                                onPressed: _requested ? null : _requestCamera,
-                                icon: Icon(
-                                  Icons.pan_tool_alt_rounded,
-                                  color: _requested ? Colors.white54 : Colors.white,
-                                ),
-                              ),
-                            if (_isModerator)
-                              _LiveStageRequestsButton(
-                                liveId: widget.liveId,
-                                service: _service,
-                                ar: widget.ar,
-                                onPressed: () => setState(
-                                  () => _moderatorRequestsOpen =
-                                      !_moderatorRequestsOpen,
-                                ),
-                              ),
-                            if (_guestPublishing) ...[
-                              IconButton(
-                                tooltip: widget.ar ? 'المايك' : 'Microphone',
-                                onPressed: () async {
-                                  final next = !_guestMicMuted;
-                                  await _controller.setMuted(next);
-                                  if (mounted) {
-                                    setState(() => _guestMicMuted = next);
-                                  }
-                                },
-                                icon: Icon(
-                                  _guestMicMuted
-                                      ? Icons.mic_off_rounded
-                                      : Icons.mic_rounded,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              IconButton(
-                                tooltip: widget.ar
-                                    ? 'الفلاتر والكاميرا'
-                                    : 'Filters & camera',
-                                onPressed: () => _showLiveCameraTools(
-                                  context,
-                                  controller: _controller,
-                                  ar: widget.ar,
-                                  beautyEnabled: _guestBeautyEnabled,
-                                  filterPreset: _guestFilterPreset,
-                                  backgroundBlurEnabled:
-                                      _guestBackgroundBlurEnabled,
-                                  zoom: _guestCameraZoom,
-                                  onBeautyChanged: (value) {
-                                    if (mounted) {
-                                      setState(
-                                        () => _guestBeautyEnabled = value,
-                                      );
-                                    }
-                                  },
-                                  onFilterPresetChanged: (value) {
-                                    if (mounted) {
-                                      setState(
-                                        () => _guestFilterPreset = value,
-                                      );
-                                    }
-                                  },
-                                  onBackgroundBlurChanged: (value) {
-                                    if (mounted) {
-                                      setState(
-                                        () => _guestBackgroundBlurEnabled =
-                                            value,
-                                      );
-                                    }
-                                  },
-                                  onZoomChanged: (value) {
-                                    if (mounted) {
-                                      setState(
-                                        () => _guestCameraZoom = value,
-                                      );
-                                    }
-                                  },
-                                ),
-                                icon: const Icon(
-                                  Icons.auto_fix_high_rounded,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              IconButton(
-                                tooltip: widget.ar
-                                    ? 'اخرج من الكاميرا'
-                                    : 'Leave camera',
-                                onPressed: _leaveGuestCamera,
-                                icon: const Icon(
-                                  Icons.videocam_off_rounded,
-                                  color: Colors.white,
+                                  ],
                                 ),
                               ),
                             ],
-                          ],
-                        ),
+                          );
+                        },
                       ),
-                    ],
-                  );
-                },
               ),
-      ),
-    );
-      },
-    );
+            );
+          },
+        );
       },
     );
   }
@@ -3361,9 +3681,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
       });
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.toString())),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.toString())));
     }
   }
 
@@ -3428,9 +3748,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
       await _service.leaveGuest(widget.liveId).catchError((Object _) {});
       if (!mounted) return;
       setState(() => _requested = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.toString())),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.toString())));
     }
   }
 }
@@ -3511,8 +3831,7 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
   bool _teacherAskBusy = false;
   RoomCaption? _queuedTeacherCaption;
   String? _lastTeacherPromptCaptionId;
-  final ValueNotifier<bool> _teacherOnline =
-      ValueNotifier<bool>(false);
+  final ValueNotifier<bool> _teacherOnline = ValueNotifier<bool>(false);
 
   @override
   void initState() {
@@ -3549,8 +3868,9 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
           if (mounted) setState(() => _error = error.toString());
         },
       );
-      _teacherVoiceSub =
-          _teacherAi.watchSpokenAnswers().listen(_handleTeacherVoice);
+      _teacherVoiceSub = _teacherAi.watchSpokenAnswers().listen(
+        _handleTeacherVoice,
+      );
     }
   }
 
@@ -3558,14 +3878,15 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
     try {
-      final snapshot =
-          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      final snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .get();
       final data = snapshot.data();
-      final raw =
-          (data?['nativeLanguageCode'] ?? data?['nativeLanguage'] ?? '')
-              .toString()
-              .trim()
-              .toLowerCase();
+      final raw = (data?['nativeLanguageCode'] ?? data?['nativeLanguage'] ?? '')
+          .toString()
+          .trim()
+          .toLowerCase();
       if (raw.isEmpty) return;
       final code = raw.split(RegExp(r'[-_]')).first;
       if (!roomCaptionLanguages.any((item) => item.code == code)) return;
@@ -3589,11 +3910,11 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
     super.didChangeDependencies();
     if (!_targetInitialized) {
       _targetInitialized = true;
-      final uiLanguage =
-          Localizations.localeOf(context).languageCode.toLowerCase();
-      _targetLanguage = roomCaptionLanguages.any(
-        (item) => item.code == uiLanguage,
-      )
+      final uiLanguage = Localizations.localeOf(
+        context,
+      ).languageCode.toLowerCase();
+      _targetLanguage =
+          roomCaptionLanguages.any((item) => item.code == uiLanguage)
           ? uiLanguage
           : 'en';
     }
@@ -3746,16 +4067,16 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
   }
 
   Future<void> _syncPublishing() => _captionController.configure(
-        enabled: widget.canPublish,
-        canPublish: widget.canPublish,
-        captureRemote: false,
-        // Agora owns the Live microphone. Reuse the audio frames it already
-        // captures instead of competing with a second Android recorder.
-        // The existing backend transcribes the resulting short WAV segments.
-        useAgoraLocal: true,
-        languageCode: widget.roomLanguageCode,
-        displayName: widget.displayName,
-      );
+    enabled: widget.canPublish,
+    canPublish: widget.canPublish,
+    captureRemote: false,
+    // Agora owns the Live microphone. Reuse the audio frames it already
+    // captures instead of competing with a second Android recorder.
+    // The existing backend transcribes the resulting short WAV segments.
+    useAgoraLocal: true,
+    languageCode: widget.roomLanguageCode,
+    displayName: widget.displayName,
+  );
 
   Future<void> _prepareTranslationModels() async {
     try {
@@ -3773,9 +4094,7 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
     }
   }
 
-  Future<bool> _unlockLanguageToolsIfNeeded({
-    bool translation = false,
-  }) async {
+  Future<bool> _unlockLanguageToolsIfNeeded({bool translation = false}) async {
     // Translation remains VIP-only. Subtitles can be unlocked for this
     // session by a rewarded ad; an earlier caption unlock never grants VIP.
     if (!translation && _languageToolsSessionUnlocked) return true;
@@ -3785,8 +4104,10 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
       final uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid == null) return false;
 
-      final profile =
-          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      final profile = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .get();
       if (!mounted) return false;
       final data = profile.data() ?? const <String, dynamic>{};
       final vip = data['isVip'] == true;
@@ -3798,9 +4119,11 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
       if (translation) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(widget.ar
-                ? 'الترجمة الفورية متاحة لمشتركي VIP فقط.'
-                : 'Live translation is available to VIP members only.'),
+            content: Text(
+              widget.ar
+                  ? 'الترجمة الفورية متاحة لمشتركي VIP فقط.'
+                  : 'Live translation is available to VIP members only.',
+            ),
           ),
         );
         return false;
@@ -3814,17 +4137,19 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
       }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(widget.ar
-              ? 'شاهد إعلان المكافأة لتفعيل Subtitles.'
-              : 'Watch a rewarded ad to unlock subtitles.'),
+          content: Text(
+            widget.ar
+                ? 'شاهد إعلان المكافأة لتفعيل Subtitles.'
+                : 'Watch a rewarded ad to unlock subtitles.',
+          ),
         ),
       );
       return false;
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.toString())),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.toString())));
       }
       return false;
     } finally {
@@ -3973,112 +4298,125 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
         builder: (sheetContext, refresh) => SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              ListTile(
-                leading: Icon(translation
-                    ? Icons.translate_rounded
-                    : Icons.closed_caption_rounded),
-                title: Text(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: Icon(
+                    translation
+                        ? Icons.translate_rounded
+                        : Icons.closed_caption_rounded,
+                  ),
+                  title: Text(
                     translation
                         ? (widget.ar ? 'الترجمة الفورية' : 'Live translation')
                         : 'Subtitles',
-                    style: const TextStyle(fontWeight: FontWeight.w800)),
-              ),
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                value: translation ? _translationEnabled : _enabled,
-                title: Text(translation
-                    ? (widget.ar ? 'تفعيل الترجمة' : 'Enable translation')
-                    : (widget.ar ? 'تفعيل السبايتلز' : 'Enable subtitles')),
-                onChanged: (value) {
-                  unawaited(() async {
-                    if (value &&
-                        !await _unlockLanguageToolsIfNeeded(
-                            translation: translation)) {
-                      return;
-                    }
-                    if (!mounted) return;
-                    if (translation) {
+                    style: const TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                ),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  value: translation ? _translationEnabled : _enabled,
+                  title: Text(
+                    translation
+                        ? (widget.ar ? 'تفعيل الترجمة' : 'Enable translation')
+                        : (widget.ar ? 'تفعيل السبايتلز' : 'Enable subtitles'),
+                  ),
+                  onChanged: (value) {
+                    unawaited(() async {
+                      if (value &&
+                          !await _unlockLanguageToolsIfNeeded(
+                            translation: translation,
+                          )) {
+                        return;
+                      }
+                      if (!mounted) return;
+                      if (translation) {
+                        setState(() {
+                          _translationEnabled = value;
+                          _translated = null;
+                          _translatedCaptionId = null;
+                        });
+                        if (value) {
+                          unawaited(_prepareTranslationModels());
+                          final latest = _latest;
+                          if (latest != null) unawaited(_translate(latest));
+                        }
+                      } else {
+                        await _setEnabled(value);
+                      }
+                      if (sheetContext.mounted) refresh(() {});
+                    }());
+                  },
+                ),
+                if (!translation && _enabled) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    widget.canPublish
+                        ? (_listening
+                              ? (widget.ar
+                                    ? 'جاري استقبال الصوت وتحويله إلى نص.'
+                                    : 'Listening for speech to generate captions.')
+                              : (widget.ar
+                                    ? 'لم يبدأ التعرف على الصوت بعد. تحقق من المايك والاتصال.'
+                                    : 'Speech recognition has not started. Check microphone and connection.'))
+                        : (widget.ar
+                              ? 'بانتظار ترجمة الكلام إلى نص من صاحب البث أو الضيوف.'
+                              : 'Waiting for captions published by Live speakers.'),
+                    style: const TextStyle(fontSize: 12, color: Colors.white70),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+                if (translation)
+                  DropdownButtonFormField<String>(
+                    initialValue: _targetLanguage,
+                    decoration: InputDecoration(
+                      labelText: widget.ar ? 'لغة الترجمة' : 'Translate to',
+                    ),
+                    items: [
+                      for (final item in roomCaptionLanguages)
+                        DropdownMenuItem(
+                          value: item.code,
+                          child: Text(item.label),
+                        ),
+                    ],
+                    onChanged: (value) {
+                      if (value == null) return;
                       setState(() {
-                        _translationEnabled = value;
+                        _targetLanguage = value;
                         _translated = null;
                         _translatedCaptionId = null;
                       });
-                      if (value) {
+                      if (_translationEnabled) {
                         unawaited(_prepareTranslationModels());
                         final latest = _latest;
                         if (latest != null) unawaited(_translate(latest));
                       }
-                    } else {
-                      await _setEnabled(value);
-                    }
-                    if (sheetContext.mounted) refresh(() {});
-                  }());
-                },
-              ),
-              if (!translation && _enabled) ...[
-                const SizedBox(height: 6),
-                Text(
-                  widget.canPublish
-                      ? (_listening
-                          ? (widget.ar
-                              ? 'جاري استقبال الصوت وتحويله إلى نص.'
-                              : 'Listening for speech to generate captions.')
-                          : (widget.ar
-                              ? 'لم يبدأ التعرف على الصوت بعد. تحقق من المايك والاتصال.'
-                              : 'Speech recognition has not started. Check microphone and connection.'))
-                      : (widget.ar
-                          ? 'بانتظار ترجمة الكلام إلى نص من صاحب البث أو الضيوف.'
-                          : 'Waiting for captions published by Live speakers.'),
-                  style: const TextStyle(
-                    fontSize: 12, color: Colors.white70),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-              if (translation)
-                DropdownButtonFormField<String>(
-                  initialValue: _targetLanguage,
-                  decoration: InputDecoration(
-                    labelText: widget.ar ? 'لغة الترجمة' : 'Translate to',
+                      if (sheetContext.mounted) refresh(() {});
+                    },
                   ),
-                  items: [
-                    for (final item in roomCaptionLanguages)
-                      DropdownMenuItem(
-                        value: item.code,
-                        child: Text(item.label),
-                      ),
-                  ],
-                  onChanged: (value) {
-                    if (value == null) return;
-                    setState(() {
-                      _targetLanguage = value;
-                      _translated = null;
-                      _translatedCaptionId = null;
-                    });
-                    if (_translationEnabled) {
-                      unawaited(_prepareTranslationModels());
-                      final latest = _latest;
-                      if (latest != null) unawaited(_translate(latest));
-                    }
-                    if (sheetContext.mounted) refresh(() {});
-                  },
-                ),
-              if (!translation && _enabled) ...[
-                const SizedBox(height: 8),
-                Text(
-                  _listening
-                      ? (widget.ar ? 'الميكروفون يستمع للكلام الآن' : 'Listening for speech')
-                      : (widget.ar
-                          ? 'في انتظار صوت المتحدث. تأكد من إذن الميكروفون.'
-                          : 'Waiting for speaker audio. Check microphone permission.'),
-                  style: const TextStyle(color: Colors.white70, fontSize: 12),
-                ),
+                if (!translation && _enabled) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    _listening
+                        ? (widget.ar
+                              ? 'الميكروفون يستمع للكلام الآن'
+                              : 'Listening for speech')
+                        : (widget.ar
+                              ? 'في انتظار صوت المتحدث. تأكد من إذن الميكروفون.'
+                              : 'Waiting for speaker audio. Check microphone permission.'),
+                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                  ),
+                ],
+                if (_error?.isNotEmpty == true) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    _error!,
+                    style: const TextStyle(color: Colors.orangeAccent),
+                  ),
+                ],
               ],
-              if (_error?.isNotEmpty == true) ...[
-                const SizedBox(height: 12),
-                Text(_error!, style: const TextStyle(color: Colors.orangeAccent)),
-              ],
-            ]),
+            ),
           ),
         ),
       ),
@@ -4086,95 +4424,94 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
   }
 
   Future<void> _showSettings() => showModalBottomSheet<void>(
-        context: context,
-        showDragHandle: true,
-        useSafeArea: true,
-        builder: (sheetContext) => StatefulBuilder(
-          builder: (sheetContext, refresh) => RoomCaptionsSheet(
-            enabled: _enabled,
-            translationEnabled: _translationEnabled,
-            pronunciationEnabled: _pronunciationEnabled,
-            pronunciationNotes: _teacherAi.watchNotes().map(
-              (notes) => notes
-                  .where(
-                    (note) =>
-                        note.userId == FirebaseAuth.instance.currentUser?.uid,
-                  )
-                  .toList(growable: false),
-            ),
-            pronunciationNote: _pronunciationNote,
-            targetLanguage: _targetLanguage,
-            targetLanguages: roomCaptionLanguages,
-            canPublish: widget.canPublish,
-            listening: _listening,
-            error: _error,
-            onEnabledChanged: (value) {
-              unawaited(() async {
-                if (value && !await _unlockLanguageToolsIfNeeded()) return;
-                if (!mounted) return;
-                await _setEnabled(value);
-                if (sheetContext.mounted) refresh(() {});
-              }());
-            },
-            onTranslationChanged: (value) {
-              unawaited(() async {
-                if (value &&
-                    !await _unlockLanguageToolsIfNeeded(translation: true)) {
-                  return;
-                }
-                if (!mounted) return;
-              setState(() {
-                _translationEnabled = value;
-                _translated = null;
-                _translatedCaptionId = null;
-              });
-              if (value) {
-                unawaited(_prepareTranslationModels());
-              }
-              final latest = _latest;
-              if (value && latest != null) unawaited(_translate(latest));
-              if (sheetContext.mounted) refresh(() {});
-              }());
-            },
-            onPronunciationChanged: (value) {
-              setState(() {
-                _pronunciationEnabled = value;
-                _lastPronunciationCaptionId = null;
-                _error = null;
-              });
-              if (!value) {
-                _pronunciationNote.value = null;
-              }
-              final latest = _latest;
-              if (value &&
-                  latest != null &&
-                  latest.userId == FirebaseAuth.instance.currentUser?.uid) {
-                _lastPronunciationCaptionId = latest.id;
-                _pronunciationNote.value = _teacherAi.localPronunciationNote(
-                  caption: latest,
-                  roomLanguageCode: widget.roomLanguageCode,
-                );
-              }
-              refresh(() {});
-            },
-            onTargetLanguageChanged: (value) {
-              setState(() {
-                _targetLanguage = value;
-                _translated = null;
-                _translatedCaptionId = null;
-              });
-              if (_translationEnabled) {
-                unawaited(_prepareTranslationModels());
-              }
-              final latest = _latest;
-              if (_translationEnabled && latest != null) {
-                unawaited(_translate(latest));
-              }
-              refresh(() {});
-            },
-          ),
+    context: context,
+    showDragHandle: true,
+    useSafeArea: true,
+    builder: (sheetContext) => StatefulBuilder(
+      builder: (sheetContext, refresh) => RoomCaptionsSheet(
+        enabled: _enabled,
+        translationEnabled: _translationEnabled,
+        pronunciationEnabled: _pronunciationEnabled,
+        pronunciationNotes: _teacherAi.watchNotes().map(
+          (notes) => notes
+              .where(
+                (note) => note.userId == FirebaseAuth.instance.currentUser?.uid,
+              )
+              .toList(growable: false),
         ),
-      );
+        pronunciationNote: _pronunciationNote,
+        targetLanguage: _targetLanguage,
+        targetLanguages: roomCaptionLanguages,
+        canPublish: widget.canPublish,
+        listening: _listening,
+        error: _error,
+        onEnabledChanged: (value) {
+          unawaited(() async {
+            if (value && !await _unlockLanguageToolsIfNeeded()) return;
+            if (!mounted) return;
+            await _setEnabled(value);
+            if (sheetContext.mounted) refresh(() {});
+          }());
+        },
+        onTranslationChanged: (value) {
+          unawaited(() async {
+            if (value &&
+                !await _unlockLanguageToolsIfNeeded(translation: true)) {
+              return;
+            }
+            if (!mounted) return;
+            setState(() {
+              _translationEnabled = value;
+              _translated = null;
+              _translatedCaptionId = null;
+            });
+            if (value) {
+              unawaited(_prepareTranslationModels());
+            }
+            final latest = _latest;
+            if (value && latest != null) unawaited(_translate(latest));
+            if (sheetContext.mounted) refresh(() {});
+          }());
+        },
+        onPronunciationChanged: (value) {
+          setState(() {
+            _pronunciationEnabled = value;
+            _lastPronunciationCaptionId = null;
+            _error = null;
+          });
+          if (!value) {
+            _pronunciationNote.value = null;
+          }
+          final latest = _latest;
+          if (value &&
+              latest != null &&
+              latest.userId == FirebaseAuth.instance.currentUser?.uid) {
+            _lastPronunciationCaptionId = latest.id;
+            _pronunciationNote.value = _teacherAi.localPronunciationNote(
+              caption: latest,
+              roomLanguageCode: widget.roomLanguageCode,
+            );
+          }
+          refresh(() {});
+        },
+        onTargetLanguageChanged: (value) {
+          setState(() {
+            _targetLanguage = value;
+            _translated = null;
+            _translatedCaptionId = null;
+          });
+          if (_translationEnabled) {
+            unawaited(_prepareTranslationModels());
+          }
+          final latest = _latest;
+          if (_translationEnabled && latest != null) {
+            unawaited(_translate(latest));
+          }
+          refresh(() {});
+        },
+      ),
+    ),
+  );
 
   @override
   void dispose() {
@@ -4205,8 +4542,10 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -4263,7 +4602,8 @@ Future<void> _showLiveGifts(
         child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
           stream: service.watchActiveGuests(liveId),
           builder: (context, snapshot) {
-            final guests = snapshot.data?.docs ??
+            final guests =
+                snapshot.data?.docs ??
                 const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
             final recipients = <String, String>{
               if (hostId.isNotEmpty && hostId != myId)
@@ -4323,34 +4663,38 @@ class _LiveGiftEffectsState extends State<_LiveGiftEffects> {
   }
 
   void _listen() {
-    _subscription = RoomFeatureService.watchContextGifts(
-      context: 'live',
-      contextId: widget.liveId,
-    ).listen(
-      (gifts) {
-        if (!mounted || gifts.isEmpty) return;
-        final latest = gifts.first;
-        if (!_primed) {
-          _primed = true;
-          _lastGiftId = latest.id;
-          return;
-        }
-        if (latest.id == _lastGiftId) return;
-        _lastGiftId = latest.id;
-        _timer?.cancel();
-        setState(() => _event = latest);
-        final premium = const {'dragon', 'caraxes', 'vhagar'}
-            .contains(latest.giftId.trim().toLowerCase());
-        _timer = Timer(Duration(seconds: premium ? 5 : 3), () {
-          if (mounted && _event?.id == latest.id) {
-            setState(() => _event = null);
-          }
-        });
-      },
-      onError: (Object _) {
-        // Gift effects are optional and must never interrupt the Live stream.
-      },
-    );
+    _subscription =
+        RoomFeatureService.watchContextGifts(
+          context: 'live',
+          contextId: widget.liveId,
+        ).listen(
+          (gifts) {
+            if (!mounted || gifts.isEmpty) return;
+            final latest = gifts.first;
+            if (!_primed) {
+              _primed = true;
+              _lastGiftId = latest.id;
+              return;
+            }
+            if (latest.id == _lastGiftId) return;
+            _lastGiftId = latest.id;
+            _timer?.cancel();
+            setState(() => _event = latest);
+            final premium = const {
+              'dragon',
+              'caraxes',
+              'vhagar',
+            }.contains(latest.giftId.trim().toLowerCase());
+            _timer = Timer(Duration(seconds: premium ? 5 : 3), () {
+              if (mounted && _event?.id == latest.id) {
+                setState(() => _event = null);
+              }
+            });
+          },
+          onError: (Object _) {
+            // Gift effects are optional and must never interrupt the Live stream.
+          },
+        );
   }
 
   @override
@@ -4414,8 +4758,9 @@ class _PinchZoomCameraViewState extends State<_PinchZoomCameraView> {
       onScaleStart: (_) => _startZoom = widget.zoom,
       onScaleUpdate: (details) {
         if (details.pointerCount < 2 || _maxZoom <= 1) return;
-        final next =
-            (_startZoom * details.scale).clamp(1.0, _maxZoom).toDouble();
+        final next = (_startZoom * details.scale)
+            .clamp(1.0, _maxZoom)
+            .toDouble();
         widget.onZoomChanged(next);
         _zoomTimer?.cancel();
         _zoomTimer = Timer(const Duration(milliseconds: 45), () {
@@ -4477,63 +4822,99 @@ Future<void> _showLiveCameraTools(
           child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
             child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-            Text(
-              ar ? 'الفلاتر والكاميرا' : 'Filters & camera',
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
-            ),
-            const SizedBox(height: 8),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.auto_awesome_rounded),
-              title: Text(ar ? 'فلاتر الوجه' : 'Face filters'),
-              subtitle: Text(
-                beautyAvailable
-                    ? (ar
-                        ? 'اختر فلترًا لنفسك مثل تطبيقات اللايف.'
-                        : 'Choose a subtle Live-style filter for yourself.')
-                    : (ar
-                        ? 'الفلاتر غير مدعومة على هذا الجهاز.'
-                        : 'Filters are not supported on this device.'),
-              ),
-            ),
-            if (beautyAvailable)
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    for (final preset in const <String>[
-                      'off',
-                      'natural',
-                      'soft',
-                      'bright',
-                      'clean',
-                    ]) ...[
-                      ChoiceChip(
-                        selected: localPreset == preset,
-                        avatar: Icon(
-                          preset == 'off'
-                              ? Icons.block_rounded
-                              : Icons.face_retouching_natural_rounded,
-                          size: 17,
-                        ),
-                        label: Text(
-                          switch (preset) {
-                            'off' => ar ? 'بدون' : 'Off',
-                            'natural' => ar ? 'طبيعي' : 'Natural',
-                            'soft' => ar ? 'ناعم' : 'Soft',
-                            'bright' => ar ? 'مشرق' : 'Bright',
-                            _ => ar ? 'نظيف' : 'Clean',
-                          },
-                        ),
-                        onSelected: (_) async {
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  ar ? 'الفلاتر والكاميرا' : 'Filters & camera',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.auto_awesome_rounded),
+                  title: Text(ar ? 'فلاتر الوجه' : 'Face filters'),
+                  subtitle: Text(
+                    beautyAvailable
+                        ? (ar
+                              ? 'اختر فلترًا لنفسك مثل تطبيقات اللايف.'
+                              : 'Choose a subtle Live-style filter for yourself.')
+                        : (ar
+                              ? 'الفلاتر غير مدعومة على هذا الجهاز.'
+                              : 'Filters are not supported on this device.'),
+                  ),
+                ),
+                if (beautyAvailable)
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        for (final preset in const <String>[
+                          'off',
+                          'natural',
+                          'soft',
+                          'bright',
+                          'clean',
+                        ]) ...[
+                          ChoiceChip(
+                            selected: localPreset == preset,
+                            avatar: Icon(
+                              preset == 'off'
+                                  ? Icons.block_rounded
+                                  : Icons.face_retouching_natural_rounded,
+                              size: 17,
+                            ),
+                            label: Text(switch (preset) {
+                              'off' => ar ? 'بدون' : 'Off',
+                              'natural' => ar ? 'طبيعي' : 'Natural',
+                              'soft' => ar ? 'ناعم' : 'Soft',
+                              'bright' => ar ? 'مشرق' : 'Bright',
+                              _ => ar ? 'نظيف' : 'Clean',
+                            }),
+                            onSelected: (_) async {
+                              try {
+                                await controller.setBeautyPreset(preset);
+                                localPreset = preset;
+                                localBeauty = preset != 'off';
+                                onFilterPresetChanged(preset);
+                                onBeautyChanged(localBeauty);
+                                refresh(() {});
+                              } catch (error) {
+                                if (!sheetContext.mounted) return;
+                                ScaffoldMessenger.of(sheetContext).showSnackBar(
+                                  SnackBar(content: Text(error.toString())),
+                                );
+                              }
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                        ],
+                      ],
+                    ),
+                  ),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  secondary: const Icon(Icons.blur_on_rounded),
+                  title: Text(ar ? 'تمويه الخلفية' : 'Background blur'),
+                  subtitle: Text(
+                    blurAvailable
+                        ? (ar
+                              ? 'يستخدمه الجهاز فقط إذا كان الأداء يدعمه.'
+                              : 'Enabled only when the device supports it.')
+                        : (ar
+                              ? 'غير مدعوم على هذا الجهاز.'
+                              : 'Not supported on this device.'),
+                  ),
+                  value: localBlur && blurAvailable,
+                  onChanged: !blurAvailable
+                      ? null
+                      : (value) async {
                           try {
-                            await controller.setBeautyPreset(preset);
-                            localPreset = preset;
-                            localBeauty = preset != 'off';
-                            onFilterPresetChanged(preset);
-                            onBeautyChanged(localBeauty);
+                            await controller.setBackgroundBlurEnabled(value);
+                            localBlur = value;
+                            onBackgroundBlurChanged(value);
                             refresh(() {});
                           } catch (error) {
                             if (!sheetContext.mounted) return;
@@ -4542,131 +4923,99 @@ Future<void> _showLiveCameraTools(
                             );
                           }
                         },
-                      ),
-                      const SizedBox(width: 8),
-                    ],
-                  ],
                 ),
-              ),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              secondary: const Icon(Icons.blur_on_rounded),
-              title: Text(ar ? 'تمويه الخلفية' : 'Background blur'),
-              subtitle: Text(
-                blurAvailable
-                    ? (ar
-                        ? 'يستخدمه الجهاز فقط إذا كان الأداء يدعمه.'
-                        : 'Enabled only when the device supports it.')
-                    : (ar
-                        ? 'غير مدعوم على هذا الجهاز.'
-                        : 'Not supported on this device.'),
-              ),
-              value: localBlur && blurAvailable,
-              onChanged: !blurAvailable
-                  ? null
-                  : (value) async {
-                      try {
-                        await controller.setBackgroundBlurEnabled(value);
-                        localBlur = value;
-                        onBackgroundBlurChanged(value);
+                if (maxZoom > 1) ...[
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.zoom_in_rounded),
+                    title: Text(ar ? 'التقريب' : 'Zoom'),
+                    subtitle: Slider(
+                      min: 1,
+                      max: maxZoom,
+                      divisions: ((maxZoom - 1) * 10)
+                          .round()
+                          .clamp(1, 70)
+                          .toInt(),
+                      value: localZoom.clamp(1.0, maxZoom).toDouble(),
+                      label: '${localZoom.toStringAsFixed(1)}×',
+                      onChanged: (value) {
+                        localZoom = value;
                         refresh(() {});
-                      } catch (error) {
-                        if (!sheetContext.mounted) return;
-                        ScaffoldMessenger.of(sheetContext).showSnackBar(
-                          SnackBar(content: Text(error.toString())),
-                        );
-                      }
-                    },
-            ),
-            if (maxZoom > 1) ...[
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.zoom_in_rounded),
-                title: Text(ar ? 'التقريب' : 'Zoom'),
-                subtitle: Slider(
-                  min: 1,
-                  max: maxZoom,
-                  divisions: ((maxZoom - 1) * 10).round().clamp(1, 70).toInt(),
-                  value: localZoom.clamp(1.0, maxZoom).toDouble(),
-                  label: '${localZoom.toStringAsFixed(1)}×',
-                  onChanged: (value) {
-                    localZoom = value;
-                    refresh(() {});
-                  },
-                  onChangeEnd: (value) async {
-                    try {
-                      await controller.setCameraZoom(value);
-                      onZoomChanged(value);
-                    } catch (error) {
-                      if (!sheetContext.mounted) return;
-                        ScaffoldMessenger.of(sheetContext).showSnackBar(
-                          SnackBar(content: Text(error.toString())),
-                        );
-                    }
-                  },
-                ),
-              ),
-            ] else
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.zoom_in_rounded),
-                title: Text(ar ? 'التقريب غير مدعوم' : 'Zoom unavailable'),
-              ),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () async {
-                      try {
-                        await engine.switchCamera();
-                        await controller.setCameraZoom(1);
-                        localZoom = 1;
-                        onZoomChanged(1);
-                        refresh(() {});
-                      } catch (error) {
-                        if (!sheetContext.mounted) return;
-                        ScaffoldMessenger.of(sheetContext).showSnackBar(
-                          SnackBar(content: Text(error.toString())),
-                        );
-                      }
-                    },
-                    icon: const Icon(Icons.cameraswitch_rounded),
-                    label: Text(ar ? 'أمامية / خلفية' : 'Front / back'),
+                      },
+                      onChangeEnd: (value) async {
+                        try {
+                          await controller.setCameraZoom(value);
+                          onZoomChanged(value);
+                        } catch (error) {
+                          if (!sheetContext.mounted) return;
+                          ScaffoldMessenger.of(sheetContext).showSnackBar(
+                            SnackBar(content: Text(error.toString())),
+                          );
+                        }
+                      },
+                    ),
                   ),
-                ),
-                const SizedBox(width: 10),
-                OutlinedButton(
-                  onPressed: maxZoom <= 1
-                      ? null
-                      : () async {
+                ] else
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.zoom_in_rounded),
+                    title: Text(ar ? 'التقريب غير مدعوم' : 'Zoom unavailable'),
+                  ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () async {
                           try {
+                            await engine.switchCamera();
                             await controller.setCameraZoom(1);
                             localZoom = 1;
                             onZoomChanged(1);
                             refresh(() {});
                           } catch (error) {
                             if (!sheetContext.mounted) return;
-                        ScaffoldMessenger.of(sheetContext).showSnackBar(
-                          SnackBar(content: Text(error.toString())),
-                        );
+                            ScaffoldMessenger.of(sheetContext).showSnackBar(
+                              SnackBar(content: Text(error.toString())),
+                            );
                           }
                         },
-                  child: const Text('1×'),
+                        icon: const Icon(Icons.cameraswitch_rounded),
+                        label: Text(ar ? 'أمامية / خلفية' : 'Front / back'),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    OutlinedButton(
+                      onPressed: maxZoom <= 1
+                          ? null
+                          : () async {
+                              try {
+                                await controller.setCameraZoom(1);
+                                localZoom = 1;
+                                onZoomChanged(1);
+                                refresh(() {});
+                              } catch (error) {
+                                if (!sheetContext.mounted) return;
+                                ScaffoldMessenger.of(sheetContext).showSnackBar(
+                                  SnackBar(content: Text(error.toString())),
+                                );
+                              }
+                            },
+                      child: const Text('1×'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  ar
+                      ? 'يمكنك أيضًا استخدام إصبعين على فيديوك للتقريب.'
+                      : 'You can also pinch your own video to zoom.',
+                  style: Theme.of(sheetContext).textTheme.bodySmall,
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            Text(
-              ar
-                  ? 'يمكنك أيضًا استخدام إصبعين على فيديوك للتقريب.'
-                  : 'You can also pinch your own video to zoom.',
-              style: Theme.of(sheetContext).textTheme.bodySmall,
-            ),
-            ],
           ),
         ),
-      ),
       ),
     ),
   );
@@ -4676,15 +5025,13 @@ Future<void> _showLiveCameraTools(
 /// The actual Live session is only joined after the recipient taps the card.
 /// Never interpret a shared link itself as permission to launch Agora.
 class WorldVoiceLiveSharedCard extends StatelessWidget {
-  const WorldVoiceLiveSharedCard({
-    required this.shareText,
-    super.key,
-  });
+  const WorldVoiceLiveSharedCard({required this.shareText, super.key});
 
   final String shareText;
 
-  static final RegExp _liveLinkPattern =
-      RegExp(r'worldvoice://live/([A-Za-z0-9_-]{4,100})');
+  static final RegExp _liveLinkPattern = RegExp(
+    r'worldvoice://live/([A-Za-z0-9_-]{4,100})',
+  );
 
   static String? liveIdFromText(String value) =>
       _liveLinkPattern.firstMatch(value)?.group(1);
@@ -4697,16 +5044,22 @@ class WorldVoiceLiveSharedCard extends StatelessWidget {
     final ar = Localizations.localeOf(context).languageCode == 'ar';
     if (!LiveSessionService.isFresh(live)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(ar ? 'هذا البث انتهى.' : 'This live has ended.')),
+        SnackBar(
+          content: Text(ar ? 'هذا البث انتهى.' : 'This live has ended.'),
+        ),
       );
       return;
     }
     if ((live['hostId'] ?? '').toString() ==
         FirebaseAuth.instance.currentUser?.uid) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(ar
-            ? 'أنت مضيف هذا اللايف بالفعل.'
-            : 'You are already hosting this live.')),
+        SnackBar(
+          content: Text(
+            ar
+                ? 'أنت مضيف هذا اللايف بالفعل.'
+                : 'You are already hosting this live.',
+          ),
+        ),
       );
       return;
     }
@@ -4736,10 +5089,10 @@ class WorldVoiceLiveSharedCard extends StatelessWidget {
     final id = liveIdFromText(shareText);
     if (id == null) return Text(shareText);
     final parts = shareText.split('\n');
-    final fallbackTitle =
-        parts.length > 1 ? parts[1].trim() : 'WorldVoice Live';
-    final fallbackHost =
-        parts.length > 2 ? parts[2].trim() : 'WorldVoice';
+    final fallbackTitle = parts.length > 1
+        ? parts[1].trim()
+        : 'WorldVoice Live';
+    final fallbackHost = parts.length > 2 ? parts[2].trim() : 'WorldVoice';
     final locale = Localizations.localeOf(context).languageCode;
     final ar = locale == 'ar';
 
@@ -4759,7 +5112,8 @@ class WorldVoiceLiveSharedCard extends StatelessWidget {
         final photo = (live?['hostPhotoUrl'] ?? '').toString().trim();
         final viewers = (live?['viewerCount'] as num?)?.toInt() ?? 0;
         final languageCode = (live?['languageCode'] ?? '').toString();
-        final languageLabel = ProfileLanguageCatalog.byCode(languageCode) == null
+        final languageLabel =
+            ProfileLanguageCatalog.byCode(languageCode) == null
             ? ''
             : ProfileLanguageCatalog.localizedName(languageCode, locale);
 
@@ -4794,14 +5148,19 @@ class WorldVoiceLiveSharedCard extends StatelessWidget {
                         children: [
                           Row(
                             children: [
-                              const Icon(Icons.graphic_eq_rounded,
-                                  color: Colors.white, size: 22),
+                              const Icon(
+                                Icons.graphic_eq_rounded,
+                                color: Colors.white,
+                                size: 22,
+                              ),
                               const Spacer(),
                               if (languageLabel.isNotEmpty)
                                 Flexible(
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 9, vertical: 5),
+                                      horizontal: 9,
+                                      vertical: 5,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: const Color(0xAA111021),
                                       borderRadius: BorderRadius.circular(8),
@@ -4811,9 +5170,10 @@ class WorldVoiceLiveSharedCard extends StatelessWidget {
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w800),
+                                        color: Colors.white,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w800,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -4827,13 +5187,15 @@ class WorldVoiceLiveSharedCard extends StatelessWidget {
                                 ),
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 9, vertical: 5),
+                                    horizontal: 9,
+                                    vertical: 5,
+                                  ),
                                   child: Text(
                                     loading
                                         ? '…'
                                         : fresh
-                                            ? (ar ? '● مباشر' : '● LIVE')
-                                            : (ar ? 'انتهى' : 'Ended'),
+                                        ? (ar ? '● مباشر' : '● LIVE')
+                                        : (ar ? 'انتهى' : 'Ended'),
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 11,
@@ -4848,11 +5210,15 @@ class WorldVoiceLiveSharedCard extends StatelessWidget {
                           CircleAvatar(
                             radius: 36,
                             backgroundColor: const Color(0xFF604495),
-                            foregroundImage:
-                                photo.isEmpty ? null : NetworkImage(photo),
+                            foregroundImage: photo.isEmpty
+                                ? null
+                                : NetworkImage(photo),
                             child: photo.isEmpty
-                                ? const Icon(Icons.person_rounded,
-                                    color: Colors.white, size: 38)
+                                ? const Icon(
+                                    Icons.person_rounded,
+                                    color: Colors.white,
+                                    size: 38,
+                                  )
                                 : null,
                           ),
                           const SizedBox(height: 7),
@@ -4875,10 +5241,11 @@ class WorldVoiceLiveSharedCard extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                                 textAlign: TextAlign.center,
                                 style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 19,
-                                    fontWeight: FontWeight.w900,
-                                    height: 1.18),
+                                  color: Colors.white,
+                                  fontSize: 19,
+                                  fontWeight: FontWeight.w900,
+                                  height: 1.18,
+                                ),
                               ),
                             ),
                           ),
@@ -4888,7 +5255,9 @@ class WorldVoiceLiveSharedCard extends StatelessWidget {
                               if (fresh)
                                 Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 5),
+                                    horizontal: 8,
+                                    vertical: 5,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFFFFC64A),
                                     borderRadius: BorderRadius.circular(8),
@@ -4904,20 +5273,30 @@ class WorldVoiceLiveSharedCard extends StatelessWidget {
                                 ),
                               const Spacer(),
                               if (fresh) ...[
-                                Text('$viewers',
-                                    style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w700)),
+                                Text(
+                                  '$viewers',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
                                 const SizedBox(width: 4),
-                                const Icon(Icons.visibility_rounded,
-                                    color: Colors.white, size: 18),
+                                const Icon(
+                                  Icons.visibility_rounded,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
                               ] else
                                 Text(
                                   loading
                                       ? (ar ? 'جار التحميل' : 'Loading')
-                                      : (ar ? 'البث غير متاح' : 'Live unavailable'),
+                                      : (ar
+                                            ? 'البث غير متاح'
+                                            : 'Live unavailable'),
                                   style: const TextStyle(
-                                      color: Colors.white70, fontSize: 11),
+                                    color: Colors.white70,
+                                    fontSize: 11,
+                                  ),
                                 ),
                             ],
                           ),
@@ -4972,9 +5351,7 @@ Future<void> _showLiveShareSheet(
         mainAxisSize: MainAxisSize.min,
         children: [
           ListTile(
-            leading: const CircleAvatar(
-              child: Icon(Icons.chat_bubble_rounded),
-            ),
+            leading: const CircleAvatar(child: Icon(Icons.chat_bubble_rounded)),
             title: Text(
               ar ? 'إرسال داخل شات WorldVoice' : 'Send in WorldVoice chat',
               style: const TextStyle(fontWeight: FontWeight.w800),
@@ -4988,50 +5365,42 @@ Future<void> _showLiveShareSheet(
               Navigator.of(sheetContext).pop();
               await Future<void>.delayed(Duration.zero);
               if (!context.mounted) return;
-              await _showLiveShareToChat(
-                context,
-                shareText: shareText,
-                ar: ar,
-              );
+              await _showLiveShareToChat(context, shareText: shareText, ar: ar);
             },
           ),
           ListTile(
-            leading: const CircleAvatar(
-              child: Icon(Icons.post_add_rounded),
+            leading: const CircleAvatar(child: Icon(Icons.post_add_rounded)),
+            title: Text(
+              ar ? 'مشاركة كمنشور في Home' : 'Share as a Home post',
+              style: const TextStyle(fontWeight: FontWeight.w800),
             ),
-            title: Text(ar ? 'مشاركة كمنشور في Home' : 'Share as a Home post',
-              style: const TextStyle(fontWeight: FontWeight.w800)),
             onTap: () async {
               Navigator.pop(sheetContext);
               try {
                 await HomeFeedService().createPost(text: shareText);
                 if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(ar
-                      ? 'تم نشر اللايف في Home.'
-                      : 'Live posted to Home.')),
+                  SnackBar(
+                    content: Text(
+                      ar ? 'تم نشر اللايف في Home.' : 'Live posted to Home.',
+                    ),
+                  ),
                 );
               } catch (error) {
                 if (!context.mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(error.toString())),
-                );
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text(error.toString())));
               }
             },
           ),
           ListTile(
-            leading: const CircleAvatar(
-              child: Icon(Icons.link_rounded),
-            ),
+            leading: const CircleAvatar(child: Icon(Icons.link_rounded)),
             title: Text(
               ar ? 'نسخ رابط اللايف' : 'Copy Live link',
               style: const TextStyle(fontWeight: FontWeight.w800),
             ),
-            subtitle: Text(
-              link,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
+            subtitle: Text(link, maxLines: 1, overflow: TextOverflow.ellipsis),
             onTap: () async {
               await Clipboard.setData(ClipboardData(text: link));
               if (!sheetContext.mounted) return;
@@ -5047,25 +5416,18 @@ Future<void> _showLiveShareSheet(
             },
           ),
           ListTile(
-            leading: const CircleAvatar(
-              child: Icon(Icons.ios_share_rounded),
-            ),
+            leading: const CircleAvatar(child: Icon(Icons.ios_share_rounded)),
             title: Text(
               ar ? 'مشاركة الرابط' : 'Share link',
               style: const TextStyle(fontWeight: FontWeight.w800),
             ),
             subtitle: Text(
-              ar
-                  ? 'شارك اللايف في أي تطبيق.'
-                  : 'Share the Live in any app.',
+              ar ? 'شارك اللايف في أي تطبيق.' : 'Share the Live in any app.',
             ),
             onTap: () async {
               Navigator.of(sheetContext).pop();
               await SharePlus.instance.share(
-                ShareParams(
-                  title: 'WorldVoice Live',
-                  text: shareText,
-                ),
+                ShareParams(title: 'WorldVoice Live', text: shareText),
               );
             },
           ),
@@ -5083,9 +5445,7 @@ Future<void> _showLiveShareToChat(
   final uid = FirebaseAuth.instance.currentUser?.uid;
   if (uid == null) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(ar ? 'سجّل دخولك أولًا.' : 'Sign in first.'),
-      ),
+      SnackBar(content: Text(ar ? 'سجّل دخولك أولًا.' : 'Sign in first.')),
     );
     return Future<void>.value();
   }
@@ -5110,9 +5470,7 @@ Future<void> _showLiveShareToChat(
                 ),
               ),
               subtitle: Text(
-                ar
-                    ? 'اختر محادثة موجودة.'
-                    : 'Choose an existing conversation.',
+                ar ? 'اختر محادثة موجودة.' : 'Choose an existing conversation.',
               ),
             ),
             Expanded(
@@ -5139,10 +5497,12 @@ Future<void> _showLiveShareToChat(
                     ..sort((a, b) {
                       final aTime = a.data()['lastMessageAt'];
                       final bTime = b.data()['lastMessageAt'];
-                      final aMs =
-                          aTime is Timestamp ? aTime.millisecondsSinceEpoch : 0;
-                      final bMs =
-                          bTime is Timestamp ? bTime.millisecondsSinceEpoch : 0;
+                      final aMs = aTime is Timestamp
+                          ? aTime.millisecondsSinceEpoch
+                          : 0;
+                      final bMs = bTime is Timestamp
+                          ? bTime.millisecondsSinceEpoch
+                          : 0;
                       return bMs.compareTo(aMs);
                     });
                   if (chats.isEmpty) {
@@ -5161,8 +5521,9 @@ Future<void> _showLiveShareToChat(
                     itemBuilder: (context, index) {
                       final doc = chats[index];
                       final data = doc.data();
-                      final memberIds =
-                          List<String>.from(data['memberIds'] ?? const []);
+                      final memberIds = List<String>.from(
+                        data['memberIds'] ?? const [],
+                      );
                       final peerId = memberIds.firstWhere(
                         (value) => value != uid,
                         orElse: () => '',
@@ -5170,7 +5531,8 @@ Future<void> _showLiveShareToChat(
                       final names = Map<String, dynamic>.from(
                         data['memberNames'] as Map? ?? <String, dynamic>{},
                       );
-                      final peerName = (names[peerId] ?? 'WorldVoice').toString();
+                      final peerName = (names[peerId] ?? 'WorldVoice')
+                          .toString();
                       final sending = sendingChatId == doc.id;
 
                       return ListTile(
@@ -5219,13 +5581,15 @@ Future<void> _showLiveShareToChat(
                                 } catch (error) {
                                   if (!sheetContext.mounted) return;
                                   setSheetState(() => sendingChatId = null);
-                                  ScaffoldMessenger.of(sheetContext)
-                                      .showSnackBar(
+                                  ScaffoldMessenger.of(
+                                    sheetContext,
+                                  ).showSnackBar(
                                     SnackBar(
                                       content: Text(
-                                        error
-                                            .toString()
-                                            .replaceFirst('Bad state: ', ''),
+                                        error.toString().replaceFirst(
+                                          'Bad state: ',
+                                          '',
+                                        ),
                                       ),
                                     ),
                                   );
@@ -5277,9 +5641,9 @@ class _LiveChatOverlayState extends State<_LiveChatOverlay> {
       _focusNode.requestFocus();
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.toString())),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.toString())));
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -5304,7 +5668,8 @@ class _LiveChatOverlayState extends State<_LiveChatOverlay> {
                 return const SizedBox.shrink();
               }
 
-              final docs = snapshot.data?.docs ??
+              final docs =
+                  snapshot.data?.docs ??
                   const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
 
               return ListView.builder(
@@ -5314,13 +5679,14 @@ class _LiveChatOverlayState extends State<_LiveChatOverlay> {
                 itemBuilder: (context, index) {
                   final data = docs[index].data();
                   final type = (data['type'] ?? 'message').toString();
-                  final name =
-                      (data['senderName'] ?? 'WorldVoice').toString();
-                  final photo =
-                      (data['senderPhotoUrl'] ?? '').toString().trim();
+                  final name = (data['senderName'] ?? 'WorldVoice').toString();
+                  final photo = (data['senderPhotoUrl'] ?? '')
+                      .toString()
+                      .trim();
                   final message = (data['text'] ?? '').toString();
                   final art = WorldVoiceChatBubbles.find(
-                    data['bubbleId']?.toString());
+                    data['bubbleId']?.toString(),
+                  );
 
                   if (type == 'join') {
                     return Padding(
@@ -5364,8 +5730,9 @@ class _LiveChatOverlayState extends State<_LiveChatOverlay> {
                           CircleAvatar(
                             radius: 12,
                             backgroundColor: const Color(0x77444444),
-                            foregroundImage:
-                                photo.isEmpty ? null : NetworkImage(photo),
+                            foregroundImage: photo.isEmpty
+                                ? null
+                                : NetworkImage(photo),
                             child: photo.isEmpty
                                 ? const Icon(
                                     Icons.person_rounded,
@@ -5376,43 +5743,67 @@ class _LiveChatOverlayState extends State<_LiveChatOverlay> {
                           ),
                           const SizedBox(width: 6),
                           Flexible(
-                            child: Builder(builder: (context) {
-                              final content = Container(
-                              constraints: const BoxConstraints(maxWidth: 270),
-                              padding: art == null
-                                  ? const EdgeInsets.symmetric(horizontal: 10, vertical: 7)
-                                  : EdgeInsets.zero,
-                              decoration: BoxDecoration(
-                                color: art == null
-                                    ? const Color(0x99000000) : Colors.transparent,
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: Text.rich(
-                                TextSpan(
-                                  children: [
+                            child: Builder(
+                              builder: (context) {
+                                final content = Container(
+                                  constraints: const BoxConstraints(
+                                    maxWidth: 270,
+                                  ),
+                                  padding: art == null
+                                      ? const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                          vertical: 7,
+                                        )
+                                      : EdgeInsets.zero,
+                                  decoration: BoxDecoration(
+                                    color: art == null
+                                        ? const Color(0x99000000)
+                                        : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  child: Text.rich(
                                     TextSpan(
-                                      text: '$name  ',
-                                      style: const TextStyle(
-                                        color: Color(0xFFFFD77A),
-                                        fontWeight: FontWeight.w900,
-                                      ),
+                                      children: [
+                                        WidgetSpan(
+                                          alignment:
+                                              PlaceholderAlignment.middle,
+                                          child: PublicMemberMarks(
+                                            userId:
+                                                (data['senderId'] ??
+                                                        data['userId'] ??
+                                                        '')
+                                                    .toString(),
+                                          ),
+                                        ),
+                                        TextSpan(
+                                          text: '$name  ',
+                                          style: const TextStyle(
+                                            color: Color(0xFFFFD77A),
+                                            fontWeight: FontWeight.w900,
+                                          ),
+                                        ),
+                                        TextSpan(
+                                          text: message,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            height: 1.25,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    TextSpan(
-                                      text: message,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        height: 1.25,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                maxLines: 4,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              );
-                              return art == null ? content : WorldVoiceBubbleFrame(
-                                design: art, compact: true, child: content);
-                            }),
+                                    maxLines: 4,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                );
+                                return art == null
+                                    ? content
+                                    : WorldVoiceBubbleFrame(
+                                        design: art,
+                                        compact: true,
+                                        child: content,
+                                      );
+                              },
+                            ),
                           ),
                         ],
                       ),
@@ -5474,7 +5865,8 @@ class _LiveChatOverlayState extends State<_LiveChatOverlay> {
           ),
       ],
     );
-  }}
+  }
+}
 
 Future<void> _showLiveModeratorManagement(
   BuildContext context, {
@@ -5546,14 +5938,15 @@ Future<void> _showLiveModeratorManagement(
             child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
               stream: service.watchGlobalModerators(hostId),
               builder: (context, moderatorSnapshot) {
-                final moderatorDocs = moderatorSnapshot.data?.docs ??
+                final moderatorDocs =
+                    moderatorSnapshot.data?.docs ??
                     const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
-                final moderatorIds =
-                    moderatorDocs.map((doc) => doc.id).toSet();
+                final moderatorIds = moderatorDocs.map((doc) => doc.id).toSet();
                 return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                   stream: service.watchViewers(liveId),
                   builder: (context, viewerSnapshot) {
-                    final viewers = viewerSnapshot.data?.docs ??
+                    final viewers =
+                        viewerSnapshot.data?.docs ??
                         const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
                     if (viewers.isEmpty && moderatorDocs.isEmpty) {
                       return Center(
@@ -5597,15 +5990,16 @@ Future<void> _showLiveModeratorManagement(
                         final entry = entries[index];
                         final data = entry.value;
                         final selected = moderatorIds.contains(entry.key);
-                        final name =
-                            (data['displayName'] ?? 'WorldVoice user')
-                                .toString();
-                        final photo =
-                            (data['photoUrl'] ?? '').toString().trim();
+                        final name = (data['displayName'] ?? 'WorldVoice user')
+                            .toString();
+                        final photo = (data['photoUrl'] ?? '')
+                            .toString()
+                            .trim();
                         return ListTile(
                           leading: CircleAvatar(
-                            backgroundImage:
-                                photo.isEmpty ? null : NetworkImage(photo),
+                            backgroundImage: photo.isEmpty
+                                ? null
+                                : NetworkImage(photo),
                             child: photo.isEmpty
                                 ? const Icon(Icons.person_rounded)
                                 : null,
@@ -5620,11 +6014,9 @@ Future<void> _showLiveModeratorManagement(
                           subtitle: Text(
                             selected
                                 ? (ar
-                                    ? 'مودريتر في Live + Voice Rooms'
-                                    : 'Moderator in Live + Voice Rooms')
-                                : (ar
-                                    ? 'مشاهد'
-                                    : 'Viewer'),
+                                      ? 'مودريتر في Live + Voice Rooms'
+                                      : 'Moderator in Live + Voice Rooms')
+                                : (ar ? 'مشاهد' : 'Viewer'),
                             style: TextStyle(
                               color: selected
                                   ? const Color(0xFFFFD77A)
@@ -5663,11 +6055,8 @@ Future<void> _showLiveModeratorManagement(
                                 );
                               } catch (error) {
                                 if (!sheetContext.mounted) return;
-                                ScaffoldMessenger.of(sheetContext)
-                                    .showSnackBar(
-                                  SnackBar(
-                                    content: Text(error.toString()),
-                                  ),
+                                ScaffoldMessenger.of(sheetContext).showSnackBar(
+                                  SnackBar(content: Text(error.toString())),
                                 );
                               }
                             },
@@ -5707,7 +6096,8 @@ class _HostJoinRequests extends StatelessWidget {
         child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
           stream: service.watchJoinRequests(liveId),
           builder: (context, snapshot) {
-            final docs = snapshot.data?.docs ??
+            final docs =
+                snapshot.data?.docs ??
                 const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
             if (docs.isEmpty) {
               return Padding(
@@ -5751,7 +6141,10 @@ class _HostJoinRequests extends StatelessWidget {
                             );
                           }
                         },
-                        icon: const Icon(Icons.close_rounded, color: Colors.redAccent),
+                        icon: const Icon(
+                          Icons.close_rounded,
+                          color: Colors.redAccent,
+                        ),
                       ),
                       IconButton(
                         tooltip: ar ? 'قبول' : 'Accept',
@@ -5772,15 +6165,18 @@ class _HostJoinRequests extends StatelessWidget {
                                 content: Text(
                                   full
                                       ? (ar
-                                          ? 'وصل اللايف للحد الأقصى: المضيف + 3 ضيوف.'
-                                          : 'Live is full: host + 3 guests.')
+                                            ? 'وصل اللايف للحد الأقصى: المضيف + 3 ضيوف.'
+                                            : 'Live is full: host + 3 guests.')
                                       : error.toString(),
                                 ),
                               ),
                             );
                           }
                         },
-                        icon: const Icon(Icons.check_rounded, color: Colors.greenAccent),
+                        icon: const Icon(
+                          Icons.check_rounded,
+                          color: Colors.greenAccent,
+                        ),
                       ),
                     ],
                   ),
@@ -5842,11 +6238,7 @@ class _LiveVideoGrid extends StatelessWidget {
       return const ColoredBox(
         color: Color(0xFF071B16),
         child: Center(
-          child: Icon(
-            Icons.live_tv_rounded,
-            color: Colors.white30,
-            size: 64,
-          ),
+          child: Icon(Icons.live_tv_rounded, color: Colors.white30, size: 64),
         ),
       );
     }
@@ -5880,10 +6272,7 @@ class _LiveVideoGrid extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 2),
-          Expanded(
-            flex: 56,
-            child: _tile(items[0]),
-          ),
+          Expanded(flex: 56, child: _tile(items[0])),
         ],
       );
     }
@@ -5924,14 +6313,15 @@ class _LiveViewerFaces extends StatelessWidget {
   final LiveSessionService service;
   final String liveId;
   final void Function(String userId, String displayName, String photoUrl)?
-      onViewerTap;
+  onViewerTap;
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: service.watchViewers(liveId),
       builder: (context, snapshot) {
-        final viewers = snapshot.data?.docs.take(3).toList(growable: false) ??
+        final viewers =
+            snapshot.data?.docs.take(3).toList(growable: false) ??
             const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
         if (viewers.isEmpty) return const SizedBox.shrink();
 
@@ -5948,32 +6338,26 @@ class _LiveViewerFaces extends StatelessWidget {
                   child: Builder(
                     builder: (context) {
                       final data = viewers[index].data();
-                      final photo =
-                          (data['photoUrl'] ?? '').toString().trim();
-                      final name =
-                          (data['displayName'] ?? 'WorldVoice user').toString();
+                      final photo = (data['photoUrl'] ?? '').toString().trim();
+                      final name = (data['displayName'] ?? 'WorldVoice user')
+                          .toString();
                       return GestureDetector(
                         behavior: HitTestBehavior.opaque,
                         onTap: onViewerTap == null
                             ? null
-                            : () => onViewerTap!(
-                                  viewers[index].id,
-                                  name,
-                                  photo,
-                                ),
+                            : () =>
+                                  onViewerTap!(viewers[index].id, name, photo),
                         child: Container(
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Colors.white,
-                              width: 1.5,
-                            ),
+                            border: Border.all(color: Colors.white, width: 1.5),
                           ),
                           child: CircleAvatar(
                             radius: 11,
                             backgroundColor: const Color(0xFF245A49),
-                            foregroundImage:
-                                photo.isEmpty ? null : NetworkImage(photo),
+                            foregroundImage: photo.isEmpty
+                                ? null
+                                : NetworkImage(photo),
                             child: photo.isEmpty
                                 ? const Icon(
                                     Icons.person_rounded,
