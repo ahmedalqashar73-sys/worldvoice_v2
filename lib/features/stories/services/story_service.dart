@@ -159,11 +159,12 @@ class StoryService {
         .toList(growable: false);
   }
 
-  Future<void> uploadStory({
+  Future<String> uploadStory({
     required XFile file,
     required String kind,
     required String audience,
     required int durationMs,
+    required String uploadId,
   }) async {
     final token = await _token();
     // Check the configured media storage provider before transferring video.
@@ -196,6 +197,7 @@ class StoryService {
       'X-Story-Kind': kind,
       'X-Story-Audience': audience,
       'X-Story-Duration-Ms': '$durationMs',
+      'X-Story-Upload-Id': uploadId,
     });
     request.contentLength = length;
 
@@ -222,12 +224,38 @@ class StoryService {
         streamed.statusCode,
         headers: streamed.headers,
       );
-      await _decode(response);
+      final decoded = await _decode(response);
+      final storyId = (decoded['storyId'] ?? '').toString();
+      if (storyId.isEmpty) {
+        throw StateError('Story upload response missing its story identifier.');
+      }
+      return storyId;
     } on TimeoutException {
       throw StateError(
-        'Story upload timed out. Check your connection and try again.',
+        'Story upload timed out. Check your connection and try again. '
+        'Retry will safely reuse the same story.',
       );
     }
+  }
+
+  Future<StoryItem> verifyPublishedStory(String storyId) async {
+    final token = await _token();
+    final uri = _uri('/stories/status')
+        .replace(queryParameters: <String, String>{'storyId': storyId});
+    final response = await _client.get(uri,
+        headers: <String, String>{'Authorization': 'Bearer $token'})
+        .timeout(const Duration(seconds: 30));
+    final decoded = await _decode(response);
+    final raw = decoded['story'];
+    if (raw is! Map) {
+      throw StateError('Story is saved, but its media is not available yet.');
+    }
+    final story = StoryItem.fromJson(
+      raw.map((key, value) => MapEntry(key.toString(), value)));
+    if (story.id != storyId || story.mediaUrl.isEmpty) {
+      throw StateError('Story media could not be verified.');
+    }
+    return story;
   }
 
   String _mimeType(XFile file, String kind) {
