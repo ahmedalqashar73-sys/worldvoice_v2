@@ -1,3 +1,5 @@
+import {giftProgress, visibleVipBadge} from './member_badge_policy.js';
+import {memberBadgeRef} from './member_badge_routes.js';
 import {privateWalletRef} from './wallet_store.js';
 import {FieldValue} from 'firebase-admin/firestore';
 import {cycleView, cycleEvidence, creativeAward, CYCLE_GIFT_ID} from './engagement_policy.js';
@@ -25,10 +27,13 @@ export function registerEngagementRoutes({app, db, authenticatedUser, clock = Da
       }
       const docs = await db.getAll(...ids.map(uid => engagementRef(db, uid)));
       const wallets = await db.getAll(...ids.map(uid => privateWalletRef(db.collection('users').doc(uid))));
+      const profiles = await db.getAll(...ids.map(uid => db.collection('users').doc(uid)));
+      const styles = await db.getAll(...ids.map(uid => memberBadgeRef(db, uid)));
       return res.json({ok: true, badges: Object.fromEntries(docs.map((doc, i) => {
         const data = doc.data() ?? {};
-        const giftLevel = wallets[i].data()?.giftLevel;
+        const giftLevel = giftProgress(wallets[i].data()).level;
         return [ids[i], {giftLevel: Number.isSafeInteger(giftLevel) && giftLevel >= 0 ? giftLevel : null,
+          vipBadge: visibleVipBadge(profiles[i].data(), styles[i].data()),
           creativeCycles: data.creativeCycles ?? 0,
           creativeAwardedAtMs: data.creativeAwardedAtMs ?? null,
           completedCycles: data.completedCycles ?? 0}];

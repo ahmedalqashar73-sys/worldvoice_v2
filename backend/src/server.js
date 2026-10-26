@@ -1,3 +1,5 @@
+import {giftProgress} from './member_badge_policy.js';
+import {registerMemberBadgeRoutes, memberBadgeRef} from './member_badge_routes.js';
 import { createHash, randomUUID } from "node:crypto";
 
 import agoraToken from "agora-token";
@@ -1468,7 +1470,7 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
       requirePrivateWallet(payerSnap);
       if (gifting) requirePrivateWallet(snaps[8]);
       if (!payerProfileSnap.exists ||
-          Number(payerSnap.data()?.giftLevel || 0) <
+          giftProgress(payerSnap.data()).level <
           Number(item.requiredGiftLevel || 0) ||
           (gifting && (!snaps[7].exists || !snaps[9].exists))) {
         throw Object.assign(new Error("User, gift level or friendship requirement failed."),
@@ -1527,6 +1529,7 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
       }, {merge: true});
       if (item.type === "vip") {
         tx.update(recipientWalletRef, {vipExpiresAt: expiresAt});
+        tx.set(memberBadgeRef(db, recipientId), {plan: duration == null ? "lifetime" : duration >= 365 ? "annual" : duration >= 180 ? "half_year" : duration >= 90 ? "quarterly" : "monthly"}, {merge: true});
       }
       if (item.type === "background") {
         // Temporary mirrored legacy read model; remove after all clients
@@ -1909,7 +1912,7 @@ app.post("/gift/send", async (req, res, next) => {
           {status: 409});
       }
       const senderData = senderSnap.data() || {};
-      if (Number(senderData.giftLevel || 0) <
+      if (giftProgress(senderData).level <
           Number(item.requiredGiftLevel || 0)) {
         throw Object.assign(new Error("Gift level requirement not met."),
           {status: 403});
@@ -1971,6 +1974,8 @@ app.post("/gift/send", async (req, res, next) => {
       tx.set(senderWalletRef, {
         coins: after,
         giftSentPoints: FieldValue.increment(amounts.chargedCoins),
+        giftLevelCoins: giftProgress(senderData).points + amounts.chargedCoins,
+        giftLevel: giftProgress({giftSentPoints: giftProgress(senderData).points + amounts.chargedCoins}).level,
         giftLevelPoints: FieldValue.increment(amounts.giftLevelPoints),
         updatedAt: FieldValue.serverTimestamp(),
       }, {merge: true});
@@ -2279,6 +2284,7 @@ app.post("/quiz/finish", async (req, res, next) => {
 registerRoomTaskRoutes({app, db, authenticatedUser});
 registerRoomGameRoutes({app, db, authenticatedUser});
 registerEngagementRoutes({app, db, authenticatedUser});
+registerMemberBadgeRoutes({app, db, authenticatedUser});
 
 // Finance routes run only on the separately deployed authenticated backend.
 registerWalletRoutes({app, db, authenticatedUser});
