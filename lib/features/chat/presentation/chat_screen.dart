@@ -722,6 +722,31 @@ class ChatScreen extends StatelessWidget {
             ),
           ),
           const Divider(height: 1),
+          // Fixed official inbox above all personal chats, including when
+          // there are no direct conversations yet.
+          ListTile(
+            leading: const CircleAvatar(
+              backgroundColor: Color(0xFF2196F3),
+              child: Icon(Icons.mic, color: Colors.white),
+            ),
+            title: Row(children: [
+              Flexible(child: Text(ar ? 'غرف البث المباشر والصوت'
+                  : 'Voice Rooms & Live',
+                maxLines: 1, overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontWeight: FontWeight.w800))),
+              const SizedBox(width: 5),
+              const Icon(Icons.verified, color: Color(0xFF0CBA86), size: 17),
+            ]),
+            subtitle: Text(ar
+              ? 'إشعارات الغرف واللايف للأشخاص الذين تتابعهم'
+              : 'Live and rooms from people you follow',
+              maxLines: 1, overflow: TextOverflow.ellipsis),
+            onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
+              builder: (_) => WorldVoiceActivityScreen(
+                localeController: localeController),
+            )),
+          ),
+          const Divider(height: 1),
           Expanded(
             child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
               stream: FirebaseFirestore.instance.collection('chats')
