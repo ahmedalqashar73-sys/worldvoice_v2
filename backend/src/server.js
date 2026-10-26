@@ -17,6 +17,7 @@ import Stripe from "stripe";
 import { requireLiveEconomy, calculateGiftSettlement, calculatePurchaseCredit, canManageStore, canGrantStoreCosmetic } from "./economy_policy.js";
 import {registerWalletRoutes} from "./wallet_routes.js";
 import {registerChatRoutes} from "./chat_routes.js";
+import {registerOfficialActivityRoutes} from "./official_activity_routes.js";
 import {registerStoryRoutes} from "./story_routes.js";
 import {registerSocialRoutes} from "./social_routes.js";
 import {registerCallRoutes} from "./call_routes.js";
