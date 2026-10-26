@@ -94,10 +94,17 @@ class StoryService {
       defaultValue: 'https://worldvoice-teacher-ai.onrender.com',
     ),
   );
+  // A beta installation may have the Stories API on the dedicated AI
+  // backend or on the shared backend. Fall back only when the route is absent.
+  static const String _fallbackEndpoint = String.fromEnvironment(
+    'WORLDVOICE_SOCIAL_BACKEND_URL',
+    defaultValue: 'https://worldvoice-v2.onrender.com',
+  );
   final http.Client _client;
+  String? _activeEndpoint;
 
-  Uri _uri(String path) {
-    final root = Uri.tryParse(_endpoint.trim());
+  Uri _uri(String path, {String? base}) {
+    final root = Uri.tryParse((base ?? _activeEndpoint ?? _endpoint).trim());
     if (root == null ||
         root.scheme != 'https' ||
         !root.hasAuthority ||
@@ -108,6 +115,30 @@ class StoryService {
         ? root.path.substring(0, root.path.length - 1)
         : root.path;
     return root.replace(path: '$basePath$path', query: null, fragment: null);
+  }
+
+  Future<http.Response> _storyGet(
+    String path,
+    String token, {
+    Map<String, String>? query,
+    Duration timeout = const Duration(seconds: 30),
+  }) async {
+    final headers = <String, String>{'Authorization': 'Bearer $token'};
+    final firstUrl = _uri(path).replace(queryParameters: query);
+    final first = await _client.get(firstUrl, headers: headers).timeout(timeout);
+    // HTTP 404/405 can mean an older Render deployment doesn't serve Stories.
+    // Do not retry authorization failures against a different host.
+    if (first.statusCode != 404 && first.statusCode != 405) return first;
+    final alternate = _uri(path, base: _fallbackEndpoint)
+        .replace(queryParameters: query);
+    if (alternate.origin == firstUrl.origin &&
+        alternate.path == firstUrl.path) return first;
+    final second = await _client.get(alternate, headers: headers).timeout(timeout);
+    if (second.statusCode >= 200 && second.statusCode < 300) {
+      _activeEndpoint = _fallbackEndpoint;
+      return second;
+    }
+    return first;
   }
 
   Future<String> _token() async {
@@ -143,10 +174,7 @@ class StoryService {
 
   Future<List<StoryItem>> fetchFeed() async {
     final token = await _token();
-    final response = await _client.get(
-      _uri('/stories/feed'),
-      headers: {'Authorization': 'Bearer $token'},
-    );
+    final response = await _storyGet('/stories/feed', token);
     final body = await _decode(response);
     final raw = body['stories'];
     if (raw is! List) return const <StoryItem>[];
@@ -170,10 +198,8 @@ class StoryService {
     // Check the configured media storage provider before transferring video.
     // Missing storage used to fail only after a costly upload attempt.
     try {
-      final readiness = await _client.get(
-        _uri('/stories/storage-status'),
-        headers: {'Authorization': 'Bearer $token'},
-      ).timeout(const Duration(seconds: 75));
+      final readiness = await _storyGet('/stories/storage-status', token,
+        timeout: const Duration(seconds: 75));
       await _decode(readiness);
     } on TimeoutException {
       throw StateError(
@@ -240,11 +266,8 @@ class StoryService {
 
   Future<StoryItem> verifyPublishedStory(String storyId) async {
     final token = await _token();
-    final uri = _uri('/stories/status')
-        .replace(queryParameters: <String, String>{'storyId': storyId});
-    final response = await _client.get(uri,
-        headers: <String, String>{'Authorization': 'Bearer $token'})
-        .timeout(const Duration(seconds: 30));
+    final response = await _storyGet('/stories/status', token,
+      query: <String, String>{'storyId': storyId});
     final decoded = await _decode(response);
     final raw = decoded['story'];
     if (raw is! Map) {
