@@ -7,7 +7,7 @@ const requiredPositive = [
 ];
 const requiredPercent = [
   "receiverSharePercent", "withdrawalFeePercent", "exchangeBonusPercent",
-  "webCardBonusPercent", "firstRechargeBonusPercent", "firstRechargeBonusPercent",
+  "webCardBonusPercent", "firstRechargeBonusPercent",
 ];
 const requiredNonnegativeIntegers = ["holdDays"];
 const requiredPositiveIntegers = [
@@ -16,6 +16,16 @@ const requiredPositiveIntegers = [
 export function requireLiveEconomy(config) {
   if (!config || config.enabled !== true) {
     throw Object.assign(new Error("Economy not enabled."), {status: 503});
+  }
+  // A database flag cannot prove migration by itself: operators must first
+  // reconcile private wallets, switch all app readers and deploy restricted
+  // public-user rules. Missing attestations fail closed.
+  if (config.privateWalletCutoverVerified !== true ||
+      config.publicProfileRulesVerified !== true) {
+    throw Object.assign(
+      new Error("Wallet privacy cutover has not passed launch checks."),
+      {status: 503},
+    );
   }
   for (const field of requiredPositive) {
     if (typeof config[field] !== "number" ||
@@ -125,4 +135,15 @@ export function calculatePurchaseCredit({config, baseCoins, platform, firstRecha
     throw Object.assign(new Error("Coin amount exceeds limits."), {status: 400});
   }
   return {baseCoins, bonusCoins, totalCoins};
+}
+
+// Only server-owned admin records authorize free cosmetic grants.
+export function canManageStore(admin) {
+  return admin?.active === true &&
+    (admin.role === "super_admin" ||
+      (Array.isArray(admin.permissions) && admin.permissions.includes("manage_store")));
+}
+
+export function canGrantStoreCosmetic(admin, type) {
+  return canManageStore(admin) && ["background", "frame", "bubble"].includes(type);
 }

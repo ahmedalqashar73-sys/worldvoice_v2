@@ -63,6 +63,19 @@ class RoomModerationService {
 
     final existingRoom = await _roomRef.get();
     final existingData = existingRoom.data();
+    var isGlobalModerator = false;
+    if (!asHost) {
+      final hostId = existingData?['hostId']?.toString() ?? '';
+      if (hostId.isNotEmpty) {
+        final moderator = await _db
+            .collection('users')
+            .doc(hostId)
+            .collection('moderators')
+            .doc(user.uid)
+            .get();
+        isGlobalModerator = moderator.exists;
+      }
+    }
     if (!asHost) {
       if (!existingRoom.exists || existingData?['isOpen'] != true) {
         throw StateError('This room is no longer open.');
@@ -161,7 +174,7 @@ class RoomModerationService {
         'seatIndex': asHost ? 1 : FieldValue.delete(),
         'agoraUid': FieldValue.delete(),
         'requestedSeatIndex': FieldValue.delete(),
-        'isModerator': false,
+        'isModerator': asHost ? false : isGlobalModerator,
         'warningCount': 0,
         'forcedMuted': false,
         'kicked': false,

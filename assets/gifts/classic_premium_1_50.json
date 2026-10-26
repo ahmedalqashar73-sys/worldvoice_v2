@@ -1,0 +1,281 @@
+{
+  "catalogId": "classic_1_50",
+  "titleAr": "الهدايا الكلاسيكية الفاخرة",
+  "title": "Classic Premium Gifts",
+  "currency": "coins",
+  "minCoins": 1,
+  "maxCoins": 50,
+  "version": 1,
+  "gifts": [
+    {
+      "id": "classic_soft_rose",
+      "name": "Soft Rose",
+      "nameAr": "وردة ناعمة",
+      "priceCoins": 1,
+      "emoji": "🌹",
+      "effectType": "bloom",
+      "sortOrder": 1
+    },
+    {
+      "id": "classic_green_heart",
+      "name": "Emerald Heart",
+      "nameAr": "قلب أخضر",
+      "priceCoins": 2,
+      "emoji": "💚",
+      "effectType": "pulse",
+      "sortOrder": 2
+    },
+    {
+      "id": "classic_glowing_star",
+      "name": "Glowing Star",
+      "nameAr": "نجمة مضيئة",
+      "priceCoins": 3,
+      "emoji": "🌟",
+      "effectType": "twinkle",
+      "sortOrder": 3
+    },
+    {
+      "id": "classic_love_candle",
+      "name": "Love Candle",
+      "nameAr": "شمعة حب",
+      "priceCoins": 4,
+      "emoji": "🕯️",
+      "effectType": "flicker",
+      "sortOrder": 4
+    },
+    {
+      "id": "classic_royal_rose",
+      "name": "Royal Rose",
+      "nameAr": "الوردة الملكية",
+      "priceCoins": 5,
+      "emoji": "🌹",
+      "effectType": "fly",
+      "sortOrder": 5
+    },
+    {
+      "id": "classic_luxury_balloon",
+      "name": "Luxury Balloon",
+      "nameAr": "بالون فاخر",
+      "priceCoins": 6,
+      "emoji": "🎈",
+      "effectType": "float",
+      "sortOrder": 6
+    },
+    {
+      "id": "classic_coffee",
+      "name": "Coffee",
+      "nameAr": "كوب قهوة",
+      "priceCoins": 7,
+      "emoji": "☕",
+      "effectType": "steam",
+      "sortOrder": 7
+    },
+    {
+      "id": "classic_pearl_crescent",
+      "name": "Pearl Crescent",
+      "nameAr": "هلال لؤلؤي",
+      "priceCoins": 8,
+      "emoji": "🌙",
+      "effectType": "orbit",
+      "sortOrder": 8
+    },
+    {
+      "id": "classic_golden_feather",
+      "name": "Golden Feather",
+      "nameAr": "ريشة ذهبية",
+      "priceCoins": 9,
+      "emoji": "🪶",
+      "effectType": "drift",
+      "sortOrder": 9
+    },
+    {
+      "id": "classic_small_present",
+      "name": "Little Present",
+      "nameAr": "هدية صغيرة",
+      "priceCoins": 10,
+      "emoji": "🎁",
+      "effectType": "unwrap",
+      "sortOrder": 10
+    },
+    {
+      "id": "classic_mini_crown",
+      "name": "Mini Crown",
+      "nameAr": "تاج صغير",
+      "priceCoins": 12,
+      "emoji": "👑",
+      "effectType": "crown",
+      "sortOrder": 11
+    },
+    {
+      "id": "classic_green_diamond",
+      "name": "Emerald Diamond",
+      "nameAr": "ماسة خضراء",
+      "priceCoins": 13,
+      "emoji": "💎",
+      "effectType": "prism",
+      "sortOrder": 12
+    },
+    {
+      "id": "classic_glossy_strawberry",
+      "name": "Glossy Strawberry",
+      "nameAr": "فراولة لامعة",
+      "priceCoins": 14,
+      "emoji": "🍓",
+      "effectType": "sparkle",
+      "sortOrder": 13
+    },
+    {
+      "id": "classic_royal_star",
+      "name": "Royal Star",
+      "nameAr": "نجمة ملكية",
+      "priceCoins": 15,
+      "emoji": "🌠",
+      "effectType": "burst",
+      "sortOrder": 14
+    },
+    {
+      "id": "classic_luxe_perfume",
+      "name": "Luxury Perfume",
+      "nameAr": "عطر فاخر",
+      "priceCoins": 16,
+      "emoji": "🧴",
+      "effectType": "mist",
+      "sortOrder": 15
+    },
+    {
+      "id": "classic_love_necklace",
+      "name": "Love Necklace",
+      "nameAr": "قلادة حب",
+      "priceCoins": 17,
+      "emoji": "📿",
+      "effectType": "pendulum",
+      "sortOrder": 16
+    },
+    {
+      "id": "classic_love_letter",
+      "name": "Love Letter",
+      "nameAr": "رسالة عشق",
+      "priceCoins": 18,
+      "emoji": "💌",
+      "effectType": "letter",
+      "sortOrder": 17
+    },
+    {
+      "id": "classic_sea_pearl",
+      "name": "Sea Pearl",
+      "nameAr": "لؤلؤة البحر",
+      "priceCoins": 19,
+      "emoji": "🦪",
+      "effectType": "shimmer",
+      "sortOrder": 18
+    },
+    {
+      "id": "classic_luminous_butterfly",
+      "name": "Luminous Butterfly",
+      "nameAr": "الفراشة المضيئة",
+      "priceCoins": 20,
+      "emoji": "🦋",
+      "effectType": "butterfly",
+      "sortOrder": 19
+    },
+    {
+      "id": "classic_golden_heart",
+      "name": "Golden Heart",
+      "nameAr": "قلب ذهبي",
+      "priceCoins": 20,
+      "emoji": "💛",
+      "effectType": "heart",
+      "sortOrder": 20
+    },
+    {
+      "id": "classic_white_swan",
+      "name": "White Swan",
+      "nameAr": "بجعة بيضاء",
+      "priceCoins": 22,
+      "emoji": "🦢",
+      "effectType": "glide",
+      "sortOrder": 21
+    },
+    {
+      "id": "classic_orchid",
+      "name": "Orchid",
+      "nameAr": "زهرة الأوركيد",
+      "priceCoins": 23,
+      "emoji": "🌸",
+      "effectType": "flower",
+      "sortOrder": 22
+    },
+    {
+      "id": "classic_celebration_cake",
+      "name": "Celebration Cake",
+      "nameAr": "كعكة احتفال",
+      "priceCoins": 24,
+      "emoji": "🎂",
+      "effectType": "confetti",
+      "sortOrder": 23
+    },
+    {
+      "id": "classic_lovebird",
+      "name": "Lovebird",
+      "nameAr": "عصفور الحب",
+      "priceCoins": 25,
+      "emoji": "🕊️",
+      "effectType": "flap",
+      "sortOrder": 24
+    },
+    {
+      "id": "classic_diamond_ring",
+      "name": "Diamond Ring",
+      "nameAr": "خاتم ماسي",
+      "priceCoins": 26,
+      "emoji": "💍",
+      "effectType": "ring",
+      "sortOrder": 25
+    },
+    {
+      "id": "classic_star_moon",
+      "name": "Star Moon",
+      "nameAr": "قمر النجوم",
+      "priceCoins": 28,
+      "emoji": "🌜",
+      "effectType": "moon",
+      "sortOrder": 26
+    },
+    {
+      "id": "classic_graceful_deer",
+      "name": "Graceful Deer",
+      "nameAr": "غزال أنيق",
+      "priceCoins": 30,
+      "emoji": "🦌",
+      "effectType": "deer",
+      "sortOrder": 27
+    },
+    {
+      "id": "classic_luxury_bouquet",
+      "name": "Luxury Bouquet",
+      "nameAr": "بوكيه فاخر",
+      "priceCoins": 32,
+      "emoji": "💐",
+      "effectType": "bouquet",
+      "sortOrder": 28
+    },
+    {
+      "id": "classic_baby_peacock",
+      "name": "Baby Peacock",
+      "nameAr": "طاووس صغير",
+      "priceCoins": 34,
+      "emoji": "🦚",
+      "effectType": "fan",
+      "sortOrder": 29
+    },
+    {
+      "id": "classic_golden_phoenix",
+      "name": "Golden Phoenix",
+      "nameAr": "العنقاء الذهبية",
+      "priceCoins": 50,
+      "emoji": "🐦‍🔥",
+      "effectType": "phoenix",
+      "sortOrder": 30
+    }
+  ]
+}
