@@ -13,6 +13,18 @@ import '../../rooms/data/room_backend_config.dart';
 class WorldVoiceNotificationService {
   WorldVoiceNotificationService._();
 
+  /// Navigation request survives app startup and profile loading.
+  static final ValueNotifier<String?> pendingInbox = ValueNotifier<String?>(null);
+
+  static void openedPush(RemoteMessage message) {
+    final kind = message.data['type']?.toString();
+    if (kind == 'worldvoice_activity') {
+      pendingInbox.value = 'activity';
+    } else if (kind == 'worldvoice_announcement') {
+      pendingInbox.value = 'official';
+    }
+  }
+
   static const _topicKey = 'worldvoice_last_official_push_topic';
   static Future<void> _topicQueue = Future<void>.value();
 
