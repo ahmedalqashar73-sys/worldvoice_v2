@@ -292,6 +292,7 @@ const adminPermissions = [
   "manage_vip",
   "manage_store",
   "manage_moderators",
+  "send_announcements",
   "send_coins",
   "change_country",
 ];
