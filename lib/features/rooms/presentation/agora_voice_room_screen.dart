@@ -707,6 +707,12 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       // Never require opening a modal to make the ninth seat respond.
       _ensureTeacherAiActive();
       if (!asHost) return;
+      // Notify followers only once a public room is actually connected.
+      if (!widget.initialIsPrivate) {
+        unawaited(WorldVoiceNotificationService.publishActivity(
+          kind: 'room', sessionId: widget.channelId,
+        ));
+      }
       // Open the selected tool after room membership and the audio join request.
       if (widget.initialMode == RoomMode.board ||
           widget.initialMode == RoomMode.lesson) {
