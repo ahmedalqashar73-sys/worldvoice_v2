@@ -87,7 +87,9 @@ class WorldVoiceNotificationService {
         ? const Duration(seconds: 80)
         : route == '/system/announcements/email/process'
           ? const Duration(seconds: 40)
-          : const Duration(seconds: 15),
+          : route == '/system/activity/publish'
+            ? const Duration(seconds: 45)
+            : const Duration(seconds: 15),
     );
     final body = jsonDecode(response.body);
     if (response.statusCode >= 300 || body is! Map ||
@@ -103,13 +105,24 @@ class WorldVoiceNotificationService {
     required String kind,
     required String sessionId,
   }) async {
-    try {
-      await post('/system/activity/publish', {
-        'kind': kind, 'sessionId': sessionId,
-      });
-    } catch (error) {
-      debugPrint('WorldVoice activity publish: $error');
+    // Deliver followed-host cards in small resumable pages. If a request
+    // fails, the backend keeps its cursor for an eventual retry.
+    for (var page = 0; page < 200; page++) {
+      try {
+        final result = await post('/system/activity/publish', {
+          'kind': kind, 'sessionId': sessionId,
+        });
+        if (result['complete'] == true) return;
+      } catch (error) {
+        if (error.toString().contains('already in progress')) {
+          await Future<void>.delayed(const Duration(seconds: 2));
+          continue;
+        }
+        debugPrint('WorldVoice activity publish: $error');
+        return;
+      }
     }
+    debugPrint('WorldVoice activity delivery paused after batch limit.');
   }
 
   static Future<void> registerDevice({
