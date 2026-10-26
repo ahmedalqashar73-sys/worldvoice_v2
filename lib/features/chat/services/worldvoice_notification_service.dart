@@ -13,6 +13,45 @@ import '../../rooms/data/room_backend_config.dart';
 class WorldVoiceNotificationService {
   WorldVoiceNotificationService._();
 
+  static const _topicKey = 'worldvoice_last_official_push_topic';
+  static Future<void> _topicQueue = Future<void>.value();
+
+  static String _announcementTopic(String languageCode) {
+    const supported = ['ar', 'en', 'es', 'fr', 'zh', 'ko'];
+    final language = supported.contains(languageCode) ? languageCode : 'en';
+    return 'worldvoice_announcements_$language';
+  }
+
+  static Future<void> syncAnnouncementTopic(String languageCode) {
+    final target = _announcementTopic(languageCode);
+    _topicQueue = _topicQueue.then((_) => _applyTopic(target));
+    return _topicQueue;
+  }
+
+  static Future<void> clearAnnouncementTopic() {
+    _topicQueue = _topicQueue.then((_) => _applyTopic(null));
+    return _topicQueue;
+  }
+
+  static Future<void> _applyTopic(String? target) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final old = prefs.getString(_topicKey);
+      if (old == target) return;
+      final messaging = FirebaseMessaging.instance;
+      if (old != null && old.isNotEmpty) {
+        await messaging.unsubscribeFromTopic(old);
+        await prefs.remove(_topicKey);
+      }
+      if (target != null && FirebaseAuth.instance.currentUser != null) {
+        await messaging.subscribeToTopic(target);
+        await prefs.setString(_topicKey, target);
+      }
+    } catch (error) {
+      debugPrint('WorldVoice topic sync: $error');
+    }
+  }
+
   static Future<Map<String, dynamic>> post(
       String route, Map<String, dynamic> payload) async {
     final user = FirebaseAuth.instance.currentUser;
