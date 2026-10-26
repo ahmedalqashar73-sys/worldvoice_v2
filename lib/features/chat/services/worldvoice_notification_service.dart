@@ -46,6 +46,13 @@ class WorldVoiceNotificationService {
       if (target != null && FirebaseAuth.instance.currentUser != null) {
         await messaging.subscribeToTopic(target);
         await prefs.setString(_topicKey, target);
+        final deviceToken = await messaging.getToken();
+        if (deviceToken != null) {
+          await registerDevice(
+            token: deviceToken,
+            languageCode: target.substring(target.lastIndexOf('_') + 1),
+          );
+        }
       }
     } catch (error) {
       debugPrint('WorldVoice topic sync: $error');
