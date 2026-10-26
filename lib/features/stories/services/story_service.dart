@@ -126,9 +126,23 @@ class StoryService {
     final headers = <String, String>{'Authorization': 'Bearer $token'};
     final firstUrl = _uri(path).replace(queryParameters: query);
     final first = await _client.get(firstUrl, headers: headers).timeout(timeout);
-    // HTTP 404/405 can mean an older Render deployment doesn't serve Stories.
-    // Do not retry authorization failures against a different host.
-    if (first.statusCode != 404 && first.statusCode != 405) return first;
+    // The Story API may live on either WorldVoice backend. Retry missing
+    // routes, and for storage preflight only, a backend without media storage.
+    // Never redirect auth failures or private Story reads to another host.
+    final routeMissing = first.statusCode == 404 ||
+        first.statusCode == 405;
+    var mediaStorageMissing = false;
+    if (path == '/stories/storage-status' && first.statusCode == 503) {
+      try {
+        final decoded = jsonDecode(first.body);
+        mediaStorageMissing = decoded is Map &&
+            (decoded['code'] == 'STORY_STORAGE_NOT_READY' ||
+                (decoded['error']?.toString().contains('storage') ?? false));
+      } catch (_) {
+        // A generic server error is not evidence of missing media storage.
+      }
+    }
+    if (!routeMissing && !mediaStorageMissing) return first;
     final alternate = _uri(path, base: _fallbackEndpoint)
         .replace(queryParameters: query);
     if (alternate.origin == firstUrl.origin &&
