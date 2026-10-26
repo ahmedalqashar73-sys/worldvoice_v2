@@ -30,6 +30,7 @@ class _WorldVoiceAppState extends State<WorldVoiceApp> with WidgetsBindingObserv
   final LocaleController _localeController = LocaleController();
   final PresenceSession _presenceSession = PresenceSession();
   StreamSubscription<User?>? _authSubscription;
+  StreamSubscription<String>? _pushTokenSubscription;
   bool _ready = false;
 
   @override
