@@ -723,6 +723,25 @@ class ChatScreen extends StatelessWidget {
             ),
           ),
           const Divider(height: 1),
+          ListTile(
+            leading: const CircleAvatar(
+              backgroundColor: Color(0xFF0A9366),
+              child: Icon(Icons.public_rounded, color: Colors.white),
+            ),
+            title: const Row(children: [
+              Text('WorldVoice',
+                style: TextStyle(fontWeight: FontWeight.w900)),
+              SizedBox(width: 5),
+              Icon(Icons.verified, color: Color(0xFF0CBA86), size: 17),
+            ]),
+            subtitle: Text(ar ? 'الإعلانات والتحديثات الرسمية'
+              : 'Official updates and announcements'),
+            onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
+              builder: (_) => WorldVoiceOfficialScreen(
+                localeController: localeController),
+            )),
+          ),
+          const Divider(height: 1),
           // Fixed official inbox above all personal chats, including when
           // there are no direct conversations yet.
           ListTile(
