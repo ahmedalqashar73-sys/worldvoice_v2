@@ -51,6 +51,33 @@ class _WorldVoiceAppState extends State<WorldVoiceApp> with WidgetsBindingObserv
     _load();
   }
 
+  Future<void> _setupPushForAccount() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+      final messaging = FirebaseMessaging.instance;
+      await messaging.requestPermission();
+      final token = await messaging.getToken();
+      if (token != null && FirebaseAuth.instance.currentUser?.uid == user.uid) {
+        await WorldVoiceNotificationService.registerDevice(
+          token: token,
+          languageCode: _localeController.locale?.languageCode ?? 'en',
+        );
+      }
+      await _pushTokenSubscription?.cancel();
+      _pushTokenSubscription = messaging.onTokenRefresh.listen((newToken) {
+        if (FirebaseAuth.instance.currentUser?.uid == user.uid) {
+          unawaited(WorldVoiceNotificationService.registerDevice(
+            token: newToken,
+            languageCode: _localeController.locale?.languageCode ?? 'en',
+          ));
+        }
+      });
+    } catch (error) {
+      debugPrint('WorldVoice FCM setup unavailable: $error');
+    }
+  }
+
   Future<void> _load() async {
     await Future.wait([
       _localeController.load(),
