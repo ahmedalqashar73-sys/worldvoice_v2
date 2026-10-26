@@ -69,11 +69,26 @@ export function registerOfficialActivityRoutes({app, db, authenticatedUser}) {
       }
       const {createHash} = await import("node:crypto");
       const tokenId = createHash("sha256").update(token).digest("hex");
-      await db.collection("users").doc(user.uid)
-        .collection("notification_devices").doc(tokenId).set({
+      const ownerRef = db.collection("notification_token_owners").doc(tokenId);
+      const myDeviceRef = db.collection("users").doc(user.uid)
+        .collection("notification_devices").doc(tokenId);
+      await db.runTransaction(async tx => {
+        const owner = await tx.get(ownerRef);
+        const previousUid = owner.data()?.uid;
+        if (previousUid && previousUid !== user.uid) {
+          tx.delete(db.collection("users").doc(previousUid)
+            .collection("notification_devices").doc(tokenId));
+        }
+        tx.set(ownerRef, {uid: user.uid,
+          updatedAt: FieldValue.serverTimestamp()});
+        tx.set(myDeviceRef, {
           token, languageCode: langs.has(locale) ? locale : "en",
           updatedAt: FieldValue.serverTimestamp(),
         });
+      });
+      await db.collection("users").doc(user.uid).set({
+        notificationLanguageCode: langs.has(locale) ? locale : "en",
+      }, {merge: true});
       res.json({ok: true});
     } catch (error) { next(error); }
   });
