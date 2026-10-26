@@ -31,6 +31,9 @@ class _WorldVoiceAppState extends State<WorldVoiceApp> with WidgetsBindingObserv
   final PresenceSession _presenceSession = PresenceSession();
   StreamSubscription<User?>? _authSubscription;
   StreamSubscription<String>? _pushTokenSubscription;
+  StreamSubscription<RemoteMessage>? _pushOpenSubscription;
+  StreamSubscription<RemoteMessage>? _foregroundPushSubscription;
+  final _notificationMessengerKey = GlobalKey<ScaffoldMessengerState>();
   bool _ready = false;
 
   @override
@@ -38,6 +41,33 @@ class _WorldVoiceAppState extends State<WorldVoiceApp> with WidgetsBindingObserv
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _localeController.addListener(_refresh);
+    _pushOpenSubscription =
+        FirebaseMessaging.onMessageOpenedApp.listen(
+          WorldVoiceNotificationService.openedPush);
+    _foregroundPushSubscription = FirebaseMessaging.onMessage.listen((message) {
+      final type = message.data['type']?.toString();
+      if (type != 'worldvoice_activity' &&
+          type != 'worldvoice_announcement') return;
+      final ar = _localeController.locale?.languageCode == 'ar';
+      final messenger = _notificationMessengerKey.currentState;
+      if (messenger == null) return;
+      messenger.showSnackBar(SnackBar(
+        content: Text(message.notification?.body ??
+          (ar ? 'لديك إشعار جديد من WorldVoice'
+              : 'New WorldVoice notification')),
+        duration: const Duration(seconds: 6),
+        action: SnackBarAction(
+          label: ar ? 'عرض' : 'View',
+          onPressed: () => WorldVoiceNotificationService.openedPush(message),
+        ),
+      ));
+    });
+    FirebaseMessaging.instance.getInitialMessage().then((message) {
+      if (message != null) WorldVoiceNotificationService.openedPush(message);
+    }).catchError((Object error) {
+      debugPrint('WorldVoice initial push unavailable: $error');
+      return null;
+    });
     _authSubscription = FirebaseAuth.instance.authStateChanges().listen((user) {
       if (user != null) {
         _presenceSession.start();
@@ -121,6 +151,8 @@ class _WorldVoiceAppState extends State<WorldVoiceApp> with WidgetsBindingObserv
     WidgetsBinding.instance.removeObserver(this);
     _authSubscription?.cancel();
     _pushTokenSubscription?.cancel();
+    _pushOpenSubscription?.cancel();
+    _foregroundPushSubscription?.cancel();
     _presenceSession.dispose();
     _localeController.removeListener(_refresh);
     _localeController.dispose();
@@ -134,6 +166,7 @@ class _WorldVoiceAppState extends State<WorldVoiceApp> with WidgetsBindingObserv
       builder: (context, selectedTheme, _) => MaterialApp(
       title: 'WorldVoice',
       debugShowCheckedModeBanner: false,
+      scaffoldMessengerKey: _notificationMessengerKey,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: selectedTheme,
