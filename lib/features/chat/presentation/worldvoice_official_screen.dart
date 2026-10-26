@@ -56,6 +56,7 @@ class _WorldVoiceOfficialScreenState extends State<WorldVoiceOfficialScreen> {
                 child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                   stream: FirebaseFirestore.instance
                       .collection('worldvoice_announcements')
+                      .where('active', isEqualTo: true)
                       .orderBy('createdAt', descending: true)
                       .limit(100).snapshots(),
                   builder: (context, snapshot) {
