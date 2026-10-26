@@ -93,6 +93,11 @@ class _WorldVoiceAppState extends State<WorldVoiceApp> with WidgetsBindingObserv
   }
 
   void _refresh() {
+    if (FirebaseAuth.instance.currentUser != null) {
+      unawaited(WorldVoiceNotificationService.syncAnnouncementTopic(
+        _localeController.locale?.languageCode ?? 'en',
+      ));
+    }
     if (mounted) setState(() {});
   }
 
