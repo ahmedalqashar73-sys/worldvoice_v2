@@ -575,6 +575,15 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // Device-to-account token ownership is never accessible to clients.
+    match /notification_token_owners/{tokenId} {
+      allow read, write: if false;
+    }
+
+    match /worldvoice_activity_events/{eventId} {
+      allow read, write: if false;
+    }
+
     // Verified chat membership is written ONLY by the trusted backend.
     // The client may read a chat only when a stored participant.
     match /chats/{chatId} {
