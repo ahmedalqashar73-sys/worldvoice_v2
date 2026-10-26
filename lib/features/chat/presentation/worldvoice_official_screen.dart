@@ -19,7 +19,7 @@ class WorldVoiceOfficialScreen extends StatefulWidget {
 }
 
 class _WorldVoiceOfficialScreenState extends State<WorldVoiceOfficialScreen> {
-  late final Future<bool> _isPublisher = _checkPublisher();
+  late final Future<Map<String, dynamic>> _publisher = _checkPublisher();
 
   Future<bool> _checkPublisher() async {
     try {
