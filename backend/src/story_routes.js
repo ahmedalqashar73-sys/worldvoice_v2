@@ -1,4 +1,4 @@
-import {randomUUID} from "node:crypto";
+import {createHash, randomUUID} from "node:crypto";
 
 import express from "express";
 import {Timestamp} from "firebase-admin/firestore";
@@ -327,7 +327,28 @@ export function registerStoryRoutes({
           fail("Close Friends stories are a VIP feature.", 403);
         }
 
-        const id = randomUUID().replaceAll("-", "");
+        // Keep one stable story ID even if the phone times out after upload.
+        // A retry with the same ID returns the saved story instead of posting
+        // duplicates or charging media storage repeatedly.
+        const requestId = String(req.headers["x-story-upload-id"] || "").trim();
+        if (requestId && !/^[A-Za-z0-9_-]{16,96}$/.test(requestId)) {
+          fail("Invalid story upload request identifier.");
+        }
+        const id = requestId
+          ? createHash("sha256")
+            .update(`worldvoice:story:${user.uid}:${requestId}`)
+            .digest("hex")
+          : randomUUID().replaceAll("-", "");
+        const storyRef = db.collection("stories").doc(id);
+        if (requestId) {
+          const existing = await storyRef.get();
+          if (existing.exists && existing.data()?.ownerId === user.uid) {
+            const saved = existing.data();
+            return res.json({ok: true, storyId: id,
+              expiresAtMs: timestampMillis(saved.expiresAt),
+              alreadyPublished: true});
+          }
+        }
         const ext = extensionFor(contentType, kind);
         const storagePath = `stories/${user.uid}/${id}.${ext}`;
         const now = Date.now();
@@ -349,7 +370,6 @@ export function registerStoryRoutes({
           });
         }
 
-        const storyRef = db.collection("stories").doc(id);
         try {
           await storyRef.set({
             ownerId: user.uid,
@@ -401,6 +421,9 @@ export function registerStoryRoutes({
       const snapshot = await db
         .collection("stories")
         .where("expiresAt", ">", Timestamp.now())
+        // The range query's default ascending order selects stories closest
+        // to expiration. Prefer new stories so uploads aren't invisible.
+        .orderBy("expiresAt", "desc")
         .limit(MAX_FEED_STORIES)
         .get();
 
