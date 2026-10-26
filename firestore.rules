@@ -336,6 +336,17 @@ service cloud.firestore {
             && request.auth.uid == followerUserId;
       }
 
+      // Trusted system activity cards belong only to the recipient.
+      match /activity_inbox/{eventId} {
+        allow read: if signedIn() && request.auth.uid == userId;
+        allow write: if false;
+      }
+
+      // Raw push device tokens are backend-only, including for the owner.
+      match /notification_devices/{deviceId} {
+        allow read, write: if false;
+      }
+
       match /profile_visitors/{viewerUserId} {
         allow read: if signedIn() && request.auth.uid == userId;
 
