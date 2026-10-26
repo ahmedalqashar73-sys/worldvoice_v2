@@ -147,7 +147,8 @@ class _WorldVoiceOfficialScreenState extends State<WorldVoiceOfficialScreen> {
                             context: context, isScrollControlled: true,
                             useSafeArea: true, showDragHandle: true,
                             builder: (_) => _OfficialComposer(
-                              languageCode: lang),
+                              languageCode: lang,
+                              emailConfigured: snap.data?['emailConfigured'] == true),
                           ),
                         ),
                       );
