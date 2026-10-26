@@ -1,4 +1,5 @@
 import {FieldValue, FieldPath} from "firebase-admin/firestore";
+import {createHash} from "node:crypto";
 import {getAuth} from "firebase-admin/auth";
 import {getMessaging} from "firebase-admin/messaging";
 
@@ -217,15 +218,34 @@ export function registerOfficialAnnouncementRoutes({app, db, authenticatedUser})
       const body = sourceText(req.body?.body, 3000);
       const lang = String(req.body?.sourceLanguage || "").trim();
       if (!SUPPORTED.includes(lang)) fail("Unsupported source language.");
+      const requestId = String(req.body?.requestId || "").trim();
+      if (!/^[A-Za-z0-9_-]{12,100}$/.test(requestId)) {
+        fail("Invalid announcement idempotency key.");
+      }
       const emailEnabled = req.body?.sendEmail === true;
       if (emailEnabled && !(process.env.RESEND_API_KEY &&
           process.env.WORLDVOICE_FROM_EMAIL)) {
         fail("Email sender is not configured on the server.", 503);
       }
+      const docId = createHash("sha256").update(
+        `worldvoice:announcement:${user.uid}:${requestId}`).digest("hex");
+      const contentDigest = createHash("sha256").update(
+        JSON.stringify({title, body, lang, emailEnabled})).digest("hex");
+      const ref = db.collection("worldvoice_announcements").doc(docId);
+      const existing = await ref.get();
+      if (existing.exists) {
+        if (existing.data()?.contentDigest !== contentDigest) {
+          fail("This request ID was already used for another announcement.", 409);
+        }
+        return res.json({ok: true, announcementId: ref.id,
+          alreadyPublished: true, emailConfigured: Boolean(
+            process.env.RESEND_API_KEY && process.env.WORLDVOICE_FROM_EMAIL)});
+      }
       const translations = await translateAnnouncement(title, body, lang);
-      const ref = db.collection("worldvoice_announcements").doc();
-      await ref.set({
+      try {
+        await ref.create({
         authorId: user.uid,
+        contentDigest,
         sourceLanguage: lang,
         translations,
         createdAt: FieldValue.serverTimestamp(),
@@ -235,7 +255,14 @@ export function registerOfficialAnnouncementRoutes({app, db, authenticatedUser})
         emailComplete: !emailEnabled,
         emailCursor: null,
         emailSent: 0,
-      });
+        });
+      } catch (error) {
+        if (error?.code === 6 || error?.code === "already-exists") {
+          return res.json({ok: true, announcementId: ref.id,
+            alreadyPublished: true});
+        }
+        throw error;
+      }
       // Broadcast only public announcement text, never recipient metadata.
       // A Firebase device must opt into the topic independently.
       let pushSent = false;
