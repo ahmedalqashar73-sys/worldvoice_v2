@@ -580,6 +580,11 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    match /worldvoice_announcements/{announcementId} {
+      allow get, list: if signedIn() && resource.data.active == true;
+      allow create, update, delete: if false;
+    }
+
     match /worldvoice_activity_events/{eventId} {
       allow read, write: if false;
     }
