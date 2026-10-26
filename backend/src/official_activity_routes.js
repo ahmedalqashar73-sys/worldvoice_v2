@@ -35,6 +35,8 @@ async function sendPush(db, uid, activity, language) {
     for (const device of tokens.docs) {
       const token = safeString(device.data()?.token, 2048);
       if (!token) continue;
+      const locale = langs.has(device.data()?.languageCode)
+        ? device.data().languageCode : localeFallback;
       await getMessaging().send({
         token,
         notification: {
