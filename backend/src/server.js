@@ -18,6 +18,7 @@ import { requireLiveEconomy, calculateGiftSettlement, calculatePurchaseCredit, c
 import {registerWalletRoutes} from "./wallet_routes.js";
 import {registerChatRoutes} from "./chat_routes.js";
 import {registerOfficialActivityRoutes} from "./official_activity_routes.js";
+import {registerOfficialAnnouncementRoutes} from "./official_announcements_routes.js";
 import {registerStoryRoutes} from "./story_routes.js";
 import {registerSocialRoutes} from "./social_routes.js";
 import {registerCallRoutes} from "./call_routes.js";
