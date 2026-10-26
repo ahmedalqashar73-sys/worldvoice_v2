@@ -235,6 +235,7 @@ class _OfficialComposerState extends State<_OfficialComposer> {
             'sourceLanguage': ['ar','en','es','fr','zh','ko']
                 .contains(widget.languageCode) ? widget.languageCode : 'en',
             'sendEmail': _sendEmail && widget.emailConfigured,
+            'requestId': 'worldvoice_$_draftId',
           },
         );
         _announcementId = result['announcementId']?.toString();
