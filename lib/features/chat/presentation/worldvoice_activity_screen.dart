@@ -104,6 +104,22 @@ class _ActivityCard extends StatelessWidget {
     return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
       stream: sessionRef.snapshots(),
       builder: (context, snap) {
+        if (!snap.hasData && !snap.hasError) {
+          return const Padding(
+            padding: EdgeInsets.all(14),
+            child: Card(child: ListTile(
+              leading: CircularProgressIndicator(),
+              title: Text('WorldVoice'),
+            )),
+          );
+        }
+        if (snap.hasError) {
+          return Card(child: ListTile(
+            leading: const Icon(Icons.wifi_off_rounded),
+            title: Text(ar ? 'تعذر تحديث حالة الجلسة'
+                : 'Unable to check session status'),
+          ));
+        }
         final actual = snap.data?.data();
         final active = actual != null &&
             (live ? actual['isLive'] == true : actual['isOpen'] == true);
@@ -296,6 +312,8 @@ class _ActivityPreferences extends StatefulWidget {
 class _ActivityPreferencesState extends State<_ActivityPreferences> {
   bool? _rooms;
   bool? _lives;
+  bool _savedRooms = true;
+  bool _savedLives = true;
   bool _busy = false;
 
   Future<void> _save() async {
@@ -306,8 +324,11 @@ class _ActivityPreferencesState extends State<_ActivityPreferences> {
         '/system/activity/preferences',
         {'rooms': _rooms, 'lives': _lives},
       );
+      _savedRooms = _rooms!;
+      _savedLives = _lives!;
     } catch (error) {
       if (!mounted) return;
+      setState(() { _rooms = _savedRooms; _lives = _savedLives; });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(error.toString())),
       );
@@ -324,9 +345,19 @@ class _ActivityPreferencesState extends State<_ActivityPreferences> {
           ? const Stream<DocumentSnapshot<Map<String, dynamic>>>.empty() :
           FirebaseFirestore.instance.collection('users').doc(uid).snapshots(),
       builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const SafeArea(child: Center(
+            child: CircularProgressIndicator()));
+        }
         final data = snapshot.data?.data() ?? const <String, dynamic>{};
-        _rooms ??= data['roomNotificationsEnabled'] != false;
-        _lives ??= data['liveNotificationsEnabled'] != false;
+        if (_rooms == null) {
+          _savedRooms = data['roomNotificationsEnabled'] != false;
+          _rooms = _savedRooms;
+        }
+        if (_lives == null) {
+          _savedLives = data['liveNotificationsEnabled'] != false;
+          _lives = _savedLives;
+        }
         return SafeArea(child: Padding(
           padding: const EdgeInsets.all(18),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
