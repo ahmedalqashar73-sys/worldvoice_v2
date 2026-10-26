@@ -290,6 +290,13 @@ class _MemberBadgeShopState extends State<MemberBadgeShop> {
   Future<Map<String, dynamic>> _load() =>
       widget.loadStyle?.call() ?? EngagementService.request('member-style');
   late Future<Map<String, dynamic>> _future = _load();
+  void _reload() {
+    final next = _load();
+    setState(() {
+      _future = next;
+    });
+  }
+
   final Map<String, String> _requests = {};
   bool _busy = false;
   bool get ar => Localizations.localeOf(context).languageCode == 'ar';
@@ -313,7 +320,7 @@ class _MemberBadgeShopState extends State<MemberBadgeShop> {
       final uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid != null) EngagementService.invalidate(uid);
       if (mounted) {
-        setState(() => _future = _load());
+        _reload();
       }
     } catch (_) {
       if (mounted) {
@@ -380,7 +387,7 @@ class _MemberBadgeShopState extends State<MemberBadgeShop> {
                       ),
                       if (snapshot.hasError)
                         TextButton(
-                          onPressed: () => setState(() => _future = _load()),
+                          onPressed: _reload,
                           child: Text(ar ? 'إعادة المحاولة' : 'Retry'),
                         ),
                     ],
