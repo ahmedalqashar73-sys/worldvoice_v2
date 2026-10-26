@@ -414,6 +414,34 @@ export function registerStoryRoutes({
     },
   );
 
+  // Confirm media can actually be read before the upload sheet closes.
+  // This prevents false "published" success for broken storage URLs.
+  app.get("/stories/status", async (req, res, next) => {
+    try {
+      const user = await authenticatedUser(req);
+      const storyId = String(req.query.storyId || "");
+      if (!/^[A-Za-z0-9]{20,96}$/.test(storyId)) {
+        fail("Invalid story identifier.");
+      }
+      const doc = await db.collection("stories").doc(storyId).get();
+      if (!doc.exists || doc.data()?.ownerId !== user.uid) {
+        fail("Story not found.", 404);
+      }
+      const story = await signedStory({
+        doc,
+        bucketForLegacy: async data => data.storageBucket
+          ? getStorage().bucket(String(data.storageBucket))
+          : await requireStoryBucket(),
+      });
+      if (!story) {
+        return res.status(503).json({ok: false,
+          error: "Story was saved, but media URL is not ready. Retry shortly.",
+          code: "STORY_MEDIA_PENDING"});
+      }
+      return res.json({ok: true, story});
+    } catch (error) { next(error); }
+  });
+
   app.get("/stories/feed", async (req, res, next) => {
     try {
       const user = await authenticatedUser(req);
