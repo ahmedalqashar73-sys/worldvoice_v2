@@ -46,7 +46,7 @@ async function sendPush(db, uid, activity, language) {
           kind: activity.kind,
           sessionId: activity.sessionId,
         },
-        android: {priority: "high", notification: {channelId: "worldvoice_activity"}},
+        android: {priority: "high"},
       }).catch(() => {});
     }
   } catch (error) {
