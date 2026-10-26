@@ -1,4 +1,4 @@
-import {FieldValue} from "firebase-admin/firestore";
+import {FieldValue, FieldPath} from "firebase-admin/firestore";
 import {getMessaging} from "firebase-admin/messaging";
 
 const invalid = (message, status = 400) =>
@@ -133,58 +133,94 @@ export function registerOfficialActivityRoutes({app, db, authenticatedUser}) {
       }
       const eventId = activityId(kind, sessionId);
       const eventRef = db.collection("worldvoice_activity_events").doc(eventId);
-      // A repeat request cannot generate a second round of notifications.
-      try {
-        await eventRef.create({
-          kind, sessionId, hostId: user.uid,
-          createdAt: FieldValue.serverTimestamp(),
-        });
-      } catch (error) {
-        if (error?.code === 6 || error?.code === "already-exists") {
-          return res.json({ok: true, alreadyPublished: true});
+      // Process follower fan-out in resumable pages. The event is durable:
+      // an interrupted request can resume without dropping later followers.
+      const claim = await db.runTransaction(async tx => {
+        const snap = await tx.get(eventRef);
+        const state = snap.data() || {};
+        if (state.deliveryComplete === true) {
+          return {complete: true, delivered: state.delivered || 0};
         }
-        throw error;
+        const lockedAt = state.processingAt?.toMillis?.() || 0;
+        if (lockedAt > Date.now() - 60000) {
+          return {busy: true};
+        }
+        if (!snap.exists) {
+          tx.create(eventRef, {
+            kind, sessionId, hostId: user.uid,
+            delivered: 0, deliveryCursor: null,
+            deliveryComplete: false,
+            createdAt: FieldValue.serverTimestamp(),
+            processingAt: FieldValue.serverTimestamp(),
+          });
+        } else {
+          tx.update(eventRef, {processingAt: FieldValue.serverTimestamp()});
+        }
+        return {cursor: state.deliveryCursor || null,
+          delivered: state.delivered || 0};
+      });
+      if (claim.complete) {
+        return res.json({ok: true, complete: true,
+          delivered: claim.delivered, alreadyPublished: true});
       }
-      const activity = {
-        kind, sessionId, hostId: user.uid,
-        hostName: safeString(data.hostName, 80) || "WorldVoice",
-        hostPhotoUrl: safeString(data.hostPhotoUrl, 1024),
-        title: safeString(data.name || data.topic, 150) || "WorldVoice",
-        languageCode: safeString(data.languageCode, 8) || "en",
-        createdAt: FieldValue.serverTimestamp(),
-      };
-      let count = 0;
-      // Beta limit: cap processing to prevent unbounded Render HTTP work.
-      // Large audiences should move to a durable queued fan-out worker.
-      const followers = await db.collection("users").doc(user.uid)
-        .collection("followers").limit(500).get();
-      const pushJobs = [];
-      for (let start = 0; start < followers.docs.length; start += 150) {
-        const group = followers.docs.slice(start, start + 150);
-        const profiles = await Promise.all(group.map(doc =>
+      if (claim.busy) {
+        return res.status(409).json({ok: false,
+          error: "Activity delivery already in progress; retry shortly."});
+      }
+      try {
+        const activity = {
+          kind, sessionId, hostId: user.uid,
+          hostName: safeString(data.hostName, 80) || "WorldVoice",
+          hostPhotoUrl: safeString(data.hostPhotoUrl, 1024),
+          title: safeString(data.name || data.topic, 150) || "WorldVoice",
+          languageCode: safeString(data.languageCode, 8) || "en",
+          createdAt: FieldValue.serverTimestamp(),
+        };
+        const pageSize = 50;
+        let followersQuery = db.collection("users").doc(user.uid)
+          .collection("followers")
+          .orderBy(FieldPath.documentId()).limit(pageSize);
+        if (claim.cursor) {
+          followersQuery = followersQuery.startAfter(claim.cursor);
+        }
+        const followers = await followersQuery.get();
+        const profiles = await Promise.all(followers.docs.map(doc =>
           db.collection("users").doc(doc.id).get()));
         const batch = db.batch();
-        for (let i = 0; i < group.length; i++) {
-          const uid = group[i].id;
+        const pushJobs = [];
+        for (let i = 0; i < followers.docs.length; i++) {
+          const uid = followers.docs[i].id;
           const profile = profiles[i].data() || {};
-          if (uid === user.uid || profile.activityNotificationsEnabled === false ||
+          if (uid === user.uid ||
+              profile.activityNotificationsEnabled === false ||
               (kind === "room" && profile.roomNotificationsEnabled === false) ||
               (kind === "live" && profile.liveNotificationsEnabled === false) ||
               (data.vipOnly === true && profile.isVip !== true &&
                profile.isAdmin !== true)) continue;
           batch.set(db.collection("users").doc(uid)
             .collection("activity_inbox").doc(eventId), activity);
-          count++;
-          const locale = safeString(profile.notificationLanguageCode, 8);
-          pushJobs.push({uid, language: locale});
+          const language = safeString(profile.notificationLanguageCode, 8);
+          pushJobs.push({uid, language});
         }
-        await batch.commit();
+        if (pushJobs.length) await batch.commit();
+        await Promise.allSettled(pushJobs.map(x =>
+          sendPush(db, x.uid, activity, x.language)));
+        const complete = followers.docs.length < pageSize;
+        const cursor = followers.docs.length
+          ? followers.docs[followers.docs.length - 1].id
+          : claim.cursor;
+        const delivered = claim.delivered + pushJobs.length;
+        await eventRef.update({
+          deliveryCursor: cursor, delivered,
+          deliveryComplete: complete,
+          processingAt: FieldValue.delete(),
+        });
+        return res.json({ok: true, complete, delivered});
+      } catch (error) {
+        await eventRef.update({processingAt: FieldValue.delete()})
+          .catch(() => {});
+        throw error;
       }
-      // The chat cards are the source of truth; push delivery is best-effort.
-      await Promise.allSettled(pushJobs.map(x =>
-        sendPush(db, x.uid, activity, x.language)));
-      return res.json({ok: true, delivered: count,
-        capped: followers.size >= 500});
     } catch (error) { next(error); }
   });
 }
