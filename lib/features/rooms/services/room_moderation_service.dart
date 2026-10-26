@@ -1,0 +1,702 @@
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http/http.dart' as http;
+
+import '../data/room_backend_config.dart';
+import '../data/room_moderation_models.dart';
+import '../data/room_stage_models.dart';
+import '../data/room_mode.dart';
+
+class RoomModerationService {
+  RoomModerationService({
+    required this.channelId,
+    required this.roomName,
+    this.roomLanguageCode,
+    this.secondaryRoomLanguageCode,
+    this.initialShowTeacherAiSeat = false,
+    this.initialIsPrivate = false,
+    this.initialVipOnly = false,
+    this.initialMode = RoomMode.chat,
+    this.privateAccessCode,
+  });
+
+  final String channelId;
+  final String roomName;
+  final String? roomLanguageCode;
+  final String? secondaryRoomLanguageCode;
+  final bool initialShowTeacherAiSeat;
+  final bool initialIsPrivate;
+  final bool initialVipOnly;
+  final RoomMode initialMode;
+  final String? privateAccessCode;
+
+  FirebaseFirestore get _db => FirebaseFirestore.instance;
+  User? get _user => FirebaseAuth.instance.currentUser;
+
+  DocumentReference<Map<String, dynamic>> get _roomRef =>
+      _db.collection('rooms').doc(channelId);
+
+  CollectionReference<Map<String, dynamic>> get _participantsRef =>
+      _roomRef.collection('participants');
+
+  CollectionReference<Map<String, dynamic>> get _stageInvitesRef =>
+      _roomRef.collection('stage_invites');
+
+  String? get currentUserId => _user?.uid;
+
+  Future<void> enter({
+    required bool asHost,
+  }) async {
+    final user = _user;
+    if (user == null) return;
+
+    final profile =
+        await _db.collection('users').doc(user.uid).get();
+    final data = profile.data() ?? const <String, dynamic>{};
+    final displayName =
+        (data['displayName'] ?? user.displayName ?? 'WorldVoice user')
+            .toString()
+            .trim();
+    final photoUrl = (data['photoUrl'] as String?)?.trim();
+    final frameId = (data['profileFrameId'] as String?)?.trim();
+    final profileLanguageCode =
+        (data['nativeLanguageCode'] ?? 'en').toString().trim();
+    final languageCode = (roomLanguageCode?.trim().isNotEmpty == true
+            ? roomLanguageCode!.trim()
+            : profileLanguageCode)
+        .toLowerCase();
+    final country = (data['country'] ?? '').toString().trim();
+    final isAppAdmin = data['isAdmin'] == true;
+
+    final existingRoom = await _roomRef.get();
+    final existingData = existingRoom.data();
+    var isGlobalModerator = false;
+    if (!asHost) {
+      final hostId = existingData?['hostId']?.toString() ?? '';
+      if (hostId.isNotEmpty) {
+        final moderator = await _db
+            .collection('users')
+            .doc(hostId)
+            .collection('moderators')
+            .doc(user.uid)
+            .get();
+        isGlobalModerator = moderator.exists &&
+            (moderator.data()?['status'] == null ||
+             moderator.data()?['status'] == 'accepted');
+      }
+    }
+    if (!asHost) {
+      if (!existingRoom.exists || existingData?['isOpen'] != true) {
+        throw StateError('This room is no longer open.');
+      }
+
+      if (existingData?['vipOnly'] == true &&
+          data['isVip'] != true &&
+          !isAppAdmin) {
+        throw StateError('This room is available to VIP members only.');
+      }
+
+      if (existingData?['isPrivate'] == true && isAppAdmin) {
+        await _grantAdminPrivateAccess(user);
+      } else if (existingData?['isPrivate'] == true) {
+        final code = privateAccessCode?.trim() ?? '';
+        if (code.isEmpty) {
+          throw StateError('A private room code is required.');
+        }
+        final codeDoc =
+            await _db.collection('private_room_codes').doc(code).get();
+        if (!codeDoc.exists ||
+            codeDoc.data()?['roomId']?.toString() != channelId) {
+          throw StateError('The private room code is invalid.');
+        }
+
+        await _roomRef.collection('access_grants').doc(user.uid).set({
+          'uid': user.uid,
+          'code': code,
+          'grantedAt': FieldValue.serverTimestamp(),
+        });
+      }
+    } else if (existingRoom.exists &&
+        existingData?['isOpen'] == true &&
+        existingData?['hostId'] != user.uid) {
+      throw StateError('This room already has an active host.');
+    }
+
+    final batch = _db.batch();
+
+    if (asHost) {
+      if (initialIsPrivate) {
+        final giftLevel = (data['giftLevel'] as num?)?.toInt() ?? 0;
+        if (giftLevel < 14 && !isAppAdmin) {
+          throw StateError(
+            'Gift Level 14 is required to create a private room.',
+          );
+        }
+
+        final code = privateAccessCode?.trim() ?? '';
+        if (code.isEmpty) {
+          throw StateError('Private room code is missing.');
+        }
+
+        batch.set(
+          _db.collection('private_room_codes').doc(code),
+          {
+            'roomId': channelId,
+            'hostId': user.uid,
+            'isOpen': true,
+            'createdAt': FieldValue.serverTimestamp(),
+          },
+        );
+      }
+
+      batch.set(
+        _roomRef,
+        {
+          'channelId': channelId,
+          'name': roomName,
+          'hostId': user.uid,
+          'hostName': displayName.isEmpty ? 'WorldVoice user' : displayName,
+          'hostPhotoUrl': photoUrl,
+          'hostCountry': country,
+          'languageCode': languageCode.isEmpty ? 'en' : languageCode,
+          'languageCodes': [
+            languageCode.isEmpty ? 'en' : languageCode,
+            if (secondaryRoomLanguageCode != null &&
+                secondaryRoomLanguageCode!.isNotEmpty &&
+                secondaryRoomLanguageCode!.toLowerCase() != languageCode)
+              secondaryRoomLanguageCode!.toLowerCase(),
+          ],
+          'showTeacherAiSeat': initialShowTeacherAiSeat,
+          'isPrivate': initialIsPrivate,
+          'vipOnly': initialVipOnly,
+          // Existing progression is server-owned; do not replay a stale read.
+          if (!existingRoom.exists) 'roomLevel': 1,
+          if (!existingRoom.exists) 'roomXp': 0,
+          'themeId': existingData?['themeId'] ?? 'softGreenFlow',
+          'mode': initialMode.name,
+          'boardWriteEnabled': initialMode != RoomMode.lesson,
+          'musicPlaying': existingData?['musicPlaying'] ?? false,
+          'isOpen': true,
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
+      );
+    }
+
+    batch.set(
+      _participantsRef.doc(user.uid),
+      {
+        'uid': user.uid,
+        'displayName': displayName.isEmpty ? 'WorldVoice user' : displayName,
+        'photoUrl': photoUrl,
+        'frameId': frameId,
+        'role': asHost ? 'host' : 'listener',
+        'handRaised': false,
+        'seatIndex': asHost ? 1 : FieldValue.delete(),
+        'agoraUid': FieldValue.delete(),
+        'requestedSeatIndex': FieldValue.delete(),
+        'isModerator': asHost ? false : isGlobalModerator,
+        'warningCount': 0,
+        'forcedMuted': false,
+        'kicked': false,
+        'joinedAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+
+    await batch.commit();
+  }
+
+  /// Update only this user's room presence. A missed heartbeat means a room
+  /// can disappear from discovery without letting a viewer close it.
+  Future<void> refreshPresence() async {
+    final uid = currentUserId;
+    if (uid == null) return;
+    await _participantsRef.doc(uid).update({
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Future<void> _grantAdminPrivateAccess(User user) async {
+    final endpoint = RoomBackendConfig.endpoint('/admin/rooms/grant-access');
+    if (endpoint.isEmpty) {
+      throw StateError('WorldVoice room backend is not configured.');
+    }
+
+    final token = await user.getIdToken();
+    if (token == null || token.isEmpty) {
+      throw StateError('Could not authorize admin room access.');
+    }
+
+    final response = await http
+        .post(
+          Uri.parse(endpoint),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode({'roomId': channelId}),
+        )
+        .timeout(const Duration(seconds: 12));
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      var message = 'Admin private-room access could not be granted.';
+      try {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic>) {
+          message = decoded['error']?.toString() ?? message;
+        }
+      } catch (_) {}
+      throw StateError(message);
+    }
+  }
+
+  Future<int> roomLevel() async {
+    final snap = await _roomRef.get();
+    return (snap.data()?['roomLevel'] as num?)?.toInt() ?? 1;
+  }
+
+  Stream<bool> watchRoomOpen() {
+    return _roomRef.snapshots().map(
+      (snapshot) => snapshot.exists && snapshot.data()?['isOpen'] == true,
+    );
+  }
+
+  Stream<bool> watchTeacherAiSeatVisible() {
+    return _roomRef.snapshots().map(
+      (snapshot) => snapshot.data()?['showTeacherAiSeat'] == true,
+    );
+  }
+
+  Future<void> setTeacherAiSeatVisible(bool value) async {
+    await _roomRef.set(
+      {
+        'showTeacherAiSeat': value,
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+  }
+
+  // The host's global moderation invite follows this room owner.
+  // A user is not promoted until they explicitly accept.
+  Stream<Map<String, dynamic>?> watchMyModeratorInvite() async* {
+    final uid = currentUserId;
+    if (uid == null) return;
+    final room = await _roomRef.get();
+    final ownerId = room.data()?['hostId']?.toString() ?? '';
+    if (ownerId.isEmpty || ownerId == uid) return;
+    yield* _db.collection('users').doc(ownerId)
+        .collection('moderators').doc(uid).snapshots()
+        .map((snapshot) => snapshot.data());
+  }
+
+  Future<void> answerModeratorInvite(bool accepted) async {
+    final user = _user;
+    if (user == null) throw StateError('Sign in is required.');
+    final room = await _roomRef.get();
+    final ownerId = room.data()?['hostId']?.toString() ?? '';
+    if (ownerId.isEmpty || ownerId == user.uid) {
+      throw StateError('Moderator invitation is not available.');
+    }
+    final inviteRef = _db.collection('users').doc(ownerId)
+        .collection('moderators').doc(user.uid);
+    final invite = await inviteRef.get();
+    if (!invite.exists || invite.data()?['status'] != 'pending') {
+      throw StateError('This moderator invitation is no longer pending.');
+    }
+    final batch = _db.batch();
+    batch.update(inviteRef, {
+      'status': accepted ? 'accepted' : 'declined',
+      'respondedAt': FieldValue.serverTimestamp(),
+    });
+    if (accepted) {
+      batch.set(_participantsRef.doc(user.uid), {
+        'isModerator': true,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    }
+    await batch.commit();
+  }
+
+  Stream<List<RoomParticipant>> watchParticipants() {
+    return _participantsRef.snapshots().map((snapshot) {
+      final result = <RoomParticipant>[];
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        result.add(
+          RoomParticipant(
+            userId: doc.id,
+            displayName:
+                (data['displayName'] ?? 'WorldVoice user').toString(),
+            photoUrl: data['photoUrl'] as String?,
+            frameId: data['frameId'] as String?,
+            role: RoomParticipant.roleFromString(
+              data['role']?.toString(),
+            ),
+            handRaised: data['handRaised'] == true,
+            agoraUid: (data['agoraUid'] as num?)?.toInt(),
+            seatIndex: (data['seatIndex'] as num?)?.toInt(),
+            requestedSeatIndex:
+                (data['requestedSeatIndex'] as num?)?.toInt(),
+            isModerator: data['isModerator'] == true,
+            warningCount: (data['warningCount'] as num?)?.toInt() ?? 0,
+            forcedMuted: data['forcedMuted'] == true,
+            kicked: data['kicked'] == true,
+          ),
+        );
+      }
+
+      result.sort((a, b) {
+        final aSeat = a.seatIndex ?? 999;
+        final bSeat = b.seatIndex ?? 999;
+        final bySeat = aSeat.compareTo(bSeat);
+        if (bySeat != 0) return bySeat;
+        return a.displayName.compareTo(b.displayName);
+      });
+      return result;
+    });
+  }
+
+  Stream<RoomParticipant?> watchMe() {
+    final uid = currentUserId;
+    if (uid == null) return const Stream<RoomParticipant?>.empty();
+
+    return _participantsRef.doc(uid).snapshots().map((doc) {
+      if (!doc.exists) return null;
+      final data = doc.data() ?? const <String, dynamic>{};
+      return RoomParticipant(
+        userId: doc.id,
+        displayName: (data['displayName'] ?? 'WorldVoice user').toString(),
+        photoUrl: data['photoUrl'] as String?,
+        role: RoomParticipant.roleFromString(data['role']?.toString()),
+        handRaised: data['handRaised'] == true,
+        agoraUid: (data['agoraUid'] as num?)?.toInt(),
+        seatIndex: (data['seatIndex'] as num?)?.toInt(),
+        requestedSeatIndex:
+            (data['requestedSeatIndex'] as num?)?.toInt(),
+        isModerator: data['isModerator'] == true,
+        warningCount: (data['warningCount'] as num?)?.toInt() ?? 0,
+        forcedMuted: data['forcedMuted'] == true,
+        kicked: data['kicked'] == true,
+      );
+    });
+  }
+
+  Future<void> syncAgoraUid(int uid) async {
+    final userId = currentUserId;
+    if (userId == null) return;
+
+    await _participantsRef.doc(userId).set(
+      {
+        'agoraUid': uid,
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+  }
+
+  Stream<DocumentSnapshot<Map<String, dynamic>>> watchMyStageInvite() {
+    final uid = currentUserId;
+    if (uid == null) {
+      return const Stream<DocumentSnapshot<Map<String, dynamic>>>.empty();
+    }
+    return _stageInvitesRef.doc(uid).snapshots();
+  }
+
+  Future<void> sendStageInvite({
+    required String userId,
+    required RoomMemberRole role,
+    required int seatIndex,
+  }) async {
+    final inviter = _user;
+    if (inviter == null) throw StateError('Sign in is required.');
+    if (role != RoomMemberRole.speaker &&
+        role != RoomMemberRole.coHost &&
+        role != RoomMemberRole.vipSeat) {
+      throw StateError('Unsupported stage role.');
+    }
+    if (seatIndex < 2 || seatIndex > 8) {
+      throw StateError('Stage invitation must use seats 2 to 8.');
+    }
+
+    final participant = await _participantsRef.doc(userId).get();
+    if (!participant.exists ||
+        participant.data()?['role']?.toString() != 'listener') {
+      throw StateError('Only current listeners can be invited to the stage.');
+    }
+
+    final occupied = await _participantsRef
+        .where('seatIndex', isEqualTo: seatIndex)
+        .limit(1)
+        .get();
+    if (occupied.docs.isNotEmpty) {
+      throw StateError('That speaker seat is already occupied.');
+    }
+
+    await _stageInvitesRef.doc(userId).set({
+      'recipientId': userId,
+      'invitedBy': inviter.uid,
+      'role': RoomParticipant.roleToString(role),
+      'seatIndex': seatIndex,
+      'status': 'pending',
+      'createdAt': FieldValue.serverTimestamp(),
+      'respondedAt': FieldValue.delete(),
+    });
+  }
+
+  Future<void> respondToStageInvite({required bool accept}) async {
+    final user = _user;
+    if (user == null) throw StateError('Sign in is required.');
+
+    final inviteRef = _stageInvitesRef.doc(user.uid);
+    final participantRef = _participantsRef.doc(user.uid);
+
+    if (!accept) {
+      await inviteRef.update({
+        'status': 'declined',
+        'respondedAt': FieldValue.serverTimestamp(),
+      });
+      return;
+    }
+
+    final invite = await inviteRef.get();
+    final inviteData = invite.data();
+    if (!invite.exists || inviteData?['status']?.toString() != 'pending') {
+      throw StateError('This stage invitation is no longer active.');
+    }
+
+    final seatIndex = (inviteData?['seatIndex'] as num?)?.toInt();
+    final role = RoomParticipant.roleFromString(
+      inviteData?['role']?.toString(),
+    );
+    if (seatIndex == null ||
+        seatIndex < 2 ||
+        seatIndex > 8 ||
+        role == RoomMemberRole.listener ||
+        role == RoomMemberRole.host ||
+        role == RoomMemberRole.teacherAi) {
+      throw StateError('This stage invitation is invalid.');
+    }
+
+    final occupied = await _participantsRef
+        .where('seatIndex', isEqualTo: seatIndex)
+        .limit(1)
+        .get();
+    if (occupied.docs.any((doc) => doc.id != user.uid)) {
+      throw StateError('That speaker seat was taken. Ask for a new invite.');
+    }
+
+    final batch = _db.batch();
+    batch.update(participantRef, {
+      'role': RoomParticipant.roleToString(role),
+      'seatIndex': seatIndex,
+      'handRaised': false,
+      'requestedSeatIndex': FieldValue.delete(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+    batch.update(inviteRef, {
+      'status': 'accepted',
+      'respondedAt': FieldValue.serverTimestamp(),
+    });
+    await batch.commit();
+  }
+
+  Future<void> setHandRaised(
+    bool raised, {
+    int? requestedSeatIndex,
+  }) async {
+    final uid = currentUserId;
+    if (uid == null) return;
+
+    await _participantsRef.doc(uid).set(
+      {
+        'handRaised': raised,
+        'requestedSeatIndex': raised && requestedSeatIndex != null
+            ? requestedSeatIndex
+            : FieldValue.delete(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+  }
+
+  Future<void> rejectHand(String userId) async {
+    await _participantsRef.doc(userId).set(
+      {
+        'handRaised': false,
+        'requestedSeatIndex': FieldValue.delete(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+  }
+
+  Future<void> assignSeat({
+    required String userId,
+    required RoomMemberRole role,
+    required int seatIndex,
+  }) async {
+    if (role == RoomMemberRole.listener ||
+        role == RoomMemberRole.teacherAi ||
+        role == RoomMemberRole.host) {
+      return;
+    }
+
+    await _participantsRef.doc(userId).set(
+      {
+        'role': RoomParticipant.roleToString(role),
+        'seatIndex': seatIndex,
+        'handRaised': false,
+        'requestedSeatIndex': FieldValue.delete(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+  }
+
+  Future<void> moveToListener(String userId) async {
+    await _participantsRef.doc(userId).set(
+      {
+        'role': 'listener',
+        'seatIndex': FieldValue.delete(),
+        'handRaised': false,
+        'requestedSeatIndex': FieldValue.delete(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+  }
+
+  Future<void> changeStageRole({
+    required String userId,
+    required RoomMemberRole role,
+  }) async {
+    if (role != RoomMemberRole.coHost &&
+        role != RoomMemberRole.speaker &&
+        role != RoomMemberRole.vipSeat) {
+      return;
+    }
+
+    await _participantsRef.doc(userId).set(
+      {
+        'role': RoomParticipant.roleToString(role),
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+  }
+
+  Future<void> closeRoom() async {
+    final uid = currentUserId;
+    if (uid == null) {
+      throw StateError('Sign in is required to close the room.');
+    }
+
+    final room = await _roomRef.get();
+    if (!room.exists) {
+      throw StateError('Room not found.');
+    }
+
+    final data = room.data() ?? const <String, dynamic>{};
+    if (data['hostId']?.toString() != uid) {
+      throw StateError('Only the host can close the room.');
+    }
+
+    final batch = _db.batch();
+    batch.set(
+      _roomRef,
+      {
+        'isOpen': false,
+        'endedAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+
+    if (data['isPrivate'] == true) {
+      final code = privateAccessCode?.trim() ?? '';
+      if (code.isNotEmpty) {
+        batch.set(
+          _db.collection('private_room_codes').doc(code),
+          {
+            'isOpen': false,
+            'endedAt': FieldValue.serverTimestamp(),
+            'updatedAt': FieldValue.serverTimestamp(),
+          },
+          SetOptions(merge: true),
+        );
+      }
+    }
+
+    await batch.commit();
+  }
+
+  Future<void> leave() async {
+    final uid = currentUserId;
+    if (uid == null) return;
+
+    final room = await _roomRef.get();
+    if (!room.exists) return;
+
+    final roomData = room.data() ?? const <String, dynamic>{};
+
+    if (roomData['isOpen'] != true) {
+      await _participantsRef.doc(uid).delete();
+      return;
+    }
+
+    final isCurrentHost = roomData['hostId']?.toString() == uid;
+
+    if (!isCurrentHost) {
+      await _participantsRef.doc(uid).delete();
+      return;
+    }
+
+    // Keep permanent ownership bound to the original Firebase UID.
+    // Leaving a room must not promote a moderator into the host account.
+    final participants = await _participantsRef.get();
+    final hasActiveModerator = participants.docs.any((doc) =>
+        doc.id != uid && doc.data()['isModerator'] == true);
+    final batch = _db.batch();
+    batch.delete(_participantsRef.doc(uid));
+
+    if (hasActiveModerator) {
+      // The room remains open; moderators keep their own role and seats.
+      // Its hostId stays unchanged so the true owner reclaims seat 1
+      // automatically when they return.
+      batch.set(_roomRef, {
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } else {
+      if (roomData['isPrivate'] == true) {
+        final code = privateAccessCode?.trim() ?? '';
+        if (code.isNotEmpty) {
+          batch.set(
+            _db.collection('private_room_codes').doc(code),
+            {
+              'isOpen': false,
+              'endedAt': FieldValue.serverTimestamp(),
+            },
+            SetOptions(merge: true),
+          );
+        }
+      }
+      batch.set(
+        _roomRef,
+        {
+          'isOpen': false,
+          'endedAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
+      );
+    }
+
+    await batch.commit();
+  }}

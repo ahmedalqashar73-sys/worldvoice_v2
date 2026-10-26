@@ -1,0 +1,191 @@
+# WorldVoice economy configuration (draft; not published)
+
+## Single source of economic policy
+
+Firestore document: `economy_config/current`. Server-side code must reject monetary
+transactions when required configuration is missing, inactive or invalid. Do
+not put policy values in Flutter, Firestore Security Rules, or environment
+variables. Firestore Rules enforce authorization; the trusted backend enforces
+catalog prices, limits, conversion and inventory.
+
+| Field | Type | Meaning | Approval |
+|---|---|---|---|
+| coinsPerUsd | number > 0 | Normal-priced coins per USD for gift valuation | **TBD** |
+| receiverSharePercent | number, 0..100 | Percentage of gift's USD value allocated to receiver | **TBD** |
+| diamondUsdValue | number > 0 | USD value of one redeemable diamond | **TBD** |
+| withdrawalFeePercent | number, 0..100 | Cash withdrawal service fee | **TBD** |
+| minWithdrawalDiamonds | positive integer | Minimum withdrawal request | **TBD** |
+| holdDays | integer ≥ 0 | Time after gift before related diamonds unlock | **TBD** |
+| giftLevelPointsPerCoin | number | Sender gift level points per paid coin | 1 (requested) |
+| exchangeBonusPercent | number | Diamond-to-coin exchange bonus | 10 (requested) |
+| webCardBonusPercent | number | Web card checkout coin bonus | 10 (requested) |
+| minExchangeDiamonds | positive integer | Minimum diamond exchange | 100 (requested) |
+| firstRechargeBonusPercent | number | First recharge promotion | **TBD** |
+| purchaseDailyUsdLimit | number | Configurable anti-abuse purchase limit | **TBD** |
+| giftingDailyCoinLimit | integer | Configurable anti-abuse gifting limit | **TBD** |
+| payoutWindows | array | Two monthly payout processing windows | **TBD** |
+| enabled | boolean | Explicit economy launch gate | false until financial approvals |
+| privateWalletCutoverVerified | boolean | Complete server/client private wallet migration and ledger reconciliation | false |
+| publicProfileRulesVerified | boolean | Independently verify strict non-owner access rules and supported client versions | false |
+
+### Catalogs
+
+`coin_products/{id}`: `priceUsd`, `coins`, `androidProductId`,
+`iosProductId`, `webPriceId`, `active`. **Seven proposed pack sizes**
+(10 / 50 / 100 / 500 / 1000 / 5000 / 10000 coins) have not had USD
+prices, store product IDs or final approval supplied. Keep them **inactive**
+until those values and store registrations are approved.
+
+`store_items/{id}`: `type` (gift/background/frame/entrance/vip),
+`priceCoins`, `requiredGiftLevel`, `durationDays` (null for permanent),
+`animationUrl`, `active`. Migrate legacy catalog entries only after
+backend endpoints and read-only Flutter consumers have switched to this
+collection; never silently delete existing inventory or catalog.
+
+`users/{uid}/inventory/{itemId}`: `expiresAt`, `freeGiftBalance`,
+`quantity`, `source`, `updatedAt`. Admin-backend only.
+`users/{uid}/wallet_transactions/{id}`: immutable type / amount /
+balanceBefore / balanceAfter / source / createdAt; payment receipts and
+chargebacks use externally-derived idempotency keys.
+
+### Payment checkout surfaces prepared (no production payments enabled)
+
+The existing Flutter coin store now uses a consistent emerald/gold design and
+previews the seven requested sizes (10/50/100/500/1000/5000/10000) **without
+making up prices or enabling charge buttons**. Registered, approved products
+replace previews with their **actual localized platform price** automatically.
+
+- **Android:** existing `in_app_purchase` path uses Google Play Billing for
+  digital coin packs. The user may select any card supported in their Google
+  Play account (potentially Visa); WorldVoice does not collect card details.
+  A Play Console developer account, published consumable product IDs, linked
+  billing profile and actual Play internal-test track builds are required.
+  `flutter run` alone cannot verify genuine Play billing.
+- **iOS:** same native `in_app_purchase` integration uses App Store products.
+  App Store Connect SKU configuration, an eligible developer account, test
+  users and an appropriately signed app are required.
+- **Web:** existing `startWebCheckout` opens the backend-created Stripe hosted
+  checkout over HTTPS. Approved `coin_products/{id}.webPriceId`, a merchant
+  account with `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET`, and allowed
+  `WEB_CHECKOUT_SUCCESS_URL`/`WEB_CHECKOUT_CANCEL_URL` must be configured.
+  Stripe handles Visa/Mastercard and any further methods enabled by the
+  merchant account. This page is web-only.
+- **Google Play alternative/card billing inside Android:** do not add a
+  direct in-app Visa/Stripe bypass unless the developer enrolls in an
+  applicable regional billing-choice program and implements its requirements.
+  See: https://support.google.com/googleplay/android-developer/answer/9858738
+
+The Cloudflare Agora token-only Worker does not run `/iap/verify` or
+`/web/checkout`. The full authenticated finance backend
+(`WORLDVOICE_ECONOMY_ENDPOINT`) and verified real Play/Apple receipts or a
+signed Stripe webhook are required for actual credit. All coin and gift
+settlement stays blocked by private-wallet migration and `enabled=false`
+until explicit financial and privacy launch approval.
+
+### Deployment gates
+
+1. Populate and approve complete economy_config + all 7 store product IDs.
+2. Preserve a snapshot/export of legacy inventory, gift and purchase data.
+3. Test exact-once verified IAP + signed Stripe webhooks, refunds, chargebacks
+   and app-store purchasing compliance on production-like staging.
+4. Backfill inventory/ledger, switch backend and Flutter callers, then tighten
+   Firestore Rules before releasing that app version.
+5. Live/Chat gifts, cash withdrawals and payouts remain **disabled** until the
+   corresponding backend moderation, identity verification and store-review
+   integration is deployed. Cloudflare Agora Worker is only a token service;
+   it is **not** the full economy backend.
+
+
+### Private wallet / public profile rollout (not activated)
+
+Legacy `users/{uid}` documents remain readable by all signed-in clients and
+still hold balances. This is a **release blocker**, even if Firestore also
+contains private wallet copies. Do not enable purchases/gifts/payouts until
+the full profile-reader and ledger-writer migration below is completed.
+
+A non-destructive **staging-only** tool and regression tests now exist:
+- `backend/src/profile_projection.js` uses explicit public-profile and
+  private-wallet field allowlists, never spreading arbitrary user fields.
+- `backend/test/profile_projection.test.js` verifies balance redaction,
+  separation, and invalid legacy balance rejection.
+- `backend/scripts/stage-private-wallet.mjs` previews users by default,
+  logs only field counts, validates legacy balances, and can atomically
+  create missing `users/{uid}/private/wallet` and
+  `public_profiles/{uid}` records. It never overwrites source balances
+  or deletes a legacy document.
+
+For a Firebase **emulator**, run after a separate data backup:
+```bash
+cd backend
+npm test
+FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 node scripts/stage-private-wallet.mjs --project demo-worldvoice
+FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 node scripts/stage-private-wallet.mjs --project demo-worldvoice --apply --confirm-project demo-worldvoice
+```
+Outside the emulator, `--apply` is restricted to a named test/staging
+project with matching confirmation and disabled
+`economy_config/current.enabled`. **Do not point it at production.**
+
+To finish this migration, in order:
+1. Back up and verify legacy `users`, inventories, wallet ledgers and
+   receipts; suspend legacy mobile-client financial writes.
+2. Stage and audit copies for all accounts; reconcile balances with immutable
+   transactions and existing receipts. Reject mismatches; do not reset them.
+3. Change all *server* purchase, refund, gift, exchange, withdrawal,
+   VIP-entitlement and wallet-hold operations to transact against
+   `users/{uid}/private/wallet` exclusively. Remove legacy public writes,
+   cover retries/idempotency and refund rollback in tests.
+4. Change all *client* wallet/coin/diamond/profile consumers to read the
+   private wallet for their own account and `public_profiles` for others.
+   Handle older app versions explicitly rather than silently breaking them.
+5. Only after staging two-device, Firestore-emulator and payment tests pass,
+   remove legacy financial fields from public documents and restrict
+   `users/{uid}` reads; verify unauthenticated and unrelated signed-in
+   clients cannot retrieve another person's financial records.
+6. Obtain approved USD prices/SKUs, actual platform sandbox receipts,
+   signed store refund notification handlers, KYC and payout-provider
+   integration; otherwise retain `enabled=false` and inactive products.
+
+**This staging addition does not complete steps 1–6 or make live money safe.**
+
+
+### Staged private-wallet code: what has changed
+
+The economy branch now sends *backend-owned* purchase credits, premium
+store spending, gift debits and held receiver diamonds, diamond
+settlement, exchanges, withdrawal reservations/rejections and verified
+Stripe reversals through `users/{uid}/private/wallet` rather than
+modifying the public `users/{uid}` profile. The original immutable
+`users/{uid}/wallet_transactions` ledger and owner-only
+`diamond_lots` remain intact. Refund processing globally freezes
+payouts if a linked recipient lacks a migrated wallet. Operations
+reject missing/invalid private wallets rather than copying stale
+legacy balances on a purchase path.
+
+The existing Flutter coin store, wallet view and unified gift panel
+now read the signed-in account's private wallet only. They display an
+unavailable state instead of inventing a zero balance when migration
+is unfinished. Native checkout revalidates the policy, migrated wallet,
+active product and platform SKU immediately before opening the store.
+
+**These commits are not a production cutover.** Legacy
+`users/{uid}` still contains financial fields and is readable by
+other signed-in clients under the original rules. Other profile,
+presence and legacy client consumers still need a coordinated
+public-profile conversion. Never deploy monetization with those rules.
+
+The backend's `requireLiveEconomy` now requires three independent
+truths: `enabled=true`, `privateWalletCutoverVerified=true` and
+`publicProfileRulesVerified=true`; missing flags reject all monetary
+settlement. The non-destructive seed leaves all three false. The
+staging script now checks existing projections for stale balances
+and detects concurrently updated source profiles; it stops for
+manual reconciliation rather than overwriting. Review its output
+only on a Firebase emulator or an explicitly named staging project.
+
+Before marking either privacy flag true, migrate every remaining
+profile/presence reader, validate dual-device backward compatibility,
+reconcile every old ledger and receipt, remove legacy public money
+fields, deploy strict Firestore rules and test access as the wallet
+owner, an unrelated signed-in user and an anonymous user. Tests
+must also confirm store cancellations, full/partial refunds,
+chargebacks, wallet debt, retries and non-duplicated payouts.

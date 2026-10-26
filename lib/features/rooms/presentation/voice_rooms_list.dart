@@ -1,0 +1,1116 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+
+import '../../../core/localization/locale_controller.dart';
+
+
+import '../../profile/data/profile_identity_utils.dart';
+import '../data/agora_config.dart';
+import '../data/room_mode.dart';
+import 'create_room_page.dart';
+import '../services/agora_voice_room_controller.dart';
+import '../services/gift_level_service.dart';
+import '../services/room_history_service.dart';
+import 'agora_voice_room_screen.dart';
+
+class VoiceRoomsList extends StatefulWidget {
+  const VoiceRoomsList({
+    required this.languageCode,
+    this.localeController,
+    this.onlyLive = false,
+    this.openTeacherAiOnJoin = false,
+    this.searchQuery = '',
+    super.key,
+  });
+
+  final String languageCode;
+  final LocaleController? localeController;
+  final bool onlyLive;
+  final bool openTeacherAiOnJoin;
+  final String searchQuery;
+
+  @override
+  State<VoiceRoomsList> createState() => _VoiceRoomsListState();
+}
+
+class _VoiceRoomsListState extends State<VoiceRoomsList> {
+  static const String _temporaryChannel = 'worldvoice_english_lounge';
+
+  String? _selectedLanguage;
+  Future<_RoomLanguagePrefs>? _prefsFuture;
+  late Stream<QuerySnapshot<Map<String, dynamic>>> _activeRoomsStream;
+
+  bool get _usesTemporaryToken =>
+      AgoraConfig.tempToken.trim().isNotEmpty &&
+      AgoraConfig.tokenEndpoint.trim().isEmpty;
+
+  bool get _isArabic => widget.languageCode == 'ar';
+
+  @override
+  void initState() {
+    super.initState();
+    _prefsFuture = _loadLanguagePrefs();
+    _activeRoomsStream = _roomsStream();
+  }
+
+  @override
+  void didUpdateWidget(covariant VoiceRoomsList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.onlyLive != widget.onlyLive) {
+      _activeRoomsStream = _roomsStream();
+    }
+  }
+
+  Future<_RoomLanguagePrefs> _loadLanguagePrefs() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return const _RoomLanguagePrefs(
+        nativeLanguage: 'en',
+        learningLanguages: <String>[],
+        giftLevel: 0,
+      );
+    }
+
+    Map<String, dynamic> data = const <String, dynamic>{};
+
+    // Do not block the entire Rooms page forever if Firestore is slow/offline.
+    // The room list can still open with safe defaults and recover on the next
+    // app/session refresh.
+    try {
+      final profile = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get()
+          .timeout(const Duration(seconds: 8));
+      data = profile.data() ?? const <String, dynamic>{};
+    } catch (_) {
+      try {
+        final cachedProfile = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get(const GetOptions(source: Source.cache));
+        data = cachedProfile.data() ?? const <String, dynamic>{};
+      } catch (_) {
+        data = const <String, dynamic>{};
+      }
+    }
+
+    final native =
+        (data['nativeLanguageCode'] ?? 'en').toString().trim().toLowerCase();
+    final learning = (data['learningLanguageCodes'] as List?)
+            ?.map((value) => value.toString().trim().toLowerCase())
+            .where((value) => value.isNotEmpty)
+            .toList() ??
+        const <String>[];
+
+    final fallbackGiftLevel = (data['giftLevel'] as num?)?.toInt() ?? 0;
+    var giftLevel = fallbackGiftLevel;
+    try {
+      giftLevel = await const GiftLevelService()
+          .resolveFromProfile(data)
+          .timeout(
+            const Duration(seconds: 6),
+            onTimeout: () => fallbackGiftLevel,
+          );
+    } catch (_) {
+      giftLevel = fallbackGiftLevel;
+    }
+
+    return _RoomLanguagePrefs(
+      nativeLanguage: native.isEmpty ? 'en' : native,
+      learningLanguages: learning,
+      giftLevel: giftLevel,
+    );
+  }
+
+  Stream<QuerySnapshot<Map<String, dynamic>>> _roomsStream() {
+    var query = FirebaseFirestore.instance
+        .collection('rooms')
+        .where('isOpen', isEqualTo: true);
+    if (widget.onlyLive) {
+      query = query.where('mode', isEqualTo: 'live');
+    }
+    return query.snapshots();
+  }
+
+  Future<void> _createRoom(
+    BuildContext context,
+    _RoomLanguagePrefs prefs,
+  ) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    if (_usesTemporaryToken) {
+      final existing = await FirebaseFirestore.instance
+          .collection('rooms')
+          .doc(_temporaryChannel)
+          .get();
+
+      if (existing.exists && existing.data()?['isOpen'] == true) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _isArabic
+                  ? 'هناك غرفة مفتوحة الآن. ادخل عليها من القائمة.'
+                  : 'There is already an active room. Open it from the list.',
+            ),
+          ),
+        );
+        return;
+      }
+    }
+
+    if (!context.mounted) return;
+
+    final initialLanguage = _selectedLanguage == null ||
+            _selectedLanguage == 'all'
+        ? prefs.nativeLanguage
+        : _selectedLanguage!;
+
+    final result = await Navigator.of(context).push<CreateRoomResult>(
+      MaterialPageRoute(
+        builder: (_) => CreateRoomPage(
+        isArabic: _isArabic,
+        languageOptions: prefs.roomLanguages,
+        initialLanguage: initialLanguage,
+        giftLevel: prefs.giftLevel,
+        fixedMode: widget.onlyLive ? RoomMode.live : null,
+      ),
+      ),
+    );
+
+    if (result == null || !context.mounted) return;
+
+    final privateCode = result.isPrivate ? _makePrivateCode() : null;
+
+    final safeUid =
+        user.uid.length >= 8 ? user.uid.substring(0, 8) : user.uid;
+    final channelId = _usesTemporaryToken
+        ? _temporaryChannel
+        : 'wv_${safeUid}_${DateTime.now().millisecondsSinceEpoch}';
+
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => AgoraVoiceRoomScreen(
+          channelId: channelId,
+          roomName: result.name,
+          openTeacherAiOnJoin: widget.openTeacherAiOnJoin,
+          roomLanguageCode: result.languageCode,
+          secondaryRoomLanguageCode: result.secondaryLanguageCode,
+          initialShowTeacherAiSeat: result.showTeacherAiSeat,
+          initialMode: result.mode,
+          initialIsPrivate: result.isPrivate,
+          initialVipOnly: result.vipOnly,
+          privateAccessCode: privateCode,
+          localeController: widget.localeController,
+          initialRole: AgoraRoomRole.speaker,
+        ),
+      ),
+    );
+  }
+
+  void _joinRoom(
+    BuildContext context, {
+    required String channelId,
+    required String roomName,
+    required String roomLanguageCode,
+    String? secondaryRoomLanguageCode,
+    required String ownerId,
+    required bool showTeacherAiSeat,
+    bool isPrivate = false,
+    bool vipOnly = false,
+    String? privateAccessCode,
+    String? roomModeName,
+  }) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => AgoraVoiceRoomScreen(
+          channelId: channelId,
+          roomName: roomName,
+          openTeacherAiOnJoin: widget.openTeacherAiOnJoin,
+          roomLanguageCode: roomLanguageCode,
+          secondaryRoomLanguageCode: secondaryRoomLanguageCode,
+          initialShowTeacherAiSeat: showTeacherAiSeat,
+          initialMode: RoomMode.values.firstWhere(
+            (mode) => mode.name == roomModeName,
+            orElse: () => RoomMode.chat,
+          ),
+          initialIsPrivate: isPrivate,
+          initialVipOnly: vipOnly,
+          privateAccessCode: privateAccessCode,
+          localeController: widget.localeController,
+          // A returning creator is always the owner, never a listener.
+          initialRole: FirebaseAuth.instance.currentUser?.uid == ownerId
+              ? AgoraRoomRole.speaker : AgoraRoomRole.listener,
+        ),
+      ),
+    );
+  }
+
+  String _makePrivateCode() {
+    final raw = DateTime.now().microsecondsSinceEpoch
+        .toRadixString(36)
+        .toUpperCase();
+    return raw.length <= 6 ? raw : raw.substring(raw.length - 6);
+  }
+
+  Future<void> _showHistory(BuildContext context) async {
+    final history = RoomHistoryService();
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (sheetContext) => SizedBox(
+        height: MediaQuery.sizeOf(sheetContext).height * .72,
+        child: Column(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.history_rounded),
+              title: Text(
+                _isArabic ? 'سجل الغرف' : 'Room history',
+                style: const TextStyle(fontWeight: FontWeight.w900),
+              ),
+              trailing: IconButton(
+                onPressed: () => Navigator.pop(sheetContext),
+                icon: const Icon(Icons.close_rounded),
+              ),
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                stream: history.watchHistory(),
+                builder: (context, snapshot) {
+                  final docs = snapshot.data?.docs ??
+                      const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
+                  if (docs.isEmpty) {
+                    return Center(
+                      child: Text(
+                        _isArabic
+                            ? 'لا يوجد سجل غرف بعد.'
+                            : 'No room history yet.',
+                      ),
+                    );
+                  }
+
+                  return ListView.separated(
+                    padding: const EdgeInsets.all(12),
+                    itemCount: docs.length,
+                    separatorBuilder: (_, _) => const Divider(),
+                    itemBuilder: (context, index) {
+                      final data = docs[index].data();
+                      final raw = data['lastEnteredAt'];
+                      final enteredAt =
+                          raw is Timestamp ? raw.toDate() : null;
+                      final visits =
+                          (data['visitCount'] as num?)?.toInt() ?? 1;
+
+                      return ListTile(
+                        leading: const CircleAvatar(
+                          child: Icon(Icons.mic_rounded),
+                        ),
+                        title: Text(
+                          (data['roomName'] ?? 'WorldVoice Room').toString(),
+                        ),
+                        subtitle: Text(
+                          enteredAt == null
+                              ? '$visits visit(s)'
+                              : '$visits visit(s) • '
+                                  '${enteredAt.year}-'
+                                  '${enteredAt.month.toString().padLeft(2, '0')}-'
+                                  '${enteredAt.day.toString().padLeft(2, '0')}',
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<_RoomLanguagePrefs>(
+      future: _prefsFuture,
+      builder: (context, prefsSnapshot) {
+        if (prefsSnapshot.connectionState == ConnectionState.waiting &&
+            !prefsSnapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (prefsSnapshot.hasError) {
+          return _RoomsLoadError(
+            isArabic: _isArabic,
+            onRetry: () {
+              setState(() {
+                _prefsFuture = _loadLanguagePrefs();
+              });
+            },
+          );
+        }
+
+        if (!prefsSnapshot.hasData) {
+          return _RoomsLoadError(
+            isArabic: _isArabic,
+            onRetry: () {
+              setState(() {
+                _prefsFuture = _loadLanguagePrefs();
+              });
+            },
+          );
+        }
+
+        final prefs = prefsSnapshot.data!;
+        final tabs = prefs.filterLanguages;
+        final selected = _selectedLanguage ?? tabs.first;
+
+        return Column(
+          children: [
+            const _RoomPromotionBanner(),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 2, 18, 2),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton.icon(
+                    onPressed: () => _showHistory(context),
+                    icon: const Icon(Icons.history_rounded),
+                    label: Text(
+                      _isArabic ? 'السجل' : 'History',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(
+              height: 48,
+              child: ListView.separated(
+                padding: const EdgeInsets.fromLTRB(18, 4, 18, 4),
+                scrollDirection: Axis.horizontal,
+                itemCount: tabs.length,
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  final code = tabs[index];
+                  final isAll = code == 'all';
+                  return ChoiceChip(
+                    selected: selected == code,
+                    showCheckmark: false,
+                    onSelected: (_) {
+                      setState(() => _selectedLanguage = code);
+                    },
+                    label: Text(
+                      isAll
+                          ? (_isArabic ? 'الكل' : 'All')
+                          : _languageLabel(code),
+                    ),
+                  );
+                },
+              ),
+            ),
+            Expanded(
+              child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                stream: _activeRoomsStream,
+                builder: (context, snapshot) {
+                  final allDocs = snapshot.data?.docs ??
+                      const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
+                  final publicDocs = allDocs
+                      .where((doc) => doc.data()['isPrivate'] != true &&
+                          (widget.onlyLive
+                              ? doc.data()['mode'] == RoomMode.live.name
+                              : doc.data()['mode'] != RoomMode.live.name))
+                      .toList(growable: false);
+                  final languageDocs = publicDocs
+                      .where((doc) =>
+                          roomMatchesSelectedLanguage(doc.data(), selected))
+                      .toList(growable: false);
+                  final query = widget.searchQuery.trim().toLowerCase();
+                  final docs = query.isEmpty
+                      ? languageDocs
+                      : languageDocs.where((doc) {
+                          final data = doc.data();
+                          return [
+                            data['name'],
+                            data['hostName'],
+                            data['languageCode'],
+                            ...?((data['languageCodes'] as List?)
+                                ?.map((value) => value.toString())),
+                          ].any((value) =>
+                              value?.toString().toLowerCase().contains(query) ==
+                              true);
+                        }).toList(growable: false);
+
+                  final visibleRoomIds = docs.map((doc) => doc.id).toSet();
+                  return Stack(
+                    children: [
+                      if (snapshot.hasError)
+                        _RoomsLoadError(
+                          isArabic: _isArabic,
+                          permissionDenied: snapshot.error is FirebaseException &&
+                              (snapshot.error as FirebaseException).code == 'permission-denied',
+                          onRetry: () => setState(() {}),
+                        )
+                      else if (snapshot.connectionState ==
+                              ConnectionState.waiting &&
+                          !snapshot.hasData)
+                        const Center(child: CircularProgressIndicator())
+                      else
+                        Stack(
+                          children: [
+                        // Keep all room cards mounted while changing the
+                        // filter. Their Firestore participant subscriptions
+                        // must not restart every time Arabic/English is tapped.
+                        ListView.builder(
+                          padding:
+                              const EdgeInsets.fromLTRB(18, 14, 18, 96),
+                          itemCount: publicDocs.length,
+                          itemBuilder: (context, index) {
+                            final doc = publicDocs[index];
+                            final data = doc.data();
+                            final name =
+                                (data['name'] ?? 'WorldVoice Room').toString();
+                            final hostName = (data['hostName'] ??
+                                    (_isArabic
+                                        ? 'مضيف WorldVoice'
+                                        : 'WorldVoice host'))
+                                .toString();
+                            final roomLanguage =
+                                (data['languageCode'] ?? 'en')
+                                    .toString()
+                                    .toLowerCase();
+                            final languageCodes = (data['languageCodes'] as List?)
+                                    ?.map((e) => e.toString().toLowerCase()).toList() ??
+                                <String>[roomLanguage];
+                            final secondaryLanguage = languageCodes
+                                .where((code) => code != roomLanguage).firstOrNull;
+                            final hostPhotoUrl =
+                                (data['hostPhotoUrl'] as String?)?.trim();
+                            final hostCountry =
+                                (data['hostCountry'] ?? '').toString();
+                            final showTeacherAiSeat =
+                                data['showTeacherAiSeat'] == true;
+                            final vipOnly = data['vipOnly'] == true;
+
+                            return Visibility(
+                              visible: visibleRoomIds.contains(doc.id),
+                              maintainState: true,
+                              child: _RoomCard(
+                              key: ValueKey<String>('room-card-${doc.id}'),
+                              channelId: doc.id,
+                              name: name,
+                              hostName: hostName,
+                              hostPhotoUrl: hostPhotoUrl,
+                              hostCountry: hostCountry,
+                              languageCode: secondaryLanguage == null
+                                  ? roomLanguage : '$roomLanguage / $secondaryLanguage',
+                              vipOnly: vipOnly,
+                              onTap: () => _joinRoom(
+                                context,
+                                channelId: doc.id,
+                                roomName: name,
+                                roomLanguageCode: roomLanguage,
+                                secondaryRoomLanguageCode: secondaryLanguage,
+                                ownerId: (data['hostId'] ?? '').toString(),
+                                showTeacherAiSeat: showTeacherAiSeat,
+                                roomModeName: data['mode']?.toString(),
+                                vipOnly: vipOnly,
+                              ),
+                              ),
+                            );
+                          },
+                        ),
+                        if (docs.isEmpty)
+                          _EmptyRooms(
+                            isArabic: _isArabic,
+                            languageCode: selected,
+                          ),
+                          ],
+                        ),
+                      PositionedDirectional(
+                        end: 18,
+                        bottom: 18,
+                        child: FloatingActionButton.extended(
+                          heroTag: 'create_voice_room',
+                          onPressed: () async {
+                            try {
+                              await _createRoom(context, prefs);
+                            } catch (_) {
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(_isArabic
+                                    ? 'تعذر فتح الغرفة. تحقق من تسجيل الدخول واتصال الخدمة.'
+                                    : 'Could not open the room. Check your sign-in and service connection.')),
+                              );
+                            }
+                          },
+                          icon: const Icon(Icons.add_rounded),
+                          label: Text(
+                            _isArabic ? 'إنشاء غرفة' : 'Create room',
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _RoomPromotionBanner extends StatelessWidget {
+  const _RoomPromotionBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance
+          .collection('room_promotions')
+          .doc('current')
+          .snapshots(),
+      builder: (context, snapshot) {
+        final data = snapshot.data?.data();
+        if (data == null || data['enabled'] != true) {
+          return const SizedBox.shrink();
+        }
+
+        final title = (data['title'] ?? '').toString().trim();
+        final subtitle = (data['subtitle'] ?? '').toString().trim();
+        final imageUrl = (data['imageUrl'] ?? '').toString().trim();
+
+        if (title.isEmpty && subtitle.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        return Container(
+          width: double.infinity,
+          margin: const EdgeInsets.fromLTRB(18, 8, 18, 8),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(22),
+            gradient: const LinearGradient(
+              colors: [Color(0xFF5C46E8), Color(0xFF16A978)],
+            ),
+            image: imageUrl.isEmpty
+                ? null
+                : DecorationImage(
+                    image: NetworkImage(imageUrl),
+                    fit: BoxFit.cover,
+                    opacity: .22,
+                  ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (title.isNotEmpty)
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 18,
+                  ),
+                ),
+              if (subtitle.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: const TextStyle(color: Colors.white70),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// A bilingual room is discoverable under All and each of its languages.
+/// Firestore records from earlier builds may contain only languageCode.
+bool roomMatchesSelectedLanguage(
+  Map<String, dynamic> room,
+  String selectedLanguage,
+) {
+  final selected = selectedLanguage.trim().toLowerCase();
+  if (selected == 'all' || selected.isEmpty) return true;
+  final primary = (room['languageCode'] ?? 'en').toString().trim().toLowerCase();
+  if (primary == selected) return true;
+  final languages = room['languageCodes'];
+  if (languages is! List) return false;
+  return languages.any(
+    (code) => code.toString().trim().toLowerCase() == selected,
+  );
+}
+
+class _RoomCard extends StatefulWidget {
+  const _RoomCard({
+    required this.channelId,
+    required this.name,
+    required this.hostName,
+    required this.hostPhotoUrl,
+    required this.hostCountry,
+    required this.languageCode,
+    required this.vipOnly,
+    required this.onTap,
+    super.key,
+  });
+
+  final String channelId;
+  final String name;
+  final String hostName;
+  final String? hostPhotoUrl;
+  final String hostCountry;
+  final String languageCode;
+  final bool vipOnly;
+  final VoidCallback onTap;
+
+  @override
+  State<_RoomCard> createState() => _RoomCardState();
+}
+
+class _RoomCardState extends State<_RoomCard> {
+  late final Stream<QuerySnapshot<Map<String, dynamic>>>
+      _participantsStream;
+  Timer? _refreshTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _participantsStream = FirebaseFirestore.instance
+        .collection('rooms')
+        .doc(widget.channelId)
+        .collection('participants')
+        .snapshots();
+    // A sudden disconnect leaves no new Firestore event. Refresh locally so
+    // old participant presence expires even if the room document stays open.
+    _refreshTimer = Timer.periodic(
+      const Duration(seconds: 30),
+      (_) {
+        if (mounted) setState(() {});
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: _participantsStream,
+      builder: (context, snapshot) {
+        final participants = snapshot.data?.docs ??
+            const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
+        final activeParticipants = participants.where((doc) {
+          final activity = doc.data()['updatedAt'] ?? doc.data()['joinedAt'];
+          return activity is Timestamp &&
+              !activity.toDate().isBefore(
+                DateTime.now().subtract(const Duration(minutes: 3)),
+              );
+        }).toList(growable: false);
+        if (activeParticipants.isEmpty) return const SizedBox.shrink();
+        final preview = activeParticipants.take(3).toList(growable: false);
+
+        return Card(
+          margin: const EdgeInsets.only(bottom: 12),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: widget.onTap,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _AvatarStack(
+                    hostPhotoUrl: widget.hostPhotoUrl,
+                    participants: preview,
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.name,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: [
+                            _SmallBadge(
+                              text: '🎙 Voice',
+                              background: colors.primaryContainer,
+                              foreground: colors.onPrimaryContainer,
+                            ),
+                            _SmallBadge(
+                              text: widget.languageCode.split(' / ').map(_languageLabel).join(' • '),
+                              background: colors.secondaryContainer,
+                              foreground: colors.onSecondaryContainer,
+                            ),
+                            if (widget.vipOnly)
+                              _SmallBadge(
+                                text: 'VIP',
+                                background: const Color(0xFFFFD978),
+                                foreground: const Color(0xFF5E4300),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 9),
+                        Row(
+                          children: [
+                            Text(
+                              profileCountryFlag(widget.hostCountry),
+                              style: const TextStyle(fontSize: 17),
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                widget.hostName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 9),
+                        Row(
+                          children: [
+                            const _LivePulse(),
+                            const SizedBox(width: 7),
+                            const Text(
+                              'LIVE',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            const Icon(Icons.people_alt_rounded, size: 16),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${activeParticipants.length}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  const Icon(Icons.chevron_right_rounded),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _AvatarStack extends StatelessWidget {
+  const _AvatarStack({
+    required this.hostPhotoUrl,
+    required this.participants,
+  });
+
+  final String? hostPhotoUrl;
+  final List<QueryDocumentSnapshot<Map<String, dynamic>>> participants;
+
+  @override
+  Widget build(BuildContext context) {
+    final urls = <String>[];
+    if (hostPhotoUrl?.isNotEmpty == true) urls.add(hostPhotoUrl!);
+
+    for (final participant in participants) {
+      final value = (participant.data()['photoUrl'] as String?)?.trim();
+      if (value != null && value.isNotEmpty && !urls.contains(value)) {
+        urls.add(value);
+      }
+      if (urls.length >= 3) break;
+    }
+
+    if (urls.isEmpty) {
+      return CircleAvatar(
+        radius: 29,
+        backgroundColor:
+            Theme.of(context).colorScheme.surfaceContainerHighest,
+        child: const Icon(Icons.record_voice_over_rounded),
+      );
+    }
+
+    return SizedBox(
+      width: 58,
+      height: 58,
+      child: Stack(
+        children: [
+          for (var index = 0; index < urls.length; index++)
+            Positioned(
+              left: index * 14,
+              top: index * 7,
+              child: CircleAvatar(
+                radius: 20,
+                backgroundColor: Theme.of(context).colorScheme.surface,
+                child: CircleAvatar(
+                  radius: 18,
+                  backgroundImage: NetworkImage(urls[index]),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SmallBadge extends StatelessWidget {
+  const _SmallBadge({
+    required this.text,
+    required this.background,
+    required this.foreground,
+  });
+
+  final String text;
+  final Color background;
+  final Color foreground;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: foreground,
+          fontSize: 10,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+}
+
+class _RoomsLoadError extends StatelessWidget {
+  final bool permissionDenied;
+  const _RoomsLoadError({
+    this.permissionDenied = false,
+    required this.isArabic,
+    required this.onRetry,
+  });
+
+  final bool isArabic;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.cloud_off_rounded, size: 52),
+            const SizedBox(height: 12),
+            Text(
+              isArabic
+                  ? 'تعذر تحميل الغرف'
+                  : 'Could not load rooms',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              permissionDenied
+                  ? (isArabic
+                      ? 'تعذر الوصول إلى الغرف بسبب صلاحيات الخدمة. حاول تسجيل الدخول مجددًا؛ إذا استمرت المشكلة، يلزم مراجعة إعدادات الخدمة.'
+                      : 'Room access was denied. Sign in again; if this continues, the service configuration needs review.')
+                  : (isArabic
+                      ? 'تحقق من الإنترنت ثم حاول مرة أخرى.'
+                      : 'Check your connection and try again.'),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh_rounded),
+              label: Text(isArabic ? 'إعادة المحاولة' : 'Retry'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptyRooms extends StatelessWidget {
+  const _EmptyRooms({
+    required this.isArabic,
+    required this.languageCode,
+  });
+
+  final bool isArabic;
+  final String languageCode;
+
+  @override
+  Widget build(BuildContext context) {
+    final languageText =
+        languageCode == 'all' ? '' : ' ${_languageLabel(languageCode)}';
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.graphic_eq_rounded, size: 54),
+            const SizedBox(height: 12),
+            Text(
+              isArabic
+                  ? 'لا توجد غرف مفتوحة الآن'
+                  : 'No$languageText rooms are open right now',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              isArabic
+                  ? 'أنشئ غرفة وادعُ أصحابك للدخول.'
+                  : 'Create a room and invite your friends to join.',
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LivePulse extends StatefulWidget {
+  const _LivePulse();
+
+  @override
+  State<_LivePulse> createState() => _LivePulseState();
+}
+
+class _LivePulseState extends State<_LivePulse>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 850),
+      lowerBound: .6,
+      upperBound: 1,
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ScaleTransition(
+      scale: _controller,
+      child: Container(
+        width: 10,
+        height: 10,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Theme.of(context).colorScheme.error,
+        ),
+      ),
+    );
+  }
+}
+
+class _RoomLanguagePrefs {
+  const _RoomLanguagePrefs({
+    required this.nativeLanguage,
+    required this.learningLanguages,
+    required this.giftLevel,
+  });
+
+  final String nativeLanguage;
+  final List<String> learningLanguages;
+  final int giftLevel;
+
+  List<String> get roomLanguages {
+    final result = <String>[];
+    if (nativeLanguage.isNotEmpty) result.add(nativeLanguage);
+    for (final code in learningLanguages) {
+      if (code.isNotEmpty && !result.contains(code)) result.add(code);
+    }
+    if (result.isEmpty) result.add('en');
+    return result;
+  }
+
+  List<String> get filterLanguages => <String>[
+        'all',
+        ...roomLanguages,
+      ];
+}
+
+String _languageLabel(String code) {
+  const names = <String, String>{
+    'ar': 'العربية',
+    'en': 'English',
+    'es': 'Español',
+    'fr': 'Français',
+    'de': 'Deutsch',
+    'pt': 'Português',
+    'tr': 'Türkçe',
+    'ru': 'Русский',
+    'zh': '中文',
+    'ja': '日本語',
+    'ko': '한국어',
+    'ur': 'اردو',
+    'fa': 'فارسی',
+    'id': 'Indonesia',
+    'th': 'ไทย',
+    'hi': 'हिन्दी',
+  };
+
+  return names[code.toLowerCase()] ?? code.toUpperCase();
+}
