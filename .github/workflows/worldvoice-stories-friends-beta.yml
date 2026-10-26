@@ -38,12 +38,6 @@ jobs:
         run: flutter analyze
       - name: Run Story and startup regression tests
         run: flutter test test/worldvoice_story_regression_test.dart test/widget_test.dart
-      # The legacy full suite currently has unrelated academy, gifts and room
-      # failures (10 failures in prior run); do not silently modify those features
-      # or block a Story beta APK on unrelated baseline regressions.
-      - name: Run full baseline tests (advisory)
-        continue-on-error: true
-        run: flutter test
       - name: Verify HD gifts, backgrounds, and castles
         run: |
           python3 scripts/verify_room_background_assets.py
