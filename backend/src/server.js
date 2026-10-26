@@ -2465,6 +2465,7 @@ registerMemberBadgeRoutes({app, db, authenticatedUser});
 registerWalletRoutes({app, db, authenticatedUser});
 registerChatRoutes({app, db, authenticatedUser});
 registerOfficialActivityRoutes({app, db, authenticatedUser});
+registerOfficialAnnouncementRoutes({app, db, authenticatedUser});
 registerStoryRoutes({
   app,
   authenticatedUser,
