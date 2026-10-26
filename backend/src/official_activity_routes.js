@@ -57,6 +57,22 @@ async function sendPush(db, uid, activity, language) {
 }
 
 export function registerOfficialActivityRoutes({app, db, authenticatedUser}) {
+  app.post("/system/activity/preferences", async (req, res, next) => {
+    try {
+      const user = await authenticatedUser(req);
+      if (typeof req.body?.rooms !== "boolean" ||
+          typeof req.body?.lives !== "boolean") {
+        throw invalid("Notification preferences must be booleans.");
+      }
+      await db.collection("users").doc(user.uid).set({
+        roomNotificationsEnabled: req.body.rooms,
+        liveNotificationsEnabled: req.body.lives,
+        notificationPreferencesUpdatedAt: FieldValue.serverTimestamp(),
+      }, {merge: true});
+      return res.json({ok: true});
+    } catch (error) { next(error); }
+  });
+
   // Persist only the caller's own device token. Tokens must never be accepted
   // for another account or exposed through Firestore rules.
   app.post("/system/notifications/device", async (req, res, next) => {
