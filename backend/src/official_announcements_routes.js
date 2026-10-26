@@ -117,7 +117,7 @@ export function registerOfficialAnnouncementRoutes({app, db, authenticatedUser})
       const user = await authenticatedUser(req);
       await assertPublisher(db, user);
       const announcementId = String(req.body?.announcementId || "");
-      if (!/^[A-Za-z0-9]{15,40}$/.test(announcementId)) {
+      if (!/^[a-f0-9]{64}$/.test(announcementId)) {
         fail("Invalid announcement identifier.");
       }
       const key = process.env.RESEND_API_KEY;
