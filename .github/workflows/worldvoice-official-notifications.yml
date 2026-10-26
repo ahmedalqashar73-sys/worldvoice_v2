@@ -1,0 +1,61 @@
+name: WorldVoice Official Notifications CI
+
+on:
+  push:
+    branches:
+      - feature/scalable-progress-foundation
+    paths:
+      - ".github/workflows/worldvoice-official-notifications.yml"
+      - "backend/src/official_*_routes.js"
+      - "backend/src/server.js"
+      - "lib/features/chat/**"
+      - "lib/features/live/**"
+      - "lib/features/rooms/**"
+      - "lib/app/app.dart"
+      - "pubspec.yaml"
+      - "firestore.rules"
+      - "firestore.indexes.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  notifications-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate JavaScript syntax
+        run: |
+          node --check backend/src/official_activity_routes.js
+          node --check backend/src/official_announcements_routes.js
+          node --check backend/src/server.js
+      - name: Check Firestore index JSON
+        run: node -e "JSON.parse(require('fs').readFileSync('firestore.indexes.json','utf8'))"
+
+  notifications-flutter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.44.8"
+          channel: stable
+          cache: true
+      - name: Resolve dependencies
+        run: flutter pub get
+      - name: Check changed Flutter components
+        run: |
+          flutter analyze --no-fatal-infos --no-fatal-warnings \
+            lib/app/app.dart \
+            lib/features/chat/services/worldvoice_notification_service.dart \
+            lib/features/chat/presentation/worldvoice_official_screen.dart \
+            lib/features/chat/presentation/worldvoice_activity_screen.dart \
+            lib/features/chat/presentation/chat_screen.dart \
+            lib/features/live/services/live_session_service.dart \
+            lib/features/live/presentation/live_screen.dart \
+            lib/features/rooms/presentation/agora_voice_room_screen.dart
