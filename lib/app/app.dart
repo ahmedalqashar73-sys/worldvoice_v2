@@ -34,7 +34,6 @@ class _WorldVoiceAppState extends State<WorldVoiceApp> with WidgetsBindingObserv
   StreamSubscription<RemoteMessage>? _pushOpenSubscription;
   StreamSubscription<RemoteMessage>? _foregroundPushSubscription;
   Future<void> _pushSignOutCleanup = Future<void>.value();
-  String? _pushAccountId;
   final _notificationMessengerKey = GlobalKey<ScaffoldMessengerState>();
   bool _ready = false;
 
@@ -74,14 +73,12 @@ class _WorldVoiceAppState extends State<WorldVoiceApp> with WidgetsBindingObserv
     });
     _authSubscription = FirebaseAuth.instance.authStateChanges().listen((user) {
       if (user != null) {
-        _pushAccountId = user.uid;
         _presenceSession.start();
         unawaited(AuthService.syncPrivilegedAccountEntitlements());
         unawaited(RoomCoinPurchaseService.instance.initialize());
         unawaited(_setupPushForAccount());
       } else {
         _presenceSession.stop();
-        _pushAccountId = null;
         _pushTokenSubscription?.cancel();
         _pushTokenSubscription = null;
         // Logout revokes this device's token before the next account registers.
