@@ -132,6 +132,34 @@ class _WorldVoiceOfficialScreenState extends State<WorldVoiceOfficialScreen> {
                   },
                 ),
               ),
+              StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                stream: FirebaseFirestore.instance.collection('users')
+                    .doc(uid).snapshots(),
+                builder: (context, snapshot) {
+                  final optedIn = snapshot.data?.data()?['emailAnnouncementsOptIn'] == true;
+                  return SwitchListTile.adaptive(
+                    dense: true,
+                    value: optedIn,
+                    title: Text(ar ? 'استلام تحديثات WorldVoice بالإيميل'
+                        : 'Email me WorldVoice updates'),
+                    subtitle: Text(ar
+                        ? 'اختياري. يمكنك إيقافه في أي وقت.'
+                        : 'Optional. You can turn this off at any time.'),
+                    onChanged: (value) async {
+                      try {
+                        await WorldVoiceNotificationService.post(
+                          '/system/announcements/email/preference',
+                          {'enabled': value},
+                        );
+                      } catch (error) {
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text(error.toString())));
+                      }
+                    },
+                  );
+                },
+              ),
               Padding(
                 padding: const EdgeInsets.all(14),
                 child: FutureBuilder<Map<String, dynamic>>(
