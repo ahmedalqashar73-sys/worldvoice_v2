@@ -2462,6 +2462,7 @@ registerMemberBadgeRoutes({app, db, authenticatedUser});
 // Finance routes run only on the separately deployed authenticated backend.
 registerWalletRoutes({app, db, authenticatedUser});
 registerChatRoutes({app, db, authenticatedUser});
+registerOfficialActivityRoutes({app, db, authenticatedUser});
 registerStoryRoutes({
   app,
   authenticatedUser,
