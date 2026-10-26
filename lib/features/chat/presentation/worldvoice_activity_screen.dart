@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/localization/locale_controller.dart';
+import '../services/worldvoice_notification_service.dart';
 import '../../live/presentation/live_screen.dart';
 import '../../rooms/data/room_mode.dart';
 import '../../rooms/presentation/agora_voice_room_screen.dart';
@@ -31,6 +32,16 @@ class WorldVoiceActivityScreen extends StatelessWidget {
               overflow: TextOverflow.ellipsis)),
           const Icon(Icons.verified, color: Color(0xFF0CBA86), size: 18),
         ]),
+        actions: [
+          IconButton(
+            tooltip: ar ? 'إعدادات إشعارات الغرف' : 'Activity notification settings',
+            icon: const Icon(Icons.tune_rounded),
+            onPressed: () => showModalBottomSheet<void>(
+              context: context, showDragHandle: true,
+              builder: (_) => _ActivityPreferences(ar: ar),
+            ),
+          ),
+        ],
       ),
       body: uid == null
           ? const Center(child: Text('Sign in required'))
@@ -270,6 +281,76 @@ class _RoomParticipantPreview extends StatelessWidget {
           Text('${people.length}+',
               style: const TextStyle(color: Colors.white70)),
         ]);
+      },
+    );
+  }
+}
+
+class _ActivityPreferences extends StatefulWidget {
+  const _ActivityPreferences({required this.ar});
+  final bool ar;
+  @override
+  State<_ActivityPreferences> createState() => _ActivityPreferencesState();
+}
+
+class _ActivityPreferencesState extends State<_ActivityPreferences> {
+  bool? _rooms;
+  bool? _lives;
+  bool _busy = false;
+
+  Future<void> _save() async {
+    if (_busy || _rooms == null || _lives == null) return;
+    setState(() => _busy = true);
+    try {
+      await WorldVoiceNotificationService.post(
+        '/system/activity/preferences',
+        {'rooms': _rooms, 'lives': _lives},
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: uid == null ? const Stream.empty() :
+          FirebaseFirestore.instance.collection('users').doc(uid).snapshots(),
+      builder: (context, snapshot) {
+        final data = snapshot.data?.data() ?? const <String, dynamic>{};
+        _rooms ??= data['roomNotificationsEnabled'] != false;
+        _lives ??= data['liveNotificationsEnabled'] != false;
+        return SafeArea(child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Text(widget.ar ? 'إشعارات الأصدقاء' : 'Followed host notifications',
+              style: Theme.of(context).textTheme.titleLarge),
+            SwitchListTile.adaptive(
+              title: Text(widget.ar ? 'عندما يفتح شخص أتابعه غرفة صوتية'
+                : 'When someone I follow starts a room'),
+              value: _rooms!,
+              onChanged: _busy ? null : (v) {
+                setState(() => _rooms = v);
+                _save();
+              },
+            ),
+            SwitchListTile.adaptive(
+              title: Text(widget.ar ? 'عندما يبدأ شخص أتابعه بثًا مباشرًا'
+                : 'When someone I follow goes live'),
+              value: _lives!,
+              onChanged: _busy ? null : (v) {
+                setState(() => _lives = v);
+                _save();
+              },
+            ),
+          ]),
+        ));
       },
     );
   }
