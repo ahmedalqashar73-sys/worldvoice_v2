@@ -44,7 +44,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _openPendingPush() {
     if (!mounted || _openingOfficialPush ||
-        WorldVoiceNotificationService.pendingInbox.value == null) return;
+        WorldVoiceNotificationService.pendingInbox.value == null) {
+      return;
+    }
     _openingOfficialPush = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _openingOfficialPush = false;
