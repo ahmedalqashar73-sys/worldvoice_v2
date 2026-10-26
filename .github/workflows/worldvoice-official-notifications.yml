@@ -12,6 +12,7 @@ on:
       - "lib/features/live/**"
       - "lib/features/rooms/**"
       - "lib/app/app.dart"
+      - "lib/features/home/presentation/home_screen.dart"
       - "pubspec.yaml"
       - "firestore.rules"
       - "firestore.indexes.json"
@@ -48,14 +49,5 @@ jobs:
           cache: true
       - name: Resolve dependencies
         run: flutter pub get
-      - name: Check changed Flutter components
-        run: |
-          flutter analyze --no-fatal-infos --no-fatal-warnings \
-            lib/app/app.dart \
-            lib/features/chat/services/worldvoice_notification_service.dart \
-            lib/features/chat/presentation/worldvoice_official_screen.dart \
-            lib/features/chat/presentation/worldvoice_activity_screen.dart \
-            lib/features/chat/presentation/chat_screen.dart \
-            lib/features/live/services/live_session_service.dart \
-            lib/features/live/presentation/live_screen.dart \
-            lib/features/rooms/presentation/agora_voice_room_screen.dart
+      - name: Analyze complete WorldVoice Flutter project
+        run: flutter analyze
