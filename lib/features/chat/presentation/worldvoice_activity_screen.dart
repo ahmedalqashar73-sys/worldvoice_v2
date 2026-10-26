@@ -320,7 +320,8 @@ class _ActivityPreferencesState extends State<_ActivityPreferences> {
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-      stream: uid == null ? const Stream.empty() :
+      stream: uid == null
+          ? const Stream<DocumentSnapshot<Map<String, dynamic>>>.empty() :
           FirebaseFirestore.instance.collection('users').doc(uid).snapshots(),
       builder: (context, snapshot) {
         final data = snapshot.data?.data() ?? const <String, dynamic>{};
