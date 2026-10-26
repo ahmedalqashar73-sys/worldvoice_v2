@@ -3,7 +3,7 @@
   "title": "WorldVoice Gifts",
   "titleAr": "هدايا وورلد فويس",
   "currency": "coins",
-  "version": 3,
+  "version": 4,
   "atlas": {
     "columns": 9,
     "rows": 6,
@@ -16,19 +16,19 @@
       "id": 1,
       "minCoins": 1,
       "maxCoins": 150,
-      "count": 30
+      "count": 50
     },
     {
       "id": 2,
       "minCoins": 151,
       "maxCoins": 1000,
-      "count": 15
+      "count": 35
     },
     {
       "id": 3,
       "minCoins": 1001,
       "maxCoins": 5000,
-      "count": 9
+      "count": 19
     }
   ],
   "gifts": [
@@ -625,6 +625,556 @@
       "tier": 3,
       "atlasIndex": 53,
       "sortOrder": 54
+    },
+    {
+      "id": "wv_gift_055",
+      "name": "Red Panda Hug",
+      "nameAr": "حضن الباندا الأحمر",
+      "priceCoins": 1,
+      "emoji": "🎁",
+      "effectType": "float",
+      "tier": 1,
+      "sortOrder": 55,
+      "artAsset": "assets/gifts/hd/wv_gift_055.webp"
+    },
+    {
+      "id": "wv_gift_056",
+      "name": "Matcha Cloud",
+      "nameAr": "سحابة الماتشا",
+      "priceCoins": 3,
+      "emoji": "🎁",
+      "effectType": "float",
+      "tier": 1,
+      "sortOrder": 56,
+      "artAsset": "assets/gifts/hd/wv_gift_056.webp"
+    },
+    {
+      "id": "wv_gift_057",
+      "name": "Strawberry Mochi",
+      "nameAr": "موتشي الفراولة",
+      "priceCoins": 5,
+      "emoji": "🎁",
+      "effectType": "float",
+      "tier": 1,
+      "sortOrder": 57,
+      "artAsset": "assets/gifts/hd/wv_gift_057.webp"
+    },
+    {
+      "id": "wv_gift_058",
+      "name": "Sunshine Duck",
+      "nameAr": "بطة الشمس",
+      "priceCoins": 8,
+      "emoji": "🎁",
+      "effectType": "float",
+      "tier": 1,
+      "sortOrder": 58,
+      "artAsset": "assets/gifts/hd/wv_gift_058.webp"
+    },
+    {
+      "id": "wv_gift_059",
+      "name": "Mint Scooter",
+      "nameAr": "دراجة النعناع",
+      "priceCoins": 10,
+      "emoji": "🎁",
+      "effectType": "float",
+      "tier": 1,
+      "sortOrder": 59,
+      "artAsset": "assets/gifts/hd/wv_gift_059.webp"
+    },
+    {
+      "id": "wv_gift_060",
+      "name": "Lunar Bunny",
+      "nameAr": "أرنب القمر",
+      "priceCoins": 15,
+      "emoji": "🎁",
+      "effectType": "float",
+      "tier": 1,
+      "sortOrder": 60,
+      "artAsset": "assets/gifts/hd/wv_gift_060.webp"
+    },
+    {
+      "id": "wv_gift_061",
+      "name": "Coral Seahorse",
+      "nameAr": "فرس البحر المرجاني",
+      "priceCoins": 20,
+      "emoji": "🎁",
+      "effectType": "float",
+      "tier": 1,
+      "sortOrder": 61,
+      "artAsset": "assets/gifts/hd/wv_gift_061.webp"
+    },
+    {
+      "id": "wv_gift_062",
+      "name": "Pixel Robot",
+      "nameAr": "روبوت الصداقة",
+      "priceCoins": 25,
+      "emoji": "🎁",
+      "effectType": "float",
+      "tier": 1,
+      "sortOrder": 62,
+      "artAsset": "assets/gifts/hd/wv_gift_062.webp"
+    },
+    {
+      "id": "wv_gift_063",
+      "name": "Cherry Skate",
+      "nameAr": "لوح الكرز",
+      "priceCoins": 30,
+      "emoji": "🎁",
+      "effectType": "float",
+      "tier": 1,
+      "sortOrder": 63,
+      "artAsset": "assets/gifts/hd/wv_gift_063.webp"
+    },
+    {
+      "id": "wv_gift_064",
+      "name": "Peach Axolotl",
+      "nameAr": "أكسولوتل الخوخ",
+      "priceCoins": 35,
+      "emoji": "🎁",
+      "effectType": "float",
+      "tier": 1,
+      "sortOrder": 64,
+      "artAsset": "assets/gifts/hd/wv_gift_064.webp"
+    },
+    {
+      "id": "wv_gift_065",
+      "name": "Cobalt Teapot",
+      "nameAr": "إبريق الكوبالت",
+      "priceCoins": 40,
+      "emoji": "🎁",
+      "effectType": "float",
+      "tier": 1,
+      "sortOrder": 65,
+      "artAsset": "assets/gifts/hd/wv_gift_065.webp"
+    },
+    {
+      "id": "wv_gift_066",
+      "name": "Origami Crane",
+      "nameAr": "كركي الأوريغامي",
+      "priceCoins": 45,
+      "emoji": "🎁",
+      "effectType": "float",
+      "tier": 1,
+      "sortOrder": 66,
+      "artAsset": "assets/gifts/hd/wv_gift_066.webp"
+    },
+    {
+      "id": "wv_gift_067",
+      "name": "Tulip Rainboots",
+      "nameAr": "توليب المطر",
+      "priceCoins": 50,
+      "emoji": "🎁",
+      "effectType": "float",
+      "tier": 1,
+      "sortOrder": 67,
+      "artAsset": "assets/gifts/hd/wv_gift_067.webp"
+    },
+    {
+      "id": "wv_gift_068",
+      "name": "Amber Vinyl",
+      "nameAr": "أسطوانة العنبر",
+      "priceCoins": 55,
+      "emoji": "🎁",
+      "effectType": "float",
+      "tier": 1,
+      "sortOrder": 68,
+      "artAsset": "assets/gifts/hd/wv_gift_068.webp"
+    },
+    {
+      "id": "wv_gift_069",
+      "name": "Candy Donut",
+      "nameAr": "دونات الحلوى",
+      "priceCoins": 60,
+      "emoji": "🎁",
+      "effectType": "float",
+      "tier": 1,
+      "sortOrder": 69,
+      "artAsset": "assets/gifts/hd/wv_gift_069.webp"
+    },
+    {
+      "id": "wv_gift_070",
+      "name": "Sushi Cat",
+      "nameAr": "قطة السوشي",
+      "priceCoins": 65,
+      "emoji": "🎁",
+      "effectType": "float",
+      "tier": 1,
+      "sortOrder": 70,
+      "artAsset": "assets/gifts/hd/wv_gift_070.webp"
+    },
+    {
+      "id": "wv_gift_071",
+      "name": "Aurora Kite",
+      "nameAr": "طائرة الشفق",
+      "priceCoins": 70,
+      "emoji": "🎁",
+      "effectType": "float",
+      "tier": 1,
+      "sortOrder": 71,
+      "artAsset": "assets/gifts/hd/wv_gift_071.webp"
+    },
+    {
+      "id": "wv_gift_072",
+      "name": "Desert Lantern",
+      "nameAr": "فانوس الصحراء",
+      "priceCoins": 80,
+      "emoji": "🎁",
+      "effectType": "float",
+      "tier": 1,
+      "sortOrder": 72,
+      "artAsset": "assets/gifts/hd/wv_gift_072.webp"
+    },
+    {
+      "id": "wv_gift_073",
+      "name": "Lucky Acorn",
+      "nameAr": "بلوطة الحظ",
+      "priceCoins": 90,
+      "emoji": "🎁",
+      "effectType": "float",
+      "tier": 1,
+      "sortOrder": 73,
+      "artAsset": "assets/gifts/hd/wv_gift_073.webp"
+    },
+    {
+      "id": "wv_gift_074",
+      "name": "Rainbow Pinwheel",
+      "nameAr": "دوارة قوس قزح",
+      "priceCoins": 100,
+      "emoji": "🎁",
+      "effectType": "float",
+      "tier": 1,
+      "sortOrder": 74,
+      "artAsset": "assets/gifts/hd/wv_gift_074.webp"
+    },
+    {
+      "id": "wv_gift_075",
+      "name": "Amethyst Geode",
+      "nameAr": "كهف الجمشت",
+      "priceCoins": 160,
+      "emoji": "🎁",
+      "effectType": "cosmic",
+      "tier": 2,
+      "sortOrder": 75,
+      "artAsset": "assets/gifts/hd/wv_gift_075.webp"
+    },
+    {
+      "id": "wv_gift_076",
+      "name": "Copper Rocket",
+      "nameAr": "صاروخ النحاس",
+      "priceCoins": 180,
+      "emoji": "🎁",
+      "effectType": "cosmic",
+      "tier": 2,
+      "sortOrder": 76,
+      "artAsset": "assets/gifts/hd/wv_gift_076.webp"
+    },
+    {
+      "id": "wv_gift_077",
+      "name": "Moon Rover",
+      "nameAr": "عربة القمر",
+      "priceCoins": 220,
+      "emoji": "🎁",
+      "effectType": "cosmic",
+      "tier": 2,
+      "sortOrder": 77,
+      "artAsset": "assets/gifts/hd/wv_gift_077.webp"
+    },
+    {
+      "id": "wv_gift_078",
+      "name": "Sunset Sailboat",
+      "nameAr": "شراع الغروب",
+      "priceCoins": 260,
+      "emoji": "🎁",
+      "effectType": "cosmic",
+      "tier": 2,
+      "sortOrder": 78,
+      "artAsset": "assets/gifts/hd/wv_gift_078.webp"
+    },
+    {
+      "id": "wv_gift_079",
+      "name": "Nebula Jellyfish",
+      "nameAr": "قنديل السديم",
+      "priceCoins": 300,
+      "emoji": "🎁",
+      "effectType": "cosmic",
+      "tier": 2,
+      "sortOrder": 79,
+      "artAsset": "assets/gifts/hd/wv_gift_079.webp"
+    },
+    {
+      "id": "wv_gift_080",
+      "name": "Silver Cello",
+      "nameAr": "تشيلو الفضة",
+      "priceCoins": 340,
+      "emoji": "🎁",
+      "effectType": "cosmic",
+      "tier": 2,
+      "sortOrder": 80,
+      "artAsset": "assets/gifts/hd/wv_gift_080.webp"
+    },
+    {
+      "id": "wv_gift_081",
+      "name": "Glacier Wolf",
+      "nameAr": "ذئب الجليد",
+      "priceCoins": 380,
+      "emoji": "🎁",
+      "effectType": "cosmic",
+      "tier": 2,
+      "sortOrder": 81,
+      "artAsset": "assets/gifts/hd/wv_gift_081.webp"
+    },
+    {
+      "id": "wv_gift_082",
+      "name": "Amber Observatory",
+      "nameAr": "مرصد العنبر",
+      "priceCoins": 420,
+      "emoji": "🎁",
+      "effectType": "cosmic",
+      "tier": 2,
+      "sortOrder": 82,
+      "artAsset": "assets/gifts/hd/wv_gift_082.webp"
+    },
+    {
+      "id": "wv_gift_083",
+      "name": "Espresso Atelier",
+      "nameAr": "آلة الإسبريسو",
+      "priceCoins": 460,
+      "emoji": "🎁",
+      "effectType": "cosmic",
+      "tier": 2,
+      "sortOrder": 83,
+      "artAsset": "assets/gifts/hd/wv_gift_083.webp"
+    },
+    {
+      "id": "wv_gift_084",
+      "name": "Pearl Submarine",
+      "nameAr": "غواصة اللؤلؤ",
+      "priceCoins": 500,
+      "emoji": "🎁",
+      "effectType": "cosmic",
+      "tier": 2,
+      "sortOrder": 84,
+      "artAsset": "assets/gifts/hd/wv_gift_084.webp"
+    },
+    {
+      "id": "wv_gift_085",
+      "name": "Rainbow Toucan",
+      "nameAr": "طوقان الألوان",
+      "priceCoins": 550,
+      "emoji": "🎁",
+      "effectType": "cosmic",
+      "tier": 2,
+      "sortOrder": 85,
+      "artAsset": "assets/gifts/hd/wv_gift_085.webp"
+    },
+    {
+      "id": "wv_gift_086",
+      "name": "Cherry Blossom Train",
+      "nameAr": "قطار الساكورا",
+      "priceCoins": 600,
+      "emoji": "🎁",
+      "effectType": "cosmic",
+      "tier": 2,
+      "sortOrder": 86,
+      "artAsset": "assets/gifts/hd/wv_gift_086.webp"
+    },
+    {
+      "id": "wv_gift_087",
+      "name": "Solar Satellite",
+      "nameAr": "قمر الطاقة الشمسي",
+      "priceCoins": 650,
+      "emoji": "🎁",
+      "effectType": "cosmic",
+      "tier": 2,
+      "sortOrder": 87,
+      "artAsset": "assets/gifts/hd/wv_gift_087.webp"
+    },
+    {
+      "id": "wv_gift_088",
+      "name": "Opal Carousel",
+      "nameAr": "دوامة الأوبال",
+      "priceCoins": 700,
+      "emoji": "🎁",
+      "effectType": "cosmic",
+      "tier": 2,
+      "sortOrder": 88,
+      "artAsset": "assets/gifts/hd/wv_gift_088.webp"
+    },
+    {
+      "id": "wv_gift_089",
+      "name": "Storm Surfboard",
+      "nameAr": "ركوب العاصفة",
+      "priceCoins": 750,
+      "emoji": "🎁",
+      "effectType": "cosmic",
+      "tier": 2,
+      "sortOrder": 89,
+      "artAsset": "assets/gifts/hd/wv_gift_089.webp"
+    },
+    {
+      "id": "wv_gift_090",
+      "name": "Glass Octopus",
+      "nameAr": "أخطبوط الزجاج",
+      "priceCoins": 800,
+      "emoji": "🎁",
+      "effectType": "cosmic",
+      "tier": 2,
+      "sortOrder": 90,
+      "artAsset": "assets/gifts/hd/wv_gift_090.webp"
+    },
+    {
+      "id": "wv_gift_091",
+      "name": "Snow Leopard",
+      "nameAr": "نمر الثلج",
+      "priceCoins": 850,
+      "emoji": "🎁",
+      "effectType": "cosmic",
+      "tier": 2,
+      "sortOrder": 91,
+      "artAsset": "assets/gifts/hd/wv_gift_091.webp"
+    },
+    {
+      "id": "wv_gift_092",
+      "name": "Enchanted Storybook",
+      "nameAr": "كتاب الحكايات",
+      "priceCoins": 900,
+      "emoji": "🎁",
+      "effectType": "cosmic",
+      "tier": 2,
+      "sortOrder": 92,
+      "artAsset": "assets/gifts/hd/wv_gift_092.webp"
+    },
+    {
+      "id": "wv_gift_093",
+      "name": "Royal Peacock",
+      "nameAr": "طاووس الألوان",
+      "priceCoins": 950,
+      "emoji": "🎁",
+      "effectType": "cosmic",
+      "tier": 2,
+      "sortOrder": 93,
+      "artAsset": "assets/gifts/hd/wv_gift_093.webp"
+    },
+    {
+      "id": "wv_gift_094",
+      "name": "Dream Ferris Wheel",
+      "nameAr": "عجلة الأحلام",
+      "priceCoins": 1000,
+      "emoji": "🎁",
+      "effectType": "cosmic",
+      "tier": 2,
+      "sortOrder": 94,
+      "artAsset": "assets/gifts/hd/wv_gift_094.webp"
+    },
+    {
+      "id": "wv_gift_095",
+      "name": "Interstellar Cruiser",
+      "nameAr": "طراد النجوم",
+      "priceCoins": 1200,
+      "emoji": "🎁",
+      "effectType": "cosmic",
+      "tier": 3,
+      "sortOrder": 95,
+      "artAsset": "assets/gifts/hd/wv_gift_095.webp"
+    },
+    {
+      "id": "wv_gift_096",
+      "name": "Clockwork Scorpion",
+      "nameAr": "عقرب الساعة",
+      "priceCoins": 1500,
+      "emoji": "🎁",
+      "effectType": "cosmic",
+      "tier": 3,
+      "sortOrder": 96,
+      "artAsset": "assets/gifts/hd/wv_gift_096.webp"
+    },
+    {
+      "id": "wv_gift_097",
+      "name": "Lunar Kingdom",
+      "nameAr": "مملكة القمر",
+      "priceCoins": 1800,
+      "emoji": "🎁",
+      "effectType": "cosmic",
+      "tier": 3,
+      "sortOrder": 97,
+      "artAsset": "assets/gifts/hd/wv_gift_097.webp"
+    },
+    {
+      "id": "wv_gift_098",
+      "name": "Abyss Diving Helmet",
+      "nameAr": "خوذة الأعماق",
+      "priceCoins": 2200,
+      "emoji": "🎁",
+      "effectType": "cosmic",
+      "tier": 3,
+      "sortOrder": 98,
+      "artAsset": "assets/gifts/hd/wv_gift_098.webp"
+    },
+    {
+      "id": "wv_gift_099",
+      "name": "Obsidian Volcano",
+      "nameAr": "بركان الأوبسيديان",
+      "priceCoins": 2600,
+      "emoji": "🎁",
+      "effectType": "cosmic",
+      "tier": 3,
+      "sortOrder": 99,
+      "artAsset": "assets/gifts/hd/wv_gift_099.webp"
+    },
+    {
+      "id": "wv_gift_100",
+      "name": "Frost Mammoth",
+      "nameAr": "ماموث الجليد",
+      "priceCoins": 3000,
+      "emoji": "🎁",
+      "effectType": "cosmic",
+      "tier": 3,
+      "sortOrder": 100,
+      "artAsset": "assets/gifts/hd/wv_gift_100.webp"
+    },
+    {
+      "id": "wv_gift_101",
+      "name": "Coral Mermaid",
+      "nameAr": "حورية المرجان",
+      "priceCoins": 3500,
+      "emoji": "🎁",
+      "effectType": "cosmic",
+      "tier": 3,
+      "sortOrder": 101,
+      "artAsset": "assets/gifts/hd/wv_gift_101.webp"
+    },
+    {
+      "id": "wv_gift_102",
+      "name": "Prismatic Atom",
+      "nameAr": "الذرة المنشورية",
+      "priceCoins": 4000,
+      "emoji": "🎁",
+      "effectType": "cosmic",
+      "tier": 3,
+      "sortOrder": 102,
+      "artAsset": "assets/gifts/hd/wv_gift_102.webp"
+    },
+    {
+      "id": "wv_gift_103",
+      "name": "Galaxy Gateway",
+      "nameAr": "بوابة المجرات",
+      "priceCoins": 4500,
+      "emoji": "🎁",
+      "effectType": "cosmic",
+      "tier": 3,
+      "sortOrder": 103,
+      "artAsset": "assets/gifts/hd/wv_gift_103.webp"
+    },
+    {
+      "id": "wv_gift_104",
+      "name": "Worlds in Bloom",
+      "nameAr": "عوالم مزهرة",
+      "priceCoins": 5000,
+      "emoji": "🎁",
+      "effectType": "cosmic",
+      "tier": 3,
+      "sortOrder": 104,
+      "artAsset": "assets/gifts/hd/wv_gift_104.webp"
     }
   ]
 }

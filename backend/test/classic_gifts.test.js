@@ -7,10 +7,10 @@ const catalog = JSON.parse(readFileSync(fileURLToPath(
   new URL("../../assets/gifts/worldvoice_gifts.json", import.meta.url)
 ), "utf8"));
 
-test("shared catalog has the approved 54 WorldVoice gifts", () => {
+test("shared catalog has the approved 104 WorldVoice gifts", () => {
   assert.equal(catalog.catalogId, "worldvoice_gifts_v1");
-  assert.equal(catalog.gifts.length, 54);
-  assert.equal(new Set(catalog.gifts.map(g => g.id)).size, 54);
+  assert.equal(catalog.gifts.length, 104);
+  assert.equal(new Set(catalog.gifts.map(g => g.id)).size, 104);
   assert.equal(catalog.atlas.columns, 9);
   assert.equal(catalog.atlas.rows, 6);
   assert.equal(catalog.atlas.cellSize, 192);
@@ -28,12 +28,12 @@ test("shared catalog has the approved 54 WorldVoice gifts", () => {
 
   assert.deepEqual(
     catalog.gifts.map(g => g.sortOrder),
-    Array.from({length: 54}, (_, i) => i + 1),
+    Array.from({length: 104}, (_, i) => i + 1),
   );
 
-  assert.equal(catalog.gifts.filter(g => g.tier === 1).length, 30);
-  assert.equal(catalog.gifts.filter(g => g.tier === 2).length, 15);
-  assert.equal(catalog.gifts.filter(g => g.tier === 3).length, 9);
+  assert.equal(catalog.gifts.filter(g => g.tier === 1).length, 50);
+  assert.equal(catalog.gifts.filter(g => g.tier === 2).length, 35);
+  assert.equal(catalog.gifts.filter(g => g.tier === 3).length, 19);
 
   assert.ok(catalog.gifts.every(g =>
     /^wv_gift_[0-9]{3}$/.test(g.id) &&

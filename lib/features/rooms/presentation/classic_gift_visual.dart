@@ -7,12 +7,8 @@ import 'package:flutter/services.dart';
 
 import '../data/room_feature_models.dart';
 
-/// Lightweight renderer for the approved 54-item WorldVoice gift pack.
-///
-/// All 54 approved gift designs are packed into one original-quality atlas.
-/// The atlas is fetched once on first gift-panel use, decoded once, and shared
-/// by every grid tile / room overlay. This keeps the Agora room lightweight
-/// without reducing the artwork quality or loading 54 full-size PNGs.
+/// Gift artwork shared by tiles, previews and sending effects.
+/// HD assets decode to the display size; legacy gifts retain their atlas.
 class ClassicGiftVisual extends StatefulWidget {
   const ClassicGiftVisual({
     required this.gift,
@@ -104,6 +100,22 @@ class _ClassicGiftVisualState extends State<ClassicGiftVisual>
       );
 
   Widget _art() {
+    final number = int.tryParse(widget.gift.id.replaceFirst('wv_gift_', ''));
+    if (RegExp(r'^wv_gift_[0-9]{3}$').hasMatch(widget.gift.id) &&
+        number != null &&
+        (number == 2 || number == 26 || (number >= 55 && number <= 104))) {
+      final pixels = (widget.size * MediaQuery.devicePixelRatioOf(context))
+          .ceil().clamp(128, 1280).toInt();
+      return RepaintBoundary(
+        child: Image.asset(
+          'assets/gifts/hd/${widget.gift.id}.webp',
+          fit: BoxFit.contain,
+          cacheWidth: pixels,
+          filterQuality: FilterQuality.high,
+          errorBuilder: (_, _, _) => _fallback(),
+        ),
+      );
+    }
     final atlasIndex = _atlasIndex;
     if (atlasIndex != null) {
       return FutureBuilder<ui.Image>(

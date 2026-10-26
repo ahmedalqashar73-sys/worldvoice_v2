@@ -1,0 +1,33 @@
+name: WorldVoice HD Gifts
+on:
+  push:
+    branches: [feature/scalable-progress-foundation]
+    paths:
+      - 'assets/gifts/**'
+      - 'lib/features/rooms/data/classic_gift_catalog.dart'
+      - 'lib/features/rooms/presentation/classic_gift_visual.dart'
+      - 'backend/src/gift_catalog.js'
+      - 'backend/test/*gift*'
+      - 'test/classic_gift*'
+      - '.github/workflows/gift-hd-check.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  gifts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test backend/test/classic_gifts.test.js backend/test/gift_catalog.test.js backend/test/gift_hd_assets.test.js
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.8'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze lib/features/rooms/data/classic_gift_catalog.dart lib/features/rooms/presentation/classic_gift_visual.dart
+      - run: flutter test test/classic_gift_catalog_test.dart test/classic_gift_visual_test.dart
