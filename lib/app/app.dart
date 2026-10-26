@@ -33,6 +33,8 @@ class _WorldVoiceAppState extends State<WorldVoiceApp> with WidgetsBindingObserv
   StreamSubscription<String>? _pushTokenSubscription;
   StreamSubscription<RemoteMessage>? _pushOpenSubscription;
   StreamSubscription<RemoteMessage>? _foregroundPushSubscription;
+  Future<void> _pushSignOutCleanup = Future<void>.value();
+  String? _pushAccountId;
   final _notificationMessengerKey = GlobalKey<ScaffoldMessengerState>();
   bool _ready = false;
 
@@ -72,15 +74,24 @@ class _WorldVoiceAppState extends State<WorldVoiceApp> with WidgetsBindingObserv
     });
     _authSubscription = FirebaseAuth.instance.authStateChanges().listen((user) {
       if (user != null) {
+        _pushAccountId = user.uid;
         _presenceSession.start();
         unawaited(AuthService.syncPrivilegedAccountEntitlements());
         unawaited(RoomCoinPurchaseService.instance.initialize());
         unawaited(_setupPushForAccount());
       } else {
         _presenceSession.stop();
-        unawaited(WorldVoiceNotificationService.clearAnnouncementTopic());
+        _pushAccountId = null;
         _pushTokenSubscription?.cancel();
         _pushTokenSubscription = null;
+        // Logout revokes this device's token before the next account registers.
+        // Avoid exposing a prior member's room notifications on a shared phone.
+        _pushSignOutCleanup = _pushSignOutCleanup.then((_) async {
+          await WorldVoiceNotificationService.clearAnnouncementTopic();
+          await FirebaseMessaging.instance.deleteToken();
+        }).catchError((Object error) {
+          debugPrint('WorldVoice push logout cleanup: $error');
+        });
       }
     });
     _load();
@@ -90,8 +101,11 @@ class _WorldVoiceAppState extends State<WorldVoiceApp> with WidgetsBindingObserv
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) return;
+      await _pushSignOutCleanup;
+      if (FirebaseAuth.instance.currentUser?.uid != user.uid) return;
       final messaging = FirebaseMessaging.instance;
       await messaging.requestPermission();
+      if (FirebaseAuth.instance.currentUser?.uid != user.uid) return;
       final token = await messaging.getToken();
       if (token != null && FirebaseAuth.instance.currentUser?.uid == user.uid) {
         await WorldVoiceNotificationService.registerDevice(
@@ -99,9 +113,11 @@ class _WorldVoiceAppState extends State<WorldVoiceApp> with WidgetsBindingObserv
           languageCode: _localeController.locale?.languageCode ?? 'en',
         );
       }
+      if (FirebaseAuth.instance.currentUser?.uid != user.uid) return;
       await WorldVoiceNotificationService.syncAnnouncementTopic(
         _localeController.locale?.languageCode ?? 'en',
       );
+      if (FirebaseAuth.instance.currentUser?.uid != user.uid) return;
       await _pushTokenSubscription?.cancel();
       _pushTokenSubscription = messaging.onTokenRefresh.listen((newToken) {
         if (FirebaseAuth.instance.currentUser?.uid == user.uid) {
