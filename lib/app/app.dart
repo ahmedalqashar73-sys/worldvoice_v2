@@ -109,6 +109,7 @@ class _WorldVoiceAppState extends State<WorldVoiceApp> with WidgetsBindingObserv
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _authSubscription?.cancel();
+    _pushTokenSubscription?.cancel();
     _presenceSession.dispose();
     _localeController.removeListener(_refresh);
     _localeController.dispose();
