@@ -113,6 +113,7 @@ class _StoryStripState extends State<StoryStrip> {
         future: _feed,
         builder: (context, snapshot) {
           final stories = snapshot.data ?? const <StoryItem>[];
+          final failedToLoad = snapshot.hasError;
           final grouped = _group(stories);
           final mine = grouped.remove(uid) ?? const <StoryItem>[];
           final groups = grouped.entries.toList()
@@ -131,7 +132,7 @@ class _StoryStripState extends State<StoryStrip> {
           return ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            itemCount: 1 + groups.length,
+            itemCount: 1 + groups.length + (failedToLoad ? 1 : 0),
             separatorBuilder: (_, _) => const SizedBox(width: 10),
             itemBuilder: (context, index) {
               if (index == 0) {
@@ -158,7 +159,31 @@ class _StoryStripState extends State<StoryStrip> {
                 );
               }
 
-              final entry = groups[index - 1];
+              if (failedToLoad && index == 1) {
+                return InkWell(
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: _refresh,
+                  child: SizedBox(
+                    width: 154,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.refresh_rounded, color: Colors.orange),
+                        const SizedBox(height: 4),
+                        Text(
+                          widget.isArabic
+                              ? 'تعذر تحميل الستوري. اضغط للمحاولة مجددًا'
+                              : 'Stories unavailable. Tap to retry.',
+                          textAlign: TextAlign.center,
+                          maxLines: 3,
+                          style: Theme.of(context).textTheme.labelSmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+              final entry = groups[index - 1 - (failedToLoad ? 1 : 0)];
               final list = entry.value;
               final latest = list.last;
               return _StoryBubble(
