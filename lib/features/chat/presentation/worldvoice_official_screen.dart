@@ -208,6 +208,7 @@ class _OfficialComposer extends StatefulWidget {
 class _OfficialComposerState extends State<_OfficialComposer> {
   final _title = TextEditingController();
   final _body = TextEditingController();
+  final String _draftId = DateTime.now().microsecondsSinceEpoch.toRadixString(36);
   bool _sending = false;
   bool _sendEmail = false;
   String? _announcementId;
