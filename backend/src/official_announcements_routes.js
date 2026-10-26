@@ -115,14 +115,16 @@ export function registerOfficialAnnouncementRoutes({app, db, authenticatedUser})
       // A Firebase device must opt into the topic independently.
       let pushSent = false;
       try {
-        await getMessaging().send({
-          topic: "worldvoice_announcements",
-          notification: {title: "WorldVoice",
-            body: translations.en.title},
+        const pushResults = await getMessaging().sendEach(SUPPORTED.map(language => ({
+          topic: `worldvoice_announcements_${language}`,
+          notification: {
+            title: "WorldVoice",
+            body: translations[language].title,
+          },
           data: {type: "worldvoice_announcement", announcementId: ref.id},
           android: {priority: "normal"},
-        });
-        pushSent = true;
+        })));
+        pushSent = pushResults.successCount === SUPPORTED.length;
       } catch (error) {
         console.warn("Official announcement FCM unavailable:", error?.code);
       }
