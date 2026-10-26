@@ -224,7 +224,9 @@ class _OfficialComposerState extends State<_OfficialComposer> {
 
   Future<void> _publish() async {
     if (_sending || (_announcementId == null &&
-        (_title.text.trim().isEmpty || _body.text.trim().isEmpty))) return;
+        (_title.text.trim().isEmpty || _body.text.trim().isEmpty))) {
+      return;
+    }
     setState(() { _sending = true; _error = null; });
     try {
       if (_announcementId == null) {
@@ -261,9 +263,11 @@ class _OfficialComposerState extends State<_OfficialComposer> {
       if (!mounted) return;
       Navigator.of(context).pop();
     } catch (error) {
-      if (mounted) setState(() => _error = _announcementId == null
-        ? error.toString()
-        : 'Announcement published. Email delivery can resume: $error');
+      if (mounted) {
+        setState(() => _error = _announcementId == null
+          ? error.toString()
+          : 'Announcement published. Email delivery can resume: $error');
+      }
     } finally {
       if (mounted) setState(() => _sending = false);
     }
