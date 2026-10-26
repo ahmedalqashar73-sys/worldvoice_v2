@@ -65,6 +65,10 @@ class LiveSessionService {
       'hostHeartbeatAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     });
+    // Never delay Live camera startup waiting for follower fan-out.
+    unawaited(WorldVoiceNotificationService.publishActivity(
+      kind: 'live', sessionId: ref.id,
+    ));
     return ref.id;
   }
 
