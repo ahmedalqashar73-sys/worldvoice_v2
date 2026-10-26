@@ -64,6 +64,9 @@ class _WorldVoiceAppState extends State<WorldVoiceApp> with WidgetsBindingObserv
           languageCode: _localeController.locale?.languageCode ?? 'en',
         );
       }
+      await WorldVoiceNotificationService.syncAnnouncementTopic(
+        _localeController.locale?.languageCode ?? 'en',
+      );
       await _pushTokenSubscription?.cancel();
       _pushTokenSubscription = messaging.onTokenRefresh.listen((newToken) {
         if (FirebaseAuth.instance.currentUser?.uid == user.uid) {
