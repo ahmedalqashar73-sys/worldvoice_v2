@@ -267,6 +267,21 @@ class _OfficialComposerState extends State<_OfficialComposer> {
             ? 'سيترجم الخادم الإعلان إلى لغات التطبيق الست قبل نشره.'
             : 'The server translates into all six app languages before publishing.',
             style: Theme.of(context).textTheme.bodySmall),
+          if (widget.emailConfigured)
+            SwitchListTile.adaptive(
+              contentPadding: EdgeInsets.zero,
+              title: Text(ar ? 'إرسال نسخة إلى البريد الإلكتروني'
+                : 'Also email subscribed members'),
+              subtitle: Text(ar
+                ? 'فقط للمستخدمين الموافقين على رسائل البريد.'
+                : 'Only members who opted in to email updates.'),
+              value: _sendEmail,
+              onChanged: _sending || _announcementId != null ? null
+                : (value) => setState(() => _sendEmail = value),
+            ),
+          if (_emailSent > 0)
+            Text(ar ? 'تم إرسال $_emailSent رسالة بريد حتى الآن'
+              : '$_emailSent emails submitted so far'),
           if (_error != null) Padding(
             padding: const EdgeInsets.only(top: 8),
             child: Text(_error!, style: TextStyle(
