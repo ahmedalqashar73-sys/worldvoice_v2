@@ -21,14 +21,13 @@ class WorldVoiceOfficialScreen extends StatefulWidget {
 class _WorldVoiceOfficialScreenState extends State<WorldVoiceOfficialScreen> {
   late final Future<Map<String, dynamic>> _publisher = _checkPublisher();
 
-  Future<bool> _checkPublisher() async {
+  Future<Map<String, dynamic>> _checkPublisher() async {
     try {
-      final response = await WorldVoiceNotificationService.post(
+      return await WorldVoiceNotificationService.post(
         '/system/announcements/can-publish', <String, dynamic>{},
       );
-      return response['canPublish'] == true;
     } catch (_) {
-      return false;
+      return <String, dynamic>{};
     }
   }
 
