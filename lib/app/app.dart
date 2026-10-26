@@ -47,7 +47,9 @@ class _WorldVoiceAppState extends State<WorldVoiceApp> with WidgetsBindingObserv
     _foregroundPushSubscription = FirebaseMessaging.onMessage.listen((message) {
       final type = message.data['type']?.toString();
       if (type != 'worldvoice_activity' &&
-          type != 'worldvoice_announcement') return;
+          type != 'worldvoice_announcement') {
+        return;
+      }
       final ar = _localeController.locale?.languageCode == 'ar';
       final messenger = _notificationMessengerKey.currentState;
       if (messenger == null) return;
