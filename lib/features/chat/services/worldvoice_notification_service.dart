@@ -63,7 +63,13 @@ class WorldVoiceNotificationService {
     final response = await http.post(url, headers: {
       'Authorization': 'Bearer $token',
       'Content-Type': 'application/json',
-    }, body: jsonEncode(payload)).timeout(const Duration(seconds: 15));
+    }, body: jsonEncode(payload)).timeout(
+      route == '/system/announcements/publish'
+        ? const Duration(seconds: 80)
+        : route == '/system/announcements/email/process'
+          ? const Duration(seconds: 40)
+          : const Duration(seconds: 15),
+    );
     final body = jsonDecode(response.body);
     if (response.statusCode >= 300 || body is! Map ||
         body['ok'] != true) {
