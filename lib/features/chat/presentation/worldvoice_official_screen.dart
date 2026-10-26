@@ -193,22 +193,46 @@ class _OfficialComposerState extends State<_OfficialComposer> {
   }
 
   Future<void> _publish() async {
-    if (_sending || _title.text.trim().isEmpty || _body.text.trim().isEmpty) return;
+    if (_sending || (_announcementId == null &&
+        (_title.text.trim().isEmpty || _body.text.trim().isEmpty))) return;
     setState(() { _sending = true; _error = null; });
     try {
-      await WorldVoiceNotificationService.post(
-        '/system/announcements/publish',
-        {
-          'title': _title.text.trim(),
-          'body': _body.text.trim(),
-          'sourceLanguage': ['ar','en','es','fr','zh','ko']
-              .contains(widget.languageCode) ? widget.languageCode : 'en',
-        },
-      );
+      if (_announcementId == null) {
+        final result = await WorldVoiceNotificationService.post(
+          '/system/announcements/publish', {
+            'title': _title.text.trim(),
+            'body': _body.text.trim(),
+            'sourceLanguage': ['ar','en','es','fr','zh','ko']
+                .contains(widget.languageCode) ? widget.languageCode : 'en',
+            'sendEmail': _sendEmail && widget.emailConfigured,
+          },
+        );
+        _announcementId = result['announcementId']?.toString();
+      }
+      if (_sendEmail && _announcementId != null) {
+        // A network interruption does not republish the same announcement.
+        // The backend holds the current cursor to resume email delivery.
+        for (var batch = 0; batch < 120; batch++) {
+          if (!mounted) return;
+          final result = await WorldVoiceNotificationService.post(
+            '/system/announcements/email/process', {
+              'announcementId': _announcementId,
+            },
+          );
+          _emailSent = (result['sent'] as num?)?.toInt() ?? _emailSent;
+          if (mounted) setState(() {});
+          if (result['complete'] == true) break;
+          if (batch == 119) {
+            throw StateError('Email batches paused. Tap again to resume.');
+          }
+        }
+      }
       if (!mounted) return;
       Navigator.of(context).pop();
     } catch (error) {
-      if (mounted) setState(() => _error = error.toString());
+      if (mounted) setState(() => _error = _announcementId == null
+        ? error.toString()
+        : 'Announcement published. Email delivery can resume: $error');
     } finally {
       if (mounted) setState(() => _sending = false);
     }
