@@ -268,6 +268,20 @@ class StoryService {
     final token = await _token();
     final response = await _storyGet('/stories/status', token,
       query: <String, String>{'storyId': storyId});
+    // A deployed older Story backend may not yet have /stories/status.
+    // In that case verify against its authenticated feed, never claim
+    // success until the returned Story has a real playable media URL.
+    if (response.statusCode == 404 || response.statusCode == 405) {
+      final savedFeed = await fetchFeed();
+      for (final story in savedFeed) {
+        if (story.id == storyId && story.mediaUrl.isNotEmpty) {
+          return story;
+        }
+      }
+      throw StateError(
+        'Story may be saved but is not visible in the feed yet. Retry verification.',
+      );
+    }
     final decoded = await _decode(response);
     final raw = decoded['story'];
     if (raw is! Map) {
