@@ -43,6 +43,7 @@ class _WorldVoiceAppState extends State<WorldVoiceApp> with WidgetsBindingObserv
         _presenceSession.start();
         unawaited(AuthService.syncPrivilegedAccountEntitlements());
         unawaited(RoomCoinPurchaseService.instance.initialize());
+        unawaited(_setupPushForAccount());
       } else {
         _presenceSession.stop();
       }
