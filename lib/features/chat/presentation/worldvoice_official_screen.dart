@@ -168,8 +168,9 @@ class _WorldVoiceOfficialScreenState extends State<WorldVoiceOfficialScreen> {
 }
 
 class _OfficialComposer extends StatefulWidget {
-  const _OfficialComposer({required this.languageCode});
+  const _OfficialComposer({required this.languageCode, required this.emailConfigured});
   final String languageCode;
+  final bool emailConfigured;
 
   @override
   State<_OfficialComposer> createState() => _OfficialComposerState();
