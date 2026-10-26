@@ -33,6 +33,7 @@ import '../services/local_chat_store.dart';
 import '../services/chat_local_share_service.dart';
 import 'group_chat_screen.dart';
 import 'worldvoice_activity_screen.dart';
+import 'worldvoice_official_screen.dart';
 import '../../live/presentation/live_screen.dart';
 
 /// Real authenticated conversations. The economy backend, not Flutter,
