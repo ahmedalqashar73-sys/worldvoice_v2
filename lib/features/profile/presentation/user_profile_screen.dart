@@ -184,12 +184,12 @@ class UserProfileScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        name?.isNotEmpty == true ? name! : 'WorldVoice',
+                      MemberName(
+                        userId: uid,
+                        name: name?.isNotEmpty == true ? name! : 'WorldVoice',
                         style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(fontWeight: FontWeight.w900),
                       ),
-                      PublicMemberMarks(userId: uid),
                       const SizedBox(height: 4),
                       Text(
                         '@${username?.isNotEmpty == true ? username! : 'user'}',

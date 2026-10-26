@@ -256,14 +256,14 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                   ),
                 ),
                 const SizedBox(height: 14),
-                Text(
-                  name?.isNotEmpty == true ? name! : 'WorldVoice',
-                  textAlign: TextAlign.center,
+                MemberName(
+                  userId: widget.userId,
+                  centered: true,
+                  name: name?.isNotEmpty == true ? name! : 'WorldVoice',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w900,
                   ),
                 ),
-                Center(child: PublicMemberMarks(userId: widget.userId)),
                 if (username?.isNotEmpty == true) ...[
                   const SizedBox(height: 4),
                   Row(

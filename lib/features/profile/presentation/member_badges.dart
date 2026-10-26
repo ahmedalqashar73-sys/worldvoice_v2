@@ -231,31 +231,65 @@ class _PublicMemberMarksState extends State<PublicMemberMarks> {
       if (data == null) return const SizedBox.shrink();
       final level = (data['giftLevel'] as num?)?.toInt() ?? 0;
       final vip = data['vipBadge'] as String?;
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (vip != null) ...[
-            VipSignatureBadge(design: vip),
-            const SizedBox(width: 4),
-          ],
-          GiftLevelBadge(level: level),
-          const SizedBox(width: 5),
-        ],
-      );
+      return MemberBadgeMarks(level: level, vip: vip);
     },
   );
 }
 
+/// Public identity never displays an unearned level-zero badge.
+class MemberBadgeMarks extends StatelessWidget {
+  const MemberBadgeMarks({required this.level, this.vip, super.key});
+  final int level;
+  final String? vip;
+  @override
+  Widget build(BuildContext context) {
+    if (level <= 0 && vip == null) return const SizedBox.shrink();
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (vip != null) VipSignatureBadge(design: vip!),
+        if (vip != null && level > 0) const SizedBox(width: 4),
+        if (level > 0) GiftLevelBadge(level: level),
+      ],
+    );
+  }
+}
+
+class MemberName extends StatelessWidget {
+  const MemberName({
+    required this.userId,
+    required this.name,
+    this.style,
+    this.centered = false,
+    super.key,
+  });
+  final String userId, name;
+  final TextStyle? style;
+  final bool centered;
+  @override
+  Widget build(BuildContext context) => Wrap(
+    alignment: centered ? WrapAlignment.center : WrapAlignment.start,
+    crossAxisAlignment: WrapCrossAlignment.center,
+    spacing: 6,
+    runSpacing: 4,
+    children: [
+      Text(name, style: style),
+      PublicMemberMarks(userId: userId),
+    ],
+  );
+}
+
 class MemberBadgeShop extends StatefulWidget {
-  const MemberBadgeShop({super.key});
+  const MemberBadgeShop({this.loadStyle, super.key});
+  final Future<Map<String, dynamic>> Function()? loadStyle;
   @override
   State<MemberBadgeShop> createState() => _MemberBadgeShopState();
 }
 
 class _MemberBadgeShopState extends State<MemberBadgeShop> {
-  late Future<Map<String, dynamic>> _future = EngagementService.request(
-    'member-style',
-  );
+  Future<Map<String, dynamic>> _load() =>
+      widget.loadStyle?.call() ?? EngagementService.request('member-style');
+  late Future<Map<String, dynamic>> _future = _load();
   final Map<String, String> _requests = {};
   bool _busy = false;
   bool get ar => Localizations.localeOf(context).languageCode == 'ar';
@@ -279,7 +313,7 @@ class _MemberBadgeShopState extends State<MemberBadgeShop> {
       final uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid != null) EngagementService.invalidate(uid);
       if (mounted) {
-        setState(() => _future = EngagementService.request('member-style'));
+        setState(() => _future = _load());
       }
     } catch (_) {
       if (mounted) {
@@ -306,31 +340,19 @@ class _MemberBadgeShopState extends State<MemberBadgeShop> {
     body: FutureBuilder<Map<String, dynamic>>(
       future: _future,
       builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return Center(
-            child: TextButton(
-              onPressed: () => setState(
-                () => _future = EngagementService.request('member-style'),
-              ),
-              child: Text(ar ? 'إعادة المحاولة' : 'Retry'),
-            ),
-          );
-        }
-        if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        final data = snapshot.data!;
+        final loaded = snapshot.hasData && !snapshot.hasError;
+        final data = loaded ? snapshot.data! : <String, dynamic>{};
         final active = data['automatic'] != null;
-        final progress = Map<String, dynamic>.from(data['progress'] as Map);
-        final level = (progress['level'] as num).toInt();
+        final progress = Map<String, dynamic>.from(
+          data['progress'] as Map? ?? {},
+        );
+        final level = (progress['level'] as num?)?.toInt() ?? 0;
         final floor = 5 * level * (level + 3);
         final next = (progress['next'] as num?)?.toDouble();
         final value = next == null
             ? 1.0
-            : (((progress['points'] as num) - floor) / (next - floor)).clamp(
-                0.0,
-                1.0,
-              );
+            : (((progress['points'] as num? ?? 0) - floor) / (next - floor))
+                  .clamp(0.0, 1.0);
         final owned = List<String>.from(data['owned'] as List? ?? []);
         final catalog = Map<String, dynamic>.from(
           data['catalog'] as Map? ?? {},
@@ -338,50 +360,78 @@ class _MemberBadgeShopState extends State<MemberBadgeShop> {
         return ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(18),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        GiftLevelBadge(level: level),
-                        const SizedBox(width: 10),
-                        Text(
-                          ar
-                              ? 'مستوى الهدايا $level / 50'
-                              : 'Gift level $level / 50',
+            if (!loaded)
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (!snapshot.hasError) const LinearProgressIndicator(),
+                      const SizedBox(height: 10),
+                      Text(
+                        snapshot.hasError
+                            ? (ar
+                                  ? 'تعذر تحميل عضويتك ومستواك. التصاميم متاحة للمعاينة، والشراء ينتظر الاتصال.'
+                                  : 'Could not load membership and level. Preview designs below; purchases require a connection.')
+                            : (ar
+                                  ? 'جارٍ تحميل عضويتك ومستواك… يمكنك معاينة الشارات الآن.'
+                                  : 'Loading your membership and level… Preview the badges below.'),
+                      ),
+                      if (snapshot.hasError)
+                        TextButton(
+                          onPressed: () => setState(() => _future = _load()),
+                          child: Text(ar ? 'إعادة المحاولة' : 'Retry'),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-                    LinearProgressIndicator(
-                      value: value,
-                      minHeight: 7,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    const SizedBox(height: 9),
-                    Text(
-                      next == null
-                          ? (ar
-                                ? 'وصلت إلى أعلى مستوى'
-                                : 'Maximum level reached')
-                          : (ar
-                                ? 'باقي ${progress['remaining']} كوين من الهدايا للمستوى التالي'
-                                : '${progress['remaining']} gifted coins to next level'),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      ar
-                          ? '٢٠ كوين لأول مستوى، ثم تزيد ١٠ كوين لكل انتقال. يُحتسب إرسال الهدايا المدفوعة فقط.'
-                          : '20 coins for level 1, then 10 more per step. Only paid gifts sent count.',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
+            if (loaded)
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(18),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          GiftLevelBadge(level: level),
+                          const SizedBox(width: 10),
+                          Text(
+                            ar
+                                ? 'مستوى الهدايا $level / 50'
+                                : 'Gift level $level / 50',
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      LinearProgressIndicator(
+                        value: value,
+                        minHeight: 7,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      const SizedBox(height: 9),
+                      Text(
+                        next == null
+                            ? (ar
+                                  ? 'وصلت إلى أعلى مستوى'
+                                  : 'Maximum level reached')
+                            : (ar
+                                  ? 'باقي ${progress['remaining']} كوين من الهدايا للمستوى التالي'
+                                  : '${progress['remaining']} gifted coins to next level'),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        ar
+                            ? '٢٠ كوين لأول مستوى، ثم تزيد ١٠ كوين لكل انتقال. يُحتسب إرسال الهدايا المدفوعة فقط.'
+                            : '20 coins for level 1, then 10 more per step. Only paid gifts sent count.',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             const SizedBox(height: 16),
             Text(
               ar ? 'شارتك مع باقتك' : 'Included with your VIP plan',
@@ -444,6 +494,10 @@ class _MemberBadgeShopState extends State<MemberBadgeShop> {
                         child: Text(
                           data['selected'] == id
                               ? (ar ? 'مستخدمة ✓' : 'Equipped ✓')
+                              : !loaded
+                              ? (ar
+                                    ? 'بانتظار الاتصال'
+                                    : 'Waiting for connection')
                               : !active
                               ? (ar ? 'تحتاج عضوية VIP' : 'VIP required')
                               : owned.contains(id)

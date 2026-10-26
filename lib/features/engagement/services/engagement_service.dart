@@ -30,7 +30,7 @@ class EngagementService {
         await (body == null
                 ? http.get(uri, headers: headers)
                 : http.post(uri, headers: headers, body: jsonEncode(body)))
-            .timeout(const Duration(seconds: 15));
+            .timeout(RoomBackendConfig.socialRequestTimeout);
     if (response.statusCode != 200) {
       throw StateError('ENGAGEMENT_${response.statusCode}');
     }
