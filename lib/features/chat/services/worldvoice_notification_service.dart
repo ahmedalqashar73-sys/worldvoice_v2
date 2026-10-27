@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../../rooms/data/room_backend_config.dart';
+import '../../stories/services/story_service.dart';
 
 /// Non-blocking notification bridge. Failure never stops a room or Live.
 class WorldVoiceNotificationService {
@@ -136,6 +137,16 @@ class WorldVoiceNotificationService {
       });
     } catch (error) {
       debugPrint('WorldVoice push registration: $error');
+    }
+    // The new isolated Story backend accepts the same FCM token even when
+    // the older social backend has not yet shipped its notification route.
+    final stories = StoryService();
+    try {
+      await stories.registerStoryNotificationDevice(token);
+    } catch (error) {
+      debugPrint('WorldVoice Story push registration: $error');
+    } finally {
+      stories.dispose();
     }
   }
 }
