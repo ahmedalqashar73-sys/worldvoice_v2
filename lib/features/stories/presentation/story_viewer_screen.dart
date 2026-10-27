@@ -485,27 +485,64 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
                 ],
               ),
             ),
-            if (!_isOwner && widget.onReply != null)
-              Positioned(
-                left: 16,
-                right: 16,
-                bottom: 14,
-                child: SafeArea(
-                  top: false,
-                  child: FilledButton.tonalIcon(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: Colors.black.withValues(alpha: .52),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 13),
-                    ),
-                    onPressed: () => widget.onReply!(story),
-                    icon: const Icon(Icons.reply_rounded),
-                    label: Text(
-                      ar ? 'رد برسالة' : 'Reply in message',
-                    ),
+            Positioned(
+              left: 12,
+              right: 12,
+              bottom: 12,
+              child: SafeArea(
+                top: false,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: .60),
+                    borderRadius: BorderRadius.circular(28),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    child: Row(children: [
+                      if (!_isOwner) ...[
+                        IconButton(
+                          tooltip: ar ? 'إعجاب' : 'Like Story',
+                          onPressed: _likeBusy ? null : _toggleLike,
+                          icon: Icon(_liked ? Icons.favorite : Icons.favorite_border,
+                              color: _liked ? Colors.redAccent : Colors.white),
+                        ),
+                        Text('$_likeCount',
+                          style: const TextStyle(color: Colors.white)),
+                      ],
+                      IconButton(
+                        tooltip: ar ? 'التعليقات' : 'Comments',
+                        onPressed: _showInteractions,
+                        icon: const Icon(Icons.mode_comment_outlined,
+                            color: Colors.white),
+                      ),
+                      Text('$_commentCount',
+                        style: const TextStyle(color: Colors.white)),
+                      if (!_isOwner && _allowReplies && widget.onReply != null)
+                        Expanded(
+                          child: TextButton.icon(
+                            onPressed: () => widget.onReply!(story),
+                            icon: const Icon(Icons.reply_rounded,
+                                color: Colors.white),
+                            label: Text(ar ? 'رد في الدردشة' : 'Reply in chat',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(color: Colors.white)),
+                          ),
+                        )
+                      else
+                        const Spacer(),
+                      if (_isOwner)
+                        IconButton(
+                          tooltip: ar ? 'إعدادات الخصوصية' : 'Privacy settings',
+                          onPressed: _showStorySettings,
+                          icon: const Icon(Icons.shield_outlined,
+                              color: Colors.white),
+                        ),
+                    ]),
                   ),
                 ),
               ),
+            ),
             if (_mediaLoading)
               const Center(
                 child: CircularProgressIndicator(color: Colors.white),
