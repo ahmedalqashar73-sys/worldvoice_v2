@@ -2,7 +2,6 @@ import 'dart:async';
 import '../../chat/services/worldvoice_notification_service.dart';
 import '../../rooms/services/active_chat_bubble_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 /// Firestore coordination for video Live.
