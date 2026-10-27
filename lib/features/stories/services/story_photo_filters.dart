@@ -43,5 +43,7 @@ Uint8List _filterImage(Map<String, Object> data) {
     case 'vintage':
       img.adjustColor(image, saturation: .60, contrast: .95, exposure: .05);
   }
-  return Uint8List.fromList(img.encodeJpg(image, quality: 88));
+  // Keep fine details after a Story filter; compression here is the final
+  // upload output, not just the preview shown inside the editor.
+  return Uint8List.fromList(img.encodeJpg(image, quality: 94));
 }
