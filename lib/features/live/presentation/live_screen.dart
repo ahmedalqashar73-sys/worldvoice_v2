@@ -2198,15 +2198,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                     color: Colors.white,
                                   ),
                                 ),
-                                if (_liveId != null)
-                                  _LiveStageRequestsButton(
-                                    liveId: _liveId!,
-                                    service: _liveService,
-                                    ar: widget.ar,
-                                    onPressed: () => setState(
-                                      () => _requestsOpen = !_requestsOpen,
-                                    ),
-                                  ),
+
                                 IconButton(
                                   tooltip: widget.ar
                                       ? 'المودريتر'
@@ -2227,6 +2219,26 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                               ],
                             ),
                           ),
+                          if (_liveId != null)
+                            PositionedDirectional(
+                              end: 14,
+                              bottom: 92 + MediaQuery.viewInsetsOf(context).bottom,
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  color: const Color(0xAA113A2D),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: Colors.white30),
+                                ),
+                                child: _LiveStageRequestsButton(
+                                  liveId: _liveId!,
+                                  service: _liveService,
+                                  ar: widget.ar,
+                                  onPressed: () => setState(
+                                    () => _requestsOpen = !_requestsOpen,
+                                  ),
+                                ),
+                              ),
+                            ),
                           if (_requestsOpen && _liveId != null)
                             PositionedDirectional(
                               bottom: 86,
@@ -3451,6 +3463,28 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                     ar: widget.ar,
                                   ),
                                 ),
+                              if (!_guestPublishing)
+                                PositionedDirectional(
+                                  end: 14,
+                                  bottom: 92 + MediaQuery.viewInsetsOf(context).bottom,
+                                  child: DecoratedBox(
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xAA113A2D),
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: Colors.white30),
+                                    ),
+                                    child: IconButton(
+                                      tooltip: _requested
+                                          ? (widget.ar ? 'طلب الصعود قيد الانتظار'
+                                              : 'Stage request pending')
+                                          : (widget.ar ? 'ارفع يدك للصعود'
+                                              : 'Raise hand to join'),
+                                      onPressed: _requested ? null : _requestCamera,
+                                      icon: Icon(Icons.pan_tool_alt_rounded,
+                                        color: _requested ? Colors.white70 : Colors.white),
+                                    ),
+                                  ),
+                                ),
                               PositionedDirectional(
                                 bottom: 16,
                                 start: 12,
@@ -3551,33 +3585,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                         color: Colors.white,
                                       ),
                                     ),
-                                    if (!_guestPublishing)
-                                      IconButton.filledTonal(
-                                        tooltip: _requested
-                                            ? (widget.ar
-                                                  ? 'طلب الصعود قيد الانتظار'
-                                                  : 'Stage request pending')
-                                            : (widget.ar
-                                                  ? 'ارفع يدك للصعود'
-                                                  : 'Raise hand to join'),
-                                        style: IconButton.styleFrom(
-                                          backgroundColor: const Color(
-                                            0x553A8068,
-                                          ),
-                                          disabledBackgroundColor: const Color(
-                                            0x333A8068,
-                                          ),
-                                        ),
-                                        onPressed: _requested
-                                            ? null
-                                            : _requestCamera,
-                                        icon: Icon(
-                                          Icons.pan_tool_alt_rounded,
-                                          color: _requested
-                                              ? Colors.white54
-                                              : Colors.white,
-                                        ),
-                                      ),
+
                                     if (_isModerator)
                                       _LiveStageRequestsButton(
                                         liveId: widget.liveId,
