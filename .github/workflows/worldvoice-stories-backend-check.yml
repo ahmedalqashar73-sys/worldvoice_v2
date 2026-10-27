@@ -9,6 +9,8 @@ on:
       - 'backend/src/story_routes.js'
       - 'backend/package.json'
       - 'backend/STORIES_RENDER_SETUP.md'
+      - 'lib/features/stories/**'
+      - 'test/worldvoice_story_regression_test.dart'
       - '.github/workflows/worldvoice-stories-backend-check.yml'
   workflow_dispatch:
 
@@ -31,3 +33,20 @@ jobs:
       - name: Validate dedicated Stories launch script
         run: |
           node -e "const p = require('./backend/package.json'); if (p.scripts['start:stories'] !== 'node src/stories_server.js') process.exit(1);"
+
+  stories-flutter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.8'
+          channel: stable
+          cache: true
+      - name: Resolve Flutter dependencies
+        run: flutter pub get
+      - name: Analyze complete WorldVoice app
+        run: flutter analyze
+      - name: Run Stories metadata regression tests
+        run: flutter test test/worldvoice_story_regression_test.dart
