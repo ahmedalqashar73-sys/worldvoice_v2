@@ -56,5 +56,6 @@ jobs:
         if: steps.auth.outputs.configured == 'true' && steps.cli_deploy.outcome == 'failure'
         working-directory: backend
         run: |
-          npm ci --ignore-scripts
+          # The backend has no committed package-lock.json; npm ci would fail.
+          npm install --ignore-scripts --no-audit --no-fund
           node scripts/deploy_firestore_rules_admin.mjs
