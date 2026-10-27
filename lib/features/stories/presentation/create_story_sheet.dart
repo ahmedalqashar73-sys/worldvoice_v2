@@ -154,8 +154,10 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
         _publishError = null;
       });
     } catch (error) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(error.toString().replaceFirst('Bad state: ', ''))));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(error.toString().replaceFirst('Bad state: ', ''))));
+      }
     } finally {
       if (mounted) setState(() => _processingPhoto = false);
     }
