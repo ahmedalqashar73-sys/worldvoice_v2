@@ -7,6 +7,7 @@ on:
     paths:
       - 'backend/src/stories_server.js'
       - 'backend/src/story_routes.js'
+      - 'backend/src/story_interactions_routes.js'
       - 'backend/package.json'
       - 'backend/STORIES_RENDER_SETUP.md'
       - 'lib/features/stories/**'
@@ -29,6 +30,7 @@ jobs:
         run: |
           node --check backend/src/stories_server.js
           node --check backend/src/story_routes.js
+          node --check backend/src/story_interactions_routes.js
           node --check backend/src/server.js
       - name: Validate dedicated Stories launch script
         run: |
