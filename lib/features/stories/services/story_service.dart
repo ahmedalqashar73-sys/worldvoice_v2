@@ -325,6 +325,62 @@ class StoryService {
     return 'image/jpeg';
   }
 
+  Future<Map<String, dynamic>> _postStory(
+      String path, Map<String, dynamic> payload) async {
+    final token = await _token();
+    final response = await _client.post(
+      _uri(path),
+      headers: <String, String>{
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(payload),
+    ).timeout(const Duration(seconds: 30));
+    return _decode(response);
+  }
+
+  Future<Map<String, dynamic>> fetchStoryInteractions(String id) async {
+    final token = await _token();
+    final response = await _storyGet('/stories/interactions', token,
+        query: <String, String>{'storyId': id});
+    return _decode(response);
+  }
+
+  Future<void> setStoryLiked(String id, {required bool liked}) async {
+    await _postStory('/stories/like',
+        <String, dynamic>{'storyId': id, 'liked': liked});
+  }
+
+  Future<void> commentOnStory(String id, String comment) async {
+    await _postStory('/stories/comment',
+        <String, dynamic>{'storyId': id, 'text': comment});
+  }
+
+  Future<Map<String, dynamic>> fetchStoryPreferences() async {
+    final token = await _token();
+    return _decode(await _storyGet('/stories/preferences', token));
+  }
+
+  Future<void> updateStoryPreferences({
+    required bool allowReplies,
+    required bool notifyActivity,
+  }) async {
+    await _postStory('/stories/preferences', <String, dynamic>{
+      'allowReplies': allowReplies,
+      'notifyActivity': notifyActivity,
+    });
+  }
+
+  Future<List<Map<String, dynamic>>> fetchStoryNotifications() async {
+    final token = await _token();
+    final response = await _storyGet('/stories/notifications', token);
+    final decoded = await _decode(response);
+    final raw = decoded['events'];
+    if (raw is! List) return <Map<String, dynamic>>[];
+    return raw.whereType<Map>().map((event) =>
+        event.map((key, value) => MapEntry(key.toString(), value))).toList();
+  }
+
   Future<void> recordView(String storyId) async {
     final token = await _token();
     final response = await _client.post(
