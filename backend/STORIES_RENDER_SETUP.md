@@ -43,14 +43,27 @@ single small image and confirm it appears in the story feed.
 
 ## Connect Flutter
 
-Pass the **actual Render-assigned URL** to Flutter; do not guess the name:
+The existing WorldVoice Flutter app now defaults to the **confirmed Render URL**
+`https://worldvoice-stories.onrender.com` on branch
+`feature/scalable-progress-foundation`.
+
+No new APK or secondary Flutter project is required for this source change.
+Run the **existing** project after carefully incorporating its latest GitHub
+changes, and do not keep passing
+`--dart-define=WORLDVOICE_STORY_BACKEND_URL=https://worldvoice-teacher-ai.onrender.com`
+because that old override takes priority over the new default.
+To override explicitly, use:
 
 ```text
---dart-define=WORLDVOICE_STORY_BACKEND_URL=https://ACTUAL-STORIES-HOST.onrender.com
+--dart-define=WORLDVOICE_STORY_BACKEND_URL=https://worldvoice-stories.onrender.com
 ```
 
-Do not continue passing the old teacher-AI URL for
-`WORLDVOICE_STORY_BACKEND_URL`. Other WorldVoice endpoints remain unchanged.
+Other WorldVoice room, economy and Teacher AI endpoints are unchanged.
+The public `/health` endpoint confirms the Node process started, **not** that
+Cloudinary credentials or Firebase Admin are valid. Confirm via signed-in
+`GET /stories/storage-status` followed by publishing a real photo/video
+on-device. Keep Cloudinary and service-account credentials secret and rotate
+any accidentally exposed keys.
 
 ### Separation and maintenance
 
