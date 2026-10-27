@@ -1,0 +1,86 @@
+name: WorldVoice Latest Beta APK
+
+on:
+  push:
+    branches:
+      - feature/scalable-progress-foundation
+    paths:
+      - .github/workflows/worldvoice-latest-beta-apk.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-latest-android:
+    name: Build complete WorldVoice APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout latest complete original app
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.8'
+          channel: stable
+          cache: true
+
+      - name: Restore dependencies
+        run: flutter pub get
+
+      - name: Verify premium room/background assets
+        run: python3 scripts/verify_room_background_assets.py
+
+      - name: Give Gradle enough CI memory
+        run: |
+          sed -i 's/-Xmx2048m/-Xmx4096m/' android/gradle.properties
+          sed -i 's/org.gradle.workers.max=2/org.gradle.workers.max=2/' android/gradle.properties
+
+      - name: Build full WorldVoice release APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Monotonically increasing relative to initial versionCode 1.
+          BUILD_NUMBER=$(( ($(date -u +%s) - 1577836800) / 60 ))
+          echo "Building WorldVoice versionCode ${BUILD_NUMBER} from ${GITHUB_SHA}"
+          flutter build apk --release \
+            --build-number="${BUILD_NUMBER}" \
+            --dart-define=AGORA_APP_ID=fa41476c6813471eb45c059bcb4a0e19 \
+            --dart-define=WORLDVOICE_ROOM_BACKEND_URL=https://worldvoice-v2.onrender.com \
+            --dart-define=AGORA_TOKEN_ENDPOINT=https://worldvoice-agora-token.worldvoice.workers.dev/agora/token \
+            --dart-define=WORLDVOICE_ECONOMY_ENDPOINT=https://worldvoice-v2.onrender.com \
+            --dart-define=WORLDVOICE_FRIEND_GIFT_PREVIEW=true \
+            --dart-define=WORLDVOICE_STORY_BACKEND_URL=https://worldvoice-stories.onrender.com
+          test -s build/app/outputs/flutter-apk/app-release.apk
+          sha256sum build/app/outputs/flutter-apk/app-release.apk | tee build/app/outputs/flutter-apk/SHA256.txt
+          cat > build/app/outputs/flutter-apk/RELEASE-NOTES.txt <<EOF
+          WorldVoice complete original Android beta
+          Git commit: ${GITHUB_SHA}
+          Version code: ${BUILD_NUMBER}
+          Firebase project: worldvoice-37896
+          Android application ID: com.worldvoice.app
+          Room/economy backend: https://worldvoice-v2.onrender.com
+          Stories backend: https://worldvoice-stories.onrender.com
+
+          This is a debug-key-signed release build for internal testers only.
+          Firebase App Distribution upload is manual, at the owner's request.
+          EOF
+
+      - name: Upload full APK for downloading
+        uses: actions/upload-artifact@v4
+        with:
+          name: WorldVoice-Latest-Beta-APK
+          path: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/flutter-apk/SHA256.txt
+            build/app/outputs/flutter-apk/RELEASE-NOTES.txt
+          if-no-files-found: error
+          retention-days: 14
