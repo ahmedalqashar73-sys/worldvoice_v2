@@ -36,10 +36,41 @@ if ($branch -ne $expectedBranch) {
 }
 $changes = @(& git status --porcelain)
 Confirm-LastExitCode 'Checking local modifications'
+
+# Flutter regenerates these six tracked files after 'flutter pub get' or
+# 'flutter run'. They are not room/gift source and should not prevent a beta
+# build. Never reset, clean, stash, overwrite, or auto-commit local changes.
+$flutterGeneratedPaths = @(
+    'linux/flutter/generated_plugin_registrant.cc',
+    'linux/flutter/generated_plugins.cmake',
+    'macos/Flutter/GeneratedPluginRegistrant.swift',
+    'pubspec.lock',
+    'windows/flutter/generated_plugin_registrant.cc',
+    'windows/flutter/generated_plugins.cmake'
+)
+$unexpectedChanges = @()
+foreach ($entry in $changes) {
+    # Git porcelain v1: first two chars are status, then a space and path.
+    # Quoted paths and renames are deliberately not exempted.
+    if ($entry.Length -lt 4) {
+        $unexpectedChanges += $entry
+        continue
+    }
+    $relativePath = $entry.Substring(3)
+    $status = $entry.Substring(0, 2)
+    if (($flutterGeneratedPaths -notcontains $relativePath) -or
+        ($status -match '[?RCDU!]')) {
+        $unexpectedChanges += $entry
+    }
+}
+if ($unexpectedChanges.Count -gt 0) {
+    Write-Host 'Uncommitted source or unknown edits detected:' -ForegroundColor Yellow
+    $unexpectedChanges | ForEach-Object { Write-Host $_ }
+    throw 'Please back up or commit these changes first. This script will not discard room/gift edits.'
+}
 if ($changes.Count -gt 0) {
-    Write-Host 'Local edits detected (your room/gift changes may be among them):' -ForegroundColor Yellow
+    Write-Host 'Keeping existing Flutter-generated edits and pubspec.lock (no reset or stash):' -ForegroundColor Yellow
     $changes | ForEach-Object { Write-Host $_ }
-    throw 'Save/commit or safely back up and reconcile local changes before updating/building. This script will not discard them.'
 }
 
 if (-not $SkipGitUpdate) {
