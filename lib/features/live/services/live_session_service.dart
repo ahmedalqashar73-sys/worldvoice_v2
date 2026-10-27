@@ -2,6 +2,7 @@ import 'dart:async';
 import '../../chat/services/worldvoice_notification_service.dart';
 import '../../rooms/services/active_chat_bubble_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 /// Firestore coordination for video Live.
@@ -206,14 +207,20 @@ class LiveSessionService {
     });
 
     if (newlyJoined) {
-      await session.collection('messages').add({
-        'type': 'join',
-        'senderId': user.uid,
-        'senderName': user.displayName ?? 'WorldVoice user',
-        'senderPhotoUrl': user.photoURL ?? '',
-        'text': '',
-        'createdAt': FieldValue.serverTimestamp(),
-      });
+      try {
+        await session.collection('messages').add({
+          'type': 'join',
+          'senderId': user.uid,
+          'senderName': user.displayName ?? 'WorldVoice user',
+          'senderPhotoUrl': user.photoURL ?? '',
+          'text': '',
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      } on FirebaseException catch (error) {
+        // Older deployed rules reject join notices with an empty text body.
+        // Joining the Live already succeeded; don't make guests fail to enter.
+        if (error.code != 'permission-denied') rethrow;
+      }
     }
   }
 
@@ -434,14 +441,25 @@ class LiveSessionService {
     } catch (_) {
       // Live comments still send with the free bubble if profile is offline.
     }
-    await _sessions.doc(liveId).collection('messages').add({
+    final messages = _sessions.doc(liveId).collection('messages');
+    final payload = <String, dynamic>{
       'senderId': user.uid,
-      'bubbleId': bubbleId,
       'senderName': user.displayName ?? 'WorldVoice user',
       'senderPhotoUrl': user.photoURL ?? '',
       'text': value,
       'createdAt': FieldValue.serverTimestamp(),
-    });
+    };
+    try {
+      // Preferred schema: preserves the user's purchased custom chat bubble.
+      await messages.add({...payload, 'bubbleId': bubbleId});
+    } on FirebaseException catch (error) {
+      if (error.code != 'permission-denied') rethrow;
+      // Compatibility for old live rules until updated Firebase rules are
+      // deployed. A denied Firestore write is atomic, so this cannot
+      // duplicate a committed message. The message still reaches Live chat,
+      // displayed with the default free bubble.
+      await messages.add(payload);
+    }
   }
 
   Future<void> cancelPendingRequest(String liveId) async {
