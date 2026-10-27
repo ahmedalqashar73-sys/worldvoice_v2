@@ -100,6 +100,25 @@ class StoryService {
   final http.Client _client;
   String? _activeEndpoint;
 
+  // Keep the last authorized feed in memory when a user briefly leaves
+  // Messages for Live/Rooms and returns. Scoped by Firebase uid, not shared
+  // between accounts; expired Stories never remain in the cache.
+  static String? _cachedFeedUser;
+  static List<StoryItem> _cachedFeed = const <StoryItem>[];
+  static DateTime? _cachedFeedAt;
+
+  static List<StoryItem> cachedFeedFor(String? uid) {
+    if (uid == null || uid != _cachedFeedUser) return const <StoryItem>[];
+    final saved = _cachedFeedAt;
+    if (saved == null ||
+        DateTime.now().difference(saved) > const Duration(minutes: 3)) {
+      return const <StoryItem>[];
+    }
+    final now = DateTime.now().millisecondsSinceEpoch;
+    return _cachedFeed.where((story) => story.expiresAtMs > now)
+        .toList(growable: false);
+  }
+
   Uri _uri(String path, {String? base}) {
     final root = Uri.tryParse((base ?? _activeEndpoint ?? _endpoint).trim());
     if (root == null ||
@@ -187,17 +206,28 @@ class StoryService {
 
   Future<List<StoryItem>> fetchFeed() async {
     final token = await _token();
-    final response = await _storyGet('/stories/feed', token);
+    // Render Free may cold-start after inactivity; do not fail the feed
+    // after its default 30-second request timeout.
+    final response = await _storyGet('/stories/feed', token,
+        timeout: const Duration(seconds: 85));
     final body = await _decode(response);
     final raw = body['stories'];
     if (raw is! List) return const <StoryItem>[];
-    return raw
+    final stories = raw
         .whereType<Map>()
         .map((item) => StoryItem.fromJson(
               item.map((key, value) => MapEntry(key.toString(), value)),
             ))
-        .where((item) => item.id.isNotEmpty && item.mediaUrl.isNotEmpty)
+        .where((item) => item.id.isNotEmpty && item.mediaUrl.isNotEmpty
+            && item.expiresAtMs > DateTime.now().millisecondsSinceEpoch)
         .toList(growable: false);
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid != null) {
+      _cachedFeedUser = uid;
+      _cachedFeed = stories;
+      _cachedFeedAt = DateTime.now();
+    }
+    return stories;
   }
 
   Future<String> uploadStory({
