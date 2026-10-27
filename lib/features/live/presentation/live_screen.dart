@@ -5652,7 +5652,23 @@ class _LiveChatOverlay extends StatefulWidget {
 class _LiveChatOverlayState extends State<_LiveChatOverlay> {
   final TextEditingController _input = TextEditingController();
   final FocusNode _focusNode = FocusNode();
+  late Stream<QuerySnapshot<Map<String, dynamic>>> _chatStream;
   bool _sending = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _chatStream = widget.service.watchChat(widget.liveId);
+  }
+
+  @override
+  void didUpdateWidget(covariant _LiveChatOverlay oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.liveId != widget.liveId ||
+        oldWidget.service != widget.service) {
+      _chatStream = widget.service.watchChat(widget.liveId);
+    }
+  }
 
   Future<void> _send() async {
     final value = _input.text.trim();
@@ -5686,10 +5702,25 @@ class _LiveChatOverlayState extends State<_LiveChatOverlay> {
       children: [
         Expanded(
           child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-            stream: widget.service.watchChat(widget.liveId),
+            stream: _chatStream,
             builder: (context, snapshot) {
               if (snapshot.hasError) {
-                return const SizedBox.shrink();
+                return Align(
+                  alignment: AlignmentDirectional.bottomStart,
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xD8000000),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      widget.ar
+                          ? 'تعذر تحميل تعليقات اللايف. راجع صلاحيات Firebase.'
+                          : 'Live comments unavailable. Check Firebase rules.',
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                );
               }
 
               final docs =
