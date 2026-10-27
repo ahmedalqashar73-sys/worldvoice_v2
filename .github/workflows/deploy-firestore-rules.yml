@@ -6,6 +6,7 @@ on:
     branches:
       - fix/finish-room-hub-quiz-gift-20260928
       - feat/chat-social-foundation-20261004
+      - feature/scalable-progress-foundation
     paths:
       - firestore.rules
       - firestore.indexes.json
