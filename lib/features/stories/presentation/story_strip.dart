@@ -11,6 +11,12 @@ import 'story_viewer_screen.dart';
 typedef StoryReplyCallback = Future<void> Function(StoryItem story);
 
 class StoryStrip extends StatefulWidget {
+  // The Chat tab stays mounted in IndexedStack. Notify its Stories strip when
+  // the user returns from Live/Rooms, rather than waiting for a 90s refresh.
+  static final ValueNotifier<int> refreshRequests = ValueNotifier<int>(0);
+
+  static void refreshFromNavigation() => refreshRequests.value++;
+
   const StoryStrip({
     required this.isArabic,
     this.onReply,
@@ -42,6 +48,7 @@ class _StoryStripState extends State<StoryStrip>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    StoryStrip.refreshRequests.addListener(_refresh);
     // Refresh without discarding the last list, even if Chat stays mounted.
     _refreshTimer = Timer.periodic(const Duration(seconds: 90), (_) {
       if (mounted &&
@@ -128,6 +135,7 @@ class _StoryStripState extends State<StoryStrip>
   @override
   void dispose() {
     _refreshTimer?.cancel();
+    StoryStrip.refreshRequests.removeListener(_refresh);
     WidgetsBinding.instance.removeObserver(this);
     _service.dispose();
     super.dispose();
