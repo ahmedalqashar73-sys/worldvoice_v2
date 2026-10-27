@@ -24,9 +24,38 @@ class StoryStrip extends StatefulWidget {
   State<StoryStrip> createState() => _StoryStripState();
 }
 
-class _StoryStripState extends State<StoryStrip> {
+class _StoryStripState extends State<StoryStrip>
+    with WidgetsBindingObserver {
   late final StoryService _service = StoryService();
-  late Future<List<StoryItem>> _feed = _service.fetchFeed();
+  List<StoryItem> _lastStories =
+      StoryService.cachedFeedFor(FirebaseAuth.instance.currentUser?.uid);
+  late Future<List<StoryItem>> _feed = _loadFeed();
+  Timer? _refreshTimer;
+
+  Future<List<StoryItem>> _loadFeed() async {
+    final loaded = await _service.fetchFeed();
+    if (mounted) _lastStories = loaded;
+    return loaded;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    // Refresh without discarding the last list, even if Chat stays mounted.
+    _refreshTimer = Timer.periodic(const Duration(seconds: 90), (_) {
+      if (mounted &&
+          WidgetsBinding.instance.lifecycleState ==
+              AppLifecycleState.resumed) {
+        _refresh();
+      }
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _refresh();
+  }
   late final Stream<DocumentSnapshot<Map<String, dynamic>>>? _ownProfileStream =
       FirebaseAuth.instance.currentUser == null
           ? null
@@ -39,7 +68,7 @@ class _StoryStripState extends State<StoryStrip> {
 
   void _refresh() {
     if (!mounted) return;
-    setState(() => _feed = _service.fetchFeed());
+    setState(() => _feed = _loadFeed());
   }
 
   Future<void> _createStory() async {
@@ -98,6 +127,8 @@ class _StoryStripState extends State<StoryStrip> {
 
   @override
   void dispose() {
+    _refreshTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     _service.dispose();
     super.dispose();
   }
@@ -112,7 +143,12 @@ class _StoryStripState extends State<StoryStrip> {
       child: FutureBuilder<List<StoryItem>>(
         future: _feed,
         builder: (context, snapshot) {
-          final stories = snapshot.data ?? const <StoryItem>[];
+          final now = DateTime.now().millisecondsSinceEpoch;
+          // Don't clear all Story circles during network retry/cold-start.
+          // Cache is only from the same signed-in user, and never expired.
+          final stories = (snapshot.data ?? _lastStories)
+              .where((story) => story.expiresAtMs > now)
+              .toList(growable: false);
           final failedToLoad = snapshot.hasError;
           final grouped = _group(stories);
           final mine = grouped.remove(uid) ?? const <StoryItem>[];
@@ -260,7 +296,10 @@ class _StoryProfileRingState extends State<StoryProfileRing> {
     return FutureBuilder<List<StoryItem>>(
       future: _stories,
       builder: (context, snapshot) {
-        final stories = snapshot.data ?? const <StoryItem>[];
+        final stories = snapshot.data ??
+            StoryService.cachedFeedFor(FirebaseAuth.instance.currentUser?.uid)
+                .where((story) => story.ownerId == widget.ownerId)
+                .toList(growable: false);
         final active = stories.isNotEmpty;
         final close = stories.any((story) => story.isCloseFriends);
         return GestureDetector(
