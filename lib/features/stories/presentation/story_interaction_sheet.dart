@@ -36,14 +36,14 @@ class _StoryInteractionSheetState extends State<StoryInteractionSheet> {
       _input.clear();
       if (mounted) {
         setState(() => _interaction = _refresh());
-        ScaffoldMessenger.of(this.context).showSnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(widget.isArabic
               ? 'تم إرسال التعليق لصاحب الستوري'
               : 'Comment sent to Story owner')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(this.context).showSnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.toString().replaceFirst('Bad state: ', ''))));
       }
     } finally {
