@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:video_player/video_player.dart';
 
 import '../services/story_service.dart';
+import '../services/story_photo_filters.dart';
 
 class CreateStorySheet extends StatefulWidget {
   const CreateStorySheet({
@@ -24,6 +25,9 @@ class CreateStorySheet extends StatefulWidget {
 class _CreateStorySheetState extends State<CreateStorySheet> {
   final ImagePicker _picker = ImagePicker();
   XFile? _media;
+  XFile? _originalPhoto;
+  StoryPhotoFilter _photoFilter = StoryPhotoFilter.original;
+  bool _processingPhoto = false;
   String _kind = 'image';
   String _audience = 'everyone';
   int _durationMs = 7000;
@@ -63,7 +67,7 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
     required String kind,
     required ImageSource source,
   }) async {
-    if (_uploading) return;
+    if (_uploading || _processingPhoto) return;
     XFile? selected;
     if (kind == 'video') {
       selected = await _picker.pickVideo(
@@ -125,12 +129,36 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
 
     setState(() {
       _media = selected;
+      _originalPhoto = kind == 'image' ? selected : null;
+      _photoFilter = StoryPhotoFilter.original;
       _kind = kind;
       _publishedStoryId = null;
       // Stable for retries, fresh whenever a different media file is picked.
       _uploadId = 'wv_${DateTime.now().microsecondsSinceEpoch}_${Random.secure().nextInt(0x7fffffff)}';
       _publishError = null;
     });
+  }
+
+  Future<void> _selectFilter(StoryPhotoFilter filter) async {
+    final original = _originalPhoto;
+    if (original == null || _processingPhoto || _uploading) return;
+    setState(() => _processingPhoto = true);
+    try {
+      final filtered = await exportStoryPhotoFilter(original, filter);
+      if (!mounted) return;
+      setState(() {
+        _media = filtered;
+        _photoFilter = filter;
+        _publishedStoryId = null;
+        _uploadId = 'wv_${DateTime.now().microsecondsSinceEpoch}_${Random.secure().nextInt(0x7fffffff)}';
+        _publishError = null;
+      });
+    } catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(error.toString().replaceFirst('Bad state: ', ''))));
+    } finally {
+      if (mounted) setState(() => _processingPhoto = false);
+    }
   }
 
   Future<void> _manageCloseFriends() async {
@@ -265,7 +293,7 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
 
   Future<void> _publish() async {
     final media = _media;
-    if (media == null || _uploading) return;
+    if (media == null || _uploading || _processingPhoto) return;
     if (_audience == 'close_friends' && !_isVip) return;
     if (_audience == 'close_friends' && _closeFriends.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -446,6 +474,31 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
                   ),
                 ],
               ),
+              if (_kind == 'image' && _media != null) ...[
+                const SizedBox(height: 12),
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text(ar ? 'فلاتر الصورة' : 'Photo filters',
+                    style: const TextStyle(fontWeight: FontWeight.w800)),
+                ),
+                const SizedBox(height: 8),
+                Wrap(spacing: 6, runSpacing: 6, children: [
+                  for (final filter in StoryPhotoFilter.values)
+                    ChoiceChip(
+                      selected: _photoFilter == filter,
+                      onSelected: _processingPhoto ? null : (_) => _selectFilter(filter),
+                      label: Text(switch (filter) {
+                        StoryPhotoFilter.original => ar ? 'الأصلية' : 'Original',
+                        StoryPhotoFilter.vivid => ar ? 'حيوي' : 'Vivid',
+                        StoryPhotoFilter.warm => ar ? 'دافئ' : 'Warm',
+                        StoryPhotoFilter.cool => ar ? 'بارد' : 'Cool',
+                        StoryPhotoFilter.mono => ar ? 'أبيض وأسود' : 'Mono',
+                        StoryPhotoFilter.vintage => ar ? 'قديم' : 'Vintage',
+                      }),
+                    ),
+                ]),
+                if (_processingPhoto) const LinearProgressIndicator(),
+              ],
               const SizedBox(height: 18),
               Align(
                 alignment: AlignmentDirectional.centerStart,
@@ -524,7 +577,7 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
               SizedBox(
                 width: double.infinity,
                 child: FilledButton.icon(
-                  onPressed: _media == null || _uploading ? null : _publish,
+                  onPressed: _media == null || _uploading || _processingPhoto ? null : _publish,
                   icon: _uploading
                       ? const SizedBox.square(
                           dimension: 18,
