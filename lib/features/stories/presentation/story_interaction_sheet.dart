@@ -34,14 +34,18 @@ class _StoryInteractionSheetState extends State<StoryInteractionSheet> {
     try {
       await widget.service.commentOnStory(widget.story.id, _input.text.trim());
       _input.clear();
-      if (mounted) setState(() => _interaction = _refresh());
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(widget.isArabic
-            ? 'تم إرسال التعليق لصاحب الستوري'
-            : 'Comment sent to Story owner')));
+      if (mounted) {
+        setState(() => _interaction = _refresh());
+        ScaffoldMessenger.of(this.context).showSnackBar(
+          SnackBar(content: Text(widget.isArabic
+              ? 'تم إرسال التعليق لصاحب الستوري'
+              : 'Comment sent to Story owner')));
+      }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString().replaceFirst('Bad state: ', ''))));
+      if (mounted) {
+        ScaffoldMessenger.of(this.context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceFirst('Bad state: ', ''))));
+      }
     } finally {
       if (mounted) setState(() => _posting = false);
     }
@@ -192,12 +196,15 @@ class _StorySettingsSheetState extends State<StorySettingsSheet> {
               final n = notifyActivity ?? notify;
               await widget.service.updateStoryPreferences(
                 allowReplies: r, notifyActivity: n);
-              if (mounted) setState(() =>
-                  _settings = Future.value(<String, dynamic>{
-                    'allowReplies': r, 'notifyActivity': n}));
+              if (mounted) {
+                setState(() => _settings = Future.value(<String, dynamic>{
+                  'allowReplies': r, 'notifyActivity': n}));
+              }
             } catch (e) {
-              if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(e.toString())));
+              if (mounted) {
+                ScaffoldMessenger.of(this.context).showSnackBar(
+                    SnackBar(content: Text(e.toString())));
+              }
             } finally {
               if (mounted) setState(() => _saving = false);
             }
