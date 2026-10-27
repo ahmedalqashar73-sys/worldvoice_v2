@@ -354,6 +354,10 @@ service cloud.firestore {
         allow read, write: if false;
       }
 
+      match /story_notification_devices/{deviceId} {
+        allow read, write: if false;
+      }
+
       match /profile_visitors/{viewerUserId} {
         allow read: if signedIn() && request.auth.uid == userId;
 
@@ -584,6 +588,10 @@ service cloud.firestore {
 
     // Device-to-account token ownership is never accessible to clients.
     match /notification_token_owners/{tokenId} {
+      allow read, write: if false;
+    }
+
+    match /story_notification_token_owners/{tokenId} {
       allow read, write: if false;
     }
 
