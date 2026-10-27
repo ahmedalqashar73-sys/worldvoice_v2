@@ -149,6 +149,36 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
     }
   }
 
+  Future<void> _replyToStory(StoryItem story) async {
+    if (_closing || widget.onReply == null) return;
+    _timer?.cancel();
+    await _video?.pause();
+    if (!mounted || _closing) return;
+    try {
+      final status = await widget.service.fetchStoryInteractions(story.id);
+      if (status['allowReplies'] != true) {
+        throw StateError(ar
+            ? 'صاحب الستوري أوقف الردود على الستوري.'
+            : 'The Story owner has disabled replies.');
+      }
+      if (mounted && !_closing) await widget.onReply!(story);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.toString().replaceFirst('Bad state: ', ''))));
+      }
+    } finally {
+      if (mounted && !_closing && _story.id == story.id) {
+        if (_video?.value.isInitialized == true) {
+          await _video?.play();
+        } else {
+          _timer = Timer(
+              Duration(milliseconds: story.durationMs.clamp(2500, 12000)), _next);
+        }
+      }
+    }
+  }
+
   Future<void> _showInteractions() async {
     _timer?.cancel();
     await _video?.pause();
@@ -522,7 +552,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
                       if (!_isOwner && _allowReplies && widget.onReply != null)
                         Expanded(
                           child: TextButton.icon(
-                            onPressed: () => widget.onReply!(story),
+                            onPressed: () => _replyToStory(story),
                             icon: const Icon(Icons.reply_rounded,
                                 color: Colors.white),
                             label: Text(ar ? 'رد في الدردشة' : 'Reply in chat',
