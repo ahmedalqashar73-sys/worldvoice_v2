@@ -3071,8 +3071,31 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   }
 
   Future<void> _requestCamera() async {
-    await _service.requestToJoin(widget.liveId);
-    if (mounted) setState(() => _requested = true);
+    if (_requested) return;
+    // Keep hand-raise retryable if Firestore rejects the request. Previously
+    // the Future error escaped from the button and left no explanation.
+    try {
+      await _service.requestToJoin(widget.liveId);
+      if (mounted) setState(() => _requested = true);
+    } on FirebaseException catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(error.code == 'permission-denied'
+            ? (widget.ar
+                ? 'تعذر طلب الصعود: صلاحيات اللايف في Firebase غير منشورة.'
+                : 'Stage request denied. Deploy the Live Firebase rules.')
+            : (widget.ar
+                ? 'تعذر إرسال طلب رفع اليد. حاول مرة ثانية.'
+                : 'Unable to send stage request. Please retry.')),
+      ));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(widget.ar
+            ? 'تعذر إرسال طلب رفع اليد. حاول مرة ثانية.'
+            : 'Unable to send stage request. Please retry.'),
+      ));
+    }
   }
 
   @override
