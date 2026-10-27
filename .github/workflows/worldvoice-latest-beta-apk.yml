@@ -6,6 +6,9 @@ on:
       - feature/scalable-progress-foundation
     paths:
       - .github/workflows/worldvoice-latest-beta-apk.yml
+      - lib/features/stories/**
+      - lib/features/live/**
+      - firestore.rules
   workflow_dispatch:
 
 permissions:
