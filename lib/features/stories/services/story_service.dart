@@ -85,17 +85,14 @@ class StoryCloseFriendState {
 class StoryService {
   StoryService({http.Client? client}) : _client = client ?? http.Client();
 
-  // The story upload API lives on the current main backend, not the older
-  // economy deployment. Keep a dedicated override for future migrations.
+  // Stories now has its own Render service, separate from Teacher AI and
+  // room economy. Existing custom endpoints remain overridable by dart-define.
   static const String _endpoint = String.fromEnvironment(
     'WORLDVOICE_STORY_BACKEND_URL',
-    defaultValue: String.fromEnvironment(
-      'WORLDVOICE_AI_BACKEND_URL',
-      defaultValue: 'https://worldvoice-teacher-ai.onrender.com',
-    ),
+    defaultValue: 'https://worldvoice-stories.onrender.com',
   );
-  // A beta installation may have the Stories API on the dedicated AI
-  // backend or on the shared backend. Fall back only when the route is absent.
+  // Legacy social backend is a compatibility fallback for missing endpoints,
+  // not the primary Stories uploader. Never fall back to Teacher AI.
   static const String _fallbackEndpoint = String.fromEnvironment(
     'WORLDVOICE_SOCIAL_BACKEND_URL',
     defaultValue: 'https://worldvoice-v2.onrender.com',
