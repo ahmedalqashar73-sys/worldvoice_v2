@@ -8,6 +8,7 @@ on:
       - .github/workflows/worldvoice-latest-beta-apk.yml
       - lib/features/stories/**
       - lib/features/live/**
+      - lib/features/home/presentation/home_screen.dart
       - firestore.rules
   workflow_dispatch:
 
