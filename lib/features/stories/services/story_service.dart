@@ -381,6 +381,11 @@ class StoryService {
         event.map((key, value) => MapEntry(key.toString(), value))).toList();
   }
 
+  Future<void> registerStoryNotificationDevice(String token) async {
+    await _postStory('/stories/notifications/register-device',
+        <String, dynamic>{'token': token});
+  }
+
   Future<void> recordView(String storyId) async {
     final token = await _token();
     final response = await _client.post(
