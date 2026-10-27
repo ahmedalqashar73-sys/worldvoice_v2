@@ -342,6 +342,13 @@ service cloud.firestore {
         allow write: if false;
       }
 
+      // Reactions are verified and written only by the trusted backend.
+      // Notification details are private to the Story owner.
+      match /story_notifications/{eventId} {
+        allow read: if signedIn() && request.auth.uid == userId;
+        allow write: if false;
+      }
+
       // Raw push device tokens are backend-only, including for the owner.
       match /notification_devices/{deviceId} {
         allow read, write: if false;
