@@ -15,6 +15,7 @@ import '../../profile/presentation/profile_form_validation.dart';
 import '../../profile/presentation/user_profile_screen.dart';
 import '../../rooms/presentation/rooms_hub_screen.dart';
 import '../../stories/presentation/story_notifications_screen.dart';
+import '../../stories/presentation/story_strip.dart';
 import 'home_feed_section.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -95,6 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
           selectedIndex: _index,
           onDestinationSelected: (value) {
             setState(() => _index = value);
+            if (value == 3) StoryStrip.refreshFromNavigation();
           },
           destinations: [
             NavigationDestination(
