@@ -14,6 +14,7 @@ import '../../profile/presentation/public_profile_screen.dart';
 import '../../profile/presentation/profile_form_validation.dart';
 import '../../profile/presentation/user_profile_screen.dart';
 import '../../rooms/presentation/rooms_hub_screen.dart';
+import '../../stories/presentation/story_notifications_screen.dart';
 import 'home_feed_section.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -54,11 +55,14 @@ class _HomeScreenState extends State<HomeScreen> {
       final destination = WorldVoiceNotificationService.pendingInbox.value;
       if (destination == null) return;
       WorldVoiceNotificationService.pendingInbox.value = null;
-      setState(() => _index = 3);
+      if (destination != 'story') setState(() => _index = 3);
       Navigator.of(context).push(MaterialPageRoute<void>(
-        builder: (_) => destination == 'activity'
-          ? WorldVoiceActivityScreen(localeController: widget.localeController)
-          : WorldVoiceOfficialScreen(localeController: widget.localeController),
+        builder: (_) => destination == 'story'
+          ? StoryNotificationsScreen(
+              isArabic: widget.localeController.locale?.languageCode == 'ar')
+          : destination == 'activity'
+              ? WorldVoiceActivityScreen(localeController: widget.localeController)
+              : WorldVoiceOfficialScreen(localeController: widget.localeController),
       ));
     });
   }
@@ -288,7 +292,9 @@ class _HomeLandingState extends State<_HomeLanding> {
                     icon: const Icon(Icons.add_box_outlined, size: 27),
                   ),
                   IconButton(
-                    onPressed: () {},
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(builder: (_) =>
+                        StoryNotificationsScreen(isArabic: ar))),
                     tooltip: t.notifications,
                     icon: const Icon(Icons.notifications_none_rounded, size: 27),
                   ),
