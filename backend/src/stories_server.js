@@ -6,6 +6,7 @@ import {getAuth} from "firebase-admin/auth";
 import {getFirestore} from "firebase-admin/firestore";
 
 import {registerStoryRoutes} from "./story_routes.js";
+import {registerStoryInteractionRoutes} from "./story_interactions_routes.js";
 
 const projectId = String(
   process.env.FIREBASE_PROJECT_ID || process.env.GOOGLE_CLOUD_PROJECT || "",
@@ -77,6 +78,7 @@ app.get("/health", (_req, res) => {
 });
 
 registerStoryRoutes({app, authenticatedUser, db, projectId});
+registerStoryInteractionRoutes({app, authenticatedUser, db});
 
 app.use((error, _req, res, _next) => {
   if (error?.code === "STORY_STORAGE_NOT_READY") {
