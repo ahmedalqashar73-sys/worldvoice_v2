@@ -1,0 +1,37 @@
+name: WorldVoice Live Firestore Chat Rules
+
+on:
+  push:
+    branches:
+      - feature/scalable-progress-foundation
+    paths:
+      - 'firestore.rules'
+      - 'test/firestore/live_messages.test.mjs'
+      - 'test/firestore/package.json'
+      - '.github/workflows/worldvoice-live-firestore-regression.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live-messages-security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install Firebase emulator tooling
+        run: npm install --prefix test/firestore --no-audit --no-fund
+      - name: Test Live messages and join events against Firestore rules emulator
+        run: >-
+          ./test/firestore/node_modules/.bin/firebase
+          emulators:exec --only firestore
+          --project demo-worldvoice-live-rules
+          "node --test test/firestore/live_messages.test.mjs"
