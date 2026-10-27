@@ -1,0 +1,58 @@
+name: WorldVoice Complete Beta APK (Cloud Build)
+
+on:
+  push:
+    branches: [feature/scalable-progress-foundation]
+    paths:
+      - '.github/workflows/worldvoice-beta-cloud-build.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-complete-worldvoice:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - name: Checkout original WorldVoice app
+        uses: actions/checkout@v4
+      - name: Install Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Set up Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.8'
+          channel: stable
+          cache: true
+      - name: Resolve existing app packages
+        run: flutter pub get
+      - name: Verify premium room backgrounds remain in build
+        run: python3 scripts/verify_room_background_assets.py
+      - name: Configure CI Gradle memory
+        run: sed -i 's/-Xmx2048m/-Xmx4096m/' android/gradle.properties
+      - name: Assemble complete Android beta (original WorldVoice app)
+        shell: bash
+        run: |
+          set -euo pipefail
+          BUILD_NUMBER=$(( ($(date -u +%s) - 1577836800) / 60 ))
+          flutter build apk --release \
+            --build-number="$BUILD_NUMBER" \
+            --dart-define=WORLDVOICE_FRIEND_GIFT_PREVIEW=true \
+            --dart-define=AGORA_APP_ID=fa41476c6813471eb45c059bcb4a0e19 \
+            --dart-define=WORLDVOICE_ROOM_BACKEND_URL=https://worldvoice-v2.onrender.com \
+            --dart-define=AGORA_TOKEN_ENDPOINT=https://worldvoice-agora-token.worldvoice.workers.dev/agora/token \
+            --dart-define=WORLDVOICE_ECONOMY_ENDPOINT=https://worldvoice-v2.onrender.com \
+            --dart-define=WORLDVOICE_STORY_BACKEND_URL=https://worldvoice-stories.onrender.com
+          test -s build/app/outputs/flutter-apk/app-release.apk
+          sha256sum build/app/outputs/flutter-apk/app-release.apk
+      - name: Package beta APK for download
+        uses: actions/upload-artifact@v4
+        with:
+          name: WorldVoice-Complete-Beta-APK
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 14
+          if-no-files-found: error
