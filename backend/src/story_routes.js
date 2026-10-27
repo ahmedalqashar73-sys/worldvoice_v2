@@ -521,7 +521,7 @@ export function registerStoryRoutes({
     try {
       const user = await authenticatedUser(req);
       const storyId = String(req.body?.storyId || "").trim();
-      if (!/^[a-f0-9]{32}$/.test(storyId)) fail("Invalid story.");
+      if (!/^(?:[a-f0-9]{32}|[a-f0-9]{64})$/.test(storyId)) fail("Invalid story.");
 
       const storyRef = db.collection("stories").doc(storyId);
       const storySnap = await storyRef.get();
@@ -557,7 +557,7 @@ export function registerStoryRoutes({
     try {
       const user = await authenticatedUser(req);
       const storyId = String(req.params.storyId || "").trim();
-      if (!/^[a-f0-9]{32}$/.test(storyId)) fail("Invalid story.");
+      if (!/^(?:[a-f0-9]{32}|[a-f0-9]{64})$/.test(storyId)) fail("Invalid story.");
 
       const storyRef = db.collection("stories").doc(storyId);
       const storySnap = await storyRef.get();
