@@ -949,14 +949,42 @@ service cloud.firestore {
 
       match /messages/{messageId} {
         allow read: if signedIn();
+        // Live comments carry the user's chosen bubbleId. Joining the Live
+        // also writes a dedicated event, with an empty text body. Neither
+        // shape can spoof another Firebase user or write arbitrary fields.
         allow create: if signedIn()
             && request.resource.data.senderId == request.auth.uid
+            && request.resource.data.senderName is string
+            && request.resource.data.senderName.size() <= 100
+            && request.resource.data.senderPhotoUrl is string
+            && request.resource.data.senderPhotoUrl.size() <= 2048
             && request.resource.data.text is string
-            && request.resource.data.text.size() > 0
-            && request.resource.data.text.size() <= 500
-            && request.resource.data.keys().hasOnly([
-              'senderId', 'senderName', 'senderPhotoUrl', 'text', 'createdAt'
-            ]);
+            && (
+              (
+                !request.resource.data.keys().hasAny(['type'])
+                && request.resource.data.text.size() > 0
+                && request.resource.data.text.size() <= 500
+                && request.resource.data.keys().hasOnly([
+                  'senderId', 'senderName', 'senderPhotoUrl',
+                  'text', 'createdAt', 'bubbleId'
+                ])
+                && request.resource.data.get('bubbleId', 'free') is string
+                && request.resource.data.get('bubbleId', 'free').size() <= 80
+              )
+              || (
+                request.resource.data.keys().hasAll(['type'])
+                && request.resource.data.type == 'join'
+                && request.resource.data.text == ''
+                && request.resource.data.keys().hasOnly([
+                  'type', 'senderId', 'senderName', 'senderPhotoUrl',
+                  'text', 'createdAt'
+                ])
+                && exists(
+                  /databases/$(database)/documents/live_sessions/$(liveId)/viewers/$(request.auth.uid)
+                )
+              )
+            )
+            && request.resource.data.createdAt == request.time;
         allow update, delete: if false;
       }
 
