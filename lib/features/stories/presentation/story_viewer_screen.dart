@@ -34,6 +34,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
   VideoPlayerController? _video;
   bool _mediaLoading = true;
   bool _closing = false;
+  bool _interacting = false;
   int _loadEpoch = 0;
   bool _advanceQueued = false;
   bool _liked = false;
@@ -102,7 +103,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
 
   void _videoListener() {
     final controller = _video;
-    if (controller == null ||
+    if (controller == null || _interacting ||
         !controller.value.isInitialized ||
         controller.value.isPlaying) {
       return;
@@ -150,7 +151,8 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
   }
 
   Future<void> _replyToStory(StoryItem story) async {
-    if (_closing || widget.onReply == null) return;
+    if (_closing || _interacting || widget.onReply == null) return;
+    _interacting = true;
     _timer?.cancel();
     await _video?.pause();
     if (!mounted || _closing) return;
@@ -168,6 +170,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
           SnackBar(content: Text(error.toString().replaceFirst('Bad state: ', ''))));
       }
     } finally {
+      _interacting = false;
       if (mounted && !_closing && _story.id == story.id) {
         if (_video?.value.isInitialized == true) {
           await _video?.play();
@@ -180,6 +183,8 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
   }
 
   Future<void> _showInteractions() async {
+    if (_closing || _interacting) return;
+    _interacting = true;
     _timer?.cancel();
     await _video?.pause();
     if (!mounted || _closing) return;
@@ -193,6 +198,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
         owner: _isOwner, isArabic: ar),
     );
     if (!mounted || _closing) return;
+    _interacting = false;
     unawaited(_loadInteractions(_story.id));
     if (_video?.value.isInitialized == true) {
       await _video?.play();
@@ -202,6 +208,8 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
   }
 
   Future<void> _showStorySettings() async {
+    if (_closing || _interacting) return;
+    _interacting = true;
     _timer?.cancel();
     await _video?.pause();
     if (!mounted || _closing) return;
@@ -212,6 +220,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
           isArabic: ar),
     );
     if (!mounted || _closing) return;
+    _interacting = false;
     unawaited(_loadInteractions(_story.id));
     if (_video?.value.isInitialized == true) {
       await _video?.play();
@@ -231,7 +240,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
   }
 
   void _next() {
-    if (!mounted || _closing) return;
+    if (!mounted || _closing || _interacting) return;
     _timer?.cancel();
     if (_index >= widget.stories.length - 1) {
       _exitStory();
