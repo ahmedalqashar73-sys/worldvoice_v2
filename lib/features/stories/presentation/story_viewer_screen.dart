@@ -32,6 +32,8 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
   Timer? _timer;
   VideoPlayerController? _video;
   bool _mediaLoading = true;
+  bool _closing = false;
+  int _loadEpoch = 0;
 
   bool get ar => widget.isArabic;
   StoryItem get _story => widget.stories[_index];
@@ -45,6 +47,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
   }
 
   Future<void> _showCurrent() async {
+    final epoch = ++_loadEpoch;
     _timer?.cancel();
     final oldVideo = _video;
     if (oldVideo != null) {
@@ -52,7 +55,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
       await oldVideo.dispose();
     }
     _video = null;
-    if (!mounted) return;
+    if (!mounted || _closing || epoch != _loadEpoch) return;
     setState(() => _mediaLoading = true);
 
     final story = _story;
@@ -65,23 +68,27 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
       _video = controller;
       try {
         await controller.initialize();
-        if (!mounted || _video != controller) return;
+        if (!mounted || _closing || epoch != _loadEpoch || _video != controller) return;
         await controller.setLooping(false);
         controller.addListener(_videoListener);
         await controller.play();
         setState(() => _mediaLoading = false);
       } catch (_) {
-        if (!mounted) return;
+        if (!mounted || _closing || epoch != _loadEpoch) return;
         setState(() => _mediaLoading = false);
       }
       return;
     }
 
-    if (mounted) setState(() => _mediaLoading = false);
+    if (mounted && !_closing && epoch == _loadEpoch) {
+      setState(() => _mediaLoading = false);
+    }
     final duration = Duration(
       milliseconds: story.durationMs.clamp(2500, 12000),
     );
-    _timer = Timer(duration, _next);
+    if (mounted && !_closing && epoch == _loadEpoch) {
+      _timer = Timer(duration, _next);
+    }
   }
 
   void _videoListener() {
@@ -93,14 +100,28 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
     }
     if (controller.value.position >=
         controller.value.duration - const Duration(milliseconds: 250)) {
-      _next();
+      // Do not change Navigator while VideoPlayer listeners are notifying.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && !_closing && _video == controller) _next();
+      });
     }
   }
 
+  void _exitStory() {
+    if (!mounted || _closing) return;
+    _closing = true;
+    _timer?.cancel();
+    ++_loadEpoch;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) Navigator.of(context).maybePop();
+    });
+  }
+
   void _next() {
-    if (!mounted) return;
+    if (!mounted || _closing) return;
+    _timer?.cancel();
     if (_index >= widget.stories.length - 1) {
-      Navigator.of(context).pop();
+      _exitStory();
       return;
     }
     setState(() => _index += 1);
@@ -108,7 +129,8 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
   }
 
   void _previous() {
-    if (_index <= 0) return;
+    if (_closing || _index <= 0) return;
+    _timer?.cancel();
     setState(() => _index -= 1);
     unawaited(_showCurrent());
   }
@@ -119,7 +141,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
       await widget.service.deleteStory(story.id);
       widget.onChanged?.call();
       if (!mounted) return;
-      Navigator.of(context).pop();
+      _exitStory();
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -132,6 +154,8 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
 
   @override
   void dispose() {
+    _closing = true;
+    ++_loadEpoch;
     _timer?.cancel();
     final video = _video;
     if (video != null) {
@@ -337,7 +361,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
                       color: Colors.white),
                   ),
                   IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: _exitStory,
                     icon: const Icon(
                       Icons.close_rounded,
                       color: Colors.white,
