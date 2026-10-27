@@ -7,6 +7,7 @@ import 'package:video_player/video_player.dart';
 
 import '../services/story_service.dart';
 import '../services/story_photo_filters.dart';
+import 'story_interaction_sheet.dart';
 
 class CreateStorySheet extends StatefulWidget {
   const CreateStorySheet({
@@ -530,6 +531,22 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
                   if (next == 'close_friends' && !_isVip) return;
                   setState(() => _audience = next);
                 },
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.shield_outlined),
+                title: Text(ar ? 'خصوصية الرد والتعليقات' : 'Replies & comments privacy'),
+                subtitle: Text(ar
+                    ? 'اختر من يقدر يعلّق أو يرد في الدردشة'
+                    : 'Control who may comment or reply to your Story'),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => showModalBottomSheet<void>(
+                  context: context,
+                  showDragHandle: true,
+                  isScrollControlled: true,
+                  builder: (_) => StorySettingsSheet(
+                    service: widget.service, isArabic: ar),
+                ),
               ),
               if (!_loadingEntitlements && !_isVip)
                 Padding(
