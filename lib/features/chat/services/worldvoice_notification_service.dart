@@ -22,6 +22,8 @@ class WorldVoiceNotificationService {
       pendingInbox.value = 'activity';
     } else if (kind == 'worldvoice_announcement') {
       pendingInbox.value = 'official';
+    } else if (kind == 'story_interaction') {
+      pendingInbox.value = 'story';
     }
   }
 
