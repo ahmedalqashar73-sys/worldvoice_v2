@@ -246,7 +246,9 @@ export function registerStoryRoutes({
               : await requireStoryBucket();
             await bucket.file(storagePath).delete({ignoreNotFound: true});
           }
-          await doc.ref.delete();
+          // Firestore document deletion alone leaves views, likes and comments.
+          // Purge the Story tree when the 24-hour media expires.
+          await db.recursiveDelete(doc.ref);
         } catch (error) {
           console.warn("Expired story cleanup postponed:", doc.id,
             error?.code || error?.message);
@@ -583,7 +585,8 @@ export function registerStoryRoutes({
           await bucket.file(storagePath).delete({ignoreNotFound: true});
         }
       }
-      await storyRef.delete();
+      // Remove reaction/view subcollections as well as the parent Story.
+      await db.recursiveDelete(storyRef);
       return res.json({ok: true});
     } catch (error) {
       next(error);
