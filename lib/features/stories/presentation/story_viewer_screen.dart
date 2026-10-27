@@ -140,8 +140,10 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
       await widget.service.setStoryLiked(_story.id, liked: !_liked);
       await _loadInteractions(_story.id);
     } catch (error) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.toString().replaceFirst('Bad state: ', ''))));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.toString().replaceFirst('Bad state: ', ''))));
+      }
     } finally {
       if (mounted) setState(() => _likeBusy = false);
     }
