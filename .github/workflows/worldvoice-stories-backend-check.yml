@@ -1,0 +1,33 @@
+name: WorldVoice Stories Backend Check
+
+on:
+  push:
+    branches:
+      - feature/scalable-progress-foundation
+    paths:
+      - 'backend/src/stories_server.js'
+      - 'backend/src/story_routes.js'
+      - 'backend/package.json'
+      - 'backend/STORIES_RENDER_SETUP.md'
+      - '.github/workflows/worldvoice-stories-backend-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dedicated-stories:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check isolated Stories server and routes
+        run: |
+          node --check backend/src/stories_server.js
+          node --check backend/src/story_routes.js
+          node --check backend/src/server.js
+      - name: Validate dedicated Stories launch script
+        run: |
+          node -e "const p = require('./backend/package.json'); if (p.scripts['start:stories'] !== 'node src/stories_server.js') process.exit(1);"
