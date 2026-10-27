@@ -46,6 +46,15 @@ jobs:
           echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/firebase-service-account.json" >> "$GITHUB_ENV"
           echo "configured=true" >> "$GITHUB_OUTPUT"
 
-      - name: Deploy Firestore rules and indexes
+      - name: Deploy Firestore rules and indexes with Firebase CLI
+        id: cli_deploy
+        continue-on-error: true
         if: steps.auth.outputs.configured == 'true'
         run: firebase deploy --only firestore:rules,firestore:indexes --project worldvoice-37896 --non-interactive
+
+      - name: Use official Firebase Admin SDK when CLI cannot inspect Service Usage
+        if: steps.auth.outputs.configured == 'true' && steps.cli_deploy.outcome == 'failure'
+        working-directory: backend
+        run: |
+          npm ci --ignore-scripts
+          node scripts/deploy_firestore_rules_admin.mjs
