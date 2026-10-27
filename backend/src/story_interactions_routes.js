@@ -1,6 +1,6 @@
 // Private Story reactions and notifications. Only this signed-in API may write
 // event documents; clients never receive unrestricted Firestore collection access.
-import {randomUUID} from "node:crypto";
+import {createHash, randomUUID} from "node:crypto";
 import {Timestamp} from "firebase-admin/firestore";
 import {getMessaging} from "firebase-admin/messaging";
 
@@ -59,9 +59,16 @@ async function sendStoryPush(db, ownerId, kind, actor) {
   try {
     const profile = await db.collection("users").doc(ownerId).get();
     if (profile.data()?.storyNotificationsEnabled === false) return;
-    const devices = await db.collection("users").doc(ownerId)
-      .collection("notification_devices").limit(10).get();
-    const tokens = [...new Set(devices.docs.map(d => d.data()?.token).filter(Boolean))];
+    const [mainDevices, storyDevices] = await Promise.all([
+      db.collection("users").doc(ownerId).collection("notification_devices")
+        .limit(10).get(),
+      db.collection("users").doc(ownerId).collection("story_notification_devices")
+        .limit(10).get(),
+    ]);
+    const tokens = [...new Set([
+      ...mainDevices.docs.map(d => d.data()?.token),
+      ...storyDevices.docs.map(d => d.data()?.token),
+    ].filter(Boolean))].slice(0, 10);
     if (!tokens.length) return;
     const ar = profile.data()?.notificationLanguageCode === "ar";
     await getMessaging().sendEachForMulticast({
@@ -81,6 +88,33 @@ async function sendStoryPush(db, ownerId, kind, actor) {
   }
 }
 export function registerStoryInteractionRoutes({app, authenticatedUser, db}) {
+  // Story pushes work independently even if the legacy social backend has not
+  // deployed its FCM device registration route.
+  app.post("/stories/notifications/register-device", async (req, res, next) => {
+    try {
+      const user = await authenticatedUser(req);
+      const token = safe(req.body?.token, 2049);
+      if (token.length < 30 || token.length > 2048) {
+        invalid("Invalid push token.");
+      }
+      const tokenId = createHash("sha256").update(token).digest("hex");
+      const ownerRef = db.collection("story_notification_token_owners").doc(tokenId);
+      const deviceRef = db.collection("users").doc(user.uid)
+        .collection("story_notification_devices").doc(tokenId);
+      await db.runTransaction(async tx => {
+        const previous = await tx.get(ownerRef);
+        const oldOwnerId = previous.data()?.uid;
+        if (oldOwnerId && oldOwnerId !== user.uid) {
+          tx.delete(db.collection("users").doc(oldOwnerId)
+            .collection("story_notification_devices").doc(tokenId));
+        }
+        tx.set(ownerRef, {uid: user.uid, updatedAt: Timestamp.now()});
+        tx.set(deviceRef, {token, updatedAt: Timestamp.now()});
+      });
+      return res.json({ok: true});
+    } catch (e) { next(e); }
+  });
+
   app.get("/stories/preferences", async (req, res, next) => {
     try {
       const user = await authenticatedUser(req);
