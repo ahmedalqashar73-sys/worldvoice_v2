@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
 import '../services/story_service.dart';
+import 'story_interaction_sheet.dart';
 import '../../chat/presentation/worldvoice_share_to_chat_sheet.dart';
 
 class StoryViewerScreen extends StatefulWidget {
@@ -34,6 +35,12 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
   bool _mediaLoading = true;
   bool _closing = false;
   int _loadEpoch = 0;
+  bool _advanceQueued = false;
+  bool _liked = false;
+  int _likeCount = 0;
+  int _commentCount = 0;
+  bool _allowReplies = true;
+  bool _likeBusy = false;
 
   bool get ar => widget.isArabic;
   StoryItem get _story => widget.stories[_index];
@@ -48,6 +55,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
 
   Future<void> _showCurrent() async {
     final epoch = ++_loadEpoch;
+    _advanceQueued = false;
     _timer?.cancel();
     final oldVideo = _video;
     if (oldVideo != null) {
@@ -59,6 +67,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
     setState(() => _mediaLoading = true);
 
     final story = _story;
+    unawaited(_loadInteractions(story.id));
     unawaited(widget.service.recordView(story.id).catchError((_) {}));
 
     if (story.isVideo) {
@@ -99,11 +108,83 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
       return;
     }
     if (controller.value.position >=
-        controller.value.duration - const Duration(milliseconds: 250)) {
+        controller.value.duration - const Duration(milliseconds: 250) &&
+        !_advanceQueued) {
+      _advanceQueued = true;
       // Do not change Navigator while VideoPlayer listeners are notifying.
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && !_closing && _video == controller) _next();
       });
+    }
+  }
+
+  Future<void> _loadInteractions(String id) async {
+    try {
+      final data = await widget.service.fetchStoryInteractions(id);
+      if (!mounted || _closing || _story.id != id) return;
+      setState(() {
+        _liked = data['liked'] == true;
+        _likeCount = (data['likesCount'] as num?)?.toInt() ?? 0;
+        _commentCount = (data['commentsCount'] as num?)?.toInt() ?? 0;
+        _allowReplies = data['allowReplies'] != false;
+      });
+    } catch (_) {
+      // Retry from the activity sheet without blocking Story playback.
+    }
+  }
+
+  Future<void> _toggleLike() async {
+    if (_isOwner || _likeBusy || _closing) return;
+    setState(() => _likeBusy = true);
+    try {
+      await widget.service.setStoryLiked(_story.id, liked: !_liked);
+      await _loadInteractions(_story.id);
+    } catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString().replaceFirst('Bad state: ', ''))));
+    } finally {
+      if (mounted) setState(() => _likeBusy = false);
+    }
+  }
+
+  Future<void> _showInteractions() async {
+    _timer?.cancel();
+    await _video?.pause();
+    if (!mounted || _closing) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (_) => StoryInteractionSheet(
+        story: _story, service: widget.service,
+        owner: _isOwner, isArabic: ar),
+    );
+    if (!mounted || _closing) return;
+    unawaited(_loadInteractions(_story.id));
+    if (_video?.value.isInitialized == true) {
+      await _video?.play();
+    } else {
+      _timer = Timer(Duration(milliseconds: _story.durationMs.clamp(2500, 12000)), _next);
+    }
+  }
+
+  Future<void> _showStorySettings() async {
+    _timer?.cancel();
+    await _video?.pause();
+    if (!mounted || _closing) return;
+    await showModalBottomSheet<void>(
+      context: context, isScrollControlled: true, useSafeArea: true,
+      showDragHandle: true,
+      builder: (_) => StorySettingsSheet(service: widget.service,
+          isArabic: ar),
+    );
+    if (!mounted || _closing) return;
+    unawaited(_loadInteractions(_story.id));
+    if (_video?.value.isInitialized == true) {
+      await _video?.play();
+    } else {
+      _timer = Timer(Duration(milliseconds: _story.durationMs.clamp(2500, 12000)), _next);
     }
   }
 
@@ -336,9 +417,23 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
                       onSelected: (value) {
                         if (value == 'delete') {
                           unawaited(_deleteCurrent());
+                        } else if (value == 'activity') {
+                          unawaited(_showInteractions());
+                        } else if (value == 'privacy') {
+                          unawaited(_showStorySettings());
                         }
                       },
                       itemBuilder: (_) => [
+                        PopupMenuItem(
+                          value: 'activity',
+                          child: Text(ar ? 'الإعجابات والتعليقات' : 'Likes & comments',
+                              style: const TextStyle(color: Colors.white)),
+                        ),
+                        PopupMenuItem(
+                          value: 'privacy',
+                          child: Text(ar ? 'خصوصية الاستوري' : 'Story privacy',
+                              style: const TextStyle(color: Colors.white)),
+                        ),
                         PopupMenuItem(
                           value: 'delete',
                           child: Text(
