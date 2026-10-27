@@ -78,8 +78,11 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
     } else {
       selected = await _picker.pickImage(
         source: source,
-        imageQuality: 82,
-        maxWidth: 1440,
+        // Preserve more detail from camera/gallery. The prior 1440px / 82%
+        // settings visibly softened high-resolution Story photos.
+        imageQuality: 94,
+        maxWidth: 2160,
+        maxHeight: 3840,
       );
     }
     if (selected == null || !mounted) return;
