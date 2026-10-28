@@ -718,8 +718,23 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
               bottom: 12,
               child: SafeArea(
                 top: false,
-                child: Row(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
+                    if (!_isOwner && _replyError != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Text(
+                          _replyError!,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFFFFC5C5),
+                          ),
+                        ),
+                      ),
+                    Row(
+                      children: [
                     if (_isOwner) ...[
                       Expanded(
                         child: TextButton.icon(
@@ -854,6 +869,8 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
                         Icons.send_outlined,
                         color: Colors.white,
                       ),
+                    ),
+                      ],
                     ),
                   ],
                 ),
