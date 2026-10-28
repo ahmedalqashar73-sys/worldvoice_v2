@@ -8,7 +8,6 @@ import 'package:video_player/video_player.dart';
 import '../services/story_service.dart';
 import '../services/story_filter_presets.dart';
 import 'story_interaction_sheet.dart';
-import 'story_reply_sheet.dart';
 import '../../chat/presentation/chat_screen.dart';
 import '../../chat/presentation/worldvoice_share_to_chat_sheet.dart';
 
@@ -49,6 +48,11 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
   List<Map> _viewers = [];
   bool _allowReplies = true;
   bool _likeBusy = false;
+  // The reply lives inside the Story viewer, not in another full-screen sheet.
+  final TextEditingController _replyInput = TextEditingController();
+  final FocusNode _replyFocus = FocusNode();
+  bool _replySending = false;
+  String? _replyError;
 
   bool get ar => widget.isArabic;
   StoryItem get _story => widget.stories[_index];
@@ -57,10 +61,23 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
   @override
   void initState() {
     super.initState();
+    _replyFocus.addListener(_onReplyFocusChanged);
     unawaited(_showCurrent());
   }
 
+  void _onReplyFocusChanged() {
+    if (!mounted || _closing) return;
+    if (_replyFocus.hasFocus) {
+      _hold();
+    } else if (!_replySending) {
+      _releaseHold();
+    }
+  }
+
   Future<void> _showCurrent() async {
+    _replyFocus.unfocus();
+    _replyInput.clear();
+    _replyError = null;
     final epoch = ++_loadEpoch;
     _advanceQueued = false;
     _mediaReady = false;
@@ -244,81 +261,64 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
     }
   }
 
-  Future<void> _replyToStory(StoryItem story) async {
-    if (_closing || _interacting) return;
-    _interacting = true;
-    _timer?.cancel();
-    _progress.stop();
-    await _video?.pause();
-    if (!mounted || _closing) return;
+  Future<void> _sendStoryReply(StoryItem story) async {
+    final text = _replyInput.text.trim();
+    if (text.isEmpty || _replySending || _closing || !_allowReplies) return;
+    _hold();
+    setState(() {
+      _replySending = true;
+      _replyError = null;
+    });
     try {
-      final status = await widget.service.fetchStoryInteractions(story.id);
-      if (status['allowReplies'] != true) {
+      final permission = await widget.service.fetchStoryInteractions(story.id);
+      if (permission['allowReplies'] == false) {
+        throw StateError(
+          ar ? 'صاحب الستوري أوقف الردود.' : 'Story replies are disabled.',
+        );
+      }
+      final chat = await ChatScreen.startConversationWithUser(
+        recipientId: story.ownerId,
+      );
+      final status = (chat['status'] ?? 'ready').toString();
+      final id = (chat['chatId'] ?? '').toString().trim();
+      if (status != 'ready' || id.isEmpty) {
         throw StateError(
           ar
-              ? 'صاحب الستوري أوقف الردود على الستوري.'
-              : 'The Story owner has disabled replies.',
+              ? 'يلزم قبول طلب المحادثة أولًا. ردك محفوظ هنا.'
+              : 'The chat request must be accepted first. Your draft stays here.',
         );
       }
-      if (mounted && !_closing) {
-        await showModalBottomSheet<bool>(
-          context: context,
-          isScrollControlled: true,
-          isDismissible: false,
-          enableDrag: false,
-          builder: (_) => StoryReplySheet(
-            ownerName: story.ownerName,
-            isArabic: ar,
-            onSend: (text) async {
-              final permission = await widget.service.fetchStoryInteractions(
-                story.id,
-              );
-              if (permission['allowReplies'] != true) {
-                throw StateError(
-                  ar
-                      ? 'صاحب الستوري أوقف الردود.'
-                      : 'Story replies are disabled.',
-                );
-              }
-              final chat = await ChatScreen.startConversationWithUser(
-                recipientId: story.ownerId,
-              );
-              final id = (chat['chatId'] ?? '').toString();
-              if (id.isEmpty) {
-                throw StateError(
-                  ar
-                      ? 'يلزم قبول طلب المحادثة أولًا. ردك محفوظ هنا.'
-                      : 'The chat request must be accepted first. Your draft is still here.',
-                );
-              }
-              await ChatScreen.sendTextMessageToConversation(
-                chatId: id,
-                text: '$text\n\nworldvoice://story/${story.id}',
-              );
-            },
+      // Keep the Story reference in the encrypted local outbox and render its
+      // preview in the recipient's direct conversation.
+      await ChatScreen.sendTextMessageToConversation(
+        chatId: id,
+        text: '$text\n\nworldvoice://story/${story.id}',
+      );
+      if (!mounted || _closing || _story.id != story.id) return;
+      _replyInput.clear();
+      _replyFocus.unfocus();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            ar
+                ? 'تم حفظ ردك في المحادثة الخاصة وجارٍ تسليمه.'
+                : 'Reply queued in the private chat for delivery.',
           ),
-        );
-      }
+        ),
+      );
     } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(error.toString().replaceFirst('Bad state: ', '')),
-          ),
-        );
+      if (mounted && !_closing && _story.id == story.id) {
+        setState(() {
+          _replyError = error.toString().replaceFirst('Bad state: ', '');
+        });
       }
     } finally {
-      _interacting = false;
-      if (mounted && !_closing && _story.id == story.id) {
-        if (_video?.value.isInitialized == true) {
-          await _video?.play();
-        } else {
-          _resumePhoto();
-        }
+      if (mounted && !_closing) {
+        setState(() => _replySending = false);
+        if (!_replyFocus.hasFocus) _releaseHold();
       }
     }
   }
-
   Future<void> _showInteractions() async {
     if (_closing || _interacting) return;
     _interacting = true;
@@ -432,6 +432,9 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
       unawaited(video.dispose());
     }
     _progress.dispose();
+    _replyFocus.removeListener(_onReplyFocusChanged);
+    _replyFocus.dispose();
+    _replyInput.dispose();
     super.dispose();
   }
 
@@ -778,26 +781,63 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
                         ),
                       ),
                     ] else ...[
-                      Expanded(
-                        child: OutlinedButton(
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.white,
-                            side: const BorderSide(color: Colors.white54),
-                            shape: const StadiumBorder(),
-                            padding: const EdgeInsets.all(14),
-                          ),
-                          onPressed: _allowReplies
-                              ? () => _replyToStory(story)
-                              : null,
-                          child: Text(
-                            _allowReplies
-                                ? (ar ? 'إرسال رسالة' : 'Send message')
-                                : (ar ? 'الردود مغلقة' : 'Replies off'),
+                      if (_allowReplies)
+                        Expanded(
+                          child: TextField(
+                            key: const Key('worldvoice_story_inline_reply'),
+                            controller: _replyInput,
+                            focusNode: _replyFocus,
+                            enabled: !_replySending,
+                            style: const TextStyle(color: Colors.white),
+                            textInputAction: TextInputAction.send,
+                            maxLength: 2000,
                             maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                            onTap: _hold,
+                            onSubmitted: (_) => _sendStoryReply(story),
+                            decoration: InputDecoration(
+                              counterText: '',
+                              hintText: ar ? 'رد على الستوري…' : 'Reply to Story…',
+                              hintStyle: const TextStyle(color: Colors.white70),
+                              filled: true,
+                              fillColor: Colors.black54,
+                              isDense: true,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 13,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(28),
+                                borderSide: const BorderSide(color: Colors.white60),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(28),
+                                borderSide: const BorderSide(color: Colors.white60),
+                              ),
+                            ),
+                          ),
+                        )
+                      else
+                        Expanded(
+                          child: Text(
+                            ar ? 'الردود مغلقة' : 'Replies off',
+                            style: const TextStyle(color: Colors.white70),
                           ),
                         ),
-                      ),
+                      if (_allowReplies)
+                        IconButton(
+                          onPressed: _replySending
+                              ? null
+                              : () => _sendStoryReply(story),
+                          tooltip: ar ? 'إرسال الرد في الخاص' : 'Send private reply',
+                          icon: _replySending
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white, strokeWidth: 2,
+                                  ),
+                                )
+                              : const Icon(Icons.send_rounded, color: Colors.white),
+                        ),
                       IconButton(
                         onPressed: _likeBusy ? null : _toggleLike,
                         tooltip: ar ? 'إعجاب' : 'Like',
@@ -806,15 +846,6 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
                           color: _liked ? Colors.redAccent : Colors.white,
                         ),
                       ),
-                      if (_allowReplies)
-                        IconButton(
-                          onPressed: _showInteractions,
-                          tooltip: ar ? 'تعليق خاص' : 'Private comment',
-                          icon: const Icon(
-                            Icons.mode_comment_outlined,
-                            color: Colors.white,
-                          ),
-                        ),
                     ],
                     IconButton(
                       onPressed: _shareStory,
