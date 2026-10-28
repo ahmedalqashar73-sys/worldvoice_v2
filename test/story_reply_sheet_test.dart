@@ -36,8 +36,9 @@ void main() {
               isArabic: false,
               onSend: (text) async {
                 attempts++;
-                if (attempts == 1)
+                if (attempts == 1) {
                   throw StateError('Chat request needs approval');
+                }
                 sent.add(text);
               },
             ),
