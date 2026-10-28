@@ -120,11 +120,12 @@ class _StoryCameraScreenState extends State<StoryCameraScreen>
       _release = _release.then((_) async {
         await camera?.dispose();
       });
-      if (mounted)
+      if (mounted) {
         setState(() {
           _recording = false;
           _busy = false;
         });
+      }
     }
   }
 
@@ -185,7 +186,7 @@ class _StoryCameraScreenState extends State<StoryCameraScreen>
       await _camera!.setFlashMode(_flash ? FlashMode.off : FlashMode.torch);
       if (mounted && epoch == _epoch) setState(() => _flash = !_flash);
     } catch (_) {
-      if (mounted && epoch == _epoch)
+      if (mounted && epoch == _epoch) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -195,6 +196,7 @@ class _StoryCameraScreenState extends State<StoryCameraScreen>
             ),
           ),
         );
+      }
     } finally {
       if (mounted && epoch == _epoch) setState(() => _busy = false);
     }

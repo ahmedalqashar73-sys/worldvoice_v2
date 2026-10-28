@@ -56,8 +56,9 @@ class LocalChatStore {
       await _secure.write(key: keyName, value: stored);
     }
     final bytes = base64Decode(stored);
-    if (bytes.length != 32)
+    if (bytes.length != 32) {
       throw StateError('Invalid local chat encryption key');
+    }
     return SecretKey(bytes);
   }
 
@@ -172,8 +173,9 @@ class LocalChatStore {
     await _mutate((items) {
       final index = items.indexWhere((m) => m['id'] == id);
       if (index < 0 ||
-          expected.entries.any((e) => items[index][e.key] != e.value))
+          expected.entries.any((e) => items[index][e.key] != e.value)) {
         return;
+      }
       items[index] = {...items[index], ...changes};
       changed = true;
     });

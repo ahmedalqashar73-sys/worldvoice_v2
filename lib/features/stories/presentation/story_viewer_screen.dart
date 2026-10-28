@@ -88,8 +88,12 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
       _video = controller;
       try {
         await controller.initialize();
-        if (!mounted || _closing || epoch != _loadEpoch || _video != controller)
+        if (!mounted ||
+            _closing ||
+            epoch != _loadEpoch ||
+            _video != controller) {
           return;
+        }
         await controller.setLooping(false);
         controller.addListener(_videoListener);
         if (!_interacting) await controller.play();
@@ -116,7 +120,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
           imageError = error;
         },
       );
-      if (imageError != null) throw imageError;
+      if (imageError != null) throw imageError!;
       if (!mounted || _closing || epoch != _loadEpoch) return;
       setState(() {
         _mediaLoading = false;
@@ -643,8 +647,9 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
                       onLongPressStart: (_) => _hold(),
                       onLongPressEnd: (_) => _releaseHold(),
                       onVerticalDragEnd: (details) {
-                        if (_isOwner && (details.primaryVelocity ?? 0) < -150)
+                        if (_isOwner && (details.primaryVelocity ?? 0) < -150) {
                           unawaited(_showInteractions());
+                        }
                       },
                     ),
                   ),
@@ -655,8 +660,9 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
                       onLongPressStart: (_) => _hold(),
                       onLongPressEnd: (_) => _releaseHold(),
                       onVerticalDragEnd: (details) {
-                        if (_isOwner && (details.primaryVelocity ?? 0) < -150)
+                        if (_isOwner && (details.primaryVelocity ?? 0) < -150) {
                           unawaited(_showInteractions());
+                        }
                       },
                     ),
                   ),

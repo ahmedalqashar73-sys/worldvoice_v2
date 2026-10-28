@@ -404,10 +404,7 @@ class StoryService {
     final response = await _storyGet(
       '/stories/interactions',
       token,
-      query: <String, String>{
-        'storyId': id,
-        if (viewCursor != null) 'viewCursor': viewCursor,
-      },
+      query: <String, String>{'storyId': id, 'viewCursor': ?viewCursor},
     );
     return _decode(response);
   }

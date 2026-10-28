@@ -76,8 +76,9 @@ class _WorldVoiceAppState extends State<WorldVoiceApp>
     FirebaseMessaging.instance
         .getInitialMessage()
         .then((message) {
-          if (message != null)
+          if (message != null) {
             WorldVoiceNotificationService.openedPush(message);
+          }
         })
         .catchError((Object error) {
           debugPrint('WorldVoice initial push unavailable: $error');

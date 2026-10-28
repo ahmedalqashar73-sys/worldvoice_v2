@@ -75,7 +75,7 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
     try {
       await _pickMedia(kind: kind, source: source);
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -85,6 +85,7 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
             ),
           ),
         );
+      }
     } finally {
       if (mounted) setState(() => _picking = false);
     }

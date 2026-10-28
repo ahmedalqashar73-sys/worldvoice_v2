@@ -83,8 +83,9 @@ class DirectChatTransport {
     final items = await store.messages();
     if (!items.any(
       (m) => m['id'] == id && m['senderId'] == uid && m['type'] == 'text',
-    ))
+    )) {
       return;
+    }
     await store.patch(id, {
       'text': text,
       'edited': true,

@@ -113,20 +113,20 @@ class LiveScreen extends StatefulWidget {
     if (data == null || data['isLive'] != true) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-        content: Text(ar ? 'انتهى هذا البث المباشر' : 'This live has ended'),
+          content: Text(ar ? 'انتهى هذا البث المباشر' : 'This live has ended'),
         ),
       );
       return;
     }
     await Navigator.of(context).push<void>(
       MaterialPageRoute(
-      fullscreenDialog: true,
-      builder: (_) => _LiveViewerScreen(
+        fullscreenDialog: true,
+        builder: (_) => _LiveViewerScreen(
           liveId: liveId,
           data: data,
           ar: ar,
-        localeController: localeController,
-      ),
+          localeController: localeController,
+        ),
       ),
     );
   }
@@ -979,7 +979,8 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
 
   void _onControllerChanged() {
     final roster = _controller.remoteSpeakers
-        .map((uid) => '$uid:${_controller.remoteCameraPaused(uid)}').join(',');
+        .map((uid) => '$uid:${_controller.remoteCameraPaused(uid)}')
+        .join(',');
     if (roster != _lastVideoRoster) {
       _lastVideoRoster = roster;
       _videoRoster.value++;
@@ -1443,13 +1444,24 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     setState(() => _hostMediaBusy = true);
     try {
       await _controller.setCameraPublishing(_cameraPaused);
-      if (mounted) setState(() => _cameraPaused = !_controller.cameraPublishing);
+      if (mounted)
+        setState(() => _cameraPaused = !_controller.cameraPublishing);
     } catch (error) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(widget.ar ? 'تعذّر تغيير حالة الكاميرا. أعد المحاولة.'
-            : 'Could not change camera state. Please retry.')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              widget.ar
+                  ? 'تعذّر تغيير حالة الكاميرا. أعد المحاولة.'
+                  : 'Could not change camera state. Please retry.',
+            ),
+          ),
+        );
+      }
       debugPrint('Live host camera: $error');
-    } finally { if (mounted) setState(() => _hostMediaBusy = false); }
+    } finally {
+      if (mounted) setState(() => _hostMediaBusy = false);
+    }
   }
 
   Future<void> _toggleHostMicrophone() async {
@@ -1459,11 +1471,21 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
       await _controller.setMuted(!_controller.muted);
       if (mounted) setState(() => _micMuted = _controller.muted);
     } catch (error) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(widget.ar ? 'تعذّر تغيير حالة المايك. أعد المحاولة.'
-            : 'Could not change microphone state. Please retry.')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              widget.ar
+                  ? 'تعذّر تغيير حالة المايك. أعد المحاولة.'
+                  : 'Could not change microphone state. Please retry.',
+            ),
+          ),
+        );
+      }
       debugPrint('Live host microphone: $error');
-    } finally { if (mounted) setState(() => _hostMediaBusy = false); }
+    } finally {
+      if (mounted) setState(() => _hostMediaBusy = false);
+    }
   }
 
   @override
@@ -1857,15 +1879,16 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                         for (final uid in remote)
                           if (_controller.remoteCameraPaused(uid))
                             _LiveCameraOffTile(ar: widget.ar)
-                          else AgoraVideoView(
-                            controller: VideoViewController.remote(
-                              rtcEngine: _controller.engine!,
-                              canvas: VideoCanvas(uid: uid),
-                              connection: RtcConnection(
-                                channelId: _channelId ?? '',
+                          else
+                            AgoraVideoView(
+                              controller: VideoViewController.remote(
+                                rtcEngine: _controller.engine!,
+                                canvas: VideoCanvas(uid: uid),
+                                connection: RtcConnection(
+                                  channelId: _channelId ?? '',
+                                ),
                               ),
                             ),
-                          ),
                       ];
                       return Stack(
                         fit: StackFit.expand,
@@ -2247,7 +2270,9 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                       : (widget.ar
                                             ? 'إيقاف الكاميرا'
                                             : 'Turn camera off'),
-                                  onPressed: _hostMediaBusy ? null : _toggleHostCamera,
+                                  onPressed: _hostMediaBusy
+                                      ? null
+                                      : _toggleHostCamera,
                                   icon: Icon(
                                     _cameraPaused
                                         ? Icons.videocam_off_rounded
@@ -2261,7 +2286,9 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                     foregroundColor: Colors.white,
                                   ),
                                   tooltip: widget.ar ? 'المايك' : 'Microphone',
-                                  onPressed: _hostMediaBusy ? null : _toggleHostMicrophone,
+                                  onPressed: _hostMediaBusy
+                                      ? null
+                                      : _toggleHostMicrophone,
                                   icon: Icon(
                                     _micMuted
                                         ? Icons.mic_off_rounded
@@ -2567,7 +2594,8 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
 
   void _onVideoRosterChanged() {
     final roster = _controller.remoteSpeakers
-        .map((uid) => '$uid:${_controller.remoteCameraPaused(uid)}').join(',');
+        .map((uid) => '$uid:${_controller.remoteCameraPaused(uid)}')
+        .join(',');
     if (roster != _lastVideoRoster) {
       _lastVideoRoster = roster;
       _videoRoster.value++;
@@ -2593,12 +2621,12 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
           .watchMyModeratorStatus(hostId)
           .listen(
             (value) {
-        if (mounted && value != _isModerator) {
-          setState(() {
-            _isModerator = value;
-            if (!value) _moderatorRequestsOpen = false;
-          });
-        }
+              if (mounted && value != _isModerator) {
+                setState(() {
+                  _isModerator = value;
+                  if (!value) _moderatorRequestsOpen = false;
+                });
+              }
             },
             onError: (Object error) {
               if (mounted) setState(() => _isModerator = false);
@@ -2609,8 +2637,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   }
 
   void _handleLiveModeratorInvite(String hostId, Map<String, dynamic>? invite) {
-    if (!mounted || invite?['status'] != 'pending' || _moderatorDialogOpen)
+    if (!mounted || invite?['status'] != 'pending' || _moderatorDialogOpen) {
       return;
+    }
     final assigned = invite?['assignedAt'];
     if (assigned is! Timestamp) return;
     final marker = '$hostId:${assigned.microsecondsSinceEpoch}';
@@ -2649,7 +2678,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
       await _service.answerModeratorInvite(hostId, answer);
     } catch (error) {
       debugPrint('Live moderator response failed: $error');
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -2663,6 +2692,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
             ),
           ),
         );
+      }
     } finally {
       _moderatorDialogOpen = false;
     }
@@ -3141,11 +3171,11 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
         SnackBar(
           content: Text(
             error.code == 'permission-denied'
-            ? (widget.ar
-                ? 'تعذر طلب الصعود: صلاحيات اللايف في Firebase غير منشورة.'
-                : 'Stage request denied. Deploy the Live Firebase rules.')
-            : (widget.ar
-                ? 'تعذر إرسال طلب رفع اليد. حاول مرة ثانية.'
+                ? (widget.ar
+                      ? 'تعذر طلب الصعود: صلاحيات اللايف في Firebase غير منشورة.'
+                      : 'Stage request denied. Deploy the Live Firebase rules.')
+                : (widget.ar
+                      ? 'تعذر إرسال طلب رفع اليد. حاول مرة ثانية.'
                       : 'Unable to send stage request. Please retry.'),
           ),
         ),
@@ -3156,7 +3186,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
         SnackBar(
           content: Text(
             widget.ar
-            ? 'تعذر إرسال طلب رفع اليد. حاول مرة ثانية.'
+                ? 'تعذر إرسال طلب رفع اليد. حاول مرة ثانية.'
                 : 'Unable to send stage request. Please retry.',
           ),
         ),
@@ -3251,41 +3281,61 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                           final tiles = <Widget>[
                             if (_guestPublishing && engine != null)
                               if (_guestCameraPaused)
-                                ColoredBox(color: Colors.black, child: Center(child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [const Icon(Icons.videocam_off_rounded, color: Colors.white54, size: 48),
-                                    Text(widget.ar ? 'الكاميرا مغلقة' : 'Camera off', style: const TextStyle(color: Colors.white))],
-                                )))
-                              else _PinchZoomCameraView(
-                                controller: _controller,
-                                zoom: _guestCameraZoom,
-                                onZoomChanged: (value) {
-                                  if (mounted) {
-                                    setState(() => _guestCameraZoom = value);
-                                  }
-                                },
-                                child: AgoraVideoView(
-                                  controller: VideoViewController(
-                                    rtcEngine: engine,
-                                    canvas: const VideoCanvas(uid: 0),
+                                ColoredBox(
+                                  color: Colors.black,
+                                  child: Center(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          Icons.videocam_off_rounded,
+                                          color: Colors.white54,
+                                          size: 48,
+                                        ),
+                                        Text(
+                                          widget.ar
+                                              ? 'الكاميرا مغلقة'
+                                              : 'Camera off',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                )
+                              else
+                                _PinchZoomCameraView(
+                                  controller: _controller,
+                                  zoom: _guestCameraZoom,
+                                  onZoomChanged: (value) {
+                                    if (mounted) {
+                                      setState(() => _guestCameraZoom = value);
+                                    }
+                                  },
+                                  child: AgoraVideoView(
+                                    controller: VideoViewController(
+                                      rtcEngine: engine,
+                                      canvas: const VideoCanvas(uid: 0),
+                                    ),
                                   ),
                                 ),
-                              ),
                             if (engine != null)
                               for (final uid in remote.take(
                                 _guestPublishing ? 3 : 4,
                               ))
                                 if (_controller.remoteCameraPaused(uid))
                                   _LiveCameraOffTile(ar: widget.ar)
-                                else AgoraVideoView(
-                                  controller: VideoViewController.remote(
-                                    rtcEngine: engine,
-                                    canvas: VideoCanvas(uid: uid),
-                                    connection: RtcConnection(
-                                      channelId: widget.liveId,
+                                else
+                                  AgoraVideoView(
+                                    controller: VideoViewController.remote(
+                                      rtcEngine: engine,
+                                      canvas: VideoCanvas(uid: uid),
+                                      connection: RtcConnection(
+                                        channelId: widget.liveId,
+                                      ),
                                     ),
                                   ),
-                                ),
                           ];
                           return Stack(
                             fit: StackFit.expand,
@@ -3576,10 +3626,10 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                       tooltip: _requested
                                           ? (widget.ar
                                                 ? 'طلب الصعود قيد الانتظار'
-                                              : 'Stage request pending')
+                                                : 'Stage request pending')
                                           : (widget.ar
                                                 ? 'ارفع يدك للصعود'
-                                              : 'Raise hand to join'),
+                                                : 'Raise hand to join'),
                                       onPressed: _requested
                                           ? null
                                           : _requestCamera,
@@ -3706,17 +3756,29 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                     if (_guestPublishing) ...[
                                       IconButton(
                                         tooltip: _guestCameraPaused
-                                            ? (widget.ar ? 'تشغيل الكاميرا' : 'Turn camera on')
-                                            : (widget.ar ? 'إيقاف الكاميرا' : 'Turn camera off'),
-                                        onPressed: _guestMediaBusy ? null : _toggleGuestCamera,
-                                        icon: Icon(_guestCameraPaused ? Icons.videocam_off_rounded
-                                            : Icons.videocam_rounded, color: Colors.white),
+                                            ? (widget.ar
+                                                  ? 'تشغيل الكاميرا'
+                                                  : 'Turn camera on')
+                                            : (widget.ar
+                                                  ? 'إيقاف الكاميرا'
+                                                  : 'Turn camera off'),
+                                        onPressed: _guestMediaBusy
+                                            ? null
+                                            : _toggleGuestCamera,
+                                        icon: Icon(
+                                          _guestCameraPaused
+                                              ? Icons.videocam_off_rounded
+                                              : Icons.videocam_rounded,
+                                          color: Colors.white,
+                                        ),
                                       ),
                                       IconButton(
                                         tooltip: widget.ar
                                             ? 'المايك'
                                             : 'Microphone',
-                                        onPressed: _guestMediaBusy ? null : _toggleGuestMicrophone,
+                                        onPressed: _guestMediaBusy
+                                            ? null
+                                            : _toggleGuestMicrophone,
                                         icon: Icon(
                                           _guestMicMuted
                                               ? Icons.mic_off_rounded
@@ -3779,7 +3841,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                         tooltip: widget.ar
                                             ? 'مغادرة المشاركة'
                                             : 'Leave stage',
-                                        onPressed: _guestMediaBusy ? null : _leaveGuestCamera,
+                                        onPressed: _guestMediaBusy
+                                            ? null
+                                            : _leaveGuestCamera,
                                         icon: const Icon(
                                           Icons.videocam_off_rounded,
                                           color: Colors.white,
@@ -3806,10 +3870,13 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
     setState(() => _guestMediaBusy = true);
     try {
       await _controller.setCameraPublishing(_guestCameraPaused);
-      if (mounted) setState(() => _guestCameraPaused = !_controller.cameraPublishing);
+      if (mounted)
+        setState(() => _guestCameraPaused = !_controller.cameraPublishing);
     } catch (error) {
       _showGuestMediaError(error);
-    } finally { if (mounted) setState(() => _guestMediaBusy = false); }
+    } finally {
+      if (mounted) setState(() => _guestMediaBusy = false);
+    }
   }
 
   Future<void> _toggleGuestMicrophone() async {
@@ -3820,19 +3887,29 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
       if (mounted) setState(() => _guestMicMuted = _controller.muted);
     } catch (error) {
       _showGuestMediaError(error);
-    } finally { if (mounted) setState(() => _guestMediaBusy = false); }
+    } finally {
+      if (mounted) setState(() => _guestMediaBusy = false);
+    }
   }
 
   void _showGuestMediaError(Object error) {
     debugPrint('Live guest media: $error');
-    if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(widget.ar ? 'تعذّر تغيير الكاميرا أو المايك. أعد المحاولة.'
-          : 'Could not change camera or microphone. Please retry.'),
-    ));
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            widget.ar
+                ? 'تعذّر تغيير الكاميرا أو المايك. أعد المحاولة.'
+                : 'Could not change camera or microphone. Please retry.',
+          ),
+        ),
+      );
+    }
   }
 
   Future<void> _leaveGuestCamera() async {
-    if (!_guestPublishing || _guestMediaBusy || _controller.engine == null) return;
+    if (!_guestPublishing || _guestMediaBusy || _controller.engine == null)
+      return;
     setState(() => _guestMediaBusy = true);
     try {
       _guestQuotaTimer?.cancel();
@@ -3861,7 +3938,8 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   }
 
   Future<void> _becomeGuest() async {
-    if (_guestPublishing || _guestStarting || _controller.engine == null) return;
+    if (_guestPublishing || _guestStarting || _controller.engine == null)
+      return;
     _guestStarting = true;
     try {
       _guestQuotaLevel = await _currentUserStageLevel();
@@ -3918,7 +3996,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
     } catch (error) {
       _guestPublishing = false;
       await _controller.setCameraPublishing(false).catchError((Object _) {});
-      await _controller.switchRole(AgoraRoomRole.listener).catchError((Object _) {});
+      await _controller
+          .switchRole(AgoraRoomRole.listener)
+          .catchError((Object _) {});
       _guestQuotaTimer?.cancel();
       if (_guestQuotaStarted) {
         await _guestQuota.endSession().catchError((Object _) {});
@@ -3942,11 +4022,23 @@ class _LiveCameraOffTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ColoredBox(
     color: Colors.black,
-    child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-      const Icon(Icons.videocam_off_rounded, color: Colors.white54, size: 48),
-      const SizedBox(height: 8),
-      Text(ar ? 'الكاميرا مغلقة' : 'Camera off', style: const TextStyle(color: Colors.white)),
-    ])),
+    child: Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.videocam_off_rounded,
+            color: Colors.white54,
+            size: 48,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            ar ? 'الكاميرا مغلقة' : 'Camera off',
+            style: const TextStyle(color: Colors.white),
+          ),
+        ],
+      ),
+    ),
   );
 }
 

@@ -10,8 +10,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 /// requests. Money/gifts remain backend-authoritative and are not written here.
 class LiveSessionService {
   LiveSessionService({FirebaseFirestore? firestore, FirebaseAuth? auth})
-      : _db = firestore ?? FirebaseFirestore.instance,
-        _auth = auth ?? FirebaseAuth.instance;
+    : _db = firestore ?? FirebaseFirestore.instance,
+      _auth = auth ?? FirebaseAuth.instance;
 
   final FirebaseFirestore _db;
   final FirebaseAuth _auth;
@@ -175,8 +175,9 @@ class LiveSessionService {
       if (!invite.exists) throw StateError('INVITATION_EXPIRED');
       final status = accepted ? 'accepted' : 'declined';
       if (invite.data()?['status'] == status) return;
-      if (invite.data()?['status'] != 'pending')
+      if (invite.data()?['status'] != 'pending') {
         throw StateError('INVITATION_EXPIRED');
+      }
       tx.update(ref, {
         'status': status,
         'respondedAt': FieldValue.serverTimestamp(),
@@ -208,18 +209,18 @@ class LiveSessionService {
   Stream<QuerySnapshot<Map<String, dynamic>>> watchJoinRequests(
     String liveId,
   ) => _sessions
-          .doc(liveId)
-          .collection('join_requests')
-          .where('status', isEqualTo: 'pending')
-          .snapshots();
+      .doc(liveId)
+      .collection('join_requests')
+      .where('status', isEqualTo: 'pending')
+      .snapshots();
 
   Stream<QuerySnapshot<Map<String, dynamic>>> watchActiveGuests(
     String liveId,
   ) => _sessions
-          .doc(liveId)
-          .collection('join_requests')
-          .where('status', isEqualTo: 'accepted')
-          .snapshots();
+      .doc(liveId)
+      .collection('join_requests')
+      .where('status', isEqualTo: 'accepted')
+      .snapshots();
 
   Future<void> enterViewer(String liveId) async {
     final user = _user;

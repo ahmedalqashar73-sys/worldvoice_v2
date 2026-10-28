@@ -90,8 +90,9 @@ class ChatDeliveryService {
                 final members = List<String>.from(
                   doc.data()['memberIds'] as List,
                 );
-                if (members.length != 2 || doc.data()['type'] == 'group')
+                if (members.length != 2 || doc.data()['type'] == 'group') {
                   continue;
+                }
                 active.add(doc.id);
                 final peer = members.firstWhere((id) => id != uid);
                 session(uid, peer, doc.id).wake();
@@ -256,15 +257,17 @@ class ChatDeliverySession {
     final expires = prior?['expiresAt'] as Timestamp?;
     if (prior?['state'] == 'ready' &&
         expires != null &&
-        expires.toDate().isAfter(DateTime.now()))
+        expires.toDate().isAfter(DateTime.now())) {
       return;
+    }
     final peerKey = await FirebaseFirestore.instance
         .collection('chat_delivery_keys')
         .doc(peer)
         .get(const GetOptions(source: Source.server));
     final remote = peerKey.data()?['publicKey'] as String?;
-    if (remote == null)
+    if (remote == null) {
       throw StateError('The recipient needs to open the updated app once.');
+    }
     final context = '$chatId/$deliveryId';
     final key = await ChatDeliveryCrypto.derive(identity, remote, context);
     final path = item['filePath']?.toString() ?? '';
@@ -335,8 +338,9 @@ class ChatDeliverySession {
     QueryDocumentSnapshot<Map<String, dynamic>> envelope,
   ) async {
     final header = envelope.data();
-    if (header['senderId'] != peer || header['recipientKey'] != publicKey)
+    if (header['senderId'] != peer || header['recipientKey'] != publicKey) {
       return;
+    }
     final expiry = header['expiresAt'] as Timestamp;
     if (expiry.toDate().isBefore(DateTime.now())) return;
     final count = header['chunkCount'] as int;
@@ -382,8 +386,9 @@ class ChatDeliverySession {
       }
       final matches = existing.where((m) => m['id'] == id);
       final old = matches.isEmpty ? null : matches.first;
-      if (old != null && old['senderId'] != peer)
+      if (old != null && old['senderId'] != peer) {
         throw StateError('Message identity mismatch.');
+      }
       final oldVersion = (old?['version'] as int?) ?? -1;
       final receipts = <dynamic>[
         ...(old?['receivedDeliveries'] as List? ?? const []),
@@ -451,11 +456,12 @@ class ChatDeliverySession {
       }
       await batch.commit();
     }
-    if (!_closed)
+    if (!_closed) {
       await envelope.reference.update({
         'state': 'received',
         'updatedAt': FieldValue.serverTimestamp(),
       });
+    }
   }
 
   void close() {

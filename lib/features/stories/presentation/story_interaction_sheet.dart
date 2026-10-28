@@ -53,7 +53,7 @@ class _StoryInteractionSheetState extends State<StoryInteractionSheet> {
         }),
       );
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -63,6 +63,7 @@ class _StoryInteractionSheetState extends State<StoryInteractionSheet> {
             ),
           ),
         );
+      }
     } finally {
       if (mounted) setState(() => _loadingMore = false);
     }

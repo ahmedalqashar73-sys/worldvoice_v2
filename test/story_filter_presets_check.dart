@@ -1,3 +1,5 @@
+// Standalone check intentionally runs with plain Dart before Flutter tests.
+// ignore_for_file: avoid_relative_lib_imports, avoid_print
 import '../lib/features/stories/services/story_filter_presets.dart';
 
 void check(bool condition, String message) {
