@@ -12,7 +12,7 @@ class ClassicGiftCatalog {
 
   static const assetPath = 'assets/gifts/worldvoice_gifts.json';
   static const approvedIdPattern = r'^wv_gift_[0-9]{3}$';
-  static const int giftCount = 54;
+  static const int giftCount = 104;
   static Future<List<RoomGiftCatalogItem>>? _cached;
 
   static Future<List<RoomGiftCatalogItem>> load() =>
@@ -35,7 +35,7 @@ class ClassicGiftCatalog {
 
     final raw = data['gifts'] as List;
     if (raw.length != giftCount) {
-      throw const FormatException('WorldVoice catalog must contain 54 gifts');
+      throw const FormatException('WorldVoice catalog must contain 104 gifts');
     }
 
     final seen = <String>{};
@@ -69,7 +69,7 @@ class ClassicGiftCatalog {
       result.add(gift);
     }
 
-    if (tierCounts[1] != 30 || tierCounts[2] != 15 || tierCounts[3] != 9) {
+    if (tierCounts[1] != 50 || tierCounts[2] != 35 || tierCounts[3] != 19) {
       throw const FormatException('Invalid WorldVoice gift tier counts');
     }
 

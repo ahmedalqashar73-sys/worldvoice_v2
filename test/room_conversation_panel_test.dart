@@ -24,15 +24,16 @@ void main() {
               isArabic: true, onSend: (text) async { sent.add(text); },
               onGifts: () {}, onShop: () {}, onTools: () {},
               onCaptions: () {}, onMic: () {}, micIcon: Icons.mic, micLabel: 'مايك',
-              // The raised hand is now fixed in AgoraVoiceRoomScreen,
-              // never in the composer toolbar.
-              onTranslation: () {},
+              handControl: IconButton(
+                key: const ValueKey('toolbar-raise-hand'),
+                tooltip: 'رفع اليد',
+                icon: const Icon(Icons.back_hand_rounded, color: Colors.white),
+                onPressed: () {},
+              ),
             ))))));
         await tester.pump();
         expect(tester.takeException(), isNull);
-        expect(find.byKey(const ValueKey('toolbar-raise-hand')), findsNothing);
-        expect(find.byTooltip('السبتايتلز'), findsOneWidget);
-        expect(find.byTooltip('الترجمة'), findsOneWidget);
+        expect(find.byKey(const ValueKey('toolbar-raise-hand')), findsOneWidget);
         await tester.tap(find.byKey(
           const ValueKey<String>('worldvoice-room-chat-input'),
         ));

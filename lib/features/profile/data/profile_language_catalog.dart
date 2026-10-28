@@ -2549,43 +2549,6 @@ class ProfileLanguageCatalog {
     return byCode(code)?.displayName ?? code;
   }
 
-  /// Resolve stored profile values to catalog codes, including older profile
-  /// documents that saved the translated/English language names.
-  /// Live discovery uses codes to match sessions rather than UI labels.
-  static String? codeFromStored(Object? saved) {
-    final raw = (saved ?? '').toString().trim();
-    if (raw.isEmpty) return null;
-    final normalized = raw.toLowerCase().split(RegExp(r'[-_]')).first;
-    if (byCode(normalized) != null) return normalized;
-    for (final language in languages) {
-      if (language.englishName.toLowerCase() == raw.toLowerCase() ||
-          language.nativeName?.toLowerCase() == raw.toLowerCase()) {
-        return language.code;
-      }
-    }
-    return null;
-  }
-
-  /// Language discovery filter order: native first, then All, then every
-  /// saved learning language. No free/VIP display cap: show all saved values.
-  static List<String> liveDiscoveryCodes(Map<String, dynamic> profile) {
-    final native = codeFromStored(
-      profile['nativeLanguageCode'] ?? profile['nativeLanguage'],
-    );
-    final stored = (profile['learningLanguageCodes'] as List?)
-                ?.isNotEmpty == true
-        ? (profile['learningLanguageCodes'] as List)
-        : (profile['learningLanguages'] as List?) ?? const <dynamic>[];
-    return <String>{
-      ?native,
-      'all',
-      ...stored
-          .map(codeFromStored)
-          .whereType<String>()
-          .where((code) => code != native),
-    }.toList(growable: false);
-  }
-
   // Existing profiles may still store legacy English/native labels instead of
   // ISO codes. Convert them for display without changing Firestore data.
   static String localizedStoredName(String? saved, String uiLocale) {

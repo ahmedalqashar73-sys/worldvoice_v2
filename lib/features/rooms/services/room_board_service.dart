@@ -73,41 +73,9 @@ class RoomBoardService {
       if (data['screenShareActive'] == true || data['boardMediaId'] != null) {
         throw StateError('Stop the current presentation first.');
       }
-      transaction.set(item, {
-        'type': type,
-        'url': url,
-        'name': name,
-        'userId': user.uid,
-        'createdAt': FieldValue.serverTimestamp(),
-        if (type == 'video') ...{
-          'playing': true,
-          'positionMs': 0,
-          'playbackChangedAt': FieldValue.serverTimestamp(),
-        },
-      });
+      transaction.set(item, {'type': type, 'url': url, 'name': name,
+        'userId': user.uid, 'createdAt': FieldValue.serverTimestamp()});
       transaction.update(_room, {'boardMediaId': item.id});
-    });
-  }
-
-  /// Publish only host playback commands for the active shared video.
-  /// Listeners observe board_items via watchItems and never write playback.
-  Future<void> setVideoPlayback({
-    required String mediaId,
-    required bool playing,
-    required int positionMs,
-  }) async {
-    final user = _user;
-    if (user == null) throw StateError('Sign in is required.');
-    if (positionMs < 0) throw ArgumentError.value(positionMs, 'positionMs');
-    final roomSnapshot = await _room.get();
-    if (roomSnapshot.data()?['hostId'] != user.uid ||
-        roomSnapshot.data()?['boardMediaId'] != mediaId) {
-      throw StateError('Only the host may control the current video.');
-    }
-    await _items.doc(mediaId).update({
-      'playing': playing,
-      'positionMs': positionMs,
-      'playbackChangedAt': FieldValue.serverTimestamp(),
     });
   }
 

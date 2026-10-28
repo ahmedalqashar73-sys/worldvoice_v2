@@ -20,19 +20,12 @@ abstract final class WorldVoiceLocalShareService {
 
     // Preserve the existing server-authoritative membership checks.
     final chat = await FirebaseFirestore.instance
-        .collection('chats')
-        .doc(chatId)
-        .get();
-    final members =
-        (chat.data()?['memberIds'] as List?)
-            ?.map((member) => member.toString())
-            .toList() ??
-        <String>[];
-    if (!chat.exists ||
-        chat.data()?['active'] != true ||
+        .collection('chats').doc(chatId).get();
+    final members = (chat.data()?['memberIds'] as List?)
+            ?.map((member) => member.toString()).toList() ?? <String>[];
+    if (!chat.exists || chat.data()?['active'] != true ||
         chat.data()?['type'] == 'group' ||
-        members.length != 2 ||
-        !members.contains(uid)) {
+        members.length != 2 || !members.contains(uid)) {
       throw StateError('This direct conversation is not available.');
     }
 
@@ -49,7 +42,7 @@ abstract final class WorldVoiceLocalShareService {
       'delivered': false,
       'read': false,
     });
-    // App-scoped delivery observes the local outbox and retries automatically.
+    // The foreground WebRTC conversation flushes the stored outbox on open.
     // Never send the actual text to a Firestore/Render/Cloudinary API here.
   }
 }

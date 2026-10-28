@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../data/room_backend_config.dart';
@@ -163,16 +162,10 @@ class RoomAdminService {
     }
     await batch.commit();
 
-    // A moderation audit-log failure must not report a successfully sent
-    // invitation as failed. The invitation itself was already committed.
-    try {
-      await _writeLog(
-        action: value ? 'global_moderator_invited' : 'global_moderator_removed',
-        target: participant,
-      );
-    } catch (error) {
-      debugPrint('Moderator audit log unavailable: $error');
-    }
+    await _writeLog(
+      action: value ? 'global_moderator_invited' : 'global_moderator_removed',
+      target: participant,
+    );
   }
 
   Future<void> setForcedMute({

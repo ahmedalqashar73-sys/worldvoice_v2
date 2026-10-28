@@ -18,7 +18,6 @@ class StoryItem {
     required this.expiresAtMs,
     required this.mediaUrl,
     this.filter = 'original',
-    this.liveId = '',
   });
 
   final String id;
@@ -32,9 +31,7 @@ class StoryItem {
   final int expiresAtMs;
   final String mediaUrl;
   final String filter;
-  final String liveId;
 
-  bool get isLiveShare => kind == 'live' && liveId.isNotEmpty;
   bool get isVideo => kind == 'video';
   bool get isCloseFriends => audience == 'close_friends';
 
@@ -51,7 +48,6 @@ class StoryItem {
       expiresAtMs: (json['expiresAtMs'] as num?)?.toInt() ?? 0,
       mediaUrl: (json['mediaUrl'] ?? '').toString(),
       filter: (json['filter'] ?? 'original').toString(),
-      liveId: (json['liveId'] ?? '').toString(),
     );
   }
 }
@@ -235,7 +231,7 @@ class StoryService {
         .where(
           (item) =>
               item.id.isNotEmpty &&
-              (item.isLiveShare || item.mediaUrl.isNotEmpty) &&
+              item.mediaUrl.isNotEmpty &&
               item.expiresAtMs > DateTime.now().millisecondsSinceEpoch,
         )
         .toList(growable: false);
@@ -246,22 +242,6 @@ class StoryService {
       _cachedFeedAt = DateTime.now();
     }
     return stories;
-  }
-
-  /// Publishes a clickable Live story without uploading media.
-  Future<void> shareLive(String liveId) async {
-    final token = await _token();
-    final response = await _client
-        .post(
-          _uri('/stories/live-share'),
-          headers: {
-            'Authorization': 'Bearer $token',
-            'Content-Type': 'application/json',
-          },
-          body: jsonEncode({'liveId': liveId}),
-        )
-        .timeout(const Duration(seconds: 25));
-    await _decode(response);
   }
 
   Future<String> uploadStory({
@@ -340,7 +320,8 @@ class StoryService {
       return storyId;
     } on TimeoutException {
       throw StateError(
-        'Story upload timed out. Check your connection and try again.',
+        'Story upload timed out. Check your connection and try again. '
+        'Retry will safely reuse the same story.',
       );
     }
   }

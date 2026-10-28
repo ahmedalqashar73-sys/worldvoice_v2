@@ -152,7 +152,8 @@ service cloud.firestore {
             'walletFrozen', 'payoutFrozen', 'diamondsReserved',
             'firstRechargeUsed', 'payoutFreezeReason', 'identityVerified',
             'isVip', 'isAdmin', 'vipExpiresAt', 'vipSource', 'adminSource',
-            'vipUpdatedAt', 'adminUpdatedAt'
+            'vipUpdatedAt', 'adminUpdatedAt',
+            'chatBubbleId', 'chatBubbleUpdatedAt'
           ]);
     }
 
@@ -170,7 +171,8 @@ service cloud.firestore {
           && !request.resource.data.keys().hasAny([
             'lastGiftRoomId', 'lastGiftEventId', 'withdrawableDiamonds',
             'walletBalance', 'vipExpiresAt', 'isAdmin',
-            'vipSource', 'adminSource', 'vipUpdatedAt', 'adminUpdatedAt'
+            'vipSource', 'adminSource', 'vipUpdatedAt', 'adminUpdatedAt',
+            'chatBubbleId', 'chatBubbleUpdatedAt'
           ]);
     }
 
@@ -248,6 +250,17 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if signedIn();
 
+      // Each user alone controls their personal messaging block list.
+      match /blocked_peers/{peerId} {
+        allow read: if signedIn() && request.auth.uid == userId;
+        allow create, update: if signedIn() && request.auth.uid == userId
+            && peerId != userId
+            && request.resource.data.keys().hasOnly(['targetId', 'createdAt'])
+            && request.resource.data.targetId == peerId
+            && request.resource.data.createdAt == request.time;
+        allow delete: if signedIn() && request.auth.uid == userId;
+      }
+
       allow create: if signedIn()
           && request.auth.uid == userId
           && request.resource.data.uid == userId
@@ -324,6 +337,28 @@ service cloud.firestore {
             && request.auth.uid == followerUserId;
       }
 
+      // Trusted system activity cards belong only to the recipient.
+      match /activity_inbox/{eventId} {
+        allow read: if signedIn() && request.auth.uid == userId;
+        allow write: if false;
+      }
+
+      // Reactions are verified and written only by the trusted backend.
+      // Notification details are private to the Story owner.
+      match /story_notifications/{eventId} {
+        allow read: if signedIn() && request.auth.uid == userId;
+        allow write: if false;
+      }
+
+      // Raw push device tokens are backend-only, including for the owner.
+      match /notification_devices/{deviceId} {
+        allow read, write: if false;
+      }
+
+      match /story_notification_devices/{deviceId} {
+        allow read, write: if false;
+      }
+
       match /profile_visitors/{viewerUserId} {
         allow read: if signedIn() && request.auth.uid == userId;
 
@@ -343,9 +378,31 @@ service cloud.firestore {
             && request.auth.uid == userId;
       }
 
+      // Private immutable Academy checklist; no coins or XP.
+      match /academy_progress/{lessonId} {
+        allow read: if signedIn() && request.auth.uid == userId;
+        allow create: if signedIn() && request.auth.uid == userId
+            && lessonId.matches('^(en|es|zh|fr|ko)_(1|2)_(vocabulary|grammar|story|listening|speaking|quiz)$')
+            && request.resource.data.keys().hasOnly([
+              'completed', 'language', 'completedAt'
+            ])
+            && request.resource.data.keys().hasAll([
+              'completed', 'language', 'completedAt'
+            ])
+            && request.resource.data.completed == true
+            && request.resource.data.language in ['en', 'es', 'zh', 'fr', 'ko']
+            && request.resource.data.completedAt == request.time;
+        allow update, delete: if false;
+      }
+
       match /room_history/{roomId} {
         allow read, create, update, delete: if signedIn()
             && request.auth.uid == userId;
+      }
+
+      // Five daily free starts are enforced atomically by the backend.
+      match /game_usage/{dayAndMode} {
+        allow read, write: if false;
       }
 
       match /room_usage/{dayKey} {
@@ -527,6 +584,24 @@ service cloud.firestore {
     }
 
     match /iap_receipts/{id} {
+      allow read, write: if false;
+    }
+
+    // Device-to-account token ownership is never accessible to clients.
+    match /notification_token_owners/{tokenId} {
+      allow read, write: if false;
+    }
+
+    match /story_notification_token_owners/{tokenId} {
+      allow read, write: if false;
+    }
+
+    match /worldvoice_announcements/{announcementId} {
+      allow get, list: if signedIn() && resource.data.active == true;
+      allow create, update, delete: if false;
+    }
+
+    match /worldvoice_activity_events/{eventId} {
       allow read, write: if false;
     }
 
@@ -948,14 +1023,42 @@ service cloud.firestore {
 
       match /messages/{messageId} {
         allow read: if signedIn();
+        // Live comments carry the user's chosen bubbleId. Joining the Live
+        // also writes a dedicated event, with an empty text body. Neither
+        // shape can spoof another Firebase user or write arbitrary fields.
         allow create: if signedIn()
             && request.resource.data.senderId == request.auth.uid
+            && request.resource.data.senderName is string
+            && request.resource.data.senderName.size() <= 100
+            && request.resource.data.senderPhotoUrl is string
+            && request.resource.data.senderPhotoUrl.size() <= 2048
             && request.resource.data.text is string
-            && request.resource.data.text.size() > 0
-            && request.resource.data.text.size() <= 500
-            && request.resource.data.keys().hasOnly([
-              'senderId', 'senderName', 'senderPhotoUrl', 'text', 'createdAt'
-            ]);
+            && (
+              (
+                !request.resource.data.keys().hasAny(['type'])
+                && request.resource.data.text.size() > 0
+                && request.resource.data.text.size() <= 500
+                && request.resource.data.keys().hasOnly([
+                  'senderId', 'senderName', 'senderPhotoUrl',
+                  'text', 'createdAt', 'bubbleId'
+                ])
+                && request.resource.data.get('bubbleId', 'free') is string
+                && request.resource.data.get('bubbleId', 'free').size() <= 80
+              )
+              || (
+                request.resource.data.keys().hasAll(['type'])
+                && request.resource.data.type == 'join'
+                && request.resource.data.text == ''
+                && request.resource.data.keys().hasOnly([
+                  'type', 'senderId', 'senderName', 'senderPhotoUrl',
+                  'text', 'createdAt'
+                ])
+                && exists(
+                  /databases/$(database)/documents/live_sessions/$(liveId)/viewers/$(request.auth.uid)
+                )
+              )
+            )
+            && request.resource.data.createdAt == request.time;
         allow update, delete: if false;
       }
 
@@ -969,17 +1072,6 @@ service cloud.firestore {
                 get(/databases/$(database)/documents/live_sessions/$(liveId))
                     .data.hostId,
                 request.auth.uid
-              )
-              // Active on-camera guests are public to joined viewers, so the
-              // live gift picker can address them. Pending requests remain
-              // private to their owner and the host/moderators.
-              || (
-                resource.data.status == 'accepted'
-                && get(/databases/$(database)/documents/live_sessions/$(liveId))
-                    .data.isLive == true
-                && exists(
-                  /databases/$(database)/documents/live_sessions/$(liveId)/viewers/$(request.auth.uid)
-                )
               )
             );
         allow create: if signedIn()
@@ -1099,6 +1191,9 @@ service cloud.firestore {
           && request.resource.data.channelId == roomId
           && request.resource.data.get('roomLevel', 1) == 1
           && request.resource.data.get('roomXp', 0) == 0
+          && !request.resource.data.keys().hasAny([
+            'roomCastleXpVersion', 'legacyRoomXp'
+          ])
           // A verified quiz must be created by the authenticated backend.
           && !('quiz' in request.resource.data);
 
@@ -1109,7 +1204,8 @@ service cloud.firestore {
           && request.resource.data.channelId == resource.data.channelId
           && !request.resource.data.diff(resource.data)
               .affectedKeys().hasAny([
-                'roomXp', 'roomLevel', 'lastTaskCompletionId'
+                'roomXp', 'roomLevel', 'lastTaskCompletionId',
+                'roomCastleXpVersion', 'legacyRoomXp'
               ])
           && validRoomThemeChange()
           && validClientQuizChange()
@@ -1259,25 +1355,23 @@ service cloud.firestore {
               isHost(roomId)
               || get(roomPath(roomId)).data.boardWriteEnabled == true
             );
-        // The host can control only the video currently presented. No
-        // listener may overwrite the media URL, author or presentation type.
-        allow update: if isHost(roomId)
-            && resource.data.type == 'video'
-            && get(roomPath(roomId)).data.boardMediaId == itemId
-            && request.resource.data.diff(resource.data)
-                .affectedKeys().hasOnly([
-                  'playing', 'positionMs', 'playbackChangedAt'
-                ])
-            && request.resource.data.playing is bool
-            && request.resource.data.positionMs is int
-            && request.resource.data.positionMs >= 0
-            && request.resource.data.playbackChangedAt == request.time;
+        allow update: if false;
         allow delete: if isHost(roomId)
             || (isRoomMember(roomId) && resource.data.userId == request.auth.uid);
       }
 
       // Correct answers for server-created rounds are never exposed to
       // clients, including the room host. Admin SDK alone writes these.
+      // Secret word definitions, solutions, answers, leaderboards and
+      // server-owned game state are inaccessible through client Firestore.
+      // All game reads/writes are authenticated HTTP server routes.
+      match /private_games/{sessionId} {
+        allow read, write: if false;
+        match /answers/{answerId} { allow read, write: if false; }
+        match /scores/{playerId} { allow read, write: if false; }
+        match /public_attempts/{attemptId} { allow read, write: if false; }
+      }
+
       match /quiz_private/{quizId} {
         allow read, write: if false;
       }

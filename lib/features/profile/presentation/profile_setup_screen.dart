@@ -42,6 +42,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       city=TextEditingController(), profession=TextEditingController(), travel=TextEditingController(),
       goals=TextEditingController(), interests=TextEditingController();
   bool? usernameAvailable; bool saving=false;
+  // Never overwrite a saved profile before its existing fields are loaded.
+  bool profileLoading=true; bool profileLoadFailed=false;
   final ImagePicker _imagePicker=ImagePicker();
   File? profileImage, coverImage;
   String? photoUrl, photoPublicId, coverUrl, coverPublicId, voiceBioUrl;
@@ -61,20 +63,39 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   Future<void> _loadExistingProfile() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) return;
+    if (uid == null) {
+      if (mounted) setState(() => profileLoading = false);
+      return;
+    }
 
-    final snap =
-        await FirebaseFirestore.instance.collection('users').doc(uid).get();
-    final data = snap.data();
-    if (data == null || !mounted) return;
+    Map<String, dynamic>? data;
+    try {
+      final snap = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      data = snap.data();
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          profileLoading = false;
+          profileLoadFailed = true;
+        });
+      }
+      return;
+    }
+    if (!mounted) return;
+    // A final local retains Dart null promotion inside the setState callback.
+    final loadedData = data;
+    if (loadedData == null) {
+      setState(() => profileLoading = false);
+      return;
+    }
 
-    final storedCodes = (data['learningLanguageCodes'] as List?)
+    final storedCodes = (loadedData['learningLanguageCodes'] as List?)
             ?.map((e) => e.toString())
             .toList() ?? const <String>[];
     // Preserve profiles created before ISO language codes were stored.
     final learningCodes = storedCodes.isNotEmpty
         ? storedCodes
-        : ((data['learningLanguages'] as List?) ?? const [])
+        : ((loadedData['learningLanguages'] as List?) ?? const [])
             .map((entry) {
               final saved = entry.toString();
               for (final language in ProfileLanguageCatalog.languages) {
@@ -85,44 +106,46 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               }
               return saved;
             }).toList();
-    final hobbies = (data['interests'] as List?)
+    final hobbies = (loadedData['interests'] as List?)
             ?.map((e) => e.toString())
             .toList() ??
         const <String>[];
-    final birth = data['birthDate'];
+    final birth = loadedData['birthDate'];
 
     setState(() {
-      name.text = (data['displayName'] ?? '').toString();
-      username.text = (data['username'] ?? '').toString();
-      bio.text = (data['bio'] ?? '').toString();
-      city.text = (data['city'] ?? '').toString();
-      profession.text = (data['profession'] ?? '').toString();
-      travel.text = (data['travel'] ?? '').toString();
-      goals.text = (data['learningGoals'] ?? '').toString();
-      country = data['country'] as String?;
-      gender = data['gender'] as String?;
-      nativeLanguage = data['nativeLanguageCode'] as String?;
+      name.text = (loadedData['displayName'] ?? '').toString();
+      username.text = (loadedData['username'] ?? '').toString();
+      bio.text = (loadedData['bio'] ?? '').toString();
+      city.text = (loadedData['city'] ?? '').toString();
+      profession.text = (loadedData['profession'] ?? '').toString();
+      travel.text = (loadedData['travel'] ?? '').toString();
+      goals.text = (loadedData['learningGoals'] ?? '').toString();
+      country = loadedData['country'] as String?;
+      gender = loadedData['gender'] as String?;
+      nativeLanguage = loadedData['nativeLanguageCode'] as String?;
       learningLanguages
         ..clear()
         ..addAll(learningCodes);
-      vipLearningEnabled = data['isVip'] == true ||
-          (data['vipTier']?.toString().isNotEmpty == true &&
-           data['vipTier']?.toString() != 'none');
-      professionKey = data['professionKey'] as String?;
+      vipLearningEnabled = loadedData['isVip'] == true ||
+          (loadedData['vipTier']?.toString().isNotEmpty == true &&
+           loadedData['vipTier']?.toString() != 'none');
+      professionKey = loadedData['professionKey'] as String?;
       languageLevel =
-          (data['languageLevel'] as String?)?.isNotEmpty == true
-              ? data['languageLevel'] as String
+          (loadedData['languageLevel'] as String?)?.isNotEmpty == true
+              ? loadedData['languageLevel'] as String
               : 'beginner';
       birthDate = birth is Timestamp ? birth.toDate() : null;
-      photoUrl = data['photoUrl'] as String?;
-      photoPublicId = data['photoPublicId'] as String?;
-      coverUrl = data['coverUrl'] as String?;
-      coverPublicId = data['coverPublicId'] as String?;
-      voiceBioUrl = data['voiceBioUrl'] as String?;
+      photoUrl = loadedData['photoUrl'] as String?;
+      photoPublicId = loadedData['photoPublicId'] as String?;
+      coverUrl = loadedData['coverUrl'] as String?;
+      coverPublicId = loadedData['coverPublicId'] as String?;
+      voiceBioUrl = loadedData['voiceBioUrl'] as String?;
       selectedHobbies
         ..clear()
         ..addAll(hobbies);
       usernameAvailable = true;
+      profileLoading = false;
+      profileLoadFailed = false;
     });
     if (widget.openLearningPickerOnLaunch && mounted) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -323,7 +346,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   Future<void> saveProfile() async {
     final user=FirebaseAuth.instance.currentUser;
     final code=widget.localeController.locale?.languageCode??'en';
-    if(user==null)return;
+    if(user==null||profileLoading||profileLoadFailed||saving)return;
 
     if(!ProfileFormValidation.hasName(name.text)){
       ScaffoldMessenger.of(context).showSnackBar(
@@ -522,6 +545,30 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       padding:const EdgeInsets.fromLTRB(18,16,18,36),children:[
       if(widget.editMode) Align(alignment:AlignmentDirectional.centerStart,child:IconButton(onPressed:()=>Navigator.of(context).pop(),icon:const Icon(Icons.arrow_back_rounded))),
       Text(widget.editMode ? (code=='ar'?'تعديل البروفايل':code=='es'?'Editar perfil':'Edit profile') : t('title'),style:Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight:FontWeight.w900)),
+      if (profileLoading) const LinearProgressIndicator(),
+      if (profileLoadFailed)
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Column(children: [
+            Text(
+              code == 'ar'
+                  ? 'تعذر تحميل بيانات بروفايلك. لن نسمح بالحفظ حتى تتم استعادتها.'
+                  : 'Your profile could not be loaded. Saving is disabled to protect your existing details.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: cs.error),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  profileLoading = true;
+                  profileLoadFailed = false;
+                });
+                _loadExistingProfile();
+              },
+              child: Text(code == 'ar' ? 'إعادة المحاولة' : 'Retry loading profile'),
+            ),
+          ]),
+        ),
       const SizedBox(height:18),
       Container(height:150,decoration:BoxDecoration(borderRadius:BorderRadius.circular(24),gradient:LinearGradient(colors:[cs.primary.withValues(alpha:.75),cs.tertiary.withValues(alpha:.45)]),image:coverImage!=null?DecorationImage(image:FileImage(coverImage!),fit:BoxFit.cover):(coverUrl!=null&&coverUrl!.isNotEmpty?DecorationImage(image:NetworkImage(coverUrl!),fit:BoxFit.cover):null)),
         child:Stack(children:[if(coverImage==null&&(coverUrl==null||coverUrl!.isEmpty))const Center(child:Icon(Icons.landscape_rounded,size:42)),Positioned(top:8,left:8,child:IconButton.filledTonal(onPressed:pickCoverImage,icon:const Icon(Icons.wallpaper_rounded,size:18)))])),
@@ -624,7 +671,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         const SizedBox(height:10),
       ],
       ProfileTextField(travel,t('travel'),Icons.flight_takeoff_rounded,lines:2),const SizedBox(height:22),
-      SizedBox(height:58,child:FilledButton.icon(onPressed:saving?null:saveProfile,icon:saving?const SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2)):const Icon(Icons.rocket_launch_rounded,size:20),label:Text(widget.editMode?(code=='ar'?'حفظ التعديلات':code=='es'?'Guardar cambios':'Save changes'):t('launch'),style:const TextStyle(fontWeight:FontWeight.w900,fontSize:17))))
+      SizedBox(height:58,child:FilledButton.icon(onPressed:(saving||profileLoading||profileLoadFailed)?null:saveProfile,icon:saving?const SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2)):const Icon(Icons.rocket_launch_rounded,size:20),label:Text(widget.editMode?(code=='ar'?'حفظ التعديلات':code=='es'?'Guardar cambios':'Save changes'):t('launch'),style:const TextStyle(fontWeight:FontWeight.w900,fontSize:17))))
     ]))));
   }
 }

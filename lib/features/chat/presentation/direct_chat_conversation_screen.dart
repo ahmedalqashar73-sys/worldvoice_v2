@@ -1,3 +1,4 @@
+import '../../profile/presentation/member_badges.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -756,6 +757,10 @@ class _DirectChatConversationScreenState
                       ? CrossAxisAlignment.end
                       : CrossAxisAlignment.start,
                   children: [
+                    if (!removed)
+                      PublicMemberMarks(
+                        userId: (item['senderId'] ?? '').toString(),
+                      ),
                     art == null
                         ? content
                         : WorldVoiceBubbleFrame(

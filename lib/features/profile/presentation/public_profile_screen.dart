@@ -1,3 +1,5 @@
+import 'member_badges.dart';
+import '../../engagement/presentation/creative_badge.dart';
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -103,8 +105,8 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
           content: Text(
             raw.isEmpty
                 ? (ar
-                    ? 'تعذر فتح المحادثة الآن.'
-                    : 'Could not open the conversation right now.')
+                      ? 'تعذر فتح المحادثة الآن.'
+                      : 'Could not open the conversation right now.')
                 : raw,
           ),
         ),
@@ -144,7 +146,8 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final code = widget.localeController?.locale?.languageCode ??
+    final code =
+        widget.localeController?.locale?.languageCode ??
         widget.languageCode ??
         Localizations.localeOf(context).languageCode;
     final rtl = const {'ar', 'ur', 'fa'}.contains(code);
@@ -173,30 +176,40 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
             final country = data['country'] as String?;
             final city = (data['city'] as String?)?.trim();
             final hideCity = data['hideCity'] == true;
-            final isVip = data['isVip'] == true;
-            final profileFrameId =
-                (data['profileFrameId'] as String?)?.trim();
+            final profileFrameId = (data['profileFrameId'] as String?)?.trim();
             final gender = data['gender'] as String?;
             final nativeLanguage = ProfileLanguageCatalog.localizedStoredName(
-                (data['nativeLanguageCode'] ?? data['nativeLanguage'])?.toString(), code);
+              (data['nativeLanguageCode'] ?? data['nativeLanguage'])
+                  ?.toString(),
+              code,
+            );
             final birthRaw = data['birthDate'];
             final birthDate = birthRaw is Timestamp ? birthRaw.toDate() : null;
             final isOnline = data['isOnline'] == true;
             final lastActiveRaw = data['lastActiveAt'];
             final lastSeenRaw = data['lastSeenAt'];
-            final lastActiveAt =
-                lastActiveRaw is Timestamp ? lastActiveRaw.toDate() : null;
-            final lastSeenAt =
-                lastSeenRaw is Timestamp ? lastSeenRaw.toDate() : null;
+            final lastActiveAt = lastActiveRaw is Timestamp
+                ? lastActiveRaw.toDate()
+                : null;
+            final lastSeenAt = lastSeenRaw is Timestamp
+                ? lastSeenRaw.toDate()
+                : null;
 
-            final savedLearning = (data['learningLanguageCodes'] as List?)?.isNotEmpty == true
+            final savedLearning =
+                (data['learningLanguageCodes'] as List?)?.isNotEmpty == true
                 ? (data['learningLanguageCodes'] as List)
                 : (data['learningLanguages'] as List?) ?? const [];
             final learning = savedLearning
-                .map((item) => ProfileLanguageCatalog.localizedStoredName(item.toString(), code))
+                .map(
+                  (item) => ProfileLanguageCatalog.localizedStoredName(
+                    item.toString(),
+                    code,
+                  ),
+                )
                 .where((item) => item.trim().isNotEmpty)
                 .toList();
-            final interests = (data['interests'] as List?)
+            final interests =
+                (data['interests'] as List?)
                     ?.map((item) => item.toString())
                     .where((item) => item.trim().isNotEmpty)
                     .toList() ??
@@ -206,8 +219,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                 (data['followersCount'] as num?)?.toInt() ?? 0;
             final followingCount =
                 (data['followingCount'] as num?)?.toInt() ?? 0;
-            final peerName =
-                name?.isNotEmpty == true ? name! : 'WorldVoice';
+            final peerName = name?.isNotEmpty == true ? name! : 'WorldVoice';
 
             return ListView(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
@@ -222,34 +234,35 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                       peerName: story.ownerName,
                     ),
                     child: WorldVoiceAvatarFrame(
-                    frameId: profileFrameId,
-                    size: 116,
-                    child: ColoredBox(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .surfaceContainerHighest,
-                      child: photo == null || photo.isEmpty
-                          ? const Center(
-                              child: Icon(Icons.person_rounded, size: 52),
-                            )
-                          : Image.network(
-                              photo,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, _, _) => const Center(
+                      frameId: profileFrameId,
+                      size: 116,
+                      child: ColoredBox(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest,
+                        child: photo == null || photo.isEmpty
+                            ? const Center(
                                 child: Icon(Icons.person_rounded, size: 52),
+                              )
+                            : Image.network(
+                                photo,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, _, _) => const Center(
+                                  child: Icon(Icons.person_rounded, size: 52),
+                                ),
                               ),
-                            ),
+                      ),
                     ),
-                  ),
                   ),
                 ),
                 const SizedBox(height: 14),
-                Text(
-                  name?.isNotEmpty == true ? name! : 'WorldVoice',
-                  textAlign: TextAlign.center,
+                MemberName(
+                  userId: widget.userId,
+                  centered: true,
+                  name: name?.isNotEmpty == true ? name! : 'WorldVoice',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
                 if (username?.isNotEmpty == true) ...[
                   const SizedBox(height: 4),
@@ -260,38 +273,16 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                       Text(
                         '@$username',
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: .72),
-                              fontWeight: FontWeight.w700,
-                            ),
-                      ),
-                      if (isVip) ...[
-                        const SizedBox(width: 7),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFFD76A),
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: const Text(
-                            'VIP',
-                            style: TextStyle(
-                              color: Color(0xFF4B3500),
-                              fontSize: 10,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: .4,
-                            ),
-                          ),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: .72),
+                          fontWeight: FontWeight.w700,
                         ),
-                      ],
+                      ),
                     ],
                   ),
                 ],
+                Center(child: CreativeBadge(userId: widget.userId)),
                 const SizedBox(height: 7),
                 Center(
                   child: _PresenceStatus(
@@ -311,11 +302,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                 ),
                 if (!hideCity && city?.isNotEmpty == true) ...[
                   const SizedBox(height: 10),
-                  Center(
-                    child: _CityPill(
-                      label: city!,
-                    ),
-                  ),
+                  Center(child: _CityPill(label: city!)),
                 ],
                 const SizedBox(height: 18),
                 Row(
@@ -366,9 +353,9 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                           onPressed: _messageBusy
                               ? null
                               : () => _openMessage(
-                                    ar: code == 'ar',
-                                    peerName: peerName,
-                                  ),
+                                  ar: code == 'ar',
+                                  peerName: peerName,
+                                ),
                           icon: _messageBusy
                               ? const SizedBox.square(
                                   dimension: 17,
@@ -397,7 +384,9 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                                   strokeWidth: 2,
                                 ),
                               )
-                            : const Icon(Icons.keyboard_double_arrow_up_rounded),
+                            : const Icon(
+                                Icons.keyboard_double_arrow_up_rounded,
+                              ),
                         label: Text(
                           widget.inviteToStageLabel ??
                               (code == 'ar'
@@ -424,25 +413,31 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                           voiceBioUrl?.isNotEmpty == true)
                         const SizedBox(height: 14),
                       if (voiceBioUrl?.isNotEmpty == true)
-                        VoiceBioPlayer(
-                          url: voiceBioUrl!,
-                          code: code,
-                        ),
+                        VoiceBioPlayer(url: voiceBioUrl!, code: code),
                     ],
                   ),
                 ],
                 const SizedBox(height: 14),
                 _SectionCard(
                   icon: Icons.translate_rounded,
-                  title: ProfileLanguageCatalog.localizedFieldTitle('languages', code),
+                  title: ProfileLanguageCatalog.localizedFieldTitle(
+                    'languages',
+                    code,
+                  ),
                   children: [
                     _LanguageRow(
-                      label: ProfileLanguageCatalog.localizedFieldTitle('native', code),
+                      label: ProfileLanguageCatalog.localizedFieldTitle(
+                        'native',
+                        code,
+                      ),
                       value: nativeLanguage.isNotEmpty ? nativeLanguage : '—',
                     ),
                     const SizedBox(height: 10),
                     _LanguageRow(
-                      label: ProfileLanguageCatalog.localizedFieldTitle('learning', code),
+                      label: ProfileLanguageCatalog.localizedFieldTitle(
+                        'learning',
+                        code,
+                      ),
                       value: learning.isEmpty ? '—' : learning.join(', '),
                     ),
                   ],
@@ -489,10 +484,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
 }
 
 class _SocialCount extends StatelessWidget {
-  const _SocialCount({
-    required this.value,
-    required this.label,
-  });
+  const _SocialCount({required this.value, required this.label});
 
   final int value;
   final String label;
@@ -504,17 +496,17 @@ class _SocialCount extends StatelessWidget {
       children: [
         Text(
           '$value',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w900,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
         ),
         const SizedBox(height: 2),
         Text(
           label,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w700,
-              ),
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ],
     );
@@ -544,12 +536,9 @@ class _PresenceStatusState extends State<_PresenceStatus> {
   @override
   void initState() {
     super.initState();
-    _timer = Timer.periodic(
-      const Duration(minutes: 1),
-      (_) {
-        if (mounted) setState(() {});
-      },
-    );
+    _timer = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
@@ -562,7 +551,8 @@ class _PresenceStatusState extends State<_PresenceStatus> {
   Widget build(BuildContext context) {
     final now = DateTime.now();
     final activeAt = widget.lastActiveAt;
-    final online = widget.isOnline &&
+    final online =
+        widget.isOnline &&
         activeAt != null &&
         now.difference(activeAt).abs() <= const Duration(minutes: 2);
 
@@ -570,8 +560,8 @@ class _PresenceStatusState extends State<_PresenceStatus> {
     final label = online
         ? widget.strings.profile('online')
         : seenAt == null
-            ? widget.strings.profile('lastSeen')
-            : '${widget.strings.profile('lastSeen')} ${widget.strings.profileLastSeenAgo(now.difference(seenAt).abs())}';
+        ? widget.strings.profile('lastSeen')
+        : '${widget.strings.profile('lastSeen')} ${widget.strings.profileLastSeenAgo(now.difference(seenAt).abs())}';
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -590,14 +580,13 @@ class _PresenceStatusState extends State<_PresenceStatus> {
         Text(
           label,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                fontWeight: online ? FontWeight.w800 : FontWeight.w600,
-                color: online
-                    ? Colors.green
-                    : Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: .62),
-              ),
+            fontWeight: online ? FontWeight.w800 : FontWeight.w600,
+            color: online
+                ? Colors.green
+                : Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: .62),
+          ),
         ),
       ],
     );
@@ -622,18 +611,11 @@ class _CityPill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.location_city_outlined,
-            size: 17,
-            color: colors.primary,
-          ),
+          Icon(Icons.location_city_outlined, size: 17, color: colors.primary),
           const SizedBox(width: 6),
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-            ),
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
           ),
         ],
       ),
@@ -661,9 +643,7 @@ class _SectionCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.surfaceContainerLow,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: colors.outlineVariant.withValues(alpha: .35),
-        ),
+        border: Border.all(color: colors.outlineVariant.withValues(alpha: .35)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -673,18 +653,14 @@ class _SectionCard extends StatelessWidget {
               CircleAvatar(
                 radius: 19,
                 backgroundColor: colors.primaryContainer,
-                child: Icon(
-                  icon,
-                  size: 20,
-                  color: colors.onPrimaryContainer,
-                ),
+                child: Icon(icon, size: 20, color: colors.onPrimaryContainer),
               ),
               const SizedBox(width: 10),
               Text(
                 title,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w900,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
               ),
             ],
           ),
@@ -697,10 +673,7 @@ class _SectionCard extends StatelessWidget {
 }
 
 class _LanguageRow extends StatelessWidget {
-  const _LanguageRow({
-    required this.label,
-    required this.value,
-  });
+  const _LanguageRow({required this.label, required this.value});
 
   final String label;
   final String value;
@@ -709,10 +682,7 @@ class _LanguageRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Text(
-          '$label:',
-          style: const TextStyle(fontWeight: FontWeight.w800),
-        ),
+        Text('$label:', style: const TextStyle(fontWeight: FontWeight.w800)),
         const SizedBox(width: 8),
         Expanded(child: Text(value)),
       ],

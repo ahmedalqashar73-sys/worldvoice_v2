@@ -1,8 +1,6 @@
 import {createHash} from "node:crypto";
 import {FieldValue} from "firebase-admin/firestore";
 import {chatIdFor, assertChatMembership} from "./chat_membership.js";
-import {worldVoiceChatBubbles, vipChatBubbles,
-  vipBubbleAllowed, chatBubbleInventoryId} from "./chat_bubble_policy.js";
 
 const fail = (msg, status = 400) => {
   throw Object.assign(new Error(msg), {status});
@@ -467,10 +465,9 @@ export function registerChatRoutes({app, db, authenticatedUser}) {
         .digest("hex");
       const chatRef = db.collection("chats").doc(id);
       const messageRef = chatRef.collection("messages").doc(eventId);
-      const profileRef = db.collection("users").doc(sender.uid);
       const result = await db.runTransaction(async tx => {
-        const [chat, old, profileSnap] = await Promise.all(
-          [chatRef, messageRef, profileRef].map(ref => tx.get(ref)),
+        const [chat, old] = await Promise.all(
+          [chatRef, messageRef].map(ref => tx.get(ref)),
         );
         if (!chat.exists) fail("Chat unavailable.", 403);
         const chatData = chat.data() || {};
@@ -489,26 +486,8 @@ export function registerChatRoutes({app, db, authenticatedUser}) {
               prev.type !== "text") fail("Idempotency key reused.", 409);
           return {messageId: eventId, alreadyProcessed: true};
         }
-        // Resolve the sender's selected bubble from verified entitlements.
-        const senderProfile = profileSnap.data() || {};
-        const equipped = String(senderProfile.chatBubbleId || "free");
-        let bubbleId = "free";
-        if (vipChatBubbles.includes(equipped)) {
-          if (vipBubbleAllowed(senderProfile, Date.now())) bubbleId = equipped;
-        } else if (Object.hasOwn(worldVoiceChatBubbles, equipped)) {
-          const ownedSnap = await tx.get(
-            profileRef.collection("inventory").doc(chatBubbleInventoryId(equipped)));
-          const owned = ownedSnap.data() || {};
-          const expiresAt = owned.expiresAt?.toMillis?.();
-          if (ownedSnap.exists && owned.type === "bubble" &&
-              owned.bubbleId === equipped && Number(owned.quantity || 0) > 0 &&
-              (owned.expiresAt == null ||
-                (Number.isFinite(expiresAt) && expiresAt > Date.now()))) {
-            bubbleId = equipped;
-          }
-        }
         tx.create(messageRef, {
-          type: "text", senderId: sender.uid, text, bubbleId,
+          type: "text", senderId: sender.uid, text,
           senderName: String(chat.data().memberNames?.[sender.uid] || "Member"),
           createdAt: FieldValue.serverTimestamp(),
         });

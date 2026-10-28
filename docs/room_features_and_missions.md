@@ -30,42 +30,51 @@ shown; no fake successful correction is displayed.
 **Tasks/rewards**: the existing `RoomExtrasSheet` now contains only tasks,
 leaderboard and reward eligibility. It no longer embeds gifts or themes.
 
-## Room tasks and levels
+## Room tasks and levels (October 16 staging revision)
 
-Level formula: start at level 1, add one level per 100 room XP and cap at
-level 60 (5,900 XP). These are NON-MONETARY game XP, not coins/diamonds.
+Room progression is **level by level, 1 to 50**. The next-level requirements
+are 300 XP (1→2), 400 XP (2→3), 700 XP (3→4), 1000 XP (4→5), then
+increase by 300 XP per level. The UI shows current-level XP **and**
+cumulative castle XP. Ten art assets remain shared among five levels each,
+but leveling and progress are evaluated **individually** at every level.
+Castle artwork floats on the dark emerald page without the old white border.
 
-| Server-verified task | Eligibility | XP | Frequency |
+| Server-verified mission | Proof / eligibility | Room XP | Frequency |
 |---|---|---:|---|
-| Stay ten minutes | Member's server-timestamped continuous room entry reaches ten minutes | 4 | Once per member, room, UTC day |
-| Host five participants | Five other member records are simultaneously present while claimant is host | 50 | Once per claimant and room |
-| Send three gifts | Three trusted backend gift events from claimant in this room | Owner-set `sendThreeGiftsXp` | Once per claimant and room |
-| Stay for hours | Continuous member attendance reaches owner-set `stayHoursMinimum` hours | Owner-set `stayHoursXp` | Once per claimant, room, UTC day |
+| Ten minutes | Member's server-observed heartbeat attendance | 4 | Once per room member per UTC day |
+| Five listeners (`host_five`) | Host has five **current** distinct verified listeners | 10 | Once per host per room |
+| Ten stage promotions (`stage_ten`) | Ten different users are observed as listeners and later as seated speakers by the backend in the same session; receipts survive seat rotation | 5 | Once per host per room |
+| Stay 60 minutes (`stay_hours`) | Member's 60 accumulated server-verified room minutes in a UTC day | 60 | Once per member per UTC day |
 
-The owner has not provided the last two XP amounts or the hourly
-threshold. Neither task is claimable until `room_task_config/current`
-has valid, approved integer values for these fields. Do NOT guess them.
-The fixed 4 and 50 XP values were provided by the owner.
+Existing `three_gifts` server mission is retained for backwards
+compatibility but no longer appears in the four tasks displayed in the
+room. It does not use free gift previews as paid gift evidence.
+The standalone attendance **gift** card has been removed from the room
+tasks page, without deleting any gift or reward records. The Rewards tab
+still displays legitimate room level reward entitlements.
 
-`GET /room/tasks/status?roomId=...` reports validated status and progress.
-`POST /room/tasks/claim` checks an authenticated Firebase ID token, active
-membership, server timestamps and immutable room gift events inside a
-Firestore transaction. Duplicate claims return the original outcome;
-the phone cannot write XP or create level rewards in Security Rules.
-Level-reward eligibility metadata is created by the server and may need a
-separately activated gift catalog to become actual inventory. It does NOT
-fund cash-equivalent gifts by itself.
+`POST /room/tasks/heartbeat` verifies room membership, accumulates
+short time intervals and alone creates server-owned `task_stage` receipts
+when the same guest was first observed listening and then on stage.
+Firestore clients cannot write stage receipts. `GET /room/tasks/status`
+reports each task with verified counts. `POST /room/tasks/claim` verifies
+the host/session, records completion idempotently and awards **only**
+non-monetary room XP inside an atomic transaction. No money, coins or
+spendable gift balances are minted. A stale or unknown XP migration
+version fails safely rather than overwriting historic progress.
 
-The existing token-only Worker forwards both routes only if its
-`AUX_BACKEND_URL` points to a separately deployed authenticated Node
-backend. Without it, the missions display a clear unavailable state.
-Do not claim these are currently working on-device merely because Flutter
-renders the progress UI.
+**Deployment boundary:** GitHub CI validation and a test APK are not
+production deployment. The current `worldvoice-v2.onrender.com` service
+still follows an older deployment branch, so these mission routes can
+fail or time out on the phone until the reviewed server release is
+deployed separately. Do not change the live Render branch, Firebase
+rules or wallet balances without read-only reconciliation and an
+approved staged rollout.
 
 ### Release validation
 
 - Back up Firebase data and review deployed rules before migrating from
-  legacy direct client-side `completeTask` writes. The new version requires
+  legacy direct client-side task completion writes. The new version requires
   the hardened Firestore rules and real backend together.
 - Test host and guest membership and ten-minute clock with two phones;
   ensure reconnecting resets continuous attendance and users cannot spoof

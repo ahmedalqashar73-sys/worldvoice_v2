@@ -169,8 +169,9 @@ class RoomModerationService {
         'showTeacherAiSeat': initialShowTeacherAiSeat,
         'isPrivate': initialIsPrivate,
         'vipOnly': initialVipOnly,
-        'roomLevel': existingData?['roomLevel'] ?? 1,
-        'roomXp': existingData?['roomXp'] ?? existingData?['roomPoints'] ?? 0,
+        // Existing progression is server-owned; do not replay a stale read.
+        if (!existingRoom.exists) 'roomLevel': 1,
+        if (!existingRoom.exists) 'roomXp': 0,
         'themeId': existingData?['themeId'] ?? 'softGreenFlow',
         'mode': initialMode.name,
         'boardWriteEnabled': initialMode != RoomMode.lesson,

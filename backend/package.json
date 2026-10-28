@@ -8,8 +8,8 @@
   },
   "scripts": {
     "start": "node src/server.js",
-    "start:stories": "node src/stories_server.js",
-    "test": "node --test"
+    "test": "node --test",
+    "start:stories": "node src/stories_server.js"
   },
   "dependencies": {
     "@apple/app-store-server-library": "^3.1.0",

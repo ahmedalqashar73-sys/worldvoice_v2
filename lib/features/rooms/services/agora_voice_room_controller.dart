@@ -201,9 +201,6 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     required AgoraRoomRole role,
     bool previewCamera = false,
     bool preferBackendToken = false,
-    // Only the Live caller opts into a shorter, observable connection budget.
-    // Existing voice rooms retain their current retries and deadlines.
-    bool fastLiveStartup = false,
   }) async {
     if (_joined) return;
     final result = Completer<void>();
@@ -225,20 +222,11 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     Future<void> begin() async {
       try {
         if (!_connecting) {
-          await connect(
-            channelId: channelId,
-            role: role,
-            previewCamera: previewCamera,
-            preferBackendToken: preferBackendToken,
-            fastLiveStartup: fastLiveStartup,
-          );
+          await connect(channelId: channelId, role: role, previewCamera: previewCamera, preferBackendToken: preferBackendToken);
         }
         changed();
         if (!result.isCompleted) {
-          timer = Timer(
-            fastLiveStartup
-                ? const Duration(seconds: 14)
-                : const Duration(seconds: 25), () {
+          timer = Timer(const Duration(seconds: 25), () {
             if (!result.isCompleted) {
               result.completeError(TimeoutException('Agora media connection timed out. Please retry.'));
             }
@@ -265,7 +253,6 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     required AgoraRoomRole role,
     bool previewCamera = false,
     bool preferBackendToken = false,
-    bool fastLiveStartup = false,
   }) async {
     if (_disposed || _connecting || _joined) return;
 
@@ -423,7 +410,6 @@ class AgoraVoiceRoomController extends ChangeNotifier {
         channelId: channelId,
         role: role,
         preferBackendToken: preferBackendToken,
-        fastLiveStartup: fastLiveStartup,
       );
 
       // A timed-out request or a user retry may release this engine while
@@ -477,7 +463,6 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     required String channelId,
     required AgoraRoomRole role,
     bool preferBackendToken = false,
-    bool fastLiveStartup = false,
   }) async {
     final backendEndpoint =
         RoomBackendConfig.configurationError.isEmpty
@@ -506,24 +491,17 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       throw StateError('Sign in is required before joining a voice room.');
     }
 
-    final idToken = await user.getIdToken().timeout(
-      fastLiveStartup ? const Duration(seconds: 8) :
-          const Duration(seconds: 15),
-    );
+    final idToken = await user.getIdToken().timeout(const Duration(seconds: 15));
     if (idToken == null || idToken.isEmpty) {
       throw StateError('Could not authorize the Agora token request.');
     }
 
     Object? lastError;
-    final failures = <String>[];
     for (final endpoint in endpoints) {
       final uri = Uri.tryParse(endpoint);
       if (uri == null || !uri.hasAuthority) continue;
       if (kReleaseMode && uri.scheme != 'https') continue;
 
-      final issuer = endpoint == AgoraConfig.stableTokenEndpoint
-          ? 'Cloudflare Worker' : 'WorldVoice Render';
-      final clock = Stopwatch()..start();
       try {
         final response = await http
             .post(
@@ -539,13 +517,9 @@ class AgoraVoiceRoomController extends ChangeNotifier {
               }),
             )
             .timeout(
-              fastLiveStartup
-                  ? (endpoint == AgoraConfig.stableTokenEndpoint
-                        ? const Duration(seconds: 14)
-                        : const Duration(seconds: 17))
-                  : (endpoint == AgoraConfig.stableTokenEndpoint
-                        ? const Duration(seconds: 10)
-                        : const Duration(seconds: 35)),
+              endpoint == AgoraConfig.stableTokenEndpoint
+                  ? const Duration(seconds: 10)
+                  : const Duration(seconds: 35),
             );
 
         if (response.statusCode < 200 || response.statusCode >= 300) {
@@ -558,16 +532,11 @@ class AgoraVoiceRoomController extends ChangeNotifier {
           } catch (_) {
             // Fall back to the HTTP status below.
           }
-          final message = detail.isEmpty
-              ? 'Agora token request failed (HTTP ${response.statusCode}).'
-              : detail;
-          // A rejected Firebase identity/membership must be surfaced,
-          // not retried through a backend that may proxy the same Worker.
-          if (fastLiveStartup &&
-              (response.statusCode == 401 || response.statusCode == 403)) {
-            throw _LiveAgoraAuthorizationFailure(message);
-          }
-          throw StateError(message);
+          throw StateError(
+            detail.isEmpty
+                ? 'Token server failed with HTTP ${response.statusCode}.'
+                : detail,
+          );
         }
 
         final body = jsonDecode(response.body);
@@ -585,30 +554,17 @@ class AgoraVoiceRoomController extends ChangeNotifier {
         _preferBackendToken =
             backendEndpoint.isNotEmpty && endpoint == backendEndpoint;
         return (token: token, uid: uid);
-      } on _LiveAgoraAuthorizationFailure {
-        rethrow;
       } on TimeoutException catch (error) {
         lastError = error;
-        if (fastLiveStartup) {
-          failures.add('$issuer: timeout after ${clock.elapsed.inSeconds}s');
-        }
       } catch (error) {
         lastError = error;
-        if (fastLiveStartup) {
-          failures.add('$issuer: ${error.toString()}');
-        }
-      } finally {
-        clock.stop();
       }
     }
 
     throw StateError(
-      fastLiveStartup
-          ? 'LIVE_AGORA_TOKEN_UNAVAILABLE: '
-            '${failures.isEmpty ? 'No usable Agora token endpoint.' : failures.join(' | ')}'
-          : 'Agora token service is temporarily unavailable. '
-            'Tried the fast token worker and the WorldVoice backend fallback. '
-            '${lastError ?? ''}',
+      'Agora token service is temporarily unavailable. '
+      'Tried the fast token worker and the WorldVoice backend fallback. '
+      '${lastError ?? ''}',
     );
   }
 
@@ -1051,12 +1007,4 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     unawaited(_audioFrameController.close());
     super.dispose();
   }
-}
-
-class _LiveAgoraAuthorizationFailure implements Exception {
-  const _LiveAgoraAuthorizationFailure(this.message);
-  final String message;
-
-  @override
-  String toString() => 'LIVE_AGORA_AUTH: $message';
 }

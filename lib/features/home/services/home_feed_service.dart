@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../../rooms/data/room_backend_config.dart';
@@ -111,9 +110,6 @@ class HomePostComment {
 }
 
 class HomeFeedService {
-  /// Notify an already-open Home feed when a Live is posted elsewhere.
-  static final ValueNotifier<int> postedRevision = ValueNotifier<int>(0);
-
   HomeFeedService({http.Client? client}) : _client = client ?? http.Client();
 
   static const String _backend =
@@ -223,7 +219,6 @@ class HomeFeedService {
     ).timeout(RoomBackendConfig.socialRequestTimeout,
         onTimeout: () => throw StateError('The WorldVoice feed server took too long. Please try again.'));
     await _decode(response);
-    postedRevision.value += 1;
   }
 
   Future<({bool liked, int likeCount})> toggleLike(HomePost post) async {

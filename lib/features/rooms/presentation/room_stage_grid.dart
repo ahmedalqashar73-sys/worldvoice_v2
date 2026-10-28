@@ -1,3 +1,4 @@
+import '../../engagement/presentation/creative_badge.dart';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -10,22 +11,45 @@ class RoomStageGrid extends StatelessWidget {
     required this.seats,
     required this.onSeatTap,
     this.onSeatLongPress,
+    this.betweenRows,
     super.key,
   });
 
   final List<RoomSeatState> seats;
   final ValueChanged<RoomSeatState> onSeatTap;
   final ValueChanged<RoomSeatState>? onSeatLongPress;
+  /// Optional question board anchored between the first and second seat row.
+  /// The seat order is unchanged: seats 1–4, then seats 5–8.
+  final Widget? betweenRows;
 
   @override
   Widget build(BuildContext context) {
     final stageSeats = seats.take(8).toList(growable: false);
+    if (betweenRows == null || stageSeats.length != 8) {
+      return _seatGrid(context, stageSeats);
+    }
+    final rowHeight = 93 + MediaQuery.textScalerOf(context).scale(30);
+    return Column(mainAxisSize: MainAxisSize.min, children: [
+      SizedBox(
+        height: rowHeight,
+        child: _seatGrid(context, stageSeats.take(4).toList(growable: false)),
+      ),
+      const SizedBox(height: 12),
+      betweenRows!,
+      const SizedBox(height: 12),
+      SizedBox(
+        height: rowHeight,
+        child: _seatGrid(context, stageSeats.skip(4).toList(growable: false)),
+      ),
+    ]);
+  }
 
+  Widget _seatGrid(BuildContext context, List<RoomSeatState> rowSeats) {
     return GridView.builder(
       padding: EdgeInsets.zero,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: stageSeats.length,
+      itemCount: rowSeats.length,
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 4,
         mainAxisSpacing: 12,
@@ -33,7 +57,7 @@ class RoomStageGrid extends StatelessWidget {
         mainAxisExtent: 93 + MediaQuery.textScalerOf(context).scale(30),
       ),
       itemBuilder: (context, index) {
-        final seat = stageSeats[index];
+        final seat = rowSeats[index];
         return _CompactRoomSeat(
           seat: seat,
           onTap: () => onSeatTap(seat),
@@ -102,7 +126,9 @@ class _CompactRoomSeatState extends State<_CompactRoomSeat>
     final isAi = seat.role == RoomMemberRole.teacherAi;
 
     return LayoutBuilder(builder: (context, constraints) {
-      final avatarSize = math.min(constraints.maxWidth, 70.0);
+      // Shrink only the avatar circles ~11%; the four-column grid,
+      // seat cell centers, labels and both row positions stay unchanged.
+      final avatarSize = math.min(constraints.maxWidth, 62.0);
       return InkWell(
       borderRadius: BorderRadius.circular(18),
       onTap: widget.onTap,
@@ -217,6 +243,8 @@ class _CompactRoomSeatState extends State<_CompactRoomSeat>
                   ),
                 if (!isAi) const SizedBox(width: 3),
                 Flexible(child: _TinyRoleBadge(role: seat.role)),
+                if (!isAi && seat.userId != null)
+                  CreativeBadge(userId: seat.userId!, compact: true),
               ],
             ),
           ],

@@ -5,12 +5,17 @@ import 'package:flutter/material.dart';
 
 import '../../../core/localization/locale_controller.dart';
 import '../../chat/presentation/chat_screen.dart';
+import '../../chat/presentation/worldvoice_activity_screen.dart';
+import '../../chat/presentation/worldvoice_official_screen.dart';
+import '../../chat/services/worldvoice_notification_service.dart';
 import '../../chat/presentation/incoming_call_watcher.dart';
 import '../../discover/presentation/discover_screen.dart';
 import '../../profile/presentation/public_profile_screen.dart';
 import '../../profile/presentation/profile_form_validation.dart';
 import '../../profile/presentation/user_profile_screen.dart';
 import '../../rooms/presentation/rooms_hub_screen.dart';
+import '../../stories/presentation/story_notifications_screen.dart';
+import '../../stories/presentation/story_strip.dart';
 import 'home_feed_section.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -24,6 +29,44 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _index = 0;
+  bool _openingOfficialPush = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WorldVoiceNotificationService.pendingInbox.addListener(_openPendingPush);
+    _openPendingPush();
+  }
+
+  @override
+  void dispose() {
+    WorldVoiceNotificationService.pendingInbox.removeListener(_openPendingPush);
+    super.dispose();
+  }
+
+  void _openPendingPush() {
+    if (!mounted || _openingOfficialPush ||
+        WorldVoiceNotificationService.pendingInbox.value == null) {
+      return;
+    }
+    _openingOfficialPush = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _openingOfficialPush = false;
+      if (!mounted) return;
+      final destination = WorldVoiceNotificationService.pendingInbox.value;
+      if (destination == null) return;
+      WorldVoiceNotificationService.pendingInbox.value = null;
+      if (destination != 'story') setState(() => _index = 3);
+      Navigator.of(context).push(MaterialPageRoute<void>(
+        builder: (_) => destination == 'story'
+          ? StoryNotificationsScreen(
+              isArabic: widget.localeController.locale?.languageCode == 'ar')
+          : destination == 'activity'
+              ? WorldVoiceActivityScreen(localeController: widget.localeController)
+              : WorldVoiceOfficialScreen(localeController: widget.localeController),
+      ));
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
           selectedIndex: _index,
           onDestinationSelected: (value) {
             setState(() => _index = value);
+            if (value == 3) StoryStrip.refreshFromNavigation();
           },
           destinations: [
             NavigationDestination(
@@ -250,7 +294,9 @@ class _HomeLandingState extends State<_HomeLanding> {
                     icon: const Icon(Icons.add_box_outlined, size: 27),
                   ),
                   IconButton(
-                    onPressed: () {},
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(builder: (_) =>
+                        StoryNotificationsScreen(isArabic: ar))),
                     tooltip: t.notifications,
                     icon: const Icon(Icons.notifications_none_rounded, size: 27),
                   ),

@@ -1,7 +1,8 @@
+import 'dart:async';
+import '../../chat/services/worldvoice_notification_service.dart';
 import '../../rooms/services/active_chat_bubble_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../profile/data/profile_language_catalog.dart';
 
 /// Firestore coordination for video Live.
 ///
@@ -31,39 +32,37 @@ class LiveSessionService {
     String topic = '',
   }) async {
     final user = _user;
-    // The profile is the authoritative source of native/learning languages.
-    // Read it only when creating a Live, not for every discovery card.
-    Map<String, dynamic> profile = const <String, dynamic>{};
+    // Use the completed WorldVoice profile, not only the Google/Firebase
+    // sign-in photo. A missing or slow profile fetch must not block Live.
+    Map<String, dynamic> hostProfile = const <String, dynamic>{};
     try {
-      final snapshot = await _db
+      final profile = await _db
           .collection('users')
           .doc(user.uid)
           .get()
-          .timeout(const Duration(seconds: 5));
-      profile = snapshot.data() ?? const <String, dynamic>{};
+          .timeout(const Duration(seconds: 3));
+      hostProfile = profile.data() ?? const <String, dynamic>{};
     } catch (_) {
-      // A temporary profile read failure must not prevent creating a Live.
+      // The Auth metadata still provides a safe fallback.
     }
-    final native =
-        ProfileLanguageCatalog.codeFromStored(
-          profile['nativeLanguageCode'] ?? profile['nativeLanguage'],
-        ) ??
-        '';
-    // Use the same ordered profile source as Live discovery; this must not
-    // truncate a VIP profile to ten languages or silently lose legacy names.
-    final learning = ProfileLanguageCatalog.liveDiscoveryCodes(
-      profile,
-    ).where((code) => code != 'all' && code != native).toList(growable: false);
+    final savedPhoto = (hostProfile['photoUrl'] ?? '').toString().trim();
+    final savedCover = (hostProfile['coverUrl'] ?? '').toString().trim();
+    final savedName = (hostProfile['displayName'] ?? hostProfile['name'] ?? '')
+        .toString()
+        .trim();
     final ref = _sessions.doc(channelId);
     await ref.set({
       'channelId': channelId,
       'hostId': user.uid,
-      'hostName': user.displayName ?? 'WorldVoice host',
-      'hostPhotoUrl': user.photoURL ?? '',
+      'hostName': savedName.isNotEmpty
+          ? savedName
+          : (user.displayName ?? 'WorldVoice host'),
+      'hostPhotoUrl': savedPhoto.isNotEmpty
+          ? savedPhoto
+          : (user.photoURL ?? ''),
+      'hostCoverUrl': savedCover,
       'hostAgoraUid': hostAgoraUid,
       'languageCode': languageCode,
-      'nativeLanguageCode': native,
-      'learningLanguageCodes': learning,
       'topic': topic.trim(),
       'isLive': true,
       'viewerCount': 0,
@@ -73,6 +72,13 @@ class LiveSessionService {
       'hostHeartbeatAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     });
+    // Never delay Live camera startup waiting for follower fan-out.
+    unawaited(
+      WorldVoiceNotificationService.publishActivity(
+        kind: 'live',
+        sessionId: ref.id,
+      ),
+    );
     return ref.id;
   }
 
@@ -244,14 +250,20 @@ class LiveSessionService {
     });
 
     if (newlyJoined) {
-      await session.collection('messages').add({
-        'type': 'join',
-        'senderId': user.uid,
-        'senderName': user.displayName ?? 'WorldVoice user',
-        'senderPhotoUrl': user.photoURL ?? '',
-        'text': '',
-        'createdAt': FieldValue.serverTimestamp(),
-      });
+      try {
+        await session.collection('messages').add({
+          'type': 'join',
+          'senderId': user.uid,
+          'senderName': user.displayName ?? 'WorldVoice user',
+          'senderPhotoUrl': user.photoURL ?? '',
+          'text': '',
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      } on FirebaseException catch (error) {
+        // Older deployed rules reject join notices with an empty text body.
+        // Joining the Live already succeeded; don't make guests fail to enter.
+        if (error.code != 'permission-denied') rethrow;
+      }
     }
   }
 
@@ -475,16 +487,27 @@ class LiveSessionService {
         profile: profile.data(),
       );
     } catch (_) {
-      // Comments must still send when the cosmetic inventory is unavailable.
+      // Live comments still send with the free bubble if profile is offline.
     }
-    await _sessions.doc(liveId).collection('messages').add({
+    final messages = _sessions.doc(liveId).collection('messages');
+    final payload = <String, dynamic>{
       'senderId': user.uid,
-      'bubbleId': bubbleId,
       'senderName': user.displayName ?? 'WorldVoice user',
       'senderPhotoUrl': user.photoURL ?? '',
       'text': value,
       'createdAt': FieldValue.serverTimestamp(),
-    });
+    };
+    try {
+      // Preferred schema: preserves the user's purchased custom chat bubble.
+      await messages.add({...payload, 'bubbleId': bubbleId});
+    } on FirebaseException catch (error) {
+      if (error.code != 'permission-denied') rethrow;
+      // Compatibility for old live rules until updated Firebase rules are
+      // deployed. A denied Firestore write is atomic, so this cannot
+      // duplicate a committed message. The message still reaches Live chat,
+      // displayed with the default free bubble.
+      await messages.add(payload);
+    }
   }
 
   Future<void> cancelPendingRequest(String liveId) async {

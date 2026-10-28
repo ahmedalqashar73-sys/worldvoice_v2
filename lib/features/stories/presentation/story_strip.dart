@@ -11,6 +11,12 @@ import 'story_viewer_screen.dart';
 typedef StoryReplyCallback = Future<void> Function(StoryItem story);
 
 class StoryStrip extends StatefulWidget {
+  // The Chat tab stays mounted in IndexedStack. Notify its Stories strip when
+  // the user returns from Live/Rooms, rather than waiting for a 90s refresh.
+  static final ValueNotifier<int> refreshRequests = ValueNotifier<int>(0);
+
+  static void refreshFromNavigation() => refreshRequests.value++;
+
   const StoryStrip({
     required this.isArabic,
     this.onReply,
@@ -24,9 +30,39 @@ class StoryStrip extends StatefulWidget {
   State<StoryStrip> createState() => _StoryStripState();
 }
 
-class _StoryStripState extends State<StoryStrip> {
+class _StoryStripState extends State<StoryStrip>
+    with WidgetsBindingObserver {
   late final StoryService _service = StoryService();
-  late Future<List<StoryItem>> _feed = _service.fetchFeed();
+  List<StoryItem> _lastStories =
+      StoryService.cachedFeedFor(FirebaseAuth.instance.currentUser?.uid);
+  late Future<List<StoryItem>> _feed = _loadFeed();
+  Timer? _refreshTimer;
+
+  Future<List<StoryItem>> _loadFeed() async {
+    final loaded = await _service.fetchFeed();
+    if (mounted) _lastStories = loaded;
+    return loaded;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    StoryStrip.refreshRequests.addListener(_refresh);
+    // Refresh without discarding the last list, even if Chat stays mounted.
+    _refreshTimer = Timer.periodic(const Duration(seconds: 90), (_) {
+      if (mounted &&
+          WidgetsBinding.instance.lifecycleState ==
+              AppLifecycleState.resumed) {
+        _refresh();
+      }
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _refresh();
+  }
   late final Stream<DocumentSnapshot<Map<String, dynamic>>>? _ownProfileStream =
       FirebaseAuth.instance.currentUser == null
           ? null
@@ -39,7 +75,7 @@ class _StoryStripState extends State<StoryStrip> {
 
   void _refresh() {
     if (!mounted) return;
-    setState(() => _feed = _service.fetchFeed());
+    setState(() => _feed = _loadFeed());
   }
 
   Future<void> _createStory() async {
@@ -98,6 +134,9 @@ class _StoryStripState extends State<StoryStrip> {
 
   @override
   void dispose() {
+    _refreshTimer?.cancel();
+    StoryStrip.refreshRequests.removeListener(_refresh);
+    WidgetsBinding.instance.removeObserver(this);
     _service.dispose();
     super.dispose();
   }
@@ -112,7 +151,13 @@ class _StoryStripState extends State<StoryStrip> {
       child: FutureBuilder<List<StoryItem>>(
         future: _feed,
         builder: (context, snapshot) {
-          final stories = snapshot.data ?? const <StoryItem>[];
+          final now = DateTime.now().millisecondsSinceEpoch;
+          // Don't clear all Story circles during network retry/cold-start.
+          // Cache is only from the same signed-in user, and never expired.
+          final stories = (snapshot.data ?? _lastStories)
+              .where((story) => story.expiresAtMs > now)
+              .toList(growable: false);
+          final failedToLoad = snapshot.hasError;
           final grouped = _group(stories);
           final mine = grouped.remove(uid) ?? const <StoryItem>[];
           final groups = grouped.entries.toList()
@@ -131,7 +176,7 @@ class _StoryStripState extends State<StoryStrip> {
           return ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            itemCount: 1 + groups.length,
+            itemCount: 1 + groups.length + (failedToLoad ? 1 : 0),
             separatorBuilder: (_, _) => const SizedBox(width: 10),
             itemBuilder: (context, index) {
               if (index == 0) {
@@ -158,7 +203,31 @@ class _StoryStripState extends State<StoryStrip> {
                 );
               }
 
-              final entry = groups[index - 1];
+              if (failedToLoad && index == 1) {
+                return InkWell(
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: _refresh,
+                  child: SizedBox(
+                    width: 154,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.refresh_rounded, color: Colors.orange),
+                        const SizedBox(height: 4),
+                        Text(
+                          widget.isArabic
+                              ? 'تعذر تحميل الستوري. اضغط للمحاولة مجددًا'
+                              : 'Stories unavailable. Tap to retry.',
+                          textAlign: TextAlign.center,
+                          maxLines: 3,
+                          style: Theme.of(context).textTheme.labelSmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+              final entry = groups[index - 1 - (failedToLoad ? 1 : 0)];
               final list = entry.value;
               final latest = list.last;
               return _StoryBubble(
@@ -235,7 +304,10 @@ class _StoryProfileRingState extends State<StoryProfileRing> {
     return FutureBuilder<List<StoryItem>>(
       future: _stories,
       builder: (context, snapshot) {
-        final stories = snapshot.data ?? const <StoryItem>[];
+        final stories = snapshot.data ??
+            StoryService.cachedFeedFor(FirebaseAuth.instance.currentUser?.uid)
+                .where((story) => story.ownerId == widget.ownerId)
+                .toList(growable: false);
         final active = stories.isNotEmpty;
         final close = stories.any((story) => story.isCloseFriends);
         return GestureDetector(

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../data/chat_bubble_catalog.dart';
 import '../services/room_shop_service.dart';
-import '../services/active_chat_bubble_service.dart';
+import '../services/vip_room_features.dart';
 import 'chat_bubble_frame.dart';
 import 'room_coin_store_sheet.dart';
 
@@ -21,6 +21,16 @@ class _BubbleShopState extends State<WorldVoiceChatBubbleShopSheet> {
   int? _days = 7;
   ChatBubbleTier? _tier;
   bool _busy = false;
+  bool _admin = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _shop.adminAccess.then((allowed) {
+      if (mounted) setState(() => _admin = allowed);
+    });
+  }
+
   bool get _ar => Localizations.localeOf(context).languageCode == 'ar';
 
   void _notice(String value) {
@@ -68,11 +78,29 @@ class _BubbleShopState extends State<WorldVoiceChatBubbleShopSheet> {
   }
 
   Future<void> _buy(ChatBubbleDesign design) async {
-    if (_busy || design.isVip || !await _confirm(design)) return;
+    if (_busy || design.isVip) return;
     setState(() => _busy = true);
     try {
-      await _shop.purchaseItem(design.storeId(_days));
-      _notice(_ar ? 'تم الشراء أو تمديد المدة.' : 'Purchased or extended.');
+      final admin = await _shop.adminAccess;
+      if (!mounted) return;
+      if (admin) {
+        // Only the authenticated server can grant an administrator cosmetic.
+        await _shop.grantItem(design.storeId(_days));
+      } else {
+        if (!await _confirm(design)) return;
+        await _shop.purchaseItem(design.storeId(_days));
+      }
+      try {
+        await _shop.setChatBubble(design.id);
+        _notice(admin
+          ? (_ar ? 'تم تفعيل الفقاعة مجانًا للأدمن، بدون خصم كوينز.'
+            : 'Equipped free for admin. No coins deducted.')
+          : (_ar ? 'تم الشراء وتفعيل الفقاعة للرسائل الجديدة.'
+            : 'Purchased and equipped for new messages.'));
+      } catch (_) {
+        _notice(_ar ? 'تم الشراء. اضغط استخدام لتفعيل الفقاعة؛ لا تحتاج للشراء مجددًا.'
+          : 'Purchased. Tap Use to equip; you do not need to buy again.');
+      }
     } catch (error) { await _failed(error); }
     finally { if (mounted) setState(() => _busy = false); }
   }
@@ -203,9 +231,8 @@ class _BubbleShopState extends State<WorldVoiceChatBubbleShopSheet> {
               builder: (context, ownedSnapshot) {
                 final profile = profileSnapshot.data?.data();
                 final selected = (profile?['chatBubbleId'] ?? 'free').toString();
-                final vip = ActiveChatBubbleService.isAllowed(
-                  design: WorldVoiceChatBubbles.find('vip_gold')!,
-                  profile: profile, owned: null, now: DateTime.now());
+                final vip = VipRoomFeatures.activeVip(
+                  profile, DateTime.now());
                 final items = <String, Map<String, dynamic>>{
                   for (final doc in ownedSnapshot.data?.docs ??
                       <QueryDocumentSnapshot<Map<String, dynamic>>>[])
@@ -262,6 +289,7 @@ class _BubbleShopState extends State<WorldVoiceChatBubbleShopSheet> {
                                 fontWeight: FontWeight.bold, fontSize: 12)),
                             const SizedBox(height: 3),
                             Text(design.isVip ? 'VIP Exclusive'
+                              : _admin ? (_ar ? 'مجاني للأدمن' : 'Free for admin')
                               : '${design.price(_days)} 🪙 • $duration',
                               style: const TextStyle(fontSize: 10)),
                             if (owned)
@@ -279,7 +307,7 @@ class _BubbleShopState extends State<WorldVoiceChatBubbleShopSheet> {
                                 style: OutlinedButton.styleFrom(
                                   visualDensity: VisualDensity.compact,
                                   padding: EdgeInsets.zero),
-                                child: Text(_ar ? 'عرض' : 'Try',
+                                child: Text(_ar ? 'معاينة' : 'Preview',
                                   style: const TextStyle(fontSize: 10)))),
                               const SizedBox(width: 4),
                               Expanded(child: FilledButton(
@@ -294,6 +322,7 @@ class _BubbleShopState extends State<WorldVoiceChatBubbleShopSheet> {
                                 child: Text(active ? (_ar ? 'مفعّلة' : 'Active')
                                   : owned ? (_ar ? 'استخدام' : 'Use')
                                   : design.isVip ? 'VIP'
+                                  : _admin ? (_ar ? 'تفعيل مجاني' : 'Use free')
                                   : (_ar ? 'شراء' : 'Buy'),
                                   style: const TextStyle(fontSize: 10)))),
                             ]),

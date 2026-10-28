@@ -1,5 +1,3 @@
-import '../services/chat_local_share_service.dart';
-import 'direct_chat_conversation_screen.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -19,15 +17,10 @@ import 'package:record/record.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../../../core/widgets/worldvoice_avatar_frame.dart';
 import '../../rooms/presentation/unified_gift_panel.dart';
-import '../../rooms/presentation/room_background_shop_sheet.dart';
-import '../../live/presentation/live_screen.dart';
-import '../../live/presentation/live_invitation_card.dart';
 import '../../rooms/presentation/classic_gift_visual.dart';
 import '../../rooms/presentation/room_gift_overlay.dart';
 import '../../rooms/data/classic_gift_catalog.dart';
 import '../../rooms/data/room_feature_models.dart';
-import '../../rooms/data/chat_bubble_catalog.dart';
-import '../../rooms/presentation/chat_bubble_frame.dart';
 import '../../rooms/services/room_feature_service.dart';
 import '../../profile/presentation/public_profile_screen.dart';
 import '../../stories/presentation/story_strip.dart';
@@ -35,7 +28,13 @@ import '../services/chat_extended_service.dart';
 import '../services/chat_call_service.dart';
 import 'chat_media_bubble.dart';
 import 'chat_call_screen.dart';
+import 'direct_chat_conversation_screen.dart';
+import '../services/local_chat_store.dart';
+import '../services/chat_local_share_service.dart';
 import 'group_chat_screen.dart';
+import 'worldvoice_activity_screen.dart';
+import 'worldvoice_official_screen.dart';
+import '../../live/presentation/live_screen.dart';
 
 /// Real authenticated conversations. The economy backend, not Flutter,
 /// establishes mutual-follower membership and writes chat/gift messages.
@@ -46,18 +45,13 @@ class ChatScreen extends StatelessWidget {
   static const _backend = RoomBackendConfig.socialBaseUrl;
 
   static Future<Map<String, dynamic>> _post(
-    String route,
-    Map<String, dynamic> payload, {
-    String? requestKey,
-  }) async {
+    String route, Map<String, dynamic> payload, {String? requestKey,}
+  ) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) throw StateError('Sign in to chat.');
     final uri = Uri.tryParse(_backend.trim());
-    if (uri == null ||
-        uri.scheme != 'https' ||
-        !uri.hasAuthority ||
-        uri.userInfo.isNotEmpty ||
-        uri.query.isNotEmpty ||
+    if (uri == null || uri.scheme != 'https' || !uri.hasAuthority ||
+        uri.userInfo.isNotEmpty || uri.query.isNotEmpty ||
         uri.fragment.isNotEmpty) {
       throw StateError('Chat backend is not deployed yet.');
     }
@@ -66,26 +60,18 @@ class ChatScreen extends StatelessWidget {
       throw StateError('Could not authenticate your chat session.');
     }
     final path = uri.path.endsWith('/')
-        ? uri.path.substring(0, uri.path.length - 1)
-        : uri.path;
-    final result = await http
-        .post(
-          uri.replace(path: '$path$route'),
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $token',
-            ...(requestKey == null
-                ? <String, String>{}
-                : <String, String>{'Idempotency-Key': requestKey}),
-          },
-          body: jsonEncode(payload),
-        )
-        .timeout(
-          RoomBackendConfig.socialRequestTimeout,
-          onTimeout: () => throw StateError(
-            'The WorldVoice chat server took too long. Check the conversation before retrying.',
-          ),
-        );
+        ? uri.path.substring(0, uri.path.length - 1) : uri.path;
+    final result = await http.post(
+      uri.replace(path: '$path$route'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+        ...(requestKey == null ? <String, String>{} :
+          <String, String>{'Idempotency-Key': requestKey}),
+      },
+      body: jsonEncode(payload),
+    ).timeout(RoomBackendConfig.socialRequestTimeout,
+        onTimeout: () => throw StateError('The WorldVoice chat server took too long. Check the conversation before retrying.'));
     Map<String, dynamic> body;
     try {
       final raw = jsonDecode(result.body);
@@ -93,8 +79,7 @@ class ChatScreen extends StatelessWidget {
     } catch (_) {
       throw StateError('The chat server sent an invalid response.');
     }
-    if (result.statusCode < 200 ||
-        result.statusCode >= 300 ||
+    if (result.statusCode < 200 || result.statusCode >= 300 ||
         body['ok'] != true) {
       throw StateError(body['error']?.toString() ?? 'Chat request failed.');
     }
@@ -120,17 +105,11 @@ class ChatScreen extends StatelessWidget {
     final path = uri.path.endsWith('/')
         ? uri.path.substring(0, uri.path.length - 1)
         : uri.path;
-    final result = await http
-        .get(
-          uri.replace(path: '$path$route'),
-          headers: {'Authorization': 'Bearer $token'},
-        )
-        .timeout(
-          RoomBackendConfig.socialRequestTimeout,
-          onTimeout: () => throw StateError(
-            'The WorldVoice chat server took too long. Check the conversation before retrying.',
-          ),
-        );
+    final result = await http.get(
+      uri.replace(path: '$path$route'),
+      headers: {'Authorization': 'Bearer $token'},
+    ).timeout(RoomBackendConfig.socialRequestTimeout,
+        onTimeout: () => throw StateError('The WorldVoice chat server took too long. Check the conversation before retrying.'));
     Map<String, dynamic> body;
     try {
       final raw = jsonDecode(result.body);
@@ -185,7 +164,7 @@ class ChatScreen extends StatelessWidget {
     }
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => ChatConversationScreen(
+        builder: (_) => DirectChatConversationScreen(
           chatId: chatId,
           peerId: peerId,
           peerName: peerName,
@@ -216,12 +195,10 @@ class ChatScreen extends StatelessWidget {
     final raw = body['requests'];
     final requests = raw is List
         ? raw
-              .whereType<Map>()
-              .map(
-                (item) =>
-                    item.map((key, value) => MapEntry(key.toString(), value)),
-              )
-              .toList()
+            .whereType<Map>()
+            .map((item) => item
+                .map((key, value) => MapEntry(key.toString(), value)))
+            .toList()
         : <Map<String, dynamic>>[];
 
     await showModalBottomSheet<void>(
@@ -264,28 +241,24 @@ class ChatScreen extends StatelessWidget {
                         itemBuilder: (context, index) {
                           final request = requests[index];
                           final id = (request['id'] ?? '').toString();
-                          final senderId = (request['senderId'] ?? '')
-                              .toString();
+                          final senderId =
+                              (request['senderId'] ?? '').toString();
                           final senderName =
-                              (request['senderName'] ?? 'WorldVoice')
-                                  .toString();
-                          final photo = (request['senderPhotoUrl'] ?? '')
-                              .toString()
-                              .trim();
+                              (request['senderName'] ?? 'WorldVoice').toString();
+                          final photo =
+                              (request['senderPhotoUrl'] ?? '').toString().trim();
                           return ListTile(
                             leading: CircleAvatar(
-                              backgroundImage: photo.isEmpty
-                                  ? null
-                                  : NetworkImage(photo),
+                              backgroundImage:
+                                  photo.isEmpty ? null : NetworkImage(photo),
                               child: photo.isEmpty
                                   ? const Icon(Icons.person_rounded)
                                   : null,
                             ),
                             title: Text(
                               senderName,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w800,
-                              ),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w800),
                             ),
                             subtitle: Text(
                               ar
@@ -299,25 +272,25 @@ class ChatScreen extends StatelessWidget {
                                   tooltip: ar ? 'رفض' : 'Decline',
                                   onPressed: () async {
                                     try {
-                                      await _post('/chat/request/respond', {
-                                        'requestId': id,
-                                        'action': 'decline',
-                                      });
+                                      await _post(
+                                        '/chat/request/respond',
+                                        {
+                                          'requestId': id,
+                                          'action': 'decline',
+                                        },
+                                      );
                                       if (!context.mounted) return;
                                       setSheetState(
                                         () => requests.removeAt(index),
                                       );
                                     } catch (error) {
                                       if (!context.mounted) return;
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
+                                      ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
                                           content: Text(
-                                            error.toString().replaceFirst(
-                                              'Bad state: ',
-                                              '',
-                                            ),
+                                            error
+                                                .toString()
+                                                .replaceFirst('Bad state: ', ''),
                                           ),
                                         ),
                                       );
@@ -331,35 +304,35 @@ class ChatScreen extends StatelessWidget {
                                     try {
                                       final result = await _post(
                                         '/chat/request/respond',
-                                        {'requestId': id, 'action': 'accept'},
+                                        {
+                                          'requestId': id,
+                                          'action': 'accept',
+                                        },
                                       );
                                       if (!sheetContext.mounted) return;
                                       Navigator.pop(sheetContext);
                                       if (!parentContext.mounted) return;
-                                      final chatId = (result['chatId'] ?? '')
-                                          .toString();
+                                      final chatId =
+                                          (result['chatId'] ?? '').toString();
                                       if (chatId.isEmpty) return;
                                       await Navigator.of(parentContext).push(
                                         MaterialPageRoute<void>(
                                           builder: (_) =>
-                                              ChatConversationScreen(
-                                                chatId: chatId,
-                                                peerId: senderId,
-                                                peerName: senderName,
-                                              ),
+                                              DirectChatConversationScreen(
+                                            chatId: chatId,
+                                            peerId: senderId,
+                                            peerName: senderName,
+                                          ),
                                         ),
                                       );
                                     } catch (error) {
                                       if (!context.mounted) return;
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
+                                      ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
                                           content: Text(
-                                            error.toString().replaceFirst(
-                                              'Bad state: ',
-                                              '',
-                                            ),
+                                            error
+                                                .toString()
+                                                .replaceFirst('Bad state: ', ''),
                                           ),
                                         ),
                                       );
@@ -386,15 +359,18 @@ class ChatScreen extends StatelessWidget {
   static Future<Map<String, dynamic>> startConversationWithUser({
     required String recipientId,
   }) {
-    return _post('/chat/start', <String, dynamic>{'recipientId': recipientId});
+    return _post('/chat/start', <String, dynamic>{
+      'recipientId': recipientId,
+    });
   }
 
   static Future<void> sendTextMessageToConversation({
     required String chatId,
     required String text,
-  }) async {
-    await WorldVoiceLocalShareService.queue(chatId: chatId, text: text);
-  }
+  }) => WorldVoiceLocalShareService.queue(
+        chatId: chatId,
+        text: text,
+      );
 
   static Future<void> openDirectConversation({
     required BuildContext context,
@@ -413,11 +389,7 @@ class ChatScreen extends StatelessWidget {
     );
   }
 
-  Future<void> _startChat(
-    BuildContext parentContext,
-    bool ar,
-    String uid,
-  ) async {
+  Future<void> _startChat(BuildContext parentContext, bool ar, String uid) async {
     final db = FirebaseFirestore.instance;
     await showModalBottomSheet<void>(
       context: parentContext,
@@ -429,66 +401,44 @@ class ChatScreen extends StatelessWidget {
           child: Column(
             children: [
               ListTile(
-                title: Text(
-                  ar ? 'اختر صديقًا' : 'Choose a friend',
-                  style: const TextStyle(fontWeight: FontWeight.w900),
-                ),
-                subtitle: Text(
-                  ar
-                      ? 'يمكنك مراسلة أي عضو في WorldVoice، والمتابعة اختيارية.'
-                      : 'Message any WorldVoice member. Follow is optional.',
-                ),
+                title: Text(ar ? 'اختر صديقًا' : 'Choose a friend',
+                    style: const TextStyle(fontWeight: FontWeight.w900)),
+                subtitle: Text(ar
+                    ? 'يمكنك مراسلة أي عضو في WorldVoice، والمتابعة اختيارية.'
+                    : 'Message any WorldVoice member. Follow is optional.'),
               ),
               Expanded(
                 child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                  stream: db
-                      .collection('users')
-                      .doc(uid)
-                      .collection('following')
-                      .snapshots(),
+                  stream: db.collection('users').doc(uid)
+                      .collection('following').snapshots(),
                   builder: (context, snapshot) {
                     if (snapshot.hasError) {
-                      return Center(
-                        child: Text(
-                          ar ? 'تعذر تحميل الأصدقاء' : 'Could not load friends',
-                        ),
-                      );
+                      return Center(child: Text(ar
+                          ? 'تعذر تحميل الأصدقاء' : 'Could not load friends'));
                     }
-                    final peers =
-                        snapshot.data?.docs ??
+                    final peers = snapshot.data?.docs ??
                         <QueryDocumentSnapshot<Map<String, dynamic>>>[];
                     if (peers.isEmpty) {
-                      return Center(
-                        child: Text(
-                          ar ? 'ليس لديك أصدقاء بعد' : 'No contacts yet',
-                        ),
-                      );
+                      return Center(child: Text(ar
+                          ? 'ليس لديك أصدقاء بعد' : 'No contacts yet'));
                     }
                     return ListView.builder(
                       itemCount: peers.length,
                       itemBuilder: (context, index) {
                         final peerId = peers[index].id;
-                        return FutureBuilder<
-                          DocumentSnapshot<Map<String, dynamic>>
-                        >(
+                        return FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
                           future: db.collection('users').doc(peerId).get(),
                           builder: (context, profile) {
                             final profileData =
-                                profile.data?.data() ??
-                                const <String, dynamic>{};
-                            final displayName =
-                                (profileData['displayName'] ??
-                                        profileData['name'] ??
-                                        peerId)
-                                    .toString();
-                            final photo = (profileData['photoUrl'] ?? '')
-                                .toString()
-                                .trim();
+                                profile.data?.data() ?? const <String, dynamic>{};
+                            final displayName = (profileData['displayName'] ??
+                                profileData['name'] ?? peerId).toString();
+                            final photo =
+                                (profileData['photoUrl'] ?? '').toString().trim();
                             return ListTile(
                               leading: CircleAvatar(
-                                backgroundImage: photo.isEmpty
-                                    ? null
-                                    : NetworkImage(photo),
+                                backgroundImage:
+                                    photo.isEmpty ? null : NetworkImage(photo),
                                 child: photo.isEmpty
                                     ? const Icon(Icons.person_outline)
                                     : null,
@@ -496,9 +446,10 @@ class ChatScreen extends StatelessWidget {
                               title: Text(displayName),
                               onTap: () async {
                                 try {
-                                  final result = await _post('/chat/start', {
-                                    'recipientId': peerId,
-                                  });
+                                  final result = await _post(
+                                    '/chat/start',
+                                    {'recipientId': peerId},
+                                  );
                                   if (!sheetContext.mounted) return;
                                   Navigator.pop(sheetContext);
                                   if (!parentContext.mounted) return;
@@ -510,17 +461,9 @@ class ChatScreen extends StatelessWidget {
                                   );
                                 } catch (error) {
                                   if (!sheetContext.mounted) return;
-                                  ScaffoldMessenger.of(
-                                    sheetContext,
-                                  ).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        error.toString().replaceFirst(
-                                          'Bad state: ',
-                                          '',
-                                        ),
-                                      ),
-                                    ),
+                                  ScaffoldMessenger.of(sheetContext).showSnackBar(
+                                    SnackBar(content: Text(
+                                        error.toString().replaceFirst('Bad state: ', ''))),
                                   );
                                 }
                               },
@@ -538,6 +481,7 @@ class ChatScreen extends StatelessWidget {
       ),
     );
   }
+
 
   Future<void> _createGroupChat(
     BuildContext parentContext,
@@ -557,7 +501,9 @@ class ChatScreen extends StatelessWidget {
           .limit(100)
           .get();
       final profiles = await Future.wait(
-        following.docs.map((doc) => db.collection('users').doc(doc.id).get()),
+        following.docs.map(
+          (doc) => db.collection('users').doc(doc.id).get(),
+        ),
       );
       if (!parentContext.mounted) return;
 
@@ -611,12 +557,12 @@ class ChatScreen extends StatelessWidget {
                             final data =
                                 snap.data() ?? const <String, dynamic>{};
                             final peerId = snap.id;
-                            final displayName =
-                                (data['displayName'] ?? data['name'] ?? peerId)
-                                    .toString();
-                            final photo = (data['photoUrl'] ?? '')
-                                .toString()
-                                .trim();
+                            final displayName = (data['displayName'] ??
+                                    data['name'] ??
+                                    peerId)
+                                .toString();
+                            final photo =
+                                (data['photoUrl'] ?? '').toString().trim();
                             final checked = selected.contains(peerId);
                             return CheckboxListTile(
                               value: checked,
@@ -630,9 +576,8 @@ class ChatScreen extends StatelessWidget {
                                 });
                               },
                               secondary: CircleAvatar(
-                                backgroundImage: photo.isEmpty
-                                    ? null
-                                    : NetworkImage(photo),
+                                backgroundImage:
+                                    photo.isEmpty ? null : NetworkImage(photo),
                                 child: photo.isEmpty
                                     ? const Icon(Icons.person_rounded)
                                     : null,
@@ -682,10 +627,9 @@ class ChatScreen extends StatelessWidget {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
-                                error.toString().replaceFirst(
-                                  'Bad state: ',
-                                  '',
-                                ),
+                                error
+                                    .toString()
+                                    .replaceFirst('Bad state: ', ''),
                               ),
                             ),
                           );
@@ -710,78 +654,65 @@ class ChatScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
-    final ar =
-        (localeController.locale?.languageCode ??
-            Localizations.localeOf(context).languageCode) ==
-        'ar';
+    final ar = (localeController.locale?.languageCode ??
+        Localizations.localeOf(context).languageCode) == 'ar';
     if (uid == null) {
-      return Center(
-        child: Text(ar ? 'سجّل دخولك أولًا' : 'Sign in to use chat.'),
-      );
+      return Center(child: Text(ar ? 'سجّل دخولك أولًا' : 'Sign in to use chat.'));
     }
     final ready = Uri.tryParse(_backend)?.scheme == 'https';
     return SafeArea(
       child: Column(
         children: [
           ListTile(
-            title: Text(
-              ar ? 'الدردشة' : 'Messages',
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
-            ),
+            title: Text(ar ? 'الدردشة' : 'Messages',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w900)),
             subtitle: !ready
-                ? Text(
-                    ar
-                        ? 'بانتظار نشر سيرفر المحادثة الآمن'
-                        : 'Secure chat backend is not deployed yet',
-                  )
+                ? Text(ar
+                    ? 'بانتظار نشر سيرفر المحادثة الآمن'
+                    : 'Secure chat backend is not deployed yet')
                 : null,
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  tooltip: ar ? 'تجربة الهدايا الثلاثين' : 'Preview 30 gifts',
-                  onPressed: () => showModalBottomSheet<void>(
-                    context: context,
-                    isScrollControlled: true,
-                    useSafeArea: true,
-                    showDragHandle: true,
-                    builder: (sheet) => SizedBox(
-                      height: MediaQuery.sizeOf(sheet).height * .76,
-                      child: const UnifiedGiftPanel(
-                        contextType: 'chat',
-                        contextId: 'preview',
-                        recipients: <String, String>{},
-                      ),
+            trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+              IconButton(
+                tooltip: ar ? 'تجربة الهدايا الثلاثين'
+                    : 'Preview 30 gifts',
+                onPressed: () => showModalBottomSheet<void>(
+                  context: context,
+                  isScrollControlled: true,
+                  useSafeArea: true,
+                  showDragHandle: true,
+                  builder: (sheet) => SizedBox(
+                    height: MediaQuery.sizeOf(sheet).height * .76,
+                    child: const UnifiedGiftPanel(
+                      contextType: 'chat',
+                      contextId: 'preview',
+                      recipients: <String, String>{},
                     ),
                   ),
-                  icon: const Icon(
-                    Icons.card_giftcard_outlined,
-                    color: Color(0xFF11835D),
-                  ),
                 ),
-                IconButton(
-                  tooltip: ar ? 'طلبات الرسائل' : 'Message requests',
-                  onPressed: ready
-                      ? () => _showMessageRequests(context, ar)
-                      : null,
-                  icon: const Icon(Icons.mark_email_unread_outlined),
-                ),
-                IconButton(
-                  tooltip: ar ? 'مجموعة جديدة' : 'New group',
-                  onPressed: ready
-                      ? () => _createGroupChat(context, ar, uid)
-                      : null,
-                  icon: const Icon(Icons.group_add_outlined),
-                ),
-                IconButton.filledTonal(
-                  tooltip: ar ? 'محادثة جديدة' : 'New chat',
-                  onPressed: ready ? () => _startChat(context, ar, uid) : null,
-                  icon: const Icon(Icons.edit_rounded),
-                ),
-              ],
-            ),
+                icon: const Icon(Icons.card_giftcard_outlined,
+                    color: Color(0xFF11835D)),
+              ),
+              IconButton(
+                tooltip: ar ? 'طلبات الرسائل' : 'Message requests',
+                onPressed: ready
+                    ? () => _showMessageRequests(context, ar)
+                    : null,
+                icon: const Icon(Icons.mark_email_unread_outlined),
+              ),
+              IconButton(
+                tooltip: ar ? 'مجموعة جديدة' : 'New group',
+                onPressed: ready
+                    ? () => _createGroupChat(context, ar, uid)
+                    : null,
+                icon: const Icon(Icons.group_add_outlined),
+              ),
+              IconButton.filledTonal(
+                tooltip: ar ? 'محادثة جديدة' : 'New chat',
+                onPressed: ready ? () => _startChat(context, ar, uid) : null,
+                icon: const Icon(Icons.edit_rounded),
+              ),
+            ]),
           ),
           StoryStrip(
             isArabic: ar,
@@ -792,22 +723,61 @@ class ChatScreen extends StatelessWidget {
             ),
           ),
           const Divider(height: 1),
+          ListTile(
+            leading: const CircleAvatar(
+              backgroundColor: Color(0xFF0A9366),
+              child: Icon(Icons.public_rounded, color: Colors.white),
+            ),
+            title: const Row(children: [
+              Text('WorldVoice',
+                style: TextStyle(fontWeight: FontWeight.w900)),
+              SizedBox(width: 5),
+              Icon(Icons.verified, color: Color(0xFF0CBA86), size: 17),
+            ]),
+            subtitle: Text(ar ? 'الإعلانات والتحديثات الرسمية'
+              : 'Official updates and announcements'),
+            onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
+              builder: (_) => WorldVoiceOfficialScreen(
+                localeController: localeController),
+            )),
+          ),
+          const Divider(height: 1),
+          // Fixed official inbox above all personal chats, including when
+          // there are no direct conversations yet.
+          ListTile(
+            leading: const CircleAvatar(
+              backgroundColor: Color(0xFF2196F3),
+              child: Icon(Icons.mic, color: Colors.white),
+            ),
+            title: Row(children: [
+              Flexible(child: Text(ar ? 'غرف البث المباشر والصوت'
+                  : 'Voice Rooms & Live',
+                maxLines: 1, overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontWeight: FontWeight.w800))),
+              const SizedBox(width: 5),
+              const Icon(Icons.verified, color: Color(0xFF0CBA86), size: 17),
+            ]),
+            subtitle: Text(ar
+              ? 'إشعارات الغرف واللايف للأشخاص الذين تتابعهم'
+              : 'Live and rooms from people you follow',
+              maxLines: 1, overflow: TextOverflow.ellipsis),
+            onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
+              builder: (_) => WorldVoiceActivityScreen(
+                localeController: localeController),
+            )),
+          ),
+          const Divider(height: 1),
           Expanded(
             child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-              stream: FirebaseFirestore.instance
-                  .collection('chats')
+              stream: FirebaseFirestore.instance.collection('chats')
                   .where('memberIds', arrayContains: uid)
                   .where('active', isEqualTo: true)
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
-                  return Center(
-                    child: Text(
-                      ar
-                          ? 'تعذر تحميل المحادثات. تحقق من قواعد Firebase.'
-                          : 'Chat unavailable; check Firestore rules and indexes.',
-                    ),
-                  );
+                  return Center(child: Text(ar
+                      ? 'تعذر تحميل المحادثات. تحقق من قواعد Firebase.'
+                      : 'Chat unavailable; check Firestore rules and indexes.'));
                 }
                 if (!snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
@@ -816,22 +786,14 @@ class ChatScreen extends StatelessWidget {
                   ..sort((a, b) {
                     final one = a.data()['lastMessageAt'];
                     final two = b.data()['lastMessageAt'];
-                    final first = one is Timestamp
-                        ? one.millisecondsSinceEpoch
-                        : 0;
-                    final second = two is Timestamp
-                        ? two.millisecondsSinceEpoch
-                        : 0;
+                    final first = one is Timestamp ? one.millisecondsSinceEpoch : 0;
+                    final second = two is Timestamp ? two.millisecondsSinceEpoch : 0;
                     return second.compareTo(first);
                   });
                 if (chats.isEmpty) {
-                  return Center(
-                    child: Text(
-                      ar
-                          ? 'لا توجد محادثات حقيقية بعد'
-                          : 'No conversations yet',
-                    ),
-                  );
+                  return Center(child: Text(ar
+                      ? 'لا توجد محادثات حقيقية بعد'
+                      : 'No conversations yet'));
                 }
                 return ListView.separated(
                   padding: const EdgeInsets.symmetric(vertical: 6),
@@ -844,8 +806,8 @@ class ChatScreen extends StatelessWidget {
                     final ids = List<String>.from(data['memberIds'] ?? []);
                     final isGroup = data['type'] == 'group';
                     if (isGroup) {
-                      final groupName =
-                          (data['groupName'] ?? 'WorldVoice Group').toString();
+                      final groupName = (data['groupName'] ?? 'WorldVoice Group')
+                          .toString();
                       return ListTile(
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 14,
@@ -864,8 +826,8 @@ class ChatScreen extends StatelessWidget {
                         subtitle: Text(
                           (data['latestText'] ?? '').toString().isEmpty
                               ? (ar
-                                    ? '${ids.length} أعضاء'
-                                    : '${ids.length} members')
+                                  ? '${ids.length} أعضاء'
+                                  : '${ids.length} members')
                               : (data['latestText'] ?? '').toString(),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -890,12 +852,13 @@ class ChatScreen extends StatelessWidget {
                     );
                     final name = (names[peer] ?? peer).toString();
                     return _ConversationTile(
+                      chatId: snap.id,
                       peerId: peer,
                       peerName: name,
                       latestText: (data['latestText'] ?? '').toString(),
                       onOpenConversation: () => Navigator.of(context).push(
                         MaterialPageRoute<void>(
-                          builder: (_) => ChatConversationScreen(
+                          builder: (_) => DirectChatConversationScreen(
                             chatId: snap.id,
                             peerId: peer,
                             peerName: name,
@@ -924,6 +887,7 @@ class ChatScreen extends StatelessWidget {
 
 class _ConversationTile extends StatelessWidget {
   const _ConversationTile({
+    required this.chatId,
     required this.peerId,
     required this.peerName,
     required this.latestText,
@@ -931,6 +895,7 @@ class _ConversationTile extends StatelessWidget {
     required this.onOpenProfile,
   });
 
+  final String chatId;
   final String peerId;
   final String peerName;
   final String latestText;
@@ -967,7 +932,8 @@ class _ConversationTile extends StatelessWidget {
                 if (frameId.isEmpty)
                   CircleAvatar(
                     radius: 27,
-                    backgroundImage: photo.isEmpty ? null : NetworkImage(photo),
+                    backgroundImage:
+                        photo.isEmpty ? null : NetworkImage(photo),
                     child: photo.isEmpty
                         ? const Icon(Icons.person_rounded)
                         : null,
@@ -978,9 +944,8 @@ class _ConversationTile extends StatelessWidget {
                     size: 54,
                     animate: false,
                     child: CircleAvatar(
-                      backgroundImage: photo.isEmpty
-                          ? null
-                          : NetworkImage(photo),
+                      backgroundImage:
+                          photo.isEmpty ? null : NetworkImage(photo),
                       child: photo.isEmpty
                           ? const Icon(Icons.person_rounded)
                           : null,
@@ -1012,11 +977,37 @@ class _ConversationTile extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(fontWeight: FontWeight.w900),
           ),
-          subtitle: Text(
-            latestText.isEmpty ? ' ' : latestText,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
+          subtitle: Builder(builder: (context) {
+            final me = FirebaseAuth.instance.currentUser?.uid;
+            if (me == null) return Text(latestText);
+            final local = LocalChatStore.of(me, chatId);
+            return ValueListenableBuilder<int>(
+              valueListenable: local.revision,
+              builder: (context, revision, _) =>
+                  FutureBuilder<List<Map<String, dynamic>>>(
+                    future: local.messages(),
+                    builder: (context, localSnapshot) {
+                      final items = localSnapshot.data
+                          ?.where((message) => message['hidden'] != true)
+                          .toList() ?? [];
+                      if (items.isEmpty) {
+                        return Text(latestText.isEmpty ? ' ' : latestText,
+                          maxLines: 1, overflow: TextOverflow.ellipsis);
+                      }
+                      final latest = items.last;
+                      final type = latest['type']?.toString() ?? 'text';
+                      final preview = latest['withdrawn'] == true
+                        ? 'Message unsent'
+                        : type == 'text'
+                          ? (latest['text'] ?? '').toString()
+                          : {'image': '📷 Photo', 'video': '🎬 Video',
+                             'audio': '🎙 Voice', 'pdf': '📄 PDF'}[type] ?? type;
+                      return Text(preview, maxLines: 1,
+                        overflow: TextOverflow.ellipsis);
+                    },
+                  ),
+            );
+          }),
           onTap: onOpenConversation,
         );
       },
@@ -1053,62 +1044,53 @@ class _ChatConversationState extends State<ChatConversationScreen> {
   void initState() {
     super.initState();
     if (RoomFeatureService.friendPreviewEnabled) {
-      _friendGiftPreviewSub =
-          RoomFeatureService.watchFriendGiftPreviews(
-            context: 'chat',
-            contextId: widget.chatId,
-          ).listen(
-            (previews) {
-              final now = DateTime.now();
-              RoomGiftPreview? latest;
-              for (final event in previews) {
-                final sent = event.sentAt;
-                // The initial local Firestore write can contain a pending
-                // serverTimestamp; don't mark it seen before the real ack.
-                if (sent == null) continue;
-                final newEvent = _seenFriendPreviewEvents.add(event.eventKey);
-                if (!newEvent ||
-                    sent.isBefore(
-                      _conversationOpenedAt.subtract(
-                        const Duration(seconds: 1),
-                      ),
-                    ) ||
-                    now.difference(sent).inSeconds.abs() > 20) {
-                  continue;
-                }
-                latest ??= event;
-              }
-              if (latest != null) {
-                final demo = latest;
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted) {
-                    _showGiftAnimation(demo.toVisualEvent(), preview: true);
-                  }
-                });
-              }
-            },
-            onError: (Object error, StackTrace trace) {
-              debugPrint('WorldVoice chat gift demos unavailable: $error');
-            },
-          );
+      _friendGiftPreviewSub = RoomFeatureService.watchFriendGiftPreviews(
+        context: 'chat', contextId: widget.chatId,
+      ).listen((previews) {
+        final now = DateTime.now();
+        RoomGiftPreview? latest;
+        for (final event in previews) {
+          final sent = event.sentAt;
+          // The initial local Firestore write can contain a pending
+          // serverTimestamp; don't mark it seen before the real ack.
+          if (sent == null) continue;
+          final newEvent = _seenFriendPreviewEvents.add(event.eventKey);
+          if (!newEvent ||
+              sent.isBefore(_conversationOpenedAt.subtract(
+                  const Duration(seconds: 1))) ||
+              now.difference(sent).inSeconds.abs() > 20) {
+            continue;
+          }
+          latest ??= event;
+        }
+        if (latest != null) {
+          final demo = latest;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              _showGiftAnimation(demo.toVisualEvent(), preview: true);
+            }
+          });
+        }
+      }, onError: (Object error, StackTrace trace) {
+        debugPrint('WorldVoice chat gift demos unavailable: $error');
+      });
     }
   }
 
-  void _showIncomingGift(QueryDocumentSnapshot<Map<String, dynamic>> message) {
+  void _showIncomingGift(
+      QueryDocumentSnapshot<Map<String, dynamic>> message) {
     if (!mounted) return;
     final data = message.data();
-    _showGiftAnimation(
-      RoomGiftEvent(
-        id: message.id,
-        senderId: (data['senderId'] ?? '').toString(),
-        senderName: (data['senderName'] ?? '').toString(),
-        recipientId: (data['recipientId'] ?? '').toString(),
-        recipientName: (data['recipientName'] ?? '').toString(),
-        giftId: (data['giftId'] ?? '').toString(),
-        points: (data['points'] as num?)?.toInt() ?? 0,
-        animationUrl: data['animationUrl']?.toString(),
-      ),
-    );
+    _showGiftAnimation(RoomGiftEvent(
+      id: message.id,
+      senderId: (data['senderId'] ?? '').toString(),
+      senderName: (data['senderName'] ?? '').toString(),
+      recipientId: (data['recipientId'] ?? '').toString(),
+      recipientName: (data['recipientName'] ?? '').toString(),
+      giftId: (data['giftId'] ?? '').toString(),
+      points: (data['points'] as num?)?.toInt() ?? 0,
+      animationUrl: data['animationUrl']?.toString(),
+    ));
   }
 
   void _showGiftAnimation(RoomGiftEvent event, {bool preview = false}) {
@@ -1129,17 +1111,15 @@ class _ChatConversationState extends State<ChatConversationScreen> {
   }
 
   void _observeGiftMessages(
-    List<QueryDocumentSnapshot<Map<String, dynamic>>> messages,
-  ) {
-    final gifts = messages
-        .where((doc) => doc.data()['type'] == 'gift')
-        .toList();
+      List<QueryDocumentSnapshot<Map<String, dynamic>>> messages) {
+    final gifts = messages.where((doc) => doc.data()['type'] == 'gift').toList();
     if (!_giftStreamPrimed) {
       _giftStreamPrimed = true;
       _knownGiftIds.addAll(gifts.map((doc) => doc.id));
       return;
     }
-    final incoming = gifts.where((doc) => _knownGiftIds.add(doc.id)).toList();
+    final incoming = gifts.where(
+      (doc) => _knownGiftIds.add(doc.id)).toList();
     if (incoming.isEmpty) return;
     // Firestore can first show cached empty results then load history.
     // Replayed older gifts belong in the transcript, not a new animation.
@@ -1147,15 +1127,13 @@ class _ChatConversationState extends State<ChatConversationScreen> {
     final timestamp = latest.data()['createdAt'];
     if (timestamp is! Timestamp ||
         timestamp.toDate().isBefore(
-          _conversationOpenedAt.subtract(const Duration(seconds: 2)),
-        )) {
+            _conversationOpenedAt.subtract(const Duration(seconds: 2)))) {
       return;
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _showIncomingGift(incoming.first);
     });
   }
-
   bool _sending = false;
   String? _pendingText;
   String? _pendingKey;
@@ -1167,10 +1145,8 @@ class _ChatConversationState extends State<ChatConversationScreen> {
 
   String _newRequestKey() {
     final random = Random.secure();
-    return List<int>.generate(
-      24,
-      (_) => random.nextInt(256),
-    ).map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+    return List<int>.generate(24, (_) => random.nextInt(256))
+        .map((b) => b.toRadixString(16).padLeft(2, '0')).join();
   }
 
   Future<void> _send() async {
@@ -1183,8 +1159,7 @@ class _ChatConversationState extends State<ChatConversationScreen> {
     setState(() => _sending = true);
     try {
       await ChatScreen._post('/chat/message', {
-        'chatId': widget.chatId,
-        'text': message,
+        'chatId': widget.chatId, 'text': message,
       }, requestKey: _pendingKey);
       if (!mounted) return;
       _text.clear();
@@ -1192,11 +1167,9 @@ class _ChatConversationState extends State<ChatConversationScreen> {
       _pendingText = null;
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(error.toString().replaceFirst('Bad state: ', '')),
-        ),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(error.toString().replaceFirst('Bad state: ', '')),
+      ));
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -1234,7 +1207,9 @@ class _ChatConversationState extends State<ChatConversationScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(error.toString().replaceFirst('Bad state: ', '')),
+          content: Text(
+            error.toString().replaceFirst('Bad state: ', ''),
+          ),
         ),
       );
     } finally {
@@ -1267,7 +1242,9 @@ class _ChatConversationState extends State<ChatConversationScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(error.toString().replaceFirst('Bad state: ', '')),
+          content: Text(
+            error.toString().replaceFirst('Bad state: ', ''),
+          ),
         ),
       );
     } finally {
@@ -1278,8 +1255,7 @@ class _ChatConversationState extends State<ChatConversationScreen> {
   Future<void> _pickPdf() async {
     if (_sending || _recordingVoice) return;
     final selected = await FilePicker.pickFile(
-      type: FileType.custom,
-      allowedExtensions: const ['pdf'],
+      type: FileType.custom, allowedExtensions: const ['pdf'],
     );
     if (selected == null || !mounted) return;
     final path = selected.path;
@@ -1292,17 +1268,13 @@ class _ChatConversationState extends State<ChatConversationScreen> {
     setState(() => _sending = true);
     try {
       await _extendedService.sendMedia(
-        chatId: widget.chatId,
-        file: File(path),
-        mediaType: 'pdf',
+        chatId: widget.chatId, file: File(path), mediaType: 'pdf',
       );
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(error.toString().replaceFirst('Bad state: ', '')),
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(error.toString().replaceFirst('Bad state: ', '')),
+        ));
       }
     } finally {
       if (mounted) setState(() => _sending = false);
@@ -1329,17 +1301,13 @@ class _ChatConversationState extends State<ChatConversationScreen> {
         );
       } catch (error) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(error.toString().replaceFirst('Bad state: ', '')),
-            ),
-          );
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(error.toString().replaceFirst('Bad state: ', '')),
+          ));
         }
       } finally {
         if (path != null) {
-          try {
-            await File(path).delete();
-          } catch (_) {}
+          try { await File(path).delete(); } catch (_) {}
         }
         if (mounted) setState(() => _sending = false);
       }
@@ -1350,8 +1318,7 @@ class _ChatConversationState extends State<ChatConversationScreen> {
         throw StateError('Microphone permission is required.');
       }
       final directory = await getTemporaryDirectory();
-      final path =
-          '${directory.path}/wv_voice_${DateTime.now().microsecondsSinceEpoch}.m4a';
+      final path = '${directory.path}/wv_voice_${DateTime.now().microsecondsSinceEpoch}.m4a';
       await _voiceRecorder.start(
         const RecordConfig(encoder: AudioEncoder.aacLc, bitRate: 64000),
         path: path,
@@ -1360,21 +1327,10 @@ class _ChatConversationState extends State<ChatConversationScreen> {
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(error.toString().replaceFirst('Bad state: ', '')),
-          ),
+          SnackBar(content: Text(error.toString().replaceFirst('Bad state: ', ''))),
         );
       }
     }
-  }
-
-  void _showAppearanceShop() {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (_) => RoomBackgroundShopSheet(),
-    );
   }
 
   void _showGifts() {
@@ -1385,8 +1341,7 @@ class _ChatConversationState extends State<ChatConversationScreen> {
       builder: (_) => SizedBox(
         height: MediaQuery.sizeOf(context).height * .75,
         child: UnifiedGiftPanel(
-          contextType: 'chat',
-          contextId: widget.chatId,
+          contextType: 'chat', contextId: widget.chatId,
           recipients: {widget.peerId: widget.peerName},
         ),
       ),
@@ -1407,15 +1362,7 @@ class _ChatConversationState extends State<ChatConversationScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => widget.peerId.isEmpty
-      ? _legacyConversation(context)
-      : DirectChatConversationScreen(
-          chatId: widget.chatId,
-          peerId: widget.peerId,
-          peerName: widget.peerName,
-        );
-
-  Widget _legacyConversation(BuildContext context) {
+  Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     final ar = Localizations.localeOf(context).languageCode == 'ar';
     return Scaffold(
@@ -1427,12 +1374,14 @@ class _ChatConversationState extends State<ChatConversationScreen> {
               .doc(widget.peerId)
               .snapshots(),
           builder: (context, snapshot) {
-            final data = snapshot.data?.data() ?? const <String, dynamic>{};
+            final data =
+                snapshot.data?.data() ?? const <String, dynamic>{};
             final photo = (data['photoUrl'] ?? '').toString().trim();
             final frameId = (data['profileFrameId'] ?? '').toString().trim();
-            final name =
-                (data['displayName'] ?? data['name'] ?? widget.peerName)
-                    .toString();
+            final name = (data['displayName'] ??
+                    data['name'] ??
+                    widget.peerName)
+                .toString();
             final online = data['isOnline'] == true;
             return InkWell(
               borderRadius: BorderRadius.circular(18),
@@ -1440,7 +1389,8 @@ class _ChatConversationState extends State<ChatConversationScreen> {
                 MaterialPageRoute<void>(
                   builder: (_) => PublicProfileScreen(
                     userId: widget.peerId,
-                    languageCode: Localizations.localeOf(context).languageCode,
+                    languageCode:
+                        Localizations.localeOf(context).languageCode,
                   ),
                 ),
               ),
@@ -1451,9 +1401,8 @@ class _ChatConversationState extends State<ChatConversationScreen> {
                     if (frameId.isEmpty)
                       CircleAvatar(
                         radius: 18,
-                        backgroundImage: photo.isEmpty
-                            ? null
-                            : NetworkImage(photo),
+                        backgroundImage:
+                            photo.isEmpty ? null : NetworkImage(photo),
                         child: photo.isEmpty
                             ? const Icon(Icons.person_rounded, size: 18)
                             : null,
@@ -1464,9 +1413,8 @@ class _ChatConversationState extends State<ChatConversationScreen> {
                         size: 36,
                         animate: false,
                         child: CircleAvatar(
-                          backgroundImage: photo.isEmpty
-                              ? null
-                              : NetworkImage(photo),
+                          backgroundImage:
+                              photo.isEmpty ? null : NetworkImage(photo),
                           child: photo.isEmpty
                               ? const Icon(Icons.person_rounded, size: 15)
                               : null,
@@ -1494,9 +1442,9 @@ class _ChatConversationState extends State<ChatConversationScreen> {
                               fontSize: 11,
                               color: online
                                   ? Colors.green
-                                  : Theme.of(
-                                      context,
-                                    ).colorScheme.onSurfaceVariant,
+                                  : Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -1527,21 +1475,15 @@ class _ChatConversationState extends State<ChatConversationScreen> {
             Expanded(
               child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                 stream: FirebaseFirestore.instance
-                    .collection('chats')
-                    .doc(widget.chatId)
+                    .collection('chats').doc(widget.chatId)
                     .collection('messages')
                     .orderBy('createdAt', descending: true)
-                    .limit(100)
-                    .snapshots(),
+                    .limit(100).snapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.hasError) {
-                    return Center(
-                      child: Text(
-                        ar
-                            ? 'تعذر تحميل رسائل هذه المحادثة'
-                            : 'Messages unavailable',
-                      ),
-                    );
+                    return Center(child: Text(ar
+                        ? 'تعذر تحميل رسائل هذه المحادثة'
+                        : 'Messages unavailable'));
                   }
                   if (!snapshot.hasData) {
                     return const Center(child: CircularProgressIndicator());
@@ -1551,9 +1493,7 @@ class _ChatConversationState extends State<ChatConversationScreen> {
                   return ListView.builder(
                     reverse: true,
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
+                        horizontal: 12, vertical: 8),
                     itemCount: messages.length,
                     itemBuilder: (context, index) {
                       final data = messages[index].data();
@@ -1562,192 +1502,109 @@ class _ChatConversationState extends State<ChatConversationScreen> {
                       final isGift = type == 'gift';
                       final mediaUrl = (data['mediaUrl'] ?? '').toString();
                       final isMedia =
-                          const [
-                            'image',
-                            'video',
-                            'audio',
-                            'pdf',
-                          ].contains(type) &&
+                          const ['image', 'video', 'audio', 'pdf'].contains(type) &&
                           mediaUrl.isNotEmpty;
                       final giftId = (data['giftId'] ?? '').toString();
-                      final classicGift =
-                          isGift && giftId.startsWith('classic_');
+                      final classicGift = isGift &&
+                          giftId.startsWith('classic_');
                       final value = isGift
                           ? (ar ? '🎁 هدية: $giftId' : '🎁 Gift: $giftId')
                           : (data['text'] ?? '').toString();
-                      final art =
-                          !isGift &&
-                              !isMedia &&
-                              WorldVoiceLiveLinks.extract(value) == null
-                          ? WorldVoiceChatBubbles.find(
-                              data['bubbleId']?.toString(),
-                            )
-                          : null;
                       return Align(
-                        alignment: mine
-                            ? AlignmentDirectional.centerEnd
+                        alignment: mine ? AlignmentDirectional.centerEnd
                             : AlignmentDirectional.centerStart,
-                        child: Builder(
-                          builder: (context) {
-                            final content = Container(
-                              constraints: const BoxConstraints(maxWidth: 270),
-                              margin: const EdgeInsets.symmetric(vertical: 4),
-                              padding: art == null
-                                  ? const EdgeInsets.all(12)
-                                  : const EdgeInsets.symmetric(
-                                      horizontal: 5,
-                                      vertical: 2,
-                                    ),
-                              decoration: BoxDecoration(
-                                color: classicGift || art != null
-                                    ? Colors.transparent
-                                    : mine
-                                    ? Theme.of(
-                                        context,
-                                      ).colorScheme.primaryContainer
-                                    : Theme.of(
-                                        context,
-                                      ).colorScheme.surfaceContainerHighest,
-                                gradient: classicGift
-                                    ? const LinearGradient(
-                                        colors: [
-                                          Color(0xFF124C37),
-                                          Color(0xFF1B5942),
-                                          Color(0xFF0A382B),
-                                        ],
-                                      )
-                                    : null,
-                                border: classicGift
-                                    ? Border.all(color: const Color(0xBBE6C881))
-                                    : null,
-                                boxShadow: classicGift
-                                    ? const [
-                                        BoxShadow(
-                                          color: Color(0x332AAC74),
-                                          blurRadius: 12,
-                                          offset: Offset(0, 4),
-                                        ),
-                                      ]
-                                    : null,
-                                borderRadius: BorderRadius.circular(17),
-                              ),
-                              child: classicGift
-                                  ? FutureBuilder<List<RoomGiftCatalogItem>>(
-                                      future: ClassicGiftCatalog.load(),
-                                      builder: (context, giftSnapshot) {
-                                        RoomGiftCatalogItem? gift;
-                                        for (final item
-                                            in giftSnapshot.data ??
-                                                const <RoomGiftCatalogItem>[]) {
-                                          if (item.id == giftId) {
-                                            gift = item;
-                                            break;
-                                          }
-                                        }
-                                        if (gift == null) return Text(value);
-                                        final sender =
-                                            (data['senderName'] ??
-                                                    (ar ? 'المرسل' : 'Sender'))
-                                                .toString();
-                                        final receiver =
-                                            (data['recipientName'] ??
-                                                    widget.peerName)
-                                                .toString();
-                                        final paidCoins =
-                                            (data['points'] as num?)?.toInt();
-                                        return Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            const Icon(
-                                              Icons.auto_awesome_rounded,
-                                              color: Color(0xFFF5D893),
-                                              size: 15,
-                                            ),
-                                            const SizedBox(height: 2),
-                                            Text(
-                                              ar
-                                                  ? '$sender أهدى إلى $receiver'
-                                                  : '$sender sent to $receiver',
-                                              maxLines: 2,
-                                              textAlign: TextAlign.center,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: const TextStyle(
-                                                color: Color(0xFFFFE7AC),
-                                                fontWeight: FontWeight.w800,
-                                                fontSize: 12,
-                                              ),
-                                            ),
-                                            ClassicGiftVisual(
-                                              gift: gift,
-                                              size: 115,
-                                            ),
-                                            Text(
-                                              gift.localizedName(ar),
-                                              textAlign: TextAlign.center,
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w900,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 3),
-                                            Text(
-                                              '${paidCoins ?? gift.priceCoins} 🪙',
-                                              style: const TextStyle(
-                                                color: Color(0xFFFFD98E),
-                                                fontWeight: FontWeight.w900,
-                                              ),
-                                            ),
-                                          ],
-                                        );
-                                      },
-                                    )
-                                  : isGift
+                        child: Container(
+                          constraints: const BoxConstraints(maxWidth: 300),
+                          margin: const EdgeInsets.symmetric(vertical: 4),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: classicGift ? null
+                                : mine
+                                    ? Theme.of(context).colorScheme.primaryContainer
+                                    : Theme.of(context).colorScheme.surfaceContainerHighest,
+                            gradient: classicGift ? const LinearGradient(
+                              colors: [Color(0xFF124C37), Color(0xFF1B5942),
+                                       Color(0xFF0A382B)]) : null,
+                            border: classicGift
+                                ? Border.all(color: const Color(0xBBE6C881))
+                                : null,
+                            boxShadow: classicGift ? const [
+                              BoxShadow(color: Color(0x332AAC74),
+                                  blurRadius: 12, offset: Offset(0, 4)),
+                            ] : null,
+                            borderRadius: BorderRadius.circular(17),
+                          ),
+                          child: classicGift
+                              ? FutureBuilder<List<RoomGiftCatalogItem>>(
+                                  future: ClassicGiftCatalog.load(),
+                                  builder: (context, giftSnapshot) {
+                                    RoomGiftCatalogItem? gift;
+                                    for (final item in giftSnapshot.data ??
+                                        const <RoomGiftCatalogItem>[]) {
+                                      if (item.id == giftId) {
+                                        gift = item;
+                                        break;
+                                      }
+                                    }
+                                    if (gift == null) return Text(value);
+                                    final sender = (data['senderName'] ??
+                                        (ar ? 'المرسل' : 'Sender')).toString();
+                                    final receiver = (data['recipientName'] ??
+                                        widget.peerName).toString();
+                                    final paidCoins =
+                                        (data['points'] as num?)?.toInt();
+                                    return Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(Icons.auto_awesome_rounded,
+                                          color: Color(0xFFF5D893), size: 15),
+                                        const SizedBox(height: 2),
+                                        Text(ar
+                                          ? '$sender أهدى إلى $receiver'
+                                          : '$sender sent to $receiver',
+                                          maxLines: 2,
+                                          textAlign: TextAlign.center,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            color: Color(0xFFFFE7AC),
+                                            fontWeight: FontWeight.w800,
+                                            fontSize: 12)),
+                                        ClassicGiftVisual(
+                                            gift: gift, size: 115),
+                                        Text(gift.localizedName(ar),
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w900)),
+                                        const SizedBox(height: 3),
+                                        Text('${paidCoins ?? gift.priceCoins} 🪙',
+                                            style: const TextStyle(
+                                              color: Color(0xFFFFD98E),
+                                              fontWeight: FontWeight.w900)),
+                                      ],
+                                    );
+                                  },
+                                )
+                              : isGift
                                   ? Column(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         const Icon(
-                                          Icons.card_giftcard,
-                                          size: 36,
-                                        ),
+                                            Icons.card_giftcard, size: 36),
                                         Text(value),
-                                      ],
-                                    )
+                                      ])
                                   : isMedia
-                                  ? ChatMediaBubble(
-                                      type: type,
-                                      url: mediaUrl,
-                                      fileName: data['fileName']?.toString(),
-                                      cacheScope: 'chat_${uid ?? 'anonymous'}',
-                                    )
-                                  : WorldVoiceLiveLinks.extract(value) != null
-                                  ? WorldVoiceLiveInvitationCard(
-                                      liveId: WorldVoiceLiveLinks.extract(
-                                        value,
-                                      )!,
-                                      ar: ar,
-                                      compact: true,
-                                      onJoin: () => openSharedWorldVoiceLive(
-                                        context,
-                                        WorldVoiceLiveLinks.extract(value)!,
-                                        ar: ar,
-                                      ),
-                                    )
-                                  : Text(
-                                      value,
-                                      style: art == null
-                                          ? null
-                                          : const TextStyle(
-                                              color: Colors.white,
-                                            ),
-                                    ),
-                            );
-                            return art == null
-                                ? content
-                                : WorldVoiceBubbleFrame(
-                                    design: art,
-                                    child: content,
-                                  );
-                          },
+                                      ? ChatMediaBubble(
+                                          type: type,
+                                          url: mediaUrl,
+                                          fileName: data['fileName']?.toString(),
+                                          cacheScope: 'chat_${uid ?? 'anonymous'}',
+                                        )
+                                      : WorldVoiceLiveSharedCard.liveIdFromText(value) != null
+                                          ? WorldVoiceLiveSharedCard(
+                                              shareText: value,
+                                            )
+                                          : Text(value),
                         ),
                       );
                     },
@@ -1757,16 +1614,6 @@ class _ChatConversationState extends State<ChatConversationScreen> {
             ),
             Row(
               children: [
-                IconButton(
-                  tooltip: ar
-                      ? 'متجر الخلفيات والإطارات والفقاعات'
-                      : 'Backgrounds, frames and chat bubbles',
-                  onPressed: _showAppearanceShop,
-                  icon: const Icon(
-                    Icons.storefront_rounded,
-                    color: Color(0xFFE9C779),
-                  ),
-                ),
                 PopupMenuButton<String>(
                   tooltip: ar ? 'المزيد' : 'More',
                   icon: const Icon(Icons.add_circle_outline),
@@ -1810,8 +1657,7 @@ class _ChatConversationState extends State<ChatConversationScreen> {
                 Expanded(
                   child: TextField(
                     controller: _text,
-                    minLines: 1,
-                    maxLines: 4,
+                    minLines: 1, maxLines: 4,
                     textInputAction: TextInputAction.send,
                     onSubmitted: (_) => _send(),
                     onChanged: (value) {
@@ -1832,8 +1678,7 @@ class _ChatConversationState extends State<ChatConversationScreen> {
                   onPressed: _sending ? null : _toggleVoiceRecording,
                   icon: Icon(
                     _recordingVoice
-                        ? Icons.stop_circle_rounded
-                        : Icons.mic_rounded,
+                        ? Icons.stop_circle_rounded : Icons.mic_rounded,
                     color: _recordingVoice ? Colors.redAccent : null,
                   ),
                 ),
@@ -1841,11 +1686,8 @@ class _ChatConversationState extends State<ChatConversationScreen> {
                   tooltip: ar ? 'إرسال' : 'Send',
                   onPressed: _sending ? null : _send,
                   icon: _sending
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
+                      ? const SizedBox(width: 18, height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2))
                       : const Icon(Icons.send_rounded),
                 ),
               ],

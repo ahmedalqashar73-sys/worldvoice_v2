@@ -1,4 +1,5 @@
-import {registerStoryInteractionRoutes} from "./story_interactions_routes.js";
+import {giftProgress} from './member_badge_policy.js';
+import {registerMemberBadgeRoutes, memberBadgeRef} from './member_badge_routes.js';
 import { createHash, randomUUID } from "node:crypto";
 
 import agoraToken from "agora-token";
@@ -13,16 +14,22 @@ import { FieldValue, Timestamp, getFirestore } from "firebase-admin/firestore";
 import { google } from "googleapis";
 import OpenAI, { toFile } from "openai";
 import Stripe from "stripe";
-import { requireLiveEconomy, calculateGiftSettlement, calculatePurchaseCredit, canManageStore } from "./economy_policy.js";
+import { requireLiveEconomy, calculateGiftSettlement, calculatePurchaseCredit, canManageStore, canGrantStoreCosmetic } from "./economy_policy.js";
 import {registerWalletRoutes} from "./wallet_routes.js";
 import {registerChatRoutes} from "./chat_routes.js";
+import {registerOfficialActivityRoutes} from "./official_activity_routes.js";
+import {registerOfficialAnnouncementRoutes} from "./official_announcements_routes.js";
 import {registerStoryRoutes} from "./story_routes.js";
 import {registerSocialRoutes} from "./social_routes.js";
 import {registerCallRoutes} from "./call_routes.js";
 import {chatIdFor, assertChatMembership} from "./chat_membership.js";
 import {reverseVerifiedWebPurchase} from "./payment_reversals.js";
 import {validateQuizDraft, quizWinners} from "./quiz_policy.js";
-import {roomTaskSpec, advanceRoomLevel, roomLevelFromXp} from "./room_task_policy.js";
+import {roomProgressAfterGift, roomCastleProgressSnapshot,
+  ROOM_CASTLE_XP_VERSION} from "./room_task_policy.js";
+import {registerEngagementRoutes} from './engagement_routes.js';
+import {registerRoomTaskRoutes} from "./room_task_routes.js";
+import {registerRoomGameRoutes} from "./room_games_routes.js";
 import {privateWalletRef, requirePrivateWallet} from "./wallet_store.js";
 import {approvedWorldVoiceGift} from "./gift_catalog.js";
 import {requireRoomTeacherVip} from "./vip_feature_policy.js";
@@ -285,6 +292,7 @@ const adminPermissions = [
   "manage_vip",
   "manage_store",
   "manage_moderators",
+  "send_announcements",
   "send_coins",
   "change_country",
 ];
@@ -822,64 +830,6 @@ async function creditVerifiedCoins({
   });
 }
 
-
-const escapeLiveHtml = (value) => String(value ?? "").replace(
-  /[&<>"']/g,
-  (character) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[character]),
-);
-
-// Public, read-only external Live invitation for WhatsApp, browsers, etc.
-// Never expose private viewers/messages, secrets or arbitrary redirect URLs.
-app.get("/live/:liveId", async (req, res, next) => {
-  try {
-    const liveId = String(req.params.liveId || "");
-    if (!/^[A-Za-z0-9_-]{3,128}$/.test(liveId)) {
-      return res.status(404).send("Invalid WorldVoice Live link.");
-    }
-    const snapshot = await db.collection("live_sessions").doc(liveId).get();
-    const live = snapshot.data() || {};
-    const heartbeat = live.hostHeartbeatAt?.toMillis?.() || 0;
-    const online = snapshot.exists && live.isLive === true &&
-        heartbeat > Date.now() - 60000;
-    const title = escapeLiveHtml(
-      String(live.topic || "WorldVoice Live").slice(0, 140));
-    const hostName = escapeLiveHtml(
-      String(live.hostName || "WorldVoice").slice(0, 90));
-    const lang = escapeLiveHtml(String(live.languageCode || "").slice(0, 12));
-    const shareUrl = `https://worldvoice-v2.onrender.com/live/${liveId}`;
-    const appLink = `worldvoice://live/${liveId}`;
-    const photoUrl = String(live.hostPhotoUrl || "");
-    const safePhoto = /^https:\/\//i.test(photoUrl) &&
-      photoUrl.length < 1500 ? escapeLiveHtml(photoUrl) : "";
-    res.set({
-      "Cache-Control": "no-store",
-      "X-Content-Type-Options": "nosniff",
-      "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; img-src https:; base-uri 'none'; form-action 'none'",
-    });
-    return res.status(snapshot.exists ? 200 : 404)
-      .type("html").send(`<!doctype html><html lang="ar" dir="rtl">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${title} | WorldVoice LIVE</title>
-<meta property="og:type" content="website"><meta property="og:title" content="${title} · WorldVoice Live">
-<meta property="og:description" content="${hostName} · ${lang} · ${online ? "LIVE" : "Ended"}">
-<meta property="og:url" content="${shareUrl}">
-${safePhoto ? `<meta property="og:image" content="${safePhoto}">` : ""}
-<style>
-body{margin:0;min-height:100vh;display:grid;place-items:center;background:#071f18;color:#fff;font:16px system-ui,sans-serif}
-main{width:min(90vw,430px);padding:30px;border-radius:24px;text-align:center;background:linear-gradient(135deg,#124c38,#0b2b23);box-shadow:0 15px 40px #0005}
-h1{font-size:27px}small{color:#b6e4cf}.pill{display:inline-block;background:#b63131;padding:6px 13px;border-radius:12px}
-a{display:block;text-decoration:none;background:#ffd782;color:#122f24;padding:15px;margin-top:20px;border-radius:16px;font-weight:800}
-</style></head><body><main>
-<div class="pill">${online ? "🔴 LIVE" : "انتهى البث"}</div>
-<h1>${title}</h1><p>${hostName}</p><small>${lang}</small>
-${online ? `<a href="${appLink}">الدخول إلى اللايف في تطبيق WorldVoice</a>` : "<p>هذا البث غير متاح حاليًا.</p>"}
-<p><small>يُفتح الرابط داخل WorldVoice عند تثبيت التطبيق وتسجيل الدخول.</small></p>
-</main></body></html>`);
-  } catch (error) {
-    next(error);
-  }
-});
-
 app.get("/health", (_req, res) => {
   res.json({
     ok: true,
@@ -1221,8 +1171,8 @@ app.post("/teacher-ai", async (req, res, next) => {
       });
     }
 
-    // The external Teacher AI provider is a room VIP benefit.
-    // Verify on the server before any model call or cached response.
+    // A client-side button is insufficient to protect paid AI processing.
+    // Other Live Teacher AI behavior stays unchanged; room AI is VIP-only.
     if (context === "room") await requireRoomTeacherVip(db, user.uid);
 
     const existingNote = await noteRef.get();
@@ -1372,8 +1322,8 @@ app.post("/teacher-ai/ask", async (req, res, next) => {
       });
     }
 
-    // The external Teacher AI provider is a room VIP benefit.
-    // Verify on the server before any model call or cached response.
+    // A client-side button is insufficient to protect paid AI processing.
+    // Other Live Teacher AI behavior stays unchanged; room AI is VIP-only.
     if (context === "room") await requireRoomTeacherVip(db, user.uid);
 
     const roomLanguageCode =
@@ -1644,8 +1594,7 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
           {status: 503});
       }
       if (req.path === "/store/admin-grant") {
-        if (!canManageStore(snaps[snaps.length - 1].data()) ||
-            !["background", "frame"].includes(item.type)) {
+        if (!canGrantStoreCosmetic(snaps[snaps.length - 1].data(), item.type)) {
           throw Object.assign(new Error("Store administrator access required."), {status: 403});
         }
         if (!payerProfileSnap.exists || (gifting && (!snaps[7].exists || !snaps[9].exists))) {
@@ -1655,6 +1604,7 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
           Date.now() + duration * 24 * 60 * 60 * 1000);
         const entitlement = {
           itemId, type: item.type, source: "admin_grant", grantedBy: sender.uid,
+          ...(item.type === "bubble" ? {bubbleId: item.bubbleId} : {}),
           giftedBy: gifting ? sender.uid : null, quantity: 1, freeGiftBalance: 0,
           name: String(item.name || itemId), expiresAt,
           updatedAt: FieldValue.serverTimestamp(),
@@ -1684,7 +1634,7 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
       requirePrivateWallet(payerSnap);
       if (gifting) requirePrivateWallet(snaps[8]);
       if (!payerProfileSnap.exists ||
-          Number(payerSnap.data()?.giftLevel || 0) <
+          giftProgress(payerSnap.data()).level <
           Number(item.requiredGiftLevel || 0) ||
           (gifting && (!snaps[7].exists || !snaps[9].exists))) {
         throw Object.assign(new Error("User, gift level or friendship requirement failed."),
@@ -1743,6 +1693,7 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
       }, {merge: true});
       if (item.type === "vip") {
         tx.update(recipientWalletRef, {vipExpiresAt: expiresAt});
+        tx.set(memberBadgeRef(db, recipientId), {plan: duration == null ? "lifetime" : duration >= 365 ? "annual" : duration >= 180 ? "half_year" : duration >= 90 ? "quarterly" : "monthly"}, {merge: true});
       }
       if (item.type === "background") {
         // Temporary mirrored legacy read model; remove after all clients
@@ -1785,41 +1736,46 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
   }
 });
 
-// Equip server-verified owned bubble on the signed-in user's public profile.
+/**
+ * Server-verified equip. A client cannot activate another person's purchased
+ * design, an expired entitlement, or VIP cosmetics after VIP expires.
+ */
 app.post("/store/bubble/equip", async (req, res, next) => {
   try {
     const user = await authenticatedUser(req);
     const bubbleId = String(req.body?.bubbleId || "").trim();
-    const vipDesign = vipChatBubbles.includes(bubbleId);
+    const isVipDesign = vipChatBubbles.includes(bubbleId);
     const ownedDesign = chatBubbleInventoryId(bubbleId);
-    if (bubbleId !== "free" && !vipDesign && !ownedDesign) {
+    if (bubbleId !== "free" && !isVipDesign && !ownedDesign) {
       return res.status(400).json({error: "Invalid chat bubble."});
     }
     const userRef = db.collection("users").doc(user.uid);
-    const inventoryRef = ownedDesign ?
-      userRef.collection("inventory").doc(ownedDesign) : null;
+    const inventoryRef = ownedDesign
+      ? userRef.collection("inventory").doc(ownedDesign) : null;
     await db.runTransaction(async tx => {
-      // All reads must precede transaction writes.
-      const profileSnap = await tx.get(userRef);
-      const ownedSnap = inventoryRef ? await tx.get(inventoryRef) : null;
-      if (!profileSnap.exists) {
+      const userSnap = await tx.get(userRef);
+      if (!userSnap.exists) {
         throw Object.assign(new Error("Profile not found."), {status: 404});
       }
-      if (vipDesign && !vipBubbleAllowed(profileSnap.data(), Date.now())) {
-        throw Object.assign(new Error("Active VIP membership required."), {status: 403});
+      if (isVipDesign && !vipBubbleAllowed(userSnap.data(), Date.now())) {
+        throw Object.assign(new Error("VIP subscription is required."),
+          {status: 403});
       }
-      if (ownedDesign) {
-        const data = ownedSnap?.data() || {};
-        const expiry = data.expiresAt;
-        if (!ownedSnap?.exists || data.type !== "bubble" ||
-            data.bubbleId !== bubbleId || !(Number(data.quantity || 0) > 0) ||
-            (expiry != null && !(expiry?.toMillis?.() > Date.now()))) {
-          throw Object.assign(
-            new Error("Bubble not owned or expired."), {status: 403});
+      if (inventoryRef) {
+        const item = await tx.get(inventoryRef);
+        const expiry = item.data()?.expiresAt;
+        if (!item.exists || item.data()?.type !== "bubble" ||
+            item.data()?.bubbleId !== bubbleId ||
+            !(Number(item.data()?.quantity || 0) > 0) ||
+            (expiry != null &&
+              !(expiry?.toMillis?.() > Date.now()))) {
+          throw Object.assign(new Error("Chat bubble is not owned or has expired."),
+            {status: 403});
         }
       }
       tx.set(userRef, {
-        chatBubbleId: bubbleId, chatBubbleUpdatedAt: FieldValue.serverTimestamp(),
+        chatBubbleId: bubbleId,
+        chatBubbleUpdatedAt: FieldValue.serverTimestamp(),
       }, {merge: true});
     });
     res.json({ok: true, bubbleId});
@@ -2131,7 +2087,7 @@ app.post("/gift/send", async (req, res, next) => {
           {status: 409});
       }
       const senderData = senderSnap.data() || {};
-      if (Number(senderData.giftLevel || 0) <
+      if (giftProgress(senderData).level <
           Number(item.requiredGiftLevel || 0)) {
         throw Object.assign(new Error("Gift level requirement not met."),
           {status: 403});
@@ -2154,8 +2110,9 @@ app.post("/gift/send", async (req, res, next) => {
       }
       const after = balance - amounts.chargedCoins;
       const roomXp = Number(roomSnap.data()?.roomXp || 0);
-      if (recipientId === "teacher_ai" && !Number.isSafeInteger(roomXp +
-          amounts.giftLevelPoints)) {
+      if (recipientId === "teacher_ai" &&
+          (!Number.isSafeInteger(roomXp) || roomXp < 0 ||
+            !Number.isSafeInteger(roomXp + amounts.giftLevelPoints))) {
         throw Object.assign(new Error("Room XP exceeds safe limits."), {status: 400});
       }
       // Server-enforced sender daily spend limit. Not configured => stop.
@@ -2193,6 +2150,8 @@ app.post("/gift/send", async (req, res, next) => {
       tx.set(senderWalletRef, {
         coins: after,
         giftSentPoints: FieldValue.increment(amounts.chargedCoins),
+        giftLevelCoins: giftProgress(senderData).points + amounts.chargedCoins,
+        giftLevel: giftProgress({giftSentPoints: giftProgress(senderData).points + amounts.chargedCoins}).level,
         giftLevelPoints: FieldValue.increment(amounts.giftLevelPoints),
         updatedAt: FieldValue.serverTimestamp(),
       }, {merge: true});
@@ -2236,8 +2195,16 @@ app.post("/gift/send", async (req, res, next) => {
           operationId: requestHash, createdAt: FieldValue.serverTimestamp(),
         });
       } else {
+        // Teacher-AI gifts may support the room castle, but not exceed the
+        // 50-level progression cap or erase XP from pre-existing level-60 rooms.
+        const startingCastle = roomCastleProgressSnapshot(roomSnap.data());
+        const progress = roomProgressAfterGift(startingCastle.xp,
+          amounts.giftLevelPoints);
         tx.update(roomRef, {
-          roomXp: roomXp + amounts.giftLevelPoints,
+          roomXp: progress.nextXp,
+          roomLevel: progress.newLevel,
+          roomCastleXpVersion: ROOM_CASTLE_XP_VERSION,
+          ...(startingCastle.legacy ? {legacyRoomXp: roomXp} : {}),
         });
       }
       tx.create(giftEventRef, {
@@ -2489,198 +2456,16 @@ app.post("/quiz/finish", async (req, res, next) => {
 });
 
 
-/**
- * Non-monetary, server-verified room missions. Device buttons cannot grant
- * XP or level rewards. Config-required missions stay disabled without owner
- * approved values; no task mints coins, diamonds or cashout inventory.
- */
-const ROOM_TASK_KEYS = ["ten_minutes", "host_five", "three_gifts", "stay_hours"];
-const roomTaskDay = () => new Date().toISOString().slice(0, 10);
-
-function roomTaskId(key, uid, day) {
-  const period = (key === "ten_minutes" || key === "stay_hours") ? day : "once";
-  return `${key}_${uid}_${period}`;
-}
-function joinedMinutes(participant, nowMs) {
-  const joined = participant?.joinedAt?.toMillis?.();
-  if (!Number.isSafeInteger(joined) || joined > nowMs) return 0;
-  return Math.max(0, Math.floor((nowMs - joined) / 60000));
-}
-
-app.get("/room/tasks/status", async (req, res, next) => {
-  try {
-    const user = await authenticatedUser(req);
-    const roomId = String(req.query.roomId || "").trim();
-    if (!roomId || roomId.length > 160) {
-      return res.status(400).json({error: "Invalid room ID."});
-    }
-    const roomRef = db.collection("rooms").doc(roomId);
-    const participantRef = roomRef.collection("participants").doc(user.uid);
-    const now = Date.now();
-    const day = roomTaskDay();
-    const [room, participant, members, gifts, config, ...completions] =
-      await Promise.all([
-        roomRef.get(),
-        participantRef.get(),
-        roomRef.collection("participants").get(),
-        roomRef.collection("gifts").where("senderId", "==", user.uid)
-          .limit(3).get(),
-        db.doc("room_task_config/current").get(),
-        ...ROOM_TASK_KEYS.map(key =>
-          roomRef.collection("task_completions")
-            .doc(roomTaskId(key, user.uid, day)).get()),
-      ]);
-    if (!room.exists || room.data()?.isOpen !== true || !participant.exists) {
-      return res.status(403).json({error: "Join an open room to view its tasks."});
-    }
-    const isHost = room.data()?.hostId === user.uid;
-    const guestCount = isHost ?
-      members.docs.filter(doc => doc.id !== user.uid).length : 0;
-    const minutes = joinedMinutes(participant.data(), now);
-    const progress = {minutes, guestCount, giftsSent: gifts.size};
-    const configData = config.data() || {};
-    const missions = ROOM_TASK_KEYS.map((key, index) => {
-      let spec;
-      try {
-        spec = roomTaskSpec(key, configData);
-      } catch (error) {
-        if (error.status !== 503) throw error;
-        return {key, configured: false, claimed: completions[index].exists,
-          requiredMinutes: key === "stay_hours" ? null : undefined,
-          xp: null};
-      }
-      const current = key === "ten_minutes" || key === "stay_hours"
-        ? minutes : key === "host_five" ? guestCount : gifts.size;
-      const required = spec.requiredMinutes ?? spec.requiredCount;
-      return {key, configured: true, claimed: completions[index].exists,
-        eligible: current >= required, current, required, xp: spec.xp};
-    });
-    const xp = Number(room.data()?.roomXp || 0);
-    return res.json({ok: true, roomId, xp, level: roomLevelFromXp(xp),
-      maxLevel: 60, progress, missions});
-  } catch (error) {
-    next(error);
-  }
-});
-
-app.post("/room/tasks/claim", async (req, res, next) => {
-  try {
-    const user = await authenticatedUser(req);
-    const roomId = String(req.body?.roomId || "").trim();
-    const taskKey = String(req.body?.taskKey || "").trim();
-    if (!roomId || roomId.length > 160 || !ROOM_TASK_KEYS.includes(taskKey)) {
-      return res.status(400).json({error: "Invalid room mission."});
-    }
-    const roomRef = db.collection("rooms").doc(roomId);
-    const memberRef = roomRef.collection("participants").doc(user.uid);
-    const configRef = db.doc("room_task_config/current");
-    const day = roomTaskDay();
-    const completionRef = roomRef.collection("task_completions")
-      .doc(roomTaskId(taskKey, user.uid, day));
-    const now = Date.now();
-
-    const outcome = await db.runTransaction(async tx => {
-      // Read all snapshots and evidence BEFORE the first transaction write.
-      const [room, member, config, prior, members, gifts] = await Promise.all([
-        tx.get(roomRef), tx.get(memberRef), tx.get(configRef),
-        tx.get(completionRef),
-        taskKey === "host_five"
-          ? tx.get(roomRef.collection("participants")) : Promise.resolve(null),
-        taskKey === "three_gifts"
-          ? tx.get(roomRef.collection("gifts").where(
-              "senderId", "==", user.uid).limit(3))
-          : Promise.resolve(null),
-      ]);
-      if (!room.exists || room.data()?.isOpen !== true || !member.exists) {
-        throw Object.assign(new Error("Join an open room first."), {status: 403});
-      }
-      if (prior.exists) return {...prior.data().outcome, alreadyProcessed: true};
-      const spec = roomTaskSpec(taskKey, config.data());
-      let count = 0;
-      switch (taskKey) {
-        case "ten_minutes":
-        case "stay_hours":
-          count = joinedMinutes(member.data(), now);
-          break;
-        case "host_five":
-          if (room.data()?.hostId !== user.uid) {
-            throw Object.assign(new Error("Only the host may claim this mission."),
-              {status: 403});
-          }
-          count = members.docs.filter(doc => doc.id !== user.uid).length;
-          break;
-        case "three_gifts":
-          count = gifts.size;
-          break;
-      }
-      const required = spec.requiredMinutes ?? spec.requiredCount;
-      if (count < required) {
-        throw Object.assign(new Error("Mission conditions are not verified yet."),
-          {status: 409});
-      }
-      const previousXp = Number(room.data()?.roomXp || 0);
-      const advancement = advanceRoomLevel(previousXp, spec.xp);
-      const result = {taskKey, awardedXp: advancement.awardedXp,
-        roomXp: advancement.nextXp, roomLevel: advancement.newLevel,
-        unlockedLevels: advancement.unlockedLevels, completedAtMillis: now};
-      tx.create(completionRef, {
-        taskKey, userId: user.uid, points: advancement.awardedXp,
-        periodKey: day, evidence: {observed: count, required},
-        outcome: result, completedAt: FieldValue.serverTimestamp(),
-      });
-      tx.update(roomRef, {
-        roomXp: advancement.nextXp,
-        roomLevel: advancement.newLevel,
-        lastTaskCompletionId: completionRef.id,
-        updatedAt: FieldValue.serverTimestamp(),
-      });
-      for (const level of advancement.unlockedLevels) {
-        tx.set(roomRef.collection("rewards").doc(`level_${level}`), {
-          level, type: level === 5 ? "background_month" : "gift_pack",
-          unlockedBy: user.uid, sourceTaskId: completionRef.id,
-          unlockedAt: FieldValue.serverTimestamp(),
-        }, {merge: true});
-      }
-      return {...result, alreadyProcessed: false};
-    });
-
-    // Idempotent retry also retries fanout if a previous response was lost.
-    // These are non-monetary, catalog-dependent reward eligibility documents.
-    if (outcome.unlockedLevels?.length) {
-      const present = await roomRef.collection("participants").get();
-      const levels = outcome.unlockedLevels;
-      const expiration = Timestamp.fromMillis(
-        outcome.completedAtMillis + 30 * 24 * 60 * 60 * 1000);
-      const membersPerBatch = Math.max(1, Math.floor(450 / levels.length));
-      for (let offset = 0; offset < present.size; offset += membersPerBatch) {
-        const batch = db.batch();
-        for (const person of present.docs.slice(offset, offset + membersPerBatch)) {
-          for (const level of levels) {
-            const rewardId = `${roomId}_level_${level}`;
-            batch.set(db.collection("users").doc(person.id)
-              .collection("room_rewards").doc(rewardId), {
-              userId: person.id, roomId, level,
-              type: level === 5 ? "background_month" : "gift_pack",
-              sourceRewardId: `level_${level}`,
-              ...(level === 5 ? {expiresAt: expiration} : {}),
-              grantedAt: FieldValue.serverTimestamp(),
-            }, {merge: true});
-          }
-        }
-        await batch.commit();
-      }
-    }
-    return res.json({ok: true, ...outcome});
-  } catch (error) {
-    next(error);
-  }
-});
+registerRoomTaskRoutes({app, db, authenticatedUser});
+registerRoomGameRoutes({app, db, authenticatedUser});
+registerEngagementRoutes({app, db, authenticatedUser});
+registerMemberBadgeRoutes({app, db, authenticatedUser});
 
 // Finance routes run only on the separately deployed authenticated backend.
 registerWalletRoutes({app, db, authenticatedUser});
 registerChatRoutes({app, db, authenticatedUser});
-registerStoryInteractionRoutes({app, db, authenticatedUser});
-
+registerOfficialActivityRoutes({app, db, authenticatedUser});
+registerOfficialAnnouncementRoutes({app, db, authenticatedUser});
 registerStoryRoutes({
   app,
   authenticatedUser,

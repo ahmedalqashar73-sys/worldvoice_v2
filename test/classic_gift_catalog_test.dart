@@ -5,10 +5,10 @@ import 'package:worldvoice/features/rooms/data/room_feature_models.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('WorldVoice catalog has exactly 54 unique preview-only gifts', () async {
+  test('WorldVoice catalog has exactly 104 unique preview-only gifts', () async {
     final gifts = await ClassicGiftCatalog.load();
-    expect(gifts, hasLength(54));
-    expect(gifts.map((gift) => gift.id).toSet(), hasLength(54));
+    expect(gifts, hasLength(104));
+    expect(gifts.map((gift) => gift.id).toSet(), hasLength(104));
     expect(
       gifts.every((gift) =>
           !gift.active &&
@@ -19,15 +19,15 @@ void main() {
       isTrue,
     );
 
-    expect(gifts.where((g) => g.priceCoins <= 150), hasLength(30));
+    expect(gifts.where((g) => g.priceCoins <= 150), hasLength(50));
     expect(
       gifts.where((g) => g.priceCoins >= 151 && g.priceCoins <= 1000),
-      hasLength(15),
+      hasLength(35),
     );
-    expect(gifts.where((g) => g.priceCoins >= 1001), hasLength(9));
+    expect(gifts.where((g) => g.priceCoins >= 1001), hasLength(19));
     expect(gifts.first.id, 'wv_gift_001');
     expect(gifts.first.priceCoins, 1);
-    expect(gifts.last.id, 'wv_gift_054');
+    expect(gifts.last.id, 'wv_gift_104');
     expect(gifts.last.priceCoins, 5000);
   });
 
@@ -51,10 +51,13 @@ void main() {
 
     final merged = ClassicGiftCatalog.merge(
       previews: gifts,
-      published: [exactRemote, wrongPriceRemote],
+      published: [exactRemote, wrongPriceRemote, exactRemote],
     );
 
-    expect(merged, hasLength(54));
+    expect(merged, hasLength(104));
+    expect(merged.map((gift) => gift.id).toSet(), hasLength(104));
+    expect(merged.where((gift) => gift.id == 'wv_gift_002'), hasLength(1));
+    expect(merged.where((gift) => gift.id == 'wv_gift_026'), hasLength(1));
     expect(
       merged.firstWhere((gift) => gift.id == exactRemote.id).active,
       isTrue,
@@ -83,7 +86,7 @@ void main() {
       published: [legacy],
     );
 
-    expect(merged, hasLength(54));
+    expect(merged, hasLength(104));
     expect(merged.any((gift) => gift.id == legacy.id), isFalse);
   });
 }

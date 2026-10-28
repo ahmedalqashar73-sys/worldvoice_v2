@@ -3,9 +3,6 @@ import agoraToken from "agora-token";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 
 const { RtcRole, RtcTokenBuilder } = agoraToken;
-
-// Public health metadata used to detect a stale Cloudflare deployment.
-export const TOKEN_API_REVISION = "2026-10-23.6";
 const firebasePublicKeys = createRemoteJWKSet(
   new URL(
     "https://www.googleapis.com/service_accounts/v1/jwk/" +
@@ -35,20 +32,6 @@ export function validChannelName(value) {
 export function agoraUidForFirebaseUid(uid) {
   const digest = createHash("sha256").update(uid).digest();
   return digest.readUInt32BE(0) || 1;
-}
-
-// The host alone can request a publisher token for a channel anchored to
-// their authenticated Firebase UID. The channel's 96-bit UID digest keeps
-// another signed-in user from impersonating the owner; the random nonce
-// distinguishes broadcasts. Viewer/guest tokens still verify Firestore.
-export function liveHostChannelPrefix(uid) {
-  return `live_${createHash("sha256").update(uid).digest("hex").slice(0, 24)}_`;
-}
-
-export function isOwnerScopedLiveChannel(channel, uid) {
-  return typeof channel === "string" &&
-    /^live_[a-f0-9]{24}_[a-f0-9]{16,24}$/.test(channel) &&
-    channel.startsWith(liveHostChannelPrefix(uid));
 }
 
 function configured(env) {
@@ -125,22 +108,6 @@ async function agoraTokenForUser(request, env) {
     uid = await firebaseUserId(idToken, env.FIREBASE_PROJECT_ID);
   } catch (_) {
     return json({ error: "Firebase sign-in expired or invalid. Sign in again." }, 401);
-  }
-
-  // For a *new host-owned channel* the identity check above proves who
-  // may publish. Do not make the broadcast's very first Agora token depend
-  // on Firestore REST reads of documents which cannot exist before launch.
-  // This shortcut is never used for guests or audience subscriptions.
-  if (requestedRole === "publisher" &&
-      isOwnerScopedLiveChannel(channelName, uid)) {
-    const agoraUid = agoraUidForFirebaseUid(uid);
-    const ttlSeconds = 60 * 60;
-    const token = RtcTokenBuilder.buildTokenWithUid(
-      env.AGORA_APP_ID, env.AGORA_APP_CERTIFICATE,
-      channelName, agoraUid, RtcRole.PUBLISHER,
-      ttlSeconds, ttlSeconds,
-    );
-    return json({ token, uid: agoraUid, expiresIn: ttlSeconds });
   }
 
   const roomPath = `rooms/${channelName}`;
@@ -306,9 +273,6 @@ export default {
       return json({
         ok: ready,
         service: "worldvoice-agora-token-worker",
-        // Public release identifier; does not expose secrets or user data.
-        tokenApiRevision: TOKEN_API_REVISION,
-        liveHostBootstrapSupported: true,
       }, ready ? 200 : 503);
     }
     if (auxiliaryRoutes.has(url.pathname) &&

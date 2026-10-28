@@ -8,7 +8,6 @@ import 'package:video_player/video_player.dart';
 import '../services/story_service.dart';
 import '../services/story_filter_presets.dart';
 import 'story_interaction_sheet.dart';
-import '../../live/presentation/live_screen.dart';
 import '../../chat/presentation/worldvoice_share_to_chat_sheet.dart';
 
 class StoryViewerScreen extends StatefulWidget {
@@ -82,15 +81,6 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
     final story = _story;
     unawaited(_loadInteractions(story.id));
 
-    if (story.isLiveShare) {
-      setState(() {
-        _mediaLoading = false;
-        _mediaReady = true;
-      });
-      unawaited(widget.service.recordView(story.id).catchError((_) {}));
-      _resumePhoto();
-      return;
-    }
     if (story.isVideo) {
       final controller = VideoPlayerController.networkUrl(
         Uri.parse(story.mediaUrl),
@@ -445,25 +435,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
             Positioned.fill(
               top: 78,
               bottom: 86,
-              child: story.isLiveShare
-                  ? Center(
-                      child: FilledButton.icon(
-                        onPressed: () async {
-                          _hold();
-                          await Navigator.of(context).push<void>(
-                            MaterialPageRoute(
-                              builder: (_) => WorldVoiceLiveInvitationPage(
-                                liveId: story.liveId,
-                              ),
-                            ),
-                          );
-                          if (mounted && !_closing) _releaseHold();
-                        },
-                        icon: const Icon(Icons.videocam),
-                        label: Text(ar ? 'انضم للبث المباشر' : 'Join Live'),
-                      ),
-                    )
-                  : story.isVideo
+              child: story.isVideo
                   ? (_video?.value.isInitialized == true
                         ? FittedBox(
                             fit: BoxFit.contain,

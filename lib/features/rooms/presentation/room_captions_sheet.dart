@@ -71,7 +71,7 @@ class RoomCaptionsSheet extends StatelessWidget {
             if (section != 'translation')
               SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              value: enabled,
+              value: section == 'combined' ? enabled && translationEnabled : enabled,
               onChanged: onEnabledChanged,
               secondary: Icon(
                 listening
@@ -79,7 +79,9 @@ class RoomCaptionsSheet extends StatelessWidget {
                     : Icons.subtitles_rounded,
               ),
               title: Text(
-                isArabic ? 'السبتايتل المباشر' : 'Live subtitles',
+                section == 'combined'
+                    ? (isArabic ? 'السبتايتلز والترجمة معًا' : 'Subtitles & translation together')
+                    : (isArabic ? 'السبتايتل المباشر' : 'Live subtitles'),
               ),
               subtitle: canPublish
                   ? Text(
@@ -97,7 +99,7 @@ class RoomCaptionsSheet extends StatelessWidget {
                           : 'Only you will see captions from speakers on stage.',
                     ),
             ),
-            if (section != 'subtitles')
+            if (section != 'subtitles' && section != 'combined')
               SwitchListTile(
               contentPadding: EdgeInsets.zero,
               value: translationEnabled,
@@ -144,8 +146,7 @@ class RoomCaptionsSheet extends StatelessWidget {
                   ],
                 ),
               ),
-            if (section == 'all')
-              SwitchListTile(
+            if (section == 'all') SwitchListTile(
               contentPadding: EdgeInsets.zero,
               value: pronunciationEnabled,
               onChanged: onPronunciationChanged,

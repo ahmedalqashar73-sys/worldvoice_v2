@@ -1,0 +1,1178 @@
+import 'dart:async';
+
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../../core/ads/academy_lesson_ads.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_tts/flutter_tts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../data/academy_spanish_a1_course.dart';
+import '../data/academy_spanish_a2_course.dart';
+import '../data/academy_spanish_b1_course.dart';
+import '../data/academy_spanish_b2_course.dart';
+import '../data/academy_spanish_c1_course.dart';
+import '../data/academy_spanish_c2_course.dart';
+import '../data/academy_spanish_speech_chunks.dart';
+import '../data/academy_spanish_lesson_stage_progress.dart';
+import 'academy_illustrated_story_art.dart';
+
+const _verde = Color(0xFF15583F);
+const _oro = Color(0xFFECC887);
+
+/// Account-isolated offline completion, independent from the legacy
+/// six-activity Academy format and from English A1 progress.
+abstract final class SpanishA1Progress {
+  static String _key(String? uid, {String level = 'A1'}) =>
+      'worldvoice.academy.es.${level.toLowerCase()}.integrated.v1.${uid ?? 'guest'}.done';
+
+  static Future<Set<String>> load(String? uid, {String level = 'A1'}) async {
+    final prefs = await SharedPreferences.getInstance();
+    return (prefs.getStringList(_key(uid, level: level)) ?? <String>[]).toSet();
+  }
+
+  static Future<void> complete(String? uid, SpanishA1Lesson lesson,
+      {String level = 'A1'}) async {
+    final accepted = level == 'C2'
+        ? SpanishC2Course.lessons.any((x)=>x.id==lesson.id)
+        : level == 'C1'
+        ? SpanishC1Course.lessons.any((x)=>x.id==lesson.id)
+        : level == 'B2'
+        ? SpanishB2Course.lessons.any((x) => x.id == lesson.id)
+        : level == 'B1'
+        ? SpanishB1Course.lessons.any((x) => x.id == lesson.id)
+        : level == 'A2'
+        ? SpanishA2Course.lessons.any((x) => x.id == lesson.id)
+        : level == 'A1' && SpanishA1Course.lessons.any((x) => x.id == lesson.id);
+    if (!accepted) {
+      throw ArgumentError.value(lesson.id, 'lesson', 'Unknown Spanish lesson');
+    }
+    final prefs = await SharedPreferences.getInstance();
+    final key = _key(uid, level: level);
+    final completed = (prefs.getStringList(key) ?? <String>[]).toSet()
+      ..add(lesson.id);
+    if (!await prefs.setStringList(key, completed.toList()..sort())) {
+      throw StateError('Unable to save Spanish $level progress locally');
+    }
+  }
+}
+
+/// Spanish A1 through C2: each keeps three units and ten lessons per unit.
+class AcademySpanishA1Path extends StatefulWidget {
+  const AcademySpanishA1Path({this.level = 'A1', super.key});
+  final String level;
+
+  @override
+  State<AcademySpanishA1Path> createState() => _SpanishA1PathState();
+}
+
+class _SpanishA1PathState extends State<AcademySpanishA1Path> {
+  Set<String> _completed = <String>{};
+
+  String? get _uid {
+    try {
+      return FirebaseAuth.instance.currentUser?.uid;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  bool get _ar => Localizations.localeOf(context).languageCode == 'ar';
+
+  @override
+  void initState() {
+    super.initState();
+    _refresh();
+  }
+
+  Future<void> _refresh() async {
+    final completed = await SpanishA1Progress.load(_uid, level: widget.level);
+    if (mounted) setState(() => _completed = completed);
+  }
+
+  Future<void> _unit(SpanishA1Unit unit) async {
+    await Navigator.of(context).push<void>(MaterialPageRoute(
+      builder: (_) => _SpanishUnitScreen(unit: unit, level: widget.level)));
+    await _refresh();
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(
+      title: Text(_ar
+          ? 'الإسبانية ${widget.level} · ${widget.level == 'A1' ? 'المبتدئ' : widget.level == 'A2' ? 'الابتدائي' : widget.level == 'B1' ? 'المتوسط' : widget.level == 'B2' ? 'فوق المتوسط' : 'المتقدم'}'
+          : 'Español ${widget.level} · ${widget.level == 'A1' ? 'Beginner' : widget.level == 'A2' ? 'Elementary' : widget.level == 'B1' ? 'Intermediate' : widget.level == 'B2' ? 'Upper-intermediate' : 'Advanced'}'),
+      backgroundColor: _verde, foregroundColor: Colors.white),
+    body: ListView(padding: const EdgeInsets.all(18), children: [
+      Container(
+        padding: const EdgeInsets.all(22),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF124C37), Color(0xFF268C67)]),
+          borderRadius: BorderRadius.circular(24)),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Icon(Icons.auto_stories_rounded, color: _oro, size: 42),
+          const SizedBox(height: 11),
+          Text(_ar ? (widget.level == 'A1'
+              ? 'رحلتك الأولى باللغة الإسبانية'
+              : 'واصل رحلتك في الإسبانية')
+              : (widget.level == 'A1'
+                  ? 'Tu aventura en español'
+                  : 'Tu siguiente paso en español'),
+            style: const TextStyle(color: Colors.white,
+                fontSize: 23, fontWeight: FontWeight.w900)),
+          const SizedBox(height: 8),
+          Text('${widget.level}  ·  3 UNIDADES  ·  30 LECCIONES',
+            style: const TextStyle(color: _oro, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 10),
+          Text(_ar ? '${_completed.length} من 30 درسًا مكتملًا'
+              : '${_completed.length} of 30 lessons completed',
+            style: const TextStyle(color: Colors.white)),
+          const SizedBox(height: 8),
+          LinearProgressIndicator(value: _completed.length / 30,
+            color: _oro, backgroundColor: Colors.white24),
+        ]),
+      ),
+      const SizedBox(height: 20),
+      for (final unit in widget.level == 'C2'
+          ? SpanishC2Course.units : widget.level == 'C1'
+          ? SpanishC1Course.units : widget.level == 'B2'
+          ? SpanishB2Course.units : widget.level == 'B1'
+          ? SpanishB1Course.units : widget.level == 'A2'
+              ? SpanishA2Course.units : SpanishA1Course.units)
+        Card(clipBehavior: Clip.antiAlias,
+          child: ListTile(
+            key: ValueKey('spanish-${widget.level.toLowerCase()}-unit-${unit.number}'),
+            contentPadding: const EdgeInsets.all(14),
+            leading: CircleAvatar(backgroundColor: _verde,
+              child: Text('${unit.number}',
+                style: const TextStyle(color: Colors.white))),
+            title: Text(unit.title,
+              style: const TextStyle(fontWeight: FontWeight.w900)),
+            subtitle: Text(
+              _ar ? '${unit.arabic} · 10 دروس' : '10 lessons · 400 word slots'),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () => _unit(unit),
+          )),
+    ]),
+  );
+}
+
+class _SpanishUnitScreen extends StatefulWidget {
+  const _SpanishUnitScreen({required this.unit, required this.level});
+  final SpanishA1Unit unit;
+  final String level;
+
+  @override
+  State<_SpanishUnitScreen> createState() => _SpanishUnitScreenState();
+}
+
+class _SpanishUnitScreenState extends State<_SpanishUnitScreen> {
+  Set<String> _completed = <String>{};
+  String? get _uid {
+    try {
+      return FirebaseAuth.instance.currentUser?.uid;
+    } catch (_) {
+      return null;
+    }
+  }
+  bool get _ar => Localizations.localeOf(context).languageCode == 'ar';
+
+  @override
+  void initState() {
+    super.initState();
+    _reload();
+  }
+
+  Future<void> _reload() async {
+    final data = await SpanishA1Progress.load(_uid, level: widget.level);
+    if (mounted) setState(() => _completed = data);
+  }
+
+  Future<void> _open(SpanishA1Lesson lesson) async {
+    if (!await AcademyLessonAdGate.beforeLesson(context,
+        uid: _uid, lessonId: lesson.id,
+        isReview: _completed.contains(lesson.id))) {
+      return;
+    }
+    if (!mounted) return;
+    await Navigator.of(context).push<void>(MaterialPageRoute(
+      builder: (_) => AcademySpanishA1LessonScreen(
+        lesson: lesson, level: widget.level)));
+    await _reload();
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: Text(widget.unit.title),
+        backgroundColor: _verde, foregroundColor: Colors.white),
+    body: ListView(
+      padding: const EdgeInsets.all(15),
+      children: [
+        Text(_ar ? widget.unit.arabic : widget.unit.title,
+          style: Theme.of(context).textTheme.headlineSmall),
+        const SizedBox(height: 12),
+        for (final lesson in widget.unit.lessons)
+          Card(child: ListTile(
+            key: ValueKey('spanish-${widget.level.toLowerCase()}-lesson-${lesson.unit}-${lesson.number}'),
+            leading: CircleAvatar(backgroundColor: _verde.withValues(alpha: .1),
+              child: Text('${lesson.number}',
+                style: const TextStyle(color: _verde))),
+            title: Text(lesson.title,
+              style: const TextStyle(fontWeight: FontWeight.w800)),
+            subtitle: Text(_ar ? lesson.titleAr : '40 words · Grammar · Story'),
+            trailing: Icon(_completed.contains(lesson.id)
+                ? Icons.check_circle_rounded : Icons.chevron_right_rounded,
+              color: _verde),
+            onTap: () => _open(lesson),
+          )),
+      ]),
+  );
+}
+
+/// Eight sequential classroom sections, identical in intent to English A1:
+/// grammar, vocabulary, illustrated story, word checks, dialogue, pronunciation,
+/// podcast listening and confirmed completion.
+class AcademySpanishA1LessonScreen extends StatefulWidget {
+  const AcademySpanishA1LessonScreen({
+    required this.lesson, this.level = 'A1', super.key});
+  final SpanishA1Lesson lesson;
+  final String level;
+
+  @override
+  State<AcademySpanishA1LessonScreen> createState() =>
+      _AcademySpanishA1LessonScreenState();
+}
+
+class _AcademySpanishA1LessonScreenState
+    extends State<AcademySpanishA1LessonScreen> with WidgetsBindingObserver {
+  final FlutterTts _tts = FlutterTts();
+  Future<void> _latestStageSave = Future<void>.value();
+  int _speechRequest = 0;
+  bool _isSpeaking = false;
+  final TextEditingController _typedSpanishWord = TextEditingController();
+  final TextEditingController _writtenSpanish = TextEditingController();
+  int _stage = 0;
+  int _highestUnlocked = 0;
+  bool _showSectionMenu = true;
+  final Set<int> _passed = <int>{};
+  int? _choice;
+  bool _checked = false;
+  int _wordIndex = 0;
+  bool _saving = false;
+  bool _complete = false;
+  bool _transcript = false;
+  bool _vocabularyQuizPassed = false;
+  bool _readingPassed = false;
+  bool _spellingPassed = false;
+  bool _writingPassed = false;
+  int _spellingStep = 0;
+  int? _readingChoice;
+  String? _writingFeedback;
+
+  static const _arNames = <String>[
+    'شرح القواعد', '40 مفردة', 'القصة المصورة', 'اختبار الكلمات',
+    'المحادثة', 'النطق', 'الاستماع والبودكاست', 'اكتمال الدرس',
+  ];
+  static const _sectionIcons = <IconData>[
+    Icons.menu_book_outlined, Icons.translate_rounded,
+    Icons.auto_stories_rounded, Icons.fact_check_rounded,
+    Icons.forum_outlined, Icons.record_voice_over_outlined,
+    Icons.headphones_rounded, Icons.workspace_premium_outlined,
+  ];
+  static const _esNames = <String>[
+    'Gramática', 'Vocabulario', 'Historia ilustrada', 'Repaso',
+    'Conversación', 'Pronunciación', 'Pódcast y escucha', 'Completado',
+  ];
+
+  bool get _ar => Localizations.localeOf(context).languageCode == 'ar';
+  Color get _visibleGreen => Theme.of(context).brightness == Brightness.dark
+      ? const Color(0xFF80D9AF) : _verde;
+  String? get _uid {
+    try {
+      return FirebaseAuth.instance.currentUser?.uid;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _load();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Do not continue a long classroom reading aloud after the student
+    // backgrounds the app or locks the phone.
+    if (state != AppLifecycleState.resumed && _isSpeaking) {
+      unawaited(_stopSpeech());
+    }
+  }
+
+  Future<void> _load() async {
+    final uid = _uid;
+    final completed = await SpanishA1Progress.load(uid, level: widget.level);
+    final isComplete = completed.contains(widget.lesson.id);
+    final lastStage = isComplete ? 7 : await SpanishLessonStageProgress.load(
+      uid, level: widget.level, lessonId: widget.lesson.id);
+    if (!mounted) return;
+    setState(() {
+      _complete = isComplete;
+      if (lastStage > _highestUnlocked) {
+        _highestUnlocked = lastStage;
+        _stage = lastStage;
+      }
+      _passed.addAll(List<int>.generate(_highestUnlocked, (i) => i));
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _speechRequest++;
+    _tts.stop();
+    _typedSpanishWord.dispose();
+    _writtenSpanish.dispose();
+    super.dispose();
+  }
+
+  Future<void> _stopSpeech() async {
+    _speechRequest++;
+    if (mounted) setState(() => _isSpeaking = false);
+    await _tts.stop();
+  }
+
+  Future<void> _speak(String value, {bool slow = false}) async {
+    final request = ++_speechRequest;
+    if (mounted) setState(() => _isSpeaking = true);
+    try {
+      await _tts.stop();
+      if (request != _speechRequest || !mounted) return;
+      if (await _tts.isLanguageAvailable('es-ES') == false) {
+        throw StateError('Spanish voice unavailable');
+      }
+      if (request != _speechRequest || !mounted) return;
+      await _tts.setLanguage('es-ES');
+      await _tts.setSpeechRate(slow ? .32 : .48);
+      await _tts.setVolume(1);
+      // Without completion-await, the second chunk interrupts the first one.
+      await _tts.awaitSpeakCompletion(true);
+      for (final chunk in SpanishSpeechChunks.split(value)) {
+        if (request != _speechRequest || !mounted) return;
+        if (await _tts.speak(chunk) == 0) {
+          if (request != _speechRequest || !mounted) return;
+          throw StateError('Speech not started');
+        }
+      }
+    } catch (_) {
+      if (!mounted || request != _speechRequest) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_ar
+          ? 'تعذر تشغيل الصوت الإسباني. ثبّت صوت الإسبانية من إعدادات الهاتف.'
+          : 'Spanish speech unavailable. Install an es-ES voice in Settings.')));
+    } finally {
+      if (mounted && request == _speechRequest) {
+        setState(() => _isSpeaking = false);
+      }
+    }
+  }
+
+  void _returnToMenu() {
+    if (_isSpeaking) unawaited(_stopSpeech());
+    setState(() => _showSectionMenu = true);
+  }
+
+  void _choose(int next) {
+    if (next > _highestUnlocked || next < 0) return;
+    if (next != _stage && _isSpeaking) {
+      unawaited(_stopSpeech());
+    }
+    setState(() {
+      _stage = next;
+      _showSectionMenu = false;
+      _choice = null;
+      _checked = false;
+    });
+  }
+
+  void _pass() {
+    // A story or podcast must never keep speaking over the next exercise.
+    if (_isSpeaking) unawaited(_stopSpeech());
+    setState(() {
+      _passed.add(_stage);
+      final next = (_stage + 1).clamp(0, 7);
+      if (_highestUnlocked < next) _highestUnlocked = next;
+      _stage = next;
+      // Completing a section returns to the lesson's section index;
+      // the learner chooses the next unlocked section explicitly.
+      _showSectionMenu = true;
+      _choice = null;
+      _checked = false;
+      _wordIndex = 0;
+    });
+    // Serialize checkpoint writes, so finishing the lesson cannot clear a
+    // checkpoint before an earlier in-flight save has completed.
+    final unlocked = _highestUnlocked;
+    _latestStageSave = _latestStageSave.then((_) =>
+      SpanishLessonStageProgress.save(_uid,
+        level: widget.level, lessonId: widget.lesson.id,
+        unlockedStage: unlocked,
+      )).catchError((Object _) {});
+    unawaited(_latestStageSave);
+  }
+
+  Future<void> _finish() async {
+    if (_saving || _passed.length < 7) return;
+    if (_isSpeaking) unawaited(_stopSpeech());
+    setState(() => _saving = true);
+    try {
+      await SpanishA1Progress.complete(
+          _uid, widget.lesson, level: widget.level);
+      // Once the durable completion is recorded, clear the temporary
+      // section checkpoint. A failure to clear must not undo completion.
+      try {
+        await _latestStageSave;
+        await SpanishLessonStageProgress.clear(_uid,
+          level: widget.level, lessonId: widget.lesson.id);
+      } catch (_) {
+        // Full lesson completion was already saved.
+      }
+      if (mounted) {
+        setState(() => _complete = true);
+        Navigator.of(context).pop();
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(
+          _ar ? 'تعذر حفظ التقدم على الجهاز.' :
+          'Lesson completion could not be saved on this device.')));
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  /// The same 8 clearly visible classroom cards as English Advanced.
+  /// Locked cards explain progression rather than hiding lesson contents.
+  Widget _sectionMenu() {
+    final scheme = Theme.of(context).colorScheme;
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Text(_ar ? 'أقسام الدرس الثمانية' : 'Ocho secciones de la lección',
+        key: const ValueKey('spanish-eight-section-heading'),
+        style: TextStyle(fontSize: 23,
+          fontWeight: FontWeight.w900,color: _visibleGreen)),
+      const SizedBox(height: 5),
+      Text(_ar
+          ? 'كل هذه الأقسام داخل درس واحد. ابدأ بالقواعد ثم افتح البقية بالترتيب.'
+          : 'Estas ocho secciones pertenecen a una lección. Empieza por gramática.',
+        style: TextStyle(color:scheme.onSurfaceVariant,height:1.55)),
+      const SizedBox(height: 11),
+      LinearProgressIndicator(value:_highestUnlocked/7,
+        minHeight:7,borderRadius:BorderRadius.circular(8),
+        color:_visibleGreen,backgroundColor:scheme.surfaceContainerHighest),
+      const SizedBox(height: 12),
+      for(var i=0;i<_arNames.length;i++)
+        Padding(padding:const EdgeInsets.only(bottom:8),
+          child:Material(color:scheme.surface,
+            borderRadius:BorderRadius.circular(17),
+            child:InkWell(
+              key:ValueKey('spanish-section-$i'),
+              onTap:i<=_highestUnlocked?()=>_choose(i):null,
+              borderRadius:BorderRadius.circular(17),
+              child:Container(padding:const EdgeInsets.all(13),
+                decoration:BoxDecoration(
+                  borderRadius:BorderRadius.circular(17),
+                  border:Border.all(color:i==_stage?_visibleGreen:scheme.outlineVariant)),
+                child:Row(children:[
+                  CircleAvatar(backgroundColor:_verde.withValues(alpha:.22),
+                    child:Icon(_sectionIcons[i],color:_visibleGreen)),
+                  const SizedBox(width:12),
+                  Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,
+                    children:[
+                      Text(_ar?_arNames[i]:_esNames[i],
+                        style:const TextStyle(fontWeight:FontWeight.w800)),
+                      Text(_ar
+                          ? (i==0?'القاعدة والأمثلة':i==1?'40 مفردة':i==2
+                              ? 'قصة متعددة الفقرات':i==3?'فهم وكتابة واختبارات'
+                              :i==4?'حوار بالإسبانية':i==5?'تدريب الصوت والنطق'
+                              :i==6?'بودكاست وأسئلة':'حفظ إنجاز الدرس')
+                          : (i==0?'Explicación y ejemplos':i==1?'40 palabras'
+                              :i==2?'Lectura de varios párrafos'
+                              :i==3?'Comprensión y escritura'
+                              :i==4?'Diálogo':i==5?'Pronunciación'
+                              :i==6?'Audio y preguntas':'Guardar progreso'),
+                        style:TextStyle(fontSize:12,color:scheme.onSurfaceVariant)),
+                    ])),
+                  Icon(i<_highestUnlocked?Icons.check_circle_rounded:
+                    i==_stage?Icons.arrow_circle_right_outlined:
+                    Icons.lock_outline_rounded,color:i<=_highestUnlocked?
+                        _visibleGreen:scheme.onSurfaceVariant),
+                ])),
+              ),
+            ),
+          ),
+    ]);
+  }
+
+  Widget _panel(Widget child) => Card(
+    margin: const EdgeInsets.only(bottom: 12),
+    color: Theme.of(context).colorScheme.surfaceContainerLow,
+    child: Padding(padding: const EdgeInsets.all(16), child: child));
+
+  Widget _primary(String label, VoidCallback? onTap,
+      {Key? key, IconData icon = Icons.arrow_forward_rounded}) =>
+    Padding(
+      padding: const EdgeInsets.only(top: 14),
+      child: FilledButton.icon(
+        key: key, onPressed: onTap,
+        icon: Icon(icon), label: Text(label),
+        style: FilledButton.styleFrom(
+            backgroundColor: _verde, foregroundColor: Colors.white,
+            minimumSize: const Size.fromHeight(52))),
+    );
+
+  /// Modern accessible multiple-choice control. Avoid deprecated RadioListTile
+  /// groupValue/onChanged API, keep the question state in this lesson alone.
+  Widget _option(String label, int index, String keyPrefix) =>
+      Card(child: ListTile(
+        key: ValueKey('$keyPrefix-$index'),
+        title: Text(label, textDirection: TextDirection.ltr),
+        leading: Icon(_choice == index
+            ? Icons.radio_button_checked_rounded
+            : Icons.radio_button_unchecked_rounded,
+            color: _choice == index ? _verde : null),
+        selected: _choice == index,
+        onTap: () => setState(() {
+          _choice = index;
+          _checked = false;
+        }),
+      ));
+
+  Widget _audio(String text, {bool slow = false}) =>
+      IconButton(tooltip: _ar ? 'استمع للإسبانية' : 'Hear Spanish',
+        onPressed: () => _speak(text, slow: slow),
+        icon: const Icon(Icons.volume_up_rounded));
+
+  Widget _grammar() {
+    final item = widget.lesson;
+    final examples = widget.level == 'A2'
+        ? SpanishA2Course.grammarExamplesFor(item as SpanishA2Lesson)
+        : item.grammarExamples;
+    final choices = widget.level == 'C2'
+        ? SpanishC2Course.grammarOptions(widget.lesson as SpanishC2Lesson)
+        : widget.level == 'C1'
+        ? SpanishC1Course.grammarOptions(widget.lesson as SpanishC1Lesson)
+        : widget.level == 'B2'
+        ? SpanishB2Course.grammarOptions(widget.lesson as SpanishB2Lesson)
+        : widget.level == 'B1'
+        ? SpanishB1Course.grammarOptions(widget.lesson as SpanishB1Lesson)
+        : widget.level == 'A2'
+        ? SpanishA2Course.grammarOptions(widget.lesson as SpanishA2Lesson)
+        : <String>['Yo es una estudiantes.', examples[0], 'Tú soy la libros.'];
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      _panel(Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Icon(Icons.lightbulb_rounded, color: Color(0xFFB48A46)),
+        Text(_ar ? 'قاعدة واحدة · خطوة بخطوة' :
+            'Una regla · paso a paso',
+          style: TextStyle(color: _visibleGreen, fontWeight: FontWeight.w900,
+            fontSize: 21)),
+        const SizedBox(height: 12),
+        Text(item.grammar, style: const TextStyle(
+          fontWeight: FontWeight.w900, fontSize: 20)),
+        const SizedBox(height: 8),
+        Text(item.grammarAr, style: const TextStyle(
+          fontWeight: FontWeight.w800, fontSize: 16)),
+        const SizedBox(height: 8),
+        Text(item.grammarHelpAr, style: const TextStyle(height: 1.8)),
+        const SizedBox(height: 13),
+        Text(_ar?'1 · افهم لماذا نستخدم القاعدة':
+            '1 · Cuándo usar esta regla',
+            style:TextStyle(fontWeight:FontWeight.w900,color:_visibleGreen)),
+        Text(_ar
+          ? 'ابدأ بالسياق والمعنى، ثم قارِن بين الأمثلة للتعرف على الاستخدام.'
+          : 'Relaciona el significado con los contextos de los ejemplos.',
+          style:const TextStyle(height:1.6)),
+        const SizedBox(height:10),
+        Text(_ar?'2 · احفظ صيغة القاعدة':'2 · Estructura',
+          style:TextStyle(fontWeight:FontWeight.w900,color:_visibleGreen)),
+        Text('Estructura: ${item.grammar}',textDirection:TextDirection.ltr),
+        const SizedBox(height:10),
+        Text(_ar?'3 · راجع الفرق بين المثالين الأول والثاني':
+            '3 · Compara los primeros ejemplos',
+          style:TextStyle(fontWeight:FontWeight.w900,color:_visibleGreen)),
+        Text(examples.take(2).join('  /  '),textDirection:TextDirection.ltr,
+          style:const TextStyle(height:1.6)),
+        const SizedBox(height:10),
+        Text(_ar?'4 · اكتشف الخطأ ثم اختبر فهمك':
+            '4 · Detecta errores y practica',
+          style:TextStyle(fontWeight:FontWeight.w900,color:_visibleGreen)),
+        Text(_ar?'راجع الجملة الخاطئة أدناه وصحّحها قبل الإجابة.':
+            'Revisa la frase incorrecta y corrígela antes del test.',
+          style:const TextStyle(height:1.6)),
+      ])),
+      Text(_ar ? 'أمثلة مشروحة بالصوت' : 'Ejemplos con audio',
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+      for (final e in examples)
+        _panel(Row(children: [
+          Expanded(child: Text(e, textDirection: TextDirection.ltr,
+            style: const TextStyle(fontSize: 17))),
+          _audio(e),
+        ])),
+      _panel(Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
+        Text(_ar?'خطأ شائع وتصحيحه':'Error frecuente y corrección',
+          style:const TextStyle(fontWeight:FontWeight.w900,fontSize:18)),
+        const SizedBox(height:8),
+        Text(choices.first,textDirection:TextDirection.ltr,
+          style:TextStyle(color:Theme.of(context).colorScheme.error)),
+        const SizedBox(height:6),
+        Row(children:[Icon(Icons.check_circle,color:_visibleGreen),
+          const SizedBox(width:7),
+          Expanded(child:Text(examples.first,
+            textDirection:TextDirection.ltr,
+            style:const TextStyle(fontWeight:FontWeight.w800)))]),
+      ])),
+      Text(_ar ? 'اختر الجملة الصحيحة' : 'Elige la frase correcta',
+        style: const TextStyle(fontWeight: FontWeight.w900)),
+      for (var i = 0; i < choices.length; i++)
+        _option(choices[i], i, 'spanish-grammar-option'),
+      if (_checked)
+        Text(_choice == 1 ? (_ar ? 'صحيح!' : '¡Correcto!') :
+          (_ar ? 'راجع القاعدة وحاول مرة أخرى.' : 'Inténtalo otra vez.'),
+          style: TextStyle(color: _choice == 1 ? _visibleGreen :
+              Theme.of(context).colorScheme.error)),
+      _primary(_ar ? 'تحقق ثم تابع' : 'Comprueba y continúa',
+        _choice == null ? null : () {
+          if (_choice == 1) {
+            _pass();
+          } else {
+            setState(() => _checked = true);
+          }
+        }, key: const ValueKey('spanish-grammar-check')),
+    ]);
+  }
+
+  Widget _vocabulary() {
+    final words = widget.lesson.words;
+    const labels = <SpanishWordKind, (String, String)>{
+      SpanishWordKind.noun: ('Sustantivos', 'الأسماء'),
+      SpanishWordKind.verb: ('Verbos', 'الأفعال'),
+      SpanishWordKind.adjective: ('Adjetivos', 'الصفات'),
+      SpanishWordKind.adverb: ('Adverbios', 'الظروف'),
+    };
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Text(_ar ? '40 كلمة في أربع مجموعات' :
+          '40 palabras · cuatro categorías',
+        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900,
+            color: _verde)),
+      const SizedBox(height: 10),
+      for (final kind in SpanishWordKind.values) ...[
+        Container(
+          padding: const EdgeInsets.all(12),
+          margin: const EdgeInsets.only(top: 12, bottom: 7),
+          decoration: BoxDecoration(color: _verde,
+            borderRadius: BorderRadius.circular(13)),
+          child: Text(_ar ? '${labels[kind]!.$2} · 10' :
+            '${labels[kind]!.$1} · 10',
+            style: const TextStyle(color: Colors.white,
+                fontWeight: FontWeight.w900))),
+        for (final word in words.where((w) => w.kind == kind))
+          ListTile(
+            key: ValueKey('spanish-word-${word.es}'),
+            title: Text(word.es, textDirection: TextDirection.ltr,
+              style: const TextStyle(fontWeight: FontWeight.w800)),
+            subtitle: Text(word.ar),
+            trailing: _audio(word.es)),
+      ],
+      _primary(_ar ? 'راجعت المفردات الأربعين' : 'He repasado 40 palabras',
+        _pass, key: const ValueKey('spanish-vocabulary-next')),
+    ]);
+  }
+
+  Widget _story() {
+    final lesson = widget.lesson;
+    final paragraphs = widget.level == 'C2'
+        ? SpanishC2Course.reading(lesson as SpanishC2Lesson)
+        : widget.level == 'C1'
+        ? SpanishC1Course.reading(lesson as SpanishC1Lesson)
+        : widget.level == 'B2'
+        ? SpanishB2Course.reading(lesson as SpanishB2Lesson)
+        : widget.level == 'B1'
+        ? SpanishB1Course.reading(lesson as SpanishB1Lesson)
+        : widget.level == 'A2'
+        ? SpanishA2Course.reading(lesson as SpanishA2Lesson)
+        : SpanishA1Course.reading(lesson);
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Container(
+        key: const ValueKey('spanish-story-cover'),
+        padding: const EdgeInsets.all(22),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF113F33), Color(0xFF2D8868)]),
+          borderRadius: BorderRadius.circular(22)),
+        child: Column(children: [
+          const Icon(Icons.auto_stories, color: _oro, size: 40),
+          const SizedBox(height: 8),
+          Text('WORLDVOICE · ESPAÑOL ${widget.level}',
+            style: const TextStyle(color: _oro, letterSpacing: 1.4)),
+          const SizedBox(height: 12),
+          Text(lesson.title, textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white,
+              fontFamily: 'serif', fontWeight: FontWeight.w900,
+              fontSize: 26)),
+          const SizedBox(height: 8),
+          Text(lesson.titleAr, textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white70)),
+        ])),
+      const SizedBox(height: 13),
+      for (var i = 0; i < paragraphs.length; i++) ...[
+        if (i == 0 || i == 2 ||
+            ((widget.level == 'C1' || widget.level == 'C2') && i == 5))
+          AcademyIllustratedStoryArt(
+            scene: ((lesson.unit - 1) * 10 + lesson.number - 1) % 9,
+            page: i + 1, animate: false),
+        _panel(Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Row(children: [
+            Text(_ar ? 'الصفحة ${i+1}' : 'PÁGINA ${i+1}',
+              style: TextStyle(color: _visibleGreen,
+                  fontWeight: FontWeight.w900)),
+            const Spacer(), _audio(paragraphs[i]),
+          ]),
+          SelectableText(paragraphs[i],
+            key: ValueKey('spanish-story-paragraph-$i'),
+            textDirection: TextDirection.ltr,
+            style: const TextStyle(fontFamily: 'serif',
+                fontSize: 19, height: 1.75)),
+        ])),
+      ],
+      _panel(Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
+        Text(_ar?'مفردات الدرس المرتبطة بالقراءة':
+            'Vocabulario relacionado con la lectura',
+          style:const TextStyle(fontWeight:FontWeight.w900,fontSize:18)),
+        const SizedBox(height:7),
+        for(final word in lesson.words.take(8))
+          ListTile(title:Text(word.es,textDirection:TextDirection.ltr),
+            subtitle:Text(word.ar),trailing:_audio(word.es)),
+      ])),
+      Wrap(spacing: 8, children: [
+        FilledButton.tonalIcon(
+          onPressed: () => _speak(paragraphs.join(' ')),
+          icon: const Icon(Icons.headphones_rounded),
+          label: Text(_ar ? 'استمع للقصة كاملة' : 'Escuchar la historia')),
+        OutlinedButton.icon(
+          onPressed: () => _speak(paragraphs.join(' '), slow: true),
+          icon: const Icon(Icons.slow_motion_video_rounded),
+          label: Text(_ar ? 'استماع بطيء' : 'Más despacio')),
+      ]),
+      const SizedBox(height: 10),
+      Text(_ar ? 'اقرأ القصة وانتبه للكلمات التي تعلمتها.'
+          : 'Lee y busca las palabras nuevas.'),
+      _primary(_ar ? 'قرأت القصة' : 'He leído la historia', _pass,
+        key: const ValueKey('spanish-story-next')),
+    ]);
+  }
+
+  /// Same three-stage English exercise: vocabulary, story comprehension,
+  /// and open-ended spelling/writing. Passing multiple-choice alone
+  /// cannot unlock the conversation section.
+  Widget _quiz() {
+    final kinds=SpanishWordKind.values;
+    final kind=kinds[_wordIndex % kinds.length];
+    final selected=SpanishA1Course.wordsOf(widget.lesson,kind);
+    final word=selected[_wordIndex ~/ 4];
+    final choices=<String>[
+      word.ar,
+      selected[(2+_wordIndex)%selected.length].ar,
+      selected[(5+_wordIndex)%selected.length].ar,
+    ];
+    final correct=_wordIndex%3;
+    final shuffled=<String>[choices[1],choices[2]]
+      ..insert(correct,choices[0]);
+    final paragraph=widget.lesson.story;
+    String opening(String text){
+      final end=text.indexOf('.');
+      return end<0?text.trim():text.substring(0,end+1).trim();
+    }
+    final readingAnswers=<String>[
+      opening(paragraph[0]),opening(paragraph[1]),opening(paragraph[2]),
+    ];
+    final spelling=SpanishA1Course.wordsOf(widget.lesson,SpanishWordKind.noun)
+        .take(3).toList(growable:false);
+    final minWords=switch(widget.level){
+      'C2'=>20,'C1'=>18,'B2'=>14,'B1'=>10,_=>7,
+    };
+    return Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
+      Text(_ar?'اختبارات مفردات وفهم القصة وكتابة بالإسبانية':
+          'Vocabulario, comprensión y escritura en español',
+        style:const TextStyle(fontSize:22,fontWeight:FontWeight.w900,
+          color:_verde)),
+      const SizedBox(height:12),
+      _panel(Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
+        Text(_ar?'1 · اختبار 8 كلمات من الدرس':
+            '1 · Repaso de ocho palabras',
+          style:const TextStyle(fontWeight:FontWeight.w900,fontSize:18)),
+        const SizedBox(height:8),
+        if(_vocabularyQuizPassed)
+          const Text('8 / 8  ✓',key:ValueKey('spanish-vocabulary-quiz-passed'))
+        else ...[
+          Text('${_wordIndex+1} / 8',style:TextStyle(color:_visibleGreen)),
+          Row(children:[
+            Expanded(child:Text(word.es,textDirection:TextDirection.ltr,
+              style:const TextStyle(fontSize:20,fontWeight:FontWeight.w900))),
+            _audio(word.es),
+          ]),
+          Text(_ar?'ما المعنى الصحيح؟':'¿Qué significa?'),
+          for(var i=0;i<shuffled.length;i++)
+            _option(shuffled[i],i,'spanish-quiz-option'),
+          if(_checked) Text(_ar?'حاول مجددًا':'Inténtalo otra vez',
+              style:TextStyle(color:Theme.of(context).colorScheme.error)),
+          _primary(_ar?'تحقق من الإجابة':'Comprobar',
+            _choice==null?null:(){
+              if(_choice!=correct){setState(()=>_checked=true);}
+              else if(_wordIndex==7){
+                setState((){
+                  _vocabularyQuizPassed=true;
+                  _choice=null;
+                  _checked=false;
+                });
+              }else{
+                setState((){
+                  _wordIndex++;
+                  _choice=null;
+                  _checked=false;
+                });
+              }
+            },key:const ValueKey('spanish-quiz-check')),
+        ],
+      ])),
+      _panel(Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
+        Text(_ar?'2 · اختبار فهم القصة':'2 · Comprensión lectora',
+          style:const TextStyle(fontWeight:FontWeight.w900,fontSize:18)),
+        const SizedBox(height:8),
+        Text(_ar?'أي جملة تبدأ بها الفقرة الثانية من القصة؟':
+            '¿Con qué frase comienza el segundo párrafo de la historia?'),
+        const SizedBox(height:10),
+        for(var i=0;i<readingAnswers.length;i++)
+          Card(child:ListTile(
+            key:ValueKey('spanish-reading-option-$i'),
+            selected:_readingChoice==i,
+            enabled:!_readingPassed,
+            title:Text(readingAnswers[i],textDirection:TextDirection.ltr),
+            leading:Icon(_readingChoice==i?
+              Icons.radio_button_checked_rounded:
+              Icons.radio_button_unchecked_rounded,color:_visibleGreen),
+            onTap:()=>setState(()=>_readingChoice=i),
+          )),
+        if(_readingPassed) Text(_ar?'فهم القصة: صحيح ✓':'Comprensión correcta ✓',
+          key:const ValueKey('spanish-reading-passed'),
+          style:TextStyle(color:_visibleGreen,fontWeight:FontWeight.bold)),
+        _primary(_ar?'تحقق من فهم القصة':'Comprobar comprensión',
+          _readingChoice==null||_readingPassed?null:(){
+            setState((){
+              _readingPassed=_readingChoice==1;
+              if(!_readingPassed) {
+                _writingFeedback=_ar?
+                  'راجع الفقرة الثانية وحاول مرة أخرى.':
+                  'Relee el segundo párrafo e inténtalo de nuevo.';
+              } else {
+                _writingFeedback=null;
+              }
+            });
+          },key:const ValueKey('spanish-reading-check')),
+      ])),
+      _panel(Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
+        Text(_ar?'3 · اكتب ثلاث كلمات إسبانية':
+            '3 · Escribe tres palabras en español',
+          style:const TextStyle(fontWeight:FontWeight.w900,fontSize:18)),
+        const SizedBox(height:8),
+        Text(_spellingPassed?'3 / 3 ✓':'${_spellingStep+1} / 3',
+          key:const ValueKey('spanish-spelling-progress')),
+        if(!_spellingPassed) ...[
+          Text(_ar?'اكتب الكلمة الإسبانية التي تعني: ${spelling[_spellingStep].ar}':
+              'Escribe la palabra española para: ${spelling[_spellingStep].ar}'),
+          const SizedBox(height:9),
+          TextField(key:const ValueKey('spanish-write-word'),
+            controller:_typedSpanishWord,
+            textDirection:TextDirection.ltr,
+            autocorrect:false,
+            decoration:InputDecoration(border:const OutlineInputBorder(),
+              labelText:_ar?'الكلمة بالإسبانية':'Palabra en español')),
+          _primary(_ar?'تحقق من الكلمة':'Comprobar palabra',(){
+            String norm(String value)=>value.trim().toLowerCase()
+                .replaceAll(RegExp(r'\s+'),' ');
+            if(norm(_typedSpanishWord.text)!=norm(spelling[_spellingStep].es)){
+              setState(()=>_writingFeedback=_ar?
+                  'راجع مفردات الدرس وتحقق من تهجئة الكلمة.':
+                  'Revisa el vocabulario y la ortografía.');
+              return;
+            }
+            setState((){
+              _spellingStep++;
+              _spellingPassed=_spellingStep==3;
+              _typedSpanishWord.clear();
+              _writingFeedback=_spellingPassed?(_ar?
+                  'أحسنت! كتبت الكلمات الثلاث بشكل صحيح.':
+                  '¡Muy bien! Tres palabras correctas.') : null;
+            });
+          },key:const ValueKey('spanish-check-word')),
+        ],
+        const SizedBox(height:15),
+        Text(_ar?'4 · اكتب جملة أو فقرة مستخدمًا مفردات الدرس':
+            '4 · Escribe una frase o un párrafo',
+          style:const TextStyle(fontWeight:FontWeight.w900,fontSize:18)),
+        const SizedBox(height:6),
+        Text(_ar?'اكتب $minWords كلمات إسبانية على الأقل، واستخدم كلمة '
+            'واحدة من مفردات هذا الدرس. هذا فحص ممارسة وليس تقييمًا '
+            'آليًا لصحة القواعد.':
+            'Escribe al menos $minWords palabras e incluye vocabulario '
+            'de la lección. Es práctica, no corrección gramatical automática.'),
+        const SizedBox(height:8),
+        TextField(key:const ValueKey('spanish-write-sentence'),
+          controller:_writtenSpanish,
+          textDirection:TextDirection.ltr,
+          minLines:3,maxLines:6,
+          onChanged:(_)=>setState(()=>_writingPassed=false),
+          decoration:InputDecoration(border:const OutlineInputBorder(),
+            hintText:_ar?'اكتب بالإسبانية...':'Escribe en español...')),
+        _primary(_ar?'راجع الكتابة':'Revisar escritura',(){
+          final text=_writtenSpanish.text.trim().toLowerCase();
+          final count=text.isEmpty?0:text.split(RegExp(r'\s+')).length;
+          final contains=widget.lesson.words.any(
+            (w)=>text.contains(w.es.toLowerCase()));
+          setState((){
+            _writingPassed=count>=minWords&&contains;
+            _writingFeedback=_writingPassed?(_ar?
+              'تم التدريب. راجع دقة الجمل مع المعلم.':
+              'Práctica completada. Revisa la gramática con tu profesor.')
+              :(_ar?'أكمل عدد الكلمات المطلوب واستخدم مفردة من الدرس.':
+              'Escribe más palabras e incluye vocabulario del tema.');
+          });
+        },key:const ValueKey('spanish-check-sentence')),
+        if(_writingFeedback!=null)
+          Padding(padding:const EdgeInsets.only(top:9),
+            child:Text(_writingFeedback!,
+              style:TextStyle(color:_writingPassed?_verde:
+                Theme.of(context).colorScheme.onSurfaceVariant))),
+      ])),
+      _primary(_ar?'أكملت اختبارات الدرس':'He completado los ejercicios',
+        _vocabularyQuizPassed&&_readingPassed&&_spellingPassed&&_writingPassed
+            ? _pass:null,
+        key:const ValueKey('spanish-quiz-next')),
+    ]);
+  }
+
+  Widget _conversation() {
+    final dialogue = widget.level == 'C2'
+        ? SpanishC2Course.conversation(widget.lesson as SpanishC2Lesson)
+        : widget.level == 'C1'
+        ? SpanishC1Course.conversation(widget.lesson as SpanishC1Lesson)
+        : widget.level == 'B2'
+        ? SpanishB2Course.conversation(widget.lesson as SpanishB2Lesson)
+        : widget.level == 'B1'
+        ? SpanishB1Course.conversation(widget.lesson as SpanishB1Lesson)
+        : widget.level == 'A2'
+        ? SpanishA2Course.conversation(widget.lesson as SpanishA2Lesson)
+        : SpanishA1Course.dialogue(widget.lesson);
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Text(_ar ? 'محادثة تستخدم كلمات الدرس' :
+          'Conversación con las palabras de hoy',
+        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 21)),
+      for (var i=0; i<dialogue.length; i++)
+        Card(
+          color: i.isEven ? const Color(0xFFE0F1E7) :
+              Theme.of(context).colorScheme.surfaceContainerHigh,
+          child: ListTile(
+            title: Text(dialogue[i], textDirection: TextDirection.ltr,
+                style: TextStyle(color: i.isEven ? _verde : null)),
+            trailing: _audio(dialogue[i].split(': ').last),
+          )),
+      FilledButton.tonalIcon(
+        onPressed:()=>_speak(dialogue.join(' ')),
+        icon:const Icon(Icons.volume_up_rounded),
+        label:Text(_ar?'استمع للمحادثة كاملة':
+            'Escuchar el diálogo completo')),
+      _primary(_ar ? 'تدربت على دوري في المحادثة' :
+          'He practicado la conversación', _pass,
+          key: const ValueKey('spanish-conversation-next')),
+    ]);
+  }
+
+  Widget _pronunciation() {
+    final words = widget.lesson.words.take(12).toList();
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Text(_ar ? 'استمع ثم كرر بالإسبانية' : 'Escucha y repite',
+        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
+      Text(_ar ? 'النطق هنا تدريب سماع وتكرار، ولا يوجد تقييم آلي للميكروفون.'
+          : 'Escucha y repite; no hay evaluación automática del micrófono.'),
+      const SizedBox(height:8),
+      _panel(Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+        Text(_ar?'ملاحظات النطق الإسباني':
+          'Pronunciación del español',
+          style:TextStyle(fontWeight:FontWeight.w900,color:_visibleGreen)),
+        const SizedBox(height:6),
+        const Text('j /x/ · ñ /ɲ/ · ll /ʝ/ · rr /r/ · h muda',
+          textDirection:TextDirection.ltr),
+        Text(_ar?'استمع للفروق الصوتية أولًا، ثم كرر كلمات درس اليوم.':
+          'Escucha los sonidos, luego repite las palabras del tema.'),
+      ])),
+      for (final word in words)
+        ListTile(
+          title: Text(word.es, textDirection: TextDirection.ltr),
+          subtitle: Text(word.ar), trailing: _audio(word.es, slow: true)),
+      _primary(_ar ? 'تدربت على النطق' : 'He practicado la pronunciación',
+        _pass, key: const ValueKey('spanish-pronunciation-next')),
+    ]);
+  }
+
+  Widget _listening() {
+    final episode = widget.level == 'C2'
+        ? SpanishC2Course.podcast(widget.lesson as SpanishC2Lesson)
+        : widget.level == 'C1'
+        ? SpanishC1Course.podcast(widget.lesson as SpanishC1Lesson)
+        : widget.level == 'B2'
+        ? SpanishB2Course.podcast(widget.lesson as SpanishB2Lesson)
+        : widget.level == 'B1'
+        ? SpanishB1Course.podcast(widget.lesson as SpanishB1Lesson)
+        : widget.level == 'A2'
+        ? SpanishA2Course.podcast(widget.lesson as SpanishA2Lesson)
+        : SpanishA1Course.podcast(widget.lesson);
+    final nouns = SpanishA1Course.wordsOf(widget.lesson, SpanishWordKind.noun);
+    final answers = <String>[nouns[0].ar, nouns[3].ar, nouns[6].ar];
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Icon(Icons.headphones_rounded, color: _visibleGreen, size: 40),
+      Text(_ar ? 'بودكاست المفردات الأربعين' :
+          'Pódcast de 40 palabras',
+        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 22)),
+      Text(_ar ? 'اسمع القصة والكلمات، ثم أجب عن السؤال.'
+          : 'Escucha la historia y las palabras. Después responde.'),
+      Wrap(spacing: 8, children: [
+        FilledButton.tonalIcon(
+          onPressed: () => _speak(episode),
+          icon: const Icon(Icons.play_arrow),
+          label: Text(_ar ? 'تشغيل البودكاست' : 'Reproducir pódcast')),
+        OutlinedButton.icon(
+          onPressed: () => _speak(episode, slow: true),
+          icon: const Icon(Icons.slow_motion_video),
+          label: Text(_ar ? 'ببطء' : 'Lento')),
+        if (_isSpeaking)
+          OutlinedButton.icon(
+            key: const ValueKey('spanish-stop-audio'),
+            onPressed: _stopSpeech,
+            icon: const Icon(Icons.stop_circle_outlined),
+            label: Text(_ar ? 'إيقاف الصوت' : 'Detener audio')),
+        TextButton(onPressed: () => setState(() => _transcript = !_transcript),
+          child: Text(_ar ? 'إظهار أو إخفاء النص' :
+            'Mostrar u ocultar texto')),
+      ]),
+      if (_transcript) _panel(SelectableText(episode,
+          textDirection: TextDirection.ltr)),
+      const SizedBox(height: 15),
+      Text(_ar ? 'ما معنى «${nouns[0].es}»؟' :
+          '¿Qué significa «${nouns[0].es}»?'),
+      for (var i=0;i<answers.length;i++)
+        _option(answers[i], i, 'spanish-listening-option'),
+      if (_checked)
+        Text(_ar ? 'حاول مرة أخرى.' : 'Inténtalo otra vez.'),
+      _primary(_ar ? 'تحقق ثم أكمل' : 'Comprobar y continuar',
+        _choice == null ? null : () {
+          if (_choice == 0) {
+            _pass();
+          } else {
+            setState(() => _checked = true);
+          }
+        }, key: const ValueKey('spanish-listening-check')),
+    ]);
+  }
+
+  Widget _completion() => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      const Icon(Icons.workspace_premium_rounded,
+          color: Color(0xFFB8924D), size: 70),
+      const SizedBox(height: 10),
+      Text(_ar ? 'أحسنت! أكملت أقسام الدرس الثمانية.' :
+          '¡Enhorabuena! Has completado la lección.',
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 22)),
+      Text(_ar ? 'احفظ إنجازك للعودة إليه حتى بعد إغلاق التطبيق.'
+          : 'Guarda tu progreso en este dispositivo.',
+        textAlign: TextAlign.center),
+      _primary(_complete
+          ? (_ar ? 'الدرس محفوظ' : 'Lección guardada')
+          : (_ar ? 'إنهاء الدرس وحفظ التقدم' : 'Terminar y guardar'),
+          _saving || _complete || _passed.length != 7 ? null : _finish,
+          key: ValueKey('spanish-${widget.level.toLowerCase()}-finish'),
+          icon: Icons.check_circle_rounded),
+    ]);
+
+  @override
+  Widget build(BuildContext context) => PopScope<void>(
+    canPop: _showSectionMenu,
+    onPopInvokedWithResult: (didPop, result) {
+      if (!didPop && !_showSectionMenu) _returnToMenu();
+    },
+    child: Scaffold(
+    appBar: AppBar(
+      backgroundColor: _verde, foregroundColor: Colors.white,
+      // BackButton automatically points in the appropriate RTL/LTR direction.
+      // Inside a section it returns to the eight-card lesson index; on
+      // the index the normal AppBar back button returns to the unit.
+      leading: _showSectionMenu
+          ? null
+          : BackButton(
+              key: const ValueKey('spanish-section-back'),
+              onPressed: _returnToMenu),
+      title: Text(_showSectionMenu
+          ? 'Español ${widget.level} · ${widget.lesson.unit}.${widget.lesson.number}'
+          : (_ar ? _arNames[_stage] : _esNames[_stage])),
+      actions: [
+        if (_isSpeaking)
+          IconButton(
+            key: const ValueKey('spanish-stop-audio-global'),
+            tooltip: _ar ? 'إيقاف النطق الإسباني' : 'Detener audio',
+            onPressed: _stopSpeech,
+            icon: const Icon(Icons.stop_circle_outlined)),
+        if (!_showSectionMenu)
+          IconButton(
+            key: const ValueKey('spanish-sections-menu-button'),
+            tooltip: _ar ? 'العودة لأقسام الدرس' : 'Volver a las secciones',
+            onPressed: _returnToMenu,
+            icon: const Icon(Icons.view_list_rounded)),
+      ]),
+    body: SafeArea(child: ListView(
+      key: ValueKey(_showSectionMenu
+          ? 'spanish-lesson-section-menu'
+          : 'spanish-lesson-section-detail-$_stage'),
+      padding: const EdgeInsets.fromLTRB(17, 18, 17, 28),
+      children: [
+        Text(widget.lesson.title, textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 23, fontWeight: FontWeight.w900,
+              color: _visibleGreen)),
+        const SizedBox(height: 5),
+        Text(_showSectionMenu
+            ? (_ar ? 'اختر القسم الذي تريد دراسته'
+                : 'Elige una sección para estudiar')
+            : (_ar ? _arNames[_stage] : _esNames[_stage]),
+          textAlign: TextAlign.center,
+          style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant)),
+        const SizedBox(height: 9),
+        LinearProgressIndicator(value: _highestUnlocked / 7,
+          color: _visibleGreen, borderRadius: BorderRadius.circular(6)),
+        const SizedBox(height: 12),
+        if (_showSectionMenu)
+          _sectionMenu()
+        else
+          switch (_stage) {
+            0 => _grammar(),
+            1 => _vocabulary(),
+            2 => _story(),
+            3 => _quiz(),
+            4 => _conversation(),
+            5 => _pronunciation(),
+            6 => _listening(),
+            _ => _completion(),
+          },
+      ],
+    )),
+  ));
+}

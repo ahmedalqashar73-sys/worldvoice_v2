@@ -7,16 +7,16 @@ import {
   worldVoiceGiftStoreDocument,
 } from "../src/gift_catalog.js";
 
-test("approved WorldVoice gift catalog is exactly 54 items", () => {
-  assert.equal(worldVoiceGiftCatalog.size, 54);
+test("approved WorldVoice gift catalog is exactly 104 items", () => {
+  assert.equal(worldVoiceGiftCatalog.size, 104);
   assert.equal(worldVoiceGiftCatalog.get("wv_gift_001")?.priceCoins, 1);
-  assert.equal(worldVoiceGiftCatalog.get("wv_gift_054")?.priceCoins, 5000);
+  assert.equal(worldVoiceGiftCatalog.get("wv_gift_104")?.priceCoins, 5000);
 
   const tierCounts = {1: 0, 2: 0, 3: 0};
   for (const item of worldVoiceGiftCatalog.values()) {
     tierCounts[item.tier] += 1;
   }
-  assert.deepEqual(tierCounts, {1: 30, 2: 15, 3: 9});
+  assert.deepEqual(tierCounts, {1: 50, 2: 35, 3: 19});
 });
 
 test("gift settlement authority rejects unknown IDs and altered prices", () => {

@@ -6,10 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import '../../../core/localization/app_strings.dart';
+import '../../../core/theme/worldvoice_appearance.dart';
 
 import '../../../core/localization/locale_controller.dart';
 import '../../../core/localization/supported_language.dart';
 import '../../auth/services/auth_service.dart';
+import 'vip_membership_screen.dart';
 import '../../onboarding/presentation/language/language_selection_screen.dart';
 
 const String _settingsBackend =
@@ -93,6 +95,72 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 );
               },
+            ),
+          ),
+          ValueListenableBuilder<ThemeMode>(
+            valueListenable: WorldVoiceAppearance.instance.mode,
+            builder: (context, selected, _) => Card(
+              child: ListTile(
+                key: const ValueKey('worldvoice-app-appearance'),
+                leading: Icon(selected == ThemeMode.dark
+                    ? Icons.dark_mode_rounded
+                    : Icons.brightness_6_rounded),
+                title: Text(code == 'ar' ? 'مظهر WorldVoice' : 'WorldVoice appearance'),
+                subtitle: Text(switch (selected) {
+                  ThemeMode.dark => code == 'ar' ? 'داكن' : 'Dark',
+                  ThemeMode.light => code == 'ar' ? 'فاتح' : 'Light',
+                  ThemeMode.system => code == 'ar' ? 'حسب الجهاز' : 'System',
+                }),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () async {
+                  final selection = await showModalBottomSheet<ThemeMode>(
+                    context: context, showDragHandle: true,
+                    builder: (sheetContext) => SafeArea(
+                      child: Column(mainAxisSize: MainAxisSize.min, children: [
+                        for (final mode in ThemeMode.values)
+                          ListTile(
+                            leading: Icon(
+                              mode == selected
+                                  ? Icons.radio_button_checked_rounded
+                                  : Icons.radio_button_unchecked_rounded,
+                              color: mode == selected
+                                  ? Theme.of(sheetContext).colorScheme.primary
+                                  : null,
+                            ),
+                            title: Text(switch (mode) {
+                              ThemeMode.dark => code == 'ar' ? 'داكن' : 'Dark',
+                              ThemeMode.light => code == 'ar' ? 'فاتح' : 'Light',
+                              ThemeMode.system => code == 'ar'
+                                  ? 'حسب إعدادات الجهاز' : 'Follow device',
+                            }),
+                            onTap: () => Navigator.pop(sheetContext, mode),
+                          ),
+                      ]),
+                    ),
+                  );
+                  if (selection != null) {
+                    await WorldVoiceAppearance.instance.setMode(selection);
+                  }
+                },
+              ),
+            ),
+          ),
+          Card(
+            child: ListTile(
+              key: const ValueKey('settings-vip-store'),
+              leading: const Icon(Icons.workspace_premium_rounded,
+                  color: Color(0xFFB38C31)),
+              title: Text(code == 'ar' ? 'متجر VIP والاشتراك'
+                  : 'VIP membership and store'),
+              subtitle: Text(code == 'ar'
+                  ? 'المميزات، حالة العضوية، والاشتراك الشهري'
+                  : 'Benefits, membership status and monthly subscription'),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const VipMembershipScreen(),
+                ),
+              ),
             ),
           ),
           if (uid != null)

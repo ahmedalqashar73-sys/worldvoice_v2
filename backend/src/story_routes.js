@@ -1,4 +1,4 @@
-import {randomUUID} from "node:crypto";
+import {createHash, randomUUID} from "node:crypto";
 
 import express from "express";
 import {Timestamp} from "firebase-admin/firestore";
@@ -60,23 +60,6 @@ async function signedStory({bucketForLegacy, doc}) {
   const data = doc.data() || {};
   const publicId = String(data.cloudinaryPublicId || "");
   const storagePath = String(data.storagePath || "");
-  if (data.kind === "live") {
-    const liveId = String(data.liveId || "");
-    if (!/^[A-Za-z0-9_-]{3,128}$/.test(liveId)) return null;
-    return {
-      id: doc.id,
-      ownerId: String(data.ownerId || ""),
-      ownerName: String(data.ownerName || "WorldVoice"),
-      ownerPhotoUrl: String(data.ownerPhotoUrl || ""),
-      kind: "live",
-      liveId,
-      audience: "everyone",
-      durationMs: 12000,
-      createdAtMs: timestampMillis(data.createdAt),
-      expiresAtMs: timestampMillis(data.expiresAt),
-      mediaUrl: "",
-    };
-  }
   if (!publicId && !storagePath) return null;
   try {
     let mediaUrl = "";
@@ -264,7 +247,9 @@ export function registerStoryRoutes({
               : await requireStoryBucket();
             await bucket.file(storagePath).delete({ignoreNotFound: true});
           }
-          await doc.ref.delete();
+          // Firestore document deletion alone leaves views, likes and comments.
+          // Purge the Story tree when the 24-hour media expires.
+          await db.recursiveDelete(doc.ref);
         } catch (error) {
           console.warn("Expired story cleanup postponed:", doc.id,
             error?.code || error?.message);
@@ -349,7 +334,28 @@ export function registerStoryRoutes({
           fail("Close Friends stories are a VIP feature.", 403);
         }
 
-        const id = randomUUID().replaceAll("-", "");
+        // Keep one stable story ID even if the phone times out after upload.
+        // A retry with the same ID returns the saved story instead of posting
+        // duplicates or charging media storage repeatedly.
+        const requestId = String(req.headers["x-story-upload-id"] || "").trim();
+        if (requestId && !/^[A-Za-z0-9_-]{16,96}$/.test(requestId)) {
+          fail("Invalid story upload request identifier.");
+        }
+        const id = requestId
+          ? createHash("sha256")
+            .update(`worldvoice:story:${user.uid}:${requestId}`)
+            .digest("hex")
+          : randomUUID().replaceAll("-", "");
+        const storyRef = db.collection("stories").doc(id);
+        if (requestId) {
+          const existing = await storyRef.get();
+          if (existing.exists && existing.data()?.ownerId === user.uid) {
+            const saved = existing.data();
+            return res.json({ok: true, storyId: id,
+              expiresAtMs: timestampMillis(saved.expiresAt),
+              alreadyPublished: true});
+          }
+        }
         const ext = extensionFor(contentType, kind);
         const storagePath = `stories/${user.uid}/${id}.${ext}`;
         const now = Date.now();
@@ -371,7 +377,6 @@ export function registerStoryRoutes({
           });
         }
 
-        const storyRef = db.collection("stories").doc(id);
         try {
           await storyRef.set({
             ownerId: user.uid,
@@ -417,49 +422,32 @@ export function registerStoryRoutes({
     },
   );
 
-  app.post("/stories/live-share", async (req, res, next) => {
+  // Confirm media can actually be read before the upload sheet closes.
+  // This prevents false "published" success for broken storage URLs.
+  app.get("/stories/status", async (req, res, next) => {
     try {
       const user = await authenticatedUser(req);
-      const liveId = String(req.body?.liveId || "").trim();
-      if (!/^[A-Za-z0-9_-]{3,128}$/.test(liveId)) {
-        fail("Invalid Live ID.");
+      const storyId = String(req.query.storyId || "");
+      if (!/^[A-Za-z0-9]{20,96}$/.test(storyId)) {
+        fail("Invalid story identifier.");
       }
-      const liveRef = db.collection("live_sessions").doc(liveId);
-      const liveSnap = await liveRef.get();
-      const live = liveSnap.data() || {};
-      const heartbeatMs = live.hostHeartbeatAt?.toMillis?.() ?? 0;
-      if (!liveSnap.exists || live.isLive !== true ||
-          live.channelId !== liveId ||
-          heartbeatMs < Date.now() - 60000) {
-        fail("Live has ended.", 409);
+      const doc = await db.collection("stories").doc(storyId).get();
+      if (!doc.exists || doc.data()?.ownerId !== user.uid) {
+        fail("Story not found.", 404);
       }
-      if (live.hostId !== user.uid) {
-        const viewer = await liveRef.collection("viewers").doc(user.uid).get();
-        if (!viewer.exists || viewer.data()?.uid !== user.uid) {
-          fail("Join the Live before sharing it to a story.", 403);
-        }
-      }
-      const profileSnap = await db.collection("users").doc(user.uid).get();
-      if (!profileSnap.exists) fail("WorldVoice profile is required.", 409);
-      const profile = profileSnap.data() || {};
-      const now = Date.now();
-      const ref = db.collection("stories").doc();
-      await ref.set({
-        ownerId: user.uid,
-        ownerName: String(profile.displayName || user.name || "WorldVoice")
-          .slice(0, 100),
-        ownerPhotoUrl: String(profile.photoUrl || user.picture || ""),
-        kind: "live",
-        liveId,
-        audience: "everyone",
-        durationMs: 12000,
-        createdAt: Timestamp.fromMillis(now),
-        expiresAt: Timestamp.fromMillis(now + STORY_LIFETIME_MS),
+      const story = await signedStory({
+        doc,
+        bucketForLegacy: async data => data.storageBucket
+          ? getStorage().bucket(String(data.storageBucket))
+          : await requireStoryBucket(),
       });
-      return res.json({ok: true, storyId: ref.id});
-    } catch (error) {
-      next(error);
-    }
+      if (!story) {
+        return res.status(503).json({ok: false,
+          error: "Story was saved, but media URL is not ready. Retry shortly.",
+          code: "STORY_MEDIA_PENDING"});
+      }
+      return res.json({ok: true, story});
+    } catch (error) { next(error); }
   });
 
   app.get("/stories/feed", async (req, res, next) => {
@@ -469,6 +457,9 @@ export function registerStoryRoutes({
       const snapshot = await db
         .collection("stories")
         .where("expiresAt", ">", Timestamp.now())
+        // The range query's default ascending order selects stories closest
+        // to expiration. Prefer new stories so uploads aren't invisible.
+        .orderBy("expiresAt", "desc")
         .limit(MAX_FEED_STORIES)
         .get();
 
@@ -538,7 +529,7 @@ export function registerStoryRoutes({
     try {
       const user = await authenticatedUser(req);
       const storyId = String(req.body?.storyId || "").trim();
-      if (!/^[a-f0-9]{32}$/.test(storyId)) fail("Invalid story.");
+      if (!/^(?:[a-f0-9]{32}|[a-f0-9]{64})$/.test(storyId)) fail("Invalid story.");
 
       const storyRef = db.collection("stories").doc(storyId);
       const storySnap = await storyRef.get();
@@ -574,7 +565,7 @@ export function registerStoryRoutes({
     try {
       const user = await authenticatedUser(req);
       const storyId = String(req.params.storyId || "").trim();
-      if (!/^[a-f0-9]{32}$/.test(storyId)) fail("Invalid story.");
+      if (!/^(?:[a-f0-9]{32}|[a-f0-9]{64})$/.test(storyId)) fail("Invalid story.");
 
       const storyRef = db.collection("stories").doc(storyId);
       const storySnap = await storyRef.get();
@@ -600,7 +591,8 @@ export function registerStoryRoutes({
           await bucket.file(storagePath).delete({ignoreNotFound: true});
         }
       }
-      await storyRef.delete();
+      // Remove reaction/view subcollections as well as the parent Story.
+      await db.recursiveDelete(storyRef);
       return res.json({ok: true});
     } catch (error) {
       next(error);

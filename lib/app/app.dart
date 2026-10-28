@@ -1,18 +1,20 @@
-import '../features/chat/services/chat_delivery_service.dart';
 import 'dart:async';
+import '../features/chat/services/chat_delivery_service.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import '../features/chat/services/worldvoice_notification_service.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+import '../core/ads/academy_lesson_ads.dart';
 import '../core/localization/locale_controller.dart';
 import '../core/localization/supported_language.dart';
 import '../core/theme/app_theme.dart';
+import '../core/theme/worldvoice_appearance.dart';
 import '../features/auth/services/auth_service.dart';
 import '../features/home/presentation/home_screen.dart';
-import '../features/live/presentation/live_screen.dart';
 import '../features/onboarding/presentation/welcome_screen.dart';
 import '../features/profile/presentation/profile_setup_screen.dart';
 import '../features/profile/services/user_presence_service.dart';
@@ -28,103 +30,139 @@ class WorldVoiceApp extends StatefulWidget {
 class _WorldVoiceAppState extends State<WorldVoiceApp>
     with WidgetsBindingObserver {
   final LocaleController _localeController = LocaleController();
-  final GlobalKey<NavigatorState> _navigator = GlobalKey<NavigatorState>();
-  static const MethodChannel _liveLinks = MethodChannel(
-    'worldvoice/live_links',
-  );
-  String? _pendingSharedLive;
-  bool _openingSharedLive = false;
   final PresenceSession _presenceSession = PresenceSession();
   StreamSubscription<User?>? _authSubscription;
+  StreamSubscription<String>? _pushTokenSubscription;
+  StreamSubscription<RemoteMessage>? _pushOpenSubscription;
+  StreamSubscription<RemoteMessage>? _foregroundPushSubscription;
+  Future<void> _pushSignOutCleanup = Future<void>.value();
+  final _notificationMessengerKey = GlobalKey<ScaffoldMessengerState>();
   bool _ready = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _liveLinks.setMethodCallHandler((call) async {
-      if (call.method == 'openLive' && call.arguments is String) {
-        _queueSharedLive(call.arguments as String);
-      }
-    });
-    unawaited(_readInitialLiveLink());
     _localeController.addListener(_refresh);
+    _pushOpenSubscription = FirebaseMessaging.onMessageOpenedApp.listen(
+      WorldVoiceNotificationService.openedPush,
+    );
+    _foregroundPushSubscription = FirebaseMessaging.onMessage.listen((message) {
+      final type = message.data['type']?.toString();
+      if (type != 'worldvoice_activity' &&
+          type != 'worldvoice_announcement' &&
+          type != 'story_interaction') {
+        return;
+      }
+      final ar = _localeController.locale?.languageCode == 'ar';
+      final messenger = _notificationMessengerKey.currentState;
+      if (messenger == null) return;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            message.notification?.body ??
+                (ar
+                    ? 'لديك إشعار جديد من WorldVoice'
+                    : 'New WorldVoice notification'),
+          ),
+          duration: const Duration(seconds: 6),
+          action: SnackBarAction(
+            label: ar ? 'عرض' : 'View',
+            onPressed: () => WorldVoiceNotificationService.openedPush(message),
+          ),
+        ),
+      );
+    });
+    FirebaseMessaging.instance
+        .getInitialMessage()
+        .then((message) {
+          if (message != null) {
+            WorldVoiceNotificationService.openedPush(message);
+          }
+        })
+        .catchError((Object error) {
+          debugPrint('WorldVoice initial push unavailable: $error');
+          return null;
+        });
     _authSubscription = FirebaseAuth.instance.authStateChanges().listen((user) {
       unawaited(ChatDeliveryService.instance.setAccount(user?.uid));
       if (user != null) {
         _presenceSession.start();
         unawaited(AuthService.syncPrivilegedAccountEntitlements());
         unawaited(RoomCoinPurchaseService.instance.initialize());
-        _scheduleOpenSharedLive();
+        unawaited(_setupPushForAccount());
       } else {
         _presenceSession.stop();
+        _pushTokenSubscription?.cancel();
+        _pushTokenSubscription = null;
+        // Logout revokes this device's token before the next account registers.
+        // Avoid exposing a prior member's room notifications on a shared phone.
+        _pushSignOutCleanup = _pushSignOutCleanup
+            .then((_) async {
+              await WorldVoiceNotificationService.clearAnnouncementTopic();
+              await FirebaseMessaging.instance.deleteToken();
+            })
+            .catchError((Object error) {
+              debugPrint('WorldVoice push logout cleanup: $error');
+            });
       }
     });
     _load();
   }
 
-  Future<void> _load() async {
-    await _localeController.load();
-    if (mounted) {
-      setState(() => _ready = true);
-      _scheduleOpenSharedLive();
-    }
-  }
-
-  Future<void> _readInitialLiveLink() async {
+  Future<void> _setupPushForAccount() async {
     try {
-      final id = await _liveLinks.invokeMethod<String>('initial');
-      if (id != null) _queueSharedLive(id);
-    } on PlatformException {
-      // iOS / older Android builds can still open the app normally.
-    } on MissingPluginException {
-      // No native link handler on this platform.
-    }
-  }
-
-  void _queueSharedLive(String id) {
-    if (!RegExp(r'^[A-Za-z0-9_-]{3,128}$').hasMatch(id)) return;
-    _pendingSharedLive = id;
-    _scheduleOpenSharedLive();
-  }
-
-  void _scheduleOpenSharedLive() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) unawaited(_openPendingSharedLive());
-    });
-  }
-
-  Future<void> _openPendingSharedLive() async {
-    if (!_ready || _openingSharedLive || _pendingSharedLive == null) return;
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return; // Retain the link across login.
-    _openingSharedLive = true;
-    try {
-      final profile = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
-      if (!AuthService.hasCompletedProfileData(profile.data())) {
-        return; // Do not bypass login or onboarding.
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+      await _pushSignOutCleanup;
+      if (FirebaseAuth.instance.currentUser?.uid != user.uid) return;
+      final messaging = FirebaseMessaging.instance;
+      await messaging.requestPermission();
+      if (FirebaseAuth.instance.currentUser?.uid != user.uid) return;
+      final token = await messaging.getToken();
+      if (token != null && FirebaseAuth.instance.currentUser?.uid == user.uid) {
+        await WorldVoiceNotificationService.registerDevice(
+          token: token,
+          languageCode: _localeController.locale?.languageCode ?? 'en',
+        );
       }
-      if (!mounted) return;
-      final navigator = _navigator.currentState;
-      if (navigator == null) return;
-      final id = _pendingSharedLive!;
-      _pendingSharedLive = null;
-      await navigator.push<void>(
-        MaterialPageRoute(
-          builder: (_) => WorldVoiceLiveInvitationPage(liveId: id),
-        ),
+      if (FirebaseAuth.instance.currentUser?.uid != user.uid) return;
+      await WorldVoiceNotificationService.syncAnnouncementTopic(
+        _localeController.locale?.languageCode ?? 'en',
       );
-    } catch (_) {
-      // Profile unavailable/offline: keep the invitation for another attempt.
-    } finally {
-      _openingSharedLive = false;
+      if (FirebaseAuth.instance.currentUser?.uid != user.uid) return;
+      await _pushTokenSubscription?.cancel();
+      _pushTokenSubscription = messaging.onTokenRefresh.listen((newToken) {
+        if (FirebaseAuth.instance.currentUser?.uid == user.uid) {
+          unawaited(
+            WorldVoiceNotificationService.registerDevice(
+              token: newToken,
+              languageCode: _localeController.locale?.languageCode ?? 'en',
+            ),
+          );
+        }
+      });
+    } catch (error) {
+      debugPrint('WorldVoice FCM setup unavailable: $error');
     }
+  }
+
+  Future<void> _load() async {
+    await Future.wait([
+      _localeController.load(),
+      WorldVoiceAppearance.instance.load(),
+    ]);
+    if (mounted) setState(() => _ready = true);
   }
 
   void _refresh() {
+    if (FirebaseAuth.instance.currentUser != null) {
+      unawaited(
+        WorldVoiceNotificationService.syncAnnouncementTopic(
+          _localeController.locale?.languageCode ?? 'en',
+        ),
+      );
+    }
     if (mounted) setState(() {});
   }
 
@@ -133,7 +171,6 @@ class _WorldVoiceAppState extends State<WorldVoiceApp>
     switch (state) {
       case AppLifecycleState.resumed:
         _presenceSession.start();
-        _scheduleOpenSharedLive();
         return;
       case AppLifecycleState.inactive:
       case AppLifecycleState.paused:
@@ -147,9 +184,10 @@ class _WorldVoiceAppState extends State<WorldVoiceApp>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _liveLinks.setMethodCallHandler(null);
     _authSubscription?.cancel();
-    unawaited(ChatDeliveryService.instance.setAccount(null));
+    _pushTokenSubscription?.cancel();
+    _pushOpenSubscription?.cancel();
+    _foregroundPushSubscription?.cancel();
     _presenceSession.dispose();
     _localeController.removeListener(_refresh);
     _localeController.dispose();
@@ -158,23 +196,26 @@ class _WorldVoiceAppState extends State<WorldVoiceApp>
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      navigatorKey: _navigator,
-      title: 'WorldVoice',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.system,
-      locale: _localeController.locale,
-      supportedLocales: SupportedLanguages.locales,
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      home: !_ready
-          ? const _StartupLoading()
-          : _StartupGate(localeController: _localeController),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: WorldVoiceAppearance.instance.mode,
+      builder: (context, selectedTheme, _) => MaterialApp(
+        title: 'WorldVoice',
+        debugShowCheckedModeBanner: false,
+        scaffoldMessengerKey: _notificationMessengerKey,
+        theme: AppTheme.light,
+        darkTheme: AppTheme.dark,
+        themeMode: selectedTheme,
+        locale: _localeController.locale,
+        supportedLocales: SupportedLanguages.locales,
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        home: !_ready
+            ? const _StartupLoading()
+            : _StartupGate(localeController: _localeController),
+      ),
     );
   }
 }
@@ -221,7 +262,12 @@ class _StartupGate extends StatelessWidget {
 
             final data = profileSnapshot.data!.data();
             if (AuthService.hasCompletedProfileData(data)) {
-              return HomeScreen(localeController: localeController);
+              return _AcademyHomeLaunchGate(
+                key: ValueKey('academy-app-launch-${user.uid}'),
+                uid: user.uid,
+                isVip: data?['isVip'] == true,
+                localeController: localeController,
+              );
             }
             // Do not create a duplicate profile from a missing local cache.
             // Check the server for legacy profiles with this verified email.
@@ -235,6 +281,49 @@ class _StartupGate extends StatelessWidget {
       },
     );
   }
+}
+
+/// Count only real, authenticated app launches after a saved profile loaded.
+/// Keep the startup loading screen visible while a third-launch AppOpenAd
+/// loads/shows, never display it unexpectedly over interactive home content.
+class _AcademyHomeLaunchGate extends StatefulWidget {
+  const _AcademyHomeLaunchGate({
+    required this.uid,
+    required this.isVip,
+    required this.localeController,
+    super.key,
+  });
+
+  final String uid;
+  final bool isVip;
+  final LocaleController localeController;
+
+  @override
+  State<_AcademyHomeLaunchGate> createState() => _AcademyHomeLaunchGateState();
+}
+
+class _AcademyHomeLaunchGateState extends State<_AcademyHomeLaunchGate> {
+  late final Future<void> _startupAd;
+
+  @override
+  void initState() {
+    super.initState();
+    _startupAd = AcademyAppLaunchAdGate.beforeHome(
+      uid: widget.uid,
+      isVip: widget.isVip,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => FutureBuilder<void>(
+    future: _startupAd,
+    builder: (context, snapshot) {
+      if (snapshot.connectionState != ConnectionState.done) {
+        return const _StartupLoading();
+      }
+      return HomeScreen(localeController: widget.localeController);
+    },
+  );
 }
 
 class _MissingProfileGate extends StatefulWidget {

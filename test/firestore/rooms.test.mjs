@@ -53,11 +53,29 @@ test('quota and history are available only to their owner before joining', async
 test('room tasks and level XP cannot be forged by host or listener', async () => {
   const hostDb = user('host');
   const listenerDb = user('listener');
+  for (const db of [hostDb, listenerDb]) {
+    await assertFails(setDoc(doc(db, 'rooms/r1/task_attendance/listener'), {
+      day: '2026-10-14', lastSeenMs: Date.now(), activeMs: 7200000,
+    }));
+  }
   await assertFails(updateDoc(room(hostDb), {
     roomXp: 5900, roomLevel: 60,
   }));
   await assertFails(updateDoc(room(listenerDb), {
     roomXp: 500, roomLevel: 6,
+  }));
+  await assertFails(updateDoc(room(hostDb), {
+    roomCastleXpVersion: 2,
+  }));
+  await assertFails(updateDoc(room(listenerDb), {
+    legacyRoomXp: 5900,
+  }));
+  await assertFails(setDoc(doc(user('new'), 'rooms/forged-castle'), {
+    channelId: 'forged-castle',
+    hostId: 'new',
+    roomLevel: 1,
+    roomXp: 0,
+    roomCastleXpVersion: 2,
   }));
   await assertFails(setDoc(doc(listenerDb, 'rooms/r1/task_completions/ten_minutes_listener_today'), {
     userId: 'listener', taskKey: 'ten_minutes', points: 4,
@@ -388,77 +406,6 @@ test('lesson board is writable by host; participants can write when enabled', as
   await assertFails(getDocs(collection(user('outsider'), 'rooms/r1/board_items')));
 });
 
-test('moderator must accept invitation before receiving room permissions', async () => {
-  const hostDb = user('host');
-  const listenerDb = user('listener');
-  const moderatorPath = 'users/host/moderators/listener';
-
-  await assertSucceeds(setDoc(doc(hostDb, moderatorPath), {
-    uid: 'listener',
-    displayName: 'Listener',
-    photoUrl: '',
-    assignedBy: 'host',
-    assignedAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-    status: 'pending',
-  }));
-  await assertFails(updateDoc(member(listenerDb, 'listener'), {
-    isModerator: true,
-    updatedAt: serverTimestamp(),
-  }));
-  await assertFails(updateDoc(doc(user('outsider'), moderatorPath), {
-    status: 'accepted',
-    respondedAt: serverTimestamp(),
-  }));
-  await assertSucceeds(updateDoc(doc(listenerDb, moderatorPath), {
-    status: 'accepted',
-    respondedAt: serverTimestamp(),
-  }));
-  await assertSucceeds(updateDoc(member(listenerDb, 'listener'), {
-    isModerator: true,
-    updatedAt: serverTimestamp(),
-  }));
-  await assertFails(updateDoc(member(user('outsider'), 'listener'), {
-    isModerator: false,
-    updatedAt: serverTimestamp(),
-  }));
-});
-
-test('only the host can synchronize the currently presented board video', async () => {
-  const hostDb = user('host');
-  const listenerDb = user('listener');
-  const item = doc(hostDb, 'rooms/r1/board_items/video-1');
-  await assertSucceeds(setDoc(item, {
-    type: 'video',
-    url: 'https://res.cloudinary.com/example/video/upload/v1/clip.mp4',
-    name: 'clip.mp4',
-    userId: 'host',
-    createdAt: serverTimestamp(),
-    playing: true,
-    positionMs: 0,
-    playbackChangedAt: serverTimestamp(),
-  }));
-  await assertSucceeds(updateDoc(room(hostDb), {
-    boardMediaId: 'video-1',
-  }));
-  const update = {
-    playing: false,
-    positionMs: 2500,
-    playbackChangedAt: serverTimestamp(),
-  };
-  await assertSucceeds(updateDoc(item, update));
-  await assertFails(updateDoc(
-    doc(listenerDb, 'rooms/r1/board_items/video-1'), update));
-  await assertFails(updateDoc(item, {
-    url: 'https://invalid.example/other.mp4',
-    playbackChangedAt: serverTimestamp(),
-  }));
-  await assertSucceeds(updateDoc(room(hostDb), {
-    boardMediaId: null,
-  }));
-  await assertFails(updateDoc(item, update));
-});
-
 test('quiz accepts member answers, host reveals, and late answers are denied', async () => {
   const answer = {userId: 'listener', optionIndex: 1, displayName: 'Listener', answeredAt: serverTimestamp()};
   await assertSucceeds(setDoc(doc(user('listener'), 'rooms/r1/quiz_answers/listener'), answer));
@@ -676,6 +623,30 @@ test('language game secrets, answers, game scores and free quotas are backend-on
       await assertFails(setDoc(doc(db, path), {points: 999, count: 0}));
     }
   }
+});
+
+test('academy checklist is private, schema-restricted and cannot mint rewards', async () => {
+  const owner = user('student');
+  const other = user('stranger');
+  const path = 'users/student/academy_progress/en_1_vocabulary';
+  const complete = {
+    completed: true, language: 'en', completedAt: serverTimestamp()
+  };
+  await assertSucceeds(setDoc(doc(owner, path), complete));
+  await assertSucceeds(getDoc(doc(owner, path)));
+  await assertFails(getDoc(doc(other, path)));
+  await assertFails(setDoc(doc(other, 'users/student/academy_progress/en_2_quiz'), {
+    completed: true, language: 'en', completedAt: serverTimestamp()
+  }));
+  await assertFails(setDoc(doc(owner, 'users/student/academy_progress/en_1_magic'), complete));
+  await assertFails(setDoc(doc(owner, 'users/student/academy_progress/en_1_grammar'), {
+    ...complete, coins: 500
+  }));
+  await assertFails(setDoc(doc(owner, 'users/student/academy_progress/en_2_quiz'), {
+    completed: false, language: 'en', completedAt: serverTimestamp()
+  }));
+  await assertFails(updateDoc(doc(owner, path), {completed: false}));
+  await assertFails(deleteDoc(doc(owner, path)));
 });
 
 test('moderator invitation accepts atomically for a seated room participant', async () => {

@@ -1,15 +1,12 @@
 package com.worldvoice.worldvoice
 
 import android.Manifest
-import android.content.Intent
-import android.app.PictureInPictureParams
-import android.content.res.Configuration
-import android.os.Build
-import android.util.Rational
 import android.content.pm.PackageManager
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.media.AudioAttributes
+import android.media.AudioManager
+import android.media.ToneGenerator
 import android.os.Handler
 import android.os.Looper
 import androidx.core.app.ActivityCompat
@@ -22,10 +19,8 @@ import java.util.Locale
 class MainActivity : FlutterActivity() {
     private val livePermissionChannel = "worldvoice/live_permissions"
     private val liveTtsChannel = "worldvoice/live_tts"
-    private val livePipChannel = "worldvoice/live_pip"
-    private val liveLinksChannel = "worldvoice/live_links"
-    private var liveLinksMessenger: MethodChannel? = null
-    private var pipMessenger: MethodChannel? = null
+    private val gameAudioChannel = "worldvoice/room_games_audio"
+    private var gameTone: ToneGenerator? = null
     private val cameraRequestCode = 7401
     private var pendingCameraResult: MethodChannel.Result? = null
     private var textToSpeech: TextToSpeech? = null
@@ -50,35 +45,8 @@ class MainActivity : FlutterActivity() {
     // Retain only the latest AI sentence while Android initializes TTS.
     private var pendingTeacherSpeech: Pair<String, String>? = null
 
-    private fun liveIdFromIntent(value: Intent?): String? {
-        val uri = value?.data ?: return null
-        if (uri.scheme != "worldvoice" || uri.host != "live") return null
-        val segments = uri.pathSegments
-        if (segments.size != 1) return null
-        val id = segments.first()
-        return if (Regex("^[A-Za-z0-9_-]{3,128}$").matches(id)) id else null
-    }
-
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        setIntent(intent)
-        liveIdFromIntent(intent)?.let { id ->
-            liveLinksMessenger?.invokeMethod("openLive", id)
-        }
-    }
-
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-
-        MethodChannel(
-            flutterEngine.dartExecutor.binaryMessenger,
-            liveLinksChannel,
-        ).also { liveLinksMessenger = it }.setMethodCallHandler { call, result ->
-            when (call.method) {
-                "initial" -> result.success(liveIdFromIntent(intent))
-                else -> result.notImplemented()
-            }
-        }
 
         textToSpeech = TextToSpeech(this) { status ->
             runOnUiThread {
@@ -127,35 +95,42 @@ class MainActivity : FlutterActivity() {
 
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
-            livePipChannel,
-        ).also { pipMessenger = it }.setMethodCallHandler { call, result ->
-            when (call.method) {
-                "enter" -> {
-                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O ||
-                        !packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
-                    ) {
-                        result.success(false)
-                    } else {
-                        try {
-                            val params = PictureInPictureParams.Builder()
-                                .setAspectRatio(Rational(9, 16))
-                                .build()
-                            result.success(enterPictureInPictureMode(params))
-                        } catch (error: Exception) {
-                            result.error("PIP_UNAVAILABLE", error.message, null)
-                        }
-                    }
-                }
-                else -> result.notImplemented()
-            }
-        }
-
-        MethodChannel(
-            flutterEngine.dartExecutor.binaryMessenger,
             livePermissionChannel,
         ).setMethodCallHandler { call, result ->
             when (call.method) {
                 "requestCamera" -> requestCameraPermission(result)
+                else -> result.notImplemented()
+            }
+        }
+
+        // Unlike a UI click, game tones play on the MEDIA volume stream.
+        // Keep them local to the device rather than injecting audio into Agora.
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            gameAudioChannel,
+        ).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "play" -> {
+                    val kind = call.argument<String>("kind")
+                    if (kind != "start" && kind != "winner") {
+                        result.error("INVALID_GAME_CUE", "Unknown game sound.", null)
+                    } else {
+                        try {
+                            val tone = gameTone ?: ToneGenerator(
+                                AudioManager.STREAM_MUSIC, 95,
+                            ).also { gameTone = it }
+                            tone.stopTone()
+                            tone.startTone(
+                                if (kind == "winner") ToneGenerator.TONE_PROP_ACK
+                                else ToneGenerator.TONE_PROP_BEEP,
+                                if (kind == "winner") 320 else 170,
+                            )
+                            result.success(null)
+                        } catch (error: RuntimeException) {
+                            result.error("GAME_CUE_FAILED", error.message, null)
+                        }
+                    }
+                }
                 else -> result.notImplemented()
             }
         }
@@ -273,22 +248,14 @@ class MainActivity : FlutterActivity() {
         pendingCameraResult = null
     }
 
-    override fun onPictureInPictureModeChanged(
-        isInPictureInPictureMode: Boolean,
-        newConfig: Configuration,
-    ) {
-        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
-        pipMessenger?.invokeMethod("modeChanged", isInPictureInPictureMode)
-    }
-
     override fun onDestroy() {
-        pipMessenger = null
-        liveLinksMessenger = null
         finishSpeech("TTS_CANCELLED", "The activity closed.")
         pendingTeacherSpeech = null
         textToSpeech?.stop()
         textToSpeech?.shutdown()
         textToSpeech = null
+        gameTone?.release()
+        gameTone = null
         ttsReady = false
         super.onDestroy()
     }

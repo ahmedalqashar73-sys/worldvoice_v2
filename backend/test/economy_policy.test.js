@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {requireLiveEconomy, calculateGiftSettlement} from "../src/economy_policy.js";
+import {requireLiveEconomy, calculateGiftSettlement, canGrantStoreCosmetic} from "../src/economy_policy.js";
 
 // Values in tests are synthetic fixtures, NOT published economy settings.
 const fixture = {
@@ -62,3 +62,20 @@ test("enabled economy rejects missing promotion, daily limit or payout windows",
   assert.throws(() => requireLiveEconomy({...fixture, payoutWindows: []}));
   assert.throws(() => requireLiveEconomy({...fixture, withdrawalMethods: []}));
 });
+
+ test("admin bubble grants require active server-owned store permission", () => {
+   for (const admin of [{active: true, role: "super_admin"},
+     {active: true, permissions: ["manage_store"]}]) {
+     for (const type of ["bubble", "frame", "background"]) {
+       assert.equal(canGrantStoreCosmetic(admin, type), true);
+     }
+     for (const type of ["coin", "vip", "gift", "unknown"]) {
+       assert.equal(canGrantStoreCosmetic(admin, type), false);
+     }
+   }
+   for (const admin of [null, {}, {isVip: true}, {role: "super_admin"},
+     {active: false, permissions: ["manage_store"]},
+     {active: true, permissions: ["moderate_rooms"]}]) {
+     assert.equal(canGrantStoreCosmetic(admin, "bubble"), false);
+   }
+ });
