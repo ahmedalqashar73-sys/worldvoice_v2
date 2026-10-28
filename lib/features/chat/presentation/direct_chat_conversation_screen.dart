@@ -29,7 +29,7 @@ import 'worldvoice_chat_wallpaper.dart';
 import 'worldvoice_shared_content_card.dart';
 
 /// New direct/private chat. The outgoing path NEVER invokes /chat/message
-/// or /chat/media: text and files live on devices, not in Cloudinary/Firestore.
+/// or /chat/media: the permanent transcript lives on devices; delivery uses temporary ciphertext.
 class DirectChatConversationScreen extends StatefulWidget {
   const DirectChatConversationScreen({
     required this.chatId,
@@ -117,8 +117,8 @@ class _DirectChatConversationScreenState
           if (mounted) {
             setState(
               () => _connectionNotice = _ar
-                  ? 'التسليم المباشر غير متصل. ستظل الرسائل محفوظة على جهازك.'
-                  : 'Direct delivery is offline. Messages stay saved on this device.',
+                  ? 'التسليم غير متصل. الرسائل محفوظة على جهازك وبانتظار الإرسال.'
+                  : 'Delivery is offline. Messages are saved on this device and waiting to send.',
             );
           }
         }
@@ -786,9 +786,9 @@ class _DirectChatConversationScreenState
                         if (mine) ...[
                           const SizedBox(width: 5),
                           Text(
-                            read
-                                ? (_ar ? 'تمت القراءة' : 'Read')
-                                : (_ar ? 'تم الإرسال' : 'Sent'),
+                            item['delivered'] == true
+                                ? (_ar ? 'تم الرسالة' : 'Sent')
+                                : (_ar ? 'بانتظار الإرسال' : 'Pending'),
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w600,

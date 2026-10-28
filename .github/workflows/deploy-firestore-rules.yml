@@ -20,7 +20,32 @@ permissions:
   contents: read
 
 jobs:
+  verify-delivery:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.8'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test test/chat_delivery_crypto_test.dart
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm install --no-audit --no-fund
+        working-directory: test/firestore
+      - run: npx firebase emulators:exec --config ../../firebase.rules-test.json --only firestore --project demo-worldvoice-rules "npm test"
+        working-directory: test/firestore
+
   deploy-rules:
+    needs: verify-delivery
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -61,3 +86,10 @@ jobs:
           # The backend has no committed package-lock.json; npm ci would fail.
           npm install --ignore-scripts --no-audit --no-fund
           node scripts/deploy_firestore_rules_admin.mjs
+
+      - name: Configure expiry for temporary encrypted chat deliveries
+        if: steps.auth.outputs.configured == 'true'
+        working-directory: backend
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          node scripts/configure_chat_delivery_ttl.mjs

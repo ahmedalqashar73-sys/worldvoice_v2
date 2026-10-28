@@ -4,6 +4,8 @@ import {createHash, randomUUID} from "node:crypto";
 import {Timestamp} from "firebase-admin/firestore";
 import {getMessaging} from "firebase-admin/messaging";
 
+import {readStoryActivity} from "./story_activity.js";
+
 const MAX_COMMENT = 350;
 function invalid(message, status = 400) {
   const e = new Error(message);
@@ -147,19 +149,21 @@ export function registerStoryInteractionRoutes({app, authenticatedUser, db}) {
       const {ref, ownerId} = await storyAccess(db, storyIdFrom(req.query.storyId), user.uid);
       const likes = ref.collection("likes");
       const comments = ref.collection("comments");
-      const [mine, likeCount, commentCount, likeList, commentList, settings] =
+      const [mine, likeCount, commentCount, likeList, commentList, settings, activity] =
         await Promise.all([
           likes.doc(user.uid).get(),
-          likes.count().get(),
-          comments.count().get(),
+          user.uid === ownerId ? likes.count().get() : Promise.resolve(null),
+          user.uid === ownerId ? comments.count().get() : Promise.resolve(null),
           user.uid === ownerId ? likes.orderBy("createdAt", "desc").limit(60).get() : Promise.resolve(null),
           user.uid === ownerId ? comments.orderBy("createdAt", "desc").limit(60).get() : Promise.resolve(null),
           db.collection("users").doc(ownerId).get(),
+          readStoryActivity(ref, ownerId, user.uid, req.query.viewCursor || ""),
         ]);
       return res.json({ok: true,
         liked: mine.exists,
-        likesCount: likeCount.data().count,
-        commentsCount: commentCount.data().count,
+        ...activity,
+        ...(user.uid === ownerId ? {likesCount: likeCount.data().count,
+          commentsCount: commentCount.data().count} : {}),
         allowReplies: settings.data()?.storyRepliesEnabled !== false,
         likes: likeList ? likeList.docs.map(d => d.data()) : [],
         comments: commentList ? commentList.docs.map(d => ({id: d.id, ...d.data(),

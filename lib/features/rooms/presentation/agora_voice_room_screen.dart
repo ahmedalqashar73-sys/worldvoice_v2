@@ -2466,12 +2466,26 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   }
 
   void _handleModeratorInvite(Map<String, dynamic>? invite) {
-    if (invite == null || invite['status'] != 'pending' ||
-        !mounted || _leaving || _showingModeratorInvite) {
+    if (mounted && !_leaving) {
+      final accepted =
+          invite != null && (invite['status'] ?? 'accepted') == 'accepted';
+      unawaited(
+        _moderation.syncMyModeratorStatus(accepted).catchError((Object error) {
+          debugPrint('Room moderator status sync unavailable: $error');
+        }),
+      );
+    }
+
+    if (invite == null ||
+        invite['status'] != 'pending' ||
+        !mounted ||
+        _leaving ||
+        _showingModeratorInvite) {
       return;
     }
     final timestamp = invite['assignedAt'];
-    final signature = '${invite['assignedBy']}|${timestamp is Timestamp ? timestamp.millisecondsSinceEpoch : timestamp}';
+    final signature =
+        '${invite['assignedBy']}|${timestamp is Timestamp ? timestamp.millisecondsSinceEpoch : timestamp}';
     if (signature == _lastModeratorInviteSignature) {
       return;
     }
@@ -2494,9 +2508,11 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         barrierDismissible: false,
         builder: (dialogContext) => AlertDialog(
           title: Text(ar ? 'دعوة للإشراف' : 'Moderator invitation'),
-          content: Text(ar
+          content: Text(
+            ar
               ? 'دعاك صاحب الغرفة لتصبح مشرفًا على المشاركين. يمكنك الموافقة أو الرفض.'
-              : 'The room owner invited you to moderate participants. Accept or decline.'),
+                : 'The room owner invited you to moderate participants. Accept or decline.',
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, false),
@@ -2512,16 +2528,34 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       if (response == null || !mounted) return;
       await _moderation.answerModeratorInvite(response);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(response
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              response
               ? (ar ? 'تم قبول الإشراف' : 'Moderator invitation accepted')
-              : (ar ? 'تم رفض الدعوة' : 'Moderator invitation declined')),
-        ));
+                  : (ar ? 'تم رفض الدعوة' : 'Moderator invitation declined'),
+            ),
+          ),
+        );
       }
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Moderator invitation failed: $error')));
+          SnackBar(
+            content: Text(
+              ar
+                  ? 'تعذّر تأكيد دعوة الإشراف. يمكنك إعادة المحاولة.'
+                  : 'Could not confirm the moderator invitation. Please retry.',
+            ),
+            action: SnackBarAction(
+              label: ar ? 'إعادة المحاولة' : 'Retry',
+              onPressed: () {
+                if (mounted && !_leaving) unawaited(_promptModeratorInvite());
+              },
+            ),
+          ),
+        );
+        debugPrint('Moderator invitation failed: $error');
       }
     } finally {
       _showingModeratorInvite = false;

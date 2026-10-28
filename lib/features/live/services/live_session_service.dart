@@ -36,7 +36,10 @@ class LiveSessionService {
     // sign-in photo. A missing or slow profile fetch must not block Live.
     Map<String, dynamic> hostProfile = const <String, dynamic>{};
     try {
-      final profile = await _db.collection('users').doc(user.uid).get()
+      final profile = await _db
+          .collection('users')
+          .doc(user.uid)
+          .get()
           .timeout(const Duration(seconds: 3));
       hostProfile = profile.data() ?? const <String, dynamic>{};
     } catch (_) {
@@ -44,15 +47,19 @@ class LiveSessionService {
     }
     final savedPhoto = (hostProfile['photoUrl'] ?? '').toString().trim();
     final savedCover = (hostProfile['coverUrl'] ?? '').toString().trim();
-    final savedName = (hostProfile['displayName'] ??
-        hostProfile['name'] ?? '').toString().trim();
+    final savedName = (hostProfile['displayName'] ?? hostProfile['name'] ?? '')
+        .toString()
+        .trim();
     final ref = _sessions.doc(channelId);
     await ref.set({
       'channelId': channelId,
       'hostId': user.uid,
       'hostName': savedName.isNotEmpty
-          ? savedName : (user.displayName ?? 'WorldVoice host'),
-      'hostPhotoUrl': savedPhoto.isNotEmpty ? savedPhoto : (user.photoURL ?? ''),
+          ? savedName
+          : (user.displayName ?? 'WorldVoice host'),
+      'hostPhotoUrl': savedPhoto.isNotEmpty
+          ? savedPhoto
+          : (user.photoURL ?? ''),
       'hostCoverUrl': savedCover,
       'hostAgoraUid': hostAgoraUid,
       'languageCode': languageCode,
@@ -66,16 +73,17 @@ class LiveSessionService {
       'updatedAt': FieldValue.serverTimestamp(),
     });
     // Never delay Live camera startup waiting for follower fan-out.
-    unawaited(WorldVoiceNotificationService.publishActivity(
-      kind: 'live', sessionId: ref.id,
-    ));
+    unawaited(
+      WorldVoiceNotificationService.publishActivity(
+        kind: 'live',
+        sessionId: ref.id,
+      ),
+    );
     return ref.id;
   }
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> watchOpen() => _sessions
-      .where('isLive', isEqualTo: true)
-      .limit(100)
-      .snapshots();
+  Stream<QuerySnapshot<Map<String, dynamic>>> watchOpen() =>
+      _sessions.where('isLive', isEqualTo: true).limit(100).snapshots();
 
   Stream<DocumentSnapshot<Map<String, dynamic>>> watch(String liveId) =>
       _sessions.doc(liveId).snapshots();
@@ -94,17 +102,16 @@ class LiveSessionService {
         .collection('moderators')
         .doc(user.uid)
         .snapshots()
-        .map((snapshot) => snapshot.exists);
+        .map(
+          (snapshot) =>
+              snapshot.exists &&
+              (snapshot.data()?['status'] ?? 'accepted') == 'accepted',
+        );
   }
 
   Stream<QuerySnapshot<Map<String, dynamic>>> watchGlobalModerators(
     String hostId,
-  ) =>
-      _db
-          .collection('users')
-          .doc(hostId)
-          .collection('moderators')
-          .snapshots();
+  ) => _db.collection('users').doc(hostId).collection('moderators').snapshots();
 
   Future<void> setGlobalModerator({
     required String liveId,
@@ -134,12 +141,47 @@ class LiveSessionService {
             : displayName.trim(),
         'photoUrl': photoUrl.trim(),
         'assignedBy': user.uid,
+        'status': 'pending',
+        'respondedAt': FieldValue.delete(),
         'assignedAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } else {
       await ref.delete();
     }
+  }
+
+  Stream<Map<String, dynamic>?> watchMyModeratorInvite(String hostId) {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null || uid == hostId) return Stream.value(null);
+    return _db
+        .collection('users')
+        .doc(hostId)
+        .collection('moderators')
+        .doc(uid)
+        .snapshots()
+        .map((doc) => doc.data());
+  }
+
+  Future<void> answerModeratorInvite(String hostId, bool accepted) async {
+    final uid = _user.uid;
+    final ref = _db
+        .collection('users')
+        .doc(hostId)
+        .collection('moderators')
+        .doc(uid);
+    await _db.runTransaction((tx) async {
+      final invite = await tx.get(ref);
+      if (!invite.exists) throw StateError('INVITATION_EXPIRED');
+      final status = accepted ? 'accepted' : 'declined';
+      if (invite.data()?['status'] == status) return;
+      if (invite.data()?['status'] != 'pending')
+        throw StateError('INVITATION_EXPIRED');
+      tx.update(ref, {
+        'status': status,
+        'respondedAt': FieldValue.serverTimestamp(),
+      });
+    });
   }
 
   Future<void> touchHostHeartbeat(String liveId) async {
@@ -156,13 +198,16 @@ class LiveSessionService {
       // Backward compatibility for sessions created before heartbeats existed.
       final started = data['startedAt'];
       if (started is! Timestamp) return true;
-      return (now ?? DateTime.now()).difference(started.toDate()).inSeconds < 60;
+      return (now ?? DateTime.now()).difference(started.toDate()).inSeconds <
+          60;
     }
-    return (now ?? DateTime.now()).difference(heartbeat.toDate()).inSeconds < 45;
+    return (now ?? DateTime.now()).difference(heartbeat.toDate()).inSeconds <
+        45;
   }
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> watchJoinRequests(String liveId) =>
-      _sessions
+  Stream<QuerySnapshot<Map<String, dynamic>>> watchJoinRequests(
+    String liveId,
+  ) => _sessions
           .doc(liveId)
           .collection('join_requests')
           .where('status', isEqualTo: 'pending')
@@ -170,13 +215,11 @@ class LiveSessionService {
 
   Stream<QuerySnapshot<Map<String, dynamic>>> watchActiveGuests(
     String liveId,
-  ) =>
-      _sessions
+  ) => _sessions
           .doc(liveId)
           .collection('join_requests')
           .where('status', isEqualTo: 'accepted')
           .snapshots();
-
 
   Future<void> enterViewer(String liveId) async {
     final user = _user;
@@ -262,7 +305,8 @@ class LiveSessionService {
             .collection('moderators')
             .doc(currentUser.uid);
         final moderatorSnap = await tx.get(moderatorRef);
-        if (!moderatorSnap.exists) {
+        if (!moderatorSnap.exists ||
+            (moderatorSnap.data()?['status'] ?? 'accepted') != 'accepted') {
           throw StateError('MODERATOR_ONLY');
         }
       }
@@ -284,8 +328,8 @@ class LiveSessionService {
       final viewerData = viewerSnap.data() ?? const <String, dynamic>{};
       tx.set(request, {
         'uid': userId,
-        'displayName':
-            (viewerData['displayName'] ?? 'WorldVoice user').toString(),
+        'displayName': (viewerData['displayName'] ?? 'WorldVoice user')
+            .toString(),
         'photoUrl': (viewerData['photoUrl'] ?? '').toString(),
         'status': 'invited',
         'invitedBy': currentUser.uid,
@@ -364,7 +408,8 @@ class LiveSessionService {
             .collection('moderators')
             .doc(currentUser.uid);
         final moderatorSnap = await tx.get(moderatorRef);
-        if (!moderatorSnap.exists) {
+        if (!moderatorSnap.exists ||
+            (moderatorSnap.data()?['status'] ?? 'accepted') != 'accepted') {
           throw StateError('MODERATOR_ONLY');
         }
       }
@@ -430,7 +475,10 @@ class LiveSessionService {
     }
     String bubbleId = 'free';
     try {
-      final profile = await _db.collection('users').doc(user.uid).get()
+      final profile = await _db
+          .collection('users')
+          .doc(user.uid)
+          .get()
           .timeout(const Duration(seconds: 4));
       bubbleId = await ActiveChatBubbleService.fromProfile(
         firestore: _db,
@@ -464,8 +512,10 @@ class LiveSessionService {
   Future<void> cancelPendingRequest(String liveId) async {
     final user = _auth.currentUser;
     if (user == null) return;
-    final request =
-        _sessions.doc(liveId).collection('join_requests').doc(user.uid);
+    final request = _sessions
+        .doc(liveId)
+        .collection('join_requests')
+        .doc(user.uid);
     await _db.runTransaction((tx) async {
       final snap = await tx.get(request);
       if (snap.data()?['status']?.toString() == 'pending') {

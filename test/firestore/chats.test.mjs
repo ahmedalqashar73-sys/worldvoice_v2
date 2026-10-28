@@ -92,3 +92,69 @@ test('chat member demos cannot impersonate others, charge coins or write message
     points: 99999,
   }));
 });
+
+const delivery = db => doc(db, 'chats/chat001/delivery_queue/delivery001');
+const chunk = db => doc(db, 'chats/chat001/delivery_queue/delivery001/delivery_chunks/0');
+async function seedDeliveryKeys() {
+  await env.withSecurityRulesDisabled(async ctx => {
+    for (const uid of ['alice', 'bob']) await setDoc(doc(ctx.firestore(), `chat_delivery_keys/${uid}`), {
+      publicKey: (uid === 'alice' ? 'A' : 'B').repeat(44),
+    });
+  });
+}
+function envelope() {
+  return {senderId: 'alice', recipientId: 'bob', senderKey: 'A'.repeat(44),
+    recipientKey: 'B'.repeat(44), state: 'uploading', chunkCount: 1,
+    expiresAt: new Date(Date.now() + 7 * 86400000), updatedAt: serverTimestamp()};
+}
+
+test('encrypted delivery: sender upload, recipient cleanup, sender receipt', async () => {
+  const {updateDoc, deleteDoc} = await import('firebase/firestore');
+  await seedDeliveryKeys();
+  const data = envelope();
+  await assertSucceeds(setDoc(delivery(dbFor('alice')), data));
+  await assertSucceeds(setDoc(chunk(dbFor('alice')), {
+    cipher: 'encrypted', nonce: 'N'.repeat(16), mac: 'M'.repeat(24), expiresAt: data.expiresAt,
+  }));
+  await assertFails(getDoc(delivery(dbFor('stranger'))));
+  await assertFails(getDoc(chunk(dbFor('stranger'))));
+  await assertFails(updateDoc(delivery(dbFor('alice')), {state: 'received', updatedAt: serverTimestamp()}));
+  await assertFails(deleteDoc(chunk(dbFor('alice'))));
+  await assertSucceeds(updateDoc(delivery(dbFor('alice')), {state: 'ready', updatedAt: serverTimestamp()}));
+  await assertSucceeds(getDocs(collection(dbFor('bob'), 'chats/chat001/delivery_queue')));
+  await assertSucceeds(getDoc(chunk(dbFor('bob'))));
+  await assertFails(updateDoc(chunk(dbFor('alice')), {cipher: 'changed after ready'}));
+  await assertFails(updateDoc(delivery(dbFor('bob')), {recipientId: 'stranger'}));
+  await assertSucceeds(deleteDoc(chunk(dbFor('bob'))));
+  await assertSucceeds(updateDoc(delivery(dbFor('bob')), {state: 'received', updatedAt: serverTimestamp()}));
+  await assertSucceeds(deleteDoc(delivery(dbFor('alice'))));
+});
+
+test('delivery rejects plaintext, impersonation, oversized chunks and blocked senders', async () => {
+  await seedDeliveryKeys();
+  const data = envelope();
+  await assertFails(setDoc(delivery(dbFor('bob')), data));
+  await assertFails(setDoc(delivery(dbFor('alice')), {...data, text: 'private'}));
+  await assertFails(setDoc(delivery(dbFor('alice')), {...data, recipientId: 'stranger'}));
+  await assertFails(setDoc(delivery(dbFor('alice')), {...data, chunkCount: 642}));
+  await assertFails(setDoc(delivery(dbFor('alice')), {...data, senderKey: 'forged'}));
+  await assertSucceeds(setDoc(delivery(dbFor('alice')), data));
+  const bytes = {cipher: 'abc', nonce: 'N'.repeat(16), mac: 'M'.repeat(24), expiresAt: data.expiresAt};
+  await assertFails(setDoc(chunk(dbFor('bob')), bytes));
+  await assertFails(setDoc(chunk(dbFor('alice')), {...bytes, fileName: 'private.jpg'}));
+  await assertFails(setDoc(chunk(dbFor('alice')), {...bytes, cipher: 'A'.repeat(175001)}));
+  await assertFails(setDoc(doc(dbFor('alice'), 'chats/chat001/delivery_queue/delivery001/delivery_chunks/1'), bytes));
+  await env.withSecurityRulesDisabled(async ctx => {
+    await setDoc(doc(ctx.firestore(), 'users/bob/blocked_peers/alice'), {blocked: true});
+  });
+  await assertFails(setDoc(chunk(dbFor('alice')), bytes));
+  await assertFails(setDoc(doc(dbFor('alice'), 'chats/chat001/delivery_queue/newDelivery'), data));
+});
+
+test('delivery identity is public but cannot be overwritten by another account', async () => {
+  const key = {publicKey: 'A'.repeat(44), updatedAt: serverTimestamp()};
+  await assertSucceeds(setDoc(doc(dbFor('alice'), 'chat_delivery_keys/alice'), key));
+  await assertSucceeds(getDoc(doc(dbFor('bob'), 'chat_delivery_keys/alice')));
+  await assertFails(setDoc(doc(dbFor('bob'), 'chat_delivery_keys/alice'), key));
+  await assertFails(setDoc(doc(dbFor('alice'), 'chat_delivery_keys/alice'), {...key, privateKey: 'secret'}));
+});

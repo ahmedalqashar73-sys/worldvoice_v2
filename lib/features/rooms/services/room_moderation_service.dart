@@ -304,24 +304,51 @@ class RoomModerationService {
     if (ownerId.isEmpty || ownerId == user.uid) {
       throw StateError('Moderator invitation is not available.');
     }
-    final inviteRef = _db.collection('users').doc(ownerId)
-        .collection('moderators').doc(user.uid);
-    final invite = await inviteRef.get();
-    if (!invite.exists || invite.data()?['status'] != 'pending') {
+    final inviteRef = _db
+        .collection('users')
+        .doc(ownerId)
+        .collection('moderators')
+        .doc(user.uid);
+    await _db.runTransaction((tx) async {
+      final invite = await tx.get(inviteRef);
+      final participant = await tx.get(_participantsRef.doc(user.uid));
+      final status = accepted ? 'accepted' : 'declined';
+      if (!invite.exists ||
+          !participant.exists ||
+          (invite.data()?['status'] != 'pending' &&
+              invite.data()?['status'] != status)) {
       throw StateError('This moderator invitation is no longer pending.');
     }
-    final batch = _db.batch();
-    batch.update(inviteRef, {
-      'status': accepted ? 'accepted' : 'declined',
+      if (invite.data()?['status'] == 'pending') {
+        tx.update(inviteRef, {
+          'status': status,
       'respondedAt': FieldValue.serverTimestamp(),
     });
-    if (accepted) {
-      batch.set(_participantsRef.doc(user.uid), {
-        'isModerator': true,
+      }
+      if (participant.data()?['isModerator'] != accepted) {
+        tx.update(participant.reference, {
+          'isModerator': accepted,
         'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+        });
     }
-    await batch.commit();
+    });
+  }
+
+  Future<void> syncMyModeratorStatus(bool accepted) async {
+    final uid = currentUserId;
+    if (uid == null) return;
+    final ref = _participantsRef.doc(uid);
+    await _db.runTransaction((tx) async {
+      final participant = await tx.get(ref);
+      if (!participant.exists ||
+          participant.data()?['role'] == 'host' ||
+          participant.data()?['isModerator'] == accepted)
+        return;
+      tx.update(ref, {
+        'isModerator': accepted,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    });
   }
 
   Stream<List<RoomParticipant>> watchParticipants() {

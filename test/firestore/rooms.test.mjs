@@ -353,6 +353,7 @@ test('Live host invite requires viewer consent before guest count increases', as
 test('moderator can accept a raised hand but cannot promote without consent', async () => {
   await env.withSecurityRulesDisabled(async (ctx) => {
     const db = ctx.firestore();
+    await setDoc(doc(db, 'users/host/moderators/mod'), {uid: 'mod', assignedBy: 'host', status: 'accepted'});
     await setDoc(member(db, 'mod'), {
       ...participant('mod'),
       isModerator: true,
@@ -646,4 +647,47 @@ test('academy checklist is private, schema-restricted and cannot mint rewards', 
   }));
   await assertFails(updateDoc(doc(owner, path), {completed: false}));
   await assertFails(deleteDoc(doc(owner, path)));
+});
+
+test('moderator invitation accepts atomically for a seated room participant', async () => {
+  const host = user('host');
+  const target = user('listener');
+  const invite = db => doc(db, 'users/host/moderators/listener');
+  await assertSucceeds(setDoc(invite(host), {
+    uid: 'listener', assignedBy: 'host', status: 'pending',
+    assignedAt: serverTimestamp(), updatedAt: serverTimestamp(),
+  }));
+  await assertSucceeds(updateDoc(member(host, 'listener'), {role: 'speaker', seatIndex: 2}));
+  const batch = writeBatch(target);
+  batch.update(invite(target), {status: 'accepted', respondedAt: serverTimestamp()});
+  batch.update(member(target, 'listener'), {isModerator: true, updatedAt: serverTimestamp()});
+  await assertSucceeds(batch.commit());
+  assert.equal((await getDoc(member(target, 'listener'))).data().seatIndex, 2);
+});
+
+test('pending and declined moderators have no room or live authority; revocation is immediate', async () => {
+  await env.withSecurityRulesDisabled(async ctx => {
+    await setDoc(doc(ctx.firestore(), 'live_sessions/l1'), {hostId: 'host', active: true});
+    await setDoc(doc(ctx.firestore(), 'live_sessions/l1/join_requests/other'), {uid:'other',status:'pending'});
+  });
+  const host = user('host'); const target = user('listener');
+  const invite = db => doc(db, 'users/host/moderators/listener');
+  await assertSucceeds(setDoc(invite(host), {uid:'listener',assignedBy:'host',status:'pending'}));
+  await assertFails(getDocs(collection(target, 'live_sessions/l1/join_requests')));
+  await assertFails(updateDoc(member(target, 'listener'), {isModerator:true}));
+  await assertSucceeds(updateDoc(invite(target), {status:'declined',respondedAt:serverTimestamp()}));
+  await assertFails(getDocs(collection(target, 'live_sessions/l1/join_requests')));
+  await assertFails(updateDoc(invite(target), {status:'accepted',respondedAt:serverTimestamp()}));
+  await assertSucceeds(setDoc(invite(host), {uid:'listener',assignedBy:'host',status:'pending'}));
+  const accept = writeBatch(target);
+  accept.update(invite(target), {status:'accepted',respondedAt:serverTimestamp()});
+  accept.update(member(target, 'listener'), {isModerator:true,updatedAt:serverTimestamp()});
+  await assertSucceeds(accept.commit());
+  await assertSucceeds(getDocs(collection(target, 'live_sessions/l1/join_requests')));
+  await assertSucceeds(updateDoc(member(target, 'listener'), {isModerator:true,updatedAt:serverTimestamp()}));
+  await assertSucceeds(setDoc(doc(target, 'rooms/r1/mod_log/allowed'), {action:'mute'}));
+  await assertSucceeds(deleteDoc(invite(host)));
+  await assertFails(getDocs(collection(target, 'live_sessions/l1/join_requests')));
+  await assertFails(setDoc(doc(target, 'rooms/r1/mod_log/forged'), {action:'mute'}));
+  await assertSucceeds(updateDoc(member(target, 'listener'), {isModerator:false,updatedAt:serverTimestamp()}));
 });

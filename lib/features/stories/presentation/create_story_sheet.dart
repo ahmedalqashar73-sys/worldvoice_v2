@@ -8,6 +8,7 @@ import 'package:video_player/video_player.dart';
 import '../services/story_service.dart';
 import '../services/story_photo_filters.dart';
 import 'story_interaction_sheet.dart';
+import 'story_camera_screen.dart';
 
 class CreateStorySheet extends StatefulWidget {
   const CreateStorySheet({
@@ -29,6 +30,7 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
   XFile? _originalPhoto;
   StoryPhotoFilter _photoFilter = StoryPhotoFilter.original;
   bool _processingPhoto = false;
+  bool _picking = false;
   String _kind = 'image';
   String _audience = 'everyone';
   int _durationMs = 7000;
@@ -68,9 +70,43 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
     required String kind,
     required ImageSource source,
   }) async {
+    if (_picking || _uploading || _processingPhoto) return;
+    setState(() => _picking = true);
+    try {
+      await _pickMedia(kind: kind, source: source);
+    } catch (_) {
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              ar
+                  ? 'تعذر فتح الوسائط. حاول مجددًا.'
+                  : 'Could not open media. Please retry.',
+            ),
+          ),
+        );
+    } finally {
+      if (mounted) setState(() => _picking = false);
+    }
+  }
+
+  Future<void> _pickMedia({
+    required String kind,
+    required ImageSource source,
+  }) async {
     if (_uploading || _processingPhoto) return;
     XFile? selected;
-    if (kind == 'video') {
+    var selectedFilter = StoryPhotoFilter.original;
+    if (source == ImageSource.camera) {
+      final capture = await Navigator.of(context).push<StoryCapture>(
+        MaterialPageRoute(
+          builder: (_) =>
+              StoryCameraScreen(isArabic: ar, video: kind == 'video'),
+        ),
+      );
+      selected = capture?.file;
+      selectedFilter = capture?.filter ?? StoryPhotoFilter.original;
+    } else if (kind == 'video') {
       selected = await _picker.pickVideo(
         source: source,
         maxDuration: const Duration(seconds: 90),
@@ -89,6 +125,7 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
 
     await _video?.dispose();
     _video = null;
+    if (!mounted) return;
 
     if (kind == 'video') {
       final controller = VideoPlayerController.file(File(selected.path));
@@ -111,6 +148,10 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
         }
         await controller.setLooping(true);
         await controller.play();
+        if (!mounted) {
+          await controller.dispose();
+          return;
+        }
         _video = controller;
         _durationMs = duration.inMilliseconds.clamp(1, 90000);
       } catch (_) {
@@ -119,9 +160,7 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              ar
-                  ? 'تعذر قراءة هذا الفيديو.'
-                  : 'Could not read this video.',
+              ar ? 'تعذر قراءة هذا الفيديو.' : 'Could not read this video.',
             ),
           ),
         );
@@ -134,18 +173,35 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
     setState(() {
       _media = selected;
       _originalPhoto = kind == 'image' ? selected : null;
-      _photoFilter = StoryPhotoFilter.original;
+      _photoFilter = kind == 'video'
+          ? selectedFilter
+          : StoryPhotoFilter.original;
       _kind = kind;
       _publishedStoryId = null;
       // Stable for retries, fresh whenever a different media file is picked.
-      _uploadId = 'wv_${DateTime.now().microsecondsSinceEpoch}_${Random.secure().nextInt(0x7fffffff)}';
+      _uploadId =
+          'wv_${DateTime.now().microsecondsSinceEpoch}_${Random.secure().nextInt(0x7fffffff)}';
       _publishError = null;
     });
+    if (kind == 'image' && selectedFilter != StoryPhotoFilter.original) {
+      await _selectFilter(selectedFilter);
+    }
   }
 
   Future<void> _selectFilter(StoryPhotoFilter filter) async {
+    if (_processingPhoto || _uploading) return;
+    if (_kind == 'video') {
+      setState(() {
+        _photoFilter = filter;
+        _publishedStoryId = null;
+        _uploadId =
+            'wv_${DateTime.now().microsecondsSinceEpoch}_${Random.secure().nextInt(0x7fffffff)}';
+        _publishError = null;
+      });
+      return;
+    }
     final original = _originalPhoto;
-    if (original == null || _processingPhoto || _uploading) return;
+    if (original == null) return;
     setState(() => _processingPhoto = true);
     try {
       final filtered = await exportStoryPhotoFilter(original, filter);
@@ -154,13 +210,17 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
         _media = filtered;
         _photoFilter = filter;
         _publishedStoryId = null;
-        _uploadId = 'wv_${DateTime.now().microsecondsSinceEpoch}_${Random.secure().nextInt(0x7fffffff)}';
+        _uploadId =
+            'wv_${DateTime.now().microsecondsSinceEpoch}_${Random.secure().nextInt(0x7fffffff)}';
         _publishError = null;
       });
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(error.toString().replaceFirst('Bad state: ', ''))));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error.toString().replaceFirst('Bad state: ', '')),
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _processingPhoto = false);
@@ -190,9 +250,9 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
       final message = ar && raw.contains('Story upload timed out')
           ? 'رفع الستوري أخذ وقتًا طويلًا. تأكد من الإنترنت وحاول مرة ثانية.'
           : raw;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
       return;
     }
     if (!mounted) return;
@@ -321,13 +381,16 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
       _publishError = null;
     });
     try {
-      final id = _publishedStoryId ?? await widget.service.uploadStory(
-        file: media,
-        kind: _kind,
-        audience: _audience,
-        durationMs: _durationMs,
-        uploadId: _uploadId,
-      );
+      final id =
+          _publishedStoryId ??
+          await widget.service.uploadStory(
+            file: media,
+            kind: _kind,
+            audience: _audience,
+            durationMs: _durationMs,
+            uploadId: _uploadId,
+            filter: _kind == 'video' ? _photoFilter.name : 'original',
+          );
       _publishedStoryId = id;
       // Do not return to the previous screen until the published media is
       // readable. Temporary CDN delays can resolve without uploading twice.
@@ -345,7 +408,8 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
     } catch (error) {
       if (!mounted) return;
       final raw = error.toString().replaceFirst('Bad state: ', '');
-      final unavailable = raw.contains('Story storage') ||
+      final unavailable =
+          raw.contains('Story storage') ||
           raw.contains('storage bucket') ||
           raw.contains('STORY_STORAGE_NOT_READY');
       setState(() {
@@ -360,10 +424,10 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
         // visible beside Share Story so users know publication did not work.
         _publishError = unavailable
             ? (ar
-                ? 'لا يمكن نشر الستوري: خدمة تخزين الوسائط غير مهيأة. '
-                    'اربط حساب Cloudinary بخادم WorldVoice على Render ثم حاول مجددًا.'
-                : 'Stories cannot be published until Cloudinary is configured '
-                    'on the WorldVoice backend (or Firebase Storage is enabled).')
+                  ? 'لا يمكن نشر الستوري: خدمة تخزين الوسائط غير مهيأة. '
+                        'اربط حساب Cloudinary بخادم WorldVoice على Render ثم حاول مجددًا.'
+                  : 'Stories cannot be published until Cloudinary is configured '
+                        'on the WorldVoice backend (or Firebase Storage is enabled).')
             : raw;
       });
       await _video?.play();
@@ -383,7 +447,7 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
   }) {
     return Expanded(
       child: FilledButton.tonalIcon(
-        onPressed: _uploading ? null : onTap,
+        onPressed: _picking || _uploading || _processingPhoto ? null : onTap,
         icon: Icon(icon),
         label: Text(label, textAlign: TextAlign.center),
       ),
@@ -409,9 +473,9 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
                 contentPadding: EdgeInsets.zero,
                 title: Text(
                   ar ? 'إنشاء ستوري' : 'Create Story',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
                 ),
                 subtitle: Text(
                   ar
@@ -421,17 +485,24 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
               ),
               if (_media != null) ...[
                 AspectRatio(
-                  aspectRatio: 9 / 14,
+                  aspectRatio: 9 / 16,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(24),
                     child: ColoredBox(
                       color: Colors.black,
                       child: _kind == 'video' && _video != null
-                          ? VideoPlayer(_video!)
-                          : Image.file(
-                              File(_media!.path),
-                              fit: BoxFit.cover,
-                            ),
+                          ? Center(
+                              child: AspectRatio(
+                                aspectRatio: _video!.value.aspectRatio,
+                                child: ColorFiltered(
+                                  colorFilter: ColorFilter.matrix(
+                                    storyFilterMatrix(_photoFilter),
+                                  ),
+                                  child: VideoPlayer(_video!),
+                                ),
+                              ),
+                            )
+                          : Image.file(File(_media!.path), fit: BoxFit.contain),
                     ),
                   ),
                 ),
@@ -442,19 +513,15 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
                   _sourceButton(
                     icon: Icons.photo_library_outlined,
                     label: ar ? 'صورة' : 'Photo',
-                    onTap: () => _pick(
-                      kind: 'image',
-                      source: ImageSource.gallery,
-                    ),
+                    onTap: () =>
+                        _pick(kind: 'image', source: ImageSource.gallery),
                   ),
                   const SizedBox(width: 8),
                   _sourceButton(
                     icon: Icons.video_library_outlined,
                     label: ar ? 'فيديو' : 'Video',
-                    onTap: () => _pick(
-                      kind: 'video',
-                      source: ImageSource.gallery,
-                    ),
+                    onTap: () =>
+                        _pick(kind: 'video', source: ImageSource.gallery),
                   ),
                 ],
               ),
@@ -464,45 +531,42 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
                   _sourceButton(
                     icon: Icons.photo_camera_outlined,
                     label: ar ? 'كاميرا صورة' : 'Camera',
-                    onTap: () => _pick(
-                      kind: 'image',
-                      source: ImageSource.camera,
-                    ),
+                    onTap: () =>
+                        _pick(kind: 'image', source: ImageSource.camera),
                   ),
                   const SizedBox(width: 8),
                   _sourceButton(
                     icon: Icons.videocam_outlined,
                     label: ar ? 'كاميرا فيديو' : 'Record',
-                    onTap: () => _pick(
-                      kind: 'video',
-                      source: ImageSource.camera,
-                    ),
+                    onTap: () =>
+                        _pick(kind: 'video', source: ImageSource.camera),
                   ),
                 ],
               ),
-              if (_kind == 'image' && _media != null) ...[
+              if (_media != null) ...[
                 const SizedBox(height: 12),
                 Align(
                   alignment: AlignmentDirectional.centerStart,
-                  child: Text(ar ? 'فلاتر الصورة' : 'Photo filters',
-                    style: const TextStyle(fontWeight: FontWeight.w800)),
+                  child: Text(
+                    ar ? 'الفلاتر' : 'Filters',
+                    style: const TextStyle(fontWeight: FontWeight.w800),
+                  ),
                 ),
                 const SizedBox(height: 8),
-                Wrap(spacing: 6, runSpacing: 6, children: [
-                  for (final filter in StoryPhotoFilter.values)
-                    ChoiceChip(
-                      selected: _photoFilter == filter,
-                      onSelected: _processingPhoto ? null : (_) => _selectFilter(filter),
-                      label: Text(switch (filter) {
-                        StoryPhotoFilter.original => ar ? 'الأصلية' : 'Original',
-                        StoryPhotoFilter.vivid => ar ? 'حيوي' : 'Vivid',
-                        StoryPhotoFilter.warm => ar ? 'دافئ' : 'Warm',
-                        StoryPhotoFilter.cool => ar ? 'بارد' : 'Cool',
-                        StoryPhotoFilter.mono => ar ? 'أبيض وأسود' : 'Mono',
-                        StoryPhotoFilter.vintage => ar ? 'قديم' : 'Vintage',
-                      }),
-                    ),
-                ]),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    for (final filter in StoryPhotoFilter.values)
+                      ChoiceChip(
+                        selected: _photoFilter == filter,
+                        onSelected: _processingPhoto
+                            ? null
+                            : (_) => _selectFilter(filter),
+                        label: Text(storyFilterLabel(filter, ar)),
+                      ),
+                  ],
+                ),
                 if (_processingPhoto) const LinearProgressIndicator(),
               ],
               const SizedBox(height: 18),
@@ -538,17 +602,21 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.shield_outlined),
-                title: Text(ar ? 'خصوصية الرد والتعليقات' : 'Replies & comments privacy'),
-                subtitle: Text(ar
-                    ? 'اختر من يقدر يعلّق أو يرد في الدردشة'
-                    : 'Control who may comment or reply to your Story'),
+                title: Text(
+                  ar ? 'خصوصية الرد والتعليقات' : 'Replies & comments privacy',
+                ),
+                subtitle: Text(
+                  ar
+                      ? 'اختر من يقدر يعلّق أو يرد في الدردشة'
+                      : 'Control who may comment or reply to your Story',
+                ),
                 trailing: const Icon(Icons.chevron_right_rounded),
                 onTap: () => showModalBottomSheet<void>(
                   context: context,
                   showDragHandle: true,
                   isScrollControlled: true,
-                  builder: (_) => StorySettingsSheet(
-                    service: widget.service, isArabic: ar),
+                  builder: (_) =>
+                      StorySettingsSheet(service: widget.service, isArabic: ar),
                 ),
               ),
               if (!_loadingEntitlements && !_isVip)
@@ -572,7 +640,9 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
                     backgroundColor: Color(0xFF13A06E),
                     child: Icon(Icons.star_rounded, color: Colors.white),
                   ),
-                  title: Text(ar ? 'إدارة Close Friends' : 'Manage Close Friends'),
+                  title: Text(
+                    ar ? 'إدارة Close Friends' : 'Manage Close Friends',
+                  ),
                   subtitle: Text(
                     ar
                         ? '${_closeFriends.length} شخص'
@@ -599,7 +669,13 @@ class _CreateStorySheetState extends State<CreateStorySheet> {
               SizedBox(
                 width: double.infinity,
                 child: FilledButton.icon(
-                  onPressed: _media == null || _uploading || _processingPhoto ? null : _publish,
+                  onPressed:
+                      _media == null ||
+                          _picking ||
+                          _uploading ||
+                          _processingPhoto
+                      ? null
+                      : _publish,
                   icon: _uploading
                       ? const SizedBox.square(
                           dimension: 18,

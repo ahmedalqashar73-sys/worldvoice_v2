@@ -31,6 +31,20 @@ class AgoraRoomAudioFrame {
 class AgoraVoiceRoomController extends ChangeNotifier {
   AgoraVoiceRoomController();
 
+  @visibleForTesting
+  AgoraVoiceRoomController.forMediaTesting(RtcEngine engine) {
+    _engine = engine;
+    _joined = true;
+    _role = AgoraRoomRole.speaker;
+  }
+
+  Future<void> _mediaChanges = Future<void>.value();
+  Future<void> _changeMedia(Future<void> Function() action) {
+    final next = _mediaChanges.then((_) => action());
+    _mediaChanges = next.catchError((Object _) {});
+    return next;
+  }
+
   RtcEngine? _engine;
   RtcEngineEventHandler? _handler;
 
@@ -52,6 +66,8 @@ class AgoraVoiceRoomController extends ChangeNotifier {
   bool _renewingToken = false;
   bool _preferBackendToken = false;
   final Set<int> _remoteSpeakers = <int>{};
+  final Set<int> _remoteCamerasPaused = <int>{};
+  bool remoteCameraPaused(int uid) => _remoteCamerasPaused.contains(uid);
   final StreamController<AgoraRoomAudioFrame> _audioFrameController =
       StreamController<AgoraRoomAudioFrame>.broadcast(sync: true);
   AudioFrameObserver? _audioFrameObserver;
@@ -298,6 +314,16 @@ class AgoraVoiceRoomController extends ChangeNotifier {
         },
         onUserOffline: (connection, remoteUid, reason) {
           _remoteSpeakers.remove(remoteUid);
+          _remoteCamerasPaused.remove(remoteUid);
+          notifyListeners();
+        },
+        onUserMuteVideo: (connection, remoteUid, muted) {
+          if (_released || _disposed) return;
+          if (muted) {
+            _remoteCamerasPaused.add(remoteUid);
+          } else {
+            _remoteCamerasPaused.remove(remoteUid);
+          }
           notifyListeners();
         },
         onUserMuteAudio: (connection, remoteUid, muted) {
@@ -580,47 +606,56 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     }
   }
 
-  Future<void> setCameraPublishing(bool value) async {
+  Future<void> setCameraPublishing(bool value) => _changeMedia(() async {
     final engine = _engine;
-    if (engine == null || !_joined) return;
+    if (engine == null || !_joined || _disposed || _released) {
+      throw StateError('Live is not connected. Please retry.');
+    }
     if (value && _role != AgoraRoomRole.speaker) {
       throw StateError('Camera publishing requires broadcaster role.');
     }
-
-    _cameraPublishing = value;
-    if (value) {
-      await engine.enableVideo();
-      if (!_localPreviewPrepared) {
-        await engine.startPreview();
-        _localPreviewPrepared = true;
-      }
-    } else {
-      if (_localPreviewPrepared) {
-        try {
-          await engine.stopPreview();
-        } catch (_) {
-          // Preview may already be stopped.
+    final previous = _cameraPublishing;
+    try {
+      if (value) {
+        await engine.enableVideo();
+        await engine.enableLocalVideo(true);
+        if (!_localPreviewPrepared) {
+          await engine.startPreview();
+          _localPreviewPrepared = true;
         }
       }
-      _localPreviewPrepared = false;
-    }
-
-    if (!_screenSharing) {
-      await engine.updateChannelMediaOptions(
-        ChannelMediaOptions(
+      if (!_screenSharing) {
+        await engine.updateChannelMediaOptions(ChannelMediaOptions(
           clientRoleType: _role == AgoraRoomRole.speaker
-              ? ClientRoleType.clientRoleBroadcaster
-              : ClientRoleType.clientRoleAudience,
-          publishMicrophoneTrack: _role == AgoraRoomRole.speaker,
+              ? ClientRoleType.clientRoleBroadcaster : ClientRoleType.clientRoleAudience,
+          publishMicrophoneTrack: _role == AgoraRoomRole.speaker && !_muted,
           publishCameraTrack: value && _role == AgoraRoomRole.speaker,
-          autoSubscribeAudio: true,
-          autoSubscribeVideo: true,
+          autoSubscribeAudio: true, autoSubscribeVideo: true,
           enableAudioRecordingOrPlayout: true,
-        ),
-      );
+        ));
+      }
+      await engine.muteLocalVideoStream(!value);
+      if (!value) {
+        if (_localPreviewPrepared) await engine.stopPreview();
+        _localPreviewPrepared = false;
+        await engine.enableLocalVideo(false);
+      }
+      if (!identical(engine, _engine) || _disposed || !_joined) return;
+      _cameraPublishing = value;
+      notifyListeners();
+    } catch (_) {
+      // A failed camera enable must not leave a hidden capture running.
+      if (value && !previous) {
+        try {
+          await engine.muteLocalVideoStream(true);
+          await engine.stopPreview();
+          await engine.enableLocalVideo(false);
+        } catch (_) {}
+        _localPreviewPrepared = false;
+      }
+      rethrow;
     }
-    notifyListeners();
-  }
+  });
 
   Future<void> startScreenShare() async {
     final engine = _engine;
@@ -647,7 +682,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     await engine.updateChannelMediaOptions(
       ChannelMediaOptions(
         clientRoleType: ClientRoleType.clientRoleBroadcaster,
-        publishMicrophoneTrack: true,
+        publishMicrophoneTrack: !_muted,
         publishCameraTrack: false,
         publishScreenCaptureVideo: true,
         publishScreenCaptureAudio: true,
@@ -676,7 +711,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
         clientRoleType: _role == AgoraRoomRole.speaker
             ? ClientRoleType.clientRoleBroadcaster
             : ClientRoleType.clientRoleAudience,
-        publishMicrophoneTrack: _role == AgoraRoomRole.speaker,
+        publishMicrophoneTrack: _role == AgoraRoomRole.speaker && !_muted,
         publishCameraTrack:
             _role == AgoraRoomRole.speaker && _cameraPublishing,
         publishScreenCaptureVideo: false,
@@ -832,16 +867,24 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     await engine.switchCamera();
   }
 
-  Future<void> setMuted(bool value) async {
+  Future<void> setMuted(bool value) => _changeMedia(() async {
     final engine = _engine;
-    if (engine == null || !_joined || _role != AgoraRoomRole.speaker) {
-      return;
+    if (engine == null || !_joined || _role != AgoraRoomRole.speaker || _disposed) {
+      throw StateError('Microphone control requires a connected speaker.');
     }
-
     await engine.muteLocalAudioStream(value);
+    try {
+      await engine.updateChannelMediaOptions(ChannelMediaOptions(
+        publishMicrophoneTrack: !value,
+      ));
+    } catch (_) {
+      await engine.muteLocalAudioStream(_muted);
+      rethrow;
+    }
+    if (!identical(engine, _engine) || _disposed || !_joined) return;
     _muted = value;
     notifyListeners();
-  }
+  });
 
   Future<void> switchRole(AgoraRoomRole role) async {
     final engine = _engine;
@@ -898,6 +941,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       ),
     );
 
+    await engine.muteLocalAudioStream(false);
     _role = role;
     _muted = false;
     notifyListeners();
@@ -941,6 +985,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       _renewingToken = false;
       _preferBackendToken = false;
       _remoteSpeakers.clear();
+      _remoteCamerasPaused.clear();
     }
   }
 

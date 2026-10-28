@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
 import '../services/story_service.dart';
+import '../services/story_filter_presets.dart';
 import 'story_interaction_sheet.dart';
 import '../../chat/presentation/worldvoice_share_to_chat_sheet.dart';
 
@@ -28,25 +30,27 @@ class StoryViewerScreen extends StatefulWidget {
   State<StoryViewerScreen> createState() => _StoryViewerScreenState();
 }
 
-class _StoryViewerScreenState extends State<StoryViewerScreen> {
+class _StoryViewerScreenState extends State<StoryViewerScreen>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _progress = AnimationController(vsync: this);
   int _index = 0;
   Timer? _timer;
   VideoPlayerController? _video;
   bool _mediaLoading = true;
+  bool _mediaReady = false;
   bool _closing = false;
   bool _interacting = false;
   int _loadEpoch = 0;
   bool _advanceQueued = false;
   bool _liked = false;
-  int _likeCount = 0;
-  int _commentCount = 0;
+  int? _viewCount;
+  List<Map> _viewers = [];
   bool _allowReplies = true;
   bool _likeBusy = false;
 
   bool get ar => widget.isArabic;
   StoryItem get _story => widget.stories[_index];
-  bool get _isOwner =>
-      FirebaseAuth.instance.currentUser?.uid == _story.ownerId;
+  bool get _isOwner => FirebaseAuth.instance.currentUser?.uid == _story.ownerId;
 
   @override
   void initState() {
@@ -57,19 +61,25 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
   Future<void> _showCurrent() async {
     final epoch = ++_loadEpoch;
     _advanceQueued = false;
+    _mediaReady = false;
+    _progress.value = 0;
+    _viewCount = null;
+    _viewers = [];
+    _liked = false;
+    _allowReplies = false;
     _timer?.cancel();
+    _progress.stop();
     final oldVideo = _video;
+    _video = null;
+    setState(() => _mediaLoading = true);
     if (oldVideo != null) {
       oldVideo.removeListener(_videoListener);
       await oldVideo.dispose();
     }
-    _video = null;
     if (!mounted || _closing || epoch != _loadEpoch) return;
-    setState(() => _mediaLoading = true);
 
     final story = _story;
     unawaited(_loadInteractions(story.id));
-    unawaited(widget.service.recordView(story.id).catchError((_) {}));
 
     if (story.isVideo) {
       final controller = VideoPlayerController.networkUrl(
@@ -78,11 +88,17 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
       _video = controller;
       try {
         await controller.initialize();
-        if (!mounted || _closing || epoch != _loadEpoch || _video != controller) return;
+        if (!mounted || _closing || epoch != _loadEpoch || _video != controller)
+          return;
         await controller.setLooping(false);
         controller.addListener(_videoListener);
-        await controller.play();
-        setState(() => _mediaLoading = false);
+        if (!_interacting) await controller.play();
+        if (!mounted || _closing || epoch != _loadEpoch) return;
+        setState(() {
+          _mediaLoading = false;
+          _mediaReady = true;
+        });
+        unawaited(widget.service.recordView(story.id).catchError((_) {}));
       } catch (_) {
         if (!mounted || _closing || epoch != _loadEpoch) return;
         setState(() => _mediaLoading = false);
@@ -90,26 +106,92 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
       return;
     }
 
-    if (mounted && !_closing && epoch == _loadEpoch) {
-      setState(() => _mediaLoading = false);
+    try {
+      // Count a view and start its clock only after the image is available.
+      Object? imageError;
+      await precacheImage(
+        NetworkImage(story.mediaUrl),
+        context,
+        onError: (Object error, StackTrace? stack) {
+          imageError = error;
+        },
+      );
+      if (imageError != null) throw imageError;
+      if (!mounted || _closing || epoch != _loadEpoch) return;
+      setState(() {
+        _mediaLoading = false;
+        _mediaReady = true;
+      });
+      unawaited(widget.service.recordView(story.id).catchError((_) {}));
+      if (!_interacting) _resumePhoto();
+    } catch (_) {
+      if (mounted && epoch == _loadEpoch) setState(() => _mediaLoading = false);
     }
-    final duration = Duration(
-      milliseconds: story.durationMs.clamp(2500, 12000),
-    );
-    if (mounted && !_closing && epoch == _loadEpoch) {
-      _timer = Timer(duration, _next);
+  }
+
+  void _resumePhoto() {
+    if (!_mediaReady || _story.isVideo || _interacting || _closing) return;
+    final remaining =
+        (_story.durationMs.clamp(2500, 12000) * (1 - _progress.value)).round();
+    final duration = Duration(milliseconds: remaining.clamp(1, 12000));
+    _progress.animateTo(1, duration: duration, curve: Curves.linear);
+    _timer?.cancel();
+    _timer = Timer(duration, _next);
+  }
+
+  void _hold() {
+    if (_interacting || _closing) return;
+    _interacting = true;
+    _timer?.cancel();
+    _progress.stop();
+    unawaited(_video?.pause());
+  }
+
+  void _releaseHold() {
+    if (!_interacting || _closing) return;
+    _interacting = false;
+    if (_mediaLoading) return;
+    if (_story.isVideo) {
+      unawaited(_video?.play());
+    } else {
+      _resumePhoto();
+    }
+  }
+
+  Future<void> _shareStory() async {
+    if (_interacting || _closing) return;
+    _hold();
+    final story = _story;
+    try {
+      await WorldVoiceShareToChatSheet.show(
+        context,
+        text:
+            '🌸 WorldVoice Story\n${story.ownerName}\nworldvoice://story/${story.id}',
+        title: ar ? 'مشاركة الستوري إلى...' : 'Share story to...',
+      );
+    } finally {
+      if (mounted && !_closing) _releaseHold();
     }
   }
 
   void _videoListener() {
     final controller = _video;
-    if (controller == null || _interacting ||
+    if (controller != null &&
+        controller.value.isInitialized &&
+        controller.value.duration.inMilliseconds > 0) {
+      _progress.value =
+          (controller.value.position.inMilliseconds /
+                  controller.value.duration.inMilliseconds)
+              .clamp(0.0, 1.0);
+    }
+    if (controller == null ||
+        _interacting ||
         !controller.value.isInitialized ||
         controller.value.isPlaying) {
       return;
     }
     if (controller.value.position >=
-        controller.value.duration - const Duration(milliseconds: 250) &&
+            controller.value.duration - const Duration(milliseconds: 250) &&
         !_advanceQueued) {
       _advanceQueued = true;
       // Do not change Navigator while VideoPlayer listeners are notifying.
@@ -125,8 +207,9 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
       if (!mounted || _closing || _story.id != id) return;
       setState(() {
         _liked = data['liked'] == true;
-        _likeCount = (data['likesCount'] as num?)?.toInt() ?? 0;
-        _commentCount = (data['commentsCount'] as num?)?.toInt() ?? 0;
+        _viewCount = (data['viewsCount'] as num?)?.toInt();
+        _viewers =
+            (data['viewers'] as List?)?.whereType<Map>().take(3).toList() ?? [];
         _allowReplies = data['allowReplies'] != false;
       });
     } catch (_) {
@@ -136,14 +219,19 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
 
   Future<void> _toggleLike() async {
     if (_isOwner || _likeBusy || _closing) return;
+    final id = _story.id;
+    final liked = !_liked;
     setState(() => _likeBusy = true);
     try {
-      await widget.service.setStoryLiked(_story.id, liked: !_liked);
-      await _loadInteractions(_story.id);
+      await widget.service.setStoryLiked(id, liked: liked);
+      await _loadInteractions(id);
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.toString().replaceFirst('Bad state: ', ''))));
+          SnackBar(
+            content: Text(error.toString().replaceFirst('Bad state: ', '')),
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _likeBusy = false);
@@ -154,20 +242,26 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
     if (_closing || _interacting || widget.onReply == null) return;
     _interacting = true;
     _timer?.cancel();
+    _progress.stop();
     await _video?.pause();
     if (!mounted || _closing) return;
     try {
       final status = await widget.service.fetchStoryInteractions(story.id);
       if (status['allowReplies'] != true) {
-        throw StateError(ar
-            ? 'صاحب الستوري أوقف الردود على الستوري.'
-            : 'The Story owner has disabled replies.');
+        throw StateError(
+          ar
+              ? 'صاحب الستوري أوقف الردود على الستوري.'
+              : 'The Story owner has disabled replies.',
+        );
       }
       if (mounted && !_closing) await widget.onReply!(story);
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.toString().replaceFirst('Bad state: ', ''))));
+          SnackBar(
+            content: Text(error.toString().replaceFirst('Bad state: ', '')),
+          ),
+        );
       }
     } finally {
       _interacting = false;
@@ -175,8 +269,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
         if (_video?.value.isInitialized == true) {
           await _video?.play();
         } else {
-          _timer = Timer(
-              Duration(milliseconds: story.durationMs.clamp(2500, 12000)), _next);
+          _resumePhoto();
         }
       }
     }
@@ -186,6 +279,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
     if (_closing || _interacting) return;
     _interacting = true;
     _timer?.cancel();
+    _progress.stop();
     await _video?.pause();
     if (!mounted || _closing) return;
     await showModalBottomSheet<void>(
@@ -194,8 +288,11 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
       useSafeArea: true,
       showDragHandle: true,
       builder: (_) => StoryInteractionSheet(
-        story: _story, service: widget.service,
-        owner: _isOwner, isArabic: ar),
+        story: _story,
+        service: widget.service,
+        owner: _isOwner,
+        isArabic: ar,
+      ),
     );
     if (!mounted || _closing) return;
     _interacting = false;
@@ -203,7 +300,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
     if (_video?.value.isInitialized == true) {
       await _video?.play();
     } else {
-      _timer = Timer(Duration(milliseconds: _story.durationMs.clamp(2500, 12000)), _next);
+      _resumePhoto();
     }
   }
 
@@ -211,13 +308,15 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
     if (_closing || _interacting) return;
     _interacting = true;
     _timer?.cancel();
+    _progress.stop();
     await _video?.pause();
     if (!mounted || _closing) return;
     await showModalBottomSheet<void>(
-      context: context, isScrollControlled: true, useSafeArea: true,
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
       showDragHandle: true,
-      builder: (_) => StorySettingsSheet(service: widget.service,
-          isArabic: ar),
+      builder: (_) => StorySettingsSheet(service: widget.service, isArabic: ar),
     );
     if (!mounted || _closing) return;
     _interacting = false;
@@ -225,7 +324,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
     if (_video?.value.isInitialized == true) {
       await _video?.play();
     } else {
-      _timer = Timer(Duration(milliseconds: _story.durationMs.clamp(2500, 12000)), _next);
+      _resumePhoto();
     }
   }
 
@@ -233,6 +332,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
     if (!mounted || _closing) return;
     _closing = true;
     _timer?.cancel();
+    _progress.stop();
     ++_loadEpoch;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) Navigator.of(context).maybePop();
@@ -242,6 +342,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
   void _next() {
     if (!mounted || _closing || _interacting) return;
     _timer?.cancel();
+    _progress.stop();
     if (_index >= widget.stories.length - 1) {
       _exitStory();
       return;
@@ -251,8 +352,9 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
   }
 
   void _previous() {
-    if (_closing || _index <= 0) return;
+    if (_closing || _interacting || _index <= 0) return;
     _timer?.cancel();
+    _progress.stop();
     setState(() => _index -= 1);
     unawaited(_showCurrent());
   }
@@ -279,11 +381,13 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
     _closing = true;
     ++_loadEpoch;
     _timer?.cancel();
+    _progress.stop();
     final video = _video;
     if (video != null) {
       video.removeListener(_videoListener);
       unawaited(video.dispose());
     }
+    _progress.dispose();
     super.dispose();
   }
 
@@ -308,26 +412,49 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
         child: Stack(
           fit: StackFit.expand,
           children: [
+            if (!story.isVideo)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: ImageFiltered(
+                    imageFilter: ui.ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+                    child: Opacity(
+                      opacity: .35,
+                      child: Image.network(
+                        story.mediaUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => const SizedBox(),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             Positioned.fill(
+              top: 78,
+              bottom: 86,
               child: story.isVideo
                   ? (_video?.value.isInitialized == true
-                      ? FittedBox(
-                          fit: BoxFit.contain,
-                          child: SizedBox(
-                            width: _video!.value.size.width,
-                            height: _video!.value.size.height,
-                            child: VideoPlayer(_video!),
-                          ),
-                        )
-                      : const ColoredBox(color: Colors.black))
+                        ? FittedBox(
+                            fit: BoxFit.contain,
+                            child: SizedBox(
+                              width: _video!.value.size.width,
+                              height: _video!.value.size.height,
+                              child: ColorFiltered(
+                                colorFilter: ColorFilter.matrix(
+                                  storyFilterMatrix(
+                                    storyFilterFromName(story.filter),
+                                  ),
+                                ),
+                                child: VideoPlayer(_video!),
+                              ),
+                            ),
+                          )
+                        : const ColoredBox(color: Colors.black))
                   : Image.network(
                       story.mediaUrl,
                       fit: BoxFit.contain,
                       loadingBuilder: (context, child, progress) {
                         if (progress == null) return child;
-                        return const Center(
-                          child: CircularProgressIndicator(),
-                        );
+                        return const Center(child: CircularProgressIndicator());
                       },
                       errorBuilder: (_, _, _) => const Center(
                         child: Icon(
@@ -365,13 +492,20 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
                 children: [
                   for (var i = 0; i < widget.stories.length; i++) ...[
                     Expanded(
-                      child: Container(
-                        height: 3,
-                        decoration: BoxDecoration(
-                          color: i <= _index
-                              ? Colors.white
-                              : Colors.white.withValues(alpha: .30),
+                      child: AnimatedBuilder(
+                        animation: _progress,
+                        builder: (_, _) => ClipRRect(
                           borderRadius: BorderRadius.circular(99),
+                          child: LinearProgressIndicator(
+                            minHeight: 3,
+                            value: i < _index
+                                ? 1
+                                : i == _index
+                                ? _progress.value
+                                : 0,
+                            color: Colors.white,
+                            backgroundColor: Colors.white30,
+                          ),
                         ),
                       ),
                     ),
@@ -389,8 +523,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
                 children: [
                   CircleAvatar(
                     radius: 20,
-                    backgroundImage:
-                        photo.isEmpty ? null : NetworkImage(photo),
+                    backgroundImage: photo.isEmpty ? null : NetworkImage(photo),
                     child: photo.isEmpty
                         ? const Icon(Icons.person_rounded)
                         : null,
@@ -455,7 +588,10 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
                     PopupMenuButton<String>(
                       color: const Color(0xFF181818),
                       iconColor: Colors.white,
+                      onOpened: _hold,
+                      onCanceled: _releaseHold,
                       onSelected: (value) {
+                        _releaseHold();
                         if (value == 'delete') {
                           unawaited(_deleteCurrent());
                         } else if (value == 'activity') {
@@ -467,13 +603,17 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
                       itemBuilder: (_) => [
                         PopupMenuItem(
                           value: 'activity',
-                          child: Text(ar ? 'الإعجابات والتعليقات' : 'Likes & comments',
-                              style: const TextStyle(color: Colors.white)),
+                          child: Text(
+                            ar ? 'الإعجابات والتعليقات' : 'Likes & comments',
+                            style: const TextStyle(color: Colors.white),
+                          ),
                         ),
                         PopupMenuItem(
                           value: 'privacy',
-                          child: Text(ar ? 'خصوصية الاستوري' : 'Story privacy',
-                              style: const TextStyle(color: Colors.white)),
+                          child: Text(
+                            ar ? 'خصوصية الاستوري' : 'Story privacy',
+                            style: const TextStyle(color: Colors.white),
+                          ),
                         ),
                         PopupMenuItem(
                           value: 'delete',
@@ -485,23 +625,8 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
                       ],
                     ),
                   IconButton(
-                    tooltip: ar ? 'مشاركة الستوري' : 'Share story in chat',
-                    onPressed: () => WorldVoiceShareToChatSheet.show(
-                      context,
-                      text: '🌸 WorldVoice Story\n'
-                          '${story.ownerName}\n'
-                          'worldvoice://story/${story.id}',
-                      title: ar ? 'مشاركة الستوري إلى...' : 'Share story to...',
-                    ),
-                    icon: const Icon(Icons.ios_share_rounded,
-                      color: Colors.white),
-                  ),
-                  IconButton(
                     onPressed: _exitStory,
-                    icon: const Icon(
-                      Icons.close_rounded,
-                      color: Colors.white,
-                    ),
+                    icon: const Icon(Icons.close_rounded, color: Colors.white),
                   ),
                 ],
               ),
@@ -515,12 +640,24 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
                     child: GestureDetector(
                       behavior: HitTestBehavior.translucent,
                       onTap: _previous,
+                      onLongPressStart: (_) => _hold(),
+                      onLongPressEnd: (_) => _releaseHold(),
+                      onVerticalDragEnd: (details) {
+                        if (_isOwner && (details.primaryVelocity ?? 0) < -150)
+                          unawaited(_showInteractions());
+                      },
                     ),
                   ),
                   Expanded(
                     child: GestureDetector(
                       behavior: HitTestBehavior.translucent,
                       onTap: _next,
+                      onLongPressStart: (_) => _hold(),
+                      onLongPressEnd: (_) => _releaseHold(),
+                      onVerticalDragEnd: (details) {
+                        if (_isOwner && (details.primaryVelocity ?? 0) < -150)
+                          unawaited(_showInteractions());
+                      },
                     ),
                   ),
                 ],
@@ -532,55 +669,116 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
               bottom: 12,
               child: SafeArea(
                 top: false,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: .60),
-                    borderRadius: BorderRadius.circular(28),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    child: Row(children: [
-                      if (!_isOwner) ...[
-                        IconButton(
-                          tooltip: ar ? 'إعجاب' : 'Like Story',
-                          onPressed: _likeBusy ? null : _toggleLike,
-                          icon: Icon(_liked ? Icons.favorite : Icons.favorite_border,
-                              color: _liked ? Colors.redAccent : Colors.white),
-                        ),
-                        Text('$_likeCount',
-                          style: const TextStyle(color: Colors.white)),
-                      ],
-                      IconButton(
-                        tooltip: ar ? 'التعليقات' : 'Comments',
-                        onPressed: _showInteractions,
-                        icon: const Icon(Icons.mode_comment_outlined,
-                            color: Colors.white),
-                      ),
-                      Text('$_commentCount',
-                        style: const TextStyle(color: Colors.white)),
-                      if (!_isOwner && _allowReplies && widget.onReply != null)
-                        Expanded(
-                          child: TextButton.icon(
-                            onPressed: () => _replyToStory(story),
-                            icon: const Icon(Icons.reply_rounded,
-                                color: Colors.white),
-                            label: Text(ar ? 'رد في الدردشة' : 'Reply in chat',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(color: Colors.white)),
+                child: Row(
+                  children: [
+                    if (_isOwner) ...[
+                      Expanded(
+                        child: TextButton.icon(
+                          onPressed: _showInteractions,
+                          icon: _viewers.isEmpty
+                              ? const Icon(
+                                  Icons.people_outline,
+                                  color: Colors.white,
+                                )
+                              : SizedBox(
+                                  width: 64,
+                                  height: 32,
+                                  child: Stack(
+                                    children: [
+                                      for (var i = 0; i < _viewers.length; i++)
+                                        Positioned(
+                                          left: i * 16.0,
+                                          child: CircleAvatar(
+                                            radius: 16,
+                                            backgroundImage:
+                                                (_viewers[i]['photoUrl'] ?? '')
+                                                    .toString()
+                                                    .isEmpty
+                                                ? null
+                                                : NetworkImage(
+                                                    _viewers[i]['photoUrl']
+                                                        .toString(),
+                                                  ),
+                                            child:
+                                                (_viewers[i]['photoUrl'] ?? '')
+                                                    .toString()
+                                                    .isEmpty
+                                                ? const Icon(
+                                                    Icons.person,
+                                                    size: 18,
+                                                  )
+                                                : null,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                          label: Text(
+                            _viewCount == null
+                                ? (ar ? 'النشاط' : 'Activity')
+                                : (ar
+                                      ? 'النشاط • $_viewCount مشاهدة'
+                                      : 'Activity • $_viewCount views'),
+                            style: const TextStyle(color: Colors.white),
                           ),
-                        )
-                      else
-                        const Spacer(),
-                      if (_isOwner)
-                        IconButton(
-                          tooltip: ar ? 'إعدادات الخصوصية' : 'Privacy settings',
-                          onPressed: _showStorySettings,
-                          icon: const Icon(Icons.shield_outlined,
-                              color: Colors.white),
                         ),
-                    ]),
-                  ),
+                      ),
+                      IconButton(
+                        onPressed: _showStorySettings,
+                        tooltip: ar ? 'الخصوصية' : 'Privacy',
+                        icon: const Icon(
+                          Icons.shield_outlined,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ] else ...[
+                      Expanded(
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            side: const BorderSide(color: Colors.white54),
+                            shape: const StadiumBorder(),
+                            padding: const EdgeInsets.all(14),
+                          ),
+                          onPressed: _allowReplies && widget.onReply != null
+                              ? () => _replyToStory(story)
+                              : null,
+                          child: Text(
+                            _allowReplies
+                                ? (ar ? 'إرسال رسالة' : 'Send message')
+                                : (ar ? 'الردود مغلقة' : 'Replies off'),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: _likeBusy ? null : _toggleLike,
+                        tooltip: ar ? 'إعجاب' : 'Like',
+                        icon: Icon(
+                          _liked ? Icons.favorite : Icons.favorite_border,
+                          color: _liked ? Colors.redAccent : Colors.white,
+                        ),
+                      ),
+                      if (_allowReplies)
+                        IconButton(
+                          onPressed: _showInteractions,
+                          tooltip: ar ? 'تعليق خاص' : 'Private comment',
+                          icon: const Icon(
+                            Icons.mode_comment_outlined,
+                            color: Colors.white,
+                          ),
+                        ),
+                    ],
+                    IconButton(
+                      onPressed: _shareStory,
+                      tooltip: ar ? 'مشاركة' : 'Share',
+                      icon: const Icon(
+                        Icons.send_outlined,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
