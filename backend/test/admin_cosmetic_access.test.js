@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {canManageStore} from '../src/economy_policy.js';
+import {canManageStore, canGrantStoreCosmetic} from '../src/economy_policy.js';
 
 test('cosmetic grants require active server-owned store permission', () => {
   for (const value of [undefined, {}, {isAdmin: true}, {role: 'host', active: true},
@@ -17,7 +17,7 @@ import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 const source = readFileSync(new URL('../src/server.js', import.meta.url), 'utf8');
 const route = source.slice(source.indexOf('app.post(["/store/purchase"'),
-  source.indexOf('app.post("/store/claim-reward"'));
+  source.indexOf('app.post("/store/bubble/equip"'));
 async function request({admin, path = '/store/admin-grant', recipientId} = {}) {
   const writes = [];
   const item = {type: 'frame', active: true, priceCoins: 360, name: 'Frame'};
@@ -30,7 +30,7 @@ async function request({admin, path = '/store/admin-grant', recipientId} = {}) {
   let handler;
   vm.runInNewContext(route, {
     app: {post: (_, fn) => {handler = fn;}},
-    authenticatedUser: async () => ({uid: 'sender'}), canManageStore,
+    authenticatedUser: async () => ({uid: 'sender'}), canManageStore, canGrantStoreCosmetic,
     createHash: () => ({update: () => ({digest: () => 'operation'})}),
     db: {collection: name => ref(name), doc: ref,
       runTransaction: fn => fn({get: async r => ({exists: docs.has(r.path) && docs.get(r.path) != null,
@@ -40,6 +40,7 @@ async function request({admin, path = '/store/admin-grant', recipientId} = {}) {
     requirePrivateWallet: () => {throw new Error('Wallet required');},
     requireLiveEconomy: () => {throw new Error('Economy required');},
     builtInRoomBackground: () => null, builtInWorldVoiceFrame: () => item,
+    builtInChatBubble: () => null, chatBubbleInventoryId: () => null,
     FieldValue: {serverTimestamp: () => 'now'},
     Timestamp: {fromMillis: value => ({toMillis: () => value})},
   });
