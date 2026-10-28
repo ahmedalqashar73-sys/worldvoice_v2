@@ -1,11 +1,15 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
 import '../services/story_service.dart';
+import '../services/story_filter_presets.dart';
+import 'story_interaction_sheet.dart';
 import '../../live/presentation/live_screen.dart';
+import '../../chat/presentation/worldvoice_share_to_chat_sheet.dart';
 
 class StoryViewerScreen extends StatefulWidget {
   const StoryViewerScreen({
@@ -27,16 +31,27 @@ class StoryViewerScreen extends StatefulWidget {
   State<StoryViewerScreen> createState() => _StoryViewerScreenState();
 }
 
-class _StoryViewerScreenState extends State<StoryViewerScreen> {
+class _StoryViewerScreenState extends State<StoryViewerScreen>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _progress = AnimationController(vsync: this);
   int _index = 0;
   Timer? _timer;
   VideoPlayerController? _video;
   bool _mediaLoading = true;
+  bool _mediaReady = false;
+  bool _closing = false;
+  bool _interacting = false;
+  int _loadEpoch = 0;
+  bool _advanceQueued = false;
+  bool _liked = false;
+  int? _viewCount;
+  List<Map> _viewers = [];
+  bool _allowReplies = true;
+  bool _likeBusy = false;
 
   bool get ar => widget.isArabic;
   StoryItem get _story => widget.stories[_index];
-  bool get _isOwner =>
-      FirebaseAuth.instance.currentUser?.uid == _story.ownerId;
+  bool get _isOwner => FirebaseAuth.instance.currentUser?.uid == _story.ownerId;
 
   @override
   void initState() {
@@ -45,19 +60,37 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
   }
 
   Future<void> _showCurrent() async {
+    final epoch = ++_loadEpoch;
+    _advanceQueued = false;
+    _mediaReady = false;
+    _progress.value = 0;
+    _viewCount = null;
+    _viewers = [];
+    _liked = false;
+    _allowReplies = false;
     _timer?.cancel();
+    _progress.stop();
     final oldVideo = _video;
+    _video = null;
+    setState(() => _mediaLoading = true);
     if (oldVideo != null) {
       oldVideo.removeListener(_videoListener);
       await oldVideo.dispose();
     }
-    _video = null;
-    if (!mounted) return;
-    setState(() => _mediaLoading = true);
+    if (!mounted || _closing || epoch != _loadEpoch) return;
 
     final story = _story;
-    unawaited(widget.service.recordView(story.id).catchError((_) {}));
+    unawaited(_loadInteractions(story.id));
 
+    if (story.isLiveShare) {
+      setState(() {
+        _mediaLoading = false;
+        _mediaReady = true;
+      });
+      unawaited(widget.service.recordView(story.id).catchError((_) {}));
+      _resumePhoto();
+      return;
+    }
     if (story.isVideo) {
       final controller = VideoPlayerController.networkUrl(
         Uri.parse(story.mediaUrl),
@@ -65,52 +98,267 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
       _video = controller;
       try {
         await controller.initialize();
-        if (!mounted || _video != controller) return;
+        if (!mounted ||
+            _closing ||
+            epoch != _loadEpoch ||
+            _video != controller) {
+          return;
+        }
         await controller.setLooping(false);
         controller.addListener(_videoListener);
-        await controller.play();
-        setState(() => _mediaLoading = false);
+        if (!_interacting) await controller.play();
+        if (!mounted || _closing || epoch != _loadEpoch) return;
+        setState(() {
+          _mediaLoading = false;
+          _mediaReady = true;
+        });
+        unawaited(widget.service.recordView(story.id).catchError((_) {}));
       } catch (_) {
-        if (!mounted) return;
+        if (!mounted || _closing || epoch != _loadEpoch) return;
         setState(() => _mediaLoading = false);
       }
       return;
     }
 
-    if (mounted) setState(() => _mediaLoading = false);
-    // Keep a Live invitation visible until the viewer chooses Join or skips.
-    if (story.isLiveShare) return;
-    final duration = Duration(
-      milliseconds: story.durationMs.clamp(2500, 12000),
-    );
+    try {
+      // Count a view and start its clock only after the image is available.
+      Object? imageError;
+      await precacheImage(
+        NetworkImage(story.mediaUrl),
+        context,
+        onError: (Object error, StackTrace? stack) {
+          imageError = error;
+        },
+      );
+      if (imageError != null) throw imageError!;
+      if (!mounted || _closing || epoch != _loadEpoch) return;
+      setState(() {
+        _mediaLoading = false;
+        _mediaReady = true;
+      });
+      unawaited(widget.service.recordView(story.id).catchError((_) {}));
+      if (!_interacting) _resumePhoto();
+    } catch (_) {
+      if (mounted && epoch == _loadEpoch) setState(() => _mediaLoading = false);
+    }
+  }
+
+  void _resumePhoto() {
+    if (!_mediaReady || _story.isVideo || _interacting || _closing) return;
+    final remaining =
+        (_story.durationMs.clamp(2500, 12000) * (1 - _progress.value)).round();
+    final duration = Duration(milliseconds: remaining.clamp(1, 12000));
+    _progress.animateTo(1, duration: duration, curve: Curves.linear);
+    _timer?.cancel();
     _timer = Timer(duration, _next);
   }
 
-  Future<void> _openLiveStory() async {
-    final liveId = _story.liveId;
-    if (liveId.isEmpty) return;
+  void _hold() {
+    if (_interacting || _closing) return;
+    _interacting = true;
     _timer?.cancel();
-    await openWorldVoiceLive(context, liveId: liveId);
-    if (mounted) unawaited(_showCurrent());
+    _progress.stop();
+    unawaited(_video?.pause());
+  }
+
+  void _releaseHold() {
+    if (!_interacting || _closing) return;
+    _interacting = false;
+    if (_mediaLoading) return;
+    if (_story.isVideo) {
+      unawaited(_video?.play());
+    } else {
+      _resumePhoto();
+    }
+  }
+
+  Future<void> _shareStory() async {
+    if (_interacting || _closing) return;
+    _hold();
+    final story = _story;
+    try {
+      await WorldVoiceShareToChatSheet.show(
+        context,
+        text:
+            '🌸 WorldVoice Story\n${story.ownerName}\nworldvoice://story/${story.id}',
+        title: ar ? 'مشاركة الستوري إلى...' : 'Share story to...',
+      );
+    } finally {
+      if (mounted && !_closing) _releaseHold();
+    }
   }
 
   void _videoListener() {
     final controller = _video;
+    if (controller != null &&
+        controller.value.isInitialized &&
+        controller.value.duration.inMilliseconds > 0) {
+      _progress.value =
+          (controller.value.position.inMilliseconds /
+                  controller.value.duration.inMilliseconds)
+              .clamp(0.0, 1.0);
+    }
     if (controller == null ||
+        _interacting ||
         !controller.value.isInitialized ||
         controller.value.isPlaying) {
       return;
     }
     if (controller.value.position >=
-        controller.value.duration - const Duration(milliseconds: 250)) {
-      _next();
+            controller.value.duration - const Duration(milliseconds: 250) &&
+        !_advanceQueued) {
+      _advanceQueued = true;
+      // Do not change Navigator while VideoPlayer listeners are notifying.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && !_closing && _video == controller) _next();
+      });
     }
   }
 
+  Future<void> _loadInteractions(String id) async {
+    try {
+      final data = await widget.service.fetchStoryInteractions(id);
+      if (!mounted || _closing || _story.id != id) return;
+      setState(() {
+        _liked = data['liked'] == true;
+        _viewCount = (data['viewsCount'] as num?)?.toInt();
+        _viewers =
+            (data['viewers'] as List?)?.whereType<Map>().take(3).toList() ?? [];
+        _allowReplies = data['allowReplies'] != false;
+      });
+    } catch (_) {
+      // Retry from the activity sheet without blocking Story playback.
+    }
+  }
+
+  Future<void> _toggleLike() async {
+    if (_isOwner || _likeBusy || _closing) return;
+    final id = _story.id;
+    final liked = !_liked;
+    setState(() => _likeBusy = true);
+    try {
+      await widget.service.setStoryLiked(id, liked: liked);
+      await _loadInteractions(id);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error.toString().replaceFirst('Bad state: ', '')),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _likeBusy = false);
+    }
+  }
+
+  Future<void> _replyToStory(StoryItem story) async {
+    if (_closing || _interacting || widget.onReply == null) return;
+    _interacting = true;
+    _timer?.cancel();
+    _progress.stop();
+    await _video?.pause();
+    if (!mounted || _closing) return;
+    try {
+      final status = await widget.service.fetchStoryInteractions(story.id);
+      if (status['allowReplies'] != true) {
+        throw StateError(
+          ar
+              ? 'صاحب الستوري أوقف الردود على الستوري.'
+              : 'The Story owner has disabled replies.',
+        );
+      }
+      if (mounted && !_closing) await widget.onReply!(story);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error.toString().replaceFirst('Bad state: ', '')),
+          ),
+        );
+      }
+    } finally {
+      _interacting = false;
+      if (mounted && !_closing && _story.id == story.id) {
+        if (_video?.value.isInitialized == true) {
+          await _video?.play();
+        } else {
+          _resumePhoto();
+        }
+      }
+    }
+  }
+
+  Future<void> _showInteractions() async {
+    if (_closing || _interacting) return;
+    _interacting = true;
+    _timer?.cancel();
+    _progress.stop();
+    await _video?.pause();
+    if (!mounted || _closing) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (_) => StoryInteractionSheet(
+        story: _story,
+        service: widget.service,
+        owner: _isOwner,
+        isArabic: ar,
+      ),
+    );
+    if (!mounted || _closing) return;
+    _interacting = false;
+    unawaited(_loadInteractions(_story.id));
+    if (_video?.value.isInitialized == true) {
+      await _video?.play();
+    } else {
+      _resumePhoto();
+    }
+  }
+
+  Future<void> _showStorySettings() async {
+    if (_closing || _interacting) return;
+    _interacting = true;
+    _timer?.cancel();
+    _progress.stop();
+    await _video?.pause();
+    if (!mounted || _closing) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (_) => StorySettingsSheet(service: widget.service, isArabic: ar),
+    );
+    if (!mounted || _closing) return;
+    _interacting = false;
+    unawaited(_loadInteractions(_story.id));
+    if (_video?.value.isInitialized == true) {
+      await _video?.play();
+    } else {
+      _resumePhoto();
+    }
+  }
+
+  void _exitStory() {
+    if (!mounted || _closing) return;
+    _closing = true;
+    _timer?.cancel();
+    _progress.stop();
+    ++_loadEpoch;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) Navigator.of(context).maybePop();
+    });
+  }
+
   void _next() {
-    if (!mounted) return;
+    if (!mounted || _closing || _interacting) return;
+    _timer?.cancel();
+    _progress.stop();
     if (_index >= widget.stories.length - 1) {
-      Navigator.of(context).pop();
+      _exitStory();
       return;
     }
     setState(() => _index += 1);
@@ -118,7 +366,9 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
   }
 
   void _previous() {
-    if (_index <= 0) return;
+    if (_closing || _interacting || _index <= 0) return;
+    _timer?.cancel();
+    _progress.stop();
     setState(() => _index -= 1);
     unawaited(_showCurrent());
   }
@@ -129,7 +379,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
       await widget.service.deleteStory(story.id);
       widget.onChanged?.call();
       if (!mounted) return;
-      Navigator.of(context).pop();
+      _exitStory();
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -142,12 +392,16 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
 
   @override
   void dispose() {
+    _closing = true;
+    ++_loadEpoch;
     _timer?.cancel();
+    _progress.stop();
     final video = _video;
     if (video != null) {
       video.removeListener(_videoListener);
       unawaited(video.dispose());
     }
+    _progress.dispose();
     super.dispose();
   }
 
@@ -172,57 +426,67 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            Positioned.fill(
-              child: story.isLiveShare
-                  ? Container(
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [Color(0xFF071C18), Color(0xFF125C43),
-                            Color(0xFF172E28)],
-                        ),
+            if (!story.isVideo)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: ImageFiltered(
+                    imageFilter: ui.ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+                    child: Opacity(
+                      opacity: .35,
+                      child: Image.network(
+                        story.mediaUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => const SizedBox(),
                       ),
-                      child: Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.live_tv_rounded,
-                                size: 90, color: Color(0xFFFFD67D)),
-                            const SizedBox(height: 16),
-                            Text(ar ? 'بث مباشر على WorldVoice'
-                                    : 'WorldVoice LIVE',
-                                style: const TextStyle(
-                                  fontSize: 24, fontWeight: FontWeight.w900,
-                                  color: Colors.white,
-                                )),
-                            const SizedBox(height: 12),
-                            Text(ar ? 'اضغط بالأسفل للدخول إلى البث'
-                                    : 'Tap below to join the Live',
-                                style: const TextStyle(color: Colors.white70)),
-                          ],
-                        ),
+                    ),
+                  ),
+                ),
+              ),
+            Positioned.fill(
+              top: 78,
+              bottom: 86,
+              child: story.isLiveShare
+                  ? Center(
+                      child: FilledButton.icon(
+                        onPressed: () async {
+                          _hold();
+                          await Navigator.of(context).push<void>(
+                            MaterialPageRoute(
+                              builder: (_) => WorldVoiceLiveInvitationPage(
+                                liveId: story.liveId,
+                              ),
+                            ),
+                          );
+                          if (mounted && !_closing) _releaseHold();
+                        },
+                        icon: const Icon(Icons.videocam),
+                        label: Text(ar ? 'انضم للبث المباشر' : 'Join Live'),
                       ),
                     )
                   : story.isVideo
                   ? (_video?.value.isInitialized == true
-                      ? FittedBox(
-                          fit: BoxFit.contain,
-                          child: SizedBox(
-                            width: _video!.value.size.width,
-                            height: _video!.value.size.height,
-                            child: VideoPlayer(_video!),
-                          ),
-                        )
-                      : const ColoredBox(color: Colors.black))
+                        ? FittedBox(
+                            fit: BoxFit.contain,
+                            child: SizedBox(
+                              width: _video!.value.size.width,
+                              height: _video!.value.size.height,
+                              child: ColorFiltered(
+                                colorFilter: ColorFilter.matrix(
+                                  storyFilterMatrix(
+                                    storyFilterFromName(story.filter),
+                                  ),
+                                ),
+                                child: VideoPlayer(_video!),
+                              ),
+                            ),
+                          )
+                        : const ColoredBox(color: Colors.black))
                   : Image.network(
                       story.mediaUrl,
                       fit: BoxFit.contain,
                       loadingBuilder: (context, child, progress) {
                         if (progress == null) return child;
-                        return const Center(
-                          child: CircularProgressIndicator(),
-                        );
+                        return const Center(child: CircularProgressIndicator());
                       },
                       errorBuilder: (_, _, _) => const Center(
                         child: Icon(
@@ -260,13 +524,20 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
                 children: [
                   for (var i = 0; i < widget.stories.length; i++) ...[
                     Expanded(
-                      child: Container(
-                        height: 3,
-                        decoration: BoxDecoration(
-                          color: i <= _index
-                              ? Colors.white
-                              : Colors.white.withValues(alpha: .30),
+                      child: AnimatedBuilder(
+                        animation: _progress,
+                        builder: (_, _) => ClipRRect(
                           borderRadius: BorderRadius.circular(99),
+                          child: LinearProgressIndicator(
+                            minHeight: 3,
+                            value: i < _index
+                                ? 1
+                                : i == _index
+                                ? _progress.value
+                                : 0,
+                            color: Colors.white,
+                            backgroundColor: Colors.white30,
+                          ),
                         ),
                       ),
                     ),
@@ -284,8 +555,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
                 children: [
                   CircleAvatar(
                     radius: 20,
-                    backgroundImage:
-                        photo.isEmpty ? null : NetworkImage(photo),
+                    backgroundImage: photo.isEmpty ? null : NetworkImage(photo),
                     child: photo.isEmpty
                         ? const Icon(Icons.person_rounded)
                         : null,
@@ -350,12 +620,33 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
                     PopupMenuButton<String>(
                       color: const Color(0xFF181818),
                       iconColor: Colors.white,
+                      onOpened: _hold,
+                      onCanceled: _releaseHold,
                       onSelected: (value) {
+                        _releaseHold();
                         if (value == 'delete') {
                           unawaited(_deleteCurrent());
+                        } else if (value == 'activity') {
+                          unawaited(_showInteractions());
+                        } else if (value == 'privacy') {
+                          unawaited(_showStorySettings());
                         }
                       },
                       itemBuilder: (_) => [
+                        PopupMenuItem(
+                          value: 'activity',
+                          child: Text(
+                            ar ? 'الإعجابات والتعليقات' : 'Likes & comments',
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: 'privacy',
+                          child: Text(
+                            ar ? 'خصوصية الاستوري' : 'Story privacy',
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
                         PopupMenuItem(
                           value: 'delete',
                           child: Text(
@@ -366,11 +657,8 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
                       ],
                     ),
                   IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(
-                      Icons.close_rounded,
-                      color: Colors.white,
-                    ),
+                    onPressed: _exitStory,
+                    icon: const Icon(Icons.close_rounded, color: Colors.white),
                   ),
                 ],
               ),
@@ -384,54 +672,150 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
                     child: GestureDetector(
                       behavior: HitTestBehavior.translucent,
                       onTap: _previous,
+                      onLongPressStart: (_) => _hold(),
+                      onLongPressEnd: (_) => _releaseHold(),
+                      onVerticalDragEnd: (details) {
+                        if (_isOwner && (details.primaryVelocity ?? 0) < -150) {
+                          unawaited(_showInteractions());
+                        }
+                      },
                     ),
                   ),
                   Expanded(
                     child: GestureDetector(
                       behavior: HitTestBehavior.translucent,
                       onTap: _next,
+                      onLongPressStart: (_) => _hold(),
+                      onLongPressEnd: (_) => _releaseHold(),
+                      onVerticalDragEnd: (details) {
+                        if (_isOwner && (details.primaryVelocity ?? 0) < -150) {
+                          unawaited(_showInteractions());
+                        }
+                      },
                     ),
                   ),
                 ],
               ),
             ),
-            if (story.isLiveShare)
-              Positioned(
-                left: 26,
-                right: 26,
-                bottom: 86,
-                child: FilledButton.icon(
-                  onPressed: _openLiveStory,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFFFFCE66),
-                    foregroundColor: const Color(0xFF153524),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  icon: const Icon(Icons.play_arrow_rounded),
-                  label: Text(ar ? 'دخول اللايف الآن' : 'Join Live now'),
+            Positioned(
+              left: 12,
+              right: 12,
+              bottom: 12,
+              child: SafeArea(
+                top: false,
+                child: Row(
+                  children: [
+                    if (_isOwner) ...[
+                      Expanded(
+                        child: TextButton.icon(
+                          onPressed: _showInteractions,
+                          icon: _viewers.isEmpty
+                              ? const Icon(
+                                  Icons.people_outline,
+                                  color: Colors.white,
+                                )
+                              : SizedBox(
+                                  width: 64,
+                                  height: 32,
+                                  child: Stack(
+                                    children: [
+                                      for (var i = 0; i < _viewers.length; i++)
+                                        Positioned(
+                                          left: i * 16.0,
+                                          child: CircleAvatar(
+                                            radius: 16,
+                                            backgroundImage:
+                                                (_viewers[i]['photoUrl'] ?? '')
+                                                    .toString()
+                                                    .isEmpty
+                                                ? null
+                                                : NetworkImage(
+                                                    _viewers[i]['photoUrl']
+                                                        .toString(),
+                                                  ),
+                                            child:
+                                                (_viewers[i]['photoUrl'] ?? '')
+                                                    .toString()
+                                                    .isEmpty
+                                                ? const Icon(
+                                                    Icons.person,
+                                                    size: 18,
+                                                  )
+                                                : null,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                          label: Text(
+                            _viewCount == null
+                                ? (ar ? 'النشاط' : 'Activity')
+                                : (ar
+                                      ? 'النشاط • $_viewCount مشاهدة'
+                                      : 'Activity • $_viewCount views'),
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: _showStorySettings,
+                        tooltip: ar ? 'الخصوصية' : 'Privacy',
+                        icon: const Icon(
+                          Icons.shield_outlined,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ] else ...[
+                      Expanded(
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            side: const BorderSide(color: Colors.white54),
+                            shape: const StadiumBorder(),
+                            padding: const EdgeInsets.all(14),
+                          ),
+                          onPressed: _allowReplies && widget.onReply != null
+                              ? () => _replyToStory(story)
+                              : null,
+                          child: Text(
+                            _allowReplies
+                                ? (ar ? 'إرسال رسالة' : 'Send message')
+                                : (ar ? 'الردود مغلقة' : 'Replies off'),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: _likeBusy ? null : _toggleLike,
+                        tooltip: ar ? 'إعجاب' : 'Like',
+                        icon: Icon(
+                          _liked ? Icons.favorite : Icons.favorite_border,
+                          color: _liked ? Colors.redAccent : Colors.white,
+                        ),
+                      ),
+                      if (_allowReplies)
+                        IconButton(
+                          onPressed: _showInteractions,
+                          tooltip: ar ? 'تعليق خاص' : 'Private comment',
+                          icon: const Icon(
+                            Icons.mode_comment_outlined,
+                            color: Colors.white,
+                          ),
+                        ),
+                    ],
+                    IconButton(
+                      onPressed: _shareStory,
+                      tooltip: ar ? 'مشاركة' : 'Share',
+                      icon: const Icon(
+                        Icons.send_outlined,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            if (!_isOwner && widget.onReply != null)
-              Positioned(
-                left: 16,
-                right: 16,
-                bottom: 14,
-                child: SafeArea(
-                  top: false,
-                  child: FilledButton.tonalIcon(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: Colors.black.withValues(alpha: .52),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 13),
-                    ),
-                    onPressed: () => widget.onReply!(story),
-                    icon: const Icon(Icons.reply_rounded),
-                    label: Text(
-                      ar ? 'رد برسالة' : 'Reply in message',
-                    ),
-                  ),
-                ),
-              ),
+            ),
             if (_mediaLoading)
               const Center(
                 child: CircularProgressIndicator(color: Colors.white),

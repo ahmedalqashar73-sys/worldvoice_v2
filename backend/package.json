@@ -8,6 +8,7 @@
   },
   "scripts": {
     "start": "node src/server.js",
+    "start:stories": "node src/stories_server.js",
     "test": "node --test"
   },
   "dependencies": {

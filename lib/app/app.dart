@@ -1,3 +1,4 @@
+import '../features/chat/services/chat_delivery_service.dart';
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -24,11 +25,13 @@ class WorldVoiceApp extends StatefulWidget {
   State<WorldVoiceApp> createState() => _WorldVoiceAppState();
 }
 
-class _WorldVoiceAppState extends State<WorldVoiceApp> with WidgetsBindingObserver {
+class _WorldVoiceAppState extends State<WorldVoiceApp>
+    with WidgetsBindingObserver {
   final LocaleController _localeController = LocaleController();
   final GlobalKey<NavigatorState> _navigator = GlobalKey<NavigatorState>();
-  static const MethodChannel _liveLinks =
-      MethodChannel('worldvoice/live_links');
+  static const MethodChannel _liveLinks = MethodChannel(
+    'worldvoice/live_links',
+  );
   String? _pendingSharedLive;
   bool _openingSharedLive = false;
   final PresenceSession _presenceSession = PresenceSession();
@@ -47,6 +50,7 @@ class _WorldVoiceAppState extends State<WorldVoiceApp> with WidgetsBindingObserv
     unawaited(_readInitialLiveLink());
     _localeController.addListener(_refresh);
     _authSubscription = FirebaseAuth.instance.authStateChanges().listen((user) {
+      unawaited(ChatDeliveryService.instance.setAccount(user?.uid));
       if (user != null) {
         _presenceSession.start();
         unawaited(AuthService.syncPrivilegedAccountEntitlements());
@@ -97,7 +101,9 @@ class _WorldVoiceAppState extends State<WorldVoiceApp> with WidgetsBindingObserv
     _openingSharedLive = true;
     try {
       final profile = await FirebaseFirestore.instance
-          .collection('users').doc(user.uid).get();
+          .collection('users')
+          .doc(user.uid)
+          .get();
       if (!AuthService.hasCompletedProfileData(profile.data())) {
         return; // Do not bypass login or onboarding.
       }
@@ -106,9 +112,11 @@ class _WorldVoiceAppState extends State<WorldVoiceApp> with WidgetsBindingObserv
       if (navigator == null) return;
       final id = _pendingSharedLive!;
       _pendingSharedLive = null;
-      await navigator.push<void>(MaterialPageRoute(
-        builder: (_) => WorldVoiceLiveInvitationPage(liveId: id),
-      ));
+      await navigator.push<void>(
+        MaterialPageRoute(
+          builder: (_) => WorldVoiceLiveInvitationPage(liveId: id),
+        ),
+      );
     } catch (_) {
       // Profile unavailable/offline: keep the invitation for another attempt.
     } finally {
@@ -141,6 +149,7 @@ class _WorldVoiceAppState extends State<WorldVoiceApp> with WidgetsBindingObserv
     WidgetsBinding.instance.removeObserver(this);
     _liveLinks.setMethodCallHandler(null);
     _authSubscription?.cancel();
+    unawaited(ChatDeliveryService.instance.setAccount(null));
     _presenceSession.dispose();
     _localeController.removeListener(_refresh);
     _localeController.dispose();
@@ -192,13 +201,16 @@ class _StartupGate extends StatelessWidget {
         }
 
         return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-          stream: FirebaseFirestore.instance.collection('users').doc(user.uid).snapshots(),
+          stream: FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .snapshots(),
           builder: (context, profileSnapshot) {
             if (profileSnapshot.hasError) {
               return _ProfileAccessError(
                 localeController: localeController,
-                isPermissionError: profileSnapshot.error
-                    is FirebaseException &&
+                isPermissionError:
+                    profileSnapshot.error is FirebaseException &&
                     (profileSnapshot.error as FirebaseException).code ==
                         'permission-denied',
               );
@@ -224,7 +236,6 @@ class _StartupGate extends StatelessWidget {
     );
   }
 }
-
 
 class _MissingProfileGate extends StatefulWidget {
   const _MissingProfileGate({
@@ -265,7 +276,8 @@ class _MissingProfileGateState extends State<_MissingProfileGate> {
         if (result.hasError) {
           return _ProfileAccessError(
             localeController: widget.localeController,
-            isPermissionError: result.error is FirebaseException &&
+            isPermissionError:
+                result.error is FirebaseException &&
                 (result.error as FirebaseException).code == 'permission-denied',
           );
         }
@@ -277,9 +289,7 @@ class _MissingProfileGateState extends State<_MissingProfileGate> {
         }
         // A partial document from an older version needs completing, not
         // accidental recreation of a fresh account with a new user ID.
-        return ProfileSetupScreen(
-          localeController: widget.localeController,
-        );
+        return ProfileSetupScreen(localeController: widget.localeController);
       },
     );
   }
@@ -302,31 +312,40 @@ class _ProfileAccessError extends StatelessWidget {
         child: Center(
           child: Padding(
             padding: const EdgeInsets.all(28),
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              const Icon(Icons.cloud_off_rounded, size: 52),
-              const SizedBox(height: 20),
-              Text(
-                ar ? 'تعذر تحميل بروفايلك المحفوظ' :
-                    'Your saved profile could not be loaded',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                isPermissionError
-                    ? (ar ? 'قواعد Firebase تمنع الوصول إلى الملف. بياناتك لم تُحذف. لا تنشئ بروفايلًا جديدًا.' :
-                        'Firebase rules denied access. Your data was not deleted. Do not create a new profile.')
-                    : (ar ? 'تحقق من الإنترنت ثم أعد فتح التطبيق. بيانات البروفايل لن تُستبدل.' :
-                        'Check your connection and reopen the app. Your profile will not be overwritten.'),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-              OutlinedButton(
-                onPressed: () async => AuthService.signOut(),
-                child: Text(ar ? 'تسجيل الخروج لاختيار الحساب الصحيح' :
-                    'Sign out to choose the correct account'),
-              ),
-            ]),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.cloud_off_rounded, size: 52),
+                const SizedBox(height: 20),
+                Text(
+                  ar
+                      ? 'تعذر تحميل بروفايلك المحفوظ'
+                      : 'Your saved profile could not be loaded',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  isPermissionError
+                      ? (ar
+                            ? 'قواعد Firebase تمنع الوصول إلى الملف. بياناتك لم تُحذف. لا تنشئ بروفايلًا جديدًا.'
+                            : 'Firebase rules denied access. Your data was not deleted. Do not create a new profile.')
+                      : (ar
+                            ? 'تحقق من الإنترنت ثم أعد فتح التطبيق. بيانات البروفايل لن تُستبدل.'
+                            : 'Check your connection and reopen the app. Your profile will not be overwritten.'),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                OutlinedButton(
+                  onPressed: () async => AuthService.signOut(),
+                  child: Text(
+                    ar
+                        ? 'تسجيل الخروج لاختيار الحساب الصحيح'
+                        : 'Sign out to choose the correct account',
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -346,27 +365,34 @@ class _LegacyProfileNotice extends StatelessWidget {
         child: Center(
           child: Padding(
             padding: const EdgeInsets.all(28),
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              const Icon(Icons.manage_accounts_outlined, size: 54),
-              const SizedBox(height: 18),
-              Text(
-                ar ? 'وجدنا بروفايلًا قديمًا مرتبطًا ببريدك' :
-                    'A previous profile was found for your email',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                ar ? 'هذا الدخول يستخدم معرّف حساب مختلفًا. حفاظًا على بياناتك، لم ننشئ بروفايلًا جديدًا ولم ننسخ رصيدك. سجّل بنفس طريقة الدخول القديمة، أو اطلب ربط الحسابين بشكل آمن.' :
-                    'This login has a different account ID. We did not create a duplicate profile or copy wallet data. Sign in using your original method or request secure account linking.',
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-              FilledButton(
-                onPressed: () async => AuthService.signOut(),
-                child: Text(ar ? 'العودة إلى تسجيل الدخول' : 'Return to sign in'),
-              ),
-            ]),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.manage_accounts_outlined, size: 54),
+                const SizedBox(height: 18),
+                Text(
+                  ar
+                      ? 'وجدنا بروفايلًا قديمًا مرتبطًا ببريدك'
+                      : 'A previous profile was found for your email',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  ar
+                      ? 'هذا الدخول يستخدم معرّف حساب مختلفًا. حفاظًا على بياناتك، لم ننشئ بروفايلًا جديدًا ولم ننسخ رصيدك. سجّل بنفس طريقة الدخول القديمة، أو اطلب ربط الحسابين بشكل آمن.'
+                      : 'This login has a different account ID. We did not create a duplicate profile or copy wallet data. Sign in using your original method or request secure account linking.',
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                FilledButton(
+                  onPressed: () async => AuthService.signOut(),
+                  child: Text(
+                    ar ? 'العودة إلى تسجيل الدخول' : 'Return to sign in',
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -379,8 +405,6 @@ class _StartupLoading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: CircularProgressIndicator()),
-    );
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }

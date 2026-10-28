@@ -47,14 +47,11 @@ class RoomModerationService {
 
   String? get currentUserId => _user?.uid;
 
-  Future<void> enter({
-    required bool asHost,
-  }) async {
+  Future<void> enter({required bool asHost}) async {
     final user = _user;
     if (user == null) return;
 
-    final profile =
-        await _db.collection('users').doc(user.uid).get();
+    final profile = await _db.collection('users').doc(user.uid).get();
     final data = profile.data() ?? const <String, dynamic>{};
     final displayName =
         (data['displayName'] ?? user.displayName ?? 'WorldVoice user')
@@ -62,12 +59,14 @@ class RoomModerationService {
             .trim();
     final photoUrl = (data['photoUrl'] as String?)?.trim();
     final frameId = (data['profileFrameId'] as String?)?.trim();
-    final profileLanguageCode =
-        (data['nativeLanguageCode'] ?? 'en').toString().trim();
-    final languageCode = (roomLanguageCode?.trim().isNotEmpty == true
-            ? roomLanguageCode!.trim()
-            : profileLanguageCode)
-        .toLowerCase();
+    final profileLanguageCode = (data['nativeLanguageCode'] ?? 'en')
+        .toString()
+        .trim();
+    final languageCode =
+        (roomLanguageCode?.trim().isNotEmpty == true
+                ? roomLanguageCode!.trim()
+                : profileLanguageCode)
+            .toLowerCase();
     final country = (data['country'] ?? '').toString().trim();
     final isAppAdmin = data['isAdmin'] == true;
 
@@ -83,9 +82,10 @@ class RoomModerationService {
             .collection('moderators')
             .doc(user.uid)
             .get();
-        isGlobalModerator = moderator.exists &&
+        isGlobalModerator =
+            moderator.exists &&
             (moderator.data()?['status'] == null ||
-             moderator.data()?['status'] == 'accepted');
+                moderator.data()?['status'] == 'accepted');
       }
     }
     if (!asHost) {
@@ -106,8 +106,10 @@ class RoomModerationService {
         if (code.isEmpty) {
           throw StateError('A private room code is required.');
         }
-        final codeDoc =
-            await _db.collection('private_room_codes').doc(code).get();
+        final codeDoc = await _db
+            .collection('private_room_codes')
+            .doc(code)
+            .get();
         if (!codeDoc.exists ||
             codeDoc.data()?['roomId']?.toString() != channelId) {
           throw StateError('The private room code is invalid.');
@@ -141,72 +143,61 @@ class RoomModerationService {
           throw StateError('Private room code is missing.');
         }
 
-        batch.set(
-          _db.collection('private_room_codes').doc(code),
-          {
-            'roomId': channelId,
-            'hostId': user.uid,
-            'isOpen': true,
-            'createdAt': FieldValue.serverTimestamp(),
-          },
-        );
-      }
-
-      batch.set(
-        _roomRef,
-        {
-          'channelId': channelId,
-          'name': roomName,
+        batch.set(_db.collection('private_room_codes').doc(code), {
+          'roomId': channelId,
           'hostId': user.uid,
-          'hostName': displayName.isEmpty ? 'WorldVoice user' : displayName,
-          'hostPhotoUrl': photoUrl,
-          'hostCountry': country,
-          'languageCode': languageCode.isEmpty ? 'en' : languageCode,
-          'languageCodes': [
-            languageCode.isEmpty ? 'en' : languageCode,
-            if (secondaryRoomLanguageCode != null &&
-                secondaryRoomLanguageCode!.isNotEmpty &&
-                secondaryRoomLanguageCode!.toLowerCase() != languageCode)
-              secondaryRoomLanguageCode!.toLowerCase(),
-          ],
-          'showTeacherAiSeat': initialShowTeacherAiSeat,
-          'isPrivate': initialIsPrivate,
-          'vipOnly': initialVipOnly,
-          'roomLevel': existingData?['roomLevel'] ?? 1,
-          'roomXp': existingData?['roomXp'] ?? existingData?['roomPoints'] ?? 0,
-          'themeId': existingData?['themeId'] ?? 'softGreenFlow',
-          'mode': initialMode.name,
-          'boardWriteEnabled': initialMode != RoomMode.lesson,
-          'musicPlaying': existingData?['musicPlaying'] ?? false,
           'isOpen': true,
           'createdAt': FieldValue.serverTimestamp(),
-          'updatedAt': FieldValue.serverTimestamp(),
-        },
-        SetOptions(merge: true),
-      );
+        });
+      }
+
+      batch.set(_roomRef, {
+        'channelId': channelId,
+        'name': roomName,
+        'hostId': user.uid,
+        'hostName': displayName.isEmpty ? 'WorldVoice user' : displayName,
+        'hostPhotoUrl': photoUrl,
+        'hostCountry': country,
+        'languageCode': languageCode.isEmpty ? 'en' : languageCode,
+        'languageCodes': [
+          languageCode.isEmpty ? 'en' : languageCode,
+          if (secondaryRoomLanguageCode != null &&
+              secondaryRoomLanguageCode!.isNotEmpty &&
+              secondaryRoomLanguageCode!.toLowerCase() != languageCode)
+            secondaryRoomLanguageCode!.toLowerCase(),
+        ],
+        'showTeacherAiSeat': initialShowTeacherAiSeat,
+        'isPrivate': initialIsPrivate,
+        'vipOnly': initialVipOnly,
+        'roomLevel': existingData?['roomLevel'] ?? 1,
+        'roomXp': existingData?['roomXp'] ?? existingData?['roomPoints'] ?? 0,
+        'themeId': existingData?['themeId'] ?? 'softGreenFlow',
+        'mode': initialMode.name,
+        'boardWriteEnabled': initialMode != RoomMode.lesson,
+        'musicPlaying': existingData?['musicPlaying'] ?? false,
+        'isOpen': true,
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
     }
 
-    batch.set(
-      _participantsRef.doc(user.uid),
-      {
-        'uid': user.uid,
-        'displayName': displayName.isEmpty ? 'WorldVoice user' : displayName,
-        'photoUrl': photoUrl,
-        'frameId': frameId,
-        'role': asHost ? 'host' : 'listener',
-        'handRaised': false,
-        'seatIndex': asHost ? 1 : FieldValue.delete(),
-        'agoraUid': FieldValue.delete(),
-        'requestedSeatIndex': FieldValue.delete(),
-        'isModerator': asHost ? false : isGlobalModerator,
-        'warningCount': 0,
-        'forcedMuted': false,
-        'kicked': false,
-        'joinedAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
+    batch.set(_participantsRef.doc(user.uid), {
+      'uid': user.uid,
+      'displayName': displayName.isEmpty ? 'WorldVoice user' : displayName,
+      'photoUrl': photoUrl,
+      'frameId': frameId,
+      'role': asHost ? 'host' : 'listener',
+      'handRaised': false,
+      'seatIndex': asHost ? 1 : FieldValue.delete(),
+      'agoraUid': FieldValue.delete(),
+      'requestedSeatIndex': FieldValue.delete(),
+      'isModerator': asHost ? false : isGlobalModerator,
+      'warningCount': 0,
+      'forcedMuted': false,
+      'kicked': false,
+      'joinedAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
 
     await batch.commit();
   }
@@ -273,13 +264,10 @@ class RoomModerationService {
   }
 
   Future<void> setTeacherAiSeatVisible(bool value) async {
-    await _roomRef.set(
-      {
-        'showTeacherAiSeat': value,
-        'updatedAt': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
+    await _roomRef.set({
+      'showTeacherAiSeat': value,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
   }
 
   // The host's global moderation invite follows this room owner.
@@ -290,8 +278,12 @@ class RoomModerationService {
     final room = await _roomRef.get();
     final ownerId = room.data()?['hostId']?.toString() ?? '';
     if (ownerId.isEmpty || ownerId == uid) return;
-    yield* _db.collection('users').doc(ownerId)
-        .collection('moderators').doc(uid).snapshots()
+    yield* _db
+        .collection('users')
+        .doc(ownerId)
+        .collection('moderators')
+        .doc(uid)
+        .snapshots()
         .map((snapshot) => snapshot.data());
   }
 
@@ -303,31 +295,51 @@ class RoomModerationService {
     if (ownerId.isEmpty || ownerId == user.uid) {
       throw StateError('Moderator invitation is not available.');
     }
-    final inviteRef = _db.collection('users').doc(ownerId)
-        .collection('moderators').doc(user.uid);
-    final invite = await inviteRef.get();
-    final status = invite.data()?['status'];
-    if (!invite.exists ||
-        (status != 'pending' && !(accepted && status == 'accepted'))) {
-      throw StateError('This moderator invitation is no longer pending.');
-    }
+    final inviteRef = _db
+        .collection('users')
+        .doc(ownerId)
+        .collection('moderators')
+        .doc(user.uid);
+    await _db.runTransaction((tx) async {
+      final invite = await tx.get(inviteRef);
+      final participant = await tx.get(_participantsRef.doc(user.uid));
+      final status = accepted ? 'accepted' : 'declined';
+      if (!invite.exists ||
+          !participant.exists ||
+          (invite.data()?['status'] != 'pending' &&
+              invite.data()?['status'] != status)) {
+        throw StateError('This moderator invitation is no longer pending.');
+      }
+      if (invite.data()?['status'] == 'pending') {
+        tx.update(inviteRef, {
+          'status': status,
+          'respondedAt': FieldValue.serverTimestamp(),
+        });
+      }
+      if (participant.data()?['isModerator'] != accepted) {
+        tx.update(participant.reference, {
+          'isModerator': accepted,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      }
+    });
+  }
 
-    // First accept the owner's invitation. Firestore rules only permit the
-    // invited user to promote their participant after the global invitation
-    // is accepted. Separate writes also allow a safe retry if connectivity
-    // drops between these operations.
-    if (status == 'pending') {
-      await inviteRef.update({
-        'status': accepted ? 'accepted' : 'declined',
-        'respondedAt': FieldValue.serverTimestamp(),
-      });
-    }
-    if (accepted) {
-      await _participantsRef.doc(user.uid).update({
-        'isModerator': true,
+  Future<void> syncMyModeratorStatus(bool accepted) async {
+    final uid = currentUserId;
+    if (uid == null) return;
+    final ref = _participantsRef.doc(uid);
+    await _db.runTransaction((tx) async {
+      final participant = await tx.get(ref);
+      if (!participant.exists ||
+          participant.data()?['role'] == 'host' ||
+          participant.data()?['isModerator'] == accepted)
+        return;
+      tx.update(ref, {
+        'isModerator': accepted,
         'updatedAt': FieldValue.serverTimestamp(),
       });
-    }
+    });
   }
 
   Stream<List<RoomParticipant>> watchParticipants() {
@@ -338,18 +350,14 @@ class RoomModerationService {
         result.add(
           RoomParticipant(
             userId: doc.id,
-            displayName:
-                (data['displayName'] ?? 'WorldVoice user').toString(),
+            displayName: (data['displayName'] ?? 'WorldVoice user').toString(),
             photoUrl: data['photoUrl'] as String?,
             frameId: data['frameId'] as String?,
-            role: RoomParticipant.roleFromString(
-              data['role']?.toString(),
-            ),
+            role: RoomParticipant.roleFromString(data['role']?.toString()),
             handRaised: data['handRaised'] == true,
             agoraUid: (data['agoraUid'] as num?)?.toInt(),
             seatIndex: (data['seatIndex'] as num?)?.toInt(),
-            requestedSeatIndex:
-                (data['requestedSeatIndex'] as num?)?.toInt(),
+            requestedSeatIndex: (data['requestedSeatIndex'] as num?)?.toInt(),
             isModerator: data['isModerator'] == true,
             warningCount: (data['warningCount'] as num?)?.toInt() ?? 0,
             forcedMuted: data['forcedMuted'] == true,
@@ -384,8 +392,7 @@ class RoomModerationService {
         handRaised: data['handRaised'] == true,
         agoraUid: (data['agoraUid'] as num?)?.toInt(),
         seatIndex: (data['seatIndex'] as num?)?.toInt(),
-        requestedSeatIndex:
-            (data['requestedSeatIndex'] as num?)?.toInt(),
+        requestedSeatIndex: (data['requestedSeatIndex'] as num?)?.toInt(),
         isModerator: data['isModerator'] == true,
         warningCount: (data['warningCount'] as num?)?.toInt() ?? 0,
         forcedMuted: data['forcedMuted'] == true,
@@ -398,13 +405,10 @@ class RoomModerationService {
     final userId = currentUserId;
     if (userId == null) return;
 
-    await _participantsRef.doc(userId).set(
-      {
-        'agoraUid': uid,
-        'updatedAt': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
+    await _participantsRef.doc(userId).set({
+      'agoraUid': uid,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
   }
 
   Stream<DocumentSnapshot<Map<String, dynamic>>> watchMyStageInvite() {
@@ -513,34 +517,25 @@ class RoomModerationService {
     await batch.commit();
   }
 
-  Future<void> setHandRaised(
-    bool raised, {
-    int? requestedSeatIndex,
-  }) async {
+  Future<void> setHandRaised(bool raised, {int? requestedSeatIndex}) async {
     final uid = currentUserId;
     if (uid == null) return;
 
-    await _participantsRef.doc(uid).set(
-      {
-        'handRaised': raised,
-        'requestedSeatIndex': raised && requestedSeatIndex != null
-            ? requestedSeatIndex
-            : FieldValue.delete(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
+    await _participantsRef.doc(uid).set({
+      'handRaised': raised,
+      'requestedSeatIndex': raised && requestedSeatIndex != null
+          ? requestedSeatIndex
+          : FieldValue.delete(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
   }
 
   Future<void> rejectHand(String userId) async {
-    await _participantsRef.doc(userId).set(
-      {
-        'handRaised': false,
-        'requestedSeatIndex': FieldValue.delete(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
+    await _participantsRef.doc(userId).set({
+      'handRaised': false,
+      'requestedSeatIndex': FieldValue.delete(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
   }
 
   Future<void> assignSeat({
@@ -554,29 +549,23 @@ class RoomModerationService {
       return;
     }
 
-    await _participantsRef.doc(userId).set(
-      {
-        'role': RoomParticipant.roleToString(role),
-        'seatIndex': seatIndex,
-        'handRaised': false,
-        'requestedSeatIndex': FieldValue.delete(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
+    await _participantsRef.doc(userId).set({
+      'role': RoomParticipant.roleToString(role),
+      'seatIndex': seatIndex,
+      'handRaised': false,
+      'requestedSeatIndex': FieldValue.delete(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
   }
 
   Future<void> moveToListener(String userId) async {
-    await _participantsRef.doc(userId).set(
-      {
-        'role': 'listener',
-        'seatIndex': FieldValue.delete(),
-        'handRaised': false,
-        'requestedSeatIndex': FieldValue.delete(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
+    await _participantsRef.doc(userId).set({
+      'role': 'listener',
+      'seatIndex': FieldValue.delete(),
+      'handRaised': false,
+      'requestedSeatIndex': FieldValue.delete(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
   }
 
   Future<void> changeStageRole({
@@ -589,13 +578,10 @@ class RoomModerationService {
       return;
     }
 
-    await _participantsRef.doc(userId).set(
-      {
-        'role': RoomParticipant.roleToString(role),
-        'updatedAt': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
+    await _participantsRef.doc(userId).set({
+      'role': RoomParticipant.roleToString(role),
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
   }
 
   Future<void> closeRoom() async {
@@ -615,28 +601,20 @@ class RoomModerationService {
     }
 
     final batch = _db.batch();
-    batch.set(
-      _roomRef,
-      {
-        'isOpen': false,
-        'endedAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
+    batch.set(_roomRef, {
+      'isOpen': false,
+      'endedAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
 
     if (data['isPrivate'] == true) {
       final code = privateAccessCode?.trim() ?? '';
       if (code.isNotEmpty) {
-        batch.set(
-          _db.collection('private_room_codes').doc(code),
-          {
-            'isOpen': false,
-            'endedAt': FieldValue.serverTimestamp(),
-            'updatedAt': FieldValue.serverTimestamp(),
-          },
-          SetOptions(merge: true),
-        );
+        batch.set(_db.collection('private_room_codes').doc(code), {
+          'isOpen': false,
+          'endedAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
       }
     }
 
@@ -667,8 +645,9 @@ class RoomModerationService {
     // Keep permanent ownership bound to the original Firebase UID.
     // Leaving a room must not promote a moderator into the host account.
     final participants = await _participantsRef.get();
-    final hasActiveModerator = participants.docs.any((doc) =>
-        doc.id != uid && doc.data()['isModerator'] == true);
+    final hasActiveModerator = participants.docs.any(
+      (doc) => doc.id != uid && doc.data()['isModerator'] == true,
+    );
     final batch = _db.batch();
     batch.delete(_participantsRef.doc(uid));
 
@@ -685,24 +664,18 @@ class RoomModerationService {
         if (code.isNotEmpty) {
           batch.set(
             _db.collection('private_room_codes').doc(code),
-            {
-              'isOpen': false,
-              'endedAt': FieldValue.serverTimestamp(),
-            },
+            {'isOpen': false, 'endedAt': FieldValue.serverTimestamp()},
             SetOptions(merge: true),
           );
         }
       }
-      batch.set(
-        _roomRef,
-        {
-          'isOpen': false,
-          'endedAt': FieldValue.serverTimestamp(),
-          'updatedAt': FieldValue.serverTimestamp(),
-        },
-        SetOptions(merge: true),
-      );
+      batch.set(_roomRef, {
+        'isOpen': false,
+        'endedAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
     }
 
     await batch.commit();
-  }}
+  }
+}

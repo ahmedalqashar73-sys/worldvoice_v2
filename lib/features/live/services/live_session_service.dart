@@ -9,8 +9,8 @@ import '../../profile/data/profile_language_catalog.dart';
 /// requests. Money/gifts remain backend-authoritative and are not written here.
 class LiveSessionService {
   LiveSessionService({FirebaseFirestore? firestore, FirebaseAuth? auth})
-      : _db = firestore ?? FirebaseFirestore.instance,
-        _auth = auth ?? FirebaseAuth.instance;
+    : _db = firestore ?? FirebaseFirestore.instance,
+      _auth = auth ?? FirebaseAuth.instance;
 
   final FirebaseFirestore _db;
   final FirebaseAuth _auth;
@@ -35,20 +35,25 @@ class LiveSessionService {
     // Read it only when creating a Live, not for every discovery card.
     Map<String, dynamic> profile = const <String, dynamic>{};
     try {
-      final snapshot = await _db.collection('users').doc(user.uid).get()
+      final snapshot = await _db
+          .collection('users')
+          .doc(user.uid)
+          .get()
           .timeout(const Duration(seconds: 5));
       profile = snapshot.data() ?? const <String, dynamic>{};
     } catch (_) {
       // A temporary profile read failure must not prevent creating a Live.
     }
-    final native = ProfileLanguageCatalog.codeFromStored(
-      profile['nativeLanguageCode'] ?? profile['nativeLanguage'],
-    ) ?? '';
+    final native =
+        ProfileLanguageCatalog.codeFromStored(
+          profile['nativeLanguageCode'] ?? profile['nativeLanguage'],
+        ) ??
+        '';
     // Use the same ordered profile source as Live discovery; this must not
     // truncate a VIP profile to ten languages or silently lose legacy names.
-    final learning = ProfileLanguageCatalog.liveDiscoveryCodes(profile)
-        .where((code) => code != 'all' && code != native)
-        .toList(growable: false);
+    final learning = ProfileLanguageCatalog.liveDiscoveryCodes(
+      profile,
+    ).where((code) => code != 'all' && code != native).toList(growable: false);
     final ref = _sessions.doc(channelId);
     await ref.set({
       'channelId': channelId,
@@ -71,10 +76,8 @@ class LiveSessionService {
     return ref.id;
   }
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> watchOpen() => _sessions
-      .where('isLive', isEqualTo: true)
-      .limit(100)
-      .snapshots();
+  Stream<QuerySnapshot<Map<String, dynamic>>> watchOpen() =>
+      _sessions.where('isLive', isEqualTo: true).limit(100).snapshots();
 
   Stream<DocumentSnapshot<Map<String, dynamic>>> watch(String liveId) =>
       _sessions.doc(liveId).snapshots();
@@ -93,17 +96,16 @@ class LiveSessionService {
         .collection('moderators')
         .doc(user.uid)
         .snapshots()
-        .map((snapshot) => snapshot.exists);
+        .map(
+          (snapshot) =>
+              snapshot.exists &&
+              (snapshot.data()?['status'] ?? 'accepted') == 'accepted',
+        );
   }
 
   Stream<QuerySnapshot<Map<String, dynamic>>> watchGlobalModerators(
     String hostId,
-  ) =>
-      _db
-          .collection('users')
-          .doc(hostId)
-          .collection('moderators')
-          .snapshots();
+  ) => _db.collection('users').doc(hostId).collection('moderators').snapshots();
 
   Future<void> setGlobalModerator({
     required String liveId,
@@ -133,12 +135,47 @@ class LiveSessionService {
             : displayName.trim(),
         'photoUrl': photoUrl.trim(),
         'assignedBy': user.uid,
+        'status': 'pending',
+        'respondedAt': FieldValue.delete(),
         'assignedAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } else {
       await ref.delete();
     }
+  }
+
+  Stream<Map<String, dynamic>?> watchMyModeratorInvite(String hostId) {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null || uid == hostId) return Stream.value(null);
+    return _db
+        .collection('users')
+        .doc(hostId)
+        .collection('moderators')
+        .doc(uid)
+        .snapshots()
+        .map((doc) => doc.data());
+  }
+
+  Future<void> answerModeratorInvite(String hostId, bool accepted) async {
+    final uid = _user.uid;
+    final ref = _db
+        .collection('users')
+        .doc(hostId)
+        .collection('moderators')
+        .doc(uid);
+    await _db.runTransaction((tx) async {
+      final invite = await tx.get(ref);
+      if (!invite.exists) throw StateError('INVITATION_EXPIRED');
+      final status = accepted ? 'accepted' : 'declined';
+      if (invite.data()?['status'] == status) return;
+      if (invite.data()?['status'] != 'pending')
+        throw StateError('INVITATION_EXPIRED');
+      tx.update(ref, {
+        'status': status,
+        'respondedAt': FieldValue.serverTimestamp(),
+      });
+    });
   }
 
   Future<void> touchHostHeartbeat(String liveId) async {
@@ -155,27 +192,28 @@ class LiveSessionService {
       // Backward compatibility for sessions created before heartbeats existed.
       final started = data['startedAt'];
       if (started is! Timestamp) return true;
-      return (now ?? DateTime.now()).difference(started.toDate()).inSeconds < 60;
+      return (now ?? DateTime.now()).difference(started.toDate()).inSeconds <
+          60;
     }
-    return (now ?? DateTime.now()).difference(heartbeat.toDate()).inSeconds < 45;
+    return (now ?? DateTime.now()).difference(heartbeat.toDate()).inSeconds <
+        45;
   }
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> watchJoinRequests(String liveId) =>
-      _sessions
-          .doc(liveId)
-          .collection('join_requests')
-          .where('status', isEqualTo: 'pending')
-          .snapshots();
+  Stream<QuerySnapshot<Map<String, dynamic>>> watchJoinRequests(
+    String liveId,
+  ) => _sessions
+      .doc(liveId)
+      .collection('join_requests')
+      .where('status', isEqualTo: 'pending')
+      .snapshots();
 
   Stream<QuerySnapshot<Map<String, dynamic>>> watchActiveGuests(
     String liveId,
-  ) =>
-      _sessions
-          .doc(liveId)
-          .collection('join_requests')
-          .where('status', isEqualTo: 'accepted')
-          .snapshots();
-
+  ) => _sessions
+      .doc(liveId)
+      .collection('join_requests')
+      .where('status', isEqualTo: 'accepted')
+      .snapshots();
 
   Future<void> enterViewer(String liveId) async {
     final user = _user;
@@ -255,7 +293,8 @@ class LiveSessionService {
             .collection('moderators')
             .doc(currentUser.uid);
         final moderatorSnap = await tx.get(moderatorRef);
-        if (!moderatorSnap.exists) {
+        if (!moderatorSnap.exists ||
+            (moderatorSnap.data()?['status'] ?? 'accepted') != 'accepted') {
           throw StateError('MODERATOR_ONLY');
         }
       }
@@ -277,8 +316,8 @@ class LiveSessionService {
       final viewerData = viewerSnap.data() ?? const <String, dynamic>{};
       tx.set(request, {
         'uid': userId,
-        'displayName':
-            (viewerData['displayName'] ?? 'WorldVoice user').toString(),
+        'displayName': (viewerData['displayName'] ?? 'WorldVoice user')
+            .toString(),
         'photoUrl': (viewerData['photoUrl'] ?? '').toString(),
         'status': 'invited',
         'invitedBy': currentUser.uid,
@@ -357,7 +396,8 @@ class LiveSessionService {
             .collection('moderators')
             .doc(currentUser.uid);
         final moderatorSnap = await tx.get(moderatorRef);
-        if (!moderatorSnap.exists) {
+        if (!moderatorSnap.exists ||
+            (moderatorSnap.data()?['status'] ?? 'accepted') != 'accepted') {
           throw StateError('MODERATOR_ONLY');
         }
       }
@@ -423,10 +463,15 @@ class LiveSessionService {
     }
     String bubbleId = 'free';
     try {
-      final profile = await _db.collection('users').doc(user.uid).get()
+      final profile = await _db
+          .collection('users')
+          .doc(user.uid)
+          .get()
           .timeout(const Duration(seconds: 4));
       bubbleId = await ActiveChatBubbleService.fromProfile(
-        firestore: _db, uid: user.uid, profile: profile.data(),
+        firestore: _db,
+        uid: user.uid,
+        profile: profile.data(),
       );
     } catch (_) {
       // Comments must still send when the cosmetic inventory is unavailable.
@@ -444,8 +489,10 @@ class LiveSessionService {
   Future<void> cancelPendingRequest(String liveId) async {
     final user = _auth.currentUser;
     if (user == null) return;
-    final request =
-        _sessions.doc(liveId).collection('join_requests').doc(user.uid);
+    final request = _sessions
+        .doc(liveId)
+        .collection('join_requests')
+        .doc(user.uid);
     await _db.runTransaction((tx) async {
       final snap = await tx.get(request);
       if (snap.data()?['status']?.toString() == 'pending') {

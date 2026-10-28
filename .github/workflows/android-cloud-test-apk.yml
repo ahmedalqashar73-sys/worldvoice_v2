@@ -1,28 +1,6 @@
 name: Android Cloud Test APK
 
 on:
-  push:
-    branches:
-      - feat/worldvoice-avatar-frames-20261008
-      - fix/worldvoice-voice-ai-language-tools-20261008
-      - fix/room-audio-first-join-teacher-ai-20261009
-      - fix/free-worker-always-available-agora-20260927
-      - fix/green-room-chat-stage-hand-preview-20260927
-      - fix/finish-room-hub-quiz-gift-20260928
-    paths:
-      - ".github/workflows/android-cloud-test-apk.yml"
-      - "lib/features/rooms/**"
-      - "lib/features/live/**"
-      - "lib/features/chat/**"
-      - "lib/core/widgets/**"
-      - "lib/features/profile/**"
-      - "assets/frames/**"
-      - "assets/gifts/**"
-      - "test/friend_gift_preview_test.dart"
-      - "pubspec.yaml"
-      - "android/app/src/main/AndroidManifest.xml"
-      - "android/app/src/main/kotlin/**"
-      - "android/app/src/main/res/xml/**"
   workflow_dispatch:
 
 permissions:

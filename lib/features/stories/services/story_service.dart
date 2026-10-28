@@ -17,6 +17,7 @@ class StoryItem {
     required this.createdAtMs,
     required this.expiresAtMs,
     required this.mediaUrl,
+    this.filter = 'original',
     this.liveId = '',
   });
 
@@ -30,6 +31,7 @@ class StoryItem {
   final int createdAtMs;
   final int expiresAtMs;
   final String mediaUrl;
+  final String filter;
   final String liveId;
 
   bool get isLiveShare => kind == 'live' && liveId.isNotEmpty;
@@ -48,6 +50,7 @@ class StoryItem {
       createdAtMs: (json['createdAtMs'] as num?)?.toInt() ?? 0,
       expiresAtMs: (json['expiresAtMs'] as num?)?.toInt() ?? 0,
       mediaUrl: (json['mediaUrl'] ?? '').toString(),
+      filter: (json['filter'] ?? 'original').toString(),
       liveId: (json['liveId'] ?? '').toString(),
     );
   }
@@ -77,10 +80,7 @@ class StoryCloseFriendCandidate {
 }
 
 class StoryCloseFriendState {
-  const StoryCloseFriendState({
-    required this.isVip,
-    required this.userIds,
-  });
+  const StoryCloseFriendState({required this.isVip, required this.userIds});
 
   final bool isVip;
   final Set<String> userIds;
@@ -100,8 +100,28 @@ class StoryService {
   );
   final http.Client _client;
 
-  Uri _uri(String path) {
-    final root = Uri.tryParse(_endpoint.trim());
+  // Keep the last authorized feed in memory when a user briefly leaves
+  // Messages for Live/Rooms and returns. Scoped by Firebase uid, not shared
+  // between accounts; expired Stories never remain in the cache.
+  static String? _cachedFeedUser;
+  static List<StoryItem> _cachedFeed = const <StoryItem>[];
+  static DateTime? _cachedFeedAt;
+
+  static List<StoryItem> cachedFeedFor(String? uid) {
+    if (uid == null || uid != _cachedFeedUser) return const <StoryItem>[];
+    final saved = _cachedFeedAt;
+    if (saved == null ||
+        DateTime.now().difference(saved) > const Duration(minutes: 3)) {
+      return const <StoryItem>[];
+    }
+    final now = DateTime.now().millisecondsSinceEpoch;
+    return _cachedFeed
+        .where((story) => story.expiresAtMs > now)
+        .toList(growable: false);
+  }
+
+  Uri _uri(String path, {String? base}) {
+    final root = Uri.tryParse((base ?? _activeEndpoint ?? _endpoint).trim());
     if (root == null ||
         root.scheme != 'https' ||
         !root.hasAuthority ||
@@ -112,6 +132,52 @@ class StoryService {
         ? root.path.substring(0, root.path.length - 1)
         : root.path;
     return root.replace(path: '$basePath$path', query: null, fragment: null);
+  }
+
+  Future<http.Response> _storyGet(
+    String path,
+    String token, {
+    Map<String, String>? query,
+    Duration timeout = const Duration(seconds: 30),
+  }) async {
+    final headers = <String, String>{'Authorization': 'Bearer $token'};
+    final firstUrl = _uri(path).replace(queryParameters: query);
+    final first = await _client
+        .get(firstUrl, headers: headers)
+        .timeout(timeout);
+    // The Story API may live on either WorldVoice backend. Retry missing
+    // routes, and for storage preflight only, a backend without media storage.
+    // Never redirect auth failures or private Story reads to another host.
+    final routeMissing = first.statusCode == 404 || first.statusCode == 405;
+    var mediaStorageMissing = false;
+    if (path == '/stories/storage-status' && first.statusCode == 503) {
+      try {
+        final decoded = jsonDecode(first.body);
+        mediaStorageMissing =
+            decoded is Map &&
+            (decoded['code'] == 'STORY_STORAGE_NOT_READY' ||
+                (decoded['error']?.toString().contains('storage') ?? false));
+      } catch (_) {
+        // A generic server error is not evidence of missing media storage.
+      }
+    }
+    if (!routeMissing && !mediaStorageMissing) return first;
+    final alternate = _uri(
+      path,
+      base: _fallbackEndpoint,
+    ).replace(queryParameters: query);
+    if (alternate.origin == firstUrl.origin &&
+        alternate.path == firstUrl.path) {
+      return first;
+    }
+    final second = await _client
+        .get(alternate, headers: headers)
+        .timeout(timeout);
+    if (second.statusCode >= 200 && second.statusCode < 300) {
+      _activeEndpoint = _fallbackEndpoint;
+      return second;
+    }
+    return first;
   }
 
   Future<String> _token() async {
@@ -138,43 +204,52 @@ class StoryService {
     if (response.statusCode < 200 ||
         response.statusCode >= 300 ||
         body['ok'] != true) {
-      throw StateError(
-        body['error']?.toString() ?? 'Story request failed.',
-      );
+      throw StateError(body['error']?.toString() ?? 'Story request failed.');
     }
     return body;
   }
 
   Future<List<StoryItem>> fetchFeed() async {
     final token = await _token();
-    final response = await _client.get(
-      _uri('/stories/feed'),
-      headers: {'Authorization': 'Bearer $token'},
+    // Render Free may cold-start after inactivity; do not fail the feed
+    // after its default 30-second request timeout.
+    final response = await _storyGet(
+      '/stories/feed',
+      token,
+      timeout: const Duration(seconds: 85),
     );
     final body = await _decode(response);
     final raw = body['stories'];
     if (raw is! List) return const <StoryItem>[];
     return raw
         .whereType<Map>()
-        .map((item) => StoryItem.fromJson(
-              item.map((key, value) => MapEntry(key.toString(), value)),
-            ))
-        .where((item) => item.id.isNotEmpty &&
-            (item.mediaUrl.isNotEmpty || item.isLiveShare))
+        .map(
+          (item) => StoryItem.fromJson(
+            item.map((key, value) => MapEntry(key.toString(), value)),
+          ),
+        )
+        .where(
+          (item) =>
+              item.id.isNotEmpty &&
+              item.mediaUrl.isNotEmpty &&
+              item.expiresAtMs > DateTime.now().millisecondsSinceEpoch,
+        )
         .toList(growable: false);
   }
 
   /// Publishes a clickable Live story without uploading media.
   Future<void> shareLive(String liveId) async {
     final token = await _token();
-    final response = await _client.post(
-      _uri('/stories/live-share'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({'liveId': liveId}),
-    ).timeout(const Duration(seconds: 25));
+    final response = await _client
+        .post(
+          _uri('/stories/live-share'),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode({'liveId': liveId}),
+        )
+        .timeout(const Duration(seconds: 25));
     await _decode(response);
   }
 
@@ -183,20 +258,21 @@ class StoryService {
     required String kind,
     required String audience,
     required int durationMs,
+    required String uploadId,
+    String filter = 'original',
   }) async {
     final token = await _token();
     // Check the configured media storage provider before transferring video.
     // Missing storage used to fail only after a costly upload attempt.
     try {
-      final readiness = await _client.get(
-        _uri('/stories/storage-status'),
-        headers: {'Authorization': 'Bearer $token'},
-      ).timeout(const Duration(seconds: 75));
+      final readiness = await _storyGet(
+        '/stories/storage-status',
+        token,
+        timeout: const Duration(seconds: 75),
+      );
       await _decode(readiness);
     } on TimeoutException {
-      throw StateError(
-        'Story storage check timed out. Please try again.',
-      );
+      throw StateError('Story storage check timed out. Please try again.');
     }
     final length = await file.length();
     final maxBytes = kind == 'video' ? 80 * 1024 * 1024 : 12 * 1024 * 1024;
@@ -215,6 +291,8 @@ class StoryService {
       'X-Story-Kind': kind,
       'X-Story-Audience': audience,
       'X-Story-Duration-Ms': '$durationMs',
+      'X-Story-Upload-Id': uploadId,
+      'X-Story-Filter': filter,
     });
     request.contentLength = length;
 
@@ -230,12 +308,14 @@ class StoryService {
         }
         return true;
       }();
-      final completed = await Future.wait<Object>([sendFuture, writeFuture])
-          .timeout(const Duration(minutes: 2));
+      final completed = await Future.wait<Object>([
+        sendFuture,
+        writeFuture,
+      ]).timeout(const Duration(minutes: 2));
       final streamed = completed.first as http.StreamedResponse;
-      final body = await streamed.stream
-          .bytesToString()
-          .timeout(const Duration(seconds: 30));
+      final body = await streamed.stream.bytesToString().timeout(
+        const Duration(seconds: 30),
+      );
       final response = http.Response(
         body,
         streamed.statusCode,
@@ -247,6 +327,41 @@ class StoryService {
         'Story upload timed out. Check your connection and try again.',
       );
     }
+  }
+
+  Future<StoryItem> verifyPublishedStory(String storyId) async {
+    final token = await _token();
+    final response = await _storyGet(
+      '/stories/status',
+      token,
+      query: <String, String>{'storyId': storyId},
+    );
+    // A deployed older Story backend may not yet have /stories/status.
+    // In that case verify against its authenticated feed, never claim
+    // success until the returned Story has a real playable media URL.
+    if (response.statusCode == 404 || response.statusCode == 405) {
+      final savedFeed = await fetchFeed();
+      for (final story in savedFeed) {
+        if (story.id == storyId && story.mediaUrl.isNotEmpty) {
+          return story;
+        }
+      }
+      throw StateError(
+        'Story may be saved but is not visible in the feed yet. Retry verification.',
+      );
+    }
+    final decoded = await _decode(response);
+    final raw = decoded['story'];
+    if (raw is! Map) {
+      throw StateError('Story is saved, but its media is not available yet.');
+    }
+    final story = StoryItem.fromJson(
+      raw.map((key, value) => MapEntry(key.toString(), value)),
+    );
+    if (story.id != storyId || story.mediaUrl.isEmpty) {
+      throw StateError('Story media could not be verified.');
+    }
+    return story;
   }
 
   String _mimeType(XFile file, String kind) {
@@ -266,6 +381,90 @@ class StoryService {
     return 'image/jpeg';
   }
 
+  Future<Map<String, dynamic>> _postStory(
+    String path,
+    Map<String, dynamic> payload,
+  ) async {
+    final token = await _token();
+    final response = await _client
+        .post(
+          _uri(path),
+          headers: <String, String>{
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode(payload),
+        )
+        .timeout(const Duration(seconds: 30));
+    return _decode(response);
+  }
+
+  Future<Map<String, dynamic>> fetchStoryInteractions(
+    String id, {
+    String? viewCursor,
+  }) async {
+    final token = await _token();
+    final response = await _storyGet(
+      '/stories/interactions',
+      token,
+      query: <String, String>{
+        'storyId': id,
+        if (viewCursor != null) 'viewCursor': viewCursor,
+      },
+    );
+    return _decode(response);
+  }
+
+  Future<void> setStoryLiked(String id, {required bool liked}) async {
+    await _postStory('/stories/like', <String, dynamic>{
+      'storyId': id,
+      'liked': liked,
+    });
+  }
+
+  Future<void> commentOnStory(String id, String comment) async {
+    await _postStory('/stories/comment', <String, dynamic>{
+      'storyId': id,
+      'text': comment,
+    });
+  }
+
+  Future<Map<String, dynamic>> fetchStoryPreferences() async {
+    final token = await _token();
+    return _decode(await _storyGet('/stories/preferences', token));
+  }
+
+  Future<void> updateStoryPreferences({
+    required bool allowReplies,
+    required bool notifyActivity,
+  }) async {
+    await _postStory('/stories/preferences', <String, dynamic>{
+      'allowReplies': allowReplies,
+      'notifyActivity': notifyActivity,
+    });
+  }
+
+  Future<List<Map<String, dynamic>>> fetchStoryNotifications() async {
+    final token = await _token();
+    final response = await _storyGet('/stories/notifications', token);
+    final decoded = await _decode(response);
+    final raw = decoded['events'];
+    if (raw is! List) return <Map<String, dynamic>>[];
+    return raw
+        .whereType<Map>()
+        .map(
+          (event) => event.map((key, value) => MapEntry(key.toString(), value)),
+        )
+        .toList();
+  }
+
+  Future<void> registerStoryNotificationDevice(String token) async {
+    await _postStory(
+      '/stories/notifications/register-device',
+      <String, dynamic>{'token': token},
+    );
+  }
+
   Future<void> recordView(String storyId) async {
     final token = await _token();
     final response = await _client.post(
@@ -281,10 +480,8 @@ class StoryService {
 
   Future<void> deleteStory(String storyId) async {
     final token = await _token();
-    final request = http.Request(
-      'DELETE',
-      _uri('/stories/$storyId'),
-    )..headers['Authorization'] = 'Bearer $token';
+    final request = http.Request('DELETE', _uri('/stories/$storyId'))
+      ..headers['Authorization'] = 'Bearer $token';
     final streamed = await _client.send(request);
     final body = await streamed.stream.bytesToString();
     await _decode(http.Response(body, streamed.statusCode));
@@ -301,10 +498,7 @@ class StoryService {
     final ids = rawIds is List
         ? rawIds.map((e) => e.toString()).where((e) => e.isNotEmpty).toSet()
         : <String>{};
-    return StoryCloseFriendState(
-      isVip: body['isVip'] == true,
-      userIds: ids,
-    );
+    return StoryCloseFriendState(isVip: body['isVip'] == true, userIds: ids);
   }
 
   Future<List<StoryCloseFriendCandidate>> fetchCloseFriendCandidates() async {
@@ -318,9 +512,11 @@ class StoryService {
     if (raw is! List) return const <StoryCloseFriendCandidate>[];
     return raw
         .whereType<Map>()
-        .map((item) => StoryCloseFriendCandidate.fromJson(
-              item.map((key, value) => MapEntry(key.toString(), value)),
-            ))
+        .map(
+          (item) => StoryCloseFriendCandidate.fromJson(
+            item.map((key, value) => MapEntry(key.toString(), value)),
+          ),
+        )
         .where((item) => item.uid.isNotEmpty)
         .toList(growable: false);
   }

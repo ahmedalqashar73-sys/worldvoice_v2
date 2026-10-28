@@ -118,6 +118,7 @@ async function signedStory({bucketForLegacy, doc}) {
       createdAtMs: timestampMillis(data.createdAt),
       expiresAtMs: timestampMillis(data.expiresAt),
       mediaUrl,
+      filter: String(data.filter || "original"),
     };
   } catch (error) {
     console.error("Story signed URL failed:", doc.id, error?.message || error);
@@ -326,6 +327,10 @@ export function registerStoryRoutes({
             : "Story image is too large.", 413);
         }
 
+        const filter = String(req.headers["x-story-filter"] || "original");
+        if (!["original", "vivid", "warm", "cool", "mono", "vintage", "rose", "cinema"].includes(filter)) {
+          fail("Invalid Story filter.");
+        }
         const durationMs = Number(req.headers["x-story-duration-ms"] || 0);
         if (
           kind === "video" &&
@@ -375,6 +380,7 @@ export function registerStoryRoutes({
             ).slice(0, 100),
             ownerPhotoUrl: String(profile.photoUrl || user.picture || ""),
             kind,
+            filter,
             audience,
             durationMs: kind === "video" ? Math.round(durationMs) : 7000,
             ...(uploaded ? {

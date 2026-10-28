@@ -1,3 +1,4 @@
+import {registerStoryInteractionRoutes} from "./story_interactions_routes.js";
 import { createHash, randomUUID } from "node:crypto";
 
 import agoraToken from "agora-token";
@@ -2678,6 +2679,8 @@ app.post("/room/tasks/claim", async (req, res, next) => {
 // Finance routes run only on the separately deployed authenticated backend.
 registerWalletRoutes({app, db, authenticatedUser});
 registerChatRoutes({app, db, authenticatedUser});
+registerStoryInteractionRoutes({app, db, authenticatedUser});
+
 registerStoryRoutes({
   app,
   authenticatedUser,

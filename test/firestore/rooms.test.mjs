@@ -335,6 +335,7 @@ test('Live host invite requires viewer consent before guest count increases', as
 test('moderator can accept a raised hand but cannot promote without consent', async () => {
   await env.withSecurityRulesDisabled(async (ctx) => {
     const db = ctx.firestore();
+    await setDoc(doc(db, 'users/host/moderators/mod'), {uid: 'mod', assignedBy: 'host', status: 'accepted'});
     await setDoc(member(db, 'mod'), {
       ...participant('mod'),
       isModerator: true,
@@ -635,3 +636,111 @@ test('room abuse reports are write-once, private and bound to actual chat author
   }));
 });
 
+
+test('cycle state, reward receipts and free gifts cannot be forged by clients', async () => {
+  const db = user('listener');
+  for (const path of ['users/listener/engagement/cycle',
+    'users/listener/engagement_receipts/1_1', 'users/listener/inventory/gift__wv_gift_001']) {
+    await assertFails(setDoc(doc(db, path), {creativeCycles: 99, freeGiftBalance: 999}));
+  }
+  await assertFails(getDoc(doc(db, 'users/host/engagement/cycle')));
+});
+
+
+test('language game secrets, answers, game scores and free quotas are backend-only', async () => {
+  const users = [user('host'), user('listener'), user('other')];
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const admin = ctx.firestore();
+    await setDoc(doc(admin, 'rooms/r1/private_games/current'),
+      {sessionId: 'secret-round', endAtMs: 1800000000000});
+    await setDoc(doc(admin, 'rooms/r1/private_games/secret-round'),
+      {questions: [{answer: 'library', clue: 'A place with books'}]});
+    await setDoc(doc(admin,
+      'rooms/r1/private_games/secret-round/answers/listener_0'),
+      {uid: 'listener', correct: true});
+    await setDoc(doc(admin,
+      'rooms/r1/private_games/secret-round/scores/listener'),
+      {points: 10});
+    await setDoc(doc(admin, 'users/host/game_usage/2026-10-17_guess'),
+      {count: 5});
+  });
+  for (const db of users) {
+    for (const path of [
+      'rooms/r1/private_games/current',
+      'rooms/r1/private_games/secret-round',
+      'rooms/r1/private_games/secret-round/answers/listener_0',
+      'rooms/r1/private_games/secret-round/scores/listener',
+      'users/host/game_usage/2026-10-17_guess',
+    ]) {
+      await assertFails(getDoc(doc(db, path)));
+      await assertFails(setDoc(doc(db, path), {points: 999, count: 0}));
+    }
+  }
+});
+
+test('academy checklist is private, schema-restricted and cannot mint rewards', async () => {
+  const owner = user('student');
+  const other = user('stranger');
+  const path = 'users/student/academy_progress/en_1_vocabulary';
+  const complete = {
+    completed: true, language: 'en', completedAt: serverTimestamp()
+  };
+  await assertSucceeds(setDoc(doc(owner, path), complete));
+  await assertSucceeds(getDoc(doc(owner, path)));
+  await assertFails(getDoc(doc(other, path)));
+  await assertFails(setDoc(doc(other, 'users/student/academy_progress/en_2_quiz'), {
+    completed: true, language: 'en', completedAt: serverTimestamp()
+  }));
+  await assertFails(setDoc(doc(owner, 'users/student/academy_progress/en_1_magic'), complete));
+  await assertFails(setDoc(doc(owner, 'users/student/academy_progress/en_1_grammar'), {
+    ...complete, coins: 500
+  }));
+  await assertFails(setDoc(doc(owner, 'users/student/academy_progress/en_2_quiz'), {
+    completed: false, language: 'en', completedAt: serverTimestamp()
+  }));
+  await assertFails(updateDoc(doc(owner, path), {completed: false}));
+  await assertFails(deleteDoc(doc(owner, path)));
+});
+
+test('moderator invitation accepts atomically for a seated room participant', async () => {
+  const host = user('host');
+  const target = user('listener');
+  const invite = db => doc(db, 'users/host/moderators/listener');
+  await assertSucceeds(setDoc(invite(host), {
+    uid: 'listener', assignedBy: 'host', status: 'pending',
+    assignedAt: serverTimestamp(), updatedAt: serverTimestamp(),
+  }));
+  await assertSucceeds(updateDoc(member(host, 'listener'), {role: 'speaker', seatIndex: 2}));
+  const batch = writeBatch(target);
+  batch.update(invite(target), {status: 'accepted', respondedAt: serverTimestamp()});
+  batch.update(member(target, 'listener'), {isModerator: true, updatedAt: serverTimestamp()});
+  await assertSucceeds(batch.commit());
+  assert.equal((await getDoc(member(target, 'listener'))).data().seatIndex, 2);
+});
+
+test('pending and declined moderators have no room or live authority; revocation is immediate', async () => {
+  await env.withSecurityRulesDisabled(async ctx => {
+    await setDoc(doc(ctx.firestore(), 'live_sessions/l1'), {hostId: 'host', active: true});
+    await setDoc(doc(ctx.firestore(), 'live_sessions/l1/join_requests/other'), {uid:'other',status:'pending'});
+  });
+  const host = user('host'); const target = user('listener');
+  const invite = db => doc(db, 'users/host/moderators/listener');
+  await assertSucceeds(setDoc(invite(host), {uid:'listener',assignedBy:'host',status:'pending'}));
+  await assertFails(getDocs(collection(target, 'live_sessions/l1/join_requests')));
+  await assertFails(updateDoc(member(target, 'listener'), {isModerator:true}));
+  await assertSucceeds(updateDoc(invite(target), {status:'declined',respondedAt:serverTimestamp()}));
+  await assertFails(getDocs(collection(target, 'live_sessions/l1/join_requests')));
+  await assertFails(updateDoc(invite(target), {status:'accepted',respondedAt:serverTimestamp()}));
+  await assertSucceeds(setDoc(invite(host), {uid:'listener',assignedBy:'host',status:'pending'}));
+  const accept = writeBatch(target);
+  accept.update(invite(target), {status:'accepted',respondedAt:serverTimestamp()});
+  accept.update(member(target, 'listener'), {isModerator:true,updatedAt:serverTimestamp()});
+  await assertSucceeds(accept.commit());
+  await assertSucceeds(getDocs(collection(target, 'live_sessions/l1/join_requests')));
+  await assertSucceeds(updateDoc(member(target, 'listener'), {isModerator:true,updatedAt:serverTimestamp()}));
+  await assertSucceeds(setDoc(doc(target, 'rooms/r1/mod_log/allowed'), {action:'mute'}));
+  await assertSucceeds(deleteDoc(invite(host)));
+  await assertFails(getDocs(collection(target, 'live_sessions/l1/join_requests')));
+  await assertFails(setDoc(doc(target, 'rooms/r1/mod_log/forged'), {action:'mute'}));
+  await assertSucceeds(updateDoc(member(target, 'listener'), {isModerator:false,updatedAt:serverTimestamp()}));
+});
