@@ -1444,8 +1444,9 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     setState(() => _hostMediaBusy = true);
     try {
       await _controller.setCameraPublishing(_cameraPaused);
-      if (mounted)
+      if (mounted) {
         setState(() => _cameraPaused = !_controller.cameraPublishing);
+      }
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -3870,8 +3871,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
     setState(() => _guestMediaBusy = true);
     try {
       await _controller.setCameraPublishing(_guestCameraPaused);
-      if (mounted)
+      if (mounted) {
         setState(() => _guestCameraPaused = !_controller.cameraPublishing);
+      }
     } catch (error) {
       _showGuestMediaError(error);
     } finally {
@@ -3908,8 +3910,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   }
 
   Future<void> _leaveGuestCamera() async {
-    if (!_guestPublishing || _guestMediaBusy || _controller.engine == null)
+    if (!_guestPublishing || _guestMediaBusy || _controller.engine == null) {
       return;
+    }
     setState(() => _guestMediaBusy = true);
     try {
       _guestQuotaTimer?.cancel();
@@ -3938,8 +3941,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   }
 
   Future<void> _becomeGuest() async {
-    if (_guestPublishing || _guestStarting || _controller.engine == null)
+    if (_guestPublishing || _guestStarting || _controller.engine == null) {
       return;
+    }
     _guestStarting = true;
     try {
       _guestQuotaLevel = await _currentUserStageLevel();
