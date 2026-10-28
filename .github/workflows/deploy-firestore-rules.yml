@@ -73,7 +73,9 @@ jobs:
           echo "configured=true" >> "$GITHUB_OUTPUT"
 
       - name: Deploy Firestore rules and indexes
+        id: cli_deploy
         if: steps.auth.outputs.configured == 'true'
+        continue-on-error: true
         run: firebase deploy --only firestore:rules --project worldvoice-37896 --non-interactive
 
       - name: Use official Firebase Admin SDK when CLI cannot inspect Service Usage
