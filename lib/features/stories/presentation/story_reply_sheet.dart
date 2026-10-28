@@ -31,15 +31,17 @@ class _StoryReplySheetState extends State<StoryReplySheet> {
       await widget.onSend(text);
       if (mounted) Navigator.pop(context, true);
     } catch (error) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _error = error.toString().replaceFirst('Bad state: ', '');
         });
+      }
     } finally {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _sending = false;
         });
+      }
     }
   }
 
