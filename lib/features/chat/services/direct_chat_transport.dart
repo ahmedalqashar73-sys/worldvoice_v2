@@ -16,19 +16,22 @@ class DirectChatTransport {
   final LocalChatStore store;
   ChatDeliverySession? _session;
   final connected = ValueNotifier<bool>(false);
-  String? get lastError => _session?.status.value;
+  final error = ValueNotifier<String?>(null);
+  String? get lastError => error.value;
   bool get isOnline => connected.value;
 
   Future<void> start() async {
     await ChatDeliveryService.instance.setAccount(uid);
     _session = ChatDeliveryService.instance.session(uid, peerId, chatId);
     _session!.connected.addListener(_sync);
+    _session!.status.addListener(_sync);
     _sync();
     _session!.wake();
   }
 
   void _sync() {
     connected.value = _session?.connected.value ?? false;
+    error.value = _session?.status.value;
   }
 
   Future<void> queueText(String text, {String bubbleId = 'free'}) async {
@@ -44,6 +47,7 @@ class DirectChatTransport {
       'withdrawn': false,
       'hidden': false,
       'delivered': false,
+      'sent': false,
       'read': false,
     });
     _session?.wake();
@@ -70,6 +74,7 @@ class DirectChatTransport {
       'withdrawn': false,
       'hidden': false,
       'delivered': false,
+      'sent': false,
       'read': false,
     });
     _session?.wake();
@@ -90,6 +95,7 @@ class DirectChatTransport {
       'text': text,
       'edited': true,
       'delivered': false,
+      'sent': false,
       'deliveryId': '',
       'version': DateTime.now().microsecondsSinceEpoch,
     });
@@ -104,6 +110,7 @@ class DirectChatTransport {
       'text': '',
       'filePath': '',
       'delivered': false,
+      'sent': false,
       'deliveryId': '',
       'version': DateTime.now().microsecondsSinceEpoch,
     });
@@ -112,6 +119,8 @@ class DirectChatTransport {
 
   Future<void> dispose() async {
     _session?.connected.removeListener(_sync);
+    _session?.status.removeListener(_sync);
+    error.dispose();
     connected.dispose();
   }
 }

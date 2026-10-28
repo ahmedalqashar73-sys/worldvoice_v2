@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'local_chat_store.dart';
+import 'chat_delivery_service.dart';
 
 /// Cross-feature text shares join the same local encrypted queue as direct DMs.
 /// A successful return means committed to THIS device, not delivered/read.
@@ -20,15 +21,28 @@ abstract final class WorldVoiceLocalShareService {
 
     // Preserve the existing server-authoritative membership checks.
     final chat = await FirebaseFirestore.instance
-        .collection('chats').doc(chatId).get();
-    final members = (chat.data()?['memberIds'] as List?)
-            ?.map((member) => member.toString()).toList() ?? <String>[];
-    if (!chat.exists || chat.data()?['active'] != true ||
+        .collection('chats')
+        .doc(chatId)
+        .get();
+    final members =
+        (chat.data()?['memberIds'] as List?)
+            ?.map((member) => member.toString())
+            .toList() ??
+        <String>[];
+    if (!chat.exists ||
+        chat.data()?['active'] != true ||
         chat.data()?['type'] == 'group' ||
-        members.length != 2 || !members.contains(uid)) {
+        members.length != 2 ||
+        !members.contains(uid)) {
       throw StateError('This direct conversation is not available.');
     }
 
+    await ChatDeliveryService.instance.setAccount(uid);
+    final delivery = ChatDeliveryService.instance.session(
+      uid,
+      members.firstWhere((id) => id != uid),
+      chatId,
+    );
     final store = LocalChatStore.of(uid, chatId);
     await store.upsert({
       'id': LocalChatStore.newId(),
@@ -42,7 +56,7 @@ abstract final class WorldVoiceLocalShareService {
       'delivered': false,
       'read': false,
     });
-    // The foreground WebRTC conversation flushes the stored outbox on open.
-    // Never send the actual text to a Firestore/Render/Cloudinary API here.
+    // Start delivery even if neither conversation screen is open.
+    delivery.wake();
   }
 }

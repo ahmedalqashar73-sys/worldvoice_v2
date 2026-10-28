@@ -8,6 +8,8 @@ import 'package:video_player/video_player.dart';
 import '../services/story_service.dart';
 import '../services/story_filter_presets.dart';
 import 'story_interaction_sheet.dart';
+import 'story_reply_sheet.dart';
+import '../../chat/presentation/chat_screen.dart';
 import '../../chat/presentation/worldvoice_share_to_chat_sheet.dart';
 
 class StoryViewerScreen extends StatefulWidget {
@@ -243,7 +245,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
   }
 
   Future<void> _replyToStory(StoryItem story) async {
-    if (_closing || _interacting || widget.onReply == null) return;
+    if (_closing || _interacting) return;
     _interacting = true;
     _timer?.cancel();
     _progress.stop();
@@ -258,7 +260,45 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
               : 'The Story owner has disabled replies.',
         );
       }
-      if (mounted && !_closing) await widget.onReply!(story);
+      if (mounted && !_closing) {
+        await showModalBottomSheet<bool>(
+          context: context,
+          isScrollControlled: true,
+          isDismissible: false,
+          enableDrag: false,
+          builder: (_) => StoryReplySheet(
+            ownerName: story.ownerName,
+            isArabic: ar,
+            onSend: (text) async {
+              final permission = await widget.service.fetchStoryInteractions(
+                story.id,
+              );
+              if (permission['allowReplies'] != true) {
+                throw StateError(
+                  ar
+                      ? 'صاحب الستوري أوقف الردود.'
+                      : 'Story replies are disabled.',
+                );
+              }
+              final chat = await ChatScreen.startConversationWithUser(
+                recipientId: story.ownerId,
+              );
+              final id = (chat['chatId'] ?? '').toString();
+              if (id.isEmpty) {
+                throw StateError(
+                  ar
+                      ? 'يلزم قبول طلب المحادثة أولًا. ردك محفوظ هنا.'
+                      : 'The chat request must be accepted first. Your draft is still here.',
+                );
+              }
+              await ChatScreen.sendTextMessageToConversation(
+                chatId: id,
+                text: '$text\n\nworldvoice://story/${story.id}',
+              );
+            },
+          ),
+        );
+      }
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -746,7 +786,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
                             shape: const StadiumBorder(),
                             padding: const EdgeInsets.all(14),
                           ),
-                          onPressed: _allowReplies && widget.onReply != null
+                          onPressed: _allowReplies
                               ? () => _replyToStory(story)
                               : null,
                           child: Text(

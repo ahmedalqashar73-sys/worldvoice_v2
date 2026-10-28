@@ -103,6 +103,7 @@ class _DirectChatConversationScreenState
       );
       if (!mounted) return;
       store.revision.addListener(_refresh);
+      transport.error.addListener(_refresh);
       setState(() {
         _store = store;
         _transport = transport;
@@ -136,7 +137,23 @@ class _DirectChatConversationScreenState
   }
 
   void _refresh() {
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    final error = _transport?.lastError;
+    setState(() {
+      _connectionNotice = error == null
+          ? null
+          : error.contains('permission-denied')
+          ? (_ar
+                ? 'تعذر الإرسال: الخادم رفض صلاحية تسليم الرسائل. رسائلك محفوظة؛ يلزم تحديث قواعد Firebase.'
+                : 'Delivery denied by the server. Messages are saved; Firebase rules must be updated.')
+          : error.contains('recipient needs')
+          ? (_ar
+                ? 'بانتظار فتح المستلم للتطبيق المحدث لتفعيل التسليم المشفر.'
+                : 'Waiting for the recipient to open the updated app to enable encrypted delivery.')
+          : (_ar
+                ? 'تعذر التسليم الآن. الرسائل محفوظة وتُعاد المحاولة تلقائيًا.'
+                : 'Delivery is unavailable. Messages are saved and retry automatically.');
+    });
   }
 
   Future<void> _send() async {
@@ -361,6 +378,7 @@ class _DirectChatConversationScreenState
               store: store,
             );
             _transport = transport;
+            transport.error.addListener(_refresh);
             unawaited(transport.start());
           }
         }
@@ -787,7 +805,9 @@ class _DirectChatConversationScreenState
                           const SizedBox(width: 5),
                           Text(
                             item['delivered'] == true
-                                ? (_ar ? 'تم الرسالة' : 'Sent')
+                                ? (_ar ? 'تم التسليم' : 'Delivered')
+                                : item['sent'] == true
+                                ? (_ar ? 'تم الإرسال' : 'Sent')
                                 : (_ar ? 'بانتظار الإرسال' : 'Pending'),
                             style: TextStyle(
                               fontSize: 10,

@@ -258,6 +258,13 @@ class ChatDeliverySession {
     if (prior?['state'] == 'ready' &&
         expires != null &&
         expires.toDate().isAfter(DateTime.now())) {
+      if (item['sent'] != true) {
+        await store.patchIf(
+          messageId,
+          {'deliveryId': deliveryId},
+          {'sent': true},
+        );
+      }
       return;
     }
     final peerKey = await FirebaseFirestore.instance
@@ -332,6 +339,7 @@ class ChatDeliverySession {
       'state': 'ready',
       'updatedAt': FieldValue.serverTimestamp(),
     });
+    await store.patchIf(messageId, {'deliveryId': deliveryId}, {'sent': true});
   }
 
   Future<void> _receive(

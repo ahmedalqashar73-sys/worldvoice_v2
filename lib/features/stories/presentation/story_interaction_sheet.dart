@@ -45,13 +45,13 @@ class _StoryInteractionSheetState extends State<StoryInteractionSheet> {
       ].whereType<Map>()) {
         people[person['uid'].toString()] = person;
       }
-      setState(
-        () => _interaction = Future.value({
+      setState(() {
+        _interaction = Future.value({
           ...current,
           'viewers': people.values.toList(),
           'nextViewCursor': next['nextViewCursor'],
-        }),
-      );
+        });
+      });
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -76,7 +76,9 @@ class _StoryInteractionSheetState extends State<StoryInteractionSheet> {
       await widget.service.commentOnStory(widget.story.id, _input.text.trim());
       _input.clear();
       if (mounted) {
-        setState(() => _interaction = _refresh());
+        setState(() {
+          _interaction = _refresh();
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -158,8 +160,9 @@ class _StoryInteractionSheetState extends State<StoryInteractionSheet> {
                               textAlign: TextAlign.center,
                             ),
                             TextButton(
-                              onPressed: () =>
-                                  setState(() => _interaction = _refresh()),
+                              onPressed: () => setState(() {
+                                _interaction = _refresh();
+                              }),
                               child: Text(
                                 widget.isArabic ? 'إعادة المحاولة' : 'Retry',
                               ),
@@ -196,8 +199,9 @@ class _StoryInteractionSheetState extends State<StoryInteractionSheet> {
                         ),
                       ),
                       IconButton(
-                        onPressed: () =>
-                            setState(() => _interaction = _refresh()),
+                        onPressed: () => setState(() {
+                          _interaction = _refresh();
+                        }),
                         icon: const Icon(Icons.refresh),
                       ),
                     ],
@@ -333,10 +337,9 @@ class _StorySettingsSheetState extends State<StorySettingsSheet> {
               child: Center(
                 child: snapshot.hasError
                     ? TextButton(
-                        onPressed: () => setState(
-                          () => _settings = widget.service
-                              .fetchStoryPreferences(),
-                        ),
+                        onPressed: () => setState(() {
+                          _settings = widget.service.fetchStoryPreferences();
+                        }),
                         child: Text(
                           widget.isArabic ? 'إعادة المحاولة' : 'Retry',
                         ),
@@ -361,12 +364,12 @@ class _StorySettingsSheetState extends State<StorySettingsSheet> {
                 notifyActivity: n,
               );
               if (mounted) {
-                setState(
-                  () => _settings = Future.value(<String, dynamic>{
+                setState(() {
+                  _settings = Future.value(<String, dynamic>{
                     'allowReplies': r,
                     'notifyActivity': n,
-                  }),
-                );
+                  });
+                });
               }
             } catch (e) {
               if (mounted) {
