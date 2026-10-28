@@ -169,8 +169,9 @@ class LiveSessionService {
       if (!invite.exists) throw StateError('INVITATION_EXPIRED');
       final status = accepted ? 'accepted' : 'declined';
       if (invite.data()?['status'] == status) return;
-      if (invite.data()?['status'] != 'pending')
+      if (invite.data()?['status'] != 'pending') {
         throw StateError('INVITATION_EXPIRED');
+      }
       tx.update(ref, {
         'status': status,
         'respondedAt': FieldValue.serverTimestamp(),

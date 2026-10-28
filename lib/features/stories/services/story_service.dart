@@ -89,16 +89,20 @@ class StoryCloseFriendState {
 class StoryService {
   StoryService({http.Client? client}) : _client = client ?? http.Client();
 
-  // The story upload API lives on the current main backend, not the older
-  // economy deployment. Keep a dedicated override for future migrations.
+  // Stories now has its own Render service, separate from Teacher AI and
+  // room economy. Existing custom endpoints remain overridable by dart-define.
   static const String _endpoint = String.fromEnvironment(
     'WORLDVOICE_STORY_BACKEND_URL',
-    defaultValue: String.fromEnvironment(
-      'WORLDVOICE_AI_BACKEND_URL',
-      defaultValue: 'https://worldvoice-teacher-ai.onrender.com',
-    ),
+    defaultValue: 'https://worldvoice-stories.onrender.com',
+  );
+  // Legacy social backend is a compatibility fallback for missing endpoints,
+  // not the primary Stories uploader. Never fall back to Teacher AI.
+  static const String _fallbackEndpoint = String.fromEnvironment(
+    'WORLDVOICE_SOCIAL_BACKEND_URL',
+    defaultValue: 'https://worldvoice-v2.onrender.com',
   );
   final http.Client _client;
+  String? _activeEndpoint;
 
   // Keep the last authorized feed in memory when a user briefly leaves
   // Messages for Live/Rooms and returns. Scoped by Firebase uid, not shared
@@ -221,7 +225,7 @@ class StoryService {
     final body = await _decode(response);
     final raw = body['stories'];
     if (raw is! List) return const <StoryItem>[];
-    return raw
+    final stories = raw
         .whereType<Map>()
         .map(
           (item) => StoryItem.fromJson(
@@ -231,10 +235,17 @@ class StoryService {
         .where(
           (item) =>
               item.id.isNotEmpty &&
-              item.mediaUrl.isNotEmpty &&
+              (item.isLiveShare || item.mediaUrl.isNotEmpty) &&
               item.expiresAtMs > DateTime.now().millisecondsSinceEpoch,
         )
         .toList(growable: false);
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid != null) {
+      _cachedFeedUser = uid;
+      _cachedFeed = stories;
+      _cachedFeedAt = DateTime.now();
+    }
+    return stories;
   }
 
   /// Publishes a clickable Live story without uploading media.
@@ -253,7 +264,7 @@ class StoryService {
     await _decode(response);
   }
 
-  Future<void> uploadStory({
+  Future<String> uploadStory({
     required XFile file,
     required String kind,
     required String audience,
@@ -321,7 +332,12 @@ class StoryService {
         streamed.statusCode,
         headers: streamed.headers,
       );
-      await _decode(response);
+      final decoded = await _decode(response);
+      final storyId = (decoded['storyId'] ?? '').toString();
+      if (storyId.isEmpty) {
+        throw StateError('Story upload response missing its story identifier.');
+      }
+      return storyId;
     } on TimeoutException {
       throw StateError(
         'Story upload timed out. Check your connection and try again.',
@@ -407,10 +423,7 @@ class StoryService {
     final response = await _storyGet(
       '/stories/interactions',
       token,
-      query: <String, String>{
-        'storyId': id,
-        if (viewCursor != null) 'viewCursor': viewCursor,
-      },
+      query: <String, String>{'storyId': id, 'viewCursor': ?viewCursor},
     );
     return _decode(response);
   }

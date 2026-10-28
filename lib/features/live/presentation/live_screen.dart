@@ -2041,8 +2041,9 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                               controller: _controller,
                               zoom: _cameraZoom,
                               onZoomChanged: (value) {
-                                if (mounted)
+                                if (mounted) {
                                   setState(() => _cameraZoom = value);
+                                }
                               },
                               child: AgoraVideoView(
                                 controller: VideoViewController(
@@ -2849,8 +2850,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   }
 
   void _handleLiveModeratorInvite(String hostId, Map<String, dynamic>? invite) {
-    if (!mounted || invite?['status'] != 'pending' || _moderatorDialogOpen)
+    if (!mounted || invite?['status'] != 'pending' || _moderatorDialogOpen) {
       return;
+    }
     final assigned = invite?['assignedAt'];
     if (assigned is! Timestamp) return;
     final marker = '$hostId:${assigned.microsecondsSinceEpoch}';
@@ -2889,7 +2891,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
       await _service.answerModeratorInvite(hostId, answer);
     } catch (error) {
       debugPrint('Live moderator response failed: $error');
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -2903,6 +2905,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
             ),
           ),
         );
+      }
     } finally {
       _moderatorDialogOpen = false;
     }
@@ -3155,12 +3158,14 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                             backgroundBlurEnabled: _guestBackgroundBlurEnabled,
                             zoom: _guestCameraZoom,
                             onBeautyChanged: (value) {
-                              if (mounted)
+                              if (mounted) {
                                 setState(() => _guestBeautyEnabled = value);
+                              }
                             },
                             onFilterPresetChanged: (value) {
-                              if (mounted)
+                              if (mounted) {
                                 setState(() => _guestFilterPreset = value);
+                              }
                             },
                             onBackgroundBlurChanged: (value) {
                               if (mounted) {
@@ -3170,8 +3175,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                               }
                             },
                             onZoomChanged: (value) {
-                              if (mounted)
+                              if (mounted) {
                                 setState(() => _guestCameraZoom = value);
+                              }
                             },
                           ),
                         );
@@ -3216,11 +3222,12 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   }
 
   Future<void> _join() async {
-    if (mounted)
+    if (mounted) {
       setState(() {
         _joining = true;
         _joinError = null;
       });
+    }
     var countedViewer = false;
     try {
       await _service.enterViewer(widget.liveId);
@@ -4062,7 +4069,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
 
   void _showGuestMediaError(Object error) {
     debugPrint('Live guest media: $error');
-    if (mounted)
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -4072,6 +4079,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
           ),
         ),
       );
+    }
   }
 
   Future<void> _leaveGuestCamera() async {

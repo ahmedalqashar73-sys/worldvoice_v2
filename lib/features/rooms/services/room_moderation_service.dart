@@ -333,8 +333,9 @@ class RoomModerationService {
       final participant = await tx.get(ref);
       if (!participant.exists ||
           participant.data()?['role'] == 'host' ||
-          participant.data()?['isModerator'] == accepted)
+          participant.data()?['isModerator'] == accepted) {
         return;
+      }
       tx.update(ref, {
         'isModerator': accepted,
         'updatedAt': FieldValue.serverTimestamp(),

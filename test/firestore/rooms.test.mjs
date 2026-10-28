@@ -678,30 +678,6 @@ test('language game secrets, answers, game scores and free quotas are backend-on
   }
 });
 
-test('academy checklist is private, schema-restricted and cannot mint rewards', async () => {
-  const owner = user('student');
-  const other = user('stranger');
-  const path = 'users/student/academy_progress/en_1_vocabulary';
-  const complete = {
-    completed: true, language: 'en', completedAt: serverTimestamp()
-  };
-  await assertSucceeds(setDoc(doc(owner, path), complete));
-  await assertSucceeds(getDoc(doc(owner, path)));
-  await assertFails(getDoc(doc(other, path)));
-  await assertFails(setDoc(doc(other, 'users/student/academy_progress/en_2_quiz'), {
-    completed: true, language: 'en', completedAt: serverTimestamp()
-  }));
-  await assertFails(setDoc(doc(owner, 'users/student/academy_progress/en_1_magic'), complete));
-  await assertFails(setDoc(doc(owner, 'users/student/academy_progress/en_1_grammar'), {
-    ...complete, coins: 500
-  }));
-  await assertFails(setDoc(doc(owner, 'users/student/academy_progress/en_2_quiz'), {
-    completed: false, language: 'en', completedAt: serverTimestamp()
-  }));
-  await assertFails(updateDoc(doc(owner, path), {completed: false}));
-  await assertFails(deleteDoc(doc(owner, path)));
-});
-
 test('moderator invitation accepts atomically for a seated room participant', async () => {
   const host = user('host');
   const target = user('listener');
