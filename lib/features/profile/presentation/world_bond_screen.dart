@@ -4,7 +4,7 @@ import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import '../../rooms/data/room_backend_config.dart';
+
 
 /// Server-authenticated social features. Never mutate wallet/VIP from client.
 class WorldBondApi {
@@ -12,7 +12,14 @@ class WorldBondApi {
       {Map<String, dynamic>? body, String? idempotencyKey}) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) throw StateError('SIGN_IN_REQUIRED');
-    final base = Uri.parse(RoomBackendConfig.economyBaseUrl.trim());
+    // The legacy economy/room service still deploys an old branch.
+    // WorldBond only uses the existing main-backed Render API. This does NOT
+    // reroute Agora, voice rooms, Live, or their existing gift services.
+    const bondBaseUrl = String.fromEnvironment(
+      'WORLDVOICE_WORLDBOND_BACKEND_URL',
+      defaultValue: 'https://worldvoice-teacher-ai.onrender.com',
+    );
+    final base = Uri.parse(bondBaseUrl.trim());
     if (base.scheme != 'https' || !base.hasAuthority) {
       throw StateError('WorldVoice backend unavailable');
     }
