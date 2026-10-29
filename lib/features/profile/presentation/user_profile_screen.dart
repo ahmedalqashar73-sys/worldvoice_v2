@@ -1,3 +1,4 @@
+import 'world_bond_screen.dart';
 import 'member_badges.dart';
 import '../../engagement/presentation/creative_progress_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -282,6 +283,25 @@ class UserProfileScreen extends StatelessWidget {
                             ),
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton.icon(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: const Color(0xFF0A8058),
+                            foregroundColor: Colors.white,
+                          ),
+                          onPressed: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const WorldBondScreen(),
+                            ),
+                          ),
+                          icon: const Icon(Icons.diversity_2_rounded),
+                          label: Text(code == 'ar'
+                              ? 'WorldBond • دعواتي ورغباتي'
+                              : 'WorldBond • My invitations & wishlist'),
+                        ),
                       ),
                       CreativeProfileLink(userId: uid),
                       const SizedBox(height: 12),
