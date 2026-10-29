@@ -65,14 +65,25 @@ jobs:
           set -euo pipefail
           if [ -z "${FIREBASE_SERVICE_ACCOUNT_JSON:-}" ]; then
             echo "configured=false" >> "$GITHUB_OUTPUT"
-            echo "FIREBASE_SERVICE_ACCOUNT_JSON is not configured; skipping production deploy."
-            exit 0
+            echo "::error title=Firebase credentials missing::FIREBASE_SERVICE_ACCOUNT_JSON must be configured for worldvoice-37896. No production rules were published."
+            exit 1
           fi
           printf '%s' "$FIREBASE_SERVICE_ACCOUNT_JSON" > "$RUNNER_TEMP/firebase-service-account.json"
           echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/firebase-service-account.json" >> "$GITHUB_ENV"
+          # Read only the public identity metadata. Never print any credential or key.
+          node -e '
+            const fs = require("node:fs");
+            const account = JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + "/firebase-service-account.json", "utf8"));
+            if (account.type !== "service_account" || account.project_id !== "worldvoice-37896" || !account.client_email) {
+              console.error("::error title=Wrong Firebase project::The configured service account must belong to worldvoice-37896.");
+              process.exit(1);
+            }
+            console.log("Service account to grant Firebase IAM roles:", account.client_email);
+            console.log("Required: roles/firebaserules.admin, roles/serviceusage.serviceUsageViewer, roles/datastore.indexAdmin (for encrypted-message TTL).");
+          '
           echo "configured=true" >> "$GITHUB_OUTPUT"
 
-      - name: Deploy Firestore rules and indexes
+      - name: Deploy Firestore security rules only
         id: cli_deploy
         if: steps.auth.outputs.configured == 'true'
         continue-on-error: true
