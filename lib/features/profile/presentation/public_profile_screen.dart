@@ -1,3 +1,4 @@
+import 'world_bond_screen.dart';
 import 'member_badges.dart';
 import '../../engagement/presentation/creative_badge.dart';
 import 'dart:async';
@@ -397,6 +398,24 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                     ),
                   ],
                 ],
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => WorldBondScreen(
+                          peerId: widget.userId,
+                          peerName: peerName,
+                        ),
+                      ),
+                    ),
+                    icon: const Icon(Icons.diversity_2_rounded),
+                    label: Text(code == 'ar'
+                        ? 'WorldBond • العلاقات والهدايا والتعلم'
+                        : 'WorldBond • Connections, gifts & learning'),
+                  ),
+                ),
                 if (bio?.isNotEmpty == true ||
                     voiceBioUrl?.isNotEmpty == true) ...[
                   const SizedBox(height: 24),
