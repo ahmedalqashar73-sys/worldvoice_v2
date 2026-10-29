@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:worldvoice_v2/features/profile/presentation/world_bond_screen.dart';
+import 'package:worldvoice/features/profile/presentation/world_bond_screen.dart';
 
 void main() {
   test('WorldBond GET keeps friend ID outside of route path', () {
