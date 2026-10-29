@@ -1646,8 +1646,14 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
         throw Object.assign(new Error("Wallet under payment review."), {status: 423});
       }
       const owner = gifting ? snaps[8].data() || {} : payerSnap.data() || {};
+      const beneficiaryProfile = gifting ? snaps[7].data() || {}
+        : payerProfileSnap.data() || {};
+      // Do not overwrite a lifetime/admin VIP entitlement with a shorter gift.
+      const permanentVip = beneficiaryProfile.isVip === true &&
+        beneficiaryProfile.vipExpiresAt == null;
       const existingExpiry = item.type === "vip"
-        ? owner.vipExpiresAt?.toMillis?.()
+        ? Math.max(owner.vipExpiresAt?.toMillis?.() || 0,
+          beneficiaryProfile.vipExpiresAt?.toMillis?.() || 0)
         : ownedSnap.data()?.expiresAt?.toMillis?.();
       if (ownedSnap.exists && item.type !== "vip" &&
           ownedSnap.data()?.expiresAt == null &&
@@ -1694,6 +1700,16 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
       }, {merge: true});
       if (item.type === "vip") {
         tx.update(recipientWalletRef, {vipExpiresAt: expiresAt});
+        // Existing paid gift was recorded in the private wallet only. The
+        // app checks the public entitlement projection, so publish BOTH in
+        // the same trusted transaction after its coin debit succeeds.
+        if (!permanentVip) {
+          tx.update(recipientRef, {
+            isVip: true, vipExpiresAt: expiresAt,
+            vipSource: "verified_coin_gift",
+            vipUpdatedAt: FieldValue.serverTimestamp(),
+          });
+        }
         tx.set(memberBadgeRef(db, recipientId), {plan: duration == null ? "lifetime" : duration >= 365 ? "annual" : duration >= 180 ? "half_year" : duration >= 90 ? "quarterly" : "monthly"}, {merge: true});
       }
       if (item.type === "background") {
