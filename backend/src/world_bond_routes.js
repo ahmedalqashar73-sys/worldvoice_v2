@@ -25,6 +25,33 @@ const asBond = snap => {
     updatedAtMs: d.updatedAtMs || 0};
 };
 
+// Public quiz choices but private scoring: responses never include the correct
+// option before the only permitted attempt for this UTC day.
+export const worldBondExercises = Object.freeze([
+  {language: "en", question: "Choose the past-tense sentence.",
+    choices: ["I go yesterday.", "I went yesterday.", "I going yesterday."],
+    answer: 1, explanation: "Went is the past tense of go."},
+  {language: "en", question: "Which request is more polite?",
+    choices: ["Give me water.", "Can I have some water, please?", "Water now."],
+    answer: 1, explanation: "Could or can plus please is a polite request."},
+  {language: "es", question: "Choose the Spanish greeting meaning good morning.",
+    choices: ["Buenas noches", "Buenos días", "Hasta luego"],
+    answer: 1, explanation: "Buenos días means good morning."},
+  {language: "fr", question: "How do you say thank you in French?",
+    choices: ["Merci", "Bonsoir", "Au revoir"],
+    answer: 0, explanation: "Merci means thank you."},
+  {language: "zh", question: "Which Chinese phrase means hello?",
+    choices: ["谢谢", "你好", "再见"],
+    answer: 1, explanation: "你好 (nǐ hǎo) is hello."},
+  {language: "ko", question: "Which Korean phrase is a polite hello?",
+    choices: ["안녕하세요", "감사합니다", "잘 가요"],
+    answer: 0, explanation: "안녕하세요 (annyeonghaseyo) is hello."},
+]);
+export const exerciseForDay = (id, day) => {
+  const digest = createHash("sha256").update(id + ":" + day).digest();
+  return worldBondExercises[digest[0] % worldBondExercises.length];
+};
+
 export function registerWorldBondRoutes({app, db, authenticatedUser,
   clock = Date.now}) {
   const bonds = db.collection("world_bonds");
@@ -229,6 +256,63 @@ export function registerWorldBondRoutes({app, db, authenticatedUser,
         bad("Mutual following and active private chat required for a paid gift.", 403);
       }
       res.json({ok: true, chatId});
+    } catch (e) {next(e);}
+  });
+
+  app.get("/world-bond/challenge", async (req, res, next) => {
+    try {
+      const user = await authenticatedUser(req);
+      const peerId = clean(req.query.peerId, 128);
+      const type = clean(req.query.type, 20);
+      const ref = requirePair(user.uid, peerId, type);
+      const snap = await ref.get();
+      const data = pairStatus(snap, user.uid);
+      if (data.status !== "active") bad("Accept the connection first.", 409);
+      const day = clockDay(clock());
+      const receipt = await ref.collection("quiz_days").doc(day).get();
+      const exercise = exerciseForDay(ref.id, day);
+      const attempted = receipt.data()?.attempted || [];
+      res.json({ok: true, day, language: exercise.language,
+        question: exercise.question, choices: exercise.choices,
+        alreadyAttempted: attempted.includes(user.uid),
+        pairCompleted: receipt.data()?.completed === true});
+    } catch (e) {next(e);}
+  });
+
+  app.post("/world-bond/challenge/answer", async (req, res, next) => {
+    try {
+      const user = await authenticatedUser(req);
+      const peerId = clean(req.body?.peerId, 128);
+      const type = clean(req.body?.type, 20);
+      const answerIndex = req.body?.answerIndex;
+      if (!Number.isInteger(answerIndex) ||
+          answerIndex < 0 || answerIndex >= 3) bad("Choose a valid answer.");
+      const ref = requirePair(user.uid, peerId, type);
+      const day = clockDay(clock()), receiptRef =
+        ref.collection("quiz_days").doc(day);
+      const exercise = exerciseForDay(ref.id, day);
+      const correct = answerIndex === exercise.answer;
+      const result = await db.runTransaction(async tx => {
+        const [bond, prior] = await Promise.all([
+          tx.get(ref), tx.get(receiptRef),
+        ]);
+        const data = pairStatus(bond, user.uid);
+        if (data.status !== "active") bad("Connection not active.", 409);
+        const attempted = prior.data()?.attempted || [];
+        if (attempted.includes(user.uid)) bad("Already answered today.", 409);
+        const correctMembers = prior.data()?.correctMembers || [];
+        const nextCorrect = correct ? [...correctMembers, user.uid] : correctMembers;
+        const completed = nextCorrect.length === 2;
+        const xp = Number(data.xp || 0);
+        if (!Number.isSafeInteger(xp) || xp < 0) bad("XP state invalid.", 409);
+        tx.set(receiptRef, {attempted: [...attempted, user.uid],
+          correctMembers: nextCorrect, completed, day,
+          updatedAtMs: clock()}, {merge: true});
+        if (completed) tx.update(ref, {xp: xp + 50, updatedAtMs: clock()});
+        return {correct, pairCompleted: completed, xp: xp + (completed ? 50 : 0)};
+      });
+      res.json({ok: true, ...result, explanation: exercise.explanation,
+        level: bondLevel(result.xp)});
     } catch (e) {next(e);}
   });
 
