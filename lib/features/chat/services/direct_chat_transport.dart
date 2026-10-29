@@ -84,6 +84,16 @@ class DirectChatTransport {
     await _session?.pump();
   }
 
+  /// Let the user retry immediately after connectivity or Firebase rules are
+  /// repaired. Reuse the existing session; never register duplicate listeners.
+  Future<void> retry() async {
+    if (_session == null) {
+      await start();
+    } else {
+      await _session!.pump();
+    }
+  }
+
   Future<void> edit(String id, String text) async {
     final items = await store.messages();
     if (!items.any(
