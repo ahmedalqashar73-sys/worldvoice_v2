@@ -100,8 +100,17 @@ jobs:
           node scripts/deploy_firestore_rules_admin.mjs
 
       - name: Configure expiry for temporary encrypted chat deliveries
+        id: delivery_ttl
         if: steps.auth.outputs.configured == 'true'
+        # Firestore TTL is a separately billed feature. Its failure must not
+        # invalidate a successful security-rules release on the original main.
+        continue-on-error: true
         working-directory: backend
         run: |
           npm install --ignore-scripts --no-audit --no-fund
           node scripts/configure_chat_delivery_ttl.mjs
+
+      - name: Report optional encrypted delivery TTL not configured
+        if: steps.delivery_ttl.outcome == 'failure'
+        run: |
+          echo "::warning title=Encrypted delivery TTL not configured::Firestore security rules have been published, but automatic cleanup of abandoned encrypted messages is NOT active. Check the TTL logs; project billing may need explicit owner approval. Do not enable billing automatically."
