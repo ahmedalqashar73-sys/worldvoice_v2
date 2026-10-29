@@ -58,6 +58,41 @@ void main() {
     },
   );
 
+  testWidgets('asynchronous Story comment refresh never returns a Future from setState', (
+    tester,
+  ) async {
+    final service = _StoryService();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: StoryInteractionSheet(
+            story: const StoryItem(
+              id: 'story2',
+              ownerId: 'owner',
+              ownerName: 'Ahmed',
+              ownerPhotoUrl: '',
+              kind: 'image',
+              audience: 'everyone',
+              durationMs: 7000,
+              createdAtMs: 0,
+              expiresAtMs: 9999999999999,
+              mediaUrl: '',
+            ),
+            service: service,
+            owner: false,
+            isArabic: true,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'رد خاص');
+    await tester.tap(find.byIcon(Icons.send_rounded));
+    await tester.pumpAndSettle();
+    expect(service.comments, 1);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('story activity refresh does not return a Future from setState', (
     tester,
   ) async {
