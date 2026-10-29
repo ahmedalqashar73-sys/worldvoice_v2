@@ -2218,132 +2218,350 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   }
 
 
-  // The same compact member card is used by speaker seats and listeners.
-  // Full profile data (languages, age, bio, hobbies) is opened by tapping
-  // View profile; private fields are never copied into this room widget.
+  // User-profile card only. Keep room seats, voice, moderation and Live intact.
+  // Tapping the visit-profile action opens the existing full profile directly.
   Future<void> _showParticipantCard(RoomParticipant person) async {
+    if (!mounted) return;
     final ar = Localizations.localeOf(context).languageCode == 'ar';
     final self = person.userId == _moderation.currentUserId;
-    final canManage = _canModerate && !self &&
-        person.role != RoomMemberRole.host;
-    final followFuture = self
+    final canManage =
+        _canModerate && !self && person.role != RoomMemberRole.host;
+    final canInvite =
+        !self && _canModerate && person.role == RoomMemberRole.listener;
+    final followingFuture = self
         ? Future<bool>.value(false)
         : ProfileSocialService.isFollowing(person.userId);
     final profileFuture = FirebaseFirestore.instance
-        .collection('users').doc(person.userId).get();
+        .collection('users')
+        .doc(person.userId)
+        .get();
+    final myUid = FirebaseAuth.instance.currentUser?.uid;
+    final blockedRef = myUid == null || self
+        ? null
+        : FirebaseFirestore.instance
+            .collection('users')
+            .doc(myUid)
+            .collection('blocked_peers')
+            .doc(person.userId);
+    final blockedFuture = blockedRef?.get().then((document) => document.exists);
     bool? changedFollow;
     bool followBusy = false;
+
+    const green = Color(0xFF11996A);
+    const deepGreen = Color(0xFF092F27);
+    const lightGreen = Color(0xFFDAF7EB);
+    const gold = Color(0xFFECD69E);
+
     final action = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
-      showDragHandle: true,
       useSafeArea: true,
+      backgroundColor: Colors.transparent,
       builder: (sheetContext) => StatefulBuilder(
         builder: (sheetContext, update) => SafeArea(
-          child: SingleChildScrollView(
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              ListTile(
-                leading: _ParticipantAvatar(participant: person),
-                title: Text(person.displayName,
-                  style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Text(person.role.label +
-                    (person.isModerator ? (ar ? ' • مشرف' : ' • Moderator') : '')),
-              ),
-              CreativeBadge(userId: person.userId),
-              FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                future: profileFuture,
-                builder: (context, snapshot) {
-                  final data = snapshot.data?.data();
-                  if (data == null) return const SizedBox.shrink();
-                  final user = (data['username'] ?? '').toString().trim();
-                  final country = (data['country'] ?? '').toString().trim();
-                  final native = (data['nativeLanguageCode'] ?? '').toString().trim();
-                  final subtitle = [
-                    if (user.isNotEmpty) '@$user',
-                    if (country.isNotEmpty) country,
-                    if (native.isNotEmpty) native.toUpperCase(),
-                  ].join(' • ');
-                  return subtitle.isEmpty ? const SizedBox.shrink()
-                      : Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 18),
-                          child: Text(subtitle, textAlign: TextAlign.center,
-                              style: const TextStyle(color: Colors.white70)),
-                        );
-                },
-              ),
-              const Divider(),
-              ListTile(
-                leading: const Icon(Icons.person_outline_rounded),
-                title: Text(ar ? 'الملف الشخصي الكامل' : 'View full profile'),
-                onTap: () => Navigator.pop(sheetContext, 'profile'),
-              ),
-              if (!self)
-                FutureBuilder<bool>(
-                  future: followFuture,
-                  builder: (context, snapshot) {
-                    final following = changedFollow ?? snapshot.data;
-                    return ListTile(
-                      leading: Icon(following == true
-                          ? Icons.person_remove_outlined
-                          : Icons.person_add_alt_rounded),
-                      title: Text(followBusy
-                          ? (ar ? 'جارٍ التحديث…' : 'Updating…')
-                          : following == true
-                              ? (ar ? 'إلغاء المتابعة' : 'Unfollow')
-                              : (ar ? 'متابعة' : 'Follow')),
-                      enabled: !followBusy && following != null,
-                      onTap: followBusy || following == null ? null : () async {
-                        update(() => followBusy = true);
-                        try {
-                          await ProfileSocialService.toggleFollow(person.userId);
-                          if (sheetContext.mounted) {
-                            update(() => changedFollow = !following);
-                          }
-                        } catch (error) {
-                          if (sheetContext.mounted) {
-                            ScaffoldMessenger.of(sheetContext).showSnackBar(
-                              SnackBar(content: Text(
-                                ar ? 'تعذر تحديث المتابعة' : 'Could not update follow')),
+          top: false,
+          child: Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.sizeOf(sheetContext).height * .82,
+            ),
+            decoration: const BoxDecoration(
+              color: Color(0xFF0E1E1B),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 16, 18),
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color(0xFF117750),
+                          Color(0xFF0C5944),
+                          deepGreen,
+                        ],
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Align(
+                                alignment: AlignmentDirectional.centerStart,
+                                child: Container(
+                                  width: 42,
+                                  height: 4,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white38,
+                                    borderRadius: BorderRadius.circular(100),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            if (!self)
+                              FutureBuilder<bool>(
+                                future: blockedFuture,
+                                builder: (context, snapshot) {
+                                  final blocked = snapshot.data == true;
+                                  return PopupMenuButton<String>(
+                                    tooltip: ar ? 'المزيد' : 'More',
+                                    icon: const Icon(
+                                      Icons.more_horiz_rounded,
+                                      color: Colors.white,
+                                    ),
+                                    onSelected: (value) =>
+                                        Navigator.pop(sheetContext, value),
+                                    itemBuilder: (context) => [
+                                      PopupMenuItem<String>(
+                                        value: 'report',
+                                        child: Row(
+                                          children: [
+                                            const Icon(Icons.flag_outlined),
+                                            const SizedBox(width: 10),
+                                            Text(ar ? 'إبلاغ' : 'Report'),
+                                          ],
+                                        ),
+                                      ),
+                                      if (blockedRef != null)
+                                        PopupMenuItem<String>(
+                                          value: blocked ? 'unblock' : 'block',
+                                          child: Row(
+                                            children: [
+                                              Icon(blocked
+                                                  ? Icons.lock_open_rounded
+                                                  : Icons.block_rounded),
+                                              const SizedBox(width: 10),
+                                              Text(blocked
+                                                  ? (ar ? 'إلغاء الحظر' : 'Unblock')
+                                                  : (ar ? 'حظر' : 'Block')),
+                                            ],
+                                          ),
+                                        ),
+                                      if (canManage) ...[
+                                        const PopupMenuDivider(),
+                                        PopupMenuItem<String>(
+                                          value: 'mute',
+                                          child: Text(person.forcedMuted
+                                              ? (ar ? 'إلغاء كتم الميكروفون' : 'Unmute')
+                                              : (ar ? 'كتم الميكروفون' : 'Mute')),
+                                        ),
+                                        if (person.isOnStage)
+                                          PopupMenuItem<String>(
+                                            value: 'down',
+                                            child: Text(ar
+                                                ? 'إنزال إلى المستمعين'
+                                                : 'Move to listeners'),
+                                          ),
+                                        PopupMenuItem<String>(
+                                          value: 'kick',
+                                          child: Text(ar
+                                              ? 'طرد من الغرفة'
+                                              : 'Remove from room'),
+                                        ),
+                                      ],
+                                    ],
+                                  );
+                                },
+                              ),
+                            IconButton(
+                              tooltip: ar ? 'إغلاق' : 'Close',
+                              icon: const Icon(Icons.close_rounded,
+                                  color: Colors.white),
+                              onPressed: () => Navigator.pop(sheetContext),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 3),
+                        Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: gold,
+                          ),
+                          child: CircleAvatar(
+                            radius: 37,
+                            backgroundColor: deepGreen,
+                            backgroundImage: person.photoUrl?.isNotEmpty == true
+                                ? NetworkImage(person.photoUrl!)
+                                : null,
+                            child: person.photoUrl?.isNotEmpty == true
+                                ? null
+                                : const Icon(Icons.person_rounded,
+                                    color: Colors.white, size: 38),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          person.displayName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 21,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        Text(
+                          person.role.label +
+                              (person.isModerator
+                                  ? (ar ? ' • مشرف' : ' • Moderator')
+                                  : ''),
+                          style: const TextStyle(
+                            color: lightGreen,
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(height: 7),
+                        CreativeBadge(userId: person.userId),
+                        FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                          future: profileFuture,
+                          builder: (context, snapshot) {
+                            final data = snapshot.data?.data();
+                            if (data == null) return const SizedBox.shrink();
+                            final user =
+                                (data['username'] ?? '').toString().trim();
+                            final country =
+                                (data['country'] ?? '').toString().trim();
+                            final native =
+                                (data['nativeLanguageCode'] ?? '').toString().trim();
+                            final details = [
+                              if (user.isNotEmpty) '@$user',
+                              if (country.isNotEmpty) country,
+                              if (native.isNotEmpty) native.toUpperCase(),
+                            ].join('  •  ');
+                            if (details.isEmpty) return const SizedBox.shrink();
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 6),
+                              child: Text(
+                                details,
+                                maxLines: 2,
+                                textAlign: TextAlign.center,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: lightGreen,
+                                  fontSize: 12,
+                                ),
+                              ),
                             );
-                          }
-                        } finally {
-                          if (sheetContext.mounted) update(() => followBusy = false);
-                        }
-                      },
-                    );
-                  },
-                ),
-              if (!self)
-                ListTile(
-                  leading: const Icon(Icons.flag_outlined, color: Colors.orangeAccent),
-                  title: Text(ar ? 'إبلاغ عن المستخدم' : 'Report this user'),
-                  onTap: () => Navigator.pop(sheetContext, 'report'),
-                ),
-              if (canManage) ...[
-                const Divider(),
-                ListTile(
-                  leading: Icon(person.forcedMuted
-                      ? Icons.mic_rounded : Icons.mic_off_rounded),
-                  title: Text(person.forcedMuted
-                      ? (ar ? 'إلغاء الكتم' : 'Unmute')
-                      : (ar ? 'كتم الميكروفون' : 'Mute microphone')),
-                  onTap: () => Navigator.pop(sheetContext, 'mute'),
-                ),
-                if (person.isOnStage)
-                  ListTile(
-                    leading: const Icon(Icons.keyboard_arrow_down_rounded),
-                    title: Text(ar ? 'إنزال إلى المستمعين' : 'Move to listeners'),
-                    onTap: () => Navigator.pop(sheetContext, 'down'),
+                          },
+                        ),
+                      ],
+                    ),
                   ),
-                ListTile(
-                  leading: const Icon(Icons.person_remove_rounded,
-                      color: Colors.redAccent),
-                  title: Text(ar ? 'طرد من الغرفة' : 'Remove from room'),
-                  onTap: () => Navigator.pop(sheetContext, 'kick'),
-                ),
-              ],
-              const SizedBox(height: 14),
-            ]),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
+                    child: Column(
+                      children: [
+                        if (!self)
+                          Row(
+                            children: [
+                              Expanded(
+                                child: FutureBuilder<bool>(
+                                  future: followingFuture,
+                                  builder: (context, snapshot) {
+                                    final following =
+                                        changedFollow ?? snapshot.data;
+                                    return FilledButton.icon(
+                                      style: FilledButton.styleFrom(
+                                        backgroundColor: green,
+                                        foregroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 13,
+                                        ),
+                                      ),
+                                      onPressed: following == null || followBusy
+                                          ? null
+                                          : () async {
+                                              update(() => followBusy = true);
+                                              try {
+                                                await ProfileSocialService
+                                                    .toggleFollow(person.userId);
+                                                if (sheetContext.mounted) {
+                                                  update(() =>
+                                                      changedFollow = !following);
+                                                }
+                                              } catch (_) {
+                                                if (sheetContext.mounted) {
+                                                  ScaffoldMessenger.of(
+                                                    sheetContext,
+                                                  ).showSnackBar(SnackBar(
+                                                    content: Text(ar
+                                                        ? 'تعذر تحديث المتابعة'
+                                                        : 'Could not update follow'),
+                                                  ));
+                                                }
+                                              } finally {
+                                                if (sheetContext.mounted) {
+                                                  update(() => followBusy = false);
+                                                }
+                                              }
+                                            },
+                                      icon: Icon(following == true
+                                          ? Icons.person_remove_outlined
+                                          : Icons.person_add_alt_rounded),
+                                      label: Text(
+                                        followBusy
+                                            ? (ar ? 'جارٍ التحديث' : 'Updating')
+                                            : following == true
+                                            ? (ar ? 'إلغاء المتابعة' : 'Unfollow')
+                                            : (ar ? 'متابعة' : 'Follow'),
+                                        maxLines: 1,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                              if (canInvite) ...[
+                                const SizedBox(width: 9),
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: lightGreen,
+                                      side: const BorderSide(color: green),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 13,
+                                      ),
+                                    ),
+                                    onPressed: () =>
+                                        Navigator.pop(sheetContext, 'invite'),
+                                    icon: const Icon(Icons.mic_rounded),
+                                    label: Text(
+                                      ar ? 'دعوة للمقعد' : 'Invite to seat',
+                                      maxLines: 1,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        if (!self) const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            key: const ValueKey('worldvoice-room-visit-profile'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              side: const BorderSide(color: green),
+                              padding: const EdgeInsets.symmetric(vertical: 13),
+                            ),
+                            onPressed: () =>
+                                Navigator.pop(sheetContext, 'profile'),
+                            icon: const Icon(Icons.person_outline_rounded),
+                            label: Text(ar ? 'زيارة الملف الشخصي' : 'Visit profile'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -2352,13 +2570,79 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     try {
       switch (action) {
         case 'profile':
+          // Push the real profile immediately; no intermediate list or sheet.
           _openParticipantProfile(person.userId);
+          break;
+        case 'invite':
+          if (!canInvite || !_canModerate) break;
+          final seatIndex = _firstFreeSeat;
+          if (seatIndex == null || seatIndex == 1) {
+            throw StateError(ar
+                ? 'جميع مقاعد المتحدثين مشغولة'
+                : 'All speaker seats are occupied');
+          }
+          await _moderation.sendStageInvite(
+            userId: person.userId,
+            role: RoomMemberRole.speaker,
+            seatIndex: seatIndex,
+          );
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(ar
+                  ? 'تم إرسال دعوة الصعود؛ بانتظار قبول المستخدم'
+                  : 'Seat invitation sent; waiting for acceptance'),
+            ));
+          }
           break;
         case 'report':
           await _reportParticipant(
             targetUserId: person.userId,
             targetName: person.displayName,
           );
+          break;
+        case 'block':
+        case 'unblock':
+          if (blockedRef == null || self) break;
+          // Always verify the current server state before changing a block.
+          final isBlocked = (await blockedRef.get()).exists;
+          final willBlock = action == 'block';
+          if (isBlocked == willBlock) break;
+          if (willBlock) {
+            if (!mounted) break;
+            final confirmed = await showDialog<bool>(
+              context: context,
+              builder: (dialogContext) => AlertDialog(
+                title: Text(ar ? 'حظر المستخدم؟' : 'Block this user?'),
+                content: Text(ar
+                    ? 'سيُمنع تبادل الرسائل الخاصة المشفرة بينكما. لن يُطرد المستخدم من الغرفة.'
+                    : 'Encrypted private messages between you will be blocked. The user will not be removed from the room.'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(dialogContext, false),
+                    child: Text(ar ? 'إلغاء' : 'Cancel'),
+                  ),
+                  FilledButton(
+                    onPressed: () => Navigator.pop(dialogContext, true),
+                    child: Text(ar ? 'حظر' : 'Block'),
+                  ),
+                ],
+              ),
+            );
+            if (confirmed != true) break;
+            await blockedRef.set({
+              'targetId': person.userId,
+              'createdAt': FieldValue.serverTimestamp(),
+            });
+          } else {
+            await blockedRef.delete();
+          }
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(willBlock
+                  ? (ar ? 'تم حظر المستخدم' : 'User blocked')
+                  : (ar ? 'تم إلغاء الحظر' : 'User unblocked')),
+            ));
+          }
           break;
         case 'mute':
           if (canManage) {
@@ -2380,7 +2664,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.toString())),
+        SnackBar(content: Text(error.toString().replaceFirst('Bad state: ', ''))),
       );
     }
   }
