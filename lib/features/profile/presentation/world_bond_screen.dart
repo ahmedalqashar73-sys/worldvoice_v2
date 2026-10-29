@@ -177,6 +177,87 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
         wish['id'].toString(), WorldBondApi.newKey));
   }
 
+  Future<void> _openChallenge(Map<String, dynamic> bond) async {
+    final peer = _other(bond);
+    if (peer == null || _busy) return;
+    try {
+      final query = 'world-bond/challenge?peerId=' +
+          Uri.encodeQueryComponent(peer) +
+          '&type=' + Uri.encodeQueryComponent(bond['type'].toString());
+      final exercise = await WorldBondApi.request(query);
+      if (!mounted) return;
+      if (exercise['alreadyAttempted'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(label('أجبت على تحدي اليوم بالفعل',
+            'You already answered today')),
+        ));
+        return;
+      }
+      int? selected;
+      final index = await showDialog<int>(
+        context: context,
+        builder: (ctx) => StatefulBuilder(
+          builder: (ctx, update) => AlertDialog(
+            title: Text(label('تحدي الشريك التعليمي',
+              'Partner language challenge')),
+            content: SingleChildScrollView(child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(exercise['question'].toString()),
+                const SizedBox(height: 15),
+                for (var i = 0;
+                    i < (exercise['choices'] as List).length; i++)
+                  ChoiceChip(
+                    label: Text((exercise['choices'] as List)[i].toString()),
+                    selected: selected == i,
+                    onSelected: (_) => update(() => selected = i),
+                  ),
+              ],
+            )),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(label('إلغاء', 'Cancel'))),
+              FilledButton(
+                onPressed: selected == null ? null :
+                    () => Navigator.pop(ctx, selected),
+                child: Text(label('تأكيد الإجابة', 'Submit answer'))),
+            ],
+          ),
+        ),
+      );
+      if (index == null || !mounted) return;
+      setState(() { _busy = true; _error = null; });
+      final result = await WorldBondApi.request('world-bond/challenge/answer',
+        body: {'peerId': peer, 'type': bond['type'],
+          'answerIndex': index});
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(result['correct'] == true
+              ? label('إجابة صحيحة!', 'Correct!')
+              : label('جرّب تعلمها غدًا', 'Practice again tomorrow')),
+          content: Text(result['explanation'].toString() +
+              '\n' + (result['pairCompleted'] == true
+                ? label('أنت وشريكك أكملتما التحدي! +50 XP للعلاقة',
+                  'Both partners completed the challenge! +50 bond XP')
+                : label('تُحتسب المكافأة بعد الإجابتين الصحيحتين',
+                  'XP unlocks when both partners answer correctly'))),
+          actions: [TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(label('حسنًا', 'OK')))],
+        ),
+      );
+      await _refresh();
+    } catch (error) {
+      if (mounted) setState(() => _error = error.toString());
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
   Future<void> _giftRegular(Map<String, dynamic> wish) async {
     if (self || widget.peerId == null) return;
     final id = wish['id'].toString();
@@ -337,6 +418,10 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
                         },
                         icon: const Icon(Icons.menu_book),
                         label: Text(label('أنجزت تدريب اليوم', 'Daily practice'))),
+                      OutlinedButton.icon(
+                        onPressed: _busy ? null : () => _openChallenge(bond),
+                        icon: const Icon(Icons.psychology_alt_outlined),
+                        label: Text(label('تحدي لغوي', 'Language quiz'))),
                       TextButton(onPressed: _busy ? null :
                         () => _respond(bond, 'leave'),
                         child: Text(label('إنهاء العلاقة', 'End relation'))),
