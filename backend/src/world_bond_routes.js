@@ -209,7 +209,7 @@ export function registerWorldBondRoutes({app, db, authenticatedUser,
           !/^(gift|vip)__[A-Za-z0-9_-]{1,80}$/.test(x))) {
         bad("Choose up to three distinct published gifts or VIP items.");
       }
-      const snaps = await db.getAll(...items.map(id =>
+      const snaps = items.length === 0 ? [] : await db.getAll(...items.map(id =>
         db.collection("store_items").doc(id)));
       for (const snap of snaps) {
         if (!snap.exists || snap.data()?.active !== true ||
