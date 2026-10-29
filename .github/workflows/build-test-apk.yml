@@ -2,6 +2,12 @@ name: Build WorldVoice Test APK
 
 on:
   workflow_dispatch:
+  # One test release is built when this workflow is edited on main.
+  # Subsequent app commits do not silently send more test builds.
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/build-test-apk.yml'
 
 jobs:
   android-debug-apk:
@@ -22,6 +28,10 @@ jobs:
           cache: true
 
       - run: flutter pub get
+      - name: Check WorldBond and existing Flutter app before packaging
+        run: |
+          flutter analyze
+          flutter test test/world_bond_api_url_test.dart
       - name: Refuse to build an APK without the eight premium images
         run: python3 scripts/verify_room_background_assets.py
 
@@ -38,6 +48,7 @@ jobs:
           --dart-define=WORLDVOICE_ROOM_BACKEND_URL=https://worldvoice-v2.onrender.com
           --dart-define=AGORA_TOKEN_ENDPOINT=https://worldvoice-agora-token.worldvoice.workers.dev/agora/token
           --dart-define=WORLDVOICE_ECONOMY_ENDPOINT=https://worldvoice-v2.onrender.com
+          --dart-define=WORLDVOICE_WORLDBOND_BACKEND_URL=https://worldvoice-teacher-ai.onrender.com
 
       - name: Upload test APK
         uses: actions/upload-artifact@v4
@@ -51,8 +62,8 @@ jobs:
         run: npm install -g firebase-tools
 
       - name: Distribute to Firebase App Distribution
-        # Only distribute when the project owner explicitly starts the workflow.
-        if: github.event_name == 'workflow_dispatch'
+        # Owner requested this single main-branch beta for existing testers.
+        # The push trigger only fires when this workflow file changes.
         id: firebase_distribution
         shell: bash
         env:
@@ -65,7 +76,7 @@ jobs:
 
           APK="build/app/outputs/flutter-apk/app-release.apk"
           APP_ID="1:149108991969:android:b09d15308f8f5d9266d4a0"
-          NOTES="WorldVoice friends test - messages, username search, Live improvements, voice rooms and current app features."
+          NOTES="WorldVoice beta - WorldBond relationships, friend invitations, language practice, wishlist, gift wall and VIP gifting. Original rooms and Live preserved."
 
           AUTH_ARGS=()
           if [ -n "${FIREBASE_SERVICE_ACCOUNT_JSON:-}" ]; then
