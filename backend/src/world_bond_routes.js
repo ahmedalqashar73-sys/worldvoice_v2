@@ -198,6 +198,40 @@ export function registerWorldBondRoutes({app, db, authenticatedUser,
     } catch (e) {next(e);}
   });
 
+  // Reuse the existing paid /gift/send chat transaction, including wallet
+  // holds, idempotency, self-gift rejection and catalog price verification.
+  // Never create an alternate gift settlement path here.
+  app.get("/world-bond/chat-context", async (req, res, next) => {
+    try {
+      const viewer = await authenticatedUser(req);
+      const peerId = clean(req.query.peerId, 128);
+      if (!validId(peerId) || peerId === viewer.uid) {
+        bad("Choose a different recipient.");
+      }
+      const [one, two] = [viewer.uid, peerId].sort();
+      const chatId = createHash("sha256")
+        .update("worldvoice:chat:" + one + ":" + two).digest("hex");
+      const [chat, follow, followedBack, blocked, blocksBack] =
+        await Promise.all([
+          db.collection("chats").doc(chatId).get(),
+          profiles.doc(viewer.uid).collection("following").doc(peerId).get(),
+          profiles.doc(peerId).collection("following").doc(viewer.uid).get(),
+          profiles.doc(viewer.uid).collection("blocked_peers").doc(peerId).get(),
+          profiles.doc(peerId).collection("blocked_peers").doc(viewer.uid).get(),
+        ]);
+      if (blocked.exists || blocksBack.exists) bad("Member blocked.", 403);
+      if (!follow.exists || !followedBack.exists || !chat.exists ||
+          chat.data()?.active !== true ||
+          !Array.isArray(chat.data()?.memberIds) ||
+          chat.data().memberIds.length !== 2 ||
+          !chat.data().memberIds.includes(viewer.uid) ||
+          !chat.data().memberIds.includes(peerId)) {
+        bad("Mutual following and active private chat required for a paid gift.", 403);
+      }
+      res.json({ok: true, chatId});
+    } catch (e) {next(e);}
+  });
+
   app.post("/world-bond/wishlist", async (req, res, next) => {
     try {
       const user = await authenticatedUser(req);
