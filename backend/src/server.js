@@ -30,6 +30,7 @@ import {roomProgressAfterGift, roomCastleProgressSnapshot,
 import {registerEngagementRoutes} from './engagement_routes.js';
 import {registerRoomTaskRoutes} from "./room_task_routes.js";
 import {registerRoomGameRoutes} from "./room_games_routes.js";
+import {registerWorldBondRoutes} from "./world_bond_routes.js";
 import {privateWalletRef, requirePrivateWallet} from "./wallet_store.js";
 import {approvedWorldVoiceGift} from "./gift_catalog.js";
 import {requireRoomTeacherVip} from "./vip_feature_policy.js";
@@ -2473,6 +2474,7 @@ registerStoryRoutes({
   projectId: firebaseProjectId,
 });
 registerSocialRoutes({app, authenticatedUser, db});
+registerWorldBondRoutes({app, db, authenticatedUser});
 registerCallRoutes({app, authenticatedUser, db});
 
 app.use((error, _req, res, _next) => {
