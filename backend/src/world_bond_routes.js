@@ -2,6 +2,7 @@
 // partner learning. Never modify existing room/live or private wallet fields.
 import {createHash} from "node:crypto";
 import {FieldValue} from "firebase-admin/firestore";
+import {chatIdFor} from "./chat_membership.js";
 
 export const BOND_TYPES = Object.freeze(["language", "friend", "duo"]);
 export const bondKey = (a, b, type) => createHash("sha256")
@@ -235,9 +236,8 @@ export function registerWorldBondRoutes({app, db, authenticatedUser,
       if (!validId(peerId) || peerId === viewer.uid) {
         bad("Choose a different recipient.");
       }
-      const [one, two] = [viewer.uid, peerId].sort();
-      const chatId = createHash("sha256")
-        .update("worldvoice:chat:" + one + ":" + two).digest("hex");
+      // Share the exact member-validated identity used by private chat.
+      const chatId = chatIdFor(viewer.uid, peerId);
       const [chat, follow, followedBack, blocked, blocksBack] =
         await Promise.all([
           db.collection("chats").doc(chatId).get(),
