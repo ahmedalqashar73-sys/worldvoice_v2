@@ -1,3 +1,4 @@
+// ignore_for_file: prefer_interpolation_to_compose_strings, use_null_aware_elements
 import 'dart:convert';
 import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -277,8 +278,10 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
                       FilledButton.icon(
                         onPressed: _busy ? null : () {
                           final peer = _other(bond);
-                          if (peer != null) _post('world-bond/practice',
-                            {'peerId': peer, 'type': bond['type']});
+                          if (peer != null) {
+                            _post('world-bond/practice',
+                              {'peerId': peer, 'type': bond['type']});
+                          }
                         },
                         icon: const Icon(Icons.menu_book),
                         label: Text(label('أنجزت تدريب اليوم', 'Daily practice'))),
