@@ -28,6 +28,23 @@ if (!source.includes("match /live_sessions/{liveId}") ||
     !source.includes("match /messages/{messageId}")) {
   throw new Error("Expected WorldVoice Live message access rules are missing.");
 }
-const release = await getSecurityRules().releaseFirestoreRulesetFromSource(source);
-console.log("Firestore rules published to:", projectId);
-console.log("Published rules release:", String(release?.name || "cloud.firestore"));
+try {
+  const release = await getSecurityRules().releaseFirestoreRulesetFromSource(source);
+  console.log("Firestore rules published to:", projectId);
+  console.log("Published rules release:", String(release?.name || "cloud.firestore"));
+} catch (error) {
+  if (/permission|denied|403/i.test(String(error?.message ?? ""))) {
+    console.error(
+      "::error title=Firebase IAM authorization required::" +
+      "Firestore rules were NOT published to worldvoice-37896. " +
+      "Grant the existing GitHub FIREBASE_SERVICE_ACCOUNT_JSON service account " +
+      "roles/firebaserules.admin (firebaserules.rulesets.create and releases.update). " +
+      "The Firebase CLI also needs roles/serviceusage.serviceUsageViewer. " +
+      "Grant roles/datastore.indexAdmin for the delivery TTL setup; then rerun " +
+      "the existing Deploy Firestore Rules workflow on main. No app or database copy is needed."
+    );
+    process.exitCode = 1;
+  } else {
+    throw error;
+  }
+}
