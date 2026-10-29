@@ -52,13 +52,12 @@ export function registerWorldBondRoutes({app, db, authenticatedUser,
     try {
       const user = await authenticatedUser(req);
       const peerId = clean(req.query.peerId, 128);
+      const viewedId = validId(peerId) ? peerId : user.uid;
       const [records, wishSnap, wallSnap, catalogSnap] = await Promise.all([
         bonds.where("members", "array-contains", user.uid).limit(80).get(),
-        validId(peerId) ? profiles.doc(peerId)
-          .collection("worldbond").doc("wishlist").get() : Promise.resolve(null),
-        validId(peerId) ? db.collection("economy_audit")
-          .where("recipientId", "==", peerId).limit(70).get()
-          : Promise.resolve(null),
+        profiles.doc(viewedId).collection("worldbond").doc("wishlist").get(),
+        db.collection("economy_audit")
+          .where("recipientId", "==", viewedId).limit(70).get(),
         db.collection("store_items").limit(150).get(),
       ]);
       // Allow only participants to see pair activity. Gift audit shows only
@@ -81,7 +80,7 @@ export function registerWorldBondRoutes({app, db, authenticatedUser,
         .filter(Boolean);
       const wall = (wallSnap?.docs || []).filter(d =>
         ["item_gift", "gift_send", "gift"].includes(d.data()?.type)
-        && d.data()?.recipientId === peerId)
+        && d.data()?.recipientId === viewedId)
         .slice(0, 25).map(d => ({
           itemId: clean(d.data()?.itemId || d.data()?.giftId || "gift", 100),
           senderId: clean(d.data()?.senderId, 128),
