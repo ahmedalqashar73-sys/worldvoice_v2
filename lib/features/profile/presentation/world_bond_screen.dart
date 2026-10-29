@@ -58,6 +58,7 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
   Map<String, dynamic>? _data;
   String? _error;
   bool _busy = false;
+  final Map<String, String> _paymentKeys = {};
   bool get ar => Localizations.localeOf(context).languageCode == 'ar';
   String label(String arabic, String english) => ar ? arabic : english;
   String get uid => FirebaseAuth.instance.currentUser?.uid ?? '';
@@ -87,6 +88,9 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
     setState(() { _busy = true; _error = null; });
     try {
       await WorldBondApi.request(route, body: data, idempotencyKey: key);
+      if (key != null) {
+        _paymentKeys.remove((data['itemId'] ?? data['giftId']).toString());
+      }
       await _refresh();
     } catch (e) {
       if (mounted) setState(() => _error = e.toString());
@@ -169,7 +173,55 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
     if (agreed != true) return;
     await _post('store/purchase',
       {'itemId': wish['id'], 'recipientId': widget.peerId},
-      key: WorldBondApi.newKey());
+      key: _paymentKeys.putIfAbsent(
+        wish['id'].toString(), WorldBondApi.newKey));
+  }
+
+  Future<void> _giftRegular(Map<String, dynamic> wish) async {
+    if (self || widget.peerId == null) return;
+    final id = wish['id'].toString();
+    if (!RegExp(r'^gift__wv_gift_[0-9]{3}$').hasMatch(id)) {
+      setState(() => _error = label(
+        'الهدية غير مؤهلة للإرسال المباشر.',
+        'This gift is not available for direct gifting.'));
+      return;
+    }
+    final agreed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(label('تأكيد إرسال الهدية', 'Confirm gift')),
+        content: Text(label(
+          'سيتحقق السيرفر من الرصيد والسعر والمتابعة المتبادلة '
+          'والمحادثة الخاصة قبل خصم العملات.',
+          'The server verifies balance, price, mutual following '
+          'and active private chat before charging coins.')),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false),
+              child: Text(label('إلغاء', 'Cancel'))),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true),
+              child: Text(label('إرسال', 'Send'))),
+        ],
+      ),
+    );
+    if (agreed != true || _busy) return;
+    setState(() { _busy = true; _error = null; });
+    try {
+      final chat = await WorldBondApi.request(
+        'world-bond/chat-context?peerId=' +
+          Uri.encodeQueryComponent(widget.peerId!));
+      final key = _paymentKeys.putIfAbsent(id, WorldBondApi.newKey);
+      await WorldBondApi.request('gift/send', body: {
+        'context': 'chat', 'contextId': chat['chatId'],
+        'recipientId': widget.peerId,
+        'giftId': id.substring('gift__'.length), 'quantity': 1,
+      }, idempotencyKey: key);
+      _paymentKeys.remove(id);
+      await _refresh();
+    } catch (error) {
+      if (mounted) setState(() => _error = error.toString());
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   @override
@@ -305,19 +357,22 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
                   ? Icons.workspace_premium : Icons.card_giftcard, color: green),
               title: Text(wish['name'].toString()),
               subtitle: Text(wish['priceCoins'].toString() + ' coins'),
-              trailing: !self && wish['type'] == 'vip'
-                ? OutlinedButton(onPressed: _busy ? null : () => _giftVip(wish),
-                    child: Text(label('إهداء', 'Gift VIP')))
-                : null,
+              trailing: self ? null : OutlinedButton(
+                onPressed: _busy ? null : () => wish['type'] == 'vip'
+                    ? _giftVip(wish) : _giftRegular(wish),
+                child: Text(wish['type'] == 'vip'
+                    ? label('إهداء VIP', 'Gift VIP')
+                    : label('إرسال هدية', 'Send gift')),
+              ),
             )),
           if (group('wishes').isEmpty)
             Text(label('لا توجد رغبات منشورة بعد',
               'No published wishlist items')),
           const SizedBox(height: 6),
-          Text(label('تُرسل الهدايا العادية من متجر الغرف أو المحادثات '
-            'الحالي. شراء VIP هنا يتطلب متابعة ورصيدًا مؤكدًا.',
-            'Regular gifts use the existing chat/room gift store. '
-            'VIP gifting requires an eligible followed friend and coins.'),
+          Text(label('إهداء الهدايا يتطلب متابعة متبادلة ومحادثة '
+            'نشطة، ويعتمد الخصم على السيرفر فقط.',
+            'Gifts require mutual following and an active private chat; '
+            'only the server deducts coins.'),
             style: Theme.of(context).textTheme.bodySmall),
           const SizedBox(height: 22),
           Text(label('جدار الهدايا', 'Gift wall'),
