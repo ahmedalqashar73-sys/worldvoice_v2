@@ -210,22 +210,36 @@ class ChatDeliverySession {
         .get(const GetOptions(source: Source.server));
     if (_closed || blocked.exists) return;
     final incoming = await _queue.get(const GetOptions(source: Source.server));
+    Object? firstFailure;
+    // One corrupt or temporarily unavailable envelope must not block every
+    // other incoming message or the owner's outgoing encrypted messages.
     for (final envelope in incoming.docs) {
       if (_closed) return;
       if (envelope.data()['recipientId'] == uid &&
           envelope.data()['state'] == 'ready') {
-        await _receive(envelope);
+        try {
+          await _receive(envelope);
+        } catch (error) {
+          firstFailure ??= error;
+          debugPrint('WorldVoice incoming encrypted delivery pending: $error');
+        }
       }
     }
     for (final item in await store.messages()) {
       if (_closed) return;
       if (item['senderId'] == uid && item['delivered'] != true) {
-        await _send(item);
+        try {
+          await _send(item);
+        } catch (error) {
+          firstFailure ??= error;
+          debugPrint('WorldVoice outgoing encrypted delivery pending: $error');
+        }
       }
     }
     if (!_closed) {
-      connected.value = true;
-      status.value = null;
+      // A successful network read is not proof of message delivery.
+      connected.value = firstFailure == null;
+      status.value = firstFailure?.toString();
     }
   }
 
