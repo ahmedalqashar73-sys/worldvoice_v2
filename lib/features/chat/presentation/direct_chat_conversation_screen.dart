@@ -57,6 +57,7 @@ class _DirectChatConversationScreenState
   LocalChatStore? _store;
   DirectChatTransport? _transport;
   bool _busy = false;
+  bool _retryingDelivery = false;
   bool _recording = false;
   bool _blocked = false;
   int _wallpaper = 0;
@@ -154,6 +155,24 @@ class _DirectChatConversationScreenState
                 ? 'تعذر التسليم الآن. الرسائل محفوظة وتُعاد المحاولة تلقائيًا.'
                 : 'Delivery is unavailable. Messages are saved and retry automatically.');
     });
+  }
+
+  Future<void> _retryDelivery() async {
+    if (_retryingDelivery || _transport == null || _blocked) return;
+    setState(() => _retryingDelivery = true);
+    try {
+      await _transport!.retry();
+      _refresh();
+    } catch (error) {
+      if (mounted) {
+        setState(() => _connectionNotice = _ar
+            ? 'تعذرت إعادة المحاولة الآن. الرسائل محفوظة على جهازك.'
+            : 'Retry unavailable. Your messages remain safely on this device.');
+      }
+      debugPrint('WorldVoice manual encrypted delivery retry: $error');
+    } finally {
+      if (mounted) setState(() => _retryingDelivery = false);
+    }
   }
 
   Future<void> _send() async {
@@ -968,6 +987,17 @@ class _DirectChatConversationScreenState
                           fontSize: 11,
                           color: Color(0xFFB1C4BB),
                         ),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: _retryingDelivery || _blocked
+                          ? null
+                          : () => unawaited(_retryDelivery()),
+                      child: Text(
+                        _retryingDelivery
+                            ? (_ar ? 'جارٍ التحقق…' : 'Checking…')
+                            : (_ar ? 'إعادة المحاولة' : 'Retry'),
+                        style: const TextStyle(fontSize: 11),
                       ),
                     ),
                   ],
