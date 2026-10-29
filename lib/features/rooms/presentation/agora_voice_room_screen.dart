@@ -2484,7 +2484,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                                                     .toggleFollow(person.userId);
                                                 if (sheetContext.mounted) {
                                                   update(() =>
-                                                      changedFollow = !following);
+                                                      changedFollow = following == false);
                                                 }
                                               } catch (_) {
                                                 if (sheetContext.mounted) {
