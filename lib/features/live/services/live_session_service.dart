@@ -382,6 +382,9 @@ class LiveSessionService {
     required String userId,
   }) async {
     final currentUser = _user;
+    if (userId.isEmpty || userId == currentUser.uid) {
+      throw StateError('INVALID_LIVE_GUEST');
+    }
     final session = _sessions.doc(liveId);
     final viewer = session.collection('viewers').doc(userId);
     final request = session.collection('join_requests').doc(userId);
@@ -410,8 +413,13 @@ class LiveSessionService {
         throw StateError('VIEWER_NOT_AVAILABLE');
       }
       final requestSnap = await tx.get(request);
-      if (requestSnap.data()?['status']?.toString() == 'accepted') {
+      final existingStatus = requestSnap.data()?['status']?.toString();
+      if (existingStatus == 'accepted') {
         throw StateError('ALREADY_ON_STAGE');
+      }
+      if (existingStatus == 'invited') {
+        if (requestSnap.data()?['invitedBy'] == currentUser.uid) return;
+        throw StateError('LIVE_INVITATION_ALREADY_PENDING');
       }
       final guestCount =
           (sessionSnap.data()?['guestCount'] as num?)?.toInt() ?? 0;
@@ -473,17 +481,40 @@ class LiveSessionService {
     });
   }
 
+  /// A repeated hand raise is idempotent; an existing invitation must not
+  /// be overwritten and an accepted guest must not lose their stage seat.
   Future<void> requestToJoin(String liveId) async {
     final user = _user;
-    await _sessions.doc(liveId).collection('join_requests').doc(user.uid).set({
-      'uid': user.uid,
-      'displayName': user.displayName ?? 'WorldVoice user',
-      'photoUrl': user.photoURL ?? '',
-      'status': 'pending',
-      'hostMuted': false,
-      'requestedAt': FieldValue.serverTimestamp(),
-      'decidedAt': FieldValue.delete(),
-    }, SetOptions(merge: true));
+    final session = _sessions.doc(liveId);
+    final request = session.collection('join_requests').doc(user.uid);
+    final viewer = session.collection('viewers').doc(user.uid);
+    await _db.runTransaction((tx) async {
+      final liveSnap = await tx.get(session);
+      if (!isFresh(liveSnap.data())) {
+        throw StateError('LIVE_ENDED');
+      }
+      if (liveSnap.data()?['hostId'] == user.uid) {
+        throw StateError('HOST_CANNOT_RAISE_HAND');
+      }
+      final viewerSnap = await tx.get(viewer);
+      if (!viewerSnap.exists) throw StateError('VIEWER_NOT_AVAILABLE');
+      final requestSnap = await tx.get(request);
+      final status = requestSnap.data()?['status']?.toString();
+      if (status == 'pending') return;
+      if (status == 'invited') {
+        throw StateError('LIVE_INVITATION_ALREADY_PENDING');
+      }
+      if (status == 'accepted') throw StateError('ALREADY_ON_STAGE');
+      tx.set(request, {
+        'uid': user.uid,
+        'displayName': user.displayName ?? 'WorldVoice user',
+        'photoUrl': user.photoURL ?? '',
+        'status': 'pending',
+        'hostMuted': false,
+        'requestedAt': FieldValue.serverTimestamp(),
+        'decidedAt': FieldValue.delete(),
+      }, SetOptions(merge: true));
+    });
   }
 
   Future<void> decideRequest({
@@ -514,19 +545,26 @@ class LiveSessionService {
           requestSnap.data()?['status']?.toString() != 'pending') {
         throw StateError('REQUEST_NOT_PENDING');
       }
-      final guestCount =
-          (sessionSnap.data()?['guestCount'] as num?)?.toInt() ?? 0;
-      if (accept && guestCount >= 3) {
-        throw StateError('LIVE_GUEST_LIMIT_REACHED');
-      }
-      tx.update(request, {
-        'status': accept ? 'accepted' : 'declined',
-        'decidedAt': FieldValue.serverTimestamp(),
-      });
       if (accept) {
-        tx.update(session, {
-          'guestCount': FieldValue.increment(1),
-          'updatedAt': FieldValue.serverTimestamp(),
+        final guestCount =
+            (sessionSnap.data()?['guestCount'] as num?)?.toInt() ?? 0;
+        if (guestCount >= 3) {
+          throw StateError('LIVE_GUEST_LIMIT_REACHED');
+        }
+        // Host approval requests the guest's consent; the seat is reserved
+        // only after the guest explicitly accepts the camera invitation.
+        tx.update(request, {
+          'status': 'invited',
+          'invitedBy': currentUser.uid,
+          'invitedAt': FieldValue.serverTimestamp(),
+          'hostMuted': false,
+          'requestedAt': FieldValue.delete(),
+          'decidedAt': FieldValue.delete(),
+        });
+      } else {
+        tx.update(request, {
+          'status': 'declined',
+          'decidedAt': FieldValue.serverTimestamp(),
         });
       }
     });
