@@ -1059,6 +1059,89 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     );
   }
 
+  Future<void> _showGuestStageActions(LiveStageParticipant guest) async {
+    if (!mounted) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: const Color(0xFF0D3025),
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: CircleAvatar(
+                backgroundImage: guest.photoUrl.isEmpty
+                    ? null : NetworkImage(guest.photoUrl),
+                child: guest.photoUrl.isEmpty
+                    ? const Icon(Icons.person_rounded) : null,
+              ),
+              title: Text(guest.displayName,
+                  style: const TextStyle(color: Colors.white)),
+              subtitle: Text(widget.ar ? 'مشارك على المسرح' : 'Live stage guest',
+                  style: const TextStyle(color: Colors.white70)),
+            ),
+            ListTile(
+              leading: const Icon(Icons.person_outline_rounded,
+                  color: Colors.white),
+              title: Text(widget.ar ? 'زيارة الملف الشخصي' : 'View profile',
+                  style: const TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                _openViewerProfile(
+                  userId: guest.userId,
+                  displayName: guest.displayName,
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.arrow_downward_rounded,
+                  color: Color(0xFFF1CE86)),
+              title: Text(widget.ar ? 'إنزال من المسرح' : 'Remove from stage',
+                  style: const TextStyle(color: Color(0xFFF1CE86))),
+              onTap: () async {
+                Navigator.pop(sheetContext);
+                if (!mounted) return;
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (dialogContext) => AlertDialog(
+                    title: Text(widget.ar ? 'تأكيد الإنزال' : 'Lower guest?'),
+                    content: Text(widget.ar
+                        ? 'هل تريد إنزال ${guest.displayName} من المسرح؟ سيبقى مشاهدًا في اللايف.'
+                        : 'Lower ${guest.displayName} from the stage? They remain a Live viewer.'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(dialogContext, false),
+                        child: Text(widget.ar ? 'إلغاء' : 'Cancel'),
+                      ),
+                      FilledButton(
+                        onPressed: () => Navigator.pop(dialogContext, true),
+                        child: Text(widget.ar ? 'إنزال' : 'Lower'),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirmed != true || !mounted || _liveId == null) return;
+                try {
+                  await _liveService.removeGuestFromStage(
+                    liveId: _liveId!,
+                    guestUserId: guest.userId,
+                  );
+                } catch (error) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(error.toString())),
+                  );
+                }
+              },
+            ),
+            const SizedBox(height: 12),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _minimizeHostLive() {
     if (!mounted || !_cameraReady || _minimized || _controller.engine == null) {
       return;
@@ -1925,6 +2008,11 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                      userId: _stageUsers[remote[i]]!.userId,
                                      displayName:
                                          _stageUsers[remote[i]]!.displayName,
+                                   ),
+                             onManageGuest: _stageUsers[remote[i]] == null
+                                 ? null
+                                 : () => _showGuestStageActions(
+                                     _stageUsers[remote[i]]!,
                                    ),
                              isHost: false,
                              cameraOff: _controller.remoteCameraPaused(remote[i]),
@@ -3279,7 +3367,18 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                 (_) => _becomeGuest(),
               );
             }
-            if ((status == 'declined' || status == 'left') && _requested) {
+            if (status == 'removed' &&
+                _guestPublishing && !_guestMediaBusy) {
+              // Host removed this guest: revoke publishing locally and return
+              // to audience without leaving the Live or clearing the chat.
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted && _guestPublishing && !_guestMediaBusy) {
+                  unawaited(_leaveGuestCamera());
+                }
+              });
+            }
+            if ((status == 'declined' || status == 'left' ||
+                    status == 'removed') && _requested) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (mounted) setState(() => _requested = false);
               });
@@ -4127,6 +4226,7 @@ class _LiveParticipantCameraTile extends StatelessWidget {
     required this.video,
     this.photoUrl = '',
     this.onOpenProfile,
+    this.onManageGuest,
   });
 
   final bool ar;
@@ -4135,6 +4235,7 @@ class _LiveParticipantCameraTile extends StatelessWidget {
   final bool cameraOff;
   final String photoUrl;
   final VoidCallback? onOpenProfile;
+  final VoidCallback? onManageGuest;
   final Widget video;
 
   @override
@@ -4186,6 +4287,23 @@ class _LiveParticipantCameraTile extends StatelessWidget {
             ),
           ),
         ),
+        if (onManageGuest != null)
+          PositionedDirectional(
+            top: 8,
+            end: 8,
+            child: Material(
+              color: const Color(0xB3092E23),
+              shape: const CircleBorder(),
+              child: IconButton(
+                onPressed: onManageGuest,
+                tooltip: ar ? 'إدارة الضيف' : 'Manage guest',
+                icon: const Icon(Icons.more_horiz_rounded,
+                    color: Colors.white),
+                constraints:
+                    const BoxConstraints.tightFor(width: 38, height: 38),
+              ),
+            ),
+          ),
         PositionedDirectional(
           start: 0,
           end: 0,
