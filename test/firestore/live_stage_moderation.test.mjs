@@ -69,3 +69,19 @@ test('host cannot alter another stage request while lowering the participant', a
   });
   await assertFails(batch.commit());
 });
+
+test('only the host may mute and release a current Live stage guest', async () => {
+  await assertSucceeds(updateDoc(guestRequest(user('host')), {hostMuted: true}));
+  await assertSucceeds(updateDoc(guestRequest(user('host')), {hostMuted: false}));
+  await assertFails(updateDoc(guestRequest(user('guest')), {hostMuted: false}));
+  await assertFails(updateDoc(guestRequest(user('stranger')), {hostMuted: true}));
+});
+
+test('host microphone control cannot forge guest identity or stage status', async () => {
+  await assertFails(updateDoc(guestRequest(user('host')), {
+    hostMuted: true, displayName: 'forged',
+  }));
+  await assertFails(updateDoc(guestRequest(user('host')), {
+    hostMuted: true, status: 'removed',
+  }));
+});
