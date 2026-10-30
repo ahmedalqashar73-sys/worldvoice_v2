@@ -1066,9 +1066,15 @@ service cloud.firestore {
       }
 
       match /join_requests/{userId} {
+        // Accepted stage participants are visible to signed-in viewers, so
+        // each Agora camera can display the participant's real profile.
+        // Pending requests and invitations remain private to their owner,
+        // the host, and authorized moderators. The client uses a query
+        // filtered to status == 'accepted'.
         allow read: if signedIn()
             && (
-              userId == request.auth.uid
+              resource.data.status == 'accepted'
+              || userId == request.auth.uid
               || get(/databases/$(database)/documents/live_sessions/$(liveId))
                   .data.hostId == request.auth.uid
               || isGlobalModerator(
