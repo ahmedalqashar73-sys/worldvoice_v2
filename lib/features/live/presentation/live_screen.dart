@@ -3279,66 +3279,59 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                             });
                           }
                           final engine = _controller.engine;
-                          final tiles = <Widget>[
-                            if (_guestPublishing && engine != null)
-                              if (_guestCameraPaused)
-                                ColoredBox(
-                                  color: Colors.black,
-                                  child: Center(
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(
-                                          Icons.videocam_off_rounded,
-                                          color: Colors.white54,
-                                          size: 48,
-                                        ),
-                                        Text(
-                                          widget.ar
-                                              ? 'الكاميرا مغلقة'
-                                              : 'Camera off',
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                )
-                              else
-                                _PinchZoomCameraView(
-                                  controller: _controller,
-                                  zoom: _guestCameraZoom,
-                                  onZoomChanged: (value) {
-                                    if (mounted) {
-                                      setState(() => _guestCameraZoom = value);
-                                    }
-                                  },
-                                  child: AgoraVideoView(
-                                    controller: VideoViewController(
-                                      rtcEngine: engine,
-                                      canvas: const VideoCanvas(uid: 0),
-                                    ),
-                                  ),
-                                ),
-                            if (engine != null)
-                              for (final uid in remote.take(
-                                _guestPublishing ? 3 : 4,
-                              ))
-                                if (_controller.remoteCameraPaused(uid))
-                                  _LiveCameraOffTile(ar: widget.ar)
-                                else
-                                  AgoraVideoView(
-                                    controller: VideoViewController.remote(
-                                      rtcEngine: engine,
-                                      canvas: VideoCanvas(uid: uid),
-                                      connection: RtcConnection(
-                                        channelId: widget.liveId,
-                                      ),
-                                    ),
-                                  ),
-                          ];
-                          return Stack(
+                          final hostName = FirebaseAuth.instance.currentUser
+                               ?.displayName?.trim();
+                       final hostPhoto =
+                           FirebaseAuth.instance.currentUser?.photoURL ?? '';
+                       final tiles = <Widget>[
+                         _LiveParticipantCameraTile(
+                           ar: widget.ar,
+                           name: hostName == null || hostName.isEmpty
+                               ? (widget.ar ? 'المضيف' : 'Host')
+                               : hostName,
+                           isHost: true,
+                           cameraOff: _cameraPaused,
+                           photoUrl: hostPhoto,
+                           video: _cameraPaused
+                               ? const SizedBox.shrink()
+                               : _PinchZoomCameraView(
+                                   controller: _controller,
+                                   zoom: _cameraZoom,
+                                   onZoomChanged: (value) {
+                                     if (mounted) {
+                                       setState(() => _cameraZoom = value);
+                                     }
+                                   },
+                                   child: AgoraVideoView(
+                                     controller: VideoViewController(
+                                       rtcEngine: _controller.engine!,
+                                       canvas: const VideoCanvas(uid: 0),
+                                     ),
+                                   ),
+                                 ),
+                         ),
+                         for (var i = 0; i < remote.length; i++)
+                           _LiveParticipantCameraTile(
+                             ar: widget.ar,
+                             name: widget.ar
+                                 ? 'ضيف ${i + 1}'
+                                 : 'Guest ${i + 1}',
+                             isHost: false,
+                             cameraOff: _controller.remoteCameraPaused(remote[i]),
+                             video: _controller.remoteCameraPaused(remote[i])
+                                 ? const SizedBox.shrink()
+                                 : AgoraVideoView(
+                                     controller: VideoViewController.remote(
+                                       rtcEngine: _controller.engine!,
+                                       canvas: VideoCanvas(uid: remote[i]),
+                                       connection: RtcConnection(
+                                         channelId: _channelId ?? '',
+                                       ),
+                                     ),
+                                   ),
+                           ),
+                       ];
+                       return Stack(
                             fit: StackFit.expand,
                             children: [
                               if (!_boardOpen)
