@@ -78,6 +78,11 @@ async function firestoreDocument({ projectId, path, idToken }) {
   return response.json();
 }
 
+// Room authorization and Live authorization use separate Firestore namespaces.
+export function tokenSessionCollection(channelName) {
+  return channelName.startsWith("live_") ? "live_sessions" : "rooms";
+}
+
 async function agoraTokenForUser(request, env) {
   if (!configured(env)) {
     return json({ error: "Agora worker configuration is incomplete." }, 503);
@@ -110,23 +115,16 @@ async function agoraTokenForUser(request, env) {
     return json({ error: "Firebase sign-in expired or invalid. Sign in again." }, 401);
   }
 
-  const roomPath = `rooms/${channelName}`;
-  const livePath = `live_sessions/${channelName}`;
-  let room;
-  let live;
+  // Do not query legacy room documents for video Lives: their presence or
+  // closed status must never shadow the real authenticated Live session.
+  const collection = tokenSessionCollection(channelName);
+  let session;
   try {
-    [room, live] = await Promise.all([
-      firestoreDocument({
-        projectId: env.FIREBASE_PROJECT_ID,
-        path: roomPath,
-        idToken,
-      }),
-      firestoreDocument({
-        projectId: env.FIREBASE_PROJECT_ID,
-        path: livePath,
-        idToken,
-      }),
-    ]);
+    session = await firestoreDocument({
+      projectId: env.FIREBASE_PROJECT_ID,
+      path: `${collection}/${channelName}`,
+      idToken,
+    });
   } catch (error) {
     return json({
       error: error?.status === 401
@@ -135,7 +133,18 @@ async function agoraTokenForUser(request, env) {
     }, error?.status === 401 ? 401 : 503);
   }
 
-  if (room?.fields) {
+  // The app creates the Live record before joining Agora; never issue an
+  // anonymous or unregistered Live token.
+  if (!session?.fields) {
+    return json({
+      error: collection === "live_sessions"
+        ? "Live session is not registered yet."
+        : "Room is not found.",
+    }, 404);
+  }
+
+  if (collection === "rooms") {
+    const room = session;
     if (room.fields.isOpen?.booleanValue !== true) {
       return json({ error: "Room is not open." }, 404);
     }
@@ -155,8 +164,8 @@ async function agoraTokenForUser(request, env) {
         !["host", "coHost", "speaker", "vipSeat"].includes(role)) {
       return json({ error: "Only stage members can publish room audio." }, 403);
     }
-  } else if (live?.fields) {
-    const fields = live.fields;
+  } else {
+    const fields = session.fields;
     const heartbeatMs = Date.parse(
       fields.hostHeartbeatAt?.timestampValue || "",
     );
@@ -195,11 +204,6 @@ async function agoraTokenForUser(request, env) {
         return json({ error: "Join the Live before subscribing." }, 403);
       }
     }
-  } else if (!(requestedRole === "publisher" &&
-      channelName.startsWith("live_"))) {
-    // A signed-in user may bootstrap a new Live publisher channel. The
-    // session remains undiscoverable until the client creates live_sessions.
-    return json({ error: "Room or Live session not found." }, 404);
   }
 
   const agoraUid = agoraUidForFirebaseUid(uid);
@@ -273,7 +277,7 @@ export default {
       return json({
         ok: ready,
         service: "worldvoice-agora-token-worker",
-        tokenApiRevision: "2026-10-23.6",
+        tokenApiRevision: "2026-10-30.1",
         liveHostBootstrapSupported: true,
       }, ready ? 200 : 503);
     }
