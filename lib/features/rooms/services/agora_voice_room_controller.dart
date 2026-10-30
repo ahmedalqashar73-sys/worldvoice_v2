@@ -937,6 +937,11 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       _localPreviewPrepared = false;
     }
 
+    // Mute capture before granting broadcaster privileges, otherwise a
+    // previously listening guest could leak a short audio frame during join.
+    if (role == AgoraRoomRole.speaker && startMuted) {
+      await engine.muteLocalAudioStream(true);
+    }
     await engine.setClientRole(
       role: role == AgoraRoomRole.speaker
           ? ClientRoleType.clientRoleBroadcaster
