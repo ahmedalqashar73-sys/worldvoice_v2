@@ -1963,8 +1963,9 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                     animation: _videoRoster,
                     builder: (context, _) {
                       final remote = _controller.remoteSpeakers
-                          .take(3)
-                          .toList();
+                           .where(_stageUsers.containsKey)
+                           .take(3)
+                           .toList();
                        final hostName =
                            FirebaseAuth.instance.currentUser?.displayName ?? '';
                        final hostPhoto =
@@ -3434,8 +3435,10 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                           }
                           final engine = _controller.engine;
                           // Host-first layout independent of join order.
-                           final orderedRemote = orderLiveRemoteVideoUids(
-                             remote, hostAgoraUid: hostAgoraUid,
+                           final orderedRemote = orderActiveLiveStageUids(
+                             remote,
+                             hostAgoraUid: hostAgoraUid,
+                             acceptedGuestAgoraUids: _stageUsers.keys,
                            );
                            final hostName = (live?['hostName'] ??
                                widget.data['hostName'] ??
@@ -3594,17 +3597,14 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                     clipBehavior: Clip.antiAlias,
                                     child:
                                         engine != null &&
-                                            (hostAgoraUid != null
-                                                ? remote.contains(hostAgoraUid)
-                                                : remote.isNotEmpty)
+                                            (hostAgoraUid != null &&
+                                             remote.contains(hostAgoraUid))
                                         ? AgoraVideoView(
                                             controller:
                                                 VideoViewController.remote(
                                                   rtcEngine: engine,
                                                   canvas: VideoCanvas(
-                                                    uid:
-                                                        hostAgoraUid ??
-                                                        remote.first,
+                                                    uid: hostAgoraUid,
                                                   ),
                                                   connection: RtcConnection(
                                                     channelId: widget.liveId,
