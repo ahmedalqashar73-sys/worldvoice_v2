@@ -4147,7 +4147,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
     if (!_guestPublishing ||
         !_hostMutedGuest ||
         _guestMediaBusy ||
-        _controller.muted) return;
+        _controller.muted) {
+      return;
+    }
     setState(() => _guestMediaBusy = true);
     try {
       await _controller.setMuted(true);
