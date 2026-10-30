@@ -111,7 +111,7 @@ class LiveScreen extends StatefulWidget {
     if (!context.mounted) return;
     final data = snap.data();
     final ar = localeController.locale?.languageCode == 'ar';
-    if (data == null || data['isLive'] != true) {
+    if (data == null || data['isLive'] != true || data['isReady'] == false) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(ar ? 'انتهى هذا البث المباشر' : 'This live has ended'),
@@ -1401,6 +1401,18 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
 
       final channel = 'live_${DateTime.now().millisecondsSinceEpoch}';
       _channelId = channel;
+      final firebaseUid = FirebaseAuth.instance.currentUser?.uid ?? '';
+      final expectedAgoraUid =
+          await LiveSessionService.hostAgoraUidForUser(firebaseUid);
+      // The token issuer requires a verified Live session for the host.
+      // Create this session before Agora; do not show or announce it yet.
+      _liveId = await _liveService.create(
+        channelId: channel,
+        languageCode: _languageCode,
+        hostAgoraUid: expectedAgoraUid,
+        topic: _resolvedTopic,
+        announce: false,
+      );
       await _controller.ensureConnected(
         channelId: channel,
         role: AgoraRoomRole.speaker,
@@ -1416,20 +1428,16 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
       }
       await _controller.setCameraPublishing(true);
       final hostAgoraUid = _controller.localUid;
-      if (hostAgoraUid == null || hostAgoraUid <= 0) {
-        throw StateError('Agora did not return a valid host UID.');
+      if (hostAgoraUid == null || hostAgoraUid != expectedAgoraUid) {
+        throw StateError('Agora returned an unexpected host UID.');
       }
-      _liveId = await _liveService.create(
-        channelId: channel,
-        languageCode: _languageCode,
-        hostAgoraUid: hostAgoraUid,
-        topic: _resolvedTopic,
-      );
       if (!mounted) {
         await _liveService.end(_liveId!);
+        _liveId = null;
         await _controller.leave();
         return;
       }
+      await _liveService.announceStarted(_liveId!);
       _startHeartbeat();
       _startHostQuotaTimer();
       setState(() {
@@ -1439,6 +1447,18 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
         _cameraStartError = null;
       });
     } catch (error) {
+      // A failed token, camera, or Firestore join must never leave a discoverable
+      // phantom Live session behind or keep a stale channel on retry.
+      final unfinishedLiveId = _liveId;
+      _liveId = null;
+      _channelId = null;
+      if (unfinishedLiveId != null) {
+        try {
+          await _liveService.end(unfinishedLiveId);
+        } catch (cleanupError) {
+          debugPrint('Could not close unstarted Live: $cleanupError');
+        }
+      }
       if (_quotaStarted) {
         await _quota.endSession();
         _quotaStarted = false;
