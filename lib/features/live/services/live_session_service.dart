@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'package:cryptography/cryptography.dart';
 import '../../chat/services/worldvoice_notification_service.dart';
 import '../../rooms/services/active_chat_bubble_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -16,6 +18,18 @@ class LiveSessionService {
   final FirebaseFirestore _db;
   final FirebaseAuth _auth;
 
+  /// Agora token services both derive the RTC UID from the first four bytes
+  /// of SHA-256(firebaseUid), interpreted as a big-endian unsigned integer.
+  /// Pre-registering this value allows the authenticated worker to verify
+  /// Live ownership before Agora joins. No certificate is stored in Flutter.
+  static Future<int> hostAgoraUidForUser(String firebaseUid) async {
+    if (firebaseUid.trim().isEmpty) throw StateError('SIGN_IN_REQUIRED');
+    final digest = await Sha256().hash(utf8.encode(firebaseUid));
+    final b = digest.bytes;
+    final uid = (b[0] << 24) | (b[1] << 16) | (b[2] << 8) | b[3];
+    return uid == 0 ? 1 : uid;
+  }
+
   CollectionReference<Map<String, dynamic>> get _sessions =>
       _db.collection('live_sessions');
 
@@ -30,6 +44,7 @@ class LiveSessionService {
     required String languageCode,
     required int hostAgoraUid,
     String topic = '',
+    bool announce = true,
   }) async {
     final user = _user;
     // Use the completed WorldVoice profile, not only the Google/Firebase
@@ -65,6 +80,7 @@ class LiveSessionService {
       'languageCode': languageCode,
       'topic': topic.trim(),
       'isLive': true,
+      'isReady': announce,
       'viewerCount': 0,
       'guestCount': 0,
       'boardWriteEnabled': true,
@@ -72,14 +88,29 @@ class LiveSessionService {
       'hostHeartbeatAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     });
-    // Never delay Live camera startup waiting for follower fan-out.
-    unawaited(
-      WorldVoiceNotificationService.publishActivity(
-        kind: 'live',
-        sessionId: ref.id,
-      ),
-    );
+    // Never announce a host before the camera has joined Agora successfully.
+    if (announce) {
+      unawaited(WorldVoiceNotificationService.publishActivity(
+        kind: 'live', sessionId: ref.id));
+    }
     return ref.id;
+  }
+
+  Future<void> announceStarted(String liveId) async {
+    final session = _sessions.doc(liveId);
+    final snap = await session.get();
+    if (snap.data()?['hostId'] != _user.uid ||
+        snap.data()?['isLive'] != true) {
+      throw StateError('LIVE_NOT_OWNED_OR_ENDED');
+    }
+    await session.update({
+      'isReady': true,
+      'hostHeartbeatAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+    // Notification delivery is optional and does not gate the connected Live.
+    unawaited(WorldVoiceNotificationService.publishActivity(
+      kind: 'live', sessionId: liveId));
   }
 
   Stream<QuerySnapshot<Map<String, dynamic>>> watchOpen() =>
@@ -193,7 +224,7 @@ class LiveSessionService {
   }
 
   static bool isFresh(Map<String, dynamic>? data, {DateTime? now}) {
-    if (data == null || data['isLive'] != true) return false;
+    if (data == null || data['isLive'] != true || data['isReady'] == false) return false;
     final heartbeat = data['hostHeartbeatAt'];
     if (heartbeat is! Timestamp) {
       // Backward compatibility for sessions created before heartbeats existed.
