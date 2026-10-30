@@ -870,7 +870,10 @@ service cloud.firestore {
               && request.resource.data.channelId == resource.data.channelId
               && request.resource.data.hostAgoraUid == resource.data.hostAgoraUid
               && request.resource.data.viewerCount == resource.data.viewerCount
-              && request.resource.data.guestCount >= resource.data.guestCount
+              // Host may lower exactly one guest through the matched request
+              // transition below, without changing room ownership or viewers.
+              && request.resource.data.guestCount >= resource.data.guestCount - 1
+              && request.resource.data.guestCount >= 0
               && request.resource.data.guestCount <= 3
               && request.resource.data.guestCount <= resource.data.guestCount + 1
             )
@@ -1157,6 +1160,24 @@ service cloud.firestore {
                 )
               )
               || (
+                // Only the Live host can lower a guest; update the counter
+                // in the same transaction so stage capacity is released.
+                get(/databases/$(database)/documents/live_sessions/$(liveId))
+                    .data.hostId == request.auth.uid
+                && resource.data.status == 'accepted'
+                && request.resource.data.status == 'removed'
+                && request.resource.data.diff(resource.data).affectedKeys()
+                    .hasOnly(['status', 'decidedAt'])
+                && get(/databases/$(database)/documents/live_sessions/$(liveId))
+                    .data.guestCount > 0
+                && getAfter(
+                  /databases/$(database)/documents/live_sessions/$(liveId)
+                ).data.guestCount
+                    == get(
+                      /databases/$(database)/documents/live_sessions/$(liveId)
+                    ).data.guestCount - 1
+              )
+              || (
                 userId == request.auth.uid
                 && resource.data.status == 'accepted'
                 && request.resource.data.status == 'left'
@@ -1165,7 +1186,7 @@ service cloud.firestore {
               )
               || (
                 userId == request.auth.uid
-                && resource.data.status in ['declined', 'left']
+                && resource.data.status in ['declined', 'left', 'removed']
                 && request.resource.data.status == 'pending'
                 && request.resource.data.diff(resource.data).affectedKeys()
                     .hasOnly([
