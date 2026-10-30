@@ -14,12 +14,14 @@ class LiveStageParticipant {
     required this.agoraUid,
     required this.displayName,
     required this.photoUrl,
+    required this.hostMuted,
   });
 
   final String userId;
   final int agoraUid;
   final String displayName;
   final String photoUrl;
+  final bool hostMuted;
 }
 
 /// Firestore coordination for video Live.
@@ -306,6 +308,7 @@ class LiveSessionService {
               agoraUid: agoraUid,
               displayName: name.isEmpty ? 'WorldVoice user' : name,
               photoUrl: photo,
+              hostMuted: fallback['hostMuted'] == true,
             );
           }),
         );
@@ -423,6 +426,7 @@ class LiveSessionService {
             .toString(),
         'photoUrl': (viewerData['photoUrl'] ?? '').toString(),
         'status': 'invited',
+        'hostMuted': false,
         'invitedBy': currentUser.uid,
         'invitedAt': FieldValue.serverTimestamp(),
         'requestedAt': FieldValue.delete(),
@@ -476,6 +480,7 @@ class LiveSessionService {
       'displayName': user.displayName ?? 'WorldVoice user',
       'photoUrl': user.photoURL ?? '',
       'status': 'pending',
+      'hostMuted': false,
       'requestedAt': FieldValue.serverTimestamp(),
       'decidedAt': FieldValue.delete(),
     }, SetOptions(merge: true));
@@ -524,6 +529,34 @@ class LiveSessionService {
           'updatedAt': FieldValue.serverTimestamp(),
         });
       }
+    });
+  }
+
+  /// Only the broadcaster may block a guest microphone. This is a Firestore
+  /// moderation instruction; the guest client applies it by muting Agora.
+  /// Releasing the block never remotely switches the user's microphone on.
+  Future<void> setGuestMicrophoneBlocked({
+    required String liveId,
+    required String guestUserId,
+    required bool blocked,
+  }) async {
+    final host = _user;
+    if (guestUserId.isEmpty || guestUserId == host.uid) {
+      throw StateError('INVALID_LIVE_GUEST');
+    }
+    final session = _sessions.doc(liveId);
+    final request = session.collection('join_requests').doc(guestUserId);
+    await _db.runTransaction((tx) async {
+      final liveSnap = await tx.get(session);
+      if (liveSnap.data()?['hostId'] != host.uid ||
+          liveSnap.data()?['isLive'] != true) {
+        throw StateError('HOST_ONLY');
+      }
+      final guestSnap = await tx.get(request);
+      if (guestSnap.data()?['status'] != 'accepted') {
+        throw StateError('GUEST_NOT_ON_STAGE');
+      }
+      tx.update(request, {'hostMuted': blocked});
     });
   }
 
