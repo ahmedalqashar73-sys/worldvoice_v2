@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import worker, { validChannelName, agoraUidForFirebaseUid } from "../src/index.js";
+import worker, {
+  validChannelName,
+  agoraUidForFirebaseUid,
+  tokenSessionCollection,
+} from "../src/index.js";
 
 test("reject invalid room IDs before Firebase/Firestore", () => {
   assert.equal(validChannelName("good_room_123"), true);
@@ -12,6 +16,14 @@ test("reject invalid room IDs before Firebase/Firestore", () => {
 test("Agora UID is positive and deterministic", () => {
   assert.equal(agoraUidForFirebaseUid("uid_1"), agoraUidForFirebaseUid("uid_1"));
   assert.ok(agoraUidForFirebaseUid("uid_1") > 0);
+});
+
+test("Live tokens never consult closed voice-room documents", () => {
+  assert.equal(tokenSessionCollection("live_1793370000000"), "live_sessions");
+  assert.equal(tokenSessionCollection("live_a1b2"), "live_sessions");
+  assert.equal(tokenSessionCollection("voice_room_1"), "rooms");
+  assert.equal(tokenSessionCollection("room_123"), "rooms");
+  assert.equal(tokenSessionCollection("call_123"), "rooms");
 });
 
 test("health fails closed without the secret certificate", async () => {
