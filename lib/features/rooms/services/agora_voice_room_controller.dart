@@ -901,7 +901,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     notifyListeners();
   });
 
-  Future<void> switchRole(AgoraRoomRole role) async {
+  Future<void> switchRole(AgoraRoomRole role, {bool startMuted = false}) async {
     final engine = _engine;
     if (engine == null || !_joined || role == _role) return;
 
@@ -948,7 +948,9 @@ class AgoraVoiceRoomController extends ChangeNotifier {
         clientRoleType: role == AgoraRoomRole.speaker
             ? ClientRoleType.clientRoleBroadcaster
             : ClientRoleType.clientRoleAudience,
-        publishMicrophoneTrack: role == AgoraRoomRole.speaker,
+        // The Live stage can promote a guest in a muted state without
+        // publishing even a moment of microphone audio.
+        publishMicrophoneTrack: role == AgoraRoomRole.speaker && !startMuted,
         publishCameraTrack: false,
         autoSubscribeAudio: true,
         autoSubscribeVideo: true,
@@ -956,9 +958,9 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       ),
     );
 
-    await engine.muteLocalAudioStream(false);
+    await engine.muteLocalAudioStream(startMuted);
     _role = role;
-    _muted = false;
+    _muted = startMuted;
     notifyListeners();
   }
 
