@@ -3275,11 +3275,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                             });
                           }
                           final engine = _controller.engine;
-                          final hostName = FirebaseAuth.instance.currentUser
-                               ?.displayName?.trim();
-                       final hostPhoto =
-                           FirebaseAuth.instance.currentUser?.photoURL ?? '';
-                           // Host-first layout independent of join order.
+                          // Host-first layout independent of join order.
                            final orderedRemote = orderLiveRemoteVideoUids(
                              remote, hostAgoraUid: hostAgoraUid,
                            );
