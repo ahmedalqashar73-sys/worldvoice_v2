@@ -2750,6 +2750,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   Map<int, LiveStageParticipant> _stageUsers = const {};
   String? _joinError;
   bool _requested = false;
+  bool _handRequestBusy = false;
   bool _guestPublishing = false;
   bool _hostSeen = false;
   bool _guestMicMuted = false;
@@ -3443,38 +3444,45 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   }
 
   Future<void> _requestCamera() async {
-    if (_requested) return;
-    // Keep hand-raise retryable if Firestore rejects the request. Previously
-    // the Future error escaped from the button and left no explanation.
+    if (_requested || _handRequestBusy) return;
+    setState(() => _handRequestBusy = true);
     try {
       await _service.requestToJoin(widget.liveId);
       if (mounted) setState(() => _requested = true);
     } on FirebaseException catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            error.code == 'permission-denied'
-                ? (widget.ar
-                      ? 'تعذر طلب الصعود: صلاحيات اللايف في Firebase غير منشورة.'
-                      : 'Stage request denied. Deploy the Live Firebase rules.')
-                : (widget.ar
-                      ? 'تعذر إرسال طلب رفع اليد. حاول مرة ثانية.'
-                      : 'Unable to send stage request. Please retry.'),
-          ),
-        ),
+        SnackBar(content: Text(error.code == 'permission-denied'
+            ? (widget.ar
+                ? 'تعذر طلب الصعود: صلاحيات اللايف في Firebase غير منشورة.'
+                : 'Stage request denied. Deploy the Live Firebase rules.')
+            : (widget.ar
+                ? 'تعذر إرسال طلب رفع اليد. حاول مرة ثانية.'
+                : 'Unable to send stage request. Please retry.'))),
       );
-    } catch (_) {
+    } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            widget.ar
-                ? 'تعذر إرسال طلب رفع اليد. حاول مرة ثانية.'
-                : 'Unable to send stage request. Please retry.',
-          ),
-        ),
+        SnackBar(content: Text(error.toString())),
       );
+    } finally {
+      if (mounted) setState(() => _handRequestBusy = false);
+    }
+  }
+
+  Future<void> _cancelCameraRequest() async {
+    if (_handRequestBusy) return;
+    setState(() => _handRequestBusy = true);
+    try {
+      await _service.cancelPendingRequest(widget.liveId);
+      if (mounted) setState(() => _requested = false);
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
+    } finally {
+      if (mounted) setState(() => _handRequestBusy = false);
     }
   }
 
@@ -3978,17 +3986,26 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                   left: 14,
                                   bottom: 92,
                                   child: _LiveHandControl(
-                                    tooltip: _requested
+                                    tooltip: status == 'invited'
                                         ? (widget.ar
-                                              ? 'طلب الصعود قيد الانتظار'
-                                              : 'Stage request pending')
+                                            ? 'دعوة الصعود بانتظار ردك'
+                                            : 'Respond to your stage invitation')
+                                        : (status == 'pending' || _requested)
+                                        ? (widget.ar
+                                            ? 'إلغاء طلب الصعود'
+                                            : 'Cancel stage request')
                                         : (widget.ar
-                                              ? 'ارفع يدك للصعود'
-                                              : 'Raise hand to join'),
-                                    active: _requested,
-                                    onPressed: _requested
+                                            ? 'ارفع يدك للصعود'
+                                            : 'Raise hand to join'),
+                                    active: status == 'pending' ||
+                                        status == 'invited' || _requested,
+                                    onPressed: _handRequestBusy ||
+                                            status == 'invited' ||
+                                            status == 'accepted'
                                         ? null
-                                        : _requestCamera,
+                                        : (status == 'pending' || _requested)
+                                            ? _cancelCameraRequest
+                                            : _requestCamera,
                                   ),
                                 ),
                               PositionedDirectional(
@@ -7053,7 +7070,7 @@ class _HostJoinRequests extends StatelessWidget {
                         ),
                       ),
                       IconButton(
-                        tooltip: ar ? 'قبول' : 'Accept',
+                        tooltip: ar ? 'إرسال دعوة للصعود' : 'Invite to stage',
                         onPressed: () async {
                           try {
                             await service.decideRequest(
@@ -7061,6 +7078,15 @@ class _HostJoinRequests extends StatelessWidget {
                               userId: doc.id,
                               accept: true,
                             );
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(ar
+                                      ? 'أُرسلت دعوة الصعود. ينتظر اللايف موافقة الضيف.'
+                                      : 'Stage invitation sent. Waiting for guest approval.'),
+                                ),
+                              );
+                            }
                           } catch (error) {
                             if (!context.mounted) return;
                             final full = error.toString().contains(
