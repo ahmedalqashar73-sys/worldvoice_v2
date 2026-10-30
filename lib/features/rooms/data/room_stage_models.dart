@@ -87,3 +87,33 @@ class RoomSeatState {
     );
   }
 }
+
+/// Visual-only reserved host seat. When the host leaves and a moderator keeps
+/// the room open, Firestore deletes the host's participant presence, but room
+/// ownership remains the same. Never mistake this placeholder for a connected
+/// Agora speaker or an active moderator.
+RoomSeatState reserveAbsentHostSeat(
+  RoomSeatState seat, {
+  required bool roomIsOpen,
+  required String? hostId,
+  required String? hostName,
+  String? hostPhotoUrl,
+  String? hostFrameId,
+}) {
+  if (!roomIsOpen || !seat.isEmpty || seat.index != 1 ||
+      hostId == null || hostId.trim().isEmpty) {
+    return seat;
+  }
+  final name = hostName?.trim();
+  return RoomSeatState(
+    index: 1,
+    role: RoomMemberRole.host,
+    userId: hostId,
+    displayName: name == null || name.isEmpty ? 'Host' : name,
+    avatarUrl: hostPhotoUrl,
+    frameId: hostFrameId,
+    isMuted: true,
+    isActiveSpeaker: false,
+    isLocalUser: false,
+  );
+}
