@@ -162,6 +162,12 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   String? _lastModeratorInviteSignature;
   bool _showingModeratorInvite = false;
   StreamSubscription<bool>? _roomOpenSub;
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _hostRoomSub;
+  String? _roomHostId;
+  String? _roomHostName;
+  String? _roomHostPhotoUrl;
+  String? _roomHostFrameId;
+  bool _roomIsOpen = false;
   StreamSubscription<bool>? _teacherAiSeatSub;
   StreamSubscription<RoomFeatureState>? _featuresSub;
   StreamSubscription<List<RoomGiftEvent>>? _giftSub;
@@ -510,6 +516,30 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         if (!isOpen && !_leaving) {
           unawaited(_exitClosedRoom());
         }
+      });
+      // Presentation-only subscription: the authoritative host identity
+      // remains visible on seat one even after their participant leaves.
+      _hostRoomSub = FirebaseFirestore.instance
+          .collection('rooms')
+          .doc(widget.channelId)
+          .snapshots()
+          .listen((snapshot) {
+        if (!mounted) return;
+        final data = snapshot.data() ?? const <String, dynamic>{};
+        final id = data['hostId']?.toString();
+        final changedHost = id != _roomHostId;
+        setState(() {
+          _roomHostId = id;
+          _roomHostName = data['hostName']?.toString();
+          _roomHostPhotoUrl = data['hostPhotoUrl']?.toString();
+          _roomIsOpen = data['isOpen'] == true;
+          if (changedHost) _roomHostFrameId = null;
+        });
+        if (changedHost && id != null && id.isNotEmpty) {
+          unawaited(_loadHostFrame(id));
+        }
+      }, onError: (Object error) {
+        debugPrint('Room host presentation unavailable: $error');
       });
 
       _teacherAiSeatSub =
@@ -2011,8 +2041,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     return null;
   }
 
-  // Raise hand is permanently anchored over the comment toolbar, never
-  // embedded among the scrollable room controls.
+  // Raise hand stays to the left of chat, and hides while the keyboard
+  // is open so it never overlaps the composer.
   Widget _buildHandControl(bool isArabic, bool isPublishing) {
     if ((_me == null && !_isHost) || (isPublishing && !_canModerate)) {
       return const SizedBox.shrink();
@@ -2069,6 +2099,20 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     );
   }
 
+  Future<void> _loadHostFrame(String hostId) async {
+    try {
+      final profile = await FirebaseFirestore.instance
+          .collection('users').doc(hostId).get();
+      if (!mounted || _roomHostId != hostId) return;
+      setState(() {
+        _roomHostFrameId = profile.data()?['profileFrameId']?.toString();
+      });
+    } catch (error) {
+      // The host seat still displays the room's trusted stored avatar.
+      debugPrint('Room host frame unavailable: $error');
+    }
+  }
+
   List<RoomSeatState> _buildSeats() {
     final seats = List<RoomSeatState>.generate(
       8,
@@ -2100,13 +2144,27 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       );
     }
 
-    if (_participants.isEmpty &&
+    // Host stays visually in seat one while a moderator maintains an open
+    // room. This is never a fabricated participant, microphone, or presence.
+    seats[0] = reserveAbsentHostSeat(
+      seats[0],
+      roomIsOpen: _roomIsOpen,
+      hostId: _roomHostId,
+      hostName: _roomHostName,
+      hostPhotoUrl: _roomHostPhotoUrl,
+      hostFrameId: _roomHostFrameId,
+    );
+
+    if (seats[0].isEmpty &&
+        _participants.isEmpty &&
         widget.initialRole == AgoraRoomRole.speaker) {
       seats[0] = RoomSeatState(
         index: 1,
         role: RoomMemberRole.host,
         userId: _moderation.currentUserId,
-        displayName: 'You',
+        displayName: _roomHostName ?? 'You',
+        avatarUrl: _roomHostPhotoUrl,
+        frameId: _roomHostFrameId,
         agoraUid: _controller.localUid,
         isMuted: _controller.muted,
         isLocalUser: true,
@@ -4009,6 +4067,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     _meSub?.cancel();
     _moderatorInviteSub?.cancel();
     _roomOpenSub?.cancel();
+    _hostRoomSub?.cancel();
     _teacherAiSeatSub?.cancel();
     _featuresSub?.cancel();
     _giftSub?.cancel();
@@ -4234,10 +4293,15 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     String label(String ar, String en) => isArabic ? ar : en;
     return Directionality(
       textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
-      // Preserve the live room widget tree and its inherited dependencies
-      // when minimized. Replacing the entire route with HomeScreen could
-      // unmount a Scaffold while descendants were still registered.
-      child: Stack(
+      child: PopScope(
+        // The Android Back gesture minimizes instead of destroying voice,
+        // room ownership or moderator permissions.
+        canPop: widget.localeController == null,
+        onPopInvokedWithResult: (didPop, result) {
+          if (!didPop && !_minimized) _minimizeRoom();
+        },
+        // Keep the live room subtree mounted while the home view is visible.
+        child: Stack(
         fit: StackFit.expand,
         children: [
           Offstage(
@@ -4509,10 +4573,13 @@ onEndGame: _isHost ? _endRoomGame : null,
                           _me?.forcedMuted == true || !isPublishing
                       ? null : _toggleMicSafely,
                   )),
-                  if ((_me != null || _isHost) && (_canModerate || !isPublishing))
+                  if (MediaQuery.viewInsetsOf(context).bottom == 0 &&
+                      (_me != null || _isHost) &&
+                      (_canModerate || !isPublishing))
                     Positioned(
                       key: const ValueKey('fixed-room-hand-position'),
-                      right: 14,
+                      // Opposite the right-aligned messages; never cover typing.
+                      left: 14,
                       bottom: 92,
                       child: _buildHandControl(isArabic, isPublishing),
                     ),
@@ -4529,6 +4596,7 @@ onEndGame: _isHost ? _endRoomGame : null,
               child: _buildMinimizedRoom(context),
             ),
         ],
+        ),
       ),
     );
   }
