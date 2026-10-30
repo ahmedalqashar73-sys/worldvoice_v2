@@ -25,6 +25,8 @@ jobs:
       - run: flutter analyze
       - name: Verify WorldBond friend URLs, quizzes and private chat paths
         run: flutter test test/world_bond_api_url_test.dart
+      - name: Verify Live Agora token bootstrap and host identity
+        run: flutter test test/live_host_token_bootstrap_test.dart
       - name: Verify premium Live host-first camera layout
         run: flutter test test/live_video_order_test.dart test/live_camera_controls_test.dart test/agora_connection_deadline_test.dart
       - name: Verify private Story replies and encrypted delivery
