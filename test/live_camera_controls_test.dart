@@ -84,6 +84,23 @@ void main() {
     expect(controller.muted, false);
     expect(engine.audioMuted, false);
   });
+  test('failed guest preview keeps the existing Live audience connected', () async {
+    final engine = _Engine()..failVideo = true;
+    final controller = AgoraVoiceRoomController.forMediaTesting(engine);
+    await expectLater(controller.prepareCameraPreview(), throwsStateError);
+    expect(controller.joined, true);
+    expect(controller.engine, same(engine));
+    expect(controller.localPreviewPrepared, false);
+    expect(controller.cameraPublishing, false);
+    expect(engine.capture, false);
+
+    engine.failVideo = false;
+    await controller.prepareCameraPreview();
+    expect(controller.localPreviewPrepared, true);
+    await controller.stopCameraPreviewIfIdle();
+    expect(controller.joined, true);
+  });
+
   test('consent camera preview stops without ending an Agora session', () async {
     final engine = _Engine();
     final controller = AgoraVoiceRoomController.forMediaTesting(engine);
