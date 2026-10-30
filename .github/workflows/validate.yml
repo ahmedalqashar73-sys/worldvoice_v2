@@ -77,6 +77,31 @@ jobs:
               process.exitCode = 1;
             }
           }));
+          // A GET /health can succeed while Agora signing credentials are
+          // missing. An anonymous POST must yield 401, never 503 or 404.
+          try {
+            const response = await fetch(
+              'https://worldvoice-agora-token.worldvoice.workers.dev/agora/token',
+              {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({channelName: 'live_healthcheck', role: 'publisher'}),
+                signal: AbortSignal.timeout(12000),
+              },
+            );
+            console.log(JSON.stringify({
+              label: 'Agora Worker signer preflight (no auth)',
+              status: response.status,
+              ready: response.status === 401,
+            }));
+            if (response.status !== 401) process.exitCode = 1;
+          } catch (error) {
+            console.error(JSON.stringify({
+              label: 'Agora Worker signer preflight',
+              error: error?.message || String(error),
+            }));
+            process.exitCode = 1;
+          }
           JS
 
   firestore-rules:
