@@ -2061,6 +2061,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                      _stageUsers[remote[i]]!,
                                    ),
                              isHost: false,
+                             microphoneMuted: _stageUsers[remote[i]]?.hostMuted ?? false,
                              cameraOff: _controller.remoteCameraPaused(remote[i]),
                              video: _controller.remoteCameraPaused(remote[i])
                                  ? const SizedBox.shrink()
@@ -3544,6 +3545,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                          ?.displayName ??
                                      (widget.ar ? 'أنت' : 'You'),
                                  isHost: false,
+                                 microphoneMuted: _guestMicMuted || _hostMutedGuest,
                                  photoUrl: FirebaseAuth.instance.currentUser
                                          ?.photoURL ?? '',
                                  cameraOff: _guestCameraPaused,
@@ -3587,6 +3589,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                                  orderedRemote[i]]!.displayName,
                                            ),
                                      isHost: false,
+                                     microphoneMuted: _stageUsers[orderedRemote[i]]?.hostMuted ?? false,
                                      cameraOff: _controller.remoteCameraPaused(
                                        orderedRemote[i],
                                      ),
@@ -4027,9 +4030,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                         ),
                                       ),
                                       IconButton(
-                                        tooltip: widget.ar
-                                            ? 'المايك'
-                                            : 'Microphone',
+                                        tooltip: _hostMutedGuest
+                                            ? (widget.ar ? 'المايك مكتوم بواسطة المضيف' : 'Muted by host')
+                                            : (widget.ar ? 'المايك' : 'Microphone'),
                                         onPressed: _guestMediaBusy || _hostMutedGuest
                                             ? null
                                             : _toggleGuestMicrophone,
@@ -4130,7 +4133,12 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
     } catch (error) {
       _showGuestMediaError(error);
     } finally {
-      if (mounted) setState(() => _guestMediaBusy = false);
+      if (mounted) {
+        setState(() => _guestMediaBusy = false);
+        if (_hostMutedGuest && !_controller.muted) {
+          unawaited(_enforceHostMutedMicrophone());
+        }
+      }
     }
   }
 
@@ -4307,6 +4315,7 @@ class _LiveParticipantCameraTile extends StatelessWidget {
     required this.cameraOff,
     required this.video,
     this.photoUrl = '',
+    this.microphoneMuted = false,
     this.onOpenProfile,
     this.onManageGuest,
   });
@@ -4316,6 +4325,7 @@ class _LiveParticipantCameraTile extends StatelessWidget {
   final bool isHost;
   final bool cameraOff;
   final String photoUrl;
+  final bool microphoneMuted;
   final VoidCallback? onOpenProfile;
   final VoidCallback? onManageGuest;
   final Widget video;
@@ -4350,6 +4360,7 @@ class _LiveParticipantCameraTile extends StatelessWidget {
                 children: [
                   Icon(
                     isHost ? Icons.workspace_premium_rounded
+                        : microphoneMuted ? Icons.mic_off_rounded
                         : Icons.mic_rounded,
                     color: isHost ? gold : const Color(0xFF8BF0C8),
                     size: 13,
