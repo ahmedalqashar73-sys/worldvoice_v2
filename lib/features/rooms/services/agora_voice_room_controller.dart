@@ -127,6 +127,18 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     }
   }
 
+  /// Stop a consent-screen camera preview without leaving the Live session.
+  /// Only used while the user is an audience listener: never interrupt an
+  /// actively publishing guest/host stream or their Agora connection.
+  Future<void> stopCameraPreviewIfIdle() => _changeMedia(() async {
+    final engine = _engine;
+    if (engine == null || _cameraPublishing || !_localPreviewPrepared) return;
+    await engine.stopPreview();
+    await engine.enableLocalVideo(false);
+    _localPreviewPrepared = false;
+    notifyListeners();
+  });
+
   Future<void> _installAudioFrameObserver(RtcEngine engine) async {
     if (_audioFrameObserverRegistered) return;
 
