@@ -15,3 +15,26 @@ List<int> orderLiveRemoteVideoUids(
   result.addAll(remote);
   return result.take(4).toList(growable: false);
 }
+
+/// Live camera roster: Agora reports all connected users, including audience.
+/// Only the host and guests who have accepted stage requests may get a tile.
+List<int> orderActiveLiveStageUids(
+  Iterable<int> connectedAgoraUids, {
+  required Iterable<int> acceptedGuestAgoraUids,
+  int? hostAgoraUid,
+}) {
+  final acceptedGuests = acceptedGuestAgoraUids
+      .where((uid) => uid > 0 && uid != hostAgoraUid)
+      .toSet();
+  final connected = connectedAgoraUids.where((uid) => uid > 0).toSet();
+  final ordered = <int>[];
+  if (hostAgoraUid != null && connected.remove(hostAgoraUid)) {
+    ordered.add(hostAgoraUid);
+  }
+  for (final uid in connected) {
+    if (!acceptedGuests.contains(uid)) continue;
+    ordered.add(uid);
+    if (ordered.length >= 4) break;
+  }
+  return List<int>.unmodifiable(ordered);
+}
