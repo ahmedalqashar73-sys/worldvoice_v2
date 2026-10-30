@@ -875,7 +875,8 @@ service cloud.firestore {
               && request.resource.data.guestCount >= resource.data.guestCount - 1
               && request.resource.data.guestCount >= 0
               && request.resource.data.guestCount <= 3
-              && request.resource.data.guestCount <= resource.data.guestCount + 1
+              // The host cannot fabricate accepted guest seats.
+              && request.resource.data.guestCount <= resource.data.guestCount
             )
             || (
               request.resource.data.diff(resource.data).affectedKeys()
@@ -905,14 +906,7 @@ service cloud.firestore {
               )
             )
             || (
-              isGlobalModerator(resource.data.hostId, request.auth.uid)
-              && request.resource.data.diff(resource.data).affectedKeys()
-                  .hasOnly(['guestCount', 'updatedAt'])
-              && request.resource.data.guestCount
-                  == resource.data.guestCount + 1
-              && request.resource.data.guestCount <= 3
-            )
-            || (
+              // A guest may claim a seat only after accepting an invitation.
               request.resource.data.diff(resource.data).affectedKeys()
                   .hasOnly(['guestCount', 'updatedAt'])
               && request.resource.data.guestCount
@@ -1123,7 +1117,7 @@ service cloud.firestore {
                   )
                 )
                 && resource.data.status == 'pending'
-                && request.resource.data.status in ['accepted', 'declined']
+                && request.resource.data.status == 'declined'
                 && request.resource.data.diff(resource.data).affectedKeys()
                     .hasOnly(['status', 'decidedAt'])
               )
@@ -1137,6 +1131,7 @@ service cloud.firestore {
                     request.auth.uid
                   )
                 )
+                && resource.data.status in ['pending', 'declined', 'left', 'removed']
                 && request.resource.data.status == 'invited'
                 && request.resource.data.invitedBy == request.auth.uid
                 && request.resource.data.invitedAt == request.time
