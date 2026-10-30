@@ -868,6 +868,52 @@ Widget _liveQuickAction({
   );
 }
 
+/// The same white hand/circular control as the voice-room raise hand.
+class _LiveHandControl extends StatelessWidget {
+  const _LiveHandControl({
+    required this.tooltip,
+    required this.onPressed,
+    this.active = false,
+    this.count = 0,
+  });
+
+  final String tooltip;
+  final VoidCallback? onPressed;
+  final bool active;
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    return Badge(
+      isLabelVisible: count > 0,
+      label: Text(count > 99 ? '99+' : '$count'),
+      backgroundColor: const Color(0xFFFFD57F),
+      textColor: const Color(0xFF164434),
+      child: Material(
+        color: active
+            ? Colors.white.withValues(alpha: .28)
+            : Colors.white.withValues(alpha: .16),
+        shape: const CircleBorder(
+          side: BorderSide(color: Colors.white24, width: 1.2),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: IconButton(
+          key: const ValueKey('fixed-live-hand-control'),
+          constraints: const BoxConstraints.tightFor(width: 54, height: 54),
+          padding: EdgeInsets.zero,
+          tooltip: tooltip,
+          onPressed: onPressed,
+          icon: const Icon(
+            Icons.back_hand_rounded,
+            color: Colors.white,
+            size: 28,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _LiveStageRequestsButton extends StatelessWidget {
   const _LiveStageRequestsButton({
     required this.liveId,
@@ -885,44 +931,11 @@ class _LiveStageRequestsButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: service.watchJoinRequests(liveId),
-      builder: (context, snapshot) {
-        final count = snapshot.data?.docs.length ?? 0;
-        return IconButton(
-          tooltip: ar ? 'طلبات الصعود' : 'Stage requests',
-          onPressed: onPressed,
-          icon: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              const Icon(Icons.pan_tool_alt_rounded, color: Colors.white),
-              if (count > 0)
-                Positioned(
-                  right: -11,
-                  top: -10,
-                  child: Container(
-                    constraints: const BoxConstraints(
-                      minWidth: 18,
-                      minHeight: 18,
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 3),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFD3414B),
-                      shape: BoxShape.circle,
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      count > 99 ? '99+' : '$count',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        );
-      },
+      builder: (context, snapshot) => _LiveHandControl(
+        tooltip: ar ? 'طلبات الصعود' : 'Stage requests',
+        onPressed: onPressed,
+        count: snapshot.data?.docs.length ?? 0,
+      ),
     );
   }
 }
@@ -1514,7 +1527,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
       },
       child: Scaffold(
         resizeToAvoidBottomInset: false,
-        backgroundColor: Colors.black,
+        backgroundColor: const Color(0xFF0A4634),
         body: SafeArea(
           child: Stack(
             fit: StackFit.expand,
@@ -1535,7 +1548,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: [Color(0xFF1A211E), Color(0xFF090B0A)],
+                        colors: [Color(0xFF126949), Color(0xFF073B2D)],
                       ),
                     ),
                   ),
@@ -2218,24 +2231,17 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                               ],
                             ),
                           ),
-                          if (_liveId != null)
-                            PositionedDirectional(
-                              end: 14,
-                              bottom:
-                                  92 + MediaQuery.viewInsetsOf(context).bottom,
-                              child: DecoratedBox(
-                                decoration: BoxDecoration(
-                                  color: const Color(0xAA113A2D),
-                                  shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.white30),
-                                ),
-                                child: _LiveStageRequestsButton(
-                                  liveId: _liveId!,
-                                  service: _liveService,
-                                  ar: widget.ar,
-                                  onPressed: () => setState(
-                                    () => _requestsOpen = !_requestsOpen,
-                                  ),
+                          if (_liveId != null &&
+                              MediaQuery.viewInsetsOf(context).bottom == 0)
+                            Positioned(
+                              left: 14,
+                              bottom: 92,
+                              child: _LiveStageRequestsButton(
+                                liveId: _liveId!,
+                                service: _liveService,
+                                ar: widget.ar,
+                                onPressed: () => setState(
+                                  () => _requestsOpen = !_requestsOpen,
                                 ),
                               ),
                             ),
@@ -3227,7 +3233,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
             }
             return Scaffold(
               resizeToAvoidBottomInset: false,
-              backgroundColor: Colors.black,
+              backgroundColor: const Color(0xFF0A4634),
               body: SafeArea(
                 child: _minimized
                     ? const ColoredBox(color: Color(0xFF071812))
@@ -3640,36 +3646,23 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                     ar: widget.ar,
                                   ),
                                 ),
-                              if (!_guestPublishing)
-                                PositionedDirectional(
-                                  end: 14,
-                                  bottom:
-                                      92 +
-                                      MediaQuery.viewInsetsOf(context).bottom,
-                                  child: DecoratedBox(
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xAA113A2D),
-                                      shape: BoxShape.circle,
-                                      border: Border.all(color: Colors.white30),
-                                    ),
-                                    child: IconButton(
-                                      tooltip: _requested
-                                          ? (widget.ar
-                                                ? 'طلب الصعود قيد الانتظار'
-                                                : 'Stage request pending')
-                                          : (widget.ar
-                                                ? 'ارفع يدك للصعود'
-                                                : 'Raise hand to join'),
-                                      onPressed: _requested
-                                          ? null
-                                          : _requestCamera,
-                                      icon: Icon(
-                                        Icons.pan_tool_alt_rounded,
-                                        color: _requested
-                                            ? Colors.white70
-                                            : Colors.white,
-                                      ),
-                                    ),
+                              if (!_guestPublishing &&
+                                  MediaQuery.viewInsetsOf(context).bottom == 0)
+                                Positioned(
+                                  left: 14,
+                                  bottom: 92,
+                                  child: _LiveHandControl(
+                                    tooltip: _requested
+                                        ? (widget.ar
+                                              ? 'طلب الصعود قيد الانتظار'
+                                              : 'Stage request pending')
+                                        : (widget.ar
+                                              ? 'ارفع يدك للصعود'
+                                              : 'Raise hand to join'),
+                                    active: _requested,
+                                    onPressed: _requested
+                                        ? null
+                                        : _requestCamera,
                                   ),
                                 ),
                               PositionedDirectional(
@@ -4172,9 +4165,9 @@ class _LiveCameraOffTile extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFF164434),
-            Color(0xFF08231E),
-            Color(0xFF14233A),
+            Color(0xFF197654),
+            Color(0xFF10523D),
+            Color(0xFF0A3D31),
           ],
         ),
       ),
@@ -6709,11 +6702,11 @@ class _LiveVideoGrid extends StatelessWidget {
   Widget _tile(Widget child) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: const Color(0xFF08261F),
+        color: const Color(0xFF146C4D),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: const Color(0xFF699C80).withValues(alpha: .55),
-          width: 1,
+          color: const Color(0xFF89E9BA).withValues(alpha: .75),
+          width: 1.2,
         ),
       ),
       child: ClipRRect(
@@ -6729,9 +6722,9 @@ class _LiveVideoGrid extends StatelessWidget {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Color(0x20000000),
-                      Color(0x00000000),
-                      Color(0x30000000),
+                      Color(0x1511B579),
+                      Color(0x000C553C),
+                      Color(0x6605251C),
                     ],
                     stops: [0, .62, 1],
                   ),
