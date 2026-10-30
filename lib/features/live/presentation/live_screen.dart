@@ -31,6 +31,7 @@ import '../../rooms/services/room_rewarded_ad_service.dart';
 import '../services/live_session_service.dart';
 import '../data/live_video_order.dart';
 import 'live_camera_off_tile.dart';
+import 'live_audience_sheet.dart';
 
 import '../../../core/localization/locale_controller.dart';
 import '../../profile/services/profile_social_service.dart';
@@ -1035,6 +1036,37 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     unawaited(_controller.leave());
     _controller.dispose();
     super.dispose();
+  }
+
+  Future<void> _showAudience() async {
+    final liveId = _liveId;
+    if (!mounted || liveId == null) return;
+    await showLiveAudienceSheet(
+      context: context,
+      service: _liveService,
+      liveId: liveId,
+      ar: widget.ar,
+      onInviteToStage: (userId) =>
+          _liveService.inviteViewer(liveId: liveId, userId: userId),
+    );
+  }
+
+  Future<void> _showAudiencePerson(
+    String userId,
+    String name,
+    String photo,
+  ) async {
+    final liveId = _liveId;
+    if (!mounted || liveId == null) return;
+    await showLiveAudiencePersonCard(
+      context: context,
+      userId: userId,
+      fallbackName: name,
+      fallbackPhotoUrl: photo,
+      ar: widget.ar,
+      onInviteToStage: (targetId) =>
+          _liveService.inviteViewer(liveId: liveId, userId: targetId),
+    );
   }
 
   void _openViewerProfile({
@@ -2259,18 +2291,31 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                                 liveId: _liveId!,
                                                 onViewerTap:
                                                     (userId, name, photo) =>
-                                                        _openViewerProfile(
-                                                          userId: userId,
-                                                          displayName: name,
-                                                        ),
+                                                        unawaited(_showAudiencePerson(
+                                                          userId, name, photo,
+                                                        )),
                                               ),
                                               const SizedBox(width: 6),
                                             ],
-                                            Text(
-                                              'LIVE • $viewers 👁 • ${tiles.length}/4',
-                                              style: const TextStyle(
-                                                color: Colors.redAccent,
-                                                fontWeight: FontWeight.w900,
+                                            Tooltip(
+                                              message: widget.ar
+                                                  ? 'عرض جميع المشاهدين'
+                                                  : 'Show all viewers',
+                                              child: InkWell(
+                                                onTap: () => unawaited(_showAudience()),
+                                                borderRadius: BorderRadius.circular(12),
+                                                child: Padding(
+                                                  padding: const EdgeInsets.symmetric(
+                                                    vertical: 5, horizontal: 3,
+                                                  ),
+                                                  child: Text(
+                                                    'LIVE • $viewers 👁 • ${tiles.length}/4',
+                                                    style: const TextStyle(
+                                                      color: Colors.redAccent,
+                                                      fontWeight: FontWeight.w900,
+                                                    ),
+                                                  ),
+                                                ),
                                               ),
                                             ),
                                           ],
@@ -2922,6 +2967,43 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
     } finally {
       if (mounted) setState(() => _followBusy = false);
     }
+  }
+
+  Future<void> _showAudience() async {
+    if (!mounted) return;
+    await showLiveAudienceSheet(
+      context: context,
+      service: _service,
+      liveId: widget.liveId,
+      ar: widget.ar,
+      onInviteToStage: _isModerator
+          ? (userId) => _service.inviteViewer(
+                liveId: widget.liveId,
+                userId: userId,
+              )
+          : null,
+    );
+  }
+
+  Future<void> _showAudiencePerson(
+    String userId,
+    String name,
+    String photo,
+  ) async {
+    if (!mounted) return;
+    await showLiveAudiencePersonCard(
+      context: context,
+      userId: userId,
+      fallbackName: name,
+      fallbackPhotoUrl: photo,
+      ar: widget.ar,
+      onInviteToStage: _isModerator
+          ? (targetId) => _service.inviteViewer(
+                liveId: widget.liveId,
+                userId: targetId,
+              )
+          : null,
+    );
   }
 
   void _openViewerProfile({
@@ -3920,11 +4002,23 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                                   fontWeight: FontWeight.w800,
                                                 ),
                                               ),
-                                              Text(
-                                                'LIVE • ${live?['viewerCount'] ?? widget.data['viewerCount'] ?? 0} 👁',
-                                                style: const TextStyle(
-                                                  color: Colors.white70,
-                                                  fontSize: 11,
+                                              Tooltip(
+                                                message: widget.ar
+                                                    ? 'عرض جميع المشاهدين'
+                                                    : 'Show all viewers',
+                                                child: InkWell(
+                                                  onTap: () => unawaited(_showAudience()),
+                                                  child: Padding(
+                                                    padding: const EdgeInsets.symmetric(vertical: 3),
+                                                    child: Text(
+                                                      'LIVE • ${live?['viewerCount'] ?? widget.data['viewerCount'] ?? 0} 👁',
+                                                      style: const TextStyle(
+                                                        color: Colors.white70,
+                                                        fontSize: 11,
+                                                        decoration: TextDecoration.underline,
+                                                      ),
+                                                    ),
+                                                  ),
                                                 ),
                                               ),
                                             ],
@@ -3934,10 +4028,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                           service: _service,
                                           liveId: widget.liveId,
                                           onViewerTap: (userId, name, photo) =>
-                                              _openViewerProfile(
-                                                userId: userId,
-                                                displayName: name,
-                                              ),
+                                              unawaited(_showAudiencePerson(
+                                                userId, name, photo,
+                                              )),
                                         ),
                                         const SizedBox(width: 4),
                                         if ((widget.data['hostId'] ?? '')
