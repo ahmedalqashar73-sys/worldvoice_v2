@@ -1095,6 +1095,24 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
               },
             ),
             ListTile(
+              leading: Icon(
+                guest.hostMuted
+                    ? Icons.mic_rounded
+                    : Icons.mic_off_rounded,
+                color: Colors.white,
+              ),
+              title: Text(
+                guest.hostMuted
+                    ? (widget.ar ? 'السماح للضيف باستخدام المايك' : 'Release guest microphone')
+                    : (widget.ar ? 'كتم مايك الضيف' : 'Mute guest microphone'),
+                style: const TextStyle(color: Colors.white),
+              ),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                unawaited(_toggleGuestStageMicrophone(guest));
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.arrow_downward_rounded,
                   color: Color(0xFFF1CE86)),
               title: Text(widget.ar ? 'إنزال من المسرح' : 'Remove from stage',
@@ -1140,6 +1158,33 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
         ),
       ),
     );
+  }
+
+  Future<void> _toggleGuestStageMicrophone(
+    LiveStageParticipant guest,
+  ) async {
+    final liveId = _liveId;
+    if (liveId == null) return;
+    try {
+      await _liveService.setGuestMicrophoneBlocked(
+        liveId: liveId,
+        guestUserId: guest.userId,
+        blocked: !guest.hostMuted,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(guest.hostMuted
+              ? (widget.ar ? 'أصبح بإمكان الضيف فتح المايك بنفسه.' : 'The guest may now unmute their microphone.')
+              : (widget.ar ? 'تم إرسال أمر كتم المايك للضيف.' : 'Guest microphone mute requested.')),
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
+    }
   }
 
   void _minimizeHostLive() {
@@ -2707,6 +2752,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   bool _guestPublishing = false;
   bool _hostSeen = false;
   bool _guestMicMuted = false;
+  bool _hostMutedGuest = false;
   bool _guestCameraPaused = false;
   bool _guestMediaBusy = false;
   bool _guestStarting = false;
@@ -3358,6 +3404,17 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
             final requestData =
                 requestSnapshot.data?.data() ?? const <String, dynamic>{};
             final status = requestData['status']?.toString();
+            final microphoneBlocked =
+                status == 'accepted' && requestData['hostMuted'] == true;
+            if (microphoneBlocked != _hostMutedGuest) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!mounted || _hostMutedGuest == microphoneBlocked) return;
+                setState(() => _hostMutedGuest = microphoneBlocked);
+                if (microphoneBlocked) {
+                  unawaited(_enforceHostMutedMicrophone());
+                }
+              });
+            }
             if (status == 'invited') {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (mounted) unawaited(_showLiveInvitePrompt(requestData));
@@ -3973,11 +4030,11 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                         tooltip: widget.ar
                                             ? 'المايك'
                                             : 'Microphone',
-                                        onPressed: _guestMediaBusy
+                                        onPressed: _guestMediaBusy || _hostMutedGuest
                                             ? null
                                             : _toggleGuestMicrophone,
                                         icon: Icon(
-                                          _guestMicMuted
+                                          (_guestMicMuted || _hostMutedGuest)
                                               ? Icons.mic_off_rounded
                                               : Icons.mic_rounded,
                                           color: Colors.white,
@@ -4077,8 +4134,25 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
     }
   }
 
+  /// Apply the host's microphone block to the actual Agora publisher.
+  Future<void> _enforceHostMutedMicrophone() async {
+    if (!_guestPublishing ||
+        !_hostMutedGuest ||
+        _guestMediaBusy ||
+        _controller.muted) return;
+    setState(() => _guestMediaBusy = true);
+    try {
+      await _controller.setMuted(true);
+      if (mounted) setState(() => _guestMicMuted = _controller.muted);
+    } catch (error) {
+      _showGuestMediaError(error);
+    } finally {
+      if (mounted) setState(() => _guestMediaBusy = false);
+    }
+  }
+
   Future<void> _toggleGuestMicrophone() async {
-    if (!_guestPublishing || _guestMediaBusy) return;
+    if (!_guestPublishing || _guestMediaBusy || _hostMutedGuest) return;
     setState(() => _guestMediaBusy = true);
     try {
       await _controller.setMuted(!_controller.muted);
@@ -4086,7 +4160,12 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
     } catch (error) {
       _showGuestMediaError(error);
     } finally {
-      if (mounted) setState(() => _guestMediaBusy = false);
+      if (mounted) {
+        setState(() => _guestMediaBusy = false);
+        if (_hostMutedGuest && !_controller.muted) {
+          unawaited(_enforceHostMutedMicrophone());
+        }
+      }
     }
   }
 
@@ -4178,6 +4257,8 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
               : 'Camera permission is required to join the Live camera.',
         );
       }
+      // Do not briefly publish audio if the host muted this stage guest.
+      if (_hostMutedGuest) await _controller.setMuted(true);
       await _controller.switchRole(AgoraRoomRole.speaker);
       if (_controller.role != AgoraRoomRole.speaker) {
         throw StateError(
@@ -4193,6 +4274,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
           _guestMicMuted = _controller.muted;
         });
       }
+      if (_hostMutedGuest) unawaited(_enforceHostMutedMicrophone());
     } catch (error) {
       _guestPublishing = false;
       await _controller.setCameraPublishing(false).catchError((Object _) {});
