@@ -57,10 +57,14 @@ try {
         & npx.cmd wrangler whoami
         if ($LASTEXITCODE -ne 0) {
             Write-Host 'Wrangler is not authenticated yet. Sign in to the existing Cloudflare account.' -ForegroundColor Yellow
-            Write-Host 'Complete Authorize promptly in the browser that opens. If another browser stalls, copy the full Wrangler authorization URL into Chrome.' -ForegroundColor Yellow
-            & npx.cmd wrangler login
+            # Device OAuth is supported by Wrangler >=4.119.0 and avoids
+            # the localhost callback timeout seen on this Windows PC.
+            # The console shows a URL and a one-time code. Approve in Chrome;
+            # never post the code or access credentials to chat.
+            Write-Host 'Use Chrome to open https://dash.cloudflare.com/oauth2/device and enter the one-time code shown below.' -ForegroundColor Cyan
+            & npx.cmd wrangler login --device --browser=false
             if ($LASTEXITCODE -ne 0) {
-                throw 'Cloudflare Wrangler authorization timed out or failed. Nothing was deployed. Retry after setting Chrome as the Windows default browser.'
+                throw 'Cloudflare device authorization failed or expired. Nothing was deployed. Re-run to request a new code.'
             }
             & npx.cmd wrangler whoami
             if ($LASTEXITCODE -ne 0) {
