@@ -982,6 +982,8 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   Timer? _rebuildThrottle;
   final ValueNotifier<int> _videoRoster = ValueNotifier<int>(0);
   String _lastVideoRoster = '';
+  StreamSubscription<List<LiveStageParticipant>>? _stageRosterSub;
+  Map<int, LiveStageParticipant> _stageUsers = const {};
   Timer? _heartbeatTimer;
   String? _channelId;
   String? _liveId;
@@ -1014,6 +1016,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     _topicController.dispose();
     _rebuildThrottle?.cancel();
     _videoRoster.dispose();
+    unawaited(_stageRosterSub?.cancel());
     _miniEntry?.remove();
     _miniEntry?.dispose();
     _miniEntry = null;
@@ -1438,6 +1441,16 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
         return;
       }
       await _liveService.announceStarted(_liveId!);
+      _stageRosterSub = _liveService.watchStageIdentities(_liveId!).listen(
+        (people) {
+          if (!mounted) return;
+          setState(() {
+            _stageUsers = {for (final person in people) person.agoraUid: person};
+          });
+        },
+        onError: (Object error) =>
+            debugPrint('Live stage profiles: $error'),
+      );
       _startHeartbeat();
       _startHostQuotaTimer();
       setState(() {
@@ -1903,8 +1916,16 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                          for (var i = 0; i < remote.length; i++)
                            _LiveParticipantCameraTile(
                              ar: widget.ar,
-                             name: widget.ar
-                                 ? 'ضيف ${i + 1}' : 'Guest ${i + 1}',
+                             name: _stageUsers[remote[i]]?.displayName ??
+                                 (widget.ar ? 'ضيف ${i + 1}' : 'Guest ${i + 1}'),
+                             photoUrl: _stageUsers[remote[i]]?.photoUrl ?? '',
+                             onOpenProfile: _stageUsers[remote[i]] == null
+                                 ? null
+                                 : () => _openViewerProfile(
+                                     userId: _stageUsers[remote[i]]!.userId,
+                                     displayName:
+                                         _stageUsers[remote[i]]!.displayName,
+                                   ),
                              isHost: false,
                              cameraOff: _controller.remoteCameraPaused(remote[i]),
                              video: _controller.remoteCameraPaused(remote[i])
@@ -2590,6 +2611,8 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   bool _joining = true;
   final ValueNotifier<int> _videoRoster = ValueNotifier<int>(0);
   String _lastVideoRoster = '';
+  StreamSubscription<List<LiveStageParticipant>>? _stageRosterSub;
+  Map<int, LiveStageParticipant> _stageUsers = const {};
   String? _joinError;
   bool _requested = false;
   bool _guestPublishing = false;
@@ -2629,6 +2652,15 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   void initState() {
     super.initState();
     _controller.addListener(_onVideoRosterChanged);
+    _stageRosterSub = _service.watchStageIdentities(widget.liveId).listen(
+      (people) {
+        if (!mounted) return;
+        setState(() {
+          _stageUsers = {for (final person in people) person.agoraUid: person};
+        });
+      },
+      onError: (Object error) => debugPrint('Live stage profiles: $error'),
+    );
     _join();
     _loadFollow();
     final hostId = widget.data['hostId']?.toString() ?? '';
@@ -2977,6 +3009,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
     _miniEntry = null;
     _controller.removeListener(_onVideoRosterChanged);
     _videoRoster.dispose();
+    unawaited(_stageRosterSub?.cancel());
     _guestQuotaTimer?.cancel();
     if (_guestQuotaStarted) {
       unawaited(_guestQuota.endSession());
@@ -3319,6 +3352,15 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                  name: hostName,
                                  isHost: true,
                                  photoUrl: hostPhoto,
+                                 onOpenProfile:
+                                     (live?['hostId'] ?? widget.data['hostId'] ??
+                                             '').toString().isEmpty
+                                         ? null
+                                         : () => _openViewerProfile(
+                                             userId: (live?['hostId'] ??
+                                                 widget.data['hostId']).toString(),
+                                             displayName: hostName,
+                                           ),
                                  cameraOff: !hostConnected ||
                                      _controller.remoteCameraPaused(hostAgoraUid),
                                  video: hostConnected && engine != null &&
@@ -3369,9 +3411,22 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                  if (orderedRemote[i] != hostAgoraUid)
                                    _LiveParticipantCameraTile(
                                      ar: widget.ar,
-                                     name: widget.ar
-                                         ? 'ضيف ${i + (hostConnected ? 0 : 1)}'
-                                         : 'Guest ${i + (hostConnected ? 0 : 1)}',
+                                     name: _stageUsers[orderedRemote[i]]
+                                             ?.displayName ??
+                                         (widget.ar
+                                             ? 'ضيف ${i + (hostConnected ? 0 : 1)}'
+                                             : 'Guest ${i + (hostConnected ? 0 : 1)}'),
+                                     photoUrl: _stageUsers[orderedRemote[i]]
+                                             ?.photoUrl ?? '',
+                                     onOpenProfile:
+                                         _stageUsers[orderedRemote[i]] == null
+                                         ? null
+                                         : () => _openViewerProfile(
+                                             userId: _stageUsers[orderedRemote[i]]!
+                                                 .userId,
+                                             displayName: _stageUsers[
+                                                 orderedRemote[i]]!.displayName,
+                                           ),
                                      isHost: false,
                                      cameraOff: _controller.remoteCameraPaused(
                                        orderedRemote[i],
@@ -4071,6 +4126,7 @@ class _LiveParticipantCameraTile extends StatelessWidget {
     required this.cameraOff,
     required this.video,
     this.photoUrl = '',
+    this.onOpenProfile,
   });
 
   final bool ar;
@@ -4078,6 +4134,7 @@ class _LiveParticipantCameraTile extends StatelessWidget {
   final bool isHost;
   final bool cameraOff;
   final String photoUrl;
+  final VoidCallback? onOpenProfile;
   final Widget video;
 
   @override
@@ -4145,17 +4202,36 @@ class _LiveParticipantCameraTile extends StatelessWidget {
             child: Row(
               children: [
                 Expanded(
-                  child: Text(
-                    name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 14,
-                      shadows: [
-                        Shadow(color: Colors.black87, blurRadius: 5),
-                      ],
+                  child: InkWell(
+                    onTap: onOpenProfile,
+                    borderRadius: BorderRadius.circular(12),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 5),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 14,
+                                shadows: [
+                                  Shadow(color: Colors.black87, blurRadius: 5),
+                                ],
+                              ),
+                            ),
+                          ),
+                          if (onOpenProfile != null) ...[
+                            const SizedBox(width: 4),
+                            const Icon(Icons.chevron_right_rounded,
+                                color: Color(0xFFEAD08D), size: 18),
+                          ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
