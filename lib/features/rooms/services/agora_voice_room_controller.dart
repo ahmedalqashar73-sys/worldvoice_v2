@@ -120,7 +120,26 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     } catch (error) {
       _error = error.toString();
       notifyListeners();
-      await leave();
+      if (_joined) {
+        // An invited viewer is already watching the Live. A camera preview
+        // failure must never release their Agora engine or end the stream.
+        final activeEngine = _engine;
+        if (activeEngine != null && !_cameraPublishing) {
+          try {
+            await activeEngine.stopPreview();
+          } catch (_) {
+            // Cleanup is best-effort: keep the existing audience connection.
+          }
+          try {
+            await activeEngine.enableLocalVideo(false);
+          } catch (_) {}
+          _localPreviewPrepared = false;
+        }
+      } else {
+        // Before the host joins, a failed preview owns the temporary engine;
+        // preserve the existing startup cleanup behavior.
+        await leave();
+      }
       rethrow;
     } finally {
       _preparingLocalPreview = false;
