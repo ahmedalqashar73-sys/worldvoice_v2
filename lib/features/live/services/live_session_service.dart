@@ -6,6 +6,22 @@ import '../../rooms/services/active_chat_bubble_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+/// Identity shown on a Live camera, keyed by the Agora UID issued from
+/// the participant's authenticated Firebase UID (never by join order).
+class LiveStageParticipant {
+  const LiveStageParticipant({
+    required this.userId,
+    required this.agoraUid,
+    required this.displayName,
+    required this.photoUrl,
+  });
+
+  final String userId;
+  final int agoraUid;
+  final String displayName;
+  final String photoUrl;
+}
+
 /// Firestore coordination for video Live.
 ///
 /// Agora carries media; Firestore carries discovery, viewers and guest
@@ -252,6 +268,49 @@ class LiveSessionService {
       .collection('join_requests')
       .where('status', isEqualTo: 'accepted')
       .snapshots();
+
+  /// Resolve the actual identity behind each remote Agora camera.
+  /// Firestore request fields are only fallbacks: the source of truth for
+  /// names and photos is the original WorldVoice user profile. Never use
+  /// "Guest 1" to infer a Firebase UID or trust a user-supplied Agora UID.
+  Stream<List<LiveStageParticipant>> watchStageIdentities(String liveId) =>
+      watchActiveGuests(liveId).asyncMap((snapshot) async {
+        final participants = await Future.wait(
+          snapshot.docs.take(3).map((doc) async {
+            final uid = doc.id;
+            final agoraUid = await hostAgoraUidForUser(uid);
+            Map<String, dynamic> profile = const <String, dynamic>{};
+            try {
+              final userDoc = await _db
+                  .collection('users')
+                  .doc(uid)
+                  .get()
+                  .timeout(const Duration(seconds: 3));
+              profile = userDoc.data() ?? const <String, dynamic>{};
+            } catch (_) {
+              // Older rules/offline profile: use the verified guest request.
+            }
+            final fallback = doc.data();
+            final name = (profile['displayName'] ??
+                    profile['name'] ??
+                    fallback['displayName'] ??
+                    '')
+                .toString().trim();
+            final photo = (profile['photoUrl'] ??
+                    profile['avatarUrl'] ??
+                    fallback['photoUrl'] ??
+                    '')
+                .toString().trim();
+            return LiveStageParticipant(
+              userId: uid,
+              agoraUid: agoraUid,
+              displayName: name.isEmpty ? 'WorldVoice user' : name,
+              photoUrl: photo,
+            );
+          }),
+        );
+        return List<LiveStageParticipant>.unmodifiable(participants);
+      });
 
   Future<void> enterViewer(String liveId) async {
     final user = _user;
