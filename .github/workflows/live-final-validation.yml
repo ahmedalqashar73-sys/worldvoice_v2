@@ -6,6 +6,9 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/live-final-validation.yml'
+      - 'lib/features/live/**'
+      - 'lib/features/rooms/services/agora_voice_room_controller.dart'
+      - 'test/live_*.dart'
 
 permissions:
   contents: read
