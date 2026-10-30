@@ -1146,7 +1146,7 @@ service cloud.firestore {
                 && request.resource.data.diff(resource.data).affectedKeys()
                     .hasOnly([
                       'displayName', 'photoUrl', 'status', 'invitedBy',
-                      'invitedAt', 'requestedAt', 'decidedAt'
+                      'invitedAt', 'requestedAt', 'decidedAt', 'hostMuted'
                     ])
               )
               || (
@@ -1164,6 +1164,16 @@ service cloud.firestore {
                         /databases/$(database)/documents/live_sessions/$(liveId)
                       ).data.guestCount + 1
                 )
+              )
+              || (
+                // Only the current host may block a stage microphone.
+                get(/databases/$(database)/documents/live_sessions/$(liveId))
+                    .data.hostId == request.auth.uid
+                && resource.data.status == 'accepted'
+                && request.resource.data.status == 'accepted'
+                && request.resource.data.hostMuted is bool
+                && request.resource.data.diff(resource.data).affectedKeys()
+                    .hasOnly(['hostMuted'])
               )
               || (
                 // Only the Live host can lower a guest; update the counter
@@ -1197,7 +1207,7 @@ service cloud.firestore {
                 && request.resource.data.diff(resource.data).affectedKeys()
                     .hasOnly([
                       'displayName', 'photoUrl', 'status',
-                      'requestedAt', 'decidedAt'
+                      'requestedAt', 'decidedAt', 'hostMuted'
                     ])
               )
             );
