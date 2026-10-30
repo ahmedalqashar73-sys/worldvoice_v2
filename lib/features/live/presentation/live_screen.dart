@@ -4376,9 +4376,12 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
               : 'Camera permission is required to join the Live camera.',
         );
       }
-      // Do not briefly publish audio if the host muted this stage guest.
-      if (_hostMutedGuest) await _controller.setMuted(true);
-      await _controller.switchRole(AgoraRoomRole.speaker);
+      // Agora must not briefly publish a host-blocked microphone while
+      // promoting this viewer to a broadcaster.
+      await _controller.switchRole(
+        AgoraRoomRole.speaker,
+        startMuted: _hostMutedGuest,
+      );
       if (_controller.role != AgoraRoomRole.speaker) {
         throw StateError(
           _controller.error ?? 'Could not receive broadcaster permission.',
