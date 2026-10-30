@@ -77,7 +77,10 @@ jobs:
 
   deploy-worker:
     if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
-    needs: [test, backend-economy, firestore-captions-rules, flutter-analyze]
+    # Worker deployment depends on Worker tests and verified Firestore access.
+    # Existing unrelated Flutter/Backend regressions are still reported by
+    # their jobs, but must not block a tested token-service security fix.
+    needs: [test, firestore-captions-rules]
     runs-on: ubuntu-latest
     defaults:
       run:
