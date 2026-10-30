@@ -1,0 +1,75 @@
+name: WorldVoice Live Final Android Check
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/live-final-validation.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  live-android-verification:
+    name: Verify Live and build phone-test APK
+    runs-on: ubuntu-24.04
+    timeout-minutes: 70
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Android Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.8'
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Analyze original application
+        run: flutter analyze
+
+      - name: Run all dedicated Live regression checks
+        run: |
+          flutter test \
+            test/live_host_token_bootstrap_test.dart \
+            test/live_video_order_test.dart \
+            test/live_camera_controls_test.dart \
+            test/live_camera_off_tile_test.dart \
+            test/agora_connection_deadline_test.dart \
+            test/live_audience_languages_test.dart \
+            test/live_back_navigation_test.dart
+
+      - name: Verify premium room backgrounds and castle artwork
+        run: |
+          python3 scripts/verify_room_background_assets.py
+          python3 scripts/verify_castle_assets.py --require-webp
+
+      - name: Increase Gradle heap for Android CI runner
+        run: sed -i 's/-Xmx2048m/-Xmx4096m/' android/gradle.properties
+
+      - name: Package installable Android Live test builds
+        run: >
+          flutter build apk --release --split-per-abi
+          --dart-define=WORLDVOICE_FRIEND_GIFT_PREVIEW=true
+          --dart-define=AGORA_APP_ID=fa41476c6813471eb45c059bcb4a0e19
+          --dart-define=WORLDVOICE_ROOM_BACKEND_URL=https://worldvoice-v2.onrender.com
+          --dart-define=AGORA_TOKEN_ENDPOINT=https://worldvoice-agora-token.worldvoice.workers.dev/agora/token
+          --dart-define=WORLDVOICE_ECONOMY_ENDPOINT=https://worldvoice-v2.onrender.com
+          --dart-define=WORLDVOICE_WORLDBOND_BACKEND_URL=https://worldvoice-teacher-ai.onrender.com
+
+      - name: Attach APKs for manual testing; never auto-distribute
+        uses: actions/upload-artifact@v4
+        with:
+          name: worldvoice-live-step5-phone-apks
+          path: build/app/outputs/flutter-apk/app-*-release.apk
+          if-no-files-found: error
+          retention-days: 14
