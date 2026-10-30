@@ -32,6 +32,7 @@ import '../services/live_session_service.dart';
 import '../data/live_video_order.dart';
 import 'live_camera_off_tile.dart';
 import 'live_audience_sheet.dart';
+import 'live_back_navigation.dart';
 
 import '../../../core/localization/locale_controller.dart';
 import '../../profile/services/profile_social_service.dart';
@@ -2797,8 +2798,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   String? _joinError;
   bool _requested = false;
   bool _handRequestBusy = false;
+  bool _leavingLive = false;
+  bool _liveEnded = false;
   bool _guestPublishing = false;
-  bool _hostSeen = false;
   bool _guestMicMuted = false;
   bool _hostMutedGuest = false;
   bool _guestCameraPaused = false;
@@ -3176,6 +3178,17 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
     }
   }
 
+  /// Phone Back minimizes an ongoing Live; only the explicit Leave action
+  /// may dispose its Agora listener.
+  Future<void> _leaveViewerLive() async {
+    if (!mounted || _leavingLive) return;
+    setState(() => _leavingLive = true);
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted) return;
+    final navigator = Navigator.of(context);
+    if (navigator.canPop()) navigator.pop();
+  }
+
   void _minimizeViewerLive() {
     if (!mounted || _minimized || _joining || _controller.engine == null) {
       return;
@@ -3231,7 +3244,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                   danger: true,
                   onPressed: () {
                     Navigator.pop(sheetContext);
-                    if (mounted) Navigator.of(context).pop();
+                    unawaited(_leaveViewerLive());
                   },
                 ),
                 _liveQuickAction(
@@ -3576,12 +3589,31 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+    final backAction = viewerLiveBackAction(
+      joining: _joining,
+      joinFailed: _joinError != null,
+      leaving: _leavingLive,
+      liveEnded: _liveEnded,
+    );
+    return PopScope(
+      canPop: backAction == ViewerLiveBackAction.pop,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop &&
+            backAction == ViewerLiveBackAction.minimize &&
+            !_minimized) {
+          _minimizeViewerLive();
+        }
+      },
+      child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
       stream: _service.watch(widget.liveId),
       builder: (context, liveSnapshot) {
         final live = liveSnapshot.data?.data();
-        if (liveSnapshot.hasData && live?['isLive'] != true) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (liveSnapshot.hasData && live?['isLive'] != true && !_liveEnded) {
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            if (!mounted || _liveEnded) return;
+            setState(() => _liveEnded = true);
+            // The session actually ended, as opposed to a temporary video loss.
+            await WidgetsBinding.instance.endOfFrame;
             if (mounted && Navigator.of(context).canPop()) {
               Navigator.of(context).pop();
             }
@@ -3669,16 +3701,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                           final hostAgoraUid =
                               (live?['hostAgoraUid'] as num?)?.toInt() ??
                               (widget.data['hostAgoraUid'] as num?)?.toInt();
-                          if (hostAgoraUid != null &&
-                              remote.contains(hostAgoraUid)) {
-                            _hostSeen = true;
-                          } else if (_hostSeen && hostAgoraUid != null) {
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              if (mounted && Navigator.of(context).canPop()) {
-                                Navigator.of(context).pop();
-                              }
-                            });
-                          }
+                          // Agora video can disappear during reconnection.
+                          // Firestore isLive, not a transient video event,
+                          // determines whether the viewer should exit.
                           final engine = _controller.engine;
                           // Host-first layout independent of join order.
                            final orderedRemote = orderActiveLiveStageUids(
@@ -4327,6 +4352,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
           },
         );
       },
+      ),
     );
   }
 
