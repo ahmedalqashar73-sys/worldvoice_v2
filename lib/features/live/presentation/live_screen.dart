@@ -2955,42 +2955,134 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
         ? '${invitedAt.millisecondsSinceEpoch}:${requestData['invitedBy']}'
         : requestData['invitedBy']?.toString() ?? 'invite';
     if (_lastInviteMarker == marker) return;
-    _lastInviteMarker = marker;
     _invitePromptOpen = true;
+    var previewReady = false;
+    var previewBusy = false;
+    String? previewError;
+    var responseSucceeded = false;
+    var acceptedInvitation = false;
     try {
       final accepted = await showDialog<bool>(
         context: context,
         barrierDismissible: false,
-        builder: (dialogContext) => AlertDialog(
-          title: Text(
-            widget.ar ? 'دعوة للصعود في اللايف' : 'Live stage invitation',
-          ),
-          content: Text(
-            widget.ar
-                ? 'المضيف أو المودريتر دعاك للكاميرا. هل تريد الصعود؟'
-                : 'The host or moderator invited you on camera. Join the Live stage?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: Text(widget.ar ? 'رفض' : 'Decline'),
+        builder: (dialogContext) => StatefulBuilder(
+          builder: (dialogContext, updateDialog) => AlertDialog(
+            title: Text(
+              widget.ar ? 'دعوة للصعود في اللايف' : 'Live stage invitation',
             ),
-            FilledButton.icon(
-              onPressed: () => Navigator.pop(dialogContext, true),
-              icon: const Icon(Icons.videocam_rounded),
-              label: Text(widget.ar ? 'قبول والصعود' : 'Accept & join'),
+            content: SizedBox(
+              width: 320,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    widget.ar
+                        ? 'المضيف أو المودريتر دعاك للكاميرا. عاين كاميرتك أولًا، ثم اختر القبول أو الرفض.'
+                        : 'You were invited on stage. Preview your camera, then accept or decline.',
+                  ),
+                  if (previewReady && _controller.engine != null) ...[
+                    const SizedBox(height: 12),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: SizedBox(
+                        height: 180,
+                        child: AgoraVideoView(
+                          controller: VideoViewController(
+                            rtcEngine: _controller.engine!,
+                            canvas: const VideoCanvas(uid: 0),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                  if (previewError != null) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      previewError!,
+                      style: const TextStyle(color: Colors.redAccent),
+                    ),
+                  ],
+                ],
+              ),
             ),
-          ],
+            actions: [
+              TextButton(
+                onPressed: previewBusy
+                    ? null
+                    : () => Navigator.pop(dialogContext, false),
+                child: Text(widget.ar ? 'رفض' : 'Decline'),
+              ),
+              TextButton.icon(
+                onPressed: previewBusy || previewReady
+                    ? null
+                    : () async {
+                        updateDialog(() {
+                          previewBusy = true;
+                          previewError = null;
+                        });
+                        try {
+                          final allowed = await _requestLiveCameraPermission();
+                          if (!allowed) {
+                            throw StateError(widget.ar
+                                ? 'اسمح باستخدام الكاميرا لمعاينة البث.'
+                                : 'Allow camera access to preview your video.');
+                          }
+                          await _controller.prepareCameraPreview();
+                          if (!dialogContext.mounted) return;
+                          updateDialog(() => previewReady = true);
+                        } catch (error) {
+                          if (!dialogContext.mounted) return;
+                          updateDialog(() => previewError = error.toString());
+                        } finally {
+                          if (dialogContext.mounted) {
+                            updateDialog(() => previewBusy = false);
+                          }
+                        }
+                      },
+                icon: previewBusy
+                    ? const SizedBox.square(
+                        dimension: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.flip_camera_android_rounded),
+                label: Text(widget.ar ? 'معاينة كاميرتي' : 'Preview camera'),
+              ),
+              FilledButton.icon(
+                onPressed: previewReady && !previewBusy
+                    ? () => Navigator.pop(dialogContext, true)
+                    : null,
+                icon: const Icon(Icons.videocam_rounded),
+                label: Text(widget.ar ? 'قبول والصعود' : 'Accept & join'),
+              ),
+            ],
+          ),
         ),
       );
       if (accepted == null) return;
-      await _service.respondToInvite(liveId: widget.liveId, accept: accepted);
+      if (accepted && !previewReady) return;
+      await _service.respondToInvite(
+        liveId: widget.liveId,
+        accept: accepted,
+      );
+      responseSucceeded = true;
+      acceptedInvitation = accepted;
+      _lastInviteMarker = marker;
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error.toString())));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.toString()),
+          action: SnackBarAction(
+            label: widget.ar ? 'إعادة المحاولة' : 'Retry',
+            onPressed: () => unawaited(_showLiveInvitePrompt(requestData)),
+          ),
+        ),
+      );
     } finally {
+      // Keep the preview only when this guest actually accepted their seat.
+      if (!responseSucceeded || !acceptedInvitation) {
+        await _controller.stopCameraPreviewIfIdle().catchError((Object _) {});
+      }
       _invitePromptOpen = false;
     }
   }
