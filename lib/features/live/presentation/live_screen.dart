@@ -3614,9 +3614,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
             setState(() => _liveEnded = true);
             // The session actually ended, as opposed to a temporary video loss.
             await WidgetsBinding.instance.endOfFrame;
-            if (mounted && Navigator.of(context).canPop()) {
-              Navigator.of(context).pop();
-            }
+            if (!mounted) return;
+            final navigator = Navigator.of(this.context);
+            if (navigator.canPop()) navigator.pop();
           });
         }
         return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
