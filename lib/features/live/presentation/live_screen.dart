@@ -3075,7 +3075,12 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
           content: Text(error.toString()),
           action: SnackBarAction(
             label: widget.ar ? 'إعادة المحاولة' : 'Retry',
-            onPressed: () => unawaited(_showLiveInvitePrompt(requestData)),
+            onPressed: () {
+              // A failed Firestore response must be retryable for the same
+              // invitation; the marker otherwise suppresses the dialog.
+              _lastInviteMarker = null;
+              unawaited(_showLiveInvitePrompt(requestData));
+            },
           ),
         ),
       );
