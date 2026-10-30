@@ -29,6 +29,7 @@ import '../../rooms/services/room_translation_service.dart';
 import '../../rooms/services/room_quota_service.dart';
 import '../../rooms/services/room_rewarded_ad_service.dart';
 import '../services/live_session_service.dart';
+import '../data/live_video_order.dart';
 
 import '../../../core/localization/locale_controller.dart';
 import '../../profile/services/profile_social_service.dart';
@@ -1835,62 +1836,57 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                       final remote = _controller.remoteSpeakers
                           .take(3)
                           .toList();
-                      final tiles = <Widget>[
-                        _cameraPaused
-                            ? ColoredBox(
-                                color: Colors.black,
-                                child: Center(
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(
-                                        Icons.videocam_off_rounded,
-                                        color: Colors.white70,
-                                        size: 56,
-                                      ),
-                                      const SizedBox(height: 10),
-                                      Text(
-                                        widget.ar
-                                            ? 'الكاميرا مغلقة'
-                                            : 'Camera off',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w800,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              )
-                            : _PinchZoomCameraView(
-                                controller: _controller,
-                                zoom: _cameraZoom,
-                                onZoomChanged: (value) {
-                                  if (mounted) {
-                                    setState(() => _cameraZoom = value);
-                                  }
-                                },
-                                child: AgoraVideoView(
-                                  controller: VideoViewController(
-                                    rtcEngine: _controller.engine!,
-                                    canvas: const VideoCanvas(uid: 0),
-                                  ),
-                                ),
-                              ),
-                        for (final uid in remote)
-                          if (_controller.remoteCameraPaused(uid))
-                            _LiveCameraOffTile(ar: widget.ar)
-                          else
-                            AgoraVideoView(
-                              controller: VideoViewController.remote(
-                                rtcEngine: _controller.engine!,
-                                canvas: VideoCanvas(uid: uid),
-                                connection: RtcConnection(
-                                  channelId: _channelId ?? '',
-                                ),
-                              ),
-                            ),
-                      ];
+                       final hostName =
+                           FirebaseAuth.instance.currentUser?.displayName ?? '';
+                       final hostPhoto =
+                           FirebaseAuth.instance.currentUser?.photoURL ?? '';
+                       final tiles = <Widget>[
+                         _LiveParticipantCameraTile(
+                           ar: widget.ar,
+                           name: hostName.trim().isEmpty
+                               ? (widget.ar ? 'المضيف' : 'Host')
+                               : hostName,
+                           isHost: true,
+                           cameraOff: _cameraPaused,
+                           photoUrl: hostPhoto,
+                           video: _cameraPaused
+                               ? const SizedBox.shrink()
+                               : _PinchZoomCameraView(
+                                   controller: _controller,
+                                   zoom: _cameraZoom,
+                                   onZoomChanged: (value) {
+                                     if (mounted) {
+                                       setState(() => _cameraZoom = value);
+                                     }
+                                   },
+                                   child: AgoraVideoView(
+                                     controller: VideoViewController(
+                                       rtcEngine: _controller.engine!,
+                                       canvas: const VideoCanvas(uid: 0),
+                                     ),
+                                   ),
+                                 ),
+                         ),
+                         for (var i = 0; i < remote.length; i++)
+                           _LiveParticipantCameraTile(
+                             ar: widget.ar,
+                             name: widget.ar
+                                 ? 'ضيف ${i + 1}' : 'Guest ${i + 1}',
+                             isHost: false,
+                             cameraOff: _controller.remoteCameraPaused(remote[i]),
+                             video: _controller.remoteCameraPaused(remote[i])
+                                 ? const SizedBox.shrink()
+                                 : AgoraVideoView(
+                                     controller: VideoViewController.remote(
+                                       rtcEngine: _controller.engine!,
+                                       canvas: VideoCanvas(uid: remote[i]),
+                                       connection: RtcConnection(
+                                         channelId: _channelId ?? '',
+                                       ),
+                                     ),
+                                   ),
+                           ),
+                       ];
                       return Stack(
                         fit: StackFit.expand,
                         children: [
@@ -3283,54 +3279,97 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                ?.displayName?.trim();
                        final hostPhoto =
                            FirebaseAuth.instance.currentUser?.photoURL ?? '';
-                       final tiles = <Widget>[
-                         _LiveParticipantCameraTile(
-                           ar: widget.ar,
-                           name: hostName == null || hostName.isEmpty
-                               ? (widget.ar ? 'المضيف' : 'Host')
-                               : hostName,
-                           isHost: true,
-                           cameraOff: _cameraPaused,
-                           photoUrl: hostPhoto,
-                           video: _cameraPaused
-                               ? const SizedBox.shrink()
-                               : _PinchZoomCameraView(
-                                   controller: _controller,
-                                   zoom: _cameraZoom,
-                                   onZoomChanged: (value) {
-                                     if (mounted) {
-                                       setState(() => _cameraZoom = value);
-                                     }
-                                   },
-                                   child: AgoraVideoView(
-                                     controller: VideoViewController(
-                                       rtcEngine: _controller.engine!,
-                                       canvas: const VideoCanvas(uid: 0),
-                                     ),
-                                   ),
-                                 ),
-                         ),
-                         for (var i = 0; i < remote.length; i++)
-                           _LiveParticipantCameraTile(
-                             ar: widget.ar,
-                             name: widget.ar
-                                 ? 'ضيف ${i + 1}'
-                                 : 'Guest ${i + 1}',
-                             isHost: false,
-                             cameraOff: _controller.remoteCameraPaused(remote[i]),
-                             video: _controller.remoteCameraPaused(remote[i])
-                                 ? const SizedBox.shrink()
-                                 : AgoraVideoView(
-                                     controller: VideoViewController.remote(
-                                       rtcEngine: _controller.engine!,
-                                       canvas: VideoCanvas(uid: remote[i]),
-                                       connection: RtcConnection(
-                                         channelId: _channelId ?? '',
+                           // Host-first layout independent of join order.
+                           final orderedRemote = orderLiveRemoteVideoUids(
+                             remote, hostAgoraUid: hostAgoraUid,
+                           );
+                           final hostName = (live?['hostName'] ??
+                               widget.data['hostName'] ??
+                               (widget.ar ? 'المضيف' : 'Host')).toString();
+                           final hostPhoto = (live?['hostPhotoUrl'] ??
+                               widget.data['hostPhotoUrl'] ?? '').toString();
+                           final hostConnected = hostAgoraUid != null &&
+                               orderedRemote.contains(hostAgoraUid);
+                           final tiles = <Widget>[
+                             if (hostAgoraUid != null)
+                               _LiveParticipantCameraTile(
+                                 ar: widget.ar,
+                                 name: hostName,
+                                 isHost: true,
+                                 photoUrl: hostPhoto,
+                                 cameraOff: !hostConnected ||
+                                     _controller.remoteCameraPaused(hostAgoraUid),
+                                 video: hostConnected && engine != null &&
+                                         !_controller.remoteCameraPaused(
+                                           hostAgoraUid,
+                                         )
+                                     ? AgoraVideoView(
+                                         controller: VideoViewController.remote(
+                                           rtcEngine: engine,
+                                           canvas: VideoCanvas(uid: hostAgoraUid),
+                                           connection: RtcConnection(
+                                             channelId: widget.liveId,
+                                           ),
+                                         ),
+                                       )
+                                     : const SizedBox.shrink(),
+                               ),
+                             if (_guestPublishing && engine != null)
+                               _LiveParticipantCameraTile(
+                                 ar: widget.ar,
+                                 name: FirebaseAuth.instance.currentUser
+                                         ?.displayName ??
+                                     (widget.ar ? 'أنت' : 'You'),
+                                 isHost: false,
+                                 photoUrl: FirebaseAuth.instance.currentUser
+                                         ?.photoURL ?? '',
+                                 cameraOff: _guestCameraPaused,
+                                 video: _guestCameraPaused
+                                     ? const SizedBox.shrink()
+                                     : _PinchZoomCameraView(
+                                         controller: _controller,
+                                         zoom: _guestCameraZoom,
+                                         onZoomChanged: (value) {
+                                           if (mounted) {
+                                             setState(() => _guestCameraZoom = value);
+                                           }
+                                         },
+                                         child: AgoraVideoView(
+                                           controller: VideoViewController(
+                                             rtcEngine: engine,
+                                             canvas: const VideoCanvas(uid: 0),
+                                           ),
+                                         ),
                                        ),
+                               ),
+                             if (engine != null)
+                               for (var i = 0; i < orderedRemote.length; i++)
+                                 if (orderedRemote[i] != hostAgoraUid)
+                                   _LiveParticipantCameraTile(
+                                     ar: widget.ar,
+                                     name: widget.ar
+                                         ? 'ضيف ${i + 1}' : 'Guest ${i + 1}',
+                                     isHost: false,
+                                     cameraOff: _controller.remoteCameraPaused(
+                                       orderedRemote[i],
                                      ),
+                                     video: _controller.remoteCameraPaused(
+                                       orderedRemote[i],
+                                     )
+                                         ? const SizedBox.shrink()
+                                         : AgoraVideoView(
+                                             controller: VideoViewController.remote(
+                                               rtcEngine: engine,
+                                               canvas: VideoCanvas(
+                                                 uid: orderedRemote[i],
+                                               ),
+                                               connection: RtcConnection(
+                                                 channelId: widget.liveId,
+                                               ),
+                                             ),
+                                           ),
                                    ),
-                           ),
-                       ];
+                           ];
                        return Stack(
                             fit: StackFit.expand,
                             children: [
@@ -4013,30 +4052,180 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   }
 }
 
-class _LiveCameraOffTile extends StatelessWidget {
-  const _LiveCameraOffTile({required this.ar});
+/// Presents a personal identity panel around an existing Agora video stream.
+class _LiveParticipantCameraTile extends StatelessWidget {
+  const _LiveParticipantCameraTile({
+    required this.ar,
+    required this.name,
+    required this.isHost,
+    required this.cameraOff,
+    required this.video,
+    this.photoUrl = '',
+  });
+
   final bool ar;
+  final String name;
+  final bool isHost;
+  final bool cameraOff;
+  final String photoUrl;
+  final Widget video;
+
   @override
-  Widget build(BuildContext context) => ColoredBox(
-    color: Colors.black,
-    child: Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(
-            Icons.videocam_off_rounded,
-            color: Colors.white54,
-            size: 48,
+  Widget build(BuildContext context) {
+    const gold = Color(0xFFEAD08D);
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        if (cameraOff)
+          _LiveCameraOffTile(ar: ar, photoUrl: photoUrl)
+        else
+          Positioned.fill(child: video),
+        PositionedDirectional(
+          top: 10,
+          start: 10,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: const Color(0xC30C2B23),
+              borderRadius: BorderRadius.circular(30),
+              border: Border.all(
+                color: isHost ? gold : const Color(0x9967EBC0),
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 10, vertical: 5,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    isHost ? Icons.workspace_premium_rounded
+                        : Icons.mic_rounded,
+                    color: isHost ? gold : const Color(0xFF8BF0C8),
+                    size: 13,
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    isHost ? (ar ? 'المضيف' : 'HOST')
+                        : (ar ? 'ضيف' : 'GUEST'),
+                    style: TextStyle(
+                      color: isHost ? gold : Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            ar ? 'الكاميرا مغلقة' : 'Camera off',
-            style: const TextStyle(color: Colors.white),
+        ),
+        PositionedDirectional(
+          start: 0,
+          end: 0,
+          bottom: 0,
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(12, 22, 12, 13),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Colors.transparent, Color(0xD8081C16)],
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14,
+                      shadows: [
+                        Shadow(color: Colors.black87, blurRadius: 5),
+                      ],
+                    ),
+                  ),
+                ),
+                if (cameraOff)
+                  const Icon(Icons.videocam_off_rounded,
+                    size: 17, color: Color(0xFFE0F0E9)),
+              ],
+            ),
           ),
-        ],
+        ),
+      ],
+    );
+  }
+}
+
+class _LiveCameraOffTile extends StatelessWidget {
+  const _LiveCameraOffTile({required this.ar, this.photoUrl = ''});
+  final bool ar;
+  final String photoUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    final url = photoUrl.trim();
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF164434),
+            Color(0xFF08231E),
+            Color(0xFF14233A),
+          ],
+        ),
       ),
-    ),
-  );
+      child: Center(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final radius =
+                (constraints.biggest.shortestSide * .15).clamp(24.0, 52.0);
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [Color(0xFFF2D596), Color(0xFF0EB78A)],
+                    ),
+                  ),
+                  child: CircleAvatar(
+                    radius: radius,
+                    backgroundColor: const Color(0xFF164434),
+                    backgroundImage: url.isEmpty ? null : NetworkImage(url),
+                    child: url.isEmpty
+                        ? Icon(Icons.person_rounded, color: Colors.white,
+                            size: radius)
+                        : null,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Icon(Icons.videocam_off_rounded,
+                  size: 22, color: Color(0xFFD4E9E2)),
+                const SizedBox(height: 5),
+                Text(ar ? 'الكاميرا مغلقة' : 'Camera off',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Color(0xFFE5F2EC),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
 }
 
 class _LiveBoardAvatar extends StatelessWidget {
