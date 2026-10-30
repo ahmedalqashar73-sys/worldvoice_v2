@@ -464,8 +464,11 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     required AgoraRoomRole role,
     bool preferBackendToken = false,
   }) async {
-    final backendEndpoint =
-        RoomBackendConfig.configurationError.isEmpty
+    // Live sessions use the main-backed service which knows live_sessions.
+    // Existing voice rooms and private calls keep their established backend.
+    final backendEndpoint = channelId.startsWith('live_')
+        ? RoomBackendConfig.aiEndpoint('/agora/token')
+        : RoomBackendConfig.configurationError.isEmpty
             ? RoomBackendConfig.endpoint('/agora/token')
             : '';
     final backendFirst =
