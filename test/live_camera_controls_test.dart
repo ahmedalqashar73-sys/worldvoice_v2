@@ -84,4 +84,25 @@ void main() {
     expect(controller.muted, false);
     expect(engine.audioMuted, false);
   });
+  test('consent camera preview stops without ending an Agora session', () async {
+    final engine = _Engine();
+    final controller = AgoraVoiceRoomController.forMediaTesting(engine);
+    expect(controller.joined, true);
+    await controller.prepareCameraPreview();
+    expect(controller.localPreviewPrepared, true);
+    await controller.stopCameraPreviewIfIdle();
+    expect(controller.localPreviewPrepared, false);
+    expect(controller.joined, true);
+    expect(controller.cameraPublishing, false);
+  });
+
+  test('a publishing camera is not interrupted by preview cleanup', () async {
+    final engine = _Engine();
+    final controller = AgoraVoiceRoomController.forMediaTesting(engine);
+    await controller.setCameraPublishing(true);
+    await controller.stopCameraPreviewIfIdle();
+    expect(controller.cameraPublishing, true);
+    expect(controller.localPreviewPrepared, true);
+  });
+
 }
