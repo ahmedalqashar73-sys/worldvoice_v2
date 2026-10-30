@@ -30,6 +30,7 @@ import '../../rooms/services/room_quota_service.dart';
 import '../../rooms/services/room_rewarded_ad_service.dart';
 import '../services/live_session_service.dart';
 import '../data/live_video_order.dart';
+import 'live_camera_off_tile.dart';
 
 import '../../../core/localization/locale_controller.dart';
 import '../../profile/services/profile_social_service.dart';
@@ -4456,7 +4457,7 @@ class _LiveParticipantCameraTile extends StatelessWidget {
       fit: StackFit.expand,
       children: [
         if (cameraOff)
-          _LiveCameraOffTile(ar: ar, photoUrl: photoUrl)
+          LiveCameraOffTile(ar: ar, photoUrl: photoUrl)
         else
           Positioned.fill(child: video),
         PositionedDirectional(
@@ -4573,73 +4574,6 @@ class _LiveParticipantCameraTile extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _LiveCameraOffTile extends StatelessWidget {
-  const _LiveCameraOffTile({required this.ar, this.photoUrl = ''});
-  final bool ar;
-  final String photoUrl;
-
-  @override
-  Widget build(BuildContext context) {
-    final url = photoUrl.trim();
-    return DecoratedBox(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF197654),
-            Color(0xFF10523D),
-            Color(0xFF0A3D31),
-          ],
-        ),
-      ),
-      child: Center(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final radius =
-                (constraints.biggest.shortestSide * .15).clamp(24.0, 52.0);
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(3),
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [Color(0xFFF2D596), Color(0xFF0EB78A)],
-                    ),
-                  ),
-                  child: CircleAvatar(
-                    radius: radius,
-                    backgroundColor: const Color(0xFF164434),
-                    backgroundImage: url.isEmpty ? null : NetworkImage(url),
-                    child: url.isEmpty
-                        ? Icon(Icons.person_rounded, color: Colors.white,
-                            size: radius)
-                        : null,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                const Icon(Icons.videocam_off_rounded,
-                  size: 22, color: Color(0xFFD4E9E2)),
-                const SizedBox(height: 5),
-                Text(ar ? 'الكاميرا مغلقة' : 'Camera off',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Color(0xFFE5F2EC),
-                    fontWeight: FontWeight.w600,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
-      ),
     );
   }
 }
