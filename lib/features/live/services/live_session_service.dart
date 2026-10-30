@@ -527,6 +527,43 @@ class LiveSessionService {
     });
   }
 
+  /// Host-only, transactional stage removal: the guest stays in the Live
+  /// audience. The request status and session guest counter change together,
+  /// and Firestore rules independently enforce the host's authority.
+  Future<void> removeGuestFromStage({
+    required String liveId,
+    required String guestUserId,
+  }) async {
+    final host = _user;
+    if (guestUserId.isEmpty || guestUserId == host.uid) {
+      throw StateError('INVALID_LIVE_GUEST');
+    }
+    final session = _sessions.doc(liveId);
+    final request = session.collection('join_requests').doc(guestUserId);
+    await _db.runTransaction((tx) async {
+      final sessionSnap = await tx.get(session);
+      if (sessionSnap.data()?['hostId'] != host.uid ||
+          sessionSnap.data()?['isLive'] != true) {
+        throw StateError('HOST_ONLY');
+      }
+      final requestSnap = await tx.get(request);
+      if (requestSnap.data()?['status'] != 'accepted') {
+        throw StateError('GUEST_NOT_ON_STAGE');
+      }
+      final count = (sessionSnap.data()?['guestCount'] as num?)?.toInt() ?? 0;
+      if (count < 1) throw StateError('GUEST_COUNTER_INVALID');
+
+      tx.update(request, {
+        'status': 'removed',
+        'decidedAt': FieldValue.serverTimestamp(),
+      });
+      tx.update(session, {
+        'guestCount': FieldValue.increment(-1),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    });
+  }
+
   Future<void> leaveGuest(String liveId) async {
     final user = _auth.currentUser;
     if (user == null) return;
