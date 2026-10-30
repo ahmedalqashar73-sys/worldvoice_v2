@@ -8,6 +8,7 @@ class _Engine extends Fake implements RtcEngine {
   bool audioMuted = false;
   bool failOptions = false;
   bool failVideo = false;
+  bool failPreview = false;
   final options = <ChannelMediaOptions>[];
   Completer<void>? cameraGate;
 
@@ -28,7 +29,9 @@ class _Engine extends Fake implements RtcEngine {
     options.add(value);
   }
   @override
-  Future<void> startPreview({VideoSourceType sourceType = VideoSourceType.videoSourceCameraPrimary}) async {}
+  Future<void> startPreview({VideoSourceType sourceType = VideoSourceType.videoSourceCameraPrimary}) async {
+    if (failPreview) throw StateError('preview failed');
+  }
   @override
   Future<void> stopPreview({VideoSourceType sourceType = VideoSourceType.videoSourceCameraPrimary}) async {}
 }
@@ -98,6 +101,19 @@ void main() {
     await controller.prepareCameraPreview();
     expect(controller.localPreviewPrepared, true);
     await controller.stopCameraPreviewIfIdle();
+    expect(controller.joined, true);
+  });
+
+  test('camera preview startup error does not drop a watching guest', () async {
+    final engine = _Engine()..failPreview = true;
+    final controller = AgoraVoiceRoomController.forMediaTesting(engine);
+    await expectLater(controller.prepareCameraPreview(), throwsStateError);
+    expect(controller.joined, true);
+    expect(controller.engine, same(engine));
+    expect(controller.localPreviewPrepared, false);
+    engine.failPreview = false;
+    await controller.prepareCameraPreview();
+    expect(controller.localPreviewPrepared, true);
     expect(controller.joined, true);
   });
 
