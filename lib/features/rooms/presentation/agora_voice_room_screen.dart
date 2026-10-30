@@ -4199,81 +4199,78 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
   Widget _buildMinimizedRoom(BuildContext context) {
     final localeController = widget.localeController;
-    if (localeController == null) {
-      _minimized = false;
-      return const SizedBox.shrink();
-    }
+    if (localeController == null) return const SizedBox.shrink();
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
 
+    // Only the floating preview changes; the actual room remains mounted
+    // and HomeScreen continues using its existing navigation and layout.
     return Stack(
       children: [
         HomeScreen(localeController: localeController),
         PositionedDirectional(
-          end: 14,
-          bottom: 92,
+          end: 12,
+          bottom: 94,
           child: Material(
             elevation: 12,
-            borderRadius: BorderRadius.circular(28),
-            color: const Color(0xFF241A4B),
+            borderRadius: BorderRadius.circular(22),
+            color: const Color(0xFF0D4434),
             child: InkWell(
-              borderRadius: BorderRadius.circular(28),
+              borderRadius: BorderRadius.circular(22),
               onTap: () => setState(() => _minimized = false),
               child: Container(
-                width: 178,
-                padding: const EdgeInsets.fromLTRB(12, 9, 8, 9),
+                constraints: const BoxConstraints(maxWidth: 248),
+                padding: const EdgeInsets.fromLTRB(10, 9, 6, 9),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: _controller.joined
-                            ? const Color(0xFF2BBE78)
-                            : Colors.white24,
-                      ),
-                      child: Icon(
-                        _controller.muted
-                            ? Icons.mic_off_rounded
-                            : Icons.mic_rounded,
-                        color: Colors.white,
-                        size: 20,
+                    CircleAvatar(
+                      radius: 24,
+                      backgroundColor: const Color(0xFFE2CA78),
+                      child: CircleAvatar(
+                        radius: 21,
+                        backgroundColor: const Color(0xFF174736),
+                        backgroundImage: (_roomHostPhotoUrl?.isNotEmpty ?? false)
+                            ? NetworkImage(_roomHostPhotoUrl!)
+                            : null,
+                        child: (_roomHostPhotoUrl?.isNotEmpty ?? false)
+                            ? null
+                            : const Icon(Icons.groups_rounded,
+                                color: Colors.white, size: 23),
                       ),
                     ),
                     const SizedBox(width: 9),
-                    Expanded(
+                    Flexible(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          Text(widget.roomName, maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(color: Colors.white,
+                              fontWeight: FontWeight.w800, fontSize: 13)),
+                          const SizedBox(height: 2),
                           Text(
-                            widget.roomName,
+                            _controller.joined
+                                ? (ar ? 'الغرفة مستمرة • اضغط للعودة'
+                                    : 'Room active • Tap to return')
+                                : (ar ? 'العودة إلى الغرفة'
+                                    : 'Return to room'),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w900,
-                              fontSize: 12,
-                            ),
-                          ),
-                          Text(
-                            '${_participants.length} • LIVE',
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 10,
-                            ),
+                              color: Color(0xFFF3D58B), fontSize: 10),
                           ),
                         ],
                       ),
                     ),
                     IconButton(
-                      tooltip: 'Leave',
+                      tooltip: ar ? 'مغادرة الغرفة' : 'Leave room',
                       visualDensity: VisualDensity.compact,
+                      constraints: const BoxConstraints(
+                        minWidth: 36, minHeight: 36),
                       onPressed: _leave,
-                      icon: const Icon(
-                        Icons.close_rounded,
-                        color: Colors.white70,
-                        size: 18,
-                      ),
+                      icon: const Icon(Icons.close_rounded,
+                        color: Colors.white70, size: 19),
                     ),
                   ],
                 ),
