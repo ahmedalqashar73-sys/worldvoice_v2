@@ -3344,7 +3344,8 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                    _LiveParticipantCameraTile(
                                      ar: widget.ar,
                                      name: widget.ar
-                                         ? 'ضيف ${i + 1}' : 'Guest ${i + 1}',
+                                         ? 'ضيف ${i + (hostConnected ? 0 : 1)}'
+                                         : 'Guest ${i + (hostConnected ? 0 : 1)}',
                                      isHost: false,
                                      cameraOff: _controller.remoteCameraPaused(
                                        orderedRemote[i],
