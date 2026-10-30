@@ -51,13 +51,22 @@ try {
         & npm.cmd test
         if ($LASTEXITCODE -ne 0) { throw 'Worker tests failed. Deployment cancelled.' }
 
-        # Owner signs in via the browser; no API token or certificate is
-        # pasted into the repository or printed in the terminal.
-        & npx.cmd wrangler login
-        if ($LASTEXITCODE -ne 0) { throw 'Cloudflare login failed. Deployment cancelled.' }
-
+        # A Cloudflare dashboard browser session alone does not authenticate
+        # Wrangler. Reuse a valid CLI OAuth session instead of needlessly
+        # opening another authorization window on every deployment.
         & npx.cmd wrangler whoami
-        if ($LASTEXITCODE -ne 0) { throw 'Cloudflare account could not be verified.' }
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host 'Wrangler is not authenticated yet. Sign in to the existing Cloudflare account.' -ForegroundColor Yellow
+            Write-Host 'Complete Authorize promptly in the browser that opens. If another browser stalls, copy the full Wrangler authorization URL into Chrome.' -ForegroundColor Yellow
+            & npx.cmd wrangler login
+            if ($LASTEXITCODE -ne 0) {
+                throw 'Cloudflare Wrangler authorization timed out or failed. Nothing was deployed. Retry after setting Chrome as the Windows default browser.'
+            }
+            & npx.cmd wrangler whoami
+            if ($LASTEXITCODE -ne 0) {
+                throw 'Cloudflare authorization did not reach Wrangler. Nothing was deployed.'
+            }
+        }
 
         Write-Host 'Deploying existing Worker: worldvoice-agora-token'
         & npx.cmd wrangler deploy
