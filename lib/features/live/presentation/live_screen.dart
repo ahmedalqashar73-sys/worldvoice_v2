@@ -7041,12 +7041,32 @@ class _HostJoinRequests extends StatelessWidget {
                 final doc = docs[index];
                 final data = doc.data();
                 return ListTile(
-                  leading: const CircleAvatar(
-                    child: Icon(Icons.person_rounded),
+                  leading: CircleAvatar(
+                    backgroundImage: (data['photoUrl'] ?? '').toString().trim().isEmpty
+                        ? null
+                        : NetworkImage((data['photoUrl'] ?? '').toString().trim()),
+                    child: (data['photoUrl'] ?? '').toString().trim().isEmpty
+                        ? const Icon(Icons.person_rounded)
+                        : null,
                   ),
                   title: Text(
                     data['displayName']?.toString() ?? 'WorldVoice user',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(color: Colors.white),
+                  ),
+                  subtitle: Text(
+                    ar ? 'طلب المشاركة بالكاميرا' : 'Requested to join the camera',
+                    style: const TextStyle(color: Colors.white70, fontSize: 11),
+                  ),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => PublicProfileScreen(
+                        userId: doc.id,
+                        languageCode: Localizations.localeOf(context)
+                            .languageCode.toLowerCase(),
+                      ),
+                    ),
                   ),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
