@@ -12,13 +12,36 @@ try {
         throw 'Open the ORIGINAL WorldVoice repo on the main branch. No branches were changed.'
     }
 
-    $changes = @(& git status --porcelain)
-    if ($LASTEXITCODE -ne 0 -or $changes.Count -gt 0) {
-        throw 'Local changes exist. Save them before deployment; nothing was overwritten.'
+    # Flutter generates platform registration files during flutter run.
+    # They do not affect the token Worker and must never be discarded.
+    # Refuse only if the actual Worker source/config has local edits.
+    $workerChanges = @(& git status --porcelain -- services/agora-token-worker)
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Could not inspect local Agora Worker changes. No deployment attempted.'
+    }
+    if ($workerChanges.Count -gt 0) {
+        Write-Host ($workerChanges -join [Environment]::NewLine)
+        throw 'The Agora Worker has local edits. Save or review those changes before deployment. Nothing was overwritten.'
+    }
+
+    $otherChanges = @(& git status --porcelain)
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Could not inspect Git working tree. No deployment attempted.'
+    }
+    if ($otherChanges.Count -gt 0) {
+        Write-Host 'Unrelated local files were modified (for example Flutter generated registrants); preserving them.' -ForegroundColor Yellow
     }
 
     & git pull --ff-only origin main
-    if ($LASTEXITCODE -ne 0) { throw 'Git main could not fast-forward. No Worker was deployed.' }
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Git main could not fast-forward safely. Save conflicting local files; nothing was overwritten.'
+    }
+
+    # Confirm the Worker itself is still clean after synchronizing main.
+    $workerChanges = @(& git status --porcelain -- services/agora-token-worker)
+    if ($LASTEXITCODE -ne 0 -or $workerChanges.Count -gt 0) {
+        throw 'Agora Worker has uncommitted edits after update. No deployment attempted.'
+    }
 
     Push-Location (Join-Path $root 'services\agora-token-worker')
     try {
