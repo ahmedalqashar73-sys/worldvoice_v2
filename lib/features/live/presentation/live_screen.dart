@@ -6708,13 +6708,15 @@ class _LiveVideoGrid extends StatelessWidget {
   Widget _tile(Widget child) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: const Color(0xFF071B16),
+        color: const Color(0xFF08261F),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: Colors.white.withValues(alpha: .06),
-          width: .8,
+          color: const Color(0xFF699C80).withValues(alpha: .55),
+          width: 1,
         ),
       ),
-      child: ClipRect(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(13),
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -6762,7 +6764,7 @@ class _LiveVideoGrid extends StatelessWidget {
       return Row(
         children: [
           Expanded(child: _tile(items[0])),
-          const SizedBox(width: 2),
+          const SizedBox(width: 4),
           Expanded(child: _tile(items[1])),
         ],
       );
@@ -6777,12 +6779,12 @@ class _LiveVideoGrid extends StatelessWidget {
             child: Column(
               children: [
                 Expanded(child: _tile(items[1])),
-                const SizedBox(height: 2),
+                const SizedBox(height: 4),
                 Expanded(child: _tile(items[2])),
               ],
             ),
           ),
-          const SizedBox(width: 2),
+          const SizedBox(width: 4),
           Expanded(flex: 56, child: _tile(items[0])),
         ],
       );
@@ -6794,17 +6796,17 @@ class _LiveVideoGrid extends StatelessWidget {
           child: Row(
             children: [
               Expanded(child: _tile(items[0])),
-              const SizedBox(width: 2),
+              const SizedBox(width: 4),
               Expanded(child: _tile(items[1])),
             ],
           ),
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: 4),
         Expanded(
           child: Row(
             children: [
               Expanded(child: _tile(items[2])),
-              const SizedBox(width: 2),
+              const SizedBox(width: 4),
               Expanded(child: _tile(items[3])),
             ],
           ),
