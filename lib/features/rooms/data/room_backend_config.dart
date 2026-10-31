@@ -19,11 +19,13 @@ class RoomBackendConfig {
     defaultValue: 'https://worldvoice-v2.onrender.com',
   );
 
-  // Chat, calls, posts and social APIs run on the same up-to-date backend
-  // as Teacher AI. Keep legacy economy actions on their existing endpoint.
+  // Chat, group calls, posts and social APIs must use the original main
+  // branch deployment. The older worldvoice-v2 Render service is pinned to
+  // an obsolete feature branch and does not contain current chat fixes.
+  // Economy/coin purchases keep their dedicated unchanged endpoint.
   static const String socialBaseUrl = String.fromEnvironment(
     'WORLDVOICE_SOCIAL_BACKEND_URL',
-    defaultValue: 'https://worldvoice-v2.onrender.com',
+    defaultValue: 'https://worldvoice-teacher-ai.onrender.com',
   );
 
   static const Duration socialRequestTimeout = Duration(seconds: 110);
