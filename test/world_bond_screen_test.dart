@@ -30,7 +30,10 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(button);
       await tester.pumpAndSettle();
-      expect(find.textContaining('100 coins'),findsOneWidget);
+      expect(find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.textContaining('100 coins'),
+      ),findsOneWidget);
       await tester.tap(find.widgetWithText(FilledButton,'Send').last);
       await tester.pumpAndSettle();
       expect(find.text('Gift delivered'),findsNothing);
