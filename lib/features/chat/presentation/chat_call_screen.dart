@@ -4,6 +4,8 @@ import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:flutter/material.dart';
 
 import '../../rooms/services/agora_voice_room_controller.dart';
+import '../../../core/localization/locale_controller.dart';
+import '../../home/presentation/home_screen.dart';
 import '../services/chat_call_service.dart';
 
 class ChatCallScreen extends StatefulWidget {
@@ -33,6 +35,9 @@ class _ChatCallScreenState extends State<ChatCallScreen> {
   DateTime? _connectedAt;
   bool _accepted = false;
   bool _ending = false;
+  bool _minimized = false;
+  OverlayEntry? _miniEntry;
+  LocaleController? _miniLocale;
   bool _speaker = true;
   bool _camera = false;
   String? _error;
@@ -82,7 +87,7 @@ class _ChatCallScreenState extends State<ChatCallScreen> {
         return;
       }
       if (status == 'declined' || status == 'ended') {
-        if (mounted) Navigator.of(context).pop();
+        await _closeAfterRemoteEnd();
       }
     } catch (_) {}
   }
@@ -148,14 +153,102 @@ class _ChatCallScreenState extends State<ChatCallScreen> {
     if (mounted) setState(() => _camera = next);
   }
 
+  Future<void> _closeAfterRemoteEnd() async {
+    if (_ending) return;
+    if (mounted) setState(() => _ending = true);
+    await _controller.leave().catchError((Object _) {});
+    await _popCallRoute();
+  }
+
+  Future<void> _popCallRoute() async {
+    if (!mounted) return;
+    final nav = Navigator.of(context);
+    final callRoute = ModalRoute.of(context);
+    if (_minimized && callRoute != null) {
+      nav.popUntil((route) => identical(route, callRoute));
+    }
+    await WidgetsBinding.instance.endOfFrame;
+    if (mounted && nav.canPop()) nav.pop();
+  }
+
+  /// Minimize within WorldVoice, without disposing the Agora engine or call.
+  /// The caller can browse chats and other tabs while the mini card stays up.
+  Future<void> _minimize() async {
+    if (!mounted || _minimized || _ending || !_controller.joined) return;
+    final callRoute = ModalRoute.of(context);
+    if (callRoute == null) return;
+    final locale = LocaleController();
+    await locale.load();
+    if (!mounted || _minimized || _ending) {
+      locale.dispose();
+      return;
+    }
+    final navigator = Navigator.of(context);
+    _miniLocale = locale;
+    setState(() => _minimized = true);
+    final browsing = MaterialPageRoute<void>(
+      builder: (_) => HomeScreen(
+        localeController: locale, initialTab: 3,
+      ),
+    );
+    unawaited(navigator.push<void>(browsing).whenComplete(() {
+      _miniEntry?.remove();
+      _miniEntry?.dispose();
+      _miniEntry = null;
+      _miniLocale?.dispose();
+      _miniLocale = null;
+      if (mounted) setState(() => _minimized = false);
+    }));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_minimized || !browsing.isActive) return;
+      _miniEntry = OverlayEntry(
+        builder: (_) => PositionedDirectional(
+          top: 105,
+          end: 12,
+          child: SafeArea(
+            child: Material(
+              elevation: 12,
+              color: const Color(0xFF0D4937),
+              borderRadius: BorderRadius.circular(18),
+              child: InkWell(
+                key: const ValueKey('restore-direct-call'),
+                onTap: () => navigator.popUntil(
+                    (route) => identical(route, callRoute)),
+                borderRadius: BorderRadius.circular(18),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(_isVideo
+                          ? Icons.video_call_rounded : Icons.call_rounded,
+                        color: Colors.white),
+                      const SizedBox(width: 8),
+                      Text(widget.peerName,
+                        style: const TextStyle(color: Colors.white)),
+                      const SizedBox(width: 8),
+                      const Icon(Icons.open_in_full_rounded,
+                        color: Color(0xFFEAD08D), size: 17),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      Overlay.of(context, rootOverlay: true).insert(_miniEntry!);
+    });
+  }
+
   Future<void> _end() async {
     if (_ending) return;
-    _ending = true;
+    if (mounted) setState(() => _ending = true);
     try {
       await _service.end(widget.call.id);
     } catch (_) {}
-    await _controller.leave();
-    if (mounted) Navigator.of(context).pop();
+    await _controller.leave().catchError((Object _) {});
+    await _popCallRoute();
   }
 
   @override
@@ -163,6 +256,11 @@ class _ChatCallScreenState extends State<ChatCallScreen> {
     _pollTimer?.cancel();
     _clockTimer?.cancel();
     _ringTimeout?.cancel();
+    _miniEntry?.remove();
+    _miniEntry?.dispose();
+    _miniEntry = null;
+    _miniLocale?.dispose();
+    _miniLocale = null;
     _controller.removeListener(_onControllerChanged);
     _controller.dispose();
     _service.dispose();
@@ -247,9 +345,9 @@ class _ChatCallScreenState extends State<ChatCallScreen> {
     }
 
     return PopScope(
-      canPop: false,
+      canPop: _ending,
       onPopInvokedWithResult: (didPop, result) {
-        if (!didPop) unawaited(_end());
+        if (!didPop && !_ending) unawaited(_minimize());
       },
       child: Scaffold(
         backgroundColor: const Color(0xFF07120F),
@@ -258,6 +356,19 @@ class _ChatCallScreenState extends State<ChatCallScreen> {
             fit: StackFit.expand,
             children: [
               center,
+              PositionedDirectional(
+                top: 10,
+                start: 12,
+                child: SafeArea(
+                  child: IconButton.filledTonal(
+                    tooltip: Localizations.localeOf(context).languageCode == 'ar'
+                        ? 'تصغير المكالمة'
+                        : 'Minimize call',
+                    onPressed: connected ? _minimize : null,
+                    icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                  ),
+                ),
+              ),
               Positioned(
                 left: 14,
                 right: 14,
