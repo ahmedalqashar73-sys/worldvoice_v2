@@ -70,11 +70,29 @@ test('host cannot alter another stage request while lowering the participant', a
   await assertFails(batch.commit());
 });
 
-test('only the host may mute and release a current Live stage guest', async () => {
+test('host and accepted moderators may mute or release a stage microphone', async () => {
+  await env.withSecurityRulesDisabled(async context => {
+    const db = context.firestore();
+    await setDoc(doc(db, 'users/host/moderators/mod'), {
+      uid: 'mod', status: 'accepted', assignedBy: 'host',
+    });
+    await setDoc(doc(db, 'users/host/moderators/pending_mod'), {
+      uid: 'pending_mod', status: 'pending', assignedBy: 'host',
+    });
+  });
   await assertSucceeds(updateDoc(guestRequest(user('host')), {hostMuted: true}));
-  await assertSucceeds(updateDoc(guestRequest(user('host')), {hostMuted: false}));
+  await assertSucceeds(updateDoc(guestRequest(user('mod')), {hostMuted: false}));
+  await assertSucceeds(updateDoc(guestRequest(user('mod')), {hostMuted: true}));
+  await assertFails(updateDoc(guestRequest(user('pending_mod')), {hostMuted: false}));
   await assertFails(updateDoc(guestRequest(user('guest')), {hostMuted: false}));
   await assertFails(updateDoc(guestRequest(user('stranger')), {hostMuted: true}));
+  // Being a moderator does not permit stage removal or guest identity edits.
+  await assertFails(updateDoc(guestRequest(user('mod')), {
+    status: 'removed', decidedAt: serverTimestamp(),
+  }));
+  await assertFails(updateDoc(guestRequest(user('mod')), {
+    hostMuted: false, displayName: 'forged',
+  }));
 });
 
 test('host microphone control cannot forge guest identity or stage status', async () => {
