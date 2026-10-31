@@ -84,6 +84,19 @@ export function tokenSessionCollection(channelName) {
     channelName.startsWith("group_") ? "group_calls" : "rooms";
 }
 
+// Firestore documents are fetched under the caller's signed Firebase token.
+// The token signer additionally validates active attendance, not just a
+// group membership list captured when the call began.
+export function isAllowedGroupCallPublisher(fields, uid, channelName, role) {
+  const members = fields?.memberIds?.arrayValue?.values || [];
+  const joined = fields?.joinedIds?.arrayValue?.values || [];
+  return fields?.status?.stringValue === "active" &&
+    fields?.channelId?.stringValue === channelName &&
+    members.some(item => item.stringValue === uid) &&
+    joined.some(item => item.stringValue === uid) &&
+    role === "publisher";
+}
+
 async function agoraTokenForUser(request, env) {
   if (!configured(env)) {
     return json({ error: "Agora worker configuration is incomplete." }, 503);
@@ -151,13 +164,9 @@ async function agoraTokenForUser(request, env) {
     // Only a member who actively joined this group call may obtain an
     // Agora publisher token. Never rely on the client-supplied chat ID alone.
     const fields = session.fields;
-    const members = fields.memberIds?.arrayValue?.values || [];
-    const joined = fields.joinedIds?.arrayValue?.values || [];
-    const owns = members.some(entry => entry.stringValue === uid);
-    const present = joined.some(entry => entry.stringValue === uid);
-    if (fields.status?.stringValue !== "active" ||
-        fields.channelId?.stringValue !== channelName ||
-        !owns || !present || requestedRole !== "publisher") {
+    if (!isAllowedGroupCallPublisher(
+      fields, uid, channelName, requestedRole,
+    )) {
       return json({ error: "Join an active group call before publishing." }, 403);
     }
   } else if (collection === "rooms") {
@@ -294,7 +303,7 @@ export default {
       return json({
         ok: ready,
         service: "worldvoice-agora-token-worker",
-        tokenApiRevision: "2026-10-30.1",
+        tokenApiRevision: "2026-10-31.2",
         liveHostBootstrapSupported: true,
       }, ready ? 200 : 503);
     }
