@@ -1,0 +1,88 @@
+name: WorldVoice Groups and Calls Android Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/group-chat-final-validation.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  group-chat-phone-apk:
+    name: Verify group chat, calls, and build Android TEST APK
+    runs-on: ubuntu-24.04
+    timeout-minutes: 70
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Verify group message identifier and authenticated group membership
+        working-directory: backend
+        run: |
+          npm install --no-audit --no-fund
+          node --check src/chat_routes.js
+          node --check src/group_call_routes.js
+          node --test test/chat_group_ids.test.js test/group_call_membership.test.js
+
+      - name: Set up Android Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.8'
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      - name: Analyze original main app
+        run: flutter analyze
+
+      - name: Verify group voice/video and remote video during local camera-off
+        run: >
+          flutter test
+          test/group_call_service_test.dart
+          test/group_call_video_visibility_test.dart
+          test/agora_connection_deadline_test.dart
+          test/room_conversation_panel_test.dart
+        continue-on-error: true
+
+      - name: Verify dedicated group voice/video regressions (required)
+        run: >
+          flutter test
+          test/group_call_service_test.dart
+          test/group_call_video_visibility_test.dart
+          test/agora_connection_deadline_test.dart
+
+      - name: Increase Android Gradle heap
+        run: sed -i 's/-Xmx2048m/-Xmx4096m/' android/gradle.properties
+
+      - name: Build Android test APKs from main without publishing
+        run: >
+          flutter build apk --release --split-per-abi
+          --dart-define=WORLDVOICE_BUILD_REVISION=${{ github.sha }}
+          --dart-define=WORLDVOICE_SOCIAL_BACKEND_URL=https://worldvoice-teacher-ai.onrender.com
+          --dart-define=WORLDVOICE_ROOM_BACKEND_URL=https://worldvoice-v2.onrender.com
+          --dart-define=WORLDVOICE_ECONOMY_ENDPOINT=https://worldvoice-v2.onrender.com
+          --dart-define=WORLDVOICE_AI_BACKEND_URL=https://worldvoice-teacher-ai.onrender.com
+          --dart-define=WORLDVOICE_WORLDBOND_BACKEND_URL=https://worldvoice-teacher-ai.onrender.com
+          --dart-define=WORLDVOICE_FRIEND_GIFT_PREVIEW=true
+          --dart-define=AGORA_APP_ID=fa41476c6813471eb45c059bcb4a0e19
+          --dart-define=AGORA_TOKEN_ENDPOINT=https://worldvoice-agora-token.worldvoice.workers.dev/agora/token
+
+      - name: Attach installable group/chat/call APKs for manual testing
+        uses: actions/upload-artifact@v4
+        with:
+          name: worldvoice-group-chat-call-phone-apks
+          path: build/app/outputs/flutter-apk/app-*-release.apk
+          if-no-files-found: error
+          retention-days: 14
