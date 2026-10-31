@@ -100,6 +100,27 @@ export function registerWorldBondRoutes({app, db, authenticatedUser,
     return d;
   };
 
+  // Public relationship achievements for room-chat name decorations only.
+  // Never expose partner IDs, pending invitations or private gift amounts.
+  app.get("/world-bond/chat-badges", async (req, res, next) => {
+    try {
+      await authenticatedUser(req);
+      const target = clean(req.query.userId, 128);
+      if (!validId(target)) bad("Invalid badge user.");
+      const snapshot = await bonds.where("members", "array-contains", target)
+        .limit(80).get();
+      const achievements = Object.fromEntries(BOND_TYPES.map(type => {
+        const active = snapshot.docs
+          .map(d => d.data() || {})
+          .filter(d => d.type === type && d.status === "active" &&
+              Array.isArray(d.members) && d.members.includes(target))
+          .map(d => bondLevel(Number(d.xp || 0)));
+        return [type, active.length ? Math.max(...active) : 0];
+      }));
+      res.json({ok:true, badges:achievements});
+    } catch (e) {next(e);}
+  });
+
   app.get("/world-bond/overview", async (req, res, next) => {
     try {
       const user = await authenticatedUser(req);
