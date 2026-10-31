@@ -505,6 +505,15 @@ class ChatScreen extends StatelessWidget {
           (doc) => db.collection('users').doc(doc.id).get(),
         ),
       );
+      // Mirror the server's mutual-follow requirement in the invite picker.
+      final followBack = await Future.wait(
+        following.docs.map((doc) => db.collection('users').doc(doc.id)
+            .collection('following').doc(uid).get()),
+      );
+      final eligibleProfiles = <DocumentSnapshot<Map<String, dynamic>>>[
+        for (var i = 0; i < profiles.length; i++)
+          if (followBack[i].exists && profiles[i].exists) profiles[i],
+      ];
       if (!parentContext.mounted) return;
 
       await showModalBottomSheet<void>(
@@ -522,12 +531,30 @@ class ChatScreen extends StatelessWidget {
                   child: TextField(
                     controller: nameController,
                     maxLength: 80,
+                    onChanged: (_) => setSheetState(() {}),
                     decoration: InputDecoration(
                       labelText: ar ? 'اسم المجموعة' : 'Group name',
+                      helperText: ar ? 'هذا عداد أحرف الاسم وليس عدد الأعضاء'
+                        : 'Name characters, not selected members',
                       prefixIcon: const Icon(Icons.groups_rounded),
                     ),
                   ),
                 ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Text(
+                      ar ? 'الأعضاء المختارون: ${selected.length}/29'
+                        : 'Selected members: ${selected.length}/29',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF35D399),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Align(
@@ -541,7 +568,7 @@ class ChatScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Expanded(
-                  child: profiles.isEmpty
+                  child: eligibleProfiles.isEmpty
                       ? Center(
                           child: Text(
                             ar
@@ -550,9 +577,9 @@ class ChatScreen extends StatelessWidget {
                           ),
                         )
                       : ListView.builder(
-                          itemCount: profiles.length,
+                          itemCount: eligibleProfiles.length,
                           itemBuilder: (context, index) {
-                            final snap = profiles[index];
+                            final snap = eligibleProfiles[index];
                             if (!snap.exists) return const SizedBox.shrink();
                             final data =
                                 snap.data() ?? const <String, dynamic>{};
@@ -569,7 +596,9 @@ class ChatScreen extends StatelessWidget {
                               onChanged: (value) {
                                 setSheetState(() {
                                   if (value == true) {
-                                    selected.add(peerId);
+                                    if (selected.length < 29) {
+                                      selected.add(peerId);
+                                    }
                                   } else {
                                     selected.remove(peerId);
                                   }
