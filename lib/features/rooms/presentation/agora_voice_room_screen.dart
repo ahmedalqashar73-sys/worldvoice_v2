@@ -2639,23 +2639,23 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                             spacing: 7,
                             runSpacing: 7,
                             children: [
-                              for (final option in <(String, IconData)>[
+                              for (final option in <(String, String, IconData)>[
                                 (ar ? 'رفيق التعلّم' : 'Learning companion',
-                                  Icons.menu_book_rounded),
+                                  'learning', Icons.menu_book_rounded),
                                 (ar ? 'رفيق اللغة' : 'Language partner',
-                                  Icons.translate_rounded),
+                                  'language', Icons.translate_rounded),
                                 (ar ? 'صديق مميز' : 'Close friend',
-                                  Icons.handshake_rounded),
+                                  'friend', Icons.handshake_rounded),
                                 (ar ? 'ثنائي WorldVoice' : 'WorldVoice duo',
-                                  Icons.favorite_rounded),
+                                  'duo', Icons.favorite_rounded),
                               ])
                                 ActionChip(
-                                  avatar: Icon(option.$2, size: 17,
+                                  avatar: Icon(option.$3, size: 17,
                                     color: const Color(0xFFFFE0A0)),
                                   label: Text(option.$1),
                                   backgroundColor: const Color(0xFF173D32),
                                   onPressed: () =>
-                                      Navigator.pop(sheetContext, 'bond'),
+                                      Navigator.pop(sheetContext, 'bond:${option.$2}'),
                                 ),
                             ],
                           ),
@@ -2677,12 +2677,16 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
           // Push the real profile immediately; no intermediate list or sheet.
           _openParticipantProfile(person.userId);
           break;
-        case 'bond':
+        case 'bond:learning':
+        case 'bond:language':
+        case 'bond:friend':
+        case 'bond:duo':
           await Navigator.of(context).push<void>(
             MaterialPageRoute<void>(
               builder: (_) => WorldBondScreen(
                 peerId: person.userId,
                 peerName: person.displayName,
+                focusType: action.substring('bond:'.length),
               ),
             ),
           );
