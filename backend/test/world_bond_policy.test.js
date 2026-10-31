@@ -10,7 +10,7 @@ test("WorldBond never conflates two unrelated users or relationship types", () =
   assert.equal(one, bondKey("user_beta_456", "user_alpha_123", "friend"));
   assert.notEqual(one, bondKey("user_alpha_123", "user_beta_456", "duo"));
   assert.notEqual(one, bondKey("user_alpha_123", "user_gamma_789", "friend"));
-  assert.deepEqual(BOND_TYPES, ["language", "friend", "duo"]);
+  assert.deepEqual(BOND_TYPES, ["learning", "language", "friend", "duo"]);
 });
 
 test("WorldBond levels use non-monetary progression thresholds", () => {
