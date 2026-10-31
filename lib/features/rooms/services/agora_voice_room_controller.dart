@@ -502,13 +502,17 @@ class AgoraVoiceRoomController extends ChangeNotifier {
         : RoomBackendConfig.configurationError.isEmpty
             ? RoomBackendConfig.endpoint('/agora/token')
             : '';
+    final groupCall = channelId.startsWith('group_');
     final backendFirst =
         channelId.startsWith('call_') || preferBackendToken;
+    // Group-call credentials MUST pass the main backend's current membership
+    // check. Never fall back to a potentially stale public Worker endpoint.
     final endpoints = <String>[
-      if (backendFirst && backendEndpoint.isNotEmpty)
+      if (groupCall && backendEndpoint.isNotEmpty) backendEndpoint,
+      if (!groupCall && backendFirst && backendEndpoint.isNotEmpty)
         backendEndpoint,
-      ...AgoraConfig.tokenEndpoints,
-      if (!backendFirst && backendEndpoint.isNotEmpty)
+      if (!groupCall) ...AgoraConfig.tokenEndpoints,
+      if (!groupCall && !backendFirst && backendEndpoint.isNotEmpty)
         backendEndpoint,
     ].where((value) => value.trim().isNotEmpty).toSet().toList(growable: false);
     if (endpoints.isEmpty) {
