@@ -21,7 +21,7 @@ void main() {
       throw StateError('NOT_ENOUGH_COINS');
     }
     await tester.pumpWidget(MaterialApp(home: WorldBondScreen(
-      peerId:'bob',peerName:'Bob',viewerId:'alice',request:request)));
+      peerId:'bob',peerName:'Bob',viewerId:'alice',focusType:'friend',focusGifts:true,request:request)));
     await tester.pumpAndSettle();
     for(var i=0;i<2;i++) {
       final button = find.widgetWithText(FilledButton,'Send');
