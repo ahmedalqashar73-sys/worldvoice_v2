@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../profile/presentation/world_bond_gift_art.dart';
+import '../../profile/presentation/world_bond_level_badge.dart';
 import '../../profile/presentation/world_bond_screen.dart';
 
-/// A compact entry into the REAL WorldBond flows on every room profile,
-/// including the host's own card. Gifts do not use room/Live gift widgets.
+/// Room-card-only preview. The gallery and payment confirmation open on the
+/// existing WorldBond page; the room, Live, and global app theme are unchanged.
 class RoomWorldBondSection extends StatefulWidget {
   const RoomWorldBondSection({
     required this.userId,
@@ -18,8 +19,6 @@ class RoomWorldBondSection extends StatefulWidget {
   final String userId;
   final bool isSelf;
   final bool isArabic;
-  /// A relationship type, or 'gifts' for the exclusive gift catalog.
-  /// Null opens the overview of the user's own relationships.
   final ValueChanged<String?> onOpen;
   final Future<Map<String, dynamic>> Function()? overviewLoader;
 
@@ -57,108 +56,138 @@ class _RoomWorldBondSectionState extends State<RoomWorldBondSection> {
   @override
   Widget build(BuildContext context) {
     final ar = widget.isArabic;
-    const gold = Color(0xFFFFD78D);
-    const pale = Color(0xFFDDF7EB);
-    const dark = Color(0xFF0F2F29);
-    const kinds = <(String, String, String, IconData)>[
-      ('learning', 'رفيق التعلّم', 'Learning companion', Icons.menu_book_rounded),
-      ('language', 'رفيق اللغة', 'Language partner', Icons.translate_rounded),
-      ('friend', 'صديق مميز', 'Close friend', Icons.handshake_rounded),
-      ('duo', 'ثنائي WorldVoice', 'WorldVoice duo', Icons.favorite_rounded),
+    const gold = Color(0xFFFFD991);
+    const pale = Color(0xFFDFF7EE);
+    const teal = Color(0xFF164A3F);
+    const kinds = <(String, String, String, IconData, Color)>[
+      ('learning', 'رفيق التعلّم', 'Learning companion',
+        Icons.menu_book_rounded, Color(0xFF24B88E)),
+      ('language', 'رفيق اللغة', 'Language partner',
+        Icons.translate_rounded, Color(0xFF46BEDB)),
+      ('friend', 'صديق مميز', 'Close friend',
+        Icons.handshake_rounded, Color(0xFFBD8AF2)),
+      ('duo', 'ثنائي WorldVoice', 'WorldVoice duo',
+        Icons.favorite_rounded, Color(0xFFF4CA7F)),
     ];
-    const gifts = <(int, String, String, int)>[
-      (1, 'وعد الزمرد', 'Emerald Promise', 100),
-      (2, 'جسر الصداقة الذهبي', 'Golden Bridge', 200),
-      (3, 'انسجام الكريستال', 'Crystal Harmony', 500),
-      (4, 'رابطة التاج الملكي', 'Royal Bond', 1000),
-    ];
+    const gifts = <(int, int)>[(1, 100), (2, 200), (3, 500), (4, 1000)];
+
     return Container(
       key: const ValueKey('room-worldbond-section'),
+      padding: const EdgeInsets.all(13),
       decoration: BoxDecoration(
-        color: dark,
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft, end: Alignment.bottomRight,
+          colors: [Color(0xFF184F41), Color(0xFF092B29), Color(0xFF163F3D)],
+        ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: gold.withValues(alpha: .38)),
+        border: Border.all(color: gold.withValues(alpha: .5)),
       ),
-      padding: const EdgeInsets.all(12),
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(children: [
-            const Icon(Icons.diversity_2_rounded, color: gold),
-            const SizedBox(width: 8),
+            const Icon(Icons.diversity_2_rounded, color: gold, size: 22),
+            const SizedBox(width: 7),
             Expanded(child: Text(
-              ar ? 'WorldBond • روابط مميزة' : 'WorldBond • Special connections',
-              style: const TextStyle(
-                color: gold, fontWeight: FontWeight.w800, fontSize: 15),
+              ar ? 'WorldBond • العلاقات المميزة'
+                 : 'WorldBond • Special connections',
+              style: const TextStyle(color: gold,
+                fontSize: 14, fontWeight: FontWeight.w900),
             )),
             TextButton(
               onPressed: () => widget.onOpen(null),
-              child: Text(ar ? 'عرض الكل' : 'See all',
+              child: Text(ar ? 'التفاصيل' : 'Details',
                 style: const TextStyle(color: pale)),
             ),
           ]),
-          const SizedBox(height: 4),
           FutureBuilder<Map<String, dynamic>>(
             future: _overview,
             builder: (context, snapshot) {
               final records = (snapshot.data?['bonds'] as List? ?? const [])
                   .whereType<Map>().toList(growable: false);
-              String status(String type) {
-                final matches = records.where((item) =>
-                    item['type'] == type &&
-                    (widget.isSelf ||
-                        (item['members'] is List &&
-                         (item['members'] as List).contains(widget.userId))));
-                if (matches.any((item) => item['status'] == 'active')) {
-                  return ar ? 'علاقة نشطة' : 'Active';
+              Map? matching(String type) {
+                Map? pending;
+                for (final entry in records) {
+                  if (entry['type'] != type ||
+                      (!widget.isSelf &&
+                       ((entry['members'] as List?)?.contains(widget.userId)
+                           != true))) {
+                    continue;
+                  }
+                  if (entry['status'] == 'active') return entry;
+                  if (entry['status'] == 'pending') pending = entry;
                 }
-                if (matches.any((item) => item['status'] == 'pending')) {
-                  return ar ? 'بانتظار القبول' : 'Pending';
-                }
-                if (snapshot.hasError) return ar ? 'تحقق من الاتصال' : 'Offline';
-                if (!snapshot.hasData) return ar ? 'جارٍ التحميل' : 'Loading';
-                return widget.isSelf
-                    ? (ar ? 'روابطي' : 'My connections')
-                    : (ar ? 'إرسال دعوة' : 'Invite');
+                return pending;
               }
+
               return LayoutBuilder(
                 builder: (context, constraints) {
-                  final tileWidth = (constraints.maxWidth - 8) / 2;
+                  final tileWidth = (constraints.maxWidth - 9) / 2;
                   return Wrap(
-                    spacing: 8, runSpacing: 8,
+                    spacing: 9, runSpacing: 9,
                     children: [
                       for (final kind in kinds)
                         SizedBox(
                           width: tileWidth,
-                          child: Material(
-                            color: const Color(0xFF165340),
-                            borderRadius: BorderRadius.circular(13),
-                            child: InkWell(
-                              key: ValueKey('room-worldbond-${kind.$1}'),
-                              borderRadius: BorderRadius.circular(13),
-                              onTap: () => widget.onOpen(kind.$1),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 9, vertical: 12),
-                                child: Column(children: [
-                                  Icon(kind.$4, color: gold, size: 22),
-                                  const SizedBox(height: 5),
-                                  Text(ar ? kind.$2 : kind.$3,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      color: Colors.white, fontSize: 12,
-                                      fontWeight: FontWeight.w700)),
-                                  const SizedBox(height: 3),
-                                  Text(status(kind.$1), maxLines: 1,
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      color: pale, fontSize: 10)),
-                                ]),
+                          child: Builder(builder: (context) {
+                            final relation = matching(kind.$1);
+                            final status = relation?['status'];
+                            final level = (relation?['level'] as num?)?.toInt() ?? 1;
+                            return Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                key: ValueKey('room-worldbond-${kind.$1}'),
+                                onTap: () => widget.onOpen(kind.$1),
+                                borderRadius: BorderRadius.circular(16),
+                                child: Ink(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(colors: [
+                                      kind.$5.withValues(alpha: .27),
+                                      teal,
+                                    ]),
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: kind.$5.withValues(alpha: .5)),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 7, vertical: 12),
+                                    child: Column(children: [
+                                      Icon(kind.$4, size: 25, color: kind.$5),
+                                      const SizedBox(height: 6),
+                                      Text(ar ? kind.$2 : kind.$3,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12, fontWeight: FontWeight.w800)),
+                                      const SizedBox(height: 6),
+                                      if (status == 'active')
+                                        WorldBondLevelBadge(level: level,
+                                          compact: true, isArabic: ar)
+                                      else
+                                        Text(
+                                          status == 'pending'
+                                              ? (ar ? 'بانتظار القبول' : 'Pending')
+                                              : snapshot.hasError
+                                                  ? (ar ? 'تحقق من الاتصال' : 'Offline')
+                                                  : !snapshot.hasData
+                                                      ? (ar ? 'جارٍ التحميل' : 'Loading')
+                                                      : widget.isSelf
+                                                          ? (ar ? 'روابطي' : 'My bonds')
+                                                          : (ar ? 'إرسال دعوة' : 'Invite'),
+                                          maxLines: 1,
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                            color: pale, fontSize: 10)),
+                                    ]),
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
+                            );
+                          }),
                         ),
                     ],
                   );
@@ -166,54 +195,56 @@ class _RoomWorldBondSectionState extends State<RoomWorldBondSection> {
               );
             },
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
           Row(children: [
             const Icon(Icons.redeem_rounded, color: gold, size: 20),
-            const SizedBox(width: 6),
+            const SizedBox(width: 7),
             Expanded(child: Text(
-              ar ? 'هدايا WorldBond الخاصة' : 'WorldBond exclusive gifts',
+              ar ? 'هدايا WorldBond الحصرية' : 'Exclusive WorldBond gifts',
               style: const TextStyle(
                 color: gold, fontWeight: FontWeight.w800, fontSize: 13)),
             ),
+            IconButton(
+              tooltip: ar ? 'معرض الهدايا' : 'Gift gallery',
+              onPressed: () => widget.onOpen(widget.isSelf ? null : 'gifts'),
+              icon: const Icon(Icons.chevron_left_rounded, color: gold),
+            ),
           ]),
-          const SizedBox(height: 4),
           Text(
-            ar
-                ? 'هدايا مستقلة تمامًا عن الروم واللايف. الإهداء بعد قبول العلاقة فقط.'
-                : 'Separate from room and Live gifts. Sending requires an accepted bond.',
-            style: const TextStyle(color: pale, fontSize: 11)),
-          const SizedBox(height: 9),
+            ar ? 'اضغط على رفيق التعلّم أو أي علاقة لفتح هداياها وشاراتها.'
+               : 'Open any connection to view its gift gallery and badges.',
+            style: const TextStyle(fontSize: 11, color: pale)),
+          const SizedBox(height: 8),
+          // Compact previews only. The full gallery stays behind a tap.
           LayoutBuilder(builder: (context, constraints) {
-            final tileWidth = (constraints.maxWidth - 8) / 2;
+            final tileWidth = (constraints.maxWidth - 18) / 4;
             return Wrap(
-              spacing: 8, runSpacing: 8,
+              spacing: 6, runSpacing: 6,
               children: [
                 for (final gift in gifts)
                   SizedBox(
                     width: tileWidth,
                     child: Material(
-                      color: const Color(0xFF184739),
-                      borderRadius: BorderRadius.circular(13),
+                      color: const Color(0xFF1C463E),
+                      borderRadius: BorderRadius.circular(12),
                       child: InkWell(
                         key: ValueKey('room-worldbond-gift-${gift.$1}'),
-                        onTap: () => widget.onOpen('gifts'),
-                        borderRadius: BorderRadius.circular(13),
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: () => widget.onOpen(widget.isSelf ? null : 'gifts'),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
-                              vertical: 9, horizontal: 5),
+                            horizontal: 2, vertical: 7),
                           child: Column(children: [
-                            WorldBondGiftArt(level: gift.$1, size: 54),
-                            const SizedBox(height: 4),
-                            Text(ar ? gift.$2 : gift.$3,
-                              maxLines: 1, overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.center,
+                            WorldBondGiftArt(level: gift.$1, size: 44),
+                            const SizedBox(height: 3),
+                            Text('LV${gift.$1}',
                               style: const TextStyle(
-                                color: Colors.white, fontSize: 11)),
-                            Text('LV ${gift.$1} • ${gift.$4} ${ar ? 'كوين' : 'coins'}',
+                                color: gold, fontWeight: FontWeight.w900,
+                                fontSize: 10)),
+                            Text('${gift.$2} ${ar ? 'كوين' : 'coins'}',
+                              maxLines: 1,
                               textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                color: gold, fontSize: 11,
-                                fontWeight: FontWeight.bold)),
+                              style: const TextStyle(color: pale, fontSize: 9)),
                           ]),
                         ),
                       ),
@@ -226,12 +257,12 @@ class _RoomWorldBondSectionState extends State<RoomWorldBondSection> {
             Padding(
               padding: const EdgeInsets.only(top: 8),
               child: Text(
-                ar ? 'هذه هدايا للآخرين؛ لا يمكنك إهداء نفسك.'
-                   : 'These are gifts for others. You cannot gift yourself.',
+                ar ? 'للعرض فقط؛ لا يمكن إرسال هدية لنفسك.'
+                   : 'Preview only; you cannot gift yourself.',
                 style: const TextStyle(color: pale, fontSize: 11),
               ),
             ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 9),
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
@@ -241,8 +272,9 @@ class _RoomWorldBondSectionState extends State<RoomWorldBondSection> {
                 foregroundColor: gold,
                 side: const BorderSide(color: gold),
               ),
-              icon: const Icon(Icons.open_in_new_rounded, size: 18),
-              label: Text(ar ? 'فتح WorldBond بالكامل' : 'Open full WorldBond'),
+              icon: const Icon(Icons.auto_awesome_rounded, size: 18),
+              label: Text(ar ? 'فتح معرض العلاقات والهدايا'
+                  : 'Explore bonds and gifts'),
             ),
           ),
         ],
