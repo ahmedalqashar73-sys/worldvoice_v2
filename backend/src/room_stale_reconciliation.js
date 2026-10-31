@@ -15,8 +15,13 @@ export const staleRoomDecision = ({room, participants, now, graceMs = 180000}) =
   // An incomplete sample is never proof of an empty room.
   if (participants.length >= 150 ||
       participants.some(p => activeAt(p) === 0)) return false;
-  // A single fresh host, moderator or listener keeps the room alive.
-  return !participants.some(p => activeAt(p) > now - graceMs);
+  // A genuinely empty participants collection can be closed after the
+  // requested three-minute grace period. A stale *document* is less certain:
+  // backgrounded Android may temporarily suspend its 30-second heartbeat.
+  // Use a longer safety window before declaring an abandoned participant.
+  if (participants.length === 0) return true;
+  const memberGraceMs = Math.max(graceMs, 15 * 60 * 1000);
+  return !participants.some(p => activeAt(p) > now - memberGraceMs);
 };
 
 export function registerStaleRoomRoutes({app, db, authenticatedUser,
