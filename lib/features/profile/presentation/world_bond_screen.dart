@@ -630,7 +630,7 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
                   ],
                 ]),
             )),
-          if (!widget.embedded) ...[
+          if (!widget.embedded && !widget.focusGifts) ...[
           const SizedBox(height: 18),
           Row(children: [
             Expanded(child: Text(label('قائمة الرغبات', 'Wishlist'),
@@ -670,7 +670,7 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
                 .firstOrNull ?? receipt['giftId'].toString()),
               subtitle: Text(receipt['senderId'] == uid
                 ? label('أرسلتها', 'Sent') : label('استلمتها', 'Received'))),
-          if (!widget.embedded) ...[
+          if (!widget.embedded && !widget.focusGifts) ...[
           Text(label('جدار الهدايا', 'Gift wall'),
             style: Theme.of(context).textTheme.titleLarge),
           for (final record in group('wall'))
