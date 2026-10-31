@@ -10,6 +10,7 @@ import '../../home/presentation/home_screen.dart';
 import '../../profile/presentation/public_profile_screen.dart';
 import '../../rooms/services/agora_voice_room_controller.dart';
 import '../services/group_call_service.dart';
+import 'group_call_video_policy.dart';
 
 /// Audio and video share the same authenticated group session. Each member
 /// explicitly joins before publishing; leaving never removes group membership.
@@ -281,7 +282,11 @@ class _GroupChatCallScreenState extends State<GroupChatCallScreen> {
     final mine = FirebaseAuth.instance.currentUser?.uid;
     final engine = _controller.engine;
     final remote = _controller.remoteSpeakers;
-    final video = call.isVideo && _controller.joined;
+    final showRemoteVideo = showGroupRemoteVideo(
+      isVideoCall: call.isVideo,
+      agoraJoined: _controller.joined,
+      remoteVideoStreams: remote.length,
+    );
     return PopScope(
       canPop: _ending,
       onPopInvokedWithResult: (didPop, _) {
@@ -333,7 +338,7 @@ class _GroupChatCallScreenState extends State<GroupChatCallScreen> {
                 ),
               if (_connecting)
                 const LinearProgressIndicator(minHeight: 2),
-              if (call.isVideo && video && engine != null && remote.isNotEmpty)
+              if (showRemoteVideo && engine != null)
                 SizedBox(
                   height: MediaQuery.sizeOf(context).height * .27,
                   child: Row(
