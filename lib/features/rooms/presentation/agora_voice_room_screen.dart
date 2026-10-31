@@ -34,6 +34,7 @@ import '../services/room_live_caption_controller.dart';
 import '../services/room_moderation_service.dart';
 import '../services/room_admin_service.dart';
 import '../services/room_quota_service.dart';
+import '../services/room_firestore_recovery.dart';
 import '../services/room_rewarded_ad_service.dart';
 import '../services/vip_room_features.dart';
 import '../services/room_translation_service.dart';
@@ -470,11 +471,17 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     var membershipEstablished = false;
     try {
       final asHost = widget.initialRole == AgoraRoomRole.speaker;
-      final level = await _moderation.roomLevel();
+      final level = await RoomFirestoreRecovery.retryRead(
+        () => _moderation.roomLevel(),
+      );
       entryStage = 'quota-check';
-      final quotaStatus = await _quota.startSession(
-        asHost: asHost,
-        roomLevel: level,
+      // A cached or failed quota read must never grant room time. Wait for a
+      // verified Firestore response, retrying only temporary network errors.
+      final quotaStatus = await RoomFirestoreRecovery.retryRead(
+        () => _quota.startSession(
+          asHost: asHost,
+          roomLevel: level,
+        ),
       );
 
       if (!quotaStatus.allowed) {
@@ -761,13 +768,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       _leaving = true;
       _quotaTimer?.cancel();
       final isArabic = Localizations.localeOf(context).languageCode == 'ar';
-      final denied = error is FirebaseException &&
-          error.code == 'permission-denied';
-      final message = denied
-          ? (isArabic
-              ? 'رفضت Firebase صلاحية الدخول ($entryStage). تأكد من نشر قواعد الغرف الجديدة.'
-              : 'Firebase denied room access ($entryStage). Check the published room rules.')
-          : error.toString();
+      final message = RoomFirestoreRecovery.message(
+        error,
+        isArabic: isArabic,
+      );
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message), duration: const Duration(seconds: 10)),
       );
