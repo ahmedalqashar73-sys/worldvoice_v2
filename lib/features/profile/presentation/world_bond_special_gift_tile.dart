@@ -110,14 +110,15 @@ class WorldBondSpecialGiftTile extends StatelessWidget {
                   isArabic ? 'هدية WorldBond الخاصة' : 'WorldBond exclusive gift',
                   style: Theme.of(context).textTheme.bodySmall),
                 const SizedBox(height: 6),
-                Row(
+                Wrap(
+                  spacing: 3,
+                  runSpacing: 2,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     const Icon(Icons.monetization_on_rounded,
                         color: Color(0xFFE8C468), size: 16),
-                    const SizedBox(width: 4),
                     Text('$priceCoins',
                       style: const TextStyle(fontWeight: FontWeight.w900)),
-                    const SizedBox(width: 3),
                     Text(isArabic ? 'كوين' : 'coins',
                         style: Theme.of(context).textTheme.bodySmall),
                   ],
