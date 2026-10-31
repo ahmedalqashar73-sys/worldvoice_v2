@@ -23,6 +23,10 @@ void main() {
     await tester.pumpWidget(MaterialApp(home: WorldBondScreen(
       peerId:'bob',peerName:'Bob',viewerId:'alice',focusType:'friend',focusGifts:true,request:request)));
     await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('worldbond-focused-gift-gallery')),
+        findsOneWidget);
+    expect(find.text('Wishlist'), findsNothing);
+    expect(find.text('Gift wall'), findsNothing);
     for(var i=0;i<2;i++) {
       final button = find.widgetWithText(FilledButton,'Send');
       await tester.scrollUntilVisible(button, 250);
