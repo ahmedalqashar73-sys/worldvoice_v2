@@ -82,12 +82,17 @@ export function registerWorldBondRoutes({app, db, authenticatedUser,
       const user = await authenticatedUser(req);
       const peerId = clean(req.query.peerId, 128);
       const viewedId = validId(peerId) ? peerId : user.uid;
-      const [records, wishSnap, wallSnap, catalogSnap] = await Promise.all([
+      const [records, wishSnap, wallSnap, catalogSnap, bondGiftsSnap] = await Promise.all([
         bonds.where("members", "array-contains", user.uid).limit(80).get(),
         profiles.doc(viewedId).collection("worldbond").doc("wishlist").get(),
         db.collection("economy_audit")
           .where("recipientId", "==", viewedId).limit(70).get(),
         db.collection("store_items").limit(150).get(),
+        validId(peerId) && peerId !== user.uid
+          ? Promise.all(BOND_TYPES.map(type => bonds.doc(bondKey(user.uid, peerId, type))
+            .collection("gifts").orderBy("createdAt", "desc").limit(20).get()))
+            .then(pages => ({docs: pages.flatMap(page => page.docs)}))
+          : Promise.resolve({docs: []}),
       ]);
       // Allow only participants to see pair activity. Gift audit shows only
       // public-facing item identifiers, never wallet details or private amounts.
@@ -117,6 +122,12 @@ export function registerWorldBondRoutes({app, db, authenticatedUser,
         }));
       res.json({ok: true, bonds: filtered, catalog, wishes, wall,
         specialGifts: worldBondSpecialGiftCatalog,
+        bondGifts: bondGiftsSnap.docs.filter(s => {
+          const d = s.data();
+          return [user.uid, peerId].includes(d.senderId) &&
+            [user.uid, peerId].includes(d.recipientId);
+        }).map(s => ({id: s.id, giftId: s.data().giftId,
+          senderId: s.data().senderId, recipientId: s.data().recipientId})),
         partnerId: peerId || null, serverNowMs: clock()});
     } catch (e) {next(e);}
   });

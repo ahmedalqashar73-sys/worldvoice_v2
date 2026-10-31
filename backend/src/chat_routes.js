@@ -319,29 +319,52 @@ export function registerChatRoutes({app, db, authenticatedUser}) {
       if (!name || name.length > 80) {
         fail("Group name must be between 1 and 80 characters.");
       }
-      if (memberIds.length < 2 || memberIds.length > 29) {
+      if (memberIds.some(id => !/^[A-Za-z0-9_-]{1,128}$/.test(id)) ||
+          memberIds.length < 2 || memberIds.length > 29) {
         fail("Choose between 2 and 29 other members.");
       }
 
+      const requestKey = req.headers["idempotency-key"];
+      if (requestKey != null && !validKey(requestKey)) fail("Invalid idempotency key.");
+      // Older clients remain compatible. New clients reuse their key on retry.
+      const chatRef = requestKey
+        ? db.collection("chats").doc(createHash("sha256")
+          .update(`worldvoice:group:${creator.uid}:${requestKey}`).digest("hex"))
+        : db.collection("chats").doc();
+      const result = await db.runTransaction(async tx => {
+        const prior = await tx.get(chatRef);
+        if (prior.exists) {
+          const d = prior.data();
+          const expected = [creator.uid, ...memberIds].sort();
+          if (d.ownerId !== creator.uid || d.groupName !== name ||
+              JSON.stringify([...d.memberIds].sort()) !== JSON.stringify(expected)) {
+            fail("طلب الإنشاء مكرر ببيانات مختلفة.", 409);
+          }
+          return {allIds: d.memberIds};
+        }
       const creatorRef = db.collection("users").doc(creator.uid);
       const memberRefs = memberIds.map(id => db.collection("users").doc(id));
       const relationshipRefs = memberIds.flatMap(id => [
         creatorRef.collection("following").doc(id),
         db.collection("users").doc(id).collection("following").doc(creator.uid),
       ]);
-      const [creatorSnap, ...rest] = await db.getAll(
-        creatorRef,
-        ...memberRefs,
-        ...relationshipRefs,
-      );
+      const blockRefs = memberIds.flatMap(id => [
+        creatorRef.collection("blocked_peers").doc(id),
+        db.collection("users").doc(id).collection("blocked_peers").doc(creator.uid),
+      ]);
+      const snaps = await Promise.all([creatorRef, ...memberRefs,
+        ...relationshipRefs, ...blockRefs].map(ref => tx.get(ref)));
+      const [creatorSnap, ...rest] = snaps;
+      if (snaps.slice(1 + memberRefs.length + relationshipRefs.length)
+          .some(snap => snap.exists)) fail("لا يمكن إضافة مستخدم محظور إلى المجموعة.", 403);
       const profileSnaps = rest.slice(0, memberRefs.length);
-      const relationshipSnaps = rest.slice(memberRefs.length);
+      const relationshipSnaps = rest.slice(memberRefs.length, memberRefs.length + relationshipRefs.length);
 
       if (!creatorSnap.exists || profileSnaps.some(snap => !snap.exists)) {
         fail("A selected WorldVoice profile is unavailable.", 404);
       }
       if (relationshipSnaps.some(snap => !snap.exists)) {
-        fail("Group members must mutually follow the creator.", 403);
+        fail("يجب أن تتابع كل عضو وأن يتابعك قبل إنشاء المجموعة.", 403);
       }
 
       const allIds = [creator.uid, ...memberIds];
@@ -362,8 +385,7 @@ export function registerChatRoutes({app, db, authenticatedUser}) {
         memberPhotos[snap.id] = String(snap.data()?.photoUrl || "");
       }
 
-      const chatRef = db.collection("chats").doc();
-      await chatRef.set({
+      tx.create(chatRef, {
         type: "group",
         groupName: name,
         ownerId: creator.uid,
@@ -376,6 +398,10 @@ export function registerChatRoutes({app, db, authenticatedUser}) {
         createdAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),
       });
+
+      return {allIds};
+      });
+      const allIds = result.allIds;
 
       res.json({
         ok: true,

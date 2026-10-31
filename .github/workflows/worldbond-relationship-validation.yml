@@ -7,6 +7,8 @@ on:
     paths:
       - '.github/workflows/worldbond-relationship-validation.yml'
       - 'backend/src/world_bond_routes.js'
+      - 'backend/src/gift_send_routes.js'
+      - 'backend/src/chat_routes.js'
       - 'backend/src/gift_catalog.js'
       - 'backend/src/server.js'
       - 'backend/test/world_bond_*.test.js'
@@ -34,16 +36,34 @@ jobs:
           npm install --no-audit --no-fund
           node --check src/server.js
           node --check src/world_bond_routes.js
-          node --test test/world_bond_policy.test.js test/world_bond_special_gifts.test.js
+          npm test
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.44.8'
           channel: stable
           cache: true
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
       - run: flutter pub get
       - name: Verify app on original main
         run: flutter analyze
       - name: Test four premium relationship designs and purchase controls
-        run: flutter test test/world_bond_special_gift_tile_test.dart
+        run: flutter test test/world_bond_special_gift_tile_test.dart test/world_bond_screen_test.dart test/room_member_profile_details_test.dart test/world_bond_api_url_test.dart
       - name: Confirm normal room gift catalog unchanged
         run: flutter test test/classic_gift_catalog_test.dart
+
+      - name: Build original main debug APK
+        run: |
+          flutter build apk --debug \
+            --dart-define=AGORA_APP_ID=fa41476c6813471eb45c059bcb4a0e19 \
+            --dart-define=WORLDVOICE_ROOM_BACKEND_URL=https://worldvoice-v2.onrender.com \
+            --dart-define=AGORA_TOKEN_ENDPOINT=https://worldvoice-agora-token.worldvoice.workers.dev/agora/token \
+            --dart-define=WORLDVOICE_ECONOMY_ENDPOINT=https://worldvoice-v2.onrender.com
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WorldVoice-WorldBond-debug-apk
+          path: build/app/outputs/flutter-apk/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14

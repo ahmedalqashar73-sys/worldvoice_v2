@@ -5,6 +5,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'world_bond_special_gift_tile.dart';
+import 'world_bond_gift_art.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 /// Server-authenticated social features. Never mutate wallet/VIP from client.
@@ -38,7 +40,7 @@ class WorldBondApi {
     final decoded = jsonDecode(response.body);
     if (decoded is! Map) throw StateError('Invalid server response');
     final data = Map<String, dynamic>.from(decoded);
-    if (response.statusCode < 200 || response.statusCode >= 300) {
+    if (response.statusCode < 200 || response.statusCode >= 300 || data['ok'] != true) {
       throw StateError((data['error'] ?? 'Request rejected').toString());
     }
     return data;
@@ -68,11 +70,17 @@ class WorldBondApi {
   }
 }
 
+typedef WorldBondRequest = Future<Map<String, dynamic>> Function(String endpoint,
+    {Map<String, dynamic>? body, String? idempotencyKey});
+
 class WorldBondScreen extends StatefulWidget {
-  const WorldBondScreen({super.key, this.peerId, this.peerName, this.focusType});
+  const WorldBondScreen({super.key, this.peerId, this.peerName, this.focusType, this.embedded = false, this.request, this.viewerId});
   final String? peerId;
   final String? peerName;
   final String? focusType;
+  final bool embedded;
+  final WorldBondRequest? request;
+  final String? viewerId;
   @override
   State<WorldBondScreen> createState() => _WorldBondScreenState();
 }
@@ -82,10 +90,12 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
   Map<String, dynamic>? _data;
   String? _error;
   bool _busy = false;
+  bool _confirmingGift = false;
   final Map<String, String> _paymentKeys = {};
   bool get ar => Localizations.localeOf(context).languageCode == 'ar';
   String label(String arabic, String english) => ar ? arabic : english;
-  String get uid => FirebaseAuth.instance.currentUser?.uid ?? '';
+  String get uid => widget.viewerId ?? FirebaseAuth.instance.currentUser?.uid ?? '';
+  WorldBondRequest get _request => widget.request ?? WorldBondApi.request;
   bool get self => widget.peerId == null || widget.peerId == uid;
   List<Map<String, dynamic>> group(String key) {
     return (_data?[key] as List? ?? []).whereType<Map>()
@@ -99,7 +109,7 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
     try {
       final query = self ? '' :
         '?peerId=' + Uri.encodeQueryComponent(widget.peerId!);
-      final data = await WorldBondApi.request('world-bond/overview' + query);
+      final data = await _request('world-bond/overview' + query);
       if (mounted) setState(() { _data = data; _error = null; });
     } catch (e) {
       if (mounted) setState(() => _error = e.toString());
@@ -111,7 +121,7 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
     if (_busy) return;
     setState(() { _busy = true; _error = null; });
     try {
-      await WorldBondApi.request(route, body: data, idempotencyKey: key);
+      await _request(route, body: data, idempotencyKey: key);
       if (key != null) {
         _paymentKeys.remove((data['itemId'] ?? data['giftId']).toString());
       }
@@ -208,7 +218,7 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
       final query = 'world-bond/challenge?peerId=' +
           Uri.encodeQueryComponent(peer) +
           '&type=' + Uri.encodeQueryComponent(bond['type'].toString());
-      final exercise = await WorldBondApi.request(query);
+      final exercise = await _request(query);
       if (!mounted) return;
       if (exercise['alreadyAttempted'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -253,7 +263,7 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
       );
       if (index == null || !mounted) return;
       setState(() { _busy = true; _error = null; });
-      final result = await WorldBondApi.request('world-bond/challenge/answer',
+      final result = await _request('world-bond/challenge/answer',
         body: {'peerId': peer, 'type': bond['type'],
           'answerIndex': index});
       if (!mounted) return;
@@ -283,7 +293,7 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
   }
 
   Future<void> _giftSpecial(Map<String, dynamic> gift) async {
-    if (self || widget.peerId == null || _busy) return;
+    if (self || widget.peerId == null || _busy || _confirmingGift) return;
     final id = (gift['id'] ?? '').toString();
     const expected = <String, int>{
       'wv_bond_01': 100, 'wv_bond_02': 200,
@@ -295,15 +305,24 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
         'Gift price is unavailable.'));
       return;
     }
+    final bonds = group('bonds').where((b) => b['status'] == 'active' &&
+      (b['members'] as List? ?? []).contains(widget.peerId)).toList();
+    if (bonds.isEmpty) return;
+    final bond = bonds.firstWhere((b) => b['type'] == widget.focusType,
+      orElse: () => bonds.first);
+    _confirmingGift = true;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(label('هدية WorldBond الخاصة', 'Exclusive WorldBond gift')),
-        content: Text(label(
-          'إهداء ${gift['nameAr']} للمستوى ${gift['level']} بقيمة $price كوين. '
-          'سيتحقق السيرفر من علاقتكما والرصيد قبل الخصم. هل توافق؟',
-          'Send ${gift['name']} (level ${gift['level']}) for $price coins? '
-          'The server verifies the active bond and wallet before charging.')),
+        content: Column(mainAxisSize: MainAxisSize.min, children: [
+          WorldBondGiftArt(level: (gift['level'] as num).toInt(), size: 120),
+          const SizedBox(height: 12),
+          Text(label('${gift['nameAr']} — فئة الهدية ${gift['level']}\n'
+            'إلى ${widget.peerName ?? widget.peerId}: $price كوين',
+            '${gift['name']} — gift tier ${gift['level']}\n'
+            'To ${widget.peerName ?? widget.peerId}: $price coins')),
+        ]),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false),
             child: Text(label('إلغاء', 'Cancel'))),
@@ -312,19 +331,34 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
         ],
       ),
     );
+    _confirmingGift = false;
     if (confirmed != true || !mounted || _busy) return;
     setState(() { _busy = true; _error = null; });
     try {
-      final chat = await WorldBondApi.request(
-        'world-bond/chat-context?peerId=' +
-          Uri.encodeQueryComponent(widget.peerId!));
-      final key = _paymentKeys.putIfAbsent(
-        'worldbond:$id', WorldBondApi.newKey);
-      await WorldBondApi.request('gift/send', body: {
-        'context': 'chat', 'contextId': chat['chatId'],
-        'recipientId': widget.peerId, 'giftId': id, 'quantity': 1,
+      final prefs = await SharedPreferences.getInstance();
+      final storageKey = 'worldbond.pending.$uid.${widget.peerId}.${bond['type']}.$id';
+      final key = prefs.getString(storageKey) ?? WorldBondApi.newKey();
+      // Persist before the request: a timeout or app restart reuses the receipt.
+      await prefs.setString(storageKey, key);
+      final result = await _request('world-bond/gifts/send', body: {
+        'type': bond['type'], 'recipientId': widget.peerId, 'giftId': id,
       }, idempotencyKey: key);
-      _paymentKeys.remove('worldbond:$id');
+      if (result['ok'] != true || result['giftId'] != id ||
+          result['chargedCoins'] != price || result['operationId'] == null) {
+        throw StateError('لم يتم تأكيد عملية الإهداء. أعد المحاولة للتحقق.');
+      }
+      await prefs.remove(storageKey);
+      if (mounted) {
+        await showDialog<void>(context: context, builder: (ctx) => AlertDialog(
+          title: Text(label('تم إرسال الهدية', 'Gift delivered')),
+          content: Column(mainAxisSize: MainAxisSize.min, children: [
+            WorldBondGiftArt(level: (gift['level'] as num).toInt(), size: 160),
+            Text((ar ? gift['nameAr'] : gift['name']).toString()),
+          ]),
+          actions: [TextButton(onPressed: () => Navigator.pop(ctx),
+            child: Text(label('تم', 'Done')))],
+        ));
+      }
       await _refresh();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -371,11 +405,11 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
     if (agreed != true || _busy) return;
     setState(() { _busy = true; _error = null; });
     try {
-      final chat = await WorldBondApi.request(
+      final chat = await _request(
         'world-bond/chat-context?peerId=' +
           Uri.encodeQueryComponent(widget.peerId!));
       final key = _paymentKeys.putIfAbsent(id, WorldBondApi.newKey);
-      await WorldBondApi.request('gift/send', body: {
+      await _request('gift/send', body: {
         'context': 'chat', 'contextId': chat['chatId'],
         'recipientId': widget.peerId,
         'giftId': id.substring('gift__'.length), 'quantity': 1,
@@ -413,13 +447,11 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
       for (final type in kinds.keys)
         if (type != widget.focusType) type,
     ];
-    return Scaffold(
-      appBar: AppBar(title: const Text('WorldBond'),
-        foregroundColor: Colors.white, backgroundColor: green),
-      body: RefreshIndicator(
-        onRefresh: _refresh,
-        child: ListView(padding: const EdgeInsets.all(16), children: [
-          Container(padding: const EdgeInsets.all(20),
+    final content = ListView(
+      shrinkWrap: widget.embedded,
+      physics: widget.embedded ? const NeverScrollableScrollPhysics() : null,
+      padding: EdgeInsets.all(widget.embedded ? 0 : 16), children: [
+          if (!widget.embedded) Container(padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: const LinearGradient(colors: [green, Color(0xFF064B37)]),
               borderRadius: BorderRadius.circular(20)),
@@ -548,6 +580,7 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
               Text(label('اقبلوا الدعوة أولًا لتفعيل الهدايا الخاصة.',
                 'Accept a connection first to unlock these gifts.')),
           ],
+          if (!widget.embedded) ...[
           const SizedBox(height: 18),
           Row(children: [
             Expanded(child: Text(label('قائمة الرغبات', 'Wishlist'),
@@ -579,6 +612,15 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
             'only the server deducts coins.'),
             style: Theme.of(context).textTheme.bodySmall),
           const SizedBox(height: 22),
+          ],
+          for (final receipt in group('bondGifts'))
+            ListTile(leading: const Icon(Icons.card_giftcard),
+              title: Text(group('specialGifts').where((g) => g['id'] == receipt['giftId'])
+                .map((g) => (ar ? g['nameAr'] : g['name']).toString())
+                .firstOrNull ?? receipt['giftId'].toString()),
+              subtitle: Text(receipt['senderId'] == uid
+                ? label('أرسلتها', 'Sent') : label('استلمتها', 'Received'))),
+          if (!widget.embedded) ...[
           Text(label('جدار الهدايا', 'Gift wall'),
             style: Theme.of(context).textTheme.titleLarge),
           for (final record in group('wall'))
@@ -589,9 +631,19 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
           if (group('wall').isEmpty)
             Text(label('لا توجد هدايا مسجلة حتى الآن',
               'No recorded gifts yet')),
+          ],
           const SizedBox(height: 32),
-        ]),
-      ),
+        ]);
+    if (widget.embedded) {
+      return Theme(data: ThemeData.light(useMaterial3: true),
+        child: Material(color: const Color(0xFFF4F8F4),
+          borderRadius: BorderRadius.circular(18),
+          child: Padding(padding: const EdgeInsets.all(10), child: content)));
+    }
+    return Scaffold(
+      appBar: AppBar(title: const Text('WorldBond'),
+        foregroundColor: Colors.white, backgroundColor: green),
+      body: RefreshIndicator(onRefresh: _refresh, child: content),
     );
   }
 }

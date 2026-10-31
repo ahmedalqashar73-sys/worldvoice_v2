@@ -1,3 +1,4 @@
+import '../../../core/widgets/worldvoice_avatar_frame.dart';
 import '../../engagement/presentation/creative_badge.dart';
 import 'dart:async';
 
@@ -2437,12 +2438,9 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                           ],
                         ),
                         const SizedBox(height: 3),
-                        Container(
-                          padding: const EdgeInsets.all(3),
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: gold,
-                          ),
+                        WorldVoiceAvatarFrame(
+                          size: 86,
+                          frameId: person.frameId,
                           child: CircleAvatar(
                             radius: 37,
                             backgroundColor: deepGreen,
@@ -2634,30 +2632,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                             ),
                           ),
                           const SizedBox(height: 9),
-                          Wrap(
-                            alignment: WrapAlignment.center,
-                            spacing: 7,
-                            runSpacing: 7,
-                            children: [
-                              for (final option in <(String, String, IconData)>[
-                                (ar ? 'رفيق التعلّم' : 'Learning companion',
-                                  'learning', Icons.menu_book_rounded),
-                                (ar ? 'رفيق اللغة' : 'Language partner',
-                                  'language', Icons.translate_rounded),
-                                (ar ? 'صديق مميز' : 'Close friend',
-                                  'friend', Icons.handshake_rounded),
-                                (ar ? 'ثنائي WorldVoice' : 'WorldVoice duo',
-                                  'duo', Icons.favorite_rounded),
-                              ])
-                                ActionChip(
-                                  avatar: Icon(option.$3, size: 17,
-                                    color: const Color(0xFFFFE0A0)),
-                                  label: Text(option.$1),
-                                  backgroundColor: const Color(0xFF173D32),
-                                  onPressed: () =>
-                                      Navigator.pop(sheetContext, 'bond:${option.$2}'),
-                                ),
-                            ],
+                          WorldBondScreen(
+                            peerId: person.userId,
+                            peerName: person.displayName,
+                            embedded: true,
                           ),
                         ],
                       ],

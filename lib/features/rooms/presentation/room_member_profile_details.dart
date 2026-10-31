@@ -10,11 +10,13 @@ class RoomMemberProfileDetails extends StatefulWidget {
     required this.userId,
     required this.profile,
     required this.isArabic,
+    this.badgeLoader,
     super.key,
   });
   final String userId;
   final Map<String, dynamic> profile;
   final bool isArabic;
+  final Future<Map<String, dynamic>> Function(String)? badgeLoader;
 
   @override
   State<RoomMemberProfileDetails> createState() =>
@@ -27,14 +29,14 @@ class _RoomMemberProfileDetailsState extends State<RoomMemberProfileDetails> {
   @override
   void initState() {
     super.initState();
-    _badge = EngagementService.badge(widget.userId);
+    _badge = (widget.badgeLoader ?? EngagementService.badge)(widget.userId);
   }
 
   @override
   void didUpdateWidget(covariant RoomMemberProfileDetails oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.userId != widget.userId) {
-      _badge = EngagementService.badge(widget.userId);
+      _badge = (widget.badgeLoader ?? EngagementService.badge)(widget.userId);
     }
   }
 
@@ -47,11 +49,17 @@ class _RoomMemberProfileDetailsState extends State<RoomMemberProfileDetails> {
     final saved = (p['learningLanguageCodes'] as List?)?.isNotEmpty == true
         ? p['learningLanguageCodes'] as List
         : (p['learningLanguages'] as List?) ?? const <dynamic>[];
-    final learning = saved
-        .map((v) => ProfileLanguageCatalog.localizedStoredName(
-            v.toString(), locale))
-        .where((v) => v.isNotEmpty && v != native)
-        .toSet().toList(growable: false);
+    final proficiency = p['learningLanguageLevels'] ?? p['languageLevels'];
+    final learning = saved.map((value) {
+      final entry = value is Map ? value : null;
+      final code = entry == null ? value.toString()
+        : (entry['code'] ?? entry['language'] ?? entry['name'] ?? '').toString();
+      final name = ProfileLanguageCatalog.localizedStoredName(code, locale);
+      final recorded = entry?['level'] ??
+        (proficiency is Map ? proficiency[code] : null);
+      return recorded == null || recorded.toString().trim().isEmpty
+        ? name : '$name · $recorded';
+    }).where((name) => name.isNotEmpty).toSet().toList(growable: false);
     final rawLevel = (p['languageLevel'] ?? '').toString().toLowerCase();
     final level = switch (rawLevel) {
       'beginner' => widget.isArabic ? 'مبتدئ' : 'Beginner',

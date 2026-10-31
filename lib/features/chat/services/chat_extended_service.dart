@@ -59,16 +59,22 @@ class ChatExtendedService {
         .join();
   }
 
+  final Map<String, String> _groupKeys = {};
+
   Future<String> createGroup({
     required String name,
     required List<String> memberIds,
   }) async {
+    final members = [...memberIds]..sort();
+    final identity = jsonEncode([name.trim(), members]);
+    final key = _groupKeys.putIfAbsent(identity, _requestKey);
     final token = await _token();
     final response = await _client.post(
       _uri('/chat/group/create'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
+        'Idempotency-Key': key,
       },
       body: jsonEncode({'name': name.trim(), 'memberIds': memberIds}),
     ).timeout(RoomBackendConfig.socialRequestTimeout,
@@ -76,6 +82,7 @@ class ChatExtendedService {
     final body = await _decode(response);
     final chatId = (body['chatId'] ?? '').toString();
     if (chatId.isEmpty) throw StateError('Group was not created.');
+    _groupKeys.remove(identity);
     return chatId;
   }
 

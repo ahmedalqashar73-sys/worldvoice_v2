@@ -491,6 +491,7 @@ class ChatScreen extends StatelessWidget {
     final db = FirebaseFirestore.instance;
     final service = ChatExtendedService();
     final selected = <String>{};
+    bool creating = false;
     final nameController = TextEditingController();
 
     try {
@@ -531,6 +532,11 @@ class ChatScreen extends StatelessWidget {
                   child: TextField(
                     controller: nameController,
                     maxLength: 80,
+                    enabled: !creating,
+                    buildCounter: (context, {required currentLength,
+                        required isFocused, required maxLength}) => Text(ar
+                      ? 'أحرف اسم المجموعة: $currentLength/$maxLength'
+                      : 'Group name characters: $currentLength/$maxLength'),
                     onChanged: (_) => setSheetState(() {}),
                     decoration: InputDecoration(
                       labelText: ar ? 'اسم المجموعة' : 'Group name',
@@ -593,7 +599,7 @@ class ChatScreen extends StatelessWidget {
                             final checked = selected.contains(peerId);
                             return CheckboxListTile(
                               value: checked,
-                              onChanged: (value) {
+                              onChanged: creating ? null : (value) {
                                 setSheetState(() {
                                   if (value == true) {
                                     if (selected.length < 29) {
@@ -621,7 +627,7 @@ class ChatScreen extends StatelessWidget {
                   child: SizedBox(
                     width: double.infinity,
                     child: FilledButton.icon(
-                      onPressed: () async {
+                      onPressed: creating ? null : () async {
                         final groupName = nameController.text.trim();
                         if (groupName.isEmpty || selected.length < 2) {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -635,6 +641,7 @@ class ChatScreen extends StatelessWidget {
                           );
                           return;
                         }
+                        setSheetState(() => creating = true);
                         try {
                           final chatId = await service.createGroup(
                             name: groupName,
@@ -656,12 +663,12 @@ class ChatScreen extends StatelessWidget {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
-                                error
-                                    .toString()
-                                    .replaceFirst('Bad state: ', ''),
+                                ar ? 'تعذر إنشاء المجموعة. تأكد من المتابعة المتبادلة وعدم وجود حظر، ثم أعد المحاولة.' : error.toString().replaceFirst('Bad state: ', ''),
                               ),
                             ),
                           );
+                        } finally {
+                          if (sheetContext.mounted) setSheetState(() => creating = false);
                         }
                       },
                       icon: const Icon(Icons.group_add_rounded),
