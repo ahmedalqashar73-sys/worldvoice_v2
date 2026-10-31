@@ -8,6 +8,11 @@ class RoomBondChatMarks extends StatefulWidget {
   const RoomBondChatMarks({required this.userId, super.key});
   final String userId;
 
+  /// Refresh any visible room-chat relationship marks on returning from a
+  /// WorldBond invitation, acceptance, or relationship change.
+  static void invalidateUser(String? userId) =>
+      _RoomBondChatMarksState.invalidateUser(userId);
+
   @override
   State<RoomBondChatMarks> createState() => _RoomBondChatMarksState();
 }
