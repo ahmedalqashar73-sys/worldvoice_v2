@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import '../data/room_feature_models.dart';
 import '../data/classic_gift_catalog.dart';
 import 'classic_gift_visual.dart';
+import 'gift_coin_amount.dart';
 import '../services/room_feature_service.dart';
 import '../services/room_coin_purchase_service.dart';
 import 'room_coin_store_sheet.dart';
@@ -250,8 +251,8 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                   fontWeight: FontWeight.w900,
                 ),
               ),
-              Text(
-                '${gift.priceCoins} 🪙',
+              GiftCoinAmount(
+                amount: gift.priceCoins,
                 style: const TextStyle(
                   color: Color(0xFFFFDA89),
                   fontWeight: FontWeight.w800,
@@ -366,8 +367,8 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                 ),
               ),
               const SizedBox(height: 4),
-              Text(
-                '${gift.priceCoins} 🪙',
+              GiftCoinAmount(
+                amount: gift.priceCoins,
                 style: const TextStyle(
                   color: Color(0xFFFFD981),
                   fontWeight: FontWeight.w800,
@@ -793,8 +794,8 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                                             ),
                                           ),
                                           const SizedBox(height: 2),
-                                          Text(
-                                            '${gift.priceCoins} 🪙',
+                                          GiftCoinAmount(
+                                            amount: gift.priceCoins,
                                             style: const TextStyle(
                                               fontSize: 11,
                                               fontWeight: FontWeight.w800,

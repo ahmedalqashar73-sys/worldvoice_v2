@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/room_feature_models.dart';
 import '../data/classic_gift_catalog.dart';
 import 'classic_gift_visual.dart';
+import 'gift_coin_amount.dart';
 
 class RoomGiftOverlay extends StatelessWidget {
   const RoomGiftOverlay({required this.event, this.preview = false,
@@ -233,8 +234,8 @@ class RoomGiftOverlay extends StatelessWidget {
                             shadows: [Shadow(
                                 color: Color(0xFF093E30), blurRadius: 9)])),
                       const SizedBox(height: 4),
-                      Text(
-                        '${preview ? approved.priceCoins : event.points} 🪙',
+                      GiftCoinAmount(
+                        amount: preview ? approved.priceCoins : event.points,
                         style: const TextStyle(color: Color(0xFFFFDC88),
                             fontSize: 13, fontWeight: FontWeight.w800,
                             shadows: [Shadow(

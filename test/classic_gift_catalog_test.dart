@@ -5,31 +5,65 @@ import 'package:worldvoice/features/rooms/data/room_feature_models.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('WorldVoice catalog has exactly 104 unique preview-only gifts', () async {
-    final gifts = await ClassicGiftCatalog.load();
-    expect(gifts, hasLength(104));
-    expect(gifts.map((gift) => gift.id).toSet(), hasLength(104));
-    expect(
-      gifts.every((gift) =>
-          !gift.active &&
-          gift.priceCoins >= 1 &&
-          gift.priceCoins <= 5000 &&
-          gift.nameAr?.isNotEmpty == true &&
-          gift.emoji?.isNotEmpty == true),
-      isTrue,
-    );
+  test(
+    'WorldVoice catalog has exactly 104 unique preview-only gifts',
+    () async {
+      final gifts = await ClassicGiftCatalog.load();
+      expect(gifts, hasLength(104));
+      expect(gifts.map((gift) => gift.id).toSet(), hasLength(104));
+      expect(
+        gifts.every(
+          (gift) =>
+              !gift.active &&
+              gift.priceCoins >= 1 &&
+              gift.priceCoins <= 5000 &&
+              gift.nameAr?.isNotEmpty == true &&
+              gift.emoji?.isNotEmpty == true,
+        ),
+        isTrue,
+      );
 
-    expect(gifts.where((g) => g.priceCoins <= 150), hasLength(50));
-    expect(
-      gifts.where((g) => g.priceCoins >= 151 && g.priceCoins <= 1000),
-      hasLength(35),
-    );
-    expect(gifts.where((g) => g.priceCoins >= 1001), hasLength(19));
-    expect(gifts.first.id, 'wv_gift_001');
-    expect(gifts.first.priceCoins, 1);
-    expect(gifts.last.id, 'wv_gift_104');
-    expect(gifts.last.priceCoins, 5000);
-  });
+      expect(gifts.where((g) => g.priceCoins <= 150), hasLength(50));
+      expect(
+        gifts.where((g) => g.priceCoins >= 151 && g.priceCoins <= 1000),
+        hasLength(35),
+      );
+      expect(gifts.where((g) => g.priceCoins >= 1001), hasLength(19));
+      expect(gifts.first.id, 'wv_gift_001');
+      expect(gifts.first.priceCoins, 1);
+      expect(gifts.last.id, 'wv_gift_104');
+      expect(gifts.last.priceCoins, 5000);
+    },
+  );
+
+  test(
+    'prices ascend across old and new packs with deterministic ties',
+    () async {
+      final gifts = await ClassicGiftCatalog.load();
+      final shuffled = gifts.reversed.toList();
+      final merged = ClassicGiftCatalog.merge(
+        previews: shuffled,
+        published: [],
+      );
+      expect(merged.map((g) => g.id), gifts.map((g) => g.id));
+      expect(shuffled.first.id, gifts.last.id);
+      for (var i = 1; i < merged.length; i++) {
+        expect(
+          merged[i].priceCoins,
+          greaterThanOrEqualTo(merged[i - 1].priceCoins),
+        );
+        if (merged[i].priceCoins == merged[i - 1].priceCoins) {
+          expect(merged[i].id.compareTo(merged[i - 1].id), greaterThan(0));
+        }
+      }
+      final oneCoin = merged.where((g) => g.priceCoins == 1).toList();
+      expect(oneCoin.length, greaterThan(1));
+      expect(
+        merged.take(oneCoin.length).map((g) => g.id),
+        oneCoin.map((g) => g.id),
+      );
+    },
+  );
 
   test('server activation requires the exact approved price', () async {
     final gifts = await ClassicGiftCatalog.load();

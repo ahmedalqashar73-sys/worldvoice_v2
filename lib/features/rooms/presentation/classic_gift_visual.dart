@@ -104,7 +104,8 @@ class _ClassicGiftVisualState extends State<ClassicGiftVisual>
     if (RegExp(r'^wv_gift_[0-9]{3}$').hasMatch(widget.gift.id) &&
         number != null &&
         (number == 2 || number == 26 || (number >= 55 && number <= 104))) {
-      final pixels = (widget.size * MediaQuery.devicePixelRatioOf(context))
+      // Include animation overshoot so an effect never enlarges a tile decode.
+      final pixels = (widget.size * MediaQuery.devicePixelRatioOf(context) * 1.2)
           .ceil().clamp(128, 1280).toInt();
       return RepaintBoundary(
         child: Image.asset(
@@ -239,7 +240,7 @@ class _GiftAtlasPainter extends CustomPainter {
       image,
       sourceRect,
       destination,
-      Paint()..filterQuality = FilterQuality.medium,
+      Paint()..filterQuality = FilterQuality.high,
     );
   }
 

@@ -25,6 +25,18 @@ class ClassicGiftCatalog {
     return 0;
   }
 
+  /// Equal-price gifts stay together; ID provides a deterministic tie-breaker.
+  static List<RoomGiftCatalogItem> sortedByPrice(
+    Iterable<RoomGiftCatalogItem> gifts,
+  ) {
+    final sorted = gifts.toList()
+      ..sort((a, b) {
+        final price = a.priceCoins.compareTo(b.priceCoins);
+        return price != 0 ? price : a.id.compareTo(b.id);
+      });
+    return List<RoomGiftCatalogItem>.unmodifiable(sorted);
+  }
+
   static List<RoomGiftCatalogItem> parse(String json) {
     final data = jsonDecode(json);
     if (data is! Map<String, dynamic> ||
@@ -73,7 +85,7 @@ class ClassicGiftCatalog {
       throw const FormatException('Invalid WorldVoice gift tier counts');
     }
 
-    return List<RoomGiftCatalogItem>.unmodifiable(result);
+    return sortedByPrice(result);
   }
 
   /// Only IDs present in the bundled approved pack are ever returned.
@@ -88,7 +100,7 @@ class ClassicGiftCatalog {
         if (RegExp(approvedIdPattern).hasMatch(item.id)) item.id: item,
     };
 
-    return List<RoomGiftCatalogItem>.unmodifiable(
+    return sortedByPrice(
       previews.map((preview) {
         final server = remoteById[preview.id];
         final priceMatches =
