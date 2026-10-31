@@ -81,7 +81,8 @@ async function firestoreDocument({ projectId, path, idToken }) {
 // Room authorization and Live authorization use separate Firestore namespaces.
 export function tokenSessionCollection(channelName) {
   return channelName.startsWith("live_") ? "live_sessions" :
-    channelName.startsWith("group_") ? "group_calls" : "rooms";
+    channelName.startsWith("group_") ? "group_calls" :
+      channelName.startsWith("call_") ? "calls" : "rooms";
 }
 
 // Firestore documents are fetched under the caller's signed Firebase token.
@@ -94,6 +95,16 @@ export function isAllowedGroupCallPublisher(fields, uid, channelName, role) {
     fields?.channelId?.stringValue === channelName &&
     members.some(item => item.stringValue === uid) &&
     joined.some(item => item.stringValue === uid) &&
+    role === "publisher";
+}
+
+// Both call participants may publish only while a real, verified direct call
+// is ringing or accepted. Firestore rules separately restrict who can read it.
+export function isAllowedDirectCallPublisher(fields, uid, channelName, role) {
+  return ["ringing", "accepted"].includes(fields?.status?.stringValue) &&
+    fields?.channelId?.stringValue === channelName &&
+    (fields?.callerId?.stringValue === uid ||
+      fields?.recipientId?.stringValue === uid) &&
     role === "publisher";
 }
 
@@ -137,7 +148,9 @@ async function agoraTokenForUser(request, env) {
     session = await firestoreDocument({
       projectId: env.FIREBASE_PROJECT_ID,
       path: `${collection}/${collection === "group_calls"
-        ? channelName.slice("group_".length) : channelName}`,
+        ? channelName.slice("group_".length)
+        : collection === "calls" ? channelName.slice("call_".length)
+          : channelName}`,
       idToken,
     });
   } catch (error) {
@@ -156,7 +169,9 @@ async function agoraTokenForUser(request, env) {
         ? "Live session is not registered yet."
         : collection === "group_calls"
           ? "Group call is not active or available."
-          : "Room is not found.",
+          : collection === "calls"
+            ? "Private call is not active or available."
+            : "Room is not found.",
     }, 404);
   }
 
@@ -168,6 +183,12 @@ async function agoraTokenForUser(request, env) {
       fields, uid, channelName, requestedRole,
     )) {
       return json({ error: "Join an active group call before publishing." }, 403);
+    }
+  } else if (collection === "calls") {
+    if (!isAllowedDirectCallPublisher(
+      session.fields, uid, channelName, requestedRole,
+    )) {
+      return json({ error: "Active direct call membership is required." }, 403);
     }
   } else if (collection === "rooms") {
     const room = session;
@@ -303,7 +324,7 @@ export default {
       return json({
         ok: ready,
         service: "worldvoice-agora-token-worker",
-        tokenApiRevision: "2026-10-31.2",
+        tokenApiRevision: "2026-10-31.3",
         liveHostBootstrapSupported: true,
       }, ready ? 200 : 503);
     }
