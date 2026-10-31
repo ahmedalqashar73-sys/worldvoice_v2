@@ -35,7 +35,7 @@ after(async () => { await env?.cleanup(); });
 
 test("only verified call participants may read ringing or accepted calls", async () => {
   await assertSucceeds(getDoc(callDoc(dbFor("alice"))));
-  await assertSucceeds(getDoc(callDoc(dbFor("bob"))));
+  await assertFails(getDoc(callDoc(dbFor("bob"))));
   await assertFails(getDoc(callDoc(dbFor("intruder"))));
   await env.withSecurityRulesDisabled(async ctx => {
     await updateDoc(callDoc(ctx.firestore()), {status: "accepted"});
