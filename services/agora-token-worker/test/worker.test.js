@@ -65,6 +65,8 @@ test("direct-call token permissions require an actual active participant", () =>
   assert.equal(isAllowedDirectCallPublisher(
     call, "alice", "call_g5fv601234", "publisher"), true);
   assert.equal(isAllowedDirectCallPublisher(
+    call, "bob", "call_g5fv601234", "publisher"), false);
+  assert.equal(isAllowedDirectCallPublisher(
     {...call, status: {stringValue: "accepted"}},
     "bob", "call_g5fv601234", "publisher"), true);
   assert.equal(isAllowedDirectCallPublisher(
