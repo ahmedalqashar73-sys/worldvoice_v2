@@ -630,7 +630,10 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
                       duration: const Duration(milliseconds: 260),
                       onEnd: () => _pendingMessageAnimations.remove(msg.id),
                       builder: (context, value, child) =>
-                          Opacity(opacity: value, child: child),
+                          Transform.translate(
+                            offset: Offset(0, (1 - value) * 10),
+                            child: Opacity(opacity: value, child: child),
+                          ),
                       child: bubble,
                     );
                   }
