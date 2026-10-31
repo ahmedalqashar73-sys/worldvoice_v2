@@ -18,6 +18,7 @@ import '../../chat/presentation/worldvoice_share_to_chat_sheet.dart';
 import '../../profile/presentation/public_profile_screen.dart';
 import '../../profile/presentation/world_bond_screen.dart';
 import 'room_member_profile_details.dart';
+import 'room_world_bond_section.dart';
 import '../../profile/services/profile_social_service.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../data/room_caption.dart';
@@ -2481,6 +2482,17 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                         ),
                         const SizedBox(height: 7),
                         CreativeBadge(userId: person.userId),
+                        TextButton.icon(
+                          key: const ValueKey('room-worldbond-header'),
+                          onPressed: () => Navigator.pop(
+                              sheetContext, 'bond:overview'),
+                          icon: const Icon(Icons.diversity_2_rounded,
+                              color: Color(0xFFFFD78D)),
+                          label: Text('WorldBond',
+                            style: const TextStyle(
+                              color: Color(0xFFFFD78D),
+                              fontWeight: FontWeight.bold)),
+                        ),
                         FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
                           future: profileFuture,
                           builder: (context, snapshot) {
@@ -2611,6 +2623,14 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                             ],
                           ),
                         if (!self) const SizedBox(height: 12),
+                        RoomWorldBondSection(
+                          userId: person.userId,
+                          isSelf: self,
+                          isArabic: ar,
+                          onOpen: (type) => Navigator.pop(
+                            sheetContext, 'bond:${type ?? 'overview'}'),
+                        ),
+                        const SizedBox(height: 12),
                         SizedBox(
                           width: double.infinity,
                           child: OutlinedButton.icon(
@@ -2626,22 +2646,6 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                             label: Text(ar ? 'زيارة الملف الشخصي' : 'Visit profile'),
                           ),
                         ),
-                        if (!self) ...[
-                          const SizedBox(height: 13),
-                          Text(
-                            ar ? 'علاقات WorldBond الخاصة' : 'WorldBond connections',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w800,
-                              color: Color(0xFFDBBE83),
-                            ),
-                          ),
-                          const SizedBox(height: 9),
-                          WorldBondScreen(
-                            peerId: person.userId,
-                            peerName: person.displayName,
-                            embedded: true,
-                          ),
-                        ],
                       ],
                     ),
                   ),
@@ -2659,6 +2663,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
           // Push the real profile immediately; no intermediate list or sheet.
           _openParticipantProfile(person.userId);
           break;
+        case 'bond:overview':
+        case 'bond:gifts':
         case 'bond:learning':
         case 'bond:language':
         case 'bond:friend':
@@ -2666,9 +2672,11 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
           await Navigator.of(context).push<void>(
             MaterialPageRoute<void>(
               builder: (_) => WorldBondScreen(
-                peerId: person.userId,
+                peerId: self ? null : person.userId,
                 peerName: person.displayName,
-                focusType: action.substring('bond:'.length),
+                focusType: action == 'bond:overview' || action == 'bond:gifts'
+                    ? null : action.substring('bond:'.length),
+                focusGifts: action == 'bond:gifts',
               ),
             ),
           );
