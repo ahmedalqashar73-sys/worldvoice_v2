@@ -6,6 +6,16 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/group-chat-final-validation.yml'
+      - 'lib/features/chat/**'
+      - 'lib/features/rooms/services/agora_voice_room_controller.dart'
+      - 'lib/features/rooms/presentation/room_conversation_panel.dart'
+      - 'backend/src/chat_routes.js'
+      - 'backend/src/call_routes.js'
+      - 'backend/src/group_call_routes.js'
+      - 'backend/src/server.js'
+      - 'services/agora-token-worker/src/index.js'
+      - 'firestore.rules'
+      - 'test/group_call_*.dart'
 
 permissions:
   contents: read
