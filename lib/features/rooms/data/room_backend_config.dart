@@ -28,6 +28,33 @@ class RoomBackendConfig {
     defaultValue: 'https://worldvoice-teacher-ai.onrender.com',
   );
 
+  /// Private and group calls are served by the currently deployed chat backend.
+  /// The legacy room/economy backend may be pinned to an older branch.
+  static String socialEndpoint(String path) {
+    final base = socialBaseUrl.trim();
+    final uri = Uri.tryParse(base);
+    if (uri == null || uri.scheme != 'https' ||
+        !uri.hasAuthority || uri.userInfo.isNotEmpty ||
+        uri.hasQuery || uri.hasFragment) {
+      return '';
+    }
+    final normalized = base.endsWith('/')
+        ? base.substring(0, base.length - 1)
+        : base;
+    return '$normalized${path.startsWith('/') ? path : '/$path'}';
+  }
+
+  static String agoraTokenEndpointForChannel(String channelId) {
+    if (channelId.startsWith('call_') ||
+        channelId.startsWith('group_')) {
+      return socialEndpoint('/agora/token');
+    }
+    if (channelId.startsWith('live_')) {
+      return aiEndpoint('/agora/token');
+    }
+    return configurationError.isEmpty ? endpoint('/agora/token') : '';
+  }
+
   static const Duration socialRequestTimeout = Duration(seconds: 110);
 
   static String get baseUrl => configuredBaseUrl.trim();
