@@ -158,3 +158,38 @@ test('delivery identity is public but cannot be overwritten by another account',
   await assertFails(setDoc(doc(dbFor('bob'), 'chat_delivery_keys/alice'), key));
   await assertFails(setDoc(doc(dbFor('alice'), 'chat_delivery_keys/alice'), {...key, privateKey: 'secret'}));
 });
+
+test('group call tokens: current members may read, outsiders cannot impersonate', async () => {
+  const path = 'group_calls/chat001';
+  await env.withSecurityRulesDisabled(async context => {
+    await setDoc(chat(context.firestore()), {
+      memberIds: ['alice', 'bob', 'charlie'],
+      memberNames: {alice: 'Alice', bob: 'Bob', charlie: 'Charlie'},
+      active: true, type: 'group',
+    });
+    await setDoc(doc(context.firestore(), path), {
+      chatId: 'chat001',
+      channelId: 'group_chat001',
+      type: 'video',
+      status: 'active',
+      ownerId: 'alice',
+      memberIds: ['alice', 'bob', 'charlie'],
+      joinedIds: ['alice', 'bob'],
+    });
+  });
+  await assertSucceeds(getDoc(doc(dbFor('alice'), path)));
+  await assertSucceeds(getDoc(doc(dbFor('bob'), path)));
+  await assertFails(getDoc(doc(dbFor('stranger'), path)));
+  await assertFails(getDocs(collection(dbFor('alice'), 'group_calls')));
+  await assertFails(setDoc(doc(dbFor('alice'), path), {
+    status: 'active', joinedIds: ['stranger'],
+  }));
+  await env.withSecurityRulesDisabled(async context => {
+    await setDoc(chat(context.firestore()), {
+      memberIds: ['alice', 'charlie'],
+      memberNames: {alice: 'Alice', charlie: 'Charlie'},
+      active: true, type: 'group',
+    });
+  });
+  await assertFails(getDoc(doc(dbFor('bob'), path)));
+});
