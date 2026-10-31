@@ -46,4 +46,44 @@ void main() {
     expect(keys[0],keys[1]);
     expect(tester.takeException(),isNull);
   });
+  testWidgets('gift is disabled if a different bond type is the only active one',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    var sendAttempts = 0;
+    Future<Map<String,dynamic>> request(String path,
+        {Map<String,dynamic>? body, String? idempotencyKey}) async {
+      if (path.startsWith('world-bond/overview')) {
+        return {
+          'ok': true,
+          'bonds': [
+            {'type':'learning','status':'active',
+              'members':['alice','bob'], 'level':2, 'xp':100},
+          ],
+          'specialGifts':[
+            {'id':'wv_bond_01','name':'Emerald Promise',
+              'nameAr':'وعد الزمرد','level':1,'priceCoins':100},
+          ],
+        };
+      }
+      sendAttempts++;
+      throw StateError('Unexpected gift send');
+    }
+    await tester.pumpWidget(MaterialApp(home: WorldBondScreen(
+      peerId:'bob',
+      peerName:'Bob',
+      viewerId:'alice',
+      focusType:'friend',
+      focusGifts:true,
+      request:request,
+    )));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('worldbond-gallery-gift-1')),
+      findsOneWidget);
+    final send = tester.widget<FilledButton>(
+      find.byKey(const ValueKey('worldbond-gallery-send-1')));
+    expect(send.onPressed, isNull);
+    expect(sendAttempts, 0);
+    expect(tester.takeException(), isNull);
+  });
+
 }
