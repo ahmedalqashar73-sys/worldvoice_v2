@@ -86,6 +86,28 @@ class ChatExtendedService {
     return chatId;
   }
 
+  /// Server-verifiable group operation; no client-side membership writes.
+  Future<Map<String, dynamic>> manageGroup({
+    required String chatId,
+    required String action,
+    String? targetId,
+  }) async {
+    final token = await _token();
+    final response = await _client.post(
+      _uri('/chat/group/manage'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'chatId': chatId,
+        'action': action,
+        if (targetId != null) 'targetId': targetId,
+      }),
+    ).timeout(RoomBackendConfig.socialRequestTimeout);
+    return _decode(response);
+  }
+
   Future<void> sendText({
     required String chatId,
     required String text,
