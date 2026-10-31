@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/localization/locale_controller.dart';
+import '../services/room_stale_reconciliation_service.dart';
 
 
 import '../../profile/data/profile_identity_utils.dart';
@@ -72,6 +73,7 @@ class _VoiceRoomsListState extends State<VoiceRoomsList>
     WidgetsBinding.instance.addObserver(this);
     _prefsFuture = _loadLanguagePrefs();
     _activeRoomsStream = _roomsStream();
+    unawaited(RoomStaleReconciliationService.refresh());
   }
 
   @override
@@ -85,6 +87,7 @@ class _VoiceRoomsListState extends State<VoiceRoomsList>
     if (state == AppLifecycleState.resumed && mounted) {
       // Restore Firestore reads after the phone regains network connectivity.
       _retryRooms();
+      unawaited(RoomStaleReconciliationService.refresh());
     }
   }
 
