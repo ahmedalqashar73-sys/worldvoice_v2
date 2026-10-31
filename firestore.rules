@@ -605,6 +605,19 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // Direct-call presence is server-authoritative. The token Worker may
+    // read only an active call belonging to the authenticated caller or peer.
+    // Clients cannot forge, accept, or end calls by writing Firestore.
+    match /calls/{callId} {
+      allow get: if signedIn()
+          && resource.data.status in ['ringing', 'accepted']
+          && (
+            resource.data.callerId == request.auth.uid
+            || resource.data.recipientId == request.auth.uid
+          );
+      allow list, create, update, delete: if false;
+    }
+
     // Group-call presence is server-authoritative. The Agora Worker reads
     // this document with the member's Firebase token before minting audio/
     // video permissions. Clients must never alter joinedIds or ownership.
