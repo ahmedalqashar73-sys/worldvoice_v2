@@ -28,6 +28,7 @@ export function registerStaleRoomRoutes({app, db, authenticatedUser,
   clock = Date.now}) {
   let lastScanAt = 0;
   let scanInProgress = false;
+  let scanAfter = null; // Rotate across active-room pages, not just first 45.
   app.get("/rooms/reconcile-stale", async (req, res, next) => {
     try {
       await authenticatedUser(req);
@@ -38,8 +39,18 @@ export function registerStaleRoomRoutes({app, db, authenticatedUser,
       scanInProgress = true;
       lastScanAt = now;
       try {
-        const results = await db.collection("rooms")
-          .where("isOpen", "==", true).limit(45).get();
+        const query = db.collection("rooms")
+          .where("isOpen", "==", true)
+          .orderBy("__name__");
+        // A fixed limit without pagination may starve old rooms (such as a
+        // prior testing room) when there are more than 45 open documents.
+        let results = await (scanAfter
+          ? query.startAfter(scanAfter) : query).limit(45).get();
+        if (results.empty && scanAfter) {
+          scanAfter = null;
+          results = await query.limit(45).get();
+        }
+        scanAfter = results.docs.at(-1) ?? null;
         let closed = 0;
         for (const room of results.docs) {
           const participantsQuery = room.ref.collection("participants").limit(150);
