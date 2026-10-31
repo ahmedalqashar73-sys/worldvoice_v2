@@ -188,7 +188,7 @@ class _GroupChatCallScreenState extends State<GroupChatCallScreen> {
     _miniLocale = locale;
     setState(() => _minimized = true);
     final home = MaterialPageRoute<void>(
-      builder: (_) => HomeScreen(localeController: locale),
+      builder: (_) => HomeScreen(localeController: locale, initialTab: 3),
     );
     unawaited(navigator.push<void>(home).whenComplete(() {
       _miniEntry?.remove();
