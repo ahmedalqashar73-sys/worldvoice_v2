@@ -3,8 +3,9 @@
 import {createHash} from "node:crypto";
 import {FieldValue} from "firebase-admin/firestore";
 import {chatIdFor} from "./chat_membership.js";
+import {worldBondSpecialGiftCatalog} from "./gift_catalog.js";
 
-export const BOND_TYPES = Object.freeze(["language", "friend", "duo"]);
+export const BOND_TYPES = Object.freeze(["learning", "language", "friend", "duo"]);
 export const bondKey = (a, b, type) => createHash("sha256")
   .update([a, b].sort().join(":") + ":" + type).digest("hex");
 export const bondLevel = xp => xp >= 2200 ? 5 :
@@ -115,6 +116,7 @@ export function registerWorldBondRoutes({app, db, authenticatedUser,
           type: clean(d.data()?.type, 30),
         }));
       res.json({ok: true, bonds: filtered, catalog, wishes, wall,
+        specialGifts: worldBondSpecialGiftCatalog,
         partnerId: peerId || null, serverNowMs: clock()});
     } catch (e) {next(e);}
   });
