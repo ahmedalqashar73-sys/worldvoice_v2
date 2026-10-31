@@ -77,7 +77,7 @@ class WorldBondLevelBadge extends StatelessWidget {
                 2 => Icons.water_drop_rounded,
                 3 => Icons.auto_awesome_rounded,
                 4 => Icons.workspace_premium_rounded,
-                _ => Icons.crown,
+                _ => Icons.workspace_premium_rounded,
               },
               size: compact ? 13 : 17,
               color: Colors.white,
