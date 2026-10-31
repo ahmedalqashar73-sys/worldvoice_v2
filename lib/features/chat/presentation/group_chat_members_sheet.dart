@@ -79,8 +79,11 @@ Future<void> _chooseGroupInvite(
   BuildContext context, String chatId, String ownerId, List<String> members) async {
   final ar = Localizations.localeOf(context).languageCode == 'ar';
   try {
+    // Each moderator can access their own following list; the server still
+    // checks mutual following with the actual group owner before adding.
+    final sourceId = FirebaseAuth.instance.currentUser?.uid ?? ownerId;
     final snaps = await FirebaseFirestore.instance.collection('users')
-        .doc(ownerId).collection('following').limit(80).get();
+        .doc(sourceId).collection('following').limit(80).get();
     if (!context.mounted) return;
     final available = snaps.docs.map((d) => d.id)
         .where((id) => !members.contains(id)).toList();
