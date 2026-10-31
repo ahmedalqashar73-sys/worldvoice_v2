@@ -30,6 +30,7 @@ import {registerEngagementRoutes} from './engagement_routes.js';
 import {registerRoomTaskRoutes} from "./room_task_routes.js";
 import {registerRoomGameRoutes} from "./room_games_routes.js";
 import {registerWorldBondRoutes} from "./world_bond_routes.js";
+import {registerStaleRoomRoutes} from "./room_stale_reconciliation.js";
 import {privateWalletRef, requirePrivateWallet} from "./wallet_store.js";
 import {requireRoomTeacherVip} from "./vip_feature_policy.js";
 import {builtInChatBubble, chatBubbleInventoryId,
@@ -2273,6 +2274,7 @@ registerStoryRoutes({
 });
 registerSocialRoutes({app, authenticatedUser, db});
 registerWorldBondRoutes({app, db, authenticatedUser});
+registerStaleRoomRoutes({app, db, authenticatedUser});
 registerCallRoutes({app, authenticatedUser, db});
 registerGroupCallRoutes({app, authenticatedUser, db});
 
