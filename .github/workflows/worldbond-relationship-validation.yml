@@ -31,7 +31,7 @@ jobs:
       - name: Verify backend syntax and isolated gift/catalog policies
         working-directory: backend
         run: |
-          npm ci --no-audit --no-fund
+          npm install --no-audit --no-fund
           node --check src/server.js
           node --check src/world_bond_routes.js
           node --test test/world_bond_policy.test.js test/world_bond_special_gifts.test.js
