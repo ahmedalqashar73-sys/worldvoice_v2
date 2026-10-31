@@ -27,6 +27,7 @@ void main() {
       final button = find.widgetWithText(FilledButton,'Send');
       await tester.scrollUntilVisible(button, 250);
       await tester.ensureVisible(button);
+      await tester.pumpAndSettle();
       await tester.tap(button);
       await tester.pumpAndSettle();
       expect(find.textContaining('100 coins'),findsOneWidget);

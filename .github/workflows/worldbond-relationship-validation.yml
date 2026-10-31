@@ -16,7 +16,9 @@ on:
       - 'lib/features/profile/presentation/world_bond_screen.dart'
       - 'lib/features/rooms/presentation/room_member_profile_details.dart'
       - 'lib/features/rooms/presentation/agora_voice_room_screen.dart'
-      - 'test/world_bond_special_gift_tile_test.dart'
+      - 'test/world_bond_*.dart'
+      - 'test/room_member_profile_*.dart'
+      - 'lib/features/rooms/presentation/room_member_profile_*.dart'
 
 permissions:
   contents: read
