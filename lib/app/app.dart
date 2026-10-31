@@ -51,7 +51,10 @@ class _WorldVoiceAppState extends State<WorldVoiceApp>
       final type = message.data['type']?.toString();
       if (type != 'worldvoice_activity' &&
           type != 'worldvoice_announcement' &&
-          type != 'story_interaction') {
+          type != 'story_interaction' &&
+          type != 'chat_message' &&
+          type != 'group_chat_message' &&
+          type != 'room_chat_message') {
         return;
       }
       final ar = _localeController.locale?.languageCode == 'ar';
