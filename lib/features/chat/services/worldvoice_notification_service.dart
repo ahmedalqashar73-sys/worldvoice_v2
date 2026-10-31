@@ -25,6 +25,8 @@ class WorldVoiceNotificationService {
       pendingInbox.value = 'official';
     } else if (kind == 'story_interaction') {
       pendingInbox.value = 'story';
+    } else if (kind == 'group_chat_message' || kind == 'chat_message') {
+      pendingInbox.value = 'chats';
     }
   }
 
