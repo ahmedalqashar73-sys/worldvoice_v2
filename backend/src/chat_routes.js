@@ -8,6 +8,12 @@ const fail = (msg, status = 400) => {
 const validKey = value => typeof value === "string" &&
   /^[A-Za-z0-9_-]{12,100}$/.test(value);
 
+// Firestore auto-IDs identify group chats; direct chats use SHA-256 IDs.
+// Membership is always checked from the server-side chat document below.
+export const validChatMessageId = value => typeof value === "string" &&
+  /^[A-Za-z0-9_-]{8,160}$/.test(value);
+
+
 const requestIdFor = (senderUid, recipientUid) =>
   createHash("sha256")
     .update("worldvoice:message-request:" + senderUid + ":" + recipientUid)
@@ -456,7 +462,7 @@ export function registerChatRoutes({app, db, authenticatedUser}) {
       const id = String(req.body?.chatId || "");
       const text = String(req.body?.text || "").trim();
       const rawKey = req.headers["idempotency-key"];
-      if (!/^[a-f0-9]{64}$/.test(id) || text.length < 1 ||
+      if (!validChatMessageId(id) || text.length < 1 ||
           text.length > 1500 || !validKey(rawKey)) {
         fail("Invalid chat message or idempotency key.", 400);
       }
