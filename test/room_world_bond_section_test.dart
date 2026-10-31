@@ -44,7 +44,7 @@ void main() {
     expect(openings, ['learning']);
   });
 
-  testWidgets('WorldBond gift prices are exclusive and open the real gift page',
+  testWidgets('four slots stay compact and open only the selected gallery',
       (tester) async {
     final openings = <String?>[];
     await tester.pumpWidget(scene(
@@ -58,35 +58,29 @@ void main() {
     ));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('worldbond-level-badge-1')), findsOneWidget);
-    for (final level in [1, 2, 3, 4]) {
-      expect(find.byKey(ValueKey('room-worldbond-gift-$level')),
-          findsOneWidget);
-    }
-    for (final price in [100, 200, 500, 1000]) {
-      expect(find.textContaining('$price كوين'), findsOneWidget);
-    }
-    await tester.ensureVisible(
-      find.byKey(const ValueKey('room-worldbond-gift-4')),
-    );
-    await tester.tap(find.byKey(const ValueKey('room-worldbond-gift-4')));
-    expect(openings, ['gifts']);
+    expect(find.byKey(const ValueKey('room-worldbond-section')), findsOneWidget);
+    expect(find.byKey(const ValueKey('room-worldbond-gift-1')), findsNothing);
+    expect(find.textContaining('100 كوين'), findsNothing);
+    expect(find.text('إهداء'), findsNothing);
+    expect(find.byKey(const ValueKey('room-worldbond-learning')),
+      findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('room-worldbond-friend')));
+    expect(openings, ['friend']);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('self preview cannot invoke a paid send operation',
+  testWidgets('owner sees the same four categories without self-gifting',
       (tester) async {
     final openings = <String?>[];
     await tester.pumpWidget(scene(self: true, onOpen: openings.add));
     await tester.pumpAndSettle();
-    expect(find.textContaining('لا يمكن إرسال هدية لنفسك'), findsOneWidget);
+    expect(find.byKey(const ValueKey('room-worldbond-gift-1')), findsNothing);
     expect(find.text('إهداء'), findsNothing);
-    await tester.ensureVisible(
-      find.byKey(const ValueKey('room-worldbond-open-full')),
-    );
-    await tester.tap(find.byKey(const ValueKey('room-worldbond-open-full')));
+    await tester.tap(find.text('التفاصيل'));
     expect(openings, [null]);
     expect(tester.takeException(), isNull);
   });
+
   testWidgets('occupied partner type does not offer a second invitation',
       (tester) async {
     final openings = <String?>[];
