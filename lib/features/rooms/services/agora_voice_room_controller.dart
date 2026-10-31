@@ -495,24 +495,23 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     required AgoraRoomRole role,
     bool preferBackendToken = false,
   }) async {
-    // Live sessions use the main-backed service which knows live_sessions.
-    // Existing voice rooms and private calls keep their established backend.
-    final backendEndpoint = channelId.startsWith('live_')
-        ? RoomBackendConfig.aiEndpoint('/agora/token')
-        : RoomBackendConfig.configurationError.isEmpty
-            ? RoomBackendConfig.endpoint('/agora/token')
-            : '';
-    final groupCall = channelId.startsWith('group_');
-    final backendFirst =
-        channelId.startsWith('call_') || preferBackendToken;
-    // Group-call credentials MUST pass the main backend's current membership
-    // check. Never fall back to a potentially stale public Worker endpoint.
+    // Direct and group calls are created by the current social backend.
+    // The legacy rooms endpoint can be pinned to an obsolete branch, so
+    // never ask it to authorize a private or group call.
+    final backendEndpoint =
+        RoomBackendConfig.agoraTokenEndpointForChannel(channelId);
+    final chatCall =
+        channelId.startsWith('group_') || channelId.startsWith('call_');
+    final backendFirst = preferBackendToken;
+    // Only the authenticated social backend may issue chat-call credentials.
+    // In particular, a stale public Worker must never bypass the server's
+    // current membership and explicit recipient-consent checks.
     final endpoints = <String>[
-      if (groupCall && backendEndpoint.isNotEmpty) backendEndpoint,
-      if (!groupCall && backendFirst && backendEndpoint.isNotEmpty)
+      if (chatCall && backendEndpoint.isNotEmpty) backendEndpoint,
+      if (!chatCall && backendFirst && backendEndpoint.isNotEmpty)
         backendEndpoint,
-      if (!groupCall) ...AgoraConfig.tokenEndpoints,
-      if (!groupCall && !backendFirst && backendEndpoint.isNotEmpty)
+      if (!chatCall) ...AgoraConfig.tokenEndpoints,
+      if (!chatCall && !backendFirst && backendEndpoint.isNotEmpty)
         backendEndpoint,
     ].where((value) => value.trim().isNotEmpty).toSet().toList(growable: false);
     if (endpoints.isEmpty) {
