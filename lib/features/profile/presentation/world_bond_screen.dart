@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'world_bond_special_gift_tile.dart';
 import 'world_bond_gift_art.dart';
+import 'world_bond_level_badge.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 
@@ -445,7 +446,9 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
     };
     final bonds = group('bonds').where((bond) => self ||
         (bond['members'] as List? ?? []).contains(widget.peerId)).toList();
-    final acceptedBond = bonds.any((bond) => bond['status'] == 'active');
+    final acceptedBond = bonds.any((bond) =>
+        bond['status'] == 'active' &&
+        (widget.focusType == null || bond['type'] == widget.focusType));
     final displayedKindOrder = <String>[
       if (widget.focusType != null && kinds.containsKey(widget.focusType))
         widget.focusType!,
@@ -467,6 +470,12 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
           'Four relationship-only gifts, separate from room/Live gifts. '
           'An accepted WorldBond relationship is required.'),
         style: Theme.of(context).textTheme.bodySmall),
+      const SizedBox(height: 6),
+      Text(label(
+        'فئة الهدية (1–4) مستقلة عن مستوى العلاقة (1–5).',
+        'Gift tiers (1–4) are separate from relationship levels (1–5).'),
+        style: const TextStyle(
+          color: Color(0xFF397A68), fontSize: 12)),
       const SizedBox(height: 8),
       for (final gift in group('specialGifts'))
         WorldBondSpecialGiftTile(
@@ -542,8 +551,13 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
                     title: Text(kind(bond['type'].toString())),
                     subtitle: Text(bond['status'] == 'pending'
                       ? label('بانتظار القبول', 'Awaiting acceptance')
-                      : 'Lv' + bond['level'].toString() + ' • ' +
-                        bond['xp'].toString() + ' XP'),
+                      : 'LV${bond['level']} • ${bond['xp']} XP'),
+                    trailing: bond['status'] == 'active'
+                      ? WorldBondLevelBadge(
+                          level: (bond['level'] as num?)?.toInt() ?? 1,
+                          isArabic: ar,
+                          compact: true)
+                      : null,
                   ),
                   if (bond['status'] == 'pending')
                     Wrap(spacing: 8, children: [
@@ -560,6 +574,24 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
                           child: Text(label('إلغاء الدعوة', 'Cancel invite'))),
                     ]),
                   if (bond['status'] == 'active') ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Wrap(
+                        key: const ValueKey('worldbond-relationship-badges'),
+                        spacing: 6, runSpacing: 7,
+                        children: [
+                          for (var tier = 1; tier <= 5; tier++)
+                            Opacity(
+                              opacity: tier <=
+                                  ((bond['level'] as num?)?.toInt() ?? 1)
+                                  ? 1 : .38,
+                              child: WorldBondLevelBadge(
+                                level: tier, isArabic: ar,
+                                compact: true),
+                            ),
+                        ],
+                      ),
+                    ),
                     LinearProgressIndicator(
                       value: ((bond['xp'] as num? ?? 0).toDouble() / 2200)
                         .clamp(0.0, 1.0), color: green),
