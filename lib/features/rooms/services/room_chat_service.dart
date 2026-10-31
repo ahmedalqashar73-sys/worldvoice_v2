@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../chat/services/worldvoice_notification_service.dart';
 
 import '../data/room_chat_message.dart';
 import 'active_chat_bubble_service.dart';
@@ -41,7 +43,7 @@ class RoomChatService {
     final verifiedBubble = await ActiveChatBubbleService.fromProfile(
       firestore: _db, uid: user.uid, profile: data);
 
-    await _messages.add({
+    final saved = await _messages.add({
       'userId': user.uid,
       'displayName':
           (data['displayName'] ?? user.displayName ?? 'WorldVoice user')
@@ -51,6 +53,15 @@ class RoomChatService {
       'bubbleId': verifiedBubble,
       'createdAt': FieldValue.serverTimestamp(),
     });
+    // Message delivery is complete before this optional push. Notification
+    // errors must not cause the client to resend an already-saved message.
+    unawaited(WorldVoiceNotificationService.post(
+      '/system/room-message/notify',
+      {'roomId': roomId, 'messageId': saved.id},
+    ).catchError((Object error) {
+      // The optional push may be unavailable while the backend deploys.
+      return <String, dynamic>{'ok': false};
+    }));
   }
 
   Future<void> delete(String messageId) =>
