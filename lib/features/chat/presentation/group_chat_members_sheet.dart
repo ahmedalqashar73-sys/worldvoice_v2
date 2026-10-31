@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../services/chat_extended_service.dart';
 import 'package:flutter/material.dart';
 
 import '../../profile/presentation/public_profile_screen.dart';
@@ -57,6 +59,63 @@ class GroupMembersPreview extends StatelessWidget {
   }
 }
 
+Future<void> _groupMemberOperation(
+  BuildContext context, String chatId, String action, String targetId) async {
+  final service = ChatExtendedService();
+  try {
+    await service.manageGroup(chatId: chatId, action: action, targetId: targetId);
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      content: Text('تم تحديث أعضاء المجموعة بنجاح.')));
+  } catch (error) {
+    if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(error.toString().replaceFirst('Bad state: ', ''))));
+  } finally { service.dispose(); }
+}
+
+Future<void> _chooseGroupInvite(
+  BuildContext context, String chatId, String ownerId, List<String> members) async {
+  final ar = Localizations.localeOf(context).languageCode == 'ar';
+  try {
+    final snaps = await FirebaseFirestore.instance.collection('users')
+        .doc(ownerId).collection('following').limit(80).get();
+    if (!context.mounted) return;
+    final available = snaps.docs.map((d) => d.id)
+        .where((id) => !members.contains(id)).toList();
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(ar ? 'إضافة أصدقاء للمجموعة' : 'Add friends to group'),
+        content: SizedBox(
+          width: 310, height: 360,
+          child: available.isEmpty
+            ? Center(child: Text(ar ? 'لا يوجد أصدقاء متاحون' : 'No eligible friends'))
+            : ListView.builder(
+                itemCount: available.length,
+                itemBuilder: (ctx, index) {
+                  final id = available[index];
+                  return ListTile(
+                    leading: _MemberAvatar(uid: id, radius: 19),
+                    title: Text(id, maxLines: 1, overflow: TextOverflow.ellipsis),
+                    trailing: const Icon(Icons.person_add_alt_1_rounded),
+                    onTap: () async {
+                      await _groupMemberOperation(context, chatId, 'add', id);
+                      if (dialogContext.mounted) Navigator.pop(dialogContext);
+                    },
+                  );
+                },
+              ),
+        ),
+        actions: [TextButton(onPressed: () => Navigator.pop(dialogContext),
+          child: Text(ar ? 'إغلاق' : 'Close'))],
+      ),
+    );
+  } catch (error) {
+    if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(error.toString().replaceFirst('Bad state: ', ''))));
+  }
+}
+
 Future<void> showGroupMembersSheet(BuildContext context, String chatId) {
   return showModalBottomSheet<void>(
     context: context,
@@ -82,6 +141,12 @@ Future<void> showGroupMembersSheet(BuildContext context, String chatId) {
               ? Map<String, dynamic>.from(data['memberNames'] as Map)
               : <String, dynamic>{};
           final ar = Localizations.localeOf(context).languageCode == 'ar';
+          final currentUser = FirebaseAuth.instance.currentUser?.uid;
+          final ownerId = (data['ownerId'] ?? '').toString();
+          final moderators = (data['moderatorIds'] as List?)
+              ?.map((x) => x.toString()).toList() ?? <String>[];
+          final isOwner = currentUser == ownerId;
+          final canModerate = isOwner || moderators.contains(currentUser);
           return Column(
             children: [
               ListTile(
@@ -92,6 +157,13 @@ Future<void> showGroupMembersSheet(BuildContext context, String chatId) {
                 subtitle: Text(ar
                     ? '${members.length} عضوًا'
                     : '${members.length} members'),
+                trailing: canModerate ? IconButton(
+                  key: const ValueKey('group-add-friends'),
+                  tooltip: ar ? 'إضافة أصدقاء' : 'Add friends',
+                  onPressed: () => _chooseGroupInvite(
+                    context, chatId, ownerId, members),
+                  icon: const Icon(Icons.person_add_alt_1_rounded),
+                ) : null,
               ),
               Expanded(
                 child: ListView.separated(
@@ -126,7 +198,32 @@ Future<void> showGroupMembersSheet(BuildContext context, String chatId) {
                                   PublicProfileScreen(userId: uid),
                             ),
                           ),
-                          trailing: const Icon(Icons.chevron_right_rounded),
+                          trailing: canModerate && uid != ownerId &&
+                              uid != currentUser
+                            ? PopupMenuButton<String>(
+                                key: ValueKey('group-member-menu-$uid'),
+                                icon: const Icon(Icons.more_vert_rounded),
+                                onSelected: (action) => _groupMemberOperation(
+                                  context, chatId, action, uid),
+                                itemBuilder: (_) => [
+                                  if (isOwner)
+                                    PopupMenuItem(
+                                      value: moderators.contains(uid)
+                                        ? 'demote' : 'promote',
+                                      child: Text(moderators.contains(uid)
+                                        ? (ar ? 'إلغاء الإشراف' : 'Remove moderator')
+                                        : (ar ? 'تعيين مشرف' : 'Make moderator')),
+                                    ),
+                                  if (isOwner || !moderators.contains(uid))
+                                    PopupMenuItem(
+                                      value: 'remove',
+                                      child: Text(ar
+                                        ? 'إزالة من المجموعة'
+                                        : 'Remove from group'),
+                                    ),
+                                ],
+                              )
+                            : const Icon(Icons.chevron_right_rounded),
                         );
                       },
                     );
