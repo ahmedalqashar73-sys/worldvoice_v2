@@ -31,9 +31,9 @@ import {roomProgressAfterGift, roomCastleProgressSnapshot,
 import {registerEngagementRoutes} from './engagement_routes.js';
 import {registerRoomTaskRoutes} from "./room_task_routes.js";
 import {registerRoomGameRoutes} from "./room_games_routes.js";
-import {registerWorldBondRoutes} from "./world_bond_routes.js";
+import {registerWorldBondRoutes, BOND_TYPES, bondKey} from "./world_bond_routes.js";
 import {privateWalletRef, requirePrivateWallet} from "./wallet_store.js";
-import {approvedWorldVoiceGift} from "./gift_catalog.js";
+import {approvedWorldVoiceGift, approvedWorldBondGift} from "./gift_catalog.js";
 import {requireRoomTeacherVip} from "./vip_feature_policy.js";
 import {builtInChatBubble, chatBubbleInventoryId,
   vipChatBubbles, vipBubbleAllowed} from "./chat_bubble_policy.js";
@@ -2054,13 +2054,20 @@ app.post("/gift/send", async (req, res, next) => {
         typeof recipientId !== "string" || !recipientId.trim() ||
         recipientId === sender.uid ||
         typeof giftId !== "string" ||
-        !/^wv_gift_[0-9]{3}$/.test(giftId) ||
+        !(/^(wv_gift_[0-9]{3}|wv_bond_0[1-4])$/.test(giftId)) ||
         !Number.isSafeInteger(quantity) || quantity <= 0 ||
         !/^[A-Za-z0-9_-]{12,100}$/.test(requestKey)) {
       return res.status(400).json({error: "Invalid gift request or idempotency key."});
     }
     if (context !== "room" && recipientId === "teacher_ai") {
       return res.status(400).json({error: "AI gift XP is room-only."});
+    }
+    const bondGift = approvedWorldBondGift(giftId);
+    // Relationship gifts are a dedicated 4-item collection. They are only
+    // sent once inside an active, mutually-followed private relationship.
+    // They must never be sent as room or Live gifts.
+    if (bondGift && (context !== "chat" || quantity !== 1)) {
+      return res.status(400).json({error: "WorldBond gift requires private chat and quantity 1."});
     }
     const requestHash = createHash("sha256")
       .update(`${sender.uid}:${requestKey}`).digest("hex");
@@ -2094,6 +2101,10 @@ app.post("/gift/send", async (req, res, next) => {
       ? senderRef.collection("following").doc(recipientId) : null;
     const recipientFollow = context === "chat"
       ? recipientRef.collection("following").doc(sender.uid) : null;
+    const bondRefs = bondGift
+      ? BOND_TYPES.map(type => db.collection("world_bonds")
+          .doc(bondKey(sender.uid, recipientId, type)))
+      : [];
     const configRef = db.collection("economy_config").doc("current");
     const giftEventRef = context === "chat"
       ? roomRef.collection("messages").doc(requestHash)
@@ -2104,7 +2115,8 @@ app.post("/gift/send", async (req, res, next) => {
       const refs = [eventRef, configRef, itemRef, roomRef, senderMemberRef,
         senderRef, senderWalletRef, inventoryRef, ...(recipientRef
           ? [recipientMemberRef, recipientRef, recipientWalletRef] : []),
-        ...(senderFollow ? [senderFollow, recipientFollow] : [])];
+        ...(senderFollow ? [senderFollow, recipientFollow] : []),
+        ...bondRefs];
       const snapshots = await Promise.all(refs.map(ref => tx.get(ref)));
       const [existing, configSnap, itemSnap, roomSnap, senderMember,
         senderProfileSnap, senderSnap, freeGiftSnap] = snapshots;
@@ -2154,13 +2166,33 @@ app.post("/gift/send", async (req, res, next) => {
         }
         assertChatMembership(roomSnap.data(), sender.uid, recipientId);
       }
+      if (bondGift) {
+        const activeBond = snapshots.slice(-bondRefs.length).some(snap => {
+          const data = snap.data() || {};
+          return snap.exists && data.status === "active" &&
+            Array.isArray(data.members) &&
+            data.members.includes(sender.uid) &&
+            data.members.includes(recipientId);
+        });
+        if (!activeBond) {
+          throw Object.assign(new Error(
+            "Accept a WorldBond relationship before sending a special gift."
+          ), {status: 403});
+        }
+      }
       const config = requireLiveEconomy(configSnap.data());
       requirePrivateWallet(senderSnap);
       if (recipientRef) requirePrivateWallet(snapshots[10]);
-      const item = itemSnap.data();
+      // The four WorldBond designs are server-priced built-ins. They do
+      // not appear in store_items or the room/Live gift catalog.
+      const item = bondGift
+        ? {type: "gift", active: true, priceCoins: bondGift.priceCoins,
+            name: bondGift.name, animationUrl: null, requiredGiftLevel: 0}
+        : itemSnap.data();
       const price = Number(item?.priceCoins);
-      const approvedGift = approvedWorldVoiceGift(giftId, price);
-      if (!itemSnap.exists || item.type !== "gift" || item.active !== true ||
+      const approvedGift = bondGift || approvedWorldVoiceGift(giftId, price);
+      if ((!itemSnap.exists && !bondGift) ||
+          item?.type !== "gift" || item?.active !== true ||
           !Number.isSafeInteger(price) || price <= 0 || !approvedGift) {
         throw Object.assign(new Error("This gift is unavailable."), {status: 404});
       }
@@ -2178,8 +2210,10 @@ app.post("/gift/send", async (req, res, next) => {
       const now = Date.now();
       const freeData = freeGiftSnap.data() || {};
       const freeExpiry = freeData.expiresAt?.toMillis?.() ?? null;
-      const freeBalance = freeExpiry !== null && freeExpiry <= now ? 0
-        : Number(freeData.freeGiftBalance || 0);
+      // Never allow free room gifts to reduce a paid WorldBond price.
+      const freeBalance = bondGift ? 0 :
+        (freeExpiry !== null && freeExpiry <= now ? 0
+          : Number(freeData.freeGiftBalance || 0));
       const amounts = calculateGiftSettlement({
         config, priceCoins: price, quantity, freeGiftBalance: freeBalance,
       });
@@ -2303,18 +2337,21 @@ app.post("/gift/send", async (req, res, next) => {
       });
       if (context === "chat") {
         tx.update(roomRef, {
-          latestText: "🎁 Gift",
+          latestText: bondGift ? "💝 WorldBond gift" : "🎁 Gift",
           lastMessageAt: FieldValue.serverTimestamp(),
         });
       }
       tx.create(eventRef, {
         userId: sender.uid, context, contextId, recipientId,
-        giftId, quantity, outcome,
+        giftId, quantity, ...(bondGift ? {giftCategory: "worldbond"} : {}),
+        outcome,
         createdAt: FieldValue.serverTimestamp(),
       });
       tx.create(db.collection("economy_audit").doc(requestHash), {
         type: "gift_send", senderId: sender.uid, recipientId, context,
-        contextId, giftId, quantity, chargedCoins: amounts.chargedCoins,
+        contextId, giftId, quantity,
+        ...(bondGift ? {giftCategory: "worldbond"} : {}),
+        chargedCoins: amounts.chargedCoins,
         freeUnits: amounts.freeUnits, createdAt: FieldValue.serverTimestamp(),
       });
       return {...outcome, alreadyProcessed: false};
