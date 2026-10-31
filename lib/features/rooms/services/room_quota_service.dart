@@ -84,8 +84,11 @@ class RoomQuotaService {
       );
     }
 
-    final profile =
-        await _db.collection('users').doc(user.uid).get();
+    // Room time/VIP eligibility must be checked against the server, never
+    // granted from stale offline cache data.
+    final profile = await _db.collection('users').doc(user.uid).get(
+      const GetOptions(source: Source.server),
+    );
     final isVip = VipRoomFeatures.activeVip(profile.data(), DateTime.now());
 
     if (isVip) {
@@ -99,7 +102,7 @@ class RoomQuotaService {
       );
     }
 
-    final snap = await ref.get();
+    final snap = await ref.get(const GetOptions(source: Source.server));
     final data = snap.data() ?? const <String, dynamic>{};
     final used = (data['usedSeconds'] as num?)?.toInt() ?? 0;
     final adsWatched = (data['adsWatched'] as num?)?.toInt() ?? 0;
