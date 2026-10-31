@@ -16,7 +16,9 @@ abstract final class RoomStaleReconciliationService {
   static Future<void> refresh() async {
     final now = DateTime.now();
     if (_lastAttempt != null &&
-        now.difference(_lastAttempt!) < const Duration(minutes: 1)) return;
+        now.difference(_lastAttempt!) < const Duration(minutes: 1)) {
+      return;
+    }
     _lastAttempt = now;
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
