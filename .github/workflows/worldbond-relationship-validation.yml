@@ -19,6 +19,8 @@ on:
       - 'test/room_world_bond_section_test.dart'
       - 'lib/features/rooms/presentation/agora_voice_room_screen.dart'
       - 'test/world_bond_*.dart'
+      - 'assets/world_bond/**'
+      - 'pubspec.yaml'
       - 'test/room_member_profile_*.dart'
       - 'lib/features/rooms/presentation/room_member_profile_*.dart'
 
@@ -51,10 +53,22 @@ jobs:
           distribution: temurin
           java-version: '17'
       - run: flutter pub get
+      - name: Validate four exclusive vector assets
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from xml.etree import ElementTree as ET
+          for level in range(1, 5):
+              path = Path(f'assets/world_bond/gift_0{level}.svg')
+              root = ET.parse(path).getroot()
+              assert root.tag.endswith('svg'), path
+              assert root.attrib.get('viewBox') == '0 0 256 256', path
+          print('Four original WorldBond SVG assets verified')
+          PY
       - name: Verify app on original main
         run: flutter analyze
       - name: Test four premium relationship designs and purchase controls
-        run: flutter test test/world_bond_special_gift_tile_test.dart test/world_bond_screen_test.dart test/room_member_profile_details_test.dart test/room_member_profile_policy_test.dart test/world_bond_api_url_test.dart test/room_world_bond_section_test.dart
+        run: flutter test test/world_bond_special_gift_tile_test.dart test/world_bond_screen_test.dart test/room_member_profile_details_test.dart test/room_member_profile_policy_test.dart test/world_bond_api_url_test.dart test/room_world_bond_section_test.dart test/world_bond_gift_art_test.dart test/world_bond_gift_gallery_tile_test.dart test/world_bond_level_badge_test.dart
       - name: Confirm normal room gift catalog unchanged
         run: flutter test test/classic_gift_catalog_test.dart
 
