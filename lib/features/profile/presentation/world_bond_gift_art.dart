@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 /// Resolution-independent, original WorldBond artwork. A single short shimmer
 /// runs on appearance, with no network assets or perpetual offscreen ticker.
@@ -9,17 +10,35 @@ class WorldBondGiftArt extends StatelessWidget {
   final double size;
 
   @override
-  Widget build(BuildContext context) => RepaintBoundary(
-    child: TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0, end: 1),
-      duration: MediaQuery.disableAnimationsOf(context)
-          ? Duration.zero : const Duration(milliseconds: 1800),
-      builder: (context, value, child) => CustomPaint(
-        size: Size.square(size),
-        painter: _BondArtPainter(level, value),
+  Widget build(BuildContext context) {
+    final tier = level.clamp(1, 4);
+    final asset = 'assets/world_bond/gift_0$tier.svg';
+    return RepaintBoundary(
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0, end: 1),
+        duration: MediaQuery.disableAnimationsOf(context)
+            ? Duration.zero : const Duration(milliseconds: 1400),
+        builder: (context, value, child) => Transform.scale(
+          scale: 0.97 + 0.03 * math.sin(value * math.pi),
+          child: child,
+        ),
+        child: SizedBox.square(
+          dimension: size,
+          child: SvgPicture.asset(
+            asset,
+            fit: BoxFit.contain,
+            // Always retain a local, offline-safe vector fallback.
+            placeholderBuilder: (_) => CustomPaint(
+              painter: _BondArtPainter(level, 1),
+            ),
+            errorBuilder: (_, _, _) => CustomPaint(
+              painter: _BondArtPainter(level, 1),
+            ),
+          ),
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 class _BondArtPainter extends CustomPainter {
