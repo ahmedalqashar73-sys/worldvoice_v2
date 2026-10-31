@@ -39,9 +39,30 @@ class _BondArtPainter extends CustomPainter {
       _ => const Color(0xFFE87ABF),
     };
     final rect = const Rect.fromLTWH(0, 0, 100, 100);
-    canvas.drawRRect(RRect.fromRectAndRadius(rect, const Radius.circular(22)),
-      Paint()..shader = RadialGradient(colors: [tint.withValues(alpha: .45),
-        const Color(0xFF062E26)]).createShader(rect));
+    final backing = RRect.fromRectAndRadius(
+      rect, const Radius.circular(22));
+    canvas.drawRRect(backing, Paint()
+      ..shader = RadialGradient(
+        colors: [tint.withValues(alpha: .58),
+          const Color(0xFF062E26)],
+      ).createShader(rect));
+    // A subtle enamel highlight and gold inlay add depth without images,
+    // heavy 3D, or changing the app's global palette.
+    canvas.drawRRect(backing, Paint()
+      ..shader = const LinearGradient(
+        begin: Alignment.topLeft, end: Alignment.bottomRight,
+        colors: [Color(0xFFFCE8B5), Color(0xFF997342),
+          Color(0xFFE9CD8A)],
+      ).createShader(rect)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.8);
+    final inner = Rect.fromCircle(
+      center: const Offset(50, 50), radius: 37);
+    canvas.drawCircle(const Offset(50, 50), 37,
+      Paint()..shader = RadialGradient(
+        colors: [tint.withValues(alpha: .2),
+          const Color(0x00000000)],
+      ).createShader(inner));
     final line = Paint()..color = gold..style = PaintingStyle.stroke
       ..strokeWidth = 1.4..strokeCap = StrokeCap.round;
     canvas.drawCircle(const Offset(50, 50), 42, line);
