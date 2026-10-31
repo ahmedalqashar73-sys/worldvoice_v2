@@ -352,10 +352,14 @@ export function registerChatRoutes({app, db, authenticatedUser}) {
           "WorldVoice member",
         ),
       };
+      const memberPhotos = {
+        [creator.uid]: String(creatorSnap.data()?.photoUrl || ""),
+      };
       for (const snap of profileSnaps) {
         names[snap.id] = String(
           snap.data()?.displayName || snap.data()?.name || "WorldVoice member",
         );
+        memberPhotos[snap.id] = String(snap.data()?.photoUrl || "");
       }
 
       const chatRef = db.collection("chats").doc();
@@ -365,6 +369,7 @@ export function registerChatRoutes({app, db, authenticatedUser}) {
         ownerId: creator.uid,
         memberIds: allIds,
         memberNames: names,
+        memberPhotos,
         active: true,
         latestText: null,
         lastMessageAt: FieldValue.serverTimestamp(),
@@ -495,6 +500,7 @@ export function registerChatRoutes({app, db, authenticatedUser}) {
         tx.create(messageRef, {
           type: "text", senderId: sender.uid, text,
           senderName: String(chat.data().memberNames?.[sender.uid] || "Member"),
+          senderPhotoUrl: String(chat.data().memberPhotos?.[sender.uid] || ""),
           createdAt: FieldValue.serverTimestamp(),
         });
         tx.update(chatRef, {
