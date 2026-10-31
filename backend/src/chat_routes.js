@@ -1,5 +1,6 @@
 import {createHash} from "node:crypto";
 import {FieldValue} from "firebase-admin/firestore";
+import {getMessaging} from "firebase-admin/messaging";
 import {chatIdFor, assertChatMembership} from "./chat_membership.js";
 
 const fail = (msg, status = 400) => {
@@ -59,6 +60,47 @@ function validCloudinaryMedia(url) {
 
 function normalizedMediaType(value) {
   return ["image", "video", "audio", "pdf"].includes(value) ? value : "";
+}
+
+// Only a successfully committed, non-replayed chat message may cause push.
+// Recipients and their tokens are resolved on the trusted backend, never
+// accepted from the sender request.
+async function sendChatMessagePush(db, chatId, senderId, preview) {
+  try {
+    const chatSnap = await db.collection("chats").doc(chatId).get();
+    const chat = chatSnap.data() || {};
+    if (chat.active !== true || !Array.isArray(chat.memberIds) ||
+        !chat.memberIds.includes(senderId)) return;
+    const recipients = chat.memberIds.filter(uid => uid !== senderId)
+      .slice(0, 30);
+    const devices = await Promise.all(recipients.map(async uid => {
+      const user = await db.collection("users").doc(uid).get();
+      if (user.data()?.chatNotificationsEnabled === false) return [];
+      const rows = await db.collection("users").doc(uid)
+        .collection("notification_devices").limit(3).get();
+      return rows.docs.map(row => String(row.data()?.token || ""))
+        .filter(token => token.length >= 30);
+    }));
+    const tokens = [...new Set(devices.flat())];
+    if (!tokens.length) return;
+    const group = chat.type === "group";
+    await getMessaging().sendEachForMulticast({
+      tokens,
+      notification: {
+        title: group ? String(chat.groupName || "WorldVoice Group") : "WorldVoice",
+        body: String(preview).slice(0, 130),
+      },
+      data: {
+        type: group ? "group_chat_message" : "chat_message",
+        chatId: String(chatId),
+      },
+      android: {priority: "high"},
+    });
+  } catch (error) {
+    // A device token/push provider outage must never turn a delivered chat
+    // message into a failed request or trigger duplicate retries.
+    console.warn("Chat push unavailable:", error?.code || "unknown");
+  }
 }
 
 /**
@@ -496,6 +538,10 @@ export function registerChatRoutes({app, db, authenticatedUser}) {
         return {messageId: eventId, alreadyProcessed: false};
       });
 
+      if (!result.alreadyProcessed) {
+        await sendChatMessagePush(db, id, sender.uid,
+          ({image:"📷 Photo",video:"🎬 Video",audio:"🎙 Voice message",pdf:"📄 PDF"})[type]);
+      }
       res.json({ok: true, ...result});
     } catch (error) { next(error); }
   });
@@ -557,6 +603,9 @@ export function registerChatRoutes({app, db, authenticatedUser}) {
         });
         return {messageId: eventId, alreadyProcessed: false};
       });
+      if (!result.alreadyProcessed) {
+        await sendChatMessagePush(db, id, sender.uid, text);
+      }
       res.json({ok: true, ...result});
     } catch (error) { next(error); }
   });
