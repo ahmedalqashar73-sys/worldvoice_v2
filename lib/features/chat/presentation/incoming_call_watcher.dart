@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 
 import '../services/chat_call_service.dart';
 import 'chat_call_screen.dart';
+import '../services/group_call_service.dart';
+import 'group_chat_call_screen.dart';
 
 class IncomingCallWatcher extends StatefulWidget {
   const IncomingCallWatcher({required this.child, super.key});
@@ -16,6 +18,7 @@ class IncomingCallWatcher extends StatefulWidget {
 class _IncomingCallWatcherState extends State<IncomingCallWatcher>
     with WidgetsBindingObserver {
   final ChatCallService _service = ChatCallService();
+  final GroupCallService _groupCalls = GroupCallService();
   Timer? _timer;
   String? _showingCallId;
   bool _checking = false;
@@ -51,9 +54,16 @@ class _IncomingCallWatcherState extends State<IncomingCallWatcher>
     _checking = true;
     try {
       final call = await _service.incoming();
-      if (!mounted || call == null || call.id.isEmpty) return;
-      _showingCallId = call.id;
-      await _showIncoming(call);
+      if (!mounted) return;
+      if (call != null && call.id.isNotEmpty) {
+        _showingCallId = call.id;
+        await _showIncoming(call);
+        return;
+      }
+      final group = await _groupCalls.incoming();
+      if (!mounted || group == null || group.id.isEmpty) return;
+      _showingCallId = 'group:${group.id}';
+      await _showGroupIncoming(group);
     } catch (_) {
       // Polling is best effort while the chat tab is open.
     } finally {
@@ -134,11 +144,66 @@ class _IncomingCallWatcherState extends State<IncomingCallWatcher>
     }
   }
 
+  Future<void> _showGroupIncoming(GroupCallInfo call) async {
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    try {
+      final action = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => AlertDialog(
+          title: Text(call.isVideo
+              ? (ar ? 'مكالمة فيديو جماعية' : 'Group video call')
+              : (ar ? 'مكالمة صوتية جماعية' : 'Group voice call')),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircleAvatar(radius: 35,
+                  child: Icon(Icons.groups_rounded, size: 38)),
+              const SizedBox(height: 10),
+              Text(call.groupName,
+                  style: const TextStyle(
+                    fontSize: 18, fontWeight: FontWeight.bold,
+                  )),
+              Text(ar
+                  ? '${call.joinedIds.length} في المكالمة'
+                  : '${call.joinedIds.length} in the call'),
+            ],
+          ),
+          actions: [
+            TextButton.icon(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              icon: const Icon(Icons.call_end_rounded,
+                  color: Colors.redAccent),
+              label: Text(ar ? 'رفض' : 'Decline'),
+            ),
+            FilledButton.icon(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              icon: const Icon(Icons.call_rounded),
+              label: Text(ar ? 'انضمام' : 'Join'),
+            ),
+          ],
+        ),
+      );
+      if (action == true && mounted) {
+        await Navigator.of(context).push<void>(
+          MaterialPageRoute<void>(
+            builder: (_) => GroupChatCallScreen(call: call),
+          ),
+        );
+      } else if (action == false) {
+        await _groupCalls.decline(call.chatId);
+      }
+    } finally {
+      _showingCallId = null;
+    }
+  }
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
     _service.dispose();
+    _groupCalls.dispose();
     super.dispose();
   }
 
