@@ -32,3 +32,12 @@ test("never closes already-ended, unverified or missing presence rooms",()=>{
   assert.equal(staleRoomDecision({
     room:room(100),participants:null,now}),false);
 });
+
+test("never closes an oversized room with a possibly incomplete member scan",()=>{
+  assert.equal(staleRoomDecision({
+    room:room(30),participants:Array.from({length:150},()=>member(15)),now,
+  }),false);
+  assert.equal(staleRoomDecision({
+    room:room(30),participants:[{},member(15)],now,
+  }),false);
+});
