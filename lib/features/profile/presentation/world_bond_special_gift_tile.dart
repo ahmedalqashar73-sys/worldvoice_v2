@@ -35,7 +35,7 @@ class WorldBondSpecialGiftTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final index = (level - 1).clamp(0, 3);
+    final index = (level - 1).clamp(0, 3).toInt();
     final gradient = _gradients[index];
     final primary = gradient[1];
     return Card(
