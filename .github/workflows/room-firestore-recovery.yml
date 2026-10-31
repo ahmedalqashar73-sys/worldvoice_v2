@@ -1,0 +1,39 @@
+name: WorldVoice Room Firebase Recovery
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'lib/features/rooms/presentation/agora_voice_room_screen.dart'
+      - 'lib/features/rooms/presentation/voice_rooms_list.dart'
+      - 'lib/features/rooms/services/room_firestore_recovery.dart'
+      - 'test/room_firestore_recovery_test.dart'
+      - '.github/workflows/room-firestore-recovery.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  room-firebase-recovery:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.8'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Verify room code compiles
+        run: flutter analyze
+      - name: Verify offline retry, authorization safety, and Arabic errors
+        run: flutter test test/room_firestore_recovery_test.dart
+      - name: Verify room regression tests
+        run: >
+          flutter test
+          test/room_conversation_panel_test.dart
+          test/room_host_reservation_test.dart
+          test/room_member_profile_details_test.dart
+          test/room_member_profile_policy_test.dart
