@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'world_bond_special_gift_tile.dart';
 
 
 /// Server-authenticated social features. Never mutate wallet/VIP from client.
@@ -280,6 +281,64 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
     }
   }
 
+  Future<void> _giftSpecial(Map<String, dynamic> gift) async {
+    if (self || widget.peerId == null || _busy) return;
+    final id = (gift['id'] ?? '').toString();
+    const expected = <String, int>{
+      'wv_bond_01': 100, 'wv_bond_02': 200,
+      'wv_bond_03': 500, 'wv_bond_04': 1000,
+    };
+    final price = (gift['priceCoins'] as num?)?.toInt();
+    if (price == null || price != expected[id]) {
+      setState(() => _error = label('سعر الهدية غير متاح.',
+        'Gift price is unavailable.'));
+      return;
+    }
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(label('هدية WorldBond الخاصة', 'Exclusive WorldBond gift')),
+        content: Text(label(
+          'إهداء ${gift['nameAr']} للمستوى ${gift['level']} بقيمة $price كوين. '
+          'سيتحقق السيرفر من علاقتكما والرصيد قبل الخصم. هل توافق؟',
+          'Send ${gift['name']} (level ${gift['level']}) for $price coins? '
+          'The server verifies the active bond and wallet before charging.')),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false),
+            child: Text(label('إلغاء', 'Cancel'))),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true),
+            child: Text(label('إرسال', 'Send'))),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted || _busy) return;
+    setState(() { _busy = true; _error = null; });
+    try {
+      final chat = await WorldBondApi.request(
+        'world-bond/chat-context?peerId=' +
+          Uri.encodeQueryComponent(widget.peerId!));
+      final key = _paymentKeys.putIfAbsent(
+        'worldbond:$id', WorldBondApi.newKey);
+      await WorldBondApi.request('gift/send', body: {
+        'context': 'chat', 'contextId': chat['chatId'],
+        'recipientId': widget.peerId, 'giftId': id, 'quantity': 1,
+      }, idempotencyKey: key);
+      _paymentKeys.remove('worldbond:$id');
+      await _refresh();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(label('تم إرسال هدية العلاقة',
+            'Relationship gift sent')),
+        ));
+      }
+    } catch (error) {
+      if (mounted) setState(() => _error =
+          error.toString().replaceFirst('Bad state: ', ''));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
   Future<void> _giftRegular(Map<String, dynamic> wish) async {
     if (self || widget.peerId == null) return;
     final id = wish['id'].toString();
@@ -330,11 +389,13 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
   @override
   Widget build(BuildContext context) {
     const kinds = <String, IconData>{
+      'learning': Icons.menu_book_rounded,
       'language': Icons.translate_rounded,
       'friend': Icons.handshake_rounded,
       'duo': Icons.favorite_rounded,
     };
     String kind(String code) => switch (code) {
+      'learning' => label('رفيق التعلّم', 'Learning companion'),
       'language' => label('رفيق اللغة', 'Language partner'),
       'friend' => label('صديق مميز', 'Close friend'),
       'duo' => label('ثنائي WorldVoice', 'WorldVoice duo'),
@@ -342,6 +403,7 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
     };
     final bonds = group('bonds').where((bond) => self ||
         (bond['members'] as List? ?? []).contains(widget.peerId)).toList();
+    final acceptedBond = bonds.any((bond) => bond['status'] == 'active');
     return Scaffold(
       appBar: AppBar(title: const Text('WorldBond'),
         foregroundColor: Colors.white, backgroundColor: green),
@@ -451,6 +513,32 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
                   ],
                 ]),
             )),
+          if (!self) ...[
+            const SizedBox(height: 22),
+            Text(label('هدايا العلاقات الخاصة', 'Exclusive relationship gifts'),
+              style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 5),
+            Text(label(
+              'أربع هدايا مستقلة عن هدايا الروم واللايف. يلزم قبول علاقة '
+              'رفيق تعلّم أو رفيق لغة أو صديق مميز أو ثنائي WorldVoice قبل الإهداء.',
+              'Four relationship-only gifts, separate from room/Live gifts. '
+              'An accepted WorldBond relationship is required.'),
+              style: Theme.of(context).textTheme.bodySmall),
+            const SizedBox(height: 8),
+            for (final gift in group('specialGifts'))
+              WorldBondSpecialGiftTile(
+                key: ValueKey('bond-special-${gift['id']}'),
+                level: (gift['level'] as num?)?.toInt() ?? 1,
+                name: (ar ? gift['nameAr'] : gift['name']).toString(),
+                priceCoins: (gift['priceCoins'] as num?)?.toInt() ?? 0,
+                isArabic: ar,
+                canSend: acceptedBond && !_busy,
+                onSend: () => _giftSpecial(gift),
+              ),
+            if (!acceptedBond)
+              Text(label('اقبلوا الدعوة أولًا لتفعيل الهدايا الخاصة.',
+                'Accept a connection first to unlock these gifts.')),
+          ],
           const SizedBox(height: 18),
           Row(children: [
             Expanded(child: Text(label('قائمة الرغبات', 'Wishlist'),
