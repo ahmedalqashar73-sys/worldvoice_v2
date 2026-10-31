@@ -58,6 +58,29 @@ export function registerWorldBondRoutes({app, db, authenticatedUser,
   clock = Date.now}) {
   const bonds = db.collection("world_bonds");
   const profiles = db.collection("users");
+  // A single active or pending partner per user and relationship type.
+  // Firestore transactions serialize competing invitations through slot docs.
+  const slotRef = (uid, type) => profiles.doc(uid)
+    .collection("worldbond_slots").doc(type);
+  const liveSlot = (snap, peer, now) => {
+    const d = snap.data() || {};
+    if (!snap.exists || !d.peerId || d.peerId === peer) return false;
+    return d.status === "active" ||
+      (d.status === "pending" && Number(d.expiresAtMs) > now);
+  };
+  const checkLegacyPartners = async (uid, peer, type, now) => {
+    // Previous versions did not create slots. Check existing bonds before
+    // reserving the new slot to avoid duplicating a legacy active partner.
+    const snap = await bonds.where("members", "array-contains", uid)
+      .limit(80).get();
+    if (snap.docs.some(doc => {
+      const d = doc.data() || {};
+      return d.type === type && Array.isArray(d.members) &&
+        !d.members.includes(peer) &&
+        (d.status === "active" ||
+         (d.status === "pending" && Number(d.expiresAtMs) > now));
+    })) bad("Only one partner is allowed per relationship type.", 409);
+  };
   const requirePair = (uid, peer, type) => {
     if (!validId(peer) || peer === uid || !BOND_TYPES.includes(type)) {
       bad("Choose another existing member and valid relationship type.");
@@ -140,10 +163,18 @@ export function registerWorldBondRoutes({app, db, authenticatedUser,
       const ref = requirePair(user.uid, peerId, type);
       const now = clock(), day = clockDay(now);
       const rate = profiles.doc(user.uid).collection("worldbond").doc("invite_" + day);
+      // For legacy relationships, check both sides without mutating them.
+      await Promise.all([
+        checkLegacyPartners(user.uid, peerId, type, now),
+        checkLegacyPartners(peerId, user.uid, type, now),
+      ]);
+      const senderSlot = slotRef(user.uid, type);
+      const peerSlot = slotRef(peerId, type);
       const result = await db.runTransaction(async tx => {
-        const [prior, from, to, usage] = await Promise.all([
+        const [prior, from, to, usage, mySlot, theirSlot] = await Promise.all([
           tx.get(ref), tx.get(profiles.doc(user.uid)),
           tx.get(profiles.doc(peerId)), tx.get(rate),
+          tx.get(senderSlot), tx.get(peerSlot),
         ]);
         if (!from.exists || !to.exists) bad("Profile not found.", 404);
         await checkBlock(tx, user.uid, peerId);
@@ -153,14 +184,23 @@ export function registerWorldBondRoutes({app, db, authenticatedUser,
           if (d.inviterId !== user.uid) bad("Respond to the incoming invitation.", 409);
           return {status: "pending", id: ref.id, alreadySent: true};
         }
+        if (liveSlot(mySlot, peerId, now) ||
+            liveSlot(theirSlot, user.uid, now)) {
+          bad("Only one partner is allowed per relationship type.", 409);
+        }
         const count = Number(usage.data()?.count || 0);
         if (!Number.isSafeInteger(count) || count >= 8) {
           bad("Daily invitation limit reached.", 429);
         }
         tx.set(rate, {count: count + 1, day, updatedAtMs: now}, {merge: true});
+        const expiresAtMs = now + 48 * 3600000;
         tx.set(ref, {members: [user.uid, peerId].sort(), inviterId: user.uid,
-          recipientId: peerId, type, status: "pending", expiresAtMs: now + 48 * 3600000,
+          recipientId: peerId, type, status: "pending", expiresAtMs,
           xp: 0, completedDays: 0, updatedAtMs: now});
+        tx.set(senderSlot, {peerId, type, status: "pending",
+          expiresAtMs, updatedAtMs: now});
+        tx.set(peerSlot, {peerId: user.uid, type, status: "pending",
+          expiresAtMs, updatedAtMs: now});
         return {status: "pending", id: ref.id};
       });
       res.json({ok: true, ...result});
@@ -179,12 +219,28 @@ export function registerWorldBondRoutes({app, db, authenticatedUser,
       const ref = requirePair(user.uid, peerId, type);
       const now = clock();
       const result = await db.runTransaction(async tx => {
-        const snap = await tx.get(ref);
+        const ownSlot = slotRef(user.uid, type);
+        const peerSlot = slotRef(peerId, type);
+        const [snap, ownLock, peerLock] = await Promise.all([
+          tx.get(ref), tx.get(ownSlot), tx.get(peerSlot),
+        ]);
         const data = pairStatus(snap, user.uid);
         const pending = data.status === "pending" && data.expiresAtMs > now;
+        const releaseSlots = () => {
+          // Do not wipe a newer relationship if a legacy invitation expires.
+          if (ownLock.data()?.peerId === peerId) {
+            tx.set(ownSlot, {peerId: null, status: "ended",
+              updatedAtMs: now}, {merge: true});
+          }
+          if (peerLock.data()?.peerId === user.uid) {
+            tx.set(peerSlot, {peerId: null, status: "ended",
+              updatedAtMs: now}, {merge: true});
+          }
+        };
         if (decision === "leave") {
           if (data.status !== "active") bad("Relationship is not active.", 409);
           tx.update(ref, {status: "ended", updatedAtMs: now});
+          releaseSlots();
           return {status: "ended"};
         }
         if (!pending) bad("Invitation expired or already resolved.", 409);
@@ -193,10 +249,22 @@ export function registerWorldBondRoutes({app, db, authenticatedUser,
         }
         if (["accept", "decline"].includes(decision) &&
           data.recipientId !== user.uid) bad("Only recipient can respond.", 403);
-        if (decision === "accept") await checkBlock(tx, user.uid, peerId);
+        if (decision === "accept") {
+          if (liveSlot(ownLock, peerId, now) ||
+              liveSlot(peerLock, user.uid, now)) {
+            bad("Only one partner is allowed per relationship type.", 409);
+          }
+          await checkBlock(tx, user.uid, peerId);
+        }
         const status = decision === "accept" ? "active" :
           decision === "decline" ? "declined" : "cancelled";
         tx.update(ref, {status, updatedAtMs: now});
+        if (status === "active") {
+          tx.set(ownSlot, {peerId, type, status,
+            expiresAtMs: null, updatedAtMs: now});
+          tx.set(peerSlot, {peerId: user.uid, type, status,
+            expiresAtMs: null, updatedAtMs: now});
+        } else releaseSlots();
         return {status};
       });
       res.json({ok: true, ...result});
