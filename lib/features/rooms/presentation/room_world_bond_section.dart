@@ -47,10 +47,11 @@ class _RoomWorldBondSectionState extends State<RoomWorldBondSection> {
   }
 
   void _load() {
+    final query = widget.isSelf
+        ? ''
+        : '?peerId=${Uri.encodeQueryComponent(widget.userId)}';
     _overview = widget.overviewLoader?.call() ??
-        WorldBondApi.request('world-bond/overview' +
-            (widget.isSelf ? '' :
-                '?peerId=${Uri.encodeQueryComponent(widget.userId)}'));
+        WorldBondApi.request('world-bond/overview$query');
   }
 
   @override
