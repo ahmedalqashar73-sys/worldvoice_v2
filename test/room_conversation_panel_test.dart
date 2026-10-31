@@ -24,16 +24,13 @@ void main() {
               isArabic: true, onSend: (text) async { sent.add(text); },
               onGifts: () {}, onShop: () {}, onTools: () {},
               onCaptions: () {}, onMic: () {}, micIcon: Icons.mic, micLabel: 'مايك',
-              handControl: IconButton(
-                key: const ValueKey('toolbar-raise-hand'),
-                tooltip: 'رفع اليد',
-                icon: const Icon(Icons.back_hand_rounded, color: Colors.white),
-                onPressed: () {},
-              ),
+              // Raise-hand lives in the parent room Stack, not the
+              // chat composer. Keep it off this panel to avoid overlap.
             ))))));
         await tester.pump();
         expect(tester.takeException(), isNull);
-        expect(find.byKey(const ValueKey('toolbar-raise-hand')), findsOneWidget);
+        // A fixed hand button belongs to the room's outer overlay.
+        expect(find.byKey(const ValueKey('toolbar-raise-hand')), findsNothing);
         await tester.tap(find.byKey(
           const ValueKey<String>('worldvoice-room-chat-input'),
         ));
