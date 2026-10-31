@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 
-import '../../profile/presentation/world_bond_gift_art.dart';
 import '../../profile/presentation/world_bond_level_badge.dart';
 import '../../profile/presentation/world_bond_screen.dart';
 
@@ -72,7 +71,6 @@ class _RoomWorldBondSectionState extends State<RoomWorldBondSection> {
       ('duo', 'ثنائي WorldVoice', 'WorldVoice duo',
         Icons.favorite_rounded, Color(0xFFF4CA7F)),
     ];
-    const gifts = <(int, int)>[(1, 100), (2, 200), (3, 500), (4, 1000)];
 
     return Container(
       key: const ValueKey('room-worldbond-section'),
@@ -239,88 +237,9 @@ class _RoomWorldBondSectionState extends State<RoomWorldBondSection> {
               );
             },
           ),
-          const SizedBox(height: 12),
-          Row(children: [
-            const Icon(Icons.redeem_rounded, color: gold, size: 20),
-            const SizedBox(width: 7),
-            Expanded(child: Text(
-              ar ? 'هدايا WorldBond الحصرية' : 'Exclusive WorldBond gifts',
-              style: const TextStyle(
-                color: gold, fontWeight: FontWeight.w800, fontSize: 13)),
-            ),
-            IconButton(
-              tooltip: ar ? 'معرض الهدايا' : 'Gift gallery',
-              onPressed: () => widget.onOpen(widget.isSelf ? null : 'gifts'),
-              icon: const Icon(Icons.chevron_left_rounded, color: gold),
-            ),
-          ]),
-          Text(
-            ar ? 'اضغط على رفيق التعلّم أو أي علاقة لفتح هداياها وشاراتها.'
-               : 'Open any connection to view its gift gallery and badges.',
-            style: const TextStyle(fontSize: 11, color: pale)),
-          const SizedBox(height: 8),
-          // Compact previews only. The full gallery stays behind a tap.
-          LayoutBuilder(builder: (context, constraints) {
-            final tileWidth = (constraints.maxWidth - 18) / 4;
-            return Wrap(
-              spacing: 6, runSpacing: 6,
-              children: [
-                for (final gift in gifts)
-                  SizedBox(
-                    width: tileWidth,
-                    child: Material(
-                      color: const Color(0xFF1C463E),
-                      borderRadius: BorderRadius.circular(12),
-                      child: InkWell(
-                        key: ValueKey('room-worldbond-gift-${gift.$1}'),
-                        borderRadius: BorderRadius.circular(12),
-                        onTap: () => widget.onOpen(widget.isSelf ? null : 'gifts'),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 2, vertical: 7),
-                          child: Column(children: [
-                            WorldBondGiftArt(level: gift.$1, size: 44),
-                            const SizedBox(height: 3),
-                            Text('LV${gift.$1}',
-                              style: const TextStyle(
-                                color: gold, fontWeight: FontWeight.w900,
-                                fontSize: 10)),
-                            Text('${gift.$2} ${ar ? 'كوين' : 'coins'}',
-                              maxLines: 1,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(color: pale, fontSize: 9)),
-                          ]),
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            );
-          }),
-          if (widget.isSelf)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(
-                ar ? 'للعرض فقط؛ لا يمكن إرسال هدية لنفسك.'
-                   : 'Preview only; you cannot gift yourself.',
-                style: const TextStyle(color: pale, fontSize: 11),
-              ),
-            ),
-          const SizedBox(height: 9),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              key: const ValueKey('room-worldbond-open-full'),
-              onPressed: () => widget.onOpen(widget.isSelf ? null : 'gifts'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: gold,
-                side: const BorderSide(color: gold),
-              ),
-              icon: const Icon(Icons.auto_awesome_rounded, size: 18),
-              label: Text(ar ? 'فتح معرض العلاقات والهدايا'
-                  : 'Explore bonds and gifts'),
-            ),
-          ),
+          const SizedBox(height: 5),
+          // Keep the host/member card compact: all four gift designs, prices,
+          // levels and send confirmation live inside the selected relationship.
         ],
       ),
     );
