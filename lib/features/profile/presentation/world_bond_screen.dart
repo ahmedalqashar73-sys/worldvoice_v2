@@ -74,10 +74,11 @@ typedef WorldBondRequest = Future<Map<String, dynamic>> Function(String endpoint
     {Map<String, dynamic>? body, String? idempotencyKey});
 
 class WorldBondScreen extends StatefulWidget {
-  const WorldBondScreen({super.key, this.peerId, this.peerName, this.focusType, this.embedded = false, this.request, this.viewerId});
+  const WorldBondScreen({super.key, this.peerId, this.peerName, this.focusType, this.focusGifts = false, this.embedded = false, this.request, this.viewerId});
   final String? peerId;
   final String? peerName;
   final String? focusType;
+  final bool focusGifts;
   final bool embedded;
   final WorldBondRequest? request;
   final String? viewerId;
@@ -451,6 +452,36 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
       for (final type in kinds.keys)
         if (type != widget.focusType) type,
     ];
+    // Relationship gifts remain separate from room/Live and are never self-sent.
+    final specialGiftWidgets = <Widget>[
+      const SizedBox(height: 22),
+      Text(label('هدايا العلاقات الخاصة', 'Exclusive relationship gifts'),
+        style: Theme.of(context).textTheme.titleLarge),
+      const SizedBox(height: 5),
+      Text(self
+        ? label('اختر صديقًا من الغرفة لإهدائه. لا يمكنك إهداء نفسك.',
+          'Open a friend from the room to send. Self-gifting is disabled.')
+        : label(
+          'أربع هدايا مستقلة عن هدايا الروم واللايف. يلزم قبول علاقة '
+          'رفيق تعلّم أو رفيق لغة أو صديق مميز أو ثنائي WorldVoice قبل الإهداء.',
+          'Four relationship-only gifts, separate from room/Live gifts. '
+          'An accepted WorldBond relationship is required.'),
+        style: Theme.of(context).textTheme.bodySmall),
+      const SizedBox(height: 8),
+      for (final gift in group('specialGifts'))
+        WorldBondSpecialGiftTile(
+          key: ValueKey('bond-special-${gift['id']}'),
+          level: (gift['level'] as num?)?.toInt() ?? 1,
+          name: (ar ? gift['nameAr'] : gift['name']).toString(),
+          priceCoins: (gift['priceCoins'] as num?)?.toInt() ?? 0,
+          isArabic: ar,
+          canSend: !self && acceptedBond && !_busy,
+          onSend: () => _giftSpecial(gift),
+        ),
+      if (!self && !acceptedBond)
+        Text(label('اقبلوا الدعوة أولًا لتفعيل الهدايا الخاصة.',
+          'Accept a connection first to unlock these gifts.')),
+    ];
     final content = ListView(
       shrinkWrap: widget.embedded,
       physics: widget.embedded ? const NeverScrollableScrollPhysics() : null,
@@ -473,6 +504,7 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
             ]),
           ),
           if (_busy) const LinearProgressIndicator(),
+          if (widget.focusGifts) ...specialGiftWidgets,
           if (_error != null) Card(child: ListTile(
             leading: const Icon(Icons.warning_amber, color: Colors.orange),
             title: Text(_error!),
@@ -558,32 +590,7 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
                   ],
                 ]),
             )),
-          if (!self) ...[
-            const SizedBox(height: 22),
-            Text(label('هدايا العلاقات الخاصة', 'Exclusive relationship gifts'),
-              style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 5),
-            Text(label(
-              'أربع هدايا مستقلة عن هدايا الروم واللايف. يلزم قبول علاقة '
-              'رفيق تعلّم أو رفيق لغة أو صديق مميز أو ثنائي WorldVoice قبل الإهداء.',
-              'Four relationship-only gifts, separate from room/Live gifts. '
-              'An accepted WorldBond relationship is required.'),
-              style: Theme.of(context).textTheme.bodySmall),
-            const SizedBox(height: 8),
-            for (final gift in group('specialGifts'))
-              WorldBondSpecialGiftTile(
-                key: ValueKey('bond-special-${gift['id']}'),
-                level: (gift['level'] as num?)?.toInt() ?? 1,
-                name: (ar ? gift['nameAr'] : gift['name']).toString(),
-                priceCoins: (gift['priceCoins'] as num?)?.toInt() ?? 0,
-                isArabic: ar,
-                canSend: acceptedBond && !_busy,
-                onSend: () => _giftSpecial(gift),
-              ),
-            if (!acceptedBond)
-              Text(label('اقبلوا الدعوة أولًا لتفعيل الهدايا الخاصة.',
-                'Accept a connection first to unlock these gifts.')),
-          ],
+          if (!widget.focusGifts) ...specialGiftWidgets,
           if (!widget.embedded) ...[
           const SizedBox(height: 18),
           Row(children: [
