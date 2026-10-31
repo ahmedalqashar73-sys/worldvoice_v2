@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'world_bond_special_gift_tile.dart';
 import 'world_bond_gift_art.dart';
 import 'world_bond_level_badge.dart';
+import 'world_bond_gift_gallery_tile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 
@@ -444,16 +445,18 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
       'duo' => label('ثنائي WorldVoice', 'WorldVoice duo'),
       _ => code,
     };
-    final bonds = group('bonds').where((bond) => self ||
-        (bond['members'] as List? ?? []).contains(widget.peerId)).toList();
+    final bonds = group('bonds').where((bond) =>
+        (self || (bond['members'] as List? ?? []).contains(widget.peerId)) &&
+        (widget.focusType == null || bond['type'] == widget.focusType))
+        .toList();
     final acceptedBond = bonds.any((bond) =>
         bond['status'] == 'active' &&
         (widget.focusType == null || bond['type'] == widget.focusType));
     final displayedKindOrder = <String>[
       if (widget.focusType != null && kinds.containsKey(widget.focusType))
-        widget.focusType!,
-      for (final type in kinds.keys)
-        if (type != widget.focusType) type,
+        widget.focusType!
+      else
+        ...kinds.keys,
     ];
     // Relationship gifts remain separate from room/Live and are never self-sent.
     final specialGiftWidgets = <Widget>[
@@ -491,6 +494,49 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
         Text(label('اقبلوا الدعوة أولًا لتفعيل الهدايا الخاصة.',
           'Accept a connection first to unlock these gifts.')),
     ];
+    // A dedicated four-item gallery is opened from one relationship tile.
+    // Room/Live gift widgets and the global app theme are untouched.
+    final focusedGiftGallery = <Widget>[
+      const SizedBox(height: 12),
+      Text(label('معرض هدايا العلاقة', 'Relationship gift gallery'),
+        style: Theme.of(context).textTheme.titleLarge),
+      const SizedBox(height: 7),
+      Text(self
+          ? label('استعرض الهدايا، ولا يمكنك إهداء نفسك.',
+              'Preview gifts; you cannot gift yourself.')
+          : label('أربع هدايا حصرية ومستقلة عن هدايا الغرفة.',
+              'Four exclusive gifts, separate from room gifts.'),
+        style: Theme.of(context).textTheme.bodySmall),
+      const SizedBox(height: 12),
+      LayoutBuilder(builder: (context, constraints) {
+        final width = (constraints.maxWidth - 10) / 2;
+        return Wrap(
+          key: const ValueKey('worldbond-focused-gift-gallery'),
+          spacing: 10, runSpacing: 10,
+          children: [
+            for (final gift in group('specialGifts'))
+              SizedBox(
+                width: width,
+                child: WorldBondGiftGalleryTile(
+                  level: (gift['level'] as num?)?.toInt() ?? 1,
+                  name: (ar ? gift['nameAr'] : gift['name']).toString(),
+                  priceCoins: (gift['priceCoins'] as num?)?.toInt() ?? 0,
+                  isArabic: ar,
+                  canSend: !self && acceptedBond && !_busy,
+                  onSend: () => _giftSpecial(gift),
+                ),
+              ),
+          ],
+        );
+      }),
+      if (!self && !acceptedBond)
+        Padding(
+          padding: const EdgeInsets.only(top: 7),
+          child: Text(label(
+            'فعّل هذه العلاقة أولًا حتى تتمكن من إرسال الهدية.',
+            'Accept this connection to send a gift.')),
+        ),
+    ];
     final content = ListView(
       shrinkWrap: widget.embedded,
       physics: widget.embedded ? const NeverScrollableScrollPhysics() : null,
@@ -513,7 +559,7 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
             ]),
           ),
           if (_busy) const LinearProgressIndicator(),
-          if (widget.focusGifts) ...specialGiftWidgets,
+          if (widget.focusGifts) ...focusedGiftGallery,
           if (_error != null) Card(child: ListTile(
             leading: const Icon(Icons.warning_amber, color: Colors.orange),
             title: Text(_error!),
