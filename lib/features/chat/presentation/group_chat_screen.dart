@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:record/record.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../services/chat_extended_service.dart';
 import 'chat_media_bubble.dart';
@@ -31,6 +33,8 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   final ImagePicker _picker = ImagePicker();
   final ChatExtendedService _service = ChatExtendedService();
   bool _sending = false;
+  final AudioRecorder _voiceRecorder = AudioRecorder();
+  bool _recordingVoice = false;
   final GroupCallService _calls = GroupCallService();
   GroupCallInfo? _activeCall;
   Timer? _callRefresh;
@@ -114,6 +118,76 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     }
   }
 
+  Future<void> _toggleVoice() async {
+    if (_sending) return;
+    if (_recordingVoice) {
+      setState(() { _recordingVoice = false; _sending = true; });
+      String? path;
+      try {
+        path = await _voiceRecorder.stop();
+        if (path == null || path.isEmpty) throw StateError('تعذر حفظ التسجيل الصوتي.');
+        await _service.sendMedia(
+          chatId: widget.chatId, file: File(path), mediaType: 'audio');
+      } catch (error) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.toString().replaceFirst('Bad state: ', ''))));
+      } finally {
+        if (path != null) { try { await File(path).delete(); } catch (_) {} }
+        if (mounted) setState(() => _sending = false);
+      }
+      return;
+    }
+    try {
+      if (!await _voiceRecorder.hasPermission()) {
+        throw StateError('اسمح للتطبيق باستخدام الميكروفون.');
+      }
+      final dir = await getTemporaryDirectory();
+      final path = '${dir.path}/wv_group_voice_${DateTime.now().microsecondsSinceEpoch}.m4a';
+      await _voiceRecorder.start(
+        const RecordConfig(encoder: AudioEncoder.aacLc, bitRate: 64000),
+        path: path);
+      if (mounted) setState(() => _recordingVoice = true);
+    } catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString().replaceFirst('Bad state: ', ''))));
+    }
+  }
+
+  Future<void> _handleGroupAction(String action) async {
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    if (action == 'delete_group' || action == 'leave') {
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(action == 'delete_group'
+            ? (ar ? 'حذف المجموعة للجميع؟' : 'Delete group for everyone?')
+            : (ar ? 'مغادرة المجموعة؟' : 'Leave group?')),
+          content: Text(action == 'delete_group'
+            ? (ar ? 'لن يتمكن الأعضاء من الوصول لمحادثة المجموعة بعد الحذف.'
+                  : 'Members will no longer access this group.')
+            : (ar ? 'لن تصلك رسائل المجموعة بعد المغادرة.'
+                  : 'You will stop receiving group messages.')),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false),
+              child: Text(ar ? 'إلغاء' : 'Cancel')),
+            FilledButton(onPressed: () => Navigator.pop(ctx, true),
+              child: Text(ar ? 'تأكيد' : 'Confirm')),
+          ],
+        ),
+      );
+      if (ok != true || !mounted) return;
+    }
+    try {
+      await _service.manageGroup(chatId: widget.chatId, action: action);
+      if (!mounted) return;
+      if (action == 'delete_group' || action == 'delete_for_me' ||
+          action == 'leave') Navigator.of(context).pop();
+    } catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString().replaceFirst('Bad state: ', ''))));
+    }
+  }
+
   Future<void> _pickMedia(String type) async {
     XFile? file;
     if (type == 'video') {
@@ -147,6 +221,8 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   void dispose() {
     _text.dispose();
     _service.dispose();
+    if (_recordingVoice) unawaited(_voiceRecorder.stop());
+    unawaited(_voiceRecorder.dispose());
     _callRefresh?.cancel();
     _calls.dispose();
     super.dispose();
@@ -189,6 +265,35 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
             tooltip: ar ? 'أعضاء المجموعة' : 'Group members',
             onPressed: () => showGroupMembersSheet(context, widget.chatId),
             icon: const Icon(Icons.groups_rounded),
+          ),
+          StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+            stream: FirebaseFirestore.instance.collection('chats')
+                .doc(widget.chatId).snapshots(),
+            builder: (context, snap) {
+              final data = snap.data?.data() ?? const <String, dynamic>{};
+              final owner = data['ownerId'] == uid;
+              return PopupMenuButton<String>(
+                key: const ValueKey('group-settings-menu'),
+                tooltip: ar ? 'إدارة المجموعة' : 'Group settings',
+                onSelected: (action) {
+                  if (action == 'members') {
+                    showGroupMembersSheet(context, widget.chatId);
+                  } else { _handleGroupAction(action); }
+                },
+                itemBuilder: (_) => [
+                  PopupMenuItem(value: 'members',
+                    child: Text(ar ? 'الأعضاء وإضافة أصدقاء' : 'Members and add friends')),
+                  PopupMenuItem(value: 'delete_for_me',
+                    child: Text(ar ? 'إزالة من قائمة دردشاتي' : 'Hide from my chats')),
+                  if (!owner) PopupMenuItem(value: 'leave',
+                    child: Text(ar ? 'الخروج من المجموعة' : 'Leave group')),
+                  if (owner) PopupMenuItem(value: 'delete_group',
+                    child: Text(ar ? 'حذف المجموعة للجميع' : 'Delete group for everyone',
+                      style: const TextStyle(color: Colors.redAccent))),
+                ],
+                icon: const Icon(Icons.more_vert_rounded),
+              );
+            },
           ),
         ],
       ),
@@ -306,8 +411,8 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                                   ),
                                 ),
                               ),
-                              if ((type == 'image' || type == 'video') &&
-                                  mediaUrl.isNotEmpty)
+                              if (const ['image', 'video', 'audio', 'pdf']
+                                    .contains(type) && mediaUrl.isNotEmpty)
                                 ChatMediaBubble(
                                   type: type,
                                   url: mediaUrl,
@@ -371,8 +476,18 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                     ),
                   ),
                 ),
+                IconButton(
+                  key: const ValueKey('group-voice-record'),
+                  tooltip: _recordingVoice
+                      ? (ar ? 'إرسال التسجيل الصوتي' : 'Send voice message')
+                      : (ar ? 'تسجيل رسالة صوتية' : 'Record voice message'),
+                  onPressed: _sending ? null : _toggleVoice,
+                  icon: Icon(_recordingVoice
+                      ? Icons.stop_circle_rounded : Icons.mic_rounded,
+                      color: _recordingVoice ? Colors.redAccent : null),
+                ),
                 IconButton.filledTonal(
-                  onPressed: _sending ? null : _sendText,
+                  onPressed: _sending || _recordingVoice ? null : _sendText,
                   icon: _sending
                       ? const SizedBox.square(
                           dimension: 18,
