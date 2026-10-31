@@ -22,6 +22,7 @@ import {registerOfficialAnnouncementRoutes} from "./official_announcements_route
 import {registerStoryRoutes} from "./story_routes.js";
 import {registerSocialRoutes} from "./social_routes.js";
 import {registerCallRoutes} from "./call_routes.js";
+import {registerGroupCallRoutes} from "./group_call_routes.js";
 import {chatIdFor, assertChatMembership} from "./chat_membership.js";
 import {reverseVerifiedWebPurchase} from "./payment_reversals.js";
 import {validateQuizDraft, quizWinners} from "./quiz_policy.js";
@@ -2492,6 +2493,7 @@ registerStoryRoutes({
 registerSocialRoutes({app, authenticatedUser, db});
 registerWorldBondRoutes({app, db, authenticatedUser});
 registerCallRoutes({app, authenticatedUser, db});
+registerGroupCallRoutes({app, authenticatedUser, db});
 
 app.use((error, _req, res, _next) => {
   if (error?.code === "STORY_STORAGE_NOT_READY") {
