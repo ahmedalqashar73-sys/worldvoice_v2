@@ -78,7 +78,7 @@ jobs:
                 // The old Worker can pass /health and reject anonymous
                 // token requests, yet still reject every new Live.
                 const health = JSON.parse(body);
-                if (health.tokenApiRevision !== '2026-10-23.6' ||
+                if (health.tokenApiRevision !== '2026-10-31.3' ||
                     health.liveHostBootstrapSupported !== true) {
                   console.error(
                     '::warning title=Live token Worker deployment missing::' +
