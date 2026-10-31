@@ -56,7 +56,7 @@ void main() {
       },
     ));
     await tester.pumpAndSettle();
-    expect(find.text('علاقة نشطة'), findsOneWidget);
+    expect(find.byKey(const ValueKey('worldbond-level-badge-1')), findsOneWidget);
     for (final level in [1, 2, 3, 4]) {
       expect(find.byKey(ValueKey('room-worldbond-gift-$level')),
           findsOneWidget);
@@ -77,7 +77,7 @@ void main() {
     final openings = <String?>[];
     await tester.pumpWidget(scene(self: true, onOpen: openings.add));
     await tester.pumpAndSettle();
-    expect(find.textContaining('لا يمكنك إهداء نفسك'), findsOneWidget);
+    expect(find.textContaining('لا يمكن إرسال هدية لنفسك'), findsOneWidget);
     expect(find.text('إهداء'), findsNothing);
     await tester.ensureVisible(
       find.byKey(const ValueKey('room-worldbond-open-full')),
