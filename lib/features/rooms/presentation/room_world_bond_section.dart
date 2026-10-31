@@ -145,13 +145,31 @@ class _RoomWorldBondSectionState extends State<RoomWorldBondSection> {
                                 : members.map((id) => id.toString())
                                     .firstWhere((id) => id != myself,
                                       orElse: () => '');
-                            final isFree = status != 'active' &&
-                                status != 'pending';
+                            final alreadyPaired = !widget.isSelf &&
+                                records.any((item) =>
+                                  item['type'] == kind.$1 &&
+                                  (item['status'] == 'active' ||
+                                   item['status'] == 'pending') &&
+                                  !((item['members'] as List? ?? [])
+                                    .contains(widget.userId)));
+                            final isFree = snapshot.hasData &&
+                                !snapshot.hasError && status == null &&
+                                !alreadyPaired;
                             return Material(
                               color: Colors.transparent,
                               child: InkWell(
                                 key: ValueKey('room-worldbond-${kind.$1}'),
-                                onTap: () => widget.onOpen(kind.$1),
+                                onTap: () {
+                                  if (alreadyPaired) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text(ar
+                                        ? 'لديك شريك في هذا النوع؛ أنهِ العلاقة الحالية أولًا.'
+                                        : 'This connection type already has a partner.')),
+                                    );
+                                    return;
+                                  }
+                                  widget.onOpen(kind.$1);
+                                },
                                 borderRadius: BorderRadius.circular(16),
                                 child: Ink(
                                   decoration: BoxDecoration(
@@ -195,6 +213,8 @@ class _RoomWorldBondSectionState extends State<RoomWorldBondSection> {
                                         Text(
                                           status == 'pending'
                                               ? (ar ? 'بانتظار القبول' : 'Pending')
+                                              : alreadyPaired
+                                                  ? (ar ? 'لديك شريك' : 'Occupied')
                                               : snapshot.hasError
                                                   ? (ar ? 'تحقق من الاتصال' : 'Offline')
                                                   : !snapshot.hasData
