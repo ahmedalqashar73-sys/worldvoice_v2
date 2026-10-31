@@ -578,17 +578,25 @@ class LiveSessionService {
     required String guestUserId,
     required bool blocked,
   }) async {
-    final host = _user;
-    if (guestUserId.isEmpty || guestUserId == host.uid) {
+    final actor = _user;
+    if (guestUserId.isEmpty || guestUserId == actor.uid) {
       throw StateError('INVALID_LIVE_GUEST');
     }
     final session = _sessions.doc(liveId);
     final request = session.collection('join_requests').doc(guestUserId);
     await _db.runTransaction((tx) async {
       final liveSnap = await tx.get(session);
-      if (liveSnap.data()?['hostId'] != host.uid ||
-          liveSnap.data()?['isLive'] != true) {
-        throw StateError('HOST_ONLY');
+      final data = liveSnap.data();
+      if (data?['isLive'] != true) throw StateError('LIVE_ENDED');
+      final hostId = data?['hostId']?.toString() ?? '';
+      if (hostId != actor.uid) {
+        final moderator = await tx.get(
+          _db.collection('users').doc(hostId)
+              .collection('moderators').doc(actor.uid),
+        );
+        if (moderator.data()?['status'] != 'accepted') {
+          throw StateError('MODERATOR_ONLY');
+        }
       }
       final guestSnap = await tx.get(request);
       if (guestSnap.data()?['status'] != 'accepted') {
@@ -596,6 +604,36 @@ class LiveSessionService {
       }
       tx.update(request, {'hostMuted': blocked});
     });
+  }
+
+  /// Mute or release all connected stage guests without removing them from
+  /// the broadcast. Releasing a mute never opens somebody else's microphone.
+  Future<int> setAllGuestMicrophonesBlocked({
+    required String liveId,
+    required bool blocked,
+  }) async {
+    final actor = _user;
+    final live = await _sessions.doc(liveId).get();
+    final data = live.data();
+    if (data?['isLive'] != true) throw StateError('LIVE_ENDED');
+    final hostId = data?['hostId']?.toString() ?? '';
+    if (actor.uid != hostId) {
+      final moderator = await _db.collection('users').doc(hostId)
+          .collection('moderators').doc(actor.uid).get();
+      if (moderator.data()?['status'] != 'accepted') {
+        throw StateError('MODERATOR_ONLY');
+      }
+    }
+    final guests = await _sessions.doc(liveId).collection('join_requests')
+        .where('status', isEqualTo: 'accepted').get();
+    if (guests.docs.isEmpty) return 0;
+    final batch = _db.batch();
+    for (final guest in guests.docs) {
+      if (guest.id == actor.uid) continue;
+      batch.update(guest.reference, {'hostMuted': blocked});
+    }
+    await batch.commit();
+    return guests.docs.where((guest) => guest.id != actor.uid).length;
   }
 
   /// Host-only, transactional stage removal: the guest stays in the Live
