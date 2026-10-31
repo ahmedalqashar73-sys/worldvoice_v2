@@ -1,3 +1,4 @@
+import 'room_member_profile_policy.dart';
 import '../../../core/widgets/worldvoice_avatar_frame.dart';
 import '../../engagement/presentation/creative_badge.dart';
 import 'dart:async';
@@ -2250,7 +2251,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
     final userId = seat.userId;
     if (userId == null || userId.isEmpty) return;
-    final member = _participants.where((p) => p.userId == userId).firstOrNull;
+    final member = roomProfileForSeat(seat, _participants, _roomHostId);
     if (member != null) _showParticipantCard(member);
   }
 

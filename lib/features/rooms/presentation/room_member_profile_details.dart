@@ -71,7 +71,7 @@ class _RoomMemberProfileDetailsState extends State<RoomMemberProfileDetails> {
       'beginner' => widget.isArabic ? 'مبتدئ' : 'Beginner',
       'intermediate' => widget.isArabic ? 'متوسط' : 'Intermediate',
       'advanced' => widget.isArabic ? 'متقدم' : 'Advanced',
-      _ => '',
+      _ => rawLevel.toUpperCase(),
     };
 
     Widget infoChip(String label, IconData icon) => Chip(

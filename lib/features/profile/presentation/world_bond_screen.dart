@@ -339,7 +339,9 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
       final storageKey = 'worldbond.pending.$uid.${widget.peerId}.${bond['type']}.$id';
       final key = prefs.getString(storageKey) ?? WorldBondApi.newKey();
       // Persist before the request: a timeout or app restart reuses the receipt.
-      await prefs.setString(storageKey, key);
+      if (!await prefs.setString(storageKey, key)) {
+        throw StateError('تعذر حفظ طلب الإهداء بأمان. حاول مجددًا.');
+      }
       final result = await _request('world-bond/gifts/send', body: {
         'type': bond['type'], 'recipientId': widget.peerId, 'giftId': id,
       }, idempotencyKey: key);
@@ -369,7 +371,9 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
     } catch (error) {
       if (mounted) {
         setState(() => _error =
-            error.toString().replaceFirst('Bad state: ', ''));
+            error.toString().contains('NOT_ENOUGH_COINS')
+              ? label('رصيدك غير كافٍ لإرسال هذه الهدية.', 'Not enough coins for this gift.')
+              : error.toString().replaceFirst('Bad state: ', ''));
       }
     } finally {
       if (mounted) setState(() => _busy = false);
