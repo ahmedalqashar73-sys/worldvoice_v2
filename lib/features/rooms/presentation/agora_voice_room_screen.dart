@@ -2676,7 +2676,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                 peerName: person.displayName,
                 focusType: action == 'bond:overview' || action == 'bond:gifts'
                     ? null : action.substring('bond:'.length),
-                focusGifts: action == 'bond:gifts',
+                // Relationship taps open the exclusive gallery first, while
+                // the host's own card remains read-only.
+                focusGifts: action == 'bond:gifts' ||
+                    (!self && action != 'bond:overview'),
               ),
             ),
           );
