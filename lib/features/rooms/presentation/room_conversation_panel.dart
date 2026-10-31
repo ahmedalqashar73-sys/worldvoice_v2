@@ -1,4 +1,5 @@
 import '../../profile/presentation/member_badges.dart';
+import 'room_bond_chat_marks.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -531,6 +532,16 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
                                           fontWeight: FontWeight.w700,
                                         ),
                                       ),
+                                      if (!welcome && msg != null)
+                                        WidgetSpan(
+                                          alignment: PlaceholderAlignment.middle,
+                                          child: Padding(
+                                            padding: const EdgeInsetsDirectional.only(end: 4),
+                                            child: RoomBondChatMarks(
+                                              userId: msg.userId,
+                                            ),
+                                          ),
+                                        ),
                                       TextSpan(
                                         text: welcome
                                             ? (ar
