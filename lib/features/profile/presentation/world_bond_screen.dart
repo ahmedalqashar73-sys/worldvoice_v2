@@ -4,8 +4,6 @@ import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'world_bond_special_gift_tile.dart';
-import 'world_bond_gift_art.dart';
 import 'world_bond_level_badge.dart';
 import 'world_bond_gift_gallery_tile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -458,42 +456,6 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
       else
         ...kinds.keys,
     ];
-    // Relationship gifts remain separate from room/Live and are never self-sent.
-    final specialGiftWidgets = <Widget>[
-      const SizedBox(height: 22),
-      Text(label('هدايا العلاقات الخاصة', 'Exclusive relationship gifts'),
-        style: Theme.of(context).textTheme.titleLarge),
-      const SizedBox(height: 5),
-      Text(self
-        ? label('اختر صديقًا من الغرفة لإهدائه. لا يمكنك إهداء نفسك.',
-          'Open a friend from the room to send. Self-gifting is disabled.')
-        : label(
-          'أربع هدايا مستقلة عن هدايا الروم واللايف. يلزم قبول علاقة '
-          'رفيق تعلّم أو رفيق لغة أو صديق مميز أو ثنائي WorldVoice قبل الإهداء.',
-          'Four relationship-only gifts, separate from room/Live gifts. '
-          'An accepted WorldBond relationship is required.'),
-        style: Theme.of(context).textTheme.bodySmall),
-      const SizedBox(height: 6),
-      Text(label(
-        'فئة الهدية (1–4) مستقلة عن مستوى العلاقة (1–5).',
-        'Gift tiers (1–4) are separate from relationship levels (1–5).'),
-        style: const TextStyle(
-          color: Color(0xFF397A68), fontSize: 12)),
-      const SizedBox(height: 8),
-      for (final gift in group('specialGifts'))
-        WorldBondSpecialGiftTile(
-          key: ValueKey('bond-special-${gift['id']}'),
-          level: (gift['level'] as num?)?.toInt() ?? 1,
-          name: (ar ? gift['nameAr'] : gift['name']).toString(),
-          priceCoins: (gift['priceCoins'] as num?)?.toInt() ?? 0,
-          isArabic: ar,
-          canSend: !self && acceptedBond && !_busy,
-          onSend: () => _giftSpecial(gift),
-        ),
-      if (!self && !acceptedBond)
-        Text(label('اقبلوا الدعوة أولًا لتفعيل الهدايا الخاصة.',
-          'Accept a connection first to unlock these gifts.')),
-    ];
     // A dedicated four-item gallery is opened from one relationship tile.
     // Room/Live gift widgets and the global app theme are untouched.
     final focusedGiftGallery = <Widget>[
@@ -668,7 +630,6 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
                   ],
                 ]),
             )),
-          if (!widget.focusGifts) ...specialGiftWidgets,
           if (!widget.embedded) ...[
           const SizedBox(height: 18),
           Row(children: [
