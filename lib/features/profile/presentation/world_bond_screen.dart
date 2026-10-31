@@ -307,11 +307,21 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
         'Gift price is unavailable.'));
       return;
     }
-    final bonds = group('bonds').where((b) => b['status'] == 'active' &&
-      (b['members'] as List? ?? []).contains(widget.peerId)).toList();
-    if (bonds.isEmpty) return;
-    final bond = bonds.firstWhere((b) => b['type'] == widget.focusType,
-      orElse: () => bonds.first);
+    final bonds = group('bonds').where((b) =>
+      b['status'] == 'active' &&
+      (b['members'] as List? ?? []).contains(widget.peerId) &&
+      (widget.focusType == null || b['type'] == widget.focusType)).toList();
+    // Never silently charge a gift against a different relationship type
+    // when opening a specific friend/language/learning/duo slot.
+    if (bonds.isEmpty) {
+      if (mounted) {
+        setState(() => _error = label(
+          'فعّل العلاقة المختارة أولًا قبل إرسال هديتها.',
+          'Activate the selected relationship before sending its gift.'));
+      }
+      return;
+    }
+    final bond = bonds.first;
     _confirmingGift = true;
     final confirmed = await showDialog<bool>(
       context: context,
