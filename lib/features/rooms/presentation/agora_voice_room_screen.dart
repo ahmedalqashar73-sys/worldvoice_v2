@@ -14,6 +14,8 @@ import '../../home/presentation/home_screen.dart';
 import '../../chat/services/worldvoice_notification_service.dart';
 import '../../chat/presentation/worldvoice_share_to_chat_sheet.dart';
 import '../../profile/presentation/public_profile_screen.dart';
+import '../../profile/presentation/world_bond_screen.dart';
+import 'room_member_profile_details.dart';
 import '../../profile/services/profile_social_service.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../data/room_caption.dart';
@@ -2493,19 +2495,27 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                               if (country.isNotEmpty) country,
                               if (native.isNotEmpty) native.toUpperCase(),
                             ].join('  •  ');
-                            if (details.isEmpty) return const SizedBox.shrink();
-                            return Padding(
-                              padding: const EdgeInsets.only(top: 6),
-                              child: Text(
-                                details,
-                                maxLines: 2,
-                                textAlign: TextAlign.center,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: lightGreen,
-                                  fontSize: 12,
+                            return Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (details.isNotEmpty)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 6),
+                                    child: Text(
+                                      details,
+                                      maxLines: 2,
+                                      textAlign: TextAlign.center,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                          color: lightGreen, fontSize: 12),
+                                    ),
+                                  ),
+                                RoomMemberProfileDetails(
+                                  userId: person.userId,
+                                  profile: data,
+                                  isArabic: ar,
                                 ),
-                              ),
+                              ],
                             );
                           },
                         ),
@@ -2614,6 +2624,42 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                             label: Text(ar ? 'زيارة الملف الشخصي' : 'Visit profile'),
                           ),
                         ),
+                        if (!self) ...[
+                          const SizedBox(height: 13),
+                          Text(
+                            ar ? 'علاقات WorldBond الخاصة' : 'WorldBond connections',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFFDBBE83),
+                            ),
+                          ),
+                          const SizedBox(height: 9),
+                          Wrap(
+                            alignment: WrapAlignment.center,
+                            spacing: 7,
+                            runSpacing: 7,
+                            children: [
+                              for (final option in <(String, IconData)>[
+                                (ar ? 'رفيق التعلّم' : 'Learning companion',
+                                  Icons.menu_book_rounded),
+                                (ar ? 'رفيق اللغة' : 'Language partner',
+                                  Icons.translate_rounded),
+                                (ar ? 'صديق مميز' : 'Close friend',
+                                  Icons.handshake_rounded),
+                                (ar ? 'ثنائي WorldVoice' : 'WorldVoice duo',
+                                  Icons.favorite_rounded),
+                              ])
+                                ActionChip(
+                                  avatar: Icon(option.$2, size: 17,
+                                    color: const Color(0xFFFFE0A0)),
+                                  label: Text(option.$1),
+                                  backgroundColor: const Color(0xFF173D32),
+                                  onPressed: () =>
+                                      Navigator.pop(sheetContext, 'bond'),
+                                ),
+                            ],
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -2630,6 +2676,16 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         case 'profile':
           // Push the real profile immediately; no intermediate list or sheet.
           _openParticipantProfile(person.userId);
+          break;
+        case 'bond':
+          await Navigator.of(context).push<void>(
+            MaterialPageRoute<void>(
+              builder: (_) => WorldBondScreen(
+                peerId: person.userId,
+                peerName: person.displayName,
+              ),
+            ),
+          );
           break;
         case 'invite':
           if (!canInvite || !_canModerate) break;
