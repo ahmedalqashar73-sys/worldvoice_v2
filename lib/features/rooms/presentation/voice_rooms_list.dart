@@ -16,6 +16,22 @@ import '../services/gift_level_service.dart';
 import '../services/room_history_service.dart';
 import 'agora_voice_room_screen.dart';
 
+/// Keep cached snapshots distinct from verified empty server results.
+enum RoomsDataState { loading, error, cached, empty, ready }
+
+RoomsDataState resolveRoomsDataState({
+  required bool hasError,
+  required bool hasData,
+  required bool waiting,
+  required bool isFromCache,
+  required int visibleRooms,
+}) {
+  if (hasError && !hasData) return RoomsDataState.error;
+  if (waiting && !hasData) return RoomsDataState.loading;
+  if (isFromCache || hasError) return RoomsDataState.cached;
+  return visibleRooms == 0 ? RoomsDataState.empty : RoomsDataState.ready;
+}
+
 class VoiceRoomsList extends StatefulWidget {
   const VoiceRoomsList({
     required this.languageCode,
@@ -133,7 +149,18 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
     if (widget.onlyLive) {
       query = query.where('mode', isEqualTo: 'live');
     }
-    return query.snapshots();
+    // Listen for cache-to-server transitions; cached emptiness is not proof
+    // that the server currently has no rooms.
+    return query.snapshots(includeMetadataChanges: true);
+  }
+
+  void _retryRooms() {
+    // A rebuild of the same failed StreamBuilder stream does not resubscribe.
+    if (!mounted) return;
+    setState(() {
+      _prefsFuture = _loadLanguagePrefs();
+      _activeRoomsStream = _roomsStream();
+    });
   }
 
   Future<void> _createRoom(
@@ -285,6 +312,13 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
               child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                 stream: history.watchHistory(),
                 builder: (context, snapshot) {
+                  if (snapshot.hasError && !snapshot.hasData) {
+                    return Center(
+                      child: Text(_isArabic
+                          ? 'تعذر تحميل سجل الغرف. تأكد من الاتصال بـ Firebase ثم أعد فتح السجل.'
+                          : 'Room history unavailable. Check Firebase connectivity and reopen.'),
+                    );
+                  }
                   final docs = snapshot.data?.docs ??
                       const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
                   if (docs.isEmpty) {
@@ -448,28 +482,63 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
                         }).toList(growable: false);
 
                   final visibleRoomIds = docs.map((doc) => doc.id).toSet();
+                  final dataState = resolveRoomsDataState(
+                    hasError: snapshot.hasError,
+                    hasData: snapshot.hasData,
+                    waiting: snapshot.connectionState == ConnectionState.waiting,
+                    isFromCache: snapshot.data?.metadata.isFromCache ?? false,
+                    visibleRooms: docs.length,
+                  );
                   return Stack(
                     children: [
-                      if (snapshot.hasError)
+                      if (dataState == RoomsDataState.error)
                         _RoomsLoadError(
                           isArabic: _isArabic,
                           permissionDenied: snapshot.error is FirebaseException &&
                               (snapshot.error as FirebaseException).code == 'permission-denied',
-                          onRetry: () => setState(() {}),
+                          onRetry: _retryRooms,
                         )
-                      else if (snapshot.connectionState ==
-                              ConnectionState.waiting &&
-                          !snapshot.hasData)
+                      else if (dataState == RoomsDataState.loading)
                         const Center(child: CircularProgressIndicator())
                       else
                         Stack(
                           children: [
+                        if (dataState == RoomsDataState.cached && docs.isNotEmpty)
+                          PositionedDirectional(
+                            start: 18, end: 18, top: 4,
+                            child: Material(
+                              color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                              borderRadius: BorderRadius.circular(12),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.cloud_off_outlined, size: 18),
+                                    const SizedBox(width: 8),
+                                    Expanded(child: Text(
+                                      _isArabic
+                                          ? 'بيانات محفوظة مؤقتًا؛ بانتظار تحديث Firebase'
+                                          : 'Saved rooms; waiting for Firebase to update',
+                                      style: Theme.of(context).textTheme.bodySmall,
+                                    )),
+                                    IconButton(
+                                      tooltip: _isArabic ? 'إعادة الاتصال' : 'Reconnect',
+                                      onPressed: _retryRooms,
+                                      icon: const Icon(Icons.refresh_rounded, size: 18),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
                         // Keep all room cards mounted while changing the
                         // filter. Their Firestore participant subscriptions
                         // must not restart every time Arabic/English is tapped.
                         ListView.builder(
                           padding:
-                              const EdgeInsets.fromLTRB(18, 14, 18, 96),
+                              EdgeInsets.fromLTRB(18,
+                                  dataState == RoomsDataState.cached && docs.isNotEmpty ? 65 : 14,
+                                  18, 96),
                           itemCount: publicDocs.length,
                           itemBuilder: (context, index) {
                             final doc = publicDocs[index];
@@ -527,10 +596,15 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
                           },
                         ),
                         if (docs.isEmpty)
-                          _EmptyRooms(
-                            isArabic: _isArabic,
-                            languageCode: selected,
-                          ),
+                          dataState == RoomsDataState.cached
+                              ? _RoomsLoadError(
+                                  isArabic: _isArabic,
+                                  onRetry: _retryRooms,
+                                )
+                              : _EmptyRooms(
+                                  isArabic: _isArabic,
+                                  languageCode: selected,
+                                ),
                           ],
                         ),
                       PositionedDirectional(
@@ -724,7 +798,8 @@ class _RoomCardState extends State<_RoomCard> {
                 DateTime.now().subtract(const Duration(minutes: 3)),
               );
         }).toList(growable: false);
-        if (activeParticipants.isEmpty) return const SizedBox.shrink();
+        // Presence may be missing during a Firestore outage; a room marked
+        // isOpen should not disappear just because a second read is empty.
         final preview = activeParticipants.take(3).toList(growable: false);
 
         return Card(
@@ -801,11 +876,18 @@ class _RoomCardState extends State<_RoomCard> {
                         const SizedBox(height: 9),
                         Row(
                           children: [
-                            const _LivePulse(),
+                            if (activeParticipants.isNotEmpty)
+                              const _LivePulse()
+                            else
+                              const Icon(Icons.schedule_rounded, size: 15),
                             const SizedBox(width: 7),
-                            const Text(
-                              'LIVE',
-                              style: TextStyle(
+                            Text(
+                              activeParticipants.isEmpty
+                                  ? (Localizations.localeOf(context).languageCode == 'ar'
+                                      ? 'بانتظار المتحدثين'
+                                      : 'Waiting for speakers')
+                                  : 'LIVE',
+                              style: const TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w900,
                               ),
