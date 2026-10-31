@@ -68,8 +68,10 @@ Future<void> _groupMemberOperation(
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
       content: Text('تم تحديث أعضاء المجموعة بنجاح.')));
   } catch (error) {
-    if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(error.toString().replaceFirst('Bad state: ', ''))));
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(error.toString().replaceFirst('Bad state: ', ''))));
+    }
   } finally { service.dispose(); }
 }
 
@@ -100,7 +102,9 @@ Future<void> _chooseGroupInvite(
                     trailing: const Icon(Icons.person_add_alt_1_rounded),
                     onTap: () async {
                       await _groupMemberOperation(context, chatId, 'add', id);
-                      if (dialogContext.mounted) Navigator.pop(dialogContext);
+                      if (dialogContext.mounted) {
+                        Navigator.pop(dialogContext);
+                      }
                     },
                   );
                 },
@@ -111,8 +115,10 @@ Future<void> _chooseGroupInvite(
       ),
     );
   } catch (error) {
-    if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(error.toString().replaceFirst('Bad state: ', ''))));
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(error.toString().replaceFirst('Bad state: ', ''))));
+    }
   }
 }
 
