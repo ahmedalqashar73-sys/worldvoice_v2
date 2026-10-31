@@ -260,6 +260,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                       final mine = data['senderId'] == uid;
                       final type = (data['type'] ?? 'text').toString();
                       final sender = (data['senderName'] ?? 'Member').toString();
+                      final photo = (data['senderPhotoUrl'] ?? '').toString().trim();
                       final mediaUrl = (data['mediaUrl'] ?? '').toString();
                       return TweenAnimationBuilder<double>(
                         key: ValueKey('group-message-${messages[index].id}'),
@@ -271,10 +272,17 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                         builder: (context, opacity, child) =>
                             Opacity(opacity: opacity, child: child),
                         child: Align(
-                        alignment: mine
-                            ? AlignmentDirectional.centerEnd
-                            : AlignmentDirectional.centerStart,
-                        child: Container(
+                          alignment: mine
+                              ? AlignmentDirectional.centerEnd
+                              : AlignmentDirectional.centerStart,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (!mine) ...[
+                                _GroupSenderAvatar(photo: photo, name: sender),
+                                const SizedBox(width: 6),
+                              ],
+                              Flexible(child: Container(
                           constraints: const BoxConstraints(maxWidth: 300),
                           margin: const EdgeInsets.symmetric(vertical: 4),
                           padding: const EdgeInsets.all(10),
@@ -288,17 +296,16 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              if (!mine)
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 4),
-                                  child: Text(
-                                    sender,
-                                    style: const TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w900,
-                                    ),
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 4),
+                                child: Text(
+                                  sender,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w900,
                                   ),
                                 ),
+                              ),
                               if ((type == 'image' || type == 'video') &&
                                   mediaUrl.isNotEmpty)
                                 ChatMediaBubble(
@@ -311,8 +318,14 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                                 Text((data['text'] ?? '').toString()),
                             ],
                           ),
-                        ),
-                        ),
+                        )),
+                        if (mine) ...[
+                          const SizedBox(width: 6),
+                          _GroupSenderAvatar(photo: photo, name: sender),
+                        ],
+                      ],
+                    ),
+                  ),
                       );
                     },
                   );
@@ -374,4 +387,20 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
       ),
     );
   }
+}
+class _GroupSenderAvatar extends StatelessWidget {
+  const _GroupSenderAvatar({required this.photo, required this.name});
+  final String photo;
+  final String name;
+
+  @override
+  Widget build(BuildContext context) => CircleAvatar(
+    radius: 14,
+    backgroundColor: const Color(0xFF165B46),
+    foregroundImage: photo.isEmpty ? null : NetworkImage(photo),
+    child: photo.isEmpty
+        ? Text(name.isEmpty ? '?' : name[0].toUpperCase(),
+            style: const TextStyle(fontSize: 11))
+        : null,
+  );
 }
