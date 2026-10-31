@@ -34,9 +34,9 @@ class _BondArtPainter extends CustomPainter {
     canvas.scale(size.width / 100, size.height / 100);
     final tint = switch (level) {
       1 => const Color(0xFF21DCA4),
-      2 => const Color(0xFFF1B649),
+      2 => const Color(0xFF68D6F2),
       3 => const Color(0xFFB9A5FF),
-      _ => const Color(0xFFE87ABF),
+      _ => const Color(0xFFFFD071),
     };
     final rect = const Rect.fromLTWH(0, 0, 100, 100);
     final backing = RRect.fromRectAndRadius(
@@ -56,6 +56,27 @@ class _BondArtPainter extends CustomPainter {
       ).createShader(rect)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.8);
+    // Soft gemstone aura and layered gold enamel; painter remains crisp on
+    // high-density devices without network PNGs, meshes, or 3D downloads.
+    canvas.drawCircle(const Offset(50, 50), 33,
+      Paint()
+        ..color = tint.withValues(alpha: .29)
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, 9));
+    final ringPaint = Paint()
+      ..shader = const SweepGradient(colors: [
+        Color(0xFFAA782B), Color(0xFFFFE8AD), Color(0xFFF2BB60),
+        Color(0xFF9A6D2A), Color(0xFFFFE8AD), Color(0xFFAA782B),
+      ]).createShader(const Rect.fromLTWH(8, 8, 84, 84))
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.6;
+    canvas.drawCircle(const Offset(50, 50), 40.5, ringPaint);
+    for (var i = 0; i < 12; i++) {
+      final angle = (math.pi * 2 * i / 12) - math.pi / 2;
+      final pos = Offset(50 + 40 * math.cos(angle),
+          50 + 40 * math.sin(angle));
+      canvas.drawCircle(pos, i.isEven ? 2.1 : 1.1,
+        Paint()..color = i.isEven ? gold : Colors.white70);
+    }
     final inner = Rect.fromCircle(
       center: const Offset(50, 50), radius: 37);
     canvas.drawCircle(const Offset(50, 50), 37,
