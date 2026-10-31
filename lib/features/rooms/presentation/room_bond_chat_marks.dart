@@ -14,7 +14,24 @@ class RoomBondChatMarks extends StatefulWidget {
 
 class _RoomBondChatMarksState extends State<RoomBondChatMarks> {
   static final _cache = <String, ({DateTime at, Future<Map<String, dynamic>> result})>{};
+  static final ValueNotifier<int> _revision = ValueNotifier<int>(0);
+  static String? _invalidatedUser;
+
+  /// Refresh room-chat badges immediately after a WorldBond relation changes,
+  /// rather than waiting for the read cache to expire on the next comment.
+  static void invalidateUser(String? userId) {
+    if (userId == null || userId.isEmpty) return;
+    _cache.remove(userId);
+    _invalidatedUser = userId;
+    _revision.value += 1;
+  }
+
   Future<Map<String, dynamic>>? _details;
+
+  void _handleInvalidation() {
+    if (!mounted || _invalidatedUser != widget.userId) return;
+    setState(() => _details = _fetch(widget.userId));
+  }
 
   Future<Map<String, dynamic>> _fetch(String id) {
     final cached = _cache[id];
@@ -36,7 +53,14 @@ class _RoomBondChatMarksState extends State<RoomBondChatMarks> {
   @override
   void initState() {
     super.initState();
+    _revision.addListener(_handleInvalidation);
     if (widget.userId.isNotEmpty) _details = _fetch(widget.userId);
+  }
+
+  @override
+  void dispose() {
+    _revision.removeListener(_handleInvalidation);
+    super.dispose();
   }
 
   @override
