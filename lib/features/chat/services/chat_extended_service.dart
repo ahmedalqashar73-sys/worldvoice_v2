@@ -102,7 +102,7 @@ class ChatExtendedService {
       body: jsonEncode({
         'chatId': chatId,
         'action': action,
-        if (targetId != null) 'targetId': targetId,
+        'targetId': ?targetId,
       }),
     ).timeout(RoomBackendConfig.socialRequestTimeout);
     return _decode(response);
