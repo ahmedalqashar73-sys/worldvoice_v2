@@ -239,6 +239,14 @@ export function registerWorldBondRoutes({app, db, authenticatedUser,
       }
       const ref = requirePair(user.uid, peerId, type);
       const now = clock();
+      if (decision === "accept") {
+        // Legacy pending invitations can predate the one-partner slot.
+        // Do not activate one while either party has an older active bond.
+        await Promise.all([
+          checkLegacyPartners(user.uid, peerId, type, now),
+          checkLegacyPartners(peerId, user.uid, type, now),
+        ]);
+      }
       const result = await db.runTransaction(async tx => {
         const ownSlot = slotRef(user.uid, type);
         const peerSlot = slotRef(peerId, type);
