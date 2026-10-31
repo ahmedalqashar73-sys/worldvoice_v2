@@ -436,10 +436,23 @@ export function registerChatRoutes({app, db, authenticatedUser}) {
           return {messageId: eventId, alreadyProcessed: true};
         }
 
+        // Read the sender's CURRENT trusted profile. The group roster
+        // stores names and photos at creation time and may now be stale.
+        const profileSnap = await tx.get(db.collection("users").doc(sender.uid));
+        const profile = profileSnap.data() || {};
+        const senderName = String(
+          profile.displayName || profile.name ||
+          chat.memberNames?.[sender.uid] || "Member",
+        );
+        const senderPhotoUrl = String(profileSnap.exists
+          ? (profile.photoUrl || "")
+          : (chat.memberPhotos?.[sender.uid] || ""));
+
         tx.create(messageRef, {
           type,
           senderId: sender.uid,
-          senderName: String(chat.memberNames?.[sender.uid] || "Member"),
+          senderName,
+          senderPhotoUrl,
           mediaUrl,
           mediaPublicId,
           ...(type === "audio" || type === "pdf"
@@ -497,10 +510,19 @@ export function registerChatRoutes({app, db, authenticatedUser}) {
               prev.type !== "text") fail("Idempotency key reused.", 409);
           return {messageId: eventId, alreadyProcessed: true};
         }
+        const profileSnap = await tx.get(db.collection("users").doc(sender.uid));
+        const profile = profileSnap.data() || {};
+        const senderName = String(
+          profile.displayName || profile.name ||
+          chatData.memberNames?.[sender.uid] || "Member",
+        );
+        const senderPhotoUrl = String(profileSnap.exists
+          ? (profile.photoUrl || "")
+          : (chatData.memberPhotos?.[sender.uid] || ""));
         tx.create(messageRef, {
           type: "text", senderId: sender.uid, text,
-          senderName: String(chat.data().memberNames?.[sender.uid] || "Member"),
-          senderPhotoUrl: String(chat.data().memberPhotos?.[sender.uid] || ""),
+          senderName,
+          senderPhotoUrl,
           createdAt: FieldValue.serverTimestamp(),
         });
         tx.update(chatRef, {
