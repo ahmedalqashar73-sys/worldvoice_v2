@@ -59,6 +59,8 @@ class _HomeScreenState extends State<HomeScreen> {
       if (destination == null) return;
       WorldVoiceNotificationService.pendingInbox.value = null;
       if (destination != 'story') setState(() => _index = 3);
+      // Chat messages open the regular chat tab, not the official inbox.
+      if (destination == 'chats') return;
       Navigator.of(context).push(MaterialPageRoute<void>(
         builder: (_) => destination == 'story'
           ? StoryNotificationsScreen(
