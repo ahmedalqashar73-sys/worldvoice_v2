@@ -5036,10 +5036,10 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
     }
   }
 
-  Future<bool> _unlockLanguageToolsIfNeeded({bool translation = false}) async {
-    // Translation remains VIP-only. Subtitles can be unlocked for this
-    // session by a rewarded ad; an earlier caption unlock never grants VIP.
-    if (!translation && _languageToolsSessionUnlocked) return true;
+  Future<bool> _unlockLanguageToolsIfNeeded() async {
+    // VIP can use both features without ads. Free viewers unlock both
+    // subtitles and live translation together after a rewarded ad.
+    if (_languageToolsSessionUnlocked) return true;
     if (_languageUnlockBusy) return false;
     _languageUnlockBusy = true;
     try {
@@ -5058,19 +5058,6 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
         return true;
       }
 
-      if (translation) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              widget.ar
-                  ? 'الترجمة الفورية متاحة لمشتركي VIP فقط.'
-                  : 'Live translation is available to VIP members only.',
-            ),
-          ),
-        );
-        return false;
-      }
-
       final rewarded = await _languageAds.show();
       if (!mounted) return false;
       if (rewarded) {
@@ -5081,8 +5068,8 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
         SnackBar(
           content: Text(
             widget.ar
-                ? 'شاهد إعلان المكافأة لتفعيل Subtitles.'
-                : 'Watch a rewarded ad to unlock subtitles.',
+                ? 'شاهد إعلان المكافأة لتفعيل الترجمة وSubtitles معًا.'
+                : 'Watch a rewarded ad to unlock subtitles and translation together.',
           ),
         ),
       );
@@ -5230,6 +5217,25 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
     }
   }
 
+  /// The subtitle and translation controls are linked in Live so nobody
+  /// can enable translation while unknowingly leaving its source captions off.
+  Future<void> _setLiveLanguageTools(bool value) async {
+    if (value && !await _unlockLanguageToolsIfNeeded()) return;
+    if (!mounted) return;
+    await _setEnabled(value);
+    if (!mounted) return;
+    setState(() {
+      _translationEnabled = value;
+      _translated = null;
+      _translatedCaptionId = null;
+    });
+    if (value) {
+      unawaited(_prepareTranslationModels());
+      final latest = _latest;
+      if (latest != null) unawaited(_translate(latest));
+    }
+  }
+
   Future<void> _showQuickLanguageSettings({required bool translation}) async {
     await showModalBottomSheet<void>(
       context: context,
@@ -5258,7 +5264,7 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
                 ),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  value: translation ? _translationEnabled : _enabled,
+                  value: _enabled && _translationEnabled,
                   title: Text(
                     translation
                         ? (widget.ar ? 'تفعيل الترجمة' : 'Enable translation')
@@ -5266,30 +5272,22 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
                   ),
                   onChanged: (value) {
                     unawaited(() async {
-                      if (value &&
-                          !await _unlockLanguageToolsIfNeeded(
-                            translation: translation,
-                          )) {
-                        return;
-                      }
-                      if (!mounted) return;
-                      if (translation) {
-                        setState(() {
-                          _translationEnabled = value;
-                          _translated = null;
-                          _translatedCaptionId = null;
-                        });
-                        if (value) {
-                          unawaited(_prepareTranslationModels());
-                          final latest = _latest;
-                          if (latest != null) unawaited(_translate(latest));
-                        }
-                      } else {
-                        await _setEnabled(value);
-                      }
+                      await _setLiveLanguageTools(value);
                       if (sheetContext.mounted) refresh(() {});
                     }());
                   },
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    widget.ar
+                        ? 'الترجمة وSubtitles مرتبطتان. VIP بدون إعلان، والمجاني يشاهد إعلان مكافأة لتفعيلهما.'
+                        : 'Subtitles and translation are linked. VIP has no ads; free viewers unlock both with a rewarded ad.',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 12, color: Colors.white70,
+                    ),
+                  ),
                 ),
                 if (!translation && _enabled) ...[
                   const SizedBox(height: 6),
@@ -5389,29 +5387,13 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
         error: _error,
         onEnabledChanged: (value) {
           unawaited(() async {
-            if (value && !await _unlockLanguageToolsIfNeeded()) return;
-            if (!mounted) return;
-            await _setEnabled(value);
+            await _setLiveLanguageTools(value);
             if (sheetContext.mounted) refresh(() {});
           }());
         },
         onTranslationChanged: (value) {
           unawaited(() async {
-            if (value &&
-                !await _unlockLanguageToolsIfNeeded(translation: true)) {
-              return;
-            }
-            if (!mounted) return;
-            setState(() {
-              _translationEnabled = value;
-              _translated = null;
-              _translatedCaptionId = null;
-            });
-            if (value) {
-              unawaited(_prepareTranslationModels());
-            }
-            final latest = _latest;
-            if (value && latest != null) unawaited(_translate(latest));
+            await _setLiveLanguageTools(value);
             if (sheetContext.mounted) refresh(() {});
           }());
         },
