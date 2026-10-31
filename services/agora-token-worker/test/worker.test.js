@@ -24,6 +24,7 @@ test("Live tokens never consult closed voice-room documents", () => {
   assert.equal(tokenSessionCollection("voice_room_1"), "rooms");
   assert.equal(tokenSessionCollection("room_123"), "rooms");
   assert.equal(tokenSessionCollection("call_123"), "rooms");
+  assert.equal(tokenSessionCollection("group_abc12345"), "group_calls");
 });
 
 test("health fails closed without the secret certificate", async () => {
