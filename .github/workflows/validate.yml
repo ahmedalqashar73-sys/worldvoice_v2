@@ -30,7 +30,7 @@ jobs:
       - name: Verify premium Live host-first camera layout
         run: flutter test test/live_video_order_test.dart test/live_camera_controls_test.dart test/live_camera_off_tile_test.dart test/agora_connection_deadline_test.dart test/live_audience_languages_test.dart test/live_back_navigation_test.dart
       - name: Verify group call audio-video model
-        run: flutter test test/group_call_service_test.dart test/group_call_video_visibility_test.dart
+        run: flutter test test/group_call_service_test.dart test/group_call_video_visibility_test.dart test/group_call_backend_routing_test.dart
       - name: Verify private Story replies and encrypted delivery
         run: flutter test test/story_reply_sheet_test.dart test/chat_delivery_crypto_test.dart test/live_camera_controls_test.dart test/worldvoice_story_regression_test.dart test/worldvoice_chat_shared_links_test.dart
       - run: flutter test
