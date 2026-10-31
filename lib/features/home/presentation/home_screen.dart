@@ -19,9 +19,10 @@ import '../../stories/presentation/story_strip.dart';
 import 'home_feed_section.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({required this.localeController, super.key});
+  const HomeScreen({required this.localeController, this.initialTab = 0, super.key});
 
   final LocaleController localeController;
+  final int initialTab;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -34,6 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _index = widget.initialTab.clamp(0, 4);
     WorldVoiceNotificationService.pendingInbox.addListener(_openPendingPush);
     _openPendingPush();
   }
