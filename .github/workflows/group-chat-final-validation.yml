@@ -63,6 +63,7 @@ jobs:
           test/group_call_service_test.dart
           test/group_call_video_visibility_test.dart
           test/agora_connection_deadline_test.dart
+          test/group_call_backend_routing_test.dart
           test/room_conversation_panel_test.dart
         continue-on-error: true
 
