@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../data/room_chat_message.dart';
+import 'room_bond_chat_marks.dart';
 import '../services/room_chat_service.dart';
 
 class RoomChatSheet extends StatefulWidget {
@@ -119,9 +120,14 @@ class _RoomChatSheetState extends State<RoomChatSheet> {
                               ? null
                               : const Icon(Icons.person_rounded),
                         ),
-                        title: Text(
-                          message.displayName,
-                          style: const TextStyle(fontWeight: FontWeight.w800),
+                        title: Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 5, runSpacing: 4,
+                          children: [
+                            Text(message.displayName,
+                              style: const TextStyle(fontWeight: FontWeight.w800)),
+                            RoomBondChatMarks(userId: message.userId),
+                          ],
                         ),
                         subtitle: Text(message.text),
                         trailing: canDelete
