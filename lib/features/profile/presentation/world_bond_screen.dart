@@ -69,9 +69,10 @@ class WorldBondApi {
 }
 
 class WorldBondScreen extends StatefulWidget {
-  const WorldBondScreen({super.key, this.peerId, this.peerName});
+  const WorldBondScreen({super.key, this.peerId, this.peerName, this.focusType});
   final String? peerId;
   final String? peerName;
+  final String? focusType;
   @override
   State<WorldBondScreen> createState() => _WorldBondScreenState();
 }
@@ -406,6 +407,12 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
     final bonds = group('bonds').where((bond) => self ||
         (bond['members'] as List? ?? []).contains(widget.peerId)).toList();
     final acceptedBond = bonds.any((bond) => bond['status'] == 'active');
+    final displayedKindOrder = <String>[
+      if (widget.focusType != null && kinds.containsKey(widget.focusType))
+        widget.focusType!,
+      for (final type in kinds.keys)
+        if (type != widget.focusType) type,
+    ];
     return Scaffold(
       appBar: AppBar(title: const Text('WorldBond'),
         foregroundColor: Colors.white, backgroundColor: green),
@@ -440,7 +447,7 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
           Text(label('العلاقات والدعوات', 'Relationships and invitations'),
             style: Theme.of(context).textTheme.titleLarge),
           if (!self && _data != null)
-            for (final kindCode in kinds.keys)
+            for (final kindCode in displayedKindOrder)
               if (!bonds.any((b) => b['type'] == kindCode &&
                   (b['status'] == 'pending' || b['status'] == 'active')))
                 Card(child: ListTile(
