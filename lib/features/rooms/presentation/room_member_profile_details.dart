@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../engagement/services/engagement_service.dart';
+import '../../profile/presentation/world_bond_screen.dart';
 import '../../profile/data/profile_language_catalog.dart';
 import '../../profile/presentation/member_badges.dart';
 
@@ -25,18 +25,24 @@ class RoomMemberProfileDetails extends StatefulWidget {
 
 class _RoomMemberProfileDetailsState extends State<RoomMemberProfileDetails> {
   late Future<Map<String, dynamic>> _badge;
+  static Future<Map<String, dynamic>> _loadBadge(String uid) async {
+    final response = await WorldBondApi.request(
+      'engagement/badges?userIds=${Uri.encodeQueryComponent(uid)}');
+    final badges = response['badges'] as Map?;
+    return Map<String, dynamic>.from(badges?[uid] as Map? ?? {});
+  }
 
   @override
   void initState() {
     super.initState();
-    _badge = (widget.badgeLoader ?? EngagementService.badge)(widget.userId);
+    _badge = (widget.badgeLoader ?? _loadBadge)(widget.userId);
   }
 
   @override
   void didUpdateWidget(covariant RoomMemberProfileDetails oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.userId != widget.userId) {
-      _badge = (widget.badgeLoader ?? EngagementService.badge)(widget.userId);
+      _badge = (widget.badgeLoader ?? _loadBadge)(widget.userId);
     }
   }
 
@@ -82,6 +88,7 @@ class _RoomMemberProfileDetailsState extends State<RoomMemberProfileDetails> {
         FutureBuilder<Map<String, dynamic>>(
           future: _badge,
           builder: (context, snapshot) {
+            final vipBadge = snapshot.data?['vipBadge'] as String?;
             final giftLevel = (snapshot.data?['giftLevel'] as num?)?.toInt();
             return Padding(
               padding: const EdgeInsets.only(top: 12),
@@ -90,6 +97,7 @@ class _RoomMemberProfileDetailsState extends State<RoomMemberProfileDetails> {
                 crossAxisAlignment: WrapCrossAlignment.center,
                 spacing: 8, runSpacing: 5,
                 children: [
+                  if (vipBadge != null) VipSignatureBadge(design: vipBadge),
                   const Icon(Icons.diamond_rounded,
                     color: Color(0xFFFFD780), size: 20),
                   Text(

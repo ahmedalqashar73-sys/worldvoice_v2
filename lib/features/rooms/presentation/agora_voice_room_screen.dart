@@ -2311,7 +2311,6 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     const green = Color(0xFF11996A);
     const deepGreen = Color(0xFF092F27);
     const lightGreen = Color(0xFFDAF7EB);
-    const gold = Color(0xFFECD69E);
 
     final action = await showModalBottomSheet<String>(
       context: context,
