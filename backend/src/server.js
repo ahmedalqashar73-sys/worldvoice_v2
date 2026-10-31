@@ -864,11 +864,12 @@ app.post("/agora/token", async (req, res, next) => {
         const callId = channelName.slice("call_".length);
         const callSnap = await db.collection("calls").doc(callId).get();
         const call = callSnap.data() || {};
-        const isParticipant = call.callerId === user.uid ||
-          call.recipientId === user.uid;
+        const isParticipant =
+          (call.status === "accepted" &&
+            (call.callerId === user.uid || call.recipientId === user.uid)) ||
+          (call.status === "ringing" && call.callerId === user.uid);
         if (!callSnap.exists ||
             call.channelId !== channelName ||
-            !["ringing", "accepted"].includes(call.status) ||
             !isParticipant ||
             requestedRole !== "publisher") {
           return res.status(403).json({
