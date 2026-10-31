@@ -80,7 +80,8 @@ async function firestoreDocument({ projectId, path, idToken }) {
 
 // Room authorization and Live authorization use separate Firestore namespaces.
 export function tokenSessionCollection(channelName) {
-  return channelName.startsWith("live_") ? "live_sessions" : "rooms";
+  return channelName.startsWith("live_") ? "live_sessions" :
+    channelName.startsWith("group_") ? "group_calls" : "rooms";
 }
 
 async function agoraTokenForUser(request, env) {
@@ -122,7 +123,8 @@ async function agoraTokenForUser(request, env) {
   try {
     session = await firestoreDocument({
       projectId: env.FIREBASE_PROJECT_ID,
-      path: `${collection}/${channelName}`,
+      path: `${collection}/${collection === "group_calls"
+        ? channelName.slice("group_".length) : channelName}`,
       idToken,
     });
   } catch (error) {
@@ -139,11 +141,26 @@ async function agoraTokenForUser(request, env) {
     return json({
       error: collection === "live_sessions"
         ? "Live session is not registered yet."
-        : "Room is not found.",
+        : collection === "group_calls"
+          ? "Group call is not active or available."
+          : "Room is not found.",
     }, 404);
   }
 
-  if (collection === "rooms") {
+  if (collection === "group_calls") {
+    // Only a member who actively joined this group call may obtain an
+    // Agora publisher token. Never rely on the client-supplied chat ID alone.
+    const fields = session.fields;
+    const members = fields.memberIds?.arrayValue?.values || [];
+    const joined = fields.joinedIds?.arrayValue?.values || [];
+    const owns = members.some(entry => entry.stringValue === uid);
+    const present = joined.some(entry => entry.stringValue === uid);
+    if (fields.status?.stringValue !== "active" ||
+        fields.channelId?.stringValue !== channelName ||
+        !owns || !present || requestedRole !== "publisher") {
+      return json({ error: "Join an active group call before publishing." }, 403);
+    }
+  } else if (collection === "rooms") {
     const room = session;
     if (room.fields.isOpen?.booleanValue !== true) {
       return json({ error: "Room is not open." }, 404);
