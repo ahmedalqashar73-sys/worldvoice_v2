@@ -1349,6 +1349,21 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
               },
             ),
             ListTile(
+              leading: const Icon(Icons.mic_off_rounded),
+              title: Text(widget.ar ? 'إدارة مايكات الضيوف' : 'Guest microphone controls'),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  final liveId = _liveId;
+                  if (mounted && liveId != null) {
+                    unawaited(_showLiveStageAudioControls(
+                      context, liveId: liveId, service: _liveService, ar: widget.ar,
+                    ));
+                  }
+                });
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.group_add_rounded),
               title: Text(widget.ar ? 'طلبات الصعود' : 'Stage requests'),
               onTap: () {
@@ -2372,6 +2387,15 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                   ),
                                 ),
                                 IconButton(
+                                  tooltip: widget.ar ? 'مشاركة اللايف' : 'Share Live',
+                                  onPressed: _liveId == null
+                                      ? null : () => unawaited(_shareHostLive()),
+                                  icon: const Icon(
+                                    Icons.ios_share_rounded,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                IconButton(
                                   tooltip: 'Subtitles',
                                   onPressed: () {
                                     final overlay =
@@ -3270,6 +3294,26 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
               ],
             ),
             const Divider(color: Colors.white12),
+            if (_isModerator)
+              ListTile(
+                leading: const Icon(Icons.mic_off_rounded),
+                title: Text(widget.ar
+                    ? 'إدارة مايكات الضيوف'
+                    : 'Guest microphone controls'),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted && _isModerator) {
+                      unawaited(_showLiveStageAudioControls(
+                        context,
+                        liveId: widget.liveId,
+                        service: _service,
+                        ar: widget.ar,
+                      ));
+                    }
+                  });
+                },
+              ),
             ListTile(
               leading: const Icon(Icons.smart_toy_outlined),
               title: Text(
@@ -4169,6 +4213,14 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                       icon: const Icon(
                                         Icons.card_giftcard_rounded,
                                         color: Color(0xFFFFC857),
+                                      ),
+                                    ),
+                                    IconButton(
+                                      tooltip: widget.ar ? 'مشاركة اللايف' : 'Share Live',
+                                      onPressed: () => unawaited(_shareLive()),
+                                      icon: const Icon(
+                                        Icons.ios_share_rounded,
+                                        color: Colors.white,
                                       ),
                                     ),
                                     IconButton(
@@ -6821,6 +6873,165 @@ class _LiveChatOverlayState extends State<_LiveChatOverlay> {
       ],
     );
   }
+}
+
+/// Safe Live moderation panel. The server rules verify the current host or
+/// an accepted moderator on every microphone update.
+Future<void> _showLiveStageAudioControls(
+  BuildContext context, {
+  required String liveId,
+  required LiveSessionService service,
+  required bool ar,
+}) {
+  Future<void> execute(
+    BuildContext sheetContext,
+    Future<void> Function() operation,
+  ) async {
+    try {
+      await operation();
+      if (!sheetContext.mounted) return;
+      ScaffoldMessenger.of(sheetContext).showSnackBar(
+        SnackBar(content: Text(ar
+            ? 'تم تحديث حالة المايك.'
+            : 'Guest microphone setting updated.')),
+      );
+    } catch (error) {
+      if (!sheetContext.mounted) return;
+      ScaffoldMessenger.of(sheetContext).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
+    }
+  }
+
+  return showModalBottomSheet<void>(
+    context: context,
+    useSafeArea: true,
+    isScrollControlled: true,
+    showDragHandle: true,
+    backgroundColor: const Color(0xFF0D3025),
+    builder: (sheetContext) => SizedBox(
+      height: MediaQuery.sizeOf(sheetContext).height * .62,
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text(
+              ar ? 'إدارة مايكات المشاركين' : 'Stage microphone controls',
+              style: const TextStyle(
+                color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: FilledButton.icon(
+                    onPressed: () => unawaited(execute(
+                      sheetContext,
+                      () async {
+                        await service.setAllGuestMicrophonesBlocked(
+                          liveId: liveId, blocked: true,
+                        );
+                      },
+                    )),
+                    icon: const Icon(Icons.mic_off_rounded),
+                    label: Text(ar ? 'كتم الجميع' : 'Mute all'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => unawaited(execute(
+                      sheetContext,
+                      () async {
+                        await service.setAllGuestMicrophonesBlocked(
+                          liveId: liveId, blocked: false,
+                        );
+                      },
+                    )),
+                    icon: const Icon(Icons.mic_rounded),
+                    label: Text(ar ? 'السماح للجميع' : 'Release all'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+            child: Text(
+              ar
+                  ? 'السماح يرفع منع المايك فقط؛ لا يشغّل مايك الضيف تلقائيًا.'
+                  : 'Releasing a mute never turns on a guest’s microphone.',
+              style: const TextStyle(color: Colors.white70, fontSize: 12),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          Expanded(
+            child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              stream: service.watchActiveGuests(liveId),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Center(child: Text(
+                    ar ? 'تعذر تحميل الضيوف.' : 'Could not load stage guests.',
+                    style: const TextStyle(color: Colors.white70),
+                  ));
+                }
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                final guests = snapshot.data!.docs;
+                if (guests.isEmpty) {
+                  return Center(child: Text(
+                    ar ? 'لا يوجد ضيوف على الكاميرا.' : 'No stage guests.',
+                    style: const TextStyle(color: Colors.white70),
+                  ));
+                }
+                return ListView.builder(
+                  itemCount: guests.length,
+                  itemBuilder: (context, index) {
+                    final guest = guests[index];
+                    final data = guest.data();
+                    final muted = data['hostMuted'] == true;
+                    return ListTile(
+                      key: ValueKey('live-stage-audio-${guest.id}'),
+                      title: Text(
+                        (data['displayName'] ?? 'WorldVoice guest').toString(),
+                        maxLines: 1, overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      subtitle: Text(
+                        muted
+                            ? (ar ? 'مكتوم بواسطة الإدارة' : 'Muted by moderation')
+                            : (ar ? 'المايك متاح' : 'Microphone allowed'),
+                        style: const TextStyle(color: Colors.white70),
+                      ),
+                      trailing: IconButton(
+                        tooltip: muted
+                            ? (ar ? 'السماح بالمايك' : 'Release microphone')
+                            : (ar ? 'كتم المايك' : 'Mute microphone'),
+                        onPressed: () => unawaited(execute(
+                          sheetContext,
+                          () => service.setGuestMicrophoneBlocked(
+                            liveId: liveId, guestUserId: guest.id,
+                            blocked: !muted,
+                          ),
+                        )),
+                        icon: Icon(muted
+                            ? Icons.mic_rounded : Icons.mic_off_rounded,
+                            color: const Color(0xFFEAD08D)),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 Future<void> _showLiveModeratorManagement(
