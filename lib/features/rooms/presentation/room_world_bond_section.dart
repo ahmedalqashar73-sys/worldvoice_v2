@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 import '../../profile/presentation/world_bond_gift_art.dart';
 import '../../profile/presentation/world_bond_level_badge.dart';
@@ -106,6 +109,8 @@ class _RoomWorldBondSectionState extends State<RoomWorldBondSection> {
             builder: (context, snapshot) {
               final records = (snapshot.data?['bonds'] as List? ?? const [])
                   .whereType<Map>().toList(growable: false);
+              final myself = Firebase.apps.isNotEmpty
+                  ? FirebaseAuth.instance.currentUser?.uid : null;
               Map? matching(String type) {
                 Map? pending;
                 for (final entry in records) {
@@ -134,6 +139,14 @@ class _RoomWorldBondSectionState extends State<RoomWorldBondSection> {
                             final relation = matching(kind.$1);
                             final status = relation?['status'];
                             final level = (relation?['level'] as num?)?.toInt() ?? 1;
+                            final members = relation?['members'] as List?;
+                            final partnerId = members == null
+                                ? ''
+                                : members.map((id) => id.toString())
+                                    .firstWhere((id) => id != myself,
+                                      orElse: () => '');
+                            final isFree = status != 'active' &&
+                                status != 'pending';
                             return Material(
                               color: Colors.transparent,
                               child: InkWell(
@@ -154,7 +167,18 @@ class _RoomWorldBondSectionState extends State<RoomWorldBondSection> {
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 7, vertical: 12),
                                     child: Column(children: [
-                                      Icon(kind.$4, size: 25, color: kind.$5),
+                                      if (isFree)
+                                        Align(
+                                          alignment: AlignmentDirectional.topEnd,
+                                          child: const Icon(
+                                            Icons.add_circle_rounded,
+                                            size: 20, color: Color(0xFFFF5C71)),
+                                        ),
+                                      if (status == 'active' && partnerId.isNotEmpty)
+                                        _RoomBondPartnerAvatar(
+                                          partnerId: partnerId, tint: kind.$5)
+                                      else
+                                        Icon(kind.$4, size: 26, color: kind.$5),
                                       const SizedBox(height: 6),
                                       Text(ar ? kind.$2 : kind.$3,
                                         maxLines: 1,
@@ -279,6 +303,38 @@ class _RoomWorldBondSectionState extends State<RoomWorldBondSection> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _RoomBondPartnerAvatar extends StatelessWidget {
+  const _RoomBondPartnerAvatar({
+    required this.partnerId, required this.tint,
+  });
+  final String partnerId;
+  final Color tint;
+
+  @override
+  Widget build(BuildContext context) {
+    if (Firebase.apps.isEmpty) {
+      return CircleAvatar(radius: 17, backgroundColor: tint,
+        child: const Icon(Icons.person_rounded, color: Colors.white, size: 19));
+    }
+    return FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      future: FirebaseFirestore.instance
+        .collection('users').doc(partnerId).get(),
+      builder: (context, snapshot) {
+        final photo = (snapshot.data?.data()?['photoUrl'] as String?)?.trim();
+        return CircleAvatar(
+          radius: 17,
+          backgroundColor: tint,
+          backgroundImage: photo != null && photo.startsWith('https://')
+              ? NetworkImage(photo) : null,
+          child: photo == null || !photo.startsWith('https://')
+              ? const Icon(Icons.person_rounded, color: Colors.white, size: 19)
+              : null,
+        );
+      },
     );
   }
 }
