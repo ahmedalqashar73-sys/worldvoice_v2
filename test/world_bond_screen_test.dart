@@ -28,8 +28,8 @@ void main() {
     expect(find.text('Wishlist'), findsNothing);
     expect(find.text('Gift wall'), findsNothing);
     for(var i=0;i<2;i++) {
-      final button = find.widgetWithText(FilledButton,'Send');
-      await tester.scrollUntilVisible(button, 250);
+      // The gallery uses "Gift"; the confirmation dialog uses "Send".
+      final button = find.byKey(const ValueKey('worldbond-gallery-send-1'));
       await tester.ensureVisible(button);
       await tester.pumpAndSettle();
       await tester.tap(button);
