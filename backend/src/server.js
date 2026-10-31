@@ -912,13 +912,38 @@ app.post("/agora/token", async (req, res, next) => {
       ? channelName.slice("call_".length)
       : "";
     const callRef = callId ? db.collection("calls").doc(callId) : null;
-    const [roomSnap, liveSnap, callSnap] = await Promise.all([
+    const groupId = channelName.startsWith("group_")
+      ? channelName.slice("group_".length) : "";
+    const groupRef = groupId ? db.collection("group_calls").doc(groupId) : null;
+    const [roomSnap, liveSnap, callSnap, groupSnap] = await Promise.all([
       roomRef.get(),
       liveRef.get(),
       callRef ? callRef.get() : Promise.resolve(null),
+      groupRef ? groupRef.get() : Promise.resolve(null),
     ]);
 
-    if (callSnap?.exists) {
+    if (groupId) {
+      // A group channel is never a generic room. Authorize the member's
+      // current presence in the server-created group call before issuing a
+      // publisher token, even if the caller guessed a group ID.
+      const group = groupSnap?.data() || {};
+      const chat = await db.collection("chats").doc(groupId).get();
+      const isCurrentMember = chat.exists &&
+        chat.data()?.type === "group" &&
+        chat.data()?.active === true &&
+        chat.data()?.memberIds?.includes(user.uid);
+      if (!groupSnap?.exists ||
+          group.status !== "active" ||
+          group.channelId !== channelName ||
+          !isCurrentMember ||
+          !group.memberIds?.includes(user.uid) ||
+          !group.joinedIds?.includes(user.uid) ||
+          requestedRole !== "publisher") {
+        return res.status(403).json({
+          error: "Join an active group call before publishing.",
+        });
+      }
+    } else if (callSnap?.exists) {
       const call = callSnap.data() || {};
       const isParticipant =
         call.callerId === user.uid || call.recipientId === user.uid;
@@ -980,7 +1005,8 @@ app.post("/agora/token", async (req, res, next) => {
     } else {
       // A signed-in user may bootstrap a brand-new Live publisher channel.
       // Calls must always have a verified calls/{id} document above.
-      if (channelName.startsWith("call_")) {
+      if (channelName.startsWith("call_") ||
+          channelName.startsWith("group_")) {
         return res.status(404).json({error: "Call session not found."});
       }
       // The new Live is not discoverable until the client creates
