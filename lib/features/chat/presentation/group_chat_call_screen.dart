@@ -56,35 +56,55 @@ class _GroupChatCallScreenState extends State<GroupChatCallScreen> {
   }
 
   Future<void> _connect() async {
-    if (!mounted) return;
+    if (!mounted || _connecting == false && _controller.joined) return;
     setState(() {
       _connecting = true;
       _error = null;
     });
+    var markedJoined = false;
     try {
       final call = await _service.join(widget.call.chatId);
-      if (!mounted) return;
+      markedJoined = true;
+      if (!mounted || _ending) throw StateError('Group call closed.');
       if (!call.isActive) throw StateError('Group call ended.');
       await _controller.ensureConnected(
         channelId: call.channelId,
         role: AgoraRoomRole.speaker,
         previewCamera: call.isVideo,
       );
-      if (call.isVideo) await _controller.setCameraPublishing(true);
+      if (!mounted || _ending) throw StateError('Group call closed.');
+      var cameraOff = !call.isVideo;
+      if (call.isVideo) {
+        try {
+          await _controller.setCameraPublishing(true);
+        } catch (error) {
+          // Denied or unavailable camera must not disconnect the voice call.
+          cameraOff = true;
+          debugPrint('WorldVoice group call camera unavailable: $error');
+        }
+      }
       final engine = _controller.engine;
       if (engine != null) await engine.setEnableSpeakerphone(true);
-      if (!mounted) return;
+      if (!mounted || _ending) throw StateError('Group call closed.');
       setState(() {
         _current = call;
         _connecting = false;
-        _cameraOff = !call.isVideo;
+        _cameraOff = cameraOff;
       });
       _poll?.cancel();
       _poll = Timer.periodic(const Duration(seconds: 3), (_) {
         unawaited(_refreshStatus());
       });
     } catch (error) {
-      if (!mounted) return;
+      // Firestore attendance is committed before Agora joins; roll it back
+      // if the SDK, permission, token, or network connection fails.
+      await _controller.leave().catchError((Object _) {});
+      if (markedJoined) {
+        await _service.leave(widget.call.chatId).catchError((Object err) {
+          debugPrint('WorldVoice group attendance rollback: $err');
+        });
+      }
+      if (!mounted || _ending) return;
       setState(() {
         _connecting = false;
         _error = error.toString().replaceFirst('Bad state: ', '');
@@ -261,7 +281,7 @@ class _GroupChatCallScreenState extends State<GroupChatCallScreen> {
     final mine = FirebaseAuth.instance.currentUser?.uid;
     final engine = _controller.engine;
     final remote = _controller.remoteSpeakers;
-    final video = call.isVideo && !_cameraOff && _controller.joined;
+    final video = call.isVideo && _controller.joined;
     return PopScope(
       canPop: _ending,
       onPopInvokedWithResult: (didPop, _) {
@@ -297,8 +317,19 @@ class _GroupChatCallScreenState extends State<GroupChatCallScreen> {
               if (_error != null)
                 Padding(
                   padding: const EdgeInsets.all(12),
-                  child: Text(_error!,
-                    style: const TextStyle(color: Colors.orangeAccent)),
+                  child: Column(
+                    children: [
+                      Text(_error!,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.orangeAccent)),
+                      const SizedBox(height: 8),
+                      FilledButton.icon(
+                        onPressed: _connecting || _ending ? null : _connect,
+                        icon: const Icon(Icons.refresh_rounded),
+                        label: Text(_ar ? 'إعادة الاتصال' : 'Reconnect'),
+                      ),
+                    ],
+                  ),
                 ),
               if (_connecting)
                 const LinearProgressIndicator(minHeight: 2),
