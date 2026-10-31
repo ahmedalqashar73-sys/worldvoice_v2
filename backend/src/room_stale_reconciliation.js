@@ -10,8 +10,12 @@ export const staleRoomDecision = ({room, participants, now, graceMs = 180000}) =
   if (room?.isOpen !== true || !Array.isArray(participants)) return false;
   const started = activeAt({updatedAt: room.createdAt ?? room.updatedAt});
   if (!started || now - started < graceMs) return false;
-  // A single fresh host, moderator, or listener keeps the room alive.
-  // All presence timestamps must be older than the grace period.
+  // Fail closed if a large room has more members than the query can inspect,
+  // or if a participant has no usable timestamp (legacy/corrupt presence).
+  // An incomplete sample is never proof of an empty room.
+  if (participants.length >= 150 ||
+      participants.some(p => activeAt(p) === 0)) return false;
+  // A single fresh host, moderator or listener keeps the room alive.
   return !participants.some(p => activeAt(p) > now - graceMs);
 };
 
