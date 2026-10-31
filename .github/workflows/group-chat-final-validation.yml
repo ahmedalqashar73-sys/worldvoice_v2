@@ -12,6 +12,11 @@ on:
       - 'backend/src/chat_routes.js'
       - 'backend/src/call_routes.js'
       - 'backend/src/group_call_routes.js'
+      - 'backend/src/group_management_routes.js'
+      - 'backend/src/room_chat_notification_routes.js'
+      - 'lib/features/rooms/services/room_chat_service.dart'
+      - 'lib/app/app.dart'
+      - 'lib/features/home/presentation/home_screen.dart'
       - 'backend/src/server.js'
       - 'services/agora-token-worker/src/index.js'
       - 'firestore.rules'
@@ -38,6 +43,8 @@ jobs:
           npm install --no-audit --no-fund
           node --check src/chat_routes.js
           node --check src/group_call_routes.js
+          node --check src/group_management_routes.js
+          node --check src/room_chat_notification_routes.js
           node --test test/chat_group_ids.test.js test/group_call_membership.test.js
 
       - name: Set up Android Java
