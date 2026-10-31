@@ -793,10 +793,28 @@ class ChatScreen extends StatelessWidget {
               const SizedBox(width: 5),
               const Icon(Icons.verified, color: Color(0xFF0CBA86), size: 17),
             ]),
-            subtitle: Text(ar
-              ? 'إشعارات الغرف واللايف للأشخاص الذين تتابعهم'
-              : 'Live and rooms from people you follow',
-              maxLines: 1, overflow: TextOverflow.ellipsis),
+            subtitle: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              stream: FirebaseFirestore.instance.collection('users').doc(uid)
+                  .collection('activity_inbox')
+                  .orderBy('createdAt', descending: true)
+                  .limit(1).snapshots(),
+              builder: (context, activity) {
+                final recent = activity.data?.docs.firstOrNull?.data();
+                final preview = recent == null
+                    ? (ar
+                        ? 'إشعارات الغرف واللايف للأشخاص الذين تتابعهم'
+                        : 'Live and rooms from people you follow')
+                    : (ar
+                        ? (recent['kind'] == 'live'
+                            ? 'بدأ بث مباشر جديد'
+                            : 'تحديث جديد في الغرف الصوتية')
+                        : (recent['kind'] == 'live'
+                            ? 'New live stream'
+                            : 'New voice room activity'));
+                return Text(preview, maxLines: 1,
+                    overflow: TextOverflow.ellipsis);
+              },
+            ),
             onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
               builder: (_) => WorldVoiceActivityScreen(
                 localeController: localeController),
