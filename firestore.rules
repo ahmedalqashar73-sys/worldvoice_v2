@@ -605,6 +605,20 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // Group-call presence is server-authoritative. The Agora Worker reads
+    // this document with the member's Firebase token before minting audio/
+    // video permissions. Clients must never alter joinedIds or ownership.
+    match /group_calls/{chatId} {
+      allow get: if signedIn()
+          && resource.data.status == 'active'
+          && request.auth.uid in resource.data.memberIds
+          && exists(/databases/$(database)/documents/chats/$(chatId))
+          && request.auth.uid in get(
+            /databases/$(database)/documents/chats/$(chatId)
+          ).data.memberIds;
+      allow list, create, update, delete: if false;
+    }
+
     // Verified chat membership is written ONLY by the trusted backend.
     // The client may read a chat only when a stored participant.
     match /chats/{chatId} {
