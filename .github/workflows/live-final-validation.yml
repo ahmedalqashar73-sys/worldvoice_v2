@@ -49,7 +49,8 @@ jobs:
             test/live_camera_off_tile_test.dart \
             test/agora_connection_deadline_test.dart \
             test/live_audience_languages_test.dart \
-            test/live_back_navigation_test.dart
+            test/live_back_navigation_test.dart \
+            test/live_gift_playback_queue_test.dart
 
       - name: Verify premium room backgrounds and castle artwork
         run: |
