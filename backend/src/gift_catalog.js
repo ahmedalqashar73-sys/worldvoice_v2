@@ -133,3 +133,21 @@ export function worldVoiceGiftStoreDocument(giftId) {
     builtInVisual: true,
   };
 }
+
+
+// Dedicated WorldBond relationship gifts: NOT part of the 104 room/Live gifts.
+// Prices are authoritative on the server, never trusted from the client.
+export const worldBondSpecialGiftCatalog = Object.freeze([
+  Object.freeze({id: "wv_bond_01", level: 1, name: "Emerald Promise",
+    nameAr: "وعد الزمرد", priceCoins: 100}),
+  Object.freeze({id: "wv_bond_02", level: 2, name: "Golden Bridge",
+    nameAr: "جسر الصداقة الذهبي", priceCoins: 200}),
+  Object.freeze({id: "wv_bond_03", level: 3, name: "Crystal Harmony",
+    nameAr: "انسجام الكريستال", priceCoins: 500}),
+  Object.freeze({id: "wv_bond_04", level: 4, name: "Royal Bond",
+    nameAr: "رابطة التاج الملكي", priceCoins: 1000}),
+]);
+
+export function approvedWorldBondGift(giftId) {
+  return worldBondSpecialGiftCatalog.find(gift => gift.id === giftId) ?? null;
+}
