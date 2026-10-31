@@ -1161,9 +1161,17 @@ service cloud.firestore {
                 )
               )
               || (
-                // Only the current host may block a stage microphone.
-                get(/databases/$(database)/documents/live_sessions/$(liveId))
-                    .data.hostId == request.auth.uid
+                // Live host or explicitly accepted global moderator may
+                // block a stage microphone; neither may force it on.
+                (
+                  get(/databases/$(database)/documents/live_sessions/$(liveId))
+                      .data.hostId == request.auth.uid
+                  || isGlobalModerator(
+                    get(/databases/$(database)/documents/live_sessions/$(liveId))
+                        .data.hostId,
+                    request.auth.uid
+                  )
+                )
                 && resource.data.status == 'accepted'
                 && request.resource.data.status == 'accepted'
                 && request.resource.data.hostMuted is bool
