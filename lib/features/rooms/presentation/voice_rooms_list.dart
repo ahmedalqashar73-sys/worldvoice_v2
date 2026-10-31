@@ -503,34 +503,6 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
                       else
                         Stack(
                           children: [
-                        if (dataState == RoomsDataState.cached && docs.isNotEmpty)
-                          PositionedDirectional(
-                            start: 18, end: 18, top: 4,
-                            child: Material(
-                              color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                              borderRadius: BorderRadius.circular(12),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                child: Row(
-                                  children: [
-                                    const Icon(Icons.cloud_off_outlined, size: 18),
-                                    const SizedBox(width: 8),
-                                    Expanded(child: Text(
-                                      _isArabic
-                                          ? 'بيانات محفوظة مؤقتًا؛ بانتظار تحديث Firebase'
-                                          : 'Saved rooms; waiting for Firebase to update',
-                                      style: Theme.of(context).textTheme.bodySmall,
-                                    )),
-                                    IconButton(
-                                      tooltip: _isArabic ? 'إعادة الاتصال' : 'Reconnect',
-                                      onPressed: _retryRooms,
-                                      icon: const Icon(Icons.refresh_rounded, size: 18),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
                         // Keep all room cards mounted while changing the
                         // filter. Their Firestore participant subscriptions
                         // must not restart every time Arabic/English is tapped.
@@ -595,6 +567,34 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
                             );
                           },
                         ),
+                        if (dataState == RoomsDataState.cached && docs.isNotEmpty)
+                          PositionedDirectional(
+                            start: 18, end: 18, top: 4,
+                            child: Material(
+                              color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                              borderRadius: BorderRadius.circular(12),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.cloud_off_outlined, size: 18),
+                                    const SizedBox(width: 8),
+                                    Expanded(child: Text(
+                                      _isArabic
+                                          ? 'بيانات محفوظة مؤقتًا؛ بانتظار تحديث Firebase'
+                                          : 'Saved rooms; waiting for Firebase to update',
+                                      style: Theme.of(context).textTheme.bodySmall,
+                                    )),
+                                    IconButton(
+                                      tooltip: _isArabic ? 'إعادة الاتصال' : 'Reconnect',
+                                      onPressed: _retryRooms,
+                                      icon: const Icon(Icons.refresh_rounded, size: 18),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
                         if (docs.isEmpty)
                           dataState == RoomsDataState.cached
                               ? _RoomsLoadError(
