@@ -129,8 +129,10 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
         await _service.sendMedia(
           chatId: widget.chatId, file: File(path), mediaType: 'audio');
       } catch (error) {
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.toString().replaceFirst('Bad state: ', ''))));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(error.toString().replaceFirst('Bad state: ', ''))));
+        }
       } finally {
         if (path != null) { try { await File(path).delete(); } catch (_) {} }
         if (mounted) setState(() => _sending = false);
@@ -148,8 +150,10 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
         path: path);
       if (mounted) setState(() => _recordingVoice = true);
     } catch (error) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.toString().replaceFirst('Bad state: ', ''))));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.toString().replaceFirst('Bad state: ', ''))));
+      }
     }
   }
 
@@ -181,10 +185,14 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
       await _service.manageGroup(chatId: widget.chatId, action: action);
       if (!mounted) return;
       if (action == 'delete_group' || action == 'delete_for_me' ||
-          action == 'leave') Navigator.of(context).pop();
+          action == 'leave') {
+        Navigator.of(context).pop();
+      }
     } catch (error) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.toString().replaceFirst('Bad state: ', ''))));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.toString().replaceFirst('Bad state: ', ''))));
+      }
     }
   }
 
