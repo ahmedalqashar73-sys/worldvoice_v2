@@ -18,6 +18,7 @@ import Stripe from "stripe";
 import { requireLiveEconomy, calculatePurchaseCredit, canManageStore, canGrantStoreCosmetic } from "./economy_policy.js";
 import {registerWalletRoutes} from "./wallet_routes.js";
 import {registerChatRoutes} from "./chat_routes.js";
+import {registerGroupManagementRoutes} from "./group_management_routes.js";
 import {registerOfficialActivityRoutes} from "./official_activity_routes.js";
 import {registerOfficialAnnouncementRoutes} from "./official_announcements_routes.js";
 import {registerStoryRoutes} from "./story_routes.js";
@@ -2264,6 +2265,7 @@ registerMemberBadgeRoutes({app, db, authenticatedUser});
 // Finance routes run only on the separately deployed authenticated backend.
 registerWalletRoutes({app, db, authenticatedUser});
 registerChatRoutes({app, db, authenticatedUser});
+registerGroupManagementRoutes({app, db, authenticatedUser});
 registerOfficialActivityRoutes({app, db, authenticatedUser});
 registerOfficialAnnouncementRoutes({app, db, authenticatedUser});
 registerStoryRoutes({
