@@ -5,8 +5,15 @@ import '../../profile/presentation/world_bond_screen.dart';
 /// Only used beside the message author in voice-room chat. Does NOT alter
 /// user profiles, DM, Home comments or the existing VIP/gift-level marks.
 class RoomBondChatMarks extends StatefulWidget {
-  const RoomBondChatMarks({required this.userId, super.key});
+  const RoomBondChatMarks({
+    required this.userId,
+    this.badgeLoader,
+    super.key,
+  });
   final String userId;
+  /// Optional deterministic loader for isolated relationship-badge tests.
+  /// Production continues to use the authenticated WorldBond endpoint.
+  final Future<Map<String, dynamic>> Function(String userId)? badgeLoader;
 
   /// Refresh any visible room-chat relationship marks on returning from a
   /// WorldBond invitation, acceptance, or relationship change.
@@ -39,6 +46,8 @@ class _RoomBondChatMarksState extends State<RoomBondChatMarks> {
   }
 
   Future<Map<String, dynamic>> _fetch(String id) {
+    // Never share injected test responses with production's user cache.
+    if (widget.badgeLoader != null) return widget.badgeLoader!(id);
     final cached = _cache[id];
     if (cached != null &&
         DateTime.now().difference(cached.at) < const Duration(seconds: 90)) {
@@ -71,7 +80,8 @@ class _RoomBondChatMarksState extends State<RoomBondChatMarks> {
   @override
   void didUpdateWidget(covariant RoomBondChatMarks oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.userId != widget.userId) {
+    if (oldWidget.userId != widget.userId ||
+        oldWidget.badgeLoader != widget.badgeLoader) {
       _details = widget.userId.isEmpty ? null : _fetch(widget.userId);
     }
   }
