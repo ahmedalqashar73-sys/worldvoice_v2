@@ -30,6 +30,7 @@ import '../../rooms/services/room_quota_service.dart';
 import '../../rooms/services/room_rewarded_ad_service.dart';
 import '../services/live_session_service.dart';
 import '../data/live_video_order.dart';
+import '../data/live_gift_playback_queue.dart';
 import 'live_camera_off_tile.dart';
 import 'live_audience_sheet.dart';
 import 'live_back_navigation.dart';
@@ -5616,8 +5617,7 @@ class _LiveGiftEffectsState extends State<_LiveGiftEffects> {
   StreamSubscription<List<RoomGiftEvent>>? _subscription;
   Timer? _timer;
   RoomGiftEvent? _event;
-  String? _lastGiftId;
-  bool _primed = false;
+  final _playback = LiveGiftPlaybackQueue<RoomGiftEvent>((gift) => gift.id);
 
   @override
   void initState() {
@@ -5632,45 +5632,43 @@ class _LiveGiftEffectsState extends State<_LiveGiftEffects> {
       unawaited(_subscription?.cancel());
       _timer?.cancel();
       _event = null;
-      _lastGiftId = null;
-      _primed = false;
+      _playback.clear();
       _listen();
     }
   }
 
   void _listen() {
-    _subscription =
-        RoomFeatureService.watchContextGifts(
-          context: 'live',
-          contextId: widget.liveId,
-        ).listen(
-          (gifts) {
-            if (!mounted || gifts.isEmpty) return;
-            final latest = gifts.first;
-            if (!_primed) {
-              _primed = true;
-              _lastGiftId = latest.id;
-              return;
-            }
-            if (latest.id == _lastGiftId) return;
-            _lastGiftId = latest.id;
-            _timer?.cancel();
-            setState(() => _event = latest);
-            final premium = const {
-              'dragon',
-              'caraxes',
-              'vhagar',
-            }.contains(latest.giftId.trim().toLowerCase());
-            _timer = Timer(Duration(seconds: premium ? 5 : 3), () {
-              if (mounted && _event?.id == latest.id) {
-                setState(() => _event = null);
-              }
-            });
-          },
-          onError: (Object _) {
-            // Gift effects are optional and must never interrupt the Live stream.
-          },
-        );
+    _subscription = RoomFeatureService.watchContextGifts(
+      context: 'live', contextId: widget.liveId,
+    ).listen(
+      (gifts) {
+        if (!mounted) return;
+        // An initial empty snapshot is also a baseline. The very first
+        // gift sent afterwards must play for everyone in the Live.
+        _playback.ingestSnapshot(gifts);
+        _playNextGift();
+      },
+      onError: (Object _) {
+        // A gift transport error must never terminate a running Live.
+      },
+    );
+  }
+
+  void _playNextGift() {
+    if (!mounted || _event != null) return;
+    final next = _playback.takeNext();
+    if (next == null) return;
+    setState(() => _event = next);
+    final premium = const {
+      'dragon', 'caraxes', 'vhagar',
+    }.contains(next.giftId.trim().toLowerCase());
+    _timer?.cancel();
+    _timer = Timer(Duration(seconds: premium ? 5 : 3), () {
+      if (!mounted || _event?.id != next.id) return;
+      setState(() => _event = null);
+      // Queue the next gift instead of cutting off the current animation.
+      _playNextGift();
+    });
   }
 
   @override
@@ -5684,7 +5682,7 @@ class _LiveGiftEffectsState extends State<_LiveGiftEffects> {
   Widget build(BuildContext context) {
     final event = _event;
     if (event == null) return const SizedBox.shrink();
-    return RoomGiftOverlay(event: event);
+    return IgnorePointer(child: RoomGiftOverlay(event: event));
   }
 }
 
