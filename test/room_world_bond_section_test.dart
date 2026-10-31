@@ -32,6 +32,7 @@ void main() {
     for (final type in ['learning', 'language', 'friend', 'duo']) {
       expect(find.byKey(ValueKey('room-worldbond-$type')), findsOneWidget);
     }
+    expect(find.byIcon(Icons.add_circle_rounded), findsNWidgets(4));
     expect(find.text('رفيق التعلّم'), findsOneWidget);
     expect(find.text('رفيق اللغة'), findsOneWidget);
     expect(find.text('صديق مميز'), findsOneWidget);
@@ -85,5 +86,27 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('room-worldbond-open-full')));
     expect(openings, [null]);
     expect(tester.takeException(), isNull);
+  });
+  testWidgets('occupied partner type does not offer a second invitation',
+      (tester) async {
+    final openings = <String?>[];
+    await tester.pumpWidget(scene(
+      self: false,
+      onOpen: openings.add,
+      overviewLoader: () async => {
+        'bonds': [
+          {
+            'type': 'friend', 'status': 'active',
+            'members': ['owner', 'another-partner'], 'level': 3,
+          }
+        ],
+      },
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('لديك شريك'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('room-worldbond-friend')));
+    await tester.pump();
+    expect(openings, isEmpty);
+    expect(find.textContaining('أنهِ العلاقة الحالية'), findsOneWidget);
   });
 }
