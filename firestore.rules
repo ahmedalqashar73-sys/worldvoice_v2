@@ -610,10 +610,12 @@ service cloud.firestore {
     // Clients cannot forge, accept, or end calls by writing Firestore.
     match /calls/{callId} {
       allow get: if signedIn()
-          && resource.data.status in ['ringing', 'accepted']
           && (
-            resource.data.callerId == request.auth.uid
-            || resource.data.recipientId == request.auth.uid
+            (resource.data.status == 'ringing'
+              && resource.data.callerId == request.auth.uid)
+            || (resource.data.status == 'accepted'
+              && (resource.data.callerId == request.auth.uid
+                || resource.data.recipientId == request.auth.uid))
           );
       allow list, create, update, delete: if false;
     }
