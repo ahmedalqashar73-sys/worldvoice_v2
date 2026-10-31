@@ -859,10 +859,22 @@ app.post("/agora/token", async (req, res, next) => {
     // Worker, never copying the secret into the mobile APK or the repo.
     if (!agoraAppId || !agoraCertificate) {
       if (channelName.startsWith("call_")) {
-        // The Worker does not implement direct-call membership checks.
-        return res.status(503).json({
-          error: "Private call tokens require the backend Agora certificate.",
-        });
+        // The Worker now signs direct calls only after a verified Firestore
+        // membership check. Validate with Admin SDK before proxying as well.
+        const callId = channelName.slice("call_".length);
+        const callSnap = await db.collection("calls").doc(callId).get();
+        const call = callSnap.data() || {};
+        const isParticipant = call.callerId === user.uid ||
+          call.recipientId === user.uid;
+        if (!callSnap.exists ||
+            call.channelId !== channelName ||
+            !["ringing", "accepted"].includes(call.status) ||
+            !isParticipant ||
+            requestedRole !== "publisher") {
+          return res.status(403).json({
+            error: "Join an active direct call before publishing.",
+          });
+        }
       }
       if (channelName.startsWith("group_")) {
         // Authorize against the source-of-truth group even when Render proxies
