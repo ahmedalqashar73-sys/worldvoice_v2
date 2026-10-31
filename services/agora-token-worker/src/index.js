@@ -101,10 +101,12 @@ export function isAllowedGroupCallPublisher(fields, uid, channelName, role) {
 // Both call participants may publish only while a real, verified direct call
 // is ringing or accepted. Firestore rules separately restrict who can read it.
 export function isAllowedDirectCallPublisher(fields, uid, channelName, role) {
-  return ["ringing", "accepted"].includes(fields?.status?.stringValue) &&
-    fields?.channelId?.stringValue === channelName &&
-    (fields?.callerId?.stringValue === uid ||
-      fields?.recipientId?.stringValue === uid) &&
+  const status = fields?.status?.stringValue;
+  const caller = fields?.callerId?.stringValue === uid;
+  const recipient = fields?.recipientId?.stringValue === uid;
+  return fields?.channelId?.stringValue === channelName &&
+    (status === "accepted" ? (caller || recipient)
+      : status === "ringing" && caller) &&
     role === "publisher";
 }
 
