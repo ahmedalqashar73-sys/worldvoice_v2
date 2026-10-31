@@ -859,11 +859,37 @@ app.post("/agora/token", async (req, res, next) => {
     // Worker, never copying the secret into the mobile APK or the repo.
     if (!agoraAppId || !agoraCertificate) {
       if (channelName.startsWith("call_")) {
-        // The Worker does not implement call membership checks. Never
-        // mint an unverified call token or bypass server authorization.
+        // The Worker does not implement direct-call membership checks.
         return res.status(503).json({
           error: "Private call tokens require the backend Agora certificate.",
         });
+      }
+      if (channelName.startsWith("group_")) {
+        // Authorize against the source-of-truth group even when Render proxies
+        // token signing to Cloudflare. Never trust possession of a channel ID.
+        const groupId = channelName.slice("group_".length);
+        const [groupSnap, chatSnap] = await Promise.all([
+          db.collection("group_calls").doc(groupId).get(),
+          db.collection("chats").doc(groupId).get(),
+        ]);
+        const group = groupSnap.data() || {};
+        const chat = chatSnap.data() || {};
+        if (!groupSnap.exists || !chatSnap.exists ||
+            group.status !== "active" ||
+            group.channelId !== channelName ||
+            group.chatId !== groupId ||
+            chat.active !== true || chat.type !== "group" ||
+            !Array.isArray(chat.memberIds) ||
+            !chat.memberIds.includes(user.uid) ||
+            !Array.isArray(group.memberIds) ||
+            !group.memberIds.includes(user.uid) ||
+            !Array.isArray(group.joinedIds) ||
+            !group.joinedIds.includes(user.uid) ||
+            requestedRole !== "publisher") {
+          return res.status(403).json({
+            error: "Join an active group call before publishing.",
+          });
+        }
       }
       try {
         const result = await fetch(
