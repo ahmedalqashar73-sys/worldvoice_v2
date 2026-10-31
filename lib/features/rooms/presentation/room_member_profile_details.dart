@@ -32,6 +32,12 @@ class _RoomMemberProfileDetailsState extends State<RoomMemberProfileDetails> {
     return Map<String, dynamic>.from(badges?[uid] as Map? ?? {});
   }
 
+  void _refreshBadge() {
+    setState(() {
+      _badge = (widget.badgeLoader ?? _loadBadge)(widget.userId);
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -108,10 +114,27 @@ class _RoomMemberProfileDetailsState extends State<RoomMemberProfileDetails> {
                   ),
                   if (giftLevel != null)
                     GiftLevelBadge(level: giftLevel)
-                  else
-                    Text('—', style: TextStyle(
-                      color: snapshot.hasError
-                          ? Colors.orangeAccent : Colors.white70)),
+                  else if (snapshot.connectionState == ConnectionState.waiting)
+                    const SizedBox(
+                      width: 14, height: 14,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Color(0xFFFFD780)),
+                    )
+                  else ...[
+                    Text(
+                      widget.isArabic ? 'تعذر تحديث المستوى' : 'Level unavailable',
+                      style: const TextStyle(
+                        color: Colors.orangeAccent, fontSize: 12),
+                    ),
+                    IconButton(
+                      key: const ValueKey('room-gift-level-retry'),
+                      onPressed: _refreshBadge,
+                      tooltip: widget.isArabic
+                          ? 'إعادة تحميل مستوى الإهداء' : 'Retry gift level',
+                      icon: const Icon(Icons.refresh_rounded,
+                        color: Color(0xFFFFD780), size: 19),
+                    ),
+                  ],
                 ],
               ),
             );
