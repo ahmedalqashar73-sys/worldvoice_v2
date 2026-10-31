@@ -19,6 +19,7 @@ import { requireLiveEconomy, calculatePurchaseCredit, canManageStore, canGrantSt
 import {registerWalletRoutes} from "./wallet_routes.js";
 import {registerChatRoutes} from "./chat_routes.js";
 import {registerGroupManagementRoutes} from "./group_management_routes.js";
+import {registerRoomChatNotificationRoutes} from "./room_chat_notification_routes.js";
 import {registerOfficialActivityRoutes} from "./official_activity_routes.js";
 import {registerOfficialAnnouncementRoutes} from "./official_announcements_routes.js";
 import {registerStoryRoutes} from "./story_routes.js";
@@ -2266,6 +2267,7 @@ registerMemberBadgeRoutes({app, db, authenticatedUser});
 registerWalletRoutes({app, db, authenticatedUser});
 registerChatRoutes({app, db, authenticatedUser});
 registerGroupManagementRoutes({app, db, authenticatedUser});
+registerRoomChatNotificationRoutes({app, db, authenticatedUser});
 registerOfficialActivityRoutes({app, db, authenticatedUser});
 registerOfficialAnnouncementRoutes({app, db, authenticatedUser});
 registerStoryRoutes({
