@@ -19,6 +19,7 @@ import '../../profile/presentation/public_profile_screen.dart';
 import '../../profile/presentation/world_bond_screen.dart';
 import 'room_member_profile_details.dart';
 import 'room_world_bond_section.dart';
+import 'room_bond_chat_marks.dart';
 import '../../profile/services/profile_social_service.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../data/room_caption.dart';
@@ -2682,6 +2683,10 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
               ),
             ),
           );
+          // A newly accepted, ended or upgraded bond changes the small
+          // VIP-style marks beside chat messages immediately on return.
+          RoomBondChatMarks.invalidateUser(person.userId);
+          RoomBondChatMarks.invalidateUser(_moderation.currentUserId);
           break;
         case 'invite':
           if (!canInvite || !_canModerate) break;
