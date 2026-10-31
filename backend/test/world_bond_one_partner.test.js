@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {registerWorldBondRoutes} from "../src/world_bond_routes.js";
+import {registerWorldBondRoutes, bondKey} from "../src/world_bond_routes.js";
 import {transactionDb} from "./helpers/transaction_db.js";
 
 function harness() {
@@ -99,4 +99,22 @@ test("legacy active relationships without slots still block a second partner",as
     {peerId:"carol",type:"duo"})).http,409);
   assert.equal((await call("/world-bond/invite","carol",
     {peerId:"bob",type:"duo"})).http,409);
+});
+
+test("legacy invitation cannot be accepted while another partner is active", async()=>{
+  const {call,values} = harness();
+  const pendingId = bondKey("alice","bob","learning");
+  values.set(`world_bonds/${pendingId}`, {
+    members:["alice","bob"],type:"learning",status:"pending",
+    inviterId:"alice",recipientId:"bob",
+    expiresAtMs:Date.parse("2026-11-02T11:00:00Z"),
+  });
+  values.set("world_bonds/legacy-partner",{
+    members:["alice","carol"],type:"learning",status:"active",xp:120,
+  });
+  const result = await call("/world-bond/respond","bob",{
+    peerId:"alice",type:"learning",decision:"accept",
+  });
+  assert.equal(result.http,409);
+  assert.equal(values.get(`world_bonds/${pendingId}`).status,"pending");
 });
