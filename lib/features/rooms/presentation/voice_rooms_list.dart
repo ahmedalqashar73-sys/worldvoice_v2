@@ -52,7 +52,8 @@ class VoiceRoomsList extends StatefulWidget {
   State<VoiceRoomsList> createState() => _VoiceRoomsListState();
 }
 
-class _VoiceRoomsListState extends State<VoiceRoomsList> {
+class _VoiceRoomsListState extends State<VoiceRoomsList>
+    with WidgetsBindingObserver {
   static const String _temporaryChannel = 'worldvoice_english_lounge';
 
   String? _selectedLanguage;
@@ -68,8 +69,23 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _prefsFuture = _loadLanguagePrefs();
     _activeRoomsStream = _roomsStream();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && mounted) {
+      // Restore Firestore reads after the phone regains network connectivity.
+      _retryRooms();
+    }
   }
 
   @override
@@ -156,7 +172,12 @@ class _VoiceRoomsListState extends State<VoiceRoomsList> {
 
   void _retryRooms() {
     // A rebuild of the same failed StreamBuilder stream does not resubscribe.
+    // Explicitly restore the Firestore network in case the SDK was disabled
+    // while offline. Never claim that cache proves the room is accessible.
     if (!mounted) return;
+    unawaited(FirebaseFirestore.instance.enableNetwork().catchError(
+      (Object error) => debugPrint('WorldVoice Firestore reconnect: $error'),
+    ));
     setState(() {
       _prefsFuture = _loadLanguagePrefs();
       _activeRoomsStream = _roomsStream();
