@@ -4,6 +4,7 @@ import worker, {
   validChannelName,
   agoraUidForFirebaseUid,
   tokenSessionCollection,
+  isAllowedGroupCallPublisher,
 } from "../src/index.js";
 
 test("reject invalid room IDs before Firebase/Firestore", () => {
@@ -25,6 +26,32 @@ test("Live tokens never consult closed voice-room documents", () => {
   assert.equal(tokenSessionCollection("room_123"), "rooms");
   assert.equal(tokenSessionCollection("call_123"), "rooms");
   assert.equal(tokenSessionCollection("group_abc12345"), "group_calls");
+});
+
+test("a group Agora token requires current membership and actual attendance", () => {
+  const group = {
+    status: {stringValue: "active"},
+    channelId: {stringValue: "group_chat123456"},
+    memberIds: {arrayValue: {values: [
+      {stringValue: "alice"}, {stringValue: "bob"},
+    ]}},
+    joinedIds: {arrayValue: {values: [
+      {stringValue: "alice"},
+    ]}},
+  };
+  assert.equal(isAllowedGroupCallPublisher(
+    group, "alice", "group_chat123456", "publisher"), true);
+  assert.equal(isAllowedGroupCallPublisher(
+    group, "bob", "group_chat123456", "publisher"), false);
+  assert.equal(isAllowedGroupCallPublisher(
+    group, "stranger", "group_chat123456", "publisher"), false);
+  assert.equal(isAllowedGroupCallPublisher(
+    group, "alice", "group_other", "publisher"), false);
+  assert.equal(isAllowedGroupCallPublisher(
+    group, "alice", "group_chat123456", "subscriber"), false);
+  assert.equal(isAllowedGroupCallPublisher(
+    {...group, status: {stringValue: "ended"}},
+    "alice", "group_chat123456", "publisher"), false);
 });
 
 test("health fails closed without the secret certificate", async () => {
