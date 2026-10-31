@@ -844,7 +844,13 @@ class ChatScreen extends StatelessWidget {
                     if (isGroup) {
                       final groupName = (data['groupName'] ?? 'WorldVoice Group')
                           .toString();
-                      return ListTile(
+                      return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                        stream: FirebaseFirestore.instance.collection('users')
+                            .doc(uid).snapshots(),
+                        builder: (context, me) {
+                          final hidden = (me.data?.data()?['hiddenGroupChatIds'] as List?) ?? const [];
+                          if (hidden.contains(snap.id)) return const SizedBox.shrink();
+                          return ListTile(
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 14,
                           vertical: 5,
@@ -876,6 +882,8 @@ class ChatScreen extends StatelessWidget {
                             ),
                           ),
                         ),
+                          );
+                        },
                       );
                     }
                     final peer = ids.firstWhere(
