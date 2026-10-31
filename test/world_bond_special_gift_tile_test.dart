@@ -28,8 +28,8 @@ void main() {
         ))),
       ));
       expect(find.text(gift.$2), findsOneWidget);
-      expect(find.text('${gift.$3}'), findsOneWidget);
-      expect(find.text('LV ${gift.$1}'), findsOneWidget);
+      expect(find.text('${gift.$3} كوين'), findsOneWidget);
+      expect(find.text('WorldBond • الفئة ${gift.$1}'), findsOneWidget);
       await tester.tap(find.text('إهداء'));
       expect(sends, 1);
     });
