@@ -7,6 +7,10 @@ import 'package:image_picker/image_picker.dart';
 
 import '../services/chat_extended_service.dart';
 import 'chat_media_bubble.dart';
+import '../services/group_call_service.dart';
+import 'group_chat_call_screen.dart';
+import 'group_chat_members_sheet.dart';
+import 'dart:async';
 
 class GroupChatScreen extends StatefulWidget {
   const GroupChatScreen({
@@ -27,6 +31,71 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   final ImagePicker _picker = ImagePicker();
   final ChatExtendedService _service = ChatExtendedService();
   bool _sending = false;
+  final GroupCallService _calls = GroupCallService();
+  GroupCallInfo? _activeCall;
+  Timer? _callRefresh;
+  bool _startingCall = false;
+  bool _initialMessagesLoaded = false;
+  final Set<String> _seenMessageIds = <String>{};
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_refreshCall());
+    _callRefresh = Timer.periodic(
+      const Duration(seconds: 5), (_) => unawaited(_refreshCall()),
+    );
+  }
+
+  Future<void> _refreshCall() async {
+    try {
+      final call = await _calls.status(widget.chatId);
+      if (mounted) {
+        setState(() => _activeCall = call?.isActive == true ? call : null);
+      }
+    } catch (_) {
+      // A temporary call-status failure must never affect group messages.
+    }
+  }
+
+  Future<void> _startGroupCall(String type) async {
+    if (_startingCall) return;
+    setState(() => _startingCall = true);
+    try {
+      final call = await _calls.start(widget.chatId, type);
+      if (!mounted) return;
+      await Navigator.of(context).push<void>(
+        MaterialPageRoute<void>(
+          builder: (_) => GroupChatCallScreen(call: call),
+        ),
+      );
+      await _refreshCall();
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString().replaceFirst('Bad state: ', ''))),
+      );
+    } finally {
+      if (mounted) setState(() => _startingCall = false);
+    }
+  }
+
+  Future<void> _joinGroupCall() async {
+    final call = _activeCall;
+    if (call == null || _startingCall) return;
+    setState(() => _startingCall = true);
+    try {
+      await Navigator.of(context).push<void>(
+        MaterialPageRoute<void>(
+          builder: (_) => GroupChatCallScreen(call: call),
+        ),
+      );
+      await _refreshCall();
+    } finally {
+      if (mounted) setState(() => _startingCall = false);
+    }
+  }
+
 
   Future<void> _sendText() async {
     final value = _text.text.trim();
@@ -78,6 +147,8 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   void dispose() {
     _text.dispose();
     _service.dispose();
+    _callRefresh?.cancel();
+    _calls.dispose();
     super.dispose();
   }
 
@@ -103,10 +174,47 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
             ),
           ],
         ),
+        actions: [
+          IconButton(
+            tooltip: ar ? 'مكالمة جماعية صوتية' : 'Group voice call',
+            onPressed: _startingCall ? null : () => _startGroupCall('audio'),
+            icon: const Icon(Icons.call_rounded),
+          ),
+          IconButton(
+            tooltip: ar ? 'مكالمة جماعية فيديو' : 'Group video call',
+            onPressed: _startingCall ? null : () => _startGroupCall('video'),
+            icon: const Icon(Icons.videocam_rounded),
+          ),
+          IconButton(
+            tooltip: ar ? 'أعضاء المجموعة' : 'Group members',
+            onPressed: () => showGroupMembersSheet(context, widget.chatId),
+            icon: const Icon(Icons.groups_rounded),
+          ),
+        ],
       ),
       body: SafeArea(
         child: Column(
           children: [
+            GroupMembersPreview(
+              chatId: widget.chatId,
+              onTap: () => showGroupMembersSheet(context, widget.chatId),
+            ),
+            if (_activeCall != null)
+              Material(
+                color: const Color(0xFF114D3B),
+                child: ListTile(
+                  leading: Icon(_activeCall!.isVideo
+                      ? Icons.video_call_rounded : Icons.call_rounded,
+                      color: const Color(0xFF5DE0A9)),
+                  title: Text(ar
+                      ? 'مكالمة المجموعة جارية • ${_activeCall!.joinedIds.length} متصل'
+                      : 'Group call active • ${_activeCall!.joinedIds.length} connected'),
+                  trailing: FilledButton(
+                    onPressed: _startingCall ? null : _joinGroupCall,
+                    child: Text(ar ? 'انضمام' : 'Join'),
+                  ),
+                ),
+              ),
             Expanded(
               child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                 stream: FirebaseFirestore.instance
@@ -128,6 +236,21 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                     return const Center(child: CircularProgressIndicator());
                   }
                   final messages = snapshot.data!.docs;
+                  final justArrived = <String>{};
+                  if (_initialMessagesLoaded) {
+                    for (final message in messages) {
+                      if (!_seenMessageIds.contains(message.id)) {
+                        justArrived.add(message.id);
+                      }
+                    }
+                  }
+                  _seenMessageIds.addAll(messages.map((message) => message.id));
+                  _initialMessagesLoaded = true;
+                  if (_seenMessageIds.length > 400) {
+                    _seenMessageIds
+                      ..clear()
+                      ..addAll(messages.map((message) => message.id));
+                  }
                   return ListView.builder(
                     reverse: true,
                     padding: const EdgeInsets.all(12),
@@ -138,7 +261,16 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                       final type = (data['type'] ?? 'text').toString();
                       final sender = (data['senderName'] ?? 'Member').toString();
                       final mediaUrl = (data['mediaUrl'] ?? '').toString();
-                      return Align(
+                      return TweenAnimationBuilder<double>(
+                        key: ValueKey('group-message-${messages[index].id}'),
+                        tween: Tween<double>(
+                          begin: justArrived.contains(messages[index].id) ? 0 : 1,
+                          end: 1,
+                        ),
+                        duration: const Duration(milliseconds: 230),
+                        builder: (context, opacity, child) =>
+                            Opacity(opacity: opacity, child: child),
+                        child: Align(
                         alignment: mine
                             ? AlignmentDirectional.centerEnd
                             : AlignmentDirectional.centerStart,
@@ -179,6 +311,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                                 Text((data['text'] ?? '').toString()),
                             ],
                           ),
+                        ),
                         ),
                       );
                     },
