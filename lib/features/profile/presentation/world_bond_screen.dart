@@ -332,8 +332,10 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
         ));
       }
     } catch (error) {
-      if (mounted) setState(() => _error =
-          error.toString().replaceFirst('Bad state: ', ''));
+      if (mounted) {
+        setState(() => _error =
+            error.toString().replaceFirst('Bad state: ', ''));
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
