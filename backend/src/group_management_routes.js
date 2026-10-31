@@ -32,10 +32,14 @@ export function registerGroupManagementRoutes({app, db, authenticatedUser}) {
       const chatRef = db.collection("chats").doc(chatId);
       const result = await db.runTransaction(async tx => {
         const snap = await tx.get(chatRef);
-        if (!snap.exists || !inGroup(snap.data() || {}, actor.uid)) {
+        const group = snap.data() || {};
+        const retryOwnerDelete = action === "delete_group" &&
+            group.type === "group" && group.ownerId === actor.uid &&
+            group.active === false;
+        if (!snap.exists ||
+            (!inGroup(group, actor.uid) && !retryOwnerDelete)) {
           fail("You are not an active group member.", 403);
         }
-        const group = snap.data();
         const role = roleOf(group, actor.uid);
         const members = group.memberIds;
         const mods = group.moderatorIds || [];
@@ -48,12 +52,14 @@ export function registerGroupManagementRoutes({app, db, authenticatedUser}) {
         }
         if (action === "delete_group") {
           if (role !== "owner") fail("Only the creator may delete a group.", 403);
-          // Tombstone immediately. Backend purges child messages separately;
-          // never expose data again via chat rules or group member queries.
-          tx.update(chatRef, {
-            active:false, memberIds:[], moderatorIds:[],
-            deletedAt:FieldValue.serverTimestamp(),
-          });
+          if (!retryOwnerDelete) {
+            // Deny new reads and writes immediately, before the recursive
+            // purge. Retain ownership for secure retries if purge fails.
+            tx.update(chatRef, {
+              active:false, memberIds:[], moderatorIds:[],
+              deletedAt:FieldValue.serverTimestamp(),
+            });
+          }
           return {action, deleted:true};
         }
         if (action === "leave") {
@@ -116,8 +122,13 @@ export function registerGroupManagementRoutes({app, db, authenticatedUser}) {
         });
         return {action, moderator:action === "promote"};
       });
-      // Never claim to have physically erased child messages: the tombstone
-      // denies membership reads, while history retention follows app policy.
+      if (action === "delete_group") {
+        // Clear the chat document and messages, not just the owner's list.
+        // A failed purge leaves a no-access tombstone which only the owner
+        // can retry. Uploaded media on third-party CDNs is a separate
+        // retention concern and is not represented as purged here.
+        await db.recursiveDelete(chatRef);
+      }
       res.json({ok:true, ...result});
     } catch (error) {next(error);}
   });
