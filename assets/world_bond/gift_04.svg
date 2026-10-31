@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="Royal bond">
+<defs>
+<radialGradient id="aura" cx="50%" cy="49%" r="52%">
+<stop offset="0" stop-color="#A46B1C" stop-opacity=".76"/>
+<stop offset=".65" stop-color="#A46B1C" stop-opacity=".46"/>
+<stop offset="1" stop-color="#03201B" stop-opacity="0"/>
+</radialGradient>
+<linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#A36319"/>
+<stop offset=".22" stop-color="#FFE3A0"/>
+<stop offset=".42" stop-color="#F5C15A"/>
+<stop offset=".73" stop-color="#FFF0BA"/>
+<stop offset="1" stop-color="#975B1B"/>
+</linearGradient>
+<linearGradient id="gem" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#FFFFFF"/>
+<stop offset=".22" stop-color="#FFE3A0"/>
+<stop offset=".68" stop-color="#A46B1C"/>
+<stop offset="1" stop-color="#092C35"/>
+</linearGradient>
+</defs>
+<circle cx="128" cy="128" r="117" fill="url(#aura)"/>
+<circle cx="128" cy="128" r="110" fill="none" stroke="url(#gold)" stroke-width="3" opacity=".8"/>
+<circle cx="128" cy="128" r="102" fill="none" stroke="#FFE3A0" stroke-width="1.3" opacity=".55"/>
+
+<!-- Royal citadel topped by an ornate golden promise crown -->
+<path d="M41 181 V123 L61 112 V86 L78 69 V118 L94 108 V83 L112 64 V112 L128 102 L144 112 V68 L163 82 V108 L180 117 V70 L197 90 V118 L215 127 V181Z" fill="#A95C22" stroke="#FFF3C0" stroke-width="4"/>
+<path d="M49 180 V139 L78 119 V180 M97 180 V131 L128 112 L159 131 V180 M178 180 V134 L207 141 V180" fill="url(#gold)" stroke="#FFE3A1" stroke-width="2"/>
+<path d="M116 180 V153 Q128 133 140 153 V180" fill="#31261B" stroke="#FFF2C7" stroke-width="3"/>
+<circle cx="128" cy="137" r="6" fill="#5AEECC" stroke="#FFEEAE" stroke-width="2"/>
+<path d="M46 96 L35 51 L72 71 L100 39 L128 69 L156 39 L184 71 L221 51 L210 96Z" fill="url(#gold)" stroke="#FFF7D9" stroke-width="6"/>
+<path d="M46 103 Q128 90 210 103 L209 119 Q128 105 47 119Z" fill="#B5792D" stroke="#FFE8A3" stroke-width="4"/>
+<path d="M37 53 L75 73 L100 40 L128 70 L156 40 L182 73 L219 53" fill="none" stroke="#FFF4C1" stroke-width="3"/>
+<path d="M128 59 L142 81 L128 94 L114 81Z" fill="url(#gem)" stroke="#FFF7D9" stroke-width="3"/>
+<circle cx="74" cy="89" r="7" fill="#57FBDD" stroke="#FFF5C4" stroke-width="2"/>
+<circle cx="182" cy="89" r="7" fill="#A16FFF" stroke="#FFF5C4" stroke-width="2"/>
+<path d="M38 190 Q128 210 218 190" fill="none" stroke="url(#gold)" stroke-width="9"/>
+
+<path d="M33 61 H45 M39 55 V67" stroke="#FFF8CB" stroke-width="2" stroke-linecap="round" opacity=".86"/>
+<path d="M212 45 H224 M218 39 V51" stroke="#FFF8CB" stroke-width="2" stroke-linecap="round" opacity=".86"/>
+<path d="M17 116 H25 M21 112 V120" stroke="#FFF8CB" stroke-width="1.2" stroke-linecap="round" opacity=".86"/>
+<path d="M235 143 H243 M239 139 V147" stroke="#FFF8CB" stroke-width="1.2" stroke-linecap="round" opacity=".86"/>
+<path d="M68 30 H80 M74 24 V36" stroke="#FFF8CB" stroke-width="2" stroke-linecap="round" opacity=".86"/>
+<path d="M190 217 H202 M196 211 V223" stroke="#FFF8CB" stroke-width="2" stroke-linecap="round" opacity=".86"/>
+<path d="M26 206 H34 M30 202 V210" stroke="#FFF8CB" stroke-width="1.2" stroke-linecap="round" opacity=".86"/>
+<path d="M225 193 H233 M229 189 V197" stroke="#FFF8CB" stroke-width="1.2" stroke-linecap="round" opacity=".86"/>
+<path d="M88 221 Q128 234 168 221" fill="none" stroke="url(#gold)" stroke-width="3"/>
+<circle cx="128" cy="226" r="5" fill="#FFE3A0" stroke="#FFDB8E" stroke-width="1.6"/>
+</svg>
