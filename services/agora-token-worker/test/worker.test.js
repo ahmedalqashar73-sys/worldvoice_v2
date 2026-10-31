@@ -5,6 +5,7 @@ import worker, {
   agoraUidForFirebaseUid,
   tokenSessionCollection,
   isAllowedGroupCallPublisher,
+  isAllowedDirectCallPublisher,
 } from "../src/index.js";
 
 test("reject invalid room IDs before Firebase/Firestore", () => {
@@ -24,7 +25,7 @@ test("Live tokens never consult closed voice-room documents", () => {
   assert.equal(tokenSessionCollection("live_a1b2"), "live_sessions");
   assert.equal(tokenSessionCollection("voice_room_1"), "rooms");
   assert.equal(tokenSessionCollection("room_123"), "rooms");
-  assert.equal(tokenSessionCollection("call_123"), "rooms");
+  assert.equal(tokenSessionCollection("call_123"), "calls");
   assert.equal(tokenSessionCollection("group_abc12345"), "group_calls");
 });
 
@@ -52,6 +53,31 @@ test("a group Agora token requires current membership and actual attendance", ()
   assert.equal(isAllowedGroupCallPublisher(
     {...group, status: {stringValue: "ended"}},
     "alice", "group_chat123456", "publisher"), false);
+});
+
+test("direct-call token permissions require an actual active participant", () => {
+  const call = {
+    channelId: {stringValue: "call_g5fv601234"},
+    callerId: {stringValue: "alice"},
+    recipientId: {stringValue: "bob"},
+    status: {stringValue: "ringing"},
+  };
+  assert.equal(isAllowedDirectCallPublisher(
+    call, "alice", "call_g5fv601234", "publisher"), true);
+  assert.equal(isAllowedDirectCallPublisher(
+    {...call, status: {stringValue: "accepted"}},
+    "bob", "call_g5fv601234", "publisher"), true);
+  assert.equal(isAllowedDirectCallPublisher(
+    call, "mallory", "call_g5fv601234", "publisher"), false);
+  assert.equal(isAllowedDirectCallPublisher(
+    call, "alice", "call_other", "publisher"), false);
+  assert.equal(isAllowedDirectCallPublisher(
+    call, "alice", "call_g5fv601234", "subscriber"), false);
+  for (const status of ["ended", "declined", "missed"]) {
+    assert.equal(isAllowedDirectCallPublisher(
+      {...call, status: {stringValue: status}},
+      "alice", "call_g5fv601234", "publisher"), false);
+  }
 });
 
 test("health fails closed without the secret certificate", async () => {
