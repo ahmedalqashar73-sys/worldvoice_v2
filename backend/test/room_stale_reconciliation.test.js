@@ -14,7 +14,9 @@ const member = ageMin => ({
 test("closes a stale room with no participants after three minutes",()=>{
   assert.equal(staleRoomDecision({room:room(4),participants:[],now}),true);
   assert.equal(staleRoomDecision({
-    room:room(12),participants:[member(12),member(7)],now}),true);
+    room:room(12),participants:[member(12),member(7)],now}),false);
+  assert.equal(staleRoomDecision({
+    room:room(30),participants:[member(25),member(18)],now}),true);
 });
 test("never closes a room with active host, moderator or listener",()=>{
   assert.equal(staleRoomDecision({
@@ -40,4 +42,13 @@ test("never closes an oversized room with a possibly incomplete member scan",()=
   assert.equal(staleRoomDecision({
     room:room(30),participants:[{},member(15)],now,
   }),false);
+});
+
+test("backgrounded participants receive a 15-minute safety window",()=>{
+  assert.equal(staleRoomDecision({
+    room:room(24),participants:[member(5)],now}),false);
+  assert.equal(staleRoomDecision({
+    room:room(24),participants:[member(14.9)],now}),false);
+  assert.equal(staleRoomDecision({
+    room:room(24),participants:[member(15.1)],now}),true);
 });
