@@ -99,15 +99,28 @@ Future<void> _chooseGroupInvite(
                 itemCount: available.length,
                 itemBuilder: (ctx, index) {
                   final id = available[index];
-                  return ListTile(
-                    leading: _MemberAvatar(uid: id, radius: 19),
-                    title: Text(id, maxLines: 1, overflow: TextOverflow.ellipsis),
-                    trailing: const Icon(Icons.person_add_alt_1_rounded),
-                    onTap: () async {
-                      await _groupMemberOperation(context, chatId, 'add', id);
-                      if (dialogContext.mounted) {
-                        Navigator.pop(dialogContext);
-                      }
+                  return FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                    future: FirebaseFirestore.instance.collection('users')
+                        .doc(id).get(),
+                    builder: (context, userSnapshot) {
+                      final data = userSnapshot.data?.data() ??
+                          const <String, dynamic>{};
+                      final name = (data['displayName'] ??
+                          data['name'] ?? id).toString();
+                      return ListTile(
+                        leading: _MemberAvatar(uid: id, radius: 19),
+                        title: Text(name, maxLines: 1,
+                          overflow: TextOverflow.ellipsis),
+                        subtitle: data['username'] == null ? null
+                          : Text('@${data['username']}'),
+                        trailing: const Icon(Icons.person_add_alt_1_rounded),
+                        onTap: () async {
+                          await _groupMemberOperation(context, chatId, 'add', id);
+                          if (dialogContext.mounted) {
+                            Navigator.pop(dialogContext);
+                          }
+                        },
+                      );
                     },
                   );
                 },
