@@ -2,6 +2,7 @@ import {createHash} from "node:crypto";
 import {FieldValue} from "firebase-admin/firestore";
 import {reversalDelta} from "./reversal_policy.js";
 import {privateWalletRef, requirePrivateWallet} from "./wallet_store.js";
+import {refundablePaidCoinDebit} from "./owner_coin_policy.js";
 
 const err = (message, status = 409) =>
   Object.assign(new Error(message), {status});
@@ -113,13 +114,17 @@ export async function reverseVerifiedWebPurchase({stripe, db, event}) {
     const before = Number(userSnap.data()?.coins || 0);
     const debtBefore = Number(userSnap.data()?.walletDebtCoins || 0);
     const purchased = Number(userSnap.data()?.purchasedCoins || 0);
+    const adminCoins = Number(userSnap.data()?.adminCoins ?? 0);
     if (!Number.isSafeInteger(before) || before < 0 ||
         !Number.isSafeInteger(debtBefore) || debtBefore < 0 ||
         !Number.isSafeInteger(purchased) || purchased < 0) {
       throw err("Wallet reconciliation required.", 503);
     }
-    const availableDebit = Math.min(before, result.deltaCoins);
-    const debt = result.deltaCoins - availableDebit;
+    // A refund reverses purchased coins only. Promotional grants are
+    // non-withdrawable and are never confiscated to pay a cash refund.
+    const {availableDebit, debtCoins: debt} = refundablePaidCoinDebit({
+      coins: before, adminCoins, refundCoins: result.deltaCoins,
+    });
     const outcome = {
       deductedCoins: availableDebit, debtCoins: debt,
       targetRefundCents: requestedTarget,
