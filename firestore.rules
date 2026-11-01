@@ -700,8 +700,9 @@ service cloud.firestore {
       // Receiver's own global direct-message privacy preference. Only
       // incoming encrypted envelopes are blocked; group chat is unaffected.
       function deliveryReceiverAccepts(recipientId) {
-        return get(/databases/$(database)/documents/users/$(recipientId))
-            .data.get('receiveDirectMessages', true) != false;
+        let profile = /databases/$(database)/documents/users/$(recipientId);
+        return !exists(profile)
+            || get(profile).data.get('receiveDirectMessages', true) != false;
       }
       match /delivery_queue/{deliveryId} {
         function validEnvelope() {
