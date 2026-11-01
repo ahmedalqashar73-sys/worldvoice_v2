@@ -2582,8 +2582,70 @@ app.use((error, _req, res, _next) => {
   });
 });
 
+// Temporary read-only owner diagnostics; never prints account identifiers,
+// balances or credentials. Enabled explicitly only during wallet triage.
+async function logOwnerWalletReadiness() {
+  const ownerEmail = [...privilegedAccounts.entries()]
+    .find(([, entry]) => entry.role === "super_admin")?.[0];
+  if (!ownerEmail) {
+    console.info("WorldVoice owner readiness:", JSON.stringify({
+      ownerAllowlistConfigured: false,
+    }));
+    return;
+  }
+  try {
+    const identity = await auth.getUserByEmail(ownerEmail);
+    const profileRef = db.collection("users").doc(identity.uid);
+    const [profile, wallet, admin, monthlyLedger, economy] = await Promise.all([
+      profileRef.get(),
+      privateWalletRef(profileRef).get(),
+      db.collection("admins").doc(identity.uid).get(),
+      profileRef.collection("wallet_transactions")
+        .doc("owner_monthly_" + ownerMonthInRiyadh()).get(),
+      db.doc("economy_config/current").get(),
+    ]);
+    const record = admin.data() || {};
+    const config = economy.data() || {};
+    console.info("WorldVoice owner readiness:", JSON.stringify({
+      ownerAuthRecordExists: true,
+      ownerEmailVerified: identity.emailVerified === true,
+      ownerAuthDisabled: identity.disabled === true,
+      signedClaimsComplete: identity.customClaims?.admin === true &&
+        identity.customClaims?.economyAdmin === true &&
+        identity.customClaims?.worldVoiceAdmin === true,
+      ownerProfileExists: profile.exists,
+      ownerProfileAdminFlag: profile.data()?.isAdmin === true,
+      trustedAdminRecordMatches: record.uid === identity.uid &&
+        record.active === true && record.role === "super_admin" &&
+        String(record.email || "").trim().toLowerCase() === ownerEmail,
+      privateWalletExists: wallet.exists,
+      ownerMonthlyLedgerExists: monthlyLedger.exists,
+      economyConfigExists: economy.exists,
+      economyEnabled: config.enabled === true,
+      privateWalletCutoverVerified:
+        config.privateWalletCutoverVerified === true,
+      publicProfileRulesVerified:
+        config.publicProfileRulesVerified === true,
+    }));
+  } catch (error) {
+    // A missing owner account is materially different from database IAM
+    // failure, but never print raw errors or emails.
+    console.warn("WorldVoice owner readiness:", JSON.stringify({
+      status: error?.code === "auth/user-not-found"
+        ? "OWNER_NOT_FOUND_IN_FIREBASE_AUTH"
+        : "OWNER_AUDIT_UNAVAILABLE",
+      category: typeof error?.code === "string"
+        ? error.code.replace(/[^a-zA-Z0-9/_-]/g, "").slice(0, 64)
+        : "unknown",
+    }));
+  }
+}
+
 app.listen(port, "0.0.0.0", () => {
   console.log(`WorldVoice room backend listening on port ${port}`);
   console.log(`Firebase project: ${firebaseProjectId || "auto"}`);
   console.log(`WorldVoice AI provider: Groq; configured: ${Boolean(groqApiKey)}`);
+  if (process.env.WORLDVOICE_OWNER_STARTUP_AUDIT === "true") {
+    void logOwnerWalletReadiness();
+  }
 });
