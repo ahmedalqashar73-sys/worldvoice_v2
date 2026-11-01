@@ -12,10 +12,12 @@ import {roomProgressAfterGift, roomCastleProgressSnapshot,
 
 // Separate authenticated APIs; one settlement implementation preserves wallet
 // holds, shared daily limits, atomic receipts and existing room/live behavior.
-export function registerGiftSendRoutes({app, db, authenticatedUser, validChannelName}) {
+export function registerGiftSendRoutes({app, db, authenticatedUser, validChannelName,
+  isVerifiedOwner = () => false}) {
 const send = bondOnly => async (req, res, next) => {
   try {
     const sender = await authenticatedUser(req);
+    const senderIsOwner = isVerifiedOwner(sender);
     const {recipientId, giftId, type} = req.body || {};
     const context = bondOnly ? "worldbond" : req.body?.context;
     const contextId = bondOnly && BOND_TYPES.includes(type) && typeof recipientId === "string"
@@ -124,8 +126,8 @@ const send = bondOnly => async (req, res, next) => {
       } else if (!bondOnly) {
         if (!roomSnap.exists ||
             chatIdFor(sender.uid, recipientId) !== contextId ||
-            !snapshots[11]?.exists || !snapshots[12]?.exists) {
-          throw Object.assign(new Error("Mutual following required for chat gifts."),
+            (!senderIsOwner && (!snapshots[11]?.exists || !snapshots[12]?.exists))) {
+          throw Object.assign(new Error("Chat membership and following required for gifts."),
             {status: 403});
         }
         assertChatMembership(roomSnap.data(), sender.uid, recipientId);
@@ -143,6 +145,19 @@ const send = bondOnly => async (req, res, next) => {
         ].map(ref => tx.get(ref)));
         if (blocks.some(snap => snap.exists)) {
           throw Object.assign(new Error("لا يمكن الإهداء بين مستخدمين محظورين."), {status: 403});
+        }
+      }
+      // A blocked user must never receive ordinary, cosmetic or WorldBond
+      // gifting, regardless of the sender's administrative status.
+      if (!bondOnly && recipientRef) {
+        const blockRefs = [
+          senderRef.collection("blocked_peers").doc(recipientId),
+          recipientRef.collection("blocked_peers").doc(sender.uid),
+        ];
+        const blocks = await Promise.all(blockRefs.map(ref => tx.get(ref)));
+        if (blocks.some(snap => snap.exists)) {
+          throw Object.assign(new Error("Gifts are blocked between these accounts."),
+            {status: 403});
         }
       }
       const config = requireLiveEconomy(configSnap.data());
@@ -215,7 +230,12 @@ const send = bondOnly => async (req, res, next) => {
       const dailyRef = senderRef.collection("economy_daily").doc(day);
       const dailySnap = await tx.get(dailyRef);
       const dailySpent = Number(dailySnap.data()?.giftCoins || 0);
-      if (!Number.isSafeInteger(dailySpent) ||
+      if (!Number.isSafeInteger(dailySpent) || dailySpent < 0) {
+        throw Object.assign(new Error("Invalid gift daily ledger."), {status: 409});
+      }
+      // The verified owner can spend the entire 10,000-coin monthly testing
+      // allowance without being stopped by ordinary user daily limits.
+      if (!senderIsOwner &&
           dailySpent + amounts.chargedCoins > config.giftingDailyCoinLimit) {
         throw Object.assign(new Error("Daily gift limit reached."), {status: 429});
       }
