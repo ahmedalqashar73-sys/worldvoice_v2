@@ -1,4 +1,5 @@
 import {registerGiftSendRoutes} from "./gift_send_routes.js";
+import {registerOwnerDirectGiftRoutes} from "./owner_direct_gift_routes.js";
 import {giftProgress} from './member_badge_policy.js';
 import {registerMemberBadgeRoutes, memberBadgeRef} from './member_badge_routes.js';
 import { createHash, randomUUID } from "node:crypto";
@@ -2210,6 +2211,13 @@ app.post("/web/checkout", async (req, res, next) => {
 });
 
 registerGiftSendRoutes({app, db, authenticatedUser, validChannelName});
+registerOwnerDirectGiftRoutes({
+  app, db, authenticatedUser,
+  isVerifiedOwner: token => token.email_verified === true &&
+    privilegedAccounts.get(String(token.email || "").trim().toLowerCase())
+      ?.role === "super_admin",
+  notifyGift: sendCosmeticGiftPush,
+});
 
 app.post("/iap/verify", async (req, res, next) => {
   try {
