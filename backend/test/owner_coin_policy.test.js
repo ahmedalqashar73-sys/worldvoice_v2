@@ -1,7 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {OWNER_MONTHLY_COINS, ownerMonthInRiyadh, splitOwnerCoinSpend,
-  diamondsForPaidCoins, cosmeticGiftPrice} from "../src/owner_coin_policy.js";
+  diamondsForPaidCoins, cosmeticGiftPrice,
+  refundablePaidCoinDebit} from "../src/owner_coin_policy.js";
 
 test("owner monthly coin grant is fixed, and Riyadh period is calendar-local", () => {
   assert.equal(OWNER_MONTHLY_COINS, 10_000);
@@ -33,4 +34,19 @@ test("existing permanent cosmetic prices remain unchanged", () => {
   assert.equal(cosmeticGiftPrice(520, 7), 130);
   assert.throws(() => cosmeticGiftPrice(150, 31));
   assert.throws(() => cosmeticGiftPrice(150, "7"));
+});
+
+test("purchase refunds never debit granted owner coins", () => {
+  assert.deepEqual(refundablePaidCoinDebit({
+    coins: 1200, adminCoins: 1000, refundCoins: 500,
+  }), {availableDebit: 200, debtCoins: 300});
+  assert.deepEqual(refundablePaidCoinDebit({
+    coins: 1000, adminCoins: 1000, refundCoins: 100,
+  }), {availableDebit: 0, debtCoins: 100});
+  assert.deepEqual(refundablePaidCoinDebit({
+    coins: 500, adminCoins: 0, refundCoins: 200,
+  }), {availableDebit: 200, debtCoins: 0});
+  assert.throws(() => refundablePaidCoinDebit({
+    coins: 50, adminCoins: 55, refundCoins: 1,
+  }));
 });
