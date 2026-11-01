@@ -398,11 +398,58 @@ async function authenticatedUser(req) {
   }
 }
 
+// The admins collection is server-owned (Firestore clients cannot write it).
+// A verified UID+email+active super_admin record is a trusted secondary
+// credential; client-visible isAdmin and VIP profile fields never qualify.
+async function verifiedOwner(user) {
+  if (isVerifiedOwnerIdentity(user, privilegedAccounts)) return true;
+  if (!user?.uid || user.email_verified !== true) return false;
+  const admin = await db.collection("admins").doc(user.uid).get();
+  return isVerifiedOwnerIdentity(user, privilegedAccounts, admin.data());
+}
+
+// A read-only authenticated diagnosis for the owner. Never disclose a user's
+// email, token, UID, monetary balance, or another account's information.
+app.get("/account/owner-readiness", async (req, res, next) => {
+  try {
+    const user = await authenticatedUser(req);
+    const profile = db.collection("users").doc(user.uid);
+    const [admin, wallet, ownProfile, economy] = await Promise.all([
+      db.collection("admins").doc(user.uid).get(),
+      privateWalletRef(profile).get(),
+      profile.get(),
+      db.doc("economy_config/current").get(),
+    ]);
+    const policy = economy.data() || {};
+    const owner = isVerifiedOwnerIdentity(
+      user, privilegedAccounts, admin.data());
+    res.json({
+      ok: true, ownerVerified: owner,
+      emailVerified: user.email_verified === true,
+      ownerAllowlistMatched: user.email_verified === true &&
+        privilegedAccounts.get(String(user.email || "").trim().toLowerCase())
+          ?.role === "super_admin",
+      signedClaimsComplete: user.admin === true &&
+        user.economyAdmin === true && user.worldVoiceAdmin === true,
+      serverOwnedAdminRecordMatched: isVerifiedOwnerIdentity(
+        user, new Map(), admin.data()),
+      profileAdminFlag: ownProfile.data()?.isAdmin === true,
+      privateWalletExists: wallet.exists,
+      economyConfigPresent: economy.exists,
+      economyEnabled: policy.enabled === true,
+      privateWalletCutoverVerified:
+        policy.privateWalletCutoverVerified === true,
+      publicProfileRulesVerified:
+        policy.publicProfileRulesVerified === true,
+    });
+  } catch (error) { next(error); }
+});
+
 app.post("/account/sync-entitlements", async (req, res, next) => {
   try {
     const user = await authenticatedUser(req);
     const email = String(user.email || "").trim().toLowerCase();
-    if (!isVerifiedOwnerIdentity(user, privilegedAccounts)) {
+    if (!await verifiedOwner(user)) {
       return res.json({
         ok: true, privileged: false, reason: "OWNER_IDENTITY_NOT_VERIFIED",
       });
@@ -535,7 +582,7 @@ app.post("/admin/rooms/grant-access", async (req, res, next) => {
   try {
     const user = await authenticatedUser(req);
     const email = String(user.email || "").trim().toLowerCase();
-    if (!isVerifiedOwnerIdentity(user, privilegedAccounts)) {
+    if (!await verifiedOwner(user)) {
       return res.status(403).json({error: "Admin access required."});
     }
 
@@ -1666,7 +1713,7 @@ app.get("/store/access", async (req, res, next) => {
   try {
     const user = await authenticatedUser(req);
     const admin = await db.collection("admins").doc(user.uid).get();
-    const isOwner = isVerifiedOwnerIdentity(user, privilegedAccounts);
+    const isOwner = await verifiedOwner(user);
     res.json({ok: true, canManageStore: canManageStore(admin.data()),
       isOwner});
   } catch (error) { next(error); }
@@ -1695,7 +1742,7 @@ async function sendCosmeticGiftPush(uid, itemId) {
 app.get("/store/recipient-search", async (req, res, next) => {
   try {
     const sender = await authenticatedUser(req);
-    if (!isVerifiedOwnerIdentity(sender, privilegedAccounts)) {
+    if (!await verifiedOwner(sender)) {
       return res.status(403).json({error: "Owner access required."});
     }
     const query = String(req.query.q || "").trim();
@@ -1736,7 +1783,7 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
     const requestedRecipient = String(req.body?.recipientId || "").trim();
     const recipientId = requestedRecipient || sender.uid;
     const gifting = recipientId !== sender.uid;
-    const isVerifiedOwner = isVerifiedOwnerIdentity(sender, privilegedAccounts);
+    const isVerifiedOwner = await verifiedOwner(sender);
     const requestedDuration = req.body?.durationDays;
     const key = String(req.headers["idempotency-key"] || "").trim();
     if (!/^(background|frame|entrance|vip|bubble)__[A-Za-z0-9_-]{1,80}$/.test(itemId) ||
@@ -2249,11 +2296,11 @@ app.post("/web/checkout", async (req, res, next) => {
 
 registerGiftSendRoutes({
   app, db, authenticatedUser, validChannelName,
-  isVerifiedOwner: token => isVerifiedOwnerIdentity(token, privilegedAccounts),
+  isVerifiedOwner: verifiedOwner,
 });
 registerOwnerDirectGiftRoutes({
   app, db, authenticatedUser,
-  isVerifiedOwner: token => isVerifiedOwnerIdentity(token, privilegedAccounts),
+  isVerifiedOwner: verifiedOwner,
   notifyGift: sendCosmeticGiftPush,
 });
 
