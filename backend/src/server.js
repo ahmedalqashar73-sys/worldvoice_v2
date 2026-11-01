@@ -1,5 +1,6 @@
 import {registerGiftSendRoutes} from "./gift_send_routes.js";
 import {registerOwnerDirectGiftRoutes} from "./owner_direct_gift_routes.js";
+import {registerOwnerBetaChatGiftRoutes} from "./owner_beta_chat_gifts.js";
 import {giftProgress} from './member_badge_policy.js';
 import {registerMemberBadgeRoutes, memberBadgeRef} from './member_badge_routes.js';
 import { createHash, randomUUID } from "node:crypto";
@@ -2379,6 +2380,11 @@ registerGiftSendRoutes({
   isVerifiedOwner: verifiedOwner,
 });
 registerOwnerDirectGiftRoutes({
+  app, db, authenticatedUser,
+  isVerifiedOwner: verifiedOwner,
+  notifyGift: sendCosmeticGiftPush,
+});
+registerOwnerBetaChatGiftRoutes({
   app, db, authenticatedUser,
   isVerifiedOwner: verifiedOwner,
   notifyGift: sendCosmeticGiftPush,
