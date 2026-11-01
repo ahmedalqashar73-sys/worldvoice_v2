@@ -3,13 +3,18 @@ import {extractLegacyWallet} from "./profile_projection.js";
 // Server-only rules for the WorldVoice owner's non-withdrawable monthly coins.
 // The beta enrollment tool issues these three claims via Firebase Admin SDK.
 // Never rely on client-writable profile flags for monetary authority.
-export function isVerifiedOwnerIdentity(token, allowlistedAccounts) {
+export function isVerifiedOwnerIdentity(token, allowlistedAccounts,
+  trustedAdmin = null) {
   if (token?.email_verified !== true) return false;
   const email = String(token.email || "").trim().toLowerCase();
-  if (!email) return false;
+  if (!email || !token.uid) return false;
+  const verifiedRecord = trustedAdmin?.active === true &&
+    trustedAdmin?.role === "super_admin" &&
+    trustedAdmin.uid === token.uid &&
+    String(trustedAdmin.email || "").trim().toLowerCase() === email;
   return allowlistedAccounts?.get(email)?.role === "super_admin" ||
     (token.admin === true && token.economyAdmin === true &&
-      token.worldVoiceAdmin === true);
+      token.worldVoiceAdmin === true) || verifiedRecord;
 }
 
 export const OWNER_MONTHLY_COINS = 10_000;
