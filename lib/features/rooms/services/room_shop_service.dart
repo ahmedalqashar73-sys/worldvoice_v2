@@ -232,7 +232,9 @@ class RoomShopService {
     body: {
       'itemId': itemId,
       'recipientId': recipientId,
-      if (durationDays != null) 'durationDays': durationDays,
+      ...(durationDays == null
+          ? const <String, dynamic>{}
+          : <String, dynamic>{'durationDays': durationDays}),
     },
   );
 
