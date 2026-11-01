@@ -135,8 +135,17 @@ class _OwnerDirectGiftSheetState extends State<OwnerDirectGiftSheet> {
                 itemBuilder: (context, index) {
                   final item = visible[index];
                   return ListTile(
-                    leading: CircleAvatar(
-                      child: Text(item.emoji ?? '🎁', style: const TextStyle(fontSize: 21)),
+                    leading: SizedBox(
+                      width: 48,
+                      height: 48,
+                      child: Image.asset(
+                        'assets/gifts/hd/${item.id}.webp',
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, _, _) => Center(
+                          child: Text(item.emoji ?? '🎁',
+                            style: const TextStyle(fontSize: 24)),
+                        ),
+                      ),
                     ),
                     title: Text(_ar ? (item.nameAr ?? item.name) : item.name),
                     subtitle: Text('${item.priceCoins} 🪙'),
