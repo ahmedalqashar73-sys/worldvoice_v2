@@ -139,3 +139,25 @@ jobs:
       - name: Test Firestore room access in isolated emulator
         working-directory: test/firestore
         run: npx firebase emulators:exec --config ../../firebase.rules-test.json --only firestore --project demo-worldvoice-rules "npm test && cd ../../backend && npm test"
+
+  owner-readiness-diagnostic:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Read-only owner wallet and economy audit (no user data logged)
+        env:
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+        run: |
+          set -euo pipefail
+          if [ -z "${FIREBASE_SERVICE_ACCOUNT_JSON:-}" ]; then
+            echo "::warning title=Audit not available::Firebase service account not connected."
+            exit 0
+          fi
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT_JSON" > "$RUNNER_TEMP/worldvoice-readonly-account.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/worldvoice-readonly-account.json"
+          cd backend
+          npm install --ignore-scripts --no-audit --no-fund
+          node scripts/audit-owner-readiness.mjs
