@@ -463,7 +463,13 @@ class UserProfileScreen extends StatelessWidget {
                               final diagnosticText = details == null
                                   ? ''
                                   : [
-                                      '${ar ? 'بريد Google موثّق' : 'Verified Google email'}: ${flag(details['emailVerified'] == true)}',
+                                      '${ar ? 'البريد يطابق حساب المالك' : 'Owner email matches'}: ${flag(details['signedInOwnerEmailMatched'] == true)}',
+                                      '${ar ? 'معرّف تسجيل الدخول يطابق سجل المالك' : 'Firebase owner UID matches'}: ${flag(details['signedInUidMatchesOwnerRecord'] == true)}',
+                                      '${ar ? 'تسجيل الدخول الحالي بواسطة Google' : 'Google sign-in used'}: ${flag(details['signedInWithGoogle'] == true)}',
+                                      '${ar ? 'Google مرتبط بحسابك الحالي' : 'Google linked to signed-in account'}: ${flag(details['signedInGoogleProviderLinked'] == true)}',
+                                      '${ar ? 'Google مرتبط بسجل المالك القديم' : 'Google linked to owner record'}: ${flag(details['ownerEmailRecordGoogleLinked'] == true)}',
+                                      '${ar ? 'حساب المالك موثّق في Firebase' : 'Firebase owner email verified'}: ${flag(details['ownerEmailRecordVerified'] == true)}',
+                                      '${ar ? 'بريد Google موثّق في الجلسة' : 'Signed-in email verified'}: ${flag(details['emailVerified'] == true)}',
                                       '${ar ? 'صلاحيات المالك موقّعة' : 'Signed owner claims'}: ${flag(details['signedClaimsComplete'] == true)}',
                                       '${ar ? 'سجل الإدارة المحمي مطابق' : 'Trusted admin record'}: ${flag(details['serverOwnedAdminRecordMatched'] == true)}',
                                       '${ar ? 'البريد معتمد للمالك' : 'Owner email allowlisted'}: ${flag(details['ownerAllowlistMatched'] == true)}',
