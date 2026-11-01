@@ -14,7 +14,7 @@ export function registerOwnerDirectGiftRoutes({
   app.post("/gift/owner-direct", async (req, res, next) => {
     try {
       const sender = await authenticatedUser(req);
-      if (!isVerifiedOwner(sender)) {
+      if (!await isVerifiedOwner(sender)) {
         return res.status(403).json({error: "Owner access required."});
       }
       const recipientId = String(req.body?.recipientId || "").trim();
