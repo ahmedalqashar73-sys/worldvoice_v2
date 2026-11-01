@@ -403,7 +403,13 @@ async function authenticatedUser(req) {
 // credential; client-visible isAdmin and VIP profile fields never qualify.
 async function verifiedOwner(user) {
   if (isVerifiedOwnerIdentity(user, privilegedAccounts)) return true;
-  if (!user?.uid || user.email_verified !== true) return false;
+  const email = String(user?.email || "").trim().toLowerCase();
+  // The missing-verified-email recovery is for the configured owner only.
+  // Other accounts cannot acquire owner coins by being marked as moderators
+  // or administrators in an unrelated record.
+  if (!user?.uid || privilegedAccounts.get(email)?.role !== "super_admin") {
+    return false;
+  }
   const admin = await db.collection("admins").doc(user.uid).get();
   return isVerifiedOwnerIdentity(user, privilegedAccounts, admin.data());
 }
