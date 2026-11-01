@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {canManageStore, canGrantStoreCosmetic} from '../src/economy_policy.js';
+import {cosmeticGiftPrice} from '../src/owner_coin_policy.js';
 
 test('cosmetic grants require active server-owned store permission', () => {
   for (const value of [undefined, {}, {isAdmin: true}, {role: 'host', active: true},
@@ -31,6 +32,7 @@ async function request({admin, path = '/store/admin-grant', recipientId} = {}) {
   vm.runInNewContext(route, {
     app: {post: (_, fn) => {handler = fn;}},
     authenticatedUser: async () => ({uid: 'sender'}), canManageStore, canGrantStoreCosmetic,
+    cosmeticGiftPrice, privilegedAccounts: new Map(),
     createHash: () => ({update: () => ({digest: () => 'operation'})}),
     db: {collection: name => ref(name), doc: ref,
       runTransaction: fn => fn({get: async r => ({exists: docs.has(r.path) && docs.get(r.path) != null,
@@ -50,14 +52,19 @@ async function request({admin, path = '/store/admin-grant', recipientId} = {}) {
     headers: {'idempotency-key': 'unique-request-key'}}, res, e => {error = e;});
   return {writes, result, error};
 }
-test('authorized cosmetic grants need no wallet and record zero-cost audit', async () => {
-  for (const recipientId of [undefined, 'friend']) {
-    const r = await request({admin: {active: true, permissions: ['manage_store']}, recipientId});
-    assert.equal(r.error, undefined);
-    assert.equal(r.result.paidCoins, 0);
-    assert.ok(r.writes.some(([ref]) => ref.path.startsWith('economy_audit/')));
-    assert.ok(r.writes.every(([ref]) => !ref.path.includes('/private/wallet')));
-  }
+test('authorized cosmetic self-grants need no wallet and record zero-cost audit', async () => {
+  const r = await request({admin: {active: true, permissions: ['manage_store']}});
+  assert.equal(r.error, undefined);
+  assert.equal(r.result.paidCoins, 0);
+  assert.ok(r.writes.some(([ref]) => ref.path.startsWith('economy_audit/')));
+  assert.ok(r.writes.every(([ref]) => !ref.path.includes('/private/wallet')));
+});
+test('admin cannot gift free cosmetics to others', async () => {
+  const r = await request({admin: {active: true, permissions: ['manage_store']},
+    recipientId: 'friend'});
+  assert.equal(r.error.status, 403);
+  assert.match(r.error.message, /must be paid/);
+  assert.equal(r.writes.length, 0);
 });
 test('revoked admin and client-only admin flags cannot grant cosmetics', async () => {
   for (const admin of [undefined, {active: false, role: 'super_admin'}, {isAdmin: true}]) {
