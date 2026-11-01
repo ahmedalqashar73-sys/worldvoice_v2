@@ -525,9 +525,18 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                                           ? (ar
                                                 ? 'رصيدك: $coins كوينز'
                                                 : 'Balance: $coins coins')
-                                          : (ar
-                                                ? 'المحفظة قيد التجهيز'
-                                                : 'Wallet setup pending'),
+                                          : walletSnapshot.hasError
+                                              ? (ar
+                                                    ? 'تعذر قراءة المحفظة: تحقق من صلاحيات Firebase'
+                                                    : 'Wallet access failed: check Firebase rules')
+                                              : walletSnapshot.connectionState ==
+                                                      ConnectionState.waiting
+                                                  ? (ar
+                                                        ? 'جار تحميل المحفظة...'
+                                                        : 'Loading wallet...')
+                                                  : (ar
+                                                        ? 'المحفظة الخاصة غير مهيأة بعد'
+                                                        : 'Private wallet not initialized'),
                                       style: const TextStyle(
                                         color: Color(0xFFF6DCA0),
                                         fontSize: 12,
@@ -585,9 +594,17 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                           Padding(
                             padding: const EdgeInsets.all(8),
                             child: Text(
-                              ar
-                                  ? 'الشراء غير متاح حتى اعتماد إعدادات المحفظة.'
-                                  : 'Purchases disabled until the economy is configured.',
+                              policySnapshot.hasError
+                                  ? (ar
+                                        ? 'تعذر تحميل إعدادات اقتصاد الهدايا من Firebase.'
+                                        : 'Unable to read gift economy settings from Firebase.')
+                                  : !enabled
+                                      ? (ar
+                                            ? 'إرسال الهدايا متوقف: نظام الاقتصاد غير مفعّل على الخادم.'
+                                            : 'Gift sending is disabled: the economy is not enabled.')
+                                      : (ar
+                                            ? 'إرسال الهدايا متوقف حتى تكتمل تهيئة وأمان المحفظة.'
+                                            : 'Gift sending requires verified private-wallet setup.'),
                               textAlign: TextAlign.center,
                             ),
                           ),
