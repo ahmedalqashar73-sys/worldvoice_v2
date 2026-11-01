@@ -55,6 +55,7 @@ jobs:
       - run: node --check src/story_routes.js
       - run: node --check src/social_routes.js
       - run: node --check src/call_routes.js
+      - run: node --check scripts/enroll-verified-owner.mjs
       - run: node --check scripts/seed-classic-gifts.mjs
       - run: node --check scripts/grant-beta-access.mjs
       - run: npm test
