@@ -34,6 +34,8 @@ import {registerRoomGameRoutes} from "./room_games_routes.js";
 import {registerWorldBondRoutes} from "./world_bond_routes.js";
 import {registerStaleRoomRoutes} from "./room_stale_reconciliation.js";
 import {privateWalletRef, requirePrivateWallet} from "./wallet_store.js";
+import {OWNER_MONTHLY_COINS, ownerMonthInRiyadh, splitOwnerCoinSpend,
+  cosmeticGiftPrice} from "./owner_coin_policy.js";
 import {requireRoomTeacherVip} from "./vip_feature_policy.js";
 import {builtInChatBubble, chatBubbleInventoryId,
   vipChatBubbles, vipBubbleAllowed} from "./chat_bubble_policy.js";
@@ -399,7 +401,7 @@ app.post("/account/sync-entitlements", async (req, res, next) => {
     const email = String(user.email || "").trim().toLowerCase();
     const privileged = privilegedAccounts.get(email);
 
-    if (!privileged) {
+    if (!privileged || user.email_verified !== true) {
       return res.json({ok: true, privileged: false});
     }
 
@@ -433,12 +435,55 @@ app.post("/account/sync-entitlements", async (req, res, next) => {
     }, {merge: true});
 
     await batch.commit();
+    // Give the verified owner 10,000 test-ready coins immediately on their
+    // first authenticated sync of this Riyadh calendar month. Same ledger key
+    // prevents duplicate grants from reconnects, crashes and multiple devices.
+    const month = ownerMonthInRiyadh();
+    const walletRef = privateWalletRef(profileRef);
+    const ledgerRef = profileRef.collection("wallet_transactions")
+      .doc("owner_monthly_" + month);
+    const grantRef = db.collection("economy_audit")
+      .doc("owner_monthly_" + user.uid + "_" + month);
+    const grant = await db.runTransaction(async tx => {
+      const [walletSnap, existing] = await Promise.all([
+        tx.get(walletRef), tx.get(ledgerRef),
+      ]);
+      if (existing.exists) return {creditedCoins: 0, alreadyCredited: true};
+      requirePrivateWallet(walletSnap);
+      const wallet = walletSnap.data() || {};
+      if (wallet.walletFrozen === true ||
+          Number(wallet.walletDebtCoins || 0) > 0) {
+        throw Object.assign(new Error("Wallet requires payment review."), {status: 423});
+      }
+      const before = Number(wallet.coins);
+      const beforeAdmin = Number(wallet.adminCoins ?? 0);
+      if (![before, beforeAdmin].every(Number.isSafeInteger) ||
+          before < 0 || beforeAdmin < 0 || beforeAdmin > before ||
+          !Number.isSafeInteger(before + OWNER_MONTHLY_COINS) ||
+          !Number.isSafeInteger(beforeAdmin + OWNER_MONTHLY_COINS)) {
+        throw Object.assign(new Error("Owner wallet requires reconciliation."), {status: 409});
+      }
+      tx.update(walletRef, {
+        coins: before + OWNER_MONTHLY_COINS,
+        adminCoins: beforeAdmin + OWNER_MONTHLY_COINS,
+        lastOwnerCoinGrantMonth: month,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+      const event = {
+        type: "owner_monthly_admin_coins", ownerId: user.uid, month,
+        amount: OWNER_MONTHLY_COINS, currency: "coins",
+        balanceBefore: before, balanceAfter: before + OWNER_MONTHLY_COINS,
+        adminBalanceBefore: beforeAdmin,
+        adminBalanceAfter: beforeAdmin + OWNER_MONTHLY_COINS,
+        withdrawable: false, createdAt: FieldValue.serverTimestamp(),
+      };
+      tx.create(ledgerRef, event);
+      tx.create(grantRef, event);
+      return {creditedCoins: OWNER_MONTHLY_COINS, alreadyCredited: false};
+    });
     return res.json({
-      ok: true,
-      privileged: true,
-      isAdmin: true,
-      isVip: true,
-      role: privileged.role,
+      ok: true, privileged: true, isAdmin: true, isVip: true,
+      role: privileged.role, ownerCoinMonth: month, ...grant,
     });
   } catch (error) {
     next(error);
