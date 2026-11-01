@@ -1629,6 +1629,46 @@ app.get("/store/access", async (req, res, next) => {
   } catch (error) { next(error); }
 });
 
+// The verified owner may gift cosmetics to any account by public name or ID.
+app.get("/store/recipient-search", async (req, res, next) => {
+  try {
+    const sender = await authenticatedUser(req);
+    if (sender.email_verified !== true ||
+        privilegedAccounts.get(String(sender.email || "").trim().toLowerCase())
+          ?.role !== "super_admin") {
+      return res.status(403).json({error: "Owner access required."});
+    }
+    const query = String(req.query.q || "").trim();
+    if (query.length < 2 || query.length > 70 ||
+        /[\\/\u0000-\u001f]/.test(query)) {
+      return res.status(400).json({error: "Enter a name or user ID."});
+    }
+    const users = db.collection("users");
+    const matches = new Map();
+    const [username, customId, displayName] = await Promise.all([
+      users.where("username", "==", query).limit(8).get(),
+      users.where("customId", "==", query).limit(8).get(),
+      users.where("displayName", ">=", query)
+        .where("displayName", "<=", query + "\uf8ff").limit(8).get(),
+    ]);
+    for (const snap of [...username.docs, ...customId.docs, ...displayName.docs]) {
+      if (snap.id !== sender.uid) matches.set(snap.id, snap);
+    }
+    // A full Firebase UID is also accepted, for unambiguous testing.
+    if (/^[A-Za-z0-9_-]{12,128}$/.test(query)) {
+      const exact = await users.doc(query).get();
+      if (exact.exists && exact.id !== sender.uid) matches.set(exact.id, exact);
+    }
+    return res.json({ok: true, users: [...matches.values()].slice(0, 12)
+      .map(doc => ({
+        uid: doc.id,
+        displayName: String(doc.data()?.displayName || doc.data()?.name || "WorldVoice user").slice(0, 80),
+        username: String(doc.data()?.username || "").slice(0, 70),
+        customId: String(doc.data()?.customId || "").slice(0, 70),
+      }))});
+  } catch (error) { next(error); }
+});
+
 app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
   try {
     const sender = await authenticatedUser(req);
