@@ -2,7 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {OWNER_MONTHLY_COINS, ownerMonthInRiyadh, splitOwnerCoinSpend,
   diamondsForPaidCoins, cosmeticGiftPrice,
-  refundablePaidCoinDebit} from "../src/owner_coin_policy.js";
+  refundablePaidCoinDebit, isVerifiedOwnerIdentity,
+  ownerWalletFromLegacyProfile} from "../src/owner_coin_policy.js";
 
 test("owner monthly coin grant is fixed, and Riyadh period is calendar-local", () => {
   assert.equal(OWNER_MONTHLY_COINS, 10_000);
@@ -49,4 +50,40 @@ test("purchase refunds never debit granted owner coins", () => {
   assert.throws(() => refundablePaidCoinDebit({
     coins: 50, adminCoins: 55, refundCoins: 1,
   }));
+});
+
+test("owner identity accepts only verified signed credentials", () => {
+  const allowed = new Map([["legacy@example.com", {role: "super_admin"}]]);
+  const signed = {
+    email: "owner@example.com", email_verified: true,
+    admin: true, economyAdmin: true, worldVoiceAdmin: true,
+  };
+  assert.equal(isVerifiedOwnerIdentity(signed, allowed), true);
+  assert.equal(isVerifiedOwnerIdentity({
+    email: "LEGACY@example.com", email_verified: true,
+  }, allowed), true);
+  assert.equal(isVerifiedOwnerIdentity({...signed, email_verified: false}, allowed), false);
+  assert.equal(isVerifiedOwnerIdentity({...signed, worldVoiceAdmin: false}, allowed), false);
+  assert.equal(isVerifiedOwnerIdentity({
+    email: "member@example.com", email_verified: true, isAdmin: true,
+  }, allowed), false);
+  assert.equal(isVerifiedOwnerIdentity(null, allowed), false);
+});
+
+test("owner wallet bootstrap preserves validated legacy money and begins admin coins at zero", () => {
+  assert.deepEqual(ownerWalletFromLegacyProfile({}), {
+    coins: 0, diamonds: 0, diamondsPending: 0,
+    diamondsReserved: 0, walletDebtCoins: 0, adminCoins: 0,
+  });
+  const wallet = ownerWalletFromLegacyProfile({
+    coins: 120, diamonds: 3, walletDebtCoins: 0,
+    purchasedCoins: 120, walletFrozen: false, adminCoins: 500,
+  });
+  assert.equal(wallet.coins, 120);
+  assert.equal(wallet.diamonds, 3);
+  assert.equal(wallet.purchasedCoins, 120);
+  assert.equal(wallet.adminCoins, 0);
+  assert.throws(() => ownerWalletFromLegacyProfile({coins: -1}));
+  assert.throws(() => ownerWalletFromLegacyProfile({walletBalance: 900}));
+  assert.throws(() => ownerWalletFromLegacyProfile({withdrawableDiamonds: 4}));
 });
