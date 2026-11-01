@@ -120,10 +120,24 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                           : (isArabic ? 'في مقتنياتك' : 'In your inventory')}';
                   final giftId = (data['itemId'] ?? '').toString();
                   final hasGiftArtwork = isVisualGift &&
-                      RegExp(r'^wv_gift_[0-9]{3}
-                        ? (data['nameAr'] ?? data['name'])
-                        : data['name'] ?? data['nameAr'] ??
-                            data['itemId'] ?? '').toString()),
+                      RegExp(r'^wv_gift_[0-9]{3}$').hasMatch(giftId);
+                  return ListTile(
+                    leading: hasGiftArtwork
+                        ? SizedBox(
+                            width: 48,
+                            height: 48,
+                            child: Image.asset(
+                              'assets/gifts/hd/$giftId.webp',
+                              fit: BoxFit.contain,
+                              errorBuilder: (_, _, _) =>
+                                  const Icon(Icons.card_giftcard_rounded),
+                            ),
+                          )
+                        : const Icon(Icons.card_giftcard_rounded),
+                    title: Text((isArabic
+                        ? (data['nameAr'] ?? data['name'] ?? data['itemId'])
+                        : (data['name'] ?? data['nameAr'] ?? data['itemId']))
+                        .toString()),
                     subtitle: Text(subtitle),
                   );
                 },
