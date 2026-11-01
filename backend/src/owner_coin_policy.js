@@ -1,3 +1,5 @@
+import {extractLegacyWallet} from "./profile_projection.js";
+
 // Server-only rules for the WorldVoice owner's non-withdrawable monthly coins.
 // The beta enrollment tool issues these three claims via Firebase Admin SDK.
 // Never rely on client-writable profile flags for monetary authority.
@@ -11,6 +13,29 @@ export function isVerifiedOwnerIdentity(token, allowlistedAccounts) {
 }
 
 export const OWNER_MONTHLY_COINS = 10_000;
+
+// Only the verified owner can reach this bootstrap. Copy validated legacy
+// balances on first migration; refuse to guess ambiguous financial fields.
+export function ownerWalletFromLegacyProfile(profile) {
+  const old = extractLegacyWallet(profile);
+  if ((old.walletBalance ?? 0) > 0 && old.coins == null) {
+    throw Object.assign(new Error("Legacy coin balance needs reconciliation."),
+      {status: 409});
+  }
+  if ((old.withdrawableDiamonds ?? 0) > 0 && old.diamonds == null) {
+    throw Object.assign(new Error("Legacy diamond balance needs reconciliation."),
+      {status: 409});
+  }
+  return {
+    ...old,
+    coins: old.coins ?? 0,
+    diamonds: old.diamonds ?? 0,
+    diamondsPending: old.diamondsPending ?? 0,
+    diamondsReserved: old.diamondsReserved ?? 0,
+    walletDebtCoins: old.walletDebtCoins ?? 0,
+    adminCoins: 0,
+  };
+}
 
 export function ownerMonthInRiyadh(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-GB", {
