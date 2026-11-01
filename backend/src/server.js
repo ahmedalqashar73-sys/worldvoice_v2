@@ -38,7 +38,7 @@ import {registerStaleRoomRoutes} from "./room_stale_reconciliation.js";
 import {privateWalletRef, requirePrivateWallet} from "./wallet_store.js";
 import {OWNER_MONTHLY_COINS, ownerMonthInRiyadh, splitOwnerCoinSpend,
   cosmeticGiftPrice, isVerifiedOwnerIdentity,
-  ownerWalletFromLegacyProfile} from "./owner_coin_policy.js";
+  ownerWalletFromLegacyProfile, matchesOwnerGoogleProof} from "./owner_coin_policy.js";
 import {requireRoomTeacherVip} from "./vip_feature_policy.js";
 import {builtInChatBubble, chatBubbleInventoryId,
   vipChatBubbles, vipBubbleAllowed} from "./chat_bubble_policy.js";
@@ -470,6 +470,58 @@ app.get("/account/owner-readiness", async (req, res, next) => {
       publicProfileRulesVerified:
         policy.publicProfileRulesVerified === true,
     });
+  } catch (error) { next(error); }
+});
+
+// Legacy email/password owner records can be missing verified-email metadata
+// and any linked Google provider. Authenticate BOTH existing Firebase UID and
+// fresh Google OAuth ID token before repairing only the verified-email flag.
+// This does not change UID, provider links, balance, profile, or economy config.
+app.post("/account/owner/verify-google", async (req, res, next) => {
+  try {
+    const user = await authenticatedUser(req);
+    const idToken = String(req.body?.googleIdToken || "").trim();
+    if (idToken.length < 100 || idToken.length > 8192 ||
+        !/^[A-Za-z0-9._-]+$/.test(idToken)) {
+      return res.status(400).json({ok: false,
+        error: "Valid Google ID token required."});
+    }
+    const approvedOwnerEmail = [...privilegedAccounts.entries()]
+      .find(([, value]) => value.role === "super_admin")?.[0];
+    if (!approvedOwnerEmail ||
+        String(user.email || "").trim().toLowerCase() !== approvedOwnerEmail) {
+      return res.status(403).json({ok: false,
+        error: "This Firebase account is not the configured owner."});
+    }
+    const [firebaseUser, protectedAdmin] = await Promise.all([
+      auth.getUser(user.uid),
+      db.collection("admins").doc(user.uid).get(),
+    ]);
+    const oauthClientId = (process.env.WORLDVOICE_GOOGLE_WEB_CLIENT_ID ||
+      "149108991969-iqb745f7jtpr690m6mhq5kf0du6md3mf.apps.googleusercontent.com").trim();
+    const oauthClient = new google.auth.OAuth2(oauthClientId);
+    let googleProof;
+    try {
+      const ticket = await oauthClient.verifyIdToken({
+        idToken, audience: oauthClientId,
+      });
+      googleProof = ticket.getPayload();
+    } catch {
+      return res.status(403).json({ok: false,
+        error: "Google sign-in could not be verified. Try again."});
+    }
+    if (!matchesOwnerGoogleProof({
+      firebaseUser, ownerRecord: protectedAdmin.data(),
+      googleProof, ownerEmail: approvedOwnerEmail,
+    })) {
+      return res.status(403).json({ok: false,
+        error: "Google identity does not match the protected owner record."});
+    }
+    if (!firebaseUser.emailVerified) {
+      await auth.updateUser(user.uid, {emailVerified: true});
+    }
+    return res.json({ok: true, emailVerified: true,
+      linkedAccountPreserved: true});
   } catch (error) { next(error); }
 });
 
