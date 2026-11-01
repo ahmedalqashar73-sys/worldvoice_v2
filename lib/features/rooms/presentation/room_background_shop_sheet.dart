@@ -68,6 +68,7 @@ Future<void> showWorldVoiceReceivedGifts(BuildContext context, bool isArabic) as
                   final giftId = (data['itemId'] ?? '').toString();
                   final hasGiftArtwork = isVisualGift &&
                       RegExp(r'^wv_gift_[0-9]{3}
+class RoomBackgroundShopSheet extends StatelessWidget {
   RoomBackgroundShopSheet({
     this.roomFeatures,
     this.isHost = false,
@@ -1207,6 +1208,7 @@ class _OtherStoreTab extends StatelessWidget {
   }
 
 
+
 class RoomBackgroundShopSheet extends StatelessWidget {
   RoomBackgroundShopSheet({
     this.roomFeatures,
@@ -1343,7 +1345,7 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                 children: [
                   IconButton(
                     tooltip: isArabic ? 'الهدايا المستلمة' : 'Received gifts',
-                    onPressed: () => _showReceivedGifts(context, isArabic),
+                    onPressed: () => showWorldVoiceReceivedGifts(context, isArabic),
                     icon: const Icon(Icons.card_giftcard_rounded),
                   ),
                   IconButton(
