@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../data/classic_gift_catalog.dart';
@@ -16,7 +17,20 @@ class OwnerDirectGiftSheet extends StatefulWidget {
 class _OwnerDirectGiftSheetState extends State<OwnerDirectGiftSheet> {
   final RoomShopService _shop = RoomShopService();
   late final Future<List<RoomGiftCatalogItem>> _catalog =
-      ClassicGiftCatalog.load();
+      _loadPublishedGifts();
+
+  Future<List<RoomGiftCatalogItem>> _loadPublishedGifts() async {
+    final previews = await ClassicGiftCatalog.load();
+    // Previews deliberately have active:false. Only backend-published gifts
+    // may be paid for; preserve the same merge policy as room/live.
+    final snapshot = await FirebaseFirestore.instance
+        .collection('store_items')
+        .where('type', isEqualTo: 'gift').get();
+    return ClassicGiftCatalog.merge(
+      previews: previews,
+      published: snapshot.docs.map(RoomGiftCatalogItem.fromDoc).toList(),
+    );
+  }
   String _search = '';
   bool _sending = false;
 
