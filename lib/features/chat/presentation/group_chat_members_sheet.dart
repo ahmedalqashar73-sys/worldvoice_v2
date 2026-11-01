@@ -64,7 +64,7 @@ Future<bool> _groupMemberOperation(
   final service = ChatExtendedService();
   try {
     await service.manageGroup(chatId: chatId, action: action, targetId: targetId);
-    if (!context.mounted) return;
+    if (!context.mounted) return true;
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
       content: Text('تم تحديث أعضاء المجموعة بنجاح.')));
     return true;
