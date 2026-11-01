@@ -53,18 +53,26 @@ class RoomShopService {
     return '$url/store';
   }
 
-  late final Future<bool> adminAccess = _loadAdminAccess();
+  // A store administrator is not necessarily the verified account owner.
+  // One server response supplies both permissions without duplicate requests.
+  late final Future<Map<String, dynamic>> _access = _loadAccess();
+  late final Future<bool> adminAccess =
+      _access.then((value) => value['canManageStore'] == true);
+  late final Future<bool> ownerAccess =
+      _access.then((value) => value['isOwner'] == true);
 
-  Future<bool> _loadAdminAccess() async {
+  Future<Map<String, dynamic>> _loadAccess() async {
     try {
       final token = await _user?.getIdToken();
-      if (token == null || !isConfigured) return false;
+      if (token == null || !isConfigured) return const {};
       final response = await http.get(Uri.parse('$endpoint/access'), headers: {
         'Authorization': 'Bearer $token',
       }).timeout(const Duration(seconds: 30));
-      return response.statusCode == 200 &&
-          (jsonDecode(response.body) as Map)['canManageStore'] == true;
-    } catch (_) { return false; }
+      if (response.statusCode != 200) return const {};
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } catch (_) {
+      return const {};
+    }
   }
 
   /// Confirm the verified owner's current-month grant with a server response.
