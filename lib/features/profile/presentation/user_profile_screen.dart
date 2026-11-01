@@ -344,24 +344,70 @@ class UserProfileScreen extends StatelessWidget {
                         value: (data['profession'] ?? '—').toString(),
                       ),
                       const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _Wallet(
-                              icon: Icons.diamond_outlined,
-                              value: (data['diamonds'] ?? 0).toString(),
-                              label: AppStrings.of(code).profile('diamonds'),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: _Wallet(
-                              icon: Icons.monetization_on_outlined,
-                              value: (data['coins'] ?? 0).toString(),
-                              label: AppStrings.of(code).profile('coins'),
-                            ),
-                          ),
-                        ],
+                      // Monetary balances must be read only from the
+                      // authenticated user's private wallet, never from the
+                      // legacy public users/{uid} profile fields.
+                      StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                        key: const ValueKey('profile-private-wallet-balances'),
+                        stream: FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(uid)
+                            .collection('private')
+                            .doc('wallet')
+                            .snapshots(),
+                        builder: (context, walletSnapshot) {
+                          final wallet = walletSnapshot.data?.data();
+                          final walletAvailable =
+                              !walletSnapshot.hasError &&
+                              walletSnapshot.data?.exists == true;
+                          String balance(String field) {
+                            final value = wallet?[field];
+                            return walletAvailable && value is num
+                                ? value.toInt().toString()
+                                : '—';
+                          }
+
+                          return Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _Wallet(
+                                      icon: Icons.diamond_outlined,
+                                      value: balance('diamonds'),
+                                      label: AppStrings.of(code).profile(
+                                        'diamonds',
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: _Wallet(
+                                      icon: Icons.monetization_on_outlined,
+                                      value: balance('coins'),
+                                      label: AppStrings.of(code).profile(
+                                        'coins',
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (!walletAvailable &&
+                                  walletSnapshot.connectionState !=
+                                      ConnectionState.waiting)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 4),
+                                  child: Text(
+                                    code == 'ar'
+                                        ? 'تعذر تحميل المحفظة الخاصة. تحقق من تهيئتها وصلاحيات Firebase.'
+                                        : 'Private wallet unavailable. Check setup and Firebase permissions.',
+                                    textAlign: TextAlign.center,
+                                    style: Theme.of(context).textTheme.bodySmall,
+                                  ),
+                                ),
+                            ],
+                          );
+                        },
                       ),
                     ],
                   ),
