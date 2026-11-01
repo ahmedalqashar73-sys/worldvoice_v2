@@ -15,6 +15,29 @@ const inGroup = (group, uid) =>
   Array.isArray(group.memberIds) && group.memberIds.includes(uid);
 const unique = items => [...new Set(items)];
 
+
+/** Group message changes are server-authoritative, never Firestore client writes. */
+export function canManageGroupMessage(group, message, actorId, action) {
+  const activeMember = inGroup(group, actorId);
+  if (!activeMember || message.deleted === true) return false;
+  if (action === "edit" || action === "replace_audio") {
+    return message.senderId === actorId &&
+      message.type === (action === "edit" ? "text" : "audio");
+  }
+  return action === "delete" &&
+    (message.senderId === actorId || roleOf(group, actorId) !== "member");
+}
+
+function verifiedAudioUpload(url) {
+  try {
+    const value = new URL(url);
+    return value.protocol === "https:" && value.hostname === "res.cloudinary.com" &&
+      value.pathname.startsWith("/ypmmcyxm/video/upload/");
+  } catch (_) {
+    return false;
+  }
+}
+
 export function registerGroupManagementRoutes({app, db, authenticatedUser}) {
   app.post("/chat/group/manage", async (req, res, next) => {
     try {
@@ -132,4 +155,91 @@ export function registerGroupManagementRoutes({app, db, authenticatedUser}) {
       res.json({ok:true, ...result});
     } catch (error) {next(error);}
   });
+
+  // Edit own text, replace own voice clip, or remove a message for all group members.
+  // Deletions retain only a content-free tombstone for timeline consistency.
+  app.post("/chat/group/message/manage", async (req, res, next) => {
+    try {
+      const actor = await authenticatedUser(req);
+      const chatId = String(req.body?.chatId || "");
+      const messageId = String(req.body?.messageId || "");
+      const action = String(req.body?.action || "");
+      const text = String(req.body?.text || "").trim();
+      const mediaUrl = String(req.body?.mediaUrl || "").trim();
+      const mediaPublicId = String(req.body?.mediaPublicId || "").trim();
+      const fileName = String(req.body?.fileName || "").split(/[\\/]/).pop();
+      const fileSize = Number(req.body?.fileSize || 0);
+      if (!validId(chatId) || !validId(messageId) ||
+          !["edit", "delete", "replace_audio"].includes(action)) {
+        fail("Invalid group message operation.");
+      }
+      if (action === "edit" && (text.length < 1 || text.length > 1500)) {
+        fail("A message must contain 1 to 1500 characters.");
+      }
+      if (action === "replace_audio" &&
+          (!verifiedAudioUpload(mediaUrl) ||
+           !/^[a-zA-Z0-9_\\/.-]{1,250}$/.test(mediaPublicId) ||
+           !fileName || fileName.length > 120 ||
+           !Number.isSafeInteger(fileSize) || fileSize < 1 ||
+           fileSize > 20 * 1024 * 1024)) {
+        fail("Invalid replacement voice recording.");
+      }
+
+      const chatRef = db.collection("chats").doc(chatId);
+      const messageRef = chatRef.collection("messages").doc(messageId);
+      const result = await db.runTransaction(async tx => {
+        const [chatSnap, messageSnap] = await Promise.all([
+          tx.get(chatRef), tx.get(messageRef),
+        ]);
+        if (!chatSnap.exists || !messageSnap.exists) {
+          fail("Group message unavailable.", 404);
+        }
+        const group = chatSnap.data() || {};
+        const message = messageSnap.data() || {};
+        if (!inGroup(group, actor.uid)) {
+          fail("Only active group members can manage messages.", 403);
+        }
+        if (action === "delete" && message.deleted === true) {
+          // A repeated delete is safe for the original sender or moderators.
+          if (message.senderId !== actor.uid &&
+              roleOf(group, actor.uid) === "member") {
+            fail("You cannot delete another member's message.", 403);
+          }
+          return {action, alreadyDeleted:true};
+        }
+        if (!canManageGroupMessage(group, message, actor.uid, action)) {
+          fail("You do not have permission to change this message.", 403);
+        }
+        if (action === "edit") {
+          tx.update(messageRef, {
+            text, edited:true, editedAt:FieldValue.serverTimestamp(),
+          });
+          if (group.latestText === message.text) {
+            tx.update(chatRef, {latestText:text});
+          }
+        } else if (action === "replace_audio") {
+          tx.update(messageRef, {
+            mediaUrl, mediaPublicId, fileName, fileSize,
+            edited:true, editedAt:FieldValue.serverTimestamp(),
+          });
+        } else {
+          const preview = message.type === "text" ? message.text :
+            ({image:"📷 Photo", video:"🎬 Video", audio:"🎙 Voice message",
+              pdf:"📄 PDF"})[message.type];
+          tx.update(messageRef, {
+            type:"deleted", deleted:true, deletedAt:FieldValue.serverTimestamp(),
+            text:FieldValue.delete(), mediaUrl:FieldValue.delete(),
+            mediaPublicId:FieldValue.delete(), fileName:FieldValue.delete(),
+            fileSize:FieldValue.delete(),
+          });
+          if (preview && group.latestText === preview) {
+            tx.update(chatRef, {latestText:"🗑 Message deleted"});
+          }
+        }
+        return {action, messageId, updated:true};
+      });
+      res.json({ok:true, ...result});
+    } catch (error) { next(error); }
+  });
+
 }
