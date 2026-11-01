@@ -103,7 +103,7 @@ class _ClassicGiftVisualState extends State<ClassicGiftVisual>
     final number = int.tryParse(widget.gift.id.replaceFirst('wv_gift_', ''));
     if (RegExp(r'^wv_gift_[0-9]{3}$').hasMatch(widget.gift.id) &&
         number != null &&
-        ((number >= 1 && number <= 30) || (number >= 55 && number <= 104))) {
+        ((number >= 1 && number <= 45) || (number >= 55 && number <= 104))) {
       // Include animation overshoot so an effect never enlarges a tile decode.
       final pixels = (widget.size * MediaQuery.devicePixelRatioOf(context) * 1.2)
           .ceil().clamp(128, 1280).toInt();

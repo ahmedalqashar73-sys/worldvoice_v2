@@ -3,7 +3,7 @@
   "title": "WorldVoice Gifts",
   "titleAr": "هدايا وورلد فويس",
   "currency": "coins",
-  "version": 5,
+  "version": 6,
   "atlas": {
     "columns": 9,
     "rows": 6,
@@ -401,7 +401,8 @@
       "effectType": "prism",
       "tier": 2,
       "atlasIndex": 30,
-      "sortOrder": 31
+      "sortOrder": 31,
+      "artAsset": "assets/gifts/hd/wv_gift_031.webp"
     },
     {
       "id": "wv_gift_032",
@@ -412,7 +413,8 @@
       "effectType": "speed",
       "tier": 2,
       "atlasIndex": 31,
-      "sortOrder": 32
+      "sortOrder": 32,
+      "artAsset": "assets/gifts/hd/wv_gift_032.webp"
     },
     {
       "id": "wv_gift_033",
@@ -423,7 +425,8 @@
       "effectType": "crown",
       "tier": 2,
       "atlasIndex": 32,
-      "sortOrder": 33
+      "sortOrder": 33,
+      "artAsset": "assets/gifts/hd/wv_gift_033.webp"
     },
     {
       "id": "wv_gift_034",
@@ -434,7 +437,8 @@
       "effectType": "orbit",
       "tier": 2,
       "atlasIndex": 33,
-      "sortOrder": 34
+      "sortOrder": 34,
+      "artAsset": "assets/gifts/hd/wv_gift_034.webp"
     },
     {
       "id": "wv_gift_035",
@@ -445,7 +449,8 @@
       "effectType": "electric",
       "tier": 2,
       "atlasIndex": 34,
-      "sortOrder": 35
+      "sortOrder": 35,
+      "artAsset": "assets/gifts/hd/wv_gift_035.webp"
     },
     {
       "id": "wv_gift_036",
@@ -456,7 +461,8 @@
       "effectType": "flash",
       "tier": 2,
       "atlasIndex": 35,
-      "sortOrder": 36
+      "sortOrder": 36,
+      "artAsset": "assets/gifts/hd/wv_gift_036.webp"
     },
     {
       "id": "wv_gift_037",
@@ -467,7 +473,8 @@
       "effectType": "music",
       "tier": 2,
       "atlasIndex": 36,
-      "sortOrder": 37
+      "sortOrder": 37,
+      "artAsset": "assets/gifts/hd/wv_gift_037.webp"
     },
     {
       "id": "wv_gift_038",
@@ -478,7 +485,8 @@
       "effectType": "orbit",
       "tier": 2,
       "atlasIndex": 37,
-      "sortOrder": 38
+      "sortOrder": 38,
+      "artAsset": "assets/gifts/hd/wv_gift_038.webp"
     },
     {
       "id": "wv_gift_039",
@@ -489,7 +497,8 @@
       "effectType": "steam",
       "tier": 2,
       "atlasIndex": 38,
-      "sortOrder": 39
+      "sortOrder": 39,
+      "artAsset": "assets/gifts/hd/wv_gift_039.webp"
     },
     {
       "id": "wv_gift_040",
@@ -500,7 +509,8 @@
       "effectType": "pulse",
       "tier": 2,
       "atlasIndex": 39,
-      "sortOrder": 40
+      "sortOrder": 40,
+      "artAsset": "assets/gifts/hd/wv_gift_040.webp"
     },
     {
       "id": "wv_gift_041",
@@ -511,7 +521,8 @@
       "effectType": "glow",
       "tier": 2,
       "atlasIndex": 40,
-      "sortOrder": 41
+      "sortOrder": 41,
+      "artAsset": "assets/gifts/hd/wv_gift_041.webp"
     },
     {
       "id": "wv_gift_042",
@@ -522,7 +533,8 @@
       "effectType": "glide",
       "tier": 2,
       "atlasIndex": 41,
-      "sortOrder": 42
+      "sortOrder": 42,
+      "artAsset": "assets/gifts/hd/wv_gift_042.webp"
     },
     {
       "id": "wv_gift_043",
@@ -533,7 +545,8 @@
       "effectType": "cosmic",
       "tier": 2,
       "atlasIndex": 42,
-      "sortOrder": 43
+      "sortOrder": 43,
+      "artAsset": "assets/gifts/hd/wv_gift_043.webp"
     },
     {
       "id": "wv_gift_044",
@@ -544,7 +557,8 @@
       "effectType": "cosmic",
       "tier": 2,
       "atlasIndex": 43,
-      "sortOrder": 44
+      "sortOrder": 44,
+      "artAsset": "assets/gifts/hd/wv_gift_044.webp"
     },
     {
       "id": "wv_gift_045",
@@ -555,7 +569,8 @@
       "effectType": "mist",
       "tier": 2,
       "atlasIndex": 44,
-      "sortOrder": 45
+      "sortOrder": 45,
+      "artAsset": "assets/gifts/hd/wv_gift_045.webp"
     },
     {
       "id": "wv_gift_046",

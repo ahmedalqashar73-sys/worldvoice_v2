@@ -29,8 +29,8 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  for (final number in [1, 30]) {
-    testWidgets('ordinary gift $number loads its HD asset', (tester) async {
+  for (final number in [1, 30, 31, 45]) {
+    testWidgets('upgraded gift $number loads its HD asset', (tester) async {
       final id = 'wv_gift_${number.toString().padLeft(3, '0')}';
       final designs = await ClassicGiftCatalog.load();
       await tester.pumpWidget(MaterialApp(
