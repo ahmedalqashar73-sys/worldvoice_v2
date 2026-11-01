@@ -174,6 +174,57 @@ class AuthService {
     _googleInitialized = true;
   }
 
+  /// Confirms ownership of a legacy Firebase owner account using a fresh
+  /// Google ID token without changing the active Firebase UID or profile.
+  /// The backend checks the signed Google token and the protected owner UID.
+  static Future<Map<String, dynamic>> verifyOwnerWithGoogleNow() async {
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) {
+      throw StateError('Sign in to your existing WorldVoice account first.');
+    }
+    await _initializeGoogle();
+    final googleAccount = await GoogleSignIn.instance.authenticate();
+    final googleIdToken = googleAccount.authentication.idToken;
+    if (googleIdToken == null || googleIdToken.isEmpty) {
+      throw StateError('Google did not supply identity proof.');
+    }
+    final root = Uri.tryParse(_backend.trim());
+    if (root == null || root.scheme != 'https' || !root.hasAuthority ||
+        root.userInfo.isNotEmpty || root.hasQuery || root.hasFragment) {
+      throw StateError('Owner verification backend is not configured.');
+    }
+    final firebaseToken = await currentUser.getIdToken(true);
+    if (firebaseToken == null || firebaseToken.isEmpty) {
+      throw StateError('Firebase session could not be verified.');
+    }
+    final basePath = root.path.endsWith('/')
+        ? root.path.substring(0, root.path.length - 1)
+        : root.path;
+    final response = await http.post(
+      root.replace(path: '$basePath/account/owner/verify-google'),
+      headers: {
+        'Authorization': 'Bearer $firebaseToken',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'googleIdToken': googleIdToken}),
+    ).timeout(const Duration(seconds: 20));
+    Map<String, dynamic> payload = <String, dynamic>{};
+    try {
+      final decoded = jsonDecode(response.body);
+      if (decoded is Map<String, dynamic>) payload = decoded;
+    } catch (_) {
+      // Invalid responses are reported as HTTP errors without exposing tokens.
+    }
+    if (response.statusCode < 200 || response.statusCode >= 300 ||
+        payload['ok'] != true) {
+      throw StateError(payload['error']?.toString() ??
+          'Google verification failed (HTTP ${response.statusCode}).');
+    }
+    await currentUser.reload();
+    await _auth.currentUser?.getIdToken(true);
+    return payload;
+  }
+
   static Future<UserCredential> signInWithGoogle() async {
     await _initializeGoogle();
 
