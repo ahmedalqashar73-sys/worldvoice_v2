@@ -29,10 +29,24 @@ class UserPresenceService {
     }
   }
 
-  static Future<void> markOnline() => _updateExistingProfile({
-        'isOnline': true,
-        'lastActiveAt': FieldValue.serverTimestamp(),
-      });
+  static Future<void> markOnline() async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+    // Respect the message-setting preference on each heartbeat; otherwise a
+    // previously scheduled heartbeat could expose a user who went invisible.
+    bool visible = false;
+    try {
+      final snap = await _db.collection('users').doc(user.uid)
+          .get(const GetOptions(source: Source.server));
+      visible = snap.exists && snap.data()?['showOnlineStatus'] != false;
+    } catch (error) {
+      debugPrint('WorldVoice presence preference unavailable: $error');
+    }
+    await _updateExistingProfile({
+      'isOnline': visible,
+      'lastActiveAt': FieldValue.serverTimestamp(),
+    });
+  }
 
   static Future<void> heartbeat() => markOnline();
 
