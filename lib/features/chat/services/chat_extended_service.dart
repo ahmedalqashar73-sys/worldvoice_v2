@@ -108,6 +108,72 @@ class ChatExtendedService {
     return _decode(response);
   }
 
+  /// Backend checks the active group role and message ownership.
+  Future<void> manageGroupMessage({
+    required String chatId,
+    required String messageId,
+    required String action,
+    String? text,
+    String? mediaUrl,
+    String? mediaPublicId,
+    String? fileName,
+    int? fileSize,
+  }) async {
+    final token = await _token();
+    final response = await _client.post(
+      _uri('/chat/group/message/manage'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'chatId': chatId,
+        'messageId': messageId,
+        'action': action,
+        'text': ?text,
+        'mediaUrl': ?mediaUrl,
+        'mediaPublicId': ?mediaPublicId,
+        'fileName': ?fileName,
+        'fileSize': ?fileSize,
+      }),
+    ).timeout(RoomBackendConfig.socialRequestTimeout);
+    await _decode(response);
+  }
+
+  /// Record a fresh clip and replace only the sender's own group audio.
+  Future<void> replaceGroupVoiceMessage({
+    required String chatId,
+    required String messageId,
+    required File file,
+  }) async {
+    if (!await file.exists()) throw StateError('Voice recording unavailable.');
+    final size = await file.length();
+    if (size < 1 || size > 20 * 1024 * 1024) {
+      throw StateError('Voice recording must be under 20 MB.');
+    }
+    final upload = await CloudinaryImageService.uploadAudio(
+      file, folder: 'worldvoice/chat');
+    await manageGroupMessage(
+      chatId: chatId,
+      messageId: messageId,
+      action: 'replace_audio',
+      mediaUrl: upload.url,
+      mediaPublicId: upload.publicId,
+      fileName: file.uri.pathSegments.last,
+      fileSize: size,
+    );
+    try {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid != null) {
+        await BoardMediaCache.rememberLocalCopy(
+          url: upload.url, type: 'audio', source: file,
+          cacheScope: 'chat_$uid');
+      }
+    } catch (_) {
+      // Replacement was already committed; a cache error is not a send error.
+    }
+  }
+
   Future<void> sendText({
     required String chatId,
     required String text,
