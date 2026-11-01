@@ -116,6 +116,43 @@ class AuthService {
     return result;
   }
 
+  /// Owner-only troubleshooting information, returned from the authenticated
+  /// backend. It contains no account identifiers or monetary balances.
+  static Future<Map<String, dynamic>> ownerReadinessNow() async {
+    final user = _auth.currentUser;
+    if (user == null) throw StateError('Sign in first.');
+    final root = Uri.tryParse(_backend.trim());
+    if (root == null || root.scheme != 'https' || !root.hasAuthority ||
+        root.userInfo.isNotEmpty || root.hasQuery || root.hasFragment) {
+      throw StateError('Owner backend URL is invalid.');
+    }
+    final token = await user.getIdToken(true);
+    if (token == null || token.isEmpty) {
+      throw StateError('Unable to refresh Firebase sign-in.');
+    }
+    final basePath = root.path.endsWith('/')
+        ? root.path.substring(0, root.path.length - 1)
+        : root.path;
+    final result = await http.get(
+      root.replace(path: '$basePath/account/owner-readiness'),
+      headers: {'Authorization': 'Bearer $token'},
+    ).timeout(const Duration(seconds: 15));
+    final Map<String, dynamic> payload;
+    try {
+      final data = jsonDecode(result.body);
+      payload = data is Map<String, dynamic>
+          ? data : <String, dynamic>{};
+    } catch (_) {
+      throw StateError('Owner readiness server returned invalid data.');
+    }
+    if (result.statusCode < 200 || result.statusCode >= 300 ||
+        payload['ok'] != true) {
+      throw StateError(payload['error']?.toString() ??
+          'Owner readiness check failed (HTTP ${result.statusCode}).');
+    }
+    return payload;
+  }
+
   static Future<void> syncPrivilegedAccountEntitlements() async {
     try {
       await syncOwnerMonthlyCoinsNow();
