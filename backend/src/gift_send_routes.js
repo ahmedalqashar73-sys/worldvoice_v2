@@ -2,6 +2,7 @@ import {createHash} from "node:crypto";
 import {FieldValue, Timestamp} from "firebase-admin/firestore";
 import {giftProgress} from "./member_badge_policy.js";
 import {privateWalletRef, requirePrivateWallet} from "./wallet_store.js";
+import {splitOwnerCoinSpend, diamondsForPaidCoins} from "./owner_coin_policy.js";
 import {requireLiveEconomy, calculateGiftSettlement} from "./economy_policy.js";
 import {chatIdFor, assertChatMembership} from "./chat_membership.js";
 import {BOND_TYPES, bondKey} from "./world_bond_routes.js";
@@ -189,7 +190,15 @@ const send = bondOnly => async (req, res, next) => {
       if (!Number.isSafeInteger(balance) || balance < amounts.chargedCoins) {
         throw Object.assign(new Error("NOT_ENOUGH_COINS"), {status: 409});
       }
-      const after = balance - amounts.chargedCoins;
+      const spent = splitOwnerCoinSpend({coins: balance,
+        adminCoins: Number(senderData.adminCoins ?? 0),
+        amount: amounts.chargedCoins});
+      const after = spent.remainingCoins;
+      // Promotional owner coins buy the full animation and level points, but
+      // cannot mint redeemable recipient diamonds. Mixed spends settle only
+      // the purchased portion to the receiver.
+      const pendingDiamonds = recipientRef
+        ? diamondsForPaidCoins({config, paidCoins: spent.paidSpent}) : 0;
       const roomXp = Number(roomSnap.data()?.roomXp || 0);
       if (recipientId === "teacher_ai" &&
           (!Number.isSafeInteger(roomXp) || roomXp < 0 ||
@@ -205,16 +214,16 @@ const send = bondOnly => async (req, res, next) => {
       const day = new Date(now).toISOString().slice(0, 10);
       const dailyRef = senderRef.collection("economy_daily").doc(day);
       const dailySnap = await tx.get(dailyRef);
-      const spent = Number(dailySnap.data()?.giftCoins || 0);
-      if (!Number.isSafeInteger(spent) ||
-          spent + amounts.chargedCoins > config.giftingDailyCoinLimit) {
+      const dailySpent = Number(dailySnap.data()?.giftCoins || 0);
+      if (!Number.isSafeInteger(dailySpent) ||
+          dailySpent + amounts.chargedCoins > config.giftingDailyCoinLimit) {
         throw Object.assign(new Error("Daily gift limit reached."), {status: 429});
       }
       const recipientData = recipientRef ? snapshots[10].data() || {} : null;
       const recipientProfile = recipientRef ? snapshots[9].data() || {} : null;
       const recipientBefore = recipientData
         ? Number(recipientData.diamondsPending || 0) : 0;
-      const receiverAfter = recipientBefore + amounts.pendingDiamonds;
+      const receiverAfter = recipientBefore + pendingDiamonds;
       if (!Number.isSafeInteger(receiverAfter)) {
         throw Object.assign(new Error("Recipient settlement exceeds limits."),
           {status: 400});
@@ -226,11 +235,13 @@ const send = bondOnly => async (req, res, next) => {
         ...(bondOnly ? {operationId: requestHash, bondId: contextId} : {}),
         giftId, quantity, freeUnits: amounts.freeUnits,
         chargedCoins: amounts.chargedCoins, balanceAfter: after,
-        pendingDiamonds: recipientRef ? amounts.pendingDiamonds : 0,
+        pendingDiamonds, adminCoinsSpent: spent.adminSpent,
+        paidCoinsSpent: spent.paidSpent,
         holdUntil: recipientRef ? holdUntil.toDate().toISOString() : null,
       };
       tx.set(senderWalletRef, {
         coins: after,
+        adminCoins: spent.remainingAdminCoins,
         giftSentPoints: FieldValue.increment(amounts.chargedCoins),
         giftLevelCoins: giftProgress(senderData).points + amounts.chargedCoins,
         giftLevel: giftProgress({giftSentPoints: giftProgress(senderData).points + amounts.chargedCoins}).level,
@@ -244,14 +255,16 @@ const send = bondOnly => async (req, res, next) => {
         });
       }
       tx.set(dailyRef, {
-        giftCoins: spent + amounts.chargedCoins,
+        giftCoins: dailySpent + amounts.chargedCoins,
         updatedAt: FieldValue.serverTimestamp(),
       }, {merge: true});
       tx.create(senderRef.collection("wallet_transactions").doc(requestHash), {
         type: "gift_send", amount: -amounts.chargedCoins, currency: "coins",
         balanceBefore: balance, balanceAfter: after, source: context,
         sourceId: contextId, itemId: giftId, quantity,
-        freeUnits: amounts.freeUnits, operationId: requestHash,
+        freeUnits: amounts.freeUnits,
+        adminCoinsSpent: spent.adminSpent, paidCoinsSpent: spent.paidSpent,
+        operationId: requestHash,
         createdAt: FieldValue.serverTimestamp(),
       });
       if (recipientRef) {
@@ -260,9 +273,9 @@ const send = bondOnly => async (req, res, next) => {
           giftReceivedPoints: FieldValue.increment(amounts.chargedCoins),
           updatedAt: FieldValue.serverTimestamp(),
         }, {merge: true});
-        if (amounts.pendingDiamonds > 0) {
+        if (pendingDiamonds > 0) {
           tx.create(recipientRef.collection("diamond_lots").doc(requestHash), {
-            status: "pending", diamonds: amounts.pendingDiamonds,
+            status: "pending", diamonds: pendingDiamonds,
             senderId: sender.uid, source: context,
             sourceId: contextId, giftId, operationId: requestHash,
             holdUntil, createdAt: FieldValue.serverTimestamp(),
@@ -270,7 +283,7 @@ const send = bondOnly => async (req, res, next) => {
         }
         tx.create(recipientRef.collection("wallet_transactions")
           .doc(requestHash), {
-          type: "gift_received_pending", amount: amounts.pendingDiamonds,
+          type: "gift_received_pending", amount: pendingDiamonds,
           currency: "diamonds_pending", balanceBefore: recipientBefore,
           balanceAfter: receiverAfter, holdUntil, source: context,
           sourceId: contextId, senderId: sender.uid, itemId: giftId,
