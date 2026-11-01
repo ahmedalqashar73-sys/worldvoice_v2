@@ -483,6 +483,13 @@ service cloud.firestore {
         allow write: if false;
       }
 
+      // Gift receipts are created by the backend, and only the recipient may
+      // view them. No user can forge a gift notification or delivery status.
+      match /gift_notifications/{giftId} {
+        allow read: if signedIn() && request.auth.uid == userId;
+        allow write: if false;
+      }
+
       // Holding lots cannot be forged or prematurely matured by a mobile client.
       match /diamond_lots/{lotId} {
         allow read: if signedIn() && request.auth.uid == userId;
