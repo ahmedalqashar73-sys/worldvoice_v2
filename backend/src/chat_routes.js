@@ -3,6 +3,10 @@ import {FieldValue} from "firebase-admin/firestore";
 import {getMessaging} from "firebase-admin/messaging";
 import {chatIdFor, assertChatMembership} from "./chat_membership.js";
 
+// Missing preference means enabled, preserving existing user behavior.
+export const canReceiveDirectMessages = profile =>
+  profile?.receiveDirectMessages !== false;
+
 const fail = (msg, status = 400) => {
   throw Object.assign(new Error(msg), {status});
 };
@@ -200,6 +204,9 @@ export function registerChatRoutes({app, db, authenticatedUser}) {
         if (!senderSnap.exists || !recipientSnap.exists) {
           fail("WorldVoice profile is unavailable.", 404);
         }
+        if (!canReceiveDirectMessages(recipientSnap.data())) {
+          fail("This member is not receiving direct messages.", 403);
+        }
 
         if (!chatSnap.exists) {
           tx.create(
@@ -256,6 +263,9 @@ export function registerChatRoutes({app, db, authenticatedUser}) {
         );
         if (!senderSnap.exists || !peerSnap.exists) {
           fail("Both WorldVoice profiles must exist.", 404);
+        }
+        if (!canReceiveDirectMessages(peerSnap.data())) {
+          fail("This member is not receiving direct messages.", 403);
         }
 
         if (old.exists) {
@@ -575,6 +585,10 @@ export function registerChatRoutes({app, db, authenticatedUser}) {
         } else {
           if (!peer) fail("Chat unavailable.", 403);
           assertChatMembership(chatData, sender.uid, peer);
+          const recipient = await tx.get(db.collection("users").doc(peer));
+          if (!canReceiveDirectMessages(recipient.data())) {
+            fail("This member is not receiving direct messages.", 403);
+          }
         }
         if (old.exists) {
           const prev = old.data() || {};
