@@ -505,6 +505,17 @@ export function registerChatRoutes({app, db, authenticatedUser}) {
         const chat = chatSnap.data() || {};
         assertSenderInChat(chat, sender.uid);
 
+        // Group attachments remain unaffected; only new private attachments
+        // respect the recipient's global receiving preference.
+        if (chat.type !== "group" && !old.exists) {
+          const peer = chat.memberIds.find(uid => uid !== sender.uid);
+          if (!peer) fail("Chat unavailable.", 403);
+          const recipientSnap = await tx.get(db.collection("users").doc(peer));
+          if (!canReceiveDirectMessages(recipientSnap.data())) {
+            fail("This member is not receiving direct messages.", 403);
+          }
+        }
+
         if (old.exists) {
           const previous = old.data() || {};
           if (previous.senderId !== sender.uid ||
