@@ -2210,7 +2210,12 @@ app.post("/web/checkout", async (req, res, next) => {
   }
 });
 
-registerGiftSendRoutes({app, db, authenticatedUser, validChannelName});
+registerGiftSendRoutes({
+  app, db, authenticatedUser, validChannelName,
+  isVerifiedOwner: token => token.email_verified === true &&
+    privilegedAccounts.get(String(token.email || "").trim().toLowerCase())
+      ?.role === "super_admin",
+});
 registerOwnerDirectGiftRoutes({
   app, db, authenticatedUser,
   isVerifiedOwner: token => token.email_verified === true &&
