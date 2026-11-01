@@ -66,39 +66,61 @@ class AuthService {
     return false;
   }
 
-  static Future<void> syncPrivilegedAccountEntitlements() async {
+  /// Call from a deliberate owner action to surface the server's grant
+  /// outcome. The backend verifies owner identity and enforces one grant per
+  /// Riyadh calendar month; the client never writes money to Firestore.
+  static Future<Map<String, dynamic>> syncOwnerMonthlyCoinsNow() async {
     final user = _auth.currentUser;
-    if (user == null) return;
-
+    if (user == null) throw StateError('Sign in to refresh your wallet.');
     final root = Uri.tryParse(_backend.trim());
     if (root == null ||
         root.scheme != 'https' ||
         !root.hasAuthority ||
-        root.userInfo.isNotEmpty) {
-      return;
+        root.userInfo.isNotEmpty ||
+        root.hasQuery ||
+        root.hasFragment) {
+      throw StateError('Owner reward backend is not configured.');
     }
 
+    final token = await user.getIdToken();
+    if (token == null || token.isEmpty) {
+      throw StateError('Unable to verify your Firebase sign-in.');
+    }
+    final basePath = root.path.endsWith('/')
+        ? root.path.substring(0, root.path.length - 1)
+        : root.path;
+    final response = await http
+        .post(
+          root.replace(path: '$basePath/account/sync-entitlements'),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode(const <String, dynamic>{}),
+        )
+        .timeout(const Duration(seconds: 12));
+    Map<String, dynamic> result = <String, dynamic>{};
     try {
-      final token = await user.getIdToken();
-      if (token == null || token.isEmpty) return;
-      final basePath = root.path.endsWith('/')
-          ? root.path.substring(0, root.path.length - 1)
-          : root.path;
-      final response = await http
-          .post(
-            root.replace(path: '$basePath/account/sync-entitlements'),
-            headers: {
-              'Authorization': 'Bearer $token',
-              'Content-Type': 'application/json',
-            },
-            body: jsonEncode(const <String, dynamic>{}),
-          )
-          .timeout(const Duration(seconds: 12));
-      if (response.statusCode < 200 || response.statusCode >= 300) {
-        return;
-      }
+      final decoded = jsonDecode(response.body);
+      if (decoded is Map<String, dynamic>) result = decoded;
     } catch (_) {
-      // Entitlement sync is best-effort. It must never block sign-in.
+      // Keep a useful HTTP error if the backend returns an invalid body.
+    }
+    if (response.statusCode < 200 ||
+        response.statusCode >= 300 ||
+        result['ok'] != true) {
+      throw StateError(result['error']?.toString() ??
+          'Owner wallet sync failed (HTTP ${response.statusCode}).');
+    }
+    return result;
+  }
+
+  static Future<void> syncPrivilegedAccountEntitlements() async {
+    try {
+      await syncOwnerMonthlyCoinsNow();
+    } catch (_) {
+      // Automatic sync stays best-effort and must never block sign-in.
+      // The owner can use the profile's manual sync to see the precise error.
     }
   }
 
