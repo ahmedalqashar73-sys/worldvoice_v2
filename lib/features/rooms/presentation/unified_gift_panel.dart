@@ -778,7 +778,13 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                             ),
                           ),
                         ),
-                        Expanded(
+                        // A scroll view has unbounded vertical height.
+                        // Expanded here prevents the sheet from laying out,
+                        // leaving only the dark modal barrier visible.
+                        // Bound the gift gallery and scroll it independently.
+                        SizedBox(
+                          height: (MediaQuery.sizeOf(context).height * 0.32)
+                              .clamp(190.0, 305.0),
                           child: classicSnapshot.hasError
                               ? Center(
                                   child: Text(
