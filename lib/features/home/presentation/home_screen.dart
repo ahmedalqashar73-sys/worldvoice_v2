@@ -14,6 +14,7 @@ import '../../profile/presentation/public_profile_screen.dart';
 import '../../profile/presentation/profile_form_validation.dart';
 import '../../profile/presentation/user_profile_screen.dart';
 import '../../rooms/presentation/rooms_hub_screen.dart';
+import '../../rooms/presentation/room_background_shop_sheet.dart';
 import '../../stories/presentation/story_notifications_screen.dart';
 import '../../stories/presentation/story_strip.dart';
 import 'home_feed_section.dart';
@@ -60,6 +61,15 @@ class _HomeScreenState extends State<HomeScreen> {
       WorldVoiceNotificationService.pendingInbox.value = null;
       if (destination == 'rooms') {
         setState(() => _index = 2);
+        return;
+      }
+      if (destination == 'gifts') {
+        showModalBottomSheet<void>(
+          context: context,
+          isScrollControlled: true,
+          showDragHandle: true,
+          builder: (_) => RoomBackgroundShopSheet(),
+        );
         return;
       }
       if (destination != 'story') setState(() => _index = 3);
