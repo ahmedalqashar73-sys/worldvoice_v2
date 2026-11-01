@@ -220,9 +220,40 @@ class AuthService {
       throw StateError(payload['error']?.toString() ??
           'Google verification failed (HTTP ${response.statusCode}).');
     }
+    // Attach Google to the existing Firebase UID when it is not already
+    // linked. An existing Google credential owned by another UID must never
+    // trigger silent account switching or automatic data migration.
+    String? googleLinkWarning;
     await currentUser.reload();
+    final reloaded = _auth.currentUser;
+    if (reloaded?.uid != currentUser.uid) {
+      throw StateError('Firebase session changed during owner verification.');
+    }
+    if (!reloaded!.providerData.any((p) => p.providerId == 'google.com')) {
+      try {
+        await reloaded.linkWithCredential(
+          GoogleAuthProvider.credential(idToken: googleIdToken),
+        );
+      } on FirebaseAuthException catch (error) {
+        if (const {
+          'credential-already-in-use',
+          'email-already-in-use',
+          'provider-already-linked',
+        }.contains(error.code)) {
+          googleLinkWarning = error.code;
+        } else {
+          rethrow;
+        }
+      }
+    }
+    await _auth.currentUser?.reload();
     await _auth.currentUser?.getIdToken(true);
-    return payload;
+    return <String, dynamic>{
+      ...payload,
+      'googleLinked': _auth.currentUser?.providerData
+          .any((p) => p.providerId == 'google.com') == true,
+      if (googleLinkWarning != null) 'googleLinkWarning': googleLinkWarning,
+    };
   }
 
   static Future<UserCredential> signInWithGoogle() async {
