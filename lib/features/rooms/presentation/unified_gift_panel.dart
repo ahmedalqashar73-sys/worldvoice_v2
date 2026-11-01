@@ -74,7 +74,7 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
     (_) => Random.secure().nextInt(256),
   ).map((b) => b.toRadixString(16).padLeft(2, '0')).join();
 
-  Future<void> _send() async {
+  Future<void> _send({bool ownerBeta = false}) async {
     final gift = _gift;
     final recipient = _recipient;
     final myself = FirebaseAuth.instance.currentUser?.uid;
@@ -98,13 +98,22 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
       _message = null;
     });
     try {
-      await RoomFeatureService.sendContextGift(
-        context: widget.contextType,
-        contextId: widget.contextId,
-        recipientId: recipient,
-        giftId: gift.id,
-        requestKey: _pendingKey,
-      );
+      if (ownerBeta) {
+        await RoomFeatureService.sendOwnerBetaChatGift(
+          chatId: widget.contextId,
+          recipientId: recipient,
+          giftId: gift.id,
+          requestKey: _pendingKey!,
+        );
+      } else {
+        await RoomFeatureService.sendContextGift(
+          context: widget.contextType,
+          contextId: widget.contextId,
+          recipientId: recipient,
+          giftId: gift.id,
+          requestKey: _pendingKey,
+        );
+      }
       final senderUid = FirebaseAuth.instance.currentUser?.uid;
       if (senderUid != null) EngagementService.invalidate(senderUid);
       if (!mounted) return;
@@ -473,6 +482,19 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                         ? (walletSnapshot.data!.data()?['coins'] as num?)
                               ?.toInt()
                         : null;
+                    final administrativeCoins = walletReady
+                        ? (walletSnapshot.data!.data()?['adminCoins'] as num?)
+                              ?.toInt() ?? 0
+                        : 0;
+                    // Owner beta spending is distinct from the unreleased
+                    // real-money economy. The backend verifies the owner.
+                    final ownerBetaReady =
+                        RoomFeatureService.ownerBetaChatGiftsEnabled &&
+                        widget.contextType == 'chat' &&
+                        walletReady &&
+                        selected != null &&
+                        administrativeCoins >= selected.priceCoins &&
+                        !ready;
                     return Column(
                       children: [
                         TextButton.icon(
@@ -947,13 +969,13 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                           child: FilledButton.icon(
                             onPressed:
                                 !_busy &&
-                                    ready &&
-                                    walletReady &&
-                                    selected?.active == true &&
+                                    ((ready && walletReady &&
+                                          selected?.active == true) ||
+                                        ownerBetaReady) &&
                                     widget.recipients.containsKey(_recipient) &&
                                     _recipient != uid &&
                                     _recipient != 'teacher_ai'
-                                ? _send
+                                ? () => _send(ownerBeta: ownerBetaReady)
                                 : null,
                             icon: _busy
                                 ? const SizedBox(
@@ -969,7 +991,11 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                                   ? (ar
                                         ? 'متابعة الهدية بعد الشحن'
                                         : 'Continue gift after recharge')
-                                  : (ar ? 'إرسال الهدية' : 'Send gift'),
+                                  : ownerBetaReady
+                                      ? (ar
+                                            ? 'إرسال هدية اختبار (بدون ألماس)'
+                                            : 'Send test gift (no diamonds)')
+                                      : (ar ? 'إرسال الهدية' : 'Send gift'),
                             ),
                           ),
                         ),
