@@ -175,6 +175,11 @@ class _WorldVoiceAppState extends State<WorldVoiceApp>
     switch (state) {
       case AppLifecycleState.resumed:
         _presenceSession.start();
+        if (FirebaseAuth.instance.currentUser != null) {
+          // Reconnect safely also claims a missed first-of-month owner grant.
+          // The server ledger guarantees one credit per Riyadh calendar month.
+          unawaited(AuthService.syncPrivilegedAccountEntitlements());
+        }
         return;
       case AppLifecycleState.inactive:
       case AppLifecycleState.paused:
