@@ -19,6 +19,13 @@ class RoomBackendConfig {
     defaultValue: 'https://worldvoice-v2.onrender.com',
   );
 
+  // New owner grants and gifts MUST hit the service deploying original main.
+  // Keep real-money checkout on economyBaseUrl during staged migration.
+  static const String giftStoreBaseUrl = String.fromEnvironment(
+    'WORLDVOICE_GIFT_STORE_ENDPOINT',
+    defaultValue: 'https://worldvoice-teacher-ai.onrender.com',
+  );
+
   // Chat, group calls, posts and social APIs must use the original main
   // branch deployment. The older worldvoice-v2 Render service is pinned to
   // an obsolete feature branch and does not contain current chat fixes.
