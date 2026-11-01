@@ -129,13 +129,22 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
       if (!mounted) return;
       final reason = error.toString();
       final insufficient = reason.contains('NOT_ENOUGH_COINS');
+      final connectionInterrupted = reason.contains('FIREBASE_CONNECTION_INTERRUPTED') ||
+          reason.contains('Connection reset by peer') ||
+          reason.contains('SocketException') ||
+          reason.contains('ClientException');
+      final ar = Localizations.localeOf(context).languageCode == 'ar';
       setState(() {
         _needsRecharge = insufficient;
         _message = insufficient
-            ? (Localizations.localeOf(context).languageCode == 'ar'
+            ? (ar
                   ? 'رصيدك لا يكفي. اشحن ثم اضغط متابعة الهدية.'
                   : 'Not enough coins. Recharge then continue your gift.')
-            : reason.replaceFirst('Bad state: ', '');
+            : connectionInterrupted
+                ? (ar
+                    ? 'انقطع الاتصال أثناء التحقق من Firebase. تأكد من الإنترنت ثم أعد المحاولة. لا يُفترض وصول الهدية دون تأكيد من الخادم.'
+                    : 'Firebase connection interrupted. Check your internet and retry. Delivery is not confirmed.')
+                : reason.replaceFirst('Bad state: ', '');
       });
       if (insufficient) _openRecharge();
     } finally {
@@ -495,8 +504,15 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                         selected != null &&
                         administrativeCoins >= selected.priceCoins &&
                         !ready;
-                    return Column(
-                      children: [
+                    // The sheet can grow when a Firebase error is shown.
+                    // Scroll rather than overflowing on small devices.
+                    return SingleChildScrollView(
+                      padding: EdgeInsets.only(
+                        bottom: MediaQuery.viewPaddingOf(context).bottom + 12,
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
                         TextButton.icon(
                           onPressed: () => Navigator.of(context).push(
                             MaterialPageRoute(
@@ -1003,7 +1019,8 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                             ),
                           ),
                         ),
-                      ],
+                        ],
+                      ),
                     );
                   },
                 );
