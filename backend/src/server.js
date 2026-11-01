@@ -1966,8 +1966,16 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
       });
       return {...response, alreadyProcessed: false};
     });
+    if (outcome.alreadyOwned) {
+      // No coins were debited. Never show a false "gift delivered" success
+      // when the recipient already permanently owns this cosmetic.
+      return res.status(409).json({
+        error: "Recipient already owns this item permanently.",
+        alreadyOwned: true, itemId,
+      });
+    }
     res.json({ok: true, ...outcome});
-    if (gifting && !outcome.alreadyProcessed && !outcome.alreadyOwned &&
+    if (gifting && !outcome.alreadyProcessed &&
         outcome.itemId) {
       // Push delivery is advisory: the committed inventory entry is the source
       // of truth and remains available even when the device is offline.
