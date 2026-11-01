@@ -135,9 +135,9 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                           )
                         : const Icon(Icons.card_giftcard_rounded),
                     title: Text((isArabic
-                        ? (data['nameAr'] ?? data['name'] ?? data['itemId'])
-                        : (data['name'] ?? data['nameAr'] ?? data['itemId']))
-                        .toString()),
+                        ? (data['nameAr'] ?? data['name'] ?? data['itemId'] ?? '')
+                        : (data['name'] ?? data['nameAr'] ?? data['itemId'] ?? '')
+                      ).toString()),
                     subtitle: Text(subtitle),
                   );
                 },
