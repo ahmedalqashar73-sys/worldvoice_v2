@@ -29,6 +29,8 @@ class WorldVoiceNotificationService {
       pendingInbox.value = 'chats';
     } else if (kind == 'room_chat_message') {
       pendingInbox.value = 'rooms';
+    } else if (kind == 'store_gift') {
+      pendingInbox.value = 'gifts';
     }
   }
 
