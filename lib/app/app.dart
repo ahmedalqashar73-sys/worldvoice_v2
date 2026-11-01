@@ -54,7 +54,8 @@ class _WorldVoiceAppState extends State<WorldVoiceApp>
           type != 'story_interaction' &&
           type != 'chat_message' &&
           type != 'group_chat_message' &&
-          type != 'room_chat_message') {
+          type != 'room_chat_message' &&
+          type != 'store_gift') {
         return;
       }
       final ar = _localeController.locale?.languageCode == 'ar';
