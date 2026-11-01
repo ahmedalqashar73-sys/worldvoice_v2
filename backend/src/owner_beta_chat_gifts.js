@@ -4,6 +4,22 @@ import {worldVoiceGiftCatalog} from "./gift_catalog.js";
 import {chatIdFor, assertChatMembership} from "./chat_membership.js";
 import {privateWalletRef, requirePrivateWallet} from "./wallet_store.js";
 
+export function ownerBetaChatDebit({coins, adminCoins, priceCoins, frozen = false,
+  debtCoins = 0}) {
+  if (![coins, adminCoins, priceCoins, debtCoins].every(Number.isSafeInteger) ||
+      coins < 0 || adminCoins < 0 || adminCoins > coins || priceCoins <= 0 ||
+      debtCoins !== 0 || frozen === true || adminCoins < priceCoins) {
+    throw Object.assign(new Error("Not enough valid administrative coins."),
+      {status: 409});
+  }
+  return {
+    balanceAfter: coins - priceCoins,
+    adminAfter: adminCoins - priceCoins,
+    paidCoinsSpent: 0,
+    pendingDiamonds: 0,
+  };
+}
+
 // Non-redeemable verified-owner-only gifts to a real private chat.
 // Requires an explicit server setting. No diamond lots, no paid coins, no
 // withdrawal or purchase policy is touched.
@@ -67,14 +83,13 @@ export function registerOwnerBetaChatGiftRoutes({
         const wallet = requirePrivateWallet(walletSnap);
         const before = wallet.coins;
         const administrative = wallet.adminCoins;
-        if (![before, administrative].every(Number.isSafeInteger) ||
-            before < gift.priceCoins || administrative < gift.priceCoins ||
-            administrative > before ||
-            wallet.walletFrozen === true ||
-            Number(wallet.walletDebtCoins ?? 0) > 0) {
-          throw Object.assign(new Error("Not enough valid administrative coins."), {status: 409});
-        }
-        const after = before - gift.priceCoins;
+        const debit = ownerBetaChatDebit({
+          coins: before, adminCoins: administrative,
+          priceCoins: gift.priceCoins,
+          frozen: wallet.walletFrozen === true,
+          debtCoins: wallet.walletDebtCoins ?? 0,
+        });
+        const after = debit.balanceAfter;
         const result = {
           giftId, recipientId, chargedCoins: gift.priceCoins,
           adminCoinsSpent: gift.priceCoins, paidCoinsSpent: 0,
@@ -82,7 +97,7 @@ export function registerOwnerBetaChatGiftRoutes({
           nonRedeemable: true, ownerBetaGift: true,
         };
         tx.update(walletRef, {
-          coins: after, adminCoins: administrative - gift.priceCoins,
+          coins: after, adminCoins: debit.adminAfter,
           giftSentPoints: FieldValue.increment(gift.priceCoins),
           updatedAt: FieldValue.serverTimestamp(),
         });
