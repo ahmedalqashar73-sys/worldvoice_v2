@@ -513,7 +513,8 @@ class UserProfileScreen extends StatelessWidget {
                             onPressed: () async {
                               String message;
                               try {
-                                await AuthService.verifyOwnerWithGoogleNow();
+                                final verification =
+                                    await AuthService.verifyOwnerWithGoogleNow();
                                 final result =
                                     await AuthService.syncOwnerMonthlyCoinsNow();
                                 final credited =
@@ -529,6 +530,11 @@ class UserProfileScreen extends StatelessWidget {
                                         : result['alreadyCredited'] == true
                                             ? 'Owner verified; monthly grant was already credited.'
                                             : 'Owner verified. Check wallet readiness.';
+                                if (verification['googleLinked'] != true) {
+                                  message += code == 'ar'
+                                      ? '\nتنبيه: تم إثبات البريد، لكن ربط Google بهذا الحساب لم يكتمل. لن ننقل أي حساب آخر تلقائيًا.'
+                                      : '\nNote: Email verified, but Google linking did not complete. No other account was migrated.';
+                                }
                               } catch (error) {
                                 message = code == 'ar'
                                     ? 'تعذر إثبات حساب المالك أو صرف المكافأة: $error'
