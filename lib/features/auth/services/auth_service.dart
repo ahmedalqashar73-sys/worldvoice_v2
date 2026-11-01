@@ -15,7 +15,7 @@ class AuthService {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
   static bool _googleInitialized = false;
   static const String _backend =
-      RoomBackendConfig.economyBaseUrl;
+      RoomBackendConfig.giftStoreBaseUrl;
 
   static bool hasCompletedProfileData(Map<String, dynamic>? data) {
     if (data == null) return false;
