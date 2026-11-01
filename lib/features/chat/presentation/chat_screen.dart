@@ -32,6 +32,7 @@ import 'direct_chat_conversation_screen.dart';
 import '../services/local_chat_store.dart';
 import '../services/chat_local_share_service.dart';
 import 'group_chat_screen.dart';
+import '../services/chat_archive_store.dart';
 import 'worldvoice_activity_screen.dart';
 import 'worldvoice_official_screen.dart';
 import '../../live/presentation/live_screen.dart';
@@ -39,10 +40,26 @@ import '../../live/presentation/live_screen.dart';
 /// Real authenticated conversations. The economy backend, not Flutter,
 /// establishes mutual-follower membership and writes chat/gift messages.
 class ChatScreen extends StatelessWidget {
-  const ChatScreen({required this.localeController, super.key});
+  const ChatScreen({required this.localeController,
+    this.showArchived = false, super.key});
   final LocaleController localeController;
+  final bool showArchived;
 
   static const _backend = RoomBackendConfig.socialBaseUrl;
+
+  static Future<void> _setArchived(BuildContext context, String uid,
+      String chatId, bool value) async {
+    try {
+      await ChatArchiveStore.of(uid).setArchived(chatId, value);
+    } catch (error) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(error.toString().replaceFirst('Bad state: ', ''))));
+      }
+    }
+  }
+
+
 
   /// Group deletion from the chat list uses the same trusted backend as the
   /// group header. Hiding a chat only affects the current user's inbox.
@@ -734,11 +751,13 @@ class ChatScreen extends StatelessWidget {
       return Center(child: Text(ar ? 'سجّل دخولك أولًا' : 'Sign in to use chat.'));
     }
     final ready = Uri.tryParse(_backend)?.scheme == 'https';
+    final archive = ChatArchiveStore.of(uid);
     return SafeArea(
       child: Column(
         children: [
           ListTile(
-            title: Text(ar ? 'الدردشة' : 'Messages',
+            title: Text(showArchived ? (ar ? 'أرشيف المحادثات' : 'Archived chats')
+                    : (ar ? 'الدردشة' : 'Messages'),
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w900)),
             subtitle: !ready
@@ -746,7 +765,7 @@ class ChatScreen extends StatelessWidget {
                     ? 'بانتظار نشر سيرفر المحادثة الآمن'
                     : 'Secure chat backend is not deployed yet')
                 : null,
-            trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+            trailing: showArchived ? null : Row(mainAxisSize: MainAxisSize.min, children: [
               IconButton(
                 tooltip: ar ? 'تجربة الهدايا الثلاثين'
                     : 'Preview 30 gifts',
@@ -788,7 +807,7 @@ class ChatScreen extends StatelessWidget {
               ),
             ]),
           ),
-          StoryStrip(
+          if (!showArchived) StoryStrip(
             isArabic: ar,
             onReply: (story) => ChatScreen.openDirectConversation(
               context: context,
@@ -797,7 +816,7 @@ class ChatScreen extends StatelessWidget {
             ),
           ),
           const Divider(height: 1),
-          ListTile(
+          if (!showArchived) ListTile(
             leading: const CircleAvatar(
               backgroundColor: Color(0xFF0A9366),
               child: Icon(Icons.public_rounded, color: Colors.white),
@@ -818,7 +837,7 @@ class ChatScreen extends StatelessWidget {
           const Divider(height: 1),
           // Fixed official inbox above all personal chats, including when
           // there are no direct conversations yet.
-          ListTile(
+          if (!showArchived) ListTile(
             leading: const CircleAvatar(
               backgroundColor: Color(0xFF2196F3),
               child: Icon(Icons.mic, color: Colors.white),
@@ -860,7 +879,11 @@ class ChatScreen extends StatelessWidget {
           ),
           const Divider(height: 1),
           Expanded(
-            child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+            child: FutureBuilder<void>(
+              future: archive.load(),
+              builder: (context, _) => ValueListenableBuilder<Set<String>>(
+                valueListenable: archive.archived,
+                builder: (context, archivedIds, _) => StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
               stream: FirebaseFirestore.instance.collection('chats')
                   .where('memberIds', arrayContains: uid)
                   .where('active', isEqualTo: true)
@@ -874,7 +897,9 @@ class ChatScreen extends StatelessWidget {
                 if (!snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                final chats = snapshot.data!.docs.toList()
+                final chats = snapshot.data!.docs
+                    .where((doc) => archivedIds.contains(doc.id) == showArchived)
+                    .toList()
                   ..sort((a, b) {
                     final one = a.data()['lastMessageAt'];
                     final two = b.data()['lastMessageAt'];
@@ -883,9 +908,9 @@ class ChatScreen extends StatelessWidget {
                     return second.compareTo(first);
                   });
                 if (chats.isEmpty) {
-                  return Center(child: Text(ar
-                      ? 'لا توجد محادثات حقيقية بعد'
-                      : 'No conversations yet'));
+                  return Center(child: Text(showArchived
+                      ? (ar ? 'الأرشيف فارغ' : 'No archived conversations')
+                      : (ar ? 'لا توجد محادثات حقيقية بعد' : 'No conversations yet')));
                 }
                 return ListView.separated(
                   padding: const EdgeInsets.symmetric(vertical: 6),
@@ -933,9 +958,18 @@ class ChatScreen extends StatelessWidget {
                         trailing: PopupMenuButton<String>(
                           key: ValueKey('chat-group-menu-${snap.id}'),
                           tooltip: ar ? 'إدارة المجموعة' : 'Group actions',
-                          onSelected: (action) => _manageGroupFromList(
-                            context, snap.id, action, ar),
+                          onSelected: (action) {
+                            if (action == 'archive') {
+                              _setArchived(context, uid, snap.id, !showArchived);
+                            } else {
+                              _manageGroupFromList(context, snap.id, action, ar);
+                            }
+                          },
                           itemBuilder: (_) => [
+                            PopupMenuItem(value: 'archive',
+                              child: Text(showArchived
+                                  ? (ar ? 'إلغاء الأرشفة' : 'Unarchive')
+                                  : (ar ? 'أرشفة المجموعة' : 'Archive group'))),
                             PopupMenuItem(value: 'delete_for_me',
                               child: Text(ar ? 'حذف المجموعة من عندي'
                                              : 'Remove group from my chats')),
@@ -989,10 +1023,15 @@ class ChatScreen extends StatelessWidget {
                           ),
                         ),
                       ),
+                      archived: showArchived,
+                      onToggleArchive: () => _setArchived(
+                        context, uid, snap.id, !showArchived),
                     );
                   },
                 );
               },
+                ),
+              ),
             ),
           ),
         ],
@@ -1009,6 +1048,8 @@ class _ConversationTile extends StatelessWidget {
     required this.latestText,
     required this.onOpenConversation,
     required this.onOpenProfile,
+    required this.archived,
+    required this.onToggleArchive,
   });
 
   final String chatId;
@@ -1017,6 +1058,8 @@ class _ConversationTile extends StatelessWidget {
   final String latestText;
   final VoidCallback onOpenConversation;
   final VoidCallback onOpenProfile;
+  final bool archived;
+  final VoidCallback onToggleArchive;
 
   @override
   Widget build(BuildContext context) {
@@ -1124,6 +1167,12 @@ class _ConversationTile extends StatelessWidget {
                   ),
             );
           }),
+          trailing: IconButton(
+            key: ValueKey('chat-archive-$chatId'),
+            tooltip: archived ? 'Unarchive conversation' : 'Archive conversation',
+            onPressed: onToggleArchive,
+            icon: Icon(archived ? Icons.unarchive_outlined : Icons.archive_outlined),
+          ),
           onTap: onOpenConversation,
         );
       },
