@@ -1075,7 +1075,8 @@ class _ConversationTile extends StatelessWidget {
         final name = (data['displayName'] ?? data['name'] ?? peerName)
             .toString()
             .trim();
-        final online = data['isOnline'] == true;
+        final online = data['isOnline'] == true &&
+            data['showOnlineStatus'] != false;
 
         return ListTile(
           contentPadding: const EdgeInsets.symmetric(
@@ -1547,7 +1548,8 @@ class _ChatConversationState extends State<ChatConversationScreen> {
                     data['name'] ??
                     widget.peerName)
                 .toString();
-            final online = data['isOnline'] == true;
+            final online = data['isOnline'] == true &&
+            data['showOnlineStatus'] != false;
             return InkWell(
               borderRadius: BorderRadius.circular(18),
               onTap: () => Navigator.of(context).push(
