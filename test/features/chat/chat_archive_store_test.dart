@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:worldvoice_v2/features/chat/services/chat_archive_store.dart';
+import 'package:worldvoice/features/chat/services/chat_archive_store.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
