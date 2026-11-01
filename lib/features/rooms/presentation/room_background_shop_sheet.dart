@@ -68,6 +68,70 @@ class RoomBackgroundShopSheet extends StatelessWidget {
     builder: (context, access) => _buildShop(context, access.data == true),
   );
 
+  Future<void> _showReceivedGifts(BuildContext context, bool isArabic) async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+    await showDialog<void>(
+      context: context,
+      builder: (dialog) => AlertDialog(
+        title: Text(isArabic ? 'الهدايا المستلمة' : 'Received gifts'),
+        content: SizedBox(
+          width: 360,
+          height: 320,
+          child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+            stream: FirebaseFirestore.instance
+                .collection('users').doc(uid)
+                .collection('gift_notifications')
+                .orderBy('createdAt', descending: true)
+                .limit(30).snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return Center(child: Text(isArabic
+                    ? 'تعذر تحميل سجل الهدايا'
+                    : 'Could not load gifts'));
+              }
+              if (!snapshot.hasData) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              final gifts = snapshot.data!.docs;
+              if (gifts.isEmpty) {
+                return Center(child: Text(isArabic
+                    ? 'لم تستلم أي هدايا حتى الآن'
+                    : 'No received gifts yet'));
+              }
+              return ListView.builder(
+                shrinkWrap: true,
+                itemCount: gifts.length,
+                itemBuilder: (context, index) {
+                  final data = gifts[index].data();
+                  final days = data['durationDays'];
+                  final durationLabel = days == null
+                      ? (isArabic ? 'دائم' : 'Permanent')
+                      : '$days ${isArabic ? 'أيام' : 'days'}';
+                  final expires = data['expiresAt'];
+                  final expired = expires is Timestamp &&
+                      !expires.toDate().isAfter(DateTime.now());
+                  return ListTile(
+                    leading: const Icon(Icons.card_giftcard_rounded),
+                    title: Text((data['name'] ?? data['itemId'] ?? '')
+                        .toString()),
+                    subtitle: Text('$durationLabel • ${expired
+                        ? (isArabic ? 'انتهت الصلاحية' : 'Expired')
+                        : (isArabic ? 'في مقتنياتك' : 'In your inventory')}'),
+                  );
+                },
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialog),
+              child: Text(isArabic ? 'إغلاق' : 'Close')),
+        ],
+      ),
+    );
+  }
+
   Widget _buildShop(BuildContext context, bool isAdmin) {
     final isArabic =
         Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
@@ -116,9 +180,19 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                         );
                       },
                     ),
-              trailing: IconButton(
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close_rounded),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    tooltip: isArabic ? 'الهدايا المستلمة' : 'Received gifts',
+                    onPressed: () => _showReceivedGifts(context, isArabic),
+                    icon: const Icon(Icons.card_giftcard_rounded),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close_rounded),
+                  ),
+                ],
               ),
             ),
             // Three permanently visible cosmetic tabs in the existing shop.
