@@ -64,12 +64,10 @@ class _HomeScreenState extends State<HomeScreen> {
         return;
       }
       if (destination == 'gifts') {
-        showModalBottomSheet<void>(
-          context: context,
-          isScrollControlled: true,
-          showDragHandle: true,
-          builder: (_) => RoomBackgroundShopSheet(),
-        );
+        // Open the received-items ledger directly instead of the store's
+        // sales catalogue: users should see exactly what was delivered.
+        showWorldVoiceReceivedGifts(
+          context, widget.localeController.locale?.languageCode == 'ar');
         return;
       }
       if (destination != 'story') setState(() => _index = 3);
