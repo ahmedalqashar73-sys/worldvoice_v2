@@ -12,6 +12,7 @@ import '../services/room_shop_service.dart';
 import 'room_background_atlas.dart';
 import 'room_coin_store_sheet.dart';
 import 'store_gift_options.dart';
+import 'owner_direct_gift_sheet.dart';
 import 'chat_bubble_shop_sheet.dart';
 import '../services/room_coin_purchase_service.dart';
 
@@ -195,6 +196,24 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                 ],
               ),
             ),
+            if (isAdmin)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: () => showModalBottomSheet<void>(
+                      context: context,
+                      isScrollControlled: true,
+                      builder: (_) => const OwnerDirectGiftSheet(),
+                    ),
+                    icon: const Icon(Icons.card_giftcard_rounded),
+                    label: Text(isArabic
+                        ? 'إهداء هدية من الكتالوج لأي مستخدم'
+                        : 'Send catalog gift to any user'),
+                  ),
+                ),
+              ),
             // Three permanently visible cosmetic tabs in the existing shop.
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
