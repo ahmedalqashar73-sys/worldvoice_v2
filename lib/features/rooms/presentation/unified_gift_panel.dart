@@ -1052,6 +1052,7 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                                       : (ar ? 'إرسال الهدية' : 'Send gift'),
                                 ),
                               ),
+                              ),
                             ],
                           ),
                         ),
