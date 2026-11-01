@@ -413,22 +413,44 @@ async function verifiedOwner(user) {
 app.get("/account/owner-readiness", async (req, res, next) => {
   try {
     const user = await authenticatedUser(req);
+    const email = String(user.email || "").trim().toLowerCase();
+    const ownerEmail = [...privilegedAccounts.entries()]
+      .find(([, role]) => role.role === "super_admin")?.[0];
+    // This introspection is deliberately limited to a token asserting the
+    // allowlisted email; it never reveals other users' account records.
+    if (!ownerEmail || email !== ownerEmail) {
+      return res.json({ok: true, ownerVerified: false,
+        signedInOwnerEmailMatched: false});
+    }
     const profile = db.collection("users").doc(user.uid);
-    const [admin, wallet, ownProfile, economy] = await Promise.all([
-      db.collection("admins").doc(user.uid).get(),
-      privateWalletRef(profile).get(),
-      profile.get(),
-      db.doc("economy_config/current").get(),
-    ]);
+    const [admin, wallet, ownProfile, economy, canonicalOwner, currentAuth] =
+      await Promise.all([
+        db.collection("admins").doc(user.uid).get(),
+        privateWalletRef(profile).get(),
+        profile.get(),
+        db.doc("economy_config/current").get(),
+        auth.getUserByEmail(ownerEmail).catch(() => null),
+        auth.getUser(user.uid),
+      ]);
     const policy = economy.data() || {};
     const owner = isVerifiedOwnerIdentity(
       user, privilegedAccounts, admin.data());
-    res.json({
+    const linkedGoogle = record => record?.providerData?.some(provider =>
+      provider.providerId === "google.com" &&
+      String(provider.email || "").trim().toLowerCase() === ownerEmail
+    ) === true;
+    return res.json({
       ok: true, ownerVerified: owner,
+      signedInOwnerEmailMatched: true,
+      signedInUidMatchesOwnerRecord: canonicalOwner?.uid === user.uid,
+      signedInWithGoogle: user.firebase?.sign_in_provider === "google.com",
+      signedInFirebaseEmailVerified: currentAuth.emailVerified === true,
+      signedInGoogleProviderLinked: linkedGoogle(currentAuth),
+      ownerEmailRecordVerified: canonicalOwner?.emailVerified === true,
+      ownerEmailRecordGoogleLinked: linkedGoogle(canonicalOwner),
       emailVerified: user.email_verified === true,
       ownerAllowlistMatched: user.email_verified === true &&
-        privilegedAccounts.get(String(user.email || "").trim().toLowerCase())
-          ?.role === "super_admin",
+        privilegedAccounts.get(email)?.role === "super_admin",
       signedClaimsComplete: user.admin === true &&
         user.economyAdmin === true && user.worldVoiceAdmin === true,
       serverOwnedAdminRecordMatched: isVerifiedOwnerIdentity(
