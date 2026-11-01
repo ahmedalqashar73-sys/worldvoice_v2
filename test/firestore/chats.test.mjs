@@ -151,6 +151,43 @@ test('delivery rejects plaintext, impersonation, oversized chunks and blocked se
   await assertFails(setDoc(doc(dbFor('alice'), 'chats/chat001/delivery_queue/newDelivery'), data));
 });
 
+test('message privacy blocks incoming encrypted deliveries, not older conversations', async () => {
+  const {updateDoc} = await import('firebase/firestore');
+  await seedDeliveryKeys();
+  await env.withSecurityRulesDisabled(async ctx => {
+    await setDoc(doc(ctx.firestore(), 'users/bob'), {
+      receiveDirectMessages: false,
+    });
+  });
+  await assertSucceeds(getDoc(chat(dbFor('alice'))));
+  await assertFails(setDoc(delivery(dbFor('alice')), envelope()));
+
+  await env.withSecurityRulesDisabled(async ctx => {
+    await setDoc(doc(ctx.firestore(), 'users/bob'), {
+      receiveDirectMessages: true,
+    });
+  });
+  await assertSucceeds(setDoc(delivery(dbFor('alice')), envelope()));
+
+  await env.withSecurityRulesDisabled(async ctx => {
+    await setDoc(doc(ctx.firestore(), 'users/bob'), {
+      receiveDirectMessages: false,
+    });
+  });
+  await assertFails(updateDoc(delivery(dbFor('alice')), {
+    state: 'ready', updatedAt: serverTimestamp(),
+  }));
+
+  await env.withSecurityRulesDisabled(async ctx => {
+    await setDoc(doc(ctx.firestore(), 'users/bob'), {
+      receiveDirectMessages: true,
+    });
+  });
+  await assertSucceeds(updateDoc(delivery(dbFor('alice')), {
+    state: 'ready', updatedAt: serverTimestamp(),
+  }));
+});
+
 test('delivery identity is public but cannot be overwritten by another account', async () => {
   const key = {publicKey: 'A'.repeat(44), updatedAt: serverTimestamp()};
   await assertSucceeds(setDoc(doc(dbFor('alice'), 'chat_delivery_keys/alice'), key));
