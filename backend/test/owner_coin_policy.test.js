@@ -85,6 +85,29 @@ test("owner identity accepts only verified signed credentials", () => {
     active: true, role: "super_admin", uid: "trusted_uid",
     email: "different@example.com",
   }), false);
+  // The authenticated Firebase UID can be independently attested by a
+  // protected server-created super-admin record even if old Auth metadata
+  // left emailVerified unset. Mismatched UID/email and client flags fail.
+  assert.equal(isVerifiedOwnerIdentity({
+    uid: "trusted_uid", email: "trusted@example.com", email_verified: false,
+  }, allowed, {
+    active: true, role: "super_admin", uid: "trusted_uid",
+    email: "TRUSTED@example.com",
+  }), true);
+  for (const invalid of [
+    {active: false, role: "super_admin", uid: "trusted_uid", email: "trusted@example.com"},
+    {active: true, role: "super_admin", uid: "other_uid", email: "trusted@example.com"},
+    {active: true, role: "super_admin", uid: "trusted_uid", email: "different@example.com"},
+    {active: true, role: "admin", uid: "trusted_uid", email: "trusted@example.com"},
+  ]) {
+    assert.equal(isVerifiedOwnerIdentity({
+      uid: "trusted_uid", email: "trusted@example.com", email_verified: false,
+    }, allowed, invalid), false);
+  }
+  assert.equal(isVerifiedOwnerIdentity({
+    uid: "trusted_uid", email: "trusted@example.com", email_verified: false,
+    isAdmin: true,
+  }, allowed), false);
   assert.equal(isVerifiedOwnerIdentity(null, allowed), false);
 });
 
