@@ -8,6 +8,24 @@ import 'package:http/http.dart' as http;
 import '../data/room_shop_models.dart';
 import '../data/room_backend_config.dart';
 
+class ShopGiftRecipient {
+  const ShopGiftRecipient({required this.uid, required this.displayName,
+    this.username = '', this.customId = ''});
+
+  final String uid;
+  final String displayName;
+  final String username;
+  final String customId;
+
+  factory ShopGiftRecipient.fromJson(Map<String, dynamic> data) =>
+      ShopGiftRecipient(
+        uid: (data['uid'] ?? '').toString(),
+        displayName: (data['displayName'] ?? '').toString(),
+        username: (data['username'] ?? '').toString(),
+        customId: (data['customId'] ?? '').toString(),
+      );
+}
+
 class RoomShopService {
   final Map<String,String> _pendingKeys = <String,String>{};
 
@@ -203,14 +221,46 @@ class RoomShopService {
     );
   }
 
+  /// Always charge the catalog price; only the backend chooses the coin source.
+  /// null duration means permanent ownership for backgrounds and frames.
   Future<void> giftItem({
     required String itemId,
     required String recipientId,
-    bool adminGrant = false,
+    int? durationDays,
   }) => _post(
-    action: adminGrant ? 'admin-grant' : 'purchase',
-    body: {'itemId': itemId, 'recipientId': recipientId},
+    action: 'purchase',
+    body: {
+      'itemId': itemId,
+      'recipientId': recipientId,
+      if (durationDays != null) 'durationDays': durationDays,
+    },
   );
+
+  Future<List<ShopGiftRecipient>> searchGiftRecipients(String term) async {
+    final user = _user;
+    if (user == null || !isConfigured) {
+      throw StateError('Sign in and store connection required.');
+    }
+    final token = await user.getIdToken();
+    if (token == null || token.isEmpty) {
+      throw StateError('Missing authentication token.');
+    }
+    final query = term.trim();
+    final uri = Uri.parse('$endpoint/recipient-search')
+        .replace(queryParameters: {'q': query});
+    final response = await http.get(uri, headers: {
+      'Authorization': 'Bearer $token',
+    }).timeout(const Duration(seconds: 25));
+    if (response.statusCode != 200) {
+      throw StateError('Cannot search gift recipients.');
+    }
+    final payload = jsonDecode(response.body) as Map<String, dynamic>;
+    final results = (payload['users'] as List<dynamic>? ?? const []);
+    return results.whereType<Map<String, dynamic>>()
+        .map(ShopGiftRecipient.fromJson)
+        .where((value) => value.uid.isNotEmpty)
+        .toList(growable: false);
+  }
 
   Future<void> claimReward({
     required String rewardId,
@@ -245,7 +295,7 @@ class RoomShopService {
     final base = endpoint.endsWith('/')
         ? endpoint.substring(0, endpoint.length - 1)
         : endpoint;
-    final keyId = '${body['adminGrant'] == true}:$action:${body['itemId'] ?? ''}:${body['recipientId'] ?? ''}:${body['rewardId'] ?? ''}';
+    final keyId = '${body['adminGrant'] == true}:$action:${body['itemId'] ?? ''}:${body['recipientId'] ?? ''}:${body['rewardId'] ?? ''}:${body['durationDays'] ?? 'permanent'}';
     final requestKey = _pendingKeys.putIfAbsent(keyId, _newRequestKey);
     final response = await http.post(
       Uri.parse('$base/$action'),
