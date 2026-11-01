@@ -100,10 +100,19 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                             (snapshot.data?.data()?['coins'] as num?)
                                 ?.toInt() ??
                             0;
+                        final adminCoins =
+                            (snapshot.data?.data()?['adminCoins'] as num?)
+                                ?.toInt() ?? 0;
+                        final purchasedCoins =
+                            (coins - adminCoins).clamp(0, coins);
                         return Text(
-                          isArabic
-                              ? 'رصيدك: $coins عملة'
-                              : 'Balance: $coins coins',
+                          adminCoins > 0
+                              ? (isArabic
+                                  ? 'الرصيد: $coins 🪙 • إدارية: $adminCoins • أخرى: $purchasedCoins'
+                                  : 'Coins: $coins • Admin: $adminCoins • Other: $purchasedCoins')
+                              : (isArabic
+                                  ? 'رصيدك: $coins عملة'
+                                  : 'Balance: $coins coins'),
                         );
                       },
                     ),
