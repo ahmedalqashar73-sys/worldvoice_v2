@@ -2609,6 +2609,11 @@ async function logOwnerWalletReadiness() {
     console.info("WorldVoice owner readiness:", JSON.stringify({
       ownerAuthRecordExists: true,
       ownerEmailVerified: identity.emailVerified === true,
+      googleProviderLinked: identity.providerData?.some(provider =>
+        provider.providerId === "google.com") === true,
+      googleProviderEmailMatched: identity.providerData?.some(provider =>
+        provider.providerId === "google.com" &&
+        String(provider.email || "").trim().toLowerCase() === ownerEmail) === true,
       ownerAuthDisabled: identity.disabled === true,
       signedClaimsComplete: identity.customClaims?.admin === true &&
         identity.customClaims?.economyAdmin === true &&
