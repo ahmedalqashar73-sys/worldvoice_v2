@@ -9,7 +9,7 @@ import '../services/room_shop_service.dart';
 Future<ShopGiftRecipient?> pickStoreGiftRecipient(
   BuildContext context, RoomShopService shop, bool ar,
 ) async {
-  final isOwner = await shop.adminAccess;
+  final isOwner = await shop.ownerAccess;
   if (!context.mounted) return null;
   final currentUser = FirebaseAuth.instance.currentUser;
   if (currentUser == null) return null;
