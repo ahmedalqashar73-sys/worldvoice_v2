@@ -17,7 +17,7 @@ export function registerGiftSendRoutes({app, db, authenticatedUser, validChannel
 const send = bondOnly => async (req, res, next) => {
   try {
     const sender = await authenticatedUser(req);
-    const senderIsOwner = isVerifiedOwner(sender);
+    const senderIsOwner = await isVerifiedOwner(sender);
     const {recipientId, giftId, type} = req.body || {};
     const context = bondOnly ? "worldbond" : req.body?.context;
     const contextId = bondOnly && BOND_TYPES.includes(type) && typeof recipientId === "string"
