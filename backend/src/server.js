@@ -37,7 +37,8 @@ import {registerWorldBondRoutes} from "./world_bond_routes.js";
 import {registerStaleRoomRoutes} from "./room_stale_reconciliation.js";
 import {privateWalletRef, requirePrivateWallet} from "./wallet_store.js";
 import {OWNER_MONTHLY_COINS, ownerMonthInRiyadh, splitOwnerCoinSpend,
-  cosmeticGiftPrice} from "./owner_coin_policy.js";
+  cosmeticGiftPrice, isVerifiedOwnerIdentity,
+  ownerWalletFromLegacyProfile} from "./owner_coin_policy.js";
 import {requireRoomTeacherVip} from "./vip_feature_policy.js";
 import {builtInChatBubble, chatBubbleInventoryId,
   vipChatBubbles, vipBubbleAllowed} from "./chat_bubble_policy.js";
@@ -401,11 +402,12 @@ app.post("/account/sync-entitlements", async (req, res, next) => {
   try {
     const user = await authenticatedUser(req);
     const email = String(user.email || "").trim().toLowerCase();
-    const privileged = privilegedAccounts.get(email);
-
-    if (!privileged || user.email_verified !== true) {
-      return res.json({ok: true, privileged: false});
+    if (!isVerifiedOwnerIdentity(user, privilegedAccounts)) {
+      return res.json({
+        ok: true, privileged: false, reason: "OWNER_IDENTITY_NOT_VERIFIED",
+      });
     }
+    const privileged = {role: "super_admin"};
 
     const vipExpiresAt = Timestamp.fromDate(
       new Date("2099-12-31T23:59:59.000Z"),
@@ -447,15 +449,41 @@ app.post("/account/sync-entitlements", async (req, res, next) => {
     const grantRef = db.collection("economy_audit")
       .doc("owner_monthly_" + user.uid + "_" + month);
     const grant = await db.runTransaction(async tx => {
-      const [walletSnap, existing] = await Promise.all([
-        tx.get(walletRef), tx.get(ledgerRef),
+      // Read the current profile and wallet, and the stable month ledger,
+      // before writing. Never create a new wallet over any older transaction.
+      const [profileSnap, walletSnap, existing] = await Promise.all([
+        tx.get(profileRef), tx.get(walletRef), tx.get(ledgerRef),
       ]);
-      if (existing.exists) return {creditedCoins: 0, alreadyCredited: true};
-      requirePrivateWallet(walletSnap);
-      const wallet = walletSnap.data() || {};
+      if (existing.exists) {
+        requirePrivateWallet(walletSnap);
+        return {creditedCoins: 0, alreadyCredited: true};
+      }
+      if (!profileSnap.exists) {
+        throw Object.assign(new Error("Owner profile is unavailable."),
+          {status: 409});
+      }
+
+      let wallet;
+      const bootstrap = !walletSnap.exists;
+      if (bootstrap) {
+        // A missing wallet with past monetary operations is an incident,
+        // not an empty account. Fail closed instead of erasing balances.
+        const previous = await tx.get(
+          profileRef.collection("wallet_transactions").limit(1));
+        if (!previous.empty) {
+          throw Object.assign(new Error(
+            "Owner wallet history requires reconciliation before setup."),
+          {status: 409});
+        }
+        wallet = ownerWalletFromLegacyProfile(profileSnap.data() || {});
+      } else {
+        wallet = requirePrivateWallet(walletSnap);
+      }
+
       if (wallet.walletFrozen === true ||
           Number(wallet.walletDebtCoins || 0) > 0) {
-        throw Object.assign(new Error("Wallet requires payment review."), {status: 423});
+        throw Object.assign(new Error("Wallet requires payment review."),
+          {status: 423});
       }
       const before = Number(wallet.coins);
       const beforeAdmin = Number(wallet.adminCoins ?? 0);
@@ -463,14 +491,25 @@ app.post("/account/sync-entitlements", async (req, res, next) => {
           before < 0 || beforeAdmin < 0 || beforeAdmin > before ||
           !Number.isSafeInteger(before + OWNER_MONTHLY_COINS) ||
           !Number.isSafeInteger(beforeAdmin + OWNER_MONTHLY_COINS)) {
-        throw Object.assign(new Error("Owner wallet requires reconciliation."), {status: 409});
+        throw Object.assign(new Error(
+          "Owner wallet requires reconciliation."), {status: 409});
       }
-      tx.update(walletRef, {
+      const walletChanges = {
         coins: before + OWNER_MONTHLY_COINS,
         adminCoins: beforeAdmin + OWNER_MONTHLY_COINS,
         lastOwnerCoinGrantMonth: month,
         updatedAt: FieldValue.serverTimestamp(),
-      });
+      };
+      if (bootstrap) {
+        tx.create(walletRef, {
+          ...wallet,
+          ...walletChanges,
+          migrationSource: "owner_verified_sync",
+          stagedAt: FieldValue.serverTimestamp(),
+        });
+      } else {
+        tx.update(walletRef, walletChanges);
+      }
       const event = {
         type: "owner_monthly_admin_coins", ownerId: user.uid, month,
         amount: OWNER_MONTHLY_COINS, currency: "coins",
@@ -496,7 +535,7 @@ app.post("/admin/rooms/grant-access", async (req, res, next) => {
   try {
     const user = await authenticatedUser(req);
     const email = String(user.email || "").trim().toLowerCase();
-    if (!privilegedAccounts.has(email)) {
+    if (!isVerifiedOwnerIdentity(user, privilegedAccounts)) {
       return res.status(403).json({error: "Admin access required."});
     }
 
@@ -1627,9 +1666,7 @@ app.get("/store/access", async (req, res, next) => {
   try {
     const user = await authenticatedUser(req);
     const admin = await db.collection("admins").doc(user.uid).get();
-    const isOwner = user.email_verified === true &&
-      privilegedAccounts.get(String(user.email || "").trim().toLowerCase())
-        ?.role === "super_admin";
+    const isOwner = isVerifiedOwnerIdentity(user, privilegedAccounts);
     res.json({ok: true, canManageStore: canManageStore(admin.data()),
       isOwner});
   } catch (error) { next(error); }
@@ -1658,9 +1695,7 @@ async function sendCosmeticGiftPush(uid, itemId) {
 app.get("/store/recipient-search", async (req, res, next) => {
   try {
     const sender = await authenticatedUser(req);
-    if (sender.email_verified !== true ||
-        privilegedAccounts.get(String(sender.email || "").trim().toLowerCase())
-          ?.role !== "super_admin") {
+    if (!isVerifiedOwnerIdentity(sender, privilegedAccounts)) {
       return res.status(403).json({error: "Owner access required."});
     }
     const query = String(req.query.q || "").trim();
@@ -1701,9 +1736,7 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
     const requestedRecipient = String(req.body?.recipientId || "").trim();
     const recipientId = requestedRecipient || sender.uid;
     const gifting = recipientId !== sender.uid;
-    const isVerifiedOwner = sender.email_verified === true &&
-      privilegedAccounts.get(String(sender.email || "").trim().toLowerCase())
-        ?.role === "super_admin";
+    const isVerifiedOwner = isVerifiedOwnerIdentity(sender, privilegedAccounts);
     const requestedDuration = req.body?.durationDays;
     const key = String(req.headers["idempotency-key"] || "").trim();
     if (!/^(background|frame|entrance|vip|bubble)__[A-Za-z0-9_-]{1,80}$/.test(itemId) ||
@@ -2216,15 +2249,11 @@ app.post("/web/checkout", async (req, res, next) => {
 
 registerGiftSendRoutes({
   app, db, authenticatedUser, validChannelName,
-  isVerifiedOwner: token => token.email_verified === true &&
-    privilegedAccounts.get(String(token.email || "").trim().toLowerCase())
-      ?.role === "super_admin",
+  isVerifiedOwner: token => isVerifiedOwnerIdentity(token, privilegedAccounts),
 });
 registerOwnerDirectGiftRoutes({
   app, db, authenticatedUser,
-  isVerifiedOwner: token => token.email_verified === true &&
-    privilegedAccounts.get(String(token.email || "").trim().toLowerCase())
-      ?.role === "super_admin",
+  isVerifiedOwner: token => isVerifiedOwnerIdentity(token, privilegedAccounts),
   notifyGift: sendCosmeticGiftPush,
 });
 
