@@ -3,6 +3,7 @@ import 'member_badges.dart';
 import '../../engagement/presentation/creative_progress_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../auth/services/auth_service.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/localization/app_strings.dart';
@@ -409,6 +410,51 @@ class UserProfileScreen extends StatelessWidget {
                           );
                         },
                       ),
+                      if (data['isAdmin'] == true)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: TextButton.icon(
+                            key: const ValueKey('owner-monthly-coin-sync'),
+                            icon: const Icon(Icons.refresh_rounded),
+                            label: Text(code == 'ar'
+                                ? 'تحديث مكافأة المالك الشهرية'
+                                : 'Refresh monthly owner coins'),
+                            onPressed: () async {
+                              String message;
+                              try {
+                                final result =
+                                    await AuthService.syncOwnerMonthlyCoinsNow();
+                                final credited =
+                                    (result['creditedCoins'] as num?)?.toInt() ?? 0;
+                                if (result['privileged'] != true) {
+                                  message = code == 'ar'
+                                      ? 'هذا الحساب غير موثق كحساب المالك.'
+                                      : 'This account is not verified as the owner.';
+                                } else if (credited > 0) {
+                                  message = code == 'ar'
+                                      ? 'أُضيف $credited كوينز إلى محفظتك الخاصة.'
+                                      : '$credited coins credited to your private wallet.';
+                                } else if (result['alreadyCredited'] == true) {
+                                  message = code == 'ar'
+                                      ? 'تم صرف مكافأة هذا الشهر مسبقًا.'
+                                      : 'This month\'s owner reward was already credited.';
+                                } else {
+                                  message = code == 'ar'
+                                      ? 'اكتملت المزامنة دون إضافة رصيد جديد.'
+                                      : 'Sync completed without new coins.';
+                                }
+                              } catch (error) {
+                                message = code == 'ar'
+                                    ? 'فشلت مزامنة مكافأة المالك: $error'
+                                    : 'Owner reward sync failed: $error';
+                              }
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(message)),
+                              );
+                            },
+                          ),
+                        ),
                     ],
                   ),
                 ),
