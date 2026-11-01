@@ -7,6 +7,7 @@ import '../services/room_shop_service.dart';
 import '../services/vip_room_features.dart';
 import 'chat_bubble_frame.dart';
 import 'room_coin_store_sheet.dart';
+import 'store_gift_options.dart';
 
 /// A section of the existing WorldVoice backgrounds/frames shopping center.
 /// Server, never the device, charges coins, owns inventory and validates equip.
@@ -107,35 +108,18 @@ class _BubbleShopState extends State<WorldVoiceChatBubbleShopSheet> {
 
   Future<void> _gift(ChatBubbleDesign design) async {
     if (_busy || design.isVip) return;
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) return;
     try {
-      final contacts = await FirebaseFirestore.instance.collection('users')
-        .doc(uid).collection('following').get();
-      if (!mounted) return;
-      final recipient = await showDialog<QueryDocumentSnapshot<Map<String, dynamic>>>(
-        context: context,
-        builder: (dialog) => SimpleDialog(
-          title: Text(_ar ? 'اختر صديقًا' : 'Choose a friend'),
-          children: contacts.docs.isEmpty
-            ? [Padding(padding: const EdgeInsets.all(15),
-                child: Text(_ar ? 'لا يوجد أصدقاء' : 'No friends'))]
-            : contacts.docs.map((doc) => SimpleDialogOption(
-                onPressed: () => Navigator.pop(dialog, doc),
-                child: Text((doc.data()['displayName'] ?? doc.id).toString()),
-              )).toList(),
-        ),
-      );
-      if (recipient == null || !mounted ||
+      final person = await pickStoreGiftRecipient(context, _shop, _ar);
+      if (person == null || !mounted ||
           !await _confirm(design, recipient:
-            (recipient.data()['displayName'] ?? recipient.id).toString())) {
+              '${person.displayName} • ${person.username.isEmpty ? person.uid : '@${person.username}'}')) {
         return;
       }
       setState(() => _busy = true);
       await _shop.giftItem(
-        itemId: design.storeId(_days), recipientId: recipient.id);
-      _notice(_ar ? 'تم الإهداء؛ بدأت الصلاحية فور الوصول.'
-        : 'Gift delivered; validity starts now.');
+        itemId: design.storeId(_days), recipientId: person.uid);
+      _notice(_ar ? 'تم إهداء الفقاعة مباشرة؛ بدأت الصلاحية عند التسليم.'
+        : 'Bubble delivered immediately; validity starts now.');
     } catch (error) { await _failed(error); }
     finally { if (mounted) setState(() => _busy = false); }
   }
