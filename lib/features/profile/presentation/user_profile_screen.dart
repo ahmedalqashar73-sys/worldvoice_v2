@@ -501,6 +501,59 @@ class UserProfileScreen extends StatelessWidget {
                             },
                           ),
                         ),
+                      if (data['isAdmin'] == true)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: TextButton.icon(
+                            key: const ValueKey('owner-verify-google-proof'),
+                            icon: const Icon(Icons.verified_user_outlined),
+                            label: Text(code == 'ar'
+                                ? 'إثبات ملكية حساب المالك عبر Google'
+                                : 'Verify owner identity with Google'),
+                            onPressed: () async {
+                              String message;
+                              try {
+                                await AuthService.verifyOwnerWithGoogleNow();
+                                final result =
+                                    await AuthService.syncOwnerMonthlyCoinsNow();
+                                final credited =
+                                    (result['creditedCoins'] as num?)?.toInt() ?? 0;
+                                message = code == 'ar'
+                                    ? credited > 0
+                                        ? 'تم توثيق حسابك وإضافة $credited كوينز لهذا الشهر.'
+                                        : result['alreadyCredited'] == true
+                                            ? 'تم توثيق حسابك؛ مكافأة الشهر مصروفة مسبقًا.'
+                                            : 'تم توثيق حسابك. تحقق من حالة المحفظة.'
+                                    : credited > 0
+                                        ? 'Owner verified; $credited monthly coins credited.'
+                                        : result['alreadyCredited'] == true
+                                            ? 'Owner verified; monthly grant was already credited.'
+                                            : 'Owner verified. Check wallet readiness.';
+                              } catch (error) {
+                                message = code == 'ar'
+                                    ? 'تعذر إثبات حساب المالك أو صرف المكافأة: $error'
+                                    : 'Owner verification or reward failed: $error';
+                              }
+                              if (!context.mounted) return;
+                              await showDialog<void>(
+                                context: context,
+                                builder: (dialogContext) => AlertDialog(
+                                  title: Text(code == 'ar'
+                                      ? 'نتيجة إثبات حساب المالك'
+                                      : 'Owner verification result'),
+                                  content: Text(message),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(dialogContext).pop(),
+                                      child: Text(code == 'ar' ? 'إغلاق' : 'Close'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
                     ],
                   ),
                 ),
