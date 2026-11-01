@@ -1,9 +1,6 @@
-import 'dart:convert';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
 import '../../../core/localization/app_strings.dart';
 import '../../../core/theme/worldvoice_appearance.dart';
@@ -12,49 +9,8 @@ import '../../../core/localization/locale_controller.dart';
 import '../../../core/localization/supported_language.dart';
 import '../../auth/services/auth_service.dart';
 import 'vip_membership_screen.dart';
+import 'message_settings_screen.dart';
 import '../../onboarding/presentation/language/language_selection_screen.dart';
-
-const String _settingsBackend =
-    String.fromEnvironment('WORLDVOICE_ECONOMY_ENDPOINT');
-
-Future<void> _setMessageApprovalRequired(bool value) async {
-  final user = FirebaseAuth.instance.currentUser;
-  if (user == null) throw StateError('Sign in first.');
-  final root = Uri.tryParse(_settingsBackend.trim());
-  if (root == null ||
-      root.scheme != 'https' ||
-      !root.hasAuthority ||
-      root.userInfo.isNotEmpty) {
-    throw StateError('WorldVoice backend is not configured.');
-  }
-  final token = await user.getIdToken(true);
-  if (token == null || token.isEmpty) {
-    throw StateError('Could not authenticate your privacy setting.');
-  }
-  final basePath = root.path.endsWith('/')
-      ? root.path.substring(0, root.path.length - 1)
-      : root.path;
-  final response = await http.post(
-    root.replace(path: '$basePath/chat/privacy'),
-    headers: {
-      'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json',
-    },
-    body: jsonEncode({'messageApprovalRequired': value}),
-  );
-  Map<String, dynamic> body = <String, dynamic>{};
-  try {
-    final raw = jsonDecode(response.body);
-    if (raw is Map<String, dynamic>) body = raw;
-  } catch (_) {}
-  if (response.statusCode < 200 ||
-      response.statusCode >= 300 ||
-      body['ok'] != true) {
-    throw StateError(
-      body['error']?.toString() ?? 'Could not update message privacy.',
-    );
-  }
-}
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({
@@ -163,6 +119,23 @@ class SettingsScreen extends StatelessWidget {
               ),
             ),
           ),
+          Card(
+            child: ListTile(
+              key: const ValueKey('settings-message-settings-entry'),
+              leading: const Icon(Icons.chat_bubble_outline_rounded),
+              title: Text(code == 'ar' ? 'إعدادات الرسائل' : 'Message settings'),
+              subtitle: Text(code == 'ar'
+                  ? 'منع الرسائل، الحالة، الإشعارات، والأرشيف'
+                  : 'Message privacy, online status, notifications and archive'),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => MessageSettingsScreen(
+                    localeController: localeController),
+                ),
+              ),
+            ),
+          ),
           if (uid != null)
             StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
               stream: FirebaseFirestore.instance
@@ -175,8 +148,6 @@ class SettingsScreen extends StatelessWidget {
                 final isVip = data['isVip'] == true;
                 final hideVisits = data['hideVisitLog'] == true;
                 final hideCity = data['hideCity'] == true;
-                final messageApprovalRequired =
-                    data['messageApprovalRequired'] == true;
 
                 return Column(
                   children: [
@@ -197,39 +168,6 @@ class SettingsScreen extends StatelessWidget {
                               .set({
                             'hideCity': value,
                           }, SetOptions(merge: true));
-                        },
-                      ),
-                    ),
-                    Card(
-                      child: SwitchListTile(
-                        secondary:
-                            const Icon(Icons.shield_outlined),
-                        title: Text(
-                          code == 'ar'
-                              ? 'الموافقة قبل الرسائل'
-                              : 'Approve new messages',
-                        ),
-                        subtitle: Text(
-                          code == 'ar'
-                              ? 'إذا فعلتها، أي شخص جديد يرسل لك طلب أولًا، وما يقدر يراسلك إلا بعد موافقتك.'
-                              : 'New people must send a request first. They can message you only after you approve.',
-                        ),
-                        value: messageApprovalRequired,
-                        onChanged: (value) async {
-                          try {
-                            await _setMessageApprovalRequired(value);
-                          } catch (error) {
-                            if (!context.mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  error
-                                      .toString()
-                                      .replaceFirst('Bad state: ', ''),
-                                ),
-                              ),
-                            );
-                          }
                         },
                       ),
                     ),
