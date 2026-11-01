@@ -421,6 +421,7 @@ class UserProfileScreen extends StatelessWidget {
                                 : 'Refresh monthly owner coins'),
                             onPressed: () async {
                               String message;
+                              Map<String, dynamic>? diagnostics;
                               try {
                                 final result =
                                     await AuthService.syncOwnerMonthlyCoinsNow();
@@ -428,8 +429,8 @@ class UserProfileScreen extends StatelessWidget {
                                     (result['creditedCoins'] as num?)?.toInt() ?? 0;
                                 if (result['privileged'] != true) {
                                   message = code == 'ar'
-                                      ? 'هذا الحساب غير موثق كحساب المالك.'
-                                      : 'This account is not verified as the owner.';
+                                      ? 'حساب Google الحالي لم يجتز تحقق المالك على الخادم.'
+                                      : 'This Google account did not pass server owner verification.';
                                 } else if (credited > 0) {
                                   message = code == 'ar'
                                       ? 'أُضيف $credited كوينز إلى محفظتك الخاصة.'
@@ -448,9 +449,48 @@ class UserProfileScreen extends StatelessWidget {
                                     ? 'فشلت مزامنة مكافأة المالك: $error'
                                     : 'Owner reward sync failed: $error';
                               }
+                              try {
+                                diagnostics = await AuthService.ownerReadinessNow();
+                              } catch (error) {
+                                message = '$message\n$error';
+                              }
                               if (!context.mounted) return;
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(message)),
+                              final details = diagnostics;
+                              final ar = code == 'ar';
+                              String flag(bool value) => value
+                                  ? (ar ? 'نعم' : 'Yes')
+                                  : (ar ? 'لا' : 'No');
+                              final diagnosticText = details == null
+                                  ? ''
+                                  : [
+                                      '${ar ? 'بريد Google موثّق' : 'Verified Google email'}: ${flag(details['emailVerified'] == true)}',
+                                      '${ar ? 'صلاحيات المالك موقّعة' : 'Signed owner claims'}: ${flag(details['signedClaimsComplete'] == true)}',
+                                      '${ar ? 'سجل الإدارة المحمي مطابق' : 'Trusted admin record'}: ${flag(details['serverOwnedAdminRecordMatched'] == true)}',
+                                      '${ar ? 'البريد معتمد للمالك' : 'Owner email allowlisted'}: ${flag(details['ownerAllowlistMatched'] == true)}',
+                                      '${ar ? 'المحفظة الخاصة موجودة' : 'Private wallet exists'}: ${flag(details['privateWalletExists'] == true)}',
+                                      '${ar ? 'الاقتصاد مفعّل' : 'Economy enabled'}: ${flag(details['economyEnabled'] == true)}',
+                                      '${ar ? 'الانتقال للمحفظة معتمد' : 'Wallet cutover approved'}: ${flag(details['privateWalletCutoverVerified'] == true)}',
+                                      '${ar ? 'صلاحيات الملف العام معتمدة' : 'Profile rules approved'}: ${flag(details['publicProfileRulesVerified'] == true)}',
+                                    ].join('\n');
+                              await showDialog<void>(
+                                context: context,
+                                builder: (dialogContext) => AlertDialog(
+                                  title: Text(ar
+                                      ? 'حالة مكافأة المالك والمحفظة'
+                                      : 'Owner coin and wallet status'),
+                                  content: SingleChildScrollView(
+                                    child: Text(diagnosticText.isEmpty
+                                        ? message
+                                        : '$message\n\n$diagnosticText'),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(dialogContext).pop(),
+                                      child: Text(ar ? 'إغلاق' : 'Close'),
+                                    ),
+                                  ],
+                                ),
                               );
                             },
                           ),
