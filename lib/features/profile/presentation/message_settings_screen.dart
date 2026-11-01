@@ -145,9 +145,13 @@ class MessageSettingsScreen extends StatelessWidget {
                         : 'View or restore archived chats without deleting messages.'),
                     trailing: const Icon(Icons.chevron_right_rounded),
                     onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(builder: (_) => ChatScreen(
-                        localeController: localeController,
-                        showArchived: true,
+                      MaterialPageRoute<void>(builder: (_) => Scaffold(
+                        appBar: AppBar(title: Text(ar
+                            ? 'أرشيف المحادثات' : 'Archived conversations')),
+                        body: ChatScreen(
+                          localeController: localeController,
+                          showArchived: true,
+                        ),
                       )),
                     ),
                   )),
