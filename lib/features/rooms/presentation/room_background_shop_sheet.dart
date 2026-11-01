@@ -11,6 +11,7 @@ import '../services/room_feature_service.dart';
 import '../services/room_shop_service.dart';
 import 'room_background_atlas.dart';
 import 'room_coin_store_sheet.dart';
+import 'store_gift_options.dart';
 import 'chat_bubble_shop_sheet.dart';
 import '../services/room_coin_purchase_service.dart';
 
@@ -294,86 +295,45 @@ class RoomBackgroundShopSheet extends StatelessWidget {
   }
 
   Future<void> _giftBackground(
-    BuildContext context,
-    RoomBackgroundCatalogItem item,
-    bool isArabic,
+    BuildContext context, RoomBackgroundCatalogItem item, bool isArabic,
   ) async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-    final adminGrant = await _shop.adminAccess;
     try {
-      final contacts = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .collection('following')
-          .get();
-      if (!context.mounted) return;
-      final recipient = await showDialog<String>(
-        context: context,
-        builder: (dialog) => SimpleDialog(
-          title: Text(
-            isArabic ? 'إهداء الخلفية لصديق' : 'Send background to a friend',
-          ),
-          children: [
-            if (contacts.docs.isEmpty)
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  isArabic ? 'لا يوجد أصدقاء بعد' : 'No followed friends yet',
-                ),
-              ),
-            for (final contact in contacts.docs)
-              SimpleDialogOption(
-                onPressed: () => Navigator.pop(dialog, contact.id),
-                child: Text(
-                  contact.data()['displayName']?.toString() ?? contact.id,
-                ),
-              ),
-          ],
-        ),
-      );
-      if (recipient == null || !context.mounted) return;
+      final person = await pickStoreGiftRecipient(context, _shop, isArabic);
+      if (person == null || !context.mounted) return;
+      final days = await pickCosmeticGiftDuration(
+        context, isArabic, item.priceCoins);
+      if (days == null || !context.mounted) return;
+      const percentages = <int, int>{3: 15, 7: 25, 10: 35,
+        15: 45, 30: 60, 0: 100};
+      final cost = ((item.priceCoins * percentages[days]! + 499) ~/ 500) * 5;
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (dialog) => AlertDialog(
-          title: Text(isArabic ? 'تأكيد الإهداء' : 'Confirm send'),
-          content: Text(
-            adminGrant
-                ? (isArabic
-                      ? 'إهداء إداري دون خصم عملات'
-                      : 'Admin gift — no coins charged')
-                : '${item.localizedName(isArabic)} • ${item.priceCoins} coins',
-          ),
+          title: Text(isArabic ? 'تأكيد الإهداء' : 'Confirm gift'),
+          content: Text('${item.localizedName(isArabic)}\n'
+            '${person.displayName} • ${person.username.isEmpty ? person.uid : '@${person.username}'}\n'
+            '${days == 0 ? (isArabic ? 'دائم' : 'Permanent') : '$days days'} • $cost 🪙\n'
+            '${isArabic ? 'تصل مباشرة وتبدأ المدة عند التسليم.' : 'Delivered immediately. Time starts on delivery.'}'),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialog, false),
-              child: Text(isArabic ? 'إلغاء' : 'Cancel'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(dialog, true),
-              child: Text(isArabic ? 'إرسال' : 'Send'),
-            ),
+            TextButton(onPressed: () => Navigator.pop(dialog, false),
+              child: Text(isArabic ? 'إلغاء' : 'Cancel')),
+            FilledButton(onPressed: () => Navigator.pop(dialog, true),
+              child: Text(isArabic ? 'إرسال' : 'Send')),
           ],
         ),
       );
       if (confirmed != true) return;
       await _shop.giftItem(
-        itemId: item.id,
-        recipientId: recipient,
-        adminGrant: adminGrant,
-      );
+        itemId: item.id, recipientId: person.uid,
+        durationDays: days == 0 ? null : days);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(isArabic ? 'تم إرسال الخلفية' : 'Background sent'),
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(isArabic ? 'تم تسليم الخلفية' : 'Background delivered')));
       }
     } catch (error) {
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error.toString())));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(error.toString())));
       }
     }
   }
@@ -746,89 +706,50 @@ class _OtherStoreTab extends StatelessWidget {
   }
 
   Future<void> _gift(BuildContext context, RoomStoreItem item) async {
-    final adminGrant = type == 'frame' && await shop.adminAccess;
-    if (!context.mounted) return;
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-    final contacts = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .collection('following')
-        .get();
-    if (!context.mounted) return;
-    final toId = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) => SimpleDialog(
-        title: Text(isArabic ? 'اختر صديقًا' : 'Choose a friend'),
-        children: contacts.docs.isEmpty
-            ? [
-                Padding(
-                  padding: const EdgeInsets.all(18),
-                  child: Text(isArabic ? 'لا يوجد أصدقاء' : 'No friends found'),
-                ),
-              ]
-            : contacts.docs
-                  .map(
-                    (contact) => SimpleDialogOption(
-                      onPressed: () => Navigator.pop(dialogContext, contact.id),
-                      child: Text(
-                        contact.data()['displayName']?.toString() ?? contact.id,
-                      ),
-                    ),
-                  )
-                  .toList(),
-      ),
-    );
-    if (toId == null || !context.mounted) return;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(isArabic ? 'تأكيد الإهداء' : 'Confirm gift'),
-        content: Text(
-          adminGrant
-              ? (isArabic
-                    ? 'إهداء إداري دون خصم عملات'
-                    : 'Admin gift — no coins charged')
-              : '${item.name} • ${item.priceCoins} Coins',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text(isArabic ? 'إلغاء' : 'Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text(isArabic ? 'إهداء' : 'Gift'),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !context.mounted) return;
     try {
-      await shop.giftItem(
-        itemId: item.id,
-        recipientId: toId,
-        adminGrant: adminGrant,
+      final person = await pickStoreGiftRecipient(context, shop, isArabic);
+      if (person == null || !context.mounted) return;
+      int? duration;
+      if (type == 'frame' || type == 'background') {
+        duration = await pickCosmeticGiftDuration(
+          context, isArabic, item.priceCoins);
+        if (duration == null || !context.mounted) return;
+      }
+      const rates = <int, int>{3: 15, 7: 25, 10: 35,
+        15: 45, 30: 60, 0: 100};
+      final price = duration == null ? item.priceCoins :
+          ((item.priceCoins * rates[duration]! + 499) ~/ 500) * 5;
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialog) => AlertDialog(
+          title: Text(isArabic ? 'تأكيد الإهداء' : 'Confirm gift'),
+          content: Text('${item.name}\n${person.displayName} '
+              '(${person.username.isEmpty ? person.uid : '@${person.username}'})\n'
+              '${duration == 0 ? (isArabic ? 'دائم' : 'Permanent') : duration == null ? '' : '$duration days'} • $price 🪙'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(dialog, false),
+              child: Text(isArabic ? 'إلغاء' : 'Cancel')),
+            FilledButton(onPressed: () => Navigator.pop(dialog, true),
+              child: Text(isArabic ? 'إهداء' : 'Gift')),
+          ],
+        ),
       );
+      if (confirmed != true) return;
+      await shop.giftItem(itemId: item.id, recipientId: person.uid,
+        durationDays: duration == 0 ? null : duration);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(isArabic ? 'تم إرسال الإهداء' : 'Gift delivered'),
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(isArabic ? 'تم تسليم الإهداء' : 'Gift delivered')));
       }
     } catch (error) {
       if (!context.mounted) return;
       if (error.toString().contains('NOT_ENOUGH_COINS')) {
         await showModalBottomSheet<void>(
-          context: context,
-          isScrollControlled: true,
-          builder: (_) => const RoomCoinStoreSheet(),
-        );
+          context: context, isScrollControlled: true,
+          builder: (_) => const RoomCoinStoreSheet());
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error.toString())));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.toString())));
       }
     }
   }
