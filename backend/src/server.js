@@ -11,6 +11,7 @@ import {
 import express from "express";
 import { applicationDefault, cert, getApps, initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
+import {getMessaging} from "firebase-admin/messaging";
 import { FieldValue, Timestamp, getFirestore } from "firebase-admin/firestore";
 import { google } from "googleapis";
 import OpenAI, { toFile } from "openai";
@@ -1630,6 +1631,25 @@ app.get("/store/access", async (req, res, next) => {
 });
 
 // The verified owner may gift cosmetics to any account by public name or ID.
+async function sendCosmeticGiftPush(uid, itemId) {
+  const devices = await db.collection("users").doc(uid)
+    .collection("notification_devices").limit(5).get();
+  for (const device of devices.docs) {
+    const token = String(device.data()?.token || "").trim();
+    if (!token) continue;
+    try {
+      await getMessaging().send({
+        token,
+        notification: {title: "WorldVoice",
+          body: "🎁 وصلك إهداء جديد! افتح متجر المظهر لرؤية مقتنياتك."},
+        data: {type: "store_gift", itemId: String(itemId).slice(0, 100)},
+      });
+    } catch (_) {
+      // Missing/stale device tokens must not roll back successful gifting.
+    }
+  }
+}
+
 app.get("/store/recipient-search", async (req, res, next) => {
   try {
     const sender = await authenticatedUser(req);
@@ -1805,7 +1825,7 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
       }
       const policy = requireLiveEconomy(configSnap.data());
       requirePrivateWallet(payerSnap);
-      if (gifting) requirePrivateWallet(snaps[8]);
+      if (gifting && item.type === "vip") requirePrivateWallet(snaps[8]);
       if (!payerProfileSnap.exists ||
           giftProgress(payerSnap.data()).level <
           Number(item.requiredGiftLevel || 0) ||
@@ -1816,6 +1836,16 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
       if (payerSnap.data()?.walletFrozen === true ||
           Number(payerSnap.data()?.walletDebtCoins || 0) > 0) {
         throw Object.assign(new Error("Wallet under payment review."), {status: 423});
+      }
+      if (gifting) {
+        const blocked = await Promise.all([
+          payerRef.collection("blocked_peers").doc(recipientId),
+          recipientRef.collection("blocked_peers").doc(sender.uid),
+        ].map(ref => tx.get(ref)));
+        if (blocked.some(snap => snap.exists)) {
+          throw Object.assign(new Error("Gifts are blocked between these accounts."),
+            {status: 403});
+        }
       }
       const owner = gifting ? snaps[8].data() || {} : payerSnap.data() || {};
       const beneficiaryProfile = gifting ? snaps[7].data() || {}
@@ -1845,7 +1875,8 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
         amount: price,
       });
       const dailyGift = Number(dailySnap.data()?.giftCoins || 0);
-      if (gifting && (!Number.isSafeInteger(policy.giftingDailyCoinLimit) ||
+      if (gifting && !isVerifiedOwner &&
+          (!Number.isSafeInteger(policy.giftingDailyCoinLimit) ||
           policy.giftingDailyCoinLimit <= 0 ||
           !Number.isSafeInteger(dailyGift) ||
           dailyGift + price > policy.giftingDailyCoinLimit)) {
@@ -1921,6 +1952,13 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
         durationDays: requestedDuration ?? null,
         outcome: response, createdAt: FieldValue.serverTimestamp(),
       });
+      if (gifting) tx.create(
+        recipientRef.collection("gift_notifications").doc(refKey), {
+          senderId: sender.uid, itemId, type: item.type,
+          name: String(item.name || itemId).slice(0, 120),
+          durationDays: duration, expiresAt,
+          seen: false, createdAt: FieldValue.serverTimestamp(),
+        });
       tx.create(db.collection("economy_audit").doc(refKey), {
         type: gifting ? "item_gift" : "item_purchase",
         senderId: sender.uid, recipientId, itemId,
@@ -1929,6 +1967,12 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
       return {...response, alreadyProcessed: false};
     });
     res.json({ok: true, ...outcome});
+    if (gifting && !outcome.alreadyProcessed && !outcome.alreadyOwned &&
+        outcome.itemId) {
+      // Push delivery is advisory: the committed inventory entry is the source
+      // of truth and remains available even when the device is offline.
+      void sendCosmeticGiftPush(recipientId, outcome.itemId).catch(() => {});
+    }
   } catch (error) {
     next(error);
   }
