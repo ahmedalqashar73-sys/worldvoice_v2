@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {canManageStore, canGrantStoreCosmetic} from '../src/economy_policy.js';
-import {cosmeticGiftPrice} from '../src/owner_coin_policy.js';
+import {cosmeticGiftPrice, isVerifiedOwnerIdentity} from '../src/owner_coin_policy.js';
 
 test('cosmetic grants require active server-owned store permission', () => {
   for (const value of [undefined, {}, {isAdmin: true}, {role: 'host', active: true},
@@ -32,7 +32,7 @@ async function request({admin, path = '/store/admin-grant', recipientId} = {}) {
   vm.runInNewContext(route, {
     app: {post: (_, fn) => {handler = fn;}},
     authenticatedUser: async () => ({uid: 'sender'}), canManageStore, canGrantStoreCosmetic,
-    cosmeticGiftPrice, privilegedAccounts: new Map(),
+    cosmeticGiftPrice, isVerifiedOwnerIdentity, privilegedAccounts: new Map(),
     createHash: () => ({update: () => ({digest: () => 'operation'})}),
     db: {collection: name => ref(name), doc: ref,
       runTransaction: fn => fn({get: async r => ({exists: docs.has(r.path) && docs.get(r.path) != null,
