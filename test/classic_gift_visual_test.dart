@@ -29,6 +29,26 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  for (final number in [1, 30]) {
+    testWidgets('ordinary gift $number loads its HD asset', (tester) async {
+      final id = 'wv_gift_${number.toString().padLeft(3, '0')}';
+      final designs = await ClassicGiftCatalog.load();
+      await tester.pumpWidget(MaterialApp(
+        home: ClassicGiftVisual(gift: designs.firstWhere((g) => g.id == id)),
+      ));
+      final artwork = tester.widget<Image>(
+        find.descendant(
+          of: find.byType(ClassicGiftVisual),
+          matching: find.byType(Image),
+        ),
+      );
+      final resized = artwork.image as ResizeImage;
+      expect((resized.imageProvider as AssetImage).assetName,
+          'assets/gifts/hd/$id.webp');
+      expect(tester.takeException(), isNull);
+    });
+  }
+
   testWidgets('in-room preview is labeled and never looks like a paid receipt',
       (tester) async {
     const preview = RoomGiftCatalogItem(
