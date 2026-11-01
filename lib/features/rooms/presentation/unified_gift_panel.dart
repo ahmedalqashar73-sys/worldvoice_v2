@@ -504,15 +504,16 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                         selected != null &&
                         administrativeCoins >= selected.priceCoins &&
                         !ready;
-                    // The sheet can grow when a Firebase error is shown.
-                    // Scroll rather than overflowing on small devices.
-                    return SingleChildScrollView(
-                      padding: EdgeInsets.only(
-                        bottom: MediaQuery.viewPaddingOf(context).bottom + 12,
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
+                    // Browsing scrolls independently of the send controls
+                    // in all chat, room and live gift sheets.
+                    return Column(
+                      children: [
+                        Expanded(
+                          child: SingleChildScrollView(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
                         TextButton.icon(
                           onPressed: () => Navigator.of(context).push(
                             MaterialPageRoute(
@@ -985,14 +986,41 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                               ),
                             ),
                           ),
-                        if (_message != null)
-                          Padding(
-                            padding: const EdgeInsets.all(5),
-                            child: Text(_message!, textAlign: TextAlign.center),
+                              ],
+                            ),
                           ),
-                        Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: FilledButton.icon(
+                        ),
+                        Container(
+                          key: const ValueKey('sticky-gift-send-footer'),
+                          width: double.infinity,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF092D23),
+                            border: Border(
+                              top: BorderSide(color: Color(0x66DCBE77)),
+                            ),
+                          ),
+                          padding: EdgeInsets.fromLTRB(
+                            12,
+                            8,
+                            12,
+                            12 + MediaQuery.viewPaddingOf(context).bottom,
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (_message != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 5),
+                                  child: Text(
+                                    _message!,
+                                    textAlign: TextAlign.center,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              SizedBox(
+                                width: double.infinity,
+                                child: FilledButton.icon(
                             onPressed:
                                 !_busy &&
                                     ((ready && walletReady &&
@@ -1022,11 +1050,12 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                                             ? 'إرسال هدية اختبار (بدون ألماس)'
                                             : 'Send test gift (no diamonds)')
                                       : (ar ? 'إرسال الهدية' : 'Send gift'),
-                            ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        ],
-                      ),
+                      ],
                     );
                   },
                 );
