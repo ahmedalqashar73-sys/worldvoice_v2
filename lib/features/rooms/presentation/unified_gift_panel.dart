@@ -616,8 +616,12 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                           Padding(
                             padding: const EdgeInsets.all(8),
                             child: Text(
-                              policySnapshot.hasError
+                              ownerBetaReady
                                   ? (ar
+                                        ? 'وضع اختبار المالك: يمكنك إرسال هدية داخل الدردشة من الكوينز الإدارية، دون منح ألماس قابل للسحب.'
+                                        : 'Owner beta mode: chat gifts spend admin coins only; no redeemable diamonds.')
+                                  : policySnapshot.hasError
+                                      ? (ar
                                         ? 'تعذر تحميل إعدادات اقتصاد الهدايا من Firebase.'
                                         : 'Unable to read gift economy settings from Firebase.')
                                   : !enabled
@@ -877,7 +881,7 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                               textAlign: TextAlign.center,
                             ),
                           ),
-                        if (selected != null && !selected.active)
+                        if (selected != null && !selected.active && !ownerBetaReady)
                           Text(
                             ar
                                 ? 'عرض تجريبي فقط • الإرسال غير مفعل'
