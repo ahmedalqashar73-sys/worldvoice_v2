@@ -211,6 +211,17 @@ class RoomShopService {
   Future<void> purchaseItem(String itemId) =>
       _post(action: 'purchase', body: {'itemId': itemId});
 
+  /// Send one EXISTING published WorldVoice visual gift to any member.
+  /// The server verifies owner identity, coin balance and canonical price.
+  Future<void> sendOwnerDirectGift({
+    required String giftId,
+    required String recipientId,
+  }) => _post(
+    action: 'gift/owner-direct',
+    rootPath: true,
+    body: {'giftId': giftId, 'recipientId': recipientId, 'quantity': 1},
+  );
+
   Future<void> setChatBubble(String bubbleId) =>
       _post(action: 'bubble/equip', body: {'bubbleId': bubbleId});
 
@@ -280,6 +291,7 @@ class RoomShopService {
   Future<void> _post({
     required String action,
     required Map<String, dynamic> body,
+    bool rootPath = false,
   }) async {
     final user = _user;
     if (user == null) {
@@ -297,10 +309,10 @@ class RoomShopService {
     final base = endpoint.endsWith('/')
         ? endpoint.substring(0, endpoint.length - 1)
         : endpoint;
-    final keyId = '${body['adminGrant'] == true}:$action:${body['itemId'] ?? ''}:${body['recipientId'] ?? ''}:${body['rewardId'] ?? ''}:${body['durationDays'] ?? 'permanent'}';
+    final keyId = '${body['adminGrant'] == true}:$action:${body['itemId'] ?? ''}:${body['giftId'] ?? ''}:${body['recipientId'] ?? ''}:${body['rewardId'] ?? ''}:${body['durationDays'] ?? 'permanent'}';
     final requestKey = _pendingKeys.putIfAbsent(keyId, _newRequestKey);
     final response = await http.post(
-      Uri.parse('$base/$action'),
+      Uri.parse('${rootPath ? base.substring(0, base.length - '/store'.length) : base}/$action'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $idToken',
