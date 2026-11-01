@@ -39,7 +39,7 @@ class RoomShopService {
   User? get _user => FirebaseAuth.instance.currentUser;
 
   static const String _explicitEndpoint =
-      RoomBackendConfig.economyBaseUrl;
+      RoomBackendConfig.giftStoreBaseUrl;
 
   String get endpoint {
     final explicit = _explicitEndpoint.trim();
