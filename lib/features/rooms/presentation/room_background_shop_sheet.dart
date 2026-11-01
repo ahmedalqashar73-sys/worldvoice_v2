@@ -66,7 +66,11 @@ class RoomBackgroundShopSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) => FutureBuilder<bool>(
     future: _shop.adminAccess,
-    builder: (context, access) => _buildShop(context, access.data == true),
+    builder: (context, access) => FutureBuilder<bool>(
+      future: _shop.ownerAccess,
+      builder: (context, owner) => _buildShop(
+        context, access.data == true, owner.data == true),
+    ),
   );
 
   Future<void> _checkOwnerMonthlyCoins(
@@ -179,7 +183,7 @@ class RoomBackgroundShopSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildShop(BuildContext context, bool isAdmin) {
+  Widget _buildShop(BuildContext context, bool isAdmin, bool isOwner) {
     final isArabic =
         Localizations.localeOf(context).languageCode.toLowerCase() == 'ar';
     final user = FirebaseAuth.instance.currentUser;
@@ -242,7 +246,7 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                 ],
               ),
             ),
-            if (isAdmin)
+            if (isOwner)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Align(
@@ -256,7 +260,7 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                   ),
                 ),
               ),
-            if (isAdmin)
+            if (isOwner)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                 child: SizedBox(
