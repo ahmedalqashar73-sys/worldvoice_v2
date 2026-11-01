@@ -55,18 +55,36 @@ test("purchase refunds never debit granted owner coins", () => {
 test("owner identity accepts only verified signed credentials", () => {
   const allowed = new Map([["legacy@example.com", {role: "super_admin"}]]);
   const signed = {
-    email: "owner@example.com", email_verified: true,
+    uid: "owner_uid", email: "owner@example.com", email_verified: true,
     admin: true, economyAdmin: true, worldVoiceAdmin: true,
   };
   assert.equal(isVerifiedOwnerIdentity(signed, allowed), true);
   assert.equal(isVerifiedOwnerIdentity({
-    email: "LEGACY@example.com", email_verified: true,
+    uid: "legacy_uid", email: "LEGACY@example.com", email_verified: true,
   }, allowed), true);
   assert.equal(isVerifiedOwnerIdentity({...signed, email_verified: false}, allowed), false);
   assert.equal(isVerifiedOwnerIdentity({...signed, worldVoiceAdmin: false}, allowed), false);
   assert.equal(isVerifiedOwnerIdentity({
     email: "member@example.com", email_verified: true, isAdmin: true,
   }, allowed), false);
+  assert.equal(isVerifiedOwnerIdentity({
+    uid: "trusted_uid", email: "trusted@example.com", email_verified: true,
+  }, allowed, {
+    active: true, role: "super_admin", uid: "trusted_uid",
+    email: "TRUSTED@example.com",
+  }), true);
+  assert.equal(isVerifiedOwnerIdentity({
+    uid: "trusted_uid", email: "trusted@example.com", email_verified: true,
+  }, allowed, {
+    active: true, role: "super_admin", uid: "other_uid",
+    email: "trusted@example.com",
+  }), false);
+  assert.equal(isVerifiedOwnerIdentity({
+    uid: "trusted_uid", email: "trusted@example.com", email_verified: true,
+  }, allowed, {
+    active: true, role: "super_admin", uid: "trusted_uid",
+    email: "different@example.com",
+  }), false);
   assert.equal(isVerifiedOwnerIdentity(null, allowed), false);
 });
 
