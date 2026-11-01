@@ -252,7 +252,7 @@ class AuthService {
       ...payload,
       'googleLinked': _auth.currentUser?.providerData
           .any((p) => p.providerId == 'google.com') == true,
-      if (googleLinkWarning != null) 'googleLinkWarning': googleLinkWarning,
+      'googleLinkWarning': ?googleLinkWarning,
     };
   }
 
