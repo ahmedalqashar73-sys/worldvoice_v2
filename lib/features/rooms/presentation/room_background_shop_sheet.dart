@@ -105,6 +105,7 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                 itemCount: gifts.length,
                 itemBuilder: (context, index) {
                   final data = gifts[index].data();
+                  final isVisualGift = data['type'] == 'gift';
                   final days = data['durationDays'];
                   final durationLabel = days == null
                       ? (isArabic ? 'دائم' : 'Permanent')
@@ -112,13 +113,18 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                   final expires = data['expiresAt'];
                   final expired = expires is Timestamp &&
                       !expires.toDate().isAfter(DateTime.now());
+                  final subtitle = isVisualGift
+                      ? '${data['quantity'] ?? 1} × • ${data['priceCoins'] ?? 0} 🪙'
+                      : '$durationLabel • ${expired
+                          ? (isArabic ? 'انتهت الصلاحية' : 'Expired')
+                          : (isArabic ? 'في مقتنياتك' : 'In your inventory')}';
                   return ListTile(
                     leading: const Icon(Icons.card_giftcard_rounded),
-                    title: Text((data['name'] ?? data['itemId'] ?? '')
-                        .toString()),
-                    subtitle: Text('$durationLabel • ${expired
-                        ? (isArabic ? 'انتهت الصلاحية' : 'Expired')
-                        : (isArabic ? 'في مقتنياتك' : 'In your inventory')}'),
+                    title: Text((isArabic
+                        ? (data['nameAr'] ?? data['name'])
+                        : data['name'] ?? data['nameAr'] ??
+                            data['itemId'] ?? '').toString()),
+                    subtitle: Text(subtitle),
                   );
                 },
               );
