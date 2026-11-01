@@ -44,6 +44,44 @@ class ChatScreen extends StatelessWidget {
 
   static const _backend = RoomBackendConfig.socialBaseUrl;
 
+  /// Group deletion from the chat list uses the same trusted backend as the
+  /// group header. Hiding a chat only affects the current user's inbox.
+  static Future<void> _manageGroupFromList(
+      BuildContext context, String chatId, String action, bool ar) async {
+    final permanent = action == 'delete_group';
+    final confirmed = await showDialog<bool>(context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(permanent
+          ? (ar ? 'حذف المجموعة نهائيًا؟' : 'Delete group permanently?')
+          : (ar ? 'حذف المجموعة من عندي؟' : 'Remove group from my chats?')),
+        content: Text(permanent
+          ? (ar ? 'ستُحذف رسائل المجموعة لجميع الأعضاء. لا يمكن التراجع.'
+                : 'All group messages will be removed for everyone. This cannot be undone.')
+          : (ar ? 'ستختفي المجموعة من قائمة دردشاتك فقط.'
+                : 'Only your chat list will hide this group.')),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(ar ? 'إلغاء' : 'Cancel')),
+          FilledButton(onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(ar ? 'حذف' : 'Delete')),
+        ],
+      ));
+    if (confirmed != true || !context.mounted) return;
+    final service = ChatExtendedService();
+    try {
+      await service.manageGroup(chatId: chatId, action: action);
+    } catch (error) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(error.toString().replaceFirst('Bad state: ', ''))));
+      }
+    } finally {
+      service.dispose();
+    }
+  }
+
+
+
   static Future<Map<String, dynamic>> _post(
     String route, Map<String, dynamic> payload, {String? requestKey,}
   ) async {
@@ -891,6 +929,22 @@ class ChatScreen extends StatelessWidget {
                               : (data['latestText'] ?? '').toString(),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
+                        ),
+                        trailing: PopupMenuButton<String>(
+                          key: ValueKey('chat-group-menu-${snap.id}'),
+                          tooltip: ar ? 'إدارة المجموعة' : 'Group actions',
+                          onSelected: (action) => _manageGroupFromList(
+                            context, snap.id, action, ar),
+                          itemBuilder: (_) => [
+                            PopupMenuItem(value: 'delete_for_me',
+                              child: Text(ar ? 'حذف المجموعة من عندي'
+                                             : 'Remove group from my chats')),
+                            if (data['ownerId'] == uid)
+                              PopupMenuItem(value: 'delete_group',
+                                child: Text(ar ? 'حذف المجموعة للجميع'
+                                               : 'Delete group for everyone',
+                                  style: const TextStyle(color: Colors.redAccent))),
+                          ],
                         ),
                         onTap: () => Navigator.of(context).push(
                           MaterialPageRoute<void>(
