@@ -1,4 +1,15 @@
 // Server-only rules for the WorldVoice owner's non-withdrawable monthly coins.
+// The beta enrollment tool issues these three claims via Firebase Admin SDK.
+// Never rely on client-writable profile flags for monetary authority.
+export function isVerifiedOwnerIdentity(token, allowlistedAccounts) {
+  if (token?.email_verified !== true) return false;
+  const email = String(token.email || "").trim().toLowerCase();
+  if (!email) return false;
+  return allowlistedAccounts?.get(email)?.role === "super_admin" ||
+    (token.admin === true && token.economyAdmin === true &&
+      token.worldVoiceAdmin === true);
+}
+
 export const OWNER_MONTHLY_COINS = 10_000;
 
 export function ownerMonthInRiyadh(date = new Date()) {
