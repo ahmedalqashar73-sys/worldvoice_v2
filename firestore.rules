@@ -697,6 +697,12 @@ service cloud.firestore {
         return !exists(/databases/$(database)/documents/users/$(members[0])/blocked_peers/$(members[1]))
             && !exists(/databases/$(database)/documents/users/$(members[1])/blocked_peers/$(members[0]));
       }
+      // Receiver's own global direct-message privacy preference. Only
+      // incoming encrypted envelopes are blocked; group chat is unaffected.
+      function deliveryReceiverAccepts(recipientId) {
+        return get(/databases/$(database)/documents/users/$(recipientId))
+            .data.get('receiveDirectMessages', true) != false;
+      }
       match /delivery_queue/{deliveryId} {
         function validEnvelope() {
           let d = request.resource.data;
@@ -714,9 +720,13 @@ service cloud.firestore {
               && d.updatedAt == request.time;
         }
         allow get, list: if deliveryMember();
-        allow create: if deliveryMember() && deliveryUnblocked() && validEnvelope();
+        allow create: if deliveryMember() && deliveryUnblocked()
+            && deliveryReceiverAccepts(request.resource.data.recipientId)
+            && validEnvelope();
         allow update: if deliveryMember() && (
-            (deliveryUnblocked() && request.auth.uid == resource.data.senderId && (
+            (deliveryUnblocked()
+              && deliveryReceiverAccepts(resource.data.recipientId)
+              && request.auth.uid == resource.data.senderId && (
               ((resource.data.state == 'uploading' || resource.data.expiresAt < request.time)
                 && validEnvelope())
               || (resource.data.state == 'uploading'
