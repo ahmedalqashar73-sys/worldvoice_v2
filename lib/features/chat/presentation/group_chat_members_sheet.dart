@@ -59,7 +59,7 @@ class GroupMembersPreview extends StatelessWidget {
   }
 }
 
-Future<void> _groupMemberOperation(
+Future<bool> _groupMemberOperation(
   BuildContext context, String chatId, String action, String targetId) async {
   final service = ChatExtendedService();
   try {
@@ -67,11 +67,13 @@ Future<void> _groupMemberOperation(
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
       content: Text('تم تحديث أعضاء المجموعة بنجاح.')));
+    return true;
   } catch (error) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(error.toString().replaceFirst('Bad state: ', ''))));
     }
+    return false;
   } finally { service.dispose(); }
 }
 
@@ -115,8 +117,8 @@ Future<void> _chooseGroupInvite(
                           : Text('@${data['username']}'),
                         trailing: const Icon(Icons.person_add_alt_1_rounded),
                         onTap: () async {
-                          await _groupMemberOperation(context, chatId, 'add', id);
-                          if (dialogContext.mounted) {
+                          final added = await _groupMemberOperation(context, chatId, 'add', id);
+                           if (added && dialogContext.mounted) {
                             Navigator.pop(dialogContext);
                           }
                         },
@@ -130,6 +132,35 @@ Future<void> _chooseGroupInvite(
           child: Text(ar ? 'إغلاق' : 'Close'))],
       ),
     );
+  } catch (error) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(error.toString().replaceFirst('Bad state: ', ''))));
+    }
+  }
+}
+
+/// Open the secure add-members flow directly from the group header menu.
+Future<void> showGroupInvitePicker(BuildContext context, String chatId) async {
+  final ar = Localizations.localeOf(context).languageCode == 'ar';
+  try {
+    final snap = await FirebaseFirestore.instance.collection('chats')
+        .doc(chatId).get();
+    if (!context.mounted) return;
+    final data = snap.data() ?? const <String, dynamic>{};
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    final ownerId = (data['ownerId'] ?? '').toString();
+    final mods = (data['moderatorIds'] as List?)?.map((id) => id.toString())
+        .toList() ?? const <String>[];
+    if (uid == null || (ownerId != uid && !mods.contains(uid))) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(
+        ar ? 'إضافة الأعضاء متاحة للمالك والمشرفين فقط'
+           : 'Only the owner and moderators can add members.')));
+      return;
+    }
+    final members = (data['memberIds'] as List?)
+        ?.map((id) => id.toString()).toList() ?? const <String>[];
+    await _chooseGroupInvite(context, chatId, ownerId, members);
   } catch (error) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
