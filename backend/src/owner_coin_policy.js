@@ -7,18 +7,16 @@ export function isVerifiedOwnerIdentity(token, allowlistedAccounts,
   trustedAdmin = null) {
   const email = String(token?.email || "").trim().toLowerCase();
   if (!email || !token?.uid) return false;
-  // A document written by Admin SDK, not a client-visible profile flag,
-  // binds the authenticated Firebase UID to the same email and active role.
-  // It remains valid when legacy Auth emailVerified metadata was never set.
+  // Monetary owner access always requires a verified Firebase email.
+  // For legacy unverified records, use /account/owner/verify-google to
+  // prove fresh Google ownership before attempting a monthly grant.
+  if (token.email_verified !== true) return false;
   const verifiedRecord = trustedAdmin?.active === true &&
     trustedAdmin?.role === "super_admin" &&
     trustedAdmin.uid === token.uid &&
     String(trustedAdmin.email || "").trim().toLowerCase() === email;
-  if (verifiedRecord) return true;
-  // Without that stronger server-owned record, both the legacy email
-  // allowlist and signed custom-claim route still require verified email.
-  if (token.email_verified !== true) return false;
-  return allowlistedAccounts?.get(email)?.role === "super_admin" ||
+  return verifiedRecord ||
+    allowlistedAccounts?.get(email)?.role === "super_admin" ||
     (token.admin === true && token.economyAdmin === true &&
       token.worldVoiceAdmin === true);
 }
