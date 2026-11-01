@@ -82,7 +82,8 @@ class AuthService {
       throw StateError('Owner reward backend is not configured.');
     }
 
-    final token = await user.getIdToken();
+    // Force-refresh signed custom claims after admin enrollment.
+    final token = await user.getIdToken(true);
     if (token == null || token.isEmpty) {
       throw StateError('Unable to verify your Firebase sign-in.');
     }
