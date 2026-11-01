@@ -304,7 +304,18 @@ class RoomFeatureService {
         !backend.hasAuthority || backend.userInfo.isNotEmpty) {
       throw StateError('Gift testing backend not configured.');
     }
-    final token = await user.getIdToken(true);
+    // A signed-in user's valid cached token avoids forcing a new Firebase
+    // network round trip for every gift. The server still verifies it.
+    String? token;
+    try {
+      token = await user.getIdToken();
+    } on FirebaseAuthException catch (error) {
+      if (error.code == 'unknown' ||
+          (error.message?.toLowerCase().contains('connection reset') ?? false)) {
+        throw StateError('FIREBASE_CONNECTION_INTERRUPTED');
+      }
+      rethrow;
+    }
     if (token == null || token.isEmpty) {
       throw StateError('Firebase authorization failed.');
     }
@@ -312,7 +323,7 @@ class RoomFeatureService {
         ? backend.path.substring(0, backend.path.length - 1)
         : backend.path;
     final response = await http.post(
-      backend.replace(path: basePath + '/gift/owner-beta-chat'),
+      backend.replace(path: '$basePath/gift/owner-beta-chat'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
