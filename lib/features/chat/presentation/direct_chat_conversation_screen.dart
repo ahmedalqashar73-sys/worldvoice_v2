@@ -904,14 +904,27 @@ class _DirectChatConversationScreenState
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Text(
-                      _ar
-                          ? 'محادثة WorldVoice الخاصة'
-                          : 'WorldVoice private chat',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: foreground.withValues(alpha: .64),
-                      ),
+                    StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                      stream: _peerProfile,
+                      builder: (context, snapshot) {
+                        final profile = snapshot.data?.data() ??
+                            const <String, dynamic>{};
+                        final visible = profile['showOnlineStatus'] != false;
+                        final online = profile['isOnline'] == true;
+                        return Text(
+                          !visible
+                              ? (_ar ? 'محادثة خاصة' : 'Private chat')
+                              : online
+                                  ? (_ar ? 'متصل الآن' : 'Online')
+                                  : (_ar ? 'غير متصل' : 'Offline'),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: visible && online
+                                ? const Color(0xFF31BA87)
+                                : foreground.withValues(alpha: .64),
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),
