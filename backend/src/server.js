@@ -1627,7 +1627,11 @@ app.get("/store/access", async (req, res, next) => {
   try {
     const user = await authenticatedUser(req);
     const admin = await db.collection("admins").doc(user.uid).get();
-    res.json({ok: true, canManageStore: canManageStore(admin.data())});
+    const isOwner = user.email_verified === true &&
+      privilegedAccounts.get(String(user.email || "").trim().toLowerCase())
+        ?.role === "super_admin";
+    res.json({ok: true, canManageStore: canManageStore(admin.data()),
+      isOwner});
   } catch (error) { next(error); }
 });
 
