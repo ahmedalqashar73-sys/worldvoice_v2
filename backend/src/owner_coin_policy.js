@@ -5,16 +5,22 @@ import {extractLegacyWallet} from "./profile_projection.js";
 // Never rely on client-writable profile flags for monetary authority.
 export function isVerifiedOwnerIdentity(token, allowlistedAccounts,
   trustedAdmin = null) {
-  if (token?.email_verified !== true) return false;
-  const email = String(token.email || "").trim().toLowerCase();
-  if (!email || !token.uid) return false;
+  const email = String(token?.email || "").trim().toLowerCase();
+  if (!email || !token?.uid) return false;
+  // A document written by Admin SDK, not a client-visible profile flag,
+  // binds the authenticated Firebase UID to the same email and active role.
+  // It remains valid when legacy Auth emailVerified metadata was never set.
   const verifiedRecord = trustedAdmin?.active === true &&
     trustedAdmin?.role === "super_admin" &&
     trustedAdmin.uid === token.uid &&
     String(trustedAdmin.email || "").trim().toLowerCase() === email;
+  if (verifiedRecord) return true;
+  // Without that stronger server-owned record, both the legacy email
+  // allowlist and signed custom-claim route still require verified email.
+  if (token.email_verified !== true) return false;
   return allowlistedAccounts?.get(email)?.role === "super_admin" ||
     (token.admin === true && token.economyAdmin === true &&
-      token.worldVoiceAdmin === true) || verifiedRecord;
+      token.worldVoiceAdmin === true);
 }
 
 export const OWNER_MONTHLY_COINS = 10_000;
