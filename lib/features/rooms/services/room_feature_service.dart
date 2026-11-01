@@ -197,14 +197,10 @@ class RoomFeatureService {
   Stream<QuerySnapshot<Map<String, dynamic>>> watchQuizAnswers() =>
       _quiz.watchQuizAnswers();
 
-  static const String _explicitEconomyBackend =
-      String.fromEnvironment('WORLDVOICE_ECONOMY_ENDPOINT');
-
-  static String get _economyBackend {
-    final explicit = _explicitEconomyBackend.trim();
-    if (explicit.isNotEmpty) return explicit;
-    return RoomBackendConfig.economyBaseUrl.trim();
-  }
+  // Gift settlement must run against the same original-main service as
+  // owner monthly grants, to preserve admin-paid coin provenance.
+  static String get _economyBackend =>
+      RoomBackendConfig.giftStoreBaseUrl.trim();
 
   /// Existing room caller: the backend alone calculates catalog price.
   Future<void> sendGift({
