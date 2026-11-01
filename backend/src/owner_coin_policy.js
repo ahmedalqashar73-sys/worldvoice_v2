@@ -54,3 +54,16 @@ export function cosmeticGiftPrice(permanentCoins, durationDays) {
   }
   return Math.ceil(permanentCoins * durationRates.get(durationDays) / 5) * 5;
 }
+
+// Refunds of store-verified coins cannot confiscate promotional owner coins.
+// Insufficient paid balance becomes a reviewed wallet debt, not admin spending.
+export function refundablePaidCoinDebit({coins, adminCoins = 0, refundCoins}) {
+  if (![coins, adminCoins, refundCoins].every(Number.isSafeInteger) ||
+      coins < 0 || adminCoins < 0 || adminCoins > coins ||
+      refundCoins < 0) {
+    throw Object.assign(new Error("Wallet refund requires reconciliation."),
+      {status: 409});
+  }
+  const availableDebit = Math.min(coins - adminCoins, refundCoins);
+  return {availableDebit, debtCoins: refundCoins - availableDebit};
+}
