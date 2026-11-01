@@ -23,6 +23,27 @@ export function isVerifiedOwnerIdentity(token, allowlistedAccounts,
       token.worldVoiceAdmin === true);
 }
 
+/**
+ * Separate Google OAuth proof for a *currently authenticated* legacy owner.
+ * Google ID-token signature/audience/expiry are verified by OAuth2Client
+ * before this pure predicate is called. Never accept a client-supplied email
+ * alone, a profile isAdmin flag, or a user-supplied Firebase UID.
+ */
+export function matchesOwnerGoogleProof({firebaseUser, ownerRecord, googleProof,
+  ownerEmail}) {
+  const approved = String(ownerEmail || "").trim().toLowerCase();
+  const email = String(firebaseUser?.email || "").trim().toLowerCase();
+  const googleEmail = String(googleProof?.email || "").trim().toLowerCase();
+  const googleVerified = googleProof?.email_verified === true ||
+    googleProof?.email_verified === "true";
+  return approved.length > 0 &&
+    firebaseUser?.uid && firebaseUser?.disabled !== true &&
+    email === approved && googleEmail === approved && googleVerified &&
+    ownerRecord?.uid === firebaseUser.uid &&
+    String(ownerRecord?.email || "").trim().toLowerCase() === approved &&
+    ownerRecord?.role === "super_admin" && ownerRecord?.active === true;
+}
+
 export const OWNER_MONTHLY_COINS = 10_000;
 
 // Only the verified owner can reach this bootstrap. Copy validated legacy
