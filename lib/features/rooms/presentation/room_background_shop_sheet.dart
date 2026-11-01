@@ -69,6 +69,32 @@ class RoomBackgroundShopSheet extends StatelessWidget {
     builder: (context, access) => _buildShop(context, access.data == true),
   );
 
+  Future<void> _checkOwnerMonthlyCoins(
+    BuildContext context, bool isArabic,
+  ) async {
+    try {
+      final outcome = await _shop.refreshOwnerMonthlyCoins();
+      if (!context.mounted) return;
+      final credited = (outcome['creditedCoins'] as num?)?.toInt() ?? 0;
+      final month = (outcome['ownerCoinMonth'] ?? '').toString();
+      final message = credited > 0
+          ? (isArabic
+              ? 'أُضيف $credited كوينز إدارية إلى محفظتك لهذا الشهر ($month).'
+              : 'Credited $credited admin coins for $month.')
+          : (isArabic
+              ? 'مكافأة $month مسجلة مسبقًا؛ لن تتكرر.'
+              : 'Grant for $month was already credited.');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    } catch (error) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString().replaceFirst('Bad state: ', ''))),
+      );
+    }
+  }
+
   Future<void> _showReceivedGifts(BuildContext context, bool isArabic) async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
@@ -216,6 +242,20 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                 ],
               ),
             ),
+            if (isAdmin)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: TextButton.icon(
+                    onPressed: () => _checkOwnerMonthlyCoins(context, isArabic),
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: Text(isArabic
+                        ? 'التحقق من مكافأة المالك 10,000 كوينز'
+                        : 'Check 10,000 monthly owner coins'),
+                  ),
+                ),
+              ),
             if (isAdmin)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
