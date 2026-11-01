@@ -1636,6 +1636,10 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
     const requestedRecipient = String(req.body?.recipientId || "").trim();
     const recipientId = requestedRecipient || sender.uid;
     const gifting = recipientId !== sender.uid;
+    const isVerifiedOwner = sender.email_verified === true &&
+      privilegedAccounts.get(String(sender.email || "").trim().toLowerCase())
+        ?.role === "super_admin";
+    const requestedDuration = req.body?.durationDays;
     const key = String(req.headers["idempotency-key"] || "").trim();
     if (!/^(background|frame|entrance|vip|bubble)__[A-Za-z0-9_-]{1,80}$/.test(itemId) ||
         !/^[A-Za-z0-9_-]{12,100}$/.test(key)) {
@@ -1667,7 +1671,8 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
       if (existing.exists) {
         const old = existing.data() || {};
         if (old.senderId !== sender.uid || old.recipientId !== recipientId ||
-            old.itemId !== itemId) {
+            old.itemId !== itemId ||
+            (old.durationDays ?? null) !== (requestedDuration ?? null)) {
           throw Object.assign(new Error("Idempotency key reused."), {status: 409});
         }
         return {...old.outcome, alreadyProcessed: true};
@@ -1696,9 +1701,18 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
         throw Object.assign(new Error("Use verified store billing for personal VIP."),
           {status: 400});
       }
-      const price = Number(item.priceCoins);
-      const duration = item.durationDays == null
+      let price = Number(item.priceCoins);
+      let duration = item.durationDays == null
         ? null : Number(item.durationDays);
+      if (gifting && ["frame", "background"].includes(item.type)) {
+        // A cosmetic gift can be rented for a supported duration, or owned
+        // forever at the unchanged catalog price. Server computes the price.
+        duration = requestedDuration == null ? null : requestedDuration;
+        price = cosmeticGiftPrice(price, duration);
+      } else if (requestedDuration !== undefined) {
+        throw Object.assign(new Error("Duration selection is for cosmetic gifts only."),
+          {status: 400});
+      }
       if (!Number.isSafeInteger(price) || price <= 0 ||
           (duration != null && (!Number.isSafeInteger(duration) || duration <= 0)) ||
           (item.type === "vip" && duration == null)) {
@@ -1706,6 +1720,12 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
           {status: 503});
       }
       if (req.path === "/store/admin-grant") {
+        // Administrative free grants must never bypass the owner's agreed
+        // paid-price gifting policy (self-owned previews remain available).
+        if (gifting) {
+          throw Object.assign(new Error("Gift must be paid from wallet coins."),
+            {status: 403});
+        }
         if (!canGrantStoreCosmetic(snaps[snaps.length - 1].data(), item.type)) {
           throw Object.assign(new Error("Store administrator access required."), {status: 403});
         }
@@ -1735,6 +1755,7 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
           entitlement, {merge: true});
         const response = {itemId, recipientId, adminGrant: true, paidCoins: 0};
         tx.create(operationRef, {senderId: sender.uid, recipientId, itemId,
+          durationDays: requestedDuration ?? null,
           outcome: response, createdAt: FieldValue.serverTimestamp()});
         tx.create(db.collection("economy_audit").doc(refKey), {
           type: "admin_cosmetic_grant", senderId: sender.uid, recipientId, itemId,
@@ -1748,7 +1769,7 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
       if (!payerProfileSnap.exists ||
           giftProgress(payerSnap.data()).level <
           Number(item.requiredGiftLevel || 0) ||
-          (gifting && (!snaps[7].exists || !snaps[9].exists))) {
+          (gifting && (!snaps[7].exists || (!isVerifiedOwner && !snaps[9].exists)))) {
         throw Object.assign(new Error("User, gift level or friendship requirement failed."),
           {status: 403});
       }
@@ -1779,6 +1800,10 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
       if (!Number.isSafeInteger(before) || before < price) {
         throw Object.assign(new Error("NOT_ENOUGH_COINS"), {status: 409});
       }
+      const split = splitOwnerCoinSpend({
+        coins: before, adminCoins: Number(payerSnap.data()?.adminCoins ?? 0),
+        amount: price,
+      });
       const dailyGift = Number(dailySnap.data()?.giftCoins || 0);
       if (gifting && (!Number.isSafeInteger(policy.giftingDailyCoinLimit) ||
           policy.giftingDailyCoinLimit <= 0 ||
@@ -1787,7 +1812,8 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
         throw Object.assign(new Error("Gifting daily limit exceeded."), {status: 429});
       }
       tx.update(payerWalletRef, {
-        coins: before - price,
+        coins: split.remainingCoins,
+        adminCoins: split.remainingAdminCoins,
         updatedAt: FieldValue.serverTimestamp(),
       });
       if (gifting) {
@@ -1840,15 +1866,19 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
         amount: -price, currency: "coins",
         balanceBefore: before, balanceAfter: before - price,
         source: "store_items", itemId, recipientId,
-        operationId: refKey,
+        adminCoinsSpent: split.adminSpent, paidCoinsSpent: split.paidSpent,
+        durationDays: duration, operationId: refKey,
         createdAt: FieldValue.serverTimestamp(),
       });
       const response = {
-        itemId, recipientId, balanceAfter: before - price,
+        itemId, recipientId, balanceAfter: split.remainingCoins,
+        adminCoinsSpent: split.adminSpent, paidCoinsSpent: split.paidSpent,
+        durationDays: duration,
         expiresAt: expiresAt ? expiresAt.toDate().toISOString() : null,
       };
       tx.create(operationRef, {
         senderId: sender.uid, recipientId, itemId,
+        durationDays: requestedDuration ?? null,
         outcome: response, createdAt: FieldValue.serverTimestamp(),
       });
       tx.create(db.collection("economy_audit").doc(refKey), {
