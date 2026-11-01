@@ -67,6 +67,39 @@ class RoomShopService {
     } catch (_) { return false; }
   }
 
+  /// Confirm the verified owner's current-month grant with a server response.
+  /// This never directly writes wallet balances from a device.
+  Future<Map<String, dynamic>> refreshOwnerMonthlyCoins() async {
+    final user = _user;
+    if (user == null || !isConfigured) {
+      throw StateError('Sign in and store connection required.');
+    }
+    final token = await user.getIdToken();
+    if (token == null || token.isEmpty) {
+      throw StateError('Could not authorize owner coin check.');
+    }
+    final base = endpoint.substring(0, endpoint.length - '/store'.length);
+    final response = await http.post(
+      Uri.parse('$base/account/sync-entitlements'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: '{}',
+    ).timeout(const Duration(seconds: 30));
+    Map<String, dynamic> data;
+    try {
+      data = jsonDecode(response.body) as Map<String, dynamic>;
+    } catch (_) {
+      throw StateError('Invalid server response for monthly coin check.');
+    }
+    if (response.statusCode != 200 || data['privileged'] != true) {
+      throw StateError((data['error'] ??
+              'Owner verification or monthly coin sync failed.').toString());
+    }
+    return data;
+  }
+
   Future<void> grantItem(String itemId) => _post(
     action: 'admin-grant', body: {'itemId': itemId},
   );
