@@ -297,10 +297,12 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
         }
       } finally {
         if (path != null) { try { await File(path).delete(); } catch (_) {} }
-        if (mounted) setState(() {
-          _sending = false;
-          _replacingAudioMessageId = null;
-        });
+        if (mounted) {
+          setState(() {
+            _sending = false;
+            _replacingAudioMessageId = null;
+          });
+        }
       }
       return;
     }
