@@ -264,10 +264,6 @@ export function registerChatRoutes({app, db, authenticatedUser}) {
         if (!senderSnap.exists || !peerSnap.exists) {
           fail("Both WorldVoice profiles must exist.", 404);
         }
-        if (!canReceiveDirectMessages(peerSnap.data())) {
-          fail("This member is not receiving direct messages.", 403);
-        }
-
         if (old.exists) {
           assertChatMembership(old.data(), sender.uid, peer);
           return {
@@ -275,6 +271,11 @@ export function registerChatRoutes({app, db, authenticatedUser}) {
             alreadyCreated: true,
             status: "ready",
           };
+        }
+        // Keep existing private histories accessible. Receiving is enforced
+        // independently on every new encrypted delivery by Firestore rules.
+        if (!canReceiveDirectMessages(peerSnap.data())) {
+          fail("This member is not receiving direct messages.", 403);
         }
 
         const approvalRequired =
