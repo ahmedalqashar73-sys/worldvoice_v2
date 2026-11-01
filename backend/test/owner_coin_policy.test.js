@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {OWNER_MONTHLY_COINS, ownerMonthInRiyadh, splitOwnerCoinSpend,
   diamondsForPaidCoins, cosmeticGiftPrice,
   refundablePaidCoinDebit, isVerifiedOwnerIdentity,
-  ownerWalletFromLegacyProfile} from "../src/owner_coin_policy.js";
+  ownerWalletFromLegacyProfile, matchesOwnerGoogleProof} from "../src/owner_coin_policy.js";
 
 test("owner monthly coin grant is fixed, and Riyadh period is calendar-local", () => {
   assert.equal(OWNER_MONTHLY_COINS, 10_000);
@@ -85,15 +85,14 @@ test("owner identity accepts only verified signed credentials", () => {
     active: true, role: "super_admin", uid: "trusted_uid",
     email: "different@example.com",
   }), false);
-  // The authenticated Firebase UID can be independently attested by a
-  // protected server-created super-admin record even if old Auth metadata
-  // left emailVerified unset. Mismatched UID/email and client flags fail.
+  // A protected admin record is not a substitute for recent Google proof
+  // when the Firebase email is unverified.
   assert.equal(isVerifiedOwnerIdentity({
     uid: "trusted_uid", email: "trusted@example.com", email_verified: false,
   }, allowed, {
     active: true, role: "super_admin", uid: "trusted_uid",
     email: "TRUSTED@example.com",
-  }), true);
+  }), false);
   for (const invalid of [
     {active: false, role: "super_admin", uid: "trusted_uid", email: "trusted@example.com"},
     {active: true, role: "super_admin", uid: "other_uid", email: "trusted@example.com"},
@@ -127,4 +126,38 @@ test("owner wallet bootstrap preserves validated legacy money and begins admin c
   assert.throws(() => ownerWalletFromLegacyProfile({coins: -1}));
   assert.throws(() => ownerWalletFromLegacyProfile({walletBalance: 900}));
   assert.throws(() => ownerWalletFromLegacyProfile({withdrawableDiamonds: 4}));
+});
+
+test("Google ownership recovery needs verified Google email and exact protected UID", () => {
+  const ownerEmail = "legacy@example.com";
+  const firebaseUser = {
+    uid: "legacyUid", email: "legacy@example.com", disabled: false,
+  };
+  const ownerRecord = {
+    uid: "legacyUid", email: "LEGACY@example.com",
+    role: "super_admin", active: true,
+  };
+  const googleProof = {
+    email: "legacy@example.com", email_verified: true,
+  };
+  const args = {firebaseUser, ownerRecord, googleProof, ownerEmail};
+  assert.equal(matchesOwnerGoogleProof(args), true);
+  assert.equal(matchesOwnerGoogleProof({
+    ...args, googleProof: {...googleProof, email_verified: false},
+  }), false);
+  assert.equal(matchesOwnerGoogleProof({
+    ...args, googleProof: {...googleProof, email: "other@example.com"},
+  }), false);
+  assert.equal(matchesOwnerGoogleProof({
+    ...args, firebaseUser: {...firebaseUser, uid: "differentUid"},
+  }), false);
+  assert.equal(matchesOwnerGoogleProof({
+    ...args, firebaseUser: {...firebaseUser, disabled: true},
+  }), false);
+  assert.equal(matchesOwnerGoogleProof({
+    ...args, ownerRecord: {...ownerRecord, active: false},
+  }), false);
+  assert.equal(matchesOwnerGoogleProof({
+    ...args, ownerRecord: {...ownerRecord, role: "moderator"},
+  }), false);
 });
