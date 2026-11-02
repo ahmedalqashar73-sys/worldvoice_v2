@@ -99,12 +99,22 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
     });
     try {
       if (ownerBeta) {
-        await RoomFeatureService.sendOwnerBetaChatGift(
-          chatId: widget.contextId,
-          recipientId: recipient,
-          giftId: gift.id,
-          requestKey: _pendingKey!,
-        );
+        if (widget.contextType == 'chat') {
+          await RoomFeatureService.sendOwnerBetaChatGift(
+            chatId: widget.contextId,
+            recipientId: recipient,
+            giftId: gift.id,
+            requestKey: _pendingKey!,
+          );
+        } else {
+          await RoomFeatureService.sendOwnerBetaContextGift(
+            context: widget.contextType,
+            contextId: widget.contextId,
+            recipientId: recipient,
+            giftId: gift.id,
+            requestKey: _pendingKey!,
+          );
+        }
       } else {
         await RoomFeatureService.sendContextGift(
           context: widget.contextType,
@@ -499,7 +509,8 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                     // real-money economy. The backend verifies the owner.
                     final ownerBetaReady =
                         RoomFeatureService.ownerBetaChatGiftsEnabled &&
-                        widget.contextType == 'chat' &&
+                        const {'chat', 'room', 'live'}
+                            .contains(widget.contextType) &&
                         walletReady &&
                         selected != null &&
                         administrativeCoins >= selected.priceCoins &&
