@@ -148,6 +148,18 @@ class ChatDeliverySession {
   bool _again = false;
   static const chunkSize = 128 * 1024;
   static const maxBytes = 80 * 1024 * 1024;
+  /// Key rotation must never strand a sent-but-unacknowledged envelope.
+  /// Compare only public keys: plaintext and private keys stay on-device.
+  @visibleForTesting
+  static bool readyEnvelopeUsesStaleKeys(
+    Map<String, dynamic> header, {
+    required String senderPublicKey,
+    required String recipientPublicKey,
+  }) =>
+      header['state'] == 'ready' &&
+      (header['senderKey'] != senderPublicKey ||
+          header['recipientKey'] != recipientPublicKey);
+
   CollectionReference<Map<String, dynamic>> get _queue => FirebaseFirestore
       .instance
       .collection('chats')
@@ -283,8 +295,11 @@ class ChatDeliverySession {
     if (prior?['state'] == 'ready' &&
         expires != null &&
         expires.toDate().isAfter(DateTime.now())) {
-      if (prior?['recipientKey'] != remote ||
-          prior?['senderKey'] != publicKey) {
+      if (readyEnvelopeUsesStaleKeys(
+        prior ?? const <String, dynamic>{},
+        senderPublicKey: publicKey,
+        recipientPublicKey: remote,
+      )) {
         // Preserve the original message ID and local text/media. Start a new
         // encrypted envelope with the current keys. The old encrypted copy
         // expires through Firestore TTL and cannot cause double coin spending.
