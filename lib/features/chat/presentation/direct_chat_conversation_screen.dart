@@ -27,6 +27,7 @@ import 'chat_call_screen.dart';
 import 'chat_media_bubble.dart';
 import 'worldvoice_chat_wallpaper.dart';
 import 'worldvoice_shared_content_card.dart';
+import 'worldvoice_chat_gift_card.dart';
 
 /// New direct/private chat. The outgoing path NEVER invokes /chat/message
 /// or /chat/media: the permanent transcript lives on devices; delivery uses temporary ciphertext.
@@ -688,6 +689,7 @@ class _DirectChatConversationScreenState
     final mine = item['senderId'] == _uid;
     final removed = item['withdrawn'] == true;
     final type = item['type']?.toString() ?? 'text';
+    final isGiftCard = type == 'gift' || type == 'cosmetic_gift';
     final text = item['text']?.toString() ?? '';
     final edited = item['edited'] == true;
     final shared = type == 'text' && WorldVoiceSharedLink.parse(text) != null;
@@ -720,13 +722,15 @@ class _DirectChatConversationScreenState
               constraints: BoxConstraints(
                 maxWidth: MediaQuery.sizeOf(context).width * .75,
               ),
-              padding: shared
+              padding: isGiftCard
+                  ? EdgeInsets.zero
+                  : shared
                   ? const EdgeInsets.fromLTRB(0, 0, 0, 6)
                   : art != null
                   ? EdgeInsets.zero
                   : const EdgeInsets.fromLTRB(13, 10, 13, 8),
               decoration: BoxDecoration(
-                color: shared || art != null
+                color: isGiftCard || shared || art != null
                     ? Colors.transparent
                     : mine
                     ? myBubble
@@ -752,13 +756,11 @@ class _DirectChatConversationScreenState
                         fontStyle: FontStyle.italic,
                       ),
                     )
-                  else if (type == 'gift')
-                    Text(
-                      text.isNotEmpty ? text : '🎁 WorldVoice Gift',
-                      style: TextStyle(
-                        color: messageColor,
-                        fontWeight: FontWeight.w700,
-                      ),
+                  else if (isGiftCard)
+                    WorldVoiceChatGiftCard(
+                      data: item,
+                      ar: _ar,
+                      peerName: widget.peerName,
                     )
                   else if (type != 'text')
                     _PrivateMediaBubble(
@@ -1086,9 +1088,9 @@ class _DirectChatConversationScreenState
                                   'legacy': true,
                                   'type': data['type'] ?? 'text',
                                   'senderId': data['senderId'],
-                                  'text': data['type'] == 'gift'
-                                      ? '🎁 ${data['senderName'] ?? 'WorldVoice'}'
-                                      : (data['text'] ?? '').toString(),
+                                  // Preserve authoritative giftId/itemId, price
+                                  // and sender metadata for the artwork card.
+                                  'text': (data['text'] ?? '').toString(),
                                   'createdAt': timestamp is Timestamp
                                       ? timestamp.millisecondsSinceEpoch
                                       : 0,
