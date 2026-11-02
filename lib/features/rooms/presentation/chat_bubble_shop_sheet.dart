@@ -11,8 +11,18 @@ import 'store_gift_options.dart';
 
 /// A section of the existing WorldVoice backgrounds/frames shopping center.
 /// Server, never the device, charges coins, owns inventory and validates equip.
+class WorldVoiceChatBubbleShopPage extends StatelessWidget {
+  const WorldVoiceChatBubbleShopPage({super.key});
+
+  @override
+  Widget build(BuildContext context) => const Scaffold(
+    body: WorldVoiceChatBubbleShopSheet(fullPage: true),
+  );
+}
+
 class WorldVoiceChatBubbleShopSheet extends StatefulWidget {
-  const WorldVoiceChatBubbleShopSheet({super.key});
+  const WorldVoiceChatBubbleShopSheet({this.fullPage = false, super.key});
+  final bool fullPage;
   @override
   State<WorldVoiceChatBubbleShopSheet> createState() => _BubbleShopState();
 }
@@ -172,7 +182,7 @@ class _BubbleShopState extends State<WorldVoiceChatBubbleShopSheet> {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return const Center(child: Text('Sign in to use Bubbles'));
     return SafeArea(child: SizedBox(
-      height: MediaQuery.sizeOf(context).height * .84,
+      height: widget.fullPage ? null : MediaQuery.sizeOf(context).height * .84,
       child: Column(children: [
         ListTile(
           leading: const Icon(Icons.chat_bubble_outline_rounded),
