@@ -2152,8 +2152,8 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                             height: _liveStageHeight(context, tiles.length,
                                 boardOpen: _boardOpen),
                             child: _LiveVideoGrid(
-                              children: tiles,
                               compact: _boardOpen,
+                              children: tiles,
                             ),
                           ),
                           if (_boardOpen && _liveId != null)
@@ -3839,8 +3839,8 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                     boardOpen: _boardOpen,
                                   ),
                                   child: _LiveVideoGrid(
-                                    children: tiles,
                                     compact: _boardOpen,
+                                    children: tiles,
                                   ),
                                 )
                               else
@@ -4627,29 +4627,6 @@ class _LiveParticipantCameraTile extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _LiveBoardAvatar extends StatelessWidget {
-  const _LiveBoardAvatar({required this.photoUrl});
-
-  final String photoUrl;
-
-  @override
-  Widget build(BuildContext context) {
-    final url = photoUrl.trim();
-    return ColoredBox(
-      color: const Color(0xFF17372D),
-      child: Center(
-        child: CircleAvatar(
-          radius: 32,
-          backgroundImage: url.isEmpty ? null : NetworkImage(url),
-          child: url.isEmpty
-              ? const Icon(Icons.person_rounded, size: 34)
-              : null,
-        ),
-      ),
     );
   }
 }
