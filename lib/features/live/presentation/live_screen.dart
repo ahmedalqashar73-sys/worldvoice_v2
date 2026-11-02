@@ -1757,7 +1757,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
       },
       child: Scaffold(
         resizeToAvoidBottomInset: false,
-        backgroundColor: const Color(0xFF0A4634),
+        backgroundColor: const Color(0xFF0B241D),
         body: SafeArea(
           child: Stack(
             fit: StackFit.expand,
@@ -3680,7 +3680,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
             }
             return Scaffold(
               resizeToAvoidBottomInset: false,
-              backgroundColor: const Color(0xFF0A4634),
+              backgroundColor: const Color(0xFF0B241D),
               body: SafeArea(
                 child: _minimized
                     ? const ColoredBox(color: Color(0xFF071812))
@@ -7395,11 +7395,15 @@ class _LiveVideoGrid extends StatelessWidget {
   Widget _tile(Widget child) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: const Color(0xFF146C4D),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF174F3C), Color(0xFF102F27)],
+        ),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: const Color(0xFF89E9BA).withValues(alpha: .75),
-          width: 1.2,
+          color: const Color(0xFFB5D9AF).withValues(alpha: .52),
+          width: .9,
         ),
       ),
       child: ClipRRect(
