@@ -362,6 +362,29 @@ const send = bondOnly => async (req, res, next) => {
           lastMessageAt: FieldValue.serverTimestamp(),
         });
       }
+      // The owner's sent ledger is private; recipients see their received
+      // gift wall. The exact idempotency key prevents duplicate wall entries.
+      if (recipientRef) {
+        const receipt = {
+          senderId: sender.uid,
+          senderName: String(senderProfileSnap.data()?.displayName ||
+            "WorldVoice user"),
+          recipientId,
+          recipientName: String(recipientProfile.displayName ||
+            "WorldVoice member"),
+          giftId, itemId: giftId,
+          type: "gift", quantity, context, contextId,
+          name: String(item.name || giftId).slice(0, 120),
+          nameAr: String(item.nameAr || "").slice(0, 120),
+          priceCoins: amounts.chargedCoins,
+          nonRedeemable: pendingDiamonds === 0,
+          createdAt: FieldValue.serverTimestamp(),
+        };
+        tx.create(recipientRef.collection("gift_notifications").doc(requestHash), {
+          ...receipt, seen: false,
+        });
+        tx.create(senderRef.collection("gift_wall_sent").doc(requestHash), receipt);
+      }
       if (recipientRef) {
         const wallReceipt = {
           type: "gift", itemId: giftId, giftId,
