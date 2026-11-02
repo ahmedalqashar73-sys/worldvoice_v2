@@ -27,6 +27,7 @@ import '../data/room_feature_models.dart';
 import '../data/room_background_catalog.dart';
 import '../data/room_moderation_models.dart';
 import '../data/room_stage_models.dart';
+import '../data/compact_stage_seats.dart';
 import '../data/room_teacher_ai_note.dart';
 import '../services/agora_voice_room_controller.dart';
 import '../services/room_caption_service.dart';
@@ -2066,7 +2067,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
   int? get _firstFreeSeat {
     final occupied = _occupiedSeatIndexes;
-    for (var index = 1; index <= 8; index++) {
+    for (var index = 2; index <= 8; index++) {
       if (!occupied.contains(index)) return index;
     }
     return null;
@@ -2145,6 +2146,15 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   }
 
   List<RoomSeatState> _buildSeats() {
+    // Immediately close visual gaps; Firestore is compacted independently
+    // by the authorized host/moderator API after any departure.
+    final visuallyCompacted = compactStageSeats<RoomParticipant>(
+      participants: _participants,
+      roleOf: (p) => RoomParticipant.roleToString(p.role),
+      seatOf: (p) => p.seatIndex,
+      idOf: (p) => p.userId,
+      withSeat: (p, index) => p.atSeat(index),
+    );
     final seats = List<RoomSeatState>.generate(
       8,
       (index) => RoomSeatState(
@@ -2153,7 +2163,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       ),
     );
 
-    for (final participant in _participants) {
+    for (final participant in visuallyCompacted) {
       if (!participant.isOnStage) continue;
       final seatIndex = participant.seatIndex;
       if (seatIndex == null || seatIndex < 1 || seatIndex > 8) continue;
