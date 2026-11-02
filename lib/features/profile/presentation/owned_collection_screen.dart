@@ -19,6 +19,7 @@ class OwnedCollectionScreen extends StatelessWidget {
   const OwnedCollectionScreen({
     this.initialTab = 0,
     this.giftsOnly = false,
+    this.selectOwnedGift = false,
     this.categoryOnly,
     this.roomFeatures,
     super.key,
@@ -26,6 +27,8 @@ class OwnedCollectionScreen extends StatelessWidget {
   final int initialTab;
   /// Used by the gift chooser: its owned tab must never show cosmetics.
   final bool giftsOnly;
+  /// When opened from the gift picker, select an available catalog gift.
+  final bool selectOwnedGift;
   /// Each appearance shop opens only its own owned type.
   final String? categoryOnly;
   /// Allows applying a purchased room background only in its live room.
@@ -59,7 +62,11 @@ class OwnedCollectionScreen extends StatelessWidget {
           title: Text(title),
         ),
         body: giftsOnly
-            ? _ReceivedGiftTab(userId: uid, ar: ar)
+            ? _ReceivedGiftTab(
+                userId: uid,
+                ar: ar,
+                selectOwnedGift: selectOwnedGift,
+              )
             : const {'frame', 'background', 'bubble'}.contains(type)
                 ? _OwnedAssetTab(
                     userId: uid,
@@ -135,6 +142,7 @@ Widget _error(bool ar) => _empty(ar,
 Widget _grid(
   List<OwnedCollectionEntry> entries, bool ar, String userId, {
   RoomFeatureService? roomFeatures,
+  bool selectOwnedGift = false,
 }) {
   return LayoutBuilder(builder: (context, constraints) {
     final columns = constraints.maxWidth >= 700 ? 4 : 2;
@@ -150,15 +158,21 @@ Widget _grid(
         key: ValueKey(entries[i].id),
         entry: entries[i], ar: ar, userId: userId,
         roomFeatures: roomFeatures,
+        selectOwnedGift: selectOwnedGift,
       ),
     );
   });
 }
 
 class _ReceivedGiftTab extends StatelessWidget {
-  const _ReceivedGiftTab({required this.userId, required this.ar});
+  const _ReceivedGiftTab({
+    required this.userId,
+    required this.ar,
+    this.selectOwnedGift = false,
+  });
   final String userId;
   final bool ar;
+  final bool selectOwnedGift;
 
   @override
   Widget build(BuildContext context) {
@@ -219,7 +233,9 @@ class _ReceivedGiftTab extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),
                   ),
-                  Expanded(child: _grid(all, ar, userId)),
+                  Expanded(child: _grid(
+                    all, ar, userId, selectOwnedGift: selectOwnedGift,
+                  )),
                 ]);
               },
             );
@@ -421,12 +437,14 @@ class _OwnedAssetCard extends StatefulWidget {
     required this.ar,
     required this.userId,
     this.roomFeatures,
+    this.selectOwnedGift = false,
     super.key,
   });
   final OwnedCollectionEntry entry;
   final String userId;
   final bool ar;
   final RoomFeatureService? roomFeatures;
+  final bool selectOwnedGift;
 
   @override
   State<_OwnedAssetCard> createState() => _OwnedAssetCardState();
@@ -570,6 +588,63 @@ class _OwnedAssetCardState extends State<_OwnedAssetCard> {
 
   @override
   Widget build(BuildContext context) {
+    final canSelectGift = widget.selectOwnedGift &&
+        entry.type == 'gift' &&
+        entry.source != 'received_gift' &&
+        entry.isUsable &&
+        RegExp(r'^wv_gift_[0-9]{3}
+        (entry.type == 'frame' ||
+            (entry.type == 'bubble' && entry.bubbleId.isNotEmpty) ||
+            (entry.type == 'background' &&
+                widget.roomFeatures != null && entry.themeId.isNotEmpty));
+    return Card(
+      color: const Color(0xFF15382E),
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+        side: const BorderSide(color: Color(0x665B9F7A)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(9),
+        child: Column(
+          children: [
+            Expanded(child: SizedBox(
+              width: double.infinity, child: _art(),
+            )),
+            const SizedBox(height: 7),
+            Text(_title(), maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: Colors.white,
+                    fontWeight: FontWeight.w800)),
+            const SizedBox(height: 3),
+            Text(_source(), maxLines: 1, overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Color(0xFFFFD98F), fontSize: 11)),
+            if (entry.expiresAt != null)
+              Text('${entry.expiresAt!.toLocal().year}-${entry.expiresAt!.toLocal().month.toString().padLeft(2, '0')}-${entry.expiresAt!.toLocal().day.toString().padLeft(2, '0')}',
+                  style: const TextStyle(color: Colors.white60, fontSize: 10)),
+            if (entry.quantity > 1)
+              Text('× ${entry.quantity}', style: const TextStyle(
+                color: Colors.white70, fontSize: 11)),
+            if (canEquip)
+              SizedBox(
+                height: 31, width: double.infinity,
+                child: FilledButton.tonal(
+                  onPressed: _busy ? null : _apply,
+                  style: FilledButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  child: Text(_busy ? '...' : (_ar ? 'استخدام' : 'Use')),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+).hasMatch(entry.itemId);
     final canEquip = entry.isUsable &&
         (entry.type == 'frame' ||
             (entry.type == 'bubble' && entry.bubbleId.isNotEmpty) ||
@@ -604,6 +679,16 @@ class _OwnedAssetCardState extends State<_OwnedAssetCard> {
             if (entry.quantity > 1)
               Text('× ${entry.quantity}', style: const TextStyle(
                 color: Colors.white70, fontSize: 11)),
+            if (canSelectGift)
+              SizedBox(
+                height: 31,
+                width: double.infinity,
+                child: FilledButton.tonal(
+                  key: ValueKey('select-owned-${entry.itemId}'),
+                  onPressed: () => Navigator.of(context).pop(entry.itemId),
+                  child: Text(_ar ? 'اختيار الهدية' : 'Select gift'),
+                ),
+              ),
             if (canEquip)
               SizedBox(
                 height: 31, width: double.infinity,
