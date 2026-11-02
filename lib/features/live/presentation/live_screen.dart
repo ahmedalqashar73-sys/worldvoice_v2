@@ -2181,7 +2181,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                             Positioned(
                               left: 12,
                               right: 12,
-                              top: 185,
+                              top: 218,
                               height: _liveBoardHeight(context),
                               child: RoomBoardScreen(
                                 roomId: _liveId!,
@@ -3951,7 +3951,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                 Positioned(
                                   left: 12,
                                   right: 12,
-                                  top: 185,
+                                  top: 218,
                                   height: _liveBoardHeight(context),
                                   child: RoomBoardScreen(
                                     roomId: widget.liveId,
@@ -7428,7 +7428,7 @@ double _liveChatTop(BuildContext context, int count, {
 }) {
   final height = MediaQuery.sizeOf(context).height;
   final preferred = boardOpen
-      ? 185 + _liveBoardHeight(context) + 12
+      ? 218 + _liveBoardHeight(context) + 12
       : count <= 2
           ? height * .69
           : 106 + _liveStageHeight(context, count) + 12;
