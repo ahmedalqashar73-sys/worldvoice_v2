@@ -344,6 +344,48 @@ class RoomModerationService {
     });
   }
 
+  /// Deterministic check: seats 2 through 8 should have no gaps. Host
+  /// remains on seat one even when a moderator is hosting temporarily.
+  static bool needsSeatCompaction(List<RoomParticipant> participants) {
+    final occupied = participants
+        .where((p) => p.isOnStage && p.role != RoomMemberRole.host)
+        .map((p) => p.seatIndex)
+        .whereType<int>()
+        .where((seat) => seat >= 2 && seat <= 8)
+        .toList()
+      ..sort();
+    for (var i = 0; i < occupied.length; i++) {
+      if (occupied[i] != i + 2) return true;
+    }
+    return false;
+  }
+
+  /// The server updates all seat indexes atomically. Clients never modify
+  /// another participant's microphone, moderator rights, UID or Agora state.
+  Future<void> compactSeatsOnServer() async {
+    final current = _user;
+    if (current == null) return;
+    final token = await current.getIdToken();
+    if (token == null || token.isEmpty) return;
+    final base = Uri.tryParse(RoomBackendConfig.roomBackendBaseUrl.trim());
+    if (base == null || base.scheme != 'https' || !base.hasAuthority) {
+      return;
+    }
+    final endpoint = base.replace(path:
+        '${base.path.replaceFirst(RegExp(r"/$"), "")}/room/seats/compact');
+    final response = await http.post(
+      endpoint,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'roomId': channelId}),
+    ).timeout(const Duration(seconds: 12));
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw StateError('Room seat compaction: HTTP ${response.statusCode}');
+    }
+  }
+
   Stream<List<RoomParticipant>> watchParticipants() {
     return _participantsRef.snapshots().map((snapshot) {
       final result = <RoomParticipant>[];
