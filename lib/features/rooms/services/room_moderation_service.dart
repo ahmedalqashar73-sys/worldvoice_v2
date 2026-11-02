@@ -641,6 +641,37 @@ class RoomModerationService {
     await batch.commit();
   }
 
+  /// Reorder stage seats on the server after a departure or demotion.
+  /// Only the actual host or a current moderator can request this.
+  /// The backend transaction updates seat indexes, never microphone state.
+  Future<void> compactStageSeats() async {
+    final user = _user;
+    if (user == null) return;
+    final endpoint = Uri.tryParse(
+      RoomBackendConfig.giftStoreBaseUrl.trim(),
+    );
+    if (endpoint == null || endpoint.scheme != 'https' ||
+        !endpoint.hasAuthority || endpoint.userInfo.isNotEmpty) {
+      throw StateError('Room seat service unavailable.');
+    }
+    final path = endpoint.path.endsWith('/')
+        ? endpoint.path.substring(0, endpoint.path.length - 1)
+        : endpoint.path;
+    final token = await user.getIdToken();
+    if (token == null || token.isEmpty) return;
+    final response = await http.post(
+      endpoint.replace(path: '$path/room/seats/compact'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'roomId': channelId}),
+    ).timeout(const Duration(seconds: 15));
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw StateError('Could not reorder room seats: ${response.statusCode}');
+    }
+  }
+
   Future<void> moveToListener(String userId) async {
     await _participantsRef.doc(userId).set({
       'role': 'listener',
