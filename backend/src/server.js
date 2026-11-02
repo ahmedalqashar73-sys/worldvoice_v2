@@ -1997,7 +1997,15 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
         });
         return response;
       }
-      const policy = requireLiveEconomy(configSnap.data());
+      // Owner-only cosmetic trial: actual recipient entitlements and receipts,
+      // funded solely by non-redeemable administrative coins. The real
+      // purchase economy stays closed for everyone until approved.
+      const ownerBetaCosmeticGift = req.path === "/store/purchase" &&
+        gifting && isVerifiedOwner &&
+        ["frame", "background", "bubble"].includes(item.type) &&
+        process.env.WORLDVOICE_OWNER_BETA_GIFTS_ENABLED === "true";
+      const policy = ownerBetaCosmeticGift
+        ? null : requireLiveEconomy(configSnap.data());
       requirePrivateWallet(payerSnap);
       if (gifting && item.type === "vip") requirePrivateWallet(snaps[8]);
       if (!payerProfileSnap.exists ||
@@ -2048,6 +2056,11 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
         coins: before, adminCoins: Number(payerSnap.data()?.adminCoins ?? 0),
         amount: price,
       });
+      if (ownerBetaCosmeticGift && split.paidSpent !== 0) {
+        throw Object.assign(new Error(
+          "Owner trial gifts require sufficient administrative coins."),
+          {status: 409});
+      }
       const dailyGift = Number(dailySnap.data()?.giftCoins || 0);
       if (gifting && !isVerifiedOwner &&
           (!Number.isSafeInteger(policy.giftingDailyCoinLimit) ||
@@ -2120,6 +2133,9 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
         adminCoinsSpent: split.adminSpent, paidCoinsSpent: split.paidSpent,
         durationDays: duration,
         expiresAt: expiresAt ? expiresAt.toDate().toISOString() : null,
+        ...(ownerBetaCosmeticGift ? {
+          ownerBetaGift: true, pendingDiamonds: 0, nonRedeemable: true,
+        } : {}),
       };
       tx.create(operationRef, {
         senderId: sender.uid, recipientId, itemId,
@@ -2132,6 +2148,9 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
           name: String(item.name || itemId).slice(0, 120),
           nameAr: String(item.nameAr || "").slice(0, 120),
           durationDays: duration, expiresAt,
+          ...(ownerBetaCosmeticGift ? {
+            ownerBetaGift: true, pendingDiamonds: 0, nonRedeemable: true,
+          } : {}),
           seen: false, createdAt: FieldValue.serverTimestamp(),
         });
       // The inventory grant and the visible chat gift card commit together.
@@ -2154,6 +2173,9 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
           itemId, name: String(item.name || itemId).slice(0, 120),
           nameAr: String(item.nameAr || "").slice(0, 120),
           quantity: 1, priceCoins: price, durationDays: duration,
+          ...(ownerBetaCosmeticGift ? {
+            ownerBetaGift: true, pendingDiamonds: 0, nonRedeemable: true,
+          } : {}),
           expiresAt, createdAt: FieldValue.serverTimestamp(),
         });
         tx.update(giftChatRef, {
@@ -2164,7 +2186,11 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
       tx.create(db.collection("economy_audit").doc(refKey), {
         type: gifting ? "item_gift" : "item_purchase",
         senderId: sender.uid, recipientId, itemId,
-        paidCoins: price, createdAt: FieldValue.serverTimestamp(),
+        paidCoins: price,
+        ...(ownerBetaCosmeticGift ? {
+          ownerBetaGift: true, paidCoinsSpent: 0, pendingDiamonds: 0,
+        } : {}),
+        createdAt: FieldValue.serverTimestamp(),
       });
       return {...response, alreadyProcessed: false};
     });
