@@ -65,4 +65,28 @@ void main() {
     expect(item.source, 'video_box');
     expect(item.isUsable, true);
   });
+  test('castle milestone is earned, never an unclaimed consumable gift', () {
+    final milestone = OwnedCollectionEntry.fromRoomReward(
+      'castle_level_10', {'level': 10, 'type': 'castle_milestone'});
+    expect(milestone.type, 'achievement');
+    expect(milestone.pendingReward, false);
+    expect(milestone.source, 'room_level_reward');
+  });
+
+  test('visual gift with empty Arabic name falls back to its English name', () {
+    final receipt = OwnedCollectionEntry.fromReceived('g1', {
+      'type': 'gift', 'nameAr': '', 'name': 'Midnight gift',
+    });
+    expect(receipt.name, 'Midnight gift');
+  });
+
+  test('claimable room background reward stays pending before activation', () {
+    final eligible = OwnedCollectionEntry.fromRoomReward('reward5', {
+      'level': 5, 'type': 'background_month',
+    });
+    expect(eligible.type, 'reward');
+    expect(eligible.pendingReward, true);
+    expect(eligible.isUsable, false);
+  });
+
 }
