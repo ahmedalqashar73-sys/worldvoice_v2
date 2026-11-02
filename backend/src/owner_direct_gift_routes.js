@@ -162,6 +162,15 @@ export function registerOwnerDirectGiftRoutes({
           nameAr: catalog.nameAr, quantity, priceCoins: amount,
           seen: false, createdAt: FieldValue.serverTimestamp(),
         });
+        tx.create(senderRef.collection("gift_wall_sent").doc(id), {
+          senderId: sender.uid, recipientId, type: "gift",
+          senderName: String(senderProfile.data()?.displayName || "WorldVoice user"),
+          recipientName: String(recipientProfile.data()?.displayName || "WorldVoice member"),
+          itemId: giftId, giftId, quantity,
+          name: catalog.name, nameAr: catalog.nameAr,
+          priceCoins: amount, context: "direct",
+          createdAt: FieldValue.serverTimestamp(),
+        });
         const chatData = chatSnap.data() || {};
         if (chatSnap.exists && chatData.active === true &&
             Array.isArray(chatData.memberIds) &&
