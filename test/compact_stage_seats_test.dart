@@ -10,7 +10,7 @@ class _Speaker {
   _Speaker at(int index) => _Speaker(id, role, index);
 }
 
-List<_Speaker> arrange(List<_Speaker> members) =>
+List<_Speaker> _arrange(List<_Speaker> members) =>
     compactStageSeats<_Speaker>(
       participants: members,
       roleOf: (m) => m.role,
@@ -21,7 +21,7 @@ List<_Speaker> arrange(List<_Speaker> members) =>
 
 void main() {
   test('when seat 2 exits, speakers from 3 and 4 shift forward', () {
-    final members = arrange([
+    final members = _arrange([
       const _Speaker('host', 'host', 1),
       const _Speaker('A', 'speaker', 3),
       const _Speaker('B', 'coHost', 4),
@@ -37,7 +37,7 @@ void main() {
   });
 
   test('eight filled seats: fifth exit shifts sixth to fifth', () {
-    final seats = arrange([
+    final seats = _arrange([
       const _Speaker('host', 'host', 1),
       const _Speaker('s2', 'speaker', 2),
       const _Speaker('s3', 'speaker', 3),
@@ -54,12 +54,12 @@ void main() {
   });
 
   test('compaction remains stable after it is applied twice', () {
-    final first = arrange([
+    final first = _arrange([
       const _Speaker('host', 'host', 1),
       const _Speaker('B', 'speaker', 5),
       const _Speaker('A', 'speaker', 5),
     ]);
-    final second = arrange(first);
+    final second = _arrange(first);
     expect(second.map((m) => [m.id, m.seat]).toList(),
       first.map((m) => [m.id, m.seat]).toList());
   });
