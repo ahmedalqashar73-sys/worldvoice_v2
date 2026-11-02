@@ -2163,7 +2163,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                               bottom: 94,
                               start: 12,
                               end: 12,
-                              child: _LiveVideoGrid(children: tiles),
+                              child: WorldVoiceLiveVideoGrid(children: tiles),
                             )
                           else
                             PositionedDirectional(
@@ -2172,7 +2172,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                               end: 12,
                               height: _liveStageHeight(context, tiles.length,
                                   boardOpen: _boardOpen),
-                              child: _LiveVideoGrid(
+                              child: WorldVoiceLiveVideoGrid(
                                 compact: _boardOpen,
                                 children: tiles,
                               ),
@@ -3926,7 +3926,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                   bottom: 94,
                                   start: 12,
                                   end: 12,
-                                  child: _LiveVideoGrid(children: tiles),
+                                  child: WorldVoiceLiveVideoGrid(children: tiles),
                                 )
                               else if (tiles.isNotEmpty)
                                 PositionedDirectional(
@@ -3937,7 +3937,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                     context, tiles.length,
                                     boardOpen: _boardOpen,
                                   ),
-                                  child: _LiveVideoGrid(
+                                  child: WorldVoiceLiveVideoGrid(
                                     compact: _boardOpen,
                                     children: tiles,
                                   ),
@@ -7492,8 +7492,8 @@ double _liveChatTop(BuildContext context, int count, {
   return preferred.clamp(145.0, (height - 150).clamp(145.0, height));
 }
 
-class _LiveVideoGrid extends StatelessWidget {
-  const _LiveVideoGrid({required this.children, this.compact = false});
+class WorldVoiceLiveVideoGrid extends StatelessWidget {
+  const WorldVoiceLiveVideoGrid({required this.children, this.compact = false});
   final List<Widget> children;
   final bool compact;
 
