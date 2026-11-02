@@ -1,5 +1,6 @@
 import '../../engagement/services/engagement_service.dart';
 import '../../profile/presentation/member_badges.dart';
+import '../../profile/presentation/owned_collection_screen.dart';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -536,6 +537,27 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                             ar
                                 ? 'مستوى الهدايا والتقدم'
                                 : 'Gift level & progress',
+                          ),
+                        ),
+                        TextButton.icon(
+                          key: const ValueKey('gift-panel-owned-collection'),
+                          onPressed: () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) =>
+                                  const OwnedCollectionScreen(initialTab: 0),
+                            ),
+                          ),
+                          icon: const Icon(
+                            Icons.inventory_2_outlined,
+                            color: Color(0xFFFFD98F),
+                          ),
+                          label: Text(
+                            ar ? 'تم الامتلاك • هداياي ومكافآتي'
+                                : 'My Collection • Gifts & Rewards',
+                            style: const TextStyle(
+                              color: Color(0xFFFFD98F),
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
                         ),
                         Container(
