@@ -27,3 +27,22 @@ test("live gifts require active authenticated host/guest or viewer", () => {
     session: {...input.session,
       hostHeartbeatAt: {toMillis: () => now - 70_000}}}), false);
 });
+
+test("live owner test gifts allow genuine audience viewer only", () => {
+  const now = Date.now();
+  const base = {
+    context: "live", now, senderId: "host", recipientId: "viewer",
+    session: {isLive: true, hostId: "host",
+      hostHeartbeatAt: {toMillis: () => now - 1000}},
+    senderMember: {exists: false},
+    recipientMember: {exists: false},
+    recipientViewer: yes({uid: "viewer"}),
+  };
+  assert.equal(validateBetaContextMembership(base), true);
+  assert.equal(validateBetaContextMembership({...base,
+    recipientViewer: yes({uid: "other"})}), false);
+  assert.equal(validateBetaContextMembership({...base,
+    recipientViewer: {exists: false}}), false);
+  assert.equal(validateBetaContextMembership({...base,
+    senderId: "attacker", senderMember: yes({uid: "other"})}), false);
+});
