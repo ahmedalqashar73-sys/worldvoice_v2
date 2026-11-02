@@ -179,7 +179,7 @@ class UserProfileScreen extends StatelessWidget {
                           child: WorldVoiceAvatarFrame(
                             frameId: profileFrameId,
                             size: 112,
-                          child: ColoredBox(
+                            child: ColoredBox(
                             color: Theme.of(context).colorScheme.surface,
                             child: photo == null || photo.isEmpty
                                 ? const Center(
