@@ -175,7 +175,7 @@ class WorldVoiceChatGiftCard extends StatelessWidget {
             fontSize: 14, fontWeight: FontWeight.w900)),
         Text(_label, style: const TextStyle(
           fontSize: 11, color: Color(0xFFB4D8C6))),
-        if (quantity > 1) Text('× ' + quantity.toString(),
+        if (quantity > 1) Text('× $quantity',
           style: const TextStyle(color: Color(0xFFEBD08A))),
         if (duration != null && duration > 0)
           Text(ar ? '$duration أيام' : '$duration days',
