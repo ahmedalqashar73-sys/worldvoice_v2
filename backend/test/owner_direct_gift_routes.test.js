@@ -82,6 +82,9 @@ function harness({adminCoins = 60, coins = 180, blocked = false,
     }),
     privateWalletRef: user => ref(user.path + "/private/wallet"),
     splitOwnerCoinSpend, diamondsForPaidCoins,
+    // The handler checks the canonical two-member chat only when it exists.
+    chatIdFor: () => 'a'.repeat(64),
+    assertChatMembership: () => true,
     FieldValue: {
       serverTimestamp: () => "timestamp",
       increment: amount => ({increment: amount}),
