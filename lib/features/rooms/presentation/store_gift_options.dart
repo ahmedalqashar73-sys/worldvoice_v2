@@ -38,76 +38,112 @@ Future<ShopGiftRecipient?> pickStoreGiftRecipient(
     );
   }
 
-  final controller = TextEditingController();
+  // Keep the input alive for the dialog's full reverse route animation.
+  // The former finally/controller.dispose() happened before unmount.
+  var query = '';
   var searching = false;
   String? error;
   List<ShopGiftRecipient> matches = const [];
-  try {
-    return await showDialog<ShopGiftRecipient>(
-      context: context,
-      builder: (dialog) => StatefulBuilder(
-        builder: (dialogContext, update) {
-          Future<void> search() async {
-            final term = controller.text.trim();
-            if (term.length < 2) {
-              update(() => error = ar ? 'اكتب حرفين على الأقل' : 'Enter at least 2 characters');
-              return;
-            }
-            update(() { searching = true; error = null; matches = const []; });
-            try {
-              final result = await shop.searchGiftRecipients(term);
-              if (!dialogContext.mounted) return;
-              update(() { matches = result; searching = false; });
-            } catch (_) {
-              if (!dialogContext.mounted) return;
-              update(() {
-                searching = false;
-                error = ar ? 'تعذر البحث عن المستخدمين' : 'Search unavailable';
-              });
-            }
+  return showDialog<ShopGiftRecipient>(
+    context: context,
+    builder: (dialog) => StatefulBuilder(
+      builder: (dialogContext, update) {
+        Future<void> search() async {
+          final term = query.trim().replaceFirst(RegExp(r'^@'), '');
+          if (term.length < 2) {
+            update(() => error = ar
+                ? 'اكتب حرفين على الأقل'
+                : 'Enter at least 2 characters');
+            return;
           }
-          return AlertDialog(
-            title: Text(ar ? 'إهداء لأي مستخدم' : 'Gift any user'),
-            content: SizedBox(
-              width: 360,
+          update(() {
+            searching = true;
+            error = null;
+            matches = const [];
+          });
+          try {
+            final result = await shop.searchGiftRecipients(term);
+            if (!dialogContext.mounted) return;
+            update(() {
+              matches = result;
+              searching = false;
+              if (result.isEmpty) {
+                error = ar ? 'لا يوجد مستخدم بهذا الاسم أو المعرّف'
+                           : 'No matching users';
+              }
+            });
+          } catch (_) {
+            if (!dialogContext.mounted) return;
+            update(() {
+              searching = false;
+              error = ar
+                  ? 'تعذر البحث. تحقق من الإنترنت وحاول مجددًا.'
+                  : 'Search unavailable. Check connection and retry.';
+            });
+          }
+        }
+        return AlertDialog(
+          title: Text(ar ? 'اختر مستلم الهدية' : 'Choose gift recipient'),
+          content: SizedBox(
+            width: 360,
+            child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextField(
-                    controller: controller,
+                    autofocus: true,
+                    onChanged: (value) => query = value,
                     decoration: InputDecoration(
-                      labelText: ar ? 'الاسم أو اسم المستخدم أو ID' : 'Name, username or ID',
-                      prefixIcon: const Icon(Icons.search),
+                      labelText: ar ? 'الاسم أو @المستخدم أو المعرّف'
+                                    : 'Name, @username or ID',
+                      prefixIcon: const Icon(Icons.search_rounded),
                     ),
                     textInputAction: TextInputAction.search,
                     onSubmitted: (_) => search(),
                   ),
-                  const SizedBox(height: 8),
-                  FilledButton.icon(
-                    onPressed: searching ? null : search,
-                    icon: const Icon(Icons.search),
-                    label: Text(ar ? 'بحث' : 'Search'),
+                  const SizedBox(height: 9),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: searching ? null : search,
+                      icon: const Icon(Icons.search_rounded),
+                      label: Text(ar ? 'البحث عن مستخدم' : 'Find user'),
+                    ),
                   ),
                   if (searching) const LinearProgressIndicator(),
                   if (error != null)
-                    Text(error!, style: TextStyle(color: Theme.of(dialogContext).colorScheme.error)),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(error!,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Theme.of(dialogContext).colorScheme.error)),
+                    ),
                   if (!searching && matches.isEmpty && error == null)
-                    Text(ar ? 'اكتب الاسم أو المعرّف للبحث' : 'Search by name or ID'),
+                    Text(ar ? 'اكتب اسم الشخص أو معرّفه ثم اضغط بحث'
+                             : 'Enter a name or ID and tap Search',
+                      textAlign: TextAlign.center),
                   if (matches.isNotEmpty)
                     ConstrainedBox(
-                      constraints: const BoxConstraints(maxHeight: 250),
+                      constraints: const BoxConstraints(maxHeight: 235),
                       child: ListView.builder(
                         shrinkWrap: true,
                         itemCount: matches.length,
                         itemBuilder: (_, index) {
                           final person = matches[index];
+                          final identity = person.username.isNotEmpty
+                              ? '@' + person.username
+                              : person.customId.isNotEmpty
+                                  ? person.customId
+                                  : person.uid;
                           return ListTile(
-                            leading: const CircleAvatar(child: Icon(Icons.person)),
-                            title: Text(person.displayName),
-                            subtitle: Text(person.username.isNotEmpty
-                              ? '@${person.username} • ${person.customId.isNotEmpty ? person.customId : person.uid}'
-                              : person.customId.isNotEmpty ? person.customId : person.uid),
-                            onTap: () => Navigator.pop(dialog, person),
+                            leading: const CircleAvatar(
+                              child: Icon(Icons.person_outline)),
+                            title: Text(person.displayName,
+                              maxLines: 1, overflow: TextOverflow.ellipsis),
+                            subtitle: Text(identity,
+                              maxLines: 1, overflow: TextOverflow.ellipsis),
+                            onTap: () => Navigator.of(dialogContext).pop(person),
                           );
                         },
                       ),
@@ -115,17 +151,17 @@ Future<ShopGiftRecipient?> pickStoreGiftRecipient(
                 ],
               ),
             ),
-            actions: [TextButton(
-              onPressed: () => Navigator.pop(dialog),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
               child: Text(ar ? 'إلغاء' : 'Cancel'),
-            )],
-          );
-        },
-      ),
-    );
-  } finally {
-    controller.dispose();
-  }
+            ),
+          ],
+        );
+      },
+    ),
+  );
 }
 
 /// Returns null on cancellation, zero for permanent, or a supported day count.
