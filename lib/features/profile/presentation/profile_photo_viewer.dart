@@ -52,7 +52,7 @@ class _ProfilePhotoViewerState extends State<ProfilePhotoViewer> {
       await FirebaseFirestore.instance.collection('users')
           .doc(widget.userId).update({
         _field: uploaded.url,
-        widget.cover ? 'coverPublicId' : 'photoPublicId': uploaded.publicId,
+        (widget.cover ? 'coverPublicId' : 'photoPublicId'): uploaded.publicId,
         'updatedAt': FieldValue.serverTimestamp(),
       });
       if (!mounted) return;
