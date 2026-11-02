@@ -33,6 +33,8 @@ async function request({admin, path = '/store/admin-grant', recipientId} = {}) {
     app: {post: (_, fn) => {handler = fn;}},
     authenticatedUser: async () => ({uid: 'sender'}), canManageStore, canGrantStoreCosmetic,
     cosmeticGiftPrice, isVerifiedOwnerIdentity, verifiedOwner: async () => false,
+    chatIdFor: () => 'a'.repeat(64),
+    assertChatMembership: () => true,
     privilegedAccounts: new Map(),
     createHash: () => ({update: () => ({digest: () => 'operation'})}),
     db: {collection: name => ref(name), doc: ref,
