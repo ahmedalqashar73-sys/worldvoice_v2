@@ -163,15 +163,6 @@ export function registerOwnerDirectGiftRoutes({
           seen: false, createdAt: FieldValue.serverTimestamp(),
         });
         tx.create(senderRef.collection("gift_wall_sent").doc(id), {
-          senderId: sender.uid, recipientId, type: "gift",
-          senderName: String(senderProfile.data()?.displayName || "WorldVoice user"),
-          recipientName: String(recipientProfile.data()?.displayName || "WorldVoice member"),
-          itemId: giftId, giftId, quantity,
-          name: catalog.name, nameAr: catalog.nameAr,
-          priceCoins: amount, context: "direct",
-          createdAt: FieldValue.serverTimestamp(),
-        });
-        tx.create(senderRef.collection("gift_wall_sent").doc(id), {
           senderId: sender.uid,
           senderName: String(senderProfile.data()?.displayName || "WorldVoice user"),
           recipientId,
