@@ -198,11 +198,15 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     }
     final mayManage = uid == _roomHostId ||
         participants.any((p) => p.userId == uid && p.isModerator);
-    if (!mayManage || _seatCompactionInFlight) return;
+    if (!mayManage || _seatCompactionInFlight) {
+      return;
+    }
     final now = DateTime.now();
     if (_lastSeatCompactionAttempt != null &&
         now.difference(_lastSeatCompactionAttempt!) <
-            const Duration(seconds: 4)) return;
+            const Duration(seconds: 4)) {
+      return;
+    }
     _lastSeatCompactionAttempt = now;
     _seatCompactionInFlight = true;
     unawaited(_moderation.compactSeatsOnServer().catchError((Object error) {
