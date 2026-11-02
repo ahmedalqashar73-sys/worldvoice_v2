@@ -1,6 +1,9 @@
 import {registerGiftSendRoutes} from "./gift_send_routes.js";
 import {registerOwnerDirectGiftRoutes} from "./owner_direct_gift_routes.js";
 import {registerOwnerBetaChatGiftRoutes} from "./owner_beta_chat_gifts.js";
+import {registerOwnerBetaContextGiftRoutes} from "./owner_beta_context_gifts.js";
+import {registerGiftWallRoutes} from "./gift_wall_routes.js";
+import {registerRoomSeatCompactionRoutes} from "./room_seat_compaction_routes.js";
 import {giftProgress} from './member_badge_policy.js';
 import {registerMemberBadgeRoutes, memberBadgeRef} from './member_badge_routes.js';
 import { createHash, randomUUID } from "node:crypto";
@@ -2450,6 +2453,14 @@ registerOwnerBetaChatGiftRoutes({
   app, db, authenticatedUser,
   isVerifiedOwner: verifiedOwner,
   notifyGift: sendCosmeticGiftPush,
+});
+registerOwnerBetaContextGiftRoutes({
+  app, db, authenticatedUser,
+  isVerifiedOwner: verifiedOwner, validChannelName,
+});
+registerGiftWallRoutes({app, db, authenticatedUser});
+registerRoomSeatCompactionRoutes({
+  app, db, authenticatedUser, validChannelName,
 });
 
 app.post("/iap/verify", async (req, res, next) => {
