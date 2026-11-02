@@ -4632,8 +4632,65 @@ class _LiveParticipantCameraTile extends StatelessWidget {
               ),
             ),
           ),
-        // Host identity lives in the fixed Live header. Do not duplicate
-        // large HOST/GUEST pills on top of people's camera video.
+        // A minimal speaking meter and host crest mirror the first
+        // approved visual while keeping faces and camera feeds unobscured.
+        if (!compact)
+          PositionedDirectional(
+            top: 11,
+            start: 11,
+            child: IgnorePointer(
+              child: Icon(
+                microphoneMuted
+                    ? Icons.mic_off_rounded
+                    : Icons.graphic_eq_rounded,
+                size: 22,
+                color: microphoneMuted
+                    ? Colors.white54
+                    : activeSpeaker
+                        ? const Color(0xFF3FE3A0)
+                        : const Color(0xFFB4D8C4),
+              ),
+            ),
+          ),
+        if (isHost && !compact)
+          PositionedDirectional(
+            top: 10,
+            end: 10,
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: const Color(0xCC09281F),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: const Color(0xFFD8BA77),
+                    width: 1,
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 9,
+                    vertical: 4,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.workspace_premium_rounded,
+                          color: Color(0xFFE9C77D), size: 14),
+                      const SizedBox(width: 4),
+                      Text(
+                        ar ? 'المضيف' : 'HOST',
+                        style: const TextStyle(
+                          color: Color(0xFFE9D3A0),
+                          fontWeight: FontWeight.w800,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
         if (!compact && onManageGuest != null)
           PositionedDirectional(
             top: 8,
