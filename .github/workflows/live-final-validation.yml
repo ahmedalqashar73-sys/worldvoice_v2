@@ -45,6 +45,7 @@ jobs:
           flutter test \
             test/live_host_token_bootstrap_test.dart \
             test/live_video_order_test.dart \
+            test/live_approved_layout_test.dart \
             test/live_camera_controls_test.dart \
             test/live_camera_off_tile_test.dart \
             test/agora_connection_deadline_test.dart \
