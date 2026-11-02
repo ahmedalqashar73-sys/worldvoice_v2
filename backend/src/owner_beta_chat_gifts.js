@@ -123,7 +123,11 @@ export function registerOwnerBetaChatGiftRoutes({
           lastMessageAt: FieldValue.serverTimestamp(),
         });
         tx.create(recipientRef.collection("gift_notifications").doc(id), {
-          senderId: sender.uid, giftId, itemId: giftId,
+          senderId: sender.uid,
+          senderName: String(senderProfile.data()?.displayName || "WorldVoice user"),
+          recipientId,
+          recipientName: String(recipientProfile.data()?.displayName || "WorldVoice member"),
+          context: "chat", giftId, itemId: giftId,
           type: "gift", name: gift.name, nameAr: gift.nameAr,
           quantity: 1, priceCoins: gift.priceCoins,
           ownerBetaGift: true, pendingDiamonds: 0,
