@@ -431,7 +431,13 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xEE09271F), Color(0xE814513A), Color(0xEE082B25)],
+          stops: [0, .27, .67, 1],
+          colors: [
+            Color(0xF508241D),
+            Color(0xF0133B2E),
+            Color(0xF00E3229),
+            Color(0xF308231E),
+          ],
         ),
       ),
       child: FutureBuilder<List<RoomGiftCatalogItem>>(
@@ -522,6 +528,9 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                       children: [
                         Expanded(
                           child: SingleChildScrollView(
+                            physics: const BouncingScrollPhysics(
+                              parent: AlwaysScrollableScrollPhysics(),
+                            ),
                             padding: const EdgeInsets.only(bottom: 8),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
@@ -537,27 +546,6 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                             ar
                                 ? 'مستوى الهدايا والتقدم'
                                 : 'Gift level & progress',
-                          ),
-                        ),
-                        TextButton.icon(
-                          key: const ValueKey('gift-panel-owned-collection'),
-                          onPressed: () => Navigator.of(context).push(
-                            MaterialPageRoute<void>(
-                              builder: (_) =>
-                                  const OwnedCollectionScreen(initialTab: 0),
-                            ),
-                          ),
-                          icon: const Icon(
-                            Icons.inventory_2_outlined,
-                            color: Color(0xFFFFD98F),
-                          ),
-                          label: Text(
-                            ar ? 'تم الامتلاك • هداياي ومكافآتي'
-                                : 'My Collection • Gifts & Rewards',
-                            style: const TextStyle(
-                              color: Color(0xFFFFD98F),
-                              fontWeight: FontWeight.w800,
-                            ),
                           ),
                         ),
                         Container(
@@ -792,6 +780,40 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                                           }),
                                   ),
                                 ),
+                              // Fourth and final catalog option. No catalog
+                              // assets, prices, order or tiers are modified.
+                              Padding(
+                                padding: const EdgeInsetsDirectional.only(end: 6),
+                                child: ActionChip(
+                                  key: const ValueKey('gift-tier-owned'),
+                                  backgroundColor: const Color(0xFF173A30),
+                                  side: const BorderSide(
+                                    color: Color(0xCCB8A16B),
+                                  ),
+                                  avatar: const Icon(
+                                    Icons.inventory_2_outlined,
+                                    color: Color(0xFFFFDB8C),
+                                    size: 17,
+                                  ),
+                                  label: Text(
+                                    ar ? 'تم الامتلاك' : 'Owned',
+                                    style: const TextStyle(
+                                      color: Color(0xFFFFDB8C),
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                  onPressed: _busy
+                                      ? null
+                                      : () => Navigator.of(context).push(
+                                          MaterialPageRoute<void>(
+                                            builder: (_) =>
+                                                const OwnedCollectionScreen(
+                                                  giftsOnly: true,
+                                                ),
+                                          ),
+                                        ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -838,6 +860,9 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                                   ),
                                 )
                               : GridView.builder(
+                                  physics: const BouncingScrollPhysics(
+                                    parent: AlwaysScrollableScrollPhysics(),
+                                  ),
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 8,
                                     vertical: 8,
@@ -1026,10 +1051,13 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                         Container(
                           key: const ValueKey('sticky-gift-send-footer'),
                           width: double.infinity,
+                          // Soft continuous footer rather than a heavy
+                          // rectangular frame under the gift gallery.
                           decoration: const BoxDecoration(
-                            color: Color(0xFF092D23),
-                            border: Border(
-                              top: BorderSide(color: Color(0x66DCBE77)),
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [Color(0x00102F27), Color(0xF008241D)],
                             ),
                           ),
                           padding: EdgeInsets.fromLTRB(
