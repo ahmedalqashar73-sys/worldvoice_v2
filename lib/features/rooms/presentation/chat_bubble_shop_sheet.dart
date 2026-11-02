@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../profile/presentation/owned_collection_screen.dart';
+
 import '../data/chat_bubble_catalog.dart';
 import '../services/room_shop_service.dart';
 import '../services/vip_room_features.dart';
@@ -190,8 +192,27 @@ class _BubbleShopState extends State<WorldVoiceChatBubbleShopSheet> {
             style: const TextStyle(fontWeight: FontWeight.w900)),
           subtitle: Text(_ar ? 'الشات الخاص • الروم • اللايف'
             : 'Private chats • Rooms • Live'),
-          trailing: IconButton(icon: const Icon(Icons.close),
-            onPressed: () => Navigator.pop(context)),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextButton.icon(
+                key: const ValueKey('owned-bubble-store'),
+                icon: const Icon(Icons.inventory_2_outlined, size: 18),
+                label: Text(_ar ? 'تم الامتلاك' : 'Owned'),
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const OwnedCollectionScreen(
+                      categoryOnly: 'bubble',
+                    ),
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ],
+          ),
         ),
         Wrap(spacing: 6, children: [
           for (final days in <int?>[7, 30, null])
