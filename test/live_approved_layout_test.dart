@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:worldvoice_v2/features/live/presentation/live_screen.dart';
+import 'package:worldvoice/features/live/presentation/live_screen.dart';
 
 Widget _camera(String id) => SizedBox.expand(
   key: ValueKey('live-camera-$id'),
