@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/widgets/worldvoice_avatar_frame.dart';
+import '../../engagement/services/engagement_service.dart';
+import 'member_badges.dart';
 import '../../rooms/data/chat_bubble_catalog.dart';
 import '../../rooms/data/room_background_catalog.dart';
 import '../../rooms/presentation/chat_bubble_frame.dart';
@@ -289,12 +291,11 @@ class _OtherOwnedTab extends StatelessWidget {
                     expiresAt: expires,
                   ));
                 }
-                if (entries.isEmpty) {
-                  return _empty(ar,
-                      'لا توجد شارات أو تأثيرات دخول أو مكافآت مهام حتى الآن.',
-                      'No VIP badges, entry effects or room rewards yet.');
-                }
-                return _grid(entries, ar, userId);
+                // VIP badge designs are secured by the member-style API,
+                // not by the public user profile or cosmetics inventory.
+                return _VerifiedBadgeGallery(
+                  userId: userId, ar: ar, entries: entries,
+                );
               },
             );
           },
@@ -302,6 +303,65 @@ class _OtherOwnedTab extends StatelessWidget {
       },
     );
   }
+}
+
+class _VerifiedBadgeGallery extends StatefulWidget {
+  const _VerifiedBadgeGallery({
+    required this.userId, required this.ar, required this.entries,
+  });
+
+  final String userId;
+  final bool ar;
+  final List<OwnedCollectionEntry> entries;
+
+  @override
+  State<_VerifiedBadgeGallery> createState() =>
+      _VerifiedBadgeGalleryState();
+}
+
+class _VerifiedBadgeGalleryState extends State<_VerifiedBadgeGallery> {
+  // Cache the verified request across profile/inventory stream updates;
+  // do not fetch on every Firestore snapshot.
+  late final Future<Map<String, dynamic>> _badges =
+      EngagementService.request('member-style');
+
+  @override
+  Widget build(BuildContext context) => FutureBuilder<Map<String, dynamic>>(
+    future: _badges,
+    builder: (context, snapshot) {
+      final entries = <OwnedCollectionEntry>[...widget.entries];
+      if (snapshot.hasData) {
+        final response = snapshot.data!;
+        final ids = <String>{
+          ...((response['owned'] as List?) ?? const [])
+              .map((value) => value.toString()),
+        };
+        final plan = response['automatic']?.toString() ?? '';
+        if (plan.isNotEmpty) ids.add(plan);
+        for (final badgeId in ids) {
+          if (!MemberBadgeCatalog.plans.contains(badgeId) &&
+              !MemberBadgeCatalog.extras.contains(badgeId)) {
+            continue;
+          }
+          entries.add(OwnedCollectionEntry(
+            id: 'vip_badge:$badgeId',
+            type: 'vip_badge',
+            itemId: badgeId,
+            name: MemberBadgeCatalog.name(badgeId, widget.ar),
+            source: 'vip_badge',
+          ));
+        }
+      }
+      if (entries.isEmpty) {
+        return _empty(
+          widget.ar,
+          'لا توجد شارات VIP أو تأثيرات دخول أو إنجازات حتى الآن.',
+          'No owned VIP badges, entrance effects or achievements yet.',
+        );
+      }
+      return _grid(entries, widget.ar, widget.userId);
+    },
+  );
 }
 
 class _OwnedAssetCard extends StatefulWidget {
@@ -326,6 +386,9 @@ class _OwnedAssetCardState extends State<_OwnedAssetCard> {
   String _title() {
     if (entry.type == 'frame') {
       return WorldVoiceAvatarFrame.label(entry.itemId, ar: _ar);
+    }
+    if (entry.type == 'vip_badge') {
+      return MemberBadgeCatalog.name(entry.itemId, _ar);
     }
     if (entry.type == 'background') {
       return RoomBackgroundCatalog.itemForTheme(entry.themeId)
@@ -359,6 +422,7 @@ class _OwnedAssetCardState extends State<_OwnedAssetCard> {
       'room_level_reward' => _ar ? 'مكافأة مهام الروم' : 'Room task reward',
       'video_box' => _ar ? 'مكافأة Video Box' : 'Video Box reward',
       'verified_membership' => _ar ? 'عضوية VIP مفعّلة' : 'Active VIP membership',
+      'vip_badge' => _ar ? 'شارة VIP مملوكة' : 'Owned VIP badge',
       _ => _ar ? 'تم الامتلاك' : 'Owned',
     };
   }
@@ -428,6 +492,10 @@ class _OwnedAssetCardState extends State<_OwnedAssetCard> {
       case 'vip':
         return const Icon(Icons.workspace_premium_rounded,
             color: Color(0xFFFFD98F), size: 65);
+      case 'vip_badge':
+        return Center(child: VipSignatureBadge(
+          design: entry.itemId, large: true,
+        ));
       case 'reward':
       case 'achievement':
         return const Icon(Icons.castle_outlined,
