@@ -28,10 +28,10 @@ jobs:
           cache: true
 
       - run: flutter pub get
-      - name: Check WorldBond and existing Flutter app before packaging
+      - name: Validate latest WorldVoice chat, cosmetics, and WorldBond before packaging
         run: |
           flutter analyze
-          flutter test test/world_bond_api_url_test.dart
+          flutter test test/world_bond_api_url_test.dart test/chat_gift_message_card_test.dart test/worldvoice_avatar_frame_test.dart test/chat_delivery_crypto_test.dart
       - name: Refuse to build an APK without the eight premium images
         run: python3 scripts/verify_room_background_assets.py
 
@@ -39,16 +39,22 @@ jobs:
         shell: bash
         run: sed -i 's/-Xmx2048m/-Xmx4096m/' android/gradle.properties
 
-      - name: Build Android TEST APK
-        run: >
-          flutter build apk --release
-          --dart-define=WORLDVOICE_BUILD_REVISION=${GITHUB_SHA}
-          --dart-define=WORLDVOICE_FRIEND_GIFT_PREVIEW=true
-          --dart-define=AGORA_APP_ID=fa41476c6813471eb45c059bcb4a0e19
-          --dart-define=WORLDVOICE_ROOM_BACKEND_URL=https://worldvoice-v2.onrender.com
-          --dart-define=AGORA_TOKEN_ENDPOINT=https://worldvoice-agora-token.worldvoice.workers.dev/agora/token
-          --dart-define=WORLDVOICE_ECONOMY_ENDPOINT=https://worldvoice-v2.onrender.com
-          --dart-define=WORLDVOICE_WORLDBOND_BACKEND_URL=https://worldvoice-teacher-ai.onrender.com
+      - name: Build Android TEST APK (versionCode increases per CI release)
+        shell: bash
+        run: |
+          BUILD_NUMBER=$((20000 + GITHUB_RUN_NUMBER))
+          flutter build apk --release --build-name=1.0.1 --build-number="$BUILD_NUMBER" \
+            --dart-define=WORLDVOICE_BUILD_REVISION=${GITHUB_SHA} \
+            --dart-define=WORLDVOICE_FRIEND_GIFT_PREVIEW=true \
+            --dart-define=WORLDVOICE_OWNER_BETA_GIFTS_ENABLED=true \
+            --dart-define=WORLDVOICE_GIFT_STORE_ENDPOINT=https://worldvoice-teacher-ai.onrender.com \
+            --dart-define=WORLDVOICE_SOCIAL_BACKEND_URL=https://worldvoice-teacher-ai.onrender.com \
+            --dart-define=WORLDVOICE_AI_BACKEND_URL=https://worldvoice-teacher-ai.onrender.com \
+            --dart-define=AGORA_APP_ID=fa41476c6813471eb45c059bcb4a0e19 \
+            --dart-define=WORLDVOICE_ROOM_BACKEND_URL=https://worldvoice-v2.onrender.com \
+            --dart-define=AGORA_TOKEN_ENDPOINT=https://worldvoice-agora-token.worldvoice.workers.dev/agora/token \
+            --dart-define=WORLDVOICE_ECONOMY_ENDPOINT=https://worldvoice-v2.onrender.com \
+            --dart-define=WORLDVOICE_WORLDBOND_BACKEND_URL=https://worldvoice-teacher-ai.onrender.com
 
       - name: Upload test APK
         uses: actions/upload-artifact@v4
@@ -76,7 +82,7 @@ jobs:
 
           APK="build/app/outputs/flutter-apk/app-release.apk"
           APP_ID="1:149108991969:android:b09d15308f8f5d9266d4a0"
-          NOTES="WorldVoice beta - WorldBond relationships, friend invitations, language practice, wishlist, gift wall and VIP gifting. Original rooms and Live preserved."
+          NOTES="WorldVoice 1.0.1 beta: W coin icon, gift image cards in chats, owner gifting of frames/backgrounds/chat bubbles, recipient search crash fix, rooms/Live/WorldBond preserved. Beta test only. If Android reports signature mismatch, do not uninstall before backing up local chats."
 
           AUTH_ARGS=()
           if [ -n "${FIREBASE_SERVICE_ACCOUNT_JSON:-}" ]; then
