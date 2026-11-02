@@ -1095,6 +1095,12 @@ class _DirectChatConversationScreenState
                                       ? timestamp.millisecondsSinceEpoch
                                       : 0,
                                   'hidden': false,
+                                  // Gift/appearance messages are committed by
+                                  // the trusted server. They are already sent
+                                  // even without client-side delivery flags.
+                                  if (data['type'] == 'gift' ||
+                                      data['type'] == 'cosmetic_gift')
+                                    'sent': true,
                                 });
                               }
                               messages.sort(
