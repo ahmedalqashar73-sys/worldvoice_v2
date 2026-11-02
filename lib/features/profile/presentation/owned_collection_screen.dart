@@ -27,7 +27,7 @@ class OwnedCollectionScreen extends StatelessWidget {
   final int initialTab;
   /// Used by the gift chooser: its owned tab must never show cosmetics.
   final bool giftsOnly;
-  /// When opened from the gift picker, select an available catalog gift.
+  /// Optional selection mode for usable gift inventory items.
   final bool selectOwnedGift;
   /// Each appearance shop opens only its own owned type.
   final String? categoryOnly;
@@ -63,9 +63,7 @@ class OwnedCollectionScreen extends StatelessWidget {
         ),
         body: giftsOnly
             ? _ReceivedGiftTab(
-                userId: uid,
-                ar: ar,
-                selectOwnedGift: selectOwnedGift,
+                userId: uid, ar: ar, selectOwnedGift: selectOwnedGift,
               )
             : const {'frame', 'background', 'bubble'}.contains(type)
                 ? _OwnedAssetTab(
@@ -166,9 +164,7 @@ Widget _grid(
 
 class _ReceivedGiftTab extends StatelessWidget {
   const _ReceivedGiftTab({
-    required this.userId,
-    required this.ar,
-    this.selectOwnedGift = false,
+    required this.userId, required this.ar, this.selectOwnedGift = false,
   });
   final String userId;
   final bool ar;
@@ -592,59 +588,7 @@ class _OwnedAssetCardState extends State<_OwnedAssetCard> {
         entry.type == 'gift' &&
         entry.source != 'received_gift' &&
         entry.isUsable &&
-        RegExp(r'^wv_gift_[0-9]{3}
-        (entry.type == 'frame' ||
-            (entry.type == 'bubble' && entry.bubbleId.isNotEmpty) ||
-            (entry.type == 'background' &&
-                widget.roomFeatures != null && entry.themeId.isNotEmpty));
-    return Card(
-      color: const Color(0xFF15382E),
-      clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-        side: const BorderSide(color: Color(0x665B9F7A)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(9),
-        child: Column(
-          children: [
-            Expanded(child: SizedBox(
-              width: double.infinity, child: _art(),
-            )),
-            const SizedBox(height: 7),
-            Text(_title(), maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: Colors.white,
-                    fontWeight: FontWeight.w800)),
-            const SizedBox(height: 3),
-            Text(_source(), maxLines: 1, overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: Color(0xFFFFD98F), fontSize: 11)),
-            if (entry.expiresAt != null)
-              Text('${entry.expiresAt!.toLocal().year}-${entry.expiresAt!.toLocal().month.toString().padLeft(2, '0')}-${entry.expiresAt!.toLocal().day.toString().padLeft(2, '0')}',
-                  style: const TextStyle(color: Colors.white60, fontSize: 10)),
-            if (entry.quantity > 1)
-              Text('× ${entry.quantity}', style: const TextStyle(
-                color: Colors.white70, fontSize: 11)),
-            if (canEquip)
-              SizedBox(
-                height: 31, width: double.infinity,
-                child: FilledButton.tonal(
-                  onPressed: _busy ? null : _apply,
-                  style: FilledButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    visualDensity: VisualDensity.compact,
-                  ),
-                  child: Text(_busy ? '...' : (_ar ? 'استخدام' : 'Use')),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-).hasMatch(entry.itemId);
+        RegExp(r'^wv_gift_[0-9]{3}$').hasMatch(entry.itemId);
     final canEquip = entry.isUsable &&
         (entry.type == 'frame' ||
             (entry.type == 'bubble' && entry.bubbleId.isNotEmpty) ||
