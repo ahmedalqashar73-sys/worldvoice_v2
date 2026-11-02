@@ -298,7 +298,7 @@ class RoomFeatureService {
       throw StateError('Invalid owner test gift chat.');
     }
     final backend = Uri.tryParse(
-      _economyBackend.trim().replaceFirst(RegExp(r'/$'), ''),
+      RoomBackendConfig.giftStoreBaseUrl.trim().replaceFirst(RegExp(r'/$'), ''),
     );
     if (backend == null || backend.scheme != 'https' ||
         !backend.hasAuthority || backend.userInfo.isNotEmpty) {
@@ -374,7 +374,7 @@ class RoomFeatureService {
       throw StateError('Invalid gift session or recipient.');
     }
     final endpoint = Uri.tryParse(
-      _economyBackend.trim().replaceFirst(RegExp(r'/$'), ''),
+      RoomBackendConfig.giftStoreBaseUrl.trim().replaceFirst(RegExp(r'/$'), ''),
     );
     if (endpoint == null || endpoint.scheme != 'https' ||
         !endpoint.hasAuthority || endpoint.userInfo.isNotEmpty) {
