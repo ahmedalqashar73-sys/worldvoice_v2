@@ -42,6 +42,10 @@ class WorldVoiceChatGiftCard extends StatelessWidget {
 
   String get _kind => kindOf(data);
   String get _id => itemIdOf(data);
+
+  /// Bubble purchase IDs encode duration separately from the design.
+  static String bubbleDesignIdOf(Map<String, dynamic> data) =>
+      itemIdOf(data).replaceFirst('bubble__', '').split('__').first;
   String get _sender =>
       (data['senderName'] ?? (ar ? 'المرسل' : 'Sender')).toString();
   String get _receiver => (data['recipientName'] ?? peerName).toString();
@@ -58,6 +62,11 @@ class WorldVoiceChatGiftCard extends StatelessWidget {
     if (gift != null) return gift.localizedName(ar);
     final provided = (ar ? data['nameAr'] ?? data['name']
         : data['name'] ?? data['nameAr'])?.toString().trim();
+    // Prefer translated, installed artwork catalog names to raw shop IDs.
+    if (_kind == 'bubble') {
+      final design = WorldVoiceChatBubbles.find(bubbleDesignIdOf(data));
+      if (design != null) return ar ? design.nameAr : design.name;
+    }
     if (provided != null && provided.isNotEmpty) return provided;
     if (_kind == 'frame') return WorldVoiceAvatarFrame.label(_id, ar: ar);
     if (_kind == 'background') {
@@ -68,7 +77,7 @@ class WorldVoiceChatGiftCard extends StatelessWidget {
     }
     if (_kind == 'bubble') {
       final design = WorldVoiceChatBubbles.find(
-        _id.replaceFirst('bubble__', ''),
+        bubbleDesignIdOf(data),
       );
       if (design != null) return ar ? design.nameAr : design.name;
     }
@@ -121,7 +130,7 @@ class WorldVoiceChatGiftCard extends StatelessWidget {
     }
     if (_kind == 'bubble') {
       final design = WorldVoiceChatBubbles.find(
-        _id.replaceFirst('bubble__', ''),
+        bubbleDesignIdOf(data),
       );
       if (design != null) {
         return SizedBox(
