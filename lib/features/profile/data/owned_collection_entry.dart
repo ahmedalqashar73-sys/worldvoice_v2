@@ -31,7 +31,8 @@ class OwnedCollectionEntry {
 
   bool get isExpired =>
       expiresAt != null && !expiresAt!.isAfter(DateTime.now());
-  bool get isUsable => !pendingReward && !isExpired && source != 'received_gift';
+  bool get isUsable => quantity > 0 && !pendingReward &&
+      !isExpired && source != 'received_gift';
 
   static DateTime? expiryOf(Map<String, dynamic> data) {
     final raw = data['expiresAt'];
@@ -55,7 +56,11 @@ class OwnedCollectionEntry {
       source: (data['source'] ?? 'inventory').toString(),
       senderName: (data['giftedBy'] ?? '').toString(),
       expiresAt: expiryOf(data),
-      quantity: (data['quantity'] as num?)?.toInt() ?? 1,
+      // A consumable room reward is sendable only while its server
+      // freeGiftBalance is positive. Do not show stale spent rewards.
+      quantity: type == 'gift' && data['freeGiftBalance'] is num
+          ? (data['freeGiftBalance'] as num).toInt()
+          : (data['quantity'] as num?)?.toInt() ?? 1,
     );
   }
 
