@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:worldvoice_v2/features/chat/presentation/worldvoice_chat_gift_card.dart';
+import 'package:worldvoice/features/chat/presentation/worldvoice_chat_gift_card.dart';
 
 void main() {
   test('approved gift keeps its original asset identifier', () {
