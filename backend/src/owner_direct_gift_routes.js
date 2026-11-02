@@ -5,6 +5,7 @@ import {requireLiveEconomy} from "./economy_policy.js";
 import {giftProgress} from "./member_badge_policy.js";
 import {privateWalletRef, requirePrivateWallet} from "./wallet_store.js";
 import {splitOwnerCoinSpend, diamondsForPaidCoins} from "./owner_coin_policy.js";
+import {chatIdFor, assertChatMembership} from "./chat_membership.js";
 
 // Direct delivery of EXISTING gifts to any user for the verified owner.
 // This is a private gift receipt, not a fabricated room/live/chat activity.
@@ -41,12 +42,13 @@ export function registerOwnerDirectGiftRoutes({
       const configRef = db.doc("economy_config/current");
       const senderBlockRef = senderRef.collection("blocked_peers").doc(recipientId);
       const recipientBlockRef = recipientRef.collection("blocked_peers").doc(sender.uid);
+      const chatRef = db.collection("chats").doc(chatIdFor(sender.uid, recipientId));
       const outcome = await db.runTransaction(async tx => {
         const [operation, senderProfile, recipientProfile, payerWallet,
-          recipientWallet, item, configSnap, senderBlock, recipientBlock] =
+          recipientWallet, item, configSnap, senderBlock, recipientBlock, chatSnap] =
             await Promise.all([operationRef, senderRef, recipientRef,
               payerWalletRef, recipientWalletRef, itemRef, configRef,
-              senderBlockRef, recipientBlockRef].map(ref => tx.get(ref)));
+              senderBlockRef, recipientBlockRef, chatRef].map(ref => tx.get(ref)));
         if (operation.exists) {
           const old = operation.data();
           if (old.senderId !== sender.uid || old.recipientId !== recipientId ||
@@ -160,6 +162,26 @@ export function registerOwnerDirectGiftRoutes({
           nameAr: catalog.nameAr, quantity, priceCoins: amount,
           seen: false, createdAt: FieldValue.serverTimestamp(),
         });
+        const chatData = chatSnap.data() || {};
+        if (chatSnap.exists && chatData.active === true &&
+            Array.isArray(chatData.memberIds) &&
+            chatData.memberIds.length === 2 &&
+            chatData.memberIds.includes(sender.uid) &&
+            chatData.memberIds.includes(recipientId)) {
+          assertChatMembership(chatData, sender.uid, recipientId);
+          tx.create(chatRef.collection("messages").doc(id), {
+            type: "gift", senderId: sender.uid,
+            senderName: String(senderProfile.data()?.displayName || "WorldVoice user"),
+            recipientId,
+            recipientName: String(recipientProfile.data()?.displayName || "WorldVoice member"),
+            giftId, name: catalog.name, nameAr: catalog.nameAr,
+            quantity, points: amount, createdAt: FieldValue.serverTimestamp(),
+          });
+          tx.update(chatRef, {
+            latestText: "🎁 WorldVoice Gift",
+            lastMessageAt: FieldValue.serverTimestamp(),
+          });
+        }
         tx.create(operationRef, {
           senderId: sender.uid, recipientId, giftId, quantity,
           outcome: result, createdAt: FieldValue.serverTimestamp(),
