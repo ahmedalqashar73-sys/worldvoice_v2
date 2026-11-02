@@ -7,6 +7,7 @@ import '../../rooms/data/room_background_catalog.dart';
 import '../../rooms/data/room_feature_models.dart';
 import '../../rooms/presentation/chat_bubble_frame.dart';
 import '../../rooms/presentation/classic_gift_visual.dart';
+import '../../rooms/presentation/gift_coin_amount.dart';
 
 /// Reusable, persistent chat artwork for server-confirmed gifts.
 class WorldVoiceChatGiftCard extends StatelessWidget {
@@ -194,7 +195,8 @@ class WorldVoiceChatGiftCard extends StatelessWidget {
             style: const TextStyle(
               color: Color(0xFFB4D8C6), fontSize: 10)),
         if (coins is num && coins > 0)
-          Text('${coins.toInt()} 🪙',
+          GiftCoinAmount(
+            amount: coins.toInt(),
             style: const TextStyle(
               color: Color(0xFFFFD991), fontWeight: FontWeight.bold)),
         if (data['nonRedeemable'] == true)
