@@ -160,9 +160,14 @@ const send = bondOnly => async (req, res, next) => {
             {status: 403});
         }
       }
-      const config = requireLiveEconomy(configSnap.data());
+      // Verified-owner beta delivery uses administrative coins only and
+      // creates no withdrawable diamond liability. It never enables
+      // the real-money economy for ordinary members.
+      const ownerBeta = !bondOnly && senderIsOwner &&
+        process.env.WORLDVOICE_OWNER_BETA_GIFTS_ENABLED === "true";
+      const config = ownerBeta ? null : requireLiveEconomy(configSnap.data());
       requirePrivateWallet(senderSnap);
-      if (recipientRef) requirePrivateWallet(snapshots[10]);
+      if (recipientRef && !ownerBeta) requirePrivateWallet(snapshots[10]);
       // The four WorldBond designs are server-priced built-ins. They do
       // not appear in store_items or the room/Live gift catalog.
       const item = bondGift
@@ -194,9 +199,16 @@ const send = bondOnly => async (req, res, next) => {
       const freeBalance = bondGift ? 0 :
         (freeExpiry !== null && freeExpiry <= now ? 0
           : Number(freeData.freeGiftBalance || 0));
-      const amounts = calculateGiftSettlement({
-        config, priceCoins: price, quantity, freeGiftBalance: freeBalance,
-      });
+      const betaTotal = price * quantity;
+      if (ownerBeta && (!Number.isSafeInteger(betaTotal) || betaTotal <= 0)) {
+        throw Object.assign(new Error("Invalid promotional gift total."), {status: 400});
+      }
+      const amounts = ownerBeta
+        ? {freeUnits: 0, chargedCoins: betaTotal,
+            giftLevelPoints: betaTotal, pendingDiamonds: 0}
+        : calculateGiftSettlement({
+            config, priceCoins: price, quantity, freeGiftBalance: freeBalance,
+          });
       if (senderData.walletFrozen === true ||
           Number(senderData.walletDebtCoins || 0) > 0) {
         throw Object.assign(new Error("Wallet under payment review."), {status: 423});
@@ -208,11 +220,16 @@ const send = bondOnly => async (req, res, next) => {
       const spent = splitOwnerCoinSpend({coins: balance,
         adminCoins: Number(senderData.adminCoins ?? 0),
         amount: amounts.chargedCoins});
+      if (ownerBeta && spent.paidSpent !== 0) {
+        throw Object.assign(
+          new Error("Owner beta gifts require administrative coins only."),
+          {status: 409});
+      }
       const after = spent.remainingCoins;
       // Promotional owner coins buy the full animation and level points, but
       // cannot mint redeemable recipient diamonds. Mixed spends settle only
       // the purchased portion to the receiver.
-      const pendingDiamonds = recipientRef
+      const pendingDiamonds = recipientRef && !ownerBeta
         ? diamondsForPaidCoins({config, paidCoins: spent.paidSpent}) : 0;
       const roomXp = Number(roomSnap.data()?.roomXp || 0);
       if (recipientId === "teacher_ai" &&
@@ -221,8 +238,9 @@ const send = bondOnly => async (req, res, next) => {
         throw Object.assign(new Error("Room XP exceeds safe limits."), {status: 400});
       }
       // Server-enforced sender daily spend limit. Not configured => stop.
-      if (!Number.isSafeInteger(config.giftingDailyCoinLimit) ||
-          config.giftingDailyCoinLimit <= 0) {
+      if (!ownerBeta &&
+          (!Number.isSafeInteger(config.giftingDailyCoinLimit) ||
+          config.giftingDailyCoinLimit <= 0)) {
         throw Object.assign(new Error("Gifting daily limit not configured."),
           {status: 503});
       }
@@ -235,7 +253,7 @@ const send = bondOnly => async (req, res, next) => {
       }
       // The verified owner can spend the entire 10,000-coin monthly testing
       // allowance without being stopped by ordinary user daily limits.
-      if (!senderIsOwner &&
+      if (!senderIsOwner && !ownerBeta &&
           dailySpent + amounts.chargedCoins > config.giftingDailyCoinLimit) {
         throw Object.assign(new Error("Daily gift limit reached."), {status: 429});
       }
@@ -249,7 +267,7 @@ const send = bondOnly => async (req, res, next) => {
           {status: 400});
       }
       const holdUntil = Timestamp.fromMillis(
-        now + config.holdDays * 24 * 60 * 60 * 1000,
+        now + (ownerBeta ? 0 : config.holdDays) * 24 * 60 * 60 * 1000,
       );
       const outcome = {
         ...(bondOnly ? {operationId: requestHash, bondId: contextId} : {}),
@@ -257,6 +275,7 @@ const send = bondOnly => async (req, res, next) => {
         chargedCoins: amounts.chargedCoins, balanceAfter: after,
         pendingDiamonds, adminCoinsSpent: spent.adminSpent,
         paidCoinsSpent: spent.paidSpent,
+        ...(ownerBeta ? {ownerBetaGift: true, nonRedeemable: true} : {}),
         holdUntil: recipientRef ? holdUntil.toDate().toISOString() : null,
       };
       tx.set(senderWalletRef, {
@@ -287,7 +306,7 @@ const send = bondOnly => async (req, res, next) => {
         operationId: requestHash,
         createdAt: FieldValue.serverTimestamp(),
       });
-      if (recipientRef) {
+      if (recipientRef && (!ownerBeta || snapshots[10].exists)) {
         tx.set(recipientWalletRef, {
           diamondsPending: receiverAfter,
           giftReceivedPoints: FieldValue.increment(amounts.chargedCoins),
@@ -331,12 +350,37 @@ const send = bondOnly => async (req, res, next) => {
           : "Teacher AI",
         giftId, points: amounts.chargedCoins, quantity,
         animationUrl: item.animationUrl || null,
+        ...(ownerBeta ? {ownerBetaGift: true, nonRedeemable: true,
+          pendingDiamonds: 0} : {}),
         createdAt: FieldValue.serverTimestamp(),
       });
       if (context === "chat") {
         tx.update(roomRef, {
           latestText: bondGift ? "💝 WorldBond gift" : "🎁 Gift",
           lastMessageAt: FieldValue.serverTimestamp(),
+        });
+      }
+      if (recipientRef) {
+        const wallReceipt = {
+          type: "gift", itemId: giftId, giftId,
+          senderId: sender.uid, recipientId,
+          senderName: String(senderProfileSnap.data()?.displayName || "WorldVoice user"),
+          recipientName: String(recipientProfile.displayName || "WorldVoice member"),
+          context, quantity, priceCoins: amounts.chargedCoins,
+          ...(ownerBeta ? {ownerBetaGift: true, nonRedeemable: true} : {}),
+          createdAt: FieldValue.serverTimestamp(),
+        };
+        tx.create(recipientRef.collection("gift_wall_received").doc(requestHash),
+          wallReceipt);
+        tx.create(senderRef.collection("gift_wall_sent").doc(requestHash),
+          wallReceipt);
+        tx.create(recipientRef.collection("gift_notifications").doc(requestHash), {
+          senderId: sender.uid, senderName: wallReceipt.senderName,
+          giftId, itemId: giftId, type: "gift",
+          name: item.name || giftId, quantity,
+          priceCoins: amounts.chargedCoins,
+          ...(ownerBeta ? {ownerBetaGift: true, nonRedeemable: true} : {}),
+          seen: false, createdAt: FieldValue.serverTimestamp(),
         });
       }
       tx.create(eventRef, {
