@@ -4564,47 +4564,8 @@ class _LiveParticipantCameraTile extends StatelessWidget {
               ),
             ),
           ),
-        if (!compact)
-          PositionedDirectional(
-          top: 10,
-          start: 10,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: const Color(0xC30C2B23),
-              borderRadius: BorderRadius.circular(30),
-              border: Border.all(
-                color: isHost ? gold : const Color(0x9967EBC0),
-              ),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 10, vertical: 5,
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    isHost ? Icons.workspace_premium_rounded
-                        : microphoneMuted ? Icons.mic_off_rounded
-                        : Icons.mic_rounded,
-                    color: isHost ? gold : const Color(0xFF8BF0C8),
-                    size: 13,
-                  ),
-                  const SizedBox(width: 5),
-                  Text(
-                    isHost ? (ar ? 'المضيف' : 'HOST')
-                        : (ar ? 'ضيف' : 'GUEST'),
-                    style: TextStyle(
-                      color: isHost ? gold : Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
+        // Host identity lives in the fixed Live header. Do not duplicate
+        // large HOST/GUEST pills on top of people's camera video.
         if (!compact && onManageGuest != null)
           PositionedDirectional(
             top: 8,
@@ -4618,7 +4579,7 @@ class _LiveParticipantCameraTile extends StatelessWidget {
                 icon: const Icon(Icons.more_horiz_rounded,
                     color: Colors.white),
                 constraints:
-                    const BoxConstraints.tightFor(width: 38, height: 38),
+                    const BoxConstraints.tightFor(width: 32, height: 32),
               ),
             ),
           ),
@@ -4628,8 +4589,8 @@ class _LiveParticipantCameraTile extends StatelessWidget {
           bottom: 0,
           child: Container(
             padding: EdgeInsets.fromLTRB(
-              compact ? 5 : 12, compact ? 7 : 22,
-              compact ? 5 : 12, compact ? 5 : 13,
+              compact ? 5 : 10, compact ? 5 : 12,
+              compact ? 5 : 10, compact ? 5 : 10,
             ),
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -4689,8 +4650,11 @@ class _LiveParticipantCameraTile extends StatelessWidget {
                   ),
                 ),
                 if (cameraOff && !compact)
-                  const Icon(Icons.videocam_off_rounded,
-                    size: 17, color: Color(0xFFE0F0E9)),
+                  const Padding(
+                    padding: EdgeInsetsDirectional.only(start: 5),
+                    child: Icon(Icons.videocam_off_rounded,
+                      size: 15, color: Color(0xFFE0F0E9)),
+                  ),
               ],
             ),
           ),
@@ -7489,7 +7453,9 @@ class _LiveVideoGrid extends StatelessWidget {
     }
 
     if (items.length == 1) {
-      return _tile(items.first);
+      // Preserve the native camera colors and use the entire available
+      // canvas for a solo Live. Multi-guest cards retain the fine outline.
+      return SizedBox.expand(child: items.first);
     }
 
     if (items.length == 2) {
