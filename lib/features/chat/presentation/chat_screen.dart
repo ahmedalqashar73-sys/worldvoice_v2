@@ -19,7 +19,6 @@ import '../../../core/widgets/worldvoice_avatar_frame.dart';
 import '../../rooms/presentation/unified_gift_panel.dart';
 import 'worldvoice_chat_gift_card.dart';
 import '../../rooms/presentation/room_gift_overlay.dart';
-import '../../rooms/data/classic_gift_catalog.dart';
 import '../../rooms/data/room_feature_models.dart';
 import '../../rooms/services/room_feature_service.dart';
 import '../../profile/presentation/public_profile_screen.dart';
@@ -1671,7 +1670,6 @@ class _ChatConversationState extends State<ChatConversationScreen> {
                       final isMedia =
                           const ['image', 'video', 'audio', 'pdf'].contains(type) &&
                           mediaUrl.isNotEmpty;
-                      final giftId = (data['giftId'] ?? '').toString();
                       final value = (data['text'] ?? '').toString();
                       if (isGift || type == 'cosmetic_gift') {
                         return Align(
