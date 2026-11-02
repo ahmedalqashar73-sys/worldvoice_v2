@@ -1,3 +1,8 @@
+export function canViewGiftWall({viewerUid, profileUid, direction}) {
+  return direction === "received" ||
+    (direction === "sent" && viewerUid === profileUid);
+}
+
 // Read-only gift wall, with received gifts visible to signed-in visitors.
 // Sent gifts never leave the account owner’s authenticated session.
 export function registerGiftWallRoutes({app, db, authenticatedUser}) {
@@ -10,7 +15,9 @@ export function registerGiftWallRoutes({app, db, authenticatedUser}) {
           !["received", "sent"].includes(direction)) {
         return res.status(400).json({error: "Invalid gift wall request."});
       }
-      if (direction === "sent" && viewer.uid !== uid) {
+      if (!canViewGiftWall({
+        viewerUid: viewer.uid, profileUid: uid, direction,
+      })) {
         return res.status(403).json({error: "Sent gifts are private."});
       }
       const profile = await db.collection("users").doc(uid).get();
