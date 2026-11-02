@@ -15,8 +15,17 @@ import '../data/owned_collection_entry.dart';
 /// The signed-in user's actual owned cosmetics, received visual gifts and
 /// room rewards. Never creates an entitlement from a client or preview.
 class OwnedCollectionScreen extends StatelessWidget {
-  const OwnedCollectionScreen({this.initialTab = 0, super.key});
+  const OwnedCollectionScreen({
+    this.initialTab = 0,
+    this.giftsOnly = false,
+    this.categoryOnly,
+    super.key,
+  });
   final int initialTab;
+  /// Used by the gift chooser: its owned tab must never show cosmetics.
+  final bool giftsOnly;
+  /// Each appearance shop opens only its own owned type.
+  final String? categoryOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +35,30 @@ class OwnedCollectionScreen extends StatelessWidget {
       return Scaffold(body: Center(
         child: Text(ar ? 'يرجى تسجيل الدخول' : 'Please sign in'),
       ));
+    }
+    if (giftsOnly || categoryOnly != null) {
+      final type = categoryOnly;
+      final title = giftsOnly
+          ? (ar ? 'هداياي • تم الامتلاك' : 'My Gifts • Owned')
+          : switch (type) {
+              'frame' => ar ? 'إطاراتي • تم الامتلاك' : 'My Frames • Owned',
+              'background' => ar ? 'خلفياتي • تم الامتلاك' : 'My Backgrounds • Owned',
+              'bubble' => ar ? 'فقاعاتي • تم الامتلاك' : 'My Bubbles • Owned',
+              _ => ar ? 'تم الامتلاك' : 'My Collection',
+            };
+      return Scaffold(
+        backgroundColor: const Color(0xFF091D19),
+        appBar: AppBar(
+          backgroundColor: const Color(0xFF0D352A),
+          foregroundColor: Colors.white,
+          title: Text(title),
+        ),
+        body: giftsOnly
+            ? _ReceivedGiftTab(userId: uid, ar: ar)
+            : const {'frame', 'background', 'bubble'}.contains(type)
+                ? _OwnedAssetTab(userId: uid, type: type!, ar: ar)
+                : _OtherOwnedTab(userId: uid, ar: ar),
+      );
     }
     return DefaultTabController(
       length: 5,
@@ -144,11 +177,11 @@ class _ReceivedGiftTab extends StatelessWidget {
                     .map((doc) => OwnedCollectionEntry.fromInventory(
                         doc.id, doc.data()))
                     .where((entry) => entry.quantity > 0);
-                // Level-five background eligibility and future room gift packs
-                // appear in Gifts, not only under VIP/More. A castle badge is
-                // an achievement, shown separately in the More category.
+                // Only gift-type rewards are shown here. A background reward
+                // belongs to Backgrounds after it is claimed, never Gifts.
                 final missionGifts = earned.data!.docs
-                    .where((doc) => doc.data()['type'] != 'castle_milestone')
+                    .where((doc) => (doc.data()['type'] ?? '')
+                        .toString().contains('gift'))
                     .map((doc) => OwnedCollectionEntry.fromRoomReward(
                         doc.id, doc.data()));
                 final all = <OwnedCollectionEntry>[
