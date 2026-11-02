@@ -912,7 +912,7 @@ class _LiveHandControl extends StatelessWidget {
           padding: EdgeInsets.zero,
           tooltip: tooltip,
           onPressed: onPressed,
-          icon: const Icon(
+          icon: Icon(
             Icons.back_hand_rounded,
             color: Colors.white,
             size: compact ? 23 : 28,
