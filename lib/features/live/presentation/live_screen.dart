@@ -993,6 +993,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   Timer? _rebuildThrottle;
   final ValueNotifier<int> _videoRoster = ValueNotifier<int>(0);
   String _lastVideoRoster = '';
+  int? _lastActiveLiveSpeaker;
   StreamSubscription<List<LiveStageParticipant>>? _stageRosterSub;
   Map<int, LiveStageParticipant> _stageUsers = const {};
   Timer? _heartbeatTimer;
@@ -1008,8 +1009,10 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     final roster = _controller.remoteSpeakers
         .map((uid) => '$uid:${_controller.remoteCameraPaused(uid)}')
         .join(',');
-    if (roster != _lastVideoRoster) {
+    final active = _controller.activeSpeakerUid;
+    if (roster != _lastVideoRoster || active != _lastActiveLiveSpeaker) {
       _lastVideoRoster = roster;
+      _lastActiveLiveSpeaker = active;
       _videoRoster.value++;
     }
     if (!mounted || !_starting || _cameraReady || _rebuildThrottle != null) {
@@ -2785,6 +2788,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   bool _joining = true;
   final ValueNotifier<int> _videoRoster = ValueNotifier<int>(0);
   String _lastVideoRoster = '';
+  int? _lastActiveLiveSpeaker;
   StreamSubscription<List<LiveStageParticipant>>? _stageRosterSub;
   Map<int, LiveStageParticipant> _stageUsers = const {};
   String? _joinError;
@@ -2818,8 +2822,10 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
     final roster = _controller.remoteSpeakers
         .map((uid) => '$uid:${_controller.remoteCameraPaused(uid)}')
         .join(',');
-    if (roster != _lastVideoRoster) {
+    final active = _controller.activeSpeakerUid;
+    if (roster != _lastVideoRoster || active != _lastActiveLiveSpeaker) {
       _lastVideoRoster = roster;
+      _lastActiveLiveSpeaker = active;
       _videoRoster.value++;
     }
   }
