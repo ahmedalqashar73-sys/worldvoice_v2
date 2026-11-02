@@ -7435,13 +7435,26 @@ class _LiveVideoGrid extends StatelessWidget {
     final items = children.take(4).toList(growable: false);
 
     if (compact && items.isNotEmpty) {
-      return Row(
-        children: [
-          for (var i = 0; i < items.length; i++) ...[
-            if (i != 0) const SizedBox(width: 5),
-            Expanded(child: _tile(items[i])),
-          ],
-        ],
+      return LayoutBuilder(
+        builder: (context, bounds) {
+          final maxWidth = (bounds.maxWidth - (items.length - 1) * 5) /
+              items.length;
+          final tileSize = maxWidth < bounds.maxHeight
+              ? maxWidth : bounds.maxHeight;
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              for (var i = 0; i < items.length; i++) ...[
+                if (i != 0) const SizedBox(width: 5),
+                SizedBox(
+                  width: tileSize,
+                  height: tileSize,
+                  child: _tile(items[i]),
+                ),
+              ],
+            ],
+          );
+        },
       );
     }
 
