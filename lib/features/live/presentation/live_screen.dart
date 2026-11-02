@@ -2089,6 +2089,11 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                : hostName,
                            isHost: true,
                            cameraOff: _cameraPaused,
+                           microphoneMuted: _micMuted,
+                           compact: _boardOpen,
+                           activeSpeaker: !_micMuted &&
+                               _controller.activeSpeakerUid == _controller.localUid &&
+                               _controller.activeSpeakerUid != null,
                            photoUrl: hostPhoto,
                            video: _cameraPaused
                                ? const SizedBox.shrink()
@@ -2128,6 +2133,8 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                    ),
                              isHost: false,
                              microphoneMuted: _stageUsers[remote[i]]?.hostMuted ?? false,
+                             activeSpeaker: _controller.activeSpeakerUid == remote[i],
+                             compact: _boardOpen,
                              cameraOff: _controller.remoteCameraPaused(remote[i]),
                              video: _controller.remoteCameraPaused(remote[i])
                                  ? const SizedBox.shrink()
@@ -3727,6 +3734,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                  ar: widget.ar,
                                  name: hostName,
                                  isHost: true,
+                                 compact: _boardOpen,
+                                 activeSpeaker: hostAgoraUid != null &&
+                                     _controller.activeSpeakerUid == hostAgoraUid,
                                  photoUrl: hostPhoto,
                                  onOpenProfile:
                                      (live?['hostId'] ?? widget.data['hostId'] ??
@@ -3762,6 +3772,11 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                      (widget.ar ? 'أنت' : 'You'),
                                  isHost: false,
                                  microphoneMuted: _guestMicMuted || _hostMutedGuest,
+                                 compact: _boardOpen,
+                                 activeSpeaker: !_guestMicMuted && !_hostMutedGuest &&
+                                     _controller.activeSpeakerUid ==
+                                         _controller.localUid &&
+                                     _controller.localUid != null,
                                  photoUrl: FirebaseAuth.instance.currentUser
                                          ?.photoURL ?? '',
                                  cameraOff: _guestCameraPaused,
@@ -3806,6 +3821,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                            ),
                                      isHost: false,
                                      microphoneMuted: _stageUsers[orderedRemote[i]]?.hostMuted ?? false,
+                                     compact: _boardOpen,
+                                     activeSpeaker: _controller.activeSpeakerUid ==
+                                         orderedRemote[i],
                                      cameraOff: _controller.remoteCameraPaused(
                                        orderedRemote[i],
                                      ),
@@ -4489,6 +4507,8 @@ class _LiveParticipantCameraTile extends StatelessWidget {
     required this.video,
     this.photoUrl = '',
     this.microphoneMuted = false,
+    this.activeSpeaker = false,
+    this.compact = false,
     this.onOpenProfile,
     this.onManageGuest,
   });
@@ -4499,6 +4519,8 @@ class _LiveParticipantCameraTile extends StatelessWidget {
   final bool cameraOff;
   final String photoUrl;
   final bool microphoneMuted;
+  final bool activeSpeaker;
+  final bool compact;
   final VoidCallback? onOpenProfile;
   final VoidCallback? onManageGuest;
   final Widget video;
@@ -4513,7 +4535,19 @@ class _LiveParticipantCameraTile extends StatelessWidget {
           LiveCameraOffTile(ar: ar, photoUrl: photoUrl)
         else
           Positioned.fill(child: video),
-        PositionedDirectional(
+        if (activeSpeaker && !microphoneMuted)
+          Positioned.fill(
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  border: Border.all(color: const Color(0xFFFFD77D), width: 2),
+                  borderRadius: BorderRadius.circular(13),
+                ),
+              ),
+            ),
+          ),
+        if (!compact)
+          PositionedDirectional(
           top: 10,
           start: 10,
           child: DecoratedBox(
@@ -4553,7 +4587,7 @@ class _LiveParticipantCameraTile extends StatelessWidget {
             ),
           ),
         ),
-        if (onManageGuest != null)
+        if (!compact && onManageGuest != null)
           PositionedDirectional(
             top: 8,
             end: 8,
@@ -4575,7 +4609,10 @@ class _LiveParticipantCameraTile extends StatelessWidget {
           end: 0,
           bottom: 0,
           child: Container(
-            padding: const EdgeInsets.fromLTRB(12, 22, 12, 13),
+            padding: EdgeInsets.fromLTRB(
+              compact ? 5 : 12, compact ? 7 : 22,
+              compact ? 5 : 12, compact ? 5 : 13,
+            ),
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
@@ -4602,7 +4639,7 @@ class _LiveParticipantCameraTile extends StatelessWidget {
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w800,
-                                fontSize: 14,
+                                fontSize: compact ? 10 : 14,
                                 shadows: [
                                   Shadow(color: Colors.black87, blurRadius: 5),
                                 ],
@@ -4619,7 +4656,21 @@ class _LiveParticipantCameraTile extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (cameraOff)
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(start: 5),
+                  child: Icon(
+                    microphoneMuted ? Icons.mic_off_rounded
+                        : activeSpeaker ? Icons.graphic_eq_rounded
+                        : Icons.volume_up_outlined,
+                    size: compact ? 15 : 18,
+                    color: microphoneMuted
+                        ? Colors.white54
+                        : activeSpeaker
+                            ? const Color(0xFFFFD77D)
+                            : const Color(0xFFB9DEC9),
+                  ),
+                ),
+                if (cameraOff && !compact)
                   const Icon(Icons.videocam_off_rounded,
                     size: 17, color: Color(0xFFE0F0E9)),
               ],
