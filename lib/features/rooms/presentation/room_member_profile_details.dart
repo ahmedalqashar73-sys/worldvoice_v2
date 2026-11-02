@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../profile/presentation/world_bond_screen.dart';
+import '../../profile/presentation/gift_wall_screen.dart';
 import '../../profile/data/profile_language_catalog.dart';
 import '../../profile/presentation/member_badges.dart';
 
@@ -141,6 +142,21 @@ class _RoomMemberProfileDetailsState extends State<RoomMemberProfileDetails> {
           },
         ),
         const SizedBox(height: 9),
+        OutlinedButton.icon(
+          key: const ValueKey('member-public-gift-wall'),
+          onPressed: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => GiftWallScreen(
+                profileUid: widget.userId,
+                profileName: (p['displayName'] ?? 'WorldVoice').toString(),
+              ),
+            ),
+          ),
+          icon: const Icon(Icons.card_giftcard_outlined),
+          label: Text(widget.isArabic
+              ? 'حائط الهدايا المستلمة'
+              : 'Received gift wall'),
+        ),
         if (native.isNotEmpty)
           Wrap(
             alignment: WrapAlignment.center,
