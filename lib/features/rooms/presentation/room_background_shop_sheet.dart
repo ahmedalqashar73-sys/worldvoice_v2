@@ -191,6 +191,7 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                       MaterialPageRoute<void>(
                         builder: (_) => const OwnedCollectionScreen(
                           categoryOnly: 'background',
+                          roomFeatures: roomFeatures,
                         ),
                       ),
                     ),
@@ -309,6 +310,7 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                       MaterialPageRoute<void>(
                         builder: (_) => const OwnedCollectionScreen(
                           categoryOnly: 'background',
+                          roomFeatures: roomFeatures,
                         ),
                       ),
                     ),
