@@ -19,6 +19,9 @@ void main() {
     expect(WorldVoiceChatGiftCard.kindOf({
       'type': 'cosmetic_gift', 'itemId': 'bubble__emerald',
     }), 'bubble');
+    expect(WorldVoiceChatGiftCard.bubbleDesignIdOf({
+      'type': 'cosmetic_gift', 'itemId': 'bubble__emerald__7',
+    }), 'emerald');
     expect(WorldVoiceChatGiftCard.kindOf({
       'type': 'cosmetic_gift', 'itemId': 'background__wv_premium_04',
     }), 'background');
