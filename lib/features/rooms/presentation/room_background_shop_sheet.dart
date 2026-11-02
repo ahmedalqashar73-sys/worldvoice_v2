@@ -1,4 +1,5 @@
 import '../../profile/presentation/member_badges.dart';
+import '../../profile/presentation/owned_collection_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -17,100 +18,37 @@ import 'gift_coin_amount.dart';
 import 'chat_bubble_shop_sheet.dart';
 import '../services/room_coin_purchase_service.dart';
 
-Future<void> showWorldVoiceReceivedGifts(BuildContext context, bool isArabic) async {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) return;
-    await showDialog<void>(
-      context: context,
-      builder: (dialog) => AlertDialog(
-        title: Text(isArabic ? 'الهدايا المستلمة' : 'Received gifts'),
-        content: SizedBox(
-          width: 360,
-          height: 320,
-          child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-            stream: FirebaseFirestore.instance
-                .collection('users').doc(uid)
-                .collection('gift_notifications')
-                .orderBy('createdAt', descending: true)
-                .limit(30).snapshots(),
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return Center(child: Text(isArabic
-                    ? 'تعذر تحميل سجل الهدايا'
-                    : 'Could not load gifts'));
-              }
-              if (!snapshot.hasData) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              final gifts = snapshot.data!.docs;
-              if (gifts.isEmpty) {
-                return Center(child: Text(isArabic
-                    ? 'لم تستلم أي هدايا حتى الآن'
-                    : 'No received gifts yet'));
-              }
-              return ListView.builder(
-                shrinkWrap: true,
-                itemCount: gifts.length,
-                itemBuilder: (context, index) {
-                  final data = gifts[index].data();
-                  final isVisualGift = data['type'] == 'gift';
-                  final days = data['durationDays'];
-                  final durationLabel = days == null
-                      ? (isArabic ? 'دائم' : 'Permanent')
-                      : '$days ${isArabic ? 'أيام' : 'days'}';
-                  final expires = data['expiresAt'];
-                  final expired = expires is Timestamp &&
-                      !expires.toDate().isAfter(DateTime.now());
-                  final subtitle = isVisualGift
-                      ? '${data['quantity'] ?? 1} × • ${data['priceCoins'] ?? 0} 🪙'
-                      : '$durationLabel • ${expired
-                          ? (isArabic ? 'انتهت الصلاحية' : 'Expired')
-                          : (isArabic ? 'في مقتنياتك' : 'In your inventory')}';
-                  final giftId = (data['itemId'] ?? '').toString();
-                  final hasGiftArtwork = isVisualGift &&
-                      RegExp(r'^wv_gift_[0-9]{3}$').hasMatch(giftId);
-                  return ListTile(
-                    leading: hasGiftArtwork
-                        ? SizedBox(
-                            width: 48,
-                            height: 48,
-                            child: Image.asset(
-                              'assets/gifts/hd/$giftId.webp',
-                              fit: BoxFit.contain,
-                              errorBuilder: (_, _, _) =>
-                                  const Icon(Icons.card_giftcard_rounded),
-                            ),
-                          )
-                        : const Icon(Icons.card_giftcard_rounded),
-                    title: Text((isArabic
-                        ? (data['nameAr'] ?? data['name'] ?? data['itemId'] ?? '')
-                        : (data['name'] ?? data['nameAr'] ?? data['itemId'] ?? '')
-                      ).toString()),
-                    subtitle: Text(subtitle),
-                  );
-                },
-              );
-            },
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(dialog),
-              child: Text(isArabic ? 'إغلاق' : 'Close')),
-        ],
-      ),
-    );
-  }
-
-
+Future<void> showWorldVoiceReceivedGifts(
+  BuildContext context, bool isArabic,
+) => Navigator.of(context).push(
+  MaterialPageRoute<void>(
+    builder: (_) => const OwnedCollectionScreen(initialTab: 0),
+  ),
+);
 
 class RoomBackgroundShopSheet extends StatelessWidget {
   RoomBackgroundShopSheet({
     this.roomFeatures,
     this.isHost = false,
     this.onOpenWriting,
+    this.fullPage = false,
     super.key,
   });
 
+  static Widget page({
+    RoomFeatureService? roomFeatures,
+    bool isHost = false,
+    VoidCallback? onOpenWriting,
+  }) => Scaffold(
+    body: RoomBackgroundShopSheet(
+      roomFeatures: roomFeatures,
+      isHost: isHost,
+      onOpenWriting: onOpenWriting,
+      fullPage: true,
+    ),
+  );
+
+  final bool fullPage;
   final RoomFeatureService? roomFeatures;
   final bool isHost;
   final VoidCallback? onOpenWriting;
@@ -193,7 +131,7 @@ class RoomBackgroundShopSheet extends StatelessWidget {
 
     return SafeArea(
       child: SizedBox(
-        height: MediaQuery.sizeOf(context).height * .82,
+        height: fullPage ? null : MediaQuery.sizeOf(context).height * .82,
         child: Column(
           children: [
             ListTile(
@@ -248,7 +186,7 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
-                    tooltip: isArabic ? 'الهدايا المستلمة' : 'Received gifts',
+                    tooltip: isArabic ? 'تم الامتلاك' : 'My Collection',
                     onPressed: () => showWorldVoiceReceivedGifts(context, isArabic),
                     icon: const Icon(Icons.card_giftcard_rounded),
                   ),
@@ -310,14 +248,9 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                   const SizedBox(width: 5),
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: () => showModalBottomSheet<void>(
-                        context: context,
-                        isScrollControlled: true,
-                        useSafeArea: true,
-                        builder: (_) => _OtherStoreTab(
-                          type: 'frame',
-                          shop: _shop,
-                          isArabic: isArabic,
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const WorldVoiceFramesStorePage(),
                         ),
                       ),
                       icon: const Icon(Icons.crop_free_rounded, size: 17),
@@ -331,11 +264,10 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                   const SizedBox(width: 5),
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: () => showModalBottomSheet<void>(
-                        context: context,
-                        isScrollControlled: true,
-                        useSafeArea: true,
-                        builder: (_) => const WorldVoiceChatBubbleShopSheet(),
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const WorldVoiceChatBubbleShopPage(),
+                        ),
                       ),
                       icon: const Icon(
                         Icons.chat_bubble_outline_rounded,
@@ -347,6 +279,33 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 6,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const WorldVoiceEntranceStorePage(),
+                      ),
+                    ),
+                    icon: const Icon(Icons.auto_awesome_rounded),
+                    label: Text(isArabic ? 'تأثيرات الدخول' : 'Entrance effects'),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const OwnedCollectionScreen(),
+                      ),
+                    ),
+                    icon: const Icon(Icons.inventory_2_outlined),
+                    label: Text(isArabic ? 'تم الامتلاك' : 'My Collection'),
                   ),
                 ],
               ),
@@ -850,15 +809,45 @@ class _FrameStoreCard extends StatelessWidget {
   }
 }
 
+class WorldVoiceFramesStorePage extends StatelessWidget {
+  const WorldVoiceFramesStorePage({super.key});
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    body: _OtherStoreTab(
+      type: 'frame',
+      shop: RoomShopService(),
+      isArabic: Localizations.localeOf(context).languageCode == 'ar',
+      fullPage: true,
+    ),
+  );
+}
+
+class WorldVoiceEntranceStorePage extends StatelessWidget {
+  const WorldVoiceEntranceStorePage({super.key});
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    body: _OtherStoreTab(
+      type: 'entrance',
+      shop: RoomShopService(),
+      isArabic: Localizations.localeOf(context).languageCode == 'ar',
+      fullPage: true,
+    ),
+  );
+}
+
 class _OtherStoreTab extends StatelessWidget {
   const _OtherStoreTab({
     required this.type,
     required this.shop,
     required this.isArabic,
+    this.fullPage = false,
   });
   final String type;
   final RoomShopService shop;
   final bool isArabic;
+  final bool fullPage;
 
   Future<void> _pay(BuildContext context, RoomStoreItem item) async {
     try {
@@ -956,7 +945,7 @@ class _OtherStoreTab extends StatelessWidget {
   Widget _buildStore(BuildContext context, bool isAdmin, String? photoUrl) {
     return SafeArea(
       child: SizedBox(
-        height: MediaQuery.sizeOf(context).height * .72,
+        height: fullPage ? null : MediaQuery.sizeOf(context).height * .72,
         child: Column(
           children: [
             ListTile(
