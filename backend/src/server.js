@@ -21,6 +21,7 @@ import Stripe from "stripe";
 import { requireLiveEconomy, calculatePurchaseCredit, canManageStore, canGrantStoreCosmetic } from "./economy_policy.js";
 import {registerWalletRoutes} from "./wallet_routes.js";
 import {registerChatRoutes} from "./chat_routes.js";
+import {chatIdFor, assertChatMembership} from "./chat_membership.js";
 import {registerGroupManagementRoutes} from "./group_management_routes.js";
 import {registerRoomChatNotificationRoutes} from "./room_chat_notification_routes.js";
 import {registerOfficialActivityRoutes} from "./official_activity_routes.js";
@@ -1885,13 +1886,20 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
       bubbleProduct ? chatBubbleInventoryId(bubbleProduct.bubbleId) : itemId);
     const friendRef = gifting ? payerRef.collection("following").doc(recipientId)
       : null;
+    // Only an existing, verified two-member conversation may receive a
+    // permanent gift card. Gift notifications still work without a chat.
+    const giftChatRef = gifting
+      ? db.collection("chats").doc(chatIdFor(sender.uid, recipientId))
+      : null;
     const day = new Date().toISOString().slice(0, 10);
     const dailyRef = payerRef.collection("economy_daily").doc(day);
     const outcome = await db.runTransaction(async tx => {
       const refs = [operationRef, itemRef, configRef, payerRef, payerWalletRef,
         inventoryRef, dailyRef, ...(gifting ? [recipientRef, recipientWalletRef, friendRef] : []),
+        ...(giftChatRef ? [giftChatRef] : []),
         db.collection("admins").doc(sender.uid)];
       const snaps = await Promise.all(refs.map(ref => tx.get(ref)));
+      const giftChat = giftChatRef ? snaps[snaps.length - 2] : null;
       const [existing, itemSnap, configSnap, payerProfileSnap, payerSnap,
         ownedSnap, dailySnap] = snaps;
       if (existing.exists) {
@@ -2122,9 +2130,37 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
         recipientRef.collection("gift_notifications").doc(refKey), {
           senderId: sender.uid, itemId, type: item.type,
           name: String(item.name || itemId).slice(0, 120),
+          nameAr: String(item.nameAr || "").slice(0, 120),
           durationDays: duration, expiresAt,
           seen: false, createdAt: FieldValue.serverTimestamp(),
         });
+      // The inventory grant and the visible chat gift card commit together.
+      // Do not invent a conversation or message for unrelated accounts.
+      const chatData = giftChat?.data() || {};
+      const inExistingChat = giftChat?.exists &&
+        chatData.active === true &&
+        Array.isArray(chatData.memberIds) &&
+        chatData.memberIds.length === 2 &&
+        chatData.memberIds.includes(sender.uid) &&
+        chatData.memberIds.includes(recipientId);
+      if (inExistingChat) {
+        assertChatMembership(chatData, sender.uid, recipientId);
+        tx.create(giftChatRef.collection("messages").doc(refKey), {
+          type: "cosmetic_gift",
+          senderId: sender.uid,
+          senderName: String(payerProfileSnap.data()?.displayName || "WorldVoice user"),
+          recipientId,
+          recipientName: String(beneficiaryProfile.displayName || "WorldVoice member"),
+          itemId, name: String(item.name || itemId).slice(0, 120),
+          nameAr: String(item.nameAr || "").slice(0, 120),
+          quantity: 1, priceCoins: price, durationDays: duration,
+          expiresAt, createdAt: FieldValue.serverTimestamp(),
+        });
+        tx.update(giftChatRef, {
+          latestText: "🎁 WorldVoice " + item.type,
+          lastMessageAt: FieldValue.serverTimestamp(),
+        });
+      }
       tx.create(db.collection("economy_audit").doc(refKey), {
         type: gifting ? "item_gift" : "item_purchase",
         senderId: sender.uid, recipientId, itemId,
