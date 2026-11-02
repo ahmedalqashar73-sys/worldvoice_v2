@@ -1,5 +1,6 @@
 import 'world_bond_screen.dart';
 import 'gift_wall_screen.dart';
+import 'profile_photo_viewer.dart';
 import 'member_badges.dart';
 import '../../engagement/presentation/creative_progress_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -141,26 +142,43 @@ class UserProfileScreen extends StatelessWidget {
                   height: 224,
                   child: Stack(
                     children: [
-                      Container(
-                        height: 170,
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF0D6B4F), Color(0xFF5F47C8)],
+                      GestureDetector(
+                        key: const ValueKey('profile-cover-viewer-trigger'),
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => ProfilePhotoViewer(
+                              userId: uid, cover: true),
                           ),
-                          image: cover == null || cover.isEmpty
-                              ? null
-                              : DecorationImage(
-                                  image: NetworkImage(cover),
-                                  fit: BoxFit.cover,
-                                ),
+                        ),
+                        child: Container(
+                          height: 170,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF0D6B4F), Color(0xFF5F47C8)],
+                            ),
+                            image: cover == null || cover.isEmpty
+                                ? null
+                                : DecorationImage(
+                                    image: NetworkImage(cover),
+                                    fit: BoxFit.cover,
+                                  ),
+                          ),
                         ),
                       ),
                       PositionedDirectional(
                         start: 22,
                         bottom: 4,
-                        child: WorldVoiceAvatarFrame(
-                          frameId: profileFrameId,
-                          size: 112,
+                        child: GestureDetector(
+                          key: const ValueKey('profile-avatar-viewer-trigger'),
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => ProfilePhotoViewer(userId: uid),
+                            ),
+                          ),
+                          child: WorldVoiceAvatarFrame(
+                            frameId: profileFrameId,
+                            size: 112,
                           child: ColoredBox(
                             color: Theme.of(context).colorScheme.surface,
                             child: photo == null || photo.isEmpty
@@ -177,6 +195,7 @@ class UserProfileScreen extends StatelessWidget {
                                       ),
                                     ),
                                   ),
+                          ),
                           ),
                         ),
                       ),
