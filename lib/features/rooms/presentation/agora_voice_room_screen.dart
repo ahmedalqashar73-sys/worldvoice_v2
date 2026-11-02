@@ -193,7 +193,9 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   void _autoCompactSeats(List<RoomParticipant> participants) {
     final uid = _moderation.currentUserId;
     if (!mounted || _leaving || uid == null ||
-        !RoomModerationService.needsSeatCompaction(participants)) return;
+        !RoomModerationService.needsSeatCompaction(participants)) {
+      return;
+    }
     final mayManage = uid == _roomHostId ||
         participants.any((p) => p.userId == uid && p.isModerator);
     if (!mayManage || _seatCompactionInFlight) return;
