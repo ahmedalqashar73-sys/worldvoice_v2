@@ -113,49 +113,67 @@ class _ReceivedGiftTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Visual gift receipts are different from consumable room rewards.
-    // Both are shown, without incorrectly granting new gift balances.
+    final owner = FirebaseFirestore.instance.collection('users').doc(userId);
+    // Gift receipts cannot be sent again unless the backend also grants a
+    // usable inventory lot. Room mission eligibility remains clearly pending.
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: FirebaseFirestore.instance.collection('users').doc(userId)
-          .collection('gift_notifications')
+      stream: owner.collection('gift_notifications')
           .orderBy('createdAt', descending: true).limit(100).snapshots(),
       builder: (context, receipts) {
         if (receipts.hasError) return _error(ar);
         return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-          stream: FirebaseFirestore.instance.collection('users').doc(userId)
-              .collection('inventory').where('type', isEqualTo: 'gift')
-              .snapshots(),
+          stream: owner.collection('inventory')
+              .where('type', isEqualTo: 'gift').snapshots(),
           builder: (context, inventory) {
             if (inventory.hasError) return _error(ar);
-            if (!receipts.hasData || !inventory.hasData) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            final gifted = receipts.data!.docs.where((doc) =>
-                (doc.data()['type'] ?? 'gift').toString() == 'gift')
-                .map((doc) => OwnedCollectionEntry.fromReceived(
-                    doc.id, doc.data())).toList(growable: false);
-            final rewards = inventory.data!.docs
-                .map((doc) => OwnedCollectionEntry.fromInventory(
-                    doc.id, doc.data()))
-                .where((entry) => entry.quantity > 0)
-                .toList(growable: false);
-            final all = <OwnedCollectionEntry>[...rewards, ...gifted];
-            if (all.isEmpty) {
-              return _empty(ar, 'لم تستلم أي هدايا بعد. الهدايا القادمة من الروم واللايف والشات ستظهر هنا.',
-                  'No received gifts yet. Room, Live and chat gifts will appear here.');
-            }
-            return Column(children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                child: Text(
-                  ar ? 'الهدايا المستلمة سجل موثّق، ولا تتحوّل تلقائيًا إلى هدايا قابلة لإعادة الإرسال.'
-                     : 'Received gifts are verified receipts, not automatically reusable gifts.',
-                  style: const TextStyle(color: Color(0xFFDFC69A), fontSize: 12),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              Expanded(child: _grid(all, ar, userId)),
-            ]);
+            return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              stream: owner.collection('room_rewards').snapshots(),
+              builder: (context, earned) {
+                if (earned.hasError) return _error(ar);
+                if (!receipts.hasData || !inventory.hasData ||
+                    !earned.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                final received = receipts.data!.docs.where((doc) =>
+                    (doc.data()['type'] ?? 'gift').toString() == 'gift')
+                    .map((doc) => OwnedCollectionEntry.fromReceived(
+                        doc.id, doc.data()));
+                final giftLots = inventory.data!.docs
+                    .map((doc) => OwnedCollectionEntry.fromInventory(
+                        doc.id, doc.data()))
+                    .where((entry) => entry.quantity > 0);
+                // Level-five background eligibility and future room gift packs
+                // appear in Gifts, not only under VIP/More. A castle badge is
+                // an achievement, shown separately in the More category.
+                final missionGifts = earned.data!.docs
+                    .where((doc) => doc.data()['type'] != 'castle_milestone')
+                    .map((doc) => OwnedCollectionEntry.fromRoomReward(
+                        doc.id, doc.data()));
+                final all = <OwnedCollectionEntry>[
+                  ...giftLots, ...missionGifts, ...received,
+                ];
+                if (all.isEmpty) {
+                  return _empty(ar,
+                    'لا توجد هدايا بعد. الهدايا ومكافآت مهام الروم وVideo Box ستظهر هنا عند تسجيلها في حسابك.',
+                    'No gifts yet. Received gifts, room mission rewards and Video Box gifts will appear here once awarded.');
+                }
+                return Column(children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                    child: Text(
+                      ar
+                          ? 'المكافآت قيد التفعيل ليست ملكية قابلة للاستخدام. الهدايا المستلمة سجل موثّق، وليست هدايا مجانية قابلة لإعادة الإرسال.'
+                          : 'Pending rewards cannot be used yet. Received gifts are verified receipts, not reusable free gifts.',
+                      style: const TextStyle(
+                        color: Color(0xFFDFC69A), fontSize: 12,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Expanded(child: _grid(all, ar, userId)),
+                ]);
+              },
+            );
           },
         );
       },
@@ -249,8 +267,13 @@ class _OtherOwnedTab extends StatelessWidget {
                     .where((item) => !const {
                       'gift', 'frame', 'background', 'bubble',
                     }.contains(item.type)).toList();
-                entries.addAll(rewardSnapshot.data!.docs.map((doc) =>
-                    OwnedCollectionEntry.fromRoomReward(doc.id, doc.data())));
+                // Castle achievements live here. Claimable room rewards
+                // are visible under Gifts, without double-counting them.
+                entries.addAll(rewardSnapshot.data!.docs
+                    .where((doc) => doc.data()['type'] == 'castle_milestone')
+                    .map((doc) =>
+                        OwnedCollectionEntry.fromRoomReward(
+                            doc.id, doc.data())));
                 final data = profile.data!.data() ?? const <String, dynamic>{};
                 final expires = OwnedCollectionEntry.expiryOf(
                     {'expiresAt': data['vipExpiresAt']});
@@ -309,7 +332,7 @@ class _OwnedAssetCardState extends State<_OwnedAssetCard> {
       final bubble = WorldVoiceChatBubbles.find(entry.bubbleId);
       if (bubble != null) return _ar ? bubble.nameAr : bubble.name;
     }
-    if (entry.type == 'reward') {
+    if (entry.type == 'reward' || entry.type == 'achievement') {
       return _ar ? entry.name.replaceFirst('Room level', 'مستوى الغرفة')
           : entry.name;
     }
@@ -319,7 +342,11 @@ class _OwnedAssetCardState extends State<_OwnedAssetCard> {
   String _source() {
     if (entry.isExpired) return _ar ? 'انتهت الصلاحية' : 'Expired';
     if (entry.pendingReward) {
-      return _ar ? 'مكافأة مستحقة • تحتاج تفعيلًا' : 'Earned reward • pending activation';
+      return _ar ? 'استحقاق مهام الروم • لم يُفعّل بعد'
+          : 'Room reward eligibility • not activated';
+    }
+    if (entry.type == 'achievement') {
+      return _ar ? 'إنجاز قلعة مكتسب' : 'Earned castle achievement';
     }
     return switch (entry.source) {
       'received_gift' => _ar ? 'هدية مستلمة' : 'Received gift',
@@ -399,6 +426,7 @@ class _OwnedAssetCardState extends State<_OwnedAssetCard> {
         return const Icon(Icons.workspace_premium_rounded,
             color: Color(0xFFFFD98F), size: 65);
       case 'reward':
+      case 'achievement':
         return const Icon(Icons.castle_outlined,
             color: Color(0xFFFFD98F), size: 65);
       default:
