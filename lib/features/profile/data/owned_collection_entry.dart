@@ -65,7 +65,8 @@ class OwnedCollectionEntry {
     id: 'received:$documentId',
     type: (data['type'] ?? 'gift').toString(),
     itemId: (data['itemId'] ?? data['giftId'] ?? '').toString(),
-    name: (data['nameAr'] ?? data['name'] ?? data['giftId'] ?? 'Gift').toString(),
+    name: (data['nameAr']?.toString().trim().isNotEmpty == true
+        ? data['nameAr'] : data['name'] ?? data['giftId'] ?? 'Gift').toString(),
     source: 'received_gift',
     senderName: (data['senderName'] ?? '').toString(),
     expiresAt: expiryOf(data),
@@ -76,14 +77,16 @@ class OwnedCollectionEntry {
     String documentId, Map<String, dynamic> data,
   ) => OwnedCollectionEntry(
     id: 'reward:$documentId',
-    type: 'reward',
+    // A castle milestone is an earned achievement, not an unclaimed gift.
+    type: data['type'] == 'castle_milestone' ? 'achievement' : 'reward',
     itemId: (data['claimedItemId'] ?? documentId).toString(),
     name: (data['level'] is num)
         ? 'Room level ${data['level']}'
         : 'Room reward',
     source: 'room_level_reward',
     expiresAt: expiryOf(data),
-    pendingReward: data['claimedAt'] == null,
+    pendingReward: data['type'] != 'castle_milestone' &&
+        data['claimedAt'] == null,
   );
 
   factory OwnedCollectionEntry.fromLegacyBackground(
