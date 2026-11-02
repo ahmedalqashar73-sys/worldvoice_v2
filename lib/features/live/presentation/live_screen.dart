@@ -3741,7 +3741,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                  name: hostName,
                                  isHost: true,
                                  compact: _boardOpen,
-                                 activeSpeaker: hostAgoraUid != null &&
+                                 activeSpeaker:
                                      _controller.activeSpeakerUid == hostAgoraUid,
                                  photoUrl: hostPhoto,
                                  onOpenProfile:
@@ -4642,7 +4642,7 @@ class _LiveParticipantCameraTile extends StatelessWidget {
                               name,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w800,
                                 fontSize: compact ? 10 : 14,
