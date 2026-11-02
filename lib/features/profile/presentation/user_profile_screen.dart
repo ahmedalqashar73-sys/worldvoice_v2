@@ -1,4 +1,5 @@
 import 'world_bond_screen.dart';
+import 'gift_wall_screen.dart';
 import 'member_badges.dart';
 import '../../engagement/presentation/creative_progress_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -303,6 +304,25 @@ class UserProfileScreen extends StatelessWidget {
                           label: Text(code == 'ar'
                               ? 'WorldBond • دعواتي ورغباتي'
                               : 'WorldBond • My invitations & wishlist'),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton.tonalIcon(
+                          key: const ValueKey('profile-gift-wall'),
+                          onPressed: () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => GiftWallScreen(
+                                profileUid: uid,
+                                profileName: (data['displayName'] ?? 'WorldVoice').toString(),
+                              ),
+                            ),
+                          ),
+                          icon: const Icon(Icons.card_giftcard_rounded),
+                          label: Text(code == 'ar'
+                              ? 'حائط الهدايا • المستلمة للجميع والمرسلة خاصة'
+                              : 'Gift wall • public received, private sent'),
                         ),
                       ),
                       CreativeProfileLink(userId: uid),
