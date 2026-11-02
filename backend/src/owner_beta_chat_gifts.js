@@ -130,6 +130,16 @@ export function registerOwnerBetaChatGiftRoutes({
           nonRedeemable: true, seen: false,
           createdAt: FieldValue.serverTimestamp(),
         });
+        tx.create(senderRef.collection("gift_wall_sent").doc(id), {
+          senderId: sender.uid, recipientId,
+          senderName: String(senderProfile.data()?.displayName || "WorldVoice user"),
+          recipientName: String(recipientProfile.data()?.displayName || "WorldVoice member"),
+          type: "gift", itemId: giftId, giftId, quantity: 1,
+          name: gift.name, nameAr: gift.nameAr,
+          priceCoins: gift.priceCoins, context: "chat",
+          ownerBetaGift: true, nonRedeemable: true,
+          createdAt: FieldValue.serverTimestamp(),
+        });
         tx.create(operationRef, {
           senderId: sender.uid, recipientId, chatId, giftId,
           outcome: result, createdAt: FieldValue.serverTimestamp(),
