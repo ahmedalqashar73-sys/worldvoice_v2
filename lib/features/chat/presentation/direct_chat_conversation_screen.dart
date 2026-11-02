@@ -1111,16 +1111,42 @@ class _DirectChatConversationScreenState
                                               0,
                                         ),
                               );
-                              return ListView.builder(
-                                reverse: true,
-                                padding: const EdgeInsets.only(
-                                  top: 10,
-                                  bottom: 14,
-                                ),
-                                itemCount: messages.length,
-                                itemBuilder: (ctx, index) => _bubble(
-                                  messages[messages.length - 1 - index],
-                                ),
+                              // Keep encrypted device messages visible if
+                              // Firestore cannot read a gifted-item receipt.
+                              // Never silently pretend the recipient has it.
+                              return Column(
+                                children: [
+                                  if (giftSnapshot.hasError)
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 5,
+                                      ),
+                                      child: Text(
+                                        _ar
+                                            ? 'تعذر تحميل سجل الهدايا من Firebase. الرسائل المحلية محفوظة. تحقق من صلاحيات المحادثة والاتصال.'
+                                            : 'Gift history could not load from Firebase. Local messages remain safe. Check chat permissions and connection.',
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          color: Color(0xFFE5BF7A),
+                                        ),
+                                      ),
+                                    ),
+                                  Expanded(
+                                    child: ListView.builder(
+                                      reverse: true,
+                                      padding: const EdgeInsets.only(
+                                        top: 10,
+                                        bottom: 14,
+                                      ),
+                                      itemCount: messages.length,
+                                      itemBuilder: (ctx, index) => _bubble(
+                                        messages[messages.length - 1 - index],
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               );
                             },
                           ),
