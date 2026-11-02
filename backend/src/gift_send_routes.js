@@ -12,6 +12,28 @@ import {roomProgressAfterGift, roomCastleProgressSnapshot,
 
 // Separate authenticated APIs; one settlement implementation preserves wallet
 // holds, shared daily limits, atomic receipts and existing room/live behavior.
+// Only participants in a fresh live may exchange gifts, including audience viewers.
+export function validateLiveGiftMembership({
+  live, contextId, senderId, recipientId, senderMember,
+  recipientGuest, recipientViewer, now = Date.now(),
+}) {
+  const heartbeatMs = live?.hostHeartbeatAt?.toMillis?.() ?? 0;
+  const liveFresh = live?.isLive === true &&
+    live.channelId === contextId &&
+    heartbeatMs > now - 60000;
+  const senderIsHost = live?.hostId === senderId;
+  const senderIsViewer = senderMember?.exists === true &&
+    senderMember.data()?.uid === senderId;
+  const recipientIsHost = live?.hostId === recipientId;
+  const recipientIsGuest = recipientGuest?.exists === true &&
+    recipientGuest.data()?.uid === recipientId &&
+    recipientGuest.data()?.status === "accepted";
+  const recipientIsViewer = recipientViewer?.exists === true &&
+    recipientViewer.data()?.uid === recipientId;
+  return liveFresh && (senderIsHost || senderIsViewer) &&
+    (recipientIsHost || recipientIsGuest || recipientIsViewer);
+}
+
 export function registerGiftSendRoutes({app, db, authenticatedUser, validChannelName,
   isVerifiedOwner = () => false}) {
 const send = bondOnly => async (req, res, next) => {
@@ -68,6 +90,8 @@ const send = bondOnly => async (req, res, next) => {
           ? roomRef.collection("join_requests").doc(recipientId)
           : roomRef
       : null;
+    const recipientViewerRef = context === "live" && recipientRef
+      ? roomRef.collection("viewers").doc(recipientId) : null;
     const senderFollow = context === "chat"
       ? senderRef.collection("following").doc(recipientId) : null;
     const recipientFollow = context === "chat"
@@ -82,6 +106,7 @@ const send = bondOnly => async (req, res, next) => {
       const refs = [eventRef, configRef, itemRef, roomRef, senderMemberRef,
         senderRef, senderWalletRef, inventoryRef, ...(recipientRef
           ? [recipientMemberRef, recipientRef, recipientWalletRef] : []),
+        ...(recipientViewerRef ? [recipientViewerRef] : []),
         ...(senderFollow ? [senderFollow, recipientFollow] : [])];
       const snapshots = await Promise.all(refs.map(ref => tx.get(ref)));
       const [existing, configSnap, itemSnap, roomSnap, senderMember,
@@ -104,22 +129,11 @@ const send = bondOnly => async (req, res, next) => {
             {status: 403});
         }
       } else if (context === "live") {
-        const live = roomSnap.data() || {};
-        const heartbeatMs = live.hostHeartbeatAt?.toMillis?.() ?? 0;
-        const liveFresh = roomSnap.exists &&
-          live.isLive === true &&
-          live.channelId === contextId &&
-          heartbeatMs > Date.now() - 60000;
-        const senderIsHost = live.hostId === sender.uid;
-        const senderIsViewer = senderMember.exists &&
-          senderMember.data()?.uid === sender.uid;
-        const recipientIsHost = live.hostId === recipientId;
-        const recipientRequest = snapshots[8]?.data() || {};
-        const recipientIsGuest = snapshots[8]?.exists &&
-          recipientRequest.uid === recipientId &&
-          recipientRequest.status === "accepted";
-        if (!liveFresh || (!senderIsHost && !senderIsViewer) ||
-            (!recipientIsHost && !recipientIsGuest)) {
+        if (!roomSnap.exists || !validateLiveGiftMembership({
+          live: roomSnap.data(), contextId, senderId: sender.uid,
+          recipientId, senderMember, recipientGuest: snapshots[8],
+          recipientViewer: snapshots[11],
+        })) {
           throw Object.assign(new Error("Active Live membership is required."),
             {status: 403});
         }
