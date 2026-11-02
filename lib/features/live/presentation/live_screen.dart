@@ -5590,13 +5590,29 @@ Future<void> _showLiveGifts(
                   doc.id: (doc.data()['displayName'] ?? 'WorldVoice guest')
                       .toString(),
             };
-            // Keep the gift catalog visible to preview while hosting alone.
-            // Settlement remains disabled until an eligible recipient joins;
-            // UnifiedGiftPanel rejects sending to the current user.
-            return UnifiedGiftPanel(
-              contextType: 'live',
-              contextId: liveId,
-              recipients: recipients,
+            // Audience viewers can receive a gift without joining the stage.
+            // Use live membership documents, not untrusted display names.
+            return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              stream: service.watchViewers(liveId),
+              builder: (context, audienceSnapshot) {
+                final audience = audienceSnapshot.data?.docs ??
+                    const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
+                for (final viewer in audience) {
+                  if (viewer.id != myId) {
+                    recipients.putIfAbsent(
+                      viewer.id,
+                      () => (viewer.data()['displayName'] ??
+                              'WorldVoice viewer').toString(),
+                    );
+                  }
+                }
+                // Catalog stays visible when hosting alone; no self-gifting.
+                return UnifiedGiftPanel(
+                  contextType: 'live',
+                  contextId: liveId,
+                  recipients: recipients,
+                );
+              },
             );
           },
         ),
