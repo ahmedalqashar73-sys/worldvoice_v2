@@ -2155,18 +2155,21 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                       return Stack(
                         fit: StackFit.expand,
                         children: [
-                          // A solo broadcaster fills the entire Live canvas.
-                          // The chat and dock float over the lower part of
-                          // the camera, rather than leaving empty green space.
-                          if (!_boardOpen && tiles.length == 1)
-                            Positioned.fill(
+                          // The approved original design: spacious portrait
+                          // solo camera or two equal vertically stacked feeds.
+                          if (!_boardOpen && tiles.length <= 2)
+                            PositionedDirectional(
+                              top: 106,
+                              bottom: 94,
+                              start: 12,
+                              end: 12,
                               child: _LiveVideoGrid(children: tiles),
                             )
                           else
                             PositionedDirectional(
-                              top: 76,
-                              start: 10,
-                              end: 10,
+                              top: 106,
+                              start: 12,
+                              end: 12,
                               height: _liveStageHeight(context, tiles.length,
                                   boardOpen: _boardOpen),
                               child: _LiveVideoGrid(
@@ -3861,15 +3864,20 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                        return Stack(
                             fit: StackFit.expand,
                             children: [
-                              if (tiles.length == 1 && !_boardOpen)
-                                Positioned.fill(
+                              if (tiles.isNotEmpty &&
+                                  tiles.length <= 2 && !_boardOpen)
+                                PositionedDirectional(
+                                  top: 106,
+                                  bottom: 94,
+                                  start: 12,
+                                  end: 12,
                                   child: _LiveVideoGrid(children: tiles),
                                 )
                               else if (tiles.isNotEmpty)
                                 PositionedDirectional(
-                                  top: 76,
-                                  start: 10,
-                                  end: 10,
+                                  top: 106,
+                                  start: 12,
+                                  end: 12,
                                   height: _liveStageHeight(
                                     context, tiles.length,
                                     boardOpen: _boardOpen,
@@ -7342,10 +7350,10 @@ double _liveStageHeight(BuildContext context, int count, {
   final viewport = MediaQuery.sizeOf(context);
   if (boardOpen) return (viewport.height * .13).clamp(66.0, 100.0);
   final safeHeight = viewport.height - MediaQuery.paddingOf(context).vertical;
-  // Reserve 76 logical px for header and at least 170 px for
-  // chat/controls. Never let camera panels hide the bottom dock.
-  final available = (safeHeight - 76 - 170).clamp(120.0, safeHeight);
-  final target = count == 2 ? safeHeight * .61 : safeHeight * .56;
+  // Header 106; 3–4 camera mosaic; 86 bottom dock plus room for chat.
+  // Solo/duo instead occupy the full area between header and dock.
+  final available = (safeHeight - 106 - 190).clamp(120.0, safeHeight);
+  final target = safeHeight * .60;
   return target.clamp(120.0, available);
 }
 
@@ -7360,10 +7368,9 @@ double _liveChatTop(BuildContext context, int count, {
   final height = MediaQuery.sizeOf(context).height;
   final preferred = boardOpen
       ? 185 + _liveBoardHeight(context) + 12
-      : count == 1
-          // Transparent chat bubbles float on the full-screen solo video.
-          ? height * .64
-          : 76 + _liveStageHeight(context, count) + 12;
+      : count <= 2
+          ? height * .69
+          : 106 + _liveStageHeight(context, count) + 12;
   return preferred.clamp(145.0, (height - 150).clamp(145.0, height));
 }
 
@@ -7380,14 +7387,18 @@ class _LiveVideoGrid extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: [Color(0xFF174F3C), Color(0xFF102F27)],
         ),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(21),
         border: Border.all(
-          color: const Color(0xFFB5D9AF).withValues(alpha: .52),
-          width: .9,
+          color: const Color(0xFFE2C784).withValues(alpha: .87),
+          width: 1.15,
         ),
+        boxShadow: const [
+          BoxShadow(color: Color(0x3326C78D), blurRadius: 12),
+          BoxShadow(color: Color(0x22D7B66B), blurRadius: 6),
+        ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(13),
+        borderRadius: BorderRadius.circular(20),
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -7452,16 +7463,15 @@ class _LiveVideoGrid extends StatelessWidget {
     }
 
     if (items.length == 1) {
-      // Preserve the native camera colors and use the entire available
-      // canvas for a solo Live. Multi-guest cards retain the fine outline.
-      return SizedBox.expand(child: items.first);
+      return SizedBox.expand(child: _tile(items.first));
     }
 
     if (items.length == 2) {
-      return Row(
+      // Exactly the original mockup: host above, guest below.
+      return Column(
         children: [
           Expanded(child: _tile(items[0])),
-          const SizedBox(width: 4),
+          const SizedBox(height: 7),
           Expanded(child: _tile(items[1])),
         ],
       );
