@@ -1,5 +1,6 @@
 import 'world_bond_screen.dart';
 import 'gift_wall_screen.dart';
+import 'owned_collection_screen.dart';
 import 'profile_photo_viewer.dart';
 import 'member_badges.dart';
 import '../../engagement/presentation/creative_progress_screen.dart';
@@ -58,11 +59,10 @@ class UserProfileScreen extends StatelessWidget {
                   ? 'الخلفيات والإطارات والفقاعات'
                   : 'WorldVoice Appearance Shop',
               icon: const Icon(Icons.storefront_rounded),
-              onPressed: () => showModalBottomSheet<void>(
-                context: context,
-                isScrollControlled: true,
-                useSafeArea: true,
-                builder: (_) => RoomBackgroundShopSheet(),
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => RoomBackgroundShopSheet.page(),
+                ),
               ),
             ),
             IconButton(
@@ -323,6 +323,26 @@ class UserProfileScreen extends StatelessWidget {
                           label: Text(code == 'ar'
                               ? 'WorldBond • دعواتي ورغباتي'
                               : 'WorldBond • My invitations & wishlist'),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton.icon(
+                          key: const ValueKey('profile-owned-collection'),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: const Color(0xFF126D4C),
+                            foregroundColor: const Color(0xFFFFE2A5),
+                          ),
+                          onPressed: () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => const OwnedCollectionScreen(),
+                            ),
+                          ),
+                          icon: const Icon(Icons.inventory_2_outlined),
+                          label: Text(code == 'ar'
+                              ? 'تم الامتلاك • هدايا وإطارات وخلفيات وفقاعات'
+                              : 'My Collection • Gifts, Frames & More'),
                         ),
                       ),
                       const SizedBox(height: 10),
