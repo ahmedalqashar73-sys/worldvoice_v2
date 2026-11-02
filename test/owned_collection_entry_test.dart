@@ -89,4 +89,29 @@ void main() {
     expect(eligible.isUsable, false);
   });
 
+  test('free room gift balance is authoritative for owned gift count', () {
+    final available = OwnedCollectionEntry.fromInventory(
+      'gift__wv_gift_001', {
+        'itemId': 'wv_gift_001',
+        'type': 'gift',
+        'source': 'room_reward',
+        'quantity': 1,
+        'freeGiftBalance': 3,
+      },
+    );
+    expect(available.quantity, 3);
+    expect(available.isUsable, true);
+
+    final spent = OwnedCollectionEntry.fromInventory(
+      'gift__wv_gift_001', {
+        'type': 'gift',
+        'source': 'room_reward',
+        'quantity': 1,
+        'freeGiftBalance': 0,
+      },
+    );
+    expect(spent.quantity, 0);
+    expect(spent.isUsable, false);
+  });
+
 }
