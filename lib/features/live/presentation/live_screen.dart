@@ -879,12 +879,14 @@ class _LiveHandControl extends StatelessWidget {
     required this.onPressed,
     this.active = false,
     this.count = 0,
+    this.compact = false,
   });
 
   final String tooltip;
   final VoidCallback? onPressed;
   final bool active;
   final int count;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -903,14 +905,17 @@ class _LiveHandControl extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: IconButton(
           key: const ValueKey('fixed-live-hand-control'),
-          constraints: const BoxConstraints.tightFor(width: 54, height: 54),
+          constraints: BoxConstraints.tightFor(
+            width: compact ? 42 : 54,
+            height: compact ? 42 : 54,
+          ),
           padding: EdgeInsets.zero,
           tooltip: tooltip,
           onPressed: onPressed,
           icon: const Icon(
             Icons.back_hand_rounded,
             color: Colors.white,
-            size: 28,
+            size: compact ? 23 : 28,
           ),
         ),
       ),
@@ -924,12 +929,14 @@ class _LiveStageRequestsButton extends StatelessWidget {
     required this.service,
     required this.ar,
     required this.onPressed,
+    this.compact = false,
   });
 
   final String liveId;
   final LiveSessionService service;
   final bool ar;
   final VoidCallback onPressed;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -939,6 +946,7 @@ class _LiveStageRequestsButton extends StatelessWidget {
         tooltip: ar ? 'طلبات الصعود' : 'Stage requests',
         onPressed: onPressed,
         count: snapshot.data?.docs.length ?? 0,
+        compact: compact,
       ),
     );
   }
@@ -977,7 +985,6 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   String _filterPreset = 'off';
   bool _backgroundBlurEnabled = false;
   double _cameraZoom = 1;
-  bool _requestsOpen = false;
   bool _boardOpen = false;
   bool _chatOpen = true;
   bool _sessionClosed = false;
@@ -1369,7 +1376,16 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
               title: Text(widget.ar ? 'طلبات الصعود' : 'Stage requests'),
               onTap: () {
                 Navigator.pop(sheetContext);
-                if (mounted) setState(() => _requestsOpen = true);
+                final liveId = _liveId;
+                if (mounted && liveId != null) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) {
+                      unawaited(_showLiveStageRequestsSheet(
+                        context, liveId, _liveService, widget.ar,
+                      ));
+                    }
+                  });
+                }
               },
             ),
             ListTile(
@@ -2317,6 +2333,18 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                       },
                                     ),
                               children: [
+                                if (_liveId != null)
+                                  _LiveStageRequestsButton(
+                                    liveId: _liveId!,
+                                    service: _liveService,
+                                    ar: widget.ar,
+                                    compact: true,
+                                    onPressed: () => unawaited(
+                                      _showLiveStageRequestsSheet(
+                                        context, _liveId!, _liveService, widget.ar,
+                                      ),
+                                    ),
+                                  ),
                                 IconButton(
                                   tooltip: widget.ar ? 'الهدايا' : 'Gifts',
                                   onPressed: _liveId == null
@@ -2436,31 +2464,6 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                               ],
                             ),
                           ),
-                          if (_liveId != null &&
-                              MediaQuery.viewInsetsOf(context).bottom == 0)
-                            Positioned(
-                              left: 14,
-                              bottom: 92,
-                              child: _LiveStageRequestsButton(
-                                liveId: _liveId!,
-                                service: _liveService,
-                                ar: widget.ar,
-                                onPressed: () => setState(
-                                  () => _requestsOpen = !_requestsOpen,
-                                ),
-                              ),
-                            ),
-                          if (_requestsOpen && _liveId != null)
-                            PositionedDirectional(
-                              bottom: 86,
-                              start: 14,
-                              end: 14,
-                              child: _HostJoinRequests(
-                                liveId: _liveId!,
-                                service: _liveService,
-                                ar: widget.ar,
-                              ),
-                            ),
                           PositionedDirectional(
                             top: 12,
                             end: 12,
@@ -2797,7 +2800,6 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   bool _following = false;
   bool _followBusy = false;
   bool _isModerator = false;
-  bool _moderatorRequestsOpen = false;
   bool _invitePromptOpen = false;
   String? _lastInviteMarker;
   StreamSubscription<bool>? _moderatorSub;
@@ -2846,7 +2848,6 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
               if (mounted && value != _isModerator) {
                 setState(() {
                   _isModerator = value;
-                  if (!value) _moderatorRequestsOpen = false;
                 });
               }
             },
@@ -4037,45 +4038,6 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                   ),
                                 ),
                               ),
-                              if (_isModerator && _moderatorRequestsOpen)
-                                PositionedDirectional(
-                                  bottom: 84,
-                                  start: 14,
-                                  end: 14,
-                                  child: _HostJoinRequests(
-                                    liveId: widget.liveId,
-                                    service: _service,
-                                    ar: widget.ar,
-                                  ),
-                                ),
-                              if (!_guestPublishing &&
-                                  MediaQuery.viewInsetsOf(context).bottom == 0)
-                                Positioned(
-                                  left: 14,
-                                  bottom: 92,
-                                  child: _LiveHandControl(
-                                    tooltip: status == 'invited'
-                                        ? (widget.ar
-                                            ? 'دعوة الصعود بانتظار ردك'
-                                            : 'Respond to your stage invitation')
-                                        : (status == 'pending' || _requested)
-                                        ? (widget.ar
-                                            ? 'إلغاء طلب الصعود'
-                                            : 'Cancel stage request')
-                                        : (widget.ar
-                                            ? 'ارفع يدك للصعود'
-                                            : 'Raise hand to join'),
-                                    active: status == 'pending' ||
-                                        status == 'invited' || _requested,
-                                    onPressed: _handRequestBusy ||
-                                            status == 'invited' ||
-                                            status == 'accepted'
-                                        ? null
-                                        : (status == 'pending' || _requested)
-                                            ? _cancelCameraRequest
-                                            : _requestCamera,
-                                  ),
-                                ),
                               PositionedDirectional(
                                 bottom: 16,
                                 start: 12,
@@ -4092,6 +4054,24 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                     },
                                   ),
                                   children: [
+                                    if (!_guestPublishing)
+                                      _LiveHandControl(
+                                        tooltip: status == 'pending' || _requested
+                                            ? (widget.ar ? 'إلغاء طلب الصعود'
+                                                : 'Cancel request')
+                                            : (widget.ar ? 'طلب الصعود'
+                                                : 'Request to join'),
+                                        compact: true,
+                                        active: status == 'pending' ||
+                                            status == 'invited' || _requested,
+                                        onPressed: _handRequestBusy ||
+                                                status == 'invited' ||
+                                                status == 'accepted'
+                                            ? null
+                                            : (status == 'pending' || _requested)
+                                                ? _cancelCameraRequest
+                                                : _requestCamera,
+                                      ),
                                     IconButton(
                                       tooltip: widget.ar ? 'الهدايا' : 'Gifts',
                                       onPressed: () => _showLiveGifts(
@@ -4190,9 +4170,11 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                         liveId: widget.liveId,
                                         service: _service,
                                         ar: widget.ar,
-                                        onPressed: () => setState(
-                                          () => _moderatorRequestsOpen =
-                                              !_moderatorRequestsOpen,
+                                        compact: true,
+                                        onPressed: () => unawaited(
+                                          _showLiveStageRequestsSheet(
+                                            context, widget.liveId, _service, widget.ar,
+                                          ),
                                         ),
                                       ),
                                     if (_guestPublishing) ...[
@@ -7164,6 +7146,39 @@ Future<void> _showLiveModeratorManagement(
     ),
   );
 }
+
+/// Stage requests never float over the video or block the chat.
+Future<void> _showLiveStageRequestsSheet(
+  BuildContext context,
+  String liveId,
+  LiveSessionService service,
+  bool ar,
+) => showModalBottomSheet<void>(
+  context: context,
+  isScrollControlled: true,
+  showDragHandle: true,
+  backgroundColor: const Color(0xFF0A251F),
+  builder: (sheetContext) => SafeArea(
+    top: false,
+    child: Padding(
+      padding: const EdgeInsets.fromLTRB(12, 4, 12, 18),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(ar ? 'طلبات الصعود' : 'Stage requests',
+            style: const TextStyle(
+              fontWeight: FontWeight.w800,
+              fontSize: 18,
+              color: Color(0xFFFFE3A1),
+            ),
+          ),
+          const SizedBox(height: 12),
+          _HostJoinRequests(liveId: liveId, service: service, ar: ar),
+        ],
+      ),
+    ),
+  ),
+);
 
 class _HostJoinRequests extends StatelessWidget {
   const _HostJoinRequests({
