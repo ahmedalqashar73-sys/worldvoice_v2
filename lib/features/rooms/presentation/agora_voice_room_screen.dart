@@ -3176,17 +3176,16 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   }
 
   Future<void> _showBackgroundStore() async {
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (_) => RoomBackgroundShopSheet(
-        roomFeatures: _features,
-        isHost: _isHost,
-        // The shared board already supports text and a multi-color palette.
-        onOpenWriting: _isHost || _featureState.boardWriteEnabled
-            ? _expandBoard
-            : null,
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => RoomBackgroundShopSheet.page(
+          roomFeatures: _features,
+          isHost: _isHost,
+          // The shared board already supports text and a multi-color palette.
+          onOpenWriting: _isHost || _featureState.boardWriteEnabled
+              ? _expandBoard
+              : null,
+        ),
       ),
     );
   }
