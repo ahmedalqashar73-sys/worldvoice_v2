@@ -7493,7 +7493,7 @@ double _liveChatTop(BuildContext context, int count, {
 }
 
 class WorldVoiceLiveVideoGrid extends StatelessWidget {
-  const WorldVoiceLiveVideoGrid({required this.children, this.compact = false});
+  const WorldVoiceLiveVideoGrid({required this.children, this.compact = false, super.key});
   final List<Widget> children;
   final bool compact;
 
