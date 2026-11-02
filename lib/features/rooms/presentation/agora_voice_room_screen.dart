@@ -187,6 +187,26 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       _stageInviteSub;
 
   List<RoomParticipant> _participants = const <RoomParticipant>[];
+  bool _seatCompactionInFlight = false;
+  DateTime? _lastSeatCompactionAttempt;
+  void _autoCompactSeats(List<RoomParticipant> participants) {
+    final uid = _moderation.currentUserId;
+    if (!mounted || _leaving || uid == null ||
+        !RoomModerationService.needsSeatCompaction(participants)) return;
+    final mayManage = uid == _roomHostId ||
+        participants.any((p) => p.userId == uid && p.isModerator);
+    if (!mayManage || _seatCompactionInFlight) return;
+    final now = DateTime.now();
+    if (_lastSeatCompactionAttempt != null &&
+        now.difference(_lastSeatCompactionAttempt!) <
+            const Duration(seconds: 4)) return;
+    _lastSeatCompactionAttempt = now;
+    _seatCompactionInFlight = true;
+    unawaited(_moderation.compactSeatsOnServer().catchError((Object error) {
+      debugPrint('Seat compaction deferred: $error');
+    }).whenComplete(() => _seatCompactionInFlight = false));
+  }
+
   String? _lastStageInviteSignature;
   RoomParticipant? _me;
   int? _lastSyncedAgoraUid;
@@ -717,6 +737,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
           _moderation.watchParticipants().listen((participants) {
         if (!mounted) return;
         setState(() => _participants = participants);
+        _autoCompactSeats(participants);
       });
 
       _meSub = _moderation.watchMe().listen(_handleMyParticipant);
