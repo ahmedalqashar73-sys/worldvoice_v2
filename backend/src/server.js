@@ -2156,6 +2156,20 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
           } : {}),
           seen: false, createdAt: FieldValue.serverTimestamp(),
         });
+      if (gifting) tx.create(
+        payerRef.collection("gift_wall_sent").doc(refKey), {
+          senderId: sender.uid, recipientId, itemId,
+          type: item.type, name: String(item.name || itemId).slice(0, 120),
+          nameAr: String(item.nameAr || "").slice(0, 120),
+          senderName: String(payerProfileSnap.data()?.displayName || "WorldVoice user"),
+          recipientName: String(beneficiaryProfile.displayName || "WorldVoice member"),
+          quantity: 1, priceCoins: price,
+          durationDays: duration, context: "cosmetic",
+          ...(ownerBetaCosmeticGift ? {
+            ownerBetaGift: true, nonRedeemable: true,
+          } : {}),
+          createdAt: FieldValue.serverTimestamp(),
+        });
       // The inventory grant and the visible chat gift card commit together.
       // Do not invent a conversation or message for unrelated accounts.
       const chatData = giftChat?.data() || {};
