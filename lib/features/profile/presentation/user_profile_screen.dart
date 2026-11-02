@@ -14,6 +14,7 @@ import '../services/profile_social_service.dart';
 import '../data/profile_language_catalog.dart';
 import 'profile_connections_screen.dart';
 import '../../rooms/presentation/room_background_shop_sheet.dart';
+import '../../rooms/presentation/gift_coin_amount.dart';
 import 'profile_identity_strip.dart';
 import 'profile_setup_screen.dart';
 import 'profile_visitors_screen.dart';
@@ -385,6 +386,7 @@ class UserProfileScreen extends StatelessWidget {
                                   Expanded(
                                     child: _Wallet(
                                       icon: Icons.monetization_on_outlined,
+                                      worldVoiceCoin: true,
                                       value: balance('coins'),
                                       label: AppStrings.of(code).profile(
                                         'coins',
@@ -691,9 +693,11 @@ class _InfoCard extends StatelessWidget {
 }
 
 class _Wallet extends StatelessWidget {
-  const _Wallet({required this.icon, required this.value, required this.label});
+  const _Wallet({required this.icon, required this.value, required this.label,
+    this.worldVoiceCoin = false});
 
   final IconData icon;
+  final bool worldVoiceCoin;
   final String value;
   final String label;
 
@@ -703,7 +707,9 @@ class _Wallet extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          Icon(icon),
+          worldVoiceCoin
+              ? const WorldVoiceCoinIcon(size: 27)
+              : Icon(icon),
           const SizedBox(height: 7),
           Text(
             value,
