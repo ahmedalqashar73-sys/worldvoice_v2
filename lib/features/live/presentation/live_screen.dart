@@ -2230,8 +2230,14 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                 showComposer: false,
                               ),
                             ),
+                          const Positioned(
+                            top: 5,
+                            left: 0,
+                            right: 0,
+                            child: IgnorePointer(child: _WorldVoiceLiveBrand()),
+                          ),
                           PositionedDirectional(
-                            top: 12,
+                            top: 53,
                             start: 12,
                             child:
                                 StreamBuilder<
@@ -2486,7 +2492,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                             ),
                           ),
                           PositionedDirectional(
-                            top: 12,
+                            top: 53,
                             end: 12,
                             child: Row(
                               children: [
@@ -2711,6 +2717,43 @@ class _LiveInlineComposerState extends State<_LiveInlineComposer> {
   }
 }
 
+/// Original approved WorldVoice Live mockup branding. Separate from
+/// the interactive toolbar so it never covers camera control tap targets.
+class _WorldVoiceLiveBrand extends StatelessWidget {
+  const _WorldVoiceLiveBrand();
+
+  @override
+  Widget build(BuildContext context) => Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      const Icon(Icons.graphic_eq_rounded,
+          color: Color(0xFFE5C47D), size: 22),
+      const SizedBox(width: 5),
+      Text.rich(
+        TextSpan(
+          children: const [
+            TextSpan(
+              text: 'WorldVoice ',
+              style: TextStyle(color: Colors.white),
+            ),
+            TextSpan(
+              text: 'Live',
+              style: TextStyle(color: Color(0xFFE5C47D)),
+            ),
+          ],
+        ),
+        textDirection: TextDirection.ltr,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w800,
+          shadows: [Shadow(color: Color(0xAA001B12), blurRadius: 6)],
+        ),
+      ),
+    ],
+  );
+}
+
 class _LiveControlDock extends StatelessWidget {
   const _LiveControlDock({required this.children, this.composer});
 
@@ -2725,15 +2768,27 @@ class _LiveControlDock extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: const Color(0xD9081712),
-        borderRadius: BorderRadius.circular(26),
-        border: Border.all(color: const Color(0x335FE6B5)),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xF007231B),
+            Color(0xF00D3B2D),
+            Color(0xF008241E),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(
+          color: const Color(0xBFC9AA6C),
+          width: 1.05,
+        ),
         boxShadow: const [
           BoxShadow(
             blurRadius: 22,
-            offset: Offset(0, 10),
-            color: Color(0x44000000),
+            offset: Offset(0, 9),
+            color: Color(0x53000000),
           ),
+          BoxShadow(color: Color(0x1ADAB56C), blurRadius: 14),
         ],
       ),
       child: Padding(
@@ -3952,8 +4007,14 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                     showComposer: false,
                                   ),
                                 ),
+                              const Positioned(
+                                top: 5,
+                                left: 0,
+                                right: 0,
+                                child: IgnorePointer(child: _WorldVoiceLiveBrand()),
+                              ),
                               PositionedDirectional(
-                                top: 10,
+                                top: 53,
                                 start: 10,
                                 end: 10,
                                 child: DecoratedBox(
