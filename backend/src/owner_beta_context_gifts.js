@@ -6,7 +6,7 @@ import {privateWalletRef, requirePrivateWallet} from "./wallet_store.js";
 
 export function validateBetaContextMembership({
   context, session, senderId, recipientId, senderMember, recipientMember,
-  now = Date.now(),
+  recipientViewer, now = Date.now(),
 }) {
   if (context === "room") {
     return session?.isOpen === true && senderMember?.exists === true &&
@@ -23,8 +23,10 @@ export function validateBetaContextMembership({
   const recipientIsGuest = recipientMember?.exists === true &&
     recipientMember.data()?.uid === recipientId &&
     recipientMember.data()?.status === "accepted";
+  const recipientIsViewer = recipientViewer?.exists === true &&
+    recipientViewer.data()?.uid === recipientId;
   return validLive && (senderIsHost || senderIsViewer) &&
-    (recipientIsHost || recipientIsGuest);
+    (recipientIsHost || recipientIsGuest || recipientIsViewer);
 }
 
 // For the authenticated, verified owner only. Every gift is backed by a
@@ -69,6 +71,8 @@ export function registerOwnerBetaContextGiftRoutes({
         context === "room" ? "participants" : "viewers").doc(sender.uid);
       const recipientMemberRef = sessionRef.collection(
         context === "room" ? "participants" : "join_requests").doc(recipientId);
+      const recipientViewerRef = context === "live"
+        ? sessionRef.collection("viewers").doc(recipientId) : null;
       const operationRef = db.collection("owner_beta_gift_operations").doc(id);
       const blockedBySenderRef =
         senderRef.collection("blocked_peers").doc(recipientId);
@@ -76,12 +80,14 @@ export function registerOwnerBetaContextGiftRoutes({
         recipientRef.collection("blocked_peers").doc(sender.uid);
       const refs = [operationRef, sessionRef, senderMemberRef,
         recipientMemberRef, senderRef, recipientRef, walletRef,
-        blockedBySenderRef, blockedByRecipientRef];
+        blockedBySenderRef, blockedByRecipientRef,
+        ...(recipientViewerRef ? [recipientViewerRef] : [])];
       const result = await db.runTransaction(async tx => {
+        const snapshots = await Promise.all(refs.map(ref => tx.get(ref)));
         const [operation, session, senderMember, recipientMember,
           senderProfile, recipientProfile, walletSnap,
-          senderBlock, recipientBlock] = await Promise.all(
-          refs.map(ref => tx.get(ref)));
+          senderBlock, recipientBlock] = snapshots;
+        const recipientViewer = recipientViewerRef ? snapshots[9] : null;
         if (operation.exists) {
           const old = operation.data();
           if (old.senderId !== sender.uid ||
@@ -98,6 +104,7 @@ export function registerOwnerBetaContextGiftRoutes({
             !validateBetaContextMembership({
               context, session: session.data(), senderId: sender.uid,
               recipientId, senderMember, recipientMember,
+              recipientViewer,
             })) {
           throw Object.assign(new Error(
             "Active room/live membership and unblocked accounts required."),
