@@ -27,7 +27,7 @@ class WorldVoiceChatGiftCard extends StatelessWidget {
   static String kindOf(Map<String, dynamic> data) {
     final id = itemIdOf(data);
     for (final kind in ['frame', 'background', 'bubble', 'entrance', 'vip']) {
-      if (id.startsWith(kind + '__')) return kind;
+      if (id.startsWith('${kind}__')) return kind;
     }
     return 'gift';
   }
@@ -93,7 +93,7 @@ class WorldVoiceChatGiftCard extends StatelessWidget {
     }
     if (_kind == 'gift' && RegExp(r'^wv_gift_[0-9]{3}$').hasMatch(_id)) {
       return Image.asset(
-        'assets/gifts/hd/' + _id + '.webp',
+        'assets/gifts/hd/$_id.webp',
         width: size, height: size, fit: BoxFit.contain,
         errorBuilder: (_, _, _) => _fallback(size),
       );
@@ -160,8 +160,8 @@ class WorldVoiceChatGiftCard extends StatelessWidget {
       ),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         const Icon(Icons.auto_awesome, color: Color(0xFFFFDA91), size: 17),
-        Text(ar ? _sender + ' أهدى إلى ' + _receiver
-                : _sender + ' sent to ' + _receiver,
+        Text(ar ? '$_sender أهدى إلى $_receiver'
+                : '$_sender sent to $_receiver',
           maxLines: 2, textAlign: TextAlign.center,
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(color: Color(0xFFFFE5A5),
@@ -178,14 +178,14 @@ class WorldVoiceChatGiftCard extends StatelessWidget {
         if (quantity > 1) Text('× ' + quantity.toString(),
           style: const TextStyle(color: Color(0xFFEBD08A))),
         if (duration != null && duration > 0)
-          Text(duration.toString() + (ar ? ' أيام' : ' days'),
+          Text(ar ? '$duration أيام' : '$duration days',
             style: const TextStyle(color: Color(0xFFEED79D))),
         if (_kind != 'gift' && duration == null)
           Text(ar ? 'في مقتنيات المستلم' : 'Added to recipient inventory',
             style: const TextStyle(
               color: Color(0xFFB4D8C6), fontSize: 10)),
         if (coins is num && coins > 0)
-          Text(coins.toInt().toString() + ' 🪙',
+          Text('${coins.toInt()} 🪙',
             style: const TextStyle(
               color: Color(0xFFFFD991), fontWeight: FontWeight.bold)),
         if (data['nonRedeemable'] == true)
