@@ -189,7 +189,7 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                     tooltip: isArabic ? 'خلفياتي المملوكة' : 'My Owned Backgrounds',
                     onPressed: () => Navigator.of(context).push(
                       MaterialPageRoute<void>(
-                        builder: (_) => const OwnedCollectionScreen(
+                        builder: (_) => OwnedCollectionScreen(
                           categoryOnly: 'background',
                           roomFeatures: roomFeatures,
                         ),
@@ -308,7 +308,7 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                   OutlinedButton.icon(
                     onPressed: () => Navigator.of(context).push(
                       MaterialPageRoute<void>(
-                        builder: (_) => const OwnedCollectionScreen(
+                        builder: (_) => OwnedCollectionScreen(
                           categoryOnly: 'background',
                           roomFeatures: roomFeatures,
                         ),
