@@ -2147,7 +2147,12 @@ app.post(["/store/purchase", "/store/admin-grant"], async (req, res, next) => {
       });
       if (gifting) tx.create(
         recipientRef.collection("gift_notifications").doc(refKey), {
-          senderId: sender.uid, itemId, type: item.type,
+          senderId: sender.uid,
+          senderName: String(payerProfileSnap.data()?.displayName || "WorldVoice user"),
+          recipientId,
+          recipientName: String(beneficiaryProfile.displayName || "WorldVoice member"),
+          context: "cosmetic", quantity: 1, priceCoins: price,
+          itemId, type: item.type,
           name: String(item.name || itemId).slice(0, 120),
           nameAr: String(item.nameAr || "").slice(0, 120),
           durationDays: duration, expiresAt,
