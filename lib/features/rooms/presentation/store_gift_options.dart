@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../services/room_shop_service.dart';
+import 'gift_coin_amount.dart';
 
 /// Owner searches verified backend public identities. Regular users retain
 /// their existing followed-contacts gifting permissions.
@@ -182,7 +183,9 @@ Future<int?> pickCosmeticGiftDuration(
               Expanded(child: Text(durations[i] == 0
                 ? (ar ? 'دائمًا' : 'Permanent')
                 : '${durations[i]} ${ar ? 'أيام' : 'days'}')),
-              Text('${((permanentPrice * rates[i] + 499) ~/ 500) * 5} 🪙'),
+              GiftCoinAmount(
+                amount: ((permanentPrice * rates[i] + 499) ~/ 500) * 5,
+              ),
             ]),
           ),
       ],
