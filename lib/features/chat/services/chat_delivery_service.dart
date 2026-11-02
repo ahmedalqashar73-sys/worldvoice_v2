@@ -85,7 +85,6 @@ class ChatDeliveryService {
           .listen(
             (snapshot) {
               if (_uid != uid) return;
-              final active = <String>{};
               for (final doc in snapshot.docs) {
                 final members = List<String>.from(
                   doc.data()['memberIds'] as List,
@@ -93,13 +92,14 @@ class ChatDeliveryService {
                 if (members.length != 2 || doc.data()['type'] == 'group') {
                   continue;
                 }
-                active.add(doc.id);
                 final peer = members.firstWhere((id) => id != uid);
                 session(uid, peer, doc.id).wake();
               }
-              for (final id in _sessions.keys.toList()) {
-                if (!active.contains(id)) _sessions.remove(id)?.close();
-              }
+              // A query can briefly report an empty cache or a partial
+              // server result while contacts are loading. Never close a
+              // transport held by an open conversation based on discovery:
+              // that leaves its local outbox stuck forever. Existing sessions
+              // are retired only when the authenticated account changes.
             },
             onError: (Object error) {
               debugPrint('WorldVoice delivery chat discovery: $error');
@@ -269,9 +269,35 @@ class ChatDeliverySession {
       return;
     }
     final expires = prior?['expiresAt'] as Timestamp?;
+    // Check current key material BEFORE assuming a ready envelope is
+    // deliverable. On reinstall or keystore reset either peer may rotate its
+    // X25519 key: the old ciphertext is undecryptable on the new device.
+    final peerKey = await FirebaseFirestore.instance
+        .collection('chat_delivery_keys')
+        .doc(peer)
+        .get(const GetOptions(source: Source.server));
+    final remote = peerKey.data()?['publicKey'] as String?;
+    if (remote == null) {
+      throw StateError('The recipient needs to open the updated app once.');
+    }
     if (prior?['state'] == 'ready' &&
         expires != null &&
         expires.toDate().isAfter(DateTime.now())) {
+      if (prior?['recipientKey'] != remote ||
+          prior?['senderKey'] != publicKey) {
+        // Preserve the original message ID and local text/media. Start a new
+        // encrypted envelope with the current keys. The old encrypted copy
+        // expires through Firestore TTL and cannot cause double coin spending.
+        final replacementId = LocalChatStore.newId();
+        final moved = await store.patchIf(
+          messageId,
+          {'deliveryId': deliveryId},
+          {'deliveryId': replacementId, 'sent': false},
+        );
+        if (!moved || _closed) return;
+        await _send({...item, 'deliveryId': replacementId, 'sent': false});
+        return;
+      }
       if (item['sent'] != true) {
         await store.patchIf(
           messageId,
@@ -280,14 +306,6 @@ class ChatDeliverySession {
         );
       }
       return;
-    }
-    final peerKey = await FirebaseFirestore.instance
-        .collection('chat_delivery_keys')
-        .doc(peer)
-        .get(const GetOptions(source: Source.server));
-    final remote = peerKey.data()?['publicKey'] as String?;
-    if (remote == null) {
-      throw StateError('The recipient needs to open the updated app once.');
     }
     final context = '$chatId/$deliveryId';
     final key = await ChatDeliveryCrypto.derive(identity, remote, context);
