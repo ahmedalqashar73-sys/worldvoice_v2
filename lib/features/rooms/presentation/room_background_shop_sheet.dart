@@ -22,7 +22,7 @@ Future<void> showWorldVoiceReceivedGifts(
   BuildContext context, bool isArabic,
 ) => Navigator.of(context).push(
   MaterialPageRoute<void>(
-    builder: (_) => const OwnedCollectionScreen(initialTab: 0),
+    builder: (_) => const OwnedCollectionScreen(giftsOnly: true),
   ),
 );
 
@@ -186,9 +186,15 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
-                    tooltip: isArabic ? 'تم الامتلاك' : 'My Collection',
-                    onPressed: () => showWorldVoiceReceivedGifts(context, isArabic),
-                    icon: const Icon(Icons.card_giftcard_rounded),
+                    tooltip: isArabic ? 'خلفياتي المملوكة' : 'My Owned Backgrounds',
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const OwnedCollectionScreen(
+                          categoryOnly: 'background',
+                        ),
+                      ),
+                    ),
+                    icon: const Icon(Icons.inventory_2_outlined),
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
@@ -301,11 +307,13 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                   OutlinedButton.icon(
                     onPressed: () => Navigator.of(context).push(
                       MaterialPageRoute<void>(
-                        builder: (_) => const OwnedCollectionScreen(),
+                        builder: (_) => const OwnedCollectionScreen(
+                          categoryOnly: 'background',
+                        ),
                       ),
                     ),
                     icon: const Icon(Icons.inventory_2_outlined),
-                    label: Text(isArabic ? 'تم الامتلاك' : 'My Collection'),
+                    label: Text(isArabic ? 'تم الامتلاك' : 'Owned'),
                   ),
                 ],
               ),
@@ -954,9 +962,26 @@ class _OtherStoreTab extends StatelessWidget {
                 'entrance' => isArabic ? 'تأثيرات الدخول' : 'Entrance effects',
                 _ => 'VIP',
               }),
-              trailing: IconButton(
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close_rounded),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextButton.icon(
+                    key: ValueKey('owned-$type-store'),
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => OwnedCollectionScreen(
+                          categoryOnly: type,
+                        ),
+                      ),
+                    ),
+                    icon: const Icon(Icons.inventory_2_outlined, size: 18),
+                    label: Text(isArabic ? 'تم الامتلاك' : 'Owned'),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close_rounded),
+                  ),
+                ],
               ),
             ),
             Expanded(
