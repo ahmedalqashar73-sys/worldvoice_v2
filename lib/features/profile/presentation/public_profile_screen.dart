@@ -16,6 +16,7 @@ import '../services/profile_social_service.dart';
 import '../data/profile_language_catalog.dart';
 import 'profile_identity_strip.dart';
 import 'voice_bio_player.dart';
+import 'profile_photo_viewer.dart';
 
 class PublicProfileScreen extends StatefulWidget {
   const PublicProfileScreen({
@@ -226,7 +227,10 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
               children: [
                 Center(
-                  child: StoryProfileRing(
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      StoryProfileRing(
                     ownerId: widget.userId,
                     isArabic: code == 'ar',
                     onReply: (story) => ChatScreen.openDirectConversation(
@@ -254,6 +258,28 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                               ),
                       ),
                     ),
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: Material(
+                          color: Theme.of(context).colorScheme.surface,
+                          shape: const CircleBorder(),
+                          child: IconButton(
+                            key: const ValueKey('public-avatar-viewer-trigger'),
+                            tooltip: code == 'ar'
+                                ? 'عرض الصورة الشخصية'
+                                : 'View profile photo',
+                            icon: const Icon(Icons.zoom_out_map_rounded, size: 20),
+                            onPressed: () => Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) =>
+                                    ProfilePhotoViewer(userId: widget.userId),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 14),
