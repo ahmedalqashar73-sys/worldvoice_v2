@@ -368,7 +368,7 @@ class RoomModerationService {
     if (current == null) return;
     final token = await current.getIdToken();
     if (token == null || token.isEmpty) return;
-    final base = Uri.tryParse(RoomBackendConfig.roomBackendBaseUrl.trim());
+    final base = Uri.tryParse(RoomBackendConfig.socialBaseUrl.trim());
     if (base == null || base.scheme != 'https' || !base.hasAuthority) {
       return;
     }
