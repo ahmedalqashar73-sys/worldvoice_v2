@@ -2129,61 +2129,23 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                       return Stack(
                         fit: StackFit.expand,
                         children: [
-                          if (!_boardOpen)
-                            Positioned.fill(
-                              bottom: tiles.length >= 3
-                                  ? MediaQuery.sizeOf(context).height * .38
-                                  : 0,
-                              child: _LiveVideoGrid(children: tiles),
-                            )
-                          else
-                            const ColoredBox(color: Color(0xFF081A15)),
-                          if (_boardOpen)
-                            PositionedDirectional(
-                              top: 66,
-                              end: 16,
-                              child: Container(
-                                width: 92,
-                                height: 92,
-                                decoration: BoxDecoration(
-                                  color: Colors.black,
-                                  borderRadius: BorderRadius.circular(22),
-                                  border: Border.all(
-                                    color: const Color(0xFF65E3B4),
-                                    width: 2,
-                                  ),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      color: Color(0x55000000),
-                                      blurRadius: 16,
-                                      offset: Offset(0, 6),
-                                    ),
-                                  ],
-                                ),
-                                clipBehavior: Clip.antiAlias,
-                                child: _cameraPaused
-                                    ? _LiveBoardAvatar(
-                                        photoUrl:
-                                            FirebaseAuth
-                                                .instance
-                                                .currentUser
-                                                ?.photoURL ??
-                                            '',
-                                      )
-                                    : AgoraVideoView(
-                                        controller: VideoViewController(
-                                          rtcEngine: _controller.engine!,
-                                          canvas: const VideoCanvas(uid: 0),
-                                        ),
-                                      ),
-                              ),
+                          PositionedDirectional(
+                            top: 76,
+                            start: 10,
+                            end: 10,
+                            height: _liveStageHeight(context, tiles.length,
+                                boardOpen: _boardOpen),
+                            child: _LiveVideoGrid(
+                              children: tiles,
+                              compact: _boardOpen,
                             ),
+                          ),
                           if (_boardOpen && _liveId != null)
                             Positioned(
                               left: 12,
                               right: 12,
-                              top: 170,
-                              height: MediaQuery.sizeOf(context).height * .40,
+                              top: 185,
+                              height: _liveBoardHeight(context),
                               child: RoomBoardScreen(
                                 roomId: _liveId!,
                                 parentCollection: 'live_sessions',
@@ -2221,14 +2183,9 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                             PositionedDirectional(
                               start: 10,
                               end: 68,
-                              bottom:
-                                  78 + MediaQuery.viewInsetsOf(context).bottom,
-                              height: _boardOpen
-                                  ? MediaQuery.sizeOf(context).height * .27
-                                  : (tiles.length >= 3
-                                        ? MediaQuery.sizeOf(context).height *
-                                              .34
-                                        : 250),
+                              top: _liveChatTop(context, tiles.length,
+                                  boardOpen: _boardOpen),
+                              bottom: 86 + MediaQuery.viewInsetsOf(context).bottom,
                               child: _LiveChatOverlay(
                                 service: _liveService,
                                 liveId: _liveId!,
@@ -3871,81 +3828,31 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                        return Stack(
                             fit: StackFit.expand,
                             children: [
-                              if (!_boardOpen)
-                                if (tiles.isNotEmpty)
-                                  Positioned.fill(
-                                    bottom: tiles.length >= 3
-                                        ? MediaQuery.sizeOf(context).height *
-                                              .38
-                                        : 0,
-                                    child: _LiveVideoGrid(children: tiles),
-                                  )
-                                else
-                                  const Center(
-                                    child: Icon(
-                                      Icons.live_tv_rounded,
-                                      color: Colors.white54,
-                                      size: 72,
-                                    ),
-                                  )
-                              else
-                                const ColoredBox(color: Color(0xFF081A15)),
-                              if (_boardOpen)
+                              if (tiles.isNotEmpty)
                                 PositionedDirectional(
-                                  top: 66,
-                                  end: 16,
-                                  child: Container(
-                                    width: 92,
-                                    height: 92,
-                                    decoration: BoxDecoration(
-                                      color: Colors.black,
-                                      borderRadius: BorderRadius.circular(22),
-                                      border: Border.all(
-                                        color: const Color(0xFF65E3B4),
-                                        width: 2,
-                                      ),
-                                      boxShadow: const [
-                                        BoxShadow(
-                                          color: Color(0x55000000),
-                                          blurRadius: 16,
-                                          offset: Offset(0, 6),
-                                        ),
-                                      ],
-                                    ),
-                                    clipBehavior: Clip.antiAlias,
-                                    child:
-                                        engine != null &&
-                                            (hostAgoraUid != null &&
-                                             remote.contains(hostAgoraUid))
-                                        ? AgoraVideoView(
-                                            controller:
-                                                VideoViewController.remote(
-                                                  rtcEngine: engine,
-                                                  canvas: VideoCanvas(
-                                                    uid: hostAgoraUid,
-                                                  ),
-                                                  connection: RtcConnection(
-                                                    channelId: widget.liveId,
-                                                  ),
-                                                ),
-                                          )
-                                        : _LiveBoardAvatar(
-                                            photoUrl:
-                                                (live?['hostPhotoUrl'] ??
-                                                        widget
-                                                            .data['hostPhotoUrl'] ??
-                                                        '')
-                                                    .toString(),
-                                          ),
+                                  top: 76,
+                                  start: 10,
+                                  end: 10,
+                                  height: _liveStageHeight(
+                                    context, tiles.length,
+                                    boardOpen: _boardOpen,
                                   ),
+                                  child: _LiveVideoGrid(
+                                    children: tiles,
+                                    compact: _boardOpen,
+                                  ),
+                                )
+                              else
+                                const Center(
+                                  child: Icon(Icons.live_tv_rounded,
+                                      color: Colors.white54, size: 72),
                                 ),
                               if (_boardOpen)
                                 Positioned(
                                   left: 12,
                                   right: 12,
-                                  top: 170,
-                                  height:
-                                      MediaQuery.sizeOf(context).height * .40,
+                                  top: 185,
+                                  height: _liveBoardHeight(context),
                                   child: RoomBoardScreen(
                                     roomId: widget.liveId,
                                     parentCollection: 'live_sessions',
@@ -3990,17 +3897,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                 PositionedDirectional(
                                   start: 10,
                                   end: 68,
-                                  bottom:
-                                      78 +
-                                      MediaQuery.viewInsetsOf(context).bottom,
-                                  height: _boardOpen
-                                      ? MediaQuery.sizeOf(context).height * .27
-                                      : (tiles.length >= 3
-                                            ? MediaQuery.sizeOf(
-                                                    context,
-                                                  ).height *
-                                                  .34
-                                            : 250),
+                                  top: _liveChatTop(context, tiles.length,
+                                      boardOpen: _boardOpen),
+                                  bottom: 86 + MediaQuery.viewInsetsOf(context).bottom,
                                   child: _LiveChatOverlay(
                                     service: _service,
                                     liveId: widget.liveId,
@@ -7410,9 +7309,39 @@ class _HostJoinRequests extends StatelessWidget {
   }
 }
 
+/// Keep camera cells square, with dedicated room for the chat below them.
+/// Four is the *current* verified host+three-guest backend capacity. The
+/// geometry degrades cleanly on a smaller phone without enlarging cards.
+double _liveStageHeight(BuildContext context, int count, {
+  bool boardOpen = false,
+}) {
+  final viewport = MediaQuery.sizeOf(context);
+  if (boardOpen) return (viewport.height * .13).clamp(66.0, 100.0);
+  final width = viewport.width - 20;
+  final target = count <= 1 ? width * .92
+      : count == 2 ? width * .53 : width * .99;
+  return target.clamp(112.0, (viewport.height * .54).clamp(112.0, 440.0));
+}
+
+double _liveBoardHeight(BuildContext context) {
+  final height = MediaQuery.sizeOf(context).height;
+  return (height * .36).clamp(115.0, (height - 360).clamp(115.0, 370.0));
+}
+
+double _liveChatTop(BuildContext context, int count, {
+  bool boardOpen = false,
+}) {
+  final height = MediaQuery.sizeOf(context).height;
+  final preferred = boardOpen
+      ? 185 + _liveBoardHeight(context) + 12
+      : 76 + _liveStageHeight(context, count) + 12;
+  return preferred.clamp(145.0, (height - 150).clamp(145.0, height));
+}
+
 class _LiveVideoGrid extends StatelessWidget {
-  const _LiveVideoGrid({required this.children});
+  const _LiveVideoGrid({required this.children, this.compact = false});
   final List<Widget> children;
+  final bool compact;
 
   Widget _tile(Widget child) {
     return DecoratedBox(
@@ -7456,6 +7385,17 @@ class _LiveVideoGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final items = children.take(4).toList(growable: false);
 
+    if (compact && items.isNotEmpty) {
+      return Row(
+        children: [
+          for (var i = 0; i < items.length; i++) ...[
+            if (i != 0) const SizedBox(width: 5),
+            Expanded(child: _tile(items[i])),
+          ],
+        ],
+      );
+    }
+
     if (items.isEmpty) {
       return const ColoredBox(
         color: Color(0xFF071B16),
@@ -7480,21 +7420,19 @@ class _LiveVideoGrid extends StatelessWidget {
     }
 
     if (items.length == 3) {
-      return Row(
-        textDirection: TextDirection.ltr,
+      return Column(
         children: [
-          Expanded(
-            flex: 44,
-            child: Column(
-              children: [
-                Expanded(child: _tile(items[1])),
-                const SizedBox(height: 4),
-                Expanded(child: _tile(items[2])),
-              ],
-            ),
-          ),
-          const SizedBox(width: 4),
-          Expanded(flex: 56, child: _tile(items[0])),
+          Expanded(child: Row(children: [
+            Expanded(child: _tile(items[0])),
+            const SizedBox(width: 5),
+            Expanded(child: _tile(items[1])),
+          ])),
+          const SizedBox(height: 5),
+          Expanded(child: Row(children: [
+            const Spacer(),
+            Expanded(flex: 2, child: _tile(items[2])),
+            const Spacer(),
+          ])),
         ],
       );
     }
