@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -254,7 +253,9 @@ class _ProfileAvatarEffectsScreenState extends State<ProfileAvatarEffectsScreen>
 
   Future<void> _save() async {
     if (_saving || _selected == 0 ||
-        FirebaseAuth.instance.currentUser?.uid != widget.userId) return;
+        FirebaseAuth.instance.currentUser?.uid != widget.userId) {
+      return;
+    }
     setState(() => _saving = true);
     File? tempFile;
     try {
