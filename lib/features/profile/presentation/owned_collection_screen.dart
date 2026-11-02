@@ -10,6 +10,7 @@ import '../../rooms/data/room_background_catalog.dart';
 import '../../rooms/presentation/chat_bubble_frame.dart';
 import '../../rooms/presentation/room_background_atlas.dart';
 import '../../rooms/services/room_shop_service.dart';
+import '../../rooms/services/room_feature_service.dart';
 import '../data/owned_collection_entry.dart';
 
 /// The signed-in user's actual owned cosmetics, received visual gifts and
@@ -19,6 +20,7 @@ class OwnedCollectionScreen extends StatelessWidget {
     this.initialTab = 0,
     this.giftsOnly = false,
     this.categoryOnly,
+    this.roomFeatures,
     super.key,
   });
   final int initialTab;
@@ -26,6 +28,9 @@ class OwnedCollectionScreen extends StatelessWidget {
   final bool giftsOnly;
   /// Each appearance shop opens only its own owned type.
   final String? categoryOnly;
+  /// Allows applying a purchased room background only in its live room.
+  /// The backend still verifies host access and ownership.
+  final RoomFeatureService? roomFeatures;
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +61,12 @@ class OwnedCollectionScreen extends StatelessWidget {
         body: giftsOnly
             ? _ReceivedGiftTab(userId: uid, ar: ar)
             : const {'frame', 'background', 'bubble'}.contains(type)
-                ? _OwnedAssetTab(userId: uid, type: type!, ar: ar)
+                ? _OwnedAssetTab(
+                    userId: uid,
+                    type: type!,
+                    ar: ar,
+                    roomFeatures: roomFeatures,
+                  )
                 : _OtherOwnedTab(userId: uid, ar: ar),
       );
     }
@@ -122,7 +132,10 @@ Widget _error(bool ar) => _empty(ar,
     'تعذّر تحميل المقتنيات. تحقق من الإنترنت وصلاحيات Firebase.',
     'Unable to load collection. Check your connection and Firebase permissions.');
 
-Widget _grid(List<OwnedCollectionEntry> entries, bool ar, String userId) {
+Widget _grid(
+  List<OwnedCollectionEntry> entries, bool ar, String userId, {
+  RoomFeatureService? roomFeatures,
+}) {
   return LayoutBuilder(builder: (context, constraints) {
     final columns = constraints.maxWidth >= 700 ? 4 : 2;
     return GridView.builder(
@@ -136,6 +149,7 @@ Widget _grid(List<OwnedCollectionEntry> entries, bool ar, String userId) {
       itemBuilder: (context, i) => _OwnedAssetCard(
         key: ValueKey(entries[i].id),
         entry: entries[i], ar: ar, userId: userId,
+        roomFeatures: roomFeatures,
       ),
     );
   });
@@ -218,11 +232,15 @@ class _ReceivedGiftTab extends StatelessWidget {
 
 class _OwnedAssetTab extends StatelessWidget {
   const _OwnedAssetTab({
-    required this.userId, required this.type, required this.ar,
+    required this.userId,
+    required this.type,
+    required this.ar,
+    this.roomFeatures,
   });
   final String userId;
   final String type;
   final bool ar;
+  final RoomFeatureService? roomFeatures;
 
   @override
   Widget build(BuildContext context) {
@@ -266,7 +284,7 @@ class _OwnedAssetTab extends StatelessWidget {
       return _empty(ar, 'لا توجد مقتنيات من هذا النوع حتى الآن.',
           'Nothing owned in this category yet.');
     }
-    return _grid(entries, ar, userId);
+    return _grid(entries, ar, userId, roomFeatures: roomFeatures);
   }
 }
 
@@ -399,11 +417,16 @@ class _VerifiedBadgeGalleryState extends State<_VerifiedBadgeGallery> {
 
 class _OwnedAssetCard extends StatefulWidget {
   const _OwnedAssetCard({
-    required this.entry, required this.ar, required this.userId, super.key,
+    required this.entry,
+    required this.ar,
+    required this.userId,
+    this.roomFeatures,
+    super.key,
   });
   final OwnedCollectionEntry entry;
   final String userId;
   final bool ar;
+  final RoomFeatureService? roomFeatures;
 
   @override
   State<_OwnedAssetCard> createState() => _OwnedAssetCardState();
@@ -468,6 +491,12 @@ class _OwnedAssetCardState extends State<_OwnedAssetCard> {
         await _shop.setProfileFrame(entry.itemId);
       } else if (entry.type == 'bubble') {
         await _shop.setChatBubble(entry.bubbleId);
+      } else if (entry.type == 'background' &&
+          widget.roomFeatures != null && entry.themeId.isNotEmpty) {
+        await widget.roomFeatures!.setPurchasedBackground(
+          themeId: entry.themeId,
+          backgroundUrl: null,
+        );
       } else {
         return;
       }
@@ -543,7 +572,9 @@ class _OwnedAssetCardState extends State<_OwnedAssetCard> {
   Widget build(BuildContext context) {
     final canEquip = entry.isUsable &&
         (entry.type == 'frame' ||
-            (entry.type == 'bubble' && entry.bubbleId.isNotEmpty));
+            (entry.type == 'bubble' && entry.bubbleId.isNotEmpty) ||
+            (entry.type == 'background' &&
+                widget.roomFeatures != null && entry.themeId.isNotEmpty));
     return Card(
       color: const Color(0xFF15382E),
       clipBehavior: Clip.antiAlias,
