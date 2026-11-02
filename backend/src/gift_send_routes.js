@@ -306,8 +306,9 @@ const send = bondOnly => async (req, res, next) => {
         operationId: requestHash,
         createdAt: FieldValue.serverTimestamp(),
       });
-      if (recipientRef && (!ownerBeta || snapshots[10].exists)) {
-        tx.set(recipientWalletRef, {
+      if (recipientRef) {
+        if (!ownerBeta || snapshots[10].exists) {
+          tx.set(recipientWalletRef, {
           diamondsPending: receiverAfter,
           giftReceivedPoints: FieldValue.increment(amounts.chargedCoins),
           updatedAt: FieldValue.serverTimestamp(),
@@ -328,6 +329,7 @@ const send = bondOnly => async (req, res, next) => {
           sourceId: contextId, senderId: sender.uid, itemId: giftId,
           operationId: requestHash, createdAt: FieldValue.serverTimestamp(),
         });
+        }
       } else {
         // Teacher-AI gifts may support the room castle, but not exceed the
         // 50-level progression cap or erase XP from pre-existing level-60 rooms.
