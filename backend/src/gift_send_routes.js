@@ -385,29 +385,6 @@ const send = bondOnly => async (req, res, next) => {
         });
         tx.create(senderRef.collection("gift_wall_sent").doc(requestHash), receipt);
       }
-      if (recipientRef) {
-        const wallReceipt = {
-          type: "gift", itemId: giftId, giftId,
-          senderId: sender.uid, recipientId,
-          senderName: String(senderProfileSnap.data()?.displayName || "WorldVoice user"),
-          recipientName: String(recipientProfile.displayName || "WorldVoice member"),
-          context, quantity, priceCoins: amounts.chargedCoins,
-          ...(ownerBeta ? {ownerBetaGift: true, nonRedeemable: true} : {}),
-          createdAt: FieldValue.serverTimestamp(),
-        };
-        tx.create(recipientRef.collection("gift_wall_received").doc(requestHash),
-          wallReceipt);
-        tx.create(senderRef.collection("gift_wall_sent").doc(requestHash),
-          wallReceipt);
-        tx.create(recipientRef.collection("gift_notifications").doc(requestHash), {
-          senderId: sender.uid, senderName: wallReceipt.senderName,
-          giftId, itemId: giftId, type: "gift",
-          name: item.name || giftId, quantity,
-          priceCoins: amounts.chargedCoins,
-          ...(ownerBeta ? {ownerBetaGift: true, nonRedeemable: true} : {}),
-          seen: false, createdAt: FieldValue.serverTimestamp(),
-        });
-      }
       tx.create(eventRef, {
         userId: sender.uid, context, contextId, recipientId,
         giftId, quantity, ...(bondGift ? {giftCategory: "worldbond"} : {}),
