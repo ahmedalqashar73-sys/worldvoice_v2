@@ -132,7 +132,7 @@ Future<ShopGiftRecipient?> pickStoreGiftRecipient(
                         itemBuilder: (_, index) {
                           final person = matches[index];
                           final identity = person.username.isNotEmpty
-                              ? '@' + person.username
+                              ? '@${person.username}'
                               : person.customId.isNotEmpty
                                   ? person.customId
                                   : person.uid;
