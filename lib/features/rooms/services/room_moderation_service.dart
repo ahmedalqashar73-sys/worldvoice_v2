@@ -8,7 +8,6 @@ import 'package:http/http.dart' as http;
 import '../data/room_backend_config.dart';
 import '../data/room_moderation_models.dart';
 import '../data/room_stage_models.dart';
-import '../data/compact_stage_seats.dart';
 import '../data/room_mode.dart';
 
 class RoomModerationService {
@@ -418,16 +417,9 @@ class RoomModerationService {
         if (bySeat != 0) return bySeat;
         return a.displayName.compareTo(b.displayName);
       });
-      // Render a stable compact arrangement while Firestore catches up.
-      // Seat 1 is never reassigned to anyone except the real host.
-      return compactStageSeats<RoomParticipant>(
-        participants: result,
-        roleOf: (p) => RoomParticipant.roleToString(p.role),
-        seatOf: (p) => p.seatIndex,
-        idOf: (p) => p.userId,
-        withSeat: (p, index) => p.atSeat(index),
-      )..sort((a, b) => (a.seatIndex ?? 999)
-          .compareTo(b.seatIndex ?? 999));
+      // Preserve authoritative Firestore seat indexes for compaction
+      // detection and moderator actions. Visual packing happens in the grid.
+      return result;
     });
   }
 
@@ -612,66 +604,6 @@ class RoomModerationService {
     }, SetOptions(merge: true));
   }
 
-  // Called after an actual seat is vacated. Only indices change; all
-  // microphone, moderator and Agora identity fields remain untouched.
-  Future<void> _compactVacatedStageSeats({String? removingUserId}) async {
-    final snapshot = await _participantsRef.get();
-    final speakers = snapshot.docs.where((doc) {
-      final role = doc.data()['role'];
-      return doc.id != removingUserId &&
-          (role == 'speaker' || role == 'coHost' || role == 'vipSeat');
-    }).toList()
-      ..sort((a, b) {
-        final ai = (a.data()['seatIndex'] as num?)?.toInt() ?? 999;
-        final bi = (b.data()['seatIndex'] as num?)?.toInt() ?? 999;
-        final bySeat = ai.compareTo(bi);
-        return bySeat != 0 ? bySeat : a.id.compareTo(b.id);
-      });
-    final batch = _db.batch();
-    var next = 2;
-    for (final doc in speakers.take(7)) {
-      if ((doc.data()['seatIndex'] as num?)?.toInt() != next) {
-        batch.update(doc.reference, {
-          'seatIndex': next,
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
-      }
-      next++;
-    }
-    await batch.commit();
-  }
-
-  /// Reorder stage seats on the server after a departure or demotion.
-  /// Only the actual host or a current moderator can request this.
-  /// The backend transaction updates seat indexes, never microphone state.
-  Future<void> compactStageSeats() async {
-    final user = _user;
-    if (user == null) return;
-    final endpoint = Uri.tryParse(
-      RoomBackendConfig.giftStoreBaseUrl.trim(),
-    );
-    if (endpoint == null || endpoint.scheme != 'https' ||
-        !endpoint.hasAuthority || endpoint.userInfo.isNotEmpty) {
-      throw StateError('Room seat service unavailable.');
-    }
-    final path = endpoint.path.endsWith('/')
-        ? endpoint.path.substring(0, endpoint.path.length - 1)
-        : endpoint.path;
-    final token = await user.getIdToken();
-    if (token == null || token.isEmpty) return;
-    final response = await http.post(
-      endpoint.replace(path: '$path/room/seats/compact'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({'roomId': channelId}),
-    ).timeout(const Duration(seconds: 15));
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw StateError('Could not reorder room seats: ${response.statusCode}');
-    }
-  }
-
   Future<void> moveToListener(String userId) async {
     await _participantsRef.doc(userId).set({
       'role': 'listener',
@@ -680,7 +612,6 @@ class RoomModerationService {
       'requestedSeatIndex': FieldValue.delete(),
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
-    await _compactVacatedStageSeats(removingUserId: userId);
   }
 
   Future<void> changeStageRole({
@@ -754,7 +685,6 @@ class RoomModerationService {
 
     if (!isCurrentHost) {
       await _participantsRef.doc(uid).delete();
-      await _compactVacatedStageSeats(removingUserId: uid);
       return;
     }
 
