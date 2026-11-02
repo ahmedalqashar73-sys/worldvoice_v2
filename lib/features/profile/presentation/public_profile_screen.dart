@@ -258,6 +258,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                               ),
                       ),
                     ),
+                      ),
                       Positioned(
                         right: 0,
                         bottom: 0,
