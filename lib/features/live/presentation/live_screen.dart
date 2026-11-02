@@ -4545,7 +4545,6 @@ class _LiveParticipantCameraTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const gold = Color(0xFFEAD08D);
     return Stack(
       fit: StackFit.expand,
       children: [
