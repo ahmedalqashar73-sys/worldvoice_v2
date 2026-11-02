@@ -694,7 +694,7 @@ class _BackgroundCatalogCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                ] else if (!item.isFree && !owned) ...[
+                ] else if (!item.isFree) ...[
                   const SizedBox(height: 4),
                   SizedBox(
                     width: double.infinity,
