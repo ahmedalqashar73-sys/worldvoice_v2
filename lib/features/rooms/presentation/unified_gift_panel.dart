@@ -804,14 +804,42 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                                   ),
                                   onPressed: _busy
                                       ? null
-                                      : () => Navigator.of(context).push(
-                                          MaterialPageRoute<void>(
-                                            builder: (_) =>
-                                                const OwnedCollectionScreen(
-                                                  giftsOnly: true,
-                                                ),
-                                          ),
-                                        ),
+                                      : () async {
+                                          final chosenId =
+                                              await Navigator.of(context)
+                                                  .push<String>(
+                                            MaterialPageRoute<String>(
+                                              builder: (_) =>
+                                                  const OwnedCollectionScreen(
+                                                giftsOnly: true,
+                                                selectOwnedGift: true,
+                                              ),
+                                            ),
+                                          );
+                                          if (!mounted || chosenId == null) {
+                                            return;
+                                          }
+                                          // Only a gift present in the existing
+                                          // approved catalog may be selected.
+                                          for (final candidate in classics) {
+                                            if (candidate.id != chosenId) {
+                                              continue;
+                                            }
+                                            final tier = ClassicGiftCatalog
+                                                .tierForPrice(
+                                              candidate.priceCoins,
+                                            );
+                                            if (tier < 1 || tier > 3) break;
+                                            setState(() {
+                                              _giftCategory = tier - 1;
+                                              _gift = candidate;
+                                              _pendingKey = null;
+                                              _pendingSignature = null;
+                                              _needsRecharge = false;
+                                            });
+                                            break;
+                                          }
+                                        },
                                 ),
                               ),
                             ],
