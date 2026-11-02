@@ -277,7 +277,10 @@ class _OtherOwnedTab extends StatelessWidget {
                 final data = profile.data!.data() ?? const <String, dynamic>{};
                 final expires = OwnedCollectionEntry.expiryOf(
                     {'expiresAt': data['vipExpiresAt']});
+                // Do not duplicate VIP ownership when the verified store
+                // entitlement already exists in the inventory.
                 if (data['isVip'] == true &&
+                    !entries.any((item) => item.type == 'vip') &&
                     (expires == null || expires.isAfter(DateTime.now()))) {
                   entries.add(OwnedCollectionEntry(
                     id: 'verified-vip-status', type: 'vip',
