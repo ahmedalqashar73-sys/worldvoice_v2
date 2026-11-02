@@ -3467,10 +3467,11 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
             contextType: widget.initialMode == RoomMode.live ? 'live' : 'room',
             contextId: widget.channelId,
             recipients: {
+              // All participants may receive gifts, including listeners.
+              // The backend verifies both users are present in this room.
               for (final member in _participants.where(
-                  (member) => member.userId != myId &&
-                      (member.isOnStage ||
-                          RoomFeatureService.friendPreviewEnabled)))
+                  (member) => member.userId.isNotEmpty &&
+                      member.userId != myId))
                 member.userId: member.displayName,
               if (_showTeacherAiSeat && widget.initialMode != RoomMode.live)
                 'teacher_ai': 'Teacher AI',
