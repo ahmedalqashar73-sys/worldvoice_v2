@@ -31,6 +31,14 @@ class RoomParticipant {
   final bool forcedMuted;
   final bool kicked;
 
+  RoomParticipant atSeat(int index) => RoomParticipant(
+    userId: userId, displayName: displayName, role: role,
+    handRaised: handRaised, photoUrl: photoUrl, frameId: frameId,
+    agoraUid: agoraUid, seatIndex: index,
+    requestedSeatIndex: requestedSeatIndex, isModerator: isModerator,
+    warningCount: warningCount, forcedMuted: forcedMuted, kicked: kicked,
+  );
+
   bool get canModerate =>
       role == RoomMemberRole.host || isModerator;
 
