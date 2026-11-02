@@ -263,9 +263,11 @@ class _OtherOwnedTab extends StatelessWidget {
                     expiresAt: expires,
                   ));
                 }
-                if (entries.isEmpty) return _empty(ar,
-                    'لا توجد شارات أو تأثيرات دخول أو مكافآت مهام حتى الآن.',
-                    'No VIP badges, entry effects or room rewards yet.');
+                if (entries.isEmpty) {
+                  return _empty(ar,
+                      'لا توجد شارات أو تأثيرات دخول أو مكافآت مهام حتى الآن.',
+                      'No VIP badges, entry effects or room rewards yet.');
+                }
                 return _grid(entries, ar, userId);
               },
             );
