@@ -17,7 +17,7 @@ import 'package:record/record.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../../../core/widgets/worldvoice_avatar_frame.dart';
 import '../../rooms/presentation/unified_gift_panel.dart';
-import '../../rooms/presentation/classic_gift_visual.dart';
+import 'worldvoice_chat_gift_card.dart';
 import '../../rooms/presentation/room_gift_overlay.dart';
 import '../../rooms/data/classic_gift_catalog.dart';
 import '../../rooms/data/room_feature_models.dart';
@@ -1672,11 +1672,20 @@ class _ChatConversationState extends State<ChatConversationScreen> {
                           const ['image', 'video', 'audio', 'pdf'].contains(type) &&
                           mediaUrl.isNotEmpty;
                       final giftId = (data['giftId'] ?? '').toString();
-                      final classicGift = isGift &&
-                          giftId.startsWith('classic_');
-                      final value = isGift
-                          ? (ar ? '🎁 هدية: $giftId' : '🎁 Gift: $giftId')
-                          : (data['text'] ?? '').toString();
+                      final value = (data['text'] ?? '').toString();
+                      if (isGift || type == 'cosmetic_gift') {
+                        return Align(
+                          alignment: mine
+                              ? AlignmentDirectional.centerEnd
+                              : AlignmentDirectional.centerStart,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 5),
+                            child: WorldVoiceChatGiftCard(
+                              data: data, ar: ar, peerName: widget.peerName,
+                            ),
+                          ),
+                        );
+                      }
                       return Align(
                         alignment: mine ? AlignmentDirectional.centerEnd
                             : AlignmentDirectional.centerStart,
@@ -1685,82 +1694,12 @@ class _ChatConversationState extends State<ChatConversationScreen> {
                           margin: const EdgeInsets.symmetric(vertical: 4),
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: classicGift ? null
-                                : mine
-                                    ? Theme.of(context).colorScheme.primaryContainer
-                                    : Theme.of(context).colorScheme.surfaceContainerHighest,
-                            gradient: classicGift ? const LinearGradient(
-                              colors: [Color(0xFF124C37), Color(0xFF1B5942),
-                                       Color(0xFF0A382B)]) : null,
-                            border: classicGift
-                                ? Border.all(color: const Color(0xBBE6C881))
-                                : null,
-                            boxShadow: classicGift ? const [
-                              BoxShadow(color: Color(0x332AAC74),
-                                  blurRadius: 12, offset: Offset(0, 4)),
-                            ] : null,
+                            color: mine
+                                ? Theme.of(context).colorScheme.primaryContainer
+                                : Theme.of(context).colorScheme.surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(17),
                           ),
-                          child: classicGift
-                              ? FutureBuilder<List<RoomGiftCatalogItem>>(
-                                  future: ClassicGiftCatalog.load(),
-                                  builder: (context, giftSnapshot) {
-                                    RoomGiftCatalogItem? gift;
-                                    for (final item in giftSnapshot.data ??
-                                        const <RoomGiftCatalogItem>[]) {
-                                      if (item.id == giftId) {
-                                        gift = item;
-                                        break;
-                                      }
-                                    }
-                                    if (gift == null) return Text(value);
-                                    final sender = (data['senderName'] ??
-                                        (ar ? 'المرسل' : 'Sender')).toString();
-                                    final receiver = (data['recipientName'] ??
-                                        widget.peerName).toString();
-                                    final paidCoins =
-                                        (data['points'] as num?)?.toInt();
-                                    return Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(Icons.auto_awesome_rounded,
-                                          color: Color(0xFFF5D893), size: 15),
-                                        const SizedBox(height: 2),
-                                        Text(ar
-                                          ? '$sender أهدى إلى $receiver'
-                                          : '$sender sent to $receiver',
-                                          maxLines: 2,
-                                          textAlign: TextAlign.center,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                            color: Color(0xFFFFE7AC),
-                                            fontWeight: FontWeight.w800,
-                                            fontSize: 12)),
-                                        ClassicGiftVisual(
-                                            gift: gift, size: 115),
-                                        Text(gift.localizedName(ar),
-                                          textAlign: TextAlign.center,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w900)),
-                                        const SizedBox(height: 3),
-                                        Text('${paidCoins ?? gift.priceCoins} 🪙',
-                                            style: const TextStyle(
-                                              color: Color(0xFFFFD98E),
-                                              fontWeight: FontWeight.w900)),
-                                      ],
-                                    );
-                                  },
-                                )
-                              : isGift
-                                  ? Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(
-                                            Icons.card_giftcard, size: 36),
-                                        Text(value),
-                                      ])
-                                  : isMedia
+                          child: isMedia
                                       ? ChatMediaBubble(
                                           type: type,
                                           url: mediaUrl,
