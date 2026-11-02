@@ -13,6 +13,7 @@ import 'room_background_atlas.dart';
 import 'room_coin_store_sheet.dart';
 import 'store_gift_options.dart';
 import 'owner_direct_gift_sheet.dart';
+import 'gift_coin_amount.dart';
 import 'chat_bubble_shop_sheet.dart';
 import '../services/room_coin_purchase_service.dart';
 
@@ -222,14 +223,24 @@ class RoomBackgroundShopSheet extends StatelessWidget {
                                 ?.toInt() ?? 0;
                         final purchasedCoins =
                             (coins - adminCoins).clamp(0, coins);
-                        return Text(
-                          adminCoins > 0
-                              ? (isArabic
-                                  ? 'الرصيد: $coins 🪙 • إدارية: $adminCoins • أخرى: $purchasedCoins'
-                                  : 'Coins: $coins • Admin: $adminCoins • Other: $purchasedCoins')
-                              : (isArabic
-                                  ? 'رصيدك: $coins عملة'
-                                  : 'Balance: $coins coins'),
+                        return Wrap(
+                          spacing: 4,
+                          runSpacing: 2,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Text(isArabic ? 'الرصيد:' : 'Balance:'),
+                            GiftCoinAmount(
+                              amount: coins,
+                              style: const TextStyle(
+                                color: Color(0xFFF4D58B),
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            if (adminCoins > 0)
+                              Text(isArabic
+                                ? '• إدارية: $adminCoins • أخرى: $purchasedCoins'
+                                : '• Admin: $adminCoins • Other: $purchasedCoins'),
+                          ],
                         );
                       },
                     ),
