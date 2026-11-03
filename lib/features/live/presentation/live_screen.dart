@@ -3287,6 +3287,13 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
     await WidgetsBinding.instance.endOfFrame;
     if (!mounted) return;
     final navigator = Navigator.of(context);
+    final liveRoute = ModalRoute.of(context);
+    // A kicked user may be watching through the Live mini-window while a
+    // Home route sits above this Live route. Close the Home overlay first,
+    // then dispose the actual Live route and its Agora connection.
+    if (liveRoute != null && liveRoute.isActive) {
+      navigator.popUntil((route) => identical(route, liveRoute));
+    }
     if (navigator.canPop()) navigator.pop();
   }
 
