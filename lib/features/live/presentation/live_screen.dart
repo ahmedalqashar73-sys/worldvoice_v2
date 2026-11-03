@@ -1071,15 +1071,31 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     if (!mounted || liveId == null || userId.isEmpty) return;
     // Keep the camera running: the same room-style person card is an
     // overlay, not a navigation to an entirely separate profile route.
+    LiveStageParticipant? guest;
+    for (final member in _stageUsers.values) {
+      if (member.userId == userId) {
+        guest = member;
+        break;
+      }
+    }
     unawaited(showLiveAudiencePersonCard(
       context: context,
       userId: userId,
       fallbackName: displayName,
       ar: widget.ar,
-      onInviteToStage: (targetId) => _liveService.inviteViewer(
-        liveId: liveId,
-        userId: targetId,
-      ),
+      onInviteToStage: guest != null ? null : (targetId) =>
+          _liveService.inviteViewer(liveId: liveId, userId: targetId),
+      stageMicrophoneBlocked: guest?.hostMuted ?? false,
+      stageCameraBlocked: guest?.hostCameraBlocked ?? false,
+      onSetStageMicrophoneBlocked: guest == null ? null : (blocked) =>
+          _liveService.setGuestMicrophoneBlocked(
+            liveId: liveId, guestUserId: userId, blocked: blocked),
+      onSetStageCameraBlocked: guest == null ? null : (blocked) =>
+          _liveService.setGuestCameraBlocked(
+            liveId: liveId, guestUserId: userId, blocked: blocked),
+      onLowerFromStage: guest == null ? null : () =>
+          _liveService.removeGuestFromStage(
+            liveId: liveId, guestUserId: userId),
     ));
   }
 
@@ -3071,17 +3087,30 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
     required String displayName,
   }) {
     if (!mounted || userId.isEmpty) return;
+    LiveStageParticipant? guest;
+    for (final member in _stageUsers.values) {
+      if (member.userId == userId) {
+        guest = member;
+        break;
+      }
+    }
     unawaited(showLiveAudiencePersonCard(
       context: context,
       userId: userId,
       fallbackName: displayName,
       ar: widget.ar,
-      onInviteToStage: _isModerator
+      onInviteToStage: _isModerator && guest == null
           ? (targetId) => _service.inviteViewer(
-              liveId: widget.liveId,
-              userId: targetId,
-            )
+              liveId: widget.liveId, userId: targetId)
           : null,
+      stageMicrophoneBlocked: guest?.hostMuted ?? false,
+      stageCameraBlocked: guest?.hostCameraBlocked ?? false,
+      onSetStageMicrophoneBlocked: !_isModerator || guest == null
+          ? null : (blocked) => _service.setGuestMicrophoneBlocked(
+              liveId: widget.liveId, guestUserId: userId, blocked: blocked),
+      onSetStageCameraBlocked: !_isModerator || guest == null
+          ? null : (blocked) => _service.setGuestCameraBlocked(
+              liveId: widget.liveId, guestUserId: userId, blocked: blocked),
     ));
   }
 

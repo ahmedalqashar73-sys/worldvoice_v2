@@ -180,6 +180,11 @@ Future<void> showLiveAudiencePersonCard({
   String fallbackPhotoUrl = '',
   Route<dynamic>? liveRoute,
   Future<void> Function(String userId)? onInviteToStage,
+  Future<void> Function(bool blocked)? onSetStageMicrophoneBlocked,
+  Future<void> Function(bool blocked)? onSetStageCameraBlocked,
+  Future<void> Function()? onLowerFromStage,
+  bool stageMicrophoneBlocked = false,
+  bool stageCameraBlocked = false,
 }) {
   final origin = liveRoute ?? ModalRoute.of(context);
   return showModalBottomSheet<void>(
@@ -194,6 +199,11 @@ Future<void> showLiveAudiencePersonCard({
       fallbackName: fallbackName,
       fallbackPhotoUrl: fallbackPhotoUrl,
       onInviteToStage: onInviteToStage,
+      onSetStageMicrophoneBlocked: onSetStageMicrophoneBlocked,
+      onSetStageCameraBlocked: onSetStageCameraBlocked,
+      onLowerFromStage: onLowerFromStage,
+      stageMicrophoneBlocked: stageMicrophoneBlocked,
+      stageCameraBlocked: stageCameraBlocked,
       onReturnToLive: (cardContext) {
         final navigator = Navigator.of(cardContext);
         if (origin != null && origin.isActive) {
@@ -214,6 +224,11 @@ class _AudiencePersonCard extends StatefulWidget {
     required this.fallbackPhotoUrl,
     required this.onReturnToLive,
     this.onInviteToStage,
+    this.onSetStageMicrophoneBlocked,
+    this.onSetStageCameraBlocked,
+    this.onLowerFromStage,
+    this.stageMicrophoneBlocked = false,
+    this.stageCameraBlocked = false,
   });
 
   final String userId;
@@ -221,6 +236,11 @@ class _AudiencePersonCard extends StatefulWidget {
   final String fallbackName;
   final String fallbackPhotoUrl;
   final Future<void> Function(String userId)? onInviteToStage;
+  final Future<void> Function(bool blocked)? onSetStageMicrophoneBlocked;
+  final Future<void> Function(bool blocked)? onSetStageCameraBlocked;
+  final Future<void> Function()? onLowerFromStage;
+  final bool stageMicrophoneBlocked;
+  final bool stageCameraBlocked;
   final void Function(BuildContext context) onReturnToLive;
 
   @override
@@ -231,12 +251,17 @@ class _AudiencePersonCardState extends State<_AudiencePersonCard> {
   bool _following = false;
   bool _followBusy = false;
   bool _inviteBusy = false;
+  bool _stageActionBusy = false;
+  late bool _micBlocked;
+  late bool _cameraBlocked;
 
   bool get _isSelf => FirebaseAuth.instance.currentUser?.uid == widget.userId;
 
   @override
   void initState() {
     super.initState();
+    _micBlocked = widget.stageMicrophoneBlocked;
+    _cameraBlocked = widget.stageCameraBlocked;
     _loadFollow();
   }
 
@@ -285,6 +310,85 @@ class _AudiencePersonCardState extends State<_AudiencePersonCard> {
     } finally {
       if (mounted) setState(() => _inviteBusy = false);
     }
+  }
+
+  Future<void> _stageAction(
+    Future<void> Function()? action, {
+    required String success,
+  }) async {
+    if (_stageActionBusy || action == null) return;
+    setState(() => _stageActionBusy = true);
+    try {
+      await action();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(success)),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
+    } finally {
+      if (mounted) setState(() => _stageActionBusy = false);
+    }
+  }
+
+  Future<void> _changeStageMicrophone() async {
+    final callback = widget.onSetStageMicrophoneBlocked;
+    if (callback == null) return;
+    final next = !_micBlocked;
+    await _stageAction(
+      () async {
+        await callback(next);
+        if (mounted) setState(() => _micBlocked = next);
+      },
+      success: widget.ar
+          ? (next ? 'تم كتم صوت الضيف.' : 'يمكن للضيف تشغيل المايك بنفسه.')
+          : (next ? 'Guest microphone muted.' : 'Guest may unmute.'),
+    );
+  }
+
+  Future<void> _changeStageCamera() async {
+    final callback = widget.onSetStageCameraBlocked;
+    if (callback == null) return;
+    final next = !_cameraBlocked;
+    await _stageAction(
+      () async {
+        await callback(next);
+        if (mounted) setState(() => _cameraBlocked = next);
+      },
+      success: widget.ar
+          ? (next ? 'تم إيقاف كاميرا الضيف.' : 'الضيف وحده يستطيع تشغيل كاميرته.')
+          : (next ? 'Guest camera stopped.' : 'The guest may turn their camera on.'),
+    );
+  }
+
+  Future<void> _lowerStageGuest() async {
+    final callback = widget.onLowerFromStage;
+    if (callback == null || _stageActionBusy) return;
+    final accepted = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(widget.ar ? 'إنزال من المسرح؟' : 'Remove from stage?'),
+        content: Text(widget.ar
+            ? 'سيبقى الشخص مشاهدًا بعد إنزاله من المسرح.'
+            : 'This guest will remain in the audience.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(widget.ar ? 'إلغاء' : 'Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(widget.ar ? 'إنزال' : 'Remove'),
+          ),
+        ],
+      ),
+    );
+    if (accepted != true || !mounted) return;
+    await _stageAction(callback, success: widget.ar
+        ? 'تم إنزال الضيف إلى الجمهور.' : 'Guest returned to audience.');
   }
 
   Future<void> _openFullProfile() async {
@@ -419,6 +523,82 @@ class _AudiencePersonCardState extends State<_AudiencePersonCard> {
                     ),
                   ],
                 ),
+                if (!_isSelf &&
+                    (widget.onSetStageMicrophoneBlocked != null ||
+                     widget.onSetStageCameraBlocked != null ||
+                     widget.onLowerFromStage != null)) ...[
+                  const SizedBox(height: 10),
+                  Container(
+                    key: const ValueKey('live-profile-stage-moderation'),
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF282140),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: Text(
+                            widget.ar ? 'إدارة المشارك في اللايف'
+                                : 'Manage Live participant',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        if (widget.onSetStageMicrophoneBlocked != null)
+                          ListTile(
+                            key: const ValueKey('live-profile-mute-guest'),
+                            dense: true,
+                            leading: Icon(
+                              _micBlocked ? Icons.mic_rounded
+                                  : Icons.mic_off_rounded,
+                              color: Colors.white,
+                            ),
+                            title: Text(_micBlocked
+                                ? (widget.ar ? 'السماح بالمايك' : 'Allow microphone')
+                                : (widget.ar ? 'كتم صوت الضيف' : 'Mute guest'),
+                                style: const TextStyle(color: Colors.white)),
+                            onTap: _stageActionBusy ? null : _changeStageMicrophone,
+                          ),
+                        if (widget.onSetStageCameraBlocked != null)
+                          ListTile(
+                            key: const ValueKey('live-profile-stop-camera'),
+                            dense: true,
+                            leading: Icon(
+                              _cameraBlocked ? Icons.videocam_rounded
+                                  : Icons.videocam_off_rounded,
+                              color: Colors.white,
+                            ),
+                            title: Text(_cameraBlocked
+                                ? (widget.ar ? 'السماح بالكاميرا' : 'Allow camera')
+                                : (widget.ar ? 'إيقاف كاميرا الضيف' : 'Stop guest camera'),
+                                style: const TextStyle(color: Colors.white)),
+                            subtitle: Text(widget.ar
+                                ? 'لا يمكنك تشغيل كاميرا الضيف بدلًا عنه.'
+                                : 'You cannot start the guest camera.',
+                                style: const TextStyle(color: Colors.white60)),
+                            onTap: _stageActionBusy ? null : _changeStageCamera,
+                          ),
+                        if (widget.onLowerFromStage != null)
+                          ListTile(
+                            key: const ValueKey('live-profile-lower-guest'),
+                            dense: true,
+                            leading: const Icon(Icons.arrow_downward_rounded,
+                                color: Color(0xFFFFC99D)),
+                            title: Text(widget.ar ? 'إنزال إلى الجمهور'
+                                : 'Lower to audience',
+                                style: const TextStyle(color: Colors.white)),
+                            onTap: _stageActionBusy ? null : _lowerStageGuest,
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
                 if (!_isSelf && widget.onInviteToStage != null) ...[
                   const SizedBox(height: 8),
                   SizedBox(
