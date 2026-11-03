@@ -43,6 +43,13 @@ void main() {
     expect(find.byType(WorldVoiceLiveVideoGrid), findsOneWidget);
   });
 
+  testWidgets('a single camera has no extra inset tile or spacer', (tester) async {
+    await _render(tester, ['host']);
+    final rect = _cameraRect(tester, 'host');
+    expect(rect.width, 340);
+    expect(rect.height, 600);
+  });
+
   testWidgets('approved host + 1 guest uses adjacent portrait cameras',
       (tester) async {
     await _render(tester, ['host', 'guest']);
@@ -56,14 +63,14 @@ void main() {
     expect(host.height, greaterThan(550));
   });
 
-  testWidgets('host with two guests gives the host the full-height left panel',
+  testWidgets('host with two guests has a full-height right camera like the reference',
       (tester) async {
     await _render(tester, ['host', 'a', 'b']);
     final host = _cameraRect(tester, 'host');
     final a = _cameraRect(tester, 'a');
     final b = _cameraRect(tester, 'b');
     expect(host.height, greaterThan(550));
-    expect(a.left, greaterThan(host.right));
+    expect(host.left, greaterThan(a.right));
     expect((a.left - b.left).abs(), lessThan(2));
     expect(b.top, greaterThan(a.bottom));
   });
