@@ -3331,6 +3331,44 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                 },
               ),
             ListTile(
+              leading: const Icon(Icons.schedule_rounded),
+              title: Text(widget.ar ? 'وقت اللايف' : 'Live time'),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) unawaited(_showGuestQuotaStatus());
+                });
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.dashboard_outlined),
+              title: Text(widget.ar ? 'السبورة المشتركة' : 'Shared board'),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) {
+                    setState(() {
+                      _boardOpen = !_boardOpen;
+                      if (_boardOpen) _chatOpen = true;
+                    });
+                  }
+                });
+              },
+            ),
+            if (_isModerator)
+              ListTile(
+                leading: const Icon(Icons.back_hand_rounded),
+                title: Text(widget.ar ? 'طلبات الصعود' : 'Stage requests'),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) unawaited(_showLiveStageRequestsSheet(
+                      context, widget.liveId, _service, widget.ar,
+                    ));
+                  });
+                },
+              ),
+            ListTile(
               leading: const Icon(Icons.smart_toy_outlined),
               title: Text(
                 widget.ar ? 'أدوات الذكاء واللغات' : 'AI & language tools',
@@ -4224,42 +4262,6 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                         color: Colors.white,
                                       ),
                                     ),
-                                    IconButton(
-                                      tooltip: widget.ar
-                                          ? 'الوقت'
-                                          : 'Live time',
-                                      onPressed: _showGuestQuotaStatus,
-                                      icon: const Icon(
-                                        Icons.schedule_rounded,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    IconButton(
-                                      tooltip: widget.ar ? 'السبورة' : 'Board',
-                                      onPressed: () => setState(() {
-                                        _boardOpen = !_boardOpen;
-                                        if (_boardOpen) _chatOpen = true;
-                                      }),
-                                      icon: Icon(
-                                        _boardOpen
-                                            ? Icons.dashboard_rounded
-                                            : Icons.dashboard_outlined,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-
-                                    if (_isModerator)
-                                      _LiveStageRequestsButton(
-                                        liveId: widget.liveId,
-                                        service: _service,
-                                        ar: widget.ar,
-                                        compact: true,
-                                        onPressed: () => unawaited(
-                                          _showLiveStageRequestsSheet(
-                                            context, widget.liveId, _service, widget.ar,
-                                          ),
-                                        ),
-                                      ),
                                     if (_guestPublishing) ...[
                                       IconButton(
                                         tooltip: _guestCameraPaused
