@@ -7,7 +7,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 import 'package:video_player/video_player.dart';
@@ -1286,7 +1285,6 @@ class _PrivateMediaBubble extends StatefulWidget {
 
 class _PrivateMediaBubbleState extends State<_PrivateMediaBubble> {
   VideoPlayerController? _video;
-  AudioPlayer? _audio;
 
   Future<void> _play() async {
     final file = File(widget.path);
@@ -1296,10 +1294,6 @@ class _PrivateMediaBubbleState extends State<_PrivateMediaBubble> {
         _video ??= VideoPlayerController.file(file);
         await _video!.initialize();
         await _video!.play();
-      } else if (widget.type == 'audio') {
-        _audio ??= AudioPlayer();
-        await _audio!.setFilePath(file.path);
-        await _audio!.play();
       }
       if (mounted) setState(() {});
     } catch (_) {}
@@ -1308,7 +1302,6 @@ class _PrivateMediaBubbleState extends State<_PrivateMediaBubble> {
   @override
   void dispose() {
     _video?.dispose();
-    _audio?.dispose();
     super.dispose();
   }
 
@@ -1320,6 +1313,13 @@ class _PrivateMediaBubbleState extends State<_PrivateMediaBubble> {
         url: widget.legacyUrl,
         cacheScope: widget.cacheScope,
         fileName: widget.name,
+      );
+    }
+    if (widget.type == 'audio') {
+      return WorldVoiceVoiceMessageBubble(
+        key: ValueKey(widget.path),
+        localPath: widget.path,
+        cacheScope: widget.cacheScope,
       );
     }
     if (widget.type == 'image') {
