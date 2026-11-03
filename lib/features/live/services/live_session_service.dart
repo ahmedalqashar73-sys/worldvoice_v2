@@ -6,6 +6,41 @@ import '../../rooms/services/active_chat_bubble_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+
+/// The authoritative public identity for Live cameras, join notifications,
+/// and comments. Firebase Auth is only a fallback for incomplete profiles.
+class LiveProfileIdentity {
+  const LiveProfileIdentity({required this.name, required this.photoUrl});
+
+  final String name;
+  final String photoUrl;
+
+  factory LiveProfileIdentity.fromProfile(
+    Map<String, dynamic>? profile, {
+    String fallbackName = 'WorldVoice user',
+    String fallbackPhotoUrl = '',
+  }) {
+    String firstFilled(List<dynamic> values) {
+      for (final value in values) {
+        final candidate = (value ?? '').toString().trim();
+        if (candidate.isNotEmpty) return candidate;
+      }
+      return '';
+    }
+
+    return LiveProfileIdentity(
+      name: firstFilled([
+        profile?['displayName'], profile?['name'],
+        profile?['fullName'], fallbackName,
+      ]),
+      photoUrl: firstFilled([
+        profile?['photoUrl'], profile?['avatarUrl'],
+        profile?['profilePhotoUrl'], fallbackPhotoUrl,
+      ]),
+    );
+  }
+}
+
 /// Identity shown on a Live camera, keyed by the Agora UID issued from
 /// the participant's authenticated Firebase UID (never by join order).
 class LiveStageParticipant {
@@ -80,21 +115,18 @@ class LiveSessionService {
     } catch (_) {
       // The Auth metadata still provides a safe fallback.
     }
-    final savedPhoto = (hostProfile['photoUrl'] ?? '').toString().trim();
+    final identity = LiveProfileIdentity.fromProfile(
+      hostProfile,
+      fallbackName: user.displayName ?? 'WorldVoice host',
+      fallbackPhotoUrl: user.photoURL ?? '',
+    );
     final savedCover = (hostProfile['coverUrl'] ?? '').toString().trim();
-    final savedName = (hostProfile['displayName'] ?? hostProfile['name'] ?? '')
-        .toString()
-        .trim();
     final ref = _sessions.doc(channelId);
     await ref.set({
       'channelId': channelId,
       'hostId': user.uid,
-      'hostName': savedName.isNotEmpty
-          ? savedName
-          : (user.displayName ?? 'WorldVoice host'),
-      'hostPhotoUrl': savedPhoto.isNotEmpty
-          ? savedPhoto
-          : (user.photoURL ?? ''),
+      'hostName': identity.name,
+      'hostPhotoUrl': identity.photoUrl,
       'hostCoverUrl': savedCover,
       'hostAgoraUid': hostAgoraUid,
       'languageCode': languageCode,
@@ -376,6 +408,18 @@ class LiveSessionService {
     final viewer = session.collection('viewers').doc(user.uid);
     final removed = session.collection('removed_viewers').doc(user.uid);
     var newlyJoined = false;
+    Map<String, dynamic>? profile;
+    try {
+      profile = (await _db.collection('users').doc(user.uid).get()
+          .timeout(const Duration(seconds: 2))).data();
+    } catch (_) {
+      // A temporarily unavailable profile does not block entry.
+    }
+    final identity = LiveProfileIdentity.fromProfile(
+      profile,
+      fallbackName: user.displayName ?? 'WorldVoice user',
+      fallbackPhotoUrl: user.photoURL ?? '',
+    );
 
     await _db.runTransaction((tx) async {
       final sessionSnap = await tx.get(session);
@@ -389,8 +433,8 @@ class LiveSessionService {
         newlyJoined = true;
         tx.set(viewer, {
           'uid': user.uid,
-          'displayName': user.displayName ?? 'WorldVoice user',
-          'photoUrl': user.photoURL ?? '',
+          'displayName': identity.name,
+          'photoUrl': identity.photoUrl,
           'joinedAt': FieldValue.serverTimestamp(),
         });
         tx.update(session, {
@@ -405,8 +449,8 @@ class LiveSessionService {
         await session.collection('messages').add({
           'type': 'join',
           'senderId': user.uid,
-          'senderName': user.displayName ?? 'WorldVoice user',
-          'senderPhotoUrl': user.photoURL ?? '',
+          'senderName': identity.name,
+          'senderPhotoUrl': identity.photoUrl,
           'text': '',
           'createdAt': FieldValue.serverTimestamp(),
         });
@@ -806,25 +850,32 @@ class LiveSessionService {
       throw StateError('LIVE_ENDED');
     }
     String bubbleId = 'free';
+    Map<String, dynamic>? profile;
     try {
-      final profile = await _db
+      profile = (await _db
           .collection('users')
           .doc(user.uid)
           .get()
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 4))).data();
       bubbleId = await ActiveChatBubbleService.fromProfile(
         firestore: _db,
         uid: user.uid,
-        profile: profile.data(),
+        profile: profile,
       );
     } catch (_) {
-      // Live comments still send with the free bubble if profile is offline.
+      // An offline inventory falls back to the free chat bubble, but we
+      // still use the canonical name/photo if its profile read succeeded.
     }
+    final identity = LiveProfileIdentity.fromProfile(
+      profile,
+      fallbackName: user.displayName ?? 'WorldVoice user',
+      fallbackPhotoUrl: user.photoURL ?? '',
+    );
     final messages = _sessions.doc(liveId).collection('messages');
     final payload = <String, dynamic>{
       'senderId': user.uid,
-      'senderName': user.displayName ?? 'WorldVoice user',
-      'senderPhotoUrl': user.photoURL ?? '',
+      'senderName': identity.name,
+      'senderPhotoUrl': identity.photoUrl,
       'text': value,
       'createdAt': FieldValue.serverTimestamp(),
     };
