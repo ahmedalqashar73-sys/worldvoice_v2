@@ -2262,6 +2262,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                           PositionedDirectional(
                             top: 53,
                             start: 12,
+                            end: 181,
                             child: StreamBuilder<
                                 DocumentSnapshot<Map<String, dynamic>>>(
                               stream: _liveId == null
@@ -2288,8 +2289,10 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                         horizontal: 12,
                                         vertical: 10,
                                       ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
+                                      child: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
                                         children: [
                                           const Text(
                                             '● LIVE',
@@ -2317,7 +2320,8 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                               fontWeight: FontWeight.w700,
                                             ),
                                           ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -2445,8 +2449,17 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                           PositionedDirectional(
                             top: 53,
                             end: 12,
-                            child: Row(
-                              children: [
+                            child: IconButtonTheme(
+                              data: IconButtonThemeData(
+                                style: IconButton.styleFrom(
+                                  minimumSize: const Size(36, 36),
+                                  maximumSize: const Size(36, 36),
+                                  padding: EdgeInsets.zero,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
                                 IconButton(
                                   style: IconButton.styleFrom(
                                     backgroundColor: const Color(0xB3000000),
@@ -2468,7 +2481,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                         : Icons.videocam_rounded,
                                   ),
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: 4),
                                 IconButton(
                                   style: IconButton.styleFrom(
                                     backgroundColor: const Color(0xB3000000),
@@ -2484,7 +2497,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                         : Icons.mic_rounded,
                                   ),
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: 4),
                                 IconButton(
                                   style: IconButton.styleFrom(
                                     backgroundColor: const Color(0xB3000000),
@@ -2536,7 +2549,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                         ),
                                   icon: const Icon(Icons.auto_fix_high_rounded),
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: 4),
                                 IconButton(
                                   style: IconButton.styleFrom(
                                     backgroundColor: const Color(0xB3000000),
@@ -2548,7 +2561,8 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                   onPressed: _showHostLiveOptions,
                                   icon: const Icon(Icons.more_horiz_rounded),
                                 ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         ],
