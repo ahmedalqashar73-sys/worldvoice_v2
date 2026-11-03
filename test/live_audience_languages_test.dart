@@ -24,6 +24,21 @@ void main() {
     expect(languages.learning, ['English', 'Spanish']);
   });
 
+  test('Viewer list shows saved learning and native languages', () {
+    final languages = LiveAudienceLanguages.fromProfile({
+      'nativeLanguageCode': 'ar',
+      'learningLanguageCodes': ['en', 'es', 'fr'],
+    }, 'en');
+    expect(languages.audienceLabel, 'English ⇄ Arabic +2');
+    expect(LiveAudienceLanguages.fromProfile({}, 'en').audienceLabel, isEmpty);
+    expect(
+      LiveAudienceLanguages.fromProfile(
+        {'nativeLanguageCode': 'ko'}, 'en',
+      ).audienceLabel,
+      'Korean',
+    );
+  });
+
   test('Empty profile never invents native or learning languages', () {
     final languages = LiveAudienceLanguages.fromProfile({}, 'ar');
     expect(languages.native, isEmpty);

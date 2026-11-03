@@ -17,6 +17,14 @@ class LiveAudienceLanguages {
   final String native;
   final List<String> learning;
 
+  /// Compact language metadata loaded from the real user profile.
+  String get audienceLabel {
+    if (learning.isEmpty) return native;
+    if (native.isEmpty) return learning.join(' • ');
+    final more = learning.length > 1 ? ' +' + (learning.length - 1).toString() : '';
+    return learning.first + ' ⇄ ' + native + more;
+  }
+
   factory LiveAudienceLanguages.fromProfile(
     Map<String, dynamic> profile,
     String uiLanguage,
@@ -130,31 +138,18 @@ Future<void> showLiveAudienceSheet({
                     final data = viewer.data();
                     final name = (data['displayName'] ?? '').toString().trim();
                     final photo = (data['photoUrl'] ?? '').toString().trim();
-                    return ListTile(
-                      key: ValueKey('live-viewer-${viewer.id}'),
-                      leading: _AudienceAvatar(photoUrl: photo, radius: 22),
-                      title: Text(
-                        name.isEmpty ? 'WorldVoice user' : name,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      subtitle: Text(
-                        ar ? 'اضغط لعرض بطاقة الشخص' : 'View participant card',
-                        style: const TextStyle(color: Colors.white60),
-                      ),
-                      trailing: const Icon(
-                        Icons.chevron_right_rounded,
-                        color: Color(0xFFEAD08D),
-                      ),
-                      onTap: () => showLiveAudiencePersonCard(
+                    return _LiveAudienceViewerRow(
+                      key: ValueKey('live-viewer-' + viewer.id),
+                      userId: viewer.id,
+                      fallbackName: name,
+                      fallbackPhotoUrl: photo,
+                      ar: ar,
+                      onTap: (displayName, photoUrl) =>
+                          showLiveAudiencePersonCard(
                         context: sheetContext,
                         userId: viewer.id,
-                        fallbackName: name,
-                        fallbackPhotoUrl: photo,
+                        fallbackName: displayName,
+                        fallbackPhotoUrl: photoUrl,
                         ar: ar,
                         liveRoute: liveRoute,
                         onInviteToStage: onInviteToStage,
@@ -169,6 +164,96 @@ Future<void> showLiveAudienceSheet({
       ),
     ),
   );
+}
+
+/// Each visible audience row reads its real profile once, independent
+/// of the viewer counter. The fallback keeps the list usable offline.
+class _LiveAudienceViewerRow extends StatefulWidget {
+  const _LiveAudienceViewerRow({
+    required this.userId,
+    required this.fallbackName,
+    required this.fallbackPhotoUrl,
+    required this.ar,
+    required this.onTap,
+    super.key,
+  });
+
+  final String userId;
+  final String fallbackName;
+  final String fallbackPhotoUrl;
+  final bool ar;
+  final void Function(String name, String photoUrl) onTap;
+
+  @override
+  State<_LiveAudienceViewerRow> createState() =>
+      _LiveAudienceViewerRowState();
+}
+
+class _LiveAudienceViewerRowState extends State<_LiveAudienceViewerRow> {
+  late Future<Map<String, dynamic>> _profile;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchProfile();
+  }
+
+  @override
+  void didUpdateWidget(covariant _LiveAudienceViewerRow oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.userId != widget.userId) _fetchProfile();
+  }
+
+  void _fetchProfile() {
+    _profile = FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.userId)
+        .get()
+        .then((snap) => snap.data() ?? const <String, dynamic>{})
+        .catchError((Object _) => <String, dynamic>{});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<Map<String, dynamic>>(
+      future: _profile,
+      builder: (context, snapshot) {
+        final profile = snapshot.data ?? const <String, dynamic>{};
+        final name = (profile['displayName'] ?? profile['name'] ??
+            widget.fallbackName).toString().trim();
+        final photo = (profile['photoUrl'] ?? profile['avatarUrl'] ??
+            widget.fallbackPhotoUrl).toString().trim();
+        final languages = LiveAudienceLanguages.fromProfile(
+          profile, widget.ar ? 'ar' : 'en',
+        );
+        final summary = languages.audienceLabel;
+        return ListTile(
+          leading: _AudienceAvatar(photoUrl: photo, radius: 22),
+          title: Text(
+            name.isEmpty ? 'WorldVoice user' : name,
+            style: const TextStyle(
+              color: Colors.white, fontWeight: FontWeight.w700),
+            maxLines: 1, overflow: TextOverflow.ellipsis,
+          ),
+          subtitle: Text(
+            summary.isEmpty
+                ? (widget.ar ? 'عرض بطاقة الشخص' : 'View participant card')
+                : summary,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: summary.isEmpty
+                  ? Colors.white54 : const Color(0xFFD5C3F3),
+              fontSize: 12,
+            ),
+          ),
+          trailing: const Icon(
+            Icons.chevron_right_rounded, color: Color(0xFFD3B0FB)),
+          onTap: () => widget.onTap(name, photo),
+        );
+      },
+    );
+  }
 }
 
 /// Also used by the small viewer avatars and on-camera profile controls.
@@ -469,35 +554,6 @@ class _AudiencePersonCardState extends State<_AudiencePersonCard> {
                   languages.learning.isEmpty
                       ? '—' : languages.learning.join(' • '),
                 ),
-                // Reuse the existing, fully connected room relationship
-                // component. Live does not define any duplicate WorldBond
-                // cards, gift payments, or relationship endpoints.
-                const SizedBox(height: 14),
-                RoomWorldBondSection(
-                  key: const ValueKey('live-room-worldbond-link'),
-                  userId: widget.userId,
-                  isSelf: _isSelf,
-                  isArabic: widget.ar,
-                  onOpen: (kind) => Navigator.of(context).push<void>(
-                    MaterialPageRoute<void>(
-                      builder: (_) => WorldBondScreen(
-                        peerId: _isSelf ? null : widget.userId,
-                        peerName: name,
-                        focusType: kind,
-                      ),
-                    ),
-                  ),
-                ),
-                if (snapshot.hasError)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Text(
-                      widget.ar
-                          ? 'تعذر تحميل تفاصيل الحساب.'
-                          : 'Profile details unavailable.',
-                      style: const TextStyle(color: Colors.orangeAccent),
-                    ),
-                  ),
                 const SizedBox(height: 18),
                 Row(
                   children: [
@@ -612,6 +668,35 @@ class _AudiencePersonCardState extends State<_AudiencePersonCard> {
                     ),
                   ),
                 ],
+                // Reuse the existing, fully connected room relationship
+                // component. Live does not define any duplicate WorldBond
+                // cards, gift payments, or relationship endpoints.
+                const SizedBox(height: 14),
+                RoomWorldBondSection(
+                  key: const ValueKey('live-room-worldbond-link'),
+                  userId: widget.userId,
+                  isSelf: _isSelf,
+                  isArabic: widget.ar,
+                  onOpen: (kind) => Navigator.of(context).push<void>(
+                    MaterialPageRoute<void>(
+                      builder: (_) => WorldBondScreen(
+                        peerId: _isSelf ? null : widget.userId,
+                        peerName: name,
+                        focusType: kind,
+                      ),
+                    ),
+                  ),
+                ),
+                if (snapshot.hasError)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      widget.ar
+                          ? 'تعذر تحميل تفاصيل الحساب.'
+                          : 'Profile details unavailable.',
+                      style: const TextStyle(color: Colors.orangeAccent),
+                    ),
+                  ),
                 const SizedBox(height: 8),
                 SizedBox(
                   width: double.infinity,
@@ -664,12 +749,12 @@ class _AudienceAvatar extends StatelessWidget {
       decoration: const BoxDecoration(
         shape: BoxShape.circle,
         gradient: LinearGradient(
-          colors: [Color(0xFFEAD08D), Color(0xFF14BA83)],
+          colors: [Color(0xFFEAD08D), Color(0xFF9065EE)],
         ),
       ),
       child: CircleAvatar(
         radius: radius,
-        backgroundColor: const Color(0xFF14533E),
+        backgroundColor: const Color(0xFF28223B),
         child: isValid
             ? ClipOval(child: Image.network(
                 photoUrl,
