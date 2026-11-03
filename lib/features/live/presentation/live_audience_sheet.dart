@@ -68,7 +68,7 @@ Future<void> showLiveAudienceSheet({
     isScrollControlled: true,
     useSafeArea: true,
     showDragHandle: true,
-    backgroundColor: const Color(0xFF16121F),
+    backgroundColor: const Color(0xFF152A23),
     builder: (sheetContext) => FractionallySizedBox(
       heightFactor: .76,
       child: Column(
@@ -246,12 +246,12 @@ class _LiveAudienceViewerRowState extends State<_LiveAudienceViewerRow> {
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
               color: summary.isEmpty
-                  ? Colors.white54 : const Color(0xFFD5C3F3),
+                  ? Colors.white54 : const Color(0xFFC7E5D4),
               fontSize: 12,
             ),
           ),
           trailing: const Icon(
-            Icons.chevron_right_rounded, color: Color(0xFFD3B0FB)),
+            Icons.chevron_right_rounded, color: Color(0xFFA0CEB2)),
           onTap: () => widget.onTap(name, photo),
         );
       },
@@ -281,7 +281,7 @@ Future<void> showLiveAudiencePersonCard({
     isScrollControlled: true,
     useSafeArea: true,
     showDragHandle: true,
-    backgroundColor: const Color(0xFF16121F),
+    backgroundColor: const Color(0xFF152A23),
     builder: (_) => _AudiencePersonCard(
       userId: userId,
       ar: ar,
@@ -633,7 +633,7 @@ class _AudiencePersonCardState extends State<_AudiencePersonCard> {
                     key: const ValueKey('live-profile-stage-moderation'),
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF282140),
+                      color: const Color(0xFF223E32),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Column(
@@ -777,7 +777,7 @@ class _AudiencePersonCardState extends State<_AudiencePersonCard> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFF292238),
+        color: const Color(0xFF243C31),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
@@ -807,12 +807,12 @@ class _AudienceAvatar extends StatelessWidget {
       decoration: const BoxDecoration(
         shape: BoxShape.circle,
         gradient: LinearGradient(
-          colors: [Color(0xFFEAD08D), Color(0xFF9065EE)],
+          colors: [Color(0xFFEAD08D), Color(0xFF399D7D)],
         ),
       ),
       child: CircleAvatar(
         radius: radius,
-        backgroundColor: const Color(0xFF28223B),
+        backgroundColor: const Color(0xFF253F32),
         child: isValid
             ? ClipOval(child: Image.network(
                 photoUrl,
