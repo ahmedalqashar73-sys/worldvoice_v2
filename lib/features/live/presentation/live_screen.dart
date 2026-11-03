@@ -2420,12 +2420,16 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                   ),
                                 ),
                                 IconButton(
-                                  tooltip: widget.ar ? 'مشاركة اللايف' : 'Share Live',
-                                  onPressed: _liveId == null
-                                      ? null : () => unawaited(_shareHostLive()),
+                                  key: const ValueKey('live-host-badges'),
+                                  tooltip: widget.ar ? 'الشارات' : 'Badges',
+                                  onPressed: () => Navigator.of(context).push(
+                                    MaterialPageRoute<void>(
+                                      builder: (_) => const MemberBadgeShop(),
+                                    ),
+                                  ),
                                   icon: const Icon(
-                                    Icons.ios_share_rounded,
-                                    color: Colors.white,
+                                    Icons.workspace_premium_outlined,
+                                    color: Color(0xFFE5C47D),
                                   ),
                                 ),
                                 IconButton(
@@ -2441,9 +2445,13 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                       );
                                     }
                                   },
-                                  icon: const Icon(
-                                    Icons.closed_caption_rounded,
-                                    color: Colors.white,
+                                  icon: const Text(
+                                    'SS',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 16,
+                                    ),
                                   ),
                                 ),
                                 IconButton(
@@ -4219,11 +4227,16 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                       ),
                                     ),
                                     IconButton(
-                                      tooltip: widget.ar ? 'مشاركة اللايف' : 'Share Live',
-                                      onPressed: () => unawaited(_shareLive()),
+                                      key: const ValueKey('live-viewer-badges'),
+                                      tooltip: widget.ar ? 'الشارات' : 'Badges',
+                                      onPressed: () => Navigator.of(context).push(
+                                        MaterialPageRoute<void>(
+                                          builder: (_) => const MemberBadgeShop(),
+                                        ),
+                                      ),
                                       icon: const Icon(
-                                        Icons.ios_share_rounded,
-                                        color: Colors.white,
+                                        Icons.workspace_premium_outlined,
+                                        color: Color(0xFFE5C47D),
                                       ),
                                     ),
                                     IconButton(
@@ -4239,9 +4252,13 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                           );
                                         }
                                       },
-                                      icon: const Icon(
-                                        Icons.closed_caption_rounded,
-                                        color: Colors.white,
+                                      icon: const Text(
+                                        'SS',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w900,
+                                          fontSize: 16,
+                                        ),
                                       ),
                                     ),
                                     IconButton(
