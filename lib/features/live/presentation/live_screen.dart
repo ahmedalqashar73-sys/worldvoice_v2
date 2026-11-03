@@ -2158,7 +2158,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                         fit: StackFit.expand,
                         children: [
                           // The approved original design: spacious portrait
-                          // solo camera or two equal vertically stacked feeds.
+                          // solo camera or two equal side-by-side portrait feeds.
                           if (!_boardOpen && tiles.length <= 2)
                             PositionedDirectional(
                               top: 106,
@@ -2371,27 +2371,16 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                   ),
                                 ),
                                 IconButton(
-                                  key: const ValueKey('live-host-badges'),
-                                  tooltip: widget.ar ? 'الشارات' : 'Badges',
-                                  onPressed: () => Navigator.of(context).push(
-                                    MaterialPageRoute<void>(
-                                      builder: (_) => const MemberBadgeShop(),
-                                    ),
-                                  ),
-                                  icon: const Icon(
-                                    Icons.workspace_premium_outlined,
-                                    color: Color(0xFFE5C47D),
-                                  ),
-                                ),
-                                IconButton(
-                                  tooltip: 'Subtitles',
+                                  key: const ValueKey('live-unified-ss-toggle'),
+                                  tooltip: widget.ar
+                                      ? 'الترجمة والسبتايتلز'
+                                      : 'Translation and subtitles',
                                   onPressed: () {
-                                    final overlay =
-                                        _liveLanguageKey.currentState;
+                                    final overlay = _liveLanguageKey.currentState;
                                     if (overlay != null) {
                                       unawaited(
                                         overlay._showQuickLanguageSettings(
-                                          translation: false,
+                                          translation: true,
                                         ),
                                       );
                                     }
@@ -2406,23 +2395,16 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                   ),
                                 ),
                                 IconButton(
-                                  tooltip: widget.ar
-                                      ? 'الترجمة'
-                                      : 'Translation',
-                                  onPressed: () {
-                                    final overlay =
-                                        _liveLanguageKey.currentState;
-                                    if (overlay != null) {
-                                      unawaited(
-                                        overlay._showQuickLanguageSettings(
-                                          translation: true,
-                                        ),
-                                      );
-                                    }
-                                  },
+                                  key: const ValueKey('live-host-badges'),
+                                  tooltip: widget.ar ? 'الشارات' : 'Badges',
+                                  onPressed: () => Navigator.of(context).push(
+                                    MaterialPageRoute<void>(
+                                      builder: (_) => const MemberBadgeShop(),
+                                    ),
+                                  ),
                                   icon: const Icon(
-                                    Icons.translate_rounded,
-                                    color: Colors.white,
+                                    Icons.workspace_premium_outlined,
+                                    color: Color(0xFFE5C47D),
                                   ),
                                 ),
                               ],
@@ -4199,27 +4181,16 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                       ),
                                     ),
                                     IconButton(
-                                      key: const ValueKey('live-viewer-badges'),
-                                      tooltip: widget.ar ? 'الشارات' : 'Badges',
-                                      onPressed: () => Navigator.of(context).push(
-                                        MaterialPageRoute<void>(
-                                          builder: (_) => const MemberBadgeShop(),
-                                        ),
-                                      ),
-                                      icon: const Icon(
-                                        Icons.workspace_premium_outlined,
-                                        color: Color(0xFFE5C47D),
-                                      ),
-                                    ),
-                                    IconButton(
-                                      tooltip: 'Subtitles',
+                                      key: const ValueKey('live-unified-ss-toggle'),
+                                      tooltip: widget.ar
+                                          ? 'الترجمة والسبتايتلز'
+                                          : 'Translation and subtitles',
                                       onPressed: () {
-                                        final overlay =
-                                            _liveLanguageKey.currentState;
+                                        final overlay = _liveLanguageKey.currentState;
                                         if (overlay != null) {
                                           unawaited(
                                             overlay._showQuickLanguageSettings(
-                                              translation: false,
+                                              translation: true,
                                             ),
                                           );
                                         }
@@ -4234,23 +4205,16 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                       ),
                                     ),
                                     IconButton(
-                                      tooltip: widget.ar
-                                          ? 'الترجمة'
-                                          : 'Translation',
-                                      onPressed: () {
-                                        final overlay =
-                                            _liveLanguageKey.currentState;
-                                        if (overlay != null) {
-                                          unawaited(
-                                            overlay._showQuickLanguageSettings(
-                                              translation: true,
-                                            ),
-                                          );
-                                        }
-                                      },
+                                      key: const ValueKey('live-viewer-badges'),
+                                      tooltip: widget.ar ? 'الشارات' : 'Badges',
+                                      onPressed: () => Navigator.of(context).push(
+                                        MaterialPageRoute<void>(
+                                          builder: (_) => const MemberBadgeShop(),
+                                        ),
+                                      ),
                                       icon: const Icon(
-                                        Icons.translate_rounded,
-                                        color: Colors.white,
+                                        Icons.workspace_premium_outlined,
+                                        color: Color(0xFFE5C47D),
                                       ),
                                     ),
                                     if (_guestPublishing) ...[
@@ -5296,9 +5260,9 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
                         : Icons.closed_caption_rounded,
                   ),
                   title: Text(
-                    translation
-                        ? (widget.ar ? 'الترجمة الفورية' : 'Live translation')
-                        : 'Subtitles',
+                    widget.ar
+                        ? 'الترجمة والسبتايتلز'
+                        : 'Translation and subtitles',
                     style: const TextStyle(fontWeight: FontWeight.w800),
                   ),
                 ),
@@ -5306,9 +5270,9 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
                   contentPadding: EdgeInsets.zero,
                   value: _enabled && _translationEnabled,
                   title: Text(
-                    translation
-                        ? (widget.ar ? 'تفعيل الترجمة' : 'Enable translation')
-                        : (widget.ar ? 'تفعيل السبايتلز' : 'Enable subtitles'),
+                    widget.ar
+                        ? 'تفعيل الترجمة والسبتايتلز'
+                        : 'Enable translation and subtitles',
                   ),
                   onChanged: (value) {
                     unawaited(() async {
@@ -7556,11 +7520,12 @@ class WorldVoiceLiveVideoGrid extends StatelessWidget {
     }
 
     if (items.length == 2) {
-      // Exactly the original mockup: host above, guest below.
-      return Column(
+      // Approved portrait duplex: host and guest in adjacent camera panels.
+      // Each stream retains its own full-height crop, name and audio meter.
+      return Row(
         children: [
           Expanded(child: _tile(items[0])),
-          const SizedBox(height: 7),
+          const SizedBox(width: 7),
           Expanded(child: _tile(items[1])),
         ],
       );

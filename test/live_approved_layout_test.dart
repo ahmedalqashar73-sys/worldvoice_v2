@@ -43,16 +43,29 @@ void main() {
     expect(find.byType(WorldVoiceLiveVideoGrid), findsOneWidget);
   });
 
-  testWidgets('approved host + 1 guest shows two full-width stacked cameras',
+  testWidgets('approved host + 1 guest uses adjacent portrait cameras',
       (tester) async {
     await _render(tester, ['host', 'guest']);
     final host = _cameraRect(tester, 'host');
     final guest = _cameraRect(tester, 'guest');
-    expect(guest.top, greaterThan(host.bottom));
-    expect((host.left - guest.left).abs(), lessThan(2));
+    expect(guest.left, greaterThan(host.right));
+    expect((host.top - guest.top).abs(), lessThan(2));
     expect((host.width - guest.width).abs(), lessThan(2));
     expect((host.height - guest.height).abs(), lessThan(2));
-    expect(host.width, greaterThan(300));
+    expect(host.width, greaterThan(140));
+    expect(host.height, greaterThan(550));
+  });
+
+  testWidgets('host with two guests gives the host the full-height left panel',
+      (tester) async {
+    await _render(tester, ['host', 'a', 'b']);
+    final host = _cameraRect(tester, 'host');
+    final a = _cameraRect(tester, 'a');
+    final b = _cameraRect(tester, 'b');
+    expect(host.height, greaterThan(550));
+    expect(a.left, greaterThan(host.right));
+    expect((a.left - b.left).abs(), lessThan(2));
+    expect(b.top, greaterThan(a.bottom));
   });
 
   testWidgets('host plus three guests remain a balanced two-by-two mosaic',
