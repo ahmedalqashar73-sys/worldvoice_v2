@@ -1103,7 +1103,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     if (!mounted) return;
     await showModalBottomSheet<void>(
       context: context,
-      backgroundColor: const Color(0xFF0D3025),
+      backgroundColor: const Color(0xFF211932),
       showDragHandle: true,
       builder: (sheetContext) => SafeArea(
         child: Column(
@@ -1846,7 +1846,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: [Color(0xFF126949), Color(0xFF073B2D)],
+                        colors: [Color(0xFF322056), Color(0xFF15122D)],
                       ),
                     ),
                   ),
@@ -2696,7 +2696,7 @@ class _LiveInlineComposerState extends State<_LiveInlineComposer> {
                   )
                 : const Icon(
                     Icons.arrow_upward_rounded,
-                    color: Color(0xFF65E3B4),
+                    color: Color(0xFFC09BFF),
                   ),
           ),
           border: OutlineInputBorder(
@@ -2709,7 +2709,7 @@ class _LiveInlineComposerState extends State<_LiveInlineComposer> {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(24),
-            borderSide: const BorderSide(color: Color(0xFF65E3B4), width: 1.2),
+            borderSide: const BorderSide(color: Color(0xFFC09BFF), width: 1.2),
           ),
         ),
       ),
@@ -3818,7 +3818,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
               backgroundColor: const Color(0xFF211943),
               body: SafeArea(
                 child: _minimized
-                    ? const ColoredBox(color: Color(0xFF071812))
+                    ? const ColoredBox(color: Color(0xFF151226))
                     : _joining
                     ? const Center(child: CircularProgressIndicator())
                     : _joinError != null
@@ -4707,8 +4707,8 @@ class _LiveParticipantCameraTile extends StatelessWidget {
                 color: microphoneMuted
                     ? Colors.white54
                     : activeSpeaker
-                        ? const Color(0xFF3FE3A0)
-                        : const Color(0xFFB4D8C4),
+                        ? const Color(0xFFBCA5FC)
+                        : const Color(0xFFD5C6EE),
               ),
             ),
           ),
@@ -4719,7 +4719,7 @@ class _LiveParticipantCameraTile extends StatelessWidget {
             child: IgnorePointer(
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  color: const Color(0xCC09281F),
+                  color: const Color(0xCC21182F),
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
                     color: const Color(0xFFD8BA77),
@@ -4803,7 +4803,7 @@ class _LiveParticipantCameraTile extends StatelessWidget {
             top: 8,
             end: 8,
             child: Material(
-              color: const Color(0xB3092E23),
+              color: const Color(0xC922193A),
               shape: const CircleBorder(),
               child: IconButton(
                 onPressed: onManageGuest,
@@ -4828,7 +4828,7 @@ class _LiveParticipantCameraTile extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Colors.transparent, Color(0xD8081C16)],
+                colors: [Colors.transparent, Color(0xD8121026)],
               ),
             ),
             child: Row(
@@ -4878,7 +4878,7 @@ class _LiveParticipantCameraTile extends StatelessWidget {
                         ? Colors.white54
                         : activeSpeaker
                             ? const Color(0xFFFFD77D)
-                            : const Color(0xFFB9DEC9),
+                            : const Color(0xFFCCBDF0),
                   ),
                 ),
                 if (cameraOff && !compact)
@@ -5417,7 +5417,7 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
       context: context,
       useSafeArea: true,
       showDragHandle: true,
-      backgroundColor: const Color(0xFF10251D),
+      backgroundColor: const Color(0xFF211932),
       builder: (sheetContext) => StatefulBuilder(
         builder: (sheetContext, refresh) => SafeArea(
           child: Padding(
@@ -6991,7 +6991,7 @@ class _LiveChatOverlayState extends State<_LiveChatOverlay> {
               const SizedBox(width: 4),
               IconButton(
                 style: IconButton.styleFrom(
-                  backgroundColor: const Color(0xE0188A63),
+                  backgroundColor: const Color(0xE06748B0),
                   foregroundColor: Colors.white,
                 ),
                 onPressed: _sending ? null : _send,
@@ -7045,7 +7045,7 @@ Future<void> _showLiveStageAudioControls(
     useSafeArea: true,
     isScrollControlled: true,
     showDragHandle: true,
-    backgroundColor: const Color(0xFF0D3025),
+    backgroundColor: const Color(0xFF211932),
     builder: (sheetContext) => SizedBox(
       height: MediaQuery.sizeOf(sheetContext).height * .62,
       child: Column(
@@ -7399,7 +7399,7 @@ Future<void> _showLiveStageRequestsSheet(
   context: context,
   isScrollControlled: true,
   showDragHandle: true,
-  backgroundColor: const Color(0xFF0A251F),
+  backgroundColor: const Color(0xFF211932),
   builder: (sheetContext) => SafeArea(
     top: false,
     child: Padding(
@@ -7679,7 +7679,7 @@ class WorldVoiceLiveVideoGrid extends StatelessWidget {
 
     if (items.isEmpty) {
       return const ColoredBox(
-        color: Color(0xFF071B16),
+        color: Color(0xFF151226),
         child: Center(
           child: Icon(Icons.live_tv_rounded, color: Colors.white30, size: 64),
         ),
@@ -7800,7 +7800,7 @@ class _LiveViewerFaces extends StatelessWidget {
                           ),
                           child: CircleAvatar(
                             radius: 11,
-                            backgroundColor: const Color(0xFF245A49),
+                            backgroundColor: const Color(0xFF3D3159),
                             foregroundImage: photo.isEmpty
                                 ? null
                                 : NetworkImage(photo),
