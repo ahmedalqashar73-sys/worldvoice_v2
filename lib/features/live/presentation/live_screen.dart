@@ -1341,6 +1341,26 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
             ),
             const Divider(color: Colors.white12),
             ListTile(
+              leading: const Icon(Icons.schedule_rounded),
+              title: Text(widget.ar ? 'وقت اللايف' : 'Live time'),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) unawaited(_showHostQuotaStatus());
+                });
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.dashboard_outlined),
+              title: Text(widget.ar ? 'السبورة المشتركة' : 'Shared board'),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) setState(() => _boardOpen = !_boardOpen);
+                });
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.admin_panel_settings_rounded),
               title: Text(widget.ar ? 'إدارة المودريتر' : 'Manage moderators'),
               onTap: () {
@@ -2444,48 +2464,6 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                   icon: const Icon(
                                     Icons.translate_rounded,
                                     color: Colors.white,
-                                  ),
-                                ),
-                                IconButton(
-                                  tooltip: widget.ar ? 'الوقت' : 'Live time',
-                                  onPressed: _liveId == null
-                                      ? null
-                                      : _showHostQuotaStatus,
-                                  icon: const Icon(
-                                    Icons.schedule_rounded,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                IconButton(
-                                  tooltip: widget.ar ? 'السبورة' : 'Board',
-                                  onPressed: _liveId == null
-                                      ? null
-                                      : () => setState(
-                                          () => _boardOpen = !_boardOpen,
-                                        ),
-                                  icon: Icon(
-                                    _boardOpen
-                                        ? Icons.dashboard_rounded
-                                        : Icons.dashboard_outlined,
-                                    color: Colors.white,
-                                  ),
-                                ),
-
-                                IconButton(
-                                  tooltip: widget.ar
-                                      ? 'المودريتر'
-                                      : 'Moderators',
-                                  onPressed: _liveId == null
-                                      ? null
-                                      : () => _showLiveModeratorManagement(
-                                          context,
-                                          liveId: _liveId!,
-                                          service: _liveService,
-                                          ar: widget.ar,
-                                        ),
-                                  icon: const Icon(
-                                    Icons.admin_panel_settings_rounded,
-                                    color: Color(0xFFFFD77A),
                                   ),
                                 ),
                               ],
