@@ -2363,7 +2363,9 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                 ),
                           ),
                           PositionedDirectional(
-                            bottom: 18,
+                            // Keep the approved dock attached to the
+                            // keyboard while writing Live comments.
+                            bottom: 18 + MediaQuery.viewInsetsOf(context).bottom,
                             start: 12,
                             end: 12,
                             child: _LiveControlDock(
@@ -4181,7 +4183,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                 ),
                               ),
                               PositionedDirectional(
-                                bottom: 16,
+                                bottom: 16 + MediaQuery.viewInsetsOf(context).bottom,
                                 start: 12,
                                 end: 12,
                                 child: _LiveControlDock(
