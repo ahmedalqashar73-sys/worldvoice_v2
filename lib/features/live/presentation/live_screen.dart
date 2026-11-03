@@ -2787,9 +2787,20 @@ class _LiveControlDock extends StatelessWidget {
                 flex: composer == null ? 1 : 7,
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: children,
+                  physics: const BouncingScrollPhysics(),
+                  child: IconButtonTheme(
+                    data: IconButtonThemeData(
+                      style: IconButton.styleFrom(
+                        minimumSize: const Size(42, 42),
+                        maximumSize: const Size(42, 42),
+                        padding: EdgeInsets.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: children,
+                    ),
                   ),
                 ),
               ),
