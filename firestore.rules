@@ -978,6 +978,29 @@ service cloud.firestore {
           );
       allow delete: if false;
 
+      match /removed_viewers/{userId} {
+        // A removal is private to the removed viewer and the Live host.
+        // It cannot be forged by a guest or an unrelated viewer.
+        allow get: if signedIn()
+            && (userId == request.auth.uid
+                || get(/databases/$(database)/documents/live_sessions/$(liveId))
+                    .data.hostId == request.auth.uid);
+        allow list: if false;
+        allow create: if signedIn()
+            && get(/databases/$(database)/documents/live_sessions/$(liveId))
+                .data.hostId == request.auth.uid
+            && get(/databases/$(database)/documents/live_sessions/$(liveId))
+                .data.isLive == true
+            && exists(/databases/$(database)/documents/live_sessions/$(liveId)/viewers/$(userId))
+            && request.resource.data.keys().hasOnly([
+              'userId', 'removedBy', 'removedAt'
+            ])
+            && request.resource.data.userId == userId
+            && request.resource.data.removedBy == request.auth.uid
+            && request.resource.data.removedAt == request.time;
+        allow update, delete: if false;
+      }
+
       match /viewers/{userId} {
         allow read: if signedIn();
         allow create: if signedIn()

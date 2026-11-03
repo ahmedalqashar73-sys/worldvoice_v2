@@ -60,6 +60,7 @@ Future<void> showLiveAudienceSheet({
   required String liveId,
   required bool ar,
   Future<void> Function(String userId)? onInviteToStage,
+  Future<void> Function(String userId)? onKickViewer,
 }) {
   final liveRoute = ModalRoute.of(context);
   return showModalBottomSheet<void>(
@@ -153,6 +154,8 @@ Future<void> showLiveAudienceSheet({
                         ar: ar,
                         liveRoute: liveRoute,
                         onInviteToStage: onInviteToStage,
+                        onKickViewer: onKickViewer == null
+                            ? null : () => onKickViewer(viewer.id),
                       ),
                     );
                   },
@@ -268,6 +271,7 @@ Future<void> showLiveAudiencePersonCard({
   Future<void> Function(bool blocked)? onSetStageMicrophoneBlocked,
   Future<void> Function(bool blocked)? onSetStageCameraBlocked,
   Future<void> Function()? onLowerFromStage,
+  Future<void> Function()? onKickViewer,
   bool stageMicrophoneBlocked = false,
   bool stageCameraBlocked = false,
 }) {
@@ -287,6 +291,7 @@ Future<void> showLiveAudiencePersonCard({
       onSetStageMicrophoneBlocked: onSetStageMicrophoneBlocked,
       onSetStageCameraBlocked: onSetStageCameraBlocked,
       onLowerFromStage: onLowerFromStage,
+      onKickViewer: onKickViewer,
       stageMicrophoneBlocked: stageMicrophoneBlocked,
       stageCameraBlocked: stageCameraBlocked,
       onReturnToLive: (cardContext) {
@@ -312,6 +317,7 @@ class _AudiencePersonCard extends StatefulWidget {
     this.onSetStageMicrophoneBlocked,
     this.onSetStageCameraBlocked,
     this.onLowerFromStage,
+    this.onKickViewer,
     this.stageMicrophoneBlocked = false,
     this.stageCameraBlocked = false,
   });
@@ -324,6 +330,7 @@ class _AudiencePersonCard extends StatefulWidget {
   final Future<void> Function(bool blocked)? onSetStageMicrophoneBlocked;
   final Future<void> Function(bool blocked)? onSetStageCameraBlocked;
   final Future<void> Function()? onLowerFromStage;
+  final Future<void> Function()? onKickViewer;
   final bool stageMicrophoneBlocked;
   final bool stageCameraBlocked;
   final void Function(BuildContext context) onReturnToLive;
@@ -474,6 +481,44 @@ class _AudiencePersonCardState extends State<_AudiencePersonCard> {
     if (accepted != true || !mounted) return;
     await _stageAction(callback, success: widget.ar
         ? 'تم إنزال الضيف إلى الجمهور.' : 'Guest returned to audience.');
+  }
+
+  Future<void> _kickFromLive() async {
+    final action = widget.onKickViewer;
+    if (_isSelf || _stageActionBusy || action == null) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(widget.ar ? 'طرد من اللايف؟' : 'Kick from Live?'),
+        content: Text(widget.ar
+            ? 'سيغادر الشخص البث ولن يستطيع العودة إلى نفس البث.'
+            : 'This viewer will leave and cannot rejoin this broadcast.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(widget.ar ? 'إلغاء' : 'Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(widget.ar ? 'طرد' : 'Kick'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    setState(() => _stageActionBusy = true);
+    try {
+      await action();
+      if (!mounted) return;
+      widget.onReturnToLive(context);
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
+    } finally {
+      if (mounted) setState(() => _stageActionBusy = false);
+    }
   }
 
   Future<void> _openFullProfile() async {
@@ -668,6 +713,19 @@ class _AudiencePersonCardState extends State<_AudiencePersonCard> {
                     ),
                   ),
                 ],
+                if (!_isSelf && widget.onKickViewer != null)
+                  ListTile(
+                    key: const ValueKey('live-host-kick-viewer'),
+                    leading: const Icon(Icons.person_remove_rounded,
+                        color: Color(0xFFFF929B)),
+                    title: Text(widget.ar ? 'طرد من اللايف' : 'Kick from Live',
+                        style: const TextStyle(color: Color(0xFFFFB4BB))),
+                    subtitle: Text(widget.ar
+                        ? 'لن يتمكن من العودة إلى هذا البث.'
+                        : 'Viewer cannot rejoin this Live.',
+                        style: const TextStyle(color: Colors.white54)),
+                    onTap: _stageActionBusy ? null : _kickFromLive,
+                  ),
                 // Reuse the existing, fully connected room relationship
                 // component. Live does not define any duplicate WorldBond
                 // cards, gift payments, or relationship endpoints.

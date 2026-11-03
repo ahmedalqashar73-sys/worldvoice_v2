@@ -108,6 +108,32 @@ test('camera stop is restricted to live staff and never edits identities', async
   }));
 });
 
+test('only host can eject an active viewer from this live session', async () => {
+  await env.withSecurityRulesDisabled(async context => {
+    await setDoc(doc(context.firestore(),
+      'live_sessions/live_stage_test/viewers/guest'), {
+      uid: 'guest', displayName: 'Guest', photoUrl: '',
+      joinedAt: serverTimestamp(),
+    });
+  });
+  const marker = db => doc(db, 'live_sessions/live_stage_test/removed_viewers/guest');
+  const record = {userId: 'guest', removedBy: 'host',
+    removedAt: serverTimestamp()};
+  await assertFails(setDoc(marker(user('guest')), record));
+  await assertFails(setDoc(marker(user('stranger')), record));
+  const db = user('host');
+  const batch = writeBatch(db);
+  batch.update(guestRequest(db), {
+    status: 'removed', decidedAt: serverTimestamp(),
+  });
+  batch.update(live(db), {
+    guestCount: increment(-1), updatedAt: serverTimestamp(),
+  });
+  batch.set(marker(db), record);
+  await assertSucceeds(batch.commit());
+  await assertFails(setDoc(marker(user('guest')), record));
+});
+
 test('host microphone control cannot forge guest identity or stage status', async () => {
   await assertFails(updateDoc(guestRequest(user('host')), {
     hostMuted: true, displayName: 'forged',

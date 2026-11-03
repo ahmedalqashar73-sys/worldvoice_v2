@@ -1060,6 +1060,8 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
       ar: widget.ar,
       onInviteToStage: (userId) =>
           _liveService.inviteViewer(liveId: liveId, userId: userId),
+      onKickViewer: (userId) => _liveService.kickViewer(
+        liveId: liveId, userId: userId),
     );
   }
 
@@ -1096,6 +1098,9 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
       onLowerFromStage: guest == null ? null : () =>
           _liveService.removeGuestFromStage(
             liveId: liveId, guestUserId: userId),
+      onKickViewer: userId == FirebaseAuth.instance.currentUser?.uid
+          ? null : () => _liveService.kickViewer(
+              liveId: liveId, userId: userId),
     ));
   }
 
@@ -2891,6 +2896,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   bool _isModerator = false;
   bool _invitePromptOpen = false;
   String? _lastInviteMarker;
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _removedFromLiveSub;
   StreamSubscription<bool>? _moderatorSub;
   StreamSubscription<Map<String, dynamic>?>? _moderatorInviteSub;
   bool _moderatorDialogOpen = false;
@@ -2920,6 +2926,21 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
         });
       },
       onError: (Object error) => debugPrint('Live stage profiles: $error'),
+    );
+    _removedFromLiveSub = _service.watchMyRemoval(widget.liveId).listen(
+      (snapshot) {
+        if (!mounted || !snapshot.exists || _leavingLive) return;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted || _leavingLive) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(widget.ar
+                ? 'أخرجك المضيف من هذا البث.'
+                : 'The host removed you from this Live.')),
+          );
+          unawaited(_leaveViewerLive());
+        });
+      },
+      onError: (Object error) => debugPrint('Live removal check: $error'),
     );
     _join();
     _loadFollow();
@@ -3485,6 +3506,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
       unawaited(_guestQuota.endSession());
       _guestQuotaStarted = false;
     }
+    unawaited(_removedFromLiveSub?.cancel());
     unawaited(_moderatorSub?.cancel());
     unawaited(_moderatorInviteSub?.cancel());
     unawaited(_service.leaveGuest(widget.liveId).catchError((Object _) {}));

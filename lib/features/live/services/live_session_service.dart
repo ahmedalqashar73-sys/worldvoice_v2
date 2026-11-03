@@ -318,10 +318,63 @@ class LiveSessionService {
         return List<LiveStageParticipant>.unmodifiable(participants);
       });
 
+  /// A kicked viewer can observe only their own removal marker.
+  Stream<DocumentSnapshot<Map<String, dynamic>>> watchMyRemoval(
+    String liveId,
+  ) => _sessions.doc(liveId).collection('removed_viewers')
+      .doc(_user.uid).snapshots();
+
+  /// Host-only ejection of an active viewer. If they are on camera, the
+  /// stage seat is released in the same transaction. The audience count is
+  /// decremented by the target client's normal leave path.
+  Future<void> kickViewer({
+    required String liveId,
+    required String userId,
+  }) async {
+    final host = _user;
+    if (userId.isEmpty || userId == host.uid) {
+      throw StateError('INVALID_LIVE_VIEWER');
+    }
+    final session = _sessions.doc(liveId);
+    final viewer = session.collection('viewers').doc(userId);
+    final request = session.collection('join_requests').doc(userId);
+    final marker = session.collection('removed_viewers').doc(userId);
+    await _db.runTransaction((tx) async {
+      final live = await tx.get(session);
+      if (live.data()?['hostId'] != host.uid ||
+          live.data()?['isLive'] != true) {
+        throw StateError('HOST_ONLY');
+      }
+      final viewerSnapshot = await tx.get(viewer);
+      final removedSnapshot = await tx.get(marker);
+      final guest = await tx.get(request);
+      if (!viewerSnapshot.exists) throw StateError('VIEWER_NOT_AVAILABLE');
+      if (removedSnapshot.exists) return;
+      if (guest.data()?['status'] == 'accepted') {
+        final count = (live.data()?['guestCount'] as num?)?.toInt() ?? 0;
+        if (count < 1) throw StateError('GUEST_COUNTER_INVALID');
+        tx.update(request, {
+          'status': 'removed',
+          'decidedAt': FieldValue.serverTimestamp(),
+        });
+        tx.update(session, {
+          'guestCount': FieldValue.increment(-1),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      }
+      tx.set(marker, {
+        'userId': userId,
+        'removedBy': host.uid,
+        'removedAt': FieldValue.serverTimestamp(),
+      });
+    });
+  }
+
   Future<void> enterViewer(String liveId) async {
     final user = _user;
     final session = _sessions.doc(liveId);
     final viewer = session.collection('viewers').doc(user.uid);
+    final removed = session.collection('removed_viewers').doc(user.uid);
     var newlyJoined = false;
 
     await _db.runTransaction((tx) async {
@@ -329,6 +382,8 @@ class LiveSessionService {
       if (!isFresh(sessionSnap.data())) {
         throw StateError('LIVE_ENDED');
       }
+      final removedSnapshot = await tx.get(removed);
+      if (removedSnapshot.exists) throw StateError('KICKED_FROM_LIVE');
       final existing = await tx.get(viewer);
       if (!existing.exists) {
         newlyJoined = true;
