@@ -1063,24 +1063,6 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     );
   }
 
-  Future<void> _showAudiencePerson(
-    String userId,
-    String name,
-    String photo,
-  ) async {
-    final liveId = _liveId;
-    if (!mounted || liveId == null) return;
-    await showLiveAudiencePersonCard(
-      context: context,
-      userId: userId,
-      fallbackName: name,
-      fallbackPhotoUrl: photo,
-      ar: widget.ar,
-      onInviteToStage: (targetId) =>
-          _liveService.inviteViewer(liveId: liveId, userId: targetId),
-    );
-  }
-
   void _openViewerProfile({
     required String userId,
     required String displayName,
