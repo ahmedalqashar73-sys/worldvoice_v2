@@ -3362,9 +3362,11 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                 onTap: () {
                   Navigator.pop(sheetContext);
                   WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (mounted) unawaited(_showLiveStageRequestsSheet(
-                      context, widget.liveId, _service, widget.ar,
-                    ));
+                    if (mounted) {
+                      unawaited(_showLiveStageRequestsSheet(
+                        context, widget.liveId, _service, widget.ar,
+                      ));
+                    }
                   });
                 },
               ),
