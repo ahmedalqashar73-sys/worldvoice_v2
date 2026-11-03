@@ -15,6 +15,7 @@ class LiveStageParticipant {
     required this.displayName,
     required this.photoUrl,
     required this.hostMuted,
+    this.hostCameraBlocked = false,
   });
 
   final String userId;
@@ -22,6 +23,7 @@ class LiveStageParticipant {
   final String displayName;
   final String photoUrl;
   final bool hostMuted;
+  final bool hostCameraBlocked;
 }
 
 /// Firestore coordination for video Live.
@@ -309,6 +311,7 @@ class LiveSessionService {
               displayName: name.isEmpty ? 'WorldVoice user' : name,
               photoUrl: photo,
               hostMuted: fallback['hostMuted'] == true,
+              hostCameraBlocked: fallback['hostCameraBlocked'] == true,
             );
           }),
         );
@@ -435,6 +438,7 @@ class LiveSessionService {
         'photoUrl': (viewerData['photoUrl'] ?? '').toString(),
         'status': 'invited',
         'hostMuted': false,
+        'hostCameraBlocked': false,
         'invitedBy': currentUser.uid,
         'invitedAt': FieldValue.serverTimestamp(),
         'requestedAt': FieldValue.delete(),
@@ -511,6 +515,7 @@ class LiveSessionService {
         'photoUrl': user.photoURL ?? '',
         'status': 'pending',
         'hostMuted': false,
+        'hostCameraBlocked': false,
         'requestedAt': FieldValue.serverTimestamp(),
         'decidedAt': FieldValue.delete(),
       }, SetOptions(merge: true));
@@ -558,6 +563,7 @@ class LiveSessionService {
           'invitedBy': currentUser.uid,
           'invitedAt': FieldValue.serverTimestamp(),
           'hostMuted': false,
+        'hostCameraBlocked': false,
           'requestedAt': FieldValue.delete(),
           'decidedAt': FieldValue.delete(),
         });
@@ -603,6 +609,40 @@ class LiveSessionService {
         throw StateError('GUEST_NOT_ON_STAGE');
       }
       tx.update(request, {'hostMuted': blocked});
+    });
+  }
+
+  /// Stopping the guest camera is a one-way publication block. Releasing
+  /// it lets the guest decide whether to enable their own camera; the
+  /// moderator never turns a remote camera on.
+  Future<void> setGuestCameraBlocked({
+    required String liveId,
+    required String guestUserId,
+    required bool blocked,
+  }) async {
+    final actor = _user;
+    if (guestUserId.isEmpty || guestUserId == actor.uid) {
+      throw StateError('INVALID_LIVE_GUEST');
+    }
+    final session = _sessions.doc(liveId);
+    final request = session.collection('join_requests').doc(guestUserId);
+    await _db.runTransaction((tx) async {
+      final snapshot = await tx.get(session);
+      final data = snapshot.data();
+      if (data?['isLive'] != true) throw StateError('LIVE_ENDED');
+      final hostId = data?['hostId']?.toString() ?? '';
+      if (hostId != actor.uid) {
+        final mod = await tx.get(_db.collection('users').doc(hostId)
+            .collection('moderators').doc(actor.uid));
+        if (mod.data()?['status'] != 'accepted') {
+          throw StateError('MODERATOR_ONLY');
+        }
+      }
+      final guest = await tx.get(request);
+      if (guest.data()?['status'] != 'accepted') {
+        throw StateError('GUEST_NOT_ON_STAGE');
+      }
+      tx.update(request, {'hostCameraBlocked': blocked});
     });
   }
 

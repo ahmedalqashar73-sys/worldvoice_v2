@@ -95,6 +95,19 @@ test('host and accepted moderators may mute or release a stage microphone', asyn
   }));
 });
 
+test('camera stop is restricted to live staff and never edits identities', async () => {
+  await assertSucceeds(updateDoc(guestRequest(user('host')), {hostCameraBlocked: true}));
+  await assertSucceeds(updateDoc(guestRequest(user('host')), {hostCameraBlocked: false}));
+  await assertFails(updateDoc(guestRequest(user('guest')), {hostCameraBlocked: false}));
+  await assertFails(updateDoc(guestRequest(user('stranger')), {hostCameraBlocked: true}));
+  await assertFails(updateDoc(guestRequest(user('host')), {
+    hostCameraBlocked: true, displayName: 'forged',
+  }));
+  await assertFails(updateDoc(guestRequest(user('host')), {
+    hostCameraBlocked: true, status: 'removed',
+  }));
+});
+
 test('host microphone control cannot forge guest identity or stage status', async () => {
   await assertFails(updateDoc(guestRequest(user('host')), {
     hostMuted: true, displayName: 'forged',

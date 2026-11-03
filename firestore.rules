@@ -1188,7 +1188,8 @@ service cloud.firestore {
                 && request.resource.data.diff(resource.data).affectedKeys()
                     .hasOnly([
                       'displayName', 'photoUrl', 'status', 'invitedBy',
-                      'invitedAt', 'requestedAt', 'decidedAt', 'hostMuted'
+                      'invitedAt', 'requestedAt', 'decidedAt',
+                      'hostMuted', 'hostCameraBlocked'
                     ])
               )
               || (
@@ -1226,6 +1227,24 @@ service cloud.firestore {
                     .hasOnly(['hostMuted'])
               )
               || (
+                // Only the live host or a moderator may turn camera
+                // publishing OFF; releasing this flag never starts a camera.
+                (
+                  get(/databases/$(database)/documents/live_sessions/$(liveId))
+                      .data.hostId == request.auth.uid
+                  || isGlobalModerator(
+                    get(/databases/$(database)/documents/live_sessions/$(liveId))
+                        .data.hostId,
+                    request.auth.uid
+                  )
+                )
+                && resource.data.status == 'accepted'
+                && request.resource.data.status == 'accepted'
+                && request.resource.data.hostCameraBlocked is bool
+                && request.resource.data.diff(resource.data).affectedKeys()
+                    .hasOnly(['hostCameraBlocked'])
+              )
+              || (
                 // Only the Live host can lower a guest; update the counter
                 // in the same transaction so stage capacity is released.
                 get(/databases/$(database)/documents/live_sessions/$(liveId))
@@ -1257,7 +1276,8 @@ service cloud.firestore {
                 && request.resource.data.diff(resource.data).affectedKeys()
                     .hasOnly([
                       'displayName', 'photoUrl', 'status',
-                      'requestedAt', 'decidedAt', 'hostMuted'
+                      'requestedAt', 'decidedAt',
+                      'hostMuted', 'hostCameraBlocked'
                     ])
               )
             );
