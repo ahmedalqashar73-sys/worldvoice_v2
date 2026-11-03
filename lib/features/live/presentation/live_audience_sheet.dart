@@ -21,8 +21,8 @@ class LiveAudienceLanguages {
   String get audienceLabel {
     if (learning.isEmpty) return native;
     if (native.isEmpty) return learning.join(' • ');
-    final more = learning.length > 1 ? ' +' + (learning.length - 1).toString() : '';
-    return learning.first + ' ⇄ ' + native + more;
+    final more = learning.length > 1 ? ' +${learning.length - 1}' : '';
+    return '${learning.first} ⇄ $native$more';
   }
 
   factory LiveAudienceLanguages.fromProfile(
@@ -139,7 +139,7 @@ Future<void> showLiveAudienceSheet({
                     final name = (data['displayName'] ?? '').toString().trim();
                     final photo = (data['photoUrl'] ?? '').toString().trim();
                     return _LiveAudienceViewerRow(
-                      key: ValueKey('live-viewer-' + viewer.id),
+                      key: ValueKey('live-viewer-${viewer.id}'),
                       userId: viewer.id,
                       fallbackName: name,
                       fallbackPhotoUrl: photo,
