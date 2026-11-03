@@ -34,6 +34,32 @@ jobs:
           channel: stable
           cache: true
 
+      # Flutter 3.44 uses NDK 28.2.13676358. The hosted runner
+      # occasionally downloads an incomplete NDK ZIP; retry before Gradle.
+      - name: Install required Android NDK with retry
+        shell: bash
+        run: |
+          NDK_VERSION="28.2.13676358"
+          SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+          if [[ -z "$SDK_ROOT" ]]; then
+            echo "Android SDK path is unavailable" >&2
+            exit 1
+          fi
+          SDKMANAGER="$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          if [[ ! -x "$SDKMANAGER" ]]; then
+            SDKMANAGER="$(command -v sdkmanager)"
+          fi
+          for attempt in 1 2 3; do
+            if "$SDKMANAGER" --install "ndk;$NDK_VERSION"; then
+              test -f "$SDK_ROOT/ndk/$NDK_VERSION/source.properties"
+              break
+            fi
+            echo "Android NDK download failed (attempt $attempt/3)"
+            rm -rf "$SDK_ROOT/ndk/$NDK_VERSION"
+            if [[ "$attempt" == 3 ]]; then exit 1; fi
+            sleep 8
+          done
+
       - name: Resolve dependencies
         run: flutter pub get
 
