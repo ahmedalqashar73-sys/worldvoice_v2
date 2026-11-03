@@ -1112,7 +1112,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     if (!mounted) return;
     await showModalBottomSheet<void>(
       context: context,
-      backgroundColor: const Color(0xFF211932),
+      backgroundColor: const Color(0xFF19352B),
       showDragHandle: true,
       builder: (sheetContext) => SafeArea(
         child: Column(
@@ -1858,7 +1858,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
       },
       child: Scaffold(
         resizeToAvoidBottomInset: false,
-        backgroundColor: const Color(0xFF211943),
+        backgroundColor: const Color(0xFF102820),
         body: SafeArea(
           child: Stack(
             fit: StackFit.expand,
@@ -2360,7 +2360,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                 final viewers =
                                     snapshot.data?.data()?['viewerCount'] ?? 0;
                                 return Material(
-                                  color: const Color(0xE5201939),
+                                  color: const Color(0xE51A382C),
                                   shape: const StadiumBorder(
                                     side: BorderSide(
                                       color: Color(0x99D9BE7A),
@@ -2530,12 +2530,16 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                       );
                                     }
                                   },
-                                  icon: const Text(
-                                    'SS',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w900,
-                                      fontSize: 16,
+                                  icon: const CircleAvatar(
+                                    radius: 16,
+                                    backgroundColor: Colors.white,
+                                    child: Text(
+                                      'SS',
+                                      style: TextStyle(
+                                        color: Color(0xFF18362A),
+                                        fontWeight: FontWeight.w900,
+                                        fontSize: 13,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -2702,7 +2706,7 @@ class _LiveInlineComposerState extends State<_LiveInlineComposer> {
           hintText: widget.ar ? 'تعليق...' : 'Comment...',
           hintStyle: const TextStyle(color: Colors.white54),
           filled: true,
-          fillColor: const Color(0xBB19152E),
+          fillColor: const Color(0xC0143027),
           isDense: true,
           contentPadding: const EdgeInsetsDirectional.fromSTEB(14, 11, 4, 11),
           suffixIcon: IconButton(
@@ -2718,7 +2722,7 @@ class _LiveInlineComposerState extends State<_LiveInlineComposer> {
                   )
                 : const Icon(
                     Icons.arrow_upward_rounded,
-                    color: Color(0xFFC09BFF),
+                    color: Color(0xFF9EDCC0),
                   ),
           ),
           border: OutlineInputBorder(
@@ -2731,7 +2735,7 @@ class _LiveInlineComposerState extends State<_LiveInlineComposer> {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(24),
-            borderSide: const BorderSide(color: Color(0xFFC09BFF), width: 1.2),
+            borderSide: const BorderSide(color: Color(0xFF9EDCC0), width: 1.2),
           ),
         ),
       ),
@@ -2794,14 +2798,14 @@ class _LiveControlDock extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xF6211839),
-            Color(0xF62C2058),
-            Color(0xF61A1832),
+            Color(0xF5142923),
+            Color(0xF51B4435),
+            Color(0xF5112822),
           ],
         ),
         borderRadius: BorderRadius.circular(28),
         border: Border.all(
-          color: const Color(0x908C70DB),
+          color: const Color(0x907DA993),
           width: .85,
         ),
         boxShadow: const [
@@ -2810,7 +2814,7 @@ class _LiveControlDock extends StatelessWidget {
             offset: Offset(0, 9),
             color: Color(0x53000000),
           ),
-          BoxShadow(color: Color(0x2D7B59CB), blurRadius: 14),
+          BoxShadow(color: Color(0x2443A37D), blurRadius: 14),
         ],
       ),
       child: Padding(
@@ -3861,7 +3865,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
             }
             return Scaffold(
               resizeToAvoidBottomInset: false,
-              backgroundColor: const Color(0xFF211943),
+              backgroundColor: const Color(0xFF102820),
               body: SafeArea(
                 child: _minimized
                     ? const ColoredBox(color: Color(0xFF151226))
@@ -4344,12 +4348,16 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                           );
                                         }
                                       },
-                                      icon: const Text(
-                                        'SS',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w900,
-                                          fontSize: 16,
+                                      icon: const CircleAvatar(
+                                        radius: 16,
+                                        backgroundColor: Colors.white,
+                                        child: Text(
+                                          'SS',
+                                          style: TextStyle(
+                                            color: Color(0xFF18362A),
+                                            fontWeight: FontWeight.w900,
+                                            fontSize: 13,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -5487,7 +5495,7 @@ class _LiveLanguageToolsOverlayState extends State<_LiveLanguageToolsOverlay> {
       context: context,
       useSafeArea: true,
       showDragHandle: true,
-      backgroundColor: const Color(0xFF211932),
+      backgroundColor: const Color(0xFF19352B),
       builder: (sheetContext) => StatefulBuilder(
         builder: (sheetContext, refresh) => SafeArea(
           child: Padding(
@@ -7135,7 +7143,7 @@ Future<void> _showLiveStageAudioControls(
     useSafeArea: true,
     isScrollControlled: true,
     showDragHandle: true,
-    backgroundColor: const Color(0xFF211932),
+    backgroundColor: const Color(0xFF19352B),
     builder: (sheetContext) => SizedBox(
       height: MediaQuery.sizeOf(sheetContext).height * .62,
       child: Column(
@@ -7489,7 +7497,7 @@ Future<void> _showLiveStageRequestsSheet(
   context: context,
   isScrollControlled: true,
   showDragHandle: true,
-  backgroundColor: const Color(0xFF211932),
+  backgroundColor: const Color(0xFF19352B),
   builder: (sheetContext) => SafeArea(
     top: false,
     child: Padding(
