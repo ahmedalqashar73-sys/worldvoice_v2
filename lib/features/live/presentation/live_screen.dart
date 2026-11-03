@@ -997,6 +997,9 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
   StreamSubscription<List<LiveStageParticipant>>? _stageRosterSub;
   Map<int, LiveStageParticipant> _stageUsers = const {};
   Timer? _heartbeatTimer;
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _hostProfileSub;
+  String _hostProfileName = '';
+  String _hostProfilePhoto = '';
   String? _channelId;
   String? _liveId;
   final LiveSessionService _liveService = LiveSessionService();
@@ -1031,6 +1034,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     _rebuildThrottle?.cancel();
     _videoRoster.dispose();
     unawaited(_stageRosterSub?.cancel());
+    unawaited(_hostProfileSub?.cancel());
     _miniEntry?.remove();
     _miniEntry?.dispose();
     _miniEntry = null;
@@ -1812,6 +1816,30 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     _languageCode = widget.initialLanguageCode;
     _learningCodes = <String>[_languageCode];
     _controller.addListener(_onControllerChanged);
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid != null) {
+      // The saved WorldVoice profile owns the displayed name and picture.
+      _hostProfileSub = FirebaseFirestore.instance
+          .collection('users').doc(uid).snapshots().listen((snapshot) {
+        final current = FirebaseAuth.instance.currentUser;
+        final identity = LiveProfileIdentity.fromProfile(
+          snapshot.data(),
+          fallbackName: current?.displayName ?? 'WorldVoice host',
+          fallbackPhotoUrl: current?.photoURL ?? '',
+        );
+        if (!mounted ||
+            (identity.name == _hostProfileName &&
+                identity.photoUrl == _hostProfilePhoto)) {
+          return;
+        }
+        setState(() {
+          _hostProfileName = identity.name;
+          _hostProfilePhoto = identity.photoUrl;
+        });
+      }, onError: (Object error) {
+        debugPrint('Live host profile unavailable: $error');
+      });
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       unawaited(_preparePreview());
@@ -2153,10 +2181,12 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                            .where(_stageUsers.containsKey)
                            .take(3)
                            .toList();
-                       final hostName =
-                           FirebaseAuth.instance.currentUser?.displayName ?? '';
-                       final hostPhoto =
-                           FirebaseAuth.instance.currentUser?.photoURL ?? '';
+                       final hostName = _hostProfileName.isNotEmpty
+                           ? _hostProfileName
+                           : (FirebaseAuth.instance.currentUser?.displayName ?? '');
+                       final hostPhoto = _hostProfilePhoto.isNotEmpty
+                           ? _hostProfilePhoto
+                           : (FirebaseAuth.instance.currentUser?.photoURL ?? '');
                        final tiles = <Widget>[
                          _LiveParticipantCameraTile(
                            ar: widget.ar,
@@ -2433,12 +2463,8 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                                   .currentUser
                                                   ?.uid ??
                                               '',
-                                          hostName:
-                                              FirebaseAuth
-                                                  .instance
-                                                  .currentUser
-                                                  ?.displayName ??
-                                              'WorldVoice host',
+                                          hostName: hostName.trim().isEmpty
+                                              ? 'WorldVoice host' : hostName,
                                           ar: widget.ar,
                                         ),
                                   icon: const Icon(
@@ -4871,6 +4897,18 @@ class _LiveParticipantCameraTile extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          CircleAvatar(
+                            radius: compact ? 9 : 13,
+                            backgroundColor: const Color(0xFF224437),
+                            foregroundImage: photoUrl.trim().isEmpty
+                                ? null : NetworkImage(photoUrl.trim()),
+                            child: photoUrl.trim().isEmpty
+                                ? Icon(Icons.person_rounded,
+                                    size: compact ? 10 : 16,
+                                    color: Colors.white70)
+                                : null,
+                          ),
+                          const SizedBox(width: 6),
                           Flexible(
                             child: Text(
                               name,
@@ -6876,15 +6914,35 @@ class _LiveChatOverlayState extends State<_LiveChatOverlay> {
                               horizontal: 10,
                               vertical: 6,
                             ),
-                            child: Text(
-                              widget.ar
-                                  ? '✨ $name انضم إلى اللايف'
-                                  : '✨ $name joined the Live',
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                              ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                CircleAvatar(
+                                  radius: 11,
+                                  backgroundColor: const Color(0xFF244B40),
+                                  foregroundImage: photo.isEmpty
+                                      ? null : NetworkImage(photo),
+                                  child: photo.isEmpty
+                                      ? const Icon(Icons.person_rounded,
+                                          size: 13, color: Colors.white70)
+                                      : null,
+                                ),
+                                const SizedBox(width: 7),
+                                Flexible(
+                                  child: Text(
+                                    widget.ar
+                                        ? '✨ $name انضم إلى اللايف'
+                                        : '✨ $name joined the Live',
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
