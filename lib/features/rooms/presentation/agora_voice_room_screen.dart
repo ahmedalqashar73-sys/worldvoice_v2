@@ -3463,7 +3463,9 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
         child: SizedBox(
           height: MediaQuery.sizeOf(context).height * .75,
           child: UnifiedGiftPanel(
-            contextType: widget.initialMode == RoomMode.live ? 'live' : 'room',
+            // This screen always uses rooms/{channelId}, even in Live mode.
+            // Standalone video Live uses live_sessions/{channelId}.
+            contextType: 'room',
             contextId: widget.channelId,
             recipients: {
               // All participants may receive gifts, including listeners.

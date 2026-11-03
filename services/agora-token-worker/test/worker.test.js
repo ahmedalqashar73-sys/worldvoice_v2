@@ -82,6 +82,21 @@ test("direct-call token permissions require an actual active participant", () =>
   }
 });
 
+test("token Worker declares authenticated direct-call support", async () => {
+  const response = await worker.fetch(
+    new Request("https://test.example/health"),
+    {
+      FIREBASE_PROJECT_ID: "worldvoice-37896",
+      AGORA_APP_ID: "fa41476c6813471eb45c059bcb4a0e19",
+      AGORA_APP_CERTIFICATE: "test-only-placeholder",
+    },
+  );
+  assert.equal(response.status, 200);
+  const payload = await response.json();
+  assert.equal(payload.tokenApiRevision, "2026-11-03.1");
+  assert.equal(payload.directCallTokensSupported, true);
+});
+
 test("health fails closed without the secret certificate", async () => {
   const response = await worker.fetch(new Request("https://test.example/health"), {
     FIREBASE_PROJECT_ID: "worldvoice-37896",

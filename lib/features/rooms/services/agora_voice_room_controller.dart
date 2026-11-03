@@ -508,6 +508,9 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     // current membership and explicit recipient-consent checks.
     final endpoints = <String>[
       if (chatCall && backendEndpoint.isNotEmpty) backendEndpoint,
+      // A legacy Render service may still treat call_ as a voice room.
+      // Only an authenticated, revision-checked Worker can be a fallback.
+      if (chatCall) AgoraConfig.stableTokenEndpoint,
       if (!chatCall && backendFirst && backendEndpoint.isNotEmpty)
         backendEndpoint,
       if (!chatCall) ...AgoraConfig.tokenEndpoints,
@@ -540,6 +543,23 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       if (kReleaseMode && uri.scheme != 'https') continue;
 
       try {
+        if (chatCall && endpoint == AgoraConfig.stableTokenEndpoint) {
+          // An older Worker could mistake call_ for a voice room. It is
+          // unsafe to trust any worker without the direct-call membership
+          // checks advertised by this exact revision.
+          final healthUri = uri.replace(path: '/health', query: null);
+          final health = await http.get(healthUri)
+              .timeout(const Duration(seconds: 8));
+          final payload = health.statusCode == 200
+              ? jsonDecode(health.body) : null;
+          if (payload is! Map<String, dynamic> ||
+              payload['tokenApiRevision'] != '2026-11-03.1' ||
+              payload['directCallTokensSupported'] != true) {
+            throw StateError(
+              'Secure call tokens are not deployed on the Agora Worker.',
+            );
+          }
+        }
         final response = await http
             .post(
               uri,
@@ -599,9 +619,13 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     }
 
     throw StateError(
-      'Agora token service is temporarily unavailable. '
-      'Tried the fast token worker and the WorldVoice backend fallback. '
-      '${lastError ?? ''}',
+      chatCall
+          ? 'Secure private-call tokens are unavailable. '
+              'Check that the current WorldVoice social backend and '
+              'Agora Worker are deployed. ${lastError ?? ''}'
+          : 'Agora token service is temporarily unavailable. '
+              'Tried the fast token worker and the WorldVoice backend fallback. '
+              '${lastError ?? ''}',
     );
   }
 

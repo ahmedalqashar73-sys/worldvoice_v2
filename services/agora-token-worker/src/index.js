@@ -326,8 +326,9 @@ export default {
       return json({
         ok: ready,
         service: "worldvoice-agora-token-worker",
-        tokenApiRevision: "2026-10-31.3",
+        tokenApiRevision: "2026-11-03.1",
         liveHostBootstrapSupported: true,
+        directCallTokensSupported: true,
       }, ready ? 200 : 503);
     }
     if (auxiliaryRoutes.has(url.pathname) &&
