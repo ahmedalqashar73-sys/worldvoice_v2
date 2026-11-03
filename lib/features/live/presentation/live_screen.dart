@@ -4397,7 +4397,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   /// The host can stop capture, never turn another participant's camera on.
   Future<void> _enforceHostBlockedCamera() async {
     if (!_guestPublishing || !_hostCameraBlockedGuest ||
-        _guestMediaBusy || !_controller.cameraPublishing) return;
+        _guestMediaBusy || !_controller.cameraPublishing) {
+      return;
+    }
     setState(() => _guestMediaBusy = true);
     try {
       await _controller.setCameraPublishing(false);
@@ -4411,7 +4413,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
 
   Future<void> _toggleGuestCamera() async {
     if (!_guestPublishing || _guestMediaBusy ||
-        (_hostCameraBlockedGuest && _guestCameraPaused)) return;
+        (_hostCameraBlockedGuest && _guestCameraPaused)) {
+      return;
+    }
     setState(() => _guestMediaBusy = true);
     try {
       await _controller.setCameraPublishing(
