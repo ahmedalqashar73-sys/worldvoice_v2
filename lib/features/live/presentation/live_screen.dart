@@ -2473,6 +2473,49 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                   ),
                                 ),
                                 IconButton(
+                                  key: const ValueKey('live-host-board-toggle'),
+                                  tooltip: widget.ar ? 'السبورة المشتركة' : 'Shared board',
+                                  onPressed: _liveId == null
+                                      ? null : () => setState(() => _boardOpen = !_boardOpen),
+                                  icon: Icon(
+                                    _boardOpen
+                                        ? Icons.dashboard_customize_rounded
+                                        : Icons.draw_outlined,
+                                    color: _boardOpen
+                                        ? const Color(0xFFFFD47F) : Colors.white,
+                                  ),
+                                ),
+                                IconButton(
+                                  key: const ValueKey('live-host-filters'),
+                                  tooltip: widget.ar ? 'الفلاتر' : 'Filters',
+                                  onPressed: _cameraPaused
+                                      ? null
+                                      : () => _showLiveCameraTools(
+                                          context,
+                                          controller: _controller,
+                                          ar: widget.ar,
+                                          beautyEnabled: _beautyEnabled,
+                                          filterPreset: _filterPreset,
+                                          backgroundBlurEnabled:
+                                              _backgroundBlurEnabled,
+                                          zoom: _cameraZoom,
+                                          onBeautyChanged: (value) {
+                                            if (mounted) setState(() => _beautyEnabled = value);
+                                          },
+                                          onFilterPresetChanged: (value) {
+                                            if (mounted) setState(() => _filterPreset = value);
+                                          },
+                                          onBackgroundBlurChanged: (value) {
+                                            if (mounted) setState(() => _backgroundBlurEnabled = value);
+                                          },
+                                          onZoomChanged: (value) {
+                                            if (mounted) setState(() => _cameraZoom = value);
+                                          },
+                                        ),
+                                  icon: const Icon(Icons.auto_fix_high_rounded,
+                                      color: Colors.white),
+                                ),
+                                IconButton(
                                   key: const ValueKey('live-unified-ss-toggle'),
                                   tooltip: widget.ar
                                       ? 'الترجمة والسبتايتلز'
@@ -2562,58 +2605,6 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                         ? Icons.mic_off_rounded
                                         : Icons.mic_rounded,
                                   ),
-                                ),
-                                const SizedBox(width: 4),
-                                IconButton(
-                                  style: IconButton.styleFrom(
-                                    backgroundColor: const Color(0xB3000000),
-                                    foregroundColor: Colors.white,
-                                  ),
-                                  tooltip: widget.ar
-                                      ? 'الفلاتر والكاميرا'
-                                      : 'Filters & camera',
-                                  onPressed: _cameraPaused
-                                      ? null
-                                      : () => _showLiveCameraTools(
-                                          context,
-                                          controller: _controller,
-                                          ar: widget.ar,
-                                          beautyEnabled: _beautyEnabled,
-                                          filterPreset: _filterPreset,
-                                          backgroundBlurEnabled:
-                                              _backgroundBlurEnabled,
-                                          zoom: _cameraZoom,
-                                          onBeautyChanged: (value) {
-                                            if (mounted) {
-                                              setState(
-                                                () => _beautyEnabled = value,
-                                              );
-                                            }
-                                          },
-                                          onFilterPresetChanged: (value) {
-                                            if (mounted) {
-                                              setState(
-                                                () => _filterPreset = value,
-                                              );
-                                            }
-                                          },
-                                          onBackgroundBlurChanged: (value) {
-                                            if (mounted) {
-                                              setState(
-                                                () => _backgroundBlurEnabled =
-                                                    value,
-                                              );
-                                            }
-                                          },
-                                          onZoomChanged: (value) {
-                                            if (mounted) {
-                                              setState(
-                                                () => _cameraZoom = value,
-                                              );
-                                            }
-                                          },
-                                        ),
-                                  icon: const Icon(Icons.auto_fix_high_rounded),
                                 ),
                                 const SizedBox(width: 4),
                                 IconButton(
@@ -4324,6 +4315,18 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                       icon: const Icon(
                                         Icons.card_giftcard_rounded,
                                         color: Color(0xFFFFC857),
+                                      ),
+                                    ),
+                                    IconButton(
+                                      key: const ValueKey('live-viewer-board-toggle'),
+                                      tooltip: widget.ar ? 'السبورة المشتركة' : 'Shared board',
+                                      onPressed: () => setState(() => _boardOpen = !_boardOpen),
+                                      icon: Icon(
+                                        _boardOpen
+                                            ? Icons.dashboard_customize_rounded
+                                            : Icons.draw_outlined,
+                                        color: _boardOpen
+                                            ? const Color(0xFFFFD47F) : Colors.white,
                                       ),
                                     ),
                                     IconButton(
