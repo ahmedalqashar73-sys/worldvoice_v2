@@ -1288,7 +1288,12 @@ class _PrivateMediaBubbleState extends State<_PrivateMediaBubble> {
 
   Future<void> _play() async {
     final file = File(widget.path);
-    if (!await file.exists()) return;
+    if (!await file.exists()) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Voice message is unavailable on this device.')),
+      );
+      return;
+    }
     try {
       if (widget.type == 'video') {
         _video ??= VideoPlayerController.file(file);
@@ -1296,7 +1301,14 @@ class _PrivateMediaBubbleState extends State<_PrivateMediaBubble> {
         await _video!.play();
       }
       if (mounted) setState(() {});
-    } catch (_) {}
+    } catch (_) {
+      if (mounted) {
+        setState(() { _audioLoading = false; _audioPlaying = false; });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not play voice message.')),
+        );
+      }
+    }
   }
 
   @override
@@ -1357,14 +1369,16 @@ class _PrivateMediaBubbleState extends State<_PrivateMediaBubble> {
               widget.type == 'video'
                   ? Icons.play_circle
                   : widget.type == 'audio'
-                  ? Icons.play_arrow
+                  ? (_audioPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled)
                   : Icons.picture_as_pdf_rounded,
               color: const Color(0xFF267453),
             ),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                widget.name.isEmpty ? widget.type : widget.name,
+                widget.type == 'audio'
+                    ? (_audioLoading ? 'Loading voice message…' : 'Voice message')
+                    : (widget.name.isEmpty ? widget.type : widget.name),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
