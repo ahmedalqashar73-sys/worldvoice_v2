@@ -1,7 +1,7 @@
 import {readFile} from 'node:fs/promises';
 import {before, beforeEach, after, test} from 'node:test';
 import {initializeTestEnvironment, assertSucceeds, assertFails} from '@firebase/rules-unit-testing';
-import {doc, setDoc, updateDoc, writeBatch, serverTimestamp, increment, deleteField} from 'firebase/firestore';
+import {doc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp, increment, deleteField} from 'firebase/firestore';
 
 let env;
 const user = uid => env.authenticatedContext(uid).firestore();
@@ -132,6 +132,23 @@ test('only host can eject an active viewer from this live session', async () => 
   batch.set(marker(db), record);
   await assertSucceeds(batch.commit());
   await assertFails(setDoc(marker(user('guest')), record));
+  // Even if a kicked viewer clears their local presence by leaving,
+  // Firestore rules must reject a forged attempt to enter this Live again.
+  await env.withSecurityRulesDisabled(async context => {
+    const trusted = context.firestore();
+    await deleteDoc(doc(trusted, 'live_sessions/live_stage_test/viewers/guest'));
+    await updateDoc(live(trusted), {viewerCount: 0});
+  });
+  const rejectedDb = user('guest');
+  const retry = writeBatch(rejectedDb);
+  retry.set(doc(rejectedDb, 'live_sessions/live_stage_test/viewers/guest'), {
+    uid: 'guest', displayName: 'Guest', photoUrl: '',
+    joinedAt: serverTimestamp(),
+  });
+  retry.update(live(rejectedDb), {
+    viewerCount: increment(1), updatedAt: serverTimestamp(),
+  });
+  await assertFails(retry.commit());
 });
 
 test('host microphone control cannot forge guest identity or stage status', async () => {
