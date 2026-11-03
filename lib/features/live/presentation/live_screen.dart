@@ -2256,111 +2256,74 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                             right: 0,
                             child: IgnorePointer(child: _WorldVoiceLiveBrand()),
                           ),
+                          // The host title is already in the camera tile.
+                          // Keep LIVE stats compact so the pill never
+                          // collides with the camera/microphone controls.
                           PositionedDirectional(
                             top: 53,
                             start: 12,
-                            child:
-                                StreamBuilder<
-                                  DocumentSnapshot<Map<String, dynamic>>
-                                >(
-                                  stream: _liveId == null
-                                      ? null
-                                      : _liveService.watch(_liveId!),
-                                  builder: (context, snapshot) {
-                                    final viewers =
-                                        snapshot.data?.data()?['viewerCount'] ??
-                                        0;
-                                    final user =
-                                        FirebaseAuth.instance.currentUser;
-                                    final photo = user?.photoURL?.trim() ?? '';
-                                    return DecoratedBox(
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xB3000000),
-                                        borderRadius: BorderRadius.circular(
-                                          999,
-                                        ),
+                            child: StreamBuilder<
+                                DocumentSnapshot<Map<String, dynamic>>>(
+                              stream: _liveId == null
+                                  ? null
+                                  : _liveService.watch(_liveId!),
+                              builder: (context, snapshot) {
+                                final viewers =
+                                    snapshot.data?.data()?['viewerCount'] ?? 0;
+                                return Material(
+                                  color: const Color(0xDF072A22),
+                                  shape: const StadiumBorder(
+                                    side: BorderSide(
+                                      color: Color(0x99D9BE7A),
+                                      width: .85,
+                                    ),
+                                  ),
+                                  clipBehavior: Clip.antiAlias,
+                                  child: InkWell(
+                                    onTap: _liveId == null
+                                        ? null
+                                        : () => unawaited(_showAudience()),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 10,
                                       ),
-                                      child: Padding(
-                                        padding:
-                                            const EdgeInsetsDirectional.fromSTEB(
-                                              6,
-                                              5,
-                                              10,
-                                              5,
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Text(
+                                            '● LIVE',
+                                            style: TextStyle(
+                                              color: Color(0xFFFF626A),
+                                              fontWeight: FontWeight.w900,
                                             ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            CircleAvatar(
-                                              radius: 14,
-                                              backgroundImage: photo.isEmpty
-                                                  ? null
-                                                  : NetworkImage(photo),
-                                              child: photo.isEmpty
-                                                  ? const Icon(
-                                                      Icons.person_rounded,
-                                                      size: 15,
-                                                    )
-                                                  : null,
+                                          ),
+                                          const SizedBox(width: 7),
+                                          const Icon(Icons.visibility_rounded,
+                                              size: 16, color: Colors.white70),
+                                          const SizedBox(width: 3),
+                                          Text(
+                                            '$viewers',
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w700,
                                             ),
-                                            const SizedBox(width: 7),
-                                            ConstrainedBox(
-                                              constraints: const BoxConstraints(
-                                                maxWidth: 120,
-                                              ),
-                                              child: Text(
-                                                user?.displayName ??
-                                                    (widget.ar
-                                                        ? 'المضيف'
-                                                        : 'Host'),
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.w800,
-                                                ),
-                                              ),
+                                          ),
+                                          const SizedBox(width: 9),
+                                          Text(
+                                            '${tiles.length}/4',
+                                            style: const TextStyle(
+                                              color: Color(0xFFE7D5A3),
+                                              fontWeight: FontWeight.w700,
                                             ),
-                                            const SizedBox(width: 8),
-                                            if (_liveId != null) ...[
-                                              _LiveViewerFaces(
-                                                service: _liveService,
-                                                liveId: _liveId!,
-                                                onViewerTap:
-                                                    (userId, name, photo) =>
-                                                        unawaited(_showAudiencePerson(
-                                                          userId, name, photo,
-                                                        )),
-                                              ),
-                                              const SizedBox(width: 6),
-                                            ],
-                                            Tooltip(
-                                              message: widget.ar
-                                                  ? 'عرض جميع المشاهدين'
-                                                  : 'Show all viewers',
-                                              child: InkWell(
-                                                onTap: () => unawaited(_showAudience()),
-                                                borderRadius: BorderRadius.circular(12),
-                                                child: Padding(
-                                                  padding: const EdgeInsets.symmetric(
-                                                    vertical: 5, horizontal: 3,
-                                                  ),
-                                                  child: Text(
-                                                    'LIVE • $viewers 👁 • ${tiles.length}/4',
-                                                    style: const TextStyle(
-                                                      color: Colors.redAccent,
-                                                      fontWeight: FontWeight.w900,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+                                          ),
+                                        ],
                                       ),
-                                    );
-                                  },
-                                ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
                           ),
                           PositionedDirectional(
                             // Keep the approved dock attached to the
