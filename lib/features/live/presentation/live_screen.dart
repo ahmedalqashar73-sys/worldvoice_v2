@@ -1136,6 +1136,32 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                 unawaited(_toggleGuestStageMicrophone(guest));
               },
             ),
+
+            ListTile(
+              key: const ValueKey('live-host-guest-camera-block'),
+              leading: Icon(
+                guest.hostCameraBlocked
+                    ? Icons.videocam_rounded
+                    : Icons.videocam_off_rounded,
+                color: const Color(0xFFE2C2FF),
+              ),
+              title: Text(
+                guest.hostCameraBlocked
+                    ? (widget.ar ? 'السماح للضيف بتشغيل الكاميرا' : 'Allow guest camera')
+                    : (widget.ar ? 'إيقاف كاميرا الضيف' : 'Turn guest camera off'),
+                style: const TextStyle(color: Colors.white),
+              ),
+              subtitle: Text(
+                widget.ar
+                    ? 'الضيف وحده يستطيع تشغيل كاميرته بعد السماح.'
+                    : 'Only the guest can turn the camera back on.',
+                style: const TextStyle(color: Colors.white60, fontSize: 12),
+              ),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                unawaited(_toggleGuestStageCamera(guest));
+              },
+            ),
             ListTile(
               leading: const Icon(Icons.arrow_downward_rounded,
                   color: Color(0xFFF1CE86)),
@@ -1182,6 +1208,33 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
         ),
       ),
     );
+  }
+
+  Future<void> _toggleGuestStageCamera(LiveStageParticipant guest) async {
+    final liveId = _liveId;
+    if (liveId == null) return;
+    try {
+      await _liveService.setGuestCameraBlocked(
+        liveId: liveId,
+        guestUserId: guest.userId,
+        blocked: !guest.hostCameraBlocked,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(guest.hostCameraBlocked
+            ? (widget.ar
+                ? 'يمكن للضيف تشغيل كاميرته بنفسه الآن.'
+                : 'The guest may turn their own camera on.')
+            : (widget.ar
+                ? 'تم إرسال أمر إيقاف الكاميرا للضيف.'
+                : 'The guest camera has been blocked.'))),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
+    }
   }
 
   Future<void> _toggleGuestStageMicrophone(
@@ -1756,7 +1809,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
       },
       child: Scaffold(
         resizeToAvoidBottomInset: false,
-        backgroundColor: const Color(0xFF0B241D),
+        backgroundColor: const Color(0xFF211943),
         body: SafeArea(
           child: Stack(
             fit: StackFit.expand,
@@ -2145,7 +2198,8 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                              microphoneMuted: _stageUsers[remote[i]]?.hostMuted ?? false,
                              activeSpeaker: _controller.activeSpeakerUid == remote[i],
                              compact: _boardOpen,
-                             cameraOff: _controller.remoteCameraPaused(remote[i]),
+                             cameraOff: _stageUsers[remote[i]]?.hostCameraBlocked == true ||
+                               _controller.remoteCameraPaused(remote[i]),
                              video: _controller.remoteCameraPaused(remote[i])
                                  ? const SizedBox.shrink()
                                  : AgoraVideoView(
@@ -2162,21 +2216,17 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                       return Stack(
                         fit: StackFit.expand,
                         children: [
-                          // The approved original design: spacious portrait
-                          // solo camera or two equal side-by-side portrait feeds.
-                          if (!_boardOpen && tiles.length <= 2)
-                            PositionedDirectional(
-                              top: 106,
-                              bottom: 94,
-                              start: 12,
-                              end: 12,
+                          // Solo stays full-bleed. With guests the camera
+                          // mosaic sits over a dedicated readable chat region.
+                          if (!_boardOpen && tiles.length == 1)
+                            Positioned.fill(
                               child: WorldVoiceLiveVideoGrid(children: tiles),
                             )
                           else
                             PositionedDirectional(
-                              top: 106,
-                              start: 12,
-                              end: 12,
+                              top: _boardOpen ? 106 : 96,
+                              start: _boardOpen ? 12 : 0,
+                              end: _boardOpen ? 12 : 0,
                               height: _liveStageHeight(context, tiles.length,
                                   boardOpen: _boardOpen),
                               child: WorldVoiceLiveVideoGrid(
@@ -2259,7 +2309,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                 final viewers =
                                     snapshot.data?.data()?['viewerCount'] ?? 0;
                                 return Material(
-                                  color: const Color(0xDF072A22),
+                                  color: const Color(0xE5201939),
                                   shape: const StadiumBorder(
                                     side: BorderSide(
                                       color: Color(0x99D9BE7A),
@@ -2614,7 +2664,7 @@ class _LiveInlineComposerState extends State<_LiveInlineComposer> {
           hintText: widget.ar ? 'تعليق...' : 'Comment...',
           hintStyle: const TextStyle(color: Colors.white54),
           filled: true,
-          fillColor: const Color(0xB50B1511),
+          fillColor: const Color(0xBB19152E),
           isDense: true,
           contentPadding: const EdgeInsetsDirectional.fromSTEB(14, 11, 4, 11),
           suffixIcon: IconButton(
@@ -2706,15 +2756,15 @@ class _LiveControlDock extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xF007231B),
-            Color(0xF00D3B2D),
-            Color(0xF008241E),
+            Color(0xF6211839),
+            Color(0xF62C2058),
+            Color(0xF61A1832),
           ],
         ),
         borderRadius: BorderRadius.circular(28),
         border: Border.all(
-          color: const Color(0xBFC9AA6C),
-          width: 1.05,
+          color: const Color(0x908C70DB),
+          width: .85,
         ),
         boxShadow: const [
           BoxShadow(
@@ -2722,7 +2772,7 @@ class _LiveControlDock extends StatelessWidget {
             offset: Offset(0, 9),
             color: Color(0x53000000),
           ),
-          BoxShadow(color: Color(0x1ADAB56C), blurRadius: 14),
+          BoxShadow(color: Color(0x2D7B59CB), blurRadius: 14),
         ],
       ),
       child: Padding(
@@ -2810,6 +2860,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
   bool _guestPublishing = false;
   bool _guestMicMuted = false;
   bool _hostMutedGuest = false;
+  bool _hostCameraBlockedGuest = false;
   bool _guestCameraPaused = false;
   bool _guestMediaBusy = false;
   bool _guestStarting = false;
@@ -3696,6 +3747,17 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                 }
               });
             }
+            final cameraBlocked =
+                status == 'accepted' && requestData['hostCameraBlocked'] == true;
+            if (cameraBlocked != _hostCameraBlockedGuest) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!mounted || _hostCameraBlockedGuest == cameraBlocked) return;
+                setState(() => _hostCameraBlockedGuest = cameraBlocked);
+                if (cameraBlocked) {
+                  unawaited(_enforceHostBlockedCamera());
+                }
+              });
+            }
             if (status == 'invited') {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (mounted) unawaited(_showLiveInvitePrompt(requestData));
@@ -3724,7 +3786,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
             }
             return Scaffold(
               resizeToAvoidBottomInset: false,
-              backgroundColor: const Color(0xFF0B241D),
+              backgroundColor: const Color(0xFF211943),
               body: SafeArea(
                 child: _minimized
                     ? const ColoredBox(color: Color(0xFF071812))
@@ -3830,6 +3892,13 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                  photoUrl: FirebaseAuth.instance.currentUser
                                          ?.photoURL ?? '',
                                  cameraOff: _guestCameraPaused,
+                                 onSelfCamera: _guestMediaBusy ||
+                                     (_hostCameraBlockedGuest && _guestCameraPaused)
+                                     ? null : () => unawaited(_toggleGuestCamera()),
+                                 onSelfMicrophone: _guestMediaBusy || _hostMutedGuest
+                                     ? null : () => unawaited(_toggleGuestMicrophone()),
+                                 onLeaveStage: _guestMediaBusy
+                                     ? null : () => unawaited(_leaveGuestCamera()),
                                  video: _guestCameraPaused
                                      ? const SizedBox.shrink()
                                      : _PinchZoomCameraView(
@@ -3874,9 +3943,8 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                      compact: _boardOpen,
                                      activeSpeaker: _controller.activeSpeakerUid ==
                                          orderedRemote[i],
-                                     cameraOff: _controller.remoteCameraPaused(
-                                       orderedRemote[i],
-                                     ),
+                                     cameraOff: _stageUsers[orderedRemote[i]]?.hostCameraBlocked == true ||
+                                         _controller.remoteCameraPaused(orderedRemote[i]),
                                      video: _controller.remoteCameraPaused(
                                        orderedRemote[i],
                                      )
@@ -3898,19 +3966,15 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                             fit: StackFit.expand,
                             children: [
                               if (tiles.isNotEmpty &&
-                                  tiles.length <= 2 && !_boardOpen)
-                                PositionedDirectional(
-                                  top: 106,
-                                  bottom: 94,
-                                  start: 12,
-                                  end: 12,
+                                  tiles.length == 1 && !_boardOpen)
+                                Positioned.fill(
                                   child: WorldVoiceLiveVideoGrid(children: tiles),
                                 )
                               else if (tiles.isNotEmpty)
                                 PositionedDirectional(
-                                  top: 106,
-                                  start: 12,
-                                  end: 12,
+                                  top: _boardOpen ? 106 : 96,
+                                  start: _boardOpen ? 12 : 0,
+                                  end: _boardOpen ? 12 : 0,
                                   height: _liveStageHeight(
                                     context, tiles.length,
                                     boardOpen: _boardOpen,
@@ -4224,7 +4288,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                             : (widget.ar
                                                   ? 'إيقاف الكاميرا'
                                                   : 'Turn camera off'),
-                                        onPressed: _guestMediaBusy
+                                        onPressed: _guestMediaBusy ||
+                                                (_hostCameraBlockedGuest &&
+                                                    _guestCameraPaused)
                                             ? null
                                             : _toggleGuestCamera,
                                         icon: Icon(
@@ -4328,11 +4394,29 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
     );
   }
 
-  Future<void> _toggleGuestCamera() async {
-    if (!_guestPublishing || _guestMediaBusy) return;
+  /// The host can stop capture, never turn another participant's camera on.
+  Future<void> _enforceHostBlockedCamera() async {
+    if (!_guestPublishing || !_hostCameraBlockedGuest ||
+        _guestMediaBusy || !_controller.cameraPublishing) return;
     setState(() => _guestMediaBusy = true);
     try {
-      await _controller.setCameraPublishing(_guestCameraPaused);
+      await _controller.setCameraPublishing(false);
+      if (mounted) setState(() => _guestCameraPaused = true);
+    } catch (error) {
+      _showGuestMediaError(error);
+    } finally {
+      if (mounted) setState(() => _guestMediaBusy = false);
+    }
+  }
+
+  Future<void> _toggleGuestCamera() async {
+    if (!_guestPublishing || _guestMediaBusy ||
+        (_hostCameraBlockedGuest && _guestCameraPaused)) return;
+    setState(() => _guestMediaBusy = true);
+    try {
+      await _controller.setCameraPublishing(
+        _guestCameraPaused && !_hostCameraBlockedGuest,
+      );
       if (mounted) {
         setState(() => _guestCameraPaused = !_controller.cameraPublishing);
       }
@@ -4343,6 +4427,9 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
         setState(() => _guestMediaBusy = false);
         if (_hostMutedGuest && !_controller.muted) {
           unawaited(_enforceHostMutedMicrophone());
+        }
+        if (_hostCameraBlockedGuest && _controller.cameraPublishing) {
+          unawaited(_enforceHostBlockedCamera());
         }
       }
     }
@@ -4484,16 +4571,17 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
           _controller.error ?? 'Could not receive broadcaster permission.',
         );
       }
-      await _controller.setCameraPublishing(true);
+      await _controller.setCameraPublishing(!_hostCameraBlockedGuest);
       _startGuestQuotaTimer();
       if (mounted) {
         setState(() {
           _guestPublishing = true;
-          _guestCameraPaused = false;
+          _guestCameraPaused = _hostCameraBlockedGuest;
           _guestMicMuted = _controller.muted;
         });
       }
       if (_hostMutedGuest) unawaited(_enforceHostMutedMicrophone());
+      if (_hostCameraBlockedGuest) unawaited(_enforceHostBlockedCamera());
     } catch (error) {
       _guestPublishing = false;
       await _controller.setCameraPublishing(false).catchError((Object _) {});
@@ -4531,6 +4619,9 @@ class _LiveParticipantCameraTile extends StatelessWidget {
     this.compact = false,
     this.onOpenProfile,
     this.onManageGuest,
+    this.onSelfCamera,
+    this.onSelfMicrophone,
+    this.onLeaveStage,
   });
 
   final bool ar;
@@ -4543,6 +4634,9 @@ class _LiveParticipantCameraTile extends StatelessWidget {
   final bool compact;
   final VoidCallback? onOpenProfile;
   final VoidCallback? onManageGuest;
+  final VoidCallback? onSelfCamera;
+  final VoidCallback? onSelfMicrophone;
+  final VoidCallback? onLeaveStage;
   final Widget video;
 
   @override
@@ -4621,6 +4715,53 @@ class _LiveParticipantCameraTile extends StatelessWidget {
                     ],
                   ),
                 ),
+              ),
+            ),
+          ),
+
+        if (!compact && (onSelfCamera != null ||
+            onSelfMicrophone != null || onLeaveStage != null))
+          PositionedDirectional(
+            top: 9,
+            end: 9,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: const Color(0xDD201835),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (onSelfMicrophone != null)
+                    IconButton(
+                      key: const ValueKey('live-self-mic'),
+                      tooltip: ar ? 'المايك الخاص بي' : 'My microphone',
+                      visualDensity: VisualDensity.compact,
+                      onPressed: onSelfMicrophone,
+                      icon: Icon(microphoneMuted
+                          ? Icons.mic_off_rounded : Icons.mic_rounded,
+                          color: Colors.white, size: 19),
+                    ),
+                  if (onSelfCamera != null)
+                    IconButton(
+                      key: const ValueKey('live-self-camera'),
+                      tooltip: ar ? 'الكاميرا الخاصة بي' : 'My camera',
+                      visualDensity: VisualDensity.compact,
+                      onPressed: onSelfCamera,
+                      icon: Icon(cameraOff
+                          ? Icons.videocam_off_rounded : Icons.videocam_rounded,
+                          color: Colors.white, size: 19),
+                    ),
+                  if (onLeaveStage != null)
+                    IconButton(
+                      key: const ValueKey('live-self-leave-stage'),
+                      tooltip: ar ? 'خارج المسرح' : 'Leave stage',
+                      visualDensity: VisualDensity.compact,
+                      onPressed: onLeaveStage,
+                      icon: const Icon(Icons.arrow_downward_rounded,
+                        color: Color(0xFFFFCF98), size: 19),
+                    ),
+                ],
               ),
             ),
           ),
@@ -7401,11 +7542,11 @@ double _liveStageHeight(BuildContext context, int count, {
   final viewport = MediaQuery.sizeOf(context);
   if (boardOpen) return (viewport.height * .13).clamp(66.0, 100.0);
   final safeHeight = viewport.height - MediaQuery.paddingOf(context).vertical;
-  // Header 106; 3–4 camera mosaic; 86 bottom dock plus room for chat.
-  // Solo/duo instead occupy the full area between header and dock.
-  final available = (safeHeight - 106 - 190).clamp(120.0, safeHeight);
-  final target = safeHeight * .60;
-  return target.clamp(120.0, available);
+  // Reserve the lower half for chat when two or more speakers are live.
+  // The solo layout is full-bleed instead of using this calculation.
+  final available = (safeHeight - 96 - 178).clamp(140.0, safeHeight);
+  final target = safeHeight * (count <= 2 ? .45 : .43);
+  return target.clamp(140.0, available);
 }
 
 double _liveBoardHeight(BuildContext context) {
@@ -7419,9 +7560,9 @@ double _liveChatTop(BuildContext context, int count, {
   final height = MediaQuery.sizeOf(context).height;
   final preferred = boardOpen
       ? 218 + _liveBoardHeight(context) + 12
-      : count <= 2
-          ? height * .69
-          : 106 + _liveStageHeight(context, count) + 12;
+      : count <= 1
+          ? height * .58
+          : 96 + _liveStageHeight(context, count) + 10;
   return preferred.clamp(145.0, (height - 150).clamp(145.0, height));
 }
 
@@ -7436,20 +7577,19 @@ class WorldVoiceLiveVideoGrid extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF174F3C), Color(0xFF102F27)],
+          colors: [Color(0xFF22203A), Color(0xFF141126)],
         ),
-        borderRadius: BorderRadius.circular(21),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: const Color(0xFFE2C784).withValues(alpha: .87),
-          width: 1.15,
+          color: const Color(0xFF8C79C5).withValues(alpha: .4),
+          width: .8,
         ),
         boxShadow: const [
-          BoxShadow(color: Color(0x3326C78D), blurRadius: 12),
-          BoxShadow(color: Color(0x22D7B66B), blurRadius: 6),
+          BoxShadow(color: Color(0x332A1C52), blurRadius: 9),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(9),
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -7461,9 +7601,9 @@ class WorldVoiceLiveVideoGrid extends StatelessWidget {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Color(0x1511B579),
-                      Color(0x000C553C),
-                      Color(0x6605251C),
+                      Color(0x160C0B19),
+                      Color(0x000C0B19),
+                      Color(0x880D0B1A),
                     ],
                     stops: [0, .62, 1],
                   ),
@@ -7514,7 +7654,7 @@ class WorldVoiceLiveVideoGrid extends StatelessWidget {
     }
 
     if (items.length == 1) {
-      return SizedBox.expand(child: _tile(items.first));
+      return SizedBox.expand(child: items.first);
     }
 
     if (items.length == 2) {
@@ -7530,22 +7670,22 @@ class WorldVoiceLiveVideoGrid extends StatelessWidget {
     }
 
     if (items.length == 3) {
-      // Host-first panel: large host to the left, two guests to the
-      // right. No blank placeholder, unlike the old centered bottom tile.
+      // The reference three-person Live: host on the tall right panel,
+      // with two independent guest cameras stacked on the left.
       return Row(
         children: [
-          Expanded(flex: 11, child: _tile(items[0])),
-          const SizedBox(width: 5),
           Expanded(
             flex: 9,
             child: Column(
               children: [
                 Expanded(child: _tile(items[1])),
-                const SizedBox(height: 5),
+                const SizedBox(height: 3),
                 Expanded(child: _tile(items[2])),
               ],
             ),
           ),
+          const SizedBox(width: 3),
+          Expanded(flex: 11, child: _tile(items[0])),
         ],
       );
     }
