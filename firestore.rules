@@ -1006,6 +1006,11 @@ service cloud.firestore {
         allow create: if signedIn()
             && userId == request.auth.uid
             && request.resource.data.uid == request.auth.uid
+            // A removed viewer cannot create their presence document again
+            // in this broadcast, even when using a different client.
+            && !exists(
+              /databases/$(database)/documents/live_sessions/$(liveId)/removed_viewers/$(userId)
+            )
             && get(/databases/$(database)/documents/live_sessions/$(liveId))
                 .data.isLive == true
             && getAfter(
