@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 
 import '../../profile/data/profile_language_catalog.dart';
 import '../../profile/presentation/public_profile_screen.dart';
+import '../../profile/presentation/world_bond_screen.dart';
+import '../../rooms/presentation/room_world_bond_section.dart';
 import '../../profile/services/profile_social_service.dart';
 import '../services/live_session_service.dart';
 
@@ -57,7 +59,7 @@ Future<void> showLiveAudienceSheet({
     isScrollControlled: true,
     useSafeArea: true,
     showDragHandle: true,
-    backgroundColor: const Color(0xFF0D3025),
+    backgroundColor: const Color(0xFF16121F),
     builder: (sheetContext) => FractionallySizedBox(
       heightFactor: .76,
       child: Column(
@@ -185,7 +187,7 @@ Future<void> showLiveAudiencePersonCard({
     isScrollControlled: true,
     useSafeArea: true,
     showDragHandle: true,
-    backgroundColor: const Color(0xFF0D3025),
+    backgroundColor: const Color(0xFF16121F),
     builder: (_) => _AudiencePersonCard(
       userId: userId,
       ar: ar,
@@ -363,6 +365,25 @@ class _AudiencePersonCardState extends State<_AudiencePersonCard> {
                   languages.learning.isEmpty
                       ? '—' : languages.learning.join(' • '),
                 ),
+                // Reuse the existing, fully connected room relationship
+                // component. Live does not define any duplicate WorldBond
+                // cards, gift payments, or relationship endpoints.
+                const SizedBox(height: 14),
+                RoomWorldBondSection(
+                  key: const ValueKey('live-room-worldbond-link'),
+                  userId: widget.userId,
+                  isSelf: _isSelf,
+                  isArabic: widget.ar,
+                  onOpen: (kind) => Navigator.of(context).push<void>(
+                    MaterialPageRoute<void>(
+                      builder: (_) => WorldBondScreen(
+                        peerId: _isSelf ? null : widget.userId,
+                        peerName: name,
+                        focusType: kind,
+                      ),
+                    ),
+                  ),
+                ),
                 if (snapshot.hasError)
                   Padding(
                     padding: const EdgeInsets.only(top: 8),
@@ -433,7 +454,7 @@ class _AudiencePersonCardState extends State<_AudiencePersonCard> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFF14533E),
+        color: const Color(0xFF292238),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(

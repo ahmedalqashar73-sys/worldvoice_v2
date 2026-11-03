@@ -1068,22 +1068,19 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
     required String displayName,
   }) {
     final liveId = _liveId;
-    if (liveId == null || userId.isEmpty) return;
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => PublicProfileScreen(
-          userId: userId,
-          languageCode: Localizations.localeOf(
-            context,
-          ).languageCode.toLowerCase(),
-          onInviteToStage: () =>
-              _liveService.inviteViewer(liveId: liveId, userId: userId),
-          inviteToStageLabel: widget.ar
-              ? 'دعوة للكاميرا'
-              : 'Invite to Live stage',
-        ),
+    if (!mounted || liveId == null || userId.isEmpty) return;
+    // Keep the camera running: the same room-style person card is an
+    // overlay, not a navigation to an entirely separate profile route.
+    unawaited(showLiveAudiencePersonCard(
+      context: context,
+      userId: userId,
+      fallbackName: displayName,
+      ar: widget.ar,
+      onInviteToStage: (targetId) => _liveService.inviteViewer(
+        liveId: liveId,
+        userId: targetId,
       ),
-    );
+    ));
   }
 
   Future<void> _showGuestStageActions(LiveStageParticipant guest) async {
@@ -2100,6 +2097,14 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                                _controller.activeSpeakerUid == _controller.localUid &&
                                _controller.activeSpeakerUid != null,
                            photoUrl: hostPhoto,
+                           onOpenProfile: FirebaseAuth.instance.currentUser?.uid == null
+                               ? null
+                               : () => _openViewerProfile(
+                                   userId: FirebaseAuth.instance.currentUser!.uid,
+                                   displayName: hostName.trim().isEmpty
+                                       ? (widget.ar ? 'المضيف' : 'Host')
+                                       : hostName,
+                                 ),
                            video: _cameraPaused
                                ? const SizedBox.shrink()
                                : _PinchZoomCameraView(
@@ -3014,26 +3019,19 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
     required String userId,
     required String displayName,
   }) {
-    if (userId.isEmpty) return;
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => PublicProfileScreen(
-          userId: userId,
-          languageCode: Localizations.localeOf(
-            context,
-          ).languageCode.toLowerCase(),
-          onInviteToStage: !_isModerator
-              ? null
-              : () => _service.inviteViewer(
-                  liveId: widget.liveId,
-                  userId: userId,
-                ),
-          inviteToStageLabel: widget.ar
-              ? 'دعوة للكاميرا'
-              : 'Invite to Live stage',
-        ),
-      ),
-    );
+    if (!mounted || userId.isEmpty) return;
+    unawaited(showLiveAudiencePersonCard(
+      context: context,
+      userId: userId,
+      fallbackName: displayName,
+      ar: widget.ar,
+      onInviteToStage: _isModerator
+          ? (targetId) => _service.inviteViewer(
+              liveId: widget.liveId,
+              userId: targetId,
+            )
+          : null,
+    ));
   }
 
   Future<void> _showLiveInvitePrompt(Map<String, dynamic> requestData) async {
