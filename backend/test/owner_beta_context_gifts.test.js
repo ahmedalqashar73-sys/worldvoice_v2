@@ -67,9 +67,11 @@ test("owner beta status is server-gated and does not trust client build flags", 
   let check;
   // The readiness endpoint must read only the authenticated owner's wallet.
   const wallet = {exists: true, data: () => ({coins: 9825, adminCoins: 9825})};
-  const db = {collection: () => ({doc: () => ({
+  const ownerDoc = {
+    parent: {id: "users"},
     collection: () => ({doc: () => ({get: async () => wallet})}),
-  })})};
+  };
+  const db = {collection: () => ({doc: () => ownerDoc})};
   registerOwnerBetaContextGiftRoutes({
     app: {get: (_path, cb) => {check = cb;}, post: () => {}},
     db, validChannelName: () => true,
