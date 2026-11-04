@@ -5,7 +5,7 @@ enum StoryLibraryAnimation { slowZoom, panLeft, panRight, fadeIn }
 
 Map<String, dynamic> _asObject(Object? value, String path) {
   if (value is! Map<String, dynamic>) {
-    throw FormatException(path + ' must be a JSON object.');
+    throw FormatException('$path must be a JSON object.');
   }
   return value;
 }
@@ -13,7 +13,7 @@ Map<String, dynamic> _asObject(Object? value, String path) {
 String _requiredText(Map<String, dynamic> json, String key) {
   final value = json[key];
   if (value is! String || value.trim().isEmpty) {
-    throw FormatException(key + ' must be a non-empty string.');
+    throw FormatException('$key must be a non-empty string.');
   }
   return value.trim();
 }
@@ -22,7 +22,7 @@ String? _optionalText(Map<String, dynamic> json, String key) {
   final value = json[key];
   if (value == null) return null;
   if (value is! String) {
-    throw FormatException(key + ' must be a string when supplied.');
+    throw FormatException('$key must be a string when supplied.');
   }
   return value.trim().isEmpty ? null : value.trim();
 }
@@ -34,11 +34,11 @@ List<T> _readObjects<T>(
 ) {
   final source = json[key];
   if (source is! List) {
-    throw FormatException(key + ' must be a JSON array.');
+    throw FormatException('$key must be a JSON array.');
   }
   return List<T>.unmodifiable(
     source.asMap().entries.map(
-      (entry) => read(_asObject(entry.value, key + '[' + entry.key.toString() + ']')),
+      (entry) => read(_asObject(entry.value, '$key[${entry.key}]')),
     ),
   );
 }
@@ -65,7 +65,7 @@ class StoryLibraryLine {
       'FEMALE' => StoryLibrarySpeaker.female,
       'MALE' => StoryLibrarySpeaker.male,
       'NARRATOR' => StoryLibrarySpeaker.narrator,
-      _ => throw FormatException('Unsupported speaker: ' + label),
+      _ => throw FormatException('Unsupported speaker: $label'),
     };
     return StoryLibraryLine(
       speaker: speaker,
@@ -109,7 +109,7 @@ class StoryLibraryPage {
       'pan_left' => StoryLibraryAnimation.panLeft,
       'pan_right' => StoryLibraryAnimation.panRight,
       'fade_in' => StoryLibraryAnimation.fadeIn,
-      _ => throw FormatException('Unknown animation: ' + animationName),
+      _ => throw FormatException('Unknown animation: $animationName'),
     };
     return StoryLibraryPage(
       page: number,
@@ -215,7 +215,7 @@ class StoryLibraryBook {
   }) {
     final id = _requiredText(json, 'id');
     if (!RegExp(r'^[a-z0-9]+(?:_[a-z0-9]+)*$').hasMatch(id)) {
-      throw FormatException('Invalid story id: ' + id);
+      throw FormatException('Invalid story id: $id');
     }
     final rawCharacters = _asObject(json['character_sheet'], 'character_sheet');
     final characters = <String, String>{};
@@ -287,12 +287,12 @@ class StoryLibraryEntry {
     final language = _requiredText(json, 'language');
     final level = _requiredText(json, 'level');
     final asset = _requiredText(json, 'asset');
-    final prefix = 'assets/stories/' + language + '/' + level + '/';
+    final prefix = 'assets/stories/$language/$level/';
     if (!RegExp(r'^[a-z]{2,3}$').hasMatch(language) ||
         !levels.contains(level) ||
         !RegExp(r'^[a-z0-9]+(?:_[a-z0-9]+)*$').hasMatch(id) ||
         !asset.startsWith(prefix) ||
-        asset != prefix + id + '.json') {
+        asset != '$prefix$id.json') {
       throw const FormatException('Invalid story index entry.');
     }
     return StoryLibraryEntry(
