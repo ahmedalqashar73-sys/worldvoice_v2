@@ -2,6 +2,7 @@ import '../../engagement/services/engagement_service.dart';
 import '../../profile/presentation/member_badges.dart';
 import '../../profile/presentation/owned_collection_screen.dart';
 import 'dart:math';
+import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -51,6 +52,24 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
             .collection('inventory')
             .doc('gift__wv_gift_001')
             .snapshots();
+  bool _ownerBetaAvailable = false;
+  bool _ownerBetaChecking = true;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_refreshOwnerBetaStatus());
+  }
+
+  Future<void> _refreshOwnerBetaStatus() async {
+    final available = await RoomFeatureService.ownerBetaGiftAvailable();
+    if (!mounted) return;
+    setState(() {
+      _ownerBetaAvailable = available;
+      _ownerBetaChecking = false;
+    });
+  }
+
   String? _recipient;
   RoomGiftCatalogItem? _gift;
   int _giftCategory = 0; // 1-150, 151-1000, 1001-5000
@@ -515,7 +534,7 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                     // Owner beta spending is distinct from the unreleased
                     // real-money economy. The backend verifies the owner.
                     final ownerBetaReady =
-                        RoomFeatureService.ownerBetaChatGiftsEnabled &&
+                        _ownerBetaAvailable &&
                         const {'chat', 'room', 'live'}
                             .contains(widget.contextType) &&
                         walletReady &&
@@ -656,8 +675,8 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                             child: Text(
                               ownerBetaReady
                                   ? (ar
-                                        ? 'وضع اختبار المالك: يمكنك إرسال هدية داخل الدردشة من الكوينز الإدارية، دون منح ألماس قابل للسحب.'
-                                        : 'Owner beta mode: chat gifts spend admin coins only; no redeemable diamonds.')
+                                        ? 'وضع اختبار المالك: إرسال هدية من الكوينز الإدارية فقط، بدون ألماس قابل للسحب.'
+                                        : 'Owner test gift: administrative coins only, with no redeemable diamonds.')
                                   : policySnapshot.hasError
                                       ? (ar
                                         ? 'تعذر تحميل إعدادات اقتصاد الهدايا من Firebase.'
@@ -670,6 +689,27 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                                             ? 'إرسال الهدايا متوقف حتى تكتمل تهيئة وأمان المحفظة.'
                                             : 'Gift sending requires verified private-wallet setup.'),
                               textAlign: TextAlign.center,
+                            ),
+                          ),
+                        if (!ready && administrativeCoins > 0)
+                          TextButton.icon(
+                            onPressed: _ownerBetaChecking
+                                ? null
+                                : () {
+                                    setState(() => _ownerBetaChecking = true);
+                                    unawaited(_refreshOwnerBetaStatus());
+                                  },
+                            icon: _ownerBetaChecking
+                                ? const SizedBox(
+                                    width: 16, height: 16,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  )
+                                : const Icon(Icons.verified_user_outlined),
+                            label: Text(
+                              _ownerBetaAvailable
+                                  ? (ar ? 'وضع هدايا المالك جاهز' : 'Owner test mode available')
+                                  : (ar ? 'فحص صلاحية إرسال هدايا الاختبار'
+                                      : 'Check test gift permission'),
                             ),
                           ),
                         SizedBox(
