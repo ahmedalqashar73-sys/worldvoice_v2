@@ -35,6 +35,17 @@ export function validateBetaContextMembership({
 export function registerOwnerBetaContextGiftRoutes({
   app, db, authenticatedUser, isVerifiedOwner, validChannelName,
 }) {
+  // Authenticated status; only the server can grant beta gift eligibility.
+  app.get("/gift/owner-beta/status", async (req, res, next) => {
+    try {
+      const user = await authenticatedUser(req);
+      const verified = await isVerifiedOwner(user);
+      res.set("Cache-Control", "no-store");
+      return res.json({ok: true,
+        available: verified &&
+          process.env.WORLDVOICE_OWNER_BETA_GIFTS_ENABLED === "true"});
+    } catch (error) { next(error); }
+  });
   app.post("/gift/owner-beta-context", async (req, res, next) => {
     try {
       if (process.env.WORLDVOICE_OWNER_BETA_GIFTS_ENABLED !== "true") {
