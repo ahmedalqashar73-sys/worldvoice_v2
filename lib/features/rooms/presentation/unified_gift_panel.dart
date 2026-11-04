@@ -54,6 +54,7 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
             .snapshots();
   bool _ownerBetaAvailable = false;
   bool _ownerBetaChecking = true;
+  String _ownerBetaReason = 'CHECKING';
 
   @override
   void initState() {
@@ -62,10 +63,11 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
   }
 
   Future<void> _refreshOwnerBetaStatus() async {
-    final available = await RoomFeatureService.ownerBetaGiftAvailable();
+    final status = await RoomFeatureService.ownerBetaGiftReadiness();
     if (!mounted) return;
     setState(() {
-      _ownerBetaAvailable = available;
+      _ownerBetaAvailable = status.available;
+      _ownerBetaReason = status.reason;
       _ownerBetaChecking = false;
     });
   }
@@ -677,21 +679,50 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                                   ? (ar
                                         ? 'وضع اختبار المالك: إرسال هدية من الكوينز الإدارية فقط، بدون ألماس قابل للسحب.'
                                         : 'Owner test gift: administrative coins only, with no redeemable diamonds.')
+                                  : _ownerBetaChecking
+                                      ? (ar ? 'جار التحقق من حساب الأدمن...' : 'Checking owner account...')
+                                  : _ownerBetaReason == 'OWNER_NOT_VERIFIED'
+                                      ? (ar
+                                            ? 'هذا الحساب غير معتمد كمالك على الخادم. تحقق من حساب Google المخصص للأدمن وتوثيق البريد.'
+                                            : 'This account is not verified as the server owner. Check the admin Google login and verified email.')
+                                  : _ownerBetaReason == 'NO_ADMIN_COINS'
+                                      ? (ar
+                                            ? 'رصيدك الإجمالي $coins، لكن رصيد الكوينز الإدارية صفر. يلزم مزامنة مكافأة الأدمن.'
+                                            : 'Total balance: $coins coins; administrative coins are zero. Sync the owner grant.')
+                                  : _ownerBetaReason == 'PRIVATE_WALLET_MISSING'
+                                      ? (ar
+                                            ? 'المحفظة الإدارية غير مهيأة على الخادم. يلزم مزامنة المحفظة.'
+                                            : 'The server owner wallet is not initialized; sync the private wallet.')
+                                  : _ownerBetaReason == 'WALLET_RESTRICTED' ||
+                                      _ownerBetaReason == 'WALLET_RECONCILIATION_REQUIRED'
+                                      ? (ar
+                                            ? 'المحفظة تحتاج مراجعة آمنة قبل إرسال الهدايا.'
+                                            : 'The wallet requires secure reconciliation before gifting.')
+                                  : _ownerBetaReason == 'SIGN_IN_REQUIRED'
+                                      ? (ar
+                                            ? 'انتهت جلسة الدخول. سجّل الدخول إلى حساب الأدمن مجددًا.'
+                                            : 'Sign in to the admin account again.')
+                                  : _ownerBetaReason == 'NETWORK_ERROR' ||
+                                      _ownerBetaReason == 'GIFT_BACKEND_UNAVAILABLE' ||
+                                      _ownerBetaReason == 'GIFT_BACKEND_NOT_CONFIGURED'
+                                      ? (ar
+                                            ? 'تعذر الاتصال بخادم هدايا الأدمن. اضغط فحص الصلاحية للمحاولة مجددًا.'
+                                            : 'Owner gift server unavailable. Retry the permission check.')
                                   : policySnapshot.hasError
                                       ? (ar
-                                        ? 'تعذر تحميل إعدادات اقتصاد الهدايا من Firebase.'
-                                        : 'Unable to read gift economy settings from Firebase.')
+                                            ? 'تعذر تحميل إعدادات اقتصاد الهدايا من Firebase.'
+                                            : 'Unable to read gift economy settings from Firebase.')
                                   : !enabled
                                       ? (ar
-                                            ? 'إرسال الهدايا متوقف: نظام الاقتصاد غير مفعّل على الخادم.'
-                                            : 'Gift sending is disabled: the economy is not enabled.')
+                                            ? 'الاقتصاد المدفوع متوقف. يتم التحقق بشكل مستقل من هدايا الأدمن.'
+                                            : 'Paid economy is disabled; owner gifts are checked separately.')
                                       : (ar
                                             ? 'إرسال الهدايا متوقف حتى تكتمل تهيئة وأمان المحفظة.'
                                             : 'Gift sending requires verified private-wallet setup.'),
                               textAlign: TextAlign.center,
                             ),
                           ),
-                        if (!ready && administrativeCoins > 0)
+                        if (!ready)
                           TextButton.icon(
                             onPressed: _ownerBetaChecking
                                 ? null

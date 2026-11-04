@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {validateBetaContextMembership, registerOwnerBetaContextGiftRoutes} from "../src/owner_beta_context_gifts.js";
+import {validateBetaContextMembership, registerOwnerBetaContextGiftRoutes, ownerBetaGiftEligibility} from "../src/owner_beta_context_gifts.js";
 
 const yes = value => ({exists: true, data: () => value});
 test("room gifts require both participants and an open room", () => {
@@ -47,11 +47,32 @@ test("live owner test gifts allow genuine audience viewer only", () => {
     senderId: "attacker", senderMember: yes({uid: "other"})}), false);
 });
 
+test("admin gifting reports why the owner cannot send without bypassing wallet security", () => {
+  const wallet = {coins: 9825, adminCoins: 9825};
+  assert.deepEqual(ownerBetaGiftEligibility({enabled: true, verified: true, wallet}),
+    {available: true, reason: "READY"});
+  assert.equal(ownerBetaGiftEligibility({enabled: true, verified: false, wallet}).reason,
+    "OWNER_NOT_VERIFIED");
+  assert.equal(ownerBetaGiftEligibility({enabled: false, verified: true, wallet}).reason,
+    "BETA_DISABLED");
+  assert.equal(ownerBetaGiftEligibility({enabled: true, verified: true,
+    wallet: {coins: 9825, adminCoins: 0}}).reason, "NO_ADMIN_COINS");
+  assert.equal(ownerBetaGiftEligibility({enabled: true, verified: true,
+    wallet: null}).reason, "PRIVATE_WALLET_MISSING");
+  assert.equal(ownerBetaGiftEligibility({enabled: true, verified: true,
+    wallet: {...wallet, walletFrozen: true}}).reason, "WALLET_RESTRICTED");
+});
+
 test("owner beta status is server-gated and does not trust client build flags", async () => {
   let check;
+  // The readiness endpoint must read only the authenticated owner's wallet.
+  const wallet = {exists: true, data: () => ({coins: 9825, adminCoins: 9825})};
+  const db = {collection: () => ({doc: () => ({
+    collection: () => ({doc: () => ({get: async () => wallet})}),
+  })})};
   registerOwnerBetaContextGiftRoutes({
     app: {get: (_path, cb) => {check = cb;}, post: () => {}},
-    db: null, validChannelName: () => true,
+    db, validChannelName: () => true,
     authenticatedUser: async () => ({uid: "test-owner"}),
     isVerifiedOwner: async () => true,
   });

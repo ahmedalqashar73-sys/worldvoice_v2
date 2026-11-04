@@ -29,6 +29,29 @@ export function validateBetaContextMembership({
     (recipientIsHost || recipientIsGuest || recipientIsViewer);
 }
 
+// Readiness is calculated by the server, never from a client-side admin flag.
+// Separate owner identity from promotional funds so an unavailable gift does
+// not get falsely described as a disabled paid economy.
+export function ownerBetaGiftEligibility({enabled, verified, wallet}) {
+  if (!enabled) return {available: false, reason: "BETA_DISABLED"};
+  if (!verified) return {available: false, reason: "OWNER_NOT_VERIFIED"};
+  if (!wallet) return {available: false, reason: "PRIVATE_WALLET_MISSING"};
+  if (wallet.walletFrozen === true ||
+      Number(wallet.walletDebtCoins || 0) > 0) {
+    return {available: false, reason: "WALLET_RESTRICTED"};
+  }
+  const coins = Number(wallet.coins ?? 0);
+  const adminCoins = Number(wallet.adminCoins ?? 0);
+  if (!Number.isSafeInteger(coins) || !Number.isSafeInteger(adminCoins) ||
+      coins < 0 || adminCoins < 0 || adminCoins > coins) {
+    return {available: false, reason: "WALLET_RECONCILIATION_REQUIRED"};
+  }
+  if (adminCoins < 1) {
+    return {available: false, reason: "NO_ADMIN_COINS"};
+  }
+  return {available: true, reason: "READY"};
+}
+
 // For the authenticated, verified owner only. Every gift is backed by a
 // transaction and an actual room/live session; admin coins never become
 // redeemable diamonds and ordinary production economy remains gated.
@@ -40,10 +63,17 @@ export function registerOwnerBetaContextGiftRoutes({
     try {
       const user = await authenticatedUser(req);
       const verified = await isVerifiedOwner(user);
+      const enabled =
+        process.env.WORLDVOICE_OWNER_BETA_GIFTS_ENABLED === "true";
+      // Never disclose admin-wallet information to non-owners.
+      const wallet = verified && enabled
+        ? await privateWalletRef(db.collection("users").doc(user.uid)).get()
+        : null;
+      const eligibility = ownerBetaGiftEligibility({
+        enabled, verified, wallet: wallet?.exists ? wallet.data() : null,
+      });
       res.set("Cache-Control", "no-store");
-      return res.json({ok: true,
-        available: verified &&
-          process.env.WORLDVOICE_OWNER_BETA_GIFTS_ENABLED === "true"});
+      return res.json({ok: true, ...eligibility});
     } catch (error) { next(error); }
   });
   app.post("/gift/owner-beta-context", async (req, res, next) => {
