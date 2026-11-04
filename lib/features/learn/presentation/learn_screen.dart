@@ -7,6 +7,7 @@ import '../data/academy_english_a1_catalog.dart';
 import 'academy_english_a1_screen.dart';
 import '../services/academy_progress_service.dart';
 import 'academy_course_screen.dart';
+import 'story_library_section.dart';
 
 /// WorldVoice Academy: first-class courses, not placeholder chat contacts.
 /// The six lesson types are implemented per unit; only reviewed A1 content is
@@ -24,6 +25,7 @@ class _LearnScreenState extends State<LearnScreen> {
   final _progress = AcademyProgressService();
   String _query = '';
   int _englishDone = 0;
+  int _academyTab = 0;
 
   @override
   void initState() {
@@ -41,6 +43,51 @@ class _LearnScreenState extends State<LearnScreen> {
   void dispose() {
     _search.dispose();
     super.dispose();
+  }
+
+  Widget _academyTabButton({
+    required int index,
+    required String label,
+    required IconData icon,
+    required ColorScheme scheme,
+  }) {
+    final selected = _academyTab == index;
+    final foreground = selected ? Colors.white : scheme.onSurface;
+    return Expanded(
+      child: Padding(
+        padding: EdgeInsetsDirectional.only(end: index == 2 ? 0 : 7),
+        child: Material(
+          color: selected ? const Color(0xFF1D8058) : scheme.surface,
+          borderRadius: BorderRadius.circular(15),
+          child: InkWell(
+            key: ValueKey('academy-tab-$index'),
+            borderRadius: BorderRadius.circular(15),
+            onTap: () => setState(() => _academyTab = index),
+            child: Container(
+              alignment: Alignment.center,
+              constraints: const BoxConstraints(minHeight: 49),
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+              decoration: BoxDecoration(
+                border: Border.all(color: selected
+                    ? const Color(0xFF53B88A) : scheme.outlineVariant),
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, size: 17, color: foreground),
+                  const SizedBox(width: 5),
+                  Flexible(child: Text(label, maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: foreground,
+                      fontWeight: FontWeight.w800, fontSize: 13))),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -73,6 +120,18 @@ class _LearnScreenState extends State<LearnScreen> {
               padding: const EdgeInsets.fromLTRB(18, 14, 18, 30),
               children: [
                 Row(children: [
+                  _academyTabButton(index: 0,
+                    label: ar ? 'الدروس' : 'Courses',
+                    icon: Icons.school_rounded, scheme: scheme),
+                  _academyTabButton(index: 1,
+                    label: ar ? 'القصص' : 'Stories',
+                    icon: Icons.auto_stories_rounded, scheme: scheme),
+                  _academyTabButton(index: 2,
+                    label: ar ? 'بودكاست' : 'Podcast',
+                    icon: Icons.podcasts_rounded, scheme: scheme),
+                ]),
+                const SizedBox(height: 20),
+                Row(children: [
                   Container(
                     padding: const EdgeInsets.all(11),
                     decoration: BoxDecoration(
@@ -95,6 +154,7 @@ class _LearnScreenState extends State<LearnScreen> {
                   )),
                 ]),
                 const SizedBox(height: 18),
+                if (_academyTab == 0) ...[
                 Container(
                   padding: const EdgeInsets.all(19),
                   decoration: BoxDecoration(
@@ -255,6 +315,10 @@ class _LearnScreenState extends State<LearnScreen> {
                   style: TextStyle(
                     color: scheme.onSurfaceVariant, fontSize: 12, height: 1.45),
                   textAlign: TextAlign.center),
+                ],
+                if (_academyTab == 1) const StoryLibrarySection(),
+                // Intentionally empty until the Podcast feature is developed.
+                if (_academyTab == 2) const SizedBox(height: 240),
               ],
             );
           },
