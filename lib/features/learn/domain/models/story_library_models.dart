@@ -296,21 +296,7 @@ class StoryLibraryEntry {
     final prefix = 'assets/stories/$language/$level/';
     if (!RegExp(r'^[a-z]{2,3}$').hasMatch(language) ||
         !levels.contains(level) ||
-        !RegExp(r'^[a-z0-9]+(?:[-_][a-z0-9]+)* ||
-        asset != '$prefix$id.json') {
-      throw const FormatException('Invalid story index entry.');
-    }
-    return StoryLibraryEntry(
-      id: id,
-      language: language,
-      level: level,
-      title: _requiredText(json, 'title'),
-      titleAr: _requiredText(json, 'title_ar'),
-      asset: asset,
-    );
-  }
-}
-).hasMatch(id) ||
+        !RegExp(r'^[a-z0-9]+(?:[-_][a-z0-9]+)*$').hasMatch(id) ||
         !asset.startsWith(prefix) ||
         asset != '$prefix$id.json') {
       throw const FormatException('Invalid story index entry.');
