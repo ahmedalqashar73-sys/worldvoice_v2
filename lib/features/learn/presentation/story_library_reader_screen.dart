@@ -45,7 +45,6 @@ class _StoryLibraryReaderScreenState extends State<StoryLibraryReaderScreen> {
   @override
   Widget build(BuildContext context) {
     final ar = Localizations.localeOf(context).languageCode == 'ar';
-    final scheme = Theme.of(context).colorScheme;
     final accent = Theme.of(context).brightness == Brightness.dark
         ? const Color(0xFF9DECC4)
         : const Color(0xFF164E39);
