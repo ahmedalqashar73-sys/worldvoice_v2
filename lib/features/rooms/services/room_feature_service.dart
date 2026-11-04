@@ -281,22 +281,22 @@ class RoomFeatureService {
   /// Only the server can approve verified-owner non-redeemable test gifts.
   static Future<bool> ownerBetaGiftAvailable() async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return false;
+    if (user == null) { return false; }
     final uri = Uri.tryParse(
       RoomBackendConfig.giftStoreBaseUrl.trim()
           .replaceFirst(RegExp(r'/$'), ''),
     );
     if (uri == null || uri.scheme != 'https' ||
-        !uri.hasAuthority || uri.userInfo.isNotEmpty) return false;
+        !uri.hasAuthority || uri.userInfo.isNotEmpty) { return false; }
     try {
       final token = await user.getIdToken();
-      if (token == null || token.isEmpty) return false;
+      if (token == null || token.isEmpty) { return false; }
       final basePath = uri.path.replaceFirst(RegExp(r'/$'), '');
       final response = await http.get(
         uri.replace(path: '$basePath/gift/owner-beta/status'),
         headers: {'Authorization': 'Bearer $token'},
       ).timeout(const Duration(seconds: 12));
-      if (response.statusCode != 200) return false;
+      if (response.statusCode != 200) { return false; }
       final json = jsonDecode(response.body);
       return json is Map<String, dynamic> &&
           json['ok'] == true && json['available'] == true;
