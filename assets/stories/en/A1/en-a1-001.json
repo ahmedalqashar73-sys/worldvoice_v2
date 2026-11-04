@@ -1,0 +1,743 @@
+{
+  "language": "en",
+  "level": "A1",
+  "story": {
+    "id": "en-a1-001",
+    "title": "The Saturday Garden",
+    "title_ar": "حديقة يوم السبت",
+    "moral_ar": "التعاون والأعمال الطيبة الصغيرة يساعدان الأشياء الجميلة على النمو.",
+    "art_style": "Warm semi-realistic school reading-book illustration, gentle watercolor texture, natural green and cream palette, clear friendly expressions, consistent character proportions, no text in image.",
+    "cover_image_prompt": "Nora and Omar by the school garden on a bright morning, book cover landscape, characters: Nora: Girl aged 12, medium brown skin, dark wavy shoulder-length hair tied with a cream ribbon, mustard yellow cardigan over a cream top, blue jeans, white sneakers. Omar: Boy aged 12, light brown skin, short neat dark brown hair, pine green sweatshirt, navy trousers, white sneakers. Mrs. Lee: Woman aged 45, light warm skin, straight black hair to shoulders, round glasses, pale blue blouse, burgundy long skirt, brown flat shoes., Warm semi-realistic school reading-book illustration, gentle watercolor texture, natural green and cream palette, clear friendly expressions, consistent character proportions, no text in image., no text in image",
+    "character_sheet": [
+      {
+        "name": "Nora",
+        "description": "Girl aged 12, medium brown skin, dark wavy shoulder-length hair tied with a cream ribbon, mustard yellow cardigan over a cream top, blue jeans, white sneakers."
+      },
+      {
+        "name": "Omar",
+        "description": "Boy aged 12, light brown skin, short neat dark brown hair, pine green sweatshirt, navy trousers, white sneakers."
+      },
+      {
+        "name": "Mrs. Lee",
+        "description": "Woman aged 45, light warm skin, straight black hair to shoulders, round glasses, pale blue blouse, burgundy long skirt, brown flat shoes."
+      }
+    ],
+    "chapters": [
+      {
+        "chapter": 1,
+        "title": "The Dry Garden",
+        "title_ar": "الحديقة الجافة",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "School garden on Saturday morning, Nora and Omar stand near green plants and a wooden table, wide eye-level shot, warm morning daylight. Characters: Nora: Girl aged 12, medium brown skin, dark wavy shoulder-length hair tied with a cream ribbon, mustard yellow cardigan over a cream top, blue jeans, white sneakers. Omar: Boy aged 12, light brown skin, short neat dark brown hair, pine green sweatshirt, navy trousers, white sneakers. Mrs. Lee: Woman aged 45, light warm skin, straight black hair to shoulders, round glasses, pale blue blouse, burgundy long skirt, brown flat shoes. Art style: Warm semi-realistic school reading-book illustration, gentle watercolor texture, natural green and cream palette, clear friendly expressions, consistent character proportions, no text in image. no text in image",
+            "animation": "fade_in",
+            "image": "assets/stories/en/A1/illustrations/textbook_01.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "On Saturday **morning**, Nora and Omar come to their **school**. They want to make the small **garden** beautiful. There are green plants, red flowers, and a little wooden table."
+                  }
+                ],
+                "translation_ar": "في صباح السبت، تأتي نورا وعمر إلى مدرستهما. يريدان جعل الحديقة الصغيرة جميلة. فيها نباتات خضراء وزهور حمراء وطاولة خشبية صغيرة."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Nora looks at the **plants** near the wall. The **leaves** are brown, and the ground is very **dry**."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Oh no! The plants need water today."
+                  }
+                ],
+                "translation_ar": "تنظر نورا إلى النباتات قرب الجدار. أوراقها بنية والتربة جافة جدًا. تقول: «يا إلهي! تحتاج النباتات إلى الماء اليوم»."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Brown dry leaves beside the school garden wall, Nora checks a plant, Omar looks worried, low close-up, bright late morning light. Characters: Nora: Girl aged 12, medium brown skin, dark wavy shoulder-length hair tied with a cream ribbon, mustard yellow cardigan over a cream top, blue jeans, white sneakers. Omar: Boy aged 12, light brown skin, short neat dark brown hair, pine green sweatshirt, navy trousers, white sneakers. Mrs. Lee: Woman aged 45, light warm skin, straight black hair to shoulders, round glasses, pale blue blouse, burgundy long skirt, brown flat shoes. Art style: Warm semi-realistic school reading-book illustration, gentle watercolor texture, natural green and cream palette, clear friendly expressions, consistent character proportions, no text in image. no text in image",
+            "animation": "zoom_in_slow",
+            "image": "assets/stories/en/A1/illustrations/textbook_02.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "MALE",
+                    "text": "I can get **water** from the **tap**."
+                  },
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Omar walks to the tap, but no water comes out. Nora looks at him. Now they have a big **problem**."
+                  }
+                ],
+                "translation_ar": "يقول عمر: «أستطيع جلب الماء من الصنبور». يذهب إليه، لكن الماء لا يخرج. تنظر نورا إليه. لديهما الآن مشكلة كبيرة."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Their **teacher**, Mrs. Lee, comes outside. Nora tells her about the dry garden."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We need **help**."
+                  },
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Mrs. Lee points to a picture of the garden **show** on Friday."
+                  }
+                ],
+                "translation_ar": "تخرج المعلمة السيدة لي. تخبرها نورا عن الحديقة الجافة. تقول نورا: «نحتاج إلى مساعدة». تشير المعلمة إلى صورة معرض الحديقة يوم الجمعة."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Omar turns a dry outdoor water tap, Nora stands beside him, the garden behind them, eye-level medium shot, strong daylight. Characters: Nora: Girl aged 12, medium brown skin, dark wavy shoulder-length hair tied with a cream ribbon, mustard yellow cardigan over a cream top, blue jeans, white sneakers. Omar: Boy aged 12, light brown skin, short neat dark brown hair, pine green sweatshirt, navy trousers, white sneakers. Mrs. Lee: Woman aged 45, light warm skin, straight black hair to shoulders, round glasses, pale blue blouse, burgundy long skirt, brown flat shoes. Art style: Warm semi-realistic school reading-book illustration, gentle watercolor texture, natural green and cream palette, clear friendly expressions, consistent character proportions, no text in image. no text in image",
+            "animation": "pan_left",
+            "image": "assets/stories/en/A1/illustrations/textbook_03.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Omar finds a blue **bottle** in his bag. He puts a little water near one flower. The bottle is too **small** for all the **plants**. Nora looks worried."
+                  }
+                ],
+                "translation_ar": "يجد عمر زجاجة زرقاء في حقيبته. يضع قليلًا من الماء قرب زهرة واحدة. الزجاجة صغيرة جدًا لكل النباتات. تبدو نورا قلقة."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The **sun** is very **hot**. Nora and Omar sit under a tree. They do not want to **wait**."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "We can do something now."
+                  },
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Nora looks at the garden again."
+                  }
+                ],
+                "translation_ar": "الشمس حارة جدًا. تجلس نورا وعمر تحت شجرة. لا يريدان الانتظار. يقول عمر: «يمكننا فعل شيء الآن». وتنظر نورا إلى الحديقة من جديد."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Mrs. Lee in conversation with Nora and Omar near a school bulletin board showing only abstract color shapes, medium wide shot, soft noon light. Characters: Nora: Girl aged 12, medium brown skin, dark wavy shoulder-length hair tied with a cream ribbon, mustard yellow cardigan over a cream top, blue jeans, white sneakers. Omar: Boy aged 12, light brown skin, short neat dark brown hair, pine green sweatshirt, navy trousers, white sneakers. Mrs. Lee: Woman aged 45, light warm skin, straight black hair to shoulders, round glasses, pale blue blouse, burgundy long skirt, brown flat shoes. Art style: Warm semi-realistic school reading-book illustration, gentle watercolor texture, natural green and cream palette, clear friendly expressions, consistent character proportions, no text in image. no text in image",
+            "animation": "pan_right",
+            "image": "assets/stories/en/A1/illustrations/textbook_04.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "MALE",
+                    "text": "We can use a big **bucket**."
+                  },
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Omar says. Nora finds one behind the door. It is **heavy**, but it is empty. They can **carry** it together to another room."
+                  }
+                ],
+                "translation_ar": "يقول عمر: «يمكننا استعمال دلو كبير». تجد نورا دلوًا خلف الباب. إنه ثقيل لكنه فارغ. يمكنهما حمله معًا إلى غرفة أخرى."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "They go to the school **kitchen**. Mrs. Lee says the water there is **clean**. Nora asks for some **water**."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Can we use it for our garden, please?"
+                  }
+                ],
+                "translation_ar": "يذهبان إلى مطبخ المدرسة. تقول السيدة لي إن الماء هناك نظيف. تطلب نورا بعض الماء وتسأل: «هل يمكننا استعماله لحديقتنا من فضلك؟»"
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "A single small blue bottle beside the school garden flowers; Nora and Omar sit in the shade and think, wide low shot, hot afternoon sunlight. Characters: Nora: Girl aged 12, medium brown skin, dark wavy shoulder-length hair tied with a cream ribbon, mustard yellow cardigan over a cream top, blue jeans, white sneakers. Omar: Boy aged 12, light brown skin, short neat dark brown hair, pine green sweatshirt, navy trousers, white sneakers. Mrs. Lee: Woman aged 45, light warm skin, straight black hair to shoulders, round glasses, pale blue blouse, burgundy long skirt, brown flat shoes. Art style: Warm semi-realistic school reading-book illustration, gentle watercolor texture, natural green and cream palette, clear friendly expressions, consistent character proportions, no text in image. no text in image",
+            "animation": "parallax",
+            "image": "assets/stories/en/A1/illustrations/textbook_05.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Mrs. Lee looks at the clock. The kitchen is **closed** now, but it opens **tomorrow**. Nora makes a new **plan**."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We can come back early."
+                  },
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Omar nods."
+                  }
+                ],
+                "translation_ar": "تنظر السيدة لي إلى الساعة. المطبخ مغلق الآن، لكنه يفتح غدًا. تضع نورا خطة جديدة وتقول: «يمكننا العودة مبكرًا». يوافق عمر."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Before they go home, Nora writes a **list** for their **friends**. Omar draws a little garden. They will work **together** tomorrow. The plants still need water, but now they have hope."
+                  }
+                ],
+                "translation_ar": "قبل العودة إلى البيت، تكتب نورا قائمة لأصدقائهما. يرسم عمر حديقة صغيرة. سيعملون معًا غدًا. لا تزال النباتات تحتاج إلى الماء، لكن لديهما أمل."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "chapter": 2,
+        "title": "The Garden Team",
+        "title_ar": "فريق الحديقة",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Early next morning, Nora and Omar arrive with bottles and a bucket on the path to the garden, medium-wide low-angle shot, cool dawn lighting. Characters: Nora: Girl aged 12, medium brown skin, dark wavy shoulder-length hair tied with a cream ribbon, mustard yellow cardigan over a cream top, blue jeans, white sneakers. Omar: Boy aged 12, light brown skin, short neat dark brown hair, pine green sweatshirt, navy trousers, white sneakers. Mrs. Lee: Woman aged 45, light warm skin, straight black hair to shoulders, round glasses, pale blue blouse, burgundy long skirt, brown flat shoes. Art style: Warm semi-realistic school reading-book illustration, gentle watercolor texture, natural green and cream palette, clear friendly expressions, consistent character proportions, no text in image. no text in image",
+            "animation": "zoom_in_slow",
+            "image": "assets/stories/en/A1/illustrations/textbook_06.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The next day, Nora comes to school **early**. Omar is there with two **bottles**. They are **ready** to help the garden. The air is cool, and the school is quiet."
+                  }
+                ],
+                "translation_ar": "في اليوم التالي، تأتي نورا إلى المدرسة مبكرًا. عمر هناك ومعه زجاجتان. إنهما مستعدان لمساعدة الحديقة. الهواء بارد والمدرسة هادئة."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Mrs. Lee opens the **kitchen** and gives them a big **bucket**."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Here you are."
+                  },
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "She says it with a **smile**. Nora thanks her. Omar holds the bucket with both hands."
+                  }
+                ],
+                "translation_ar": "تفتح السيدة لي المطبخ وتعطيهما دلوًا كبيرًا. تقول مبتسمة: «تفضلا». تشكرها نورا. يمسك عمر الدلو بكلتا يديه."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Mrs. Lee hands a bucket to Nora and Omar inside the clean school kitchen, window light, medium eye-level composition. Characters: Nora: Girl aged 12, medium brown skin, dark wavy shoulder-length hair tied with a cream ribbon, mustard yellow cardigan over a cream top, blue jeans, white sneakers. Omar: Boy aged 12, light brown skin, short neat dark brown hair, pine green sweatshirt, navy trousers, white sneakers. Mrs. Lee: Woman aged 45, light warm skin, straight black hair to shoulders, round glasses, pale blue blouse, burgundy long skirt, brown flat shoes. Art style: Warm semi-realistic school reading-book illustration, gentle watercolor texture, natural green and cream palette, clear friendly expressions, consistent character proportions, no text in image. no text in image",
+            "animation": "fade_in",
+            "image": "assets/stories/en/A1/illustrations/textbook_07.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Two more children come. They make a short **line** near the tap. Each child can **fill** a bottle with water. Then they **carry** the bottles to the garden together."
+                  }
+                ],
+                "translation_ar": "يأتي طفلان آخران. يقفون في صف قصير قرب الصنبور. يستطيع كل طفل ملء زجاجة بالماء. ثم يحملون الزجاجات إلى الحديقة معًا."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "There is a gray **cloud** in the sky. Omar walks up the school **steps** with a bucket."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Be **careful**, Omar!"
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "I am fine."
+                  },
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "He walks slowly and smiles."
+                  }
+                ],
+                "translation_ar": "توجد سحابة رمادية في السماء. يصعد عمر درجات المدرسة حاملًا دلوًا. تقول نورا: «انتبه يا عمر!» فيرد: «أنا بخير». يمشي ببطء ويبتسم."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Children use the kitchen tap in a neat line and carry bottles, Nora and Omar beside them, school steps visible, morning diffused light, wide shot. Characters: Nora: Girl aged 12, medium brown skin, dark wavy shoulder-length hair tied with a cream ribbon, mustard yellow cardigan over a cream top, blue jeans, white sneakers. Omar: Boy aged 12, light brown skin, short neat dark brown hair, pine green sweatshirt, navy trousers, white sneakers. Mrs. Lee: Woman aged 45, light warm skin, straight black hair to shoulders, round glasses, pale blue blouse, burgundy long skirt, brown flat shoes. Art style: Warm semi-realistic school reading-book illustration, gentle watercolor texture, natural green and cream palette, clear friendly expressions, consistent character proportions, no text in image. no text in image",
+            "animation": "pan_right",
+            "image": "assets/stories/en/A1/illustrations/textbook_08.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Nora puts water near the **roots** of the flowers. She works **slowly**. The small **green** leaves look better. Omar brings more water, and Nora thanks him for his help."
+                  }
+                ],
+                "translation_ar": "تضع نورا الماء قرب جذور الزهور. تعمل ببطء. تبدو الأوراق الخضراء الصغيرة أفضل. يجلب عمر مزيدًا من الماء، وتشكره نورا على مساعدته."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "More **friends** arrive with bottles. Everyone can **share** the **work**. Some children water plants, and others clean the table. Nora is happy because no one must do everything alone."
+                  }
+                ],
+                "translation_ar": "يصل مزيد من الأصدقاء ومعهم زجاجات. يستطيع الجميع مشاركة العمل. يسقي بعض الأطفال النباتات، وينظف آخرون الطاولة. نورا سعيدة لأن أحدًا لا يحتاج إلى فعل كل شيء وحده."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Nora waters flowers near their roots as Omar carries more water; helpers clean the garden table, low garden-side camera angle, gentle daylight. Characters: Nora: Girl aged 12, medium brown skin, dark wavy shoulder-length hair tied with a cream ribbon, mustard yellow cardigan over a cream top, blue jeans, white sneakers. Omar: Boy aged 12, light brown skin, short neat dark brown hair, pine green sweatshirt, navy trousers, white sneakers. Mrs. Lee: Woman aged 45, light warm skin, straight black hair to shoulders, round glasses, pale blue blouse, burgundy long skirt, brown flat shoes. Art style: Warm semi-realistic school reading-book illustration, gentle watercolor texture, natural green and cream palette, clear friendly expressions, consistent character proportions, no text in image. no text in image",
+            "animation": "pan_left",
+            "image": "assets/stories/en/A1/illustrations/textbook_09.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "On Friday, the school **show** begins. Omar puts a little **sign** by the garden."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "**Welcome** to our garden!"
+                  },
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "He says it with a smile. Nora stands beside him and waves to the new visitors."
+                  }
+                ],
+                "translation_ar": "يبدأ معرض المدرسة يوم الجمعة. يضع عمر لافتة صغيرة قرب الحديقة ويقول: «أهلًا بكم في حديقتنا!» تقف نورا بجانبه وتلوّح للزوار."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "A little **rain** falls in the afternoon. The flowers look **fresh**, and the garden has a nice **smell**. Nora laughs."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Now the sky helps us too!"
+                  },
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Omar laughs with her."
+                  }
+                ],
+                "translation_ar": "تهطل أمطار خفيفة بعد الظهر. تبدو الزهور نضرة، وللحديقة رائحة جميلة. تضحك نورا وتقول: «السماء تساعدنا أيضًا الآن!» ويضحك عمر معها."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "The Friday school garden show; parents admire the fresh flowers; Nora Omar and Mrs. Lee smile near a blank sign, sunny light after light rain, festive wide shot. Characters: Nora: Girl aged 12, medium brown skin, dark wavy shoulder-length hair tied with a cream ribbon, mustard yellow cardigan over a cream top, blue jeans, white sneakers. Omar: Boy aged 12, light brown skin, short neat dark brown hair, pine green sweatshirt, navy trousers, white sneakers. Mrs. Lee: Woman aged 45, light warm skin, straight black hair to shoulders, round glasses, pale blue blouse, burgundy long skirt, brown flat shoes. Art style: Warm semi-realistic school reading-book illustration, gentle watercolor texture, natural green and cream palette, clear friendly expressions, consistent character proportions, no text in image. no text in image",
+            "animation": "parallax",
+            "image": "assets/stories/en/A1/illustrations/textbook_10.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The children’s **parents** come to see the **flowers**. Mrs. Lee looks very **proud**."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "This garden is beautiful."
+                  },
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Nora and Omar show everyone the plants by the wall."
+                  }
+                ],
+                "translation_ar": "يأتي آباء الأطفال لرؤية الزهور. تبدو السيدة لي فخورة جدًا وتقول: «هذه الحديقة جميلة». تُري نورا وعمر الجميع النباتات قرب الجدار."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "At the end of the day, Mrs. Lee thanks the **team**. She says small **kind** actions help good things **grow**."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "We did it together!"
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Yes, and we can help again!"
+                  }
+                ],
+                "translation_ar": "في نهاية اليوم، تشكر السيدة لي الفريق. تقول إن الأعمال الطيبة الصغيرة تساعد الأشياء الجميلة على النمو. يقول عمر: «نجحنا معًا!» فترد نورا: «نعم، ويمكننا المساعدة مجددًا!»"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "vocabulary": [
+      {
+        "word": "morning",
+        "meaning_ar": "صباح",
+        "example": "On Saturday morning, Nora and Omar come to their school. They want to make the small garden beautiful. There are green plants, red flowers, and a little wooden table."
+      },
+      {
+        "word": "school",
+        "meaning_ar": "مدرسة",
+        "example": "On Saturday morning, Nora and Omar come to their school. They want to make the small garden beautiful. There are green plants, red flowers, and a little wooden table."
+      },
+      {
+        "word": "garden",
+        "meaning_ar": "حديقة",
+        "example": "On Saturday morning, Nora and Omar come to their school. They want to make the small garden beautiful. There are green plants, red flowers, and a little wooden table."
+      },
+      {
+        "word": "plants",
+        "meaning_ar": "نباتات",
+        "example": "Nora looks at the plants near the wall. The leaves are brown, and the ground is very dry."
+      },
+      {
+        "word": "leaves",
+        "meaning_ar": "أوراق",
+        "example": "Nora looks at the plants near the wall. The leaves are brown, and the ground is very dry."
+      },
+      {
+        "word": "dry",
+        "meaning_ar": "جاف",
+        "example": "Nora looks at the plants near the wall. The leaves are brown, and the ground is very dry."
+      },
+      {
+        "word": "water",
+        "meaning_ar": "ماء",
+        "example": "I can get water from the tap."
+      },
+      {
+        "word": "tap",
+        "meaning_ar": "صنبور",
+        "example": "I can get water from the tap."
+      },
+      {
+        "word": "problem",
+        "meaning_ar": "مشكلة",
+        "example": "Omar walks to the tap, but no water comes out. Nora looks at him. Now they have a big problem."
+      },
+      {
+        "word": "teacher",
+        "meaning_ar": "معلمة",
+        "example": "Their teacher, Mrs. Lee, comes outside. Nora tells her about the dry garden."
+      },
+      {
+        "word": "help",
+        "meaning_ar": "مساعدة",
+        "example": "We need help."
+      },
+      {
+        "word": "show",
+        "meaning_ar": "معرض",
+        "example": "Mrs. Lee points to a picture of the garden show on Friday."
+      },
+      {
+        "word": "bottle",
+        "meaning_ar": "زجاجة",
+        "example": "Omar finds a blue bottle in his bag. He puts a little water near one flower. The bottle is too small for all the plants. Nora looks worried."
+      },
+      {
+        "word": "small",
+        "meaning_ar": "صغير",
+        "example": "Omar finds a blue bottle in his bag. He puts a little water near one flower. The bottle is too small for all the plants. Nora looks worried."
+      },
+      {
+        "word": "sun",
+        "meaning_ar": "شمس",
+        "example": "The sun is very hot. Nora and Omar sit under a tree. They do not want to wait."
+      },
+      {
+        "word": "hot",
+        "meaning_ar": "حار",
+        "example": "The sun is very hot. Nora and Omar sit under a tree. They do not want to wait."
+      },
+      {
+        "word": "wait",
+        "meaning_ar": "ينتظر",
+        "example": "The sun is very hot. Nora and Omar sit under a tree. They do not want to wait."
+      },
+      {
+        "word": "bucket",
+        "meaning_ar": "دلو",
+        "example": "We can use a big bucket."
+      },
+      {
+        "word": "heavy",
+        "meaning_ar": "ثقيل",
+        "example": "Omar says. Nora finds one behind the door. It is heavy, but it is empty. They can carry it together to another room."
+      },
+      {
+        "word": "carry",
+        "meaning_ar": "يحمل",
+        "example": "Omar says. Nora finds one behind the door. It is heavy, but it is empty. They can carry it together to another room."
+      },
+      {
+        "word": "kitchen",
+        "meaning_ar": "مطبخ",
+        "example": "They go to the school kitchen. Mrs. Lee says the water there is clean. Nora asks for some water."
+      },
+      {
+        "word": "clean",
+        "meaning_ar": "نظيف",
+        "example": "They go to the school kitchen. Mrs. Lee says the water there is clean. Nora asks for some water."
+      },
+      {
+        "word": "closed",
+        "meaning_ar": "مغلق",
+        "example": "Mrs. Lee looks at the clock. The kitchen is closed now, but it opens tomorrow. Nora makes a new plan."
+      },
+      {
+        "word": "tomorrow",
+        "meaning_ar": "غدًا",
+        "example": "Mrs. Lee looks at the clock. The kitchen is closed now, but it opens tomorrow. Nora makes a new plan."
+      },
+      {
+        "word": "plan",
+        "meaning_ar": "خطة",
+        "example": "Mrs. Lee looks at the clock. The kitchen is closed now, but it opens tomorrow. Nora makes a new plan."
+      },
+      {
+        "word": "list",
+        "meaning_ar": "قائمة",
+        "example": "Before they go home, Nora writes a list for their friends. Omar draws a little garden. They will work together tomorrow. The plants still need water, but now they have hope."
+      },
+      {
+        "word": "friends",
+        "meaning_ar": "أصدقاء",
+        "example": "Before they go home, Nora writes a list for their friends. Omar draws a little garden. They will work together tomorrow. The plants still need water, but now they have hope."
+      },
+      {
+        "word": "together",
+        "meaning_ar": "معًا",
+        "example": "Before they go home, Nora writes a list for their friends. Omar draws a little garden. They will work together tomorrow. The plants still need water, but now they have hope."
+      },
+      {
+        "word": "early",
+        "meaning_ar": "مبكرًا",
+        "example": "The next day, Nora comes to school early. Omar is there with two bottles. They are ready to help the garden. The air is cool, and the school is quiet."
+      },
+      {
+        "word": "bottles",
+        "meaning_ar": "زجاجات",
+        "example": "The next day, Nora comes to school early. Omar is there with two bottles. They are ready to help the garden. The air is cool, and the school is quiet."
+      },
+      {
+        "word": "ready",
+        "meaning_ar": "مستعد",
+        "example": "The next day, Nora comes to school early. Omar is there with two bottles. They are ready to help the garden. The air is cool, and the school is quiet."
+      },
+      {
+        "word": "smile",
+        "meaning_ar": "ابتسامة",
+        "example": "She says it with a smile. Nora thanks her. Omar holds the bucket with both hands."
+      },
+      {
+        "word": "line",
+        "meaning_ar": "صف",
+        "example": "Two more children come. They make a short line near the tap. Each child can fill a bottle with water. Then they carry the bottles to the garden together."
+      },
+      {
+        "word": "fill",
+        "meaning_ar": "يملأ",
+        "example": "Two more children come. They make a short line near the tap. Each child can fill a bottle with water. Then they carry the bottles to the garden together."
+      },
+      {
+        "word": "cloud",
+        "meaning_ar": "سحابة",
+        "example": "There is a gray cloud in the sky. Omar walks up the school steps with a bucket."
+      },
+      {
+        "word": "steps",
+        "meaning_ar": "درجات",
+        "example": "There is a gray cloud in the sky. Omar walks up the school steps with a bucket."
+      },
+      {
+        "word": "careful",
+        "meaning_ar": "حذر",
+        "example": "Be careful, Omar!"
+      },
+      {
+        "word": "roots",
+        "meaning_ar": "جذور",
+        "example": "Nora puts water near the roots of the flowers. She works slowly. The small green leaves look better. Omar brings more water, and Nora thanks him for his help."
+      },
+      {
+        "word": "slowly",
+        "meaning_ar": "ببطء",
+        "example": "Nora puts water near the roots of the flowers. She works slowly. The small green leaves look better. Omar brings more water, and Nora thanks him for his help."
+      },
+      {
+        "word": "green",
+        "meaning_ar": "أخضر",
+        "example": "Nora puts water near the roots of the flowers. She works slowly. The small green leaves look better. Omar brings more water, and Nora thanks him for his help."
+      },
+      {
+        "word": "share",
+        "meaning_ar": "يشارك",
+        "example": "More friends arrive with bottles. Everyone can share the work. Some children water plants, and others clean the table. Nora is happy because no one must do everything alone."
+      },
+      {
+        "word": "work",
+        "meaning_ar": "عمل",
+        "example": "More friends arrive with bottles. Everyone can share the work. Some children water plants, and others clean the table. Nora is happy because no one must do everything alone."
+      },
+      {
+        "word": "sign",
+        "meaning_ar": "لافتة",
+        "example": "On Friday, the school show begins. Omar puts a little sign by the garden."
+      },
+      {
+        "word": "welcome",
+        "meaning_ar": "مرحبًا",
+        "example": "Welcome to our garden!"
+      },
+      {
+        "word": "rain",
+        "meaning_ar": "مطر",
+        "example": "A little rain falls in the afternoon. The flowers look fresh, and the garden has a nice smell. Nora laughs."
+      },
+      {
+        "word": "fresh",
+        "meaning_ar": "نضر",
+        "example": "A little rain falls in the afternoon. The flowers look fresh, and the garden has a nice smell. Nora laughs."
+      },
+      {
+        "word": "smell",
+        "meaning_ar": "رائحة",
+        "example": "A little rain falls in the afternoon. The flowers look fresh, and the garden has a nice smell. Nora laughs."
+      },
+      {
+        "word": "parents",
+        "meaning_ar": "الآباء والأمهات",
+        "example": "The children’s parents come to see the flowers. Mrs. Lee looks very proud."
+      },
+      {
+        "word": "flowers",
+        "meaning_ar": "زهور",
+        "example": "The children’s parents come to see the flowers. Mrs. Lee looks very proud."
+      },
+      {
+        "word": "proud",
+        "meaning_ar": "فخور",
+        "example": "The children’s parents come to see the flowers. Mrs. Lee looks very proud."
+      },
+      {
+        "word": "team",
+        "meaning_ar": "فريق",
+        "example": "At the end of the day, Mrs. Lee thanks the team. She says small kind actions help good things grow."
+      },
+      {
+        "word": "kind",
+        "meaning_ar": "لطيف",
+        "example": "At the end of the day, Mrs. Lee thanks the team. She says small kind actions help good things grow."
+      },
+      {
+        "word": "grow",
+        "meaning_ar": "ينمو",
+        "example": "At the end of the day, Mrs. Lee thanks the team. She says small kind actions help good things grow."
+      }
+    ],
+    "questions": [
+      {
+        "q": "Where is the garden?",
+        "options": [
+          "At the school",
+          "At the beach",
+          "At a train station",
+          "In a shop"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What is wrong with the plants?",
+        "options": [
+          "They are too tall",
+          "They are very dry",
+          "They are blue",
+          "They are new"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "Why can Omar not get water from the first tap?",
+        "options": [
+          "He is late",
+          "There is no water",
+          "The tap is very high",
+          "He has no shoes"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "When can the children use the kitchen?",
+        "options": [
+          "Tomorrow",
+          "Last night",
+          "At midnight",
+          "Next month"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "Who helps Nora and Omar?",
+        "options": [
+          "Only a driver",
+          "Their friends and Mrs. Lee",
+          "A police officer",
+          "Nobody"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "What does Nora put water near?",
+        "options": [
+          "The table",
+          "The wall",
+          "The roots",
+          "The window"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "What happens at the school show?",
+        "options": [
+          "Parents see the flowers",
+          "The garden closes forever",
+          "The children go home early",
+          "The school moves"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What is the story's lesson?",
+        "options": [
+          "Work alone",
+          "Do not help friends",
+          "Kind teamwork helps good things grow",
+          "Never water plants"
+        ],
+        "answer": 2
+      }
+    ]
+  }
+}
