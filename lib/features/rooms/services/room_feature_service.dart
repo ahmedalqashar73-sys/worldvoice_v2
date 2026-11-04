@@ -324,6 +324,44 @@ class RoomFeatureService {
     }
   }
 
+  /// Explicit, server-authorized monthly owner grant. The backend verifies
+  /// owner identity, checks the idempotent monthly ledger and never credits
+  /// a second grant for the same Riyadh calendar month.
+  static Future<void> syncOwnerGiftCredits() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) throw StateError('SIGN_IN_REQUIRED');
+    final backend = Uri.tryParse(
+      RoomBackendConfig.giftStoreBaseUrl.trim()
+          .replaceFirst(RegExp(r'/$'), ''),
+    );
+    if (backend == null || backend.scheme != 'https' ||
+        !backend.hasAuthority || backend.userInfo.isNotEmpty) {
+      throw StateError('Owner gift backend is unavailable.');
+    }
+    final token = await user.getIdToken(true)
+        .timeout(const Duration(seconds: 15));
+    if (token == null || token.isEmpty) {
+      throw StateError('SIGN_IN_REQUIRED');
+    }
+    final basePath = backend.path.replaceFirst(RegExp(r'/$'), '');
+    final response = await http.post(
+      backend.replace(path: '$basePath/account/sync-entitlements'),
+      headers: {'Authorization': 'Bearer $token',
+                'Content-Type': 'application/json'},
+      body: '{}',
+    ).timeout(const Duration(seconds: 30));
+    Map<String, dynamic> body = const <String, dynamic>{};
+    try {
+      final parsed = jsonDecode(response.body);
+      if (parsed is Map<String, dynamic>) body = parsed;
+    } catch (_) {}
+    if (response.statusCode != 200 ||
+        body['ok'] != true || body['privileged'] != true) {
+      throw StateError((body['error'] ?? body['reason'] ??
+          'Owner credits could not be synchronized.').toString());
+    }
+  }
+
   static Future<bool> ownerBetaGiftAvailable() async =>
       (await ownerBetaGiftReadiness()).available;
 

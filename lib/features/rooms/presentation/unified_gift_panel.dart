@@ -72,6 +72,33 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
     });
   }
 
+  bool _syncingAdminCoins = false;
+
+  Future<void> _syncAdminCoins() async {
+    if (_syncingAdminCoins) return;
+    setState(() {
+      _syncingAdminCoins = true;
+      _message = null;
+    });
+    try {
+      await RoomFeatureService.syncOwnerGiftCredits();
+      await _refreshOwnerBetaStatus();
+      if (!mounted) return;
+      setState(() {
+        _message = Localizations.localeOf(context).languageCode == 'ar'
+            ? 'تمت مزامنة المحفظة. إذا كانت مكافأة هذا الشهر مصروفة فلن تُكرر.'
+            : 'Wallet synchronized. This month’s grant is never duplicated.';
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _message = error.toString().replaceFirst('Bad state: ', '');
+      });
+    } finally {
+      if (mounted) setState(() => _syncingAdminCoins = false);
+    }
+  }
+
   String? _recipient;
   RoomGiftCatalogItem? _gift;
   int _giftCategory = 0; // 1-150, 151-1000, 1001-5000
@@ -742,6 +769,22 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                                   : (ar ? 'فحص صلاحية إرسال هدايا الاختبار'
                                       : 'Check test gift permission'),
                             ),
+                          ),
+                        if (!ready &&
+                            (_ownerBetaReason == 'NO_ADMIN_COINS' ||
+                             _ownerBetaReason == 'PRIVATE_WALLET_MISSING'))
+                          OutlinedButton.icon(
+                            key: const ValueKey('sync-admin-gift-credits'),
+                            onPressed: _syncingAdminCoins ? null : _syncAdminCoins,
+                            icon: _syncingAdminCoins
+                                ? const SizedBox(
+                                    width: 16, height: 16,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  )
+                                : const Icon(Icons.sync_rounded),
+                            label: Text(ar
+                                ? 'مزامنة مكافأة الأدمن الشهرية'
+                                : 'Sync monthly owner credits'),
                           ),
                         SizedBox(
                           height: 48,
