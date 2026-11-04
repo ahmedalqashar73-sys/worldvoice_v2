@@ -8,6 +8,10 @@ on:
       - '.github/workflows/group-chat-final-validation.yml'
       - 'lib/features/chat/**'
       - 'lib/features/rooms/services/agora_voice_room_controller.dart'
+      - 'lib/features/rooms/services/room_feature_service.dart'
+      - 'lib/features/rooms/presentation/unified_gift_panel.dart'
+      - 'backend/src/owner_beta_context_gifts.js'
+      - 'backend/test/owner_beta_context_gifts.test.js'
       - 'lib/features/rooms/presentation/room_conversation_panel.dart'
       - 'backend/src/chat_routes.js'
       - 'backend/src/call_routes.js'
@@ -91,6 +95,7 @@ jobs:
           --dart-define=WORLDVOICE_SOCIAL_BACKEND_URL=https://worldvoice-teacher-ai.onrender.com
           --dart-define=WORLDVOICE_ROOM_BACKEND_URL=https://worldvoice-v2.onrender.com
           --dart-define=WORLDVOICE_ECONOMY_ENDPOINT=https://worldvoice-v2.onrender.com
+          --dart-define=WORLDVOICE_GIFT_STORE_ENDPOINT=https://worldvoice-teacher-ai.onrender.com
           --dart-define=WORLDVOICE_AI_BACKEND_URL=https://worldvoice-teacher-ai.onrender.com
           --dart-define=WORLDVOICE_WORLDBOND_BACKEND_URL=https://worldvoice-teacher-ai.onrender.com
           --dart-define=WORLDVOICE_FRIEND_GIFT_PREVIEW=true
