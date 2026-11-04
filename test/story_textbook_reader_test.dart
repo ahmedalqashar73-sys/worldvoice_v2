@@ -22,7 +22,14 @@ void main() {
     expect(find.text('Chapter 1: The Dry Garden'), findsOneWidget);
     expect(find.byKey(const ValueKey('textbook-image-0')), findsOneWidget);
 
+    // Paragraph content is below the large illustration; scroll it into view.
+    await tester.drag(
+      find.byKey(const ValueKey('textbook-image-0')),
+      const Offset(0, -460),
+    );
+    await tester.pumpAndSettle();
     final keyword = find.text('morning');
+    expect(keyword, findsOneWidget);
     await tester.ensureVisible(keyword);
     await tester.pumpAndSettle();
     await tester.tap(keyword);
