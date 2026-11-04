@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "the_small_green_bag",
+      "language": "en",
+      "level": "A1",
+      "title": "The Small Green Bag",
+      "title_ar": "الحقيبة الخضراء الصغيرة",
+      "asset": "assets/stories/en/A1/the_small_green_bag.json"
+    }
+  ]
+}

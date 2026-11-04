@@ -1,0 +1,309 @@
+{
+  "id": "the_small_green_bag",
+  "title": "The Small Green Bag",
+  "title_ar": "الحقيبة الخضراء الصغيرة",
+  "moral_ar": "الأمانة ومساعدة الآخرين تصنعان صداقات جميلة.",
+  "art_style": "Warm 2D storybook illustration, soft watercolor textures, clean shapes, bright but gentle colors, consistent characters, no written words in images.",
+  "character_sheet": {
+    "Maya": "Girl, about 12, curly dark hair, yellow sweater, blue jeans, warm smile.",
+    "Adam": "Boy, about 12, short black hair, blue hoodie, gray trousers.",
+    "Lina": "Girl, about 12, straight brown hair, red jacket, dark trousers."
+  },
+  "pages": [
+    {
+      "page": 1,
+      "script": [
+        {
+          "speaker": "NARRATOR",
+          "text": "Maya is at the library."
+        },
+        {
+          "speaker": "FEMALE",
+          "text": "I love books!"
+        }
+      ],
+      "translation_ar": "مايا في المكتبة. تقول: «أنا أحب الكتب!»",
+      "image_prompt": "Maya in a yellow sweater reading beside a wooden library table, morning light, bookshelves in the background.",
+      "animation": "fade_in"
+    },
+    {
+      "page": 2,
+      "script": [
+        {
+          "speaker": "NARRATOR",
+          "text": "She sees a small green bag under a chair."
+        },
+        {
+          "speaker": "FEMALE",
+          "text": "Oh! Whose bag is this?"
+        }
+      ],
+      "translation_ar": "ترى حقيبة خضراء صغيرة تحت كرسي. تسأل: «لمن هذه الحقيبة؟»",
+      "image_prompt": "Small green cloth bag under a reading chair, Maya looking down in surprise.",
+      "animation": "slow_zoom"
+    },
+    {
+      "page": 3,
+      "script": [
+        {
+          "speaker": "NARRATOR",
+          "text": "Her friend Adam comes to the table."
+        },
+        {
+          "speaker": "MALE",
+          "text": "Hi, Maya. What is that?"
+        },
+        {
+          "speaker": "FEMALE",
+          "text": "It is a green bag."
+        }
+      ],
+      "translation_ar": "يأتي صديقها آدم إلى الطاولة. يقول: «مرحبًا يا مايا. ما هذا؟» فتقول: «إنها حقيبة خضراء».",
+      "image_prompt": "Adam in a blue hoodie beside Maya, green bag on their library table, friendly curious expressions.",
+      "animation": "pan_left"
+    },
+    {
+      "page": 4,
+      "script": [
+        {
+          "speaker": "NARRATOR",
+          "text": "There is a card on the bag."
+        },
+        {
+          "speaker": "MALE",
+          "text": "Look! The name is Lina."
+        },
+        {
+          "speaker": "FEMALE",
+          "text": "Let us find Lina."
+        }
+      ],
+      "translation_ar": "توجد بطاقة على الحقيبة. يقول آدم: «انظري! الاسم هو لينا». تقول مايا: «هيا نجد لينا».",
+      "image_prompt": "Close-up of a blank-looking name tag attached to the green bag, Adam pointing, Maya listening, no text rendered.",
+      "animation": "slow_zoom"
+    },
+    {
+      "page": 5,
+      "script": [
+        {
+          "speaker": "NARRATOR",
+          "text": "They take the bag to the library desk."
+        },
+        {
+          "speaker": "FEMALE",
+          "text": "We found this bag."
+        },
+        {
+          "speaker": "NARRATOR",
+          "text": "They wait by the desk."
+        }
+      ],
+      "translation_ar": "يأخذان الحقيبة إلى مكتب المكتبة. تقول مايا: «وجدنا هذه الحقيبة». وينتظران قرب المكتب.",
+      "image_prompt": "Maya holding the green bag and Adam waiting by a friendly library help desk.",
+      "animation": "pan_right"
+    },
+    {
+      "page": 6,
+      "script": [
+        {
+          "speaker": "NARRATOR",
+          "text": "A girl in a red jacket runs to the desk."
+        },
+        {
+          "speaker": "FEMALE",
+          "text": "My bag! Where is my bag?"
+        },
+        {
+          "speaker": "NARRATOR",
+          "text": "She looks worried."
+        }
+      ],
+      "translation_ar": "تركض فتاة ترتدي سترة حمراء إلى المكتب. تقول: «حقيبتي! أين حقيبتي؟» تبدو قلقة.",
+      "image_prompt": "Lina in a red jacket entering the library help desk area, worried expression, Maya and Adam visible.",
+      "animation": "fade_in"
+    },
+    {
+      "page": 7,
+      "script": [
+        {
+          "speaker": "FEMALE",
+          "text": "Are you Lina?"
+        },
+        {
+          "speaker": "FEMALE",
+          "text": "Yes, I am Lina."
+        },
+        {
+          "speaker": "NARRATOR",
+          "text": "Maya gives her the green bag."
+        }
+      ],
+      "translation_ar": "تسأل مايا: «هل أنت لينا؟» فتجيب: «نعم، أنا لينا». تعطيها مايا الحقيبة الخضراء.",
+      "image_prompt": "Maya handing a small green bag to Lina, Adam smiling beside them.",
+      "animation": "slow_zoom"
+    },
+    {
+      "page": 8,
+      "script": [
+        {
+          "speaker": "FEMALE",
+          "text": "Thank you! This is my favorite bag."
+        },
+        {
+          "speaker": "MALE",
+          "text": "You are welcome!"
+        },
+        {
+          "speaker": "NARRATOR",
+          "text": "Lina smiles."
+        }
+      ],
+      "translation_ar": "تقول لينا: «شكرًا! هذه حقيبتي المفضلة». يقول آدم: «على الرحب والسعة!» وتبتسم لينا.",
+      "image_prompt": "Lina hugging the green bag with a relieved smile, Maya and Adam smiling at the library desk.",
+      "animation": "pan_left"
+    },
+    {
+      "page": 9,
+      "script": [
+        {
+          "speaker": "NARRATOR",
+          "text": "The three children sit together."
+        },
+        {
+          "speaker": "FEMALE",
+          "text": "Do you want to read with us?"
+        },
+        {
+          "speaker": "FEMALE",
+          "text": "Yes! We can be friends."
+        },
+        {
+          "speaker": "NARRATOR",
+          "text": "A small kind act starts a new friendship."
+        }
+      ],
+      "translation_ar": "يجلس الأطفال الثلاثة معًا. تسأل مايا: «هل تريدين القراءة معنا؟» تجيب لينا: «نعم! يمكننا أن نكون أصدقاء». تبدأ صداقة جديدة بعمل طيب صغير.",
+      "image_prompt": "Maya Lina and Adam reading together at a library table, warm afternoon sunlight, green bag beside Lina.",
+      "animation": "fade_in"
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "library",
+      "translation_ar": "مكتبة",
+      "example": "Maya is at the library."
+    },
+    {
+      "word": "bag",
+      "translation_ar": "حقيبة",
+      "example": "This is my bag."
+    },
+    {
+      "word": "green",
+      "translation_ar": "أخضر",
+      "example": "The bag is green."
+    },
+    {
+      "word": "chair",
+      "translation_ar": "كرسي",
+      "example": "The bag is under a chair."
+    },
+    {
+      "word": "friend",
+      "translation_ar": "صديق",
+      "example": "Adam is her friend."
+    },
+    {
+      "word": "card",
+      "translation_ar": "بطاقة",
+      "example": "There is a card on the bag."
+    },
+    {
+      "word": "name",
+      "translation_ar": "اسم",
+      "example": "My name is Lina."
+    },
+    {
+      "word": "desk",
+      "translation_ar": "مكتب",
+      "example": "They wait by the desk."
+    },
+    {
+      "word": "worried",
+      "translation_ar": "قلق",
+      "example": "Lina looks worried."
+    },
+    {
+      "word": "smile",
+      "translation_ar": "يبتسم",
+      "example": "Lina smiles."
+    },
+    {
+      "word": "thank you",
+      "translation_ar": "شكرًا لك",
+      "example": "Thank you for my bag!"
+    },
+    {
+      "word": "kind",
+      "translation_ar": "لطيف / طيب",
+      "example": "Maya is kind."
+    }
+  ],
+  "questions": [
+    {
+      "question": "Where does Maya find the bag?",
+      "options": [
+        "Under a chair",
+        "In the street",
+        "On the bus",
+        "At home"
+      ],
+      "correct_index": 0,
+      "explanation_ar": "وجدت مايا الحقيبة تحت كرسي في المكتبة."
+    },
+    {
+      "question": "What color is the bag?",
+      "options": [
+        "Red",
+        "Blue",
+        "Green",
+        "Yellow"
+      ],
+      "correct_index": 2,
+      "explanation_ar": "كانت الحقيبة خضراء."
+    },
+    {
+      "question": "What name is on the card?",
+      "options": [
+        "Maya",
+        "Lina",
+        "Adam",
+        "Sara"
+      ],
+      "correct_index": 1,
+      "explanation_ar": "الاسم على البطاقة هو لينا."
+    },
+    {
+      "question": "Who gives the bag back to Lina?",
+      "options": [
+        "A driver",
+        "A teacher",
+        "A doctor",
+        "Maya"
+      ],
+      "correct_index": 3,
+      "explanation_ar": "أعادت مايا الحقيبة إلى لينا."
+    },
+    {
+      "question": "What do the children do at the end?",
+      "options": [
+        "Read together",
+        "Go swimming",
+        "Play football",
+        "Go home"
+      ],
+      "correct_index": 0,
+      "explanation_ar": "جلس الأطفال الثلاثة يقرؤون معًا."
+    }
+  ]
+}
