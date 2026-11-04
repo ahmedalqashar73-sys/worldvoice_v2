@@ -24,7 +24,8 @@
       ],
       "translation_ar": "مايا في المكتبة. تقول: «أنا أحب الكتب!»",
       "image_prompt": "Maya in a yellow sweater reading beside a wooden library table, morning light, bookshelves in the background.",
-      "animation": "fade_in"
+      "animation": "fade_in",
+      "image": "assets/stories/en/A1/illustrations/page_01.svg"
     },
     {
       "page": 2,
@@ -40,7 +41,8 @@
       ],
       "translation_ar": "ترى حقيبة خضراء صغيرة تحت كرسي. تسأل: «لمن هذه الحقيبة؟»",
       "image_prompt": "Small green cloth bag under a reading chair, Maya looking down in surprise.",
-      "animation": "slow_zoom"
+      "animation": "slow_zoom",
+      "image": "assets/stories/en/A1/illustrations/page_02.svg"
     },
     {
       "page": 3,
@@ -60,7 +62,8 @@
       ],
       "translation_ar": "يأتي صديقها آدم إلى الطاولة. يقول: «مرحبًا يا مايا. ما هذا؟» فتقول: «إنها حقيبة خضراء».",
       "image_prompt": "Adam in a blue hoodie beside Maya, green bag on their library table, friendly curious expressions.",
-      "animation": "pan_left"
+      "animation": "pan_left",
+      "image": "assets/stories/en/A1/illustrations/page_03.svg"
     },
     {
       "page": 4,
@@ -80,7 +83,8 @@
       ],
       "translation_ar": "توجد بطاقة على الحقيبة. يقول آدم: «انظري! الاسم هو لينا». تقول مايا: «هيا نجد لينا».",
       "image_prompt": "Close-up of a blank-looking name tag attached to the green bag, Adam pointing, Maya listening, no text rendered.",
-      "animation": "slow_zoom"
+      "animation": "slow_zoom",
+      "image": "assets/stories/en/A1/illustrations/page_04.svg"
     },
     {
       "page": 5,
@@ -100,7 +104,8 @@
       ],
       "translation_ar": "يأخذان الحقيبة إلى مكتب المكتبة. تقول مايا: «وجدنا هذه الحقيبة». وينتظران قرب المكتب.",
       "image_prompt": "Maya holding the green bag and Adam waiting by a friendly library help desk.",
-      "animation": "pan_right"
+      "animation": "pan_right",
+      "image": "assets/stories/en/A1/illustrations/page_05.svg"
     },
     {
       "page": 6,
@@ -120,7 +125,8 @@
       ],
       "translation_ar": "تركض فتاة ترتدي سترة حمراء إلى المكتب. تقول: «حقيبتي! أين حقيبتي؟» تبدو قلقة.",
       "image_prompt": "Lina in a red jacket entering the library help desk area, worried expression, Maya and Adam visible.",
-      "animation": "fade_in"
+      "animation": "fade_in",
+      "image": "assets/stories/en/A1/illustrations/page_06.svg"
     },
     {
       "page": 7,
@@ -140,7 +146,8 @@
       ],
       "translation_ar": "تسأل مايا: «هل أنت لينا؟» فتجيب: «نعم، أنا لينا». تعطيها مايا الحقيبة الخضراء.",
       "image_prompt": "Maya handing a small green bag to Lina, Adam smiling beside them.",
-      "animation": "slow_zoom"
+      "animation": "slow_zoom",
+      "image": "assets/stories/en/A1/illustrations/page_07.svg"
     },
     {
       "page": 8,
@@ -160,7 +167,8 @@
       ],
       "translation_ar": "تقول لينا: «شكرًا! هذه حقيبتي المفضلة». يقول آدم: «على الرحب والسعة!» وتبتسم لينا.",
       "image_prompt": "Lina hugging the green bag with a relieved smile, Maya and Adam smiling at the library desk.",
-      "animation": "pan_left"
+      "animation": "pan_left",
+      "image": "assets/stories/en/A1/illustrations/page_08.svg"
     },
     {
       "page": 9,
@@ -184,7 +192,8 @@
       ],
       "translation_ar": "يجلس الأطفال الثلاثة معًا. تسأل مايا: «هل تريدين القراءة معنا؟» تجيب لينا: «نعم! يمكننا أن نكون أصدقاء». تبدأ صداقة جديدة بعمل طيب صغير.",
       "image_prompt": "Maya Lina and Adam reading together at a library table, warm afternoon sunlight, green bag beside Lina.",
-      "animation": "fade_in"
+      "animation": "fade_in",
+      "image": "assets/stories/en/A1/illustrations/page_09.svg"
     }
   ],
   "vocabulary": [

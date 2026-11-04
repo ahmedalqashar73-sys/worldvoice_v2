@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../data/story_library_repository.dart';
 import '../domain/models/story_library_models.dart';
 
-/// Starter text reader. Illustrations, synchronized audio, and XP are
-/// intentionally separate stages, not simulated by this screen.
+/// Independent illustrated story reader. Synchronized audio and XP are
+/// implemented separately in later phases.
 class StoryLibraryReaderScreen extends StatefulWidget {
   const StoryLibraryReaderScreen({
     required this.entry,
@@ -102,32 +103,10 @@ class _StoryLibraryReaderScreenState extends State<StoryLibraryReaderScreen> {
                       key: ValueKey('story-page-${page.page}'),
                       padding: const EdgeInsets.all(20),
                       children: [
-                        Container(
-                          height: 170,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: scheme.primaryContainer,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: page.image == null
-                              ? Icon(
-                                  Icons.auto_stories_rounded,
-                                  size: 64,
-                                  color: accent,
-                                )
-                              : page.image!.startsWith('https://')
-                                  ? Image.network(
-                                      page.image!,
-                                      fit: BoxFit.contain,
-                                      errorBuilder: (context, error, stack) =>
-                                          const Icon(Icons.broken_image_outlined),
-                                    )
-                                  : Image.asset(
-                                      page.image!,
-                                      fit: BoxFit.contain,
-                                      errorBuilder: (context, error, stack) =>
-                                          const Icon(Icons.broken_image_outlined),
-                                    ),
+                        StoryLibraryIllustration(
+                          key: ValueKey('story-illustration-${page.page}'),
+                          page: page,
+                          active: index == _currentPage,
                         ),
                         const SizedBox(height: 22),
                         for (final line in page.script)
@@ -185,6 +164,128 @@ class _StoryLibraryReaderScreenState extends State<StoryLibraryReaderScreen> {
             ]),
           );
         },
+      ),
+    );
+  }
+}
+
+
+/// Subtle one-shot illustration animation; respects reduced-motion settings.
+class StoryLibraryIllustration extends StatefulWidget {
+  const StoryLibraryIllustration({
+    required this.page,
+    required this.active,
+    super.key,
+  });
+
+  final StoryLibraryPage page;
+  final bool active;
+
+  @override
+  State<StoryLibraryIllustration> createState() =>
+      _StoryLibraryIllustrationState();
+}
+
+class _StoryLibraryIllustrationState extends State<StoryLibraryIllustration>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: widget.page.animation == StoryLibraryAnimation.fadeIn
+        ? const Duration(milliseconds: 800)
+        : const Duration(seconds: 6),
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (widget.active && !MediaQuery.disableAnimationsOf(context)) {
+      _controller.forward();
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant StoryLibraryIllustration oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.page.animation != widget.page.animation) {
+      _controller.duration = widget.page.animation == StoryLibraryAnimation.fadeIn
+          ? const Duration(milliseconds: 800)
+          : const Duration(seconds: 6);
+    }
+    if (!widget.active || MediaQuery.disableAnimationsOf(context)) {
+      _controller.stop();
+    } else if (!oldWidget.active || oldWidget.page != widget.page) {
+      _controller.forward(from: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final image = widget.page.image;
+    final child = image == null
+        ? Icon(Icons.auto_stories_rounded,
+            color: scheme.primary, size: 80)
+        : image.endsWith('.svg')
+            ? SvgPicture.asset(
+                image,
+                fit: BoxFit.cover,
+                semanticsLabel: 'Story illustration page ${widget.page.page}',
+                placeholderBuilder: (_) => const Center(
+                  child: CircularProgressIndicator(),
+                ),
+              )
+            : image.startsWith('https://')
+                ? Image.network(
+                    image,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                        const Icon(Icons.broken_image_outlined),
+                  )
+                : Image.asset(
+                    image,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                        const Icon(Icons.broken_image_outlined),
+                  );
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(21),
+      child: Container(
+        height: 216,
+        width: double.infinity,
+        color: scheme.primaryContainer,
+        child: AnimatedBuilder(
+          animation: _controller,
+          child: RepaintBoundary(child: child),
+          builder: (context, illustration) {
+            final t = Curves.easeInOut.transform(_controller.value);
+            final animation = widget.page.animation;
+            final scale = animation == StoryLibraryAnimation.slowZoom
+                ? 1.0 + 0.075 * t : 1.04;
+            final dx = switch (animation) {
+              StoryLibraryAnimation.panLeft => -16.0 * t,
+              StoryLibraryAnimation.panRight => 16.0 * t,
+              _ => 0.0,
+            };
+            final opacity = animation == StoryLibraryAnimation.fadeIn
+                ? t : 1.0;
+            return Opacity(
+              opacity: opacity,
+              child: Transform.translate(
+                offset: Offset(dx, 0),
+                child: Transform.scale(
+                  scale: scale,
+                  child: illustration,
+                ),
+              ),
+            );
+          },
+        ),
       ),
     );
   }
