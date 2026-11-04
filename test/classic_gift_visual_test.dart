@@ -29,7 +29,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  for (final number in [1, 30, 31, 45]) {
+  for (final number in [1, 30, 31, 45, 46, 50, 54, 55, 104]) {
     testWidgets('upgraded gift $number loads its HD asset', (tester) async {
       final id = 'wv_gift_${number.toString().padLeft(3, '0')}';
       final designs = await ClassicGiftCatalog.load();

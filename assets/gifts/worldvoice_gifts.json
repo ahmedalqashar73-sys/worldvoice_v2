@@ -3,7 +3,7 @@
   "title": "WorldVoice Gifts",
   "titleAr": "هدايا وورلد فويس",
   "currency": "coins",
-  "version": 6,
+  "version": 7,
   "atlas": {
     "columns": 9,
     "rows": 6,
@@ -581,7 +581,8 @@
       "effectType": "monument",
       "tier": 3,
       "atlasIndex": 45,
-      "sortOrder": 46
+      "sortOrder": 46,
+      "artAsset": "assets/gifts/hd/wv_gift_046.webp"
     },
     {
       "id": "wv_gift_047",
@@ -592,7 +593,8 @@
       "effectType": "monument",
       "tier": 3,
       "atlasIndex": 46,
-      "sortOrder": 47
+      "sortOrder": 47,
+      "artAsset": "assets/gifts/hd/wv_gift_047.webp"
     },
     {
       "id": "wv_gift_048",
@@ -603,7 +605,8 @@
       "effectType": "royal",
       "tier": 3,
       "atlasIndex": 47,
-      "sortOrder": 48
+      "sortOrder": 48,
+      "artAsset": "assets/gifts/hd/wv_gift_048.webp"
     },
     {
       "id": "wv_gift_049",
@@ -614,7 +617,8 @@
       "effectType": "monument",
       "tier": 3,
       "atlasIndex": 48,
-      "sortOrder": 49
+      "sortOrder": 49,
+      "artAsset": "assets/gifts/hd/wv_gift_049.webp"
     },
     {
       "id": "wv_gift_050",
@@ -625,7 +629,8 @@
       "effectType": "monument",
       "tier": 3,
       "atlasIndex": 49,
-      "sortOrder": 50
+      "sortOrder": 50,
+      "artAsset": "assets/gifts/hd/wv_gift_050.webp"
     },
     {
       "id": "wv_gift_051",
@@ -636,7 +641,8 @@
       "effectType": "monument",
       "tier": 3,
       "atlasIndex": 50,
-      "sortOrder": 51
+      "sortOrder": 51,
+      "artAsset": "assets/gifts/hd/wv_gift_051.webp"
     },
     {
       "id": "wv_gift_052",
@@ -647,7 +653,8 @@
       "effectType": "monument",
       "tier": 3,
       "atlasIndex": 51,
-      "sortOrder": 52
+      "sortOrder": 52,
+      "artAsset": "assets/gifts/hd/wv_gift_052.webp"
     },
     {
       "id": "wv_gift_053",
@@ -658,7 +665,8 @@
       "effectType": "monument",
       "tier": 3,
       "atlasIndex": 52,
-      "sortOrder": 53
+      "sortOrder": 53,
+      "artAsset": "assets/gifts/hd/wv_gift_053.webp"
     },
     {
       "id": "wv_gift_054",
@@ -669,7 +677,8 @@
       "effectType": "monument",
       "tier": 3,
       "atlasIndex": 53,
-      "sortOrder": 54
+      "sortOrder": 54,
+      "artAsset": "assets/gifts/hd/wv_gift_054.webp"
     },
     {
       "id": "wv_gift_055",
