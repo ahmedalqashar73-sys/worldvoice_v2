@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -56,7 +58,7 @@ class _StoryTextbookReaderState extends State<StoryTextbookReaderScreen> {
   ];
 
   Future<void> _go(int page) async {
-    await _audio.stop();
+    unawaited(_audio.stop());
     if (!mounted) return;
     setState(() => _active = null);
     await _pager.animateToPage(page,

@@ -41,6 +41,7 @@ void main() {
     for (var i = 0; i < 5; i++) {
       await tester.tap(find.byKey(const ValueKey('textbook-next')));
       await tester.pumpAndSettle();
+      expect(find.text('${i + 2} / 12'), findsOneWidget);
     }
     expect(find.text('Chapter 2'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('textbook-next-chapter')));

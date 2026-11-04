@@ -184,13 +184,14 @@ class StoryTextbookNarration extends ChangeNotifier {
   }
 
   Future<void> stop() async {
+    final wasActive = _playing || _paused;
     ++_generation;
     _playing = false;
     _paused = false;
     _queue = const [];
     _cursor = 0;
     _notify();
-    await _safeStop();
+    if (wasActive) await _safeStop();
   }
 
   @override
