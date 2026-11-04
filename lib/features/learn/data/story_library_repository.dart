@@ -27,9 +27,9 @@ class StoryLibraryRepository {
         throw const FormatException('Story index entries must be objects.');
       }
       final entry = StoryLibraryEntry.fromJson(value);
-      final key = entry.language + '/' + entry.level + '/' + entry.id;
+      final key = '${entry.language}/${entry.level}/${entry.id}';
       if (!keys.add(key)) {
-        throw FormatException('Duplicate story: ' + key);
+        throw FormatException('Duplicate story: $key');
       }
       stories.add(entry);
     }
@@ -61,7 +61,7 @@ class StoryLibraryRepository {
     if (story.id != entry.id ||
         story.title != entry.title ||
         story.titleAr != entry.titleAr) {
-      throw FormatException('Index and story metadata differ: ' + entry.id);
+      throw FormatException('Index and story metadata differ: ${entry.id}');
     }
     return story;
   }
