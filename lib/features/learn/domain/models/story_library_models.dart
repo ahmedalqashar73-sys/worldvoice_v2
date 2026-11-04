@@ -271,6 +271,7 @@ class StoryLibraryEntry {
     required this.title,
     required this.titleAr,
     required this.asset,
+    this.format = 'legacy',
   });
 
   final String id;
@@ -279,6 +280,7 @@ class StoryLibraryEntry {
   final String title;
   final String titleAr;
   final String asset;
+  final String format;
 
   static const levels = <String>['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
@@ -287,10 +289,28 @@ class StoryLibraryEntry {
     final language = _requiredText(json, 'language');
     final level = _requiredText(json, 'level');
     final asset = _requiredText(json, 'asset');
+    final format = json['format'] ?? 'legacy';
+    if (format != 'legacy' && format != 'textbook') {
+      throw const FormatException('Unsupported story format.');
+    }
     final prefix = 'assets/stories/$language/$level/';
     if (!RegExp(r'^[a-z]{2,3}$').hasMatch(language) ||
         !levels.contains(level) ||
-        !RegExp(r'^[a-z0-9]+(?:_[a-z0-9]+)*$').hasMatch(id) ||
+        !RegExp(r'^[a-z0-9]+(?:[-_][a-z0-9]+)* ||
+        asset != '$prefix$id.json') {
+      throw const FormatException('Invalid story index entry.');
+    }
+    return StoryLibraryEntry(
+      id: id,
+      language: language,
+      level: level,
+      title: _requiredText(json, 'title'),
+      titleAr: _requiredText(json, 'title_ar'),
+      asset: asset,
+    );
+  }
+}
+).hasMatch(id) ||
         !asset.startsWith(prefix) ||
         asset != '$prefix$id.json') {
       throw const FormatException('Invalid story index entry.');
@@ -302,6 +322,7 @@ class StoryLibraryEntry {
       title: _requiredText(json, 'title'),
       titleAr: _requiredText(json, 'title_ar'),
       asset: asset,
+      format: format as String,
     );
   }
 }

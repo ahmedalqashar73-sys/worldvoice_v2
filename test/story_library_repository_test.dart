@@ -11,10 +11,10 @@ void main() {
   test('loads indexed English A1 story with all graded-reading content', () async {
     final repository = StoryLibraryRepository();
     final entries = await repository.storiesFor(language: 'EN', level: 'a1');
-    expect(entries, hasLength(1));
-    expect(entries.single.id, 'the_small_green_bag');
+    expect(entries.length, greaterThanOrEqualTo(2));
+    final legacy = entries.firstWhere((entry) => entry.id == 'the_small_green_bag');
 
-    final book = await repository.loadStory(entries.single);
+    final book = await repository.loadStory(legacy);
     expect(book.language, 'en');
     expect(book.level, 'A1');
     expect(book.pages, hasLength(9));
@@ -40,7 +40,8 @@ void main() {
 
   test('rejects invalid story page counts', () async {
     final repository = StoryLibraryRepository();
-    final entry = (await repository.loadIndex()).single;
+    final entry = (await repository.loadIndex())
+        .firstWhere((item) => item.id == 'the_small_green_bag');
     final json = jsonDecode(await rootBundle.loadString(entry.asset))
         as Map<String, dynamic>;
     (json['pages'] as List).removeLast();

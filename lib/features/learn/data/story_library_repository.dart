@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 
 import '../domain/models/story_library_models.dart';
+import '../domain/models/story_textbook_models.dart';
 
 /// Asset-only repository in phase 1. No Firebase or third-party requests.
 ///
@@ -46,6 +47,26 @@ class StoryLibraryRepository {
     return List<StoryLibraryEntry>.unmodifiable(
       all.where((entry) => entry.language == code && entry.level == grade),
     );
+  }
+
+  /// Reads chapter-based JSON without changing the legacy parser.
+  Future<StoryTextbookBook> loadTextbook(StoryLibraryEntry entry) async {
+    if (entry.format != 'textbook') {
+      throw const FormatException('This story uses the legacy reader.');
+    }
+    final decoded = jsonDecode(await _bundle.loadString(entry.asset));
+    if (decoded is! Map<String, dynamic>) {
+      throw const FormatException('Textbook story must be an object.');
+    }
+    final book = StoryTextbookBook.fromJson(decoded);
+    if (book.id != entry.id ||
+        book.title != entry.title ||
+        book.titleAr != entry.titleAr ||
+        book.language != entry.language ||
+        book.level != entry.level) {
+      throw FormatException('Textbook index mismatch: ${entry.id}');
+    }
+    return book;
   }
 
   Future<StoryLibraryBook> loadStory(StoryLibraryEntry entry) async {

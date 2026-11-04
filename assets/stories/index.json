@@ -8,6 +8,15 @@
       "title": "The Small Green Bag",
       "title_ar": "الحقيبة الخضراء الصغيرة",
       "asset": "assets/stories/en/A1/the_small_green_bag.json"
+    },
+    {
+      "id": "en-a1-001",
+      "language": "en",
+      "level": "A1",
+      "title": "The Saturday Garden",
+      "title_ar": "حديقة يوم السبت",
+      "format": "textbook",
+      "asset": "assets/stories/en/A1/en-a1-001.json"
     }
   ]
 }
