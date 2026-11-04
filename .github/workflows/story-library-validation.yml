@@ -1,0 +1,32 @@
+name: Validate Story Library
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'lib/features/learn/data/story_library_repository.dart'
+      - 'lib/features/learn/domain/models/story_library_models.dart'
+      - 'lib/features/learn/presentation/story_library_*.dart'
+      - 'lib/features/learn/presentation/learn_screen.dart'
+      - 'assets/stories/**'
+      - 'test/story_library_*.dart'
+      - 'test/academy_story_library_navigation_test.dart'
+      - 'pubspec.yaml'
+      - '.github/workflows/story-library-validation.yml'
+  workflow_dispatch:
+
+jobs:
+  validate-stories:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.44.8"
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Analyze story library modules
+        run: dart analyze lib/features/learn/data/story_library_repository.dart lib/features/learn/domain/models/story_library_models.dart lib/features/learn/presentation/story_library_section.dart lib/features/learn/presentation/story_library_reader_screen.dart
+      - name: Test story JSON, navigation, and illustrations
+        run: flutter test test/story_library_repository_test.dart test/story_library_illustrations_test.dart test/academy_story_library_navigation_test.dart
