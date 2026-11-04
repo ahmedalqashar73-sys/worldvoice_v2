@@ -23,8 +23,10 @@ class StoryLibraryReaderScreen extends StatefulWidget {
 }
 
 class _StoryLibraryReaderScreenState extends State<StoryLibraryReaderScreen> {
-  late final Future<StoryLibraryBook> _story =
-      widget.repository.loadStory(widget.entry);
+  // Do not start the legacy parser for chapter-based stories.
+  late final Future<StoryLibraryBook>? _story = widget.entry.format == 'textbook'
+      ? null
+      : widget.repository.loadStory(widget.entry);
   final PageController _pages = PageController();
   int _currentPage = 0;
   bool _translationVisible = false;

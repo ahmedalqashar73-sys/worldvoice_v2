@@ -157,13 +157,21 @@ class StoryTextbookNarration extends ChangeNotifier {
     }
   }
 
+  Future<void> _safeStop() async {
+    try {
+      await _engine.stop();
+    } catch (_) {
+      // Disposing without a speech engine (e.g. in widget tests) is safe.
+    }
+  }
+
   Future<void> pause() async {
     if (!_playing) return;
     ++_generation;
     _playing = false;
     _paused = true;
     _notify();
-    await _engine.stop();
+    await _safeStop();
   }
 
   Future<void> resume() async {
@@ -182,14 +190,14 @@ class StoryTextbookNarration extends ChangeNotifier {
     _queue = const [];
     _cursor = 0;
     _notify();
-    await _engine.stop();
+    await _safeStop();
   }
 
   @override
   void dispose() {
     ++_generation;
     _disposed = true;
-    unawaited(_engine.stop());
+    unawaited(_safeStop());
     super.dispose();
   }
 }

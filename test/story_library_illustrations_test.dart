@@ -10,8 +10,10 @@ void main() {
       () async {
     final repository = StoryLibraryRepository();
     final entries = await repository.storiesFor(language: 'en', level: 'A1');
-    expect(entries, hasLength(1));
-    final story = await repository.loadStory(entries.single);
+    final legacy = entries.firstWhere(
+      (entry) => entry.id == 'the_small_green_bag',
+    );
+    final story = await repository.loadStory(legacy);
     expect(story.pages, hasLength(9));
     for (final page in story.pages) {
       expect(page.image, isNotNull);

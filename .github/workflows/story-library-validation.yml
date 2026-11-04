@@ -7,9 +7,13 @@ on:
       - 'lib/features/learn/data/story_library_repository.dart'
       - 'lib/features/learn/domain/models/story_library_models.dart'
       - 'lib/features/learn/presentation/story_library_*.dart'
+      - 'lib/features/learn/presentation/story_textbook_*.dart'
+      - 'lib/features/learn/domain/models/story_textbook_*.dart'
+      - 'lib/features/learn/services/story_textbook_*.dart'
       - 'lib/features/learn/presentation/learn_screen.dart'
       - 'assets/stories/**'
       - 'test/story_library_*.dart'
+      - 'test/story_textbook_*.dart'
       - 'test/academy_story_library_navigation_test.dart'
       - 'pubspec.yaml'
       - '.github/workflows/story-library-validation.yml'
@@ -29,4 +33,4 @@ jobs:
       - name: Analyze story library modules
         run: flutter analyze
       - name: Test story JSON, navigation, and illustrations
-        run: flutter test test/story_library_repository_test.dart test/story_library_illustrations_test.dart test/academy_story_library_navigation_test.dart
+        run: flutter test test/story_library_repository_test.dart test/story_library_illustrations_test.dart test/story_textbook_models_test.dart test/academy_story_library_navigation_test.dart
