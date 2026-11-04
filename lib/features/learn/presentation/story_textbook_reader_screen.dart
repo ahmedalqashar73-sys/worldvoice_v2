@@ -283,13 +283,19 @@ class _StoryTextbookReaderState extends State<StoryTextbookReaderScreen> {
         const SizedBox(height: 16),
         Text(book.questions[q].question,
           style: const TextStyle(fontWeight: FontWeight.w800)),
-        for (var option = 0; option < 4; option++)
-          RadioListTile<int>(
-            value: option,
-            groupValue: _answers[q],
-            title: Text(book.questions[q].options[option]),
-            onChanged: (value) => setState(() => _answers[q] = value!),
-          ),
+        RadioGroup<int>(
+          groupValue: _answers[q],
+          onChanged: (value) {
+            if (value != null) setState(() => _answers[q] = value);
+          },
+          child: Column(children: [
+            for (var option = 0; option < 4; option++)
+              RadioListTile<int>(
+                value: option,
+                title: Text(book.questions[q].options[option]),
+              ),
+          ]),
+        ),
       ],
       if (_answers.length == book.questions.length)
         Text(ar ? 'النتيجة: $score / 8' : 'Score: $score / 8',
