@@ -26,13 +26,16 @@
       "language": "en"
     },
     {
-      "id": "en-a1-pod-003",
+      "id": "en-a1-voa-030",
       "level": "A1",
-      "title": "At the Coffee Shop",
-      "status": "planned",
-      "asset": null,
-      "title_ar": "في المقهى",
-      "language": "en"
+      "title": "Rolling on the River — VOA Lesson 30",
+      "title_ar": "على ضفاف النهر — درس VOA 30",
+      "status": "published_audio",
+      "asset": "assets/podcasts/en/A1/en-a1-voa-030.json",
+      "language": "en",
+      "recording_kind": "human",
+      "duration_ms": 199000,
+      "attribution": "VOA Learning English"
     },
     {
       "id": "en-a1-pod-004",
