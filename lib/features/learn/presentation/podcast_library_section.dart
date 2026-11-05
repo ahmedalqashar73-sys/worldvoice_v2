@@ -677,6 +677,10 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
     final scheme = Theme.of(context).colorScheme;
     final current = _activeIndex == i && _audioLoaded;
     final anna = line.speaker == 'Anna';
+    final sourceIsArabic = _episode?.language == 'ar';
+    final translation = sourceIsArabic
+        ? line.translationEn ?? ''
+        : line.translationAr;
     return AnimatedContainer(
       key: _anchors[i],
       duration: const Duration(milliseconds: 180),
@@ -730,7 +734,8 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                 const SizedBox(height: 5),
                 Text(
                   line.text,
-                  textDirection: TextDirection.ltr,
+                  textDirection: sourceIsArabic
+                      ? TextDirection.rtl : TextDirection.ltr,
                   textAlign: TextAlign.start,
                   style: TextStyle(fontSize: _fontSize,
                     height: 1.6,
@@ -738,11 +743,12 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                       ? const Color(0xFF102B20) : scheme.onSurface,
                     fontWeight: current ? FontWeight.w800 : FontWeight.w500),
                 ),
-                if (_showArabic) ...[
+                if (_showArabic && translation.isNotEmpty) ...[
                   const SizedBox(height: 7),
                   Text(
-                    line.translationAr,
-                    textDirection: TextDirection.rtl,
+                    translation,
+                    textDirection: sourceIsArabic
+                        ? TextDirection.ltr : TextDirection.rtl,
                     style: TextStyle(
                       fontSize: _fontSize - 2.5, height: 1.6,
                       color: scheme.onSurfaceVariant),
@@ -866,8 +872,11 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                 ]),
                 Row(children: [
                   Expanded(child: Text(
-                    ar ? 'إظهار الترجمة العربية'
-                       : 'Show Arabic translation',
+                    episode.language == 'ar'
+                        ? (ar ? 'إظهار الترجمة الإنجليزية'
+                            : 'Show English translation')
+                        : (ar ? 'إظهار الترجمة العربية'
+                            : 'Show Arabic translation'),
                     style: TextStyle(color: scheme.onSurfaceVariant,
                         fontSize: 12))),
                   Switch(
