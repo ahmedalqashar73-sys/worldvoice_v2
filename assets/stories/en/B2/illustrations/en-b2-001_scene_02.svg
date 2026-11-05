@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 600"><defs><linearGradient id="sky" x2=".1" y2="1"><stop stop-color="#B9D8DF"/><stop offset="1" stop-color="#E9E5CE"/></linearGradient></defs><rect width="960" height="600" fill="#E7DCCB"/><rect y="469" width="960" height="131" fill="#C6B7A3"/><rect x="60" y="48" width="840" height="413" rx="17" fill="#F6EDDF" stroke="#D2C4B1" stroke-width="9"/><g><rect x="83" y="135" width="192" height="286" rx="9" fill="#C4AA88" stroke="#967F68" stroke-width="9"/><path d="M93 217H265" stroke="#8A725B" stroke-width="10"/><path d="M93 289H265" stroke="#8A725B" stroke-width="10"/><path d="M93 361H265" stroke="#8A725B" stroke-width="10"/><rect x="103" y="151" width="20" height="63" rx="3" fill="#C97D72"/><rect x="129" y="151" width="20" height="63" rx="3" fill="#8AA2A4"/><rect x="155" y="151" width="20" height="63" rx="3" fill="#B0A775"/><rect x="181" y="151" width="20" height="63" rx="3" fill="#8687A7"/><rect x="207" y="151" width="20" height="63" rx="3" fill="#C97D72"/><rect x="233" y="151" width="20" height="63" rx="3" fill="#8AA2A4"/><rect x="103" y="223" width="20" height="63" rx="3" fill="#B0A775"/><rect x="129" y="223" width="20" height="63" rx="3" fill="#8687A7"/><rect x="155" y="223" width="20" height="63" rx="3" fill="#C97D72"/><rect x="181" y="223" width="20" height="63" rx="3" fill="#8AA2A4"/><rect x="207" y="223" width="20" height="63" rx="3" fill="#B0A775"/><rect x="233" y="223" width="20" height="63" rx="3" fill="#8687A7"/><rect x="103" y="295" width="20" height="63" rx="3" fill="#C97D72"/><rect x="129" y="295" width="20" height="63" rx="3" fill="#8AA2A4"/><rect x="155" y="295" width="20" height="63" rx="3" fill="#B0A775"/><rect x="181" y="295" width="20" height="63" rx="3" fill="#8687A7"/><rect x="207" y="295" width="20" height="63" rx="3" fill="#C97D72"/><rect x="233" y="295" width="20" height="63" rx="3" fill="#8AA2A4"/></g><g><rect x="324" y="364" width="455" height="75" rx="13" fill="#A98263"/><path d="M356 438V570M744 438V570" stroke="#94775E" stroke-width="22"/><rect x="423" y="348" width="157" height="34" rx="6" fill="#E7D9B9"/><rect x="604" y="336" width="110" height="42" rx="7" fill="#B9C7BB"/></g><g><rect x="650" y="100" width="181" height="193" fill="#CEAC7E" stroke="#866C57" stroke-width="11"/><rect x="668" y="118" width="145" height="157" fill="#91AFA9"/><circle cx="736.88" cy="188.78" r="32.58" fill="#E4BD91"/><path d="M671 272Q740.5 186.85000000000002 810 272" fill="#5F796B" stroke="#5F796B" stroke-width="8"/></g><g transform="translate(342 525) scale(1)">
+<ellipse cy="91" rx="59" ry="10" fill="#685C53" opacity=".15"/>
+<path d="M-20 2L-25 88M20 2L27 88" stroke="#495266" stroke-width="25" stroke-linecap="round"/>
+<path d="M-44 88H-10M14 88H45" stroke="#F2E6DE" stroke-width="17" stroke-linecap="round"/>
+<path d="M-35 -64L-50 14M35 -64L50 14" stroke="#B28263" stroke-width="18" stroke-linecap="round"/>
+<path d="M-37 -66Q0 -87 38 -66L36 24Q0 38 -36 24Z" fill="#61699B"/>
+<ellipse cy="-124" rx="34" ry="42" fill="#B28263"/>
+<path d="M-36 -139Q-31 -173 0 -174Q31 -173 36 -138Q2 -152 -36 -136" fill="#2E282A"/>
+<circle cx="-12" cy="-122" r="3.3" fill="#3F3434"/><circle cx="12" cy="-122" r="3.3" fill="#3F3434"/>
+<path d="M-12 -104Q0 -95 12 -104" fill="none" stroke="#9A665F" stroke-width="3" stroke-linecap="round"/>
+</g><g transform="translate(788 515) scale(1)">
+<ellipse cy="91" rx="59" ry="10" fill="#685C53" opacity=".15"/>
+<path d="M-20 2L-25 88M20 2L27 88" stroke="#495266" stroke-width="25" stroke-linecap="round"/>
+<path d="M-44 88H-10M14 88H45" stroke="#F2E6DE" stroke-width="17" stroke-linecap="round"/>
+<path d="M-35 -64L-50 14M35 -64L50 14" stroke="#E3C0A0" stroke-width="18" stroke-linecap="round"/>
+<path d="M-37 -66Q0 -87 38 -66L36 24Q0 38 -36 24Z" fill="#B3A074"/>
+<ellipse cy="-124" rx="34" ry="42" fill="#E3C0A0"/>
+<path d="M-36 -139Q-31 -173 0 -174Q31 -173 36 -138Q2 -152 -36 -136" fill="#9D8B72"/>
+<circle cx="-12" cy="-122" r="3.3" fill="#3F3434"/><circle cx="12" cy="-122" r="3.3" fill="#3F3434"/>
+<path d="M-12 -104Q0 -95 12 -104" fill="none" stroke="#9A665F" stroke-width="3" stroke-linecap="round"/>
+</g></svg>
