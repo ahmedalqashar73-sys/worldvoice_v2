@@ -53,7 +53,7 @@ class _RoomsHubScreenState extends State<RoomsHubScreen> {
                 children: [
                   Expanded(
                     child: Text(
-                      labels.title,
+                      _section == 3 ? 'WorldVoice Academy' : labels.title,
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                             fontWeight: FontWeight.w900,
                           ),
