@@ -2,6 +2,30 @@ import 'dart:convert';
 
 import 'package:flutter/services.dart';
 
+/// One of the initial eight podcast languages, with its own A1–C2 track.
+/// A language appearing in the library does not imply it has recorded audio.
+class PodcastLanguage {
+  const PodcastLanguage({
+    required this.code,
+    required this.nativeName,
+    required this.arabicName,
+    required this.flag,
+  });
+
+  final String code;
+  final String nativeName;
+  final String arabicName;
+  final String flag;
+
+  factory PodcastLanguage.fromJson(Map<String, dynamic> json) =>
+      PodcastLanguage(
+        code: json['code'] as String,
+        nativeName: json['native_name'] as String,
+        arabicName: json['name_ar'] as String,
+        flag: json['flag'] as String,
+      );
+}
+
 /// Podcast metadata deliberately separates planning from published audio.
 /// A text-only draft must never be represented as an audible episode.
 class AcademyPodcastEntry {
@@ -10,12 +34,14 @@ class AcademyPodcastEntry {
     required this.level,
     required this.title,
     required this.status,
+    this.language = 'en',
     this.titleAr,
     this.asset,
   });
 
   final String id;
   final String level;
+  final String language;
   final String title;
   final String? titleAr;
   final String status;
@@ -28,6 +54,7 @@ class AcademyPodcastEntry {
       AcademyPodcastEntry(
         id: json['id'] as String,
         level: json['level'] as String,
+        language: json['language'] as String? ?? 'en',
         title: json['title'] as String,
         titleAr: json['title_ar'] as String?,
         status: json['status'] as String,
@@ -177,6 +204,15 @@ class AcademyPodcastRepository {
   const AcademyPodcastRepository();
 
   static const levels = <String>['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+  static const episodesPerLevel = 15;
+
+  Future<List<PodcastLanguage>> allLanguages() async {
+    final raw = await rootBundle.loadString('assets/podcasts/index.json');
+    final data = jsonDecode(raw) as Map<String, dynamic>;
+    return (data['languages'] as List<dynamic>)
+        .map((item) => PodcastLanguage.fromJson(item as Map<String, dynamic>))
+        .toList(growable: false);
+  }
 
   Future<List<AcademyPodcastEntry>> allEpisodes() async {
     final raw = await rootBundle.loadString('assets/podcasts/index.json');
