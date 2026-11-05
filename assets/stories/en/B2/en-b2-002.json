@@ -1,0 +1,438 @@
+{
+  "language": "en",
+  "level": "B2",
+  "story": {
+    "id": "en-b2-002",
+    "title": "A Message from Windward Island",
+    "title_ar": "رسالة من جزيرة ويندوارد",
+    "moral_ar": "أثناء الأزمات تفيد الرسائل الواضحة والموثقة جميع الناس أكثر من الشائعات والوعود غير المضمونة.",
+    "art_style": "Coastal illustrated watercolor with natural light and consistent characters; original artwork with no text.",
+    "cover_image_prompt": "Rainy ferry pier on a small island village, waves behind harbor rail, Rania in yellow jacket and Theo in teal raincoat looking at empty ferry berth, storm clouds.",
+    "character_sheet": [
+      {
+        "name": "Rania",
+        "description": "A twenty-one-year-old woman with dark brown skin, black braids, yellow waterproof jacket and dark trousers."
+      },
+      {
+        "name": "Theo",
+        "description": "A twenty-two-year-old man with fair freckled skin, short copper hair, teal sweater and gray raincoat."
+      },
+      {
+        "name": "Mrs. Bell",
+        "description": "An older community radio presenter with silver hair, warm olive skin, dark blue coat and round glasses."
+      }
+    ],
+    "chapters": [
+      {
+        "chapter": 1,
+        "title": "The Ferry That Never Arrived",
+        "title_ar": "العبارة التي لم تصل",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Rainy ferry pier on a small island village, waves behind harbor rail, Rania in yellow jacket and Theo in teal raincoat looking at empty ferry berth, storm clouds. Hand-painted illustrative realism, same named characters and clothes throughout: Rania A twenty-one-year-old woman with dark brown skin, black braids, yellow waterproof jacket and dark trousers.; Theo A twenty-two-year-old man with fair freckled skin, short copper hair, teal sweater and gray raincoat.; Mrs. Bell An older community radio presenter with silver hair, warm olive skin, dark blue coat and round glasses.. No lettering.",
+            "animation": "fade_in",
+            "image": "assets/stories/en/B2/illustrations/en-b2-002_scene_01.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Early on Monday, the ferry that connected Windward Island to the mainland failed to arrive. Strong winds had forced the operator to suspend crossings, leaving residents uncertain about deliveries and medical appointments. Rania, who worked at the local youth center, noticed how quickly **rumors** spread through the island's messaging groups. Theo, a journalism student visiting his family, suggested checking the company's official **announcement** before repeating anything. Although several neighbors were anxious, they agreed that sharing unconfirmed **information** could make the situation worse."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Let us find out what is actually happening, Rania said."
+                  }
+                ],
+                "translation_ar": "صباح الاثنين لم تصل العبارة التي تربط جزيرة ويندوارد بالبر الرئيسي. أدت الرياح القوية إلى تعليق الرحلات، فقلق السكان بشأن الإمدادات والمواعيد الطبية. لاحظت رانيا انتشار الشائعات سريعًا في مجموعات الرسائل. اقترح ثيو مراجعة إعلان الشركة الرسمي قبل نقل الأخبار. اتفقا على أن المعلومات غير المؤكدة قد تزيد الوضع سوءًا. قالت رانيا إن عليهما معرفة ما يحدث فعلًا."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The ferry operator confirmed that all trips were cancelled until conditions became safe, but its website offered few practical details. Theo contacted the harbor office and asked whether an updated **timetable** would be published. Meanwhile, Rania spoke with residents who had essential **appointments** and explained that she could not promise a replacement service. Their conversations revealed another difficulty: many older people did not use smartphones, so online updates alone would leave them **excluded**. They decided to ask the island's community radio station for help."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "An accurate message is useless if nobody hears it, Theo observed."
+                  }
+                ],
+                "translation_ar": "أكدت شركة العبّارات إلغاء الرحلات حتى تحسن الطقس، لكن موقعها لم يقدم تفاصيل عملية. سأل ثيو مكتب الميناء عن جدول جديد. وتحدثت رانيا إلى سكان لديهم مواعيد مهمة دون أن تعدهم بوسيلة بديلة. اكتشفا أن بعض كبار السن لا يستخدمون الهواتف الذكية، لذا لن تكفي التحديثات الإلكترونية. قررا طلب مساعدة الإذاعة المحلية. قال ثيو إن الخبر الصحيح لا يفيد إذا لم يسمعه أحد."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Warm community radio room on the island, Mrs Bell with silver hair operating microphone, Theo and Rania planning a verified update, notebook and island chart. Hand-painted illustrative realism, same named characters and clothes throughout: Rania A twenty-one-year-old woman with dark brown skin, black braids, yellow waterproof jacket and dark trousers.; Theo A twenty-two-year-old man with fair freckled skin, short copper hair, teal sweater and gray raincoat.; Mrs. Bell An older community radio presenter with silver hair, warm olive skin, dark blue coat and round glasses.. No lettering.",
+            "animation": "pan_left",
+            "image": "assets/stories/en/B2/illustrations/en-b2-002_scene_02.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Mrs. Bell, the station's experienced presenter, agreed to arrange a special **broadcast** that afternoon. Before recording anything, however, she insisted on confirming details with the harbor authority and the island clinic. Rania learned that a responsible message should distinguish facts from **possibilities** and explain what people could do next. Theo prepared a short script, carefully avoiding dramatic language or identifying anyone who had shared a private **concern**. The team wanted listeners to feel informed rather than frightened, even though the situation remained uncertain."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We can be calm without pretending everything is fine, Rania said."
+                  }
+                ],
+                "translation_ar": "وافقت المذيعة الخبيرة السيدة بيل على بث خاص بعد الظهر، لكنها أصرت على التحقق من التفاصيل مع الميناء والعيادة. تعلمت رانيا أن الرسالة المسؤولة تفرق بين الحقائق والاحتمالات وتوضح الخطوات المقبلة. كتب ثيو نصًا هادئًا وتجنب ذكر مخاوف خاصة لأشخاص بعينهم. أراد الفريق أن يشعر المستمعون بالمعرفة لا بالخوف رغم عدم اليقين. قالت رانيا إن الهدوء لا يعني الادعاء أن كل شيء بخير."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The first broadcast explained the cancellation and gave residents an official telephone **contact** for urgent travel questions. Mrs. Bell repeated the source of each statement, while Theo recorded the time of the latest **verification** so outdated advice would not circulate. Rania organized volunteers to place printed notices at the community hall and shops. She also asked everyone to avoid guessing when crossings might **resume**, because changing weather made a precise forecast impossible. After the program, callers thanked them for speaking clearly rather than offering false reassurance."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Trust matters more than sounding confident, Theo said."
+                  }
+                ],
+                "translation_ar": "شرح البث الأول الإلغاء وقدم رقمًا رسميًا للاستفسارات العاجلة. ذكرت السيدة بيل مصادر كل معلومة، وسجل ثيو وقت التحقق كي لا تنتشر نصائح قديمة. نظمت رانيا متطوعين لوضع إعلانات ورقية في القاعة والمتاجر. وطلبت من الجميع عدم تخمين موعد استئناف العبارات لأن الطقس متقلب. شكر المتصلون الفريق على الوضوح بدل الطمأنة الكاذبة. قال ثيو إن الثقة أهم من الظهور بمظهر الواثق."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "By Tuesday morning, several residents had asked whether volunteers could deliver medicine across the water using private boats. Rania understood their **urgency**, but Mrs. Bell warned that untrained people should not attempt dangerous crossings. Instead, the group forwarded relevant requests through the clinic's established **procedures**, allowing qualified services to assess each case. Theo wrote an additional message explaining why volunteers could coordinate **communication** without becoming emergency transport providers. Some listeners were disappointed, yet most appreciated the safety-first approach once the reasoning was explained."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Helping responsibly sometimes means knowing our limits, Rania said."
+                  }
+                ],
+                "translation_ar": "صباح الثلاثاء سأل سكان إن كان المتطوعون يستطيعون نقل أدوية بقوارب خاصة. تفهمت رانيا استعجالهم، لكن السيدة بيل حذرت من العبور الخطر دون تدريب. أحال الفريق الطلبات عبر إجراءات العيادة الرسمية لتقيّمها الجهات المؤهلة. كتب ثيو رسالة تشرح أن دور المتطوعين تنسيق التواصل لا النقل الطارئ. خاب أمل بعض الناس لكنهم قدروا الحرص على السلامة. قالت رانيا إن المساعدة المسؤولة تعني أحيانًا معرفة حدودنا."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "chapter": 2,
+        "title": "The Broadcast Everyone Heard",
+        "title_ar": "البث الذي سمعه الجميع",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Island village community hall with printed announcements, Rania and Theo explaining ferry updates to residents and arranging medicines transport through official channels, sun emerging. Hand-painted illustrative realism, same named characters and clothes throughout: Rania A twenty-one-year-old woman with dark brown skin, black braids, yellow waterproof jacket and dark trousers.; Theo A twenty-two-year-old man with fair freckled skin, short copper hair, teal sweater and gray raincoat.; Mrs. Bell An older community radio presenter with silver hair, warm olive skin, dark blue coat and round glasses.. No lettering.",
+            "animation": "parallax",
+            "image": "assets/stories/en/B2/illustrations/en-b2-002_scene_03.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "As the weather improved, the harbor authority released a provisional **schedule** for restarting services. Theo confirmed that the announcement was still **conditional** on a final safety inspection, a distinction some social media posts had ignored. Mrs. Bell asked him to explain what this condition meant in ordinary language during the next program. Rania prepared printed updates that used the same wording, preventing different versions from circulating around the island. The volunteers also agreed to include the exact **date** and time of each update, so residents could recognize older information."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Consistency reduces confusion, Theo explained."
+                  }
+                ],
+                "translation_ar": "عندما تحسن الطقس نشر الميناء جدولًا مؤقتًا لاستئناف الخدمة مشروطًا بفحص سلامة نهائي. تحقق ثيو من الشرط الذي تجاهلته بعض منشورات التواصل. طلبت السيدة بيل شرحه بلغة بسيطة في البرنامج المقبل. أعدت رانيا إعلانات ورقية بالنص نفسه لتجنب تضارب النسخ. واتفقوا على كتابة التاريخ والوقت بوضوح لتمييز المعلومات القديمة. قال ثيو إن الاتساق يقلل الارتباك."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "During the second broadcast, a caller complained that the station had been too **cautious** and should have predicted the ferry's return. Mrs. Bell listened respectfully before explaining that a mistaken promise could cause people to make unnecessary journeys. Theo described how weather **forecasts** were updated as new evidence became available, while Rania pointed out that honest uncertainty allowed families to prepare alternative plans. The caller remained frustrated, but he acknowledged that the presenter had not hidden anything. The conversation became a useful example of **transparency** rather than a public argument."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Clear limits can be a form of respect, Rania said."
+                  }
+                ],
+                "translation_ar": "اعترض متصل في البث الثاني بأن المحطة شديدة الحذر وكان عليها توقع عودة العبارة. استمعت السيدة بيل باحترام ثم أوضحت أن الوعد الخاطئ قد يدفع الناس إلى رحلات بلا فائدة. شرح ثيو تغير التوقعات مع الأدلة الجديدة، وأشارت رانيا إلى أن الاعتراف بعدم اليقين يسمح للأسر بوضع بدائل. بقي المتصل منزعجًا لكنه أقر بأن شيئًا لم يُخف عنه. صار الحوار مثالًا على الشفافية لا الشجار."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Ferry finally arriving at island harbor under clear sky, residents relieved and listening to community radio, Rania Theo and Mrs Bell smiling by pier. Hand-painted illustrative realism, same named characters and clothes throughout: Rania A twenty-one-year-old woman with dark brown skin, black braids, yellow waterproof jacket and dark trousers.; Theo A twenty-two-year-old man with fair freckled skin, short copper hair, teal sweater and gray raincoat.; Mrs. Bell An older community radio presenter with silver hair, warm olive skin, dark blue coat and round glasses.. No lettering.",
+            "animation": "zoom_in_slow",
+            "image": "assets/stories/en/B2/illustrations/en-b2-002_scene_04.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "On Wednesday, the ferry operator finally confirmed that one crossing would take place after the required **inspection**. The radio station shared the exact departure time and advised passengers to verify availability directly with the operator. Rania helped people identify which announcements were **official**, while Theo monitored the website for corrections. The first ferry arrived later that afternoon, and the village welcomed its crew with quiet **relief** rather than noisy celebration. Nobody forgot how difficult the previous days had been, especially for families facing urgent decisions."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "We should document what worked before the next storm, Theo suggested."
+                  }
+                ],
+                "translation_ar": "يوم الأربعاء أكدت الشركة رحلة واحدة بعد فحص السلامة. أعلنت الإذاعة الوقت الدقيق ونصحت الركاب بالتحقق من الشركة مباشرة. ساعدت رانيا الناس على تمييز الإعلانات الرسمية، وتابع ثيو التصحيحات. وصلت العبارة عصرًا واستقبلها السكان بارتياح هادئ. لم ينس أحد صعوبة الأيام الماضية، خصوصًا الأسر ذات الاحتياجات العاجلة. اقترح ثيو توثيق ما نجح قبل العاصفة التالية."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "After services returned, Mrs. Bell invited the volunteers to review the station's **response**. They discovered that printed notices had reached many residents, but some remote homes still lacked reliable updates. Rania proposed creating a rotating list of trusted local **partners** who could share verified announcements without collecting sensitive personal information. Theo recommended testing the system during calm weather rather than waiting for another emergency. Their revised plan gave the island several ways to receive the same message, increasing its overall **resilience**. Their decision depended on evidence available at that moment, not on what they wished were true."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Communication should work for everyone, Rania explained."
+                  }
+                ],
+                "translation_ar": "بعد عودة الرحلات دعت السيدة بيل المتطوعين إلى تقييم استجابة المحطة. وجدوا أن الإعلانات الورقية وصلت إلى كثير من الناس لكن بعض البيوت البعيدة بقيت خارج التغطية. اقترحت رانيا شركاء محليين موثوقين لنشر الأخبار المؤكدة دون جمع بيانات خاصة. ونصح ثيو بتجربة النظام في الطقس الهادئ لا انتظار أزمة جديدة. جعلت الخطة الجزيرة أكثر قدرة على الصمود بوسائل اتصال متعددة."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Months later, another brief weather warning appeared, and residents already knew where to check for reliable **updates**. The community radio followed its agreed **protocol**, confirming information before broadcasting and correcting changes openly. Rania felt proud that the system no longer depended on any single volunteer, while Theo recognized that careful reporting was also a form of public service. Their experience showed that trust was built through repeated **actions**, not through one impressive message. The sea remained unpredictable, but the island's ability to communicate had become much stronger."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Good information helps people make their own decisions, Theo said."
+                  }
+                ],
+                "translation_ar": "بعد أشهر صدر تحذير جوي جديد، وكان السكان يعرفون أين يجدون التحديثات الموثوقة. اتبعت الإذاعة بروتوكولها في التحقق والتصحيح. سعدت رانيا بأن النظام لا يعتمد على متطوع واحد، وفهم ثيو أن الصحافة الدقيقة خدمة عامة. أثبتت التجربة أن الثقة تبنى بالأفعال المتكررة لا برسالة واحدة. ظل البحر متقلبًا، لكن قدرة الجزيرة على التواصل تحسنت. قال ثيو إن المعلومات الجيدة تساعد الناس على اتخاذ قراراتهم."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "vocabulary": [
+      {
+        "word": "rumors",
+        "meaning_ar": "شائعات",
+        "example": "Early on Monday, the ferry that connected Windward Island to the mainland failed to arrive. Strong winds had forced the operator to suspend crossings, leaving residents uncertain about deliveries and medical appointments. Rania, who worked at the local youth center, noticed how quickly rumors spread through the island's messaging groups. Theo, a journalism student visiting his family, suggested checking the company's official announcement before repeating anything. Although several neighbors were anxious, they agreed that sharing unconfirmed information could make the situation worse."
+      },
+      {
+        "word": "announcement",
+        "meaning_ar": "إعلان",
+        "example": "Early on Monday, the ferry that connected Windward Island to the mainland failed to arrive. Strong winds had forced the operator to suspend crossings, leaving residents uncertain about deliveries and medical appointments. Rania, who worked at the local youth center, noticed how quickly rumors spread through the island's messaging groups. Theo, a journalism student visiting his family, suggested checking the company's official announcement before repeating anything. Although several neighbors were anxious, they agreed that sharing unconfirmed information could make the situation worse."
+      },
+      {
+        "word": "information",
+        "meaning_ar": "معلومات",
+        "example": "Early on Monday, the ferry that connected Windward Island to the mainland failed to arrive. Strong winds had forced the operator to suspend crossings, leaving residents uncertain about deliveries and medical appointments. Rania, who worked at the local youth center, noticed how quickly rumors spread through the island's messaging groups. Theo, a journalism student visiting his family, suggested checking the company's official announcement before repeating anything. Although several neighbors were anxious, they agreed that sharing unconfirmed information could make the situation worse."
+      },
+      {
+        "word": "timetable",
+        "meaning_ar": "جدول مواعيد",
+        "example": "The ferry operator confirmed that all trips were cancelled until conditions became safe, but its website offered few practical details. Theo contacted the harbor office and asked whether an updated timetable would be published. Meanwhile, Rania spoke with residents who had essential appointments and explained that she could not promise a replacement service. Their conversations revealed another difficulty: many older people did not use smartphones, so online updates alone would leave them excluded. They decided to ask the island's community radio station for help."
+      },
+      {
+        "word": "appointments",
+        "meaning_ar": "مواعيد",
+        "example": "The ferry operator confirmed that all trips were cancelled until conditions became safe, but its website offered few practical details. Theo contacted the harbor office and asked whether an updated timetable would be published. Meanwhile, Rania spoke with residents who had essential appointments and explained that she could not promise a replacement service. Their conversations revealed another difficulty: many older people did not use smartphones, so online updates alone would leave them excluded. They decided to ask the island's community radio station for help."
+      },
+      {
+        "word": "excluded",
+        "meaning_ar": "مستبعد",
+        "example": "The ferry operator confirmed that all trips were cancelled until conditions became safe, but its website offered few practical details. Theo contacted the harbor office and asked whether an updated timetable would be published. Meanwhile, Rania spoke with residents who had essential appointments and explained that she could not promise a replacement service. Their conversations revealed another difficulty: many older people did not use smartphones, so online updates alone would leave them excluded. They decided to ask the island's community radio station for help."
+      },
+      {
+        "word": "broadcast",
+        "meaning_ar": "بث",
+        "example": "Mrs. Bell, the station's experienced presenter, agreed to arrange a special broadcast that afternoon. Before recording anything, however, she insisted on confirming details with the harbor authority and the island clinic. Rania learned that a responsible message should distinguish facts from possibilities and explain what people could do next. Theo prepared a short script, carefully avoiding dramatic language or identifying anyone who had shared a private concern. The team wanted listeners to feel informed rather than frightened, even though the situation remained uncertain."
+      },
+      {
+        "word": "possibilities",
+        "meaning_ar": "احتمالات",
+        "example": "Mrs. Bell, the station's experienced presenter, agreed to arrange a special broadcast that afternoon. Before recording anything, however, she insisted on confirming details with the harbor authority and the island clinic. Rania learned that a responsible message should distinguish facts from possibilities and explain what people could do next. Theo prepared a short script, carefully avoiding dramatic language or identifying anyone who had shared a private concern. The team wanted listeners to feel informed rather than frightened, even though the situation remained uncertain."
+      },
+      {
+        "word": "concern",
+        "meaning_ar": "قلق",
+        "example": "Mrs. Bell, the station's experienced presenter, agreed to arrange a special broadcast that afternoon. Before recording anything, however, she insisted on confirming details with the harbor authority and the island clinic. Rania learned that a responsible message should distinguish facts from possibilities and explain what people could do next. Theo prepared a short script, carefully avoiding dramatic language or identifying anyone who had shared a private concern. The team wanted listeners to feel informed rather than frightened, even though the situation remained uncertain."
+      },
+      {
+        "word": "contact",
+        "meaning_ar": "جهة اتصال",
+        "example": "The first broadcast explained the cancellation and gave residents an official telephone contact for urgent travel questions. Mrs. Bell repeated the source of each statement, while Theo recorded the time of the latest verification so outdated advice would not circulate. Rania organized volunteers to place printed notices at the community hall and shops. She also asked everyone to avoid guessing when crossings might resume, because changing weather made a precise forecast impossible. After the program, callers thanked them for speaking clearly rather than offering false reassurance."
+      },
+      {
+        "word": "verification",
+        "meaning_ar": "تحقق",
+        "example": "The first broadcast explained the cancellation and gave residents an official telephone contact for urgent travel questions. Mrs. Bell repeated the source of each statement, while Theo recorded the time of the latest verification so outdated advice would not circulate. Rania organized volunteers to place printed notices at the community hall and shops. She also asked everyone to avoid guessing when crossings might resume, because changing weather made a precise forecast impossible. After the program, callers thanked them for speaking clearly rather than offering false reassurance."
+      },
+      {
+        "word": "resume",
+        "meaning_ar": "يستأنف",
+        "example": "The first broadcast explained the cancellation and gave residents an official telephone contact for urgent travel questions. Mrs. Bell repeated the source of each statement, while Theo recorded the time of the latest verification so outdated advice would not circulate. Rania organized volunteers to place printed notices at the community hall and shops. She also asked everyone to avoid guessing when crossings might resume, because changing weather made a precise forecast impossible. After the program, callers thanked them for speaking clearly rather than offering false reassurance."
+      },
+      {
+        "word": "urgency",
+        "meaning_ar": "استعجال",
+        "example": "By Tuesday morning, several residents had asked whether volunteers could deliver medicine across the water using private boats. Rania understood their urgency, but Mrs. Bell warned that untrained people should not attempt dangerous crossings. Instead, the group forwarded relevant requests through the clinic's established procedures, allowing qualified services to assess each case. Theo wrote an additional message explaining why volunteers could coordinate communication without becoming emergency transport providers. Some listeners were disappointed, yet most appreciated the safety-first approach once the reasoning was explained."
+      },
+      {
+        "word": "procedures",
+        "meaning_ar": "إجراءات",
+        "example": "By Tuesday morning, several residents had asked whether volunteers could deliver medicine across the water using private boats. Rania understood their urgency, but Mrs. Bell warned that untrained people should not attempt dangerous crossings. Instead, the group forwarded relevant requests through the clinic's established procedures, allowing qualified services to assess each case. Theo wrote an additional message explaining why volunteers could coordinate communication without becoming emergency transport providers. Some listeners were disappointed, yet most appreciated the safety-first approach once the reasoning was explained."
+      },
+      {
+        "word": "communication",
+        "meaning_ar": "تواصل",
+        "example": "By Tuesday morning, several residents had asked whether volunteers could deliver medicine across the water using private boats. Rania understood their urgency, but Mrs. Bell warned that untrained people should not attempt dangerous crossings. Instead, the group forwarded relevant requests through the clinic's established procedures, allowing qualified services to assess each case. Theo wrote an additional message explaining why volunteers could coordinate communication without becoming emergency transport providers. Some listeners were disappointed, yet most appreciated the safety-first approach once the reasoning was explained."
+      },
+      {
+        "word": "schedule",
+        "meaning_ar": "جدول",
+        "example": "As the weather improved, the harbor authority released a provisional schedule for restarting services. Theo confirmed that the announcement was still conditional on a final safety inspection, a distinction some social media posts had ignored. Mrs. Bell asked him to explain what this condition meant in ordinary language during the next program. Rania prepared printed updates that used the same wording, preventing different versions from circulating around the island. The volunteers also agreed to include the exact date and time of each update, so residents could recognize older information."
+      },
+      {
+        "word": "conditional",
+        "meaning_ar": "مشروط",
+        "example": "As the weather improved, the harbor authority released a provisional schedule for restarting services. Theo confirmed that the announcement was still conditional on a final safety inspection, a distinction some social media posts had ignored. Mrs. Bell asked him to explain what this condition meant in ordinary language during the next program. Rania prepared printed updates that used the same wording, preventing different versions from circulating around the island. The volunteers also agreed to include the exact date and time of each update, so residents could recognize older information."
+      },
+      {
+        "word": "date",
+        "meaning_ar": "تاريخ",
+        "example": "As the weather improved, the harbor authority released a provisional schedule for restarting services. Theo confirmed that the announcement was still conditional on a final safety inspection, a distinction some social media posts had ignored. Mrs. Bell asked him to explain what this condition meant in ordinary language during the next program. Rania prepared printed updates that used the same wording, preventing different versions from circulating around the island. The volunteers also agreed to include the exact date and time of each update, so residents could recognize older information."
+      },
+      {
+        "word": "cautious",
+        "meaning_ar": "حذر",
+        "example": "During the second broadcast, a caller complained that the station had been too cautious and should have predicted the ferry's return. Mrs. Bell listened respectfully before explaining that a mistaken promise could cause people to make unnecessary journeys. Theo described how weather forecasts were updated as new evidence became available, while Rania pointed out that honest uncertainty allowed families to prepare alternative plans. The caller remained frustrated, but he acknowledged that the presenter had not hidden anything. The conversation became a useful example of transparency rather than a public argument."
+      },
+      {
+        "word": "forecasts",
+        "meaning_ar": "توقعات",
+        "example": "During the second broadcast, a caller complained that the station had been too cautious and should have predicted the ferry's return. Mrs. Bell listened respectfully before explaining that a mistaken promise could cause people to make unnecessary journeys. Theo described how weather forecasts were updated as new evidence became available, while Rania pointed out that honest uncertainty allowed families to prepare alternative plans. The caller remained frustrated, but he acknowledged that the presenter had not hidden anything. The conversation became a useful example of transparency rather than a public argument."
+      },
+      {
+        "word": "transparency",
+        "meaning_ar": "شفافية",
+        "example": "During the second broadcast, a caller complained that the station had been too cautious and should have predicted the ferry's return. Mrs. Bell listened respectfully before explaining that a mistaken promise could cause people to make unnecessary journeys. Theo described how weather forecasts were updated as new evidence became available, while Rania pointed out that honest uncertainty allowed families to prepare alternative plans. The caller remained frustrated, but he acknowledged that the presenter had not hidden anything. The conversation became a useful example of transparency rather than a public argument."
+      },
+      {
+        "word": "inspection",
+        "meaning_ar": "فحص",
+        "example": "On Wednesday, the ferry operator finally confirmed that one crossing would take place after the required inspection. The radio station shared the exact departure time and advised passengers to verify availability directly with the operator. Rania helped people identify which announcements were official, while Theo monitored the website for corrections. The first ferry arrived later that afternoon, and the village welcomed its crew with quiet relief rather than noisy celebration. Nobody forgot how difficult the previous days had been, especially for families facing urgent decisions."
+      },
+      {
+        "word": "official",
+        "meaning_ar": "رسمي",
+        "example": "On Wednesday, the ferry operator finally confirmed that one crossing would take place after the required inspection. The radio station shared the exact departure time and advised passengers to verify availability directly with the operator. Rania helped people identify which announcements were official, while Theo monitored the website for corrections. The first ferry arrived later that afternoon, and the village welcomed its crew with quiet relief rather than noisy celebration. Nobody forgot how difficult the previous days had been, especially for families facing urgent decisions."
+      },
+      {
+        "word": "relief",
+        "meaning_ar": "ارتياح",
+        "example": "On Wednesday, the ferry operator finally confirmed that one crossing would take place after the required inspection. The radio station shared the exact departure time and advised passengers to verify availability directly with the operator. Rania helped people identify which announcements were official, while Theo monitored the website for corrections. The first ferry arrived later that afternoon, and the village welcomed its crew with quiet relief rather than noisy celebration. Nobody forgot how difficult the previous days had been, especially for families facing urgent decisions."
+      },
+      {
+        "word": "response",
+        "meaning_ar": "استجابة",
+        "example": "After services returned, Mrs. Bell invited the volunteers to review the station's response. They discovered that printed notices had reached many residents, but some remote homes still lacked reliable updates. Rania proposed creating a rotating list of trusted local partners who could share verified announcements without collecting sensitive personal information. Theo recommended testing the system during calm weather rather than waiting for another emergency. Their revised plan gave the island several ways to receive the same message, increasing its overall resilience. Their decision depended on evidence available at that moment, not on what they wished were true."
+      },
+      {
+        "word": "partners",
+        "meaning_ar": "شركاء",
+        "example": "After services returned, Mrs. Bell invited the volunteers to review the station's response. They discovered that printed notices had reached many residents, but some remote homes still lacked reliable updates. Rania proposed creating a rotating list of trusted local partners who could share verified announcements without collecting sensitive personal information. Theo recommended testing the system during calm weather rather than waiting for another emergency. Their revised plan gave the island several ways to receive the same message, increasing its overall resilience. Their decision depended on evidence available at that moment, not on what they wished were true."
+      },
+      {
+        "word": "resilience",
+        "meaning_ar": "قدرة على الصمود",
+        "example": "After services returned, Mrs. Bell invited the volunteers to review the station's response. They discovered that printed notices had reached many residents, but some remote homes still lacked reliable updates. Rania proposed creating a rotating list of trusted local partners who could share verified announcements without collecting sensitive personal information. Theo recommended testing the system during calm weather rather than waiting for another emergency. Their revised plan gave the island several ways to receive the same message, increasing its overall resilience. Their decision depended on evidence available at that moment, not on what they wished were true."
+      },
+      {
+        "word": "updates",
+        "meaning_ar": "تحديثات",
+        "example": "Months later, another brief weather warning appeared, and residents already knew where to check for reliable updates. The community radio followed its agreed protocol, confirming information before broadcasting and correcting changes openly. Rania felt proud that the system no longer depended on any single volunteer, while Theo recognized that careful reporting was also a form of public service. Their experience showed that trust was built through repeated actions, not through one impressive message. The sea remained unpredictable, but the island's ability to communicate had become much stronger."
+      },
+      {
+        "word": "protocol",
+        "meaning_ar": "بروتوكول",
+        "example": "Months later, another brief weather warning appeared, and residents already knew where to check for reliable updates. The community radio followed its agreed protocol, confirming information before broadcasting and correcting changes openly. Rania felt proud that the system no longer depended on any single volunteer, while Theo recognized that careful reporting was also a form of public service. Their experience showed that trust was built through repeated actions, not through one impressive message. The sea remained unpredictable, but the island's ability to communicate had become much stronger."
+      },
+      {
+        "word": "actions",
+        "meaning_ar": "أفعال",
+        "example": "Months later, another brief weather warning appeared, and residents already knew where to check for reliable updates. The community radio followed its agreed protocol, confirming information before broadcasting and correcting changes openly. Rania felt proud that the system no longer depended on any single volunteer, while Theo recognized that careful reporting was also a form of public service. Their experience showed that trust was built through repeated actions, not through one impressive message. The sea remained unpredictable, but the island's ability to communicate had become much stronger."
+      }
+    ],
+    "questions": [
+      {
+        "q": "What stopped the ferry?",
+        "options": [
+          "A missing passenger",
+          "Strong winds",
+          "A staff celebration",
+          "A broken clock"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "Why were online updates not enough?",
+        "options": [
+          "No ferry tickets existed",
+          "No one wanted news",
+          "Some older residents did not use smartphones",
+          "The island had no schools"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "What did Mrs. Bell require before broadcasting?",
+        "options": [
+          "Public guesses",
+          "Personal stories",
+          "Promised rescue boats",
+          "Official verification"
+        ],
+        "answer": 3
+      },
+      {
+        "q": "What was the volunteers' safe role?",
+        "options": [
+          "Coordinating verified communication",
+          "Operating untrained boats",
+          "Making medical decisions",
+          "Predicting storms precisely"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What did the provisional schedule depend on?",
+        "options": [
+          "A music show",
+          "A final safety inspection",
+          "A new website",
+          "A mayoral speech"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "What did the critical caller want?",
+        "options": [
+          "More radio music",
+          "An earlier ferry",
+          "A prediction of when service would return",
+          "More advertisements"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "How were updates made easier to verify?",
+        "options": [
+          "By removing dates",
+          "By hiding sources",
+          "By changing wording",
+          "By stating the source and time"
+        ],
+        "answer": 3
+      },
+      {
+        "q": "What improved after the incident?",
+        "options": [
+          "The community's communication resilience",
+          "The island's mountain height",
+          "The sea's weather",
+          "The ferry's color"
+        ],
+        "answer": 0
+      }
+    ]
+  }
+}
