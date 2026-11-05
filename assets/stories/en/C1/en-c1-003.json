@@ -1,0 +1,438 @@
+{
+  "language": "en",
+  "level": "C1",
+  "story": {
+    "id": "en-c1-003",
+    "title": "A Documentary Without a Hero",
+    "title_ar": "فيلم وثائقي بلا بطل",
+    "moral_ar": "رواية الواقع بأمانة تعني توثيق الأدوار المختلفة واحترام الموافقة والسياق، لا صناعة بطل منفرد.",
+    "art_style": "Documentary editorial watercolor with realistic original characters and careful facial expressions; no image typography.",
+    "cover_image_prompt": "Yara with camera and Simon with sound equipment filming a community weaving workshop as Ada and apprentices work together, warm industrial light.",
+    "character_sheet": [
+      {
+        "name": "Yara",
+        "description": "A 26-year-old documentary filmmaker with short dark curls, tan skin, plum field jacket, dark jeans and compact camera."
+      },
+      {
+        "name": "Simon",
+        "description": "A 28-year-old sound editor with fair skin, glasses, short blond hair, navy windbreaker and headphones."
+      },
+      {
+        "name": "Ada",
+        "description": "A 58-year-old craftswoman with deep brown skin, silver-streaked braids, ochre shirt and calm expression."
+      }
+    ],
+    "chapters": [
+      {
+        "chapter": 1,
+        "title": "The Story the Camera Missed",
+        "title_ar": "القصة التي فاتت الكاميرا",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Yara with camera and Simon with sound equipment filming a community weaving workshop as Ada and apprentices work together, warm industrial light. Original detailed editorial watercolor illustration; consistent people Yara A 26-year-old documentary filmmaker with short dark curls, tan skin, plum field jacket, dark jeans and compact camera.; Simon A 28-year-old sound editor with fair skin, glasses, short blond hair, navy windbreaker and headphones.; Ada A 58-year-old craftswoman with deep brown skin, silver-streaked braids, ochre shirt and calm expression.. No lettering or watermark.",
+            "animation": "fade_in",
+            "image": "assets/stories/en/C1/illustrations/en-c1-003_scene_01.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Yara arrived in the riverside district planning to make a documentary about an endangered craft tradition. Her initial proposal centered on Ada, a celebrated basket maker whose work had attracted international attention. Yet within hours, Yara noticed that the workshop depended on apprentices, suppliers, and neighbors missing from her proposed **narrative**. Simon, the sound editor, wondered whether presenting Ada as a solitary genius would create a misleading **simplification**. Yara defended the plan as a way of helping audiences follow a complicated story, but his objection unsettled her. She began to question the film's central **premise**, realizing that the most dramatic character was not necessarily the only person worth understanding. Before recording further interviews, she revised her outline to examine the workshop as a web of relationships rather than a monument to one exceptional individual."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "An elegant film can still leave out the truth, Yara admitted."
+                  }
+                ],
+                "translation_ar": "وصلت يارا لتصوير فيلم عن حرفة تقليدية مهددة، وكانت تنوي تقديم الحرفية آدا بطلة منفردة. لكن الورشة تعتمد على متدربين وموردين وجيران. تساءل سيمون إن كان هذا الأسلوب اختزالًا مضللًا. دافعت يارا عن حبكة واضحة، لكنها أعادت النظر في فرضيتها وخطة المقابلات لتوثيق العلاقات المتشابكة. قالت إن الفيلم الأنيق قد يهمل الحقيقة."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Although the workshop manager had approved filming, Ada questioned whether that authorization covered every worker present. One apprentice disliked appearing on camera while she was applying for employment elsewhere. Yara recognized that institutional permission could not substitute for individual **consent**, particularly when participants occupied different positions of authority. Simon suggested a clearer **protocol**: explain the film's purposes, identify possible audiences, and allow people to withdraw without pressure from supervisors. Ada insisted that these conversations happen privately, where no one would feel obliged to please an employer. The revised arrangements slowed production, yet they allowed more meaningful **participation**. Yara also promised to discuss any change in distribution plans: an agreement to appear at a neighborhood screening was not necessarily an agreement to an unrestricted international release. Trust, she discovered, could not be reduced to one signature."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Permission is a continuing conversation, not merely a document, Simon said."
+                  }
+                ],
+                "translation_ar": "وافق مدير الورشة على التصوير، لكن آدا تساءلت إن كانت موافقته تشمل كل العاملين. رفضت متدربة الظهور لأسباب وظيفية، فأدركت يارا أن إذن المؤسسة لا يغني عن موافقة الفرد. وضع سيمون بروتوكولًا يوضح الغرض والمشاهدين وحق الانسحاب دون ضغط. أبطأت الإجراءات العمل لكنها دعمت المشاركة والثقة. قال سيمون إن الموافقة حوار مستمر لا ورقة واحدة."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Craft workshop interview, Ada speaking thoughtfully to Yara and Simon beside woven baskets, apprentices working in the background. Original detailed editorial watercolor illustration; consistent people Yara A 26-year-old documentary filmmaker with short dark curls, tan skin, plum field jacket, dark jeans and compact camera.; Simon A 28-year-old sound editor with fair skin, glasses, short blond hair, navy windbreaker and headphones.; Ada A 58-year-old craftswoman with deep brown skin, silver-streaked braids, ochre shirt and calm expression.. No lettering or watermark.",
+            "animation": "pan_left",
+            "image": "assets/stories/en/C1/illustrations/en-c1-003_scene_02.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "During an interview, Ada recalled a period when cheap imported goods had almost destroyed the local market. Yara considered turning the recollection into the documentary's emotional climax, but Ada rejected the word **collapse**. Craftspeople, she explained, had adapted through teaching and cooperation long before sales recovered. The distinction altered the film's **framing**: did it portray a helpless community rescued by a hero, or resourceful people responding to difficult circumstances? Simon recommended comparing the interviews with old sales figures and newspaper archives. The evidence revealed a more complicated **trajectory** of decline, invention, and uneven recovery. Yara rewrote her narration to reflect uncertainty rather than forcing a tidy rise-and-fall structure. She feared that the change might disappoint viewers, yet she increasingly believed that complexity could deepen their attention rather than weaken it."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We survived through many small decisions, not one miracle, Ada reminded her."
+                  }
+                ],
+                "translation_ar": "روت آدا كيف أضرت الواردات الرخيصة بالحرفة، ورفضت وصف تلك الفترة بأنها انهيار تام لأن الحرفيين تأقلموا بالتعليم والتعاون. فهمت يارا أن الصياغة تحدد هل يظهر المجتمع عاجزًا أم قادرًا على الابتكار. قارن سيمون الشهادات بسجلات المبيعات، فظهر مسار معقد من التراجع والتجدد والتعافي غير المتساوي. أعادت يارا كتابة السرد دون فرض حبكة سهلة. قالت آدا إن البقاء جاء من قرارات كثيرة لا معجزة واحدة."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "As filming continued, Yara realized that apprentices performed much of the preparation while experienced artisans received nearly all the public **visibility**. A young worker agreed to discuss this imbalance if her comments were not used to attack Ada personally. Simon worried that selective editing would manufacture an unnecessary conflict and damage important relationships. Instead of collecting provocative statements, Yara organized a group conversation about training, working hours, and financial **compensation**. Genuine disagreements emerged, but the workshop's attempts at reform were also evident. Ada accepted criticism while challenging any portrayal that converted complex negotiations into convenient **antagonism**. Yara began to understand that representing conflict responsibly required explaining why people held different positions, not simply cutting between opposing sentences. Afterwards, she checked the relevant permissions once more and noted how each participant understood the purpose of the discussion."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Our audience deserves more than the loudest disagreement, Simon observed."
+                  }
+                ],
+                "translation_ar": "لاحظت يارا أن المتدربين يقومون بأعمال كثيرة بينما تذهب الشهرة للكبار. وافقت متدربة على الحديث بشرط ألا تُستخدم كلماتها للهجوم على آدا. خشيت يارا من صناعة نزاع بالمونتاج، فرتبت نقاشًا جماعيًا عن التدريب والأجر. ظهرت الخلافات ومحاولات الإصلاح معًا. أدركت أن توثيق الصراع يتطلب شرح أسباب المواقف لا جمع أكثر العبارات حدة. قال سيمون إن الجمهور يستحق أكثر من الخلاف الأعلى صوتًا."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The first edited version followed Ada almost continuously, despite Yara's revised intentions. Simon noticed that dramatic music and carefully chosen close-ups encouraged viewers to overlook important qualifications. There was no outright lie, but the rhythm of the film created a kind of emotional **manipulation**. Yara initially defended every decision, recalling the long hours required to assemble the footage. A private screening, however, showed that audiences interpreted cautious memories as declarations of absolute certainty. She removed several musical cues, restored moments of **ambiguity**, and changed the **sequence** of scenes to show apprentices teaching one another. These adjustments made the documentary less heroic but more faithful to what had actually happened. Yara came to appreciate that editing was not simply a technical process; every cut expressed a judgment about whose experience deserved attention and which doubts could remain visible."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "The person holding the camera also holds considerable power, Yara said."
+                  }
+                ],
+                "translation_ar": "رغم نية يارا الجديدة، ركزت النسخة الأولى على آدا. جعلت الموسيقى واللقطات القريبة الجمهور يتجاهل التحفظات، وهو تلاعب عاطفي دون كذب مباشر. كشف عرض خاص أن تصريحات حذرة بدت يقينية. خففت يارا الموسيقى وأعادت لحظات الالتباس وعرضت عمل المتدربين. أدركت أن كل لقطة أو حذف يحمل قرارًا أخلاقيًا عن صاحب الحق في الظهور. قالت إن من يحمل الكاميرا يحمل سلطة كبيرة."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "chapter": 2,
+        "title": "The Cut That Changed Everything",
+        "title_ar": "المونتاج الذي غيّر كل شيء",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Documentary editing suite at dusk, Yara and Simon reviewing a film timeline, Ada nearby discussing edits, gentle monitor light. Original detailed editorial watercolor illustration; consistent people Yara A 26-year-old documentary filmmaker with short dark curls, tan skin, plum field jacket, dark jeans and compact camera.; Simon A 28-year-old sound editor with fair skin, glasses, short blond hair, navy windbreaker and headphones.; Ada A 58-year-old craftswoman with deep brown skin, silver-streaked braids, ochre shirt and calm expression.. No lettering or watermark.",
+            "animation": "zoom_in_slow",
+            "image": "assets/stories/en/C1/illustrations/en-c1-003_scene_03.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Before submitting the film to a festival, Yara arranged a private screening for everyone who had agreed to participate. Its purpose was not to grant any individual complete **editorial** control, but to identify factual errors, unintended risks, and serious distortions. Ada explained that a remark filmed in anger sounded harsher without its surrounding conversation. An apprentice requested that an identifying detail be removed because it could affect future **employment**. Simon recorded the concerns and explained which changes could be made without falsifying the film's argument. The team established a transparent **review** process while acknowledging that disagreement might remain after corrections. Yara discovered that collaborative accountability did not require abandoning artistic judgment; it required taking responsibility for the foreseeable consequences of her decisions. Participants appreciated being listened to even when their suggestions were not adopted in precisely the form they requested."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Listening belongs inside the editing process, Simon said."
+                  }
+                ],
+                "translation_ar": "قبل مهرجان العرض رتبت يارا مشاهدة خاصة للمشاركين بهدف كشف الأخطاء والمخاطر، دون منح أي فرد سلطة كاملة على التحرير. اعترضت آدا على جملة مقتطعة من سياق غضب، وطلبت متدربة حذف تفصيل قد يضر مستقبلها المهني. سجل سيمون الطلبات وحدود التعديل، ووُضعت مراجعة شفافة. أدركت يارا أن المساءلة لا تلغي الاستقلال الفني بل تضبط عواقبه. قال سيمون إن الإصغاء جزء من المونتاج."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The festival publicity department proposed advertising the documentary as the story of a woman who single-handedly saved a dying tradition. Yara rejected the suggested **promotion**, even though a simpler slogan might attract a larger audience. She offered an alternative emphasizing cooperation and **resilience** without casting the community as helpless. One producer warned that the wording lacked dramatic impact, but Yara replied that marketing should not contradict the film itself. Ada welcomed the decision, arguing that tales of exceptional heroes often made ordinary contributions disappear. The team created an exhibition beside the screening, displaying tools, photographs, and workshop materials with careful **attribution**. It allowed visitors to explore relationships that the documentary could only briefly introduce. When audiences responded enthusiastically, Yara saw that truthful complexity and compelling art were not necessarily enemies. The most memorable comments praised the film's attention to cooperation rather than its refusal to manufacture a savior."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "No one saved this place alone, Ada told visitors."
+                  }
+                ],
+                "translation_ar": "أراد فريق الدعاية وصف الفيلم بأنه قصة امرأة أنقذت الحرفة وحدها. رفضت يارا الشعار واقترحت التعاون والقدرة على الصمود. رأت آدا أن قصص الأبطال تمحو المساهمات الصغيرة. أعد الفريق معرضًا للأدوات والصور مع نسبها إلى أصحابها، فكشف العلاقات التي لم يتسع الفيلم لشرحها. أظهر تفاعل الجمهور أن التعقيد الصادق قد يكون جذابًا. قالت آدا إن أحدًا لم ينقذ المكان وحده."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Community film screening in an outdoor courtyard, Yara, Simon and Ada talking with workshop members after projection, glowing evening atmosphere. Original detailed editorial watercolor illustration; consistent people Yara A 26-year-old documentary filmmaker with short dark curls, tan skin, plum field jacket, dark jeans and compact camera.; Simon A 28-year-old sound editor with fair skin, glasses, short blond hair, navy windbreaker and headphones.; Ada A 58-year-old craftswoman with deep brown skin, silver-streaked braids, ochre shirt and calm expression.. No lettering or watermark.",
+            "animation": "parallax",
+            "image": "assets/stories/en/C1/illustrations/en-c1-003_scene_04.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "After the premiere, critics praised the documentary's careful tone, although several complained that its ending lacked a decisive resolution. Yara refused to invent a comforting future for the workshop. Orders had increased, but many apprentices still faced irregular incomes, and negotiations about training were unfinished. To avoid exaggerating the film's **impact**, she separated measurable changes from personal impressions. Simon proposed a follow-up interview after six months, provided all participation remained **voluntary**. Ada welcomed the possibility but insisted that her workshop should decide whether further filming would be **appropriate**. Yara agreed that access was a privilege rather than a permanent claim on people's lives. The film's apparent success had not erased their obligations to participants, whose circumstances would continue changing long after the festival ended. They documented these boundaries before accepting requests from broadcasters interested in wider distribution."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Our responsibility continues beyond the final credits, Simon said."
+                  }
+                ],
+                "translation_ar": "مدح النقاد الفيلم، واشتكى بعضهم من غياب خاتمة حاسمة. رفضت يارا اختراع مستقبل سعيد للورشة؛ فقد زادت الطلبات لكن دخل بعض المتدربين ظل غير مستقر. ميزت الأثر المقاس من الانطباعات، واقترح سيمون مقابلة لاحقة طوعية. أصرت آدا على أن قرار التصوير يعود للمشاركين، ووافقت يارا على أن دخول حياتهم امتياز لا حق دائم. قال سيمون إن المسؤولية تستمر بعد شارة النهاية."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "A year later, a film school used the documentary to examine the relationship between storytelling and **power**. Yara told students that her greatest discovery had been the limits of her own perspective. A camera offered extraordinary access, but its frame inevitably selected certain details while excluding others. She described how **accountability** had improved the film without eliminating disagreement, and how participants had challenged assumptions she never realized she held. Simon demonstrated how shifting a sound cue could change the viewer's perception of someone speaking. Ada joined the discussion remotely and explained that the workshop was still changing, independent of the film's story. Students asked whether a documentary could ever be entirely **objective**. Yara replied that perfection was impossible, but careful sourcing, shared scrutiny, and openness about limitations could make a project more trustworthy. Their questions mattered more to her than a flattering award."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Responsibility begins when we admit what our camera cannot show, Yara said."
+                  }
+                ],
+                "translation_ar": "بعد عام دُرّس الفيلم في معهد سينما لبحث العلاقة بين السرد والسلطة. شرحت يارا أن الكاميرا تختار ما يظهر وما يغيب، وأن المساءلة حسنت العمل دون إزالة الخلاف. عرض سيمون كيف يغير صوت بسيط انطباع المشاهد، وذكرت آدا أن حياة الورشة تستمر خارج الفيلم. سأل الطلاب عن الموضوعية الكاملة، فأجابت يارا أن الكمال مستحيل لكن الأدلة والمراجعة والاعتراف بالحدود تزيد الثقة. قالت إن المسؤولية تبدأ بالاعتراف بما لا تظهره الكاميرا."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Returning to the riverside district, Yara found the workshop busy with new students, changing suppliers, and arguments about future wages. Nothing resembled the frozen ending that a conventional heroic documentary might have offered. She met Ada for tea without bringing a camera and listened to the latest news as a friend rather than a director. Simon later suggested keeping their research notes in a secure **archive**, with access conditions reflecting each contributor's preferences. Yara agreed that responsible **stewardship** involved protecting material even when nobody was currently interested in publishing it. The documentary had become one chapter in an unfolding history, not the history itself. Looking back, she understood that **integrity** came not from eliminating uncertainty but from resisting the temptation to hide it. She could still tell a powerful story, provided she never forgot that the people within it would continue living after the screen went dark."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "The best ending leaves room for other voices, Yara concluded."
+                  }
+                ],
+                "translation_ar": "عادت يارا إلى الورشة فوجدتها مليئة بطلاب جدد ونزاعات جديدة حول الأجور. لم تكن حياتهم خاتمة ثابتة لفيلم بطولي. التقت آدا دون كاميرا، وقرر سيمون حفظ المواد البحثية في أرشيف آمن يحترم تفضيلات المشاركين. فهمت يارا أن الرعاية المسؤولة تحمي المواد حتى حين لا توجد نية لنشرها. أدركت أن النزاهة لا تلغي عدم اليقين بل ترفض إخفاءه، وأن الأشخاص يواصلون حياتهم بعد إطفاء الشاشة. قالت إن النهاية الأفضل تترك مجالًا لأصوات أخرى."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "vocabulary": [
+      {
+        "word": "narrative",
+        "meaning_ar": "سرد",
+        "example": "Yara arrived in the riverside district planning to make a documentary about an endangered craft tradition. Her initial proposal centered on Ada, a celebrated basket maker whose work had attracted international attention. Yet within hours, Yara noticed that the workshop depended on apprentices, suppliers, and neighbors missing from her proposed narrative. Simon, the sound editor, wondered whether presenting Ada as a solitary genius would create a misleading simplification. Yara defended the plan as a way of helping audiences follow a complicated story, but his objection unsettled her. She began to question the film's central premise, realizing that the most dramatic character was not necessarily the only person worth understanding. Before recording further interviews, she revised her outline to examine the workshop as a web of relationships rather than a monument to one exceptional individual."
+      },
+      {
+        "word": "simplification",
+        "meaning_ar": "اختزال",
+        "example": "Yara arrived in the riverside district planning to make a documentary about an endangered craft tradition. Her initial proposal centered on Ada, a celebrated basket maker whose work had attracted international attention. Yet within hours, Yara noticed that the workshop depended on apprentices, suppliers, and neighbors missing from her proposed narrative. Simon, the sound editor, wondered whether presenting Ada as a solitary genius would create a misleading simplification. Yara defended the plan as a way of helping audiences follow a complicated story, but his objection unsettled her. She began to question the film's central premise, realizing that the most dramatic character was not necessarily the only person worth understanding. Before recording further interviews, she revised her outline to examine the workshop as a web of relationships rather than a monument to one exceptional individual."
+      },
+      {
+        "word": "premise",
+        "meaning_ar": "فرضية",
+        "example": "Yara arrived in the riverside district planning to make a documentary about an endangered craft tradition. Her initial proposal centered on Ada, a celebrated basket maker whose work had attracted international attention. Yet within hours, Yara noticed that the workshop depended on apprentices, suppliers, and neighbors missing from her proposed narrative. Simon, the sound editor, wondered whether presenting Ada as a solitary genius would create a misleading simplification. Yara defended the plan as a way of helping audiences follow a complicated story, but his objection unsettled her. She began to question the film's central premise, realizing that the most dramatic character was not necessarily the only person worth understanding. Before recording further interviews, she revised her outline to examine the workshop as a web of relationships rather than a monument to one exceptional individual."
+      },
+      {
+        "word": "consent",
+        "meaning_ar": "موافقة",
+        "example": "Although the workshop manager had approved filming, Ada questioned whether that authorization covered every worker present. One apprentice disliked appearing on camera while she was applying for employment elsewhere. Yara recognized that institutional permission could not substitute for individual consent, particularly when participants occupied different positions of authority. Simon suggested a clearer protocol: explain the film's purposes, identify possible audiences, and allow people to withdraw without pressure from supervisors. Ada insisted that these conversations happen privately, where no one would feel obliged to please an employer. The revised arrangements slowed production, yet they allowed more meaningful participation. Yara also promised to discuss any change in distribution plans: an agreement to appear at a neighborhood screening was not necessarily an agreement to an unrestricted international release. Trust, she discovered, could not be reduced to one signature."
+      },
+      {
+        "word": "protocol",
+        "meaning_ar": "بروتوكول",
+        "example": "Although the workshop manager had approved filming, Ada questioned whether that authorization covered every worker present. One apprentice disliked appearing on camera while she was applying for employment elsewhere. Yara recognized that institutional permission could not substitute for individual consent, particularly when participants occupied different positions of authority. Simon suggested a clearer protocol: explain the film's purposes, identify possible audiences, and allow people to withdraw without pressure from supervisors. Ada insisted that these conversations happen privately, where no one would feel obliged to please an employer. The revised arrangements slowed production, yet they allowed more meaningful participation. Yara also promised to discuss any change in distribution plans: an agreement to appear at a neighborhood screening was not necessarily an agreement to an unrestricted international release. Trust, she discovered, could not be reduced to one signature."
+      },
+      {
+        "word": "participation",
+        "meaning_ar": "مشاركة",
+        "example": "Although the workshop manager had approved filming, Ada questioned whether that authorization covered every worker present. One apprentice disliked appearing on camera while she was applying for employment elsewhere. Yara recognized that institutional permission could not substitute for individual consent, particularly when participants occupied different positions of authority. Simon suggested a clearer protocol: explain the film's purposes, identify possible audiences, and allow people to withdraw without pressure from supervisors. Ada insisted that these conversations happen privately, where no one would feel obliged to please an employer. The revised arrangements slowed production, yet they allowed more meaningful participation. Yara also promised to discuss any change in distribution plans: an agreement to appear at a neighborhood screening was not necessarily an agreement to an unrestricted international release. Trust, she discovered, could not be reduced to one signature."
+      },
+      {
+        "word": "collapse",
+        "meaning_ar": "انهيار",
+        "example": "During an interview, Ada recalled a period when cheap imported goods had almost destroyed the local market. Yara considered turning the recollection into the documentary's emotional climax, but Ada rejected the word collapse. Craftspeople, she explained, had adapted through teaching and cooperation long before sales recovered. The distinction altered the film's framing: did it portray a helpless community rescued by a hero, or resourceful people responding to difficult circumstances? Simon recommended comparing the interviews with old sales figures and newspaper archives. The evidence revealed a more complicated trajectory of decline, invention, and uneven recovery. Yara rewrote her narration to reflect uncertainty rather than forcing a tidy rise-and-fall structure. She feared that the change might disappoint viewers, yet she increasingly believed that complexity could deepen their attention rather than weaken it."
+      },
+      {
+        "word": "framing",
+        "meaning_ar": "تأطير",
+        "example": "During an interview, Ada recalled a period when cheap imported goods had almost destroyed the local market. Yara considered turning the recollection into the documentary's emotional climax, but Ada rejected the word collapse. Craftspeople, she explained, had adapted through teaching and cooperation long before sales recovered. The distinction altered the film's framing: did it portray a helpless community rescued by a hero, or resourceful people responding to difficult circumstances? Simon recommended comparing the interviews with old sales figures and newspaper archives. The evidence revealed a more complicated trajectory of decline, invention, and uneven recovery. Yara rewrote her narration to reflect uncertainty rather than forcing a tidy rise-and-fall structure. She feared that the change might disappoint viewers, yet she increasingly believed that complexity could deepen their attention rather than weaken it."
+      },
+      {
+        "word": "trajectory",
+        "meaning_ar": "مسار",
+        "example": "During an interview, Ada recalled a period when cheap imported goods had almost destroyed the local market. Yara considered turning the recollection into the documentary's emotional climax, but Ada rejected the word collapse. Craftspeople, she explained, had adapted through teaching and cooperation long before sales recovered. The distinction altered the film's framing: did it portray a helpless community rescued by a hero, or resourceful people responding to difficult circumstances? Simon recommended comparing the interviews with old sales figures and newspaper archives. The evidence revealed a more complicated trajectory of decline, invention, and uneven recovery. Yara rewrote her narration to reflect uncertainty rather than forcing a tidy rise-and-fall structure. She feared that the change might disappoint viewers, yet she increasingly believed that complexity could deepen their attention rather than weaken it."
+      },
+      {
+        "word": "visibility",
+        "meaning_ar": "ظهور",
+        "example": "As filming continued, Yara realized that apprentices performed much of the preparation while experienced artisans received nearly all the public visibility. A young worker agreed to discuss this imbalance if her comments were not used to attack Ada personally. Simon worried that selective editing would manufacture an unnecessary conflict and damage important relationships. Instead of collecting provocative statements, Yara organized a group conversation about training, working hours, and financial compensation. Genuine disagreements emerged, but the workshop's attempts at reform were also evident. Ada accepted criticism while challenging any portrayal that converted complex negotiations into convenient antagonism. Yara began to understand that representing conflict responsibly required explaining why people held different positions, not simply cutting between opposing sentences. Afterwards, she checked the relevant permissions once more and noted how each participant understood the purpose of the discussion."
+      },
+      {
+        "word": "compensation",
+        "meaning_ar": "تعويض مالي",
+        "example": "As filming continued, Yara realized that apprentices performed much of the preparation while experienced artisans received nearly all the public visibility. A young worker agreed to discuss this imbalance if her comments were not used to attack Ada personally. Simon worried that selective editing would manufacture an unnecessary conflict and damage important relationships. Instead of collecting provocative statements, Yara organized a group conversation about training, working hours, and financial compensation. Genuine disagreements emerged, but the workshop's attempts at reform were also evident. Ada accepted criticism while challenging any portrayal that converted complex negotiations into convenient antagonism. Yara began to understand that representing conflict responsibly required explaining why people held different positions, not simply cutting between opposing sentences. Afterwards, she checked the relevant permissions once more and noted how each participant understood the purpose of the discussion."
+      },
+      {
+        "word": "antagonism",
+        "meaning_ar": "عداء",
+        "example": "As filming continued, Yara realized that apprentices performed much of the preparation while experienced artisans received nearly all the public visibility. A young worker agreed to discuss this imbalance if her comments were not used to attack Ada personally. Simon worried that selective editing would manufacture an unnecessary conflict and damage important relationships. Instead of collecting provocative statements, Yara organized a group conversation about training, working hours, and financial compensation. Genuine disagreements emerged, but the workshop's attempts at reform were also evident. Ada accepted criticism while challenging any portrayal that converted complex negotiations into convenient antagonism. Yara began to understand that representing conflict responsibly required explaining why people held different positions, not simply cutting between opposing sentences. Afterwards, she checked the relevant permissions once more and noted how each participant understood the purpose of the discussion."
+      },
+      {
+        "word": "manipulation",
+        "meaning_ar": "تلاعب",
+        "example": "The first edited version followed Ada almost continuously, despite Yara's revised intentions. Simon noticed that dramatic music and carefully chosen close-ups encouraged viewers to overlook important qualifications. There was no outright lie, but the rhythm of the film created a kind of emotional manipulation. Yara initially defended every decision, recalling the long hours required to assemble the footage. A private screening, however, showed that audiences interpreted cautious memories as declarations of absolute certainty. She removed several musical cues, restored moments of ambiguity, and changed the sequence of scenes to show apprentices teaching one another. These adjustments made the documentary less heroic but more faithful to what had actually happened. Yara came to appreciate that editing was not simply a technical process; every cut expressed a judgment about whose experience deserved attention and which doubts could remain visible."
+      },
+      {
+        "word": "ambiguity",
+        "meaning_ar": "التباس",
+        "example": "The first edited version followed Ada almost continuously, despite Yara's revised intentions. Simon noticed that dramatic music and carefully chosen close-ups encouraged viewers to overlook important qualifications. There was no outright lie, but the rhythm of the film created a kind of emotional manipulation. Yara initially defended every decision, recalling the long hours required to assemble the footage. A private screening, however, showed that audiences interpreted cautious memories as declarations of absolute certainty. She removed several musical cues, restored moments of ambiguity, and changed the sequence of scenes to show apprentices teaching one another. These adjustments made the documentary less heroic but more faithful to what had actually happened. Yara came to appreciate that editing was not simply a technical process; every cut expressed a judgment about whose experience deserved attention and which doubts could remain visible."
+      },
+      {
+        "word": "sequence",
+        "meaning_ar": "تسلسل",
+        "example": "The first edited version followed Ada almost continuously, despite Yara's revised intentions. Simon noticed that dramatic music and carefully chosen close-ups encouraged viewers to overlook important qualifications. There was no outright lie, but the rhythm of the film created a kind of emotional manipulation. Yara initially defended every decision, recalling the long hours required to assemble the footage. A private screening, however, showed that audiences interpreted cautious memories as declarations of absolute certainty. She removed several musical cues, restored moments of ambiguity, and changed the sequence of scenes to show apprentices teaching one another. These adjustments made the documentary less heroic but more faithful to what had actually happened. Yara came to appreciate that editing was not simply a technical process; every cut expressed a judgment about whose experience deserved attention and which doubts could remain visible."
+      },
+      {
+        "word": "editorial",
+        "meaning_ar": "تحريري",
+        "example": "Before submitting the film to a festival, Yara arranged a private screening for everyone who had agreed to participate. Its purpose was not to grant any individual complete editorial control, but to identify factual errors, unintended risks, and serious distortions. Ada explained that a remark filmed in anger sounded harsher without its surrounding conversation. An apprentice requested that an identifying detail be removed because it could affect future employment. Simon recorded the concerns and explained which changes could be made without falsifying the film's argument. The team established a transparent review process while acknowledging that disagreement might remain after corrections. Yara discovered that collaborative accountability did not require abandoning artistic judgment; it required taking responsibility for the foreseeable consequences of her decisions. Participants appreciated being listened to even when their suggestions were not adopted in precisely the form they requested."
+      },
+      {
+        "word": "employment",
+        "meaning_ar": "توظيف",
+        "example": "Before submitting the film to a festival, Yara arranged a private screening for everyone who had agreed to participate. Its purpose was not to grant any individual complete editorial control, but to identify factual errors, unintended risks, and serious distortions. Ada explained that a remark filmed in anger sounded harsher without its surrounding conversation. An apprentice requested that an identifying detail be removed because it could affect future employment. Simon recorded the concerns and explained which changes could be made without falsifying the film's argument. The team established a transparent review process while acknowledging that disagreement might remain after corrections. Yara discovered that collaborative accountability did not require abandoning artistic judgment; it required taking responsibility for the foreseeable consequences of her decisions. Participants appreciated being listened to even when their suggestions were not adopted in precisely the form they requested."
+      },
+      {
+        "word": "review",
+        "meaning_ar": "مراجعة",
+        "example": "Before submitting the film to a festival, Yara arranged a private screening for everyone who had agreed to participate. Its purpose was not to grant any individual complete editorial control, but to identify factual errors, unintended risks, and serious distortions. Ada explained that a remark filmed in anger sounded harsher without its surrounding conversation. An apprentice requested that an identifying detail be removed because it could affect future employment. Simon recorded the concerns and explained which changes could be made without falsifying the film's argument. The team established a transparent review process while acknowledging that disagreement might remain after corrections. Yara discovered that collaborative accountability did not require abandoning artistic judgment; it required taking responsibility for the foreseeable consequences of her decisions. Participants appreciated being listened to even when their suggestions were not adopted in precisely the form they requested."
+      },
+      {
+        "word": "promotion",
+        "meaning_ar": "دعاية",
+        "example": "The festival publicity department proposed advertising the documentary as the story of a woman who single-handedly saved a dying tradition. Yara rejected the suggested promotion, even though a simpler slogan might attract a larger audience. She offered an alternative emphasizing cooperation and resilience without casting the community as helpless. One producer warned that the wording lacked dramatic impact, but Yara replied that marketing should not contradict the film itself. Ada welcomed the decision, arguing that tales of exceptional heroes often made ordinary contributions disappear. The team created an exhibition beside the screening, displaying tools, photographs, and workshop materials with careful attribution. It allowed visitors to explore relationships that the documentary could only briefly introduce. When audiences responded enthusiastically, Yara saw that truthful complexity and compelling art were not necessarily enemies. The most memorable comments praised the film's attention to cooperation rather than its refusal to manufacture a savior."
+      },
+      {
+        "word": "resilience",
+        "meaning_ar": "صمود",
+        "example": "The festival publicity department proposed advertising the documentary as the story of a woman who single-handedly saved a dying tradition. Yara rejected the suggested promotion, even though a simpler slogan might attract a larger audience. She offered an alternative emphasizing cooperation and resilience without casting the community as helpless. One producer warned that the wording lacked dramatic impact, but Yara replied that marketing should not contradict the film itself. Ada welcomed the decision, arguing that tales of exceptional heroes often made ordinary contributions disappear. The team created an exhibition beside the screening, displaying tools, photographs, and workshop materials with careful attribution. It allowed visitors to explore relationships that the documentary could only briefly introduce. When audiences responded enthusiastically, Yara saw that truthful complexity and compelling art were not necessarily enemies. The most memorable comments praised the film's attention to cooperation rather than its refusal to manufacture a savior."
+      },
+      {
+        "word": "attribution",
+        "meaning_ar": "نسبة لصاحبه",
+        "example": "The festival publicity department proposed advertising the documentary as the story of a woman who single-handedly saved a dying tradition. Yara rejected the suggested promotion, even though a simpler slogan might attract a larger audience. She offered an alternative emphasizing cooperation and resilience without casting the community as helpless. One producer warned that the wording lacked dramatic impact, but Yara replied that marketing should not contradict the film itself. Ada welcomed the decision, arguing that tales of exceptional heroes often made ordinary contributions disappear. The team created an exhibition beside the screening, displaying tools, photographs, and workshop materials with careful attribution. It allowed visitors to explore relationships that the documentary could only briefly introduce. When audiences responded enthusiastically, Yara saw that truthful complexity and compelling art were not necessarily enemies. The most memorable comments praised the film's attention to cooperation rather than its refusal to manufacture a savior."
+      },
+      {
+        "word": "impact",
+        "meaning_ar": "أثر",
+        "example": "After the premiere, critics praised the documentary's careful tone, although several complained that its ending lacked a decisive resolution. Yara refused to invent a comforting future for the workshop. Orders had increased, but many apprentices still faced irregular incomes, and negotiations about training were unfinished. To avoid exaggerating the film's impact, she separated measurable changes from personal impressions. Simon proposed a follow-up interview after six months, provided all participation remained voluntary. Ada welcomed the possibility but insisted that her workshop should decide whether further filming would be appropriate. Yara agreed that access was a privilege rather than a permanent claim on people's lives. The film's apparent success had not erased their obligations to participants, whose circumstances would continue changing long after the festival ended. They documented these boundaries before accepting requests from broadcasters interested in wider distribution."
+      },
+      {
+        "word": "voluntary",
+        "meaning_ar": "طوعي",
+        "example": "After the premiere, critics praised the documentary's careful tone, although several complained that its ending lacked a decisive resolution. Yara refused to invent a comforting future for the workshop. Orders had increased, but many apprentices still faced irregular incomes, and negotiations about training were unfinished. To avoid exaggerating the film's impact, she separated measurable changes from personal impressions. Simon proposed a follow-up interview after six months, provided all participation remained voluntary. Ada welcomed the possibility but insisted that her workshop should decide whether further filming would be appropriate. Yara agreed that access was a privilege rather than a permanent claim on people's lives. The film's apparent success had not erased their obligations to participants, whose circumstances would continue changing long after the festival ended. They documented these boundaries before accepting requests from broadcasters interested in wider distribution."
+      },
+      {
+        "word": "appropriate",
+        "meaning_ar": "ملائم",
+        "example": "After the premiere, critics praised the documentary's careful tone, although several complained that its ending lacked a decisive resolution. Yara refused to invent a comforting future for the workshop. Orders had increased, but many apprentices still faced irregular incomes, and negotiations about training were unfinished. To avoid exaggerating the film's impact, she separated measurable changes from personal impressions. Simon proposed a follow-up interview after six months, provided all participation remained voluntary. Ada welcomed the possibility but insisted that her workshop should decide whether further filming would be appropriate. Yara agreed that access was a privilege rather than a permanent claim on people's lives. The film's apparent success had not erased their obligations to participants, whose circumstances would continue changing long after the festival ended. They documented these boundaries before accepting requests from broadcasters interested in wider distribution."
+      },
+      {
+        "word": "power",
+        "meaning_ar": "سلطة",
+        "example": "A year later, a film school used the documentary to examine the relationship between storytelling and power. Yara told students that her greatest discovery had been the limits of her own perspective. A camera offered extraordinary access, but its frame inevitably selected certain details while excluding others. She described how accountability had improved the film without eliminating disagreement, and how participants had challenged assumptions she never realized she held. Simon demonstrated how shifting a sound cue could change the viewer's perception of someone speaking. Ada joined the discussion remotely and explained that the workshop was still changing, independent of the film's story. Students asked whether a documentary could ever be entirely objective. Yara replied that perfection was impossible, but careful sourcing, shared scrutiny, and openness about limitations could make a project more trustworthy. Their questions mattered more to her than a flattering award."
+      },
+      {
+        "word": "accountability",
+        "meaning_ar": "مساءلة",
+        "example": "A year later, a film school used the documentary to examine the relationship between storytelling and power. Yara told students that her greatest discovery had been the limits of her own perspective. A camera offered extraordinary access, but its frame inevitably selected certain details while excluding others. She described how accountability had improved the film without eliminating disagreement, and how participants had challenged assumptions she never realized she held. Simon demonstrated how shifting a sound cue could change the viewer's perception of someone speaking. Ada joined the discussion remotely and explained that the workshop was still changing, independent of the film's story. Students asked whether a documentary could ever be entirely objective. Yara replied that perfection was impossible, but careful sourcing, shared scrutiny, and openness about limitations could make a project more trustworthy. Their questions mattered more to her than a flattering award."
+      },
+      {
+        "word": "objective",
+        "meaning_ar": "موضوعي",
+        "example": "A year later, a film school used the documentary to examine the relationship between storytelling and power. Yara told students that her greatest discovery had been the limits of her own perspective. A camera offered extraordinary access, but its frame inevitably selected certain details while excluding others. She described how accountability had improved the film without eliminating disagreement, and how participants had challenged assumptions she never realized she held. Simon demonstrated how shifting a sound cue could change the viewer's perception of someone speaking. Ada joined the discussion remotely and explained that the workshop was still changing, independent of the film's story. Students asked whether a documentary could ever be entirely objective. Yara replied that perfection was impossible, but careful sourcing, shared scrutiny, and openness about limitations could make a project more trustworthy. Their questions mattered more to her than a flattering award."
+      },
+      {
+        "word": "archive",
+        "meaning_ar": "أرشيف",
+        "example": "Returning to the riverside district, Yara found the workshop busy with new students, changing suppliers, and arguments about future wages. Nothing resembled the frozen ending that a conventional heroic documentary might have offered. She met Ada for tea without bringing a camera and listened to the latest news as a friend rather than a director. Simon later suggested keeping their research notes in a secure archive, with access conditions reflecting each contributor's preferences. Yara agreed that responsible stewardship involved protecting material even when nobody was currently interested in publishing it. The documentary had become one chapter in an unfolding history, not the history itself. Looking back, she understood that integrity came not from eliminating uncertainty but from resisting the temptation to hide it. She could still tell a powerful story, provided she never forgot that the people within it would continue living after the screen went dark."
+      },
+      {
+        "word": "stewardship",
+        "meaning_ar": "رعاية مسؤولة",
+        "example": "Returning to the riverside district, Yara found the workshop busy with new students, changing suppliers, and arguments about future wages. Nothing resembled the frozen ending that a conventional heroic documentary might have offered. She met Ada for tea without bringing a camera and listened to the latest news as a friend rather than a director. Simon later suggested keeping their research notes in a secure archive, with access conditions reflecting each contributor's preferences. Yara agreed that responsible stewardship involved protecting material even when nobody was currently interested in publishing it. The documentary had become one chapter in an unfolding history, not the history itself. Looking back, she understood that integrity came not from eliminating uncertainty but from resisting the temptation to hide it. She could still tell a powerful story, provided she never forgot that the people within it would continue living after the screen went dark."
+      },
+      {
+        "word": "integrity",
+        "meaning_ar": "نزاهة",
+        "example": "Returning to the riverside district, Yara found the workshop busy with new students, changing suppliers, and arguments about future wages. Nothing resembled the frozen ending that a conventional heroic documentary might have offered. She met Ada for tea without bringing a camera and listened to the latest news as a friend rather than a director. Simon later suggested keeping their research notes in a secure archive, with access conditions reflecting each contributor's preferences. Yara agreed that responsible stewardship involved protecting material even when nobody was currently interested in publishing it. The documentary had become one chapter in an unfolding history, not the history itself. Looking back, she understood that integrity came not from eliminating uncertainty but from resisting the temptation to hide it. She could still tell a powerful story, provided she never forgot that the people within it would continue living after the screen went dark."
+      }
+    ],
+    "questions": [
+      {
+        "q": "What did Yara initially plan?",
+        "options": [
+          "A documentary about one heroic craftswoman",
+          "A science film",
+          "A town history textbook",
+          "A feature film about trains"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "Why did filming consent need revisiting?",
+        "options": [
+          "Cameras were broken",
+          "A manager's approval did not cover individual workers",
+          "The workshop was closed",
+          "The budget was high"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "What did Ada reject about the past?",
+        "options": [
+          "The idea of teamwork",
+          "The presence of apprentices",
+          "A simple narrative of total collapse",
+          "The importance of records"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "Why did the first edit mislead audiences?",
+        "options": [
+          "The dialogue was silent",
+          "There were too many interviews",
+          "The film was too short",
+          "Music and selection exaggerated certainty"
+        ],
+        "answer": 3
+      },
+      {
+        "q": "What was the private screening intended to achieve?",
+        "options": [
+          "Identify errors and risks",
+          "Give Ada sole editing control",
+          "Cancel the festival",
+          "Select a movie star"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What was misleading about the festival slogan?",
+        "options": [
+          "It was too long",
+          "It ignored collective contributions",
+          "It mentioned the wrong river",
+          "It contained the release date"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "What remained true after the premiere?",
+        "options": [
+          "Everything was resolved",
+          "The workshop closed",
+          "People's lives and challenges continued",
+          "No one watched the film"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "What did Yara say about objectivity?",
+        "options": [
+          "Every film is perfectly objective",
+          "Awards make a film objective",
+          "Only experts are objective",
+          "Careful sources and scrutiny improve trust"
+        ],
+        "answer": 3
+      }
+    ]
+  }
+}
