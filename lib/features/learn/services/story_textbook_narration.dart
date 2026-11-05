@@ -22,7 +22,7 @@ class StoryTextbookNarration extends ChangeNotifier {
   bool _paused = false;
   bool _disposed = false;
   String? _error;
-  double _speed = 0.46;
+  double _speed = 0.36;
 
   bool get playing => _playing;
   bool get paused => _paused;
@@ -35,7 +35,7 @@ class StoryTextbookNarration extends ChangeNotifier {
   }
 
   Future<void> changeSpeed(double speed) async {
-    _speed = speed.clamp(0.2, 0.8);
+    _speed = speed.clamp(0.25, 0.65);
     _notify();
     await _engine.setSpeechRate(_speed);
   }
@@ -109,8 +109,8 @@ class StoryTextbookNarration extends ChangeNotifier {
     }
     await _engine.setPitch(switch (speaker) {
       StoryTextbookSpeaker.narrator => 1.0,
-      StoryTextbookSpeaker.female => 1.12,
-      StoryTextbookSpeaker.male => 0.88,
+      StoryTextbookSpeaker.female => 1.04,
+      StoryTextbookSpeaker.male => 0.96,
     });
     await _engine.setSpeechRate(_speed);
   }
