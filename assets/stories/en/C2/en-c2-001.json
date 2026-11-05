@@ -1,0 +1,433 @@
+{
+  "language": "en",
+  "level": "C2",
+  "story": {
+    "id": "en-c2-001",
+    "title": "The Code That Remembered Too Much",
+    "title_ar": "الشفرة التي تذكرت أكثر مما ينبغي",
+    "moral_ar": "الثقة في الأنظمة الرقمية تُبنى بالمساءلة والحد من جمع البيانات وإمكان تصحيح الأخطاء، لا بالمظهر التقني وحده.",
+    "art_style": "Original literary editorial watercolor, nuanced human expressions, realistic civic technology environment, no text in artwork.",
+    "cover_image_prompt": "Municipal digital service team in an open modern office, Nia an engineer and Leo a civic advocate review data privacy warning on computers. Original hand-painted realistic editorial illustration, no legible text or signage.",
+    "character_sheet": [
+      {
+        "name": "Nia",
+        "description": "A 29-year-old Black female software engineer with short natural curls, cobalt jacket and light cream trousers."
+      },
+      {
+        "name": "Leo",
+        "description": "A 32-year-old male community advocate with olive skin, short dark hair, brown blazer and dark jeans."
+      },
+      {
+        "name": "Dr. Shah",
+        "description": "A 48-year-old female privacy specialist with silver streak in her dark hair, glasses and forest green coat."
+      }
+    ],
+    "chapters": [
+      {
+        "chapter": 1,
+        "title": "The Hidden Logs",
+        "title_ar": "السجلات الخفية",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Municipal digital service team in an open modern office, Nia an engineer and Leo a civic advocate review data privacy warning on computers. Original hand-painted realistic editorial illustration, no legible text or signage.",
+            "animation": "fade_in",
+            "image": "assets/stories/en/C2/illustrations/en-c2-001_scene_01.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Nia had designed a digital service to help residents find municipal assistance, and the pilot appeared remarkably successful. Applications were being completed faster, and call-center staff reported fewer routine questions. During a routine technical review, however, she discovered that the system retained fragments of conversations long after they were needed. Some contained personal circumstances that applicants had shared only because they believed the service was confidential. Leo, a community advocate, argued that the issue was not merely a storage **oversight** but a breach of the public's reasonable **expectations**. Nia initially defended the data as potentially useful for improving future answers, yet she gradually recognized the weakness of that **rationale**. Information collected for one purpose was being preserved for another without meaningful explanation. She suspended the optional logging feature and asked an independent privacy specialist to review the system before expanding the pilot."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Convenience cannot become a permanent excuse for collecting everything, Nia said."
+                  }
+                ],
+                "translation_ar": "صممت نيا خدمة رقمية تساعد السكان في الوصول إلى المساعدات البلدية، وبدت التجربة ناجحة وسريعة. لكنها اكتشفت أثناء مراجعة تقنية احتفاظ النظام بأجزاء من محادثات خاصة بعد انتهاء الحاجة إليها. رأى ليو، ممثل المجتمع، أن المشكلة ليست مجرد سهو في التخزين، بل مخالفة لما توقعه الناس من السرية. حاولت نيا تبرير الاحتفاظ لتحسين الخدمة، ثم فهمت ضعف الحجة. أوقفت التسجيل الاختياري وطلبت مراجعة خصوصية مستقلة قبل توسيع التجربة."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The initial audit revealed a second problem: applicants who used unusual phrasing were more likely to receive irrelevant directions. The model had been tested primarily on formal language, whereas residents often described their needs through local expressions and incomplete sentences. Leo asked whether this unequal performance amounted to **discrimination**, but the specialist cautioned against drawing conclusions from a small **sample**. They established a more rigorous **evaluation** that examined errors across different language patterns without collecting unnecessary identifying details. Nia discovered how easily aggregate success rates could conceal systematic difficulties experienced by a smaller group. The team invited trained reviewers to assess whether an incorrect suggestion might merely waste time or cause someone to miss a critical deadline. Their findings complicated the original success narrative: the service was useful, but its benefits were distributed unevenly. Nia began to regard fairness as a practical design requirement rather than a slogan added to a presentation."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "A system that works for most people can still fail those who need it most, Leo observed."
+                  }
+                ],
+                "translation_ar": "كشف التدقيق مشكلة ثانية: من يستخدمون لهجات محلية أو عبارات غير رسمية يتلقون إرشادات أقل ملاءمة. تساءل ليو عن التمييز، لكن المختص حذّر من استنتاجات مبنية على عينة صغيرة. أعد الفريق تقييمًا أشمل لأنماط اللغة مع تجنب جمع معلومات تعريفية غير لازمة. اكتشفت نيا أن متوسط النجاح قد يخفي صعوبات منتظمة تواجه مجموعة أقل عددًا. قيّم المراجعون أثر الأخطاء، ومنها احتمال ضياع المواعيد المهمة. فهمت نيا أن الإنصاف شرط تصميم عملي لا شعار."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "City civic consultation in bright public community hall, Nia Leo and Dr Shah discuss service flaws with residents and paper notices. Original hand-painted realistic editorial illustration, no legible text or signage.",
+            "animation": "pan_left",
+            "image": "assets/stories/en/C2/illustrations/en-c2-001_scene_02.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "A city official suggested solving the problem through a disclaimer informing users that automated advice might be incomplete. Nia agreed that **transparency** was necessary, but Leo questioned whether a notice alone offered meaningful **recourse** to someone directed to the wrong department. They proposed an accessible route to human support, a clear method for correcting inaccurate guidance, and a record of whether complaints were resolved. The procurement team objected that these changes could increase operating costs and slow the planned launch. Nia resisted treating the disagreement as a simple conflict between innovation and bureaucracy. She calculated the cost of additional staff time alongside the hidden burden imposed on residents when the system failed. The comparison showed that apparent efficiency depended on whose effort was counted. The conversation moved from whether the algorithm was impressive to whether its **accountability** arrangements were sufficient for a public service."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "An honest warning matters, but people also need a way to challenge a mistake, Nia explained."
+                  }
+                ],
+                "translation_ar": "اقترح مسؤول وضع تنبيه بأن الإرشاد الآلي قد يكون ناقصًا. وافقت نيا على أهمية الشفافية، لكن ليو سأل عن وسيلة اعتراض حقيقية لمن يصل إلى الجهة الخاطئة. اقترحا دعمًا بشريًا سهل الوصول وطريقة لتصحيح الأخطاء ومتابعة الشكاوى. اعترض فريق المشتريات على التكلفة والتأخير. قارنت نيا وقت الموظفين بالعبء الذي يتحمله السكان حين يفشل النظام. ظهر أن الكفاءة تعتمد على من يتحمل الجهد. تحوّل النقاش من براعة الخوارزمية إلى مساءلتها."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The privacy specialist recommended removing historical conversations rather than disguising them behind weak identifiers. Nia worried that deletion might make future analysis less precise, but a careful **minimization** strategy could preserve anonymous performance measurements without retaining intimate narratives. She revised the data **retention** rules and arranged a documented deletion process for records no longer justified by the service's purpose. Leo asked for independent **verification**, noting that the public should not have to rely solely on the developer's assurances. The city commissioned a limited external check and published a plain-language summary of the findings, while keeping technical details that might expose vulnerabilities out of public view. This distinction required delicate judgment: transparency should enable scrutiny without creating new risks. Nia found the work less glamorous than building features, yet it gave the system a clearer boundary between information necessary for support and information people had never agreed to surrender."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Privacy means setting limits before a mistake becomes normal practice, Leo said."
+                  }
+                ],
+                "translation_ar": "أوصى خبير الخصوصية بحذف المحادثات التاريخية لا الاكتفاء بإخفاء أسماء أصحابها. خشيت نيا خسارة بيانات التحليل، لكنها صممت حدًا أدنى من الجمع يحفظ قياسات أداء مجهولة دون تفاصيل شخصية. غيّرت قواعد الاحتفاظ بالبيانات وأنشأت حذفًا موثقًا. طالب ليو بتحقق مستقل كي لا يعتمد السكان على وعود المطورين فقط. أجرت المدينة مراجعة خارجية ونشرت ملخصًا واضحًا دون كشف تفاصيل تقنية خطرة. أدركت نيا أن وضع الحدود أهم من إضافة مزايا براقة."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "At a public workshop, residents challenged the team with examples that had never appeared in their test cases. One woman described how an automated instruction had sent her repeatedly between offices, while another participant explained that limited internet access made the digital route unreliable. Nia had expected criticism of the model's accuracy, but the discussion raised broader questions about **accessibility** and institutional responsibility. Leo insisted that participants should not be treated as unpaid testers whose experiences could be extracted without acknowledgement. The team therefore provided consent options, accessible materials, and a summary showing which suggestions would influence the redesign. A senior official worried that admitting flaws might undermine confidence in the service. Nia argued that a carefully documented **consultation** could increase legitimacy precisely because it demonstrated willingness to revise. The workshop changed their understanding of **participation** from a box to tick into an ongoing relationship requiring explanations and follow-through."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We asked people to trust the system; now we must demonstrate that their voices change it, Nia said."
+                  }
+                ],
+                "translation_ar": "في ورشة عامة قدم السكان حالات غابت عن الاختبارات: امرأة أُرسلت بين مكاتب عديدة، وآخرون يعانون ضعف الإنترنت. توقعت نيا انتقادات لدقة النموذج، لكن النقاش شمل سهولة الوصول ومسؤولية المؤسسة. رفض ليو استخدام المشاركين كمختبرين مجانيين دون تقدير أو موافقة. قدم الفريق مواد واضحة وخيارات موافقة وملخصًا يشرح كيف ستؤثر الاقتراحات في التصميم. خشي مسؤول من الاعتراف بالعيوب، لكن نيا رأت أن التشاور الموثق يقوي الثقة. أصبحت المشاركة علاقة مستمرة لا خانة في نموذج."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "chapter": 2,
+        "title": "A Service Worth Questioning",
+        "title_ar": "خدمة يمكن مساءلتها",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Software lab team tests revised assistance service with privacy safeguards, Nia beside monitor, Leo viewing audit notes. Original hand-painted realistic editorial illustration, no legible text or signage.",
+            "animation": "parallax",
+            "image": "assets/stories/en/C2/illustrations/en-c2-001_scene_03.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The revised system was deliberately less ambitious. Instead of answering every possible question, it recognized uncertainty and directed complex cases to trained staff. Nia introduced safeguards against unwarranted **confidence**, including checks that flagged unsupported references and outdated instructions. The team compared different versions through controlled tests, but refused to define success by raw speed alone. They considered the **severity** of errors, the availability of appeal, and how consistently assistance reached people with different communication styles. Leo asked for a published explanation of the limits of automation, while the specialist recommended regular **monitoring** after launch. Their new performance report contained awkward numbers beside encouraging ones, making the results harder to market but easier to scrutinize. Nia realized that designing a trustworthy system often required the discipline to remove a feature rather than the enthusiasm to add one."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Knowing when not to answer may be the most useful ability we can give it, Leo said."
+                  }
+                ],
+                "translation_ar": "صار النظام المنقح أقل طموحًا؛ لم يعد يجيب عن كل سؤال، بل يحيل الحالات المعقدة إلى موظفين. أضافت نيا ضوابط ضد الثقة الزائدة والمراجع غير المدعومة والتعليمات القديمة. قارن الفريق النسخ باختبارات مضبوطة، لكنه لم يعتمد السرعة وحدها للنجاح. قيّم شدة الأخطاء وإمكانية الاعتراض وعدالة التوزيع بين أنماط اللغة. طالب ليو بشرح حدود الأتمتة، وأوصى المختص بمتابعة دورية. عرض التقرير أرقامًا محرجة وأخرى جيدة. فهمت نيا أن إزالة ميزة قد تكون أحيانًا أهم من إضافتها."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "A few weeks before relaunch, the city proposed an unexpected extension: connecting the service to an unrelated database to predict which households might need assistance. The idea promised greater efficiency, but its **implications** unsettled Nia. Information supplied in confidence for one administrative task could become the basis of an inference that people had never anticipated. Leo argued that such **function creep** would undermine the very trust they were attempting to rebuild. Officials countered that refusing useful data might waste public resources, and the debate became unusually tense. Nia requested a separate legal and ethical assessment rather than approving the proposal under the existing project. She explained that a new purpose required new justification, boundaries and public **consent** where applicable. Her refusal delayed expansion, yet protected the narrower improvements already agreed. The city eventually separated the proposal from the imminent launch for independent consideration."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We cannot turn one permission into permission for everything that becomes technically possible, Nia said."
+                  }
+                ],
+                "translation_ar": "قبل إعادة الإطلاق اقترحت المدينة ربط الخدمة بقاعدة بيانات أخرى للتنبؤ باحتياجات الأسر. بدا الاقتراح كفؤًا لكنه أثار مخاوف نيا: قد تستخدم معلومات قُدمت لغرض إداري في استنتاجات لم يتوقعها أصحابها. رأى ليو أن هذا توسع في الوظيفة يهدد الثقة. طلبت نيا تقييمًا قانونيًا وأخلاقيًا مستقلًا، لأن الغرض الجديد يحتاج إلى مبررات وحدود وموافقة مناسبة. أخّر القرار التوسع لكنه حافظ على التحسينات المتفق عليها. فُصل المقترح عن الإطلاق القريب."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Community center meeting after improved public service launch, Nia and Leo share thoughtful discussion with diverse residents. Original hand-painted realistic editorial illustration, no legible text or signage.",
+            "animation": "zoom_in_slow",
+            "image": "assets/stories/en/C2/illustrations/en-c2-001_scene_04.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The second launch attracted fewer headlines than the first, partly because the team avoided promising a revolutionary transformation. Residents could see where automated guidance ended and human assistance began. They could also report errors without exposing unnecessary personal details, and summaries of those reports were used to guide improvements. During the first month, the service became slightly slower on average but produced fewer harmful **misdirections**. The independent review described this as a meaningful **trade-off**, though it warned that long-term outcomes remained uncertain. Leo appreciated that the city had begun publishing corrections, not merely celebrations. Nia resisted interpreting the favorable results as proof that the project was permanently solved. She had learned that technical systems evolve within institutions, and that responsible **governance** depended on people who could question decisions after the original designers moved on.  The report distinguished improvements visible in the pilot from outcomes that would require many more months of careful observation."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "We have replaced a performance claim with an obligation to keep improving, Leo said."
+                  }
+                ],
+                "translation_ar": "حظي الإطلاق الثاني بضجة أقل لأن الفريق تجنب وعودًا ثورية. صار واضحًا للمستخدم متى تنتهي الإرشادات الآلية ويبدأ الدعم البشري، وأصبح الإبلاغ عن الخطأ ممكنًا دون كشف تفاصيل غير لازمة. انخفضت الإحالات الضارة ولو تباطأت الخدمة قليلًا. اعتبرت المراجعة المستقلة ذلك مقايضة معقولة لكنها حذرت من الجزم بالنتائج البعيدة. قدّر ليو نشر التصحيحات. رفضت نيا اعتبار التحسن حلًا نهائيًا، لأنها فهمت أن حوكمة التقنية تحتاج إلى مساءلة مستمرة."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Months later, an audit committee examined whether the public had actually gained useful **oversight** of the service. It reviewed documentation, sampled complaints and confirmed that people could reach a human adviser when necessary. Some problems remained, particularly for residents whose needs crossed several departments. The committee recommended clearer ownership of those difficult cases, a process for independent **redress**, and regular testing with representatives of affected communities. Nia welcomed the criticism despite the extra work it created; she understood that a system could be technically accurate yet institutionally frustrating. Leo insisted that each new recommendation should identify who would act and when, so public feedback did not disappear into a report. Their shared insistence on **traceability** changed how the city managed later projects. The service was no longer treated as a self-contained product but as one part of an accountable public institution."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We should judge this by the choices it gives residents, not the elegance of its code, Nia concluded."
+                  }
+                ],
+                "translation_ar": "بعد أشهر راجعت لجنة تدقيق قدرة الجمهور على الرقابة الفعلية. درست الوثائق والشكاوى وتحققت من إمكان الوصول إلى موظف. بقيت مشكلات الحالات التي تتداخل فيها أقسام عدة، فأوصت بتحديد المسؤوليات وسبل إنصاف مستقلة واختبارات متكررة مع المجتمع. رحبت نيا بالنقد رغم أعبائه، لأن النظام قد يكون دقيقًا تقنيًا ومربكًا إداريًا. طالب ليو بتحديد من سينفذ كل توصية وموعدها. تحولت الخدمة من منتج منفصل إلى جزء من مؤسسة قابلة للمساءلة."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "On the anniversary of the pilot, Nia visited the community center where residents had first challenged her work. A volunteer recognized her and described how the revised referral system had finally helped a neighbor reach the correct office. Nia felt grateful but did not treat the story as universal proof of success. She had become more attentive to the difference between an encouraging **anecdote** and representative evidence. Leo, standing beside her, remarked that the most important improvement was the system's growing **contestability**: people could now question what it said and obtain a meaningful response. Nia agreed that technological **humility** was not pessimism but a disciplined recognition of limits. The service still made mistakes, yet it no longer demanded unquestioning trust. Its strongest achievement was creating a structure in which uncertainty could be acknowledged, errors corrected and public choices defended in terms ordinary residents could understand."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Trust grows when people are allowed to disagree with the machine and be heard, Leo said."
+                  }
+                ],
+                "translation_ar": "في ذكرى التجربة عادت نيا إلى المركز المجتمعي الذي واجهت فيه أول انتقاداتها. وصف متطوع كيف ساعد النظام المنقح أحد الجيران في الوصول إلى المكتب الصحيح. سعدت نيا لكنها لم تجعل قصة واحدة دليلًا على نجاح شامل. أوضح ليو أن أكبر تحسن هو قابلية الاعتراض الفعال على قرارات الآلة. رأت نيا أن تواضع التقنية اعتراف منضبط بالحدود لا تشاؤم. ما زالت الخدمة تخطئ، لكنها لم تعد تطالب بثقة عمياء. صار الإنجاز الحقيقي الاعتراف بعدم اليقين وتصحيح الخطأ وتبرير القرارات بلغة مفهومة."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "vocabulary": [
+      {
+        "word": "oversight",
+        "meaning_ar": "رقابة وإشراف",
+        "example": "Nia had designed a digital service to help residents find municipal assistance, and the pilot appeared remarkably successful. Applications were being completed faster, and call-center staff reported fewer routine questions. During a routine technical review, however, she discovered that the system retained fragments of conversations long after they were needed. Some contained personal circumstances that applicants had shared only because they believed the service was confidential. Leo, a community advocate, argued that the issue was not merely a storage oversight but a breach of the public's reasonable expectations. Nia initially defended the data as potentially useful for improving future answers, yet she gradually recognized the weakness of that rationale. Information collected for one purpose was being preserved for another without meaningful explanation. She suspended the optional logging feature and asked an independent privacy specialist to review the system before expanding the pilot."
+      },
+      {
+        "word": "expectations",
+        "meaning_ar": "توقعات",
+        "example": "Nia had designed a digital service to help residents find municipal assistance, and the pilot appeared remarkably successful. Applications were being completed faster, and call-center staff reported fewer routine questions. During a routine technical review, however, she discovered that the system retained fragments of conversations long after they were needed. Some contained personal circumstances that applicants had shared only because they believed the service was confidential. Leo, a community advocate, argued that the issue was not merely a storage oversight but a breach of the public's reasonable expectations. Nia initially defended the data as potentially useful for improving future answers, yet she gradually recognized the weakness of that rationale. Information collected for one purpose was being preserved for another without meaningful explanation. She suspended the optional logging feature and asked an independent privacy specialist to review the system before expanding the pilot."
+      },
+      {
+        "word": "rationale",
+        "meaning_ar": "مبرر",
+        "example": "Nia had designed a digital service to help residents find municipal assistance, and the pilot appeared remarkably successful. Applications were being completed faster, and call-center staff reported fewer routine questions. During a routine technical review, however, she discovered that the system retained fragments of conversations long after they were needed. Some contained personal circumstances that applicants had shared only because they believed the service was confidential. Leo, a community advocate, argued that the issue was not merely a storage oversight but a breach of the public's reasonable expectations. Nia initially defended the data as potentially useful for improving future answers, yet she gradually recognized the weakness of that rationale. Information collected for one purpose was being preserved for another without meaningful explanation. She suspended the optional logging feature and asked an independent privacy specialist to review the system before expanding the pilot."
+      },
+      {
+        "word": "discrimination",
+        "meaning_ar": "تمييز",
+        "example": "The initial audit revealed a second problem: applicants who used unusual phrasing were more likely to receive irrelevant directions. The model had been tested primarily on formal language, whereas residents often described their needs through local expressions and incomplete sentences. Leo asked whether this unequal performance amounted to discrimination, but the specialist cautioned against drawing conclusions from a small sample. They established a more rigorous evaluation that examined errors across different language patterns without collecting unnecessary identifying details. Nia discovered how easily aggregate success rates could conceal systematic difficulties experienced by a smaller group. The team invited trained reviewers to assess whether an incorrect suggestion might merely waste time or cause someone to miss a critical deadline. Their findings complicated the original success narrative: the service was useful, but its benefits were distributed unevenly. Nia began to regard fairness as a practical design requirement rather than a slogan added to a presentation."
+      },
+      {
+        "word": "sample",
+        "meaning_ar": "عينة",
+        "example": "The initial audit revealed a second problem: applicants who used unusual phrasing were more likely to receive irrelevant directions. The model had been tested primarily on formal language, whereas residents often described their needs through local expressions and incomplete sentences. Leo asked whether this unequal performance amounted to discrimination, but the specialist cautioned against drawing conclusions from a small sample. They established a more rigorous evaluation that examined errors across different language patterns without collecting unnecessary identifying details. Nia discovered how easily aggregate success rates could conceal systematic difficulties experienced by a smaller group. The team invited trained reviewers to assess whether an incorrect suggestion might merely waste time or cause someone to miss a critical deadline. Their findings complicated the original success narrative: the service was useful, but its benefits were distributed unevenly. Nia began to regard fairness as a practical design requirement rather than a slogan added to a presentation."
+      },
+      {
+        "word": "evaluation",
+        "meaning_ar": "تقييم",
+        "example": "The initial audit revealed a second problem: applicants who used unusual phrasing were more likely to receive irrelevant directions. The model had been tested primarily on formal language, whereas residents often described their needs through local expressions and incomplete sentences. Leo asked whether this unequal performance amounted to discrimination, but the specialist cautioned against drawing conclusions from a small sample. They established a more rigorous evaluation that examined errors across different language patterns without collecting unnecessary identifying details. Nia discovered how easily aggregate success rates could conceal systematic difficulties experienced by a smaller group. The team invited trained reviewers to assess whether an incorrect suggestion might merely waste time or cause someone to miss a critical deadline. Their findings complicated the original success narrative: the service was useful, but its benefits were distributed unevenly. Nia began to regard fairness as a practical design requirement rather than a slogan added to a presentation."
+      },
+      {
+        "word": "transparency",
+        "meaning_ar": "شفافية",
+        "example": "A city official suggested solving the problem through a disclaimer informing users that automated advice might be incomplete. Nia agreed that transparency was necessary, but Leo questioned whether a notice alone offered meaningful recourse to someone directed to the wrong department. They proposed an accessible route to human support, a clear method for correcting inaccurate guidance, and a record of whether complaints were resolved. The procurement team objected that these changes could increase operating costs and slow the planned launch. Nia resisted treating the disagreement as a simple conflict between innovation and bureaucracy. She calculated the cost of additional staff time alongside the hidden burden imposed on residents when the system failed. The comparison showed that apparent efficiency depended on whose effort was counted. The conversation moved from whether the algorithm was impressive to whether its accountability arrangements were sufficient for a public service."
+      },
+      {
+        "word": "recourse",
+        "meaning_ar": "سبيل اعتراض",
+        "example": "A city official suggested solving the problem through a disclaimer informing users that automated advice might be incomplete. Nia agreed that transparency was necessary, but Leo questioned whether a notice alone offered meaningful recourse to someone directed to the wrong department. They proposed an accessible route to human support, a clear method for correcting inaccurate guidance, and a record of whether complaints were resolved. The procurement team objected that these changes could increase operating costs and slow the planned launch. Nia resisted treating the disagreement as a simple conflict between innovation and bureaucracy. She calculated the cost of additional staff time alongside the hidden burden imposed on residents when the system failed. The comparison showed that apparent efficiency depended on whose effort was counted. The conversation moved from whether the algorithm was impressive to whether its accountability arrangements were sufficient for a public service."
+      },
+      {
+        "word": "accountability",
+        "meaning_ar": "مساءلة",
+        "example": "A city official suggested solving the problem through a disclaimer informing users that automated advice might be incomplete. Nia agreed that transparency was necessary, but Leo questioned whether a notice alone offered meaningful recourse to someone directed to the wrong department. They proposed an accessible route to human support, a clear method for correcting inaccurate guidance, and a record of whether complaints were resolved. The procurement team objected that these changes could increase operating costs and slow the planned launch. Nia resisted treating the disagreement as a simple conflict between innovation and bureaucracy. She calculated the cost of additional staff time alongside the hidden burden imposed on residents when the system failed. The comparison showed that apparent efficiency depended on whose effort was counted. The conversation moved from whether the algorithm was impressive to whether its accountability arrangements were sufficient for a public service."
+      },
+      {
+        "word": "minimization",
+        "meaning_ar": "تقليل جمع البيانات",
+        "example": "The privacy specialist recommended removing historical conversations rather than disguising them behind weak identifiers. Nia worried that deletion might make future analysis less precise, but a careful minimization strategy could preserve anonymous performance measurements without retaining intimate narratives. She revised the data retention rules and arranged a documented deletion process for records no longer justified by the service's purpose. Leo asked for independent verification, noting that the public should not have to rely solely on the developer's assurances. The city commissioned a limited external check and published a plain-language summary of the findings, while keeping technical details that might expose vulnerabilities out of public view. This distinction required delicate judgment: transparency should enable scrutiny without creating new risks. Nia found the work less glamorous than building features, yet it gave the system a clearer boundary between information necessary for support and information people had never agreed to surrender."
+      },
+      {
+        "word": "retention",
+        "meaning_ar": "احتفاظ بالبيانات",
+        "example": "The privacy specialist recommended removing historical conversations rather than disguising them behind weak identifiers. Nia worried that deletion might make future analysis less precise, but a careful minimization strategy could preserve anonymous performance measurements without retaining intimate narratives. She revised the data retention rules and arranged a documented deletion process for records no longer justified by the service's purpose. Leo asked for independent verification, noting that the public should not have to rely solely on the developer's assurances. The city commissioned a limited external check and published a plain-language summary of the findings, while keeping technical details that might expose vulnerabilities out of public view. This distinction required delicate judgment: transparency should enable scrutiny without creating new risks. Nia found the work less glamorous than building features, yet it gave the system a clearer boundary between information necessary for support and information people had never agreed to surrender."
+      },
+      {
+        "word": "verification",
+        "meaning_ar": "تحقق",
+        "example": "The privacy specialist recommended removing historical conversations rather than disguising them behind weak identifiers. Nia worried that deletion might make future analysis less precise, but a careful minimization strategy could preserve anonymous performance measurements without retaining intimate narratives. She revised the data retention rules and arranged a documented deletion process for records no longer justified by the service's purpose. Leo asked for independent verification, noting that the public should not have to rely solely on the developer's assurances. The city commissioned a limited external check and published a plain-language summary of the findings, while keeping technical details that might expose vulnerabilities out of public view. This distinction required delicate judgment: transparency should enable scrutiny without creating new risks. Nia found the work less glamorous than building features, yet it gave the system a clearer boundary between information necessary for support and information people had never agreed to surrender."
+      },
+      {
+        "word": "accessibility",
+        "meaning_ar": "إتاحة الوصول",
+        "example": "At a public workshop, residents challenged the team with examples that had never appeared in their test cases. One woman described how an automated instruction had sent her repeatedly between offices, while another participant explained that limited internet access made the digital route unreliable. Nia had expected criticism of the model's accuracy, but the discussion raised broader questions about accessibility and institutional responsibility. Leo insisted that participants should not be treated as unpaid testers whose experiences could be extracted without acknowledgement. The team therefore provided consent options, accessible materials, and a summary showing which suggestions would influence the redesign. A senior official worried that admitting flaws might undermine confidence in the service. Nia argued that a carefully documented consultation could increase legitimacy precisely because it demonstrated willingness to revise. The workshop changed their understanding of participation from a box to tick into an ongoing relationship requiring explanations and follow-through."
+      },
+      {
+        "word": "consultation",
+        "meaning_ar": "تشاور",
+        "example": "At a public workshop, residents challenged the team with examples that had never appeared in their test cases. One woman described how an automated instruction had sent her repeatedly between offices, while another participant explained that limited internet access made the digital route unreliable. Nia had expected criticism of the model's accuracy, but the discussion raised broader questions about accessibility and institutional responsibility. Leo insisted that participants should not be treated as unpaid testers whose experiences could be extracted without acknowledgement. The team therefore provided consent options, accessible materials, and a summary showing which suggestions would influence the redesign. A senior official worried that admitting flaws might undermine confidence in the service. Nia argued that a carefully documented consultation could increase legitimacy precisely because it demonstrated willingness to revise. The workshop changed their understanding of participation from a box to tick into an ongoing relationship requiring explanations and follow-through."
+      },
+      {
+        "word": "participation",
+        "meaning_ar": "مشاركة",
+        "example": "At a public workshop, residents challenged the team with examples that had never appeared in their test cases. One woman described how an automated instruction had sent her repeatedly between offices, while another participant explained that limited internet access made the digital route unreliable. Nia had expected criticism of the model's accuracy, but the discussion raised broader questions about accessibility and institutional responsibility. Leo insisted that participants should not be treated as unpaid testers whose experiences could be extracted without acknowledgement. The team therefore provided consent options, accessible materials, and a summary showing which suggestions would influence the redesign. A senior official worried that admitting flaws might undermine confidence in the service. Nia argued that a carefully documented consultation could increase legitimacy precisely because it demonstrated willingness to revise. The workshop changed their understanding of participation from a box to tick into an ongoing relationship requiring explanations and follow-through."
+      },
+      {
+        "word": "confidence",
+        "meaning_ar": "ثقة",
+        "example": "The revised system was deliberately less ambitious. Instead of answering every possible question, it recognized uncertainty and directed complex cases to trained staff. Nia introduced safeguards against unwarranted confidence, including checks that flagged unsupported references and outdated instructions. The team compared different versions through controlled tests, but refused to define success by raw speed alone. They considered the severity of errors, the availability of appeal, and how consistently assistance reached people with different communication styles. Leo asked for a published explanation of the limits of automation, while the specialist recommended regular monitoring after launch. Their new performance report contained awkward numbers beside encouraging ones, making the results harder to market but easier to scrutinize. Nia realized that designing a trustworthy system often required the discipline to remove a feature rather than the enthusiasm to add one."
+      },
+      {
+        "word": "severity",
+        "meaning_ar": "شدة",
+        "example": "The revised system was deliberately less ambitious. Instead of answering every possible question, it recognized uncertainty and directed complex cases to trained staff. Nia introduced safeguards against unwarranted confidence, including checks that flagged unsupported references and outdated instructions. The team compared different versions through controlled tests, but refused to define success by raw speed alone. They considered the severity of errors, the availability of appeal, and how consistently assistance reached people with different communication styles. Leo asked for a published explanation of the limits of automation, while the specialist recommended regular monitoring after launch. Their new performance report contained awkward numbers beside encouraging ones, making the results harder to market but easier to scrutinize. Nia realized that designing a trustworthy system often required the discipline to remove a feature rather than the enthusiasm to add one."
+      },
+      {
+        "word": "monitoring",
+        "meaning_ar": "مراقبة",
+        "example": "The revised system was deliberately less ambitious. Instead of answering every possible question, it recognized uncertainty and directed complex cases to trained staff. Nia introduced safeguards against unwarranted confidence, including checks that flagged unsupported references and outdated instructions. The team compared different versions through controlled tests, but refused to define success by raw speed alone. They considered the severity of errors, the availability of appeal, and how consistently assistance reached people with different communication styles. Leo asked for a published explanation of the limits of automation, while the specialist recommended regular monitoring after launch. Their new performance report contained awkward numbers beside encouraging ones, making the results harder to market but easier to scrutinize. Nia realized that designing a trustworthy system often required the discipline to remove a feature rather than the enthusiasm to add one."
+      },
+      {
+        "word": "implications",
+        "meaning_ar": "تبعات",
+        "example": "A few weeks before relaunch, the city proposed an unexpected extension: connecting the service to an unrelated database to predict which households might need assistance. The idea promised greater efficiency, but its implications unsettled Nia. Information supplied in confidence for one administrative task could become the basis of an inference that people had never anticipated. Leo argued that such function creep would undermine the very trust they were attempting to rebuild. Officials countered that refusing useful data might waste public resources, and the debate became unusually tense. Nia requested a separate legal and ethical assessment rather than approving the proposal under the existing project. She explained that a new purpose required new justification, boundaries and public consent where applicable. Her refusal delayed expansion, yet protected the narrower improvements already agreed. The city eventually separated the proposal from the imminent launch for independent consideration."
+      },
+      {
+        "word": "function creep",
+        "meaning_ar": "توسع غير مبرر في الغرض",
+        "example": "A few weeks before relaunch, the city proposed an unexpected extension: connecting the service to an unrelated database to predict which households might need assistance. The idea promised greater efficiency, but its implications unsettled Nia. Information supplied in confidence for one administrative task could become the basis of an inference that people had never anticipated. Leo argued that such function creep would undermine the very trust they were attempting to rebuild. Officials countered that refusing useful data might waste public resources, and the debate became unusually tense. Nia requested a separate legal and ethical assessment rather than approving the proposal under the existing project. She explained that a new purpose required new justification, boundaries and public consent where applicable. Her refusal delayed expansion, yet protected the narrower improvements already agreed. The city eventually separated the proposal from the imminent launch for independent consideration."
+      },
+      {
+        "word": "consent",
+        "meaning_ar": "موافقة",
+        "example": "A few weeks before relaunch, the city proposed an unexpected extension: connecting the service to an unrelated database to predict which households might need assistance. The idea promised greater efficiency, but its implications unsettled Nia. Information supplied in confidence for one administrative task could become the basis of an inference that people had never anticipated. Leo argued that such function creep would undermine the very trust they were attempting to rebuild. Officials countered that refusing useful data might waste public resources, and the debate became unusually tense. Nia requested a separate legal and ethical assessment rather than approving the proposal under the existing project. She explained that a new purpose required new justification, boundaries and public consent where applicable. Her refusal delayed expansion, yet protected the narrower improvements already agreed. The city eventually separated the proposal from the imminent launch for independent consideration."
+      },
+      {
+        "word": "misdirections",
+        "meaning_ar": "توجيهات خاطئة",
+        "example": "The second launch attracted fewer headlines than the first, partly because the team avoided promising a revolutionary transformation. Residents could see where automated guidance ended and human assistance began. They could also report errors without exposing unnecessary personal details, and summaries of those reports were used to guide improvements. During the first month, the service became slightly slower on average but produced fewer harmful misdirections. The independent review described this as a meaningful trade-off, though it warned that long-term outcomes remained uncertain. Leo appreciated that the city had begun publishing corrections, not merely celebrations. Nia resisted interpreting the favorable results as proof that the project was permanently solved. She had learned that technical systems evolve within institutions, and that responsible governance depended on people who could question decisions after the original designers moved on.  The report distinguished improvements visible in the pilot from outcomes that would require many more months of careful observation."
+      },
+      {
+        "word": "trade-off",
+        "meaning_ar": "مقايضة",
+        "example": "The second launch attracted fewer headlines than the first, partly because the team avoided promising a revolutionary transformation. Residents could see where automated guidance ended and human assistance began. They could also report errors without exposing unnecessary personal details, and summaries of those reports were used to guide improvements. During the first month, the service became slightly slower on average but produced fewer harmful misdirections. The independent review described this as a meaningful trade-off, though it warned that long-term outcomes remained uncertain. Leo appreciated that the city had begun publishing corrections, not merely celebrations. Nia resisted interpreting the favorable results as proof that the project was permanently solved. She had learned that technical systems evolve within institutions, and that responsible governance depended on people who could question decisions after the original designers moved on.  The report distinguished improvements visible in the pilot from outcomes that would require many more months of careful observation."
+      },
+      {
+        "word": "governance",
+        "meaning_ar": "حوكمة",
+        "example": "The second launch attracted fewer headlines than the first, partly because the team avoided promising a revolutionary transformation. Residents could see where automated guidance ended and human assistance began. They could also report errors without exposing unnecessary personal details, and summaries of those reports were used to guide improvements. During the first month, the service became slightly slower on average but produced fewer harmful misdirections. The independent review described this as a meaningful trade-off, though it warned that long-term outcomes remained uncertain. Leo appreciated that the city had begun publishing corrections, not merely celebrations. Nia resisted interpreting the favorable results as proof that the project was permanently solved. She had learned that technical systems evolve within institutions, and that responsible governance depended on people who could question decisions after the original designers moved on.  The report distinguished improvements visible in the pilot from outcomes that would require many more months of careful observation."
+      },
+      {
+        "word": "redress",
+        "meaning_ar": "إنصاف",
+        "example": "Months later, an audit committee examined whether the public had actually gained useful oversight of the service. It reviewed documentation, sampled complaints and confirmed that people could reach a human adviser when necessary. Some problems remained, particularly for residents whose needs crossed several departments. The committee recommended clearer ownership of those difficult cases, a process for independent redress, and regular testing with representatives of affected communities. Nia welcomed the criticism despite the extra work it created; she understood that a system could be technically accurate yet institutionally frustrating. Leo insisted that each new recommendation should identify who would act and when, so public feedback did not disappear into a report. Their shared insistence on traceability changed how the city managed later projects. The service was no longer treated as a self-contained product but as one part of an accountable public institution."
+      },
+      {
+        "word": "traceability",
+        "meaning_ar": "إمكانية التتبع",
+        "example": "Months later, an audit committee examined whether the public had actually gained useful oversight of the service. It reviewed documentation, sampled complaints and confirmed that people could reach a human adviser when necessary. Some problems remained, particularly for residents whose needs crossed several departments. The committee recommended clearer ownership of those difficult cases, a process for independent redress, and regular testing with representatives of affected communities. Nia welcomed the criticism despite the extra work it created; she understood that a system could be technically accurate yet institutionally frustrating. Leo insisted that each new recommendation should identify who would act and when, so public feedback did not disappear into a report. Their shared insistence on traceability changed how the city managed later projects. The service was no longer treated as a self-contained product but as one part of an accountable public institution."
+      },
+      {
+        "word": "anecdote",
+        "meaning_ar": "حكاية فردية",
+        "example": "On the anniversary of the pilot, Nia visited the community center where residents had first challenged her work. A volunteer recognized her and described how the revised referral system had finally helped a neighbor reach the correct office. Nia felt grateful but did not treat the story as universal proof of success. She had become more attentive to the difference between an encouraging anecdote and representative evidence. Leo, standing beside her, remarked that the most important improvement was the system's growing contestability: people could now question what it said and obtain a meaningful response. Nia agreed that technological humility was not pessimism but a disciplined recognition of limits. The service still made mistakes, yet it no longer demanded unquestioning trust. Its strongest achievement was creating a structure in which uncertainty could be acknowledged, errors corrected and public choices defended in terms ordinary residents could understand."
+      },
+      {
+        "word": "contestability",
+        "meaning_ar": "قابلية الاعتراض",
+        "example": "On the anniversary of the pilot, Nia visited the community center where residents had first challenged her work. A volunteer recognized her and described how the revised referral system had finally helped a neighbor reach the correct office. Nia felt grateful but did not treat the story as universal proof of success. She had become more attentive to the difference between an encouraging anecdote and representative evidence. Leo, standing beside her, remarked that the most important improvement was the system's growing contestability: people could now question what it said and obtain a meaningful response. Nia agreed that technological humility was not pessimism but a disciplined recognition of limits. The service still made mistakes, yet it no longer demanded unquestioning trust. Its strongest achievement was creating a structure in which uncertainty could be acknowledged, errors corrected and public choices defended in terms ordinary residents could understand."
+      },
+      {
+        "word": "humility",
+        "meaning_ar": "تواضع",
+        "example": "On the anniversary of the pilot, Nia visited the community center where residents had first challenged her work. A volunteer recognized her and described how the revised referral system had finally helped a neighbor reach the correct office. Nia felt grateful but did not treat the story as universal proof of success. She had become more attentive to the difference between an encouraging anecdote and representative evidence. Leo, standing beside her, remarked that the most important improvement was the system's growing contestability: people could now question what it said and obtain a meaningful response. Nia agreed that technological humility was not pessimism but a disciplined recognition of limits. The service still made mistakes, yet it no longer demanded unquestioning trust. Its strongest achievement was creating a structure in which uncertainty could be acknowledged, errors corrected and public choices defended in terms ordinary residents could understand."
+      }
+    ],
+    "questions": [
+      {
+        "q": "What triggered the initial privacy review?",
+        "options": [
+          "A service outage",
+          "Conversation records were retained unnecessarily",
+          "A shortage of staff",
+          "A public celebration"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "Why did aggregate success metrics prove insufficient?",
+        "options": [
+          "They were too small to print",
+          "They used old colors",
+          "They concealed problems for certain language patterns",
+          "They excluded all users"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "What was needed beyond a disclaimer?",
+        "options": [
+          "Faster animations",
+          "More advertisements",
+          "A longer consent screen",
+          "Human support and meaningful appeal"
+        ],
+        "answer": 3
+      },
+      {
+        "q": "What was the purpose of data minimization?",
+        "options": [
+          "To retain only necessary information",
+          "To remove all evaluations",
+          "To hide errors",
+          "To delay the system"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What did residents' workshops reveal?",
+        "options": [
+          "All participants loved the interface",
+          "Problems included internet access and institutional responsibility",
+          "No one used the service",
+          "Only technical speed mattered"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "Why was the revised service less ambitious?",
+        "options": [
+          "The developer lost interest",
+          "The city banned software",
+          "Complex cases were directed to trained staff",
+          "It no longer provided assistance"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "What concerned Nia about connecting unrelated databases?",
+        "options": [
+          "Hardware cost",
+          "Office space",
+          "A lack of internet",
+          "Expansion of data use without appropriate justification"
+        ],
+        "answer": 3
+      },
+      {
+        "q": "What ultimately built trust?",
+        "options": [
+          "A system that could be challenged and corrected",
+          "Unquestioning acceptance",
+          "Removing all human advisers",
+          "Public relations alone"
+        ],
+        "answer": 0
+      }
+    ]
+  }
+}
