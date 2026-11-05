@@ -1,0 +1,432 @@
+{
+  "schema": 1,
+  "id": "en-a1-voa-020",
+  "language": "en",
+  "level": "A1",
+  "title": "What Can You Do?",
+  "title_ar": "ماذا يمكنك أن تفعل؟",
+  "hosts": [
+    "Anna",
+    "Pete"
+  ],
+  "other_speakers": [
+    "Marsha"
+  ],
+  "status": "published_audio",
+  "recording_kind": "human",
+  "voice_rights_verified": true,
+  "source": "VOA Learning English",
+  "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-lesson-20-what-can-you-do/3384429.html",
+  "source_credit": "VOA Learning English — Let's Learn English, Level 1, Lesson 20. Original VOA recording and transcript; no WorldVoice/VOA affiliation.",
+  "audio_url": "https://voa-audio.voanews.eu/vle/2016/06/29/8225db0f-179b-453f-92bb-50f548175c42_hq.mp3",
+  "duration_ms": 219000,
+  "sync_status": "unverified",
+  "target_duration_ms": 219000,
+  "dialogue": [
+    {
+      "speaker": "Anna",
+      "text": "Hi, there! Washington, D.C. is a great place to work. Many people here work in government and politics. But there are many other jobs. You can work at a hospital; a university. You can work in a coffee shop. Wait a minute, I think I see a friend of mine. Pete? Is that you?",
+      "translation_ar": "أهلًا! واشنطن العاصمة مكان رائع للعمل. يعمل كثيرون هنا في الحكومة والسياسة، ولكن توجد وظائف أخرى كثيرة. يمكنك العمل في مستشفى أو جامعة أو مقهى. لحظة، أظن أنني رأيت صديقًا لي. بيت، أهذا أنت؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Hi, Anna.",
+      "translation_ar": "مرحبًا يا آنا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "You look different. Your beard … is really big.",
+      "translation_ar": "تبدو مختلفًا. لحيتك كبيرة جدًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "You don’t like it, do you?",
+      "translation_ar": "أنت لا تحبينها، أليس كذلك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "No, no. You just look … different.",
+      "translation_ar": "لا، لا. أنت فقط تبدو مختلفًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "(To server) Thank you. So, what’s wrong? You look sad.",
+      "translation_ar": "(للنادل) شكرًا لك. إذن، ما المشكلة؟ تبدو حزينًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "I don’t have a job.",
+      "translation_ar": "ليس لدي عمل.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Sorry, I can’t hear you.",
+      "translation_ar": "آسفة، لا أستطيع سماعك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "I do not have a job!",
+      "translation_ar": "ليس لدي عمل!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Oh. I’m sorry to hear that, Pete.",
+      "translation_ar": "أوه، يؤسفني سماع ذلك يا بيت.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "I don’t have a skill.",
+      "translation_ar": "ليس لدي مهارة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Everyone has a skill. You need to find yours.",
+      "translation_ar": "كل شخص لديه مهارة. عليك أن تكتشف مهارتك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "I don’t know, Anna.",
+      "translation_ar": "لا أعرف يا آنا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Pete, I am good at asking questions. Let me ask you some.",
+      "translation_ar": "يا بيت، أنا جيدة في طرح الأسئلة. دعني أسألك بعضًا منها.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Really, Anna? Can you help me?",
+      "translation_ar": "حقًا يا آنا؟ هل تستطيعين مساعدتي؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Yes, I can. Let me help.",
+      "translation_ar": "نعم أستطيع. دعني أساعدك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Sure, Anna. Maybe you can help.",
+      "translation_ar": "بالتأكيد يا آنا. ربما تستطيعين المساعدة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Can you write code?",
+      "translation_ar": "هل تستطيع كتابة الشفرة البرمجية؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Sure, c-o-l-d. How is this going to help?",
+      "translation_ar": "بالتأكيد، C-O-L-D. كيف سيساعدني هذا؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "No, not “cold.” Code; you know, for making phone apps, or websites. You can make tons of money writing code.",
+      "translation_ar": "لا، ليس كلمة «cold». أقصد «code»؛ أي البرمجة لإنشاء تطبيقات الهاتف أو المواقع. يمكنك كسب مال كثير من كتابة الشفرة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Tons of money? But I can’t code.",
+      "translation_ar": "مال كثير؟ لكنني لا أستطيع البرمجة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Next question. Can you drive?",
+      "translation_ar": "السؤال التالي. هل تستطيع القيادة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Do you mean drive a race car? It’s really hard to be a race car driver. First, you need a race car ...",
+      "translation_ar": "هل تقصدين قيادة سيارة سباق؟ من الصعب حقًا أن تصبح سائق سباقات. أولًا تحتاج إلى سيارة سباق...",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "No, I mean drive a taxi or drive a bus.",
+      "translation_ar": "لا، أقصد قيادة سيارة أجرة أو حافلة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "No, I always fall asleep when I drive.",
+      "translation_ar": "لا، أنا دائمًا أغفو عندما أقود.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Oh, that’s not good. Next question. Can you teach? You can be a teacher in a school.",
+      "translation_ar": "أوه، هذا ليس جيدًا. السؤال التالي: هل تستطيع التدريس؟ يمكنك أن تصبح معلمًا في مدرسة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "No, I cannot teach.",
+      "translation_ar": "لا، لا أستطيع التدريس.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Can you cook? You can be a chef in a restaurant.",
+      "translation_ar": "هل تستطيع الطبخ؟ يمكنك أن تصبح طاهيًا في مطعم.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "No, I can’t code! I can’t teach! I can’t cook! Anna, I can’t do anything. This is sad. I’m gonna write about my feelings in my blog.",
+      "translation_ar": "لا، لا أستطيع البرمجة! ولا التدريس! ولا الطبخ! يا آنا، لا أستطيع فعل أي شيء. هذا محزن. سأكتب عن مشاعري في مدونتي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "You write a blog?",
+      "translation_ar": "هل تكتب مدونة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Yeah, I write a blog.",
+      "translation_ar": "نعم، أكتب مدونة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "How many followers do you have?",
+      "translation_ar": "كم عدد متابعيك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "I don’t know … 59,538.",
+      "translation_ar": "لا أعرف... 59,538.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Pete, that's a lot of followers! You can make money writing!",
+      "translation_ar": "يا بيت، هذا عدد كبير من المتابعين! يمكنك كسب المال بالكتابة!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Writing is easy. Everyone can write.",
+      "translation_ar": "الكتابة سهلة. يستطيع الجميع الكتابة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Not everyone can write well. You can be a writer!",
+      "translation_ar": "ليس الجميع قادرين على الكتابة جيدًا. يمكنك أن تصبح كاتبًا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "I can be a writer. I can be a writer! I can be a writer! Thanks, Anna.",
+      "translation_ar": "أستطيع أن أكون كاتبًا. أستطيع أن أكون كاتبًا! أستطيع أن أكون كاتبًا! شكرًا يا آنا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Marsha",
+      "text": "Hi, Pete. Hi, Anna.",
+      "translation_ar": "مرحبًا يا بيت. مرحبًا يا آنا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Hi, Marsha. Excuse me, I have to go.",
+      "translation_ar": "مرحبًا يا مارشا. اعذريني، عليّ الذهاب.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Marsha",
+      "text": "Where are you going?",
+      "translation_ar": "إلى أين أنت ذاهب؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "I’m going to be a writer!",
+      "translation_ar": "سأصبح كاتبًا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Marsha",
+      "text": "Good luck, Pete!",
+      "translation_ar": "حظًا موفقًا يا بيت!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Marsha",
+      "text": "(To Anna) He does know that it’s not easy to be a writer, doesn’t he?",
+      "translation_ar": "(لآنا) هو يعرف أن العمل ككاتب ليس سهلًا، أليس كذلك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "There are many different jobs you can have in Washington, D.C. Pete wants to be a writer. I wish him luck. Lots of luck. Until next time!",
+      "translation_ar": "توجد وظائف كثيرة مختلفة يمكنك العمل بها في واشنطن العاصمة. يريد بيت أن يصبح كاتبًا. أتمنى له حظًا موفقًا، والكثير من الحظ! إلى اللقاء في المرة القادمة!",
+      "start_ms": null,
+      "end_ms": null
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "skill",
+      "meaning_ar": "مهارة"
+    },
+    {
+      "word": "beard",
+      "meaning_ar": "لحية"
+    },
+    {
+      "word": "government",
+      "meaning_ar": "حكومة"
+    },
+    {
+      "word": "code",
+      "meaning_ar": "شفرة برمجية"
+    },
+    {
+      "word": "race car",
+      "meaning_ar": "سيارة سباق"
+    },
+    {
+      "word": "drive",
+      "meaning_ar": "يقود"
+    },
+    {
+      "word": "chef",
+      "meaning_ar": "طاهٍ"
+    },
+    {
+      "word": "blog",
+      "meaning_ar": "مدونة"
+    },
+    {
+      "word": "followers",
+      "meaning_ar": "متابعون"
+    },
+    {
+      "word": "writer",
+      "meaning_ar": "كاتب"
+    },
+    {
+      "word": "teach",
+      "meaning_ar": "يدرّس"
+    },
+    {
+      "word": "money",
+      "meaning_ar": "مال"
+    }
+  ],
+  "questions": [
+    {
+      "question": "Why is Pete sad?",
+      "options": [
+        "He has no job",
+        "He lost his car",
+        "He is sick"
+      ],
+      "answer": 0
+    },
+    {
+      "question": "What does Anna ask Pete to try?",
+      "options": [
+        "Writing code",
+        "Buying a car",
+        "Flying a plane"
+      ],
+      "answer": 0
+    },
+    {
+      "question": "Why should Pete not drive a bus?",
+      "options": [
+        "He is too young",
+        "He falls asleep when driving",
+        "He hates buses"
+      ],
+      "answer": 1
+    },
+    {
+      "question": "How many blog followers does Pete have?",
+      "options": [
+        "538",
+        "5,938",
+        "59,538"
+      ],
+      "answer": 2
+    },
+    {
+      "question": "What job does Anna suggest at the end?",
+      "options": [
+        "Writer",
+        "Pilot",
+        "Chef"
+      ],
+      "answer": 0
+    }
+  ]
+}
