@@ -1,0 +1,425 @@
+{
+  "schema": 1,
+  "id": "en-a1-voa-007",
+  "language": "en",
+  "level": "A1",
+  "title": "What Are You Doing?",
+  "title_ar": "ماذا تفعل؟",
+  "hosts": [
+    "Anna",
+    "Caty"
+  ],
+  "other_speakers": [
+    "Anne",
+    "Jonathan",
+    "Amelia"
+  ],
+  "status": "published_audio",
+  "recording_kind": "human",
+  "voice_rights_verified": true,
+  "source": "VOA Learning English",
+  "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-lesson-7-what-are-you-doing/3240468.html",
+  "source_credit": "VOA Learning English — Let's Learn English Level 1 Lesson 7. Official human conversation audio and corresponding dialogue. WorldVoice is not affiliated with VOA.",
+  "audio_url": "https://voa-audio.voanews.eu/vle/2016/03/16/5d724fbc-a907-4a48-9221-c1813d248168_hq.mp3?download=1",
+  "duration_ms": 149000,
+  "sync_status": "unverified",
+  "dialogue": [
+    {
+      "speaker": "Caty",
+      "text": "Come in.",
+      "translation_ar": "تفضلي بالدخول.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Caty",
+      "text": "Well, Anna, welcome.",
+      "translation_ar": "حسنًا يا آنا، أهلًا بك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Thank you.",
+      "translation_ar": "شكرًا لك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Caty",
+      "text": "I am your boss, Caty Weaver. But, please call me Caty.",
+      "translation_ar": "أنا مديرتك كاتي ويفر، لكن ناديني كاتي فقط.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Thank you, Ms. Weaver.",
+      "translation_ar": "شكرًا يا سيدة ويفر.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Caty",
+      "text": "Just Caty.",
+      "translation_ar": "كاتي فقط.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Sure thing, Ms. Weaver.",
+      "translation_ar": "بالتأكيد يا سيدة ويفر.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Caty",
+      "text": "Okay then. Are you excited?",
+      "translation_ar": "حسنًا، هل أنت متحمسة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Yes, I am excited!",
+      "translation_ar": "نعم، أنا متحمسة!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Caty",
+      "text": "So sorry, but I am busy. Please meet your co-workers. But remember, they are busy working.",
+      "translation_ar": "آسفة، لكنني مشغولة. تعرفي على زملائك، وتذكري أنهم مشغولون بالعمل.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Sure. Thanks, Ms. Weaver.",
+      "translation_ar": "بالتأكيد. شكرًا يا سيدة ويفر.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Hi there! I’m Anna.",
+      "translation_ar": "مرحبًا! أنا آنا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anne",
+      "text": "Hi, Anna. I’m Anne.",
+      "translation_ar": "مرحبًا يا آنا، أنا آن.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Nice to meet you. What are you doing?",
+      "translation_ar": "تشرفت بلقائك. ماذا تفعلين؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anne",
+      "text": "Um, I’m writing.",
+      "translation_ar": "أمم، أنا أكتب.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "You are writing! You are writing a lot!",
+      "translation_ar": "أنت تكتبين! تكتبين كثيرًا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Oh! Oh dear.",
+      "translation_ar": "أوه! يا إلهي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anne",
+      "text": "No! No! That's okay.",
+      "translation_ar": "لا! لا! لا بأس.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I am sorry!",
+      "translation_ar": "أنا آسفة!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anne",
+      "text": "That’s okay. Really.",
+      "translation_ar": "لا بأس، حقًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I am sorry!",
+      "translation_ar": "أنا آسفة!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anne",
+      "text": "Please. Please. Please stop. Please.",
+      "translation_ar": "أرجوك، أرجوك توقفي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Sorry. Sorry.",
+      "translation_ar": "آسفة، آسفة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Jonathan",
+      "text": "And people all around the world are waiting to hear news about the next president…",
+      "translation_ar": "والناس في أنحاء العالم ينتظرون أخبار الرئيس القادم...",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Jonathan, hi! Remember me? I live in your building.",
+      "translation_ar": "جوناثان، أهلًا! هل تتذكرني؟ أسكن في مبناك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Jonathan",
+      "text": "Oh. Uh. Hi, Anna.",
+      "translation_ar": "أوه، أهلًا يا آنا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "What are you doing?",
+      "translation_ar": "ماذا تفعل؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Jonathan",
+      "text": "I am doing my show!",
+      "translation_ar": "أقدم برنامجي!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Oh, sorry. Are you recording?",
+      "translation_ar": "أوه، آسفة. هل تسجل الآن؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Jonathan",
+      "text": "Yes! And, now I have to record again!",
+      "translation_ar": "نعم! والآن عليّ تسجيله من جديد!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Sorry. Have a good show.",
+      "translation_ar": "آسفة، أتمنى لك برنامجًا رائعًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Jonathan",
+      "text": "Thank you.",
+      "translation_ar": "شكرًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Sorry.",
+      "translation_ar": "آسفة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Amelia",
+      "text": "The word of the day is social. Social -",
+      "translation_ar": "كلمة اليوم هي «اجتماعي». اجتماعي...",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Oh! Hi!",
+      "translation_ar": "أوه! أهلًا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Amelia",
+      "text": "- is an adjective.",
+      "translation_ar": "...هي صفة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Hi! I’m Anna!",
+      "translation_ar": "مرحبًا! أنا آنا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Amelia",
+      "text": "Hi. I’m Amelia.",
+      "translation_ar": "مرحبًا، أنا أميليا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Nice to meet you!",
+      "translation_ar": "تشرفت بلقائك!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "What are you doing?",
+      "translation_ar": "ماذا تفعلين؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Amelia",
+      "text": "I’m reading.",
+      "translation_ar": "أنا أقرأ.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Are you reading the news? Hi!",
+      "translation_ar": "هل تقرئين الأخبار؟ أهلًا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Amelia",
+      "text": "No, I’m reading for my show.",
+      "translation_ar": "لا، أقرأ لبرنامجي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Amelia",
+      "text": "Can I read again?",
+      "translation_ar": "هل يمكنني القراءة من جديد؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Sorry.",
+      "translation_ar": "آسفة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "This day is not going well.",
+      "translation_ar": "هذا اليوم لا يسير على ما يرام.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Caty",
+      "text": "Anna! Hi! What’re you doing?",
+      "translation_ar": "آنا! أهلًا! ماذا تفعلين؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I am bothering people, Ms. Weaver.",
+      "translation_ar": "أنا أزعج الناس يا سيدة ويفر.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Caty",
+      "text": "Let’s go to my office and talk.",
+      "translation_ar": "هيا نذهب إلى مكتبي ونتحدث.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I like to talk with you, Ms. Weaver.",
+      "translation_ar": "أحب التحدث معك يا سيدة ويفر.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Caty",
+      "text": "It’s Caty.",
+      "translation_ar": "اسمي كاتي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Right. Thanks ... Ms. Weaver.",
+      "translation_ar": "صحيح. شكرًا... يا سيدة ويفر.",
+      "start_ms": null,
+      "end_ms": null
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "busy",
+      "meaning_ar": "مشغول"
+    },
+    {
+      "word": "co-workers",
+      "meaning_ar": "زملاء العمل"
+    },
+    {
+      "word": "recording",
+      "meaning_ar": "تسجيل"
+    },
+    {
+      "word": "excited",
+      "meaning_ar": "متحمس"
+    },
+    {
+      "word": "show",
+      "meaning_ar": "برنامج"
+    }
+  ],
+  "questions": [
+    {
+      "question": "What is Jonathan doing?",
+      "options": [
+        "Recording his show",
+        "Cooking dinner",
+        "Driving to work"
+      ],
+      "answer": 0
+    }
+  ]
+}

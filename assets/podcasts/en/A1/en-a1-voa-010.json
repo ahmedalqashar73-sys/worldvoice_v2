@@ -1,0 +1,183 @@
+{
+  "schema": 1,
+  "id": "en-a1-voa-010",
+  "language": "en",
+  "level": "A1",
+  "title": "Come Over to My Place",
+  "title_ar": "تعالي إلى منزلي",
+  "hosts": [
+    "Anna",
+    "Ashley"
+  ],
+  "other_speakers": [],
+  "status": "published_audio",
+  "recording_kind": "human",
+  "voice_rights_verified": true,
+  "source": "VOA Learning English",
+  "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-lesson-10/3285228.html",
+  "source_credit": "VOA Learning English — Let's Learn English Level 1 Lesson 10. Official human conversation audio and corresponding dialogue. WorldVoice is not affiliated with VOA.",
+  "audio_url": "https://voa-audio.voanews.eu/vle/2016/04/14/442a6a50-693e-411f-8cff-99e40d16614c_hq.mp3?download=1",
+  "duration_ms": 90000,
+  "sync_status": "unverified",
+  "dialogue": [
+    {
+      "speaker": "Anna",
+      "text": "Hi! Today, my friend Ashley, is coming over. I am showing her my new apartment! Oh! That’s Ashley calling.",
+      "translation_ar": "مرحبًا! ستأتي صديقتي آشلي اليوم لزيارة شقتي الجديدة. أوه، آشلي تتصل!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Hi Ashley!",
+      "translation_ar": "مرحبًا يا آشلي!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ashley",
+      "text": "Hi Anna! I’m coming to your apartment. Where is your apartment?",
+      "translation_ar": "مرحبًا يا آنا! أنا قادمة إلى شقتك. أين تقع؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "My apartment is near the Columbia Heights Metro.",
+      "translation_ar": "شقتي قرب محطة مترو كولومبيا هايتس.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ashley",
+      "text": "It is near the Columbia Heights Metro?",
+      "translation_ar": "هل هي قرب مترو كولومبيا هايتس؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Yes. Exit the Metro and turn right. Then at the bus station turn left. Then walk straight ahead.",
+      "translation_ar": "نعم. اخرجي من المترو وانعطفي يمينًا. ثم انعطفي يسارًا عند محطة الحافلات، وامشي مباشرة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ashley",
+      "text": "Okay. Exit Metro, turn right, turn left, then go straight ahead?",
+      "translation_ar": "حسنًا، أخرج من المترو، ثم يمينًا ثم يسارًا ثم إلى الأمام؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Yes. My apartment is near a coffee shop.",
+      "translation_ar": "نعم. شقتي قرب مقهى.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ashley",
+      "text": "Okay. See you soon!",
+      "translation_ar": "حسنًا، أراك قريبًا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Hi, Ashley.",
+      "translation_ar": "مرحبًا يا آشلي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ashley",
+      "text": "Anna, Which coffee shop? There are three coffee shops.",
+      "translation_ar": "آنا، أي مقهى؟ هناك ثلاثة مقاهٍ.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Okay, my apartment is across from a big department store.",
+      "translation_ar": "حسنًا، شقتي مقابل متجر كبير متعدد الأقسام.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ashley",
+      "text": "A big department store? Ah, I see it!",
+      "translation_ar": "متجر كبير؟ آه، أراه!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Okay! Bye, Ashley. See you soon!",
+      "translation_ar": "حسنًا، وداعًا يا آشلي. أراك قريبًا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ashley",
+      "text": "Okay. See you soon.",
+      "translation_ar": "حسنًا، أراك قريبًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Ashley! Ashley! Ashley! Over here! It’s Anna! It’s Anna! Hi!",
+      "translation_ar": "آشلي! آشلي! هنا! أنا آنا! أهلًا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I love having my friends over. Come on!",
+      "translation_ar": "أحب استقبال أصدقائي في منزلي. تعالي!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ashley",
+      "text": "Great!",
+      "translation_ar": "رائع!",
+      "start_ms": null,
+      "end_ms": null
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "turn right",
+      "meaning_ar": "انعطف يمينًا"
+    },
+    {
+      "word": "turn left",
+      "meaning_ar": "انعطف يسارًا"
+    },
+    {
+      "word": "straight ahead",
+      "meaning_ar": "مباشرة إلى الأمام"
+    },
+    {
+      "word": "across from",
+      "meaning_ar": "مقابل"
+    },
+    {
+      "word": "metro",
+      "meaning_ar": "مترو"
+    }
+  ],
+  "questions": [
+    {
+      "question": "Which station is near Anna's apartment?",
+      "options": [
+        "Columbia Heights Metro",
+        "Union Station",
+        "Airport station"
+      ],
+      "answer": 0
+    }
+  ]
+}

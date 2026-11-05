@@ -1,0 +1,239 @@
+{
+  "schema": 1,
+  "id": "en-a1-voa-011",
+  "language": "en",
+  "level": "A1",
+  "title": "This Is My Neighborhood",
+  "title_ar": "هذا حيي",
+  "hosts": [
+    "Anna",
+    "Marsha"
+  ],
+  "other_speakers": [],
+  "status": "published_audio",
+  "recording_kind": "human",
+  "voice_rights_verified": true,
+  "source": "VOA Learning English",
+  "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-lesson-11-this-is-my-neighborhood/3293986.html",
+  "source_credit": "VOA Learning English — Let's Learn English Level 1 Lesson 11. Official human conversation audio and corresponding dialogue. WorldVoice is not affiliated with VOA.",
+  "audio_url": "https://voa-audio.voanews.eu/vle/2016/04/20/de238e35-97b9-4c21-81e3-e3c26fbeccaa_hq.mp3?download=1",
+  "duration_ms": 110000,
+  "sync_status": "unverified",
+  "dialogue": [
+    {
+      "speaker": "Anna",
+      "text": "Hello! DC is a city for walking. In our neighborhood, I can do all my errands. Marsha, before we get ice cream, I need to return three books to the library. Where is the library?",
+      "translation_ar": "مرحبًا! واشنطن مدينة مناسبة للمشي. أستطيع إنجاز مهامي في حينا. مارشا، قبل أن نتناول المثلجات أحتاج إلى إعادة ثلاثة كتب إلى المكتبة. أين المكتبة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Marsha",
+      "text": "It is on this street on the corner.",
+      "translation_ar": "إنها في زاوية هذا الشارع.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Awesome!",
+      "translation_ar": "رائع!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Marsha",
+      "text": "Let's go!",
+      "translation_ar": "هيا بنا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Marsha, I can return the books here.",
+      "translation_ar": "مارشا، يمكنني إعادة الكتب هنا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Marsha",
+      "text": "Anna, what are those in the books?",
+      "translation_ar": "آنا، ما تلك الأشياء في الكتب؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Marsha, these are letters to my family and friends back home … four letters! Is there a post office near here?",
+      "translation_ar": "مارشا، هذه رسائل إلى عائلتي وأصدقائي في بلدي... أربع رسائل! هل يوجد مكتب بريد قريب؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Marsha",
+      "text": "Um, no. The post office is far from here. But there is a mailbox across from the store.",
+      "translation_ar": "لا، مكتب البريد بعيد، لكن هناك صندوق بريد مقابل المتجر.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Awesome! Let’s go!",
+      "translation_ar": "رائع، هيا بنا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Marsha, now I need to buy stamps.",
+      "translation_ar": "مارشا، الآن أحتاج إلى شراء طوابع.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Marsha",
+      "text": "Do you have cash?",
+      "translation_ar": "هل معك نقود؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "No. Is there a bank near here?",
+      "translation_ar": "لا. هل يوجد بنك قريب؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Marsha",
+      "text": "There is a bank behind you.",
+      "translation_ar": "هناك بنك خلفك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Thanks, Marsha. You know our neighborhood so well.",
+      "translation_ar": "شكرًا يا مارشا. أنت تعرفين حينا جيدًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Now I have cash. I can buy stamps.",
+      "translation_ar": "الآن معي نقود. أستطيع شراء الطوابع.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Marsha",
+      "text": "That store sells stamps.",
+      "translation_ar": "ذلك المتجر يبيع الطوابع.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Wait here.",
+      "translation_ar": "انتظري هنا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I have stamps.",
+      "translation_ar": "لدي طوابع.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Marsha",
+      "text": "Wow, you’re fast.",
+      "translation_ar": "واو، أنت سريعة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Thank you, thank you letters, for sending my words… my love … to my family and friends -",
+      "translation_ar": "شكرًا أيتها الرسائل لنقلك كلماتي ومحبتي إلى عائلتي وأصدقائي...",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Marsha",
+      "text": "Do you have more cash?",
+      "translation_ar": "هل معك مزيد من النقود؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I do!",
+      "translation_ar": "نعم!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Ice cream!!",
+      "translation_ar": "المثلجات!!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Marsha",
+      "text": "Ice cream!!",
+      "translation_ar": "المثلجات!!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I love my new neighborhood! Everything is near our apartment! Even hair salons, and ice cream!",
+      "translation_ar": "أحب حيي الجديد! كل شيء قريب من شقتنا، حتى صالونات الشعر والمثلجات!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Until next time!",
+      "translation_ar": "إلى اللقاء في المرة القادمة!",
+      "start_ms": null,
+      "end_ms": null
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "neighborhood",
+      "meaning_ar": "حي سكني"
+    },
+    {
+      "word": "library",
+      "meaning_ar": "مكتبة"
+    },
+    {
+      "word": "post office",
+      "meaning_ar": "مكتب بريد"
+    },
+    {
+      "word": "stamps",
+      "meaning_ar": "طوابع بريدية"
+    },
+    {
+      "word": "cash",
+      "meaning_ar": "نقود"
+    }
+  ],
+  "questions": [
+    {
+      "question": "What does Anna return to the library?",
+      "options": [
+        "Three books",
+        "Four letters",
+        "Two maps"
+      ],
+      "answer": 0
+    }
+  ]
+}
