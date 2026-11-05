@@ -58,6 +58,56 @@
       "format": "textbook",
       "asset": "assets/stories/en/A1/en-a1-005.json",
       "cover_image": "assets/stories/en/A1/illustrations/en-a1-005_scene_01.svg"
+    },
+    {
+      "id": "en-a2-001",
+      "language": "en",
+      "level": "A2",
+      "title": "The Letter by the Lighthouse",
+      "title_ar": "الرسالة بجانب المنارة",
+      "format": "textbook",
+      "asset": "assets/stories/en/A2/en-a2-001.json",
+      "cover_image": "assets/stories/en/A2/illustrations/en-a2-001_scene_01.svg"
+    },
+    {
+      "id": "en-a2-002",
+      "language": "en",
+      "level": "A2",
+      "title": "The Missing Festival Lantern",
+      "title_ar": "فانوس المهرجان المفقود",
+      "format": "textbook",
+      "asset": "assets/stories/en/A2/en-a2-002.json",
+      "cover_image": "assets/stories/en/A2/illustrations/en-a2-002_scene_01.svg"
+    },
+    {
+      "id": "en-a2-003",
+      "language": "en",
+      "level": "A2",
+      "title": "The Train to Willow Town",
+      "title_ar": "القطار إلى بلدة الصفصاف",
+      "format": "textbook",
+      "asset": "assets/stories/en/A2/en-a2-003.json",
+      "cover_image": "assets/stories/en/A2/illustrations/en-a2-003_scene_01.svg"
+    },
+    {
+      "id": "en-a2-004",
+      "language": "en",
+      "level": "A2",
+      "title": "The Science Fair Surprise",
+      "title_ar": "مفاجأة معرض العلوم",
+      "format": "textbook",
+      "asset": "assets/stories/en/A2/en-a2-004.json",
+      "cover_image": "assets/stories/en/A2/illustrations/en-a2-004_scene_01.svg"
+    },
+    {
+      "id": "en-a2-005",
+      "language": "en",
+      "level": "A2",
+      "title": "A Visitor in the Courtyard",
+      "title_ar": "زائر في فناء المنزل",
+      "format": "textbook",
+      "asset": "assets/stories/en/A2/en-a2-005.json",
+      "cover_image": "assets/stories/en/A2/illustrations/en-a2-005_scene_01.svg"
     }
   ]
 }

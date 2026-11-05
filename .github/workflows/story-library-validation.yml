@@ -33,4 +33,4 @@ jobs:
       - name: Analyze story library modules
         run: flutter analyze
       - name: Test story JSON, navigation, and illustrations
-        run: flutter test test/story_library_repository_test.dart test/story_library_illustrations_test.dart test/story_textbook_models_test.dart test/academy_story_library_navigation_test.dart test/story_textbook_reader_test.dart
+        run: flutter test test/story_library_repository_test.dart test/story_library_illustrations_test.dart test/story_textbook_models_test.dart test/academy_story_library_navigation_test.dart test/story_textbook_reader_test.dart test/story_textbook_levels_test.dart

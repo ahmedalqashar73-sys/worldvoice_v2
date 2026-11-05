@@ -103,6 +103,8 @@ flutter:
     - assets/stories/index.json
     - assets/stories/en/A1/
     - assets/stories/en/A1/illustrations/
+    - assets/stories/en/A2/
+    - assets/stories/en/A2/illustrations/
 
   # To add assets to your application, add an assets section, like this:
   # assets:
