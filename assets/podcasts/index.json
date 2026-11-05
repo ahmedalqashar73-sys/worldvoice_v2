@@ -820,9 +820,9 @@
     {
       "id": "es-a1-pod-001",
       "level": "A1",
-      "title": "Meeting a New Friend",
-      "status": "planned",
-      "asset": null,
+      "title": "Conocer a un nuevo amigo",
+      "status": "script_ready",
+      "asset": "assets/podcasts/es/A1/es-a1-pod-001.json",
       "title_ar": "التعارف مع صديق جديد",
       "language": "es"
     },
