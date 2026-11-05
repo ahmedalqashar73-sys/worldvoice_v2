@@ -1,0 +1,438 @@
+{
+  "language": "en",
+  "level": "C2",
+  "story": {
+    "id": "en-c2-004",
+    "title": "The Signal After Midnight",
+    "title_ar": "الإشارة بعد منتصف الليل",
+    "moral_ar": "النزاهة العلمية تعني التمييز بين الدليل والفرضية وتوثيق القرارات وعدم تضخيم النجاح الجزئي.",
+    "art_style": "Original advanced editorial watercolor scenes of a satellite control mission, consistent character design, no typography.",
+    "cover_image_prompt": "Modern satellite mission control room at midnight, engineer Amal in indigo jacket and analyst Jun in gray sweater check ground station signal screens, director Dr Vega nearby.",
+    "character_sheet": [
+      {
+        "name": "Amal",
+        "description": "A 33-year-old satellite systems engineer with light brown skin, long dark hair in a ponytail, indigo work jacket and black trousers."
+      },
+      {
+        "name": "Jun",
+        "description": "A 31-year-old telemetry analyst with East Asian features, short black hair, gray-blue sweater and glasses."
+      },
+      {
+        "name": "Dr. Vega",
+        "description": "A 50-year-old female mission director with olive complexion, short curly silver-brown hair, wine blazer and white blouse."
+      }
+    ],
+    "chapters": [
+      {
+        "chapter": 1,
+        "title": "Signals That Would Not Settle",
+        "title_ar": "إشارات لا تستقر",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Modern satellite mission control room at midnight, engineer Amal in indigo jacket and analyst Jun in gray sweater check ground station signal screens, director Dr Vega nearby.. Original technical literary watercolor with consistent characters and no legible screen text.",
+            "animation": "fade_in",
+            "image": "assets/stories/en/C2/illustrations/en-c2-004_scene_01.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Amal had spent four years working on a small Earth-observation satellite designed to monitor vegetation recovery after severe storms. The spacecraft was already orbiting when its signals became intermittent, leaving the team uncertain whether the problem lay in the satellite or their ground equipment. During a midnight shift, Jun noticed an unfamiliar **anomaly** in the incoming data and resisted the temptation to declare a complete failure. Amal reviewed the recent **telemetry** alongside environmental conditions, asking colleagues to record each assumption before it influenced a decision. The mission director, Dr. Vega, faced growing pressure from sponsors who wanted a confident public update. She warned that announcing either success or disaster without sufficient **corroboration** could damage both the research and the institution's credibility. The team agreed to preserve the raw records and separate observed facts from working explanations, even though this slower approach made the silence feel more uncomfortable."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "A missing signal is an observation, not yet a diagnosis, Amal said."
+                  }
+                ],
+                "translation_ar": "عملت أمل سنوات على قمر صغير لمراقبة تعافي الغطاء النباتي بعد العواصف. صار الإرسال متقطعًا، ولم يعرف الفريق إن كانت المشكلة في القمر أم المحطة الأرضية. لاحظ جون شذوذًا في البيانات ورفض إعلان الفشل. راجعت أمل القياسات والظروف وسجلت الافتراضات قبل اتخاذ قرار. واجهت المديرة الدكتورة فيغا ضغطًا من الممولين لإعلان قاطع، لكنها شددت على التحقق المستقل. احتفظ الفريق بالسجلات الأصلية وفصل المشاهدات عن التفسيرات رغم بطء العمل."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Jun proposed a hardware explanation based on an unexpected temperature reading, but another engineer suggested that a timing issue might have distorted the transmission. Amal asked the group to assess both hypotheses using a documented **diagnostic** process rather than following the most senior voice in the room. Their first tests were **inconclusive**, partly because each signal window lasted only a few minutes. Dr. Vega reminded everyone that scarce data increased the danger of selectively noticing information that supported a preferred story. She assigned independent reviewers to compare the recorded sequences and identify possible **bias** in the team's interpretations. Jun felt embarrassed when his explanation lost some support, yet Amal praised his willingness to revise it. The process gradually transformed an anxious search for the person who was right into a shared investigation of which account best explained the available evidence."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "I would rather abandon my hypothesis than defend it after the data move elsewhere, Jun admitted."
+                  }
+                ],
+                "translation_ar": "اقترح جون تفسيرًا حراريًا للعطل، بينما رأى مهندس آخر احتمال خلل في التوقيت. طلبت أمل اتباع تشخيص موثق بدل تفضيل رأي الأقدم. بقيت الاختبارات غير حاسمة لأن نوافذ الإشارة قصيرة. حذرت فيغا من الانتقاء الذي يدعم الفرضيات المفضلة، وعينت مراجعين مستقلين لتقليل الانحياز. شعر جون بالحرج حين ضعفت فرضيته، لكن أمل شجعته على تعديلها. تحول التحقيق من منافسة على الصواب إلى بحث جماعي عن التفسير الأقوى."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Satellite engineering lab with structural model of small Earth observation spacecraft, Amal Jun and Dr Vega discussing test diagrams and documentation.. Original technical literary watercolor with consistent characters and no legible screen text.",
+            "animation": "pan_left",
+            "image": "assets/stories/en/C2/illustrations/en-c2-004_scene_02.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "While the engineers searched for a cause, the environmental researchers who depended on the imagery began asking whether their field projects should be delayed. Amal explained that the satellite's **capability** was uncertain but did not automatically invalidate earlier measurements. She recommended preserving alternative observation plans and clearly documenting how gaps might influence future **comparisons**. One sponsor suggested presenting processed images from an earlier period as though they were current, arguing that the public would not notice the difference. Dr. Vega rejected this proposal as a breach of scientific **integrity**, even if its immediate consequences seemed minor. She authorized a cautious statement describing the interruption, the limitations of existing data and the steps under review. The team accepted that their obligation extended beyond the satellite itself to researchers, communities and institutions making decisions on the basis of its output."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "An appealing picture is worthless if its date is concealed, Amal said."
+                  }
+                ],
+                "translation_ar": "سأل الباحثون الذين يعتمدون على صور القمر هل يؤجلون أعمالهم. شرحت أمل أن القدرة الحالية غير مؤكدة، لكن القياسات القديمة لا تُلغى تلقائيًا. أوصت بخطط ملاحظة بديلة وتوثيق أثر الفجوات. اقترح ممول عرض صور قديمة كأنها جديدة، فرفضت فيغا بسبب النزاهة العلمية وأصدرت بيانًا يوضح انقطاع الإشارة والحدود والخطوات. أدرك الفريق أن مسؤوليته تشمل من يعتمدون على البيانات لاتخاذ قرارات."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "A second review revealed that an earlier software change had not been evaluated under precisely the same conditions as the current mission. This discrepancy did not establish a **root cause**, but it exposed a weakness in the team's verification records. Jun was tempted to label the update responsible for the interruption, until Amal pointed out that a correlation between two events was not proof of **causation**. They designed a series of controlled simulations, carefully specifying which variables could be changed without jeopardizing the spacecraft. Dr. Vega insisted on an independent **authorization** process before any command would be transmitted, noting that hasty remote interventions could worsen an uncertain fault. The team adopted a written decision log that recorded alternatives and their potential consequences. For Jun, the slow procedure was frustrating, yet it prevented a convenient theory from turning into an irreversible action."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "The first plausible explanation is not necessarily the one we should act upon, Jun said."
+                  }
+                ],
+                "translation_ar": "كشفت المراجعة أن تحديثًا برمجيًا لم يُختبر في ظروف تماثل المهمة الحالية. لم يثبت ذلك السبب الجذري، لكنه أظهر ضعفًا في سجلات التحقق. حذرت أمل من الخلط بين تزامن الحدثين والسببية. صمموا محاكاة مضبوطة وحددوا ما يمكن تغييره بأمان، واشترطت فيغا موافقة مستقلة قبل إرسال أي أمر إلى القمر. وثق الفريق البدائل والعواقب في سجل قرارات. تعلم جون أن التفسير المعقول ليس بالضرورة أساسًا كافيًا لفعل لا رجعة فيه."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "As the mission's next communication window approached, a colleague proposed a risky recovery command that might restore normal operations quickly. Amal calculated that its potential benefit was balanced by a small but serious chance of losing the remaining **functionality**. The choice revealed a familiar engineering **trade-off** between speed and reversibility, but the team also faced commitments to external researchers who had scheduled observations. Dr. Vega convened a short review of the proposed action, requesting that each participant state the strongest argument against their preferred option. The exercise discouraged false **consensus** and made hidden assumptions visible. They selected a less aggressive diagnostic step that preserved the ability to attempt further recovery later. Some sponsors were disappointed, yet the decision reflected a clear rationale that could be audited after the mission ended.  For once, accepting a delay was a deliberate technical choice rather than an accidental consequence of disagreement within the team."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "A good decision is not one that promises a miracle, but one whose risks we can explain, Amal said."
+                  }
+                ],
+                "translation_ar": "قبل نافذة الاتصال التالية اقترح زميل أمرًا سريعًا لاستعادة العمل لكنه قد يفقد القمر قدرته المتبقية. حسبت أمل الفوائد والمخاطر وأوضحت المقايضة بين السرعة وإمكان التراجع. عقدت فيغا مراجعة طلبت من كل مشارك عرض أقوى حجة ضد خياره المفضل، فتجنّب الفريق إجماعًا زائفًا. اختاروا خطوة تشخيصية أقل عدوانية تحافظ على خيارات الاسترداد اللاحقة. خاب أمل بعض الممولين، لكن القرار كان مبررًا ويمكن مراجعته."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "chapter": 2,
+        "title": "What Recovery Could Mean",
+        "title_ar": "ماذا يعني التعافي",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Mission control team review of partial recovery in warm-lit room, Amal examining telemetry charts and Jun by computer while Vega watches.. Original technical literary watercolor with consistent characters and no legible screen text.",
+            "animation": "parallax",
+            "image": "assets/stories/en/C2/illustrations/en-c2-004_scene_03.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The conservative test produced a small improvement: a brief sequence of packets arrived with consistent timing, though the image stream remained unavailable. Jun initially celebrated the result as a breakthrough, but Amal asked whether they could **replicate** it during the next scheduled pass. The team refined its **hypothesis** and examined how the improvement related to changes in ground conditions. Another group independently reproduced part of the result, increasing confidence without eliminating uncertainty. Dr. Vega described the progress publicly while explaining what had not been restored. She refused to compress an evolving investigation into a dramatic narrative of failure followed by heroic rescue. The mission's credibility, she argued, depended on a trustworthy **chronology** of evidence and decisions rather than the impression that its engineers had been certain all along. Jun began to appreciate that cautious communication could be genuinely exciting."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "The important question is not whether this feels promising, but whether the pattern holds, Jun said."
+                  }
+                ],
+                "translation_ar": "أنتج الاختبار الحذر تحسنًا صغيرًا؛ وصلت حزم بيانات بتوقيت ثابت لكن الصور لم تعد. احتفل جون مبكرًا، فطلبت أمل إعادة إنتاج النتيجة. عدل الفريق فرضيته وفحص أثر ظروف المحطة الأرضية، وأعاد فريق آخر جزءًا من النتيجة مستقلًا. عرضت فيغا التقدم وما لم يتحقق، ورفضت تحويل التحقيق إلى قصة بطولية مبسطة. رأت أن المصداقية تأتي من التسلسل الموثق للبيانات والقرارات، لا من ادعاء اليقين الدائم."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Later analysis traced part of the problem to an interaction between a timing routine and an unusual sequence of ground-station requests. The engineers were relieved to have a defensible **explanation**, yet Amal warned that other intermittent errors might still exist. Before applying a longer-term correction, they examined the possible **side effects** and checked that the proposed process could be reversed if necessary. The final command was reviewed by specialists who had not written the original software, reducing the chance that familiarity would obscure a flaw. Dr. Vega insisted that credit should go to the whole team, including those whose rejected hypotheses had sharpened the investigation. The result restored a limited stream of imagery, not the full mission capability originally promised. Rather than hiding the remaining **limitations**, the researchers revised their schedules and communicated precisely which observations could now be trusted."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "A partial recovery is meaningful only if we describe it as partial, Amal told the team."
+                  }
+                ],
+                "translation_ar": "أظهر التحليل تفاعلًا بين إجراء توقيت وطلبات غير معتادة من المحطة الأرضية. شعر الفريق بالارتياح لتفسير مدعوم، لكن أمل حذرت من احتمال أخطاء أخرى. فحصوا الآثار الجانبية وإمكان التراجع قبل التصحيح، وراجع الأمر مختصون لم يكتبوا البرنامج الأصلي. أصرت فيغا على تقاسم الفضل، حتى لمن رفضت فرضياتهم لأنها حسنت البحث. استعادت المهمة تدفقًا محدودًا من الصور لا كامل قدرتها. أعلن الباحثون القيود وعدلوا خططهم بناء عليها."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "University public engineering seminar with Amal and Jun explaining satellite research and mission accountability to students, sunlight through glass hall.. Original technical literary watercolor with consistent characters and no legible screen text.",
+            "animation": "zoom_in_slow",
+            "image": "assets/stories/en/C2/illustrations/en-c2-004_scene_04.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "During the formal post-incident review, investigators discovered that two departments had documented similar timing concerns months earlier but had not connected their records. The failure was therefore not solely a technical **defect**; it also reflected organizational **fragmentation**. Jun proposed a shared register of unresolved anomalies, while Amal recommended clearer responsibility for closing each issue. Dr. Vega invited outside reviewers to examine the team's procedures without reducing the discussion to personal blame. Some engineers worried that openness might damage their careers, so she emphasized a fair **accountability** framework that distinguished honest mistakes from deliberate disregard of safety rules. The resulting recommendations included more realistic tests, clearer communication between teams and scheduled checks of unresolved concerns. They understood that a technically impressive repair would be insufficient if the institution preserved the habits that had made the interruption harder to diagnose."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "We cannot fix the same mistake twice and call it learning, Jun remarked."
+                  }
+                ],
+                "translation_ar": "كشف تحقيق لاحق أن قسمين سجلا مخاوف مشابهة بشأن التوقيت قبل أشهر دون ربط السجلات. لم يكن الخلل تقنيًا فقط، بل نتج أيضًا عن تجزؤ مؤسسي. اقترح جون سجلًا مشتركًا للمشكلات، وأوصت أمل بتحديد المسؤول عن إغلاق كل بند. دعت فيغا مراجعين خارجيين مع الابتعاد عن لوم الأشخاص، وشرحت أن المساءلة العادلة تفرق بين الخطأ الصادق والإهمال المتعمد. تضمنت التوصيات اختبارات أدق وتواصلًا أوضح ومراجعات دورية. لم يكن الإصلاح البرمجي وحده كافيًا."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "As the satellite continued providing partial observations, the environmental teams learned to combine its data with other independent sources. Their revised studies included explicit **uncertainty** estimates rather than treating the interrupted record as complete. Amal and Jun helped prepare documentation for future researchers, describing the episode as a case study in **resilience** rather than a victory over a single defective component. Dr. Vega secured support for continued limited operations, but she also explained why replacing the satellite might eventually be more sensible than extending its life indefinitely. The decision would depend on scientific value, operating cost and the risks created by prolonged **dependency** on fragile equipment. No one wanted to repeat the earlier mistake of assuming that technological achievement justified every additional commitment. Their new mission plans included alternative sources from the beginning, making future setbacks less likely to become crises."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Engineering success includes knowing when a system should be supplemented or retired, Amal explained."
+                  }
+                ],
+                "translation_ar": "واصل القمر توفير بعض الصور، وبدأت فرق البيئة دمجها مع مصادر مستقلة مع تقدير عدم اليقين بوضوح. أعدت أمل وجون وثائق للمهمة المستقبلية واعتبرا الحادثة درسًا في الصمود لا انتصارًا على قطعة معطلة. حصلت فيغا على دعم التشغيل المحدود، لكنها أوضحت أن الاستبدال قد يصبح أرجح من إطالة عمر القمر بلا نهاية. يجب وزن القيمة العلمية والتكلفة ومخاطر الاعتماد على جهاز هش. أدرجت الخطط الجديدة مصادر بديلة منذ البداية."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "On the anniversary of the first interrupted signal, the team held an open technical seminar. Jun presented the mistakes in his initial diagnosis, and younger engineers appreciated that his account did not disguise uncertainty. Amal explained the distinction between a plausible **inference** and a decision justified by sufficient evidence, while Dr. Vega described how independent scrutiny had improved the mission's **governance**. A student asked whether the incident had ultimately been a failure or a success. Amal replied that the question invited an unhelpful **dichotomy**: the spacecraft had lost important capability, the recovery was incomplete, and the team had nevertheless developed better ways to test assumptions and serve users. Their achievement was not that every signal returned, but that the organization had become more capable of recognizing its limits and acting responsibly within them."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Sometimes the most valuable data are the questions a broken system forces us to ask, Jun said."
+                  }
+                ],
+                "translation_ar": "في ذكرى انقطاع الإشارة عقد الفريق ندوة مفتوحة. شرح جون أخطاء تشخيصه الأول من دون إخفاء عدم اليقين، وبيّنت أمل الفرق بين الاستنتاج المحتمل والقرار المسنود بأدلة كافية. وصفت فيغا كيف حسّنت المراجعة المستقلة حوكمة المهمة. سأل طالب إن كانت التجربة فشلًا أم نجاحًا. رفضت أمل هذا التقسيم المبسط: فقد القمر قدرات مهمة، والاستعادة ناقصة، لكن الفريق صار أفضل في اختبار الافتراضات وخدمة المستخدمين. قال جون إن الأنظمة المعطلة قد تطرح أهم الأسئلة."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "vocabulary": [
+      {
+        "word": "anomaly",
+        "meaning_ar": "شذوذ",
+        "example": "Amal had spent four years working on a small Earth-observation satellite designed to monitor vegetation recovery after severe storms. The spacecraft was already orbiting when its signals became intermittent, leaving the team uncertain whether the problem lay in the satellite or their ground equipment. During a midnight shift, Jun noticed an unfamiliar anomaly in the incoming data and resisted the temptation to declare a complete failure. Amal reviewed the recent telemetry alongside environmental conditions, asking colleagues to record each assumption before it influenced a decision. The mission director, Dr. Vega, faced growing pressure from sponsors who wanted a confident public update. She warned that announcing either success or disaster without sufficient corroboration could damage both the research and the institution's credibility. The team agreed to preserve the raw records and separate observed facts from working explanations, even though this slower approach made the silence feel more uncomfortable."
+      },
+      {
+        "word": "telemetry",
+        "meaning_ar": "قياسات الإرسال عن بعد",
+        "example": "Amal had spent four years working on a small Earth-observation satellite designed to monitor vegetation recovery after severe storms. The spacecraft was already orbiting when its signals became intermittent, leaving the team uncertain whether the problem lay in the satellite or their ground equipment. During a midnight shift, Jun noticed an unfamiliar anomaly in the incoming data and resisted the temptation to declare a complete failure. Amal reviewed the recent telemetry alongside environmental conditions, asking colleagues to record each assumption before it influenced a decision. The mission director, Dr. Vega, faced growing pressure from sponsors who wanted a confident public update. She warned that announcing either success or disaster without sufficient corroboration could damage both the research and the institution's credibility. The team agreed to preserve the raw records and separate observed facts from working explanations, even though this slower approach made the silence feel more uncomfortable."
+      },
+      {
+        "word": "corroboration",
+        "meaning_ar": "تأييد مستقل",
+        "example": "Amal had spent four years working on a small Earth-observation satellite designed to monitor vegetation recovery after severe storms. The spacecraft was already orbiting when its signals became intermittent, leaving the team uncertain whether the problem lay in the satellite or their ground equipment. During a midnight shift, Jun noticed an unfamiliar anomaly in the incoming data and resisted the temptation to declare a complete failure. Amal reviewed the recent telemetry alongside environmental conditions, asking colleagues to record each assumption before it influenced a decision. The mission director, Dr. Vega, faced growing pressure from sponsors who wanted a confident public update. She warned that announcing either success or disaster without sufficient corroboration could damage both the research and the institution's credibility. The team agreed to preserve the raw records and separate observed facts from working explanations, even though this slower approach made the silence feel more uncomfortable."
+      },
+      {
+        "word": "diagnostic",
+        "meaning_ar": "تشخيصي",
+        "example": "Jun proposed a hardware explanation based on an unexpected temperature reading, but another engineer suggested that a timing issue might have distorted the transmission. Amal asked the group to assess both hypotheses using a documented diagnostic process rather than following the most senior voice in the room. Their first tests were inconclusive, partly because each signal window lasted only a few minutes. Dr. Vega reminded everyone that scarce data increased the danger of selectively noticing information that supported a preferred story. She assigned independent reviewers to compare the recorded sequences and identify possible bias in the team's interpretations. Jun felt embarrassed when his explanation lost some support, yet Amal praised his willingness to revise it. The process gradually transformed an anxious search for the person who was right into a shared investigation of which account best explained the available evidence."
+      },
+      {
+        "word": "inconclusive",
+        "meaning_ar": "غير حاسم",
+        "example": "Jun proposed a hardware explanation based on an unexpected temperature reading, but another engineer suggested that a timing issue might have distorted the transmission. Amal asked the group to assess both hypotheses using a documented diagnostic process rather than following the most senior voice in the room. Their first tests were inconclusive, partly because each signal window lasted only a few minutes. Dr. Vega reminded everyone that scarce data increased the danger of selectively noticing information that supported a preferred story. She assigned independent reviewers to compare the recorded sequences and identify possible bias in the team's interpretations. Jun felt embarrassed when his explanation lost some support, yet Amal praised his willingness to revise it. The process gradually transformed an anxious search for the person who was right into a shared investigation of which account best explained the available evidence."
+      },
+      {
+        "word": "bias",
+        "meaning_ar": "انحياز",
+        "example": "Jun proposed a hardware explanation based on an unexpected temperature reading, but another engineer suggested that a timing issue might have distorted the transmission. Amal asked the group to assess both hypotheses using a documented diagnostic process rather than following the most senior voice in the room. Their first tests were inconclusive, partly because each signal window lasted only a few minutes. Dr. Vega reminded everyone that scarce data increased the danger of selectively noticing information that supported a preferred story. She assigned independent reviewers to compare the recorded sequences and identify possible bias in the team's interpretations. Jun felt embarrassed when his explanation lost some support, yet Amal praised his willingness to revise it. The process gradually transformed an anxious search for the person who was right into a shared investigation of which account best explained the available evidence."
+      },
+      {
+        "word": "capability",
+        "meaning_ar": "قدرة",
+        "example": "While the engineers searched for a cause, the environmental researchers who depended on the imagery began asking whether their field projects should be delayed. Amal explained that the satellite's capability was uncertain but did not automatically invalidate earlier measurements. She recommended preserving alternative observation plans and clearly documenting how gaps might influence future comparisons. One sponsor suggested presenting processed images from an earlier period as though they were current, arguing that the public would not notice the difference. Dr. Vega rejected this proposal as a breach of scientific integrity, even if its immediate consequences seemed minor. She authorized a cautious statement describing the interruption, the limitations of existing data and the steps under review. The team accepted that their obligation extended beyond the satellite itself to researchers, communities and institutions making decisions on the basis of its output."
+      },
+      {
+        "word": "comparisons",
+        "meaning_ar": "مقارنات",
+        "example": "While the engineers searched for a cause, the environmental researchers who depended on the imagery began asking whether their field projects should be delayed. Amal explained that the satellite's capability was uncertain but did not automatically invalidate earlier measurements. She recommended preserving alternative observation plans and clearly documenting how gaps might influence future comparisons. One sponsor suggested presenting processed images from an earlier period as though they were current, arguing that the public would not notice the difference. Dr. Vega rejected this proposal as a breach of scientific integrity, even if its immediate consequences seemed minor. She authorized a cautious statement describing the interruption, the limitations of existing data and the steps under review. The team accepted that their obligation extended beyond the satellite itself to researchers, communities and institutions making decisions on the basis of its output."
+      },
+      {
+        "word": "integrity",
+        "meaning_ar": "نزاهة",
+        "example": "While the engineers searched for a cause, the environmental researchers who depended on the imagery began asking whether their field projects should be delayed. Amal explained that the satellite's capability was uncertain but did not automatically invalidate earlier measurements. She recommended preserving alternative observation plans and clearly documenting how gaps might influence future comparisons. One sponsor suggested presenting processed images from an earlier period as though they were current, arguing that the public would not notice the difference. Dr. Vega rejected this proposal as a breach of scientific integrity, even if its immediate consequences seemed minor. She authorized a cautious statement describing the interruption, the limitations of existing data and the steps under review. The team accepted that their obligation extended beyond the satellite itself to researchers, communities and institutions making decisions on the basis of its output."
+      },
+      {
+        "word": "root cause",
+        "meaning_ar": "سبب جذري",
+        "example": "A second review revealed that an earlier software change had not been evaluated under precisely the same conditions as the current mission. This discrepancy did not establish a root cause, but it exposed a weakness in the team's verification records. Jun was tempted to label the update responsible for the interruption, until Amal pointed out that a correlation between two events was not proof of causation. They designed a series of controlled simulations, carefully specifying which variables could be changed without jeopardizing the spacecraft. Dr. Vega insisted on an independent authorization process before any command would be transmitted, noting that hasty remote interventions could worsen an uncertain fault. The team adopted a written decision log that recorded alternatives and their potential consequences. For Jun, the slow procedure was frustrating, yet it prevented a convenient theory from turning into an irreversible action."
+      },
+      {
+        "word": "causation",
+        "meaning_ar": "سببية",
+        "example": "A second review revealed that an earlier software change had not been evaluated under precisely the same conditions as the current mission. This discrepancy did not establish a root cause, but it exposed a weakness in the team's verification records. Jun was tempted to label the update responsible for the interruption, until Amal pointed out that a correlation between two events was not proof of causation. They designed a series of controlled simulations, carefully specifying which variables could be changed without jeopardizing the spacecraft. Dr. Vega insisted on an independent authorization process before any command would be transmitted, noting that hasty remote interventions could worsen an uncertain fault. The team adopted a written decision log that recorded alternatives and their potential consequences. For Jun, the slow procedure was frustrating, yet it prevented a convenient theory from turning into an irreversible action."
+      },
+      {
+        "word": "authorization",
+        "meaning_ar": "إذن",
+        "example": "A second review revealed that an earlier software change had not been evaluated under precisely the same conditions as the current mission. This discrepancy did not establish a root cause, but it exposed a weakness in the team's verification records. Jun was tempted to label the update responsible for the interruption, until Amal pointed out that a correlation between two events was not proof of causation. They designed a series of controlled simulations, carefully specifying which variables could be changed without jeopardizing the spacecraft. Dr. Vega insisted on an independent authorization process before any command would be transmitted, noting that hasty remote interventions could worsen an uncertain fault. The team adopted a written decision log that recorded alternatives and their potential consequences. For Jun, the slow procedure was frustrating, yet it prevented a convenient theory from turning into an irreversible action."
+      },
+      {
+        "word": "functionality",
+        "meaning_ar": "قدرة تشغيلية",
+        "example": "As the mission's next communication window approached, a colleague proposed a risky recovery command that might restore normal operations quickly. Amal calculated that its potential benefit was balanced by a small but serious chance of losing the remaining functionality. The choice revealed a familiar engineering trade-off between speed and reversibility, but the team also faced commitments to external researchers who had scheduled observations. Dr. Vega convened a short review of the proposed action, requesting that each participant state the strongest argument against their preferred option. The exercise discouraged false consensus and made hidden assumptions visible. They selected a less aggressive diagnostic step that preserved the ability to attempt further recovery later. Some sponsors were disappointed, yet the decision reflected a clear rationale that could be audited after the mission ended.  For once, accepting a delay was a deliberate technical choice rather than an accidental consequence of disagreement within the team."
+      },
+      {
+        "word": "trade-off",
+        "meaning_ar": "مقايضة",
+        "example": "As the mission's next communication window approached, a colleague proposed a risky recovery command that might restore normal operations quickly. Amal calculated that its potential benefit was balanced by a small but serious chance of losing the remaining functionality. The choice revealed a familiar engineering trade-off between speed and reversibility, but the team also faced commitments to external researchers who had scheduled observations. Dr. Vega convened a short review of the proposed action, requesting that each participant state the strongest argument against their preferred option. The exercise discouraged false consensus and made hidden assumptions visible. They selected a less aggressive diagnostic step that preserved the ability to attempt further recovery later. Some sponsors were disappointed, yet the decision reflected a clear rationale that could be audited after the mission ended.  For once, accepting a delay was a deliberate technical choice rather than an accidental consequence of disagreement within the team."
+      },
+      {
+        "word": "consensus",
+        "meaning_ar": "إجماع",
+        "example": "As the mission's next communication window approached, a colleague proposed a risky recovery command that might restore normal operations quickly. Amal calculated that its potential benefit was balanced by a small but serious chance of losing the remaining functionality. The choice revealed a familiar engineering trade-off between speed and reversibility, but the team also faced commitments to external researchers who had scheduled observations. Dr. Vega convened a short review of the proposed action, requesting that each participant state the strongest argument against their preferred option. The exercise discouraged false consensus and made hidden assumptions visible. They selected a less aggressive diagnostic step that preserved the ability to attempt further recovery later. Some sponsors were disappointed, yet the decision reflected a clear rationale that could be audited after the mission ended.  For once, accepting a delay was a deliberate technical choice rather than an accidental consequence of disagreement within the team."
+      },
+      {
+        "word": "replicate",
+        "meaning_ar": "يعيد إنتاج",
+        "example": "The conservative test produced a small improvement: a brief sequence of packets arrived with consistent timing, though the image stream remained unavailable. Jun initially celebrated the result as a breakthrough, but Amal asked whether they could replicate it during the next scheduled pass. The team refined its hypothesis and examined how the improvement related to changes in ground conditions. Another group independently reproduced part of the result, increasing confidence without eliminating uncertainty. Dr. Vega described the progress publicly while explaining what had not been restored. She refused to compress an evolving investigation into a dramatic narrative of failure followed by heroic rescue. The mission's credibility, she argued, depended on a trustworthy chronology of evidence and decisions rather than the impression that its engineers had been certain all along. Jun began to appreciate that cautious communication could be genuinely exciting."
+      },
+      {
+        "word": "hypothesis",
+        "meaning_ar": "فرضية",
+        "example": "The conservative test produced a small improvement: a brief sequence of packets arrived with consistent timing, though the image stream remained unavailable. Jun initially celebrated the result as a breakthrough, but Amal asked whether they could replicate it during the next scheduled pass. The team refined its hypothesis and examined how the improvement related to changes in ground conditions. Another group independently reproduced part of the result, increasing confidence without eliminating uncertainty. Dr. Vega described the progress publicly while explaining what had not been restored. She refused to compress an evolving investigation into a dramatic narrative of failure followed by heroic rescue. The mission's credibility, she argued, depended on a trustworthy chronology of evidence and decisions rather than the impression that its engineers had been certain all along. Jun began to appreciate that cautious communication could be genuinely exciting."
+      },
+      {
+        "word": "chronology",
+        "meaning_ar": "تسلسل زمني",
+        "example": "The conservative test produced a small improvement: a brief sequence of packets arrived with consistent timing, though the image stream remained unavailable. Jun initially celebrated the result as a breakthrough, but Amal asked whether they could replicate it during the next scheduled pass. The team refined its hypothesis and examined how the improvement related to changes in ground conditions. Another group independently reproduced part of the result, increasing confidence without eliminating uncertainty. Dr. Vega described the progress publicly while explaining what had not been restored. She refused to compress an evolving investigation into a dramatic narrative of failure followed by heroic rescue. The mission's credibility, she argued, depended on a trustworthy chronology of evidence and decisions rather than the impression that its engineers had been certain all along. Jun began to appreciate that cautious communication could be genuinely exciting."
+      },
+      {
+        "word": "explanation",
+        "meaning_ar": "تفسير",
+        "example": "Later analysis traced part of the problem to an interaction between a timing routine and an unusual sequence of ground-station requests. The engineers were relieved to have a defensible explanation, yet Amal warned that other intermittent errors might still exist. Before applying a longer-term correction, they examined the possible side effects and checked that the proposed process could be reversed if necessary. The final command was reviewed by specialists who had not written the original software, reducing the chance that familiarity would obscure a flaw. Dr. Vega insisted that credit should go to the whole team, including those whose rejected hypotheses had sharpened the investigation. The result restored a limited stream of imagery, not the full mission capability originally promised. Rather than hiding the remaining limitations, the researchers revised their schedules and communicated precisely which observations could now be trusted."
+      },
+      {
+        "word": "side effects",
+        "meaning_ar": "آثار جانبية",
+        "example": "Later analysis traced part of the problem to an interaction between a timing routine and an unusual sequence of ground-station requests. The engineers were relieved to have a defensible explanation, yet Amal warned that other intermittent errors might still exist. Before applying a longer-term correction, they examined the possible side effects and checked that the proposed process could be reversed if necessary. The final command was reviewed by specialists who had not written the original software, reducing the chance that familiarity would obscure a flaw. Dr. Vega insisted that credit should go to the whole team, including those whose rejected hypotheses had sharpened the investigation. The result restored a limited stream of imagery, not the full mission capability originally promised. Rather than hiding the remaining limitations, the researchers revised their schedules and communicated precisely which observations could now be trusted."
+      },
+      {
+        "word": "limitations",
+        "meaning_ar": "قيود",
+        "example": "Later analysis traced part of the problem to an interaction between a timing routine and an unusual sequence of ground-station requests. The engineers were relieved to have a defensible explanation, yet Amal warned that other intermittent errors might still exist. Before applying a longer-term correction, they examined the possible side effects and checked that the proposed process could be reversed if necessary. The final command was reviewed by specialists who had not written the original software, reducing the chance that familiarity would obscure a flaw. Dr. Vega insisted that credit should go to the whole team, including those whose rejected hypotheses had sharpened the investigation. The result restored a limited stream of imagery, not the full mission capability originally promised. Rather than hiding the remaining limitations, the researchers revised their schedules and communicated precisely which observations could now be trusted."
+      },
+      {
+        "word": "defect",
+        "meaning_ar": "عيب",
+        "example": "During the formal post-incident review, investigators discovered that two departments had documented similar timing concerns months earlier but had not connected their records. The failure was therefore not solely a technical defect; it also reflected organizational fragmentation. Jun proposed a shared register of unresolved anomalies, while Amal recommended clearer responsibility for closing each issue. Dr. Vega invited outside reviewers to examine the team's procedures without reducing the discussion to personal blame. Some engineers worried that openness might damage their careers, so she emphasized a fair accountability framework that distinguished honest mistakes from deliberate disregard of safety rules. The resulting recommendations included more realistic tests, clearer communication between teams and scheduled checks of unresolved concerns. They understood that a technically impressive repair would be insufficient if the institution preserved the habits that had made the interruption harder to diagnose."
+      },
+      {
+        "word": "fragmentation",
+        "meaning_ar": "تجزؤ",
+        "example": "During the formal post-incident review, investigators discovered that two departments had documented similar timing concerns months earlier but had not connected their records. The failure was therefore not solely a technical defect; it also reflected organizational fragmentation. Jun proposed a shared register of unresolved anomalies, while Amal recommended clearer responsibility for closing each issue. Dr. Vega invited outside reviewers to examine the team's procedures without reducing the discussion to personal blame. Some engineers worried that openness might damage their careers, so she emphasized a fair accountability framework that distinguished honest mistakes from deliberate disregard of safety rules. The resulting recommendations included more realistic tests, clearer communication between teams and scheduled checks of unresolved concerns. They understood that a technically impressive repair would be insufficient if the institution preserved the habits that had made the interruption harder to diagnose."
+      },
+      {
+        "word": "accountability",
+        "meaning_ar": "مساءلة",
+        "example": "During the formal post-incident review, investigators discovered that two departments had documented similar timing concerns months earlier but had not connected their records. The failure was therefore not solely a technical defect; it also reflected organizational fragmentation. Jun proposed a shared register of unresolved anomalies, while Amal recommended clearer responsibility for closing each issue. Dr. Vega invited outside reviewers to examine the team's procedures without reducing the discussion to personal blame. Some engineers worried that openness might damage their careers, so she emphasized a fair accountability framework that distinguished honest mistakes from deliberate disregard of safety rules. The resulting recommendations included more realistic tests, clearer communication between teams and scheduled checks of unresolved concerns. They understood that a technically impressive repair would be insufficient if the institution preserved the habits that had made the interruption harder to diagnose."
+      },
+      {
+        "word": "uncertainty",
+        "meaning_ar": "عدم يقين",
+        "example": "As the satellite continued providing partial observations, the environmental teams learned to combine its data with other independent sources. Their revised studies included explicit uncertainty estimates rather than treating the interrupted record as complete. Amal and Jun helped prepare documentation for future researchers, describing the episode as a case study in resilience rather than a victory over a single defective component. Dr. Vega secured support for continued limited operations, but she also explained why replacing the satellite might eventually be more sensible than extending its life indefinitely. The decision would depend on scientific value, operating cost and the risks created by prolonged dependency on fragile equipment. No one wanted to repeat the earlier mistake of assuming that technological achievement justified every additional commitment. Their new mission plans included alternative sources from the beginning, making future setbacks less likely to become crises."
+      },
+      {
+        "word": "resilience",
+        "meaning_ar": "قدرة على الصمود",
+        "example": "As the satellite continued providing partial observations, the environmental teams learned to combine its data with other independent sources. Their revised studies included explicit uncertainty estimates rather than treating the interrupted record as complete. Amal and Jun helped prepare documentation for future researchers, describing the episode as a case study in resilience rather than a victory over a single defective component. Dr. Vega secured support for continued limited operations, but she also explained why replacing the satellite might eventually be more sensible than extending its life indefinitely. The decision would depend on scientific value, operating cost and the risks created by prolonged dependency on fragile equipment. No one wanted to repeat the earlier mistake of assuming that technological achievement justified every additional commitment. Their new mission plans included alternative sources from the beginning, making future setbacks less likely to become crises."
+      },
+      {
+        "word": "dependency",
+        "meaning_ar": "اعتماد",
+        "example": "As the satellite continued providing partial observations, the environmental teams learned to combine its data with other independent sources. Their revised studies included explicit uncertainty estimates rather than treating the interrupted record as complete. Amal and Jun helped prepare documentation for future researchers, describing the episode as a case study in resilience rather than a victory over a single defective component. Dr. Vega secured support for continued limited operations, but she also explained why replacing the satellite might eventually be more sensible than extending its life indefinitely. The decision would depend on scientific value, operating cost and the risks created by prolonged dependency on fragile equipment. No one wanted to repeat the earlier mistake of assuming that technological achievement justified every additional commitment. Their new mission plans included alternative sources from the beginning, making future setbacks less likely to become crises."
+      },
+      {
+        "word": "inference",
+        "meaning_ar": "استدلال",
+        "example": "On the anniversary of the first interrupted signal, the team held an open technical seminar. Jun presented the mistakes in his initial diagnosis, and younger engineers appreciated that his account did not disguise uncertainty. Amal explained the distinction between a plausible inference and a decision justified by sufficient evidence, while Dr. Vega described how independent scrutiny had improved the mission's governance. A student asked whether the incident had ultimately been a failure or a success. Amal replied that the question invited an unhelpful dichotomy: the spacecraft had lost important capability, the recovery was incomplete, and the team had nevertheless developed better ways to test assumptions and serve users. Their achievement was not that every signal returned, but that the organization had become more capable of recognizing its limits and acting responsibly within them."
+      },
+      {
+        "word": "governance",
+        "meaning_ar": "حوكمة",
+        "example": "On the anniversary of the first interrupted signal, the team held an open technical seminar. Jun presented the mistakes in his initial diagnosis, and younger engineers appreciated that his account did not disguise uncertainty. Amal explained the distinction between a plausible inference and a decision justified by sufficient evidence, while Dr. Vega described how independent scrutiny had improved the mission's governance. A student asked whether the incident had ultimately been a failure or a success. Amal replied that the question invited an unhelpful dichotomy: the spacecraft had lost important capability, the recovery was incomplete, and the team had nevertheless developed better ways to test assumptions and serve users. Their achievement was not that every signal returned, but that the organization had become more capable of recognizing its limits and acting responsibly within them."
+      },
+      {
+        "word": "dichotomy",
+        "meaning_ar": "تقسيم ثنائي مبسط",
+        "example": "On the anniversary of the first interrupted signal, the team held an open technical seminar. Jun presented the mistakes in his initial diagnosis, and younger engineers appreciated that his account did not disguise uncertainty. Amal explained the distinction between a plausible inference and a decision justified by sufficient evidence, while Dr. Vega described how independent scrutiny had improved the mission's governance. A student asked whether the incident had ultimately been a failure or a success. Amal replied that the question invited an unhelpful dichotomy: the spacecraft had lost important capability, the recovery was incomplete, and the team had nevertheless developed better ways to test assumptions and serve users. Their achievement was not that every signal returned, but that the organization had become more capable of recognizing its limits and acting responsibly within them."
+      }
+    ],
+    "questions": [
+      {
+        "q": "What caused the initial concern?",
+        "options": [
+          "A missed lunch",
+          "Intermittent satellite signals and an unexplained anomaly",
+          "A storm on Earth",
+          "A missing sponsor"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "Why did Amal request independent diagnostics?",
+        "options": [
+          "To delay work",
+          "To use more equipment",
+          "To compare hypotheses without seniority bias",
+          "To ignore Jun"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "Why was presenting old images as current unacceptable?",
+        "options": [
+          "The color was wrong",
+          "They were too large",
+          "The public disliked pictures",
+          "It would violate scientific integrity"
+        ],
+        "answer": 3
+      },
+      {
+        "q": "Why were commands independently authorized?",
+        "options": [
+          "Unverified interventions could worsen the fault",
+          "The satellite had no software",
+          "Jun requested secrecy",
+          "The mission was complete"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "Why choose a conservative test?",
+        "options": [
+          "To avoid all measurements",
+          "To preserve future recovery options",
+          "To guarantee full recovery",
+          "To impress sponsors"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "What did the team do with partial success?",
+        "options": [
+          "Declare the problem solved",
+          "Stop monitoring",
+          "Try to replicate and qualify the result",
+          "Delete the data"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "What organizational problem emerged?",
+        "options": [
+          "The team lacked a name",
+          "There were no engineers",
+          "The satellite was too small",
+          "Separate departments failed to connect related concerns"
+        ],
+        "answer": 3
+      },
+      {
+        "q": "How did Amal answer the success-or-failure question?",
+        "options": [
+          "It was a misleading binary because outcomes were mixed",
+          "The mission was perfect",
+          "The mission was worthless",
+          "The question was forbidden"
+        ],
+        "answer": 0
+      }
+    ]
+  }
+}
