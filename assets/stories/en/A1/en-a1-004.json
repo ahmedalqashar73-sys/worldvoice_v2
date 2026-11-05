@@ -1,0 +1,398 @@
+{
+  "language": "en",
+  "level": "A1",
+  "story": {
+    "id": "en-a1-004",
+    "title": "The Market List",
+    "title_ar": "قائمة السوق",
+    "moral_ar": "التخطيط والتعاون والأمانة تجعل مساعدة الآخرين أسهل.",
+    "art_style": "Warm original schoolbook watercolor, consistent character design, gentle lighting, no text in image.",
+    "cover_image_prompt": "Sara and Tom walk toward a colorful friendly street market carrying a small shopping bag, vegetables and bread stalls, morning sun, wide eye-level view. Warm original schoolbook watercolor, no text in image",
+    "character_sheet": [
+      {
+        "name": "Sara",
+        "description": "Girl aged 12 with dark braided hair, medium tan skin, teal long-sleeved shirt, beige trousers and white shoes."
+      },
+      {
+        "name": "Tom",
+        "description": "Boy aged 12 with short auburn hair, fair skin, yellow shirt, olive green vest, navy trousers and black shoes."
+      },
+      {
+        "name": "Mrs. Kim",
+        "description": "Woman aged 67 with short silver hair, warm light brown skin, lilac blouse and dark long skirt."
+      }
+    ],
+    "chapters": [
+      {
+        "chapter": 1,
+        "title": "The Missing Paper",
+        "title_ar": "الورقة المفقودة",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Sara and Tom walk toward a colorful friendly street market carrying a small shopping bag, vegetables and bread stalls, morning sun, wide eye-level view. Characters: Sara: Girl aged 12 with dark braided hair, medium tan skin, teal long-sleeved shirt, beige trousers and white shoes.. Tom: Boy aged 12 with short auburn hair, fair skin, yellow shirt, olive green vest, navy trousers and black shoes.. Mrs. Kim: Woman aged 67 with short silver hair, warm light brown skin, lilac blouse and dark long skirt.. Original warm schoolbook watercolor art, gentle natural colors, realistic friendly expressions, no text in image.",
+            "animation": "fade_in",
+            "image": "assets/stories/en/A1/illustrations/en-a1-004_scene_01.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Sara and Tom go to the **market** on Tuesday. They have a shopping **list** from their neighbor. They need **bread**, fruit, and milk for a small breakfast at her home."
+                  }
+                ],
+                "translation_ar": "تذهب سارة وتوم إلى السوق يوم الثلاثاء. معهما قائمة تسوق من جارتهما. يحتاجان إلى خبز وفاكهة وحليب لإفطار صغير في منزلها."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Tom puts the **coins** in his pocket. Sara carries a blue **bag**. M:We must be **careful** with the money, Tom says. Sara agrees and checks the list again."
+                  }
+                ],
+                "translation_ar": "يضع توم العملات في جيبه. تحمل سارة حقيبة زرقاء. يقول توم: «يجب أن ننتبه للمال». توافق سارة وتراجع القائمة مرة أخرى."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Sara looks for a missing shopping list while Tom speaks to a market stall keeper, friendly city market, natural daylight, medium shot. Characters: Sara: Girl aged 12 with dark braided hair, medium tan skin, teal long-sleeved shirt, beige trousers and white shoes.. Tom: Boy aged 12 with short auburn hair, fair skin, yellow shirt, olive green vest, navy trousers and black shoes.. Mrs. Kim: Woman aged 67 with short silver hair, warm light brown skin, lilac blouse and dark long skirt.. Original warm schoolbook watercolor art, gentle natural colors, realistic friendly expressions, no text in image.",
+            "animation": "pan_left",
+            "image": "assets/stories/en/A1/illustrations/en-a1-004_scene_02.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The **shopkeeper** shows them fresh bread. Sara asks the **price**. It is not very **cheap**, but they have enough coins. F:We can buy one loaf, she says."
+                  }
+                ],
+                "translation_ar": "يعرض البائع عليهما خبزًا طازجًا. تسأل سارة عن السعر. إنه ليس رخيصًا جدًا، لكن معهما عملات كافية. تقول: «يمكننا شراء رغيف واحد»."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Suddenly, the **paper** is not in Sara's pocket. Their list is **lost**. Sara feels **worried** and looks near the bread stall. M:We can find it, Tom says."
+                  }
+                ],
+                "translation_ar": "فجأة لا تجد سارة الورقة في جيبها. ضاعت القائمة. تشعر سارة بالقلق وتنظر قرب كشك الخبز. يقول توم: «يمكننا العثور عليها»."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "They stop and try to **remember** the food. F:We need **fruit** and **milk**, Sara says. Tom remembers the bread. They decide to ask a friendly seller for a new paper."
+                  }
+                ],
+                "translation_ar": "يتوقفان ويحاولان تذكر الطعام. تقول سارة: «نحتاج إلى فاكهة وحليب». يتذكر توم الخبز. يقرران طلب ورقة جديدة من بائع لطيف."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "chapter": 2,
+        "title": "Shopping Together",
+        "title_ar": "التسوق معًا",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "A helpful market seller lends Sara a pen and Tom chooses fresh apples from a basket, close view of fruit stalls, soft daylight. Characters: Sara: Girl aged 12 with dark braided hair, medium tan skin, teal long-sleeved shirt, beige trousers and white shoes.. Tom: Boy aged 12 with short auburn hair, fair skin, yellow shirt, olive green vest, navy trousers and black shoes.. Mrs. Kim: Woman aged 67 with short silver hair, warm light brown skin, lilac blouse and dark long skirt.. Original warm schoolbook watercolor art, gentle natural colors, realistic friendly expressions, no text in image.",
+            "animation": "zoom_in_slow",
+            "image": "assets/stories/en/A1/illustrations/en-a1-004_scene_03.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "A friendly **seller** offers to **help**. She gives Sara a **pen** and clean paper. F:Thank you very much, Sara says. Tom writes the food they can remember."
+                  }
+                ],
+                "translation_ar": "تعرض بائعة لطيفة المساعدة. تعطي سارة قلمًا وورقة نظيفة. تقول سارة: «شكرًا جزيلًا». يكتب توم الطعام الذي يتذكرانه."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "They choose red **apples** from a basket. The apples are **fresh**. Tom starts to **count** them slowly. M:One, two, three, four, he says. Sara puts them in the bag."
+                  }
+                ],
+                "translation_ar": "يختاران تفاحًا أحمر من سلة. التفاح طازج. يبدأ توم بعده ببطء. يقول: «واحد، اثنان، ثلاثة، أربعة». تضعه سارة في الحقيبة."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Sara and Tom bring a full market bag to elderly Mrs. Kim outside her home, cheerful afternoon, wide eye-level view. Characters: Sara: Girl aged 12 with dark braided hair, medium tan skin, teal long-sleeved shirt, beige trousers and white shoes.. Tom: Boy aged 12 with short auburn hair, fair skin, yellow shirt, olive green vest, navy trousers and black shoes.. Mrs. Kim: Woman aged 67 with short silver hair, warm light brown skin, lilac blouse and dark long skirt.. Original warm schoolbook watercolor art, gentle natural colors, realistic friendly expressions, no text in image.",
+            "animation": "parallax",
+            "image": "assets/stories/en/A1/illustrations/en-a1-004_scene_04.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "At the last stall, Sara counts their **money**. They have **enough** for milk. The seller gives them a little **change**. F:Our bag is ready, Sara says with a smile."
+                  }
+                ],
+                "translation_ar": "عند الكشك الأخير تعد سارة المال. معهما ما يكفي للحليب. يعطيهما البائع بعض الباقي. تقول سارة مبتسمة: «حقيبتنا جاهزة»."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "They visit their **neighbor**, Mrs. Kim. She opens the door and **smiles**. F:I want to **thank** you, she says. Sara and Tom put the bread and fruit on her table."
+                  }
+                ],
+                "translation_ar": "يزوران جارتهما السيدة كيم. تفتح الباب وتبتسم. تقول: «أريد أن أشكركما». تضع سارة وتوم الخبز والفاكهة على طاولتها."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Tom learns that a good **plan** can help people. Sara says it is **kind** to work **together**. They drink tea with Mrs. Kim and talk about their happy morning."
+                  }
+                ],
+                "translation_ar": "يتعلم توم أن الخطة الجيدة تساعد الناس. تقول سارة إن التعاون عمل لطيف. يشربان الشاي مع السيدة كيم ويتحدثون عن صباحهم السعيد."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "vocabulary": [
+      {
+        "word": "market",
+        "meaning_ar": "سوق",
+        "example": "Sara and Tom go to the market on Tuesday. They have a shopping list from their neighbor. They need bread, fruit, and milk for a small breakfast at her home."
+      },
+      {
+        "word": "list",
+        "meaning_ar": "قائمة",
+        "example": "Sara and Tom go to the market on Tuesday. They have a shopping list from their neighbor. They need bread, fruit, and milk for a small breakfast at her home."
+      },
+      {
+        "word": "bread",
+        "meaning_ar": "خبز",
+        "example": "Sara and Tom go to the market on Tuesday. They have a shopping list from their neighbor. They need bread, fruit, and milk for a small breakfast at her home."
+      },
+      {
+        "word": "coins",
+        "meaning_ar": "عملات معدنية",
+        "example": "Tom puts the coins in his pocket. Sara carries a blue bag. M:We must be careful with the money, Tom says. Sara agrees and checks the list again."
+      },
+      {
+        "word": "bag",
+        "meaning_ar": "حقيبة",
+        "example": "Tom puts the coins in his pocket. Sara carries a blue bag. M:We must be careful with the money, Tom says. Sara agrees and checks the list again."
+      },
+      {
+        "word": "careful",
+        "meaning_ar": "حذر",
+        "example": "Tom puts the coins in his pocket. Sara carries a blue bag. M:We must be careful with the money, Tom says. Sara agrees and checks the list again."
+      },
+      {
+        "word": "shopkeeper",
+        "meaning_ar": "صاحب المتجر",
+        "example": "The shopkeeper shows them fresh bread. Sara asks the price. It is not very cheap, but they have enough coins. F:We can buy one loaf, she says."
+      },
+      {
+        "word": "price",
+        "meaning_ar": "سعر",
+        "example": "The shopkeeper shows them fresh bread. Sara asks the price. It is not very cheap, but they have enough coins. F:We can buy one loaf, she says."
+      },
+      {
+        "word": "cheap",
+        "meaning_ar": "رخيص",
+        "example": "The shopkeeper shows them fresh bread. Sara asks the price. It is not very cheap, but they have enough coins. F:We can buy one loaf, she says."
+      },
+      {
+        "word": "paper",
+        "meaning_ar": "ورقة",
+        "example": "Suddenly, the paper is not in Sara's pocket. Their list is lost. Sara feels worried and looks near the bread stall. M:We can find it, Tom says."
+      },
+      {
+        "word": "lost",
+        "meaning_ar": "ضائع",
+        "example": "Suddenly, the paper is not in Sara's pocket. Their list is lost. Sara feels worried and looks near the bread stall. M:We can find it, Tom says."
+      },
+      {
+        "word": "worried",
+        "meaning_ar": "قلق",
+        "example": "Suddenly, the paper is not in Sara's pocket. Their list is lost. Sara feels worried and looks near the bread stall. M:We can find it, Tom says."
+      },
+      {
+        "word": "remember",
+        "meaning_ar": "يتذكر",
+        "example": "They stop and try to remember the food. F:We need fruit and milk, Sara says. Tom remembers the bread. They decide to ask a friendly seller for a new paper."
+      },
+      {
+        "word": "fruit",
+        "meaning_ar": "فاكهة",
+        "example": "They stop and try to remember the food. F:We need fruit and milk, Sara says. Tom remembers the bread. They decide to ask a friendly seller for a new paper."
+      },
+      {
+        "word": "milk",
+        "meaning_ar": "حليب",
+        "example": "They stop and try to remember the food. F:We need fruit and milk, Sara says. Tom remembers the bread. They decide to ask a friendly seller for a new paper."
+      },
+      {
+        "word": "seller",
+        "meaning_ar": "بائع",
+        "example": "A friendly seller offers to help. She gives Sara a pen and clean paper. F:Thank you very much, Sara says. Tom writes the food they can remember."
+      },
+      {
+        "word": "help",
+        "meaning_ar": "يساعد",
+        "example": "A friendly seller offers to help. She gives Sara a pen and clean paper. F:Thank you very much, Sara says. Tom writes the food they can remember."
+      },
+      {
+        "word": "pen",
+        "meaning_ar": "قلم",
+        "example": "A friendly seller offers to help. She gives Sara a pen and clean paper. F:Thank you very much, Sara says. Tom writes the food they can remember."
+      },
+      {
+        "word": "apples",
+        "meaning_ar": "تفاح",
+        "example": "They choose red apples from a basket. The apples are fresh. Tom starts to count them slowly. M:One, two, three, four, he says. Sara puts them in the bag."
+      },
+      {
+        "word": "fresh",
+        "meaning_ar": "طازج",
+        "example": "They choose red apples from a basket. The apples are fresh. Tom starts to count them slowly. M:One, two, three, four, he says. Sara puts them in the bag."
+      },
+      {
+        "word": "count",
+        "meaning_ar": "يعدّ",
+        "example": "They choose red apples from a basket. The apples are fresh. Tom starts to count them slowly. M:One, two, three, four, he says. Sara puts them in the bag."
+      },
+      {
+        "word": "money",
+        "meaning_ar": "مال",
+        "example": "At the last stall, Sara counts their money. They have enough for milk. The seller gives them a little change. F:Our bag is ready, Sara says with a smile."
+      },
+      {
+        "word": "enough",
+        "meaning_ar": "كافٍ",
+        "example": "At the last stall, Sara counts their money. They have enough for milk. The seller gives them a little change. F:Our bag is ready, Sara says with a smile."
+      },
+      {
+        "word": "change",
+        "meaning_ar": "باقي النقود",
+        "example": "At the last stall, Sara counts their money. They have enough for milk. The seller gives them a little change. F:Our bag is ready, Sara says with a smile."
+      },
+      {
+        "word": "neighbor",
+        "meaning_ar": "جار",
+        "example": "They visit their neighbor, Mrs. Kim. She opens the door and smiles. F:I want to thank you, she says. Sara and Tom put the bread and fruit on her table."
+      },
+      {
+        "word": "smiles",
+        "meaning_ar": "يبتسم",
+        "example": "They visit their neighbor, Mrs. Kim. She opens the door and smiles. F:I want to thank you, she says. Sara and Tom put the bread and fruit on her table."
+      },
+      {
+        "word": "thank",
+        "meaning_ar": "يشكر",
+        "example": "They visit their neighbor, Mrs. Kim. She opens the door and smiles. F:I want to thank you, she says. Sara and Tom put the bread and fruit on her table."
+      },
+      {
+        "word": "plan",
+        "meaning_ar": "خطة",
+        "example": "Tom learns that a good plan can help people. Sara says it is kind to work together. They drink tea with Mrs. Kim and talk about their happy morning."
+      },
+      {
+        "word": "kind",
+        "meaning_ar": "لطيف",
+        "example": "Tom learns that a good plan can help people. Sara says it is kind to work together. They drink tea with Mrs. Kim and talk about their happy morning."
+      },
+      {
+        "word": "together",
+        "meaning_ar": "معًا",
+        "example": "Tom learns that a good plan can help people. Sara says it is kind to work together. They drink tea with Mrs. Kim and talk about their happy morning."
+      }
+    ],
+    "questions": [
+      {
+        "q": "Where do Sara and Tom go?",
+        "options": [
+          "The market",
+          "The station",
+          "The library",
+          "The park"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "Who gives them a list?",
+        "options": [
+          "Their neighbor",
+          "Their doctor",
+          "A singer",
+          "Their teacher"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What food do they buy first?",
+        "options": [
+          "Rice",
+          "Bread",
+          "Fish",
+          "Cake"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "What do they lose?",
+        "options": [
+          "Their shoes",
+          "A bag",
+          "The shopping list",
+          "A pencil"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "Who gives them paper?",
+        "options": [
+          "A seller",
+          "A driver",
+          "A friend",
+          "A teacher"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What fruit do they buy?",
+        "options": [
+          "Apples",
+          "Oranges",
+          "Pears",
+          "Bananas"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "Who receives the food?",
+        "options": [
+          "Mrs. Kim",
+          "Mr. Lee",
+          "A police officer",
+          "Tom's teacher"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What is the story about?",
+        "options": [
+          "Working together to help",
+          "Buying new toys",
+          "Being late",
+          "Flying away"
+        ],
+        "answer": 0
+      }
+    ]
+  }
+}
