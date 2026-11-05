@@ -1,1 +1,419 @@
-{"schema":1,"id":"en-a1-pod-001","level":"A1","title":"Meeting a New Friend","title_ar":"التعرّف على صديق جديد","hosts":["Anna","Daniel"],"status":"script_ready","duration_ms":null,"audio_url":null,"dialogue":[{"speaker":"Daniel","text":"Hi! Is this seat free? The café is very busy today.","translation_ar":"مرحبًا! هل هذا المقعد فارغ؟ المقهى مزدحم اليوم.","start_ms":null,"end_ms":null},{"speaker":"Anna","text":"Yes, it is. Please sit down. Are you waiting for someone?","translation_ar":"نعم، تفضل بالجلوس. هل تنتظر أحدًا؟","start_ms":null,"end_ms":null},{"speaker":"Daniel","text":"No, I am new here. I just want some coffee.","translation_ar":"لا، أنا جديد هنا. أريد فقط بعض القهوة.","start_ms":null,"end_ms":null},{"speaker":"Anna","text":"Welcome! My name is Anna. What is your name?","translation_ar":"أهلًا بك! اسمي آنا. ما اسمك؟","start_ms":null,"end_ms":null},{"speaker":"Daniel","text":"I'm Daniel. Nice to meet you, Anna.","translation_ar":"أنا دانيال. سعيد بلقائك يا آنا.","start_ms":null,"end_ms":null},{"speaker":"Anna","text":"Nice to meet you too. Do you live near here?","translation_ar":"وأنا سعيدة بلقائك. هل تسكن قريبًا من هنا؟","start_ms":null,"end_ms":null},{"speaker":"Daniel","text":"Yes, I live on Green Street. I moved here last week.","translation_ar":"نعم، أسكن في شارع غرين. انتقلت إلى هنا الأسبوع الماضي.","start_ms":null,"end_ms":null},{"speaker":"Anna","text":"Oh, really? I live on that street too!","translation_ar":"حقًا؟ أنا أسكن في الشارع نفسه أيضًا!","start_ms":null,"end_ms":null},{"speaker":"Daniel","text":"Really? That is funny. Maybe we are neighbors.","translation_ar":"حقًا؟ هذا طريف. ربما نحن جيران.","start_ms":null,"end_ms":null},{"speaker":"Anna","text":"Maybe! My home is next to a small bookshop.","translation_ar":"ربما! منزلي بجانب مكتبة صغيرة لبيع الكتب.","start_ms":null,"end_ms":null},{"speaker":"Daniel","text":"I know that bookshop. It has a blue door.","translation_ar":"أعرف تلك المكتبة. بابها أزرق.","start_ms":null,"end_ms":null},{"speaker":"Anna","text":"Yes, that's the one. Do you like books?","translation_ar":"نعم، هي نفسها. هل تحب الكتب؟","start_ms":null,"end_ms":null},{"speaker":"Daniel","text":"I do. I read short stories before I go to bed.","translation_ar":"نعم، أقرأ قصصًا قصيرة قبل النوم.","start_ms":null,"end_ms":null},{"speaker":"Anna","text":"Me too. I also listen to music in the evening.","translation_ar":"وأنا أيضًا. وأستمع إلى الموسيقى في المساء.","start_ms":null,"end_ms":null},{"speaker":"Daniel","text":"What kind of music do you like?","translation_ar":"ما نوع الموسيقى الذي تحبينه؟","start_ms":null,"end_ms":null},{"speaker":"Anna","text":"I like quiet music. What about you?","translation_ar":"أحب الموسيقى الهادئة. وماذا عنك؟","start_ms":null,"end_ms":null},{"speaker":"Daniel","text":"I like jazz, but sometimes I listen to pop music.","translation_ar":"أحب الجاز، لكنني أستمع إلى البوب أحيانًا.","start_ms":null,"end_ms":null},{"speaker":"Anna","text":"That's nice. Oh, is your coffee coming?","translation_ar":"جميل. هل ستصل قهوتك الآن؟","start_ms":null,"end_ms":null},{"speaker":"Daniel","text":"Not yet. I want a small coffee with milk.","translation_ar":"ليس بعد. أريد قهوة صغيرة بالحليب.","start_ms":null,"end_ms":null},{"speaker":"Anna","text":"Good choice. I usually have tea, but today I want coffee.","translation_ar":"اختيار جيد. عادةً أشرب الشاي، لكنني أريد القهوة اليوم.","start_ms":null,"end_ms":null},{"speaker":"Daniel","text":"Do you come to this café every day?","translation_ar":"هل تأتين إلى هذا المقهى كل يوم؟","start_ms":null,"end_ms":null},{"speaker":"Anna","text":"Not every day. I come on Tuesday and Friday.","translation_ar":"ليس كل يوم. آتي يومي الثلاثاء والجمعة.","start_ms":null,"end_ms":null},{"speaker":"Daniel","text":"Why Tuesday and Friday? Are those your days off?","translation_ar":"لماذا الثلاثاء والجمعة؟ هل هما يومَا إجازتك؟","start_ms":null,"end_ms":null},{"speaker":"Anna","text":"No. I work at the library near the park.","translation_ar":"لا. أعمل في المكتبة القريبة من الحديقة.","start_ms":null,"end_ms":null},{"speaker":"Daniel","text":"A library? That sounds great! Do you like your job?","translation_ar":"مكتبة؟ هذا رائع! هل تحبين عملك؟","start_ms":null,"end_ms":null},{"speaker":"Anna","text":"Yes, I love it. I meet many interesting people.","translation_ar":"نعم، أحبه كثيرًا. أقابل أشخاصًا ممتعين.","start_ms":null,"end_ms":null},{"speaker":"Daniel","text":"I work at a small school. I'm an English teacher.","translation_ar":"أعمل في مدرسة صغيرة. أنا معلم لغة إنجليزية.","start_ms":null,"end_ms":null},{"speaker":"Anna","text":"An English teacher! Do your students like speaking English?","translation_ar":"معلم إنجليزية! هل يحب طلابك التحدث بالإنجليزية؟","start_ms":null,"end_ms":null},{"speaker":"Daniel","text":"Some students love it. Other students feel shy at first.","translation_ar":"بعضهم يحبها. وآخرون يشعرون بالخجل في البداية.","start_ms":null,"end_ms":null},{"speaker":"Anna","text":"I understand. I feel shy when I speak Spanish.","translation_ar":"أفهم ذلك. أشعر بالخجل عندما أتحدث بالإسبانية.","start_ms":null,"end_ms":null},{"speaker":"Daniel","text":"You speak Spanish? I want to learn Spanish too.","translation_ar":"تتحدثين الإسبانية؟ أريد تعلمها أيضًا.","start_ms":null,"end_ms":null},{"speaker":"Anna","text":"Just a little! I know simple words and some questions.","translation_ar":"قليلًا فقط! أعرف كلمات بسيطة وبعض الأسئلة.","start_ms":null,"end_ms":null},{"speaker":"Daniel","text":"Maybe we can practice together one day.","translation_ar":"ربما نستطيع التدرب معًا يومًا ما.","start_ms":null,"end_ms":null},{"speaker":"Anna","text":"That sounds fun. We can learn something new every week.","translation_ar":"فكرة ممتعة. يمكننا تعلم شيء جديد كل أسبوع.","start_ms":null,"end_ms":null},{"speaker":"Daniel","text":"Great idea. By the way, where is the park?","translation_ar":"فكرة رائعة. بالمناسبة، أين الحديقة؟","start_ms":null,"end_ms":null},{"speaker":"Anna","text":"It's easy. Go straight, then turn left at the bakery.","translation_ar":"الأمر سهل. امشِ مستقيمًا، ثم انعطف يسارًا عند المخبز.","start_ms":null,"end_ms":null},{"speaker":"Daniel","text":"Go straight and turn left. Is it far from here?","translation_ar":"أمشي مستقيمًا ثم يسارًا. هل هي بعيدة عن هنا؟","start_ms":null,"end_ms":null},{"speaker":"Anna","text":"No, only five minutes on foot. The trees are beautiful.","translation_ar":"لا، خمس دقائق سيرًا على الأقدام. الأشجار جميلة.","start_ms":null,"end_ms":null},{"speaker":"Daniel","text":"I like walking. I usually walk after dinner.","translation_ar":"أحب المشي. عادةً أمشي بعد العشاء.","start_ms":null,"end_ms":null},{"speaker":"Anna","text":"I walk in the morning. I like the fresh air.","translation_ar":"أنا أمشي صباحًا. أحب الهواء النقي.","start_ms":null,"end_ms":null},{"speaker":"Daniel","text":"What time do you start work at the library?","translation_ar":"في أي ساعة تبدئين العمل في المكتبة؟","start_ms":null,"end_ms":null},{"speaker":"Anna","text":"At nine. I leave home at eight thirty.","translation_ar":"في التاسعة. أغادر المنزل في الثامنة والنصف.","start_ms":null,"end_ms":null},{"speaker":"Daniel","text":"That's a good time. My school starts at eight.","translation_ar":"وقت جيد. تبدأ مدرستي في الثامنة.","start_ms":null,"end_ms":null},{"speaker":"Anna","text":"Eight? That's early! Do you eat breakfast at home?","translation_ar":"الثامنة؟ هذا مبكر! هل تتناول الفطور في البيت؟","start_ms":null,"end_ms":null},{"speaker":"Daniel","text":"Yes, I have eggs and bread. And you?","translation_ar":"نعم، آكل البيض والخبز. وأنت؟","start_ms":null,"end_ms":null},{"speaker":"Anna","text":"I have fruit and yogurt. Sometimes I eat toast.","translation_ar":"أتناول الفاكهة والزبادي. وأحيانًا آكل الخبز المحمص.","start_ms":null,"end_ms":null},{"speaker":"Daniel","text":"Now I'm hungry. Maybe I need a sandwich too.","translation_ar":"أشعر بالجوع الآن. ربما أحتاج إلى شطيرة أيضًا.","start_ms":null,"end_ms":null},{"speaker":"Anna","text":"Ha! The sandwiches here are good. I like the cheese one.","translation_ar":"هاها! الشطائر هنا لذيذة. أحب شطيرة الجبن.","start_ms":null,"end_ms":null},{"speaker":"Daniel","text":"Okay, I'll try it. Thank you for the idea.","translation_ar":"حسنًا، سأجربها. شكرًا على الاقتراح.","start_ms":null,"end_ms":null},{"speaker":"Anna","text":"You're welcome. Look, your coffee is here now.","translation_ar":"على الرحب والسعة. انظر، لقد وصلت قهوتك.","start_ms":null,"end_ms":null},{"speaker":"Daniel","text":"Finally! It smells nice. Would you like to sit longer?","translation_ar":"أخيرًا! رائحتها جميلة. هل تودين الجلوس قليلًا أكثر؟","start_ms":null,"end_ms":null},{"speaker":"Anna","text":"I'd love to, but I need to go to work soon.","translation_ar":"أود ذلك، لكن عليّ الذهاب إلى العمل قريبًا.","start_ms":null,"end_ms":null},{"speaker":"Daniel","text":"No problem. Maybe we can meet here on Friday?","translation_ar":"لا بأس. ربما نلتقي هنا يوم الجمعة؟","start_ms":null,"end_ms":null},{"speaker":"Anna","text":"Friday is good for me. How about ten o'clock?","translation_ar":"الجمعة يناسبني. ماذا عن الساعة العاشرة؟","start_ms":null,"end_ms":null},{"speaker":"Daniel","text":"Ten o'clock sounds perfect. We can talk about our week.","translation_ar":"العاشرة ممتازة. يمكننا التحدث عن أسبوعنا.","start_ms":null,"end_ms":null},{"speaker":"Anna","text":"And we can practice a little Spanish, if you like.","translation_ar":"ويمكننا التدرب قليلًا على الإسبانية إن أردت.","start_ms":null,"end_ms":null},{"speaker":"Daniel","text":"Yes, please. But you may need to help me a lot!","translation_ar":"نعم من فضلك. لكن ربما تحتاجين إلى مساعدتي كثيرًا!","start_ms":null,"end_ms":null},{"speaker":"Anna","text":"That's okay. We can make mistakes and learn together.","translation_ar":"لا مشكلة. يمكننا أن نخطئ ونتعلم معًا.","start_ms":null,"end_ms":null},{"speaker":"Daniel","text":"I like that. I'm happy I sat here today.","translation_ar":"أحب ذلك. أنا سعيد لأنني جلست هنا اليوم.","start_ms":null,"end_ms":null},{"speaker":"Anna","text":"Me too, Daniel. Welcome to the neighborhood!","translation_ar":"وأنا أيضًا يا دانيال. أهلًا بك في الحي!","start_ms":null,"end_ms":null},{"speaker":"Daniel","text":"Thank you, Anna. See you on Friday.","translation_ar":"شكرًا يا آنا. أراك الجمعة.","start_ms":null,"end_ms":null},{"speaker":"Anna","text":"See you on Friday. Enjoy your coffee and your sandwich!","translation_ar":"أراك الجمعة. استمتع بقهوتك وشطيرتك!","start_ms":null,"end_ms":null}],"vocabulary":[{"word":"neighbor","meaning_ar":"جار"},{"word":"bookshop","meaning_ar":"مكتبة كتب"},{"word":"library","meaning_ar":"مكتبة عامة"},{"word":"teacher","meaning_ar":"معلم"},{"word":"shy","meaning_ar":"خجول"},{"word":"bakery","meaning_ar":"مخبز"},{"word":"breakfast","meaning_ar":"فطور"},{"word":"sandwich","meaning_ar":"شطيرة"},{"word":"practice","meaning_ar":"يتدرب"},{"word":"neighborhood","meaning_ar":"حيّ"}],"questions":[{"question":"Where did Daniel move?","options":["Green Street","Blue Road","Park Avenue"],"answer":0},{"question":"Where does Anna work?","options":["At a hospital","At a library","At a school"],"answer":1},{"question":"What does Daniel teach?","options":["English","Music","Maths"],"answer":0},{"question":"When will they meet again?","options":["Sunday","Wednesday","Friday"],"answer":2},{"question":"Which language do they want to practice?","options":["French","Spanish","Japanese"],"answer":1}]}
+{
+  "schema": 1,
+  "id": "en-a1-pod-001",
+  "language": "en",
+  "level": "A1",
+  "title": "What Can You Do? — VOA Lesson 20",
+  "title_ar": "ماذا تستطيع أن تفعل؟ — درس VOA 20",
+  "hosts": [
+    "Anna",
+    "Pete"
+  ],
+  "additional_speakers": [
+    "Marsha"
+  ],
+  "status": "published",
+  "recording_kind": "human",
+  "voice_rights_verified": true,
+  "audio_url": "https://voa-audio.voanews.eu/vle/2016/06/29/8225db0f-179b-453f-92bb-50f548175c42_hq.mp3?download=1",
+  "alternate_audio_url": "https://voa-audio.voanews.eu/vle/2016/06/29/8225db0f-179b-453f-92bb-50f548175c42.mp3?download=1",
+  "duration_ms": 219000,
+  "sync_status": "awaiting_verified_cues",
+  "source_name": "VOA Learning English",
+  "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-lesson-20-what-can-you-do/3384429.html",
+  "license_url": "https://learningenglish.voanews.com/p/6861.html",
+  "attribution": "Original conversation and audio: VOA Learning English — Lesson 20: What Can You Do? Published by Voice of America. VOA Learning English original content is in the public domain.",
+  "dialogue": [
+    {
+      "speaker": "Anna",
+      "text": "Hi, there! Washington, D.C. is a great place to work. Many people here work in government and politics. But there are many other jobs. You can work at a hospital; a university. You can work in a coffee shop. Wait a minute, I think I see a friend of mine. Pete? Is that you?",
+      "translation_ar": "مرحبًا! واشنطن العاصمة مكان رائع للعمل. يعمل كثير من الناس هنا في الحكومة والسياسة، لكن توجد وظائف أخرى كثيرة. يمكنك العمل في مستشفى أو جامعة أو مقهى. لحظة، أظن أنني رأيت صديقًا لي. بيت، هل هذا أنت؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Hi, Anna.",
+      "translation_ar": "مرحبًا يا آنا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "You look different. Your beard … is really big.",
+      "translation_ar": "تبدو مختلفًا. لحيتك أصبحت كبيرة جدًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "You don’t like it, do you?",
+      "translation_ar": "أنت لا تعجبك، أليس كذلك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "No, no. You just look … different. (To server) Thank you. So, what’s wrong? You look sad.",
+      "translation_ar": "لا، لا، أنت فقط تبدو مختلفًا. (للنادل) شكرًا لك. ما الأمر؟ تبدو حزينًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "I don’t have a job.",
+      "translation_ar": "ليس لدي عمل.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Sorry, I can’t hear you.",
+      "translation_ar": "عذرًا، لا أستطيع سماعك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "I do not have a job!",
+      "translation_ar": "ليس لدي عمل!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Oh. I’m sorry to hear that, Pete.",
+      "translation_ar": "آه، يؤسفني سماع ذلك يا بيت.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "I don’t have a skill.",
+      "translation_ar": "ليس لدي مهارة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Everyone has a skill. You need to find yours.",
+      "translation_ar": "كل شخص لديه مهارة، وعليك أن تكتشف مهارتك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "I don’t know, Anna.",
+      "translation_ar": "لا أعرف يا آنا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Pete, I am good at asking questions. Let me ask you some.",
+      "translation_ar": "يا بيت، أنا بارعة في طرح الأسئلة. دعني أسألك بعضًا منها.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Really, Anna? Can you help me?",
+      "translation_ar": "حقًا يا آنا؟ هل تستطيعين مساعدتي؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Yes, I can. Let me help.",
+      "translation_ar": "نعم، أستطيع. دعني أساعدك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Sure, Anna. Maybe you can help.",
+      "translation_ar": "بالتأكيد يا آنا. ربما تستطيعين مساعدتي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Can you write code?",
+      "translation_ar": "هل تستطيع كتابة الشفرة البرمجية؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Sure, c-o-l-d. How is this going to help?",
+      "translation_ar": "بالتأكيد، C-O-L-D. كيف سيساعدني هذا؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "No, not “cold.” Code; you know, for making phone apps, or websites. You can make tons of money writing code.",
+      "translation_ar": "لا، ليس «كولد»، بل الشفرة البرمجية التي نستخدمها لإنشاء تطبيقات الهاتف أو مواقع الإنترنت. يمكنك كسب أموال كثيرة من البرمجة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Tons of money? But I can’t code.",
+      "translation_ar": "أموال كثيرة؟ لكنني لا أستطيع البرمجة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Next question. Can you drive?",
+      "translation_ar": "السؤال التالي: هل تستطيع القيادة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Do you mean drive a race car? It’s really hard to be a race car driver. First, you need a race car ...",
+      "translation_ar": "هل تقصدين قيادة سيارة سباق؟ من الصعب جدًا أن تكون سائق سباقات؛ أولًا تحتاج إلى سيارة سباق...",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "No, I mean drive a taxi or drive a bus.",
+      "translation_ar": "لا، أقصد قيادة سيارة أجرة أو حافلة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "No, I always fall asleep when I drive.",
+      "translation_ar": "لا، فأنا دائمًا أغفو عندما أقود.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Oh, that’s not good. Next question. Can you teach? You can be a teacher in a school.",
+      "translation_ar": "أوه، هذا ليس جيدًا. السؤال التالي: هل تستطيع التدريس؟ يمكنك أن تكون معلمًا في مدرسة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "No, I cannot teach.",
+      "translation_ar": "لا، لا أستطيع التدريس.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Can you cook? You can be a chef in a restaurant.",
+      "translation_ar": "هل تستطيع الطبخ؟ يمكنك أن تصبح طاهيًا في مطعم.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "No, I can’t code! I can’t teach! I can’t cook! Anna, I can’t do anything. This is sad. I’m gonna write about my feelings in my blog.",
+      "translation_ar": "لا، لا أستطيع البرمجة! ولا التدريس! ولا الطبخ! يا آنا، لا أستطيع فعل أي شيء. هذا محزن. سأكتب عن مشاعري في مدونتي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "You write a blog?",
+      "translation_ar": "هل تكتب مدونة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Yeah, I write a blog.",
+      "translation_ar": "نعم، أكتب مدونة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "How many followers do you have?",
+      "translation_ar": "كم عدد متابعيك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "I don’t know … 59,538.",
+      "translation_ar": "لا أعرف... 59,538.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Pete, that's a lot of followers! You can make money writing!",
+      "translation_ar": "يا بيت، هذا عدد كبير من المتابعين! يمكنك كسب المال من الكتابة!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Writing is easy. Everyone can write.",
+      "translation_ar": "الكتابة سهلة. الجميع يستطيع الكتابة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Not everyone can write well. You can be a writer!",
+      "translation_ar": "ليس الجميع يجيد الكتابة. يمكنك أن تصبح كاتبًا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "I can be a writer. I can be a writer! I can be a writer! Thanks, Anna.",
+      "translation_ar": "يمكنني أن أكون كاتبًا. يمكنني أن أكون كاتبًا! يمكنني أن أكون كاتبًا! شكرًا يا آنا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Marsha",
+      "text": "Hi, Pete. Hi, Anna.",
+      "translation_ar": "مرحبًا يا بيت، مرحبًا يا آنا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Hi, Marsha. Excuse me, I have to go.",
+      "translation_ar": "مرحبًا يا مارشا. عذرًا، يجب أن أذهب.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Marsha",
+      "text": "Where are you going?",
+      "translation_ar": "إلى أين تذهب؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "I’m going to be a writer!",
+      "translation_ar": "سأصبح كاتبًا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Marsha",
+      "text": "Good luck, Pete! (To Anna) He does know that it’s not easy to be a writer, doesn’t he?",
+      "translation_ar": "حظًا سعيدًا يا بيت! (لآنا) إنه يعرف أن العمل ككاتب ليس سهلًا، أليس كذلك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "There are many different jobs you can have in Washington, D.C. Pete wants to be a writer. I wish him luck. Lots of luck. Until next time!",
+      "translation_ar": "هناك وظائف مختلفة كثيرة يمكنك العمل بها في واشنطن العاصمة. يريد بيت أن يصبح كاتبًا. أتمنى له حظًا سعيدًا، بل حظًا وفيرًا. إلى اللقاء في المرة القادمة!",
+      "start_ms": null,
+      "end_ms": null
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "job",
+      "meaning_ar": "وظيفة"
+    },
+    {
+      "word": "skill",
+      "meaning_ar": "مهارة"
+    },
+    {
+      "word": "beard",
+      "meaning_ar": "لحية"
+    },
+    {
+      "word": "code",
+      "meaning_ar": "شفرة برمجية"
+    },
+    {
+      "word": "website",
+      "meaning_ar": "موقع إلكتروني"
+    },
+    {
+      "word": "drive",
+      "meaning_ar": "يقود"
+    },
+    {
+      "word": "teach",
+      "meaning_ar": "يدرّس"
+    },
+    {
+      "word": "chef",
+      "meaning_ar": "طاهٍ"
+    },
+    {
+      "word": "blog",
+      "meaning_ar": "مدوّنة"
+    },
+    {
+      "word": "followers",
+      "meaning_ar": "متابعون"
+    },
+    {
+      "word": "writer",
+      "meaning_ar": "كاتب"
+    },
+    {
+      "word": "good luck",
+      "meaning_ar": "حظًا سعيدًا"
+    }
+  ],
+  "questions": [
+    {
+      "question": "Where does Anna meet Pete?",
+      "options": [
+        "At a coffee shop",
+        "At a university",
+        "At a hospital"
+      ],
+      "answer": 0
+    },
+    {
+      "question": "Why is Pete sad?",
+      "options": [
+        "He lost his keys",
+        "He doesn't have a job",
+        "He cannot find the café"
+      ],
+      "answer": 1
+    },
+    {
+      "question": "Which activity does Pete say he cannot do?",
+      "options": [
+        "Write a blog",
+        "Write computer code",
+        "Have followers"
+      ],
+      "answer": 1
+    },
+    {
+      "question": "About how many blog followers does Pete have?",
+      "options": [
+        "59,538",
+        "500",
+        "95"
+      ],
+      "answer": 0
+    },
+    {
+      "question": "What job does Anna suggest at the end?",
+      "options": [
+        "Writer",
+        "Bus driver",
+        "Chef"
+      ],
+      "answer": 0
+    }
+  ]
+}
