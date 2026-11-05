@@ -888,9 +888,8 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
     final translation = sourceIsArabic
         ? line.translationEn ?? ''
         : line.translationAr;
-    return AnimatedContainer(
+    return Container(
       key: _anchors[i],
-      duration: const Duration(milliseconds: 180),
       margin: const EdgeInsets.only(bottom: 3),
       padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 14),
       decoration: BoxDecoration(
@@ -900,9 +899,11 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
         border: Border(
           bottom: BorderSide(color: scheme.outlineVariant
               .withValues(alpha: .35)),
-          left: current ? const BorderSide(
-              color: Color(0xFF41B985), width: 4)
-              : BorderSide.none,
+          left: BorderSide(
+              color: current
+                  ? const Color(0xFF41B985)
+                  : Colors.transparent,
+              width: 4),
         ),
         borderRadius: BorderRadius.circular(9),
       ),
@@ -930,15 +931,8 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                 Row(children: [
                   Text(line.speaker,
                     style: TextStyle(
-                      color: current
-                          ? const Color(0xFF41B985)
-                          : scheme.onSurfaceVariant,
+                      color: scheme.onSurfaceVariant,
                       fontWeight: FontWeight.w800, fontSize: 12)),
-                  if (current) ...[
-                    const SizedBox(width: 7),
-                    const Icon(Icons.graphic_eq_rounded,
-                      color: Color(0xFF41B985), size: 17),
-                  ],
                 ]),
                 const SizedBox(height: 5),
                 Text(
@@ -950,7 +944,7 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                     height: 1.6,
                     // Theme foreground stays readable on every surface.
                     color: scheme.onSurface,
-                    fontWeight: current ? FontWeight.w700 : FontWeight.w500),
+                    fontWeight: FontWeight.w500),
                 ),
                 if (_showArabic && translation.isNotEmpty) ...[
                   const SizedBox(height: 7),
