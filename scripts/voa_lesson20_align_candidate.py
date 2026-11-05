@@ -21,14 +21,15 @@ import urllib.request
 
 from urllib.parse import urlparse
 
-# These recordings were explicitly selected for WorldVoice English A1.
-APPROVED_EPISODES = frozenset({
-    "en-a1-voa-020", "en-a1-voa-030", "en-a1-voa-047",
-})
+# Only known original, attributed VOA English A1 recordings.
+# Results are review candidates; source identity alone never approves timing.
+APPROVED_EPISODES = frozenset(
+    f"en-a1-voa-{number:03d}" for number in range(1, 13)
+) | frozenset({"en-a1-voa-020", "en-a1-voa-030", "en-a1-voa-047"})
 
 
 def approved_source(record: dict) -> str:
-    """Restrict ASR to the three credited original VOA recordings."""
+    """Restrict ASR to the fifteen credited original VOA recordings."""
     if (record.get("id") not in APPROVED_EPISODES or
             record.get("language") != "en" or
             record.get("recording_kind") != "human" or
@@ -77,7 +78,7 @@ def main() -> int:
 
     record = json.loads(args.episode.read_text(encoding="utf-8"))
     source = approved_source(record)
-    if len(record["dialogue"]) < 20:
+    if len(record["dialogue"]) < 5:
         raise ValueError("Unexpectedly short VOA transcript")
     expected_duration = int(record["duration_ms"])
     audio_file = args.audio or Path(f"/tmp/{record['id']}_original.mp3")
@@ -92,7 +93,10 @@ def main() -> int:
             if resp.status != 200:
                 raise RuntimeError(f"VOA MP3 returned {resp.status}")
             audio_file.write_bytes(resp.read())
-    if audio_file.stat().st_size < 800000:
+    # A 29-second 64-kbps original conversation can legitimately be
+    # ~230 KB; a single 800 KB cutoff incorrectly rejects lesson 1.
+    expected_min_bytes = max(30000, int(expected_duration / 1000 * 5500))
+    if audio_file.stat().st_size < expected_min_bytes:
         raise ValueError("Downloaded MP3 was suspiciously small")
     duration = read_duration(audio_file)
     if abs(duration - expected_duration) > 12000:
@@ -112,7 +116,12 @@ def main() -> int:
                     round(float(word["start"]) * 1000),
                     round(float(word["end"]) * 1000),
                 ))
-    if len(recognised) < 120:
+    # Short A1 conversations contain fewer than 120 words. Reject an
+    # empty/broken ASR transcription but keep review-only short candidates.
+    script_token_count = sum(
+        len(tokens(line["text"])) for line in record["dialogue"]
+    )
+    if len(recognised) < max(8, min(120, script_token_count // 3)):
         raise ValueError("Insufficient word transcription for usable alignment")
 
     expected = []

@@ -145,6 +145,29 @@ void main() {
     expect(lesson.isPlayable, isFalse);
   });
 
+  test('short VOA lessons accept measured cues without inventing them', () {
+    final lesson = AcademyPodcastEpisode(
+      id: 'en-a1-voa-short', level: 'A1',
+      title: 'Short conversation', titleAr: 'محادثة قصيرة',
+      status: 'published_audio', recordingKind: 'human',
+      rightsConfirmed: true, durationMs: 29000,
+      audioUrl: 'https://voa-audio.voanews.eu/vle/test.mp3',
+      hosts: const ['Anna', 'Pete'],
+      dialogue: const [
+        PodcastDialogueLine(speaker: 'Pete', text: 'Hello',
+          translationAr: 'مرحبًا', startMs: 500, endMs: 7000),
+        PodcastDialogueLine(speaker: 'Anna', text: 'Nice to meet you',
+          translationAr: 'تشرفت بلقائك', startMs: 8000, endMs: 28000),
+      ],
+      vocabulary: const [], questions: const [],
+    );
+    expect(lesson.canStream, isTrue);
+    expect(lesson.isPlayable, isTrue);
+    expect(lesson.lineAt(const Duration(seconds: 8)), 1);
+    // Until their cues are reviewed, the existing 001–012 files still
+    // have null start_ms/end_ms and will not pretend to follow the audio.
+  });
+
   test('sentence stays selected through silence and advances at next voice',
       () {
     final episode = AcademyPodcastEpisode(

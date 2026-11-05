@@ -189,7 +189,9 @@ class AcademyPodcastEpisode {
   /// Older original WorldVoice scripts still use two fixed hosts; VOA
   /// licensed lessons may also include named incidental performers.
   bool get isPlayable {
-    if (!canStream || durationMs! < 190000 || durationMs! > 315000) {
+    // Actual VOA conversation clips range from ~29 seconds upward. Their
+    // short runtime must not disable read-along once cues are reviewed.
+    if (!canStream || durationMs! < 15000 || durationMs! > 1200000) {
       return false;
     }
     final allowedSpeakers = <String>{...hosts, ...otherSpeakers};

@@ -21,7 +21,7 @@ def episode(ident="en-a1-voa-030", url=None):
 
 class VoaApprovedSourceTests(unittest.TestCase):
     def test_approved_lessons(self):
-        for number in ("020", "030", "047"):
+        for number in [*(f"{i:03d}" for i in range(1, 13)), "020", "030", "047"]:
             with self.subTest(number=number):
                 data = episode(f"en-a1-voa-{number}")
                 self.assertEqual(module.approved_source(data), data["audio_url"])
@@ -29,6 +29,7 @@ class VoaApprovedSourceTests(unittest.TestCase):
     def test_external_host_or_episode_rejected(self):
         for data in (
             episode(ident="en-a1-voa-999"),
+            episode(ident="en-a1-voa-013"),
             episode(url="https://example.com/vle/fake.mp3"),
             episode(url="https://voa-audio.voanews.eu.evil.com/vle/fake.mp3"),
             episode(url="http://voa-audio.voanews.eu/vle/fake.mp3"),

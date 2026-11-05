@@ -5,7 +5,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'assets/podcasts/en/A1/en-a1-voa-020.json'
+      - 'assets/podcasts/en/A1/en-a1-voa-0*.json'
       - 'assets/podcasts/en/A1/en-a1-voa-030.json'
       - 'assets/podcasts/en/A1/en-a1-voa-047.json'
       - 'scripts/voa_lesson20_align_candidate.py'
@@ -22,7 +22,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        lesson: ['020', '030', '047']
+        lesson: ['001', '002', '003', '004', '005', '006',
+                 '007', '008', '009', '010', '011', '012',
+                 '020', '030', '047']
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

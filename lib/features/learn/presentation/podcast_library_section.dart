@@ -62,18 +62,22 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
                 color: Color(0xFFBCE2CE), size: 28),
           ]),
           const SizedBox(height: 15),
-          Text(ar ? 'صوتان، حوار واحد، لغة جديدة'
-                  : 'Two voices. One new language.',
+          Text(ar ? (voaPilot
+                      ? 'أصوات VOA الأصلية · تعلّم الإنجليزية'
+                      : 'صوتان، حوار واحد، لغة جديدة')
+                  : (voaPilot
+                      ? 'Original VOA voices · Learn English'
+                      : 'Two voices. One new language'),
               style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w900, fontSize: 21)),
           const SizedBox(height: 6),
           Text(
             ar ? (voaPilot
-                ? 'استمع إلى آنا وبيت من VOA واقرأ الحوار الأصلي مع الصوت.'
+                ? 'استمع إلى آنا وضيوفها في التسجيلات الأصلية من VOA، واقرأ المحادثات المطابقة.'
                 : 'محادثات تعليمية للاستماع والقراءة في وقت واحد.')
                : (voaPilot
-                ? 'Hear Anna and Pete in the original VOA conversation.'
+                ? 'Hear Anna and the original VOA cast in their authentic lessons.'
                 : 'Read and listen to language conversations.'),
             style: const TextStyle(
                 color: Color(0xFFE0EEE5), height: 1.5, fontSize: 13),
@@ -83,13 +87,13 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
             _hostPill('ANNA', Icons.face_3_rounded,
                 const Color(0xFFF2BDD6)),
             const SizedBox(width: 9),
-            _hostPill(voaPilot ? 'PETE' : 'DANIEL', Icons.face_rounded,
+            _hostPill(voaPilot ? 'VOA CAST' : 'DANIEL', Icons.face_rounded,
                 const Color(0xFFC1DBFF)),
             const Spacer(),
             const Icon(Icons.schedule_rounded,
                 color: Color(0xFFF1D98F), size: 16),
             const SizedBox(width: 4),
-            Text(voaPilot ? '03–04 min' : '≈ 05:00',
+            Text(voaPilot ? '15 VOA' : '≈ 05:00',
                 style: TextStyle(color: Color(0xFFF1D98F),
                     fontWeight: FontWeight.w800, fontSize: 13)),
           ]),
