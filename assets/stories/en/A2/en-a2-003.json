@@ -1,0 +1,430 @@
+{
+  "language": "en",
+  "level": "A2",
+  "story": {
+    "id": "en-a2-003",
+    "title": "The Train to Willow Town",
+    "title_ar": "القطار إلى بلدة الصفصاف",
+    "moral_ar": "السفر يصبح أسهل عندما نبقى هادئين ونطرح الأسئلة ونساعد الآخرين.",
+    "art_style": "Friendly travel illustration in detailed watercolor with consistent characters, clear perspective and soft lighting, no text.",
+    "cover_image_prompt": "Two siblings with colorful backpacks beside a blue passenger train at a cozy provincial station, detailed watercolor no text.",
+    "character_sheet": [
+      {
+        "name": "Lena",
+        "description": "12-year-old girl with olive skin, shoulder-length black hair, lilac coat, dark jeans and blue backpack."
+      },
+      {
+        "name": "Felix",
+        "description": "14-year-old boy with fair skin and sandy hair, green jacket, navy trousers and brown backpack."
+      },
+      {
+        "name": "Aunt Ruth",
+        "description": "Friendly middle-aged woman with short copper hair, cream coat and red scarf."
+      }
+    ],
+    "chapters": [
+      {
+        "chapter": 1,
+        "title": "A Change of Platform",
+        "title_ar": "تغيير الرصيف",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image": "assets/stories/en/A2/illustrations/en-a2-003_scene_01.svg",
+            "animation": "pan_right",
+            "image_prompt": "Lena and Felix enter a train station with tickets and travel bags, big departure board, morning rain outside",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Lena and her brother Felix are going to visit their aunt in Willow Town. They arrive at the busy **station** with two small bags and a printed **ticket**. Their **journey** should take only an hour, so they expect to have lunch with Aunt Ruth."
+                  }
+                ],
+                "translation_ar": "تذهب لينا وأخوها فيليكس لزيارة عمتهما في بلدة الصفصاف. يصلان إلى المحطة المزدحمة ومعهما حقيبتان صغيرتان وتذكرة مطبوعة. يفترض أن تستغرق رحلتهما ساعة فقط، لذا يتوقعان تناول الغداء مع العمة روث."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Felix checks the big **departure** board above the entrance. It shows a different **platform** from the one printed on their tickets."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Perhaps the **schedule** has changed, he tells Lena. She decides to ask a station employee before they walk anywhere."
+                  }
+                ],
+                "translation_ar": "يفحص فيليكس لوحة المغادرة الكبيرة فوق المدخل. تعرض رصيفًا مختلفًا عن المطبوع على التذكرة. يقول لينا إن الجدول ربما تغير. تقرر سؤال موظف في المحطة قبل التوجه إلى أي مكان."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image": "assets/stories/en/A2/illustrations/en-a2-003_scene_02.svg",
+            "animation": "fade_in",
+            "image_prompt": "Two children help an elderly traveler find the correct platform next to a blue passenger train",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The employee explains that heavy **rainfall** has delayed several trains. Their train is now leaving from the other side of the building. Lena checks the **direction** on a large sign."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We still have ten **minutes**, she says, and they begin to walk."
+                  }
+                ],
+                "translation_ar": "يوضح الموظف أن الأمطار الغزيرة أخرت عدة قطارات. سيغادر قطارهما الآن من الجانب الآخر للمبنى. تفحص لينا الاتجاه على لافتة كبيرة. تقول إن أمامهما عشر دقائق، ويبدآن المشي."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Near the stairs, they notice an elderly visitor looking at a confusing **map**. He asks which train goes to Willow Town. Felix reads the **information** on the board and offers to help."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "We have the same **destination**, he explains, so you can follow us."
+                  }
+                ],
+                "translation_ar": "قرب الدرج يلاحظان زائرًا مسنًا ينظر إلى خريطة مربكة. يسأل عن القطار المتجه إلى بلدة الصفصاف. يقرأ فيليكس المعلومات على اللوحة ويعرض المساعدة. يوضح أن لديهما الوجهة نفسها، وبإمكانه أن يرافقهما."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The three travelers reach their train just before the doors close. Lena finds their **seats** and puts the bags on the **shelf** above them. The elderly man looks grateful."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "It was no **trouble**, Lena says when he thanks them for their kindness."
+                  }
+                ],
+                "translation_ar": "يصل المسافرون الثلاثة إلى القطار قبل إغلاق الأبواب بقليل. تجد لينا مقاعدهما وتضع الحقائب على الرف فوقهما. يبدو الرجل المسن ممتنًا. تقول لينا إن المساعدة لم تكن مشكلة عندما يشكرهما على لطفهما."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "chapter": 2,
+        "title": "A Journey Worth Remembering",
+        "title_ar": "رحلة تستحق التذكر",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image": "assets/stories/en/A2/illustrations/en-a2-003_scene_03.svg",
+            "animation": "zoom_in_slow",
+            "image_prompt": "Inside a bright passenger train window the countryside of farms and rivers passes, children with elderly traveler",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "During the ride, the **countryside** passes slowly outside the window. Felix sees fields, small farms, and a wide river. The old traveler shares a funny **memory** about his first train trip. Lena listens with **interest** while she drinks warm tea from a bottle."
+                  }
+                ],
+                "translation_ar": "أثناء الرحلة يمر الريف ببطء خارج النافذة. يرى فيليكس حقولًا ومزارع صغيرة ونهرًا واسعًا. يشارك المسافر المسن ذكرى طريفة عن أول رحلة له بالقطار. تستمع لينا باهتمام وهي تشرب الشاي الدافئ من زجاجة."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "A message from Aunt Ruth arrives on Lena's phone. It says that she will **collect** them near the station café. Lena sends a quick **reply** and checks the weather **forecast**."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "It might rain again, she says, so we should take our umbrellas."
+                  }
+                ],
+                "translation_ar": "تصل رسالة من العمة روث إلى هاتف لينا. تقول إنها ستستقبلهما قرب مقهى المحطة. ترسل لينا ردًا سريعًا وتفحص توقعات الطقس. تقول إن المطر قد يهطل مجددًا، لذا عليهما أخذ المظلات."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image": "assets/stories/en/A2/illustrations/en-a2-003_scene_04.svg",
+            "animation": "parallax",
+            "image_prompt": "Aunt Ruth welcomes Lena and Felix at Willow Town railway station cafe after their journey",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "When the train arrives, Felix notices that the elderly man cannot carry his heavy **suitcase**. He offers to **carry** it to the exit. The man accepts with a thankful smile."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Please be **careful** on the steps, Felix says as they leave the train."
+                  }
+                ],
+                "translation_ar": "عندما يصل القطار يلاحظ فيليكس أن الرجل المسن لا يستطيع حمل حقيبته الثقيلة. يعرض حملها إلى المخرج. يقبل الرجل بابتسامة امتنان. يقول فيليكس إن عليه أن ينتبه للدرج عند مغادرتهما القطار."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Outside, Aunt Ruth waves beside the café. She gives them a warm **welcome** and asks about their **adventure**. Felix tells her about the changed platform and the helpful station employee."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Your **patience** made the trip easier, their aunt says, and Lena agrees."
+                  }
+                ],
+                "translation_ar": "في الخارج تلوح العمة روث بجانب المقهى. ترحب بهما بحرارة وتسأل عن مغامرتهما. يخبرها فيليكس عن تغيير الرصيف وموظف المحطة المساعد. تقول عمتهما إن صبرهما جعل الرحلة أسهل، وتوافق لينا."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "At lunch, Lena thinks about the **unexpected** problems they faced. She feels proud that they stayed **calm** and asked questions instead of guessing."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "We made the right **decisions**, Felix says. They agree that helping another traveler was the best part of their day."
+                  }
+                ],
+                "translation_ar": "أثناء الغداء تفكر لينا في المشكلات غير المتوقعة التي واجهاها. تشعر بالفخر لأنهما ظلا هادئين وطرحا الأسئلة بدلًا من التخمين. يقول فيليكس إنهما اتخذا القرارات الصحيحة. ويتفقان على أن مساعدة المسافر الآخر كانت أجمل جزء من يومهما."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "vocabulary": [
+      {
+        "word": "station",
+        "meaning_ar": "محطة",
+        "example": "Lena and her brother Felix are going to visit their aunt in Willow Town. They arrive at the busy station with two small bags and a printed ticket. Their journey should take only an hour, so they expect to have lunch with Aunt Ruth."
+      },
+      {
+        "word": "ticket",
+        "meaning_ar": "تذكرة",
+        "example": "Lena and her brother Felix are going to visit their aunt in Willow Town. They arrive at the busy station with two small bags and a printed ticket. Their journey should take only an hour, so they expect to have lunch with Aunt Ruth."
+      },
+      {
+        "word": "journey",
+        "meaning_ar": "رحلة",
+        "example": "Lena and her brother Felix are going to visit their aunt in Willow Town. They arrive at the busy station with two small bags and a printed ticket. Their journey should take only an hour, so they expect to have lunch with Aunt Ruth."
+      },
+      {
+        "word": "departure",
+        "meaning_ar": "مغادرة",
+        "example": "Felix checks the big departure board above the entrance. It shows a different platform from the one printed on their tickets."
+      },
+      {
+        "word": "platform",
+        "meaning_ar": "رصيف",
+        "example": "Felix checks the big departure board above the entrance. It shows a different platform from the one printed on their tickets."
+      },
+      {
+        "word": "schedule",
+        "meaning_ar": "جدول",
+        "example": "Perhaps the schedule has changed, he tells Lena. She decides to ask a station employee before they walk anywhere."
+      },
+      {
+        "word": "rainfall",
+        "meaning_ar": "هطول المطر",
+        "example": "The employee explains that heavy rainfall has delayed several trains. Their train is now leaving from the other side of the building. Lena checks the direction on a large sign."
+      },
+      {
+        "word": "direction",
+        "meaning_ar": "اتجاه",
+        "example": "The employee explains that heavy rainfall has delayed several trains. Their train is now leaving from the other side of the building. Lena checks the direction on a large sign."
+      },
+      {
+        "word": "minutes",
+        "meaning_ar": "دقائق",
+        "example": "We still have ten minutes, she says, and they begin to walk."
+      },
+      {
+        "word": "map",
+        "meaning_ar": "خريطة",
+        "example": "Near the stairs, they notice an elderly visitor looking at a confusing map. He asks which train goes to Willow Town. Felix reads the information on the board and offers to help."
+      },
+      {
+        "word": "information",
+        "meaning_ar": "معلومات",
+        "example": "Near the stairs, they notice an elderly visitor looking at a confusing map. He asks which train goes to Willow Town. Felix reads the information on the board and offers to help."
+      },
+      {
+        "word": "destination",
+        "meaning_ar": "وجهة",
+        "example": "We have the same destination, he explains, so you can follow us."
+      },
+      {
+        "word": "seats",
+        "meaning_ar": "مقاعد",
+        "example": "The three travelers reach their train just before the doors close. Lena finds their seats and puts the bags on the shelf above them. The elderly man looks grateful."
+      },
+      {
+        "word": "shelf",
+        "meaning_ar": "رف",
+        "example": "The three travelers reach their train just before the doors close. Lena finds their seats and puts the bags on the shelf above them. The elderly man looks grateful."
+      },
+      {
+        "word": "trouble",
+        "meaning_ar": "مشكلة",
+        "example": "It was no trouble, Lena says when he thanks them for their kindness."
+      },
+      {
+        "word": "countryside",
+        "meaning_ar": "ريف",
+        "example": "During the ride, the countryside passes slowly outside the window. Felix sees fields, small farms, and a wide river. The old traveler shares a funny memory about his first train trip. Lena listens with interest while she drinks warm tea from a bottle."
+      },
+      {
+        "word": "memory",
+        "meaning_ar": "ذكرى",
+        "example": "During the ride, the countryside passes slowly outside the window. Felix sees fields, small farms, and a wide river. The old traveler shares a funny memory about his first train trip. Lena listens with interest while she drinks warm tea from a bottle."
+      },
+      {
+        "word": "interest",
+        "meaning_ar": "اهتمام",
+        "example": "During the ride, the countryside passes slowly outside the window. Felix sees fields, small farms, and a wide river. The old traveler shares a funny memory about his first train trip. Lena listens with interest while she drinks warm tea from a bottle."
+      },
+      {
+        "word": "collect",
+        "meaning_ar": "تستقبل",
+        "example": "A message from Aunt Ruth arrives on Lena's phone. It says that she will collect them near the station café. Lena sends a quick reply and checks the weather forecast."
+      },
+      {
+        "word": "reply",
+        "meaning_ar": "رد",
+        "example": "A message from Aunt Ruth arrives on Lena's phone. It says that she will collect them near the station café. Lena sends a quick reply and checks the weather forecast."
+      },
+      {
+        "word": "forecast",
+        "meaning_ar": "توقعات",
+        "example": "A message from Aunt Ruth arrives on Lena's phone. It says that she will collect them near the station café. Lena sends a quick reply and checks the weather forecast."
+      },
+      {
+        "word": "suitcase",
+        "meaning_ar": "حقيبة سفر",
+        "example": "When the train arrives, Felix notices that the elderly man cannot carry his heavy suitcase. He offers to carry it to the exit. The man accepts with a thankful smile."
+      },
+      {
+        "word": "carry",
+        "meaning_ar": "يحمل",
+        "example": "When the train arrives, Felix notices that the elderly man cannot carry his heavy suitcase. He offers to carry it to the exit. The man accepts with a thankful smile."
+      },
+      {
+        "word": "careful",
+        "meaning_ar": "حذر",
+        "example": "Please be careful on the steps, Felix says as they leave the train."
+      },
+      {
+        "word": "welcome",
+        "meaning_ar": "ترحيب",
+        "example": "Outside, Aunt Ruth waves beside the café. She gives them a warm welcome and asks about their adventure. Felix tells her about the changed platform and the helpful station employee."
+      },
+      {
+        "word": "adventure",
+        "meaning_ar": "مغامرة",
+        "example": "Outside, Aunt Ruth waves beside the café. She gives them a warm welcome and asks about their adventure. Felix tells her about the changed platform and the helpful station employee."
+      },
+      {
+        "word": "patience",
+        "meaning_ar": "صبر",
+        "example": "Your patience made the trip easier, their aunt says, and Lena agrees."
+      },
+      {
+        "word": "unexpected",
+        "meaning_ar": "غير متوقع",
+        "example": "At lunch, Lena thinks about the unexpected problems they faced. She feels proud that they stayed calm and asked questions instead of guessing."
+      },
+      {
+        "word": "calm",
+        "meaning_ar": "هادئ",
+        "example": "At lunch, Lena thinks about the unexpected problems they faced. She feels proud that they stayed calm and asked questions instead of guessing."
+      },
+      {
+        "word": "decisions",
+        "meaning_ar": "قرارات",
+        "example": "We made the right decisions, Felix says. They agree that helping another traveler was the best part of their day."
+      }
+    ],
+    "questions": [
+      {
+        "q": "Where are Lena and Felix traveling?",
+        "options": [
+          "Willow Town",
+          "Blue Island",
+          "Mountain City",
+          "Green Harbor"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What changes at the station?",
+        "options": [
+          "The train platform",
+          "Their names",
+          "The ticket price",
+          "The date"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What causes the delay?",
+        "options": [
+          "Heavy rain",
+          "A football match",
+          "Hot weather",
+          "A festival"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "Who asks them for directions?",
+        "options": [
+          "An elderly traveler",
+          "Their teacher",
+          "A child",
+          "A shopkeeper"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "Where do they put their bags?",
+        "options": [
+          "On a shelf",
+          "Under the train",
+          "In a café",
+          "On the tracks"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What does their aunt send?",
+        "options": [
+          "A message",
+          "A postcard",
+          "A parcel",
+          "A new ticket"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "How does Felix help the elderly man?",
+        "options": [
+          "Carries his suitcase",
+          "Buys a hat",
+          "Finds a newspaper",
+          "Calls a driver"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What helps solve their travel problem?",
+        "options": [
+          "Staying calm and asking questions",
+          "Ignoring signs",
+          "Guessing directions",
+          "Leaving the station"
+        ],
+        "answer": 0
+      }
+    ]
+  }
+}
