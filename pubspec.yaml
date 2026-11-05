@@ -105,6 +105,12 @@ flutter:
     - assets/stories/en/A1/illustrations/
     - assets/stories/en/A2/
     - assets/stories/en/A2/illustrations/
+    - assets/stories/en/B1/
+    - assets/stories/en/B1/illustrations/
+    - assets/stories/en/B2/
+    - assets/stories/en/B2/illustrations/
+    - assets/stories/en/C1/
+    - assets/stories/en/C1/illustrations/
 
   # To add assets to your application, add an assets section, like this:
   # assets:
