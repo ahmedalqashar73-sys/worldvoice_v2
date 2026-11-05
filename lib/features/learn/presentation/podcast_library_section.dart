@@ -439,7 +439,7 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
   double _speed = 1.0;
   // Device TTS is separate from the real VOA MP3 player.
   bool _ttsSpeaking = false;
-  int _ttsLine = 0;
+  final ValueNotifier<int> _ttsCue = ValueNotifier<int>(0);
   int _ttsSession = 0;
   double _ttsSpeed = 1.0;
   double _fontSize = 17.0;
@@ -639,32 +639,30 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
     final episode = _episode;
     if (!mounted || episode == null || !episode.canReadAloud) return;
     final session = ++_ttsSession;
-    final index = start.clamp(0, episode.dialogue.length - 1);
-    setState(() {
-      _ttsSpeaking = true;
-      _ttsLine = index;
-    });
+    final index = start.clamp(0, episode.dialogue.length - 1).toInt();
+    setState(() => _ttsSpeaking = true);
+    _ttsCue.value = index;
     try {
       await _tts.stop();
       if (!mounted || session != _ttsSession) return;
       await _tts.awaitSpeakCompletion(true);
       await _tts.setLanguage('en-US');
-      await _tts.setSpeechRate((0.46 * _ttsSpeed).clamp(0.20, 0.80));
+      await _tts.setSpeechRate(
+          (0.46 * _ttsSpeed).clamp(0.20, 0.80).toDouble());
       await _tts.setPitch(1.0);
       for (var lineIndex = index;
           lineIndex < episode.dialogue.length && session == _ttsSession;
           lineIndex++) {
         if (!mounted || !_ttsSpeaking) return;
-        setState(() => _ttsLine = lineIndex);
+        // Only the bottom TTS player and the selected line repaint.
+        _ttsCue.value = lineIndex;
         _activeLine.value = lineIndex;
         _followLine(lineIndex);
         await _tts.speak(episode.dialogue[lineIndex].text);
       }
       if (mounted && session == _ttsSession) {
-        setState(() {
-          _ttsSpeaking = false;
-          _ttsLine = 0;
-        });
+        setState(() => _ttsSpeaking = false);
+        _ttsCue.value = 0;
         _activeLine.value = null;
       }
     } catch (_) {
@@ -688,7 +686,7 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
     if (_ttsSpeaking) {
       _stopReadAloud();
     } else {
-      unawaited(_readAloudFrom(_ttsLine));
+      unawaited(_readAloudFrom(_ttsCue.value));
     }
   }
 
@@ -704,7 +702,11 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
           color: scheme.surface,
           border: Border(top: BorderSide(color: scheme.outlineVariant)),
         ),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
+        child: ValueListenableBuilder<int>(
+          valueListenable: _ttsCue,
+          builder: (context, cue, _) => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
           Row(children: [
             IconButton.filled(
               key: const ValueKey('podcast-device-tts-play-pause'),
@@ -727,8 +729,8 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                     style: const TextStyle(fontWeight: FontWeight.w800,
                         fontSize: 12)),
                 Text(ar
-                    ? 'السطر ${_ttsLine + 1} من ${episode.dialogue.length}'
-                    : 'Line ${_ttsLine + 1} of ${episode.dialogue.length}',
+                    ? 'السطر ${cue + 1} من ${episode.dialogue.length}'
+                    : 'Line ${cue + 1} of ${episode.dialogue.length}',
                     style: TextStyle(fontSize: 11,
                         color: scheme.onSurfaceVariant)),
               ],
@@ -751,17 +753,18 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                 if (value == null) return;
                 final resume = _ttsSpeaking;
                 setState(() => _ttsSpeed = value);
-                if (resume) unawaited(_readAloudFrom(_ttsLine));
+                if (resume) unawaited(_readAloudFrom(_ttsCue.value));
               },
             ),
           ]),
           const SizedBox(height: 5),
           LinearProgressIndicator(
-            value: (_ttsLine + 1) / episode.dialogue.length,
+            value: (cue + 1) / episode.dialogue.length,
             color: const Color(0xFF237D5C),
             backgroundColor: scheme.surfaceContainerHighest,
           ),
         ]),
+        ),
       ),
     );
   }
@@ -803,6 +806,7 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
     _player.dispose();
     _scroll.dispose();
     _activeLine.dispose();
+    _ttsCue.dispose();
     _isPlaying.dispose();
     super.dispose();
   }
