@@ -1,0 +1,430 @@
+{
+  "language": "en",
+  "level": "A2",
+  "story": {
+    "id": "en-a2-002",
+    "title": "The Missing Festival Lantern",
+    "title_ar": "فانوس المهرجان المفقود",
+    "moral_ar": "الصبر والتعاون يساعدان على إصلاح الأخطاء وتحويلها إلى ذكريات سعيدة.",
+    "art_style": "Original watercolor educational illustrations, soft autumn colors, no text.",
+    "cover_image_prompt": "Two friends with a blue lantern at a cozy riverside festival, watercolor no text.",
+    "character_sheet": [
+      {
+        "name": "Dina",
+        "description": "12-year-old girl with brown skin and long dark braided hair, mustard coat and green trousers."
+      },
+      {
+        "name": "Leo",
+        "description": "13-year-old boy with fair skin and short copper hair, blue sweater and grey trousers."
+      },
+      {
+        "name": "Grandmother",
+        "description": "Elderly woman with silver curls, teal scarf and dark coat."
+      }
+    ],
+    "chapters": [
+      {
+        "chapter": 1,
+        "title": "Where Is the Lantern?",
+        "title_ar": "أين اختفى الفانوس؟",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image": "assets/stories/en/A2/illustrations/en-a2-002_scene_01.svg",
+            "animation": "fade_in",
+            "image_prompt": "Dina and Leo decorate the riverside town square with ribbons and a blue paper lantern for an autumn celebration",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Every autumn, Dina's town holds a colorful **festival** beside the river. This year, she and her friend Leo are helping to **decorate** the main square. They carry paper stars, ribbons, and a large blue **lantern** that Dina's grandmother made by hand."
+                  }
+                ],
+                "translation_ar": "في كل خريف تقيم بلدة دينا مهرجانًا ملونًا بجوار النهر. هذا العام تساعد هي وصديقها ليو في تزيين الساحة الرئيسية. يحملان نجومًا ورقية وشرائط وفانوسًا أزرق كبيرًا صنعته جدتها بيديها."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The lantern is special because it has a picture of a tiny **village** on one side. Dina places it on a wooden **table** and goes to collect more ribbons."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "I will stay here and **watch** our things, Leo promises while the square fills with people."
+                  }
+                ],
+                "translation_ar": "الفانوس مميز لأن على أحد جوانبه صورة قرية صغيرة. تضعه دينا على طاولة خشبية وتذهب لجلب المزيد من الشرائط. يعدها ليو بالبقاء لمراقبة أغراضهما بينما تمتلئ الساحة بالناس."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image": "assets/stories/en/A2/illustrations/en-a2-002_scene_02.svg",
+            "animation": "pan_left",
+            "image_prompt": "Dina and Leo search beside an old stone bridge for the missing handmade blue lantern",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "When Dina returns, the blue lantern has **disappeared**. Leo looks behind the table, but he cannot find it. They both feel **confused**."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Perhaps someone moved it by **mistake**, Dina suggests. They decide to ask the other helpers before worrying too much."
+                  }
+                ],
+                "translation_ar": "عندما تعود دينا يكون الفانوس الأزرق قد اختفى. يبحث ليو خلف الطاولة لكنه لا يجده. يشعر كلاهما بالحيرة. تقترح دينا أن أحدًا ربما نقله بالخطأ، ويقرران سؤال المساعدين الآخرين قبل القلق كثيرًا."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "A young **volunteer** remembers seeing a boy carry something blue toward the old bridge. Dina and Leo follow the **clue** along the river path."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "We should not **accuse** anyone, Leo says. Dina agrees that they must understand what happened first."
+                  }
+                ],
+                "translation_ar": "يتذكر متطوع شاب أنه رأى فتى يحمل شيئًا أزرق نحو الجسر القديم. تتبع دينا وليو هذا الدليل على طول ممر النهر. يقول ليو إن عليهما ألا يتهما أحدًا، وتوافق دينا على ضرورة فهم ما حدث أولًا."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Near the bridge, they meet a little girl who is holding the lantern's broken **handle**. She looks **upset** and explains that her brother picked it up when the wind made it fall."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Thank you for telling us the **truth**, Dina says kindly."
+                  }
+                ],
+                "translation_ar": "قرب الجسر يلتقيان بطفلة تحمل مقبض الفانوس المكسور. تبدو منزعجة وتشرح أن أخاها التقطه بعدما أسقطته الريح. تشكرها دينا بلطف لأنها أخبرتهما بالحقيقة."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "chapter": 2,
+        "title": "A Brighter Light",
+        "title_ar": "ضوء أكثر إشراقًا",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image": "assets/stories/en/A2/illustrations/en-a2-002_scene_03.svg",
+            "animation": "zoom_in_slow",
+            "image_prompt": "Community workshop where children and neighbors mend the torn blue paper lantern using recycled paper and soft light",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The children find the lantern behind a nearby bench. Its paper is **torn**, but the village drawing is still beautiful. Leo suggests a simple **repair** using strong paper."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "There is enough **time** before the festival begins, he says, and Dina feels hopeful again."
+                  }
+                ],
+                "translation_ar": "يجد الأطفال الفانوس خلف مقعد قريب. ورقه ممزق لكن رسم القرية ما زال جميلًا. يقترح ليو إصلاحًا بسيطًا باستخدام ورق متين. يقول إن لديهم وقتًا كافيًا قبل بدء المهرجان، فتشعر دينا بالأمل مجددًا."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "At the community **workshop**, Dina chooses recycled paper and glue. Leo carefully fixes the handle while two neighbors **support** the lantern from below. Everyone works with **patience**. When they finish, the beautiful drawing looks even brighter against the clean new paper."
+                  }
+                ],
+                "translation_ar": "في الورشة المجتمعية تختار دينا ورقًا معاد تدويره وصمغًا. يصلح ليو المقبض بعناية بينما يدعم جارَان الفانوس من الأسفل. يعمل الجميع بصبر. وعندما ينتهون يبدو الرسم أكثر إشراقًا على الورق الجديد."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image": "assets/stories/en/A2/illustrations/en-a2-002_scene_04.svg",
+            "animation": "parallax",
+            "image_prompt": "A repaired blue lantern glows above a cheerful festive riverside crowd",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Instead of putting a real flame inside, they use a small **electric** light. It is much **safer** near the paper decorations."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "My grandmother will be very **proud**, Dina says. Leo carefully carries the repaired lantern back to the square before sunset."
+                  }
+                ],
+                "translation_ar": "بدلًا من وضع لهب حقيقي في الداخل يستخدمون مصباحًا كهربائيًا صغيرًا. إنه أكثر أمانًا قرب الزينة الورقية. تقول دينا إن جدتها ستكون فخورة جدًا. يحمل ليو الفانوس بعد إصلاحه بعناية إلى الساحة قبل الغروب."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "At the festival, the lantern shines above the **crowd**. A cheerful **musician** plays near the river, and families stop to admire the picture."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "It looks wonderful from this **distance**, Leo says. Dina laughs because the lantern's adventure is finally over."
+                  }
+                ],
+                "translation_ar": "في المهرجان يضيء الفانوس فوق الحشد. يعزف موسيقي مرح قرب النهر، وتتوقف العائلات لتأمل الرسم. يقول ليو إنه يبدو رائعًا من هذه المسافة. تضحك دينا لأن مغامرة الفانوس انتهت أخيرًا."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Dina tells her grandmother the whole **story**. Her grandmother thanks everyone for their **effort** and says the repairs give the lantern a new history."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We solved the problem **together**, Dina says. She realizes that accidents can become good memories when people help each other."
+                  }
+                ],
+                "translation_ar": "تحكي دينا لجدتها القصة كاملة. تشكر الجدة الجميع على جهودهم وتقول إن الإصلاحات منحت الفانوس تاريخًا جديدًا. تقول دينا إنهم حلوا المشكلة معًا. وتدرك أن الحوادث قد تتحول إلى ذكريات طيبة عندما يساعد الناس بعضهم."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "vocabulary": [
+      {
+        "word": "festival",
+        "meaning_ar": "مهرجان",
+        "example": "Every autumn, Dina's town holds a colorful festival beside the river. This year, she and her friend Leo are helping to decorate the main square. They carry paper stars, ribbons, and a large blue lantern that Dina's grandmother made by hand."
+      },
+      {
+        "word": "decorate",
+        "meaning_ar": "يزين",
+        "example": "Every autumn, Dina's town holds a colorful festival beside the river. This year, she and her friend Leo are helping to decorate the main square. They carry paper stars, ribbons, and a large blue lantern that Dina's grandmother made by hand."
+      },
+      {
+        "word": "lantern",
+        "meaning_ar": "فانوس",
+        "example": "Every autumn, Dina's town holds a colorful festival beside the river. This year, she and her friend Leo are helping to decorate the main square. They carry paper stars, ribbons, and a large blue lantern that Dina's grandmother made by hand."
+      },
+      {
+        "word": "village",
+        "meaning_ar": "قرية",
+        "example": "The lantern is special because it has a picture of a tiny village on one side. Dina places it on a wooden table and goes to collect more ribbons."
+      },
+      {
+        "word": "table",
+        "meaning_ar": "طاولة",
+        "example": "The lantern is special because it has a picture of a tiny village on one side. Dina places it on a wooden table and goes to collect more ribbons."
+      },
+      {
+        "word": "watch",
+        "meaning_ar": "أراقب",
+        "example": "I will stay here and watch our things, Leo promises while the square fills with people."
+      },
+      {
+        "word": "disappeared",
+        "meaning_ar": "اختفى",
+        "example": "When Dina returns, the blue lantern has disappeared. Leo looks behind the table, but he cannot find it. They both feel confused."
+      },
+      {
+        "word": "confused",
+        "meaning_ar": "حائر",
+        "example": "When Dina returns, the blue lantern has disappeared. Leo looks behind the table, but he cannot find it. They both feel confused."
+      },
+      {
+        "word": "mistake",
+        "meaning_ar": "الخطأ",
+        "example": "Perhaps someone moved it by mistake, Dina suggests. They decide to ask the other helpers before worrying too much."
+      },
+      {
+        "word": "volunteer",
+        "meaning_ar": "متطوع",
+        "example": "A young volunteer remembers seeing a boy carry something blue toward the old bridge. Dina and Leo follow the clue along the river path."
+      },
+      {
+        "word": "clue",
+        "meaning_ar": "دليل",
+        "example": "A young volunteer remembers seeing a boy carry something blue toward the old bridge. Dina and Leo follow the clue along the river path."
+      },
+      {
+        "word": "accuse",
+        "meaning_ar": "نتهم",
+        "example": "We should not accuse anyone, Leo says. Dina agrees that they must understand what happened first."
+      },
+      {
+        "word": "handle",
+        "meaning_ar": "مقبض",
+        "example": "Near the bridge, they meet a little girl who is holding the lantern's broken handle. She looks upset and explains that her brother picked it up when the wind made it fall."
+      },
+      {
+        "word": "upset",
+        "meaning_ar": "منزعج",
+        "example": "Near the bridge, they meet a little girl who is holding the lantern's broken handle. She looks upset and explains that her brother picked it up when the wind made it fall."
+      },
+      {
+        "word": "truth",
+        "meaning_ar": "حقيقة",
+        "example": "Thank you for telling us the truth, Dina says kindly."
+      },
+      {
+        "word": "torn",
+        "meaning_ar": "ممزق",
+        "example": "The children find the lantern behind a nearby bench. Its paper is torn, but the village drawing is still beautiful. Leo suggests a simple repair using strong paper."
+      },
+      {
+        "word": "repair",
+        "meaning_ar": "إصلاح",
+        "example": "The children find the lantern behind a nearby bench. Its paper is torn, but the village drawing is still beautiful. Leo suggests a simple repair using strong paper."
+      },
+      {
+        "word": "time",
+        "meaning_ar": "وقت",
+        "example": "There is enough time before the festival begins, he says, and Dina feels hopeful again."
+      },
+      {
+        "word": "workshop",
+        "meaning_ar": "ورشة",
+        "example": "At the community workshop, Dina chooses recycled paper and glue. Leo carefully fixes the handle while two neighbors support the lantern from below. Everyone works with patience. When they finish, the beautiful drawing looks even brighter against the clean new paper."
+      },
+      {
+        "word": "support",
+        "meaning_ar": "يساعد",
+        "example": "At the community workshop, Dina chooses recycled paper and glue. Leo carefully fixes the handle while two neighbors support the lantern from below. Everyone works with patience. When they finish, the beautiful drawing looks even brighter against the clean new paper."
+      },
+      {
+        "word": "patience",
+        "meaning_ar": "صبر",
+        "example": "At the community workshop, Dina chooses recycled paper and glue. Leo carefully fixes the handle while two neighbors support the lantern from below. Everyone works with patience. When they finish, the beautiful drawing looks even brighter against the clean new paper."
+      },
+      {
+        "word": "electric",
+        "meaning_ar": "كهربائي",
+        "example": "Instead of putting a real flame inside, they use a small electric light. It is much safer near the paper decorations."
+      },
+      {
+        "word": "safer",
+        "meaning_ar": "أكثر أمانًا",
+        "example": "Instead of putting a real flame inside, they use a small electric light. It is much safer near the paper decorations."
+      },
+      {
+        "word": "proud",
+        "meaning_ar": "فخورة",
+        "example": "My grandmother will be very proud, Dina says. Leo carefully carries the repaired lantern back to the square before sunset."
+      },
+      {
+        "word": "crowd",
+        "meaning_ar": "حشد",
+        "example": "At the festival, the lantern shines above the crowd. A cheerful musician plays near the river, and families stop to admire the picture."
+      },
+      {
+        "word": "musician",
+        "meaning_ar": "موسيقي",
+        "example": "At the festival, the lantern shines above the crowd. A cheerful musician plays near the river, and families stop to admire the picture."
+      },
+      {
+        "word": "distance",
+        "meaning_ar": "مسافة",
+        "example": "It looks wonderful from this distance, Leo says. Dina laughs because the lantern's adventure is finally over."
+      },
+      {
+        "word": "story",
+        "meaning_ar": "قصة",
+        "example": "Dina tells her grandmother the whole story. Her grandmother thanks everyone for their effort and says the repairs give the lantern a new history."
+      },
+      {
+        "word": "effort",
+        "meaning_ar": "جهد",
+        "example": "Dina tells her grandmother the whole story. Her grandmother thanks everyone for their effort and says the repairs give the lantern a new history."
+      },
+      {
+        "word": "together",
+        "meaning_ar": "معًا",
+        "example": "We solved the problem together, Dina says. She realizes that accidents can become good memories when people help each other."
+      }
+    ],
+    "questions": [
+      {
+        "q": "When does the town hold its festival?",
+        "options": [
+          "In autumn",
+          "In spring",
+          "In winter",
+          "In summer"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "Who made the blue lantern?",
+        "options": [
+          "Dina's grandmother",
+          "Leo's uncle",
+          "A teacher",
+          "A shopkeeper"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What disappears from the table?",
+        "options": [
+          "A red basket",
+          "The blue lantern",
+          "A small book",
+          "A photograph"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "What broke on the lantern?",
+        "options": [
+          "Its handle",
+          "The light",
+          "A mirror",
+          "A window"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "Where do they repair it?",
+        "options": [
+          "At a community workshop",
+          "At a station",
+          "On a boat",
+          "In a restaurant"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "Why do they choose an electric light?",
+        "options": [
+          "It is safer",
+          "It is louder",
+          "It is heavier",
+          "It is cheaper"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "Who admires the lantern at the festival?",
+        "options": [
+          "The families",
+          "Only Dina",
+          "No one",
+          "A class teacher"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What helps solve the problem?",
+        "options": [
+          "Teamwork and patience",
+          "Blaming a child",
+          "Giving up",
+          "Running away"
+        ],
+        "answer": 0
+      }
+    ]
+  }
+}
