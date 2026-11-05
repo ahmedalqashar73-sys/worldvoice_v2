@@ -139,7 +139,8 @@ class AcademyPodcastEpisode {
       }
       previousEnd = end;
     }
-    return true;
+    return dialogue.first.startMs! <= 5000 &&
+        durationMs! - previousEnd <= 10000;
   }
 
   int? lineAt(Duration position) {
