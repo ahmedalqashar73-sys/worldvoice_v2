@@ -439,9 +439,21 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
           setState(() {});
         }
       });
-      await _player.setUrl(loaded.audioUrl!);
+      try {
+        await _player.setUrl(loaded.audioUrl!);
+      } catch (_) {
+        final backup = Uri.tryParse(loaded.backupAudioUrl ?? '');
+        if (backup == null || backup.scheme != 'https' ||
+            backup.host.isEmpty) {
+          rethrow;
+        }
+        await _player.setUrl(backup.toString());
+      }
       if (mounted) {
-        setState(() => _audioLoaded = true);
+        setState(() {
+          _audioLoaded = true;
+          _error = null;
+        });
       }
     } catch (_) {
       if (mounted) {
@@ -583,10 +595,14 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                 Expanded(child: Text(
                   ar
                       ? (episode.canStream
-                          ? 'تعذر تحميل الصوت. افتح المصدر الأصلي أدناه.'
+                          ? (_error == null
+                              ? 'جارٍ تحميل التسجيل البشري من VOA...'
+                              : 'تعذر تحميل الصوت. افتح المصدر الأصلي أدناه.')
                           : 'نص قابل للقراءة الآن. التسجيل البشري لم يتوفر بعد.')
                       : (episode.canStream
-                          ? 'Audio could not load. Open the original source below.'
+                          ? (_error == null
+                              ? 'Loading the human recording from VOA...'
+                              : 'Audio could not load. Open the original source below.')
                           : 'The transcript is ready. Human audio has not been published.'),
                   style: const TextStyle(
                       color: Colors.white, fontSize: 12, height: 1.5),
