@@ -406,6 +406,7 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
   String? _error;
   int? _activeIndex;
   double _speed = 1.0;
+  double _fontSize = 17.0;
   final Map<int, int> _answers = <int, int>{};
 
   @override
@@ -498,103 +499,177 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
 
   Widget _audioPanel(AcademyPodcastEpisode episode) {
     final ar = Localizations.localeOf(context).languageCode == 'ar';
-    const gold = Color(0xFFF2D68A);
+    final ready = _audioLoaded;
     return Container(
-      padding: const EdgeInsets.all(16),
+      key: const ValueKey('podcast-reader-header'),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF114C36), Color(0xFF267D58)]),
+          colors: [Color(0xFF153F31), Color(0xFF21694D)],
+          begin: Alignment.topLeft, end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(21),
       ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text(ar ? 'آنا  ×  دانيال' : 'Anna  ×  Daniel',
-            style: const TextStyle(color: gold,
-                fontSize: 16, fontWeight: FontWeight.w900)),
-        const SizedBox(height: 5),
-        Text(
-          ar ? 'نص المحادثة مع الصوت' : 'Read along with the voices',
-          style: const TextStyle(color: Colors.white),
-        ),
-        if (!_audioLoaded) ...[
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            const Icon(Icons.auto_stories_rounded,
+                color: Color(0xFFF4D790), size: 21),
+            const SizedBox(width: 7),
+            const Expanded(child: Text(
+              'WORLDVOICE · READ & LISTEN',
+              style: TextStyle(color: Color(0xFFF4D790),
+                  fontSize: 11, fontWeight: FontWeight.w900,
+                  letterSpacing: .7),
+              textDirection: TextDirection.ltr,
+            )),
+            Text(episode.level,
+              style: const TextStyle(color: Color(0xFFF4D790),
+                fontSize: 13, fontWeight: FontWeight.w900)),
+          ]),
+          const SizedBox(height: 14),
+          Text(ar ? episode.titleAr : episode.title,
+              style: const TextStyle(color: Colors.white,
+                  fontSize: 20, fontWeight: FontWeight.w900)),
           const SizedBox(height: 12),
           Row(children: [
-            const Icon(Icons.mic_off_outlined, color: gold),
-            const SizedBox(width: 8),
-            Expanded(child: Text(
-              ar
-                  ? 'النص جاهز للقراءة. التسجيل البشري والتوقيت المتزامن لم يُنشرا بعد؛ لن نشغّل صوتًا وهميًا.'
-                  : 'Read the script now. The human recording and verified sync cues are not yet published.',
-              style: const TextStyle(color: Colors.white, height: 1.4),
-            )),
+            const Icon(Icons.face_3_rounded,
+                color: Color(0xFFF3BED7), size: 20),
+            const SizedBox(width: 4),
+            const Text('Anna', style: TextStyle(
+                color: Colors.white, fontWeight: FontWeight.w700)),
+            const SizedBox(width: 14),
+            const Icon(Icons.face_rounded,
+                color: Color(0xFFC5DDFF), size: 20),
+            const SizedBox(width: 4),
+            const Text('Daniel', style: TextStyle(
+                color: Colors.white, fontWeight: FontWeight.w700)),
+            const Spacer(),
+            const Icon(Icons.schedule, color: Color(0xFFF4D790), size: 16),
+            const SizedBox(width: 5),
+            Text(ready
+                ? _clock(Duration(milliseconds: episode.durationMs!))
+                : '≈ 05:00',
+                style: const TextStyle(color: Color(0xFFF4D790),
+                    fontWeight: FontWeight.w800)),
           ]),
-        ] else ...[
-          const SizedBox(height: 9),
-          StreamBuilder<Duration>(
-            stream: _player.positionStream,
-            builder: (context, snapshot) {
-              final total = _player.duration ??
-                  Duration(milliseconds: episode.durationMs!);
-              final ms = total.inMilliseconds > 0
-                  ? total.inMilliseconds : 1;
-              final position = snapshot.data ?? Duration.zero;
-              return Column(children: [
-                Slider(
-                  value: position.inMilliseconds.clamp(0, ms).toDouble(),
-                  max: ms.toDouble(),
-                  activeColor: gold,
-                  inactiveColor: const Color(0xFFAFD7C0),
+          if (!ready) ...[
+            const SizedBox(height: 13),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 11, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: .09),
+                borderRadius: BorderRadius.circular(11),
+              ),
+              child: Row(children: [
+                const Icon(Icons.mic_off_outlined,
+                    color: Color(0xFFF4D790), size: 19),
+                const SizedBox(width: 9),
+                Expanded(child: Text(
+                  ar
+                      ? 'نص قابل للقراءة الآن. تسجيل الصوت البشري لم يتوفر بعد.'
+                      : 'The transcript is ready. Human audio has not been published.',
+                  style: const TextStyle(
+                      color: Colors.white, fontSize: 12, height: 1.5),
+                )),
+              ]),
+            ),
+          ],
+          if (_error != null)
+            Padding(padding: const EdgeInsets.only(top: 8),
+              child: Text(_error!,
+                style: const TextStyle(color: Colors.white70))),
+        ],
+      ),
+    );
+  }
+
+  /// Fixed player remains on screen as the learner scrolls through the book.
+  Widget _fixedPlayer(AcademyPodcastEpisode episode) {
+    final scheme = Theme.of(context).colorScheme;
+    return SafeArea(
+      top: false,
+      child: Container(
+        key: const ValueKey('podcast-sticky-player'),
+        padding: const EdgeInsets.fromLTRB(13, 7, 13, 10),
+        decoration: BoxDecoration(
+          color: scheme.surface,
+          border: Border(top: BorderSide(color: scheme.outlineVariant)),
+          boxShadow: [
+            BoxShadow(
+              blurRadius: 12,
+              color: Colors.black.withValues(alpha: .09),
+              offset: const Offset(0, -3)),
+          ],
+        ),
+        child: StreamBuilder<Duration>(
+          stream: _player.positionStream,
+          builder: (context, snapshot) {
+            final position = snapshot.data ?? Duration.zero;
+            final total = _player.duration ??
+                Duration(milliseconds: episode.durationMs!);
+            final maxMs = total.inMilliseconds > 0
+                ? total.inMilliseconds : 1;
+            return Column(mainAxisSize: MainAxisSize.min, children: [
+              Row(children: [
+                IconButton.filled(
+                  key: const ValueKey('podcast-play-pause'),
+                  onPressed: _playPause,
+                  style: IconButton.styleFrom(
+                    backgroundColor: const Color(0xFF1F7958),
+                    foregroundColor: Colors.white,
+                  ),
+                  icon: Icon(_player.playing
+                      ? Icons.pause_rounded : Icons.play_arrow_rounded),
+                ),
+                const SizedBox(width: 8),
+                Expanded(child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(episode.title, maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.w800,
+                          fontSize: 12)),
+                    Text('${_clock(position)} / ${_clock(total)}',
+                        style: TextStyle(fontSize: 11,
+                            color: scheme.onSurfaceVariant)),
+                  ],
+                )),
+                IconButton(
+                  tooltip: 'Restart',
+                  onPressed: () => unawaited(_player.seek(Duration.zero)),
+                  icon: const Icon(Icons.replay_rounded, size: 22),
+                ),
+                DropdownButton<double>(
+                  value: _speed,
+                  underline: const SizedBox.shrink(),
+                  items: const [0.75, 1.0, 1.25].map((value) =>
+                    DropdownMenuItem<double>(
+                      value: value, child: Text('$value×'),
+                    )).toList(),
+                  onChanged: (value) {
+                    if (value == null) return;
+                    setState(() => _speed = value);
+                    unawaited(_player.setSpeed(value));
+                  },
+                ),
+              ]),
+              SizedBox(
+                height: 18,
+                child: Slider(
+                  value: position.inMilliseconds.clamp(0, maxMs).toDouble(),
+                  max: maxMs.toDouble(),
+                  activeColor: const Color(0xFF237D5C),
                   onChanged: (value) => unawaited(_player.seek(
                     Duration(milliseconds: value.round()))),
                 ),
-                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                  Text(_clock(position),
-                      style: const TextStyle(color: Colors.white)),
-                  Text(_clock(total),
-                      style: const TextStyle(color: Colors.white)),
-                ]),
-              ]);
-            },
-          ),
-          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            IconButton(
-              onPressed: () => unawaited(_player.seek(Duration.zero)),
-              tooltip: ar ? 'من البداية' : 'Restart',
-              icon: const Icon(Icons.replay, color: Colors.white),
-            ),
-            const SizedBox(width: 9),
-            IconButton.filled(
-              key: const ValueKey('podcast-play-pause'),
-              onPressed: _playPause,
-              style: IconButton.styleFrom(
-                  backgroundColor: gold,
-                  foregroundColor: const Color(0xFF114C36)),
-              icon: Icon(_player.playing
-                  ? Icons.pause_rounded : Icons.play_arrow_rounded),
-              iconSize: 32,
-            ),
-            const SizedBox(width: 9),
-            DropdownButton<double>(
-              value: _speed,
-              dropdownColor: const Color(0xFF176245),
-              style: const TextStyle(color: Colors.white),
-              underline: const SizedBox.shrink(),
-              items: const [0.75, 1.0, 1.25].map((value) =>
-                DropdownMenuItem<double>(
-                  value: value, child: Text('$value×'),
-                )).toList(),
-              onChanged: (value) {
-                if (value == null) return;
-                setState(() => _speed = value);
-                unawaited(_player.setSpeed(value));
-              },
-            ),
-          ]),
-        ],
-        if (_error != null)
-          Padding(padding: const EdgeInsets.only(top: 7),
-            child: Text(_error!, style: const TextStyle(
-              color: Colors.white70))),
-      ]),
+              ),
+            ]);
+          },
+        ),
+      ),
     );
   }
 
@@ -604,63 +679,80 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
     final anna = line.speaker == 'Anna';
     return AnimatedContainer(
       key: _anchors[i],
-      duration: const Duration(milliseconds: 220),
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(15),
+      duration: const Duration(milliseconds: 180),
+      margin: const EdgeInsets.only(bottom: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 14),
       decoration: BoxDecoration(
         color: current
-            ? const Color(0xFFF2D68A).withValues(alpha: .32)
-            : anna
-                ? scheme.surfaceContainerHighest
-                : scheme.primaryContainer.withValues(alpha: .4),
-        border: Border.all(
-          color: current
-              ? const Color(0xFFC7A14C) : Colors.transparent,
-          width: current ? 2 : 1),
-        borderRadius: BorderRadius.circular(15),
+            ? const Color(0xFFD9ECDD).withValues(alpha: .65)
+            : i.isEven
+                ? scheme.surfaceContainerLow
+                : scheme.surface,
+        border: Border(
+          bottom: BorderSide(color: scheme.outlineVariant
+              .withValues(alpha: .35)),
+          right: current ? const BorderSide(
+              color: Color(0xFF237D5C), width: 3)
+              : BorderSide.none,
+        ),
+        borderRadius: BorderRadius.circular(9),
       ),
       child: InkWell(
         onTap: _audioLoaded ? () => _seekLine(line) : null,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(children: [
-              CircleAvatar(
-                radius: 13,
-                backgroundColor: anna
-                    ? const Color(0xFFE3AFC5)
-                    : const Color(0xFFB0C7EA),
-                child: Icon(anna ? Icons.face_3 : Icons.face,
-                    color: const Color(0xFF254937), size: 17),
-              ),
-              const SizedBox(width: 7),
-              Text(line.speaker, style: const TextStyle(
-                  color: Color(0xFF198058), fontWeight: FontWeight.w900)),
-              const Spacer(),
-              if (current) const Icon(Icons.graphic_eq,
-                  color: Color(0xFFA98330)),
-              if (_audioLoaded && !current) const Icon(
-                  Icons.play_arrow_rounded, size: 20),
-            ]),
-            const SizedBox(height: 8),
-            Text(line.text,
-              textDirection: TextDirection.ltr,
-              textAlign: TextAlign.left,
-              style: TextStyle(
-                height: 1.55,
-                fontSize: 17,
-                fontWeight: current ? FontWeight.w700 : FontWeight.w500,
-                color: scheme.onSurface,
-              )),
-            if (_showArabic) ...[
-              const SizedBox(height: 9),
-              Text(line.translationAr,
-                textDirection: TextDirection.rtl,
-                style: TextStyle(
-                  height: 1.55,
-                  fontSize: 14,
-                  color: scheme.onSurfaceVariant)),
-            ],
+            CircleAvatar(
+              radius: 18,
+              backgroundColor: anna
+                  ? const Color(0xFFF2CEDF)
+                  : const Color(0xFFCFE0F7),
+              child: Icon(anna ? Icons.face_3_rounded : Icons.face_rounded,
+                color: const Color(0xFF204D3B), size: 21),
+            ),
+            const SizedBox(width: 11),
+            Expanded(child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(children: [
+                  Text(line.speaker,
+                    style: TextStyle(
+                      color: current
+                          ? const Color(0xFF176245)
+                          : scheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w800, fontSize: 12)),
+                  if (current) ...[
+                    const SizedBox(width: 7),
+                    const Icon(Icons.graphic_eq_rounded,
+                      color: Color(0xFF176245), size: 17),
+                  ],
+                ]),
+                const SizedBox(height: 5),
+                Text(
+                  line.text,
+                  textDirection: TextDirection.ltr,
+                  textAlign: TextAlign.start,
+                  style: TextStyle(fontSize: _fontSize,
+                    height: 1.6,
+                    color: current
+                      ? const Color(0xFF102B20) : scheme.onSurface,
+                    fontWeight: current ? FontWeight.w800 : FontWeight.w500),
+                ),
+                if (_showArabic) ...[
+                  const SizedBox(height: 7),
+                  Text(
+                    line.translationAr,
+                    textDirection: TextDirection.rtl,
+                    style: TextStyle(
+                      fontSize: _fontSize - 2.5, height: 1.6,
+                      color: scheme.onSurfaceVariant),
+                  ),
+                ],
+              ],
+            )),
+            if (_audioLoaded && !current)
+              Icon(Icons.play_arrow_rounded,
+                color: scheme.outline, size: 17),
           ],
         ),
       ),
@@ -730,9 +822,15 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
     final scheme = Theme.of(context).colorScheme;
     final episode = _episode;
     return Scaffold(
-      appBar: AppBar(title: Text(episode == null
-          ? widget.entry.title
-          : ar ? episode.titleAr : episode.title)),
+      appBar: AppBar(
+        title: Text(episode == null
+            ? widget.entry.title
+            : ar ? episode.titleAr : episode.title),
+        centerTitle: true,
+      ),
+      bottomNavigationBar: episode != null && _audioLoaded
+          ? _fixedPlayer(episode)
+          : null,
       body: episode == null
           ? Center(child: _error == null
               ? const CircularProgressIndicator()
@@ -744,27 +842,47 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                 _audioPanel(episode),
-                const SizedBox(height: 18),
+                const SizedBox(height: 19),
+                Row(children: [
+                  const Icon(Icons.menu_book_rounded,
+                      color: Color(0xFF318560), size: 21),
+                  const SizedBox(width: 7),
+                  Expanded(child: Text(
+                    ar ? 'نص المحادثة' : 'Transcript',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w900))),
+                  IconButton(
+                    key: const ValueKey('podcast-text-smaller'),
+                    tooltip: ar ? 'تصغير الخط' : 'Decrease text size',
+                    onPressed: () => setState(() =>
+                        _fontSize = (_fontSize - 1).clamp(14.0, 22.0)),
+                    icon: const Icon(Icons.text_decrease_rounded)),
+                  IconButton(
+                    key: const ValueKey('podcast-text-larger'),
+                    tooltip: ar ? 'تكبير الخط' : 'Increase text size',
+                    onPressed: () => setState(() =>
+                        _fontSize = (_fontSize + 1).clamp(14.0, 22.0)),
+                    icon: const Icon(Icons.text_increase_rounded)),
+                ]),
                 Row(children: [
                   Expanded(child: Text(
-                    ar ? 'كتاب المحادثة' : 'Conversation book',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w900))),
-                  Text(ar ? 'ترجمة عربية' : 'Arabic',
-                      style: TextStyle(color: scheme.onSurfaceVariant,
-                          fontSize: 12)),
+                    ar ? 'إظهار الترجمة العربية'
+                       : 'Show Arabic translation',
+                    style: TextStyle(color: scheme.onSurfaceVariant,
+                        fontSize: 12))),
                   Switch(
                     key: const ValueKey('podcast-translation-toggle'),
                     value: _showArabic,
                     onChanged: (value) => setState(() => _showArabic = value),
                   ),
                 ]),
-                Text(
-                  ar
-                      ? 'تضيء الجملة عند سماعها، ويمكن الضغط عليها لإعادتها.'
-                      : 'The spoken line highlights automatically; tap it to replay.',
-                  style: TextStyle(
-                      color: scheme.onSurfaceVariant, fontSize: 12),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 5),
+                  child: Text(
+                    ar ? 'تمييز الجملة أثناء الاستماع · اضغط عليها لإعادتها'
+                        : 'Follow the highlighted sentence · Tap to replay',
+                    style: TextStyle(color: scheme.onSurfaceVariant,
+                      fontSize: 11)),
                 ),
                 const SizedBox(height: 15),
                 for (var i = 0; i < episode.dialogue.length; i++)
