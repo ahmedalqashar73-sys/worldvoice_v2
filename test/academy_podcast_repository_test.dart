@@ -26,8 +26,8 @@ void main() {
             e.language == language.code && e.level == level), hasLength(15));
       }
     }
-    expect(list.where((e) => e.hasTranscript), hasLength(2));
-    expect(list.where((e) => e.status == 'planned'), hasLength(718));
+    expect(list.where((e) => e.hasTranscript), hasLength(3));
+    expect(list.where((e) => e.status == 'planned'), hasLength(717));
   });
 
   test('the A1 Anna and Daniel transcript is complete but not audio-ready', () async {
@@ -58,6 +58,31 @@ void main() {
     expect(book.questions, hasLength(5));
     expect(book.isPlayable, isFalse);
     expect(book.audioUrl, isNull);
+  });
+
+  test('VOA Lesson 20 has real source audio and exact credited speakers',
+      () async {
+    final entries = await repo.allEpisodes();
+    final item = entries.singleWhere((e) => e.id == 'en-a1-voa-020');
+    expect(item.status, 'published_audio');
+    expect(item.language, 'en');
+    final lesson = await repo.load(item);
+    expect(lesson.title, 'What Can You Do?');
+    expect(lesson.hosts, ['Anna', 'Pete']);
+    expect(lesson.otherSpeakers, ['Marsha']);
+    expect(lesson.dialogue, hasLength(44));
+    expect(lesson.dialogue.map((line) => line.speaker).toSet(),
+        {'Anna', 'Pete', 'Marsha'});
+    expect(lesson.dialogue.every((line) =>
+        line.text.trim().isNotEmpty && line.translationAr.trim().isNotEmpty),
+        isTrue);
+    expect(lesson.audioUrl, contains('voa-audio.voanews.eu'));
+    expect(lesson.sourceUrl, contains('learningenglish.voanews.com'));
+    expect(lesson.durationMs, 219000);
+    expect(lesson.canStream, isTrue);
+    expect(lesson.isPlayable, isFalse,
+        reason: 'No fabricated line timing until verified against the MP3');
+    expect(lesson.lineAt(const Duration(seconds: 50)), isNull);
   });
 
   test('sync timestamps are required for playback', () {
