@@ -30,7 +30,7 @@ void main() {
     );
     expect(scroll.position.pixels, 0);
     await tester.drag(
-      find.byKey(const ValueKey('textbook-image-0')),
+      find.byKey(const ValueKey('textbook-story-scroll')),
       const Offset(0, -420),
     );
     await tester.pumpAndSettle();
