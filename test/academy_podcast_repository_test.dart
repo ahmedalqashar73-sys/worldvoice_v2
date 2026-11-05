@@ -30,9 +30,10 @@ void main() {
     expect(list.where((e) => e.status == 'planned'), hasLength(717));
   });
 
-  test('the A1 Anna and Daniel transcript is complete but not audio-ready', () async {
+  test('the Anna and Daniel draft stays unchanged and without recording', () async {
     final list = await repo.allEpisodes();
-    final episode = await repo.load(list.first);
+    final draft = list.singleWhere((e) => e.id == 'en-a1-pod-001');
+    final episode = await repo.load(draft);
     expect(episode.dialogue, hasLength(62));
     expect(episode.dialogue.map((e) => e.speaker).toSet(),
         {'Anna', 'Daniel'});
@@ -78,11 +79,14 @@ void main() {
         isTrue);
     expect(lesson.audioUrl, contains('voa-audio.voanews.eu'));
     expect(lesson.sourceUrl, contains('learningenglish.voanews.com'));
-    expect(lesson.durationMs, 219000);
+    expect(lesson.durationMs, 219311);
     expect(lesson.canStream, isTrue);
-    expect(lesson.isPlayable, isFalse,
-        reason: 'No fabricated line timing until verified against the MP3');
-    expect(lesson.lineAt(const Duration(seconds: 50)), isNull);
+    expect(lesson.syncStatus, 'provisional');
+    expect(lesson.isPlayable, isTrue,
+        reason: 'Measured but provisional cues support trial read-along');
+    expect(lesson.lineAt(const Duration(seconds: 50)), isNotNull);
+    expect(lesson.dialogue.every((line) =>
+        line.startMs != null && line.endMs != null), isTrue);
   });
 
   test('sync timestamps are required for playback', () {
