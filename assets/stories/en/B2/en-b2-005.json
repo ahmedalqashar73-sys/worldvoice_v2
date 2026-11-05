@@ -1,0 +1,428 @@
+{
+  "language": "en",
+  "level": "B2",
+  "story": {
+    "id": "en-b2-005",
+    "title": "The Festival of Shared Voices",
+    "title_ar": "مهرجان الأصوات المشتركة",
+    "moral_ar": "التواصل بين الثقافات يحتاج إلى الترجمة الدقيقة، وموافقة أصحاب القصص، وإتاحة المشاركة للجميع.",
+    "art_style": "Editorial cultural-festival watercolor, expressive consistent cast, original scenes, no lettering.",
+    "cover_image_prompt": "Community arts center hall with young organizers Yara in violet cardigan and Minho in blue jacket designing multilingual storytelling festival stage, blank colorful paper banners, warm evening light.",
+    "character_sheet": [
+      {
+        "name": "Yara",
+        "description": "A twenty-one-year-old woman with warm olive skin, shoulder-length dark brown curls, violet cardigan, charcoal skirt and cream shoes."
+      },
+      {
+        "name": "Minho",
+        "description": "A twenty-two-year-old man with fair skin, straight black hair, blue bomber jacket, beige trousers and black trainers."
+      },
+      {
+        "name": "Ms. Alvarez",
+        "description": "A bilingual community arts coordinator with medium brown skin, short gray hair, orange jacket, dark trousers and a simple necklace."
+      }
+    ],
+    "chapters": [
+      {
+        "chapter": 1,
+        "title": "Many Languages, One Stage",
+        "title_ar": "لغات كثيرة ومسرح واحد",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Community arts center hall with young organizers Yara in violet cardigan and Minho in blue jacket designing multilingual storytelling festival stage, blank colorful paper banners, warm evening light. Original vivid cultural-community watercolor, consistent figures Yara A twenty-one-year-old woman with warm olive skin, shoulder-length dark brown curls, violet cardigan, charcoal skirt and cream shoes.; Minho A twenty-two-year-old man with fair skin, straight black hair, blue bomber jacket, beige trousers and black trainers.; Ms. Alvarez A bilingual community arts coordinator with medium brown skin, short gray hair, orange jacket, dark trousers and a simple necklace.. No lettering.",
+            "animation": "fade_in",
+            "image": "assets/stories/en/B2/illustrations/en-b2-005_scene_01.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Yara proposed a storytelling festival after realizing that many newcomers in her neighborhood rarely attended local cultural events. Some did not understand the announcements, while others worried their experiences would be misunderstood. Her friend Minho suggested inviting people to tell short stories in whichever language felt most **natural** to them, with translations available to listeners. The community arts coordinator, Ms. Alvarez, liked the idea but asked them to define the event's **purpose** carefully. If the festival celebrated diversity, it needed to avoid turning personal histories into an entertaining **spectacle** for outsiders."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We should build it with the storytellers, not simply about them, Yara said."
+                  }
+                ],
+                "translation_ar": "اقترحت يارا مهرجانًا للحكايات بعدما لاحظت أن وافدين جددًا إلى الحي نادرًا ما يشاركون في الفعاليات الثقافية. بعضهم لا يفهم الإعلانات، وآخرون يخشون إساءة فهم تجاربهم. اقترح مينهو أن يحكي الناس بلغتهم الطبيعية مع توفير ترجمة. رحبت المنسقة السيدة ألفاريز بالفكرة لكنها طلبت توضيح الهدف حتى لا تتحول قصص الناس إلى فرجة للآخرين. قالت يارا إن المهرجان يجب أن يصنعه أصحاب القصص معهم."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "At the first planning meeting, the organizers discussed how to invite participants without placing pressure on anyone to reveal private memories. Ms. Alvarez emphasized **consent**, explaining that permission to tell a story on stage did not automatically include permission to record it online. Minho prepared separate **options** for live storytelling, anonymous written contributions, and material that could be published afterward. Yara created a confidential way to ask questions and withdraw before the event. This careful **approach** took longer than designing decorations, but it made the invitation more respectful."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "People should decide what happens to their words, Minho said."
+                  }
+                ],
+                "translation_ar": "في الاجتماع الأول ناقش المنظمون دعوة المشاركين دون الضغط عليهم لكشف ذكريات خاصة. أكدت السيدة ألفاريز أهمية الموافقة، لأن الإذن بالحكي على المسرح لا يشمل تلقائيًا التسجيل والنشر. أعد مينهو خيارات للمشاركة المباشرة والكتابة المجهولة والنشر اللاحق. وفرت يارا طريقة سرية للسؤال والانسحاب قبل الحدث. استغرق ذلك أكثر من تجهيز الزينة لكنه جعل الدعوة محترمة. قال مينهو إن للناس حق التحكم في كلماتهم."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Small rehearsal room with Yara Minho and Ms Alvarez discussing translation scripts and oral histories, microphone and notebooks, original watercolor interior. Original vivid cultural-community watercolor, consistent figures Yara A twenty-one-year-old woman with warm olive skin, shoulder-length dark brown curls, violet cardigan, charcoal skirt and cream shoes.; Minho A twenty-two-year-old man with fair skin, straight black hair, blue bomber jacket, beige trousers and black trainers.; Ms. Alvarez A bilingual community arts coordinator with medium brown skin, short gray hair, orange jacket, dark trousers and a simple necklace.. No lettering.",
+            "animation": "pan_left",
+            "image": "assets/stories/en/B2/illustrations/en-b2-005_scene_02.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The next challenge was translation, because several stories contained expressions with no easy **equivalent** in another language. A volunteer suggested replacing those expressions with familiar sayings, but Yara worried that this could change the speaker's **intention**. Ms. Alvarez recommended brief explanatory notes rather than pretending every phrase had a perfect match. Minho organized a review process in which storytellers could approve the translated **meaning** before rehearsals began. The team discovered that careful translation required conversation, not just dictionaries and fast decisions. This decision showed how important it was to share responsibility and keep the community involved throughout the process."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We should leave room for explanations, Yara agreed."
+                  }
+                ],
+                "translation_ar": "جاء التحدي التالي من الترجمة: احتوت قصص على تعبيرات بلا مقابل سهل. اقترح متطوع استبدالها بأمثال مألوفة، لكن يارا خافت من تغيير قصد المتحدث. أوصت السيدة ألفاريز بملاحظات تفسيرية قصيرة بدل ادعاء التطابق. نظم مينهو مراجعة تسمح للرواة بالموافقة على المعنى المترجم قبل التدريبات. اكتشف الفريق أن الترجمة الدقيقة حوار لا مجرد قواميس وقرارات سريعة. وافقت يارا على إتاحة مساحة للشرح."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "During rehearsals, one speaker felt uncomfortable when the translator made her emotional story sound more dramatic than she had intended. Although the audience might have found the version exciting, it failed to preserve her **tone**. Minho apologized and worked with her to revise the wording, while Yara updated the translator **guidelines** to discourage unnecessary additions. The speaker's **feedback** also helped the team understand why personal stories should never be treated like scripts that organizers could improve without permission. Trust grew because the group responded openly rather than becoming defensive."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "A good translation should sound like the person who speaks, Minho said."
+                  }
+                ],
+                "translation_ar": "في التدريب انزعجت متحدثة لأن الترجمة جعلت قصتها العاطفية أكثر درامية مما قصدت. مع أن النسخة قد تعجب الجمهور، فإنها لم تحافظ على نبرتها. اعتذر مينهو وراجع النص معها، وعدلت يارا إرشادات المترجمين لمنع الإضافات غير اللازمة. ساعدت ملاحظاتها الفريق على فهم أن قصص الناس ليست نصوصًا يحق للمنظمين تحسينها دون إذن. زادت الثقة لأنهم استجابوا بصراحة. قال مينهو إن الترجمة الجيدة تشبه صوت صاحبها."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The organizers also considered people who might struggle to hear the stage or read small printed programs. They arranged clear **captions** on a screen, seating close to the speakers, and printed summaries in large type. Ms. Alvarez checked whether the venue offered an **accessible** entrance and quiet space for visitors who needed a break. Yara understood that these arrangements were not optional decorations; they were essential parts of meaningful **participation**. The team invited several community members to test the setup and report problems while changes were still possible."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Welcome means more than opening the door, she said."
+                  }
+                ],
+                "translation_ar": "فكر المنظمون في من يجدون صعوبة في سماع المسرح أو قراءة البرامج الصغيرة. جهزوا ترجمات نصية على شاشة ومقاعد قريبة وملخصات بخط كبير. تحققت السيدة ألفاريز من مدخل قابل للوصول ومساحة هادئة للاستراحة. أدركت يارا أن هذه الترتيبات ليست زينة بل شرط للمشاركة الحقيقية. دعت أشخاصًا من المجتمع إلى تجربة المكان والإبلاغ عن أي مشكلة قبل فوات وقت التعديل. قالت إن الترحيب أكثر من فتح الباب."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "chapter": 2,
+        "title": "A Festival Worth Remembering",
+        "title_ar": "مهرجان يستحق الذكر",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Outdoor cultural festival in town square with small speaking stage, accessible seating and written caption screen showing no readable text, Yara and Minho solving technical issues. Original vivid cultural-community watercolor, consistent figures Yara A twenty-one-year-old woman with warm olive skin, shoulder-length dark brown curls, violet cardigan, charcoal skirt and cream shoes.; Minho A twenty-two-year-old man with fair skin, straight black hair, blue bomber jacket, beige trousers and black trainers.; Ms. Alvarez A bilingual community arts coordinator with medium brown skin, short gray hair, orange jacket, dark trousers and a simple necklace.. No lettering.",
+            "animation": "parallax",
+            "image": "assets/stories/en/B2/illustrations/en-b2-005_scene_03.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "On the afternoon of the festival, a last-minute technical **failure** interrupted the caption display. Some volunteers proposed continuing without it, since the microphones still worked, but Minho argued that this would exclude part of the audience. He checked the prepared **backup** materials while Yara asked the host to explain the short delay calmly. A technician restored the system, and the organizers used printed summaries during the interruption. Their thoughtful **response** prevented a small failure from becoming a reason for anyone to miss the event."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "We promised access, so we should protect it, Minho said."
+                  }
+                ],
+                "translation_ar": "بعد ظهر المهرجان تعطل عرض النصوص المترجمة فجأة. اقترح متطوعون الاستمرار لأن الميكروفونات تعمل، لكن مينهو رأى أن ذلك يستبعد بعض الجمهور. راجع المواد الاحتياطية بينما طلبت يارا من المقدم شرح التأخير بهدوء. أصلح الفني النظام، واستُخدمت الملخصات المطبوعة أثناء الانقطاع. منعت الاستجابة الهادئة العطل الصغير من حرمان أحد من الحدث. قال مينهو إن عليهم حماية الوصول الذي وعدوا به."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The first storyteller described moving to a new country and learning to recognize familiar kindness in unfamiliar places. Her account included a phrase from her childhood that the translator **explained** rather than replacing with a misleading proverb. Listeners responded with genuine **curiosity**, and several asked thoughtful questions afterward. Yara noticed that the atmosphere felt different from a competition: nobody was trying to decide whose story was most impressive. The festival encouraged careful **listening**, allowing difficult experiences and funny memories to share the same stage without being compared."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "This is the conversation we hoped for, Yara whispered."
+                  }
+                ],
+                "translation_ar": "روت أول متحدثة انتقالها إلى بلد جديد وتعلمها التعرف إلى اللطف المألوف في أماكن غريبة. احتوت روايتها على تعبير من طفولتها شرحه المترجم بدل استبداله بمثل مضلل. استمع الناس بفضول وطرحوا أسئلة محترمة. لاحظت يارا أن الجو ليس مسابقة؛ لا يحاول أحد تحديد القصة الأكثر إثارة. شجع المهرجان الإصغاء، فاجتمعت التجارب الصعبة والذكريات المضحكة على مسرح واحد. همست يارا أن هذا هو الحوار الذي أرادوه."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Warm evening community storytelling festival with people of different ages and backgrounds sharing stories on stage, Yara Minho and Ms Alvarez smiling with audience, soft lantern light. Original vivid cultural-community watercolor, consistent figures Yara A twenty-one-year-old woman with warm olive skin, shoulder-length dark brown curls, violet cardigan, charcoal skirt and cream shoes.; Minho A twenty-two-year-old man with fair skin, straight black hair, blue bomber jacket, beige trousers and black trainers.; Ms. Alvarez A bilingual community arts coordinator with medium brown skin, short gray hair, orange jacket, dark trousers and a simple necklace.. No lettering.",
+            "animation": "zoom_in_slow",
+            "image": "assets/stories/en/B2/illustrations/en-b2-005_scene_04.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "After the performances, organizers collected voluntary **reflections** from participants about what had worked and what felt uncomfortable. One storyteller appreciated the careful translation, while another suggested giving speakers more time to review their introductions. Ms. Alvarez reminded the team that criticism was not a sign of **failure** but a chance to improve. Minho organized the suggestions into a practical **evaluation** report, avoiding names unless permission had been explicitly given. The group agreed to publish the report's main findings without sharing anyone's private experiences."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "The festival should learn from its guests, Minho said."
+                  }
+                ],
+                "translation_ar": "بعد العروض جمع المنظمون تأملات طوعية عما نجح وما سبب انزعاجًا. أشاد راوٍ بالترجمة الدقيقة، واقترح آخر وقتًا أطول لمراجعة مقدمته. ذكرت السيدة ألفاريز أن النقد فرصة للتحسن لا دليل فشل. جمع مينهو الاقتراحات في تقرير تقييم عملي دون أسماء إلا بإذن صريح. اتفق الفريق على نشر النتائج العامة دون كشف تجارب خاصة. قال مينهو إن على المهرجان التعلم من ضيوفه."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Although the event attracted a large audience, the organizers did not immediately publish its recordings. Instead, they returned to each storyteller to confirm the agreed **boundaries** of sharing. Some requested that their contributions remain offline, while others allowed short excerpts with approved translations. Yara respected every **decision**, even when it meant losing material that might have attracted more attention online. She began to understand that ethical **documentation** required giving up control as often as collecting information. Ms. Alvarez praised her willingness to put people's choices above publicity."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We must keep the promises we made, Yara replied."
+                  }
+                ],
+                "translation_ar": "رغم حضور جمهور كبير لم ينشر المنظمون التسجيلات مباشرة. عادوا إلى كل راوٍ لتأكيد حدود المشاركة المتفق عليها. طلب بعضهم بقاء القصص خارج الإنترنت، وسمح آخرون بمقاطع قصيرة وترجمات معتمدة. احترمت يارا كل قرار حتى لو خسرت مادة تجذب الاهتمام. فهمت أن التوثيق الأخلاقي يعني أحيانًا التخلي عن التحكم. امتدحت السيدة ألفاريز تقديم اختيارات الناس على الدعاية. قالت يارا إن عليهم الوفاء بوعودهم."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "A year later, the arts center hosted a smaller storytelling evening organized by people who had attended the original festival. Yara and Minho were invited as advisers rather than leaders, which they considered the event's greatest **legacy**. The new organizers had developed their own **approach**, but they still emphasized consent, accessible translation, and respectful dialogue. Looking across the room, Yara realized that genuine cultural **exchange** could continue without a single central voice. What mattered was creating conditions in which people felt safe enough to speak and curious enough to listen."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "It belongs to the community now, Minho said."
+                  }
+                ],
+                "translation_ar": "بعد عام استضاف المركز أمسية أصغر نظمها أشخاص حضروا المهرجان الأول. دُعيت يارا ومينهو مستشارين لا قائدين، ورأيا ذلك أفضل إرث للحدث. طور المنظمون الجدد طريقتهم، لكنهم حافظوا على الموافقة والترجمة المتاحة والحوار المحترم. أدركت يارا أن التبادل الثقافي الحقيقي يستمر دون صوت مركزي واحد، ما دام الناس يشعرون بالأمان للحديث والفضول للاستماع. قال مينهو إن الحدث أصبح ملك المجتمع الآن."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "vocabulary": [
+      {
+        "word": "natural",
+        "meaning_ar": "طبيعي",
+        "example": "Yara proposed a storytelling festival after realizing that many newcomers in her neighborhood rarely attended local cultural events. Some did not understand the announcements, while others worried their experiences would be misunderstood. Her friend Minho suggested inviting people to tell short stories in whichever language felt most natural to them, with translations available to listeners. The community arts coordinator, Ms. Alvarez, liked the idea but asked them to define the event's purpose carefully. If the festival celebrated diversity, it needed to avoid turning personal histories into an entertaining spectacle for outsiders."
+      },
+      {
+        "word": "purpose",
+        "meaning_ar": "هدف",
+        "example": "Yara proposed a storytelling festival after realizing that many newcomers in her neighborhood rarely attended local cultural events. Some did not understand the announcements, while others worried their experiences would be misunderstood. Her friend Minho suggested inviting people to tell short stories in whichever language felt most natural to them, with translations available to listeners. The community arts coordinator, Ms. Alvarez, liked the idea but asked them to define the event's purpose carefully. If the festival celebrated diversity, it needed to avoid turning personal histories into an entertaining spectacle for outsiders."
+      },
+      {
+        "word": "spectacle",
+        "meaning_ar": "فرجة",
+        "example": "Yara proposed a storytelling festival after realizing that many newcomers in her neighborhood rarely attended local cultural events. Some did not understand the announcements, while others worried their experiences would be misunderstood. Her friend Minho suggested inviting people to tell short stories in whichever language felt most natural to them, with translations available to listeners. The community arts coordinator, Ms. Alvarez, liked the idea but asked them to define the event's purpose carefully. If the festival celebrated diversity, it needed to avoid turning personal histories into an entertaining spectacle for outsiders."
+      },
+      {
+        "word": "consent",
+        "meaning_ar": "موافقة",
+        "example": "At the first planning meeting, the organizers discussed how to invite participants without placing pressure on anyone to reveal private memories. Ms. Alvarez emphasized consent, explaining that permission to tell a story on stage did not automatically include permission to record it online. Minho prepared separate options for live storytelling, anonymous written contributions, and material that could be published afterward. Yara created a confidential way to ask questions and withdraw before the event. This careful approach took longer than designing decorations, but it made the invitation more respectful."
+      },
+      {
+        "word": "options",
+        "meaning_ar": "خيارات",
+        "example": "At the first planning meeting, the organizers discussed how to invite participants without placing pressure on anyone to reveal private memories. Ms. Alvarez emphasized consent, explaining that permission to tell a story on stage did not automatically include permission to record it online. Minho prepared separate options for live storytelling, anonymous written contributions, and material that could be published afterward. Yara created a confidential way to ask questions and withdraw before the event. This careful approach took longer than designing decorations, but it made the invitation more respectful."
+      },
+      {
+        "word": "approach",
+        "meaning_ar": "نهج",
+        "example": "At the first planning meeting, the organizers discussed how to invite participants without placing pressure on anyone to reveal private memories. Ms. Alvarez emphasized consent, explaining that permission to tell a story on stage did not automatically include permission to record it online. Minho prepared separate options for live storytelling, anonymous written contributions, and material that could be published afterward. Yara created a confidential way to ask questions and withdraw before the event. This careful approach took longer than designing decorations, but it made the invitation more respectful."
+      },
+      {
+        "word": "equivalent",
+        "meaning_ar": "مقابل",
+        "example": "The next challenge was translation, because several stories contained expressions with no easy equivalent in another language. A volunteer suggested replacing those expressions with familiar sayings, but Yara worried that this could change the speaker's intention. Ms. Alvarez recommended brief explanatory notes rather than pretending every phrase had a perfect match. Minho organized a review process in which storytellers could approve the translated meaning before rehearsals began. The team discovered that careful translation required conversation, not just dictionaries and fast decisions. This decision showed how important it was to share responsibility and keep the community involved throughout the process."
+      },
+      {
+        "word": "intention",
+        "meaning_ar": "قصد",
+        "example": "The next challenge was translation, because several stories contained expressions with no easy equivalent in another language. A volunteer suggested replacing those expressions with familiar sayings, but Yara worried that this could change the speaker's intention. Ms. Alvarez recommended brief explanatory notes rather than pretending every phrase had a perfect match. Minho organized a review process in which storytellers could approve the translated meaning before rehearsals began. The team discovered that careful translation required conversation, not just dictionaries and fast decisions. This decision showed how important it was to share responsibility and keep the community involved throughout the process."
+      },
+      {
+        "word": "meaning",
+        "meaning_ar": "معنى",
+        "example": "The next challenge was translation, because several stories contained expressions with no easy equivalent in another language. A volunteer suggested replacing those expressions with familiar sayings, but Yara worried that this could change the speaker's intention. Ms. Alvarez recommended brief explanatory notes rather than pretending every phrase had a perfect match. Minho organized a review process in which storytellers could approve the translated meaning before rehearsals began. The team discovered that careful translation required conversation, not just dictionaries and fast decisions. This decision showed how important it was to share responsibility and keep the community involved throughout the process."
+      },
+      {
+        "word": "tone",
+        "meaning_ar": "نبرة",
+        "example": "During rehearsals, one speaker felt uncomfortable when the translator made her emotional story sound more dramatic than she had intended. Although the audience might have found the version exciting, it failed to preserve her tone. Minho apologized and worked with her to revise the wording, while Yara updated the translator guidelines to discourage unnecessary additions. The speaker's feedback also helped the team understand why personal stories should never be treated like scripts that organizers could improve without permission. Trust grew because the group responded openly rather than becoming defensive."
+      },
+      {
+        "word": "guidelines",
+        "meaning_ar": "إرشادات",
+        "example": "During rehearsals, one speaker felt uncomfortable when the translator made her emotional story sound more dramatic than she had intended. Although the audience might have found the version exciting, it failed to preserve her tone. Minho apologized and worked with her to revise the wording, while Yara updated the translator guidelines to discourage unnecessary additions. The speaker's feedback also helped the team understand why personal stories should never be treated like scripts that organizers could improve without permission. Trust grew because the group responded openly rather than becoming defensive."
+      },
+      {
+        "word": "feedback",
+        "meaning_ar": "ملاحظات",
+        "example": "During rehearsals, one speaker felt uncomfortable when the translator made her emotional story sound more dramatic than she had intended. Although the audience might have found the version exciting, it failed to preserve her tone. Minho apologized and worked with her to revise the wording, while Yara updated the translator guidelines to discourage unnecessary additions. The speaker's feedback also helped the team understand why personal stories should never be treated like scripts that organizers could improve without permission. Trust grew because the group responded openly rather than becoming defensive."
+      },
+      {
+        "word": "captions",
+        "meaning_ar": "نصوص مصاحبة",
+        "example": "The organizers also considered people who might struggle to hear the stage or read small printed programs. They arranged clear captions on a screen, seating close to the speakers, and printed summaries in large type. Ms. Alvarez checked whether the venue offered an accessible entrance and quiet space for visitors who needed a break. Yara understood that these arrangements were not optional decorations; they were essential parts of meaningful participation. The team invited several community members to test the setup and report problems while changes were still possible."
+      },
+      {
+        "word": "accessible",
+        "meaning_ar": "متاح الوصول",
+        "example": "The organizers also considered people who might struggle to hear the stage or read small printed programs. They arranged clear captions on a screen, seating close to the speakers, and printed summaries in large type. Ms. Alvarez checked whether the venue offered an accessible entrance and quiet space for visitors who needed a break. Yara understood that these arrangements were not optional decorations; they were essential parts of meaningful participation. The team invited several community members to test the setup and report problems while changes were still possible."
+      },
+      {
+        "word": "participation",
+        "meaning_ar": "مشاركة",
+        "example": "The organizers also considered people who might struggle to hear the stage or read small printed programs. They arranged clear captions on a screen, seating close to the speakers, and printed summaries in large type. Ms. Alvarez checked whether the venue offered an accessible entrance and quiet space for visitors who needed a break. Yara understood that these arrangements were not optional decorations; they were essential parts of meaningful participation. The team invited several community members to test the setup and report problems while changes were still possible."
+      },
+      {
+        "word": "failure",
+        "meaning_ar": "عطل",
+        "example": "On the afternoon of the festival, a last-minute technical failure interrupted the caption display. Some volunteers proposed continuing without it, since the microphones still worked, but Minho argued that this would exclude part of the audience. He checked the prepared backup materials while Yara asked the host to explain the short delay calmly. A technician restored the system, and the organizers used printed summaries during the interruption. Their thoughtful response prevented a small failure from becoming a reason for anyone to miss the event."
+      },
+      {
+        "word": "backup",
+        "meaning_ar": "احتياطي",
+        "example": "On the afternoon of the festival, a last-minute technical failure interrupted the caption display. Some volunteers proposed continuing without it, since the microphones still worked, but Minho argued that this would exclude part of the audience. He checked the prepared backup materials while Yara asked the host to explain the short delay calmly. A technician restored the system, and the organizers used printed summaries during the interruption. Their thoughtful response prevented a small failure from becoming a reason for anyone to miss the event."
+      },
+      {
+        "word": "response",
+        "meaning_ar": "استجابة",
+        "example": "On the afternoon of the festival, a last-minute technical failure interrupted the caption display. Some volunteers proposed continuing without it, since the microphones still worked, but Minho argued that this would exclude part of the audience. He checked the prepared backup materials while Yara asked the host to explain the short delay calmly. A technician restored the system, and the organizers used printed summaries during the interruption. Their thoughtful response prevented a small failure from becoming a reason for anyone to miss the event."
+      },
+      {
+        "word": "explained",
+        "meaning_ar": "شرح",
+        "example": "The first storyteller described moving to a new country and learning to recognize familiar kindness in unfamiliar places. Her account included a phrase from her childhood that the translator explained rather than replacing with a misleading proverb. Listeners responded with genuine curiosity, and several asked thoughtful questions afterward. Yara noticed that the atmosphere felt different from a competition: nobody was trying to decide whose story was most impressive. The festival encouraged careful listening, allowing difficult experiences and funny memories to share the same stage without being compared."
+      },
+      {
+        "word": "curiosity",
+        "meaning_ar": "فضول",
+        "example": "The first storyteller described moving to a new country and learning to recognize familiar kindness in unfamiliar places. Her account included a phrase from her childhood that the translator explained rather than replacing with a misleading proverb. Listeners responded with genuine curiosity, and several asked thoughtful questions afterward. Yara noticed that the atmosphere felt different from a competition: nobody was trying to decide whose story was most impressive. The festival encouraged careful listening, allowing difficult experiences and funny memories to share the same stage without being compared."
+      },
+      {
+        "word": "listening",
+        "meaning_ar": "إصغاء",
+        "example": "The first storyteller described moving to a new country and learning to recognize familiar kindness in unfamiliar places. Her account included a phrase from her childhood that the translator explained rather than replacing with a misleading proverb. Listeners responded with genuine curiosity, and several asked thoughtful questions afterward. Yara noticed that the atmosphere felt different from a competition: nobody was trying to decide whose story was most impressive. The festival encouraged careful listening, allowing difficult experiences and funny memories to share the same stage without being compared."
+      },
+      {
+        "word": "reflections",
+        "meaning_ar": "تأملات",
+        "example": "After the performances, organizers collected voluntary reflections from participants about what had worked and what felt uncomfortable. One storyteller appreciated the careful translation, while another suggested giving speakers more time to review their introductions. Ms. Alvarez reminded the team that criticism was not a sign of failure but a chance to improve. Minho organized the suggestions into a practical evaluation report, avoiding names unless permission had been explicitly given. The group agreed to publish the report's main findings without sharing anyone's private experiences."
+      },
+      {
+        "word": "evaluation",
+        "meaning_ar": "تقييم",
+        "example": "After the performances, organizers collected voluntary reflections from participants about what had worked and what felt uncomfortable. One storyteller appreciated the careful translation, while another suggested giving speakers more time to review their introductions. Ms. Alvarez reminded the team that criticism was not a sign of failure but a chance to improve. Minho organized the suggestions into a practical evaluation report, avoiding names unless permission had been explicitly given. The group agreed to publish the report's main findings without sharing anyone's private experiences."
+      },
+      {
+        "word": "boundaries",
+        "meaning_ar": "حدود",
+        "example": "Although the event attracted a large audience, the organizers did not immediately publish its recordings. Instead, they returned to each storyteller to confirm the agreed boundaries of sharing. Some requested that their contributions remain offline, while others allowed short excerpts with approved translations. Yara respected every decision, even when it meant losing material that might have attracted more attention online. She began to understand that ethical documentation required giving up control as often as collecting information. Ms. Alvarez praised her willingness to put people's choices above publicity."
+      },
+      {
+        "word": "decision",
+        "meaning_ar": "قرار",
+        "example": "Although the event attracted a large audience, the organizers did not immediately publish its recordings. Instead, they returned to each storyteller to confirm the agreed boundaries of sharing. Some requested that their contributions remain offline, while others allowed short excerpts with approved translations. Yara respected every decision, even when it meant losing material that might have attracted more attention online. She began to understand that ethical documentation required giving up control as often as collecting information. Ms. Alvarez praised her willingness to put people's choices above publicity."
+      },
+      {
+        "word": "documentation",
+        "meaning_ar": "توثيق",
+        "example": "Although the event attracted a large audience, the organizers did not immediately publish its recordings. Instead, they returned to each storyteller to confirm the agreed boundaries of sharing. Some requested that their contributions remain offline, while others allowed short excerpts with approved translations. Yara respected every decision, even when it meant losing material that might have attracted more attention online. She began to understand that ethical documentation required giving up control as often as collecting information. Ms. Alvarez praised her willingness to put people's choices above publicity."
+      },
+      {
+        "word": "legacy",
+        "meaning_ar": "إرث",
+        "example": "A year later, the arts center hosted a smaller storytelling evening organized by people who had attended the original festival. Yara and Minho were invited as advisers rather than leaders, which they considered the event's greatest legacy. The new organizers had developed their own approach, but they still emphasized consent, accessible translation, and respectful dialogue. Looking across the room, Yara realized that genuine cultural exchange could continue without a single central voice. What mattered was creating conditions in which people felt safe enough to speak and curious enough to listen."
+      },
+      {
+        "word": "exchange",
+        "meaning_ar": "تبادل",
+        "example": "A year later, the arts center hosted a smaller storytelling evening organized by people who had attended the original festival. Yara and Minho were invited as advisers rather than leaders, which they considered the event's greatest legacy. The new organizers had developed their own approach, but they still emphasized consent, accessible translation, and respectful dialogue. Looking across the room, Yara realized that genuine cultural exchange could continue without a single central voice. What mattered was creating conditions in which people felt safe enough to speak and curious enough to listen."
+      }
+    ],
+    "questions": [
+      {
+        "q": "Why did Yara propose the festival?",
+        "options": [
+          "To sell tickets",
+          "To help different community voices be heard",
+          "To find a singer",
+          "To close the arts center"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "What did consent NOT automatically include?",
+        "options": [
+          "Speaking on stage",
+          "Meeting neighbors",
+          "Permission to publish recordings online",
+          "Joining rehearsals"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "How were difficult expressions translated?",
+        "options": [
+          "With random sayings",
+          "By removing them",
+          "By inventing stories",
+          "With careful explanations approved by speakers"
+        ],
+        "answer": 3
+      },
+      {
+        "q": "What happened when a translator changed a speaker's tone?",
+        "options": [
+          "The team revised the wording with the speaker",
+          "The story was removed immediately",
+          "The audience voted",
+          "No one listened"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "Why were captions and large print important?",
+        "options": [
+          "To decorate the building",
+          "To support audience participation",
+          "To shorten the festival",
+          "To sell more books"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "What did organizers do during the caption failure?",
+        "options": [
+          "Continue silently",
+          "Cancel the whole event",
+          "Use backup summaries while fixing the display",
+          "Hide the problem"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "How were recordings shared afterward?",
+        "options": [
+          "All were uploaded at once",
+          "Only judges decided",
+          "No recordings were made",
+          "Each storyteller confirmed sharing boundaries"
+        ],
+        "answer": 3
+      },
+      {
+        "q": "What was the festival's lasting result?",
+        "options": [
+          "New organizers carried the idea forward",
+          "The hall was closed",
+          "Only one language was used",
+          "All speakers became famous"
+        ],
+        "answer": 0
+      }
+    ]
+  }
+}
