@@ -69,11 +69,13 @@ class PodcastDialogueLine {
     required this.translationAr,
     this.startMs,
     this.endMs,
+    this.translationEn,
   });
 
   final String speaker;
   final String text;
   final String translationAr;
+  final String? translationEn;
   final int? startMs;
   final int? endMs;
 
@@ -82,6 +84,7 @@ class PodcastDialogueLine {
         speaker: json['speaker'] as String,
         text: json['text'] as String,
         translationAr: json['translation_ar'] as String,
+        translationEn: json['translation_en'] as String?,
         startMs: json['start_ms'] as int?,
         endMs: json['end_ms'] as int?,
       );
@@ -129,6 +132,9 @@ class AcademyPodcastEpisode {
     required this.questions,
     this.audioUrl,
     this.durationMs,
+    this.language = 'en',
+    this.recordingKind,
+    this.rightsConfirmed = false,
   });
 
   final String id;
@@ -136,6 +142,9 @@ class AcademyPodcastEpisode {
   final String title;
   final String titleAr;
   final String status;
+  final String language;
+  final String? recordingKind;
+  final bool rightsConfirmed;
   final String? audioUrl;
   final int? durationMs;
   final List<PodcastDialogueLine> dialogue;
@@ -145,7 +154,8 @@ class AcademyPodcastEpisode {
   /// "Published" requires a real five-minute audio URL and *measured* cues
   /// for every dialogue turn. Never synthesize timestamps from word counts.
   bool get isPlayable {
-    if (status != 'published' || durationMs == null ||
+    if (status != 'published' || recordingKind != 'human' ||
+        !rightsConfirmed || durationMs == null ||
         durationMs! < 285000 || durationMs! > 315000) {
       return false;
     }
@@ -186,6 +196,9 @@ class AcademyPodcastEpisode {
         title: json['title'] as String,
         titleAr: json['title_ar'] as String,
         status: json['status'] as String,
+        language: json['language'] as String? ?? 'en',
+        recordingKind: json['recording_kind'] as String?,
+        rightsConfirmed: json['voice_rights_verified'] as bool? ?? false,
         audioUrl: json['audio_url'] as String?,
         durationMs: json['duration_ms'] as int?,
         dialogue: (json['dialogue'] as List<dynamic>)
@@ -230,7 +243,8 @@ class AcademyPodcastRepository {
     final raw = await rootBundle.loadString(path);
     final episode = AcademyPodcastEpisode.fromJson(
         jsonDecode(raw) as Map<String, dynamic>);
-    if (episode.id != entry.id || episode.level != entry.level) {
+    if (episode.id != entry.id || episode.level != entry.level ||
+        episode.language != entry.language) {
       throw const FormatException('Podcast catalog metadata mismatch.');
     }
     return episode;
