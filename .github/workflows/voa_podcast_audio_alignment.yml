@@ -6,7 +6,10 @@ on:
     branches: [main]
     paths:
       - 'assets/podcasts/en/A1/en-a1-voa-020.json'
+      - 'assets/podcasts/en/A1/en-a1-voa-030.json'
+      - 'assets/podcasts/en/A1/en-a1-voa-047.json'
       - 'scripts/voa_lesson20_align_candidate.py'
+      - 'scripts/tests/test_voa_alignment.py'
       - '.github/workflows/voa_podcast_audio_alignment.yml'
 
 permissions:
@@ -15,26 +18,35 @@ permissions:
 jobs:
   propose-voa-cues:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        lesson: ['020', '030', '047']
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - name: Test approved VOA sources (offline)
+        run: python -m unittest discover -s scripts/tests -p 'test_voa_alignment.py'
       - name: Prepare speech alignment dependencies
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y ffmpeg
           python -m pip install --no-cache-dir whisper-timestamped==1.15.9
-      - name: Match transcript to authentic VOA MP3 word timestamps
+      - name: Match the original VOA audio to the approved transcript
+        env:
+          LESSON: ${{ matrix.lesson }}
         run: |
           python scripts/voa_lesson20_align_candidate.py \
+            --episode "assets/podcasts/en/A1/en-a1-voa-${LESSON}.json" \
             --model base.en \
-            --output /tmp/voa_lesson20_cues_proposed.json
+            --output "/tmp/voa_lesson${LESSON}_cues_proposed.json"
       - name: Save REVIEW-ONLY cue proposal
         uses: actions/upload-artifact@v4
         with:
-          name: voa-lesson20-cues-review-required
-          path: /tmp/voa_lesson20_cues_proposed.json
+          name: voa-lesson${{ matrix.lesson }}-cues-review-required
+          path: /tmp/voa_lesson${{ matrix.lesson }}_cues_proposed.json
           if-no-files-found: error
           retention-days: 14

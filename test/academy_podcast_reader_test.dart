@@ -53,6 +53,8 @@ void main() {
     expect(find.byKey(const ValueKey('podcast-reader-header')), findsOneWidget);
     expect(find.byKey(const ValueKey('podcast-text-larger')), findsOneWidget);
     expect(find.byKey(const ValueKey('podcast-text-smaller')), findsOneWidget);
+    expect(find.byKey(const ValueKey('podcast-auto-follow-toggle')),
+        findsOneWidget);
     expect(find.byKey(const ValueKey('podcast-sticky-player')), findsNothing);
     await tester.tap(
         find.byKey(const ValueKey('podcast-translation-toggle')));
@@ -111,6 +113,11 @@ void main() {
     final onSurface = Theme.of(tester.element(sentence)).colorScheme.onSurface;
     expect(text.style?.color, onSurface);
     expect(find.byKey(const ValueKey('podcast-sticky-player')), findsNothing);
+    final follow = find.byKey(const ValueKey('podcast-auto-follow-toggle'));
+    expect(tester.widget<IconButton>(follow).tooltip, 'Disable auto-follow');
+    await tester.tap(follow);
+    await tester.pump();
+    expect(tester.widget<IconButton>(follow).tooltip, 'Enable auto-follow');
   });
 
 }

@@ -426,6 +426,7 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
   bool _downloaded = false;
   bool _downloading = false;
   bool _showArabic = false;
+  bool _autoFollow = true;
   String? _error;
   int? _activeIndex;
   double _speed = 1.0;
@@ -568,9 +569,10 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
     final active = _episode?.lineAt(position);
     if (_activeIndex == active || !mounted) return;
     setState(() => _activeIndex = active);
-    if (active == null || active < 0 || active >= _anchors.length) return;
+    if (!_autoFollow || active == null ||
+        active < 0 || active >= _anchors.length) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
+      if (!mounted || !_autoFollow) return;
       final context = _anchors[active].currentContext;
       if (context == null) return;
       Scrollable.ensureVisible(context,
@@ -908,7 +910,8 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
         borderRadius: BorderRadius.circular(9),
       ),
       child: InkWell(
-        onTap: _audioLoaded ? () => _seekLine(line) : null,
+        onTap: _audioLoaded && line.startMs != null
+            ? () => _seekLine(line) : null,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1060,6 +1063,18 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                     ar ? 'نص المحادثة' : 'Transcript',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w900))),
+                  IconButton(
+                    key: const ValueKey('podcast-auto-follow-toggle'),
+                    tooltip: ar
+                        ? (_autoFollow ? 'إيقاف متابعة الجملة' : 'متابعة الجملة تلقائيًا')
+                        : (_autoFollow ? 'Disable auto-follow' : 'Enable auto-follow'),
+                    onPressed: () => setState(() => _autoFollow = !_autoFollow),
+                    icon: Icon(_autoFollow
+                        ? Icons.my_location_rounded
+                        : Icons.location_disabled_rounded),
+                    color: _autoFollow ? const Color(0xFF318560)
+                        : scheme.onSurfaceVariant,
+                  ),
                   IconButton(
                     key: const ValueKey('podcast-text-smaller'),
                     tooltip: ar ? 'تصغير الخط' : 'Decrease text size',

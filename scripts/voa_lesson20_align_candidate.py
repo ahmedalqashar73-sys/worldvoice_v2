@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Produce a *review-only* timing proposal from the REAL VOA Lesson 20 MP3.
+"""Produce *review-only* line timing proposals from approved VOA English MP3s.
 
 This does not change any podcast episode metadata or falsely publish cues.
 Requires: ffmpeg/ffprobe, whisper-timestamped, Internet access.
@@ -19,10 +19,33 @@ import re
 import subprocess
 import urllib.request
 
-SOURCE = (
-    "https://voa-audio.voanews.eu/vle/2016/06/29/"
-    "8225db0f-179b-453f-92bb-50f548175c42_hq.mp3"
-)
+from urllib.parse import urlparse
+
+# These recordings were explicitly selected for WorldVoice English A1.
+APPROVED_EPISODES = frozenset({
+    "en-a1-voa-020", "en-a1-voa-030", "en-a1-voa-047",
+})
+
+
+def approved_source(record: dict) -> str:
+    """Restrict ASR to the three credited original VOA recordings."""
+    if (record.get("id") not in APPROVED_EPISODES or
+            record.get("language") != "en" or
+            record.get("recording_kind") != "human" or
+            record.get("voice_rights_verified") is not True or
+            record.get("status") != "published_audio"):
+        raise ValueError("Unapproved VOA English episode")
+    source = record.get("audio_url")
+    if not isinstance(source, str):
+        raise ValueError("Missing VOA audio URL")
+    url = urlparse(source)
+    if (url.scheme != "https" or
+            url.hostname != "voa-audio.voanews.eu" or
+            url.username is not None or url.password is not None or
+            not url.path.startswith("/vle/") or
+            not url.path.lower().endswith(".mp3")):
+        raise ValueError("Unapproved VOA audio URL")
+    return source
 
 
 def tokens(text: str) -> list[str]:
@@ -46,37 +69,38 @@ def main() -> int:
     )
     parser.add_argument(
         "--output", type=Path,
-        default=Path("/tmp/voa_lesson20_cues_proposed.json"),
+        default=None,
     )
-    parser.add_argument("--audio", type=Path,
-                        default=Path("/tmp/voa_lesson20_original.mp3"))
+    parser.add_argument("--audio", type=Path, default=None)
     parser.add_argument("--model", default="base.en")
     args = parser.parse_args()
 
     record = json.loads(args.episode.read_text(encoding="utf-8"))
-    if record.get("id") != "en-a1-voa-020" or len(record["dialogue"]) < 30:
-        raise ValueError("Unexpected VOA episode; cannot align this source")
-    if record.get("audio_url") != SOURCE:
-        raise ValueError("Only the explicitly approved VOA audio may be used")
+    source = approved_source(record)
+    if len(record["dialogue"]) < 20:
+        raise ValueError("Unexpectedly short VOA transcript")
+    expected_duration = int(record["duration_ms"])
+    audio_file = args.audio or Path(f"/tmp/{record['id']}_original.mp3")
+    output_file = args.output or Path(f"/tmp/{record['id']}_cues_proposed.json")
 
-    if not args.audio.exists():
-        request = urllib.request.Request(SOURCE, headers={
+    if not audio_file.exists():
+        request = urllib.request.Request(source, headers={
             "User-Agent": "Mozilla/5.0 WorldVoiceAcademy/1.0",
             "Referer": "https://learningenglish.voanews.com/",
         })
         with urllib.request.urlopen(request, timeout=80) as resp:
             if resp.status != 200:
                 raise RuntimeError(f"VOA MP3 returned {resp.status}")
-            args.audio.write_bytes(resp.read())
-    if args.audio.stat().st_size < 800000:
+            audio_file.write_bytes(resp.read())
+    if audio_file.stat().st_size < 800000:
         raise ValueError("Downloaded MP3 was suspiciously small")
-    duration = read_duration(args.audio)
-    if duration < 205000 or duration > 240000:
-        raise ValueError(f"Unexpected VOA Lesson 20 duration: {duration}ms")
+    duration = read_duration(audio_file)
+    if abs(duration - expected_duration) > 12000:
+        raise ValueError(f"Unexpected VOA recording duration: {duration}ms")
 
     import whisper_timestamped as whisper
 
-    audio = whisper.load_audio(str(args.audio))
+    audio = whisper.load_audio(str(audio_file))
     model = whisper.load_model(args.model, device="cpu")
     output = whisper.transcribe(model, audio, language="en", vad=False)
     recognised = []
@@ -88,7 +112,7 @@ def main() -> int:
                     round(float(word["start"]) * 1000),
                     round(float(word["end"]) * 1000),
                 ))
-    if len(recognised) < 250:
+    if len(recognised) < 120:
         raise ValueError("Insufficient word transcription for usable alignment")
 
     expected = []
@@ -135,8 +159,8 @@ def main() -> int:
 
     summary = {
         "episode_id": record["id"],
-        "audio_source": SOURCE,
-        "sha256": hashlib.sha256(args.audio.read_bytes()).hexdigest(),
+        "audio_source": source,
+        "sha256": hashlib.sha256(audio_file.read_bytes()).hexdigest(),
         "actual_duration_ms": duration,
         "expected_tokens": len(expected),
         "matched_tokens": matched_count,
@@ -145,8 +169,8 @@ def main() -> int:
         "approved_for_publication": False,
         "cues": cues,
     }
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+    output_file.write_text(
         json.dumps(summary, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
