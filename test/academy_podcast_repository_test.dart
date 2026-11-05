@@ -26,8 +26,8 @@ void main() {
             e.language == language.code && e.level == level), hasLength(15));
       }
     }
-    expect(list.where((e) => e.hasTranscript), hasLength(3));
-    expect(list.where((e) => e.status == 'planned'), hasLength(717));
+    expect(list.where((e) => e.hasTranscript), hasLength(4));
+    expect(list.where((e) => e.status == 'planned'), hasLength(716));
   });
 
   test('the Anna and Daniel draft stays unchanged and without recording', () async {
@@ -87,6 +87,49 @@ void main() {
     expect(lesson.lineAt(const Duration(seconds: 50)), isNotNull);
     expect(lesson.dialogue.every((line) =>
         line.startMs != null && line.endMs != null), isTrue);
+  });
+
+  test('VOA Lesson 30 offers real human audio but no fabricated line cues',
+      () async {
+    final entries = await repo.allEpisodes();
+    final item = entries.singleWhere((e) => e.id == 'en-a1-voa-030');
+    final episode = await repo.load(item);
+    expect(item.status, 'published_audio');
+    expect(episode.hosts, ['Anna', 'Pete']);
+    expect(episode.otherSpeakers, isEmpty);
+    expect(episode.dialogue, hasLength(37));
+    expect(episode.sourceUrl, contains('learningenglish.voanews.com'));
+    expect(episode.audioUrl, contains('voa-audio.voanews.eu'));
+    expect(episode.durationMs, 199000);
+    expect(episode.canStream, isTrue);
+    expect(episode.isPlayable, isFalse);
+    expect(episode.lineAt(const Duration(seconds: 40)), isNull);
+  });
+
+  test('sentence stays selected through silence and advances at next voice',
+      () {
+    final episode = AcademyPodcastEpisode(
+      id: 'gap-test', level: 'A1', title: 'Test', titleAr: 'اختبار',
+      status: 'published_audio', recordingKind: 'human',
+      rightsConfirmed: true, durationMs: 200000,
+      audioUrl: 'https://example.org/podcast.mp3',
+      hosts: const ['Anna', 'Pete'],
+      dialogue: const [
+        PodcastDialogueLine(
+          speaker: 'Anna', text: 'Hello', translationAr: 'مرحبًا',
+          startMs: 0, endMs: 90000),
+        PodcastDialogueLine(
+          speaker: 'Pete', text: 'Goodbye', translationAr: 'وداعًا',
+          startMs: 95000, endMs: 199000),
+      ],
+      vocabulary: const [], questions: const [],
+    );
+    expect(episode.isPlayable, isTrue);
+    expect(episode.lineAt(const Duration(milliseconds: 89999)), 0);
+    expect(episode.lineAt(const Duration(milliseconds: 92000)), 0);
+    expect(episode.lineAt(const Duration(milliseconds: 95000)), 1);
+    expect(episode.lineAt(const Duration(milliseconds: 199500)), 1);
+    expect(episode.lineAt(const Duration(milliseconds: 200000)), isNull);
   });
 
   test('sync timestamps are required for playback', () {
