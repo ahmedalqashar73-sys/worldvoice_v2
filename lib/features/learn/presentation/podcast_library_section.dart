@@ -202,9 +202,11 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
         setState(() => _audioLoaded = true);
       }
     } catch (_) {
-      if (mounted) setState(() {
-        _error = 'تعذر تحميل الحلقة أو ملف الصوت.';
-      });
+      if (mounted) {
+        setState(() {
+          _error = 'تعذر تحميل الحلقة أو ملف الصوت.';
+        });
+      }
     }
   }
 
