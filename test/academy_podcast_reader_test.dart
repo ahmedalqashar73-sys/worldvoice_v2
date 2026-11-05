@@ -33,6 +33,9 @@ void main() {
     await tester.tap(english);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 120));
+    expect(find.byKey(const ValueKey('podcast-episode-en-a1-voa-020')),
+        findsOneWidget);
+    expect(find.text('VOA human audio · provisional sync'), findsOneWidget);
     expect(find.byKey(const ValueKey('podcast-episode-en-a1-pod-001')),
         findsOneWidget);
     await tester.ensureVisible(
