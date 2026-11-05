@@ -43,7 +43,15 @@
                 "segments": [
                   {
                     "speaker": "FEMALE",
-                    "text": "I have my yellow **helmet**, Elena says. M:That is good, Ben says. N:Elena feels **nervous** because she may fall. She wants to **ride** but holds the bicycle very tightly."
+                    "text": "I have my yellow **helmet**, Elena says."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "That is good, Ben says."
+                  },
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Elena feels **nervous** because she may fall. She wants to **ride** but holds the bicycle very tightly."
                   }
                 ],
                 "translation_ar": "تقول إيلينا: «معي خوذتي الصفراء». يقول بن: «هذا جيد». تشعر إيلينا بالتوتر لأنها قد تسقط. تريد الركوب لكنها تمسك الدراجة بقوة."
@@ -60,7 +68,15 @@
                 "segments": [
                   {
                     "speaker": "NARRATOR",
-                    "text": "Her **friend** Ben walks beside the bicycle. M:Look forward, he says. N:Elena tries to keep her **balance**. She moves **slowly** and smiles when the bicycle goes a little farther."
+                    "text": "Her **friend** Ben walks beside the bicycle."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Look forward, he says."
+                  },
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Elena tries to keep her **balance**. She moves **slowly** and smiles when the bicycle goes a little farther."
                   }
                 ],
                 "translation_ar": "يمشي صديقها بن بجوار الدراجة. يقول: «انظري إلى الأمام». تحاول إيلينا الحفاظ على توازنها. تتحرك ببطء وتبتسم عندما تتقدم الدراجة قليلًا."
@@ -69,7 +85,11 @@
                 "segments": [
                   {
                     "speaker": "NARRATOR",
-                    "text": "Suddenly, the back **wheel** feels strange. It is **flat**, and the bicycle does not move well. F:We must **stop**, Elena says. Ben checks the wheel and nods."
+                    "text": "Suddenly, the back **wheel** feels strange. It is **flat**, and the bicycle does not move well."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We must **stop**, Elena says. Ben checks the wheel and nods."
                   }
                 ],
                 "translation_ar": "فجأة تبدو العجلة الخلفية غريبة. إنها فارغة من الهواء، ولا تتحرك الدراجة جيدًا. تقول إيلينا: «يجب أن نتوقف». يفحص بن العجلة ويوافق."
@@ -78,7 +98,11 @@
                 "segments": [
                   {
                     "speaker": "NARRATOR",
-                    "text": "They walk to a little **shop** at the end of the street. It is **closed** today. M:We can come back **tomorrow**, Ben says. Elena agrees and takes her bicycle home."
+                    "text": "They walk to a little **shop** at the end of the street. It is **closed** today."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "We can come back **tomorrow**, Ben says. Elena agrees and takes her bicycle home."
                   }
                 ],
                 "translation_ar": "يمشيان إلى محل صغير في نهاية الشارع. إنه مغلق اليوم. يقول بن: «يمكننا العودة غدًا». توافق إيلينا وتأخذ دراجتها إلى المنزل."
@@ -102,7 +126,11 @@
                 "segments": [
                   {
                     "speaker": "NARRATOR",
-                    "text": "On Sunday, Ben brings a **pump** from his father. They put **air** into the wheel. F:Now I am **ready**, Elena says. She puts on her helmet and checks the bicycle."
+                    "text": "On Sunday, Ben brings a **pump** from his father. They put **air** into the wheel."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Now I am **ready**, Elena says. She puts on her helmet and checks the bicycle."
                   }
                 ],
                 "translation_ar": "يوم الأحد، يجلب بن مضخة من أبيه. يضعان الهواء في العجلة. تقول إيلينا: «أنا مستعدة الآن». ترتدي خوذتها وتفحص الدراجة."
@@ -128,7 +156,11 @@
                 "segments": [
                   {
                     "speaker": "NARRATOR",
-                    "text": "A little **dog** runs near the **path**. Elena rings her **bell** and rides more slowly. M:That was good, Ben says. The dog moves away, and the path is clear again."
+                    "text": "A little **dog** runs near the **path**. Elena rings her **bell** and rides more slowly."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "That was good, Ben says. The dog moves away, and the path is clear again."
                   }
                 ],
                 "translation_ar": "يركض كلب صغير قرب الممر. تقرع إيلينا جرسها وتبطئ السير. يقول بن: «أحسنت». يبتعد الكلب ويصبح الممر خاليًا مرة أخرى."
@@ -137,7 +169,11 @@
                 "segments": [
                   {
                     "speaker": "NARRATOR",
-                    "text": "Elena feels **brave** now. She rides around the last **corner** and gives Ben a big **smile**. F:I can do it! she says. Ben claps and laughs with her."
+                    "text": "Elena feels **brave** now. She rides around the last **corner** and gives Ben a big **smile**."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "I can do it! she says. Ben claps and laughs with her."
                   }
                 ],
                 "translation_ar": "تشعر إيلينا بالشجاعة الآن. تدور حول المنعطف الأخير وتعطي بن ابتسامة كبيرة. تقول: «أستطيع فعل ذلك!» يصفق بن ويضحك معها."
@@ -146,7 +182,15 @@
                 "segments": [
                   {
                     "speaker": "NARRATOR",
-                    "text": "Elena knows it is good to be **patient** when you **learn** something new. F:Thank you, Ben, she says. M:We did it **together**, he answers. They ride home happily."
+                    "text": "Elena knows it is good to be **patient** when you **learn** something new."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Thank you, Ben, she says."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "We did it **together**, he answers. They ride home happily."
                   }
                 ],
                 "translation_ar": "تعرف إيلينا أن الصبر مهم عند تعلم شيء جديد. تقول: «شكرًا يا بن». يجيبها: «نجحنا معًا». يعودان إلى المنزل سعيدين."

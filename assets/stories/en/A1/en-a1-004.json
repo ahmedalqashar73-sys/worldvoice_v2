@@ -47,7 +47,11 @@
                 "segments": [
                   {
                     "speaker": "NARRATOR",
-                    "text": "Tom puts the **coins** in his pocket. Sara carries a blue **bag**. M:We must be **careful** with the money, Tom says. Sara agrees and checks the list again."
+                    "text": "Tom puts the **coins** in his pocket. Sara carries a blue **bag**."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "We must be **careful** with the money, Tom says. Sara agrees and checks the list again."
                   }
                 ],
                 "translation_ar": "يضع توم العملات في جيبه. تحمل سارة حقيبة زرقاء. يقول توم: «يجب أن ننتبه للمال». توافق سارة وتراجع القائمة مرة أخرى."
@@ -64,7 +68,11 @@
                 "segments": [
                   {
                     "speaker": "NARRATOR",
-                    "text": "The **shopkeeper** shows them fresh bread. Sara asks the **price**. It is not very **cheap**, but they have enough coins. F:We can buy one loaf, she says."
+                    "text": "The **shopkeeper** shows them fresh bread. Sara asks the **price**. It is not very **cheap**, but they have enough coins."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We can buy one loaf, she says."
                   }
                 ],
                 "translation_ar": "يعرض البائع عليهما خبزًا طازجًا. تسأل سارة عن السعر. إنه ليس رخيصًا جدًا، لكن معهما عملات كافية. تقول: «يمكننا شراء رغيف واحد»."
@@ -73,7 +81,11 @@
                 "segments": [
                   {
                     "speaker": "NARRATOR",
-                    "text": "Suddenly, the **paper** is not in Sara's pocket. Their list is **lost**. Sara feels **worried** and looks near the bread stall. M:We can find it, Tom says."
+                    "text": "Suddenly, the **paper** is not in Sara's pocket. Their list is **lost**. Sara feels **worried** and looks near the bread stall."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "We can find it, Tom says."
                   }
                 ],
                 "translation_ar": "فجأة لا تجد سارة الورقة في جيبها. ضاعت القائمة. تشعر سارة بالقلق وتنظر قرب كشك الخبز. يقول توم: «يمكننا العثور عليها»."
@@ -82,7 +94,11 @@
                 "segments": [
                   {
                     "speaker": "NARRATOR",
-                    "text": "They stop and try to **remember** the food. F:We need **fruit** and **milk**, Sara says. Tom remembers the bread. They decide to ask a friendly seller for a new paper."
+                    "text": "They stop and try to **remember** the food."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We need **fruit** and **milk**, Sara says. Tom remembers the bread. They decide to ask a friendly seller for a new paper."
                   }
                 ],
                 "translation_ar": "يتوقفان ويحاولان تذكر الطعام. تقول سارة: «نحتاج إلى فاكهة وحليب». يتذكر توم الخبز. يقرران طلب ورقة جديدة من بائع لطيف."
@@ -106,7 +122,11 @@
                 "segments": [
                   {
                     "speaker": "NARRATOR",
-                    "text": "A friendly **seller** offers to **help**. She gives Sara a **pen** and clean paper. F:Thank you very much, Sara says. Tom writes the food they can remember."
+                    "text": "A friendly **seller** offers to **help**. She gives Sara a **pen** and clean paper."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Thank you very much, Sara says. Tom writes the food they can remember."
                   }
                 ],
                 "translation_ar": "تعرض بائعة لطيفة المساعدة. تعطي سارة قلمًا وورقة نظيفة. تقول سارة: «شكرًا جزيلًا». يكتب توم الطعام الذي يتذكرانه."
@@ -115,7 +135,11 @@
                 "segments": [
                   {
                     "speaker": "NARRATOR",
-                    "text": "They choose red **apples** from a basket. The apples are **fresh**. Tom starts to **count** them slowly. M:One, two, three, four, he says. Sara puts them in the bag."
+                    "text": "They choose red **apples** from a basket. The apples are **fresh**. Tom starts to **count** them slowly."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "One, two, three, four, he says. Sara puts them in the bag."
                   }
                 ],
                 "translation_ar": "يختاران تفاحًا أحمر من سلة. التفاح طازج. يبدأ توم بعده ببطء. يقول: «واحد، اثنان، ثلاثة، أربعة». تضعه سارة في الحقيبة."
@@ -132,7 +156,11 @@
                 "segments": [
                   {
                     "speaker": "NARRATOR",
-                    "text": "At the last stall, Sara counts their **money**. They have **enough** for milk. The seller gives them a little **change**. F:Our bag is ready, Sara says with a smile."
+                    "text": "At the last stall, Sara counts their **money**. They have **enough** for milk. The seller gives them a little **change**."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Our bag is ready, Sara says with a smile."
                   }
                 ],
                 "translation_ar": "عند الكشك الأخير تعد سارة المال. معهما ما يكفي للحليب. يعطيهما البائع بعض الباقي. تقول سارة مبتسمة: «حقيبتنا جاهزة»."
@@ -141,7 +169,11 @@
                 "segments": [
                   {
                     "speaker": "NARRATOR",
-                    "text": "They visit their **neighbor**, Mrs. Kim. She opens the door and **smiles**. F:I want to **thank** you, she says. Sara and Tom put the bread and fruit on her table."
+                    "text": "They visit their **neighbor**, Mrs. Kim. She opens the door and **smiles**."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "I want to **thank** you, she says. Sara and Tom put the bread and fruit on her table."
                   }
                 ],
                 "translation_ar": "يزوران جارتهما السيدة كيم. تفتح الباب وتبتسم. تقول: «أريد أن أشكركما». تضع سارة وتوم الخبز والفاكهة على طاولتها."

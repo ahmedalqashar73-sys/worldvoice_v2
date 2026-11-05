@@ -47,7 +47,11 @@
                 "segments": [
                   {
                     "speaker": "NARRATOR",
-                    "text": "Eva knows a happy **song**. Noah can play the **piano**. They **practice** together after lunch. F:We can do this, Eva says. Noah plays a slow tune and nods."
+                    "text": "Eva knows a happy **song**. Noah can play the **piano**. They **practice** together after lunch."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We can do this, Eva says. Noah plays a slow tune and nods."
                   }
                 ],
                 "translation_ar": "تعرف إيفا أغنية سعيدة. يستطيع نوح عزف البيانو. يتدربان معًا بعد الغداء. تقول إيفا: «نستطيع فعل هذا». يعزف نوح لحنًا بطيئًا ويومئ."
@@ -64,7 +68,15 @@
                 "segments": [
                   {
                     "speaker": "NARRATOR",
-                    "text": "Eva feels **nervous** when she sees the **audience** chairs. Her **voice** is very quiet. M:You sing well, Noah tells her. F:Thank you, she says, but my hands still shake."
+                    "text": "Eva feels **nervous** when she sees the **audience** chairs. Her **voice** is very quiet."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "You sing well, Noah tells her."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Thank you, she says, but my hands still shake."
                   }
                 ],
                 "translation_ar": "تشعر إيفا بالتوتر عندما ترى مقاعد الجمهور. صوتها هادئ جدًا. يقول لها نوح: «أنت تغنين جيدًا». تقول: «شكرًا، لكن يديّ لا تزالان ترتجفان»."
@@ -73,7 +85,11 @@
                 "segments": [
                   {
                     "speaker": "NARRATOR",
-                    "text": "One hour before the show, the **keyboard** stops working. It is **broken**, and there is no **sound**. Noah looks down. M:What can we do now? he asks Eva."
+                    "text": "One hour before the show, the **keyboard** stops working. It is **broken**, and there is no **sound**. Noah looks down."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "What can we do now? he asks Eva."
                   }
                 ],
                 "translation_ar": "قبل الحفل بساعة يتوقف الأورغ الكهربائي عن العمل. إنه معطل ولا يصدر أي صوت. ينظر نوح إلى الأسفل ويسأل إيفا: «ماذا سنفعل الآن؟»"
@@ -82,7 +98,11 @@
                 "segments": [
                   {
                     "speaker": "NARRATOR",
-                    "text": "Eva has an **idea**. She uses her **hands** to make a simple **rhythm**. F:We can sing and clap, she says. Noah listens and begins to clap with her."
+                    "text": "Eva has an **idea**. She uses her **hands** to make a simple **rhythm**."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We can sing and clap, she says. Noah listens and begins to clap with her."
                   }
                 ],
                 "translation_ar": "لدى إيفا فكرة. تستخدم يديها لصنع إيقاع بسيط. تقول: «يمكننا الغناء والتصفيق». يستمع نوح ويبدأ بالتصفيق معها."
@@ -106,7 +126,11 @@
                 "segments": [
                   {
                     "speaker": "NARRATOR",
-                    "text": "Their **teacher**, Ms. Rose, hears the music. F:That sounds good! she says. She asks everyone to **clap** to the **beat**. Eva and Noah try it several times."
+                    "text": "Their **teacher**, Ms. Rose, hears the music."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "That sounds good! she says. She asks everyone to **clap** to the **beat**. Eva and Noah try it several times."
                   }
                 ],
                 "translation_ar": "تسمع معلمتهما السيدة روز الموسيقى. تقول: «هذا يبدو رائعًا!» تطلب من الجميع التصفيق مع الإيقاع. تحاول إيفا ونوح عدة مرات."
@@ -115,7 +139,11 @@
                 "segments": [
                   {
                     "speaker": "NARRATOR",
-                    "text": "Eva and Noah stand **together** near the stage. F:Let us **sing**, Eva says. Noah gives her a friendly **smile**. Now she feels a little better about the show."
+                    "text": "Eva and Noah stand **together** near the stage."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Let us **sing**, Eva says. Noah gives her a friendly **smile**. Now she feels a little better about the show."
                   }
                 ],
                 "translation_ar": "تقف إيفا ونوح معًا قرب المسرح. تقول إيفا: «هيا نغني». يمنحها نوح ابتسامة ودودة. تشعر الآن بتحسن قليل تجاه الحفل."
@@ -141,7 +169,11 @@
                 "segments": [
                   {
                     "speaker": "NARRATOR",
-                    "text": "The students **cheer** when the song ends. Eva feels **happy**. She sees her **friends** in the front row. M:We made good music, Noah says. Eva laughs and takes a bow."
+                    "text": "The students **cheer** when the song ends. Eva feels **happy**. She sees her **friends** in the front row."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "We made good music, Noah says. Eva laughs and takes a bow."
                   }
                 ],
                 "translation_ar": "يهتف الطلاب عندما تنتهي الأغنية. تشعر إيفا بالسعادة. ترى أصدقاءها في الصف الأمامي. يقول نوح: «صنعنا موسيقى جميلة». تضحك إيفا وتنحني."
@@ -150,7 +182,11 @@
                 "segments": [
                   {
                     "speaker": "NARRATOR",
-                    "text": "Eva knows a **mistake** does not end a good day. She feels **brave** because she can always **try** a new way. F:Next time, we can sing again, she tells Noah."
+                    "text": "Eva knows a **mistake** does not end a good day. She feels **brave** because she can always **try** a new way."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Next time, we can sing again, she tells Noah."
                   }
                 ],
                 "translation_ar": "تعرف إيفا أن الخطأ لا ينهي اليوم الجميل. تشعر بالشجاعة لأنها تستطيع دائمًا تجربة طريقة جديدة. تقول لنوح: «في المرة القادمة يمكننا الغناء مجددًا»."

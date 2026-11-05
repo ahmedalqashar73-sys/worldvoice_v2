@@ -43,7 +43,11 @@
                 "segments": [
                   {
                     "speaker": "NARRATOR",
-                    "text": "Jack takes a cheese **sandwich** from the basket. Amy puts a blue **blanket** on the grass. F:I have orange **juice**, she says. They sit down and look at the water."
+                    "text": "Jack takes a cheese **sandwich** from the basket. Amy puts a blue **blanket** on the grass."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "I have orange **juice**, she says. They sit down and look at the water."
                   }
                 ],
                 "translation_ar": "يخرج جاك شطيرة جبن من السلة. تضع إيمي بطانية زرقاء على العشب. تقول: «لدي عصير برتقال». يجلسان وينظران إلى الماء."
@@ -60,7 +64,11 @@
                 "segments": [
                   {
                     "speaker": "NARRATOR",
-                    "text": "Soon, dark **clouds** come over the trees. The **wind** moves the blanket. M:I think we will have **rain**, Jack says. Amy looks up and closes the basket quickly."
+                    "text": "Soon, dark **clouds** come over the trees. The **wind** moves the blanket."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "I think we will have **rain**, Jack says. Amy looks up and closes the basket quickly."
                   }
                 ],
                 "translation_ar": "بعد قليل تظهر غيوم داكنة فوق الأشجار. تحرك الريح البطانية. يقول جاك: «أظن أن المطر سيهطل». تنظر إيمي إلى الأعلى وتغلق السلة بسرعة."
@@ -69,7 +77,11 @@
                 "segments": [
                   {
                     "speaker": "NARRATOR",
-                    "text": "They run for **shelter** under a big **tree**. Their shoes are already **wet**. F:This is not a good picnic, Amy says. Jack tries to make her smile."
+                    "text": "They run for **shelter** under a big **tree**. Their shoes are already **wet**."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "This is not a good picnic, Amy says. Jack tries to make her smile."
                   }
                 ],
                 "translation_ar": "يركضان للاحتماء تحت شجرة كبيرة. أحذيتهما مبتلة بالفعل. تقول إيمي: «هذه ليست نزهة جيدة». يحاول جاك أن يجعلها تبتسم."
@@ -78,7 +90,11 @@
                 "segments": [
                   {
                     "speaker": "NARRATOR",
-                    "text": "Jack sees a little **library** across the park. It is **open** today. M:I have an **idea**, he says. We can ask if we may eat inside. Amy likes the plan."
+                    "text": "Jack sees a little **library** across the park. It is **open** today."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "I have an **idea**, he says. We can ask if we may eat inside. Amy likes the plan."
                   }
                 ],
                 "translation_ar": "يرى جاك مكتبة صغيرة في الجهة الأخرى من الحديقة. إنها مفتوحة اليوم. يقول: «لدي فكرة. يمكننا السؤال إن كان مسموحًا أن نأكل في الداخل». تعجب إيمي الخطة."
@@ -111,7 +127,11 @@
                 "segments": [
                   {
                     "speaker": "NARRATOR",
-                    "text": "Two **children** sit nearby with their parents. Amy has more **food** than she needs. F:We can **share**, she says. Jack gives each child a sandwich and some fruit."
+                    "text": "Two **children** sit nearby with their parents. Amy has more **food** than she needs."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We can **share**, she says. Jack gives each child a sandwich and some fruit."
                   }
                 ],
                 "translation_ar": "يجلس طفلان بالقرب منهما مع والديهما. لدى إيمي طعام أكثر مما تحتاج. تقول: «يمكننا المشاركة». يعطي جاك كل طفل شطيرة وبعض الفاكهة."
@@ -137,7 +157,11 @@
                 "segments": [
                   {
                     "speaker": "NARRATOR",
-                    "text": "After an hour, the **sun** returns. The children go **outside** and see a bright **rainbow**. M:Look at the colors! Jack says. Amy smiles and takes a picture."
+                    "text": "After an hour, the **sun** returns. The children go **outside** and see a bright **rainbow**."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Look at the colors! Jack says. Amy smiles and takes a picture."
                   }
                 ],
                 "translation_ar": "بعد ساعة، تعود الشمس. يخرج الأطفال ويرون قوس قزح جميلًا. يقول جاك: «انظروا إلى الألوان!» تبتسم إيمي وتلتقط صورة."
@@ -146,7 +170,15 @@
                 "segments": [
                   {
                     "speaker": "NARRATOR",
-                    "text": "Amy learns that a **change** can make a good **plan** even better. F:This picnic was special, she says. M:Yes, we made new **friends**, Jack answers. They walk home smiling."
+                    "text": "Amy learns that a **change** can make a good **plan** even better."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "This picnic was special, she says."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Yes, we made new **friends**, Jack answers. They walk home smiling."
                   }
                 ],
                 "translation_ar": "تتعلم إيمي أن التغيير قد يجعل الخطة الجيدة أفضل. تقول: «كانت هذه النزهة مميزة». يجيب جاك: «نعم، تعرفنا على أصدقاء جدد». يعودان إلى المنزل مبتسمين."
