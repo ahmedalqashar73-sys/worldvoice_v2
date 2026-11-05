@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../data/academy_podcast_repository.dart';
@@ -410,6 +413,8 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
   AcademyPodcastEpisode? _episode;
   List<GlobalKey> _anchors = <GlobalKey>[];
   bool _audioLoaded = false;
+  bool _downloaded = false;
+  bool _downloading = false;
   bool _showArabic = false;
   String? _error;
   int? _activeIndex;
@@ -439,19 +444,26 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
           setState(() {});
         }
       });
-      try {
-        await _player.setUrl(loaded.audioUrl!);
-      } catch (_) {
-        final backup = Uri.tryParse(loaded.backupAudioUrl ?? '');
-        if (backup == null || backup.scheme != 'https' ||
-            backup.host.isEmpty) {
-          rethrow;
+      final local = await _offlineAudioFile(loaded);
+      final offline = await local.exists() && await local.length() > 100000;
+      if (offline) {
+        await _player.setFilePath(local.path);
+      } else {
+        try {
+          await _player.setUrl(loaded.audioUrl!);
+        } catch (_) {
+          final backup = Uri.tryParse(loaded.backupAudioUrl ?? '');
+          if (backup == null || backup.scheme != 'https' ||
+              backup.host.isEmpty) {
+            rethrow;
+          }
+          await _player.setUrl(backup.toString());
         }
-        await _player.setUrl(backup.toString());
       }
       if (mounted) {
         setState(() {
           _audioLoaded = true;
+          _downloaded = offline;
           _error = null;
         });
       }
@@ -461,6 +473,72 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
           _error = 'تعذر تحميل الحلقة أو ملف الصوت.';
         });
       }
+    }
+  }
+
+  Future<File> _offlineAudioFile(AcademyPodcastEpisode episode) async {
+    final root = await getApplicationSupportDirectory();
+    final dir = Directory('${root.path}/worldvoice_podcasts');
+    return File('${dir.path}/${episode.id}.mp3');
+  }
+
+  bool _isMp3(List<int> bytes) {
+    if (bytes.length < 100000) return false;
+    if (bytes[0] == 0x49 && bytes[1] == 0x44 && bytes[2] == 0x33) {
+      return true; // ID3 header
+    }
+    return bytes[0] == 0xff && (bytes[1] & 0xe0) == 0xe0;
+  }
+
+  /// Explicit offline save; source audio is public-domain VOA content.
+  /// Never claim success until the device has a valid downloaded MP3.
+  Future<void> _saveOffline() async {
+    final episode = _episode;
+    if (episode == null || !episode.canStream ||
+        _downloading || _downloaded) {
+      return;
+    }
+    setState(() => _downloading = true);
+    try {
+      http.Response? saved;
+      for (final url in [episode.audioUrl, episode.backupAudioUrl]) {
+        if (url == null) continue;
+        try {
+          final uri = Uri.parse(url);
+          if (uri.scheme != 'https') continue;
+          final candidate = await http.get(uri)
+              .timeout(const Duration(seconds: 75));
+          if (candidate.statusCode == 200 &&
+              _isMp3(candidate.bodyBytes)) {
+            saved = candidate;
+            break;
+          }
+        } catch (_) {
+          // Use the alternative VOA bitrate if the first endpoint fails.
+        }
+      }
+      if (saved == null) {
+        throw const FormatException('Source did not return a valid MP3.');
+      }
+      final file = await _offlineAudioFile(episode);
+      await file.parent.create(recursive: true);
+      await file.writeAsBytes(saved.bodyBytes, flush: true);
+      if (!mounted) return;
+      setState(() => _downloaded = true);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(Localizations.localeOf(context).languageCode == 'ar'
+            ? 'حُفظت الحلقة على الجهاز للاستماع دون إنترنت.'
+            : 'Podcast saved on this device for offline playback.'),
+      ));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(Localizations.localeOf(context).languageCode == 'ar'
+            ? 'تعذر تنزيل الصوت. يمكنك تشغيله من رابط VOA الأصلي.'
+            : 'Could not download the audio. Use the official VOA source.'),
+      ));
+    } finally {
+      if (mounted) setState(() => _downloading = false);
     }
   }
 
@@ -628,6 +706,32 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                     style: TextStyle(color: Color(0xFFF4D790),
                         fontWeight: FontWeight.w700, fontSize: 12)),
               ]),
+            ),
+          ],
+          if (episode.canStream) ...[
+            const SizedBox(height: 8),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: OutlinedButton.icon(
+                key: const ValueKey('podcast-save-offline'),
+                onPressed: (_downloaded || _downloading)
+                    ? null : _saveOffline,
+                icon: Icon(_downloaded
+                    ? Icons.download_done_rounded
+                    : _downloading
+                        ? Icons.hourglass_top_rounded
+                        : Icons.download_rounded,
+                    size: 18),
+                label: Text(_downloaded
+                    ? (ar ? 'محفوظ للاستماع دون إنترنت' : 'Available offline')
+                    : _downloading
+                        ? (ar ? 'جارٍ حفظ التسجيل' : 'Saving audio')
+                        : (ar ? 'تنزيل تسجيل VOA' : 'Download VOA audio')),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFFF4D790),
+                  side: const BorderSide(color: Color(0xFFE4C779)),
+                ),
+              ),
             ),
           ],
           if (episode.canStream && !episode.isPlayable) ...[
