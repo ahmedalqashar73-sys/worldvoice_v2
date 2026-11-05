@@ -166,4 +166,56 @@ void main() {
     }
   });
 
+
+  test('English C1 offers five complete advanced stories with full assets', () async {
+    final repository = StoryLibraryRepository();
+    final entries = await repository.storiesFor(language: 'en', level: 'C1');
+    expect(entries, hasLength(5));
+    expect(entries.map((entry) => entry.id).toSet(), hasLength(5));
+    expect(entries.map((entry) => entry.title).toSet(), hasLength(5));
+    for (final entry in entries) {
+      expect(entry.format, 'textbook');
+      expect(entry.coverImage, isNotNull);
+      final cover = await rootBundle.loadString(entry.coverImage!);
+      expect(cover, contains('<svg'));
+      final book = await repository.loadTextbook(entry);
+      expect(book.language, 'en');
+      expect(book.level, 'C1');
+      expect(book.chapters.map((c) => c.paragraphCount), [5, 5]);
+      expect(book.chapters.map((c) => c.blocks.length), [2, 2]);
+      expect(book.vocabulary.length, greaterThanOrEqualTo(20));
+      expect(book.questions, hasLength(8));
+      expect(book.questions.map((q) => q.answer).toSet().length,
+          greaterThanOrEqualTo(3));
+      for (final chapter in book.chapters) {
+        final speakers = chapter.blocks
+            .expand((block) => block.paragraphs)
+            .expand((paragraph) => paragraph.segments)
+            .map((segment) => segment.speaker).toSet();
+        expect(speakers, containsAll(StoryTextbookSpeaker.values));
+        for (final block in chapter.blocks) {
+          expect(block.paragraphs.length, inInclusiveRange(2, 3));
+          expect(block.image, isNotNull);
+          final svg = await rootBundle.loadString(block.image!);
+          expect(svg, contains('<svg'));
+          expect(svg, contains('</svg>'));
+          for (final paragraph in block.paragraphs) {
+            expect(paragraph.translationAr, isNotEmpty);
+            final wordCount = paragraph.spokenText
+                .trim().split(RegExp(r'\s+')).length;
+            expect(wordCount, inInclusiveRange(130, 180));
+            final richText = paragraph.segments.map((s) => s.text).join(' ');
+            final highlighted = RegExp(r'\*\*([^*]+)\*\*')
+                .allMatches(richText)
+                .map((match) => match.group(1)!.toLowerCase()).toList();
+            expect(highlighted.length, inInclusiveRange(2, 4));
+            for (final word in highlighted) {
+              expect(book.meanings, contains(word));
+            }
+          }
+        }
+      }
+    }
+  });
+
 }

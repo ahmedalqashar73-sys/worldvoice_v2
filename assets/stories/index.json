@@ -208,6 +208,56 @@
       "format": "textbook",
       "asset": "assets/stories/en/B2/en-b2-005.json",
       "cover_image": "assets/stories/en/B2/illustrations/en-b2-005_scene_01.svg"
+    },
+    {
+      "id": "en-c1-001",
+      "language": "en",
+      "level": "C1",
+      "title": "The Theatre Beneath the Square",
+      "title_ar": "المسرح تحت الساحة",
+      "format": "textbook",
+      "asset": "assets/stories/en/C1/en-c1-001.json",
+      "cover_image": "assets/stories/en/C1/illustrations/en-c1-001_scene_01.svg"
+    },
+    {
+      "id": "en-c1-002",
+      "language": "en",
+      "level": "C1",
+      "title": "The Orchard Agreement",
+      "title_ar": "اتفاق البستان",
+      "format": "textbook",
+      "asset": "assets/stories/en/C1/en-c1-002.json",
+      "cover_image": "assets/stories/en/C1/illustrations/en-c1-002_scene_01.svg"
+    },
+    {
+      "id": "en-c1-003",
+      "language": "en",
+      "level": "C1",
+      "title": "A Documentary Without a Hero",
+      "title_ar": "فيلم وثائقي دون بطل",
+      "format": "textbook",
+      "asset": "assets/stories/en/C1/en-c1-003.json",
+      "cover_image": "assets/stories/en/C1/illustrations/en-c1-003_scene_01.svg"
+    },
+    {
+      "id": "en-c1-004",
+      "language": "en",
+      "level": "C1",
+      "title": "The Letters Behind the Wall",
+      "title_ar": "الرسائل خلف الجدار",
+      "format": "textbook",
+      "asset": "assets/stories/en/C1/en-c1-004.json",
+      "cover_image": "assets/stories/en/C1/illustrations/en-c1-004_scene_01.svg"
+    },
+    {
+      "id": "en-c1-005",
+      "language": "en",
+      "level": "C1",
+      "title": "The Reef Beyond the Bay",
+      "title_ar": "الشعاب وراء الخليج",
+      "format": "textbook",
+      "asset": "assets/stories/en/C1/en-c1-005.json",
+      "cover_image": "assets/stories/en/C1/illustrations/en-c1-005_scene_01.svg"
     }
   ]
 }
