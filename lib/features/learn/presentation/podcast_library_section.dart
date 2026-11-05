@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../data/academy_podcast_repository.dart';
+import 'voa_originals_section.dart';
 
 /// Separate CEFR/language paths; never represent unrecorded plans as audio.
 class PodcastLibrarySection extends StatefulWidget {
@@ -111,6 +112,23 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
                   fontSize: 10, fontWeight: FontWeight.w800)),
         ]),
       );
+
+  Future<void> _openVoaLesson(VoaOriginalLesson lesson) async {
+    if (lesson.existingEpisodeId == null) {
+      if (!mounted) return;
+      await Navigator.of(context).push<void>(MaterialPageRoute(
+        builder: (_) => VoaOriginalAudioScreen(lesson: lesson)));
+      return;
+    }
+    final available = await _episodes;
+    if (!mounted) return;
+    final entry = available.where((item) =>
+        item.id == lesson.existingEpisodeId).firstOrNull;
+    if (entry == null) return;
+    await Navigator.of(context).push<void>(MaterialPageRoute(
+      builder: (_) =>
+          PodcastReaderScreen(entry: entry, repository: _repository)));
+  }
 
   Widget _sectionHeader(String label) => Padding(
         padding: const EdgeInsets.only(bottom: 9),
@@ -240,6 +258,7 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
   Widget build(BuildContext context) {
     final ar = Localizations.localeOf(context).languageCode == 'ar';
     final scheme = Theme.of(context).colorScheme;
+    final voaOnly = _selectedLanguage == 'en' && _selectedLevel == 'A1';
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       _hero(ar),
       const SizedBox(height: 20),
@@ -309,6 +328,119 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
         ]),
       ),
       const SizedBox(height: 20),
+      if (voaOnly) ...[
+        VoaOriginalsSection(onOpen: _openVoaLesson),
+        const SizedBox(height: 12),
+        Card(
+          elevation: 0,
+          color: scheme.surfaceContainerLow,
+          child: ExpansionTile(
+            key: const ValueKey('podcast-a1-reading-practice'),
+            initiallyExpanded: false,
+            leading: const Icon(Icons.menu_book_rounded),
+            title: Text(ar ? 'نصوص WorldVoice التدريبية (صوت آلي)'
+                : 'WorldVoice reading practice (device voice)'),
+            subtitle: Text(ar
+                ? 'مواد أصلية محفوظة منفصلة عن تسجيلات VOA.'
+                : 'Original practice scripts kept separate from VOA recordings.'),
+            children: [
+            FutureBuilder<List<AcademyPodcastEntry>>(
+              future: _episodes,
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Text(ar ? 'تعذر تحميل الحلقات.' : 'Could not load episodes.');
+                }
+                if (!snapshot.hasData) {
+                  return const Center(child: Padding(
+                    padding: EdgeInsets.all(25),
+                    child: CircularProgressIndicator()));
+                }
+                final current = snapshot.data!.where((entry) =>
+                    entry.language == _selectedLanguage &&
+                    entry.level == _selectedLevel).toList(growable: false);
+                // Preserve the curriculum order (01–15) rather than moving all
+                // audio recordings ahead of their text-only neighbors.
+                final available = current.where((e) =>
+                    e.hasTranscript && (!voaOnly ||
+                        e.status == 'script_ready')).toList();
+                final planned = current.where((e) => !e.hasTranscript).toList();
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(children: [
+                      Expanded(child: Text(
+                        ar ? 'حلقات $_selectedLevel' : 'Level $_selectedLevel',
+                        style: const TextStyle(fontSize: 17,
+                            fontWeight: FontWeight.w900))),
+                      Text(ar
+                          ? '${available.length}/15 نصًا جاهزًا'
+                          : '${available.length}/15 transcripts',
+                          style: TextStyle(color: scheme.onSurfaceVariant,
+                              fontSize: 11)),
+                    ]),
+                    const SizedBox(height: 10),
+                    for (final entry in available)
+                      _episodeCard(entry, current.indexOf(entry) + 1, ar),
+                    if (available.isEmpty)
+                      FutureBuilder<List<PodcastLanguage>>(
+                        future: _languages,
+                        builder: (context, state) {
+                          final language = state.data?.where((entry) =>
+                              entry.code == _selectedLanguage).firstOrNull ??
+                              PodcastLanguage(
+                                code: _selectedLanguage,
+                                nativeName: _selectedLanguage,
+                                arabicName: _selectedLanguage,
+                                flag: '🎧',
+                              );
+                          return _emptyLanguage(language, ar);
+                        },
+                      ),
+                    if (planned.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Card(
+                        elevation: 0,
+                        color: scheme.surfaceContainerLow,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(17),
+                          side: BorderSide(color: scheme.outlineVariant)),
+                        child: ExpansionTile(
+                          key: ValueKey(
+                              'podcast-planned-$_selectedLanguage-$_selectedLevel'),
+                          leading: const Icon(Icons.library_books_outlined,
+                              color: Color(0xFF438A69)),
+                          title: Text(
+                            ar ? '${planned.length} حلقة مخططة'
+                                : '${planned.length} upcoming episodes',
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w800, fontSize: 14)),
+                          subtitle: Text(ar
+                              ? 'العناوين جاهزة للتخطيط، لم تُنشر التسجيلات بعد'
+                              : 'Planned titles, not published recordings',
+                              style: TextStyle(
+                                  fontSize: 11, color: scheme.onSurfaceVariant)),
+                          children: [
+                            for (final entry in planned)
+                              ListTile(
+                                dense: true,
+                                title: Text(ar
+                                    ? entry.titleAr ?? entry.title : entry.title,
+                                    style: const TextStyle(fontSize: 13)),
+                                trailing: const Icon(Icons.schedule,
+                                    size: 16, color: Colors.grey),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                );
+              },
+            ),
+            ],
+          ),
+        ),
+      ] else
       FutureBuilder<List<AcademyPodcastEntry>>(
         future: _episodes,
         builder: (context, snapshot) {
@@ -325,7 +457,9 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
               entry.level == _selectedLevel).toList(growable: false);
           // Preserve the curriculum order (01–15) rather than moving all
           // audio recordings ahead of their text-only neighbors.
-          final available = current.where((e) => e.hasTranscript).toList();
+          final available = current.where((e) =>
+              e.hasTranscript && (!voaOnly ||
+                  e.status == 'script_ready')).toList();
           final planned = current.where((e) => !e.hasTranscript).toList();
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
