@@ -893,16 +893,14 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
       margin: const EdgeInsets.only(bottom: 3),
       padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 14),
       decoration: BoxDecoration(
-        color: current
-            ? const Color(0xFFD9ECDD).withValues(alpha: .65)
-            : i.isEven
-                ? scheme.surfaceContainerLow
-                : scheme.surface,
+        // Keep a stable surface in dark mode. The active sentence is marked
+        // only by a slim accent, never by a contrasting full-card overlay.
+        color: i.isEven ? scheme.surfaceContainerLow : scheme.surface,
         border: Border(
           bottom: BorderSide(color: scheme.outlineVariant
               .withValues(alpha: .35)),
-          right: current ? const BorderSide(
-              color: Color(0xFF237D5C), width: 3)
+          left: current ? const BorderSide(
+              color: Color(0xFF41B985), width: 4)
               : BorderSide.none,
         ),
         borderRadius: BorderRadius.circular(9),
@@ -932,13 +930,13 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                   Text(line.speaker,
                     style: TextStyle(
                       color: current
-                          ? const Color(0xFF176245)
+                          ? const Color(0xFF41B985)
                           : scheme.onSurfaceVariant,
                       fontWeight: FontWeight.w800, fontSize: 12)),
                   if (current) ...[
                     const SizedBox(width: 7),
                     const Icon(Icons.graphic_eq_rounded,
-                      color: Color(0xFF176245), size: 17),
+                      color: Color(0xFF41B985), size: 17),
                   ],
                 ]),
                 const SizedBox(height: 5),
@@ -949,9 +947,9 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                   textAlign: TextAlign.start,
                   style: TextStyle(fontSize: _fontSize,
                     height: 1.6,
-                    color: current
-                      ? const Color(0xFF102B20) : scheme.onSurface,
-                    fontWeight: current ? FontWeight.w800 : FontWeight.w500),
+                    // Theme foreground stays readable on every surface.
+                    color: scheme.onSurface,
+                    fontWeight: current ? FontWeight.w700 : FontWeight.w500),
                 ),
                 if (_showArabic && translation.isNotEmpty) ...[
                   const SizedBox(height: 7),
