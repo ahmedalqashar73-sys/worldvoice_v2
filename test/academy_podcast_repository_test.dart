@@ -26,8 +26,8 @@ void main() {
             e.language == language.code && e.level == level), hasLength(15));
       }
     }
-    expect(list.where((e) => e.hasTranscript), hasLength(1));
-    expect(list.where((e) => e.status == 'planned'), hasLength(719));
+    expect(list.where((e) => e.hasTranscript), hasLength(2));
+    expect(list.where((e) => e.status == 'planned'), hasLength(718));
   });
 
   test('the A1 Anna and Daniel transcript is complete but not audio-ready', () async {
@@ -40,6 +40,24 @@ void main() {
         e.text.isNotEmpty && e.translationAr.isNotEmpty), isTrue);
     expect(episode.questions, hasLength(5));
     expect(episode.isPlayable, isFalse);
+  });
+
+  test('Spanish A1 has 62 translated two-host turns without fake audio',
+      () async {
+    final entries = await repo.allEpisodes();
+    final spanish = entries.singleWhere((e) => e.id == 'es-a1-pod-001');
+    expect(spanish.language, 'es');
+    expect(spanish.status, 'script_ready');
+    final book = await repo.load(spanish);
+    expect(book.language, 'es');
+    expect(book.dialogue, hasLength(62));
+    expect(book.dialogue.map((line) => line.speaker).toSet(),
+        {'Anna', 'Daniel'});
+    expect(book.dialogue.every((line) =>
+        line.text.isNotEmpty && line.translationAr.isNotEmpty), isTrue);
+    expect(book.questions, hasLength(5));
+    expect(book.isPlayable, isFalse);
+    expect(book.audioUrl, isNull);
   });
 
   test('sync timestamps are required for playback', () {
