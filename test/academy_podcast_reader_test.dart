@@ -21,6 +21,9 @@ void main() {
     }
     expect(find.byKey(const ValueKey('podcast-episode-en-a1-pod-001')),
         findsOneWidget);
+    await tester.ensureVisible(
+        find.byKey(const ValueKey('podcast-episode-en-a1-pod-001')));
+    await tester.pumpAndSettle();
     await tester.tap(
         find.byKey(const ValueKey('podcast-episode-en-a1-pod-001')));
     await tester.pumpAndSettle();
