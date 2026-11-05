@@ -15,15 +15,19 @@ void main() {
     expect(AcademyPodcastRepository.episodesPerLevel, 15);
   });
 
-  test('ninety English podcast slots, fifteen per level', () async {
+  test('720 planned slots across 8 languages and 6 CEFR levels',
+      () async {
     final list = await repo.allEpisodes();
-    expect(list, hasLength(90));
-    expect(list.map((e) => e.id).toSet(), hasLength(90));
-    expect(list.every((e) => e.language == 'en'), isTrue);
-    for (final level in AcademyPodcastRepository.levels) {
-      expect(list.where((e) => e.level == level), hasLength(15));
+    expect(list, hasLength(720));
+    expect(list.map((e) => e.id).toSet(), hasLength(720));
+    for (final language in await repo.allLanguages()) {
+      for (final level in AcademyPodcastRepository.levels) {
+        expect(list.where((e) =>
+            e.language == language.code && e.level == level), hasLength(15));
+      }
     }
     expect(list.where((e) => e.hasTranscript), hasLength(1));
+    expect(list.where((e) => e.status == 'planned'), hasLength(719));
   });
 
   test('the A1 Anna and Daniel transcript is complete but not audio-ready', () async {
