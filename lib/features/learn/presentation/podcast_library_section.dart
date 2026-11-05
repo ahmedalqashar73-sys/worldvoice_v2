@@ -567,6 +567,21 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
     }
   }
 
+  // Find a transcript sentence on demand, independently of the player.
+  // Keeps the reading action available even to text-only A1 lessons.
+  void _jumpToLine(int index) {
+    if (!mounted || index < 0 || index >= _anchors.length) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scroll.hasClients) return;
+      final lineContext = _anchors[index].currentContext;
+      if (lineContext == null) return;
+      Scrollable.ensureVisible(lineContext,
+          alignment: 0.12,
+          duration: const Duration(milliseconds: 320),
+          curve: Curves.easeOutCubic);
+    });
+  }
+
   void _onPosition(Duration position) {
     if (!mounted) return;
     final active = _episode?.lineAt(position);
@@ -700,6 +715,19 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                 style: const TextStyle(color: Color(0xFFF4D790),
                     fontWeight: FontWeight.w800)),
           ]),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: TextButton.icon(
+              key: const ValueKey('podcast-jump-to-transcript'),
+              onPressed: () => _jumpToLine(_activeLine.value ?? 0),
+              icon: const Icon(Icons.menu_book_rounded, size: 18),
+              label: Text(ar ? 'انتقل إلى نص المحادثة'
+                  : 'Jump to transcript'),
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFFF4D790),
+              ),
+            ),
+          ),
           if (!ready) ...[
             const SizedBox(height: 13),
             Container(
@@ -1112,7 +1140,12 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                     tooltip: ar
                         ? (_autoFollow ? 'إيقاف متابعة الجملة' : 'متابعة الجملة تلقائيًا')
                         : (_autoFollow ? 'Disable auto-follow' : 'Enable auto-follow'),
-                    onPressed: () => setState(() => _autoFollow = !_autoFollow),
+                    onPressed: () {
+                      setState(() => _autoFollow = !_autoFollow);
+                      if (_autoFollow && _activeLine.value != null) {
+                        _jumpToLine(_activeLine.value!);
+                      }
+                    },
                     icon: Icon(_autoFollow
                         ? Icons.my_location_rounded
                         : Icons.location_disabled_rounded),
@@ -1156,9 +1189,13 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                                 : 'Provisional sync · Tap any line to replay')
                             : (ar ? 'يُبرز السطر عند سماعه · اضغط عليه لإعادته'
                                 : 'Follow the highlighted line · Tap to replay'))
-                        : (ar
-                            ? 'اقرأ النص مع تشغيل التسجيل الأصلي. مزامنة السطور قيد التحقق.'
-                            : 'Read along with the authentic recording. Line timing is under review.'),
+                        : (!episode.canStream
+                            ? (ar
+                                ? 'نص تعليمي للقراءة · التسجيل الصوتي غير متوفر بعد.'
+                                : 'Reading transcript · No recording published yet.')
+                            : (ar
+                                ? 'اقرأ النص مع تشغيل التسجيل الأصلي. مزامنة السطور قيد التحقق.'
+                                : 'Read along with the authentic recording. Line timing is under review.')),
                     style: TextStyle(color: scheme.onSurfaceVariant,
                       fontSize: 11)),
                 ),

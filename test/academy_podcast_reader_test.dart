@@ -51,6 +51,8 @@ void main() {
         findsOneWidget);
     expect(find.byKey(const ValueKey('podcast-play-pause')), findsNothing);
     expect(find.byKey(const ValueKey('podcast-reader-header')), findsOneWidget);
+    expect(find.byKey(const ValueKey('podcast-jump-to-transcript')),
+        findsOneWidget);
     expect(find.byKey(const ValueKey('podcast-text-larger')), findsOneWidget);
     expect(find.byKey(const ValueKey('podcast-text-smaller')), findsOneWidget);
     expect(find.byKey(const ValueKey('podcast-auto-follow-toggle')),
@@ -123,6 +125,14 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.byKey(const ValueKey('podcast-sticky-player')), findsNothing);
     expect(find.text('Text only'), findsOneWidget);
+    expect(find.text('Reading transcript · No recording published yet.'),
+        findsOneWidget);
+    final jump = find.byKey(const ValueKey('podcast-jump-to-transcript'));
+    expect(jump, findsOneWidget);
+    await tester.tap(jump);
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.byKey(const ValueKey('podcast-line-text-0')), findsOneWidget);
     final follow = find.byKey(const ValueKey('podcast-auto-follow-toggle'));
     expect(tester.widget<IconButton>(follow).tooltip, 'Disable auto-follow');
     await tester.tap(follow);
