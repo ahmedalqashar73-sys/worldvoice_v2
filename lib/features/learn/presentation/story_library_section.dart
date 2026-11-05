@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../data/academy_catalog.dart';
 import '../data/story_library_repository.dart';
@@ -128,22 +129,82 @@ class _StoryLibrarySectionState extends State<StoryLibrarySection> {
                   padding: const EdgeInsets.only(bottom: 12),
                   child: Card(
                     color: scheme.surface,
-                    child: ListTile(
+                    elevation: 1.5,
+                    shape: RoundedRectangleBorder(
+                      side: BorderSide(color: scheme.outlineVariant),
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: InkWell(
                       key: ValueKey('stories-book-${story.id}'),
-                      contentPadding: const EdgeInsets.all(15),
-                      leading: CircleAvatar(
-                        backgroundColor: scheme.primaryContainer,
-                        child: Icon(Icons.menu_book_rounded, color: accent)),
-                      title: Text(ar ? story.titleAr : story.title,
-                        style: const TextStyle(fontWeight: FontWeight.w800)),
-                      subtitle: Text(ar
-                          ? '${story.title} · ${story.level}'
-                          : '${story.titleAr} · ${story.level}'),
-                      trailing: Icon(Icons.chevron_right_rounded, color: accent),
                       onTap: () => Navigator.of(context).push<void>(
                         MaterialPageRoute(
                           builder: (_) => StoryLibraryReaderScreen(
                             entry: story, repository: _repository))),
+                      child: Padding(
+                        padding: const EdgeInsets.all(11),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: SizedBox(
+                                width: 116,
+                                height: 114,
+                                child: story.coverImage == null
+                                    ? ColoredBox(
+                                        color: scheme.primaryContainer,
+                                        child: Icon(Icons.auto_stories_rounded,
+                                          color: accent, size: 36),
+                                      )
+                                    : SvgPicture.asset(
+                                        story.coverImage!,
+                                        fit: BoxFit.cover,
+                                      ),
+                              ),
+                            ),
+                            const SizedBox(width: 13),
+                            Expanded(child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(ar ? story.titleAr : story.title,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w900,
+                                    color: accent,
+                                  )),
+                                const SizedBox(height: 5),
+                                Text(ar ? story.title : story.titleAr,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: scheme.onSurfaceVariant,
+                                    fontSize: 12,
+                                  )),
+                                const SizedBox(height: 13),
+                                Row(children: [
+                                  Icon(Icons.book_rounded,
+                                    color: accent, size: 15),
+                                  const SizedBox(width: 5),
+                                  Flexible(child: Text(
+                                    ar ? 'A1 · فصلان · 10 فقرات'
+                                       : 'A1 · 2 chapters · 10 paragraphs',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: scheme.onSurfaceVariant,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  )),
+                                ]),
+                              ],
+                            )),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ),
