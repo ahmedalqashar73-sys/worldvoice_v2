@@ -120,8 +120,8 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
                               ? (ar ? 'استمع واقرأ النص مع الصوت'
                                   : 'Listen and read with the audio')
                               : episodes[i].hasTranscript
-                                  ? (ar ? 'النص جاهز · الصوت قيد التسجيل'
-                                      : 'Transcript ready · Audio in production')
+                                  ? (ar ? 'النص جاهز · التسجيل غير متوفر بعد'
+                                      : 'Transcript ready · Recording not available yet')
                                   : (ar ? 'مخططة · لم تُسجل بعد'
                                       : 'Planned · Not yet recorded'),
                           style: TextStyle(
