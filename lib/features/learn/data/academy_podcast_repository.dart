@@ -222,17 +222,26 @@ class AcademyPodcastRepository {
   static const levels = <String>['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
   static const episodesPerLevel = 15;
 
+  /// The multilingual index exceeds Flutter's 50 KB loadString threshold.
+  /// Decode its raw bytes directly so loading is deterministic in widget
+  /// tests and does not spawn an isolate for every tab rebuild.
+  Future<Map<String, dynamic>> _readIndex() async {
+    final bytes = await rootBundle.load('assets/podcasts/index.json');
+    final text = utf8.decode(bytes.buffer.asUint8List(
+      bytes.offsetInBytes, bytes.lengthInBytes,
+    ));
+    return jsonDecode(text) as Map<String, dynamic>;
+  }
+
   Future<List<PodcastLanguage>> allLanguages() async {
-    final raw = await rootBundle.loadString('assets/podcasts/index.json');
-    final data = jsonDecode(raw) as Map<String, dynamic>;
+    final data = await _readIndex();
     return (data['languages'] as List<dynamic>)
         .map((item) => PodcastLanguage.fromJson(item as Map<String, dynamic>))
         .toList(growable: false);
   }
 
   Future<List<AcademyPodcastEntry>> allEpisodes() async {
-    final raw = await rootBundle.loadString('assets/podcasts/index.json');
-    final data = jsonDecode(raw) as Map<String, dynamic>;
+    final data = await _readIndex();
     return (data['episodes'] as List<dynamic>)
         .map((item) => AcademyPodcastEntry.fromJson(
             item as Map<String, dynamic>)).toList(growable: false);
