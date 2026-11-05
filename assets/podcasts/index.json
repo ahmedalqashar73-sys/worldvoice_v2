@@ -17,12 +17,12 @@
       "language": "en"
     },
     {
-      "id": "en-a1-pod-002",
+      "id": "en-a1-voa-020",
       "level": "A1",
-      "title": "A Morning at Home",
-      "status": "planned",
-      "asset": null,
-      "title_ar": "صباح في المنزل",
+      "title": "What Can You Do?",
+      "status": "published_audio",
+      "asset": "assets/podcasts/en/A1/en-a1-voa-020.json",
+      "title_ar": "ماذا يمكنك أن تفعل؟",
       "language": "en"
     },
     {
