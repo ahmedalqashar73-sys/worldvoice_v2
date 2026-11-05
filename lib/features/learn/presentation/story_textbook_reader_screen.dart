@@ -8,25 +8,21 @@ import '../domain/models/story_library_models.dart';
 import '../domain/models/story_textbook_models.dart';
 import '../services/story_textbook_narration.dart';
 
+/// All chapters, illustrations, paragraphs and review are in a single
+/// vertically scrollable school-book. No page swipes or page breaks.
 class StoryTextbookReaderScreen extends StatefulWidget {
   const StoryTextbookReaderScreen({
     required this.entry,
     required this.repository,
     super.key,
   });
+
   final StoryLibraryEntry entry;
   final StoryLibraryRepository repository;
 
   @override
-  State<StoryTextbookReaderScreen> createState() => _StoryTextbookReaderState();
-}
-
-class _Step {
-  const _Step(this.chapter, this.block);
-  final int chapter;
-  final int? block;
-  bool get isTransition => chapter == 1 && block == null;
-  bool get isReview => chapter == 2;
+  State<StoryTextbookReaderScreen> createState() =>
+      _StoryTextbookReaderState();
 }
 
 class _StoryTextbookReaderState extends State<StoryTextbookReaderScreen> {
@@ -34,47 +30,82 @@ class _StoryTextbookReaderState extends State<StoryTextbookReaderScreen> {
       widget.repository.loadTextbook(widget.entry);
   late final StoryTextbookNarration _audio =
       StoryTextbookNarration(language: widget.entry.language);
-  final PageController _pager = PageController();
-  final Set<String> _translation = {};
+  final ScrollController _scroll = ScrollController();
+  final Set<String> _translations = {};
   final Map<int, int> _answers = {};
-  final Map<String, GlobalKey> _sentenceKeys = {};
-  int _page = 0;
+  final Map<String, GlobalKey> _anchors = {};
+  final Map<int, String> _spokenParagraphs = {};
   int? _active;
+  double _progress = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _scroll.addListener(_readProgress);
+  }
+
+  void _readProgress() {
+    if (!_scroll.hasClients) return;
+    final maximum = _scroll.position.maxScrollExtent;
+    final next = maximum <= 0
+        ? 1.0
+        : (_scroll.offset / maximum).clamp(0.0, 1.0);
+    if ((next - _progress).abs() >= 0.02 || next == 1 && _progress != 1) {
+      setState(() => _progress = next);
+    }
+  }
 
   @override
   void dispose() {
     _audio.dispose();
-    _pager.dispose();
+    _scroll.dispose();
     super.dispose();
   }
 
-  List<_Step> _steps(StoryTextbookBook book) => [
-    for (var chapter = 0; chapter < 2; chapter++) ...[
-      if (chapter == 1) const _Step(1, null),
-      for (var block = 0; block < book.chapters[chapter].blocks.length; block++)
-        _Step(chapter, block),
-    ],
-    const _Step(2, null),
-  ];
-
-  Future<void> _go(int page) async {
-    unawaited(_audio.stop());
-    if (!mounted) return;
-    setState(() => _active = null);
-    await _pager.animateToPage(page,
-      duration: const Duration(milliseconds: 320),
-      curve: Curves.easeInOut);
+  List<StoryTextbookSegment> _storyVoice(StoryTextbookBook book) {
+    final result = <StoryTextbookSegment>[
+      StoryTextbookSegment(
+        speaker: StoryTextbookSpeaker.narrator,
+        text: 'Welcome to WorldVoice Academy. '
+            'This story was written by WorldVoice Academy. '
+            'Today we are reading ${book.title}. Let us begin.',
+      ),
+    ];
+    _spokenParagraphs.clear();
+    for (var c = 0; c < book.chapters.length; c++) {
+      final chapter = book.chapters[c];
+      result.add(StoryTextbookSegment(
+        speaker: StoryTextbookSpeaker.narrator,
+        text: 'Chapter ${chapter.number}. ${chapter.title}.',
+      ));
+      for (var b = 0; b < chapter.blocks.length; b++) {
+        for (var p = 0; p < chapter.blocks[b].paragraphs.length; p++) {
+          final paragraph = chapter.blocks[b].paragraphs[p];
+          for (final segment in paragraph.segments) {
+            _spokenParagraphs[result.length] = '$c:$b:$p';
+            result.add(segment);
+          }
+        }
+      }
+    }
+    return result;
   }
 
-  void _mark(int segment) {
+  void _mark(int index) {
     if (!mounted) return;
-    setState(() => _active = segment);
+    setState(() => _active = index);
+    final key = _spokenParagraphs[index];
+    if (key == null) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final target = _sentenceKeys['$_page:$segment']?.currentContext;
-      if (target != null) {
-        Scrollable.ensureVisible(target,
-          duration: const Duration(milliseconds: 270),
-          alignment: 0.34);
+      if (!mounted) return;
+      final context = _anchors[key]?.currentContext;
+      if (context != null) {
+        Scrollable.ensureVisible(
+          context,
+          duration: const Duration(milliseconds: 450),
+          curve: Curves.easeInOut,
+          alignment: 0.30,
+        );
       }
     });
   }
@@ -82,28 +113,28 @@ class _StoryTextbookReaderState extends State<StoryTextbookReaderScreen> {
   void _meaning(String word, Map<String, String> meanings) {
     final value = meanings[word.toLowerCase()];
     if (value == null) return;
-    showDialog<void>(context: context, builder: (context) => AlertDialog(
+    showDialog<void>(context: context, builder: (dialog) => AlertDialog(
       title: Text(word),
       content: Text(value, textDirection: TextDirection.rtl),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.of(dialog).pop(),
           child: const Text('OK'),
         ),
       ],
     ));
   }
 
-  List<InlineSpan> _spans(String source, TextStyle style,
-      Map<String, String> meanings) {
-    final result = <InlineSpan>[];
+  List<InlineSpan> _highlightedText(
+      String source, TextStyle style, Map<String, String> meanings) {
+    final spans = <InlineSpan>[];
     var start = 0;
     for (final match in RegExp(r'\*\*([^*]+)\*\*').allMatches(source)) {
       if (match.start > start) {
-        result.add(TextSpan(text: source.substring(start, match.start)));
+        spans.add(TextSpan(text: source.substring(start, match.start)));
       }
       final word = match.group(1)!;
-      result.add(WidgetSpan(
+      spans.add(WidgetSpan(
         alignment: PlaceholderAlignment.baseline,
         baseline: TextBaseline.alphabetic,
         child: GestureDetector(
@@ -111,292 +142,325 @@ class _StoryTextbookReaderState extends State<StoryTextbookReaderScreen> {
           child: Text(word,
             textDirection: TextDirection.ltr,
             style: style.copyWith(
+              color: const Color(0xFFD2A74F),
               fontWeight: FontWeight.w900,
-              color: const Color(0xFFBD9143),
-              decoration: TextDecoration.underline)),
+              decoration: TextDecoration.underline,
+              decorationColor: const Color(0xFFD2A74F),
+            ),
+          ),
         ),
       ));
       start = match.end;
     }
     if (start < source.length) {
-      result.add(TextSpan(text: source.substring(start)));
+      spans.add(TextSpan(text: source.substring(start)));
     }
-    return result;
+    return spans;
   }
 
-  Widget _chapterBlock(StoryTextbookBook book, _Step step, int pageIndex) {
-    final block = book.chapters[step.chapter].blocks[step.block!];
+  Widget _paragraph(StoryTextbookBook book, StoryTextbookParagraph paragraph,
+      String key, int firstSpeechIndex) {
     final ar = Localizations.localeOf(context).languageCode == 'ar';
-    final onSurface = Theme.of(context).colorScheme.onSurface;
     final style = TextStyle(
-      color: onSurface, fontSize: 18, height: 1.65);
-    final segmentWidgets = <Widget>[];
-    final spoken = <StoryTextbookSegment>[];
-    for (var p = 0; p < block.paragraphs.length; p++) {
-      final paragraph = block.paragraphs[p];
-      final translatedKey = '$pageIndex:$p';
-      for (var s = 0; s < paragraph.segments.length; s++) {
-        final segment = paragraph.segments[s];
-        final number = spoken.length;
-        spoken.add(segment);
-        final anchor = _sentenceKeys.putIfAbsent(
-            '$pageIndex:$number', GlobalKey.new);
-        segmentWidgets.add(Container(
+      color: Theme.of(context).colorScheme.onSurface,
+      fontSize: 18,
+      height: 1.8,
+      letterSpacing: 0.1,
+    );
+    final playing = _active != null &&
+        _active! >= firstSpeechIndex &&
+        _active! < firstSpeechIndex + paragraph.segments.length;
+    final anchor = _anchors.putIfAbsent(key, GlobalKey.new);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 23),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        AnimatedContainer(
           key: anchor,
+          duration: const Duration(milliseconds: 230),
+          padding: const EdgeInsets.fromLTRB(7, 9, 7, 9),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            color: _page == pageIndex && _active == number
-                ? const Color(0xFFD0A955).withValues(alpha: 0.22)
+            color: playing
+                ? const Color(0xFFE0AF4F).withValues(alpha: 0.19)
                 : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
           ),
-          child: Text.rich(TextSpan(
-            style: style,
-            children: [
-              if (s == 0) const TextSpan(text: '    '),
-              ..._spans(segment.text, style, book.meanings),
-            ],
-          ), textDirection: TextDirection.ltr),
-        ));
-      }
-      segmentWidgets.add(const SizedBox(height: 8));
-      segmentWidgets.add(Align(
-        alignment: AlignmentDirectional.centerStart,
-        child: OutlinedButton.icon(
-          key: ValueKey('textbook-translation-$translatedKey'),
-          onPressed: () => setState(() {
-            if (!_translation.add(translatedKey)) {
-              _translation.remove(translatedKey);
-            }
-          }),
-          icon: const Icon(Icons.translate, size: 18),
-          label: Text(ar ? 'الترجمة العربية' : 'Arabic translation'),
+          child: Text.rich(
+            TextSpan(style: style, children: [
+              const TextSpan(text: '　'),
+              for (var i = 0; i < paragraph.segments.length; i++) ...[
+                if (i > 0) const TextSpan(text: ' '),
+                ..._highlightedText(
+                    paragraph.segments[i].text, style, book.meanings),
+              ],
+            ]),
+            textAlign: TextAlign.start,
+            textDirection: TextDirection.ltr,
+          ),
+        ),
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: TextButton.icon(
+            key: ValueKey('textbook-translation-$key'),
+            onPressed: () => setState(() {
+              if (!_translations.add(key)) _translations.remove(key);
+            }),
+            icon: const Icon(Icons.translate_rounded, size: 18),
+            label: Text(ar ? 'الترجمة العربية' : 'Arabic translation'),
+          ),
+        ),
+        if (_translations.contains(key))
+          Padding(
+            padding: const EdgeInsets.fromLTRB(7, 4, 7, 12),
+            child: Text(
+              paragraph.translationAr,
+              textDirection: TextDirection.rtl,
+              style: style.copyWith(fontSize: 16, height: 1.65),
+            ),
+          ),
+      ]),
+    );
+  }
+
+  Widget _reader(StoryTextbookBook book) {
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    final theme = Theme.of(context);
+    final accent = theme.brightness == Brightness.dark
+        ? const Color(0xFF9DECC4) : const Color(0xFF164E39);
+    final widgets = <Widget>[
+      Text(
+        ar ? book.titleAr : book.title,
+        key: const ValueKey('textbook-story-title'),
+        style: theme.textTheme.headlineMedium?.copyWith(
+          fontWeight: FontWeight.w900, color: accent),
+      ),
+      const SizedBox(height: 5),
+      Text(
+        ar ? book.title : book.titleAr,
+        style: theme.textTheme.titleMedium?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant),
+      ),
+      const SizedBox(height: 12),
+      Text(
+        ar ? 'اسحب للأعلى والأسفل لقراءة القصة كاملة.'
+            : 'Scroll up and down to read the entire story.',
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant),
+      ),
+      const SizedBox(height: 18),
+    ];
+    var speechIndex = 1;
+    var pictureNumber = 0;
+    for (var c = 0; c < book.chapters.length; c++) {
+      final chapter = book.chapters[c];
+      speechIndex++; // Voice title for this chapter.
+      widgets.add(Container(
+        key: ValueKey('textbook-chapter-${chapter.number}'),
+        margin: const EdgeInsets.symmetric(vertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              ar ? 'الفصل ${chapter.number}'
+                  : 'Chapter ${chapter.number}',
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: const Color(0xFFCF9F49),
+                fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 7),
+            Text(
+              ar ? chapter.titleAr : chapter.title,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w800),
+            ),
+            const Divider(height: 30),
+          ],
         ),
       ));
-      if (_translation.contains(translatedKey)) {
-        segmentWidgets.add(Text(paragraph.translationAr,
-          textDirection: TextDirection.rtl,
-          style: style.copyWith(fontSize: 16)));
+      for (var b = 0; b < chapter.blocks.length; b++) {
+        final block = chapter.blocks[b];
+        widgets.add(StoryTextbookIllustration(
+          key: ValueKey('textbook-image-$pictureNumber'),
+          image: block.image,
+          motion: block.animation,
+          active: true,
+        ));
+        pictureNumber++;
+        widgets.add(const SizedBox(height: 17));
+        for (var p = 0; p < block.paragraphs.length; p++) {
+          final paragraph = block.paragraphs[p];
+          widgets.add(_paragraph(
+            book, paragraph, '$c:$b:$p', speechIndex,
+          ));
+          speechIndex += paragraph.segments.length;
+        }
+        widgets.add(const SizedBox(height: 6));
       }
-      segmentWidgets.add(const SizedBox(height: 22));
     }
-
-    return Column(children: [
-      Expanded(child: ListView(
-        key: PageStorageKey('textbook-page-$pageIndex'),
-        padding: const EdgeInsets.all(18),
-        children: [
-          StoryTextbookIllustration(
-            key: ValueKey('textbook-image-$pageIndex'),
-            image: block.image,
-            motion: block.animation,
-            active: pageIndex == _page),
-          const SizedBox(height: 22),
-          ...segmentWidgets,
-        ],
-      )),
-      AnimatedBuilder(
-        animation: _audio,
-        builder: (context, child) => Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          child: Row(children: [
-            IconButton.filledTonal(
-              key: const ValueKey('textbook-play'),
-              onPressed: () {
-                if (_audio.playing) {
-                  _audio.pause();
-                } else if (_audio.paused) {
-                  _audio.resume();
-                } else {
-                  _audio.play(spoken, onSegment: _mark);
-                }
-              },
-              icon: Icon(_audio.playing
-                  ? Icons.pause_rounded : Icons.play_arrow_rounded),
-            ),
-            IconButton(
-              onPressed: () {
-                _audio.stop();
-                setState(() => _active = null);
-              },
-              icon: const Icon(Icons.stop_rounded),
-            ),
-            const Spacer(),
-            Text(ar ? 'السرعة' : 'Speed'),
-            const SizedBox(width: 6),
-            DropdownButton<double>(
-              key: const ValueKey('textbook-speed'),
-              value: _audio.speed,
-              items: const [
-                DropdownMenuItem(value: 0.35, child: Text('0.75×')),
-                DropdownMenuItem(value: 0.46, child: Text('1×')),
-                DropdownMenuItem(value: 0.65, child: Text('1.25×')),
-              ],
-              onChanged: (value) {
-                if (value != null) _audio.changeSpeed(value);
-              },
-            ),
-          ]),
-        ),
+    widgets.addAll([
+      const Divider(height: 36),
+      Text(
+        ar ? 'العبرة من القصة' : 'The story lesson',
+        style: theme.textTheme.titleLarge?.copyWith(
+          color: accent, fontWeight: FontWeight.w800),
       ),
-      if (_audio.error != null) Text(
-        ar ? 'تعذر تشغيل الصوت على هذا الجهاز.' : _audio.error!,
-        style: const TextStyle(color: Colors.redAccent)),
-    ]);
-  }
-
-  Widget _transition(StoryTextbookBook book, int pageIndex) {
-    final ar = Localizations.localeOf(context).languageCode == 'ar';
-    return Center(child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const Icon(Icons.auto_stories_rounded,
-          size: 68, color: Color(0xFF318E62)),
-        const SizedBox(height: 18),
-        Text(ar ? 'الفصل الثاني' : 'Chapter 2',
-          style: Theme.of(context).textTheme.headlineMedium),
-        Text(ar ? book.chapters[1].titleAr : book.chapters[1].title,
-          style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 24),
-        FilledButton(
-          key: const ValueKey('textbook-next-chapter'),
-          onPressed: () => _go(pageIndex + 1),
-          child: Text(ar ? 'ابدأ الفصل الثاني' : 'Start chapter two'),
-        ),
-      ],
-    ));
-  }
-
-  Widget _review(StoryTextbookBook book) {
-    final ar = Localizations.localeOf(context).languageCode == 'ar';
-    final score = book.questions.asMap().entries
-        .where((e) => _answers[e.key] == e.value.answer).length;
-    return ListView(padding: const EdgeInsets.all(18), children: [
+      Text(book.moralAr, textDirection: TextDirection.rtl,
+        style: theme.textTheme.bodyLarge?.copyWith(height: 1.7)),
+      const SizedBox(height: 20),
       Text(ar ? 'المفردات' : 'Vocabulary',
-        style: Theme.of(context).textTheme.headlineSmall),
+        style: theme.textTheme.headlineSmall),
       for (final word in book.vocabulary)
         ListTile(
           dense: true,
           title: Text(word.word),
-          subtitle: Text(word.meaningAr, textDirection: TextDirection.rtl)),
-      const Divider(),
-      Text(ar ? 'أسئلة الفهم' : 'Comprehension',
-        style: Theme.of(context).textTheme.headlineSmall),
-      for (var q = 0; q < book.questions.length; q++) ...[
-        const SizedBox(height: 16),
-        Text(book.questions[q].question,
-          style: const TextStyle(fontWeight: FontWeight.w800)),
+          subtitle: Text(word.meaningAr, textDirection: TextDirection.rtl),
+        ),
+      const Divider(height: 36),
+      Text(ar ? 'أسئلة الفهم' : 'Comprehension questions',
+        style: theme.textTheme.headlineSmall),
+    ]);
+    for (var q = 0; q < book.questions.length; q++) {
+      final question = book.questions[q];
+      widgets.addAll([
+        const SizedBox(height: 12),
+        Text('${q + 1}. ${question.question}',
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w800)),
         RadioGroup<int>(
           groupValue: _answers[q],
           onChanged: (value) {
             if (value != null) setState(() => _answers[q] = value);
           },
           child: Column(children: [
-            for (var option = 0; option < 4; option++)
+            for (var i = 0; i < question.options.length; i++)
               RadioListTile<int>(
-                value: option,
-                title: Text(book.questions[q].options[option]),
+                dense: true,
+                value: i,
+                title: Text(question.options[i]),
               ),
           ]),
         ),
-      ],
-      if (_answers.length == book.questions.length)
-        Text(ar ? 'النتيجة: $score / 8' : 'Score: $score / 8',
-          style: Theme.of(context).textTheme.titleLarge),
-    ]);
+      ]);
+    }
+    if (_answers.length == book.questions.length) {
+      final score = book.questions.asMap().entries
+          .where((e) => _answers[e.key] == e.value.answer).length;
+      widgets.add(Text(
+        ar ? 'النتيجة: $score / ${book.questions.length}'
+            : 'Score: $score / ${book.questions.length}',
+        style: theme.textTheme.titleLarge?.copyWith(color: accent),
+      ));
+    }
+    widgets.add(const SizedBox(height: 32));
+    return ListView(
+      key: const ValueKey('textbook-story-scroll'),
+      controller: _scroll,
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 28),
+      children: widgets,
+    );
+  }
+
+  Widget _audioControls(StoryTextbookBook book) {
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    return AnimatedBuilder(
+      animation: _audio,
+      builder: (context, _) => SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            if (_audio.error != null)
+              Text(
+                ar ? 'تعذّر تشغيل الصوت على هذا الجهاز.' : _audio.error!,
+                style: const TextStyle(color: Colors.redAccent),
+              ),
+            Row(children: [
+              IconButton.filledTonal(
+                key: const ValueKey('textbook-play'),
+                tooltip: ar ? 'قراءة القصة كاملة' : 'Play full story',
+                onPressed: () {
+                  if (_audio.playing) {
+                    unawaited(_audio.pause());
+                  } else if (_audio.paused) {
+                    unawaited(_audio.resume());
+                  } else {
+                    unawaited(_audio.play(
+                      _storyVoice(book), onSegment: _mark));
+                  }
+                },
+                icon: Icon(_audio.playing
+                    ? Icons.pause_rounded : Icons.play_arrow_rounded),
+              ),
+              IconButton(
+                key: const ValueKey('textbook-stop'),
+                onPressed: () {
+                  unawaited(_audio.stop());
+                  setState(() => _active = null);
+                },
+                icon: const Icon(Icons.stop_circle_outlined),
+              ),
+              const Spacer(),
+              Text(ar ? 'السرعة' : 'Speed'),
+              const SizedBox(width: 5),
+              DropdownButton<double>(
+                key: const ValueKey('textbook-speed'),
+                value: _audio.speed,
+                items: const [
+                  DropdownMenuItem(value: 0.3, child: Text('0.75×')),
+                  DropdownMenuItem(value: 0.36, child: Text('1×')),
+                  DropdownMenuItem(value: 0.45, child: Text('1.25×')),
+                ],
+                onChanged: (value) {
+                  if (value != null) unawaited(_audio.changeSpeed(value));
+                },
+              ),
+            ]),
+          ]),
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final ar = Localizations.localeOf(context).languageCode == 'ar';
-    final accent = Theme.of(context).brightness == Brightness.dark
-        ? const Color(0xFF9DECC4) : const Color(0xFF164E39);
     return FutureBuilder<StoryTextbookBook>(
       future: _future,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Scaffold(
-            appBar: AppBar(),
-            body: Center(child: Text(ar
-                ? 'تعذر تحميل القصة.' : 'Unable to load story.')),
+            appBar: AppBar(title: Text(ar ? 'القصص' : 'Stories')),
+            body: Center(child: Text(
+              ar ? 'تعذّر تحميل القصة.' : 'Unable to load this story.')),
           );
         }
         if (!snapshot.hasData) {
           return const Scaffold(
-            body: Center(child: CircularProgressIndicator()));
+            body: Center(child: CircularProgressIndicator()),
+          );
         }
         final book = snapshot.data!;
-        final steps = _steps(book);
-        final step = steps[_page];
-        final chapter = book.chapters[step.isReview ? 1 : step.chapter];
         return Scaffold(
-          appBar: AppBar(title: Text(ar ? 'القصص' : 'Stories')),
-          body: SafeArea(child: Column(children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(18, 8, 18, 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(ar ? book.titleAr : book.title,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w900, color: accent)),
-                  const SizedBox(height: 5),
-                  Text(ar
-                      ? 'الفصل ${chapter.number}: ${chapter.titleAr}'
-                      : 'Chapter ${chapter.number}: ${chapter.title}',
-                    style: Theme.of(context).textTheme.titleMedium),
-                  const SizedBox(height: 12),
-                  Row(children: [
-                    for (var i = 0; i < book.chapters.length; i++) ...[
-                      if (i > 0) const SizedBox(width: 8),
-                      Expanded(child: LinearProgressIndicator(
-                        value: step.isReview ? 1 :
-                          steps.take(_page + 1).where((step) =>
-                            step.chapter == i && step.block != null).length /
-                            book.chapters[i].blocks.length,
-                        minHeight: 7,
-                        borderRadius: BorderRadius.circular(8),
-                        color: accent,
-                      )),
-                    ],
-                  ]),
-                ],
+          appBar: AppBar(
+            title: Text(ar ? 'القصص · قراءة' : 'Stories · Reading'),
+            actions: [
+              Padding(
+                padding: const EdgeInsetsDirectional.only(end: 14),
+                child: Center(child: Text(book.level)),
+              ),
+            ],
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(5),
+              child: LinearProgressIndicator(
+                value: _progress,
+                minHeight: 5,
+                color: const Color(0xFF26855B),
               ),
             ),
-            Expanded(child: PageView.builder(
-              controller: _pager,
-              itemCount: steps.length,
-              onPageChanged: (index) {
-                _audio.stop();
-                setState(() {
-                  _page = index;
-                  _active = null;
-                });
-              },
-              itemBuilder: (context, index) {
-                final current = steps[index];
-                if (current.isReview) return _review(book);
-                if (current.isTransition) return _transition(book, index);
-                return _chapterBlock(book, current, index);
-              },
-            )),
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Row(children: [
-                OutlinedButton(
-                  key: const ValueKey('textbook-back'),
-                  onPressed: _page == 0 ? null : () => _go(_page - 1),
-                  child: Text(ar ? 'السابق' : 'Previous')),
-                const Spacer(),
-                Text('${_page + 1} / ${steps.length}'),
-                const Spacer(),
-                FilledButton(
-                  key: const ValueKey('textbook-next'),
-                  onPressed: _page == steps.length - 1
-                      ? null : () => _go(_page + 1),
-                  child: Text(ar ? 'التالي' : 'Next')),
-              ]),
-            ),
-          ])),
+          ),
+          body: Column(children: [
+            Expanded(child: _reader(book)),
+            _audioControls(book),
+          ]),
         );
       },
     );
