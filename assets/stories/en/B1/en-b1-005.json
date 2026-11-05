@@ -1,0 +1,438 @@
+{
+  "language": "en",
+  "level": "B1",
+  "story": {
+    "id": "en-b1-005",
+    "title": "The Garden Behind the Station",
+    "title_ar": "الحديقة خلف المحطة",
+    "moral_ar": "المدن الأفضل تنشأ عندما نصمم الأماكن العامة بالاستماع إلى جميع أفراد المجتمع.",
+    "art_style": "Hand-painted community garden watercolor with consistent character details and readable expressive scenes; no lettering.",
+    "cover_image_prompt": "Behind a small brick train station a neglected fenced patch with weeds and abandoned planters, Amira in green coat and Jonas in pale blue jacket looking thoughtfully, cloudy spring morning.",
+    "character_sheet": [
+      {
+        "name": "Amira",
+        "description": "A seventeen-year-old girl with medium brown skin, long black hair tied back, moss-green coat, cream scarf and dark trousers."
+      },
+      {
+        "name": "Jonas",
+        "description": "A seventeen-year-old boy with fair skin, short brown hair, pale blue jacket, dark jeans and running shoes."
+      },
+      {
+        "name": "Mrs. Vale",
+        "description": "A retired gardener in her sixties with gray curly hair, warm tan complexion, orange cardigan, brown trousers and a walking stick."
+      }
+    ],
+    "chapters": [
+      {
+        "chapter": 1,
+        "title": "The Empty Corner",
+        "title_ar": "الزاوية المهجورة",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Behind a small brick train station a neglected fenced patch with weeds and abandoned planters, Amira in green coat and Jonas in pale blue jacket looking thoughtfully, cloudy spring morning. Detailed original watercolor textbook art, realistic architecture, diverse ages, consistent cast: Amira A seventeen-year-old girl with medium brown skin, long black hair tied back, moss-green coat, cream scarf and dark trousers.; Jonas A seventeen-year-old boy with fair skin, short brown hair, pale blue jacket, dark jeans and running shoes.; Mrs. Vale A retired gardener in her sixties with gray curly hair, warm tan complexion, orange cardigan, brown trousers and a walking stick.. No text in artwork.",
+            "animation": "fade_in",
+            "image": "assets/stories/en/B1/illustrations/en-b1-005_scene_01.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Every afternoon, Amira walked past an empty piece of land behind the railway **station**. It was surrounded by a broken fence and filled with weeds, although the neighborhood had very few green places. Her friend Jonas wondered whether the area could become a community **garden**. Amira liked the idea, but she knew that the land might belong to someone else and would require official **permission**."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We must find out before making plans, she said."
+                  }
+                ],
+                "translation_ar": "كل بعد ظهر كانت أميرة تمر بقطعة أرض فارغة خلف محطة القطار. أحاط بها سياج مكسور وملأتها الأعشاب، رغم قلة الأماكن الخضراء في الحي. تساءل صديقها يوناس إن كان يمكن تحويلها إلى حديقة مجتمعية. أعجبتها الفكرة لكنها عرفت أن الأرض قد تكون مملوكة لجهة وأن الأمر يحتاج إلى إذن رسمي. قالت إن عليهما التحقق قبل وضع الخطة."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "After contacting the council, they learned that the old **site** was available for a temporary community project. However, the council required a plan for regular **maintenance** and safe public **access**. Jonas immediately drew rows of flower beds, but Amira suggested speaking to people who lived nearby. She thought the best design would be one that considered different needs rather than simply looking beautiful."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "We should ask before we build, Jonas agreed."
+                  }
+                ],
+                "translation_ar": "بعد التواصل مع المجلس علما أن الموقع القديم متاح لمشروع مجتمعي مؤقت. لكن المجلس اشترط خطة صيانة دورية ووصولًا عامًا آمنًا. رسم يوناس صفوفًا من أحواض الأزهار، واقترحت أميرة الحديث مع السكان القريبين. رأت أن التصميم الجيد يلبي احتياجات مختلفة لا يكتفي بالجمال. وافق يوناس على السؤال قبل البناء."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Amira and Jonas interview older resident Mrs Vale with a walking stick in a bright community hall, paper site map on table, soft afternoon daylight. Detailed original watercolor textbook art, realistic architecture, diverse ages, consistent cast: Amira A seventeen-year-old girl with medium brown skin, long black hair tied back, moss-green coat, cream scarf and dark trousers.; Jonas A seventeen-year-old boy with fair skin, short brown hair, pale blue jacket, dark jeans and running shoes.; Mrs. Vale A retired gardener in her sixties with gray curly hair, warm tan complexion, orange cardigan, brown trousers and a walking stick.. No text in artwork.",
+            "animation": "pan_left",
+            "image": "assets/stories/en/B1/illustrations/en-b1-005_scene_02.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "At a neighborhood meeting, Mrs. Vale explained that narrow **pathways** were difficult for people who used walking aids. A parent requested a shaded **bench**, while a local shopkeeper suggested herbs that could survive without much water. Amira wrote each **suggestion** carefully. Jonas realized that his first drawing left almost no space for people to sit, rest, or move comfortably between the plants."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Listening is changing our design, Amira said."
+                  }
+                ],
+                "translation_ar": "في اجتماع الحي شرحت السيدة فيل أن الممرات الضيقة تصعب الحركة على مستخدمي أدوات المساعدة. طلب أحد الآباء مقعدًا مظللًا، واقترح صاحب متجر أعشابًا تتحمل قلة الماء. سجلت أميرة كل اقتراح بعناية. أدرك يوناس أن رسمه الأول لم يترك مساحة كافية للجلوس أو الراحة أو الحركة بين النباتات. قالت أميرة إن الاستماع يغيّر تصميمهم."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The students then asked a local gardener to assess the **soil** and existing plants. She warned that some areas might contain **debris** from earlier building work and should not be disturbed without proper checks. The council arranged a professional **inspection** before volunteers entered the space. Although the delay was frustrating, Amira understood that protecting future visitors mattered more than finishing the project quickly."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "It will feel better when everyone is safe, Jonas admitted."
+                  }
+                ],
+                "translation_ar": "طلب الطالبان من بستانية محلية تقييم التربة والنباتات الموجودة. حذرت من أن بعض الأماكن قد تحتوي على مخلفات بناء ولا ينبغي لمسها قبل الفحص. رتب المجلس فحصًا مهنيًا قبل دخول المتطوعين. رغم إحباط التأخير فهمت أميرة أن حماية الزوار أهم من السرعة. اعترف يوناس بأن النتيجة ستكون أفضل عندما يكون الجميع آمنين."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "When the site was approved, the group divided the work into smaller **tasks**. Some volunteers measured the ground, others planned raised beds, and a few contacted businesses for donated **materials**. Jonas updated the design to include wider paths and a resting area. The growing **teamwork** helped them finish the preparation without relying on any single person to manage everything."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We all have something useful to offer, Amira told the group."
+                  }
+                ],
+                "translation_ar": "بعد الموافقة على الموقع قسّم الفريق العمل إلى مهام صغيرة. قاس بعض المتطوعين الأرض وخطط آخرون لأحواض مرتفعة، وتواصل عدد منهم مع الشركات للحصول على مواد متبرع بها. حدّث يوناس التصميم ليشمل ممرات أوسع ومساحة للراحة. ساعد التعاون على إنهاء الاستعداد دون الاعتماد على شخص واحد. قالت أميرة إن لدى الجميع ما يقدمونه."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "chapter": 2,
+        "title": "A Place for Everyone",
+        "title_ar": "مكان للجميع",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Residents and professional gardeners planting raised garden beds along a paved accessible route behind station, volunteers of different ages working safely, bright spring sun. Detailed original watercolor textbook art, realistic architecture, diverse ages, consistent cast: Amira A seventeen-year-old girl with medium brown skin, long black hair tied back, moss-green coat, cream scarf and dark trousers.; Jonas A seventeen-year-old boy with fair skin, short brown hair, pale blue jacket, dark jeans and running shoes.; Mrs. Vale A retired gardener in her sixties with gray curly hair, warm tan complexion, orange cardigan, brown trousers and a walking stick.. No text in artwork.",
+            "animation": "parallax",
+            "image": "assets/stories/en/B1/illustrations/en-b1-005_scene_03.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The first planting day brought families, students, and older residents to the station. Under professional **supervision**, volunteers filled raised beds with fresh soil and planted hardy herbs. Mrs. Vale showed younger children how to water the roots **gently** without wasting water. Amira checked that tools were stored safely away from the main **walkway**, while Jonas helped visitors understand the route through the garden."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "It is finally becoming real, he said."
+                  }
+                ],
+                "translation_ar": "في يوم الزراعة الأول جاءت أسر وطلاب وسكان كبار إلى المحطة. تحت إشراف مهني ملأ المتطوعون الأحواض المرتفعة بالتربة وزرعوا أعشابًا تتحمل الظروف. علّمت السيدة فيل الأطفال سقي الجذور برفق دون هدر الماء. تأكدت أميرة من حفظ الأدوات بعيدًا عن الممر الرئيسي، وساعد يوناس الزوار على فهم المسار. قال إن الحديقة أصبحت واقعًا."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Despite the progress, a hot week caused several young plants to **wilt**. Jonas wanted to replace them immediately, but Mrs. Vale recommended studying the garden's **conditions** first. They checked shade, drainage, and the watering **routine**, discovering that one bed received too much sunlight in the afternoon. The group moved sensitive plants to a cooler area and adjusted the schedule instead of buying everything again."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Problems can help us learn, Amira said."
+                  }
+                ],
+                "translation_ar": "رغم التقدم أدت موجة حر إلى ذبول نباتات فتية. أراد يوناس استبدالها فورًا، لكن السيدة فيل نصحت بدراسة الظروف أولًا. فحصوا الظل والصرف وروتين السقي فاكتشفوا أن حوضًا يتعرض لشمس قوية بعد الظهر. نقلوا النباتات الحساسة إلى موضع أبرد وعدلوا الجدول بدل شراء كل شيء من جديد. قالت أميرة إن المشكلات تساعدهم على التعلم."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Completed inclusive station community garden with wide winding paths, raised planters, bench, fragrant flowers, Amira Jonas and Mrs Vale talking happily, train station in background. Detailed original watercolor textbook art, realistic architecture, diverse ages, consistent cast: Amira A seventeen-year-old girl with medium brown skin, long black hair tied back, moss-green coat, cream scarf and dark trousers.; Jonas A seventeen-year-old boy with fair skin, short brown hair, pale blue jacket, dark jeans and running shoes.; Mrs. Vale A retired gardener in her sixties with gray curly hair, warm tan complexion, orange cardigan, brown trousers and a walking stick.. No text in artwork.",
+            "animation": "zoom_in_slow",
+            "image": "assets/stories/en/B1/illustrations/en-b1-005_scene_04.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "A few weeks later, residents started using the garden for short conversations while waiting for trains. The wider **paths** allowed people to pass comfortably, and the raised beds were easier to reach. A neighborhood photographer offered to create a small **display** explaining how the space had changed. Jonas suggested collecting anonymous **comments** so the design could continue improving as more visitors used it."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "We should keep asking what works, he said."
+                  }
+                ],
+                "translation_ar": "بعد أسابيع بدأ السكان يستخدمون الحديقة للحديث القصير أثناء انتظار القطارات. سمحت الممرات العريضة بالمرور براحة، وصارت الأحواض المرتفعة أسهل وصولًا. عرض مصور من الحي إعداد عرض صغير يوضح التحول. اقترح يوناس جمع تعليقات مجهولة حتى يتطور التصميم مع زيادة الزوار. قال إن عليهم مواصلة السؤال عما ينجح."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "At the official opening, the council thanked volunteers but emphasized that the garden needed a long-term **agreement**. Local residents formed a small **committee** to organize watering, repairs, and seasonal planting. Amira offered to prepare a monthly **report**, while Jonas designed a simple rota that anyone could understand. They wanted the project to remain welcoming even after the students finished school."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "A place belongs to everyone when everyone can help care for it, Amira said."
+                  }
+                ],
+                "translation_ar": "في الافتتاح الرسمي شكر المجلس المتطوعين لكنه أكد ضرورة اتفاق طويل الأمد. شكّل السكان لجنة صغيرة لتنظيم السقي والإصلاح والزرع الموسمي. تطوعت أميرة بإعداد تقرير شهري، وصمم يوناس جدول مناوبات سهل الفهم. أرادا بقاء الحديقة مرحبة بالناس حتى بعد انتهاء دراستهما. قالت أميرة إن المكان يصير للجميع عندما يستطيع الجميع الاعتناء به."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "One evening, Mrs. Vale sat on the shaded bench and watched people move comfortably along the garden paths. She thanked the teenagers for making **inclusion** part of the design rather than an afterthought. Amira felt a quiet sense of **pride**, but she also recognized the ongoing **commitment** required to keep a public place healthy. Jonas looked toward the busy station, already thinking about other forgotten spaces."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Maybe this is only our first garden, he smiled."
+                  }
+                ],
+                "translation_ar": "في مساء جلست السيدة فيل على المقعد المظلل تراقب الناس وهم يتحركون براحة في الممرات. شكرت المراهقين لأنهما جعلا الشمول جزءًا أساسيًا من التصميم. شعرت أميرة بالفخر الهادئ لكنها أدركت الالتزام المستمر اللازم لصحة المكان العام. نظر يوناس نحو المحطة المزدحمة وفكر في مساحات أخرى منسية. ابتسم وقال إن هذه ربما حديقتهما الأولى فقط."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "vocabulary": [
+      {
+        "word": "station",
+        "meaning_ar": "محطة",
+        "example": "Every afternoon, Amira walked past an empty piece of land behind the railway station. It was surrounded by a broken fence and filled with weeds, although the neighborhood had very few green places. Her friend Jonas wondered whether the area could become a community garden. Amira liked the idea, but she knew that the land might belong to someone else and would require official permission."
+      },
+      {
+        "word": "garden",
+        "meaning_ar": "حديقة",
+        "example": "Every afternoon, Amira walked past an empty piece of land behind the railway station. It was surrounded by a broken fence and filled with weeds, although the neighborhood had very few green places. Her friend Jonas wondered whether the area could become a community garden. Amira liked the idea, but she knew that the land might belong to someone else and would require official permission."
+      },
+      {
+        "word": "permission",
+        "meaning_ar": "إذن",
+        "example": "Every afternoon, Amira walked past an empty piece of land behind the railway station. It was surrounded by a broken fence and filled with weeds, although the neighborhood had very few green places. Her friend Jonas wondered whether the area could become a community garden. Amira liked the idea, but she knew that the land might belong to someone else and would require official permission."
+      },
+      {
+        "word": "site",
+        "meaning_ar": "موقع",
+        "example": "After contacting the council, they learned that the old site was available for a temporary community project. However, the council required a plan for regular maintenance and safe public access. Jonas immediately drew rows of flower beds, but Amira suggested speaking to people who lived nearby. She thought the best design would be one that considered different needs rather than simply looking beautiful."
+      },
+      {
+        "word": "maintenance",
+        "meaning_ar": "صيانة",
+        "example": "After contacting the council, they learned that the old site was available for a temporary community project. However, the council required a plan for regular maintenance and safe public access. Jonas immediately drew rows of flower beds, but Amira suggested speaking to people who lived nearby. She thought the best design would be one that considered different needs rather than simply looking beautiful."
+      },
+      {
+        "word": "access",
+        "meaning_ar": "وصول",
+        "example": "After contacting the council, they learned that the old site was available for a temporary community project. However, the council required a plan for regular maintenance and safe public access. Jonas immediately drew rows of flower beds, but Amira suggested speaking to people who lived nearby. She thought the best design would be one that considered different needs rather than simply looking beautiful."
+      },
+      {
+        "word": "pathways",
+        "meaning_ar": "ممرات",
+        "example": "At a neighborhood meeting, Mrs. Vale explained that narrow pathways were difficult for people who used walking aids. A parent requested a shaded bench, while a local shopkeeper suggested herbs that could survive without much water. Amira wrote each suggestion carefully. Jonas realized that his first drawing left almost no space for people to sit, rest, or move comfortably between the plants."
+      },
+      {
+        "word": "bench",
+        "meaning_ar": "مقعد",
+        "example": "At a neighborhood meeting, Mrs. Vale explained that narrow pathways were difficult for people who used walking aids. A parent requested a shaded bench, while a local shopkeeper suggested herbs that could survive without much water. Amira wrote each suggestion carefully. Jonas realized that his first drawing left almost no space for people to sit, rest, or move comfortably between the plants."
+      },
+      {
+        "word": "suggestion",
+        "meaning_ar": "اقتراح",
+        "example": "At a neighborhood meeting, Mrs. Vale explained that narrow pathways were difficult for people who used walking aids. A parent requested a shaded bench, while a local shopkeeper suggested herbs that could survive without much water. Amira wrote each suggestion carefully. Jonas realized that his first drawing left almost no space for people to sit, rest, or move comfortably between the plants."
+      },
+      {
+        "word": "soil",
+        "meaning_ar": "تربة",
+        "example": "The students then asked a local gardener to assess the soil and existing plants. She warned that some areas might contain debris from earlier building work and should not be disturbed without proper checks. The council arranged a professional inspection before volunteers entered the space. Although the delay was frustrating, Amira understood that protecting future visitors mattered more than finishing the project quickly."
+      },
+      {
+        "word": "debris",
+        "meaning_ar": "مخلفات",
+        "example": "The students then asked a local gardener to assess the soil and existing plants. She warned that some areas might contain debris from earlier building work and should not be disturbed without proper checks. The council arranged a professional inspection before volunteers entered the space. Although the delay was frustrating, Amira understood that protecting future visitors mattered more than finishing the project quickly."
+      },
+      {
+        "word": "inspection",
+        "meaning_ar": "فحص",
+        "example": "The students then asked a local gardener to assess the soil and existing plants. She warned that some areas might contain debris from earlier building work and should not be disturbed without proper checks. The council arranged a professional inspection before volunteers entered the space. Although the delay was frustrating, Amira understood that protecting future visitors mattered more than finishing the project quickly."
+      },
+      {
+        "word": "tasks",
+        "meaning_ar": "مهام",
+        "example": "When the site was approved, the group divided the work into smaller tasks. Some volunteers measured the ground, others planned raised beds, and a few contacted businesses for donated materials. Jonas updated the design to include wider paths and a resting area. The growing teamwork helped them finish the preparation without relying on any single person to manage everything."
+      },
+      {
+        "word": "materials",
+        "meaning_ar": "مواد",
+        "example": "When the site was approved, the group divided the work into smaller tasks. Some volunteers measured the ground, others planned raised beds, and a few contacted businesses for donated materials. Jonas updated the design to include wider paths and a resting area. The growing teamwork helped them finish the preparation without relying on any single person to manage everything."
+      },
+      {
+        "word": "teamwork",
+        "meaning_ar": "تعاون",
+        "example": "When the site was approved, the group divided the work into smaller tasks. Some volunteers measured the ground, others planned raised beds, and a few contacted businesses for donated materials. Jonas updated the design to include wider paths and a resting area. The growing teamwork helped them finish the preparation without relying on any single person to manage everything."
+      },
+      {
+        "word": "supervision",
+        "meaning_ar": "إشراف",
+        "example": "The first planting day brought families, students, and older residents to the station. Under professional supervision, volunteers filled raised beds with fresh soil and planted hardy herbs. Mrs. Vale showed younger children how to water the roots gently without wasting water. Amira checked that tools were stored safely away from the main walkway, while Jonas helped visitors understand the route through the garden."
+      },
+      {
+        "word": "gently",
+        "meaning_ar": "برفق",
+        "example": "The first planting day brought families, students, and older residents to the station. Under professional supervision, volunteers filled raised beds with fresh soil and planted hardy herbs. Mrs. Vale showed younger children how to water the roots gently without wasting water. Amira checked that tools were stored safely away from the main walkway, while Jonas helped visitors understand the route through the garden."
+      },
+      {
+        "word": "walkway",
+        "meaning_ar": "ممر",
+        "example": "The first planting day brought families, students, and older residents to the station. Under professional supervision, volunteers filled raised beds with fresh soil and planted hardy herbs. Mrs. Vale showed younger children how to water the roots gently without wasting water. Amira checked that tools were stored safely away from the main walkway, while Jonas helped visitors understand the route through the garden."
+      },
+      {
+        "word": "wilt",
+        "meaning_ar": "يذبل",
+        "example": "Despite the progress, a hot week caused several young plants to wilt. Jonas wanted to replace them immediately, but Mrs. Vale recommended studying the garden's conditions first. They checked shade, drainage, and the watering routine, discovering that one bed received too much sunlight in the afternoon. The group moved sensitive plants to a cooler area and adjusted the schedule instead of buying everything again."
+      },
+      {
+        "word": "conditions",
+        "meaning_ar": "ظروف",
+        "example": "Despite the progress, a hot week caused several young plants to wilt. Jonas wanted to replace them immediately, but Mrs. Vale recommended studying the garden's conditions first. They checked shade, drainage, and the watering routine, discovering that one bed received too much sunlight in the afternoon. The group moved sensitive plants to a cooler area and adjusted the schedule instead of buying everything again."
+      },
+      {
+        "word": "routine",
+        "meaning_ar": "روتين",
+        "example": "Despite the progress, a hot week caused several young plants to wilt. Jonas wanted to replace them immediately, but Mrs. Vale recommended studying the garden's conditions first. They checked shade, drainage, and the watering routine, discovering that one bed received too much sunlight in the afternoon. The group moved sensitive plants to a cooler area and adjusted the schedule instead of buying everything again."
+      },
+      {
+        "word": "paths",
+        "meaning_ar": "مسارات",
+        "example": "A few weeks later, residents started using the garden for short conversations while waiting for trains. The wider paths allowed people to pass comfortably, and the raised beds were easier to reach. A neighborhood photographer offered to create a small display explaining how the space had changed. Jonas suggested collecting anonymous comments so the design could continue improving as more visitors used it."
+      },
+      {
+        "word": "display",
+        "meaning_ar": "عرض",
+        "example": "A few weeks later, residents started using the garden for short conversations while waiting for trains. The wider paths allowed people to pass comfortably, and the raised beds were easier to reach. A neighborhood photographer offered to create a small display explaining how the space had changed. Jonas suggested collecting anonymous comments so the design could continue improving as more visitors used it."
+      },
+      {
+        "word": "comments",
+        "meaning_ar": "تعليقات",
+        "example": "A few weeks later, residents started using the garden for short conversations while waiting for trains. The wider paths allowed people to pass comfortably, and the raised beds were easier to reach. A neighborhood photographer offered to create a small display explaining how the space had changed. Jonas suggested collecting anonymous comments so the design could continue improving as more visitors used it."
+      },
+      {
+        "word": "agreement",
+        "meaning_ar": "اتفاق",
+        "example": "At the official opening, the council thanked volunteers but emphasized that the garden needed a long-term agreement. Local residents formed a small committee to organize watering, repairs, and seasonal planting. Amira offered to prepare a monthly report, while Jonas designed a simple rota that anyone could understand. They wanted the project to remain welcoming even after the students finished school."
+      },
+      {
+        "word": "committee",
+        "meaning_ar": "لجنة",
+        "example": "At the official opening, the council thanked volunteers but emphasized that the garden needed a long-term agreement. Local residents formed a small committee to organize watering, repairs, and seasonal planting. Amira offered to prepare a monthly report, while Jonas designed a simple rota that anyone could understand. They wanted the project to remain welcoming even after the students finished school."
+      },
+      {
+        "word": "report",
+        "meaning_ar": "تقرير",
+        "example": "At the official opening, the council thanked volunteers but emphasized that the garden needed a long-term agreement. Local residents formed a small committee to organize watering, repairs, and seasonal planting. Amira offered to prepare a monthly report, while Jonas designed a simple rota that anyone could understand. They wanted the project to remain welcoming even after the students finished school."
+      },
+      {
+        "word": "inclusion",
+        "meaning_ar": "شمول",
+        "example": "One evening, Mrs. Vale sat on the shaded bench and watched people move comfortably along the garden paths. She thanked the teenagers for making inclusion part of the design rather than an afterthought. Amira felt a quiet sense of pride, but she also recognized the ongoing commitment required to keep a public place healthy. Jonas looked toward the busy station, already thinking about other forgotten spaces."
+      },
+      {
+        "word": "pride",
+        "meaning_ar": "فخر",
+        "example": "One evening, Mrs. Vale sat on the shaded bench and watched people move comfortably along the garden paths. She thanked the teenagers for making inclusion part of the design rather than an afterthought. Amira felt a quiet sense of pride, but she also recognized the ongoing commitment required to keep a public place healthy. Jonas looked toward the busy station, already thinking about other forgotten spaces."
+      },
+      {
+        "word": "commitment",
+        "meaning_ar": "التزام",
+        "example": "One evening, Mrs. Vale sat on the shaded bench and watched people move comfortably along the garden paths. She thanked the teenagers for making inclusion part of the design rather than an afterthought. Amira felt a quiet sense of pride, but she also recognized the ongoing commitment required to keep a public place healthy. Jonas looked toward the busy station, already thinking about other forgotten spaces."
+      }
+    ],
+    "questions": [
+      {
+        "q": "Where is the empty land?",
+        "options": [
+          "Behind the station",
+          "Near a beach",
+          "At an airport",
+          "Beside a cinema"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What did the council require?",
+        "options": [
+          "More cars",
+          "A maintenance and access plan",
+          "A big restaurant",
+          "A ticket booth"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "Why were wider paths important?",
+        "options": [
+          "They looked expensive",
+          "They held more flowers",
+          "They helped people move comfortably",
+          "They stopped the rain"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "Why was a professional inspection necessary?",
+        "options": [
+          "For a music show",
+          "For choosing a name",
+          "To count flowers",
+          "Possible debris made safety checks important"
+        ],
+        "answer": 3
+      },
+      {
+        "q": "What did Mrs. Vale teach children?",
+        "options": [
+          "How to water roots carefully",
+          "How to paint walls",
+          "How to drive trains",
+          "How to play football"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "Why did some plants wilt?",
+        "options": [
+          "They grew too tall",
+          "They received too much sun",
+          "They were too old",
+          "They had no names"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "Who would organize ongoing care?",
+        "options": [
+          "Only Amira",
+          "The station driver",
+          "A residents' committee",
+          "Tourists"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "What was the main design principle?",
+        "options": [
+          "Use only bright colors",
+          "Build quickly",
+          "Avoid meetings",
+          "Include different community needs"
+        ],
+        "answer": 3
+      }
+    ]
+  }
+}
