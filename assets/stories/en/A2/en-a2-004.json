@@ -1,0 +1,426 @@
+{
+  "language": "en",
+  "level": "A2",
+  "story": {
+    "id": "en-a2-004",
+    "title": "The Science Fair Surprise",
+    "title_ar": "مفاجأة معرض العلوم",
+    "moral_ar": "الأخطاء جزء من التعلم والصدق في تسجيل النتائج يصنع مشروعًا علميًا أفضل.",
+    "art_style": "Original educational watercolor illustration, coherent characters and experiment equipment, no text.",
+    "cover_image_prompt": "Two students presenting solar box experiments at a cheerful school fair, watercolor no text.",
+    "character_sheet": [
+      {
+        "name": "Ava",
+        "description": "13-year-old girl with light brown skin, dark shoulder-length hair and yellow hairband, cream top and indigo dungarees."
+      },
+      {
+        "name": "Sam",
+        "description": "13-year-old boy with medium-brown skin, short black hair, rust-red sweater, charcoal trousers and white trainers."
+      },
+      {
+        "name": "Teacher",
+        "description": "Middle-aged teacher with curly grey hair, round glasses and dark blue cardigan."
+      }
+    ],
+    "chapters": [
+      {
+        "chapter": 1,
+        "title": "When the Sun Disappears",
+        "title_ar": "عندما تختفي الشمس",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image": "assets/stories/en/A2/illustrations/en-a2-004_scene_01.svg",
+            "animation": "pan_left",
+            "image_prompt": "Ava and Sam build a cardboard solar experiment at a school work table",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Ava and Sam are preparing a project for the school **science** fair. They want to show how sunlight can warm a small box. Ava draws the **design**, while Sam gathers clean paper and cardboard. Their **teacher** says they should explain every step clearly to visitors."
+                  }
+                ],
+                "translation_ar": "تستعد آفا وسام لمشروع في معرض العلوم المدرسي. يريدان إظهار كيف يمكن لضوء الشمس تدفئة صندوق صغير. ترسم آفا التصميم بينما يجمع سام الورق النظيف والكرتون. يقول معلمهما إن عليهما شرح كل خطوة بوضوح للزوار."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The children build a little **model** with dark paper inside and a clear plastic cover. They place a simple **thermometer** in the box to measure the warmth."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "We need an accurate **result**, Sam says. Ava writes down the temperature before they begin."
+                  }
+                ],
+                "translation_ar": "يصنع الطفلان نموذجًا صغيرًا بورق داكن من الداخل وغطاء بلاستيكي شفاف. يضعان ميزان حرارة بسيطًا في الصندوق لقياس الدفء. يقول سام إنهما يحتاجان إلى نتيجة دقيقة. تسجل آفا درجة الحرارة قبل البدء."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image": "assets/stories/en/A2/illustrations/en-a2-004_scene_02.svg",
+            "animation": "zoom_in_slow",
+            "image_prompt": "Two children test a solar box thermometer in the garden under dark clouds",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "They take the box into the school **garden** to test it. At first, the sun shines brightly, and the thermometer begins to **rise**. Ava records their **observations** in a notebook."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Our idea is working, she says, but Sam reminds her to keep checking."
+                  }
+                ],
+                "translation_ar": "يأخذان الصندوق إلى حديقة المدرسة لتجربته. في البداية تسطع الشمس ويرتفع مؤشر الحرارة. تسجل آفا ملاحظاتهما في دفتر. تقول إن فكرتهما تعمل، لكن سام يذكرها بمواصلة الفحص."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Suddenly, thick **clouds** cover the sky. The temperature stops rising, and the children feel **disappointed**."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "What will happen during the **competition** if it rains? Sam asks. Ava suggests finding another way to show what they have learned about the sun."
+                  }
+                ],
+                "translation_ar": "فجأة تغطي غيوم كثيفة السماء. تتوقف درجة الحرارة عن الارتفاع ويشعر الطفلان بخيبة الأمل. يسأل سام عما سيحدث في المسابقة إذا أمطرت. تقترح آفا إيجاد طريقة أخرى لعرض ما تعلماه عن الشمس."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Their teacher advises them to think about the **purpose** of the experiment rather than only its success. Ava suggests comparing a dark box with a white one. Sam writes a simple **plan** for another **experiment** that they can describe even on a cloudy day."
+                  }
+                ],
+                "translation_ar": "ينصحهما المعلم بالتفكير في هدف التجربة وليس نجاحها وحده. تقترح آفا مقارنة صندوق داكن بآخر أبيض. يكتب سام خطة بسيطة لتجربة أخرى يمكن وصفها حتى في يوم غائم."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "chapter": 2,
+        "title": "The Value of a Mistake",
+        "title_ar": "قيمة الخطأ",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image": "assets/stories/en/A2/illustrations/en-a2-004_scene_03.svg",
+            "animation": "fade_in",
+            "image_prompt": "Two children compare white and dark experiment boxes outside in the sun, carefully writing observations",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The following morning, the weather is brighter. Sam puts both boxes in the same **location** and starts a **timer**. Ava checks the **difference** between their temperatures every ten minutes."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Now we can compare them fairly, she says, while recording each new number."
+                  }
+                ],
+                "translation_ar": "في صباح اليوم التالي يتحسن الطقس. يضع سام الصندوقين في المكان نفسه ويشغّل مؤقتًا. تفحص آفا الفرق بين درجتي حرارتهما كل عشر دقائق. تقول إنهما يستطيعان الآن المقارنة بعدل، وتسجل كل رقم جديد."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "When the fair begins, Ava shows visitors their **chart**. Sam explains why the dark surface became warmer in bright sunlight. A younger student asks an interesting **question**."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "We are still **learning**, Sam answers, and we do not know everything yet."
+                  }
+                ],
+                "translation_ar": "عند بدء المعرض تعرض آفا على الزوار الرسم البياني. يشرح سام سبب زيادة دفء السطح الداكن تحت الشمس. يطرح طالب أصغر سؤالًا مثيرًا للاهتمام. يجيب سام بأنهما ما زالا يتعلمان ولا يعرفان كل شيء بعد."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image": "assets/stories/en/A2/illustrations/en-a2-004_scene_04.svg",
+            "animation": "parallax",
+            "image_prompt": "School science fair with Ava and Sam presenting a temperature chart to a friendly judge",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "A judge listens to their clear **explanation** and looks carefully at the notebook. She likes that they included the first **failure** in their report. Ava explains how the problem helped them improve the **method**. The judge smiles and writes a note on her paper."
+                  }
+                ],
+                "translation_ar": "تستمع محكمة إلى شرحهما الواضح وتفحص الدفتر بعناية. يعجبها أنهما ضمنا إخفاق التجربة الأولى في التقرير. تشرح آفا كيف ساعدتهما المشكلة على تحسين الطريقة. تبتسم المحكمة وتكتب ملاحظة على ورقتها."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Later, the teacher announces an **award** for clear scientific thinking. Ava and Sam are **surprised** when she calls their names."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We did not **expect** this today, Ava whispers. Sam feels happy because their careful notes and teamwork have finally been noticed."
+                  }
+                ],
+                "translation_ar": "لاحقًا يعلن المعلم جائزة للتفكير العلمي الواضح. تتفاجأ آفا وسام عندما ينادي اسميهما. تهمس آفا بأنهما لم يتوقعا ذلك اليوم. يشعر سام بالسعادة لأن ملاحظاتهما الدقيقة وتعاونهما نالا التقدير أخيرًا."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "After the fair, Sam adds a new page to their **report**. It describes the mistakes and the useful **discoveries** they made."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Good ideas need **practice**, he says. Ava agrees that asking questions is more important than pretending every experiment works perfectly."
+                  }
+                ],
+                "translation_ar": "بعد المعرض يضيف سام صفحة جديدة إلى تقريرهما. تصف الأخطاء والاكتشافات المفيدة التي توصلا إليها. يقول إن الأفكار الجيدة تحتاج إلى ممارسة. توافق آفا على أن طرح الأسئلة أهم من التظاهر بأن كل تجربة تنجح تمامًا."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "vocabulary": [
+      {
+        "word": "science",
+        "meaning_ar": "علوم",
+        "example": "Ava and Sam are preparing a project for the school science fair. They want to show how sunlight can warm a small box. Ava draws the design, while Sam gathers clean paper and cardboard. Their teacher says they should explain every step clearly to visitors."
+      },
+      {
+        "word": "design",
+        "meaning_ar": "تصميم",
+        "example": "Ava and Sam are preparing a project for the school science fair. They want to show how sunlight can warm a small box. Ava draws the design, while Sam gathers clean paper and cardboard. Their teacher says they should explain every step clearly to visitors."
+      },
+      {
+        "word": "teacher",
+        "meaning_ar": "معلم",
+        "example": "Ava and Sam are preparing a project for the school science fair. They want to show how sunlight can warm a small box. Ava draws the design, while Sam gathers clean paper and cardboard. Their teacher says they should explain every step clearly to visitors."
+      },
+      {
+        "word": "model",
+        "meaning_ar": "نموذج",
+        "example": "The children build a little model with dark paper inside and a clear plastic cover. They place a simple thermometer in the box to measure the warmth."
+      },
+      {
+        "word": "thermometer",
+        "meaning_ar": "ميزان حرارة",
+        "example": "The children build a little model with dark paper inside and a clear plastic cover. They place a simple thermometer in the box to measure the warmth."
+      },
+      {
+        "word": "result",
+        "meaning_ar": "نتيجة",
+        "example": "We need an accurate result, Sam says. Ava writes down the temperature before they begin."
+      },
+      {
+        "word": "garden",
+        "meaning_ar": "حديقة",
+        "example": "They take the box into the school garden to test it. At first, the sun shines brightly, and the thermometer begins to rise. Ava records their observations in a notebook."
+      },
+      {
+        "word": "rise",
+        "meaning_ar": "يرتفع",
+        "example": "They take the box into the school garden to test it. At first, the sun shines brightly, and the thermometer begins to rise. Ava records their observations in a notebook."
+      },
+      {
+        "word": "observations",
+        "meaning_ar": "ملاحظات",
+        "example": "They take the box into the school garden to test it. At first, the sun shines brightly, and the thermometer begins to rise. Ava records their observations in a notebook."
+      },
+      {
+        "word": "clouds",
+        "meaning_ar": "غيوم",
+        "example": "Suddenly, thick clouds cover the sky. The temperature stops rising, and the children feel disappointed."
+      },
+      {
+        "word": "disappointed",
+        "meaning_ar": "خاب أمله",
+        "example": "Suddenly, thick clouds cover the sky. The temperature stops rising, and the children feel disappointed."
+      },
+      {
+        "word": "competition",
+        "meaning_ar": "مسابقة",
+        "example": "What will happen during the competition if it rains? Sam asks. Ava suggests finding another way to show what they have learned about the sun."
+      },
+      {
+        "word": "purpose",
+        "meaning_ar": "هدف",
+        "example": "Their teacher advises them to think about the purpose of the experiment rather than only its success. Ava suggests comparing a dark box with a white one. Sam writes a simple plan for another experiment that they can describe even on a cloudy day."
+      },
+      {
+        "word": "plan",
+        "meaning_ar": "خطة",
+        "example": "Their teacher advises them to think about the purpose of the experiment rather than only its success. Ava suggests comparing a dark box with a white one. Sam writes a simple plan for another experiment that they can describe even on a cloudy day."
+      },
+      {
+        "word": "experiment",
+        "meaning_ar": "تجربة",
+        "example": "Their teacher advises them to think about the purpose of the experiment rather than only its success. Ava suggests comparing a dark box with a white one. Sam writes a simple plan for another experiment that they can describe even on a cloudy day."
+      },
+      {
+        "word": "location",
+        "meaning_ar": "مكان",
+        "example": "The following morning, the weather is brighter. Sam puts both boxes in the same location and starts a timer. Ava checks the difference between their temperatures every ten minutes."
+      },
+      {
+        "word": "timer",
+        "meaning_ar": "مؤقت",
+        "example": "The following morning, the weather is brighter. Sam puts both boxes in the same location and starts a timer. Ava checks the difference between their temperatures every ten minutes."
+      },
+      {
+        "word": "difference",
+        "meaning_ar": "فرق",
+        "example": "The following morning, the weather is brighter. Sam puts both boxes in the same location and starts a timer. Ava checks the difference between their temperatures every ten minutes."
+      },
+      {
+        "word": "chart",
+        "meaning_ar": "رسم بياني",
+        "example": "When the fair begins, Ava shows visitors their chart. Sam explains why the dark surface became warmer in bright sunlight. A younger student asks an interesting question."
+      },
+      {
+        "word": "question",
+        "meaning_ar": "سؤال",
+        "example": "When the fair begins, Ava shows visitors their chart. Sam explains why the dark surface became warmer in bright sunlight. A younger student asks an interesting question."
+      },
+      {
+        "word": "learning",
+        "meaning_ar": "نتعلم",
+        "example": "We are still learning, Sam answers, and we do not know everything yet."
+      },
+      {
+        "word": "explanation",
+        "meaning_ar": "شرح",
+        "example": "A judge listens to their clear explanation and looks carefully at the notebook. She likes that they included the first failure in their report. Ava explains how the problem helped them improve the method. The judge smiles and writes a note on her paper."
+      },
+      {
+        "word": "failure",
+        "meaning_ar": "إخفاق",
+        "example": "A judge listens to their clear explanation and looks carefully at the notebook. She likes that they included the first failure in their report. Ava explains how the problem helped them improve the method. The judge smiles and writes a note on her paper."
+      },
+      {
+        "word": "method",
+        "meaning_ar": "طريقة",
+        "example": "A judge listens to their clear explanation and looks carefully at the notebook. She likes that they included the first failure in their report. Ava explains how the problem helped them improve the method. The judge smiles and writes a note on her paper."
+      },
+      {
+        "word": "award",
+        "meaning_ar": "جائزة",
+        "example": "Later, the teacher announces an award for clear scientific thinking. Ava and Sam are surprised when she calls their names."
+      },
+      {
+        "word": "surprised",
+        "meaning_ar": "متفاجئ",
+        "example": "Later, the teacher announces an award for clear scientific thinking. Ava and Sam are surprised when she calls their names."
+      },
+      {
+        "word": "expect",
+        "meaning_ar": "نتوقع",
+        "example": "We did not expect this today, Ava whispers. Sam feels happy because their careful notes and teamwork have finally been noticed."
+      },
+      {
+        "word": "report",
+        "meaning_ar": "تقرير",
+        "example": "After the fair, Sam adds a new page to their report. It describes the mistakes and the useful discoveries they made."
+      },
+      {
+        "word": "discoveries",
+        "meaning_ar": "اكتشافات",
+        "example": "After the fair, Sam adds a new page to their report. It describes the mistakes and the useful discoveries they made."
+      },
+      {
+        "word": "practice",
+        "meaning_ar": "ممارسة",
+        "example": "Good ideas need practice, he says. Ava agrees that asking questions is more important than pretending every experiment works perfectly."
+      }
+    ],
+    "questions": [
+      {
+        "q": "What are Ava and Sam preparing for?",
+        "options": [
+          "A science fair",
+          "A football match",
+          "A cooking class",
+          "A concert"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What do they measure?",
+        "options": [
+          "Warmth",
+          "Distance",
+          "Weight",
+          "Sound"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What stops the first test?",
+        "options": [
+          "Clouds",
+          "A missing ticket",
+          "Music",
+          "A broken bicycle"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What do they compare?",
+        "options": [
+          "A dark and white box",
+          "Two flowers",
+          "Two books",
+          "Two radios"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "How often do they check the boxes?",
+        "options": [
+          "Every ten minutes",
+          "Every ten seconds",
+          "Monthly",
+          "At night"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What does the judge admire?",
+        "options": [
+          "Their honest report of failure",
+          "Only their colors",
+          "Their clothes",
+          "Their name"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What award do they receive?",
+        "options": [
+          "Scientific thinking",
+          "Singing",
+          "Running",
+          "Drawing"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What does the story teach?",
+        "options": [
+          "Mistakes help learning",
+          "Hide failures",
+          "Only prizes matter",
+          "Avoid experiments"
+        ],
+        "answer": 0
+      }
+    ]
+  }
+}
