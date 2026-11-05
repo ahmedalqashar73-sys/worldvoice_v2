@@ -10,7 +10,7 @@ Example:
     --audio-file /path/to/authorized-original.mp3 \
     --audio-url https://your-approved-cdn.example/audio/en-a1-pod-001.mp3 \
     --cues /path/to/reviewed-line-cues.json \
-    --voice-rights-confirmed
+    --voice-rights-confirmed --audio-qa-confirmed
 """
 from __future__ import annotations
 
@@ -69,6 +69,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--episode", type=Path, required=True)
     parser.add_argument("--audio-file", type=Path, required=True)
+    parser.add_argument("--index", type=Path, default=Path("assets/podcasts/index.json"))
     parser.add_argument("--audio-url", required=True)
     parser.add_argument("--cues", type=Path, required=True)
     parser.add_argument("--voice-rights-confirmed", action="store_true")
@@ -86,8 +87,17 @@ def main() -> int:
         parser.error("The cue sheet must be a JSON array")
     ms = duration_ms(args.audio_file)
     updated = checked_episode(episode, cues, ms, args.audio_url)
+    index = json.loads(args.index.read_text(encoding="utf-8"))
+    matches = [item for item in index["episodes"] if item["id"] == updated["id"]]
+    if len(matches) != 1:
+        raise ValueError("The podcast must have exactly one catalog entry")
+    matches[0]["status"] = "published"
     args.episode.write_text(
         json.dumps(updated, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    args.index.write_text(
+        json.dumps(index, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
     print(f"Published {updated['id']}: {len(cues)} aligned lines, {ms}ms")
