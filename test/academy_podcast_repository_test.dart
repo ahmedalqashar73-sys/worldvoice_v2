@@ -26,8 +26,8 @@ void main() {
             e.language == language.code && e.level == level), hasLength(15));
       }
     }
-    expect(list.where((e) => e.hasTranscript), hasLength(4));
-    expect(list.where((e) => e.status == 'planned'), hasLength(716));
+    expect(list.where((e) => e.hasTranscript), hasLength(5));
+    expect(list.where((e) => e.status == 'planned'), hasLength(715));
   });
 
   test('the Anna and Daniel draft stays unchanged and without recording', () async {
@@ -104,6 +104,21 @@ void main() {
     expect(episode.canStream, isTrue);
     expect(episode.isPlayable, isFalse);
     expect(episode.lineAt(const Duration(seconds: 40)), isNull);
+  });
+
+  test('VOA Lesson 47 has original audio and all speaker names',
+      () async {
+    final entries = await repo.allEpisodes();
+    final item = entries.singleWhere((e) => e.id == 'en-a1-voa-047');
+    final lesson = await repo.load(item);
+    expect(item.status, 'published_audio');
+    expect(lesson.hosts, ['Anna', 'Pete']);
+    expect(lesson.otherSpeakers, ['Dan', 'Master']);
+    expect(lesson.dialogue, hasLength(41));
+    expect(lesson.audioUrl, contains('voa-audio.voanews.eu'));
+    expect(lesson.durationMs, 191000);
+    expect(lesson.canStream, isTrue);
+    expect(lesson.isPlayable, isFalse);
   });
 
   test('sentence stays selected through silence and advances at next voice',
