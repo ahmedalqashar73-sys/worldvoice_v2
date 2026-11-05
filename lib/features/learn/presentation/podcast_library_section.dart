@@ -855,13 +855,13 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                     key: const ValueKey('podcast-text-smaller'),
                     tooltip: ar ? 'تصغير الخط' : 'Decrease text size',
                     onPressed: () => setState(() =>
-                        _fontSize = (_fontSize - 1).clamp(14.0, 22.0)),
+                        _fontSize = (_fontSize - 1).clamp(14.0, 22.0).toDouble()),
                     icon: const Icon(Icons.text_decrease_rounded)),
                   IconButton(
                     key: const ValueKey('podcast-text-larger'),
                     tooltip: ar ? 'تكبير الخط' : 'Increase text size',
                     onPressed: () => setState(() =>
-                        _fontSize = (_fontSize + 1).clamp(14.0, 22.0)),
+                        _fontSize = (_fontSize + 1).clamp(14.0, 22.0).toDouble()),
                     icon: const Icon(Icons.text_increase_rounded)),
                 ]),
                 Row(children: [
