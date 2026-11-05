@@ -1,0 +1,438 @@
+{
+  "language": "en",
+  "level": "B2",
+  "story": {
+    "id": "en-b2-003",
+    "title": "The Recipe in Two Languages",
+    "title_ar": "الوصفة بلغتين",
+    "moral_ar": "احترام التراث الغذائي يعني نقل المعنى والأصوات الأصلية بأمانة، مع توضيح ما قد يلتبس على الآخرين.",
+    "art_style": "Original warm literary kitchen watercolor, consistent family characters, no printed text in artwork.",
+    "cover_image_prompt": "A sunny family kitchen with Lina rust-red dress and Mateo cobalt shirt opening an old handwritten family cookbook, fresh herbs and ceramic bowls, Grandma Rosa nearby.",
+    "character_sheet": [
+      {
+        "name": "Lina",
+        "description": "A twenty-one-year-old woman with warm brown skin, long dark wavy hair, rust-red dress over navy trousers and a pale apron."
+      },
+      {
+        "name": "Mateo",
+        "description": "A twenty-two-year-old man with light olive skin, cropped dark hair, cobalt shirt, gray trousers and cream apron."
+      },
+      {
+        "name": "Grandma Rosa",
+        "description": "A seventy-year-old woman with silver hair in a bun, medium olive skin, floral shawl, warm expression and small round spectacles."
+      }
+    ],
+    "chapters": [
+      {
+        "chapter": 1,
+        "title": "An Old Notebook",
+        "title_ar": "دفتر قديم",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "A sunny family kitchen with Lina rust-red dress and Mateo cobalt shirt opening an old handwritten family cookbook, fresh herbs and ceramic bowls, Grandma Rosa nearby. Original detailed painterly watercolor, consistent characters Lina A twenty-one-year-old woman with warm brown skin, long dark wavy hair, rust-red dress over navy trousers and a pale apron.; Mateo A twenty-two-year-old man with light olive skin, cropped dark hair, cobalt shirt, gray trousers and cream apron.; Grandma Rosa A seventy-year-old woman with silver hair in a bun, medium olive skin, floral shawl, warm expression and small round spectacles.. No text in artwork.",
+            "animation": "fade_in",
+            "image": "assets/stories/en/B2/illustrations/en-b2-003_scene_01.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Lina discovered the small handwritten notebook while helping her grandmother organize an overcrowded kitchen cupboard. Its pages contained family recipes in two languages, along with dates and occasional comments about celebrations. Although Lina could understand most of the words, some instructions referred to tools that were no longer common. Her friend Mateo, who studied translation, suggested creating a digital **archive** before the pages became too **fragile** to handle. Lina agreed, but she also worried that a careless **interpretation** might remove the personal stories hidden inside the measurements."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "This book is more than a list, she said."
+                  }
+                ],
+                "translation_ar": "عثرت لينا على دفتر وصفات قديم أثناء ترتيب مطبخ جدتها. جمع وصفات بلغتين وتواريخ وتعليقات عن الاحتفالات. فهمت معظم الكلمات لكن بعض الأدوات المذكورة لم تعد مألوفة. اقترح ماتيو، دارس الترجمة، إنشاء أرشيف رقمي قبل أن تصبح الصفحات شديدة الهشاشة. وافقت لينا لكنها خافت أن يزيل التفسير المتسرع القصص الشخصية المختبئة بين المقادير. قالت إن الدفتر أكثر من قائمة."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Grandma Rosa welcomed the project but reminded them that several recipes belonged to relatives who had shared them privately. She asked the students to request **permission** before publishing any family names or photographs. Mateo explained that translating recipes also required careful attention to **context**, because the same ingredient could have different names in different regions. Lina wrote down the grandmother's **memories** alongside each dish, rather than pretending the instructions existed separately from the people who created them. Their first rule was to preserve the family's choices."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Accuracy and consent matter equally, Mateo said."
+                  }
+                ],
+                "translation_ar": "رحبت الجدة روزا بالمشروع لكنها ذكرت أن بعض الوصفات شاركها أقارب على نحو خاص. طلبت الاستئذان قبل نشر أسماء العائلة أو صورها. شرح ماتيو أهمية السياق لأن المكوّن الواحد قد يحمل أسماء مختلفة بين المناطق. سجلت لينا ذكريات جدتها بجانب كل طبق بدل فصل التعليمات عن أصحابها. اتفقا على احترام اختيارات العائلة. قال ماتيو إن الدقة والموافقة مهمتان بالقدر نفسه."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Lina and Mateo interviewing Grandma Rosa at large wooden kitchen table, notebooks, ingredients and labeled cups without readable writing, gentle window light. Original detailed painterly watercolor, consistent characters Lina A twenty-one-year-old woman with warm brown skin, long dark wavy hair, rust-red dress over navy trousers and a pale apron.; Mateo A twenty-two-year-old man with light olive skin, cropped dark hair, cobalt shirt, gray trousers and cream apron.; Grandma Rosa A seventy-year-old woman with silver hair in a bun, medium olive skin, floral shawl, warm expression and small round spectacles.. No text in artwork.",
+            "animation": "pan_left",
+            "image": "assets/stories/en/B2/illustrations/en-b2-003_scene_02.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Their first challenge appeared in a recipe for vegetable stew. The original notebook used an unfamiliar **measure**, while a modern cookbook offered a different value for what seemed to be the same ingredient. Instead of making a confident **assumption**, Lina asked Grandma Rosa to demonstrate the quantity with the old cup she still kept. Mateo recorded the cup's **capacity** using a kitchen scale and marked the result as an approximate modern equivalent. The students learned that direct word-for-word translation could be misleading when practical traditions were involved."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We need to explain what people actually did, Lina said."
+                  }
+                ],
+                "translation_ar": "واجهتهما أول مشكلة في وصفة حساء خضار تستخدم مكيالًا قديمًا. قدم كتاب حديث قيمة مختلفة لما بدا المكوّن نفسه. بدل الافتراض طلبت لينا من جدتها إظهار الكمية باستخدام كوبها القديم. قاس ماتيو سعة الكوب وذكر أنها قيمة تقريبية بالمقاييس الحديثة. تعلما أن الترجمة الحرفية قد تضلل عندما تتعلق المسألة بعادات عملية. قالت لينا إن عليهما شرح ما كان الناس يفعلونه بالفعل."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "As they tested the translation, Mateo noticed that one regional word described a specific herb rather than a general **seasoning**. Using the wrong substitute would change the flavor and possibly confuse anyone following the instructions. They consulted a local culinary historian, who provided a careful **definition** and several alternative names. Lina added a short **glossary** so readers could recognize the ingredient even if they knew it by another name. Grandma Rosa smiled when she saw how closely the students were listening to the language she grew up with."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "A single word can carry a whole tradition, Mateo observed."
+                  }
+                ],
+                "translation_ar": "لاحظ ماتيو أن كلمة محلية تشير إلى عشبة محددة لا إلى توابل عامة. استخدام بديل خاطئ سيغير النكهة وربما يربك القراء. استشارا باحثًا في تاريخ الطعام قدم تعريفًا دقيقًا وأسماء بديلة. أضافت لينا قاموسًا صغيرًا يساعد القراء على تمييز العشبة بلغتهم. ابتسمت الجدة عندما رأت اهتمامهما بلغتها القديمة. قال ماتيو إن كلمة واحدة قد تحمل تقليدًا كاملًا."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Before the first public workshop, Lina prepared a clear **ingredient** list and asked participants to report any allergies or dietary restrictions privately to the organizers. She avoided promising that a traditional recipe would be suitable for everyone, since unfamiliar products could contain unexpected **traces**. Mateo reviewed the instructions for safe **preparation**, separating the cooking demonstration from any medical advice. The team chose a simple vegetable version and explained that everyone should check the ingredients themselves before eating. Respecting tradition, Lina realized, also meant protecting the people invited to enjoy it."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Care is part of hospitality, she said."
+                  }
+                ],
+                "translation_ar": "قبل الورشة العامة أعدت لينا قائمة واضحة بالمكونات وطلبت من المشاركين إبلاغ المنظمين سرًا عن أي حساسية أو قيود غذائية. تجنبت الادعاء بأن الوصفة التقليدية تناسب الجميع لأن بعض المنتجات قد تحوي آثار مكونات غير متوقعة. راجع ماتيو خطوات التحضير الآمن من دون تقديم نصائح طبية. اختار الفريق نسخة نباتية بسيطة وطلب من الجميع فحص المكونات قبل التذوق. أدركت لينا أن احترام التراث يشمل حماية الضيوف."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "chapter": 2,
+        "title": "More Than a List of Ingredients",
+        "title_ar": "أكثر من قائمة مكونات",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Community cooking workshop where Lina and Mateo demonstrate a traditional vegetable stew from bilingual heritage recipe, participants observing carefully, no open flame hazards. Original detailed painterly watercolor, consistent characters Lina A twenty-one-year-old woman with warm brown skin, long dark wavy hair, rust-red dress over navy trousers and a pale apron.; Mateo A twenty-two-year-old man with light olive skin, cropped dark hair, cobalt shirt, gray trousers and cream apron.; Grandma Rosa A seventy-year-old woman with silver hair in a bun, medium olive skin, floral shawl, warm expression and small round spectacles.. No text in artwork.",
+            "animation": "parallax",
+            "image": "assets/stories/en/B2/illustrations/en-b2-003_scene_03.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "At the workshop, several participants asked why the printed recipes contained small notes beside certain words. Mateo explained that those notes represented translation **choices**, not mistakes. One visitor remembered a similar dish from another country, but its ingredients and preparation were different. Lina encouraged a respectful **comparison** rather than declaring either version more authentic. As people shared their experiences, the organizers recognized how food could create **connections** without making everyone follow the same tradition. Grandma Rosa listened with obvious pleasure while the kitchen filled with conversation."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Different histories can belong at one table, Mateo said."
+                  }
+                ],
+                "translation_ar": "في الورشة سأل مشاركون عن الملاحظات الصغيرة قرب بعض الكلمات في الوصفات. شرح ماتيو أنها اختيارات ترجمة لا أخطاء. تذكر زائر طبقًا مشابهًا من بلد آخر، لكن مكوناته وطريقته مختلفتان. شجعت لينا المقارنة المحترمة بدل الحكم على أي نسخة بأنها الأصدق. اكتشف المنظمون أن الطعام يقرب الناس دون فرض تقليد واحد. استمعت الجدة بسعادة إلى الأحاديث. قال ماتيو إن تواريخ متعددة تستطيع الاجتماع على مائدة واحدة."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Later, a participant pointed out that the online copy omitted a sentence about cooking slowly until the vegetables softened. Lina checked the original notebook and discovered an accidental **omission** introduced during typing. Rather than quietly changing the page, she added a dated **correction** and thanked the reader for noticing. Mateo argued that visible revisions made the project more **trustworthy**, because readers could see how the translation improved. Grandma Rosa approved their honesty, saying that even experienced cooks occasionally needed someone to question a familiar instruction."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Good work is willing to be corrected, Lina said."
+                  }
+                ],
+                "translation_ar": "لاحقًا لاحظ مشارك غياب جملة عن الطهي البطيء حتى تلين الخضار. راجعت لينا الدفتر الأصلي واكتشفت سهوًا أثناء الكتابة. بدل تغيير النسخة بصمت أضافت تصحيحًا مؤرخًا وشكرت القارئ. رأى ماتيو أن المراجعات الواضحة تعزز الثقة لأنها تُظهر تطور الترجمة. وافقت الجدة مؤكدة أن حتى الطهاة ذوي الخبرة قد يحتاجون إلى من يراجع تعليماتهم. قالت لينا إن العمل الجيد يقبل التصحيح."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Family community table with finished stew, printed bilingual recipe cards without legible text, grandmother and young relatives share stories, warm evening light. Original detailed painterly watercolor, consistent characters Lina A twenty-one-year-old woman with warm brown skin, long dark wavy hair, rust-red dress over navy trousers and a pale apron.; Mateo A twenty-two-year-old man with light olive skin, cropped dark hair, cobalt shirt, gray trousers and cream apron.; Grandma Rosa A seventy-year-old woman with silver hair in a bun, medium olive skin, floral shawl, warm expression and small round spectacles.. No text in artwork.",
+            "animation": "zoom_in_slow",
+            "image": "assets/stories/en/B2/illustrations/en-b2-003_scene_04.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "As the archive grew, the students considered recording their grandmother speaking about each recipe. She welcomed the idea but wanted control over which stories became **public** and which remained within the family. They therefore created a simple **consent** form and allowed relatives to withdraw material before publication. Mateo also recommended keeping an unchanged digital **original** alongside each revised translation, allowing future researchers to compare the versions without guessing what had been altered. Lina realized that preserving heritage required patient collaboration long after the first photographs were taken."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Respect means leaving people a choice, Mateo said."
+                  }
+                ],
+                "translation_ar": "عندما توسع الأرشيف فكّر الطالبان في تسجيل الجدة وهي تحكي عن الوصفات. وافقت لكنها أرادت التحكم في القصص العامة والخاصة. أعدا نموذج موافقة بسيطًا وأتاحا للأقارب سحب المواد قبل النشر. نصح ماتيو بالاحتفاظ بنسخة أصلية رقمية مع كل ترجمة معدلة ليقارن الباحثون بينهما. فهمت لينا أن حفظ التراث يحتاج إلى تعاون طويل لا مجرد صور أولية. قال ماتيو إن الاحترام يمنح الناس حق الاختيار."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "One evening, Grandma Rosa read the finished bilingual booklet aloud and paused over a recipe connected to her childhood. For the first time, Lina heard how a simple meal had helped neighbors support one another during a difficult year. She included that story as a separate **reflection**, clearly marked as personal memory rather than verified historical fact. Mateo praised the distinction, explaining that honest **documentation** could honor emotion without confusing it with evidence. The booklet was becoming both a practical cooking guide and a careful record of community **identity**."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Now I understand why she kept these pages, Lina whispered."
+                  }
+                ],
+                "translation_ar": "في مساء قرأت الجدة روزا الكتيب الثنائي اللغة وتوقفت عند وصفة ترتبط بطفولتها. سمعت لينا كيف ساعدت وجبة بسيطة الجيران في سنة صعبة. أضافت الحكاية بوصفها تأملًا شخصيًا لا حقيقة تاريخية مثبتة. امتدح ماتيو التمييز بين العاطفة والتوثيق المدعوم بالأدلة. أصبح الكتيب دليل طبخ وسجلًا لهوية المجتمع. همست لينا بأنها تفهم الآن سبب احتفاظ جدتها بالصفحات."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "At the final family gathering, Lina placed the printed booklet beside the original notebook, whose pages were now protected in a suitable storage box. Relatives admired the recipes, but they also appreciated the clear explanation of **uncertainty** wherever a measurement or memory was incomplete. Mateo reminded everyone that translation was an ongoing **dialogue** across languages and generations, not a one-time transfer of words. Grandma Rosa thanked them for preserving the recipes' **meaning** while giving future cooks room to make their own discoveries. Lina knew the project could continue for years."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Our next chapter begins whenever someone opens the book, she said."
+                  }
+                ],
+                "translation_ar": "في اللقاء العائلي الأخير وضعت لينا الكتيب المطبوع بجانب الدفتر الأصلي المحفوظ في صندوق مناسب. أعجب الأقارب بالوصفات وبالتوضيح الصريح لما هو غير مؤكد من القياسات والذكريات. ذكّرهم ماتيو بأن الترجمة حوار مستمر بين اللغات والأجيال. شكرت الجدة الطالبين على حفظ معنى الوصفات وترك مساحة لاكتشافات الطهاة القادمين. عرفت لينا أن المشروع يمكن أن يستمر لسنوات. قالت إن الفصل التالي يبدأ كلما فتح أحدهم الكتاب."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "vocabulary": [
+      {
+        "word": "archive",
+        "meaning_ar": "أرشيف",
+        "example": "Lina discovered the small handwritten notebook while helping her grandmother organize an overcrowded kitchen cupboard. Its pages contained family recipes in two languages, along with dates and occasional comments about celebrations. Although Lina could understand most of the words, some instructions referred to tools that were no longer common. Her friend Mateo, who studied translation, suggested creating a digital archive before the pages became too fragile to handle. Lina agreed, but she also worried that a careless interpretation might remove the personal stories hidden inside the measurements."
+      },
+      {
+        "word": "fragile",
+        "meaning_ar": "هش",
+        "example": "Lina discovered the small handwritten notebook while helping her grandmother organize an overcrowded kitchen cupboard. Its pages contained family recipes in two languages, along with dates and occasional comments about celebrations. Although Lina could understand most of the words, some instructions referred to tools that were no longer common. Her friend Mateo, who studied translation, suggested creating a digital archive before the pages became too fragile to handle. Lina agreed, but she also worried that a careless interpretation might remove the personal stories hidden inside the measurements."
+      },
+      {
+        "word": "interpretation",
+        "meaning_ar": "تفسير",
+        "example": "Lina discovered the small handwritten notebook while helping her grandmother organize an overcrowded kitchen cupboard. Its pages contained family recipes in two languages, along with dates and occasional comments about celebrations. Although Lina could understand most of the words, some instructions referred to tools that were no longer common. Her friend Mateo, who studied translation, suggested creating a digital archive before the pages became too fragile to handle. Lina agreed, but she also worried that a careless interpretation might remove the personal stories hidden inside the measurements."
+      },
+      {
+        "word": "permission",
+        "meaning_ar": "إذن",
+        "example": "Grandma Rosa welcomed the project but reminded them that several recipes belonged to relatives who had shared them privately. She asked the students to request permission before publishing any family names or photographs. Mateo explained that translating recipes also required careful attention to context, because the same ingredient could have different names in different regions. Lina wrote down the grandmother's memories alongside each dish, rather than pretending the instructions existed separately from the people who created them. Their first rule was to preserve the family's choices."
+      },
+      {
+        "word": "context",
+        "meaning_ar": "سياق",
+        "example": "Grandma Rosa welcomed the project but reminded them that several recipes belonged to relatives who had shared them privately. She asked the students to request permission before publishing any family names or photographs. Mateo explained that translating recipes also required careful attention to context, because the same ingredient could have different names in different regions. Lina wrote down the grandmother's memories alongside each dish, rather than pretending the instructions existed separately from the people who created them. Their first rule was to preserve the family's choices."
+      },
+      {
+        "word": "memories",
+        "meaning_ar": "ذكريات",
+        "example": "Grandma Rosa welcomed the project but reminded them that several recipes belonged to relatives who had shared them privately. She asked the students to request permission before publishing any family names or photographs. Mateo explained that translating recipes also required careful attention to context, because the same ingredient could have different names in different regions. Lina wrote down the grandmother's memories alongside each dish, rather than pretending the instructions existed separately from the people who created them. Their first rule was to preserve the family's choices."
+      },
+      {
+        "word": "measure",
+        "meaning_ar": "مكيال",
+        "example": "Their first challenge appeared in a recipe for vegetable stew. The original notebook used an unfamiliar measure, while a modern cookbook offered a different value for what seemed to be the same ingredient. Instead of making a confident assumption, Lina asked Grandma Rosa to demonstrate the quantity with the old cup she still kept. Mateo recorded the cup's capacity using a kitchen scale and marked the result as an approximate modern equivalent. The students learned that direct word-for-word translation could be misleading when practical traditions were involved."
+      },
+      {
+        "word": "assumption",
+        "meaning_ar": "افتراض",
+        "example": "Their first challenge appeared in a recipe for vegetable stew. The original notebook used an unfamiliar measure, while a modern cookbook offered a different value for what seemed to be the same ingredient. Instead of making a confident assumption, Lina asked Grandma Rosa to demonstrate the quantity with the old cup she still kept. Mateo recorded the cup's capacity using a kitchen scale and marked the result as an approximate modern equivalent. The students learned that direct word-for-word translation could be misleading when practical traditions were involved."
+      },
+      {
+        "word": "capacity",
+        "meaning_ar": "سعة",
+        "example": "Their first challenge appeared in a recipe for vegetable stew. The original notebook used an unfamiliar measure, while a modern cookbook offered a different value for what seemed to be the same ingredient. Instead of making a confident assumption, Lina asked Grandma Rosa to demonstrate the quantity with the old cup she still kept. Mateo recorded the cup's capacity using a kitchen scale and marked the result as an approximate modern equivalent. The students learned that direct word-for-word translation could be misleading when practical traditions were involved."
+      },
+      {
+        "word": "seasoning",
+        "meaning_ar": "توابل",
+        "example": "As they tested the translation, Mateo noticed that one regional word described a specific herb rather than a general seasoning. Using the wrong substitute would change the flavor and possibly confuse anyone following the instructions. They consulted a local culinary historian, who provided a careful definition and several alternative names. Lina added a short glossary so readers could recognize the ingredient even if they knew it by another name. Grandma Rosa smiled when she saw how closely the students were listening to the language she grew up with."
+      },
+      {
+        "word": "definition",
+        "meaning_ar": "تعريف",
+        "example": "As they tested the translation, Mateo noticed that one regional word described a specific herb rather than a general seasoning. Using the wrong substitute would change the flavor and possibly confuse anyone following the instructions. They consulted a local culinary historian, who provided a careful definition and several alternative names. Lina added a short glossary so readers could recognize the ingredient even if they knew it by another name. Grandma Rosa smiled when she saw how closely the students were listening to the language she grew up with."
+      },
+      {
+        "word": "glossary",
+        "meaning_ar": "قاموس مصغر",
+        "example": "As they tested the translation, Mateo noticed that one regional word described a specific herb rather than a general seasoning. Using the wrong substitute would change the flavor and possibly confuse anyone following the instructions. They consulted a local culinary historian, who provided a careful definition and several alternative names. Lina added a short glossary so readers could recognize the ingredient even if they knew it by another name. Grandma Rosa smiled when she saw how closely the students were listening to the language she grew up with."
+      },
+      {
+        "word": "ingredient",
+        "meaning_ar": "مكوّن",
+        "example": "Before the first public workshop, Lina prepared a clear ingredient list and asked participants to report any allergies or dietary restrictions privately to the organizers. She avoided promising that a traditional recipe would be suitable for everyone, since unfamiliar products could contain unexpected traces. Mateo reviewed the instructions for safe preparation, separating the cooking demonstration from any medical advice. The team chose a simple vegetable version and explained that everyone should check the ingredients themselves before eating. Respecting tradition, Lina realized, also meant protecting the people invited to enjoy it."
+      },
+      {
+        "word": "traces",
+        "meaning_ar": "آثار",
+        "example": "Before the first public workshop, Lina prepared a clear ingredient list and asked participants to report any allergies or dietary restrictions privately to the organizers. She avoided promising that a traditional recipe would be suitable for everyone, since unfamiliar products could contain unexpected traces. Mateo reviewed the instructions for safe preparation, separating the cooking demonstration from any medical advice. The team chose a simple vegetable version and explained that everyone should check the ingredients themselves before eating. Respecting tradition, Lina realized, also meant protecting the people invited to enjoy it."
+      },
+      {
+        "word": "preparation",
+        "meaning_ar": "تحضير",
+        "example": "Before the first public workshop, Lina prepared a clear ingredient list and asked participants to report any allergies or dietary restrictions privately to the organizers. She avoided promising that a traditional recipe would be suitable for everyone, since unfamiliar products could contain unexpected traces. Mateo reviewed the instructions for safe preparation, separating the cooking demonstration from any medical advice. The team chose a simple vegetable version and explained that everyone should check the ingredients themselves before eating. Respecting tradition, Lina realized, also meant protecting the people invited to enjoy it."
+      },
+      {
+        "word": "choices",
+        "meaning_ar": "اختيارات",
+        "example": "At the workshop, several participants asked why the printed recipes contained small notes beside certain words. Mateo explained that those notes represented translation choices, not mistakes. One visitor remembered a similar dish from another country, but its ingredients and preparation were different. Lina encouraged a respectful comparison rather than declaring either version more authentic. As people shared their experiences, the organizers recognized how food could create connections without making everyone follow the same tradition. Grandma Rosa listened with obvious pleasure while the kitchen filled with conversation."
+      },
+      {
+        "word": "comparison",
+        "meaning_ar": "مقارنة",
+        "example": "At the workshop, several participants asked why the printed recipes contained small notes beside certain words. Mateo explained that those notes represented translation choices, not mistakes. One visitor remembered a similar dish from another country, but its ingredients and preparation were different. Lina encouraged a respectful comparison rather than declaring either version more authentic. As people shared their experiences, the organizers recognized how food could create connections without making everyone follow the same tradition. Grandma Rosa listened with obvious pleasure while the kitchen filled with conversation."
+      },
+      {
+        "word": "connections",
+        "meaning_ar": "روابط",
+        "example": "At the workshop, several participants asked why the printed recipes contained small notes beside certain words. Mateo explained that those notes represented translation choices, not mistakes. One visitor remembered a similar dish from another country, but its ingredients and preparation were different. Lina encouraged a respectful comparison rather than declaring either version more authentic. As people shared their experiences, the organizers recognized how food could create connections without making everyone follow the same tradition. Grandma Rosa listened with obvious pleasure while the kitchen filled with conversation."
+      },
+      {
+        "word": "omission",
+        "meaning_ar": "سهو",
+        "example": "Later, a participant pointed out that the online copy omitted a sentence about cooking slowly until the vegetables softened. Lina checked the original notebook and discovered an accidental omission introduced during typing. Rather than quietly changing the page, she added a dated correction and thanked the reader for noticing. Mateo argued that visible revisions made the project more trustworthy, because readers could see how the translation improved. Grandma Rosa approved their honesty, saying that even experienced cooks occasionally needed someone to question a familiar instruction."
+      },
+      {
+        "word": "correction",
+        "meaning_ar": "تصحيح",
+        "example": "Later, a participant pointed out that the online copy omitted a sentence about cooking slowly until the vegetables softened. Lina checked the original notebook and discovered an accidental omission introduced during typing. Rather than quietly changing the page, she added a dated correction and thanked the reader for noticing. Mateo argued that visible revisions made the project more trustworthy, because readers could see how the translation improved. Grandma Rosa approved their honesty, saying that even experienced cooks occasionally needed someone to question a familiar instruction."
+      },
+      {
+        "word": "trustworthy",
+        "meaning_ar": "موثوق",
+        "example": "Later, a participant pointed out that the online copy omitted a sentence about cooking slowly until the vegetables softened. Lina checked the original notebook and discovered an accidental omission introduced during typing. Rather than quietly changing the page, she added a dated correction and thanked the reader for noticing. Mateo argued that visible revisions made the project more trustworthy, because readers could see how the translation improved. Grandma Rosa approved their honesty, saying that even experienced cooks occasionally needed someone to question a familiar instruction."
+      },
+      {
+        "word": "public",
+        "meaning_ar": "عام",
+        "example": "As the archive grew, the students considered recording their grandmother speaking about each recipe. She welcomed the idea but wanted control over which stories became public and which remained within the family. They therefore created a simple consent form and allowed relatives to withdraw material before publication. Mateo also recommended keeping an unchanged digital original alongside each revised translation, allowing future researchers to compare the versions without guessing what had been altered. Lina realized that preserving heritage required patient collaboration long after the first photographs were taken."
+      },
+      {
+        "word": "consent",
+        "meaning_ar": "موافقة",
+        "example": "As the archive grew, the students considered recording their grandmother speaking about each recipe. She welcomed the idea but wanted control over which stories became public and which remained within the family. They therefore created a simple consent form and allowed relatives to withdraw material before publication. Mateo also recommended keeping an unchanged digital original alongside each revised translation, allowing future researchers to compare the versions without guessing what had been altered. Lina realized that preserving heritage required patient collaboration long after the first photographs were taken."
+      },
+      {
+        "word": "original",
+        "meaning_ar": "أصل",
+        "example": "As the archive grew, the students considered recording their grandmother speaking about each recipe. She welcomed the idea but wanted control over which stories became public and which remained within the family. They therefore created a simple consent form and allowed relatives to withdraw material before publication. Mateo also recommended keeping an unchanged digital original alongside each revised translation, allowing future researchers to compare the versions without guessing what had been altered. Lina realized that preserving heritage required patient collaboration long after the first photographs were taken."
+      },
+      {
+        "word": "reflection",
+        "meaning_ar": "تأمل",
+        "example": "One evening, Grandma Rosa read the finished bilingual booklet aloud and paused over a recipe connected to her childhood. For the first time, Lina heard how a simple meal had helped neighbors support one another during a difficult year. She included that story as a separate reflection, clearly marked as personal memory rather than verified historical fact. Mateo praised the distinction, explaining that honest documentation could honor emotion without confusing it with evidence. The booklet was becoming both a practical cooking guide and a careful record of community identity."
+      },
+      {
+        "word": "documentation",
+        "meaning_ar": "توثيق",
+        "example": "One evening, Grandma Rosa read the finished bilingual booklet aloud and paused over a recipe connected to her childhood. For the first time, Lina heard how a simple meal had helped neighbors support one another during a difficult year. She included that story as a separate reflection, clearly marked as personal memory rather than verified historical fact. Mateo praised the distinction, explaining that honest documentation could honor emotion without confusing it with evidence. The booklet was becoming both a practical cooking guide and a careful record of community identity."
+      },
+      {
+        "word": "identity",
+        "meaning_ar": "هوية",
+        "example": "One evening, Grandma Rosa read the finished bilingual booklet aloud and paused over a recipe connected to her childhood. For the first time, Lina heard how a simple meal had helped neighbors support one another during a difficult year. She included that story as a separate reflection, clearly marked as personal memory rather than verified historical fact. Mateo praised the distinction, explaining that honest documentation could honor emotion without confusing it with evidence. The booklet was becoming both a practical cooking guide and a careful record of community identity."
+      },
+      {
+        "word": "uncertainty",
+        "meaning_ar": "عدم يقين",
+        "example": "At the final family gathering, Lina placed the printed booklet beside the original notebook, whose pages were now protected in a suitable storage box. Relatives admired the recipes, but they also appreciated the clear explanation of uncertainty wherever a measurement or memory was incomplete. Mateo reminded everyone that translation was an ongoing dialogue across languages and generations, not a one-time transfer of words. Grandma Rosa thanked them for preserving the recipes' meaning while giving future cooks room to make their own discoveries. Lina knew the project could continue for years."
+      },
+      {
+        "word": "dialogue",
+        "meaning_ar": "حوار",
+        "example": "At the final family gathering, Lina placed the printed booklet beside the original notebook, whose pages were now protected in a suitable storage box. Relatives admired the recipes, but they also appreciated the clear explanation of uncertainty wherever a measurement or memory was incomplete. Mateo reminded everyone that translation was an ongoing dialogue across languages and generations, not a one-time transfer of words. Grandma Rosa thanked them for preserving the recipes' meaning while giving future cooks room to make their own discoveries. Lina knew the project could continue for years."
+      },
+      {
+        "word": "meaning",
+        "meaning_ar": "معنى",
+        "example": "At the final family gathering, Lina placed the printed booklet beside the original notebook, whose pages were now protected in a suitable storage box. Relatives admired the recipes, but they also appreciated the clear explanation of uncertainty wherever a measurement or memory was incomplete. Mateo reminded everyone that translation was an ongoing dialogue across languages and generations, not a one-time transfer of words. Grandma Rosa thanked them for preserving the recipes' meaning while giving future cooks room to make their own discoveries. Lina knew the project could continue for years."
+      }
+    ],
+    "questions": [
+      {
+        "q": "Why did Lina want to digitize the notebook?",
+        "options": [
+          "To sell it immediately",
+          "To protect fragile pages and their stories",
+          "To change every recipe",
+          "To replace her grandmother's memories"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "What did Grandma Rosa require before publication?",
+        "options": [
+          "A new kitchen",
+          "A prize",
+          "Permission for private names and photographs",
+          "A public celebration"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "How did they clarify an unfamiliar measure?",
+        "options": [
+          "They guessed",
+          "They removed it",
+          "They used a random website",
+          "They measured the grandmother's original cup"
+        ],
+        "answer": 3
+      },
+      {
+        "q": "Why did they make a glossary?",
+        "options": [
+          "To explain regional ingredient names",
+          "To add more photographs",
+          "To avoid cooking",
+          "To shorten the story"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What did Lina do about dietary restrictions?",
+        "options": [
+          "Assumed the dish was safe",
+          "Provided ingredients and sought private information from participants",
+          "Promised medical benefits",
+          "Ignored the issue"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "What happened after an omission was found?",
+        "options": [
+          "They deleted the archive",
+          "They blamed the reader",
+          "They made a dated visible correction",
+          "They hid the change"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "How did relatives control what could be shared?",
+        "options": [
+          "They had no say",
+          "They had to pay",
+          "The students chose alone",
+          "They gave consent and could withdraw materials"
+        ],
+        "answer": 3
+      },
+      {
+        "q": "What did Lina understand by the end?",
+        "options": [
+          "Recipes connect people, memories and language",
+          "Only measurements matter",
+          "All versions must be identical",
+          "Old notebooks should be forgotten"
+        ],
+        "answer": 0
+      }
+    ]
+  }
+}
