@@ -1,0 +1,438 @@
+{
+  "language": "en",
+  "level": "B1",
+  "story": {
+    "id": "en-b1-002",
+    "title": "The River After the Storm",
+    "title_ar": "النهر بعد العاصفة",
+    "moral_ar": "حماية الطبيعة تبدأ بفهم المشكلة وتنظيم العمل الآمن مع المجتمع.",
+    "art_style": "Professional watercolor schoolbook illustration, consistent original people, realistic environment, no typography.",
+    "cover_image_prompt": "A small town bridge after heavy rain, swollen green river with floating litter by the bank, Mina in turquoise raincoat and Owen in mustard sweatshirt watching from a fenced footpath, overcast light.",
+    "character_sheet": [
+      {
+        "name": "Mina",
+        "description": "A sixteen-year-old girl, short chestnut hair, light olive skin, turquoise raincoat and dark jeans, curious confident expression."
+      },
+      {
+        "name": "Owen",
+        "description": "A sixteen-year-old boy, curly dark brown hair, medium brown skin, mustard sweatshirt, black trousers and sturdy boots."
+      },
+      {
+        "name": "Ms. Carter",
+        "description": "An environmental scientist in her forties with short silver-streaked hair, navy field jacket, glasses and notebook."
+      }
+    ],
+    "chapters": [
+      {
+        "chapter": 1,
+        "title": "An Unexpected Problem",
+        "title_ar": "مشكلة غير متوقعة",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "A small town bridge after heavy rain, swollen green river with floating litter by the bank, Mina in turquoise raincoat and Owen in mustard sweatshirt watching from a fenced footpath, overcast light. Hand-painted original watercolor illustration, professional textbook art, consistent people: A sixteen-year-old girl, short chestnut hair, light olive skin, turquoise raincoat and dark jeans, curious confident expression. A sixteen-year-old boy, curly dark brown hair, medium brown skin, mustard sweatshirt, black trousers and sturdy boots. An environmental scientist in her forties with short silver-streaked hair, navy field jacket, glasses and notebook. No captions, no text.",
+            "animation": "fade_in",
+            "image": "assets/stories/en/B1/illustrations/en-b1-002_scene_01.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "After three days of heavy **rainfall**, the river beside Mina's town looked different. The water had become brown, and plastic bottles were caught between branches near the bridge. Mina noticed a worrying **pattern**: whenever a storm arrived, more rubbish appeared along the same part of the **bank**. She asked her friend Owen to walk there with her after school, keeping a safe distance from the water."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Something needs to change, she said."
+                  }
+                ],
+                "translation_ar": "بعد ثلاثة أيام من الأمطار الغزيرة بدا النهر بجانب بلدة مينا مختلفًا. أصبح الماء بني اللون، وعلقت زجاجات بلاستيكية بين الأغصان قرب الجسر. لاحظت مينا نمطًا مقلقًا: كل عاصفة تحمل مزيدًا من القمامة إلى الضفة نفسها. طلبت من صديقها أوين الذهاب معها بعد المدرسة مع البقاء بعيدًا عن الماء. قالت إن الأمر يحتاج إلى تغيير."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Owen wanted to climb down immediately and collect the bottles, but Mina pointed to a warning **barrier** near the path. The recent **flooding** had made the ground unstable, and neither of them knew how deep the water was. Instead, they took photographs from the public walkway and wrote down their **observations**. Owen admitted that a good intention did not always make an action safe."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Let us ask someone who understands rivers, he suggested."
+                  }
+                ],
+                "translation_ar": "أراد أوين النزول فورًا لجمع الزجاجات، لكن مينا أشارت إلى حاجز تحذيري قرب الطريق. جعل الفيضان الأخير الأرض غير مستقرة ولم يعرفا عمق الماء. بدلًا من النزول التقطا صورًا من الممر العام وكتبا ملاحظاتهما. اعترف أوين بأن النية الطيبة لا تجعل كل تصرف آمنًا. واقترح سؤال شخص يفهم الأنهار."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Inside a community center, science teacher Ms. Carter explains a river map to Mina and Owen, bottles and field notes on a desk, gentle daylight through windows. Hand-painted original watercolor illustration, professional textbook art, consistent people: A sixteen-year-old girl, short chestnut hair, light olive skin, turquoise raincoat and dark jeans, curious confident expression. A sixteen-year-old boy, curly dark brown hair, medium brown skin, mustard sweatshirt, black trousers and sturdy boots. An environmental scientist in her forties with short silver-streaked hair, navy field jacket, glasses and notebook. No captions, no text.",
+            "animation": "pan_left",
+            "image": "assets/stories/en/B1/illustrations/en-b1-002_scene_02.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Their science teacher introduced them to Ms. Carter, an environmental **researcher** who worked with the local council. She explained that some waste came from streets far upstream and traveled through storm **drains**. The students were surprised to learn that a bottle dropped near a shop could eventually reach the river. Ms. Carter recommended collecting **evidence** before suggesting any solution."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We need to understand where the rubbish begins, Mina replied."
+                  }
+                ],
+                "translation_ar": "عرّفتهما معلمتهما على السيدة كارتر، باحثة بيئية تعمل مع المجلس المحلي. شرحت أن بعض النفايات تأتي من شوارع بعيدة مع مجاري مياه الأمطار. اندهش الطالبان من إمكانية وصول زجاجة تُرمى قرب متجر إلى النهر. أوصت الباحثة بجمع الأدلة قبل اقتراح أي حل. أجابت مينا بأن عليهما معرفة مصدر القمامة أولًا."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "For one week, Mina and Owen made a simple **survey** of public bins near the school, shops, and bus stops. They counted overflowing containers and recorded the busiest **locations**. Their teacher helped them organize the results in a **chart**, which showed that one street had very few bins. The problem was not only careless behavior; the town also lacked suitable places for people to throw things away."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Our first idea was too simple, Owen said."
+                  }
+                ],
+                "translation_ar": "لمدة أسبوع أجرى مينا وأوين مسحًا بسيطًا لحاويات القمامة العامة قرب المدرسة والمتاجر ومواقف الحافلات. عدّا الحاويات الممتلئة وسجلا المواقع الأكثر ازدحامًا. ساعدتهما المعلمة على تنظيم النتائج في مخطط كشف أن أحد الشوارع يفتقر إلى الحاويات. لم تكن المشكلة سلوكًا مهملًا فقط بل قلة الأماكن المناسبة لرمي النفايات. قال أوين إن فكرتهما الأولى كانت مبسطة."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The students presented their findings at a neighborhood **meeting** and suggested extra recycling bins. Some residents supported the idea, while others worried about the cost of regular **collection**. Mina listened to their questions instead of arguing, and she proposed a small **trial** near the bus stop. If it worked, the council could later expand the plan. Everyone agreed to review the results after a month."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "A small experiment may teach us more, she explained."
+                  }
+                ],
+                "translation_ar": "عرض الطالبان نتائجهما في اجتماع الحي واقترحا حاويات إعادة تدوير إضافية. أيد بعض السكان الفكرة، وخشي آخرون من تكلفة الجمع المنتظم. استمعت مينا إلى الأسئلة واقترحت تجربة صغيرة قرب موقف الحافلات. إذا نجحت يمكن للمجلس توسيع الخطة. اتفق الجميع على مراجعة النتائج بعد شهر. شرحت مينا أن التجربة الصغيرة قد تعلمهم الكثير."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "chapter": 2,
+        "title": "A Better Plan for the River",
+        "title_ar": "خطة أفضل للنهر",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Safe volunteer river cleanup on a wide dry riverbank with gloves and bags, professional supervisor, Mina and Owen collecting litter away from deep water, sunny morning. Hand-painted original watercolor illustration, professional textbook art, consistent people: A sixteen-year-old girl, short chestnut hair, light olive skin, turquoise raincoat and dark jeans, curious confident expression. A sixteen-year-old boy, curly dark brown hair, medium brown skin, mustard sweatshirt, black trousers and sturdy boots. An environmental scientist in her forties with short silver-streaked hair, navy field jacket, glasses and notebook. No captions, no text.",
+            "animation": "parallax",
+            "image": "assets/stories/en/B1/illustrations/en-b1-002_scene_03.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "When the river level fell, Ms. Carter organized a supervised **cleanup** on the dry upper bank. Volunteers received strong gloves and clear **instructions**, including a rule never to enter the water or touch sharp objects. Mina was responsible for recording the kinds of **litter** they found, while Owen helped carry filled bags to a safe collection point. The work was tiring, but everyone understood why the rules mattered."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Careful work can still make a difference, Owen said."
+                  }
+                ],
+                "translation_ar": "عندما انخفض مستوى النهر نظمت السيدة كارتر حملة تنظيف بإشراف مختصين على الضفة العليا الجافة. حصل المتطوعون على قفازات قوية وتعليمات واضحة، منها عدم دخول الماء أو لمس الأشياء الحادة. كانت مينا تسجل أنواع القمامة بينما نقل أوين الأكياس إلى نقطة جمع آمنة. كان العمل متعبًا، لكن الجميع فهم أهمية القواعد. قال أوين إن العمل الحذر يحدث فرقًا أيضًا."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "By lunchtime, the volunteers had separated paper, plastic, and metal into different **categories**. Ms. Carter explained that not every dirty object could be **recycled**, even if it looked like familiar packaging. Mina photographed the sorted bags to document their **progress**, while Owen noticed that many bottles were from the same popular drink. That observation gave them another idea for a school awareness campaign."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We can help people notice their habits, Mina suggested."
+                  }
+                ],
+                "translation_ar": "بحلول الظهيرة صنف المتطوعون الورق والبلاستيك والمعادن إلى فئات. شرحت السيدة كارتر أن ليس كل جسم متسخ قابلًا لإعادة التدوير حتى لو بدا كعبوة مألوفة. صورت مينا الأكياس لتوثيق التقدم، ولاحظ أوين كثرة زجاجات مشروب واحد. أعطتهم هذه الملاحظة فكرة لحملة توعية مدرسية. اقترحت مينا مساعدة الناس على ملاحظة عاداتهم."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "A clean riverbank with new recycling bins and illustrated public awareness boards (no readable text), Mina Owen and residents attending a little presentation, soft evening light. Hand-painted original watercolor illustration, professional textbook art, consistent people: A sixteen-year-old girl, short chestnut hair, light olive skin, turquoise raincoat and dark jeans, curious confident expression. A sixteen-year-old boy, curly dark brown hair, medium brown skin, mustard sweatshirt, black trousers and sturdy boots. An environmental scientist in her forties with short silver-streaked hair, navy field jacket, glasses and notebook. No captions, no text.",
+            "animation": "zoom_in_slow",
+            "image": "assets/stories/en/B1/illustrations/en-b1-002_scene_04.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "During the following month, the school created a simple **campaign** encouraging students to carry reusable water bottles. Local shops displayed the students' **posters**, and the council installed two new bins near the bus stop. Owen measured how quickly the containers filled each week, allowing the group to compare the **results** with their first survey. The changes were modest, but they were based on information rather than guesses."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Now we can see what actually works, he said."
+                  }
+                ],
+                "translation_ar": "خلال الشهر التالي نظمت المدرسة حملة تشجع الطلاب على استخدام زجاجات قابلة لإعادة الاستعمال. عرضت المتاجر ملصقات الطلاب، ووضع المجلس حاويتين جديدتين قرب موقف الحافلات. قاس أوين سرعة امتلائهما أسبوعيًا وقارن الفريق النتائج مع المسح الأول. كانت التغييرات محدودة لكنها استندت إلى معلومات لا تخمينات. قال أوين إنهم يستطيعون الآن معرفة ما ينجح فعلًا."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "At the final meeting, the group reported a noticeable **reduction** in litter around the bus stop. The riverbank still needed regular care, so Ms. Carter recommended continued **monitoring** after future storms. Mina was pleased that the council promised to maintain the new bins, while Owen suggested inviting younger students to join the project. They felt proud, but they understood that a lasting **improvement** required more than one successful day."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We have only begun, Mina said."
+                  }
+                ],
+                "translation_ar": "في الاجتماع الأخير أبلغ الفريق عن انخفاض ملحوظ في القمامة قرب موقف الحافلات. ظلت الضفة بحاجة إلى رعاية دورية، فنصحت السيدة كارتر بمراقبتها بعد العواصف المقبلة. سعدت مينا بوعد المجلس بصيانة الحاويات، واقترح أوين إشراك الطلاب الأصغر سنًا. شعرا بالفخر لكنهما أدركا أن التحسن الدائم يحتاج إلى أكثر من يوم ناجح. قالت مينا إنهم بدأوا للتو."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Several weeks later, Mina crossed the bridge and saw fewer bottles caught among the branches. She knew the river would never be completely **protected** by one project, yet the community had learned to share **responsibility** for its surroundings. Owen arrived with a notebook, ready to record the next storm's effects. Their most important **lesson** was that asking careful questions could lead to practical action."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Let us keep learning before we decide, Owen said."
+                  }
+                ],
+                "translation_ar": "بعد أسابيع عبرت مينا الجسر ورأت زجاجات أقل عالقة بين الأغصان. عرفت أن مشروعًا واحدًا لن يحمي النهر تمامًا، لكن المجتمع تعلم تقاسم المسؤولية عن محيطه. وصل أوين ومعه دفتر لتسجيل آثار العاصفة القادمة. كان أهم درس لهما أن الأسئلة الدقيقة تقود إلى عمل عملي. قال أوين إن عليهما مواصلة التعلم قبل اتخاذ القرارات."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "vocabulary": [
+      {
+        "word": "rainfall",
+        "meaning_ar": "هطول الأمطار",
+        "example": "After three days of heavy rainfall, the river beside Mina's town looked different. The water had become brown, and plastic bottles were caught between branches near the bridge. Mina noticed a worrying pattern: whenever a storm arrived, more rubbish appeared along the same part of the bank. She asked her friend Owen to walk there with her after school, keeping a safe distance from the water."
+      },
+      {
+        "word": "pattern",
+        "meaning_ar": "نمط",
+        "example": "After three days of heavy rainfall, the river beside Mina's town looked different. The water had become brown, and plastic bottles were caught between branches near the bridge. Mina noticed a worrying pattern: whenever a storm arrived, more rubbish appeared along the same part of the bank. She asked her friend Owen to walk there with her after school, keeping a safe distance from the water."
+      },
+      {
+        "word": "bank",
+        "meaning_ar": "ضفة",
+        "example": "After three days of heavy rainfall, the river beside Mina's town looked different. The water had become brown, and plastic bottles were caught between branches near the bridge. Mina noticed a worrying pattern: whenever a storm arrived, more rubbish appeared along the same part of the bank. She asked her friend Owen to walk there with her after school, keeping a safe distance from the water."
+      },
+      {
+        "word": "barrier",
+        "meaning_ar": "حاجز",
+        "example": "Owen wanted to climb down immediately and collect the bottles, but Mina pointed to a warning barrier near the path. The recent flooding had made the ground unstable, and neither of them knew how deep the water was. Instead, they took photographs from the public walkway and wrote down their observations. Owen admitted that a good intention did not always make an action safe."
+      },
+      {
+        "word": "flooding",
+        "meaning_ar": "فيضان",
+        "example": "Owen wanted to climb down immediately and collect the bottles, but Mina pointed to a warning barrier near the path. The recent flooding had made the ground unstable, and neither of them knew how deep the water was. Instead, they took photographs from the public walkway and wrote down their observations. Owen admitted that a good intention did not always make an action safe."
+      },
+      {
+        "word": "observations",
+        "meaning_ar": "ملاحظات",
+        "example": "Owen wanted to climb down immediately and collect the bottles, but Mina pointed to a warning barrier near the path. The recent flooding had made the ground unstable, and neither of them knew how deep the water was. Instead, they took photographs from the public walkway and wrote down their observations. Owen admitted that a good intention did not always make an action safe."
+      },
+      {
+        "word": "researcher",
+        "meaning_ar": "باحث",
+        "example": "Their science teacher introduced them to Ms. Carter, an environmental researcher who worked with the local council. She explained that some waste came from streets far upstream and traveled through storm drains. The students were surprised to learn that a bottle dropped near a shop could eventually reach the river. Ms. Carter recommended collecting evidence before suggesting any solution."
+      },
+      {
+        "word": "drains",
+        "meaning_ar": "مصارف",
+        "example": "Their science teacher introduced them to Ms. Carter, an environmental researcher who worked with the local council. She explained that some waste came from streets far upstream and traveled through storm drains. The students were surprised to learn that a bottle dropped near a shop could eventually reach the river. Ms. Carter recommended collecting evidence before suggesting any solution."
+      },
+      {
+        "word": "evidence",
+        "meaning_ar": "أدلة",
+        "example": "Their science teacher introduced them to Ms. Carter, an environmental researcher who worked with the local council. She explained that some waste came from streets far upstream and traveled through storm drains. The students were surprised to learn that a bottle dropped near a shop could eventually reach the river. Ms. Carter recommended collecting evidence before suggesting any solution."
+      },
+      {
+        "word": "survey",
+        "meaning_ar": "مسح",
+        "example": "For one week, Mina and Owen made a simple survey of public bins near the school, shops, and bus stops. They counted overflowing containers and recorded the busiest locations. Their teacher helped them organize the results in a chart, which showed that one street had very few bins. The problem was not only careless behavior; the town also lacked suitable places for people to throw things away."
+      },
+      {
+        "word": "locations",
+        "meaning_ar": "مواقع",
+        "example": "For one week, Mina and Owen made a simple survey of public bins near the school, shops, and bus stops. They counted overflowing containers and recorded the busiest locations. Their teacher helped them organize the results in a chart, which showed that one street had very few bins. The problem was not only careless behavior; the town also lacked suitable places for people to throw things away."
+      },
+      {
+        "word": "chart",
+        "meaning_ar": "مخطط",
+        "example": "For one week, Mina and Owen made a simple survey of public bins near the school, shops, and bus stops. They counted overflowing containers and recorded the busiest locations. Their teacher helped them organize the results in a chart, which showed that one street had very few bins. The problem was not only careless behavior; the town also lacked suitable places for people to throw things away."
+      },
+      {
+        "word": "meeting",
+        "meaning_ar": "اجتماع",
+        "example": "The students presented their findings at a neighborhood meeting and suggested extra recycling bins. Some residents supported the idea, while others worried about the cost of regular collection. Mina listened to their questions instead of arguing, and she proposed a small trial near the bus stop. If it worked, the council could later expand the plan. Everyone agreed to review the results after a month."
+      },
+      {
+        "word": "collection",
+        "meaning_ar": "جمع",
+        "example": "The students presented their findings at a neighborhood meeting and suggested extra recycling bins. Some residents supported the idea, while others worried about the cost of regular collection. Mina listened to their questions instead of arguing, and she proposed a small trial near the bus stop. If it worked, the council could later expand the plan. Everyone agreed to review the results after a month."
+      },
+      {
+        "word": "trial",
+        "meaning_ar": "تجربة",
+        "example": "The students presented their findings at a neighborhood meeting and suggested extra recycling bins. Some residents supported the idea, while others worried about the cost of regular collection. Mina listened to their questions instead of arguing, and she proposed a small trial near the bus stop. If it worked, the council could later expand the plan. Everyone agreed to review the results after a month."
+      },
+      {
+        "word": "cleanup",
+        "meaning_ar": "حملة تنظيف",
+        "example": "When the river level fell, Ms. Carter organized a supervised cleanup on the dry upper bank. Volunteers received strong gloves and clear instructions, including a rule never to enter the water or touch sharp objects. Mina was responsible for recording the kinds of litter they found, while Owen helped carry filled bags to a safe collection point. The work was tiring, but everyone understood why the rules mattered."
+      },
+      {
+        "word": "instructions",
+        "meaning_ar": "تعليمات",
+        "example": "When the river level fell, Ms. Carter organized a supervised cleanup on the dry upper bank. Volunteers received strong gloves and clear instructions, including a rule never to enter the water or touch sharp objects. Mina was responsible for recording the kinds of litter they found, while Owen helped carry filled bags to a safe collection point. The work was tiring, but everyone understood why the rules mattered."
+      },
+      {
+        "word": "litter",
+        "meaning_ar": "قمامة متناثرة",
+        "example": "When the river level fell, Ms. Carter organized a supervised cleanup on the dry upper bank. Volunteers received strong gloves and clear instructions, including a rule never to enter the water or touch sharp objects. Mina was responsible for recording the kinds of litter they found, while Owen helped carry filled bags to a safe collection point. The work was tiring, but everyone understood why the rules mattered."
+      },
+      {
+        "word": "categories",
+        "meaning_ar": "فئات",
+        "example": "By lunchtime, the volunteers had separated paper, plastic, and metal into different categories. Ms. Carter explained that not every dirty object could be recycled, even if it looked like familiar packaging. Mina photographed the sorted bags to document their progress, while Owen noticed that many bottles were from the same popular drink. That observation gave them another idea for a school awareness campaign."
+      },
+      {
+        "word": "recycled",
+        "meaning_ar": "يُعاد تدويره",
+        "example": "By lunchtime, the volunteers had separated paper, plastic, and metal into different categories. Ms. Carter explained that not every dirty object could be recycled, even if it looked like familiar packaging. Mina photographed the sorted bags to document their progress, while Owen noticed that many bottles were from the same popular drink. That observation gave them another idea for a school awareness campaign."
+      },
+      {
+        "word": "progress",
+        "meaning_ar": "تقدم",
+        "example": "By lunchtime, the volunteers had separated paper, plastic, and metal into different categories. Ms. Carter explained that not every dirty object could be recycled, even if it looked like familiar packaging. Mina photographed the sorted bags to document their progress, while Owen noticed that many bottles were from the same popular drink. That observation gave them another idea for a school awareness campaign."
+      },
+      {
+        "word": "campaign",
+        "meaning_ar": "حملة",
+        "example": "During the following month, the school created a simple campaign encouraging students to carry reusable water bottles. Local shops displayed the students' posters, and the council installed two new bins near the bus stop. Owen measured how quickly the containers filled each week, allowing the group to compare the results with their first survey. The changes were modest, but they were based on information rather than guesses."
+      },
+      {
+        "word": "posters",
+        "meaning_ar": "ملصقات",
+        "example": "During the following month, the school created a simple campaign encouraging students to carry reusable water bottles. Local shops displayed the students' posters, and the council installed two new bins near the bus stop. Owen measured how quickly the containers filled each week, allowing the group to compare the results with their first survey. The changes were modest, but they were based on information rather than guesses."
+      },
+      {
+        "word": "results",
+        "meaning_ar": "نتائج",
+        "example": "During the following month, the school created a simple campaign encouraging students to carry reusable water bottles. Local shops displayed the students' posters, and the council installed two new bins near the bus stop. Owen measured how quickly the containers filled each week, allowing the group to compare the results with their first survey. The changes were modest, but they were based on information rather than guesses."
+      },
+      {
+        "word": "reduction",
+        "meaning_ar": "انخفاض",
+        "example": "At the final meeting, the group reported a noticeable reduction in litter around the bus stop. The riverbank still needed regular care, so Ms. Carter recommended continued monitoring after future storms. Mina was pleased that the council promised to maintain the new bins, while Owen suggested inviting younger students to join the project. They felt proud, but they understood that a lasting improvement required more than one successful day."
+      },
+      {
+        "word": "monitoring",
+        "meaning_ar": "مراقبة",
+        "example": "At the final meeting, the group reported a noticeable reduction in litter around the bus stop. The riverbank still needed regular care, so Ms. Carter recommended continued monitoring after future storms. Mina was pleased that the council promised to maintain the new bins, while Owen suggested inviting younger students to join the project. They felt proud, but they understood that a lasting improvement required more than one successful day."
+      },
+      {
+        "word": "improvement",
+        "meaning_ar": "تحسن",
+        "example": "At the final meeting, the group reported a noticeable reduction in litter around the bus stop. The riverbank still needed regular care, so Ms. Carter recommended continued monitoring after future storms. Mina was pleased that the council promised to maintain the new bins, while Owen suggested inviting younger students to join the project. They felt proud, but they understood that a lasting improvement required more than one successful day."
+      },
+      {
+        "word": "protected",
+        "meaning_ar": "محمي",
+        "example": "Several weeks later, Mina crossed the bridge and saw fewer bottles caught among the branches. She knew the river would never be completely protected by one project, yet the community had learned to share responsibility for its surroundings. Owen arrived with a notebook, ready to record the next storm's effects. Their most important lesson was that asking careful questions could lead to practical action."
+      },
+      {
+        "word": "responsibility",
+        "meaning_ar": "مسؤولية",
+        "example": "Several weeks later, Mina crossed the bridge and saw fewer bottles caught among the branches. She knew the river would never be completely protected by one project, yet the community had learned to share responsibility for its surroundings. Owen arrived with a notebook, ready to record the next storm's effects. Their most important lesson was that asking careful questions could lead to practical action."
+      },
+      {
+        "word": "lesson",
+        "meaning_ar": "درس",
+        "example": "Several weeks later, Mina crossed the bridge and saw fewer bottles caught among the branches. She knew the river would never be completely protected by one project, yet the community had learned to share responsibility for its surroundings. Owen arrived with a notebook, ready to record the next storm's effects. Their most important lesson was that asking careful questions could lead to practical action."
+      }
+    ],
+    "questions": [
+      {
+        "q": "What did Mina notice after each storm?",
+        "options": [
+          "The bridge disappeared",
+          "More rubbish gathered on the same bank",
+          "The river became dry",
+          "Fish jumped into the street"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "Why did the students stay on the walkway?",
+        "options": [
+          "They had no time",
+          "They disliked rivers",
+          "The flooded bank was unsafe",
+          "They were waiting for a bus"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "Where did some rubbish come from?",
+        "options": [
+          "Only the school",
+          "A garden behind the shop",
+          "Under the bridge",
+          "Streets connected to storm drains"
+        ],
+        "answer": 3
+      },
+      {
+        "q": "What did the survey reveal?",
+        "options": [
+          "One street had too few bins",
+          "All shops were closed",
+          "Everyone used bicycles",
+          "The river had no fish"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What did Mina propose at the meeting?",
+        "options": [
+          "A new bridge",
+          "A small trial near the bus stop",
+          "Closing all shops",
+          "A daily swimming club"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "What was forbidden during the cleanup?",
+        "options": [
+          "Wearing gloves",
+          "Counting rubbish",
+          "Entering the river",
+          "Carrying bags"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "What did local shops display?",
+        "options": [
+          "Old clocks",
+          "New shoes",
+          "Fish photographs",
+          "Student posters"
+        ],
+        "answer": 3
+      },
+      {
+        "q": "What was the main lesson?",
+        "options": [
+          "Careful evidence helps guide action",
+          "Storms are always harmless",
+          "One cleanup solves everything",
+          "Only adults can help"
+        ],
+        "answer": 0
+      }
+    ]
+  }
+}
