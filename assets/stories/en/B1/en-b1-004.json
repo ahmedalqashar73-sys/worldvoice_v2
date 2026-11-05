@@ -1,0 +1,438 @@
+{
+  "language": "en",
+  "level": "B1",
+  "story": {
+    "id": "en-b1-004",
+    "title": "The Night at Cedar Hill",
+    "title_ar": "ليلة على تل الأرز",
+    "moral_ar": "التفسير العلمي يتطلب صبرًا وملاحظة واحترامًا لآراء الآخرين.",
+    "art_style": "Original detailed observatory watercolor, consistent characters and lighting, no typography.",
+    "cover_image_prompt": "A small observatory on a wooded hill under twilight sky, Hana in denim jacket and Luis in burgundy hoodie looking toward unusual bright light over the valley.",
+    "character_sheet": [
+      {
+        "name": "Hana",
+        "description": "A sixteen-year-old girl with dark wavy hair, medium olive skin, denim jacket, maroon scarf and black trainers."
+      },
+      {
+        "name": "Luis",
+        "description": "A seventeen-year-old boy with warm tan skin, short curly brown hair, burgundy hoodie, light gray trousers and hiking boots."
+      },
+      {
+        "name": "Dr. Reed",
+        "description": "An astronomer in his forties with fair skin, thin glasses, navy field coat and small leather notebook."
+      }
+    ],
+    "chapters": [
+      {
+        "chapter": 1,
+        "title": "A Strange Light",
+        "title_ar": "ضوء غريب",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "A small observatory on a wooded hill under twilight sky, Hana in denim jacket and Luis in burgundy hoodie looking toward unusual bright light over the valley. Original educational watercolor artwork, coherent detailed characters Hana A sixteen-year-old girl with dark wavy hair, medium olive skin, denim jacket, maroon scarf and black trainers.; Luis A seventeen-year-old boy with warm tan skin, short curly brown hair, burgundy hoodie, light gray trousers and hiking boots.; Dr. Reed An astronomer in his forties with fair skin, thin glasses, navy field coat and small leather notebook.. No lettering.",
+            "animation": "fade_in",
+            "image": "assets/stories/en/B1/illustrations/en-b1-004_scene_01.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "During a school camping trip, Hana noticed a bright **glimmer** above the distant hills. It appeared briefly, disappeared, and then returned in almost the same place. Luis thought it might be a plane, but the strange **movement** did not match the steady lights they usually saw. They decided to record the time and direction before making any **prediction** about what it was."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We need more than a quick guess, Hana said."
+                  }
+                ],
+                "translation_ar": "خلال رحلة تخييم مدرسية لاحظت هناء وميضًا ساطعًا فوق التلال البعيدة. ظهر قليلًا ثم اختفى وعاد في الموضع نفسه تقريبًا. اعتقد لويس أنه طائرة، لكن الحركة الغريبة لم تشبه أضواء الطائرات المعتادة. قررا تسجيل الوقت والاتجاه قبل أي توقع. قالت هناء إنهما يحتاجان إلى أكثر من تخمين سريع."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The following afternoon, they visited Cedar Hill Observatory and spoke with Dr. Reed, an experienced **astronomer**. He explained that distance, weather, and the **atmosphere** could change the way lights appeared in the sky. He invited the students to attend the evening club, where they could compare their description with an official **star chart**. Both teenagers were surprised by how many possibilities needed checking."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "I never imagined observation could be so complicated, Luis said."
+                  }
+                ],
+                "translation_ar": "في اليوم التالي زارا مرصد تل الأرز وتحدثا مع الدكتور ريد، عالم فلك خبير. شرح أن المسافة والطقس والغلاف الجوي قد تغير مظهر الأضواء. دعاهما إلى نادي المساء لمقارنة الوصف بخريطة نجوم رسمية. اندهش المراهقان من كثرة الاحتمالات التي تحتاج إلى فحص. قال لويس إنه لم يتصور أن الملاحظة بهذه الصعوبة."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "An astronomy club inside a hilltop observatory, Hana Luis and Dr Reed discussing star map beside a telescope, sky visible through dome. Original educational watercolor artwork, coherent detailed characters Hana A sixteen-year-old girl with dark wavy hair, medium olive skin, denim jacket, maroon scarf and black trainers.; Luis A seventeen-year-old boy with warm tan skin, short curly brown hair, burgundy hoodie, light gray trousers and hiking boots.; Dr. Reed An astronomer in his forties with fair skin, thin glasses, navy field coat and small leather notebook.. No lettering.",
+            "animation": "pan_left",
+            "image": "assets/stories/en/B1/illustrations/en-b1-004_scene_02.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Inside the dome, Dr. Reed showed them a powerful **telescope** and explained why astronomers use several instruments. A telescope provides detail, while a camera can keep an accurate **record** of changes over time. Hana asked whether the observatory could help them find an **explanation** without disturbing nearby residents. Dr. Reed agreed, but reminded them that any observation must follow the site's safety rules."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We can work carefully, Hana promised."
+                  }
+                ],
+                "translation_ar": "داخل القبة أراهما الدكتور ريد تلسكوبًا قويًا وشرح لماذا يستخدم الفلكيون أدوات متعددة. يقدم التلسكوب تفاصيل بينما تحفظ الكاميرا سجلًا دقيقًا للتغيرات عبر الزمن. سألت هناء إن كان المرصد يساعدهما في تفسير الظاهرة دون إزعاج السكان. وافق الدكتور ريد وذكّرهما بقواعد السلامة. وعدته هناء بالعمل بحذر."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Before sunset, Luis prepared a simple **timeline** using notes from the camping trip. Hana checked the weather **forecast**, which predicted thin clouds and clear periods later that night. Dr. Reed praised their preparation, but warned that a single evening might provide **insufficient** information. He asked them to record what they actually saw rather than what they expected to find."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "That sounds fair, Luis replied after thinking."
+                  }
+                ],
+                "translation_ar": "قبل الغروب أعد لويس خطًا زمنيًا اعتمادًا على ملاحظات رحلة التخييم. راجعت هناء توقعات الطقس التي أشارت إلى غيوم خفيفة وفترات صفاء. امتدح الدكتور ريد استعدادهما لكنه حذر من أن مساء واحدًا قد لا يوفر معلومات كافية. طلب تسجيل ما يشاهدانه فعلًا لا ما يتوقعانه. وافق لويس بعد تفكير."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "As darkness arrived, the club watched several ordinary **satellites** cross the sky. Their paths were predictable and clearly different from the light Hana remembered. Luis began to understand why **comparison** mattered in science: knowing what something was not could also be useful. When a low cloud covered the horizon, the group took a short **break** instead of forcing a conclusion."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Waiting is part of the experiment, Hana observed."
+                  }
+                ],
+                "translation_ar": "مع حلول الظلام شاهد النادي أقمارًا صناعية تعبر السماء. كانت مساراتها متوقعة ومختلفة عن الضوء الذي تذكرته هناء. بدأ لويس يفهم أهمية المقارنة في العلم: معرفة ما ليست عليه الظاهرة مفيدة أيضًا. عندما غطت غيمة منخفضة الأفق أخذ الجميع استراحة قصيرة بدل فرض نتيجة. قالت هناء إن الانتظار جزء من التجربة."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "chapter": 2,
+        "title": "Answers Under the Stars",
+        "title_ar": "إجابات تحت النجوم",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Hana and Luis observing the valley from a safe outdoor platform using tripod camera and field notebook, stars overhead, warm jackets, no hazards. Original educational watercolor artwork, coherent detailed characters Hana A sixteen-year-old girl with dark wavy hair, medium olive skin, denim jacket, maroon scarf and black trainers.; Luis A seventeen-year-old boy with warm tan skin, short curly brown hair, burgundy hoodie, light gray trousers and hiking boots.; Dr. Reed An astronomer in his forties with fair skin, thin glasses, navy field coat and small leather notebook.. No lettering.",
+            "animation": "parallax",
+            "image": "assets/stories/en/B1/illustrations/en-b1-004_scene_03.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Later, a bright point appeared close to the same **horizon**. Hana immediately felt **excited**, but Dr. Reed asked everyone to remain calm and check their instruments. Luis photographed the object at fixed **intervals**, noting its position against two distant trees. The light stayed visible for several minutes, giving them better data than the brief glimpses from the camping trip."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Now we have something we can measure, he said."
+                  }
+                ],
+                "translation_ar": "لاحقًا ظهر ضوء ساطع قرب الأفق نفسه. شعرت هناء بالحماس، لكن الدكتور ريد طلب الهدوء وفحص الأدوات. التقط لويس صورًا على فترات منتظمة وسجل موقع الضوء بالنسبة إلى شجرتين بعيدتين. بقي الضوء ظاهرًا دقائق، مما منحهم بيانات أفضل من اللمحات القصيرة في رحلة التخييم. قال لويس إن لديهم الآن شيئًا يمكن قياسه."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "When they enlarged the pictures, the students saw that the light's **position** changed as the Earth turned. Dr. Reed compared their measurements with public astronomical data and identified a particularly bright **planet** rising beyond the valley. Thin clouds had created the earlier flashing **effect**, making the object appear and disappear. Hana felt a little disappointed that the answer was not more mysterious."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "But the explanation is still amazing, she admitted."
+                  }
+                ],
+                "translation_ar": "عندما كبّرا الصور رأى الطالبان أن موقع الضوء تغير مع دوران الأرض. قارن الدكتور ريد القياسات بالبيانات الفلكية العامة وحدد كوكبًا شديد السطوع يصعد وراء الوادي. سببت الغيوم الرقيقة تأثير الوميض السابق فبدا الجسم وكأنه يظهر ويختفي. شعرت هناء بخيبة بسيطة لأن الجواب لم يكن غامضًا أكثر. لكنها اعترفت بأن التفسير رائع أيضًا."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "A clear night at Cedar Hill observatory, comet-like bright point near horizon, Hana Luis and Dr Reed smiling by telescope, awe and scientific wonder, wide cinematic watercolor. Original educational watercolor artwork, coherent detailed characters Hana A sixteen-year-old girl with dark wavy hair, medium olive skin, denim jacket, maroon scarf and black trainers.; Luis A seventeen-year-old boy with warm tan skin, short curly brown hair, burgundy hoodie, light gray trousers and hiking boots.; Dr. Reed An astronomer in his forties with fair skin, thin glasses, navy field coat and small leather notebook.. No lettering.",
+            "animation": "zoom_in_slow",
+            "image": "assets/stories/en/B1/illustrations/en-b1-004_scene_04.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The next day, Hana and Luis prepared a short **report** explaining their methods and the uncertainty of their first observation. They included a photograph, a timeline, and a clear **conclusion**, while avoiding claims their evidence could not support. Their teacher suggested sharing the report with younger pupils as an example of responsible **investigation**. Luis was pleased that they could explain not only the answer but also how they found it."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "That makes the story more useful, he said."
+                  }
+                ],
+                "translation_ar": "في اليوم التالي أعدت هناء ولويس تقريرًا قصيرًا يشرح أساليبهما وحدود الملاحظة الأولى. أضافا صورة وخطًا زمنيًا واستنتاجًا واضحًا، وتجنبا ادعاءات لا تدعمها الأدلة. اقترحت المعلمة مشاركة التقرير مع الطلاب الأصغر بوصفه مثالًا على التحقيق المسؤول. سعد لويس بقدرتهما على شرح الطريق إلى الجواب لا الجواب فقط."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "At school, a classmate offered an **alternative** idea, suggesting that the glow might have come from a distant radio tower. Hana did not reject his suggestion immediately. Instead, she showed the recorded position and explained why the evidence favored a planet. The respectful **discussion** helped everyone understand that science grows through careful questions and **revision**, not through winning arguments."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Good questions make our explanations stronger, Hana said."
+                  }
+                ],
+                "translation_ar": "في المدرسة اقترح زميل تفسيرًا بديلًا: ربما جاء الضوء من برج بث بعيد. لم ترفض هناء فكرته فورًا، بل عرضت الموقع المسجل وشرحت لماذا تدعم الأدلة تفسير الكوكب. ساعد النقاش المحترم الجميع على فهم أن العلم ينمو بالأسئلة والمراجعة لا بكسب الجدال. قالت هناء إن الأسئلة الجيدة تقوي تفسيراتنا."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Several months later, Luis returned to Cedar Hill with a new **curiosity** about the night sky. He had joined the observatory's youth program and was learning to use simple **equipment** responsibly. Hana arrived carrying a notebook for their next shared project. Neither student expected every mystery to have an immediate **solution**, but both enjoyed the process of looking carefully and learning from uncertainty."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "The sky still has plenty of questions, Luis said."
+                  }
+                ],
+                "translation_ar": "بعد أشهر عاد لويس إلى تل الأرز بفضول جديد تجاه السماء الليلية. انضم إلى برنامج الشباب في المرصد وتعلم استخدام معدات بسيطة بمسؤولية. وصلت هناء ومعها دفتر لمشروعهما المشترك القادم. لم يتوقع أي منهما حلًا فوريًا لكل لغز، لكنهما استمتعا بالملاحظة الدقيقة والتعلم من عدم اليقين. قال لويس إن السماء لا تزال مليئة بالأسئلة."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "vocabulary": [
+      {
+        "word": "glimmer",
+        "meaning_ar": "وميض",
+        "example": "During a school camping trip, Hana noticed a bright glimmer above the distant hills. It appeared briefly, disappeared, and then returned in almost the same place. Luis thought it might be a plane, but the strange movement did not match the steady lights they usually saw. They decided to record the time and direction before making any prediction about what it was."
+      },
+      {
+        "word": "movement",
+        "meaning_ar": "حركة",
+        "example": "During a school camping trip, Hana noticed a bright glimmer above the distant hills. It appeared briefly, disappeared, and then returned in almost the same place. Luis thought it might be a plane, but the strange movement did not match the steady lights they usually saw. They decided to record the time and direction before making any prediction about what it was."
+      },
+      {
+        "word": "prediction",
+        "meaning_ar": "توقع",
+        "example": "During a school camping trip, Hana noticed a bright glimmer above the distant hills. It appeared briefly, disappeared, and then returned in almost the same place. Luis thought it might be a plane, but the strange movement did not match the steady lights they usually saw. They decided to record the time and direction before making any prediction about what it was."
+      },
+      {
+        "word": "astronomer",
+        "meaning_ar": "عالم فلك",
+        "example": "The following afternoon, they visited Cedar Hill Observatory and spoke with Dr. Reed, an experienced astronomer. He explained that distance, weather, and the atmosphere could change the way lights appeared in the sky. He invited the students to attend the evening club, where they could compare their description with an official star chart. Both teenagers were surprised by how many possibilities needed checking."
+      },
+      {
+        "word": "atmosphere",
+        "meaning_ar": "غلاف جوي",
+        "example": "The following afternoon, they visited Cedar Hill Observatory and spoke with Dr. Reed, an experienced astronomer. He explained that distance, weather, and the atmosphere could change the way lights appeared in the sky. He invited the students to attend the evening club, where they could compare their description with an official star chart. Both teenagers were surprised by how many possibilities needed checking."
+      },
+      {
+        "word": "star chart",
+        "meaning_ar": "خريطة نجوم",
+        "example": "The following afternoon, they visited Cedar Hill Observatory and spoke with Dr. Reed, an experienced astronomer. He explained that distance, weather, and the atmosphere could change the way lights appeared in the sky. He invited the students to attend the evening club, where they could compare their description with an official star chart. Both teenagers were surprised by how many possibilities needed checking."
+      },
+      {
+        "word": "telescope",
+        "meaning_ar": "تلسكوب",
+        "example": "Inside the dome, Dr. Reed showed them a powerful telescope and explained why astronomers use several instruments. A telescope provides detail, while a camera can keep an accurate record of changes over time. Hana asked whether the observatory could help them find an explanation without disturbing nearby residents. Dr. Reed agreed, but reminded them that any observation must follow the site's safety rules."
+      },
+      {
+        "word": "record",
+        "meaning_ar": "سجل",
+        "example": "Inside the dome, Dr. Reed showed them a powerful telescope and explained why astronomers use several instruments. A telescope provides detail, while a camera can keep an accurate record of changes over time. Hana asked whether the observatory could help them find an explanation without disturbing nearby residents. Dr. Reed agreed, but reminded them that any observation must follow the site's safety rules."
+      },
+      {
+        "word": "explanation",
+        "meaning_ar": "تفسير",
+        "example": "Inside the dome, Dr. Reed showed them a powerful telescope and explained why astronomers use several instruments. A telescope provides detail, while a camera can keep an accurate record of changes over time. Hana asked whether the observatory could help them find an explanation without disturbing nearby residents. Dr. Reed agreed, but reminded them that any observation must follow the site's safety rules."
+      },
+      {
+        "word": "timeline",
+        "meaning_ar": "خط زمني",
+        "example": "Before sunset, Luis prepared a simple timeline using notes from the camping trip. Hana checked the weather forecast, which predicted thin clouds and clear periods later that night. Dr. Reed praised their preparation, but warned that a single evening might provide insufficient information. He asked them to record what they actually saw rather than what they expected to find."
+      },
+      {
+        "word": "forecast",
+        "meaning_ar": "توقعات",
+        "example": "Before sunset, Luis prepared a simple timeline using notes from the camping trip. Hana checked the weather forecast, which predicted thin clouds and clear periods later that night. Dr. Reed praised their preparation, but warned that a single evening might provide insufficient information. He asked them to record what they actually saw rather than what they expected to find."
+      },
+      {
+        "word": "insufficient",
+        "meaning_ar": "غير كافٍ",
+        "example": "Before sunset, Luis prepared a simple timeline using notes from the camping trip. Hana checked the weather forecast, which predicted thin clouds and clear periods later that night. Dr. Reed praised their preparation, but warned that a single evening might provide insufficient information. He asked them to record what they actually saw rather than what they expected to find."
+      },
+      {
+        "word": "satellites",
+        "meaning_ar": "أقمار صناعية",
+        "example": "As darkness arrived, the club watched several ordinary satellites cross the sky. Their paths were predictable and clearly different from the light Hana remembered. Luis began to understand why comparison mattered in science: knowing what something was not could also be useful. When a low cloud covered the horizon, the group took a short break instead of forcing a conclusion."
+      },
+      {
+        "word": "comparison",
+        "meaning_ar": "مقارنة",
+        "example": "As darkness arrived, the club watched several ordinary satellites cross the sky. Their paths were predictable and clearly different from the light Hana remembered. Luis began to understand why comparison mattered in science: knowing what something was not could also be useful. When a low cloud covered the horizon, the group took a short break instead of forcing a conclusion."
+      },
+      {
+        "word": "break",
+        "meaning_ar": "استراحة",
+        "example": "As darkness arrived, the club watched several ordinary satellites cross the sky. Their paths were predictable and clearly different from the light Hana remembered. Luis began to understand why comparison mattered in science: knowing what something was not could also be useful. When a low cloud covered the horizon, the group took a short break instead of forcing a conclusion."
+      },
+      {
+        "word": "horizon",
+        "meaning_ar": "أفق",
+        "example": "Later, a bright point appeared close to the same horizon. Hana immediately felt excited, but Dr. Reed asked everyone to remain calm and check their instruments. Luis photographed the object at fixed intervals, noting its position against two distant trees. The light stayed visible for several minutes, giving them better data than the brief glimpses from the camping trip."
+      },
+      {
+        "word": "excited",
+        "meaning_ar": "متحمس",
+        "example": "Later, a bright point appeared close to the same horizon. Hana immediately felt excited, but Dr. Reed asked everyone to remain calm and check their instruments. Luis photographed the object at fixed intervals, noting its position against two distant trees. The light stayed visible for several minutes, giving them better data than the brief glimpses from the camping trip."
+      },
+      {
+        "word": "intervals",
+        "meaning_ar": "فترات",
+        "example": "Later, a bright point appeared close to the same horizon. Hana immediately felt excited, but Dr. Reed asked everyone to remain calm and check their instruments. Luis photographed the object at fixed intervals, noting its position against two distant trees. The light stayed visible for several minutes, giving them better data than the brief glimpses from the camping trip."
+      },
+      {
+        "word": "position",
+        "meaning_ar": "موقع",
+        "example": "When they enlarged the pictures, the students saw that the light's position changed as the Earth turned. Dr. Reed compared their measurements with public astronomical data and identified a particularly bright planet rising beyond the valley. Thin clouds had created the earlier flashing effect, making the object appear and disappear. Hana felt a little disappointed that the answer was not more mysterious."
+      },
+      {
+        "word": "planet",
+        "meaning_ar": "كوكب",
+        "example": "When they enlarged the pictures, the students saw that the light's position changed as the Earth turned. Dr. Reed compared their measurements with public astronomical data and identified a particularly bright planet rising beyond the valley. Thin clouds had created the earlier flashing effect, making the object appear and disappear. Hana felt a little disappointed that the answer was not more mysterious."
+      },
+      {
+        "word": "effect",
+        "meaning_ar": "تأثير",
+        "example": "When they enlarged the pictures, the students saw that the light's position changed as the Earth turned. Dr. Reed compared their measurements with public astronomical data and identified a particularly bright planet rising beyond the valley. Thin clouds had created the earlier flashing effect, making the object appear and disappear. Hana felt a little disappointed that the answer was not more mysterious."
+      },
+      {
+        "word": "report",
+        "meaning_ar": "تقرير",
+        "example": "The next day, Hana and Luis prepared a short report explaining their methods and the uncertainty of their first observation. They included a photograph, a timeline, and a clear conclusion, while avoiding claims their evidence could not support. Their teacher suggested sharing the report with younger pupils as an example of responsible investigation. Luis was pleased that they could explain not only the answer but also how they found it."
+      },
+      {
+        "word": "conclusion",
+        "meaning_ar": "استنتاج",
+        "example": "The next day, Hana and Luis prepared a short report explaining their methods and the uncertainty of their first observation. They included a photograph, a timeline, and a clear conclusion, while avoiding claims their evidence could not support. Their teacher suggested sharing the report with younger pupils as an example of responsible investigation. Luis was pleased that they could explain not only the answer but also how they found it."
+      },
+      {
+        "word": "investigation",
+        "meaning_ar": "بحث استقصائي",
+        "example": "The next day, Hana and Luis prepared a short report explaining their methods and the uncertainty of their first observation. They included a photograph, a timeline, and a clear conclusion, while avoiding claims their evidence could not support. Their teacher suggested sharing the report with younger pupils as an example of responsible investigation. Luis was pleased that they could explain not only the answer but also how they found it."
+      },
+      {
+        "word": "alternative",
+        "meaning_ar": "بديل",
+        "example": "At school, a classmate offered an alternative idea, suggesting that the glow might have come from a distant radio tower. Hana did not reject his suggestion immediately. Instead, she showed the recorded position and explained why the evidence favored a planet. The respectful discussion helped everyone understand that science grows through careful questions and revision, not through winning arguments."
+      },
+      {
+        "word": "discussion",
+        "meaning_ar": "نقاش",
+        "example": "At school, a classmate offered an alternative idea, suggesting that the glow might have come from a distant radio tower. Hana did not reject his suggestion immediately. Instead, she showed the recorded position and explained why the evidence favored a planet. The respectful discussion helped everyone understand that science grows through careful questions and revision, not through winning arguments."
+      },
+      {
+        "word": "revision",
+        "meaning_ar": "مراجعة",
+        "example": "At school, a classmate offered an alternative idea, suggesting that the glow might have come from a distant radio tower. Hana did not reject his suggestion immediately. Instead, she showed the recorded position and explained why the evidence favored a planet. The respectful discussion helped everyone understand that science grows through careful questions and revision, not through winning arguments."
+      },
+      {
+        "word": "curiosity",
+        "meaning_ar": "فضول",
+        "example": "Several months later, Luis returned to Cedar Hill with a new curiosity about the night sky. He had joined the observatory's youth program and was learning to use simple equipment responsibly. Hana arrived carrying a notebook for their next shared project. Neither student expected every mystery to have an immediate solution, but both enjoyed the process of looking carefully and learning from uncertainty."
+      },
+      {
+        "word": "equipment",
+        "meaning_ar": "معدات",
+        "example": "Several months later, Luis returned to Cedar Hill with a new curiosity about the night sky. He had joined the observatory's youth program and was learning to use simple equipment responsibly. Hana arrived carrying a notebook for their next shared project. Neither student expected every mystery to have an immediate solution, but both enjoyed the process of looking carefully and learning from uncertainty."
+      },
+      {
+        "word": "solution",
+        "meaning_ar": "حل",
+        "example": "Several months later, Luis returned to Cedar Hill with a new curiosity about the night sky. He had joined the observatory's youth program and was learning to use simple equipment responsibly. Hana arrived carrying a notebook for their next shared project. Neither student expected every mystery to have an immediate solution, but both enjoyed the process of looking carefully and learning from uncertainty."
+      }
+    ],
+    "questions": [
+      {
+        "q": "What did Hana first observe?",
+        "options": [
+          "A lost notebook",
+          "A bright light above the hills",
+          "A broken telescope",
+          "A new road"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "Who helped them investigate?",
+        "options": [
+          "A musician",
+          "A pilot",
+          "Dr. Reed, an astronomer",
+          "A shop owner"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "What did Luis prepare before sunset?",
+        "options": [
+          "A meal",
+          "A ticket",
+          "A poster",
+          "A timeline"
+        ],
+        "answer": 3
+      },
+      {
+        "q": "Why was observing satellites useful?",
+        "options": [
+          "They provided a comparison",
+          "They were the answer",
+          "They stopped the clouds",
+          "They filled the sky"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What helped them measure the light?",
+        "options": [
+          "A map of roads",
+          "Photographs taken at intervals",
+          "A compass alone",
+          "An old painting"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "What was the bright object?",
+        "options": [
+          "A plane",
+          "A radio tower",
+          "A planet",
+          "A balloon"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "How did they write their report?",
+        "options": [
+          "With guesses alone",
+          "Without evidence",
+          "With only drawings",
+          "With methods and a supported conclusion"
+        ],
+        "answer": 3
+      },
+      {
+        "q": "How did Hana react to a classmate's idea?",
+        "options": [
+          "She considered it respectfully",
+          "She walked away",
+          "She became angry",
+          "She refused to answer"
+        ],
+        "answer": 0
+      }
+    ]
+  }
+}
