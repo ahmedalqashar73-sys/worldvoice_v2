@@ -12,630 +12,720 @@
       "level": "A1",
       "title": "Meeting a New Friend",
       "status": "script_ready",
-      "asset": "assets/podcasts/en/A1/en-a1-pod-001.json"
+      "asset": "assets/podcasts/en/A1/en-a1-pod-001.json",
+      "title_ar": "التعارف مع صديق جديد"
     },
     {
       "id": "en-a1-pod-002",
       "level": "A1",
       "title": "A Morning at Home",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "صباح في المنزل"
     },
     {
       "id": "en-a1-pod-003",
       "level": "A1",
       "title": "At the Coffee Shop",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "في المقهى"
     },
     {
       "id": "en-a1-pod-004",
       "level": "A1",
       "title": "Where Is the Bus Stop?",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "أين موقف الحافلة؟"
     },
     {
       "id": "en-a1-pod-005",
       "level": "A1",
       "title": "My Family and Yours",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "عائلتي وعائلتك"
     },
     {
       "id": "en-a1-pod-006",
       "level": "A1",
       "title": "What's the Weather Like?",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "كيف حال الطقس؟"
     },
     {
       "id": "en-a1-pod-007",
       "level": "A1",
       "title": "Choosing a Birthday Gift",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "اختيار هدية عيد ميلاد"
     },
     {
       "id": "en-a1-pod-008",
       "level": "A1",
       "title": "Food We Love",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "أطعمة نحبها"
     },
     {
       "id": "en-a1-pod-009",
       "level": "A1",
       "title": "My Weekend Plans",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "خططي لعطلة نهاية الأسبوع"
     },
     {
       "id": "en-a1-pod-010",
       "level": "A1",
       "title": "A Visit to the Market",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "زيارة إلى السوق"
     },
     {
       "id": "en-a1-pod-011",
       "level": "A1",
       "title": "Finding a Classroom",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "البحث عن قاعة الدرس"
     },
     {
       "id": "en-a1-pod-012",
       "level": "A1",
       "title": "A New Neighbor",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "جار جديد"
     },
     {
       "id": "en-a1-pod-013",
       "level": "A1",
       "title": "Favorite Sports",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "رياضاتنا المفضلة"
     },
     {
       "id": "en-a1-pod-014",
       "level": "A1",
       "title": "Talking About Our Jobs",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "نتحدث عن وظائفنا"
     },
     {
       "id": "en-a1-pod-015",
       "level": "A1",
       "title": "A Nice Day at the Park",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "يوم جميل في الحديقة"
     },
     {
       "id": "en-a2-pod-001",
       "level": "A2",
       "title": "Planning a Weekend Trip",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "التخطيط لرحلة في عطلة الأسبوع"
     },
     {
       "id": "en-a2-pod-002",
       "level": "A2",
       "title": "Cooking Together",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "الطبخ معًا"
     },
     {
       "id": "en-a2-pod-003",
       "level": "A2",
       "title": "The Train Is Late",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "تأخر القطار"
     },
     {
       "id": "en-a2-pod-004",
       "level": "A2",
       "title": "A Surprise Invitation",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "دعوة مفاجئة"
     },
     {
       "id": "en-a2-pod-005",
       "level": "A2",
       "title": "Choosing a New Phone",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "اختيار هاتف جديد"
     },
     {
       "id": "en-a2-pod-006",
       "level": "A2",
       "title": "A Busy Day at Work",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "يوم مزدحم في العمل"
     },
     {
       "id": "en-a2-pod-007",
       "level": "A2",
       "title": "Learning to Drive",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "تعلم قيادة السيارة"
     },
     {
       "id": "en-a2-pod-008",
       "level": "A2",
       "title": "A Visit to the Doctor",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "زيارة إلى الطبيب"
     },
     {
       "id": "en-a2-pod-009",
       "level": "A2",
       "title": "Helping a Friend Move",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "مساعدة صديق في الانتقال"
     },
     {
       "id": "en-a2-pod-010",
       "level": "A2",
       "title": "What Should We Watch?",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "ماذا نشاهد؟"
     },
     {
       "id": "en-a2-pod-011",
       "level": "A2",
       "title": "Shopping on a Budget",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "التسوق بميزانية محدودة"
     },
     {
       "id": "en-a2-pod-012",
       "level": "A2",
       "title": "A Day at the Museum",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "يوم في المتحف"
     },
     {
       "id": "en-a2-pod-013",
       "level": "A2",
       "title": "A Small Travel Mistake",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "خطأ صغير أثناء السفر"
     },
     {
       "id": "en-a2-pod-014",
       "level": "A2",
       "title": "Our Favorite Traditions",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "تقاليدنا المفضلة"
     },
     {
       "id": "en-a2-pod-015",
       "level": "A2",
       "title": "Organizing a Study Group",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "تنظيم مجموعة للدراسة"
     },
     {
       "id": "en-b1-pod-001",
       "level": "B1",
       "title": "My First Day in a New City",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "يومي الأول في مدينة جديدة"
     },
     {
       "id": "en-b1-pod-002",
       "level": "B1",
       "title": "Working from Home",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "العمل من المنزل"
     },
     {
       "id": "en-b1-pod-003",
       "level": "B1",
       "title": "A Trip That Went Wrong",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "رحلة لم تسر كما خططنا"
     },
     {
       "id": "en-b1-pod-004",
       "level": "B1",
       "title": "Should We Spend Less?",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "هل ينبغي أن ننفق أقل؟"
     },
     {
       "id": "en-b1-pod-005",
       "level": "B1",
       "title": "How We Learn Languages",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "كيف نتعلم اللغات؟"
     },
     {
       "id": "en-b1-pod-006",
       "level": "B1",
       "title": "Making Friends Abroad",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "تكوين صداقات في الخارج"
     },
     {
       "id": "en-b1-pod-007",
       "level": "B1",
       "title": "Planning a Community Event",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "التخطيط لفعالية مجتمعية"
     },
     {
       "id": "en-b1-pod-008",
       "level": "B1",
       "title": "Changing a Daily Habit",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "تغيير عادة يومية"
     },
     {
       "id": "en-b1-pod-009",
       "level": "B1",
       "title": "Why We Love Stories",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "لماذا نحب القصص؟"
     },
     {
       "id": "en-b1-pod-010",
       "level": "B1",
       "title": "A Difficult Conversation",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "محادثة صعبة"
     },
     {
       "id": "en-b1-pod-011",
       "level": "B1",
       "title": "Volunteering on Saturday",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "التطوع يوم السبت"
     },
     {
       "id": "en-b1-pod-012",
       "level": "B1",
       "title": "Choosing the Right Career",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "اختيار المهنة المناسبة"
     },
     {
       "id": "en-b1-pod-013",
       "level": "B1",
       "title": "A Social Media Break",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "استراحة من وسائل التواصل"
     },
     {
       "id": "en-b1-pod-014",
       "level": "B1",
       "title": "Dealing with a Delay",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "التعامل مع التأخير"
     },
     {
       "id": "en-b1-pod-015",
       "level": "B1",
       "title": "Our City in Ten Years",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "مدينتنا بعد عشر سنوات"
     },
     {
       "id": "en-b2-pod-001",
       "level": "B2",
       "title": "Is Remote Work Better?",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "هل العمل عن بعد أفضل؟"
     },
     {
       "id": "en-b2-pod-002",
       "level": "B2",
       "title": "Travel and Local Culture",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "السفر والثقافة المحلية"
     },
     {
       "id": "en-b2-pod-003",
       "level": "B2",
       "title": "What Makes a Good Teacher?",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "ما الذي يصنع معلمًا جيدًا؟"
     },
     {
       "id": "en-b2-pod-004",
       "level": "B2",
       "title": "Technology and Personal Privacy",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "التقنية والخصوصية الشخصية"
     },
     {
       "id": "en-b2-pod-005",
       "level": "B2",
       "title": "A More Sustainable Lifestyle",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "أسلوب حياة أكثر استدامة"
     },
     {
       "id": "en-b2-pod-006",
       "level": "B2",
       "title": "Should Cities Limit Cars?",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "هل ينبغي للمدن الحد من السيارات؟"
     },
     {
       "id": "en-b2-pod-007",
       "level": "B2",
       "title": "Why People Change Careers",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "لماذا يغير الناس وظائفهم؟"
     },
     {
       "id": "en-b2-pod-008",
       "level": "B2",
       "title": "Can Social Media Build Community?",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "هل تبني وسائل التواصل مجتمعًا؟"
     },
     {
       "id": "en-b2-pod-009",
       "level": "B2",
       "title": "The Value of Creative Hobbies",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "قيمة الهوايات الإبداعية"
     },
     {
       "id": "en-b2-pod-010",
       "level": "B2",
       "title": "Saving Money Without Missing Life",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "الادخار دون تفويت متع الحياة"
     },
     {
       "id": "en-b2-pod-011",
       "level": "B2",
       "title": "Learning from Failure",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "التعلم من الفشل"
     },
     {
       "id": "en-b2-pod-012",
       "level": "B2",
       "title": "What Makes News Trustworthy?",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "ما الذي يجعل الأخبار موثوقة؟"
     },
     {
       "id": "en-b2-pod-013",
       "level": "B2",
       "title": "The Challenge of Teamwork",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "تحديات العمل الجماعي"
     },
     {
       "id": "en-b2-pod-014",
       "level": "B2",
       "title": "Food Traditions in a Global World",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "تقاليد الطعام في عالم متصل"
     },
     {
       "id": "en-b2-pod-015",
       "level": "B2",
       "title": "How AI Changes Everyday Work",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "كيف يغير الذكاء الاصطناعي العمل اليومي؟"
     },
     {
       "id": "en-c1-pod-001",
       "level": "C1",
       "title": "Language and Identity",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "اللغة والهوية"
     },
     {
       "id": "en-c1-pod-002",
       "level": "C1",
       "title": "Whose History Gets Told?",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "من يروي التاريخ؟"
     },
     {
       "id": "en-c1-pod-003",
       "level": "C1",
       "title": "When Algorithms Make Choices",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "عندما تتخذ الخوارزميات القرارات"
     },
     {
       "id": "en-c1-pod-004",
       "level": "C1",
       "title": "The Future of Public Spaces",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "مستقبل المساحات العامة"
     },
     {
       "id": "en-c1-pod-005",
       "level": "C1",
       "title": "Privacy Versus Convenience",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "الخصوصية مقابل الراحة"
     },
     {
       "id": "en-c1-pod-006",
       "level": "C1",
       "title": "How to Talk About Uncertainty",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "كيف نتحدث عن عدم اليقين؟"
     },
     {
       "id": "en-c1-pod-007",
       "level": "C1",
       "title": "The Ethics of Travel",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "أخلاقيات السفر"
     },
     {
       "id": "en-c1-pod-008",
       "level": "C1",
       "title": "What Counts as Meaningful Work?",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "ما معنى العمل الهادف؟"
     },
     {
       "id": "en-c1-pod-009",
       "level": "C1",
       "title": "Can Art Bring Communities Together?",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "هل يمكن للفن أن يجمع المجتمعات؟"
     },
     {
       "id": "en-c1-pod-010",
       "level": "C1",
       "title": "The Problem with Easy Answers",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "مشكلة الإجابات السهلة"
     },
     {
       "id": "en-c1-pod-011",
       "level": "C1",
       "title": "Education and Equal Opportunity",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "التعليم وتكافؤ الفرص"
     },
     {
       "id": "en-c1-pod-012",
       "level": "C1",
       "title": "Trust in Public Information",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "الثقة في المعلومات العامة"
     },
     {
       "id": "en-c1-pod-013",
       "level": "C1",
       "title": "Community Responses to Climate Change",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "استجابة المجتمعات لتغير المناخ"
     },
     {
       "id": "en-c1-pod-014",
       "level": "C1",
       "title": "Who Should Be Accountable?",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "من يتحمل المسؤولية؟"
     },
     {
       "id": "en-c1-pod-015",
       "level": "C1",
       "title": "Why Listening Changes Arguments",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "كيف يغير الإصغاء طريقة النقاش؟"
     },
     {
       "id": "en-c2-pod-001",
       "level": "C2",
       "title": "When Evidence Is Incomplete",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "حين تكون الأدلة غير مكتملة"
     },
     {
       "id": "en-c2-pod-002",
       "level": "C2",
       "title": "Fairness Beyond Average Results",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "الإنصاف أبعد من متوسط النتائج"
     },
     {
       "id": "en-c2-pod-003",
       "level": "C2",
       "title": "Who Owns Cultural Stories?",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "من يملك القصص الثقافية؟"
     },
     {
       "id": "en-c2-pod-004",
       "level": "C2",
       "title": "The Limits of Technological Solutions",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "حدود الحلول التقنية"
     },
     {
       "id": "en-c2-pod-005",
       "level": "C2",
       "title": "Freedom of Expression and Responsibility",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "حرية التعبير والمسؤولية"
     },
     {
       "id": "en-c2-pod-006",
       "level": "C2",
       "title": "Risk and Public Decision-Making",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "المخاطر وصناعة القرار العام"
     },
     {
       "id": "en-c2-pod-007",
       "level": "C2",
       "title": "Scientific Integrity Under Pressure",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "النزاهة العلمية تحت الضغط"
     },
     {
       "id": "en-c2-pod-008",
       "level": "C2",
       "title": "Language as a Form of Power",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "اللغة بوصفها قوة"
     },
     {
       "id": "en-c2-pod-009",
       "level": "C2",
       "title": "Ethics of Collecting Personal Data",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "أخلاقيات جمع البيانات الشخصية"
     },
     {
       "id": "en-c2-pod-010",
       "level": "C2",
       "title": "The Trade-offs of Urban Development",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "مقايضات التنمية الحضرية"
     },
     {
       "id": "en-c2-pod-011",
       "level": "C2",
       "title": "Who Benefits from Innovation?",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "من يستفيد من الابتكار؟"
     },
     {
       "id": "en-c2-pod-012",
       "level": "C2",
       "title": "What Society Owes Future Generations",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "واجب المجتمع تجاه الأجيال القادمة"
     },
     {
       "id": "en-c2-pod-013",
       "level": "C2",
       "title": "The Meaning of Consent",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "معنى الموافقة"
     },
     {
       "id": "en-c2-pod-014",
       "level": "C2",
       "title": "Building Agreement Without Consensus",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "بناء الاتفاق دون إجماع"
     },
     {
       "id": "en-c2-pod-015",
       "level": "C2",
       "title": "Why Good Judgement Resists Certainty",
       "status": "planned",
-      "asset": null
+      "asset": null,
+      "title_ar": "لماذا يقاوم الحكم الجيد اليقين الزائف"
     }
   ]
 }
