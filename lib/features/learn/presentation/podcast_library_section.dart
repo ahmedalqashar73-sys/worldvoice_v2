@@ -301,59 +301,6 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
           final current = snapshot.data!.where((entry) =>
               entry.language == _selectedLanguage &&
               entry.level == _selectedLevel).toList(growable: false);
-          if (_selectedLanguage != 'en') {
-            final language = PodcastLanguage(
-                code: _selectedLanguage, nativeName: _selectedLanguage,
-                arabicName: _selectedLanguage, flag: '🎧');
-            return FutureBuilder<List<PodcastLanguage>>(
-              future: _languages,
-              builder: (context, state) {
-                final entry = state.data?.where((x) =>
-                    x.code == _selectedLanguage).firstOrNull ?? language;
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _emptyLanguage(entry, ar),
-                    const SizedBox(height: 10),
-                    if (current.isNotEmpty)
-                      Card(
-                        elevation: 0,
-                        color: scheme.surfaceContainerLow,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(17),
-                          side: BorderSide(color: scheme.outlineVariant)),
-                        child: ExpansionTile(
-                          key: ValueKey(
-                              'podcast-planned-$_selectedLanguage-$_selectedLevel'),
-                          leading: const Icon(Icons.library_books_outlined,
-                              color: Color(0xFF438A69)),
-                          title: Text(ar
-                              ? 'عرض مواضيع الحلقات الـ15'
-                              : 'View 15 planned topics',
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.w800, fontSize: 14)),
-                          subtitle: Text(ar ? 'مواضيع مقترحة، وليست تسجيلات منشورة'
-                              : 'Planned topics — no recordings published',
-                              style: TextStyle(fontSize: 11,
-                                  color: scheme.onSurfaceVariant)),
-                          children: [
-                            for (final item in current)
-                              ListTile(
-                                dense: true,
-                                title: Text(
-                                  ar ? item.titleAr ?? item.title : item.title,
-                                  style: const TextStyle(fontSize: 13)),
-                                trailing: const Icon(Icons.schedule,
-                                    size: 16, color: Colors.grey),
-                              ),
-                          ],
-                        ),
-                      ),
-                  ],
-                );
-              },
-            );
-          }
           final available = current.where((e) => e.hasTranscript).toList();
           final planned = current.where((e) => !e.hasTranscript).toList();
           return Column(
@@ -363,21 +310,31 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
                 Expanded(child: Text(
                   ar ? 'حلقات $_selectedLevel' : 'Level $_selectedLevel',
                   style: const TextStyle(fontSize: 17,
-                    fontWeight: FontWeight.w900))),
+                      fontWeight: FontWeight.w900))),
                 Text(ar ? '15 حلقة لكل مستوى' : '15 per level',
-                  style: TextStyle(color: scheme.onSurfaceVariant,
-                    fontSize: 11)),
+                    style: TextStyle(color: scheme.onSurfaceVariant,
+                        fontSize: 11)),
               ]),
               const SizedBox(height: 10),
               for (final entry in available)
                 _episodeCard(entry, current.indexOf(entry) + 1, ar),
               if (available.isEmpty)
-                _emptyLanguage(
-                  const PodcastLanguage(code: 'en',
-                    nativeName: 'English', arabicName: 'الإنجليزية',
-                    flag: '🇬🇧'), ar),
+                FutureBuilder<List<PodcastLanguage>>(
+                  future: _languages,
+                  builder: (context, state) {
+                    final language = state.data?.where((entry) =>
+                        entry.code == _selectedLanguage).firstOrNull ??
+                        PodcastLanguage(
+                          code: _selectedLanguage,
+                          nativeName: _selectedLanguage,
+                          arabicName: _selectedLanguage,
+                          flag: '🎧',
+                        );
+                    return _emptyLanguage(language, ar);
+                  },
+                ),
               if (planned.isNotEmpty) ...[
-                const SizedBox(height: 7),
+                const SizedBox(height: 8),
                 Card(
                   elevation: 0,
                   color: scheme.surfaceContainerLow,
@@ -385,27 +342,29 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
                     borderRadius: BorderRadius.circular(17),
                     side: BorderSide(color: scheme.outlineVariant)),
                   child: ExpansionTile(
-                    key: ValueKey('podcast-planned-$_selectedLevel'),
+                    key: ValueKey(
+                        'podcast-planned-$_selectedLanguage-$_selectedLevel'),
                     leading: const Icon(Icons.library_books_outlined,
                         color: Color(0xFF438A69)),
-                    title: Text(ar
-                        ? '${planned.length} حلقة مخططة'
-                        : '${planned.length} upcoming episodes',
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w800, fontSize: 14)),
-                    subtitle: Text(ar ? 'اضغط لعرض العناوين'
-                        : 'Tap to see the planned titles',
-                        style: TextStyle(fontSize: 11,
-                            color: scheme.onSurfaceVariant)),
+                    title: Text(
+                      ar ? '${planned.length} حلقة مخططة'
+                          : '${planned.length} upcoming episodes',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w800, fontSize: 14)),
+                    subtitle: Text(ar
+                        ? 'العناوين جاهزة للتخطيط، لم تُنشر التسجيلات بعد'
+                        : 'Planned titles, not published recordings',
+                        style: TextStyle(
+                            fontSize: 11, color: scheme.onSurfaceVariant)),
                     children: [
                       for (final entry in planned)
                         ListTile(
                           dense: true,
                           title: Text(ar
-                            ? entry.titleAr ?? entry.title : entry.title,
+                              ? entry.titleAr ?? entry.title : entry.title,
                               style: const TextStyle(fontSize: 13)),
                           trailing: const Icon(Icons.schedule,
-                              color: Colors.grey, size: 16),
+                              size: 16, color: Colors.grey),
                         ),
                     ],
                   ),
