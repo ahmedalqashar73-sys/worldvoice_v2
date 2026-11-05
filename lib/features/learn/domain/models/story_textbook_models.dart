@@ -136,13 +136,13 @@ class StoryTextbookChapter {
       throw const FormatException('Invalid chapter number.');
     }
     final blocks = _items(map, 'blocks', StoryTextbookBlock.fromJson);
-    if (blocks.length < 4 || blocks.length > 5) {
-      throw const FormatException('Each chapter needs four or five pictures.');
+    if (blocks.length < 2 || blocks.length > 5) {
+      throw const FormatException('Each chapter needs two to five pictures.');
     }
     final count =
         blocks.fold<int>(0, (total, block) => total + block.paragraphs.length);
-    if (count < 10) {
-      throw const FormatException('Every chapter needs ten paragraphs.');
+    if (count < 5) {
+      throw const FormatException('Every chapter needs at least five paragraphs.');
     }
     return StoryTextbookChapter(
       number: number,
