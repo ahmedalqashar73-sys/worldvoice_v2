@@ -115,6 +115,7 @@ flutter:
     - assets/stories/en/C2/illustrations/
     - assets/podcasts/
     - assets/podcasts/en/A1/
+    - assets/podcasts/es/A1/
 
   # To add assets to your application, add an assets section, like this:
   # assets:
