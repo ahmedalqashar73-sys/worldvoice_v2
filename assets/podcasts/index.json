@@ -1,0 +1,641 @@
+{
+  "schema": 1,
+  "language": "en",
+  "hosts": [
+    "Anna",
+    "Daniel"
+  ],
+  "target_duration_ms": 300000,
+  "episodes": [
+    {
+      "id": "en-a1-pod-001",
+      "level": "A1",
+      "title": "Meeting a New Friend",
+      "status": "script_ready",
+      "asset": "assets/podcasts/en/A1/en-a1-pod-001.json"
+    },
+    {
+      "id": "en-a1-pod-002",
+      "level": "A1",
+      "title": "A Morning at Home",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-a1-pod-003",
+      "level": "A1",
+      "title": "At the Coffee Shop",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-a1-pod-004",
+      "level": "A1",
+      "title": "Where Is the Bus Stop?",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-a1-pod-005",
+      "level": "A1",
+      "title": "My Family and Yours",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-a1-pod-006",
+      "level": "A1",
+      "title": "What's the Weather Like?",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-a1-pod-007",
+      "level": "A1",
+      "title": "Choosing a Birthday Gift",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-a1-pod-008",
+      "level": "A1",
+      "title": "Food We Love",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-a1-pod-009",
+      "level": "A1",
+      "title": "My Weekend Plans",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-a1-pod-010",
+      "level": "A1",
+      "title": "A Visit to the Market",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-a1-pod-011",
+      "level": "A1",
+      "title": "Finding a Classroom",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-a1-pod-012",
+      "level": "A1",
+      "title": "A New Neighbor",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-a1-pod-013",
+      "level": "A1",
+      "title": "Favorite Sports",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-a1-pod-014",
+      "level": "A1",
+      "title": "Talking About Our Jobs",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-a1-pod-015",
+      "level": "A1",
+      "title": "A Nice Day at the Park",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-a2-pod-001",
+      "level": "A2",
+      "title": "Planning a Weekend Trip",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-a2-pod-002",
+      "level": "A2",
+      "title": "Cooking Together",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-a2-pod-003",
+      "level": "A2",
+      "title": "The Train Is Late",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-a2-pod-004",
+      "level": "A2",
+      "title": "A Surprise Invitation",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-a2-pod-005",
+      "level": "A2",
+      "title": "Choosing a New Phone",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-a2-pod-006",
+      "level": "A2",
+      "title": "A Busy Day at Work",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-a2-pod-007",
+      "level": "A2",
+      "title": "Learning to Drive",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-a2-pod-008",
+      "level": "A2",
+      "title": "A Visit to the Doctor",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-a2-pod-009",
+      "level": "A2",
+      "title": "Helping a Friend Move",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-a2-pod-010",
+      "level": "A2",
+      "title": "What Should We Watch?",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-a2-pod-011",
+      "level": "A2",
+      "title": "Shopping on a Budget",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-a2-pod-012",
+      "level": "A2",
+      "title": "A Day at the Museum",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-a2-pod-013",
+      "level": "A2",
+      "title": "A Small Travel Mistake",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-a2-pod-014",
+      "level": "A2",
+      "title": "Our Favorite Traditions",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-a2-pod-015",
+      "level": "A2",
+      "title": "Organizing a Study Group",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-b1-pod-001",
+      "level": "B1",
+      "title": "My First Day in a New City",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-b1-pod-002",
+      "level": "B1",
+      "title": "Working from Home",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-b1-pod-003",
+      "level": "B1",
+      "title": "A Trip That Went Wrong",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-b1-pod-004",
+      "level": "B1",
+      "title": "Should We Spend Less?",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-b1-pod-005",
+      "level": "B1",
+      "title": "How We Learn Languages",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-b1-pod-006",
+      "level": "B1",
+      "title": "Making Friends Abroad",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-b1-pod-007",
+      "level": "B1",
+      "title": "Planning a Community Event",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-b1-pod-008",
+      "level": "B1",
+      "title": "Changing a Daily Habit",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-b1-pod-009",
+      "level": "B1",
+      "title": "Why We Love Stories",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-b1-pod-010",
+      "level": "B1",
+      "title": "A Difficult Conversation",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-b1-pod-011",
+      "level": "B1",
+      "title": "Volunteering on Saturday",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-b1-pod-012",
+      "level": "B1",
+      "title": "Choosing the Right Career",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-b1-pod-013",
+      "level": "B1",
+      "title": "A Social Media Break",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-b1-pod-014",
+      "level": "B1",
+      "title": "Dealing with a Delay",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-b1-pod-015",
+      "level": "B1",
+      "title": "Our City in Ten Years",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-b2-pod-001",
+      "level": "B2",
+      "title": "Is Remote Work Better?",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-b2-pod-002",
+      "level": "B2",
+      "title": "Travel and Local Culture",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-b2-pod-003",
+      "level": "B2",
+      "title": "What Makes a Good Teacher?",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-b2-pod-004",
+      "level": "B2",
+      "title": "Technology and Personal Privacy",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-b2-pod-005",
+      "level": "B2",
+      "title": "A More Sustainable Lifestyle",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-b2-pod-006",
+      "level": "B2",
+      "title": "Should Cities Limit Cars?",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-b2-pod-007",
+      "level": "B2",
+      "title": "Why People Change Careers",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-b2-pod-008",
+      "level": "B2",
+      "title": "Can Social Media Build Community?",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-b2-pod-009",
+      "level": "B2",
+      "title": "The Value of Creative Hobbies",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-b2-pod-010",
+      "level": "B2",
+      "title": "Saving Money Without Missing Life",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-b2-pod-011",
+      "level": "B2",
+      "title": "Learning from Failure",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-b2-pod-012",
+      "level": "B2",
+      "title": "What Makes News Trustworthy?",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-b2-pod-013",
+      "level": "B2",
+      "title": "The Challenge of Teamwork",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-b2-pod-014",
+      "level": "B2",
+      "title": "Food Traditions in a Global World",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-b2-pod-015",
+      "level": "B2",
+      "title": "How AI Changes Everyday Work",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-c1-pod-001",
+      "level": "C1",
+      "title": "Language and Identity",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-c1-pod-002",
+      "level": "C1",
+      "title": "Whose History Gets Told?",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-c1-pod-003",
+      "level": "C1",
+      "title": "When Algorithms Make Choices",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-c1-pod-004",
+      "level": "C1",
+      "title": "The Future of Public Spaces",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-c1-pod-005",
+      "level": "C1",
+      "title": "Privacy Versus Convenience",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-c1-pod-006",
+      "level": "C1",
+      "title": "How to Talk About Uncertainty",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-c1-pod-007",
+      "level": "C1",
+      "title": "The Ethics of Travel",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-c1-pod-008",
+      "level": "C1",
+      "title": "What Counts as Meaningful Work?",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-c1-pod-009",
+      "level": "C1",
+      "title": "Can Art Bring Communities Together?",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-c1-pod-010",
+      "level": "C1",
+      "title": "The Problem with Easy Answers",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-c1-pod-011",
+      "level": "C1",
+      "title": "Education and Equal Opportunity",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-c1-pod-012",
+      "level": "C1",
+      "title": "Trust in Public Information",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-c1-pod-013",
+      "level": "C1",
+      "title": "Community Responses to Climate Change",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-c1-pod-014",
+      "level": "C1",
+      "title": "Who Should Be Accountable?",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-c1-pod-015",
+      "level": "C1",
+      "title": "Why Listening Changes Arguments",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-c2-pod-001",
+      "level": "C2",
+      "title": "When Evidence Is Incomplete",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-c2-pod-002",
+      "level": "C2",
+      "title": "Fairness Beyond Average Results",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-c2-pod-003",
+      "level": "C2",
+      "title": "Who Owns Cultural Stories?",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-c2-pod-004",
+      "level": "C2",
+      "title": "The Limits of Technological Solutions",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-c2-pod-005",
+      "level": "C2",
+      "title": "Freedom of Expression and Responsibility",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-c2-pod-006",
+      "level": "C2",
+      "title": "Risk and Public Decision-Making",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-c2-pod-007",
+      "level": "C2",
+      "title": "Scientific Integrity Under Pressure",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-c2-pod-008",
+      "level": "C2",
+      "title": "Language as a Form of Power",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-c2-pod-009",
+      "level": "C2",
+      "title": "Ethics of Collecting Personal Data",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-c2-pod-010",
+      "level": "C2",
+      "title": "The Trade-offs of Urban Development",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-c2-pod-011",
+      "level": "C2",
+      "title": "Who Benefits from Innovation?",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-c2-pod-012",
+      "level": "C2",
+      "title": "What Society Owes Future Generations",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-c2-pod-013",
+      "level": "C2",
+      "title": "The Meaning of Consent",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-c2-pod-014",
+      "level": "C2",
+      "title": "Building Agreement Without Consensus",
+      "status": "planned",
+      "asset": null
+    },
+    {
+      "id": "en-c2-pod-015",
+      "level": "C2",
+      "title": "Why Good Judgement Resists Certainty",
+      "status": "planned",
+      "asset": null
+    }
+  ]
+}
