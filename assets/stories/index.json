@@ -158,6 +158,56 @@
       "format": "textbook",
       "asset": "assets/stories/en/B1/en-b1-005.json",
       "cover_image": "assets/stories/en/B1/illustrations/en-b1-005_scene_01.svg"
+    },
+    {
+      "id": "en-b2-001",
+      "language": "en",
+      "level": "B2",
+      "title": "The Museum Without a Map",
+      "title_ar": "المتحف بلا خريطة",
+      "format": "textbook",
+      "asset": "assets/stories/en/B2/en-b2-001.json",
+      "cover_image": "assets/stories/en/B2/illustrations/en-b2-001_scene_01.svg"
+    },
+    {
+      "id": "en-b2-002",
+      "language": "en",
+      "level": "B2",
+      "title": "A Message from Windward Island",
+      "title_ar": "رسالة من جزيرة ويندوارد",
+      "format": "textbook",
+      "asset": "assets/stories/en/B2/en-b2-002.json",
+      "cover_image": "assets/stories/en/B2/illustrations/en-b2-002_scene_01.svg"
+    },
+    {
+      "id": "en-b2-003",
+      "language": "en",
+      "level": "B2",
+      "title": "The Recipe in Two Languages",
+      "title_ar": "الوصفة بلغتين",
+      "format": "textbook",
+      "asset": "assets/stories/en/B2/en-b2-003.json",
+      "cover_image": "assets/stories/en/B2/illustrations/en-b2-003_scene_01.svg"
+    },
+    {
+      "id": "en-b2-004",
+      "language": "en",
+      "level": "B2",
+      "title": "The Bicycle Lane Debate",
+      "title_ar": "النقاش حول مسار الدراجات",
+      "format": "textbook",
+      "asset": "assets/stories/en/B2/en-b2-004.json",
+      "cover_image": "assets/stories/en/B2/illustrations/en-b2-004_scene_01.svg"
+    },
+    {
+      "id": "en-b2-005",
+      "language": "en",
+      "level": "B2",
+      "title": "The Festival of Shared Voices",
+      "title_ar": "مهرجان الأصوات المشتركة",
+      "format": "textbook",
+      "asset": "assets/stories/en/B2/en-b2-005.json",
+      "cover_image": "assets/stories/en/B2/illustrations/en-b2-005_scene_01.svg"
     }
   ]
 }

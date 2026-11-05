@@ -115,4 +115,55 @@ void main() {
     }
   });
 
+
+  test('English B2 has five verified upper-intermediate books with accessible continuous reading', () async {
+    final repository = StoryLibraryRepository();
+    final entries = await repository.storiesFor(language: 'en', level: 'B2');
+    expect(entries, hasLength(5));
+    expect(entries.map((e) => e.id).toSet(), hasLength(5));
+    expect(entries.map((e) => e.title).toSet(), hasLength(5));
+
+    for (final entry in entries) {
+      expect(entry.format, 'textbook');
+      final book = await repository.loadTextbook(entry);
+      expect(book.language, 'en');
+      expect(book.level, 'B2');
+      expect(book.chapters.map((c) => c.paragraphCount), [5, 5]);
+      expect(book.chapters.map((c) => c.blocks.length), [2, 2]);
+      expect(book.vocabulary.length, greaterThanOrEqualTo(20));
+      expect(book.questions.length, 8);
+      expect(book.questions.map((q) => q.answer).toSet().length,
+          greaterThanOrEqualTo(3));
+
+      final meaningKeys = book.meanings;
+      expect(meaningKeys, hasLength(book.vocabulary.length));
+      for (final chapter in book.chapters) {
+        final speakers = chapter.blocks.expand((b) => b.paragraphs)
+            .expand((p) => p.segments).map((s) => s.speaker).toSet();
+        expect(speakers, containsAll(StoryTextbookSpeaker.values));
+        for (final block in chapter.blocks) {
+          expect(block.paragraphs.length, inInclusiveRange(2, 3));
+          expect(block.image, isNotNull);
+          final illustration = await rootBundle.loadString(block.image!);
+          expect(illustration, contains('<svg'));
+          expect(illustration, contains('</svg>'));
+          for (final paragraph in block.paragraphs) {
+            expect(paragraph.translationAr, isNotEmpty);
+            final words = paragraph.spokenText.trim()
+                .split(RegExp(r'\s+')).length;
+            expect(words, inInclusiveRange(90, 130));
+            final richText = paragraph.segments.map((s) => s.text).join(' ');
+            final marked = RegExp(r'\*\*([^*]+)\*\*')
+                .allMatches(richText)
+                .map((match) => match.group(1)!.toLowerCase()).toList();
+            expect(marked.length, inInclusiveRange(2, 4));
+            for (final word in marked) {
+              expect(meaningKeys, contains(word));
+            }
+          }
+        }
+      }
+    }
+  });
+
 }
